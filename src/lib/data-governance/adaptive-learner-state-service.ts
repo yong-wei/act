@@ -1476,6 +1476,7 @@ function pathExecutionReferenceMatchesCapability(
     status === 'validated' ||
     terminalValidationState === 'completed';
   if (!completed) return false;
+  if (!pathExecutionReferenceMatchesGoal(reference, target)) return false;
   const resourceType = readString(reference.resourceType);
   if (target.observableEvidenceType === 'simulation-run') {
     return resourceType === 'simulation' || resourceType === 'control_workbench';
@@ -1493,6 +1494,35 @@ function pathExecutionReferenceMatchesCapability(
     return resourceType === 'ai_intervention' || resourceType === 'konling';
   }
   return false;
+}
+
+function pathExecutionReferenceMatchesGoal(
+  reference: Record<string, unknown>,
+  target: AdaptiveLearningCapabilityTarget,
+): boolean {
+  const goalId = readString(reference.goalId ?? reference.goal);
+  if (goalId !== target.goalSliceId) return false;
+  const goalSliceId = readString(reference.goalSliceId);
+  if (goalSliceId !== null && goalSliceId !== target.goalSliceId) return false;
+  if (pathExecutionReferenceHasStructuredTarget(reference)) {
+    return structuredContainerTargetsCapability(reference, target);
+  }
+  return true;
+}
+
+function pathExecutionReferenceHasStructuredTarget(reference: Record<string, unknown>): boolean {
+  return [
+    reference.capabilityTargetRef,
+    reference.capabilityTargetRefs,
+    reference.capabilityTargetId,
+    reference.capabilityTargetIds,
+    reference.targetCapabilityId,
+    reference.targetCapabilityIds,
+    reference.knowledgeNodeRef,
+    reference.knowledgeNodeRefs,
+    reference.knowledgeTag,
+    reference.knowledgeTags,
+  ].some((value) => typeof value === 'string' || Array.isArray(value));
 }
 
 function refsFromFacts(facts: Array<Record<string, unknown>>, modalities: string[]): MasteryEvidenceReference[] {

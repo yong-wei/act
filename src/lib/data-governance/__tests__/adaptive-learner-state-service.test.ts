@@ -1529,6 +1529,109 @@ describe('adaptive learner state service', () => {
     });
   });
 
+  it('filters path execution mastery references to the requested goal slice and target', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async () => [],
+      },
+      arenaSubmission: {
+        findMany: async () => [],
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
+          evidenceWindow: evidenceWindow(),
+          sourceCounts: {
+            LearningFact: 0,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: {},
+          },
+          sourceCoverage: {
+            LearningFact: 'missing',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'medium',
+            score: 0.68,
+            evidenceCount: 2,
+            sourceCompleteness: 0.5,
+          },
+          statusMarkers: ['partial'],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-05-20T00:00:00.000Z',
+                factCount: 8,
+                calculationVersion: 'competency-v2',
+                competencyVector: snapshotVector,
+              },
+            },
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+            simulationArena: {
+              recent30d: simulationArenaWindow(),
+              allTime: simulationArenaWindow(),
+            },
+            pathExecution: pathExecutionFeature({
+              allTime: pathExecutionWindow({
+                evidenceCount: 2,
+                completionCount: 2,
+                sourceReferences: [
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-frequency-response',
+                    goalId: 'frequency-response-foundations',
+                    capabilityTargetId: 'frequency-response-foundations:bode-analysis:analyze',
+                    occurredAt: '2026-06-04T10:20:00.000Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                    resourceType: 'arena_task',
+                  },
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-legacy-missing-goal',
+                    occurredAt: '2026-06-04T10:22:00.000Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                    resourceType: 'arena_task',
+                  },
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-control-correction',
+                    goalId: 'control-correction',
+                    capabilityTargetId: 'control-correction:arena-transfer:create',
+                    occurredAt: '2026-06-04T10:24:00.000Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                    resourceType: 'arena_task',
+                  },
+                ],
+              }),
+            }),
+          },
+        }),
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    if (!slice) throw new Error('expected control-correction goal slice');
+    const arenaTarget = slice.capabilityTargets.find((entry) => entry.target.id === 'control-correction:arena-transfer:create');
+    expect(arenaTarget?.observedEvidence.supportingEvidenceRefs).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sourceId: expect.stringContaining('exec-control-correction') }),
+    ]));
+    const refsJson = JSON.stringify(arenaTarget?.observedEvidence.supportingEvidenceRefs);
+    expect(refsJson).not.toContain('exec-frequency-response');
+    expect(refsJson).not.toContain('exec-legacy-missing-goal');
+  });
+
   it('keeps complete control-correction fixtures current without fallback markers', async () => {
     const state = await readAdaptiveLearnerState(createDb({
       studentCompetencySnapshot: {

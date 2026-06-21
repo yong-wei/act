@@ -212,8 +212,11 @@ export function sanitizeOfficialEvaluationExplanation(
 ): string[] {
   const visibleLines = result.explanation.filter((line) => line.trim() && !isRawEnglishEvaluatorLine(line));
   if (isLate) {
+    const latePrefix = result.valid
+      ? '硬约束已通过，但本次提交已超过截止时间，保留为复盘证据，未进入正式排名。'
+      : '硬约束未全部通过，且本次提交已超过截止时间，保留为复盘证据，未进入正式排名。';
     return [
-      '硬约束已通过，但本次提交已超过截止时间，保留为复盘证据，未进入正式排名。',
+      latePrefix,
       ...visibleLines.filter((line) => !line.includes('提交进入正式排名')),
     ];
   }
