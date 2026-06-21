@@ -5,6 +5,7 @@ import {
 import { CONTROL_CORRECTION_COURSE_ID_VALUES } from './data-governance/adaptive-learner-state-service';
 import {
   buildGraphCenterPayload,
+  type GraphCenterOverlayStatus,
   type GraphCenterClassOverlay,
   type GraphCenterClassOverlayInput,
   type GraphCenterDomain,
@@ -300,11 +301,15 @@ function filterLearnerOverlay(
 ): GraphCenterLearnerOverlay | null {
   if (!overlay) return null;
   const wanted = new Set(nodeIds);
-  return {
+  const filtered = {
     ...overlay,
     items: Object.fromEntries(
       Object.entries(overlay.items).filter(([nodeId]) => wanted.has(nodeId)),
     ),
+  };
+  return {
+    ...filtered,
+    status: mergeLearnerOverlayStatus(filtered, [overlay.status]),
   };
 }
 
@@ -314,11 +319,15 @@ function filterClassOverlay(
 ): GraphCenterClassOverlay | null {
   if (!overlay) return null;
   const wanted = new Set(nodeIds);
-  return {
+  const filtered = {
     ...overlay,
     items: Object.fromEntries(
       Object.entries(overlay.items).filter(([nodeId]) => wanted.has(nodeId)),
     ),
+  };
+  return {
+    ...filtered,
+    status: mergeClassOverlayStatus(filtered, [overlay.status]),
   };
 }
 
@@ -328,13 +337,18 @@ function mergeLearnerOverlays(
 ): GraphCenterLearnerOverlay | null {
   const first = overlays[0];
   if (!first) return null;
-  return filterLearnerOverlay({
+  const filtered = filterLearnerOverlay({
     status: first.status,
     learnerId: first.learnerId,
     generatedAt: first.generatedAt,
     items: Object.assign({}, ...overlays.map((overlay) => overlay.items)),
     limitations: overlays.flatMap((overlay) => overlay.limitations),
   }, nodeIds);
+  if (!filtered) return null;
+  return {
+    ...filtered,
+    status: mergeLearnerOverlayStatus(filtered, overlays.map((overlay) => overlay.status)),
+  };
 }
 
 function mergeClassOverlays(
@@ -343,12 +357,52 @@ function mergeClassOverlays(
 ): GraphCenterClassOverlay | null {
   const first = overlays[0];
   if (!first) return null;
-  return filterClassOverlay({
+  const filtered = filterClassOverlay({
     status: first.status,
     classId: first.classId,
     items: Object.assign({}, ...overlays.map((overlay) => overlay.items)),
     limitations: overlays.flatMap((overlay) => overlay.limitations),
   }, nodeIds);
+  if (!filtered) return null;
+  return {
+    ...filtered,
+    status: mergeClassOverlayStatus(filtered, overlays.map((overlay) => overlay.status)),
+  };
+}
+
+function mergeLearnerOverlayStatus(
+  overlay: GraphCenterLearnerOverlay,
+  statuses: GraphCenterOverlayStatus[],
+): GraphCenterOverlayStatus {
+  const items = Object.values(overlay.items);
+  if (items.some((item) => item.evidenceCount > 0 && item.confidence > 0 && item.limitations.length === 0)) {
+    return 'available';
+  }
+  if (items.length > 0 && statuses.includes('low-confidence')) return 'low-confidence';
+  if (statuses.every((status) => status === 'empty')) return 'empty';
+  if (statuses.includes('unauthorized')) return 'unauthorized';
+  if (statuses.includes('suppressed')) return 'suppressed';
+  if (statuses.includes('low-confidence')) return 'low-confidence';
+  if (statuses.includes('unavailable')) return 'unavailable';
+  return statuses[0] ?? 'unavailable';
+}
+
+function mergeClassOverlayStatus(
+  overlay: GraphCenterClassOverlay,
+  statuses: GraphCenterOverlayStatus[],
+): GraphCenterOverlayStatus {
+  const items = Object.values(overlay.items);
+  if (items.some((item) => item.suppressionReason === 'none' && item.denominator > 0 && item.confidence > 0)) {
+    return 'available';
+  }
+  if (items.length > 0 && items.every((item) => item.suppressionReason !== 'none')) return 'suppressed';
+  if (items.length > 0 && statuses.includes('low-confidence')) return 'low-confidence';
+  if (statuses.every((status) => status === 'empty')) return 'empty';
+  if (statuses.includes('unauthorized')) return 'unauthorized';
+  if (statuses.includes('suppressed')) return 'suppressed';
+  if (statuses.includes('low-confidence')) return 'low-confidence';
+  if (statuses.includes('unavailable')) return 'unavailable';
+  return statuses[0] ?? 'unavailable';
 }
 
 function buildCitationRefs(citationContext?: KonlingCitationContext | null): string[] {

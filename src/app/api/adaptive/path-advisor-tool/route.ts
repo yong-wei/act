@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   buildKonlingRuntimeContext,
+  buildKonlingRuntimeGraphContext,
   buildKonlingTeachingAssistantRuntimeContract,
   buildKonlingToolRuntime,
   getOrCreateKonlingAgentSession,
@@ -88,7 +89,15 @@ export async function POST(request: Request) {
       trustedContentContext: true,
     });
     const runtimeContext = pathPlanContext
-      ? { ...baseRuntimeContext, planContext: pathPlanContext }
+      ? {
+          ...baseRuntimeContext,
+          planContext: pathPlanContext,
+          graphContext: buildKonlingRuntimeGraphContext({
+            scope: scopeResult.scope,
+            runtimeContext: { ...baseRuntimeContext, planContext: pathPlanContext },
+            clientHints: { modeContextToken, goalId },
+          }),
+        }
       : baseRuntimeContext;
     const clientContextHints = {
       modeContextToken,

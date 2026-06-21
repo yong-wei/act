@@ -1519,24 +1519,6 @@ export async function buildKonlingRuntimeContext(
     knowledgeWorkspace,
     trustedContentContext: input.trustedContentContext === true,
   });
-  const graphContext = buildKonlingKaqGraphContext({
-    scope,
-    learningGoalId: resolveKonlingGraphContextLearningGoalId(scope.courseId),
-    selectedGraphNodeIds: knowledgeWorkspace?.selected_node?.id
-      ? [knowledgeWorkspace.selected_node.id]
-      : [],
-    learnerOverlayInput: hasGraphCenterLearnerOverlayShape(learnerState)
-      ? {
-          state: learnerState,
-          requestedLearnerId: scope.targetUserId,
-          viewerRole: scope.role,
-          authorized: true,
-        }
-      : null,
-    planContext,
-    citationContext,
-    clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : null,
-  });
   const baseRuntimeContext: KonlingRuntimeContext = {
     pageContext,
     userProfile,
@@ -1544,7 +1526,6 @@ export async function buildKonlingRuntimeContext(
     planContext,
     memory,
     knowledgeWorkspace,
-    graphContext,
     citationContext,
     permittedTools: DEFAULT_TOOLS,
     missingContext: [],
@@ -1554,6 +1535,12 @@ export async function buildKonlingRuntimeContext(
       strategyMemory: process.env.KONLING_STRATEGY_MEMORY_ENABLED === 'true',
     },
   };
+  const graphContext = buildKonlingRuntimeGraphContext({
+    scope,
+    runtimeContext: baseRuntimeContext,
+    clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : null,
+  });
+  baseRuntimeContext.graphContext = graphContext;
   const knowledgeCapabilityContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: baseRuntimeContext,
     scope,
@@ -1578,6 +1565,31 @@ export async function buildKonlingRuntimeContext(
       strategyMemory: process.env.KONLING_STRATEGY_MEMORY_ENABLED === 'true',
     },
   };
+}
+
+export function buildKonlingRuntimeGraphContext(input: {
+  scope: KonlingRuntimeScope;
+  runtimeContext: KonlingRuntimeContext;
+  clientHints?: Record<string, unknown> | null;
+}): KonlingKaqGraphContext {
+  return buildKonlingKaqGraphContext({
+    scope: input.scope,
+    learningGoalId: resolveKonlingGraphContextLearningGoalId(input.scope.courseId),
+    selectedGraphNodeIds: input.runtimeContext.knowledgeWorkspace?.selected_node?.id
+      ? [input.runtimeContext.knowledgeWorkspace.selected_node.id]
+      : [],
+    learnerOverlayInput: hasGraphCenterLearnerOverlayShape(input.runtimeContext.learnerState)
+      ? {
+          state: input.runtimeContext.learnerState,
+          requestedLearnerId: input.scope.targetUserId,
+          viewerRole: input.scope.role,
+          authorized: true,
+        }
+      : null,
+    planContext: input.runtimeContext.planContext,
+    citationContext: input.runtimeContext.citationContext,
+    clientHints: input.clientHints,
+  });
 }
 
 export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {

@@ -251,4 +251,52 @@ describe('Konling K/A/Q graph context', () => {
       items: {},
     });
   });
+
+  it('does not mark class overlay available when filtered target items are suppressed', () => {
+    const context = buildKonlingKaqGraphContext({
+      scope: {
+        courseId: 'control-correction',
+        role: 'teacher',
+        targetUserId: 'teacher-1',
+        classId: 'class-1',
+      },
+      classOverlay: {
+        status: 'available',
+        classId: 'class-1',
+        items: {
+          'cap:autocontrol:synthesize-controller-correction': {
+            domain: 'capability',
+            nodeId: 'cap:autocontrol:synthesize-controller-correction',
+            classId: 'class-1',
+            distribution: {
+              mastered: 0,
+              developing: 1,
+              weak: 0,
+              'not-started': 0,
+              'evidence-needed': 0,
+            },
+            averageScore: null,
+            confidence: 0,
+            commonIssueCodes: [],
+            denominator: 1,
+            includedPopulation: 1,
+            excludedPopulation: 0,
+            suppressionReason: 'low-denominator',
+            roundingPolicy: { minimumDenominator: 3, increment: 1 },
+          },
+        },
+        limitations: [],
+      } as never,
+      planContext: planContext(),
+      citationContext: citationContext(),
+    });
+
+    expect(context.classOverlay?.status).toBe('suppressed');
+    expect(context.missingGrounding).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        class: 'overlay',
+        reason: 'learner-or-class-overlay-missing',
+      }),
+    ]));
+  });
 });
