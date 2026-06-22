@@ -645,6 +645,7 @@ export interface ResourceSegment {
   sourceRef: ResourceSemanticSourceReference;
   kind: ResourceSegmentKind;
   anchor: ResourceSegmentAnchor;
+  privacyScope: ResourceNodePrivacyLevel;
   graphNodeRefs: ResourceGraphNodeRefs;
   sceneAvailability: ResourceSceneAvailabilityMap;
   citationReadiness: ResourceCitationReadiness;
@@ -659,6 +660,7 @@ export interface CitationTarget {
   resourceSegmentId: string;
   sourceRef: ResourceSemanticSourceReference;
   target: string | null;
+  privacyScope: ResourceNodePrivacyLevel;
   status: 'resolvable' | 'missing-target';
   readiness: ResourceCitationReadiness;
 }
@@ -669,6 +671,7 @@ export interface RetrievalChunk {
   resourceSegmentId: string;
   citationTargetId: string | null;
   textHash: string | null;
+  privacyScope: ResourceNodePrivacyLevel;
   projectionStatus: ResourceSemanticProjectionStatus;
   graphNodeRefs: ResourceGraphNodeRefs;
   sceneAvailability: ResourceSceneAvailabilityMap;
@@ -1147,6 +1150,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     sourceRef: primarySourceRef,
     kind: segmentKindForNode(node),
     anchor: buildSegmentAnchor(node, target),
+    privacyScope: node.planningMetadata.privacyLevel,
     graphNodeRefs,
     sceneAvailability,
     citationReadiness,
@@ -1160,6 +1164,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     resourceSegmentId: segmentId,
     sourceRef: primarySourceRef,
     target,
+    privacyScope: node.planningMetadata.privacyLevel,
     status: target ? 'resolvable' : 'missing-target',
     readiness: citationReadiness,
   }];
@@ -1169,6 +1174,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     resourceSegmentId: segmentId,
     citationTargetId,
     textHash: null,
+    privacyScope: node.planningMetadata.privacyLevel,
     projectionStatus: target ? 'not-indexed' : 'blocked',
     graphNodeRefs,
     sceneAvailability,
@@ -1192,8 +1198,9 @@ export function validateResourceMediaSourceManifest(
 ): ResourceMediaSourceManifestValidation {
   const issues: string[] = [];
   if (!manifest.sourceId) issues.push('missing-source-id');
-  if (!manifest.sourcePath) issues.push('missing-source-path');
-  if (manifest.sourcePath && !isSafeMediaSourcePath(manifest.sourcePath)) issues.push('unsafe-source-path');
+  const sourcePath = typeof manifest.sourcePath === 'string' ? manifest.sourcePath : '';
+  if (!sourcePath.trim()) issues.push('missing-source-path');
+  if (sourcePath && !isSafeMediaSourcePath(sourcePath)) issues.push('unsafe-source-path');
   if (!manifest.sourceVersionRef && !manifest.freshnessRef) issues.push('missing-source-version-or-freshness');
   if (!manifest.privacyScope) issues.push('missing-privacy-scope');
   if (!['video', 'audio', 'image', 'slides'].includes(manifest.mediaType)) issues.push('invalid-media-type');
@@ -1274,6 +1281,7 @@ export function buildMediaSourceManifestSemanticProjection(
       sourceRef,
       kind: manifest.mediaType,
       anchor: buildMediaSegmentAnchor(manifest, segment),
+      privacyScope: mediaSegmentPrivacyScope(manifest, segment),
       graphNodeRefs: normalizeResourceGraphNodeRefs(segment.graphNodeRefs),
       sceneAvailability,
       citationReadiness,
@@ -1293,6 +1301,7 @@ export function buildMediaSourceManifestSemanticProjection(
       resourceSegmentId: segment.id,
       sourceRef,
       target: ready ? segment.anchor.ref : null,
+      privacyScope: segment.privacyScope,
       status: ready ? 'resolvable' : 'missing-target',
       readiness: segment.citationReadiness,
     };
@@ -1305,6 +1314,7 @@ export function buildMediaSourceManifestSemanticProjection(
       resourceSegmentId: segment.id,
       citationTargetId: citationTarget.status === 'resolvable' ? citationTarget.id : null,
       textHash: null,
+      privacyScope: segment.privacyScope,
       projectionStatus: citationTarget.status === 'resolvable' ? 'mapped' : 'blocked',
       graphNodeRefs: segment.graphNodeRefs,
       sceneAvailability: segment.sceneAvailability,
@@ -1317,6 +1327,10 @@ export function buildMediaSourceManifestSemanticProjection(
   });
   const graphNodeRefs = mergeResourceGraphNodeRefs(segments.map((segment) => segment.graphNodeRefs));
   const citationReadiness = buildMediaManifestCitationReadiness(validation.issues, segments);
+  const privacyLevel = mostRestrictivePrivacyScope([
+    manifest.privacyScope,
+    ...manifestSegments.map((segment) => segment.privacyScope),
+  ]);
   const resource: Resource = {
     id: resourceId,
     resourceNodeId: resourceId,
@@ -1354,7 +1368,7 @@ export function buildMediaSourceManifestSemanticProjection(
     governance: {
       availability: 'available',
       teacherPolicy: 'allowed',
-      privacyLevel: manifest.privacyScope ?? 'teacher-scoped',
+      privacyLevel,
       auditIssueCodes: validation.issues,
     },
   };
@@ -2639,6 +2653,20 @@ function buildMediaManifestSourceRefs(
   if (manifest.chapterRef) refs.push({ kind: 'media_source_manifest', ref: `chapter:${manifest.chapterRef}` });
   if (manifest.descriptionRef) refs.push({ kind: 'media_source_manifest', ref: `description:${manifest.descriptionRef}` });
   return refs;
+}
+
+function mediaSegmentPrivacyScope(
+  manifest: ResourceMediaSourceManifest,
+  segment: ResourceMediaManifestSegment,
+): ResourceNodePrivacyLevel {
+  return segment.privacyScope ?? manifest.privacyScope ?? 'teacher-scoped';
+}
+
+function mostRestrictivePrivacyScope(scopes: Array<ResourceNodePrivacyLevel | null | undefined>): ResourceNodePrivacyLevel {
+  if (scopes.includes('admin-scoped')) return 'admin-scoped';
+  if (scopes.includes('teacher-scoped')) return 'teacher-scoped';
+  if (scopes.includes('student-visible')) return 'student-visible';
+  return 'teacher-scoped';
 }
 
 function mediaSegmentId(

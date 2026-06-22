@@ -1950,6 +1950,49 @@ describe('resource node registry', () => {
       { kind: 'media_source_manifest', ref: 'freshness:checked:2026-06-22' },
     ]));
 
+    const restrictedSegmentProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:restricted-segment',
+      sourcePath: 'course-content/authoring/videos/restricted-segment.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'restricted.v1',
+      privacyScope: 'student-visible',
+      transcriptRef: 'transcripts/restricted-segment.vtt',
+      segments: [
+        {
+          id: 'teacher-only',
+          anchorRef: 'teacher-only',
+          privacyScope: 'teacher-scoped',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(restrictedSegmentProjection.resource.governance.privacyLevel).toBe('teacher-scoped');
+    expect(restrictedSegmentProjection.segments[0].privacyScope).toBe('teacher-scoped');
+    expect(restrictedSegmentProjection.citationTargets[0].privacyScope).toBe('teacher-scoped');
+    expect(restrictedSegmentProjection.retrievalChunks[0].privacyScope).toBe('teacher-scoped');
+
+    expect(validateResourceMediaSourceManifest({
+      sourceId: 'authoring/video:bad-source-path',
+      sourcePath: { path: 'course-content/authoring/videos/bad.mp4' },
+      mediaType: 'video',
+      sourceVersionRef: 'bad-source-path.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/bad.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof validateResourceMediaSourceManifest>[0]).issues).toContain('missing-source-path');
+
     for (const segments of [undefined, 'not-an-array']) {
       const malformedProjection = buildMediaSourceManifestSemanticProjection({
         sourceId: `authoring/video:malformed-${String(segments)}`,
