@@ -6,7 +6,7 @@ import {
   GraphCenterClient,
   selectGraphCenterPayloadNode,
 } from '@/features/graph-center/graph-center-client';
-import { buildGraphCenterPayload } from '../graph-center';
+import { buildGraphCenterPayload, type ResourceFieldCompletionGraphSummary } from '../graph-center';
 import {
   createLearningEvidenceCorpusChunk,
   type LearningEvidenceCorpusChunk,
@@ -14,6 +14,7 @@ import {
 import type { AdaptiveLearnerState } from '../adaptive-learner-state-service';
 import { buildResourceNodeRegistry } from '../../resource-node-registry';
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
+import { RESOURCE_FIELD_COMPLETION_AUDIT_VERSION } from '../../resource-field-completion-audit';
 
 describe('graph center client surface', () => {
   it('renders domain switching, filters, list fallback, and selected-node detail', () => {
@@ -129,6 +130,54 @@ describe('graph center client surface', () => {
     expect(html).toContain('可引用 1');
     expect(html).toContain('已校验引用 1');
     expect(html).not.toContain('缺少已校验引用');
+  });
+
+  it('renders teacher resource field completion diagnostics when present', () => {
+    const resourceFieldCompletionSummary: ResourceFieldCompletionGraphSummary = {
+      graphCoverageDiagnostics: {
+        'kn:autocontrol:controller-correction': {
+          complete: 1,
+          missingField: 2,
+          provisional: 1,
+          humanConfirmed: 1,
+          citationReady: 1,
+          pathEligible: 1,
+          blocked: 1,
+          denominator: 3,
+          sourceWindow: { from: null, to: '2026-06-22T00:00:00.000Z' },
+          missingFieldCodes: ['missing-content-hash', 'provisional-metadata'],
+          limitationReasons: ['metadata is provisional'],
+          sampleLimitations: ['registry:sample: metadata is provisional'],
+          artifactVersion: RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
+        },
+      },
+    };
+    const teacherPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'TEACHER',
+      resourceFieldCompletionSummary,
+    });
+    const studentPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'STUDENT',
+      resourceFieldCompletionSummary,
+    });
+
+    const teacherHtml = renderToStaticMarkup(createElement(GraphCenterClient, { initialPayload: teacherPayload }));
+    const studentHtml = renderToStaticMarkup(createElement(GraphCenterClient, { initialPayload: studentPayload }));
+
+    expect(teacherHtml).toContain('字段完成');
+    expect(teacherHtml).toContain('完整 1');
+    expect(teacherHtml).toContain('缺字段 2');
+    expect(teacherHtml).toContain('暂定 1');
+    expect(teacherHtml).toContain('人审 1');
+    expect(teacherHtml).toContain('缺少内容哈希');
+    expect(teacherHtml).toContain('暂定元数据');
+    expect(teacherHtml).toContain('registry:sample: metadata is provisional');
+    expect(studentHtml).not.toContain('字段完成');
+    expect(studentHtml).not.toContain('缺少内容哈希');
   });
 
   it('preserves server-provided coverage when selecting another node from the same payload', () => {

@@ -14,6 +14,9 @@ import {
 } from '@/lib/data-governance/graph-center';
 
 type GraphCenterDisplayMode = 'resourceCoverage' | 'learner' | 'class';
+type GraphCenterFieldCompletionSummary = NonNullable<
+  NonNullable<GraphCenterPayload['selectedNode']>['resourceCoverage']['fieldCompletion']
+>;
 
 interface GraphCenterClientProps {
   initialPayload: GraphCenterPayload;
@@ -266,6 +269,9 @@ export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplay
                 <span>可引用 {payload.selectedNode.resourceCoverage.citationReadyCount}</span>
                 <span>已校验引用 {payload.selectedNode.resourceCoverage.verifiedCitationCount}</span>
               </DetailGroup>
+              {payload.selectedNode.resourceCoverage.fieldCompletion && (
+                <FieldCompletionDetail summary={payload.selectedNode.resourceCoverage.fieldCompletion} />
+              )}
               <DetailGroup label="资源类型">
                 <span>测评 {payload.selectedNode.resourceCoverage.assessmentResourceCount}</span>
                 <span>仿真 {payload.selectedNode.resourceCoverage.simulationResourceCount}</span>
@@ -338,6 +344,36 @@ function OverlayModeButton({
       <span>{label}</span>
       <span className="text-xs text-platform-fg-muted">{overlayStatusLabel(status)}</span>
     </button>
+  );
+}
+
+function FieldCompletionDetail({ summary }: { summary: GraphCenterFieldCompletionSummary }) {
+  return (
+    <>
+      <DetailGroup label="字段完成">
+        <span>完整 {summary.complete}</span>
+        <span>缺字段 {summary.missingField}</span>
+        <span>暂定 {summary.provisional}</span>
+        <span>人审 {summary.humanConfirmed}</span>
+        <span>可引用 {summary.citationReady}</span>
+        <span>路径可用 {summary.pathEligible}</span>
+        <span>总数 {summary.denominator}</span>
+      </DetailGroup>
+      {summary.missingFieldCodes.length > 0 && (
+        <DetailGroup label="字段缺口">
+          {summary.missingFieldCodes.slice(0, 6).map((code) => (
+            <span key={code}>{missingFieldCodeLabel(code)}</span>
+          ))}
+        </DetailGroup>
+      )}
+      {summary.sampleLimitations.length > 0 && (
+        <DetailGroup label="诊断样例">
+          {summary.sampleLimitations.slice(0, 3).map((limitation) => (
+            <span key={limitation}>{limitation}</span>
+          ))}
+        </DetailGroup>
+      )}
+    </>
   );
 }
 
@@ -641,6 +677,23 @@ function missingCoverageLabel(type: GraphCenterResourceCoverageMissingType): str
     'terminal-validation-capable-resource': '缺少终端验证能力',
   };
   return labels[type];
+}
+
+function missingFieldCodeLabel(code: string): string {
+  const labels: Record<string, string> = {
+    'missing-capability-target': '缺少能力目标',
+    'missing-citation-target': '缺少引用目标',
+    'missing-content-hash': '缺少内容哈希',
+    'missing-evidence-contract': '缺少证据契约',
+    'missing-evidence-instrumentation': '缺少证据埋点',
+    'missing-human-review': '缺少人工复核',
+    'missing-knowledge-binding': '缺少知识绑定',
+    'missing-path-profile': '缺少路径画像',
+    'missing-path-target': '缺少路径目标',
+    'missing-segment-ref': '缺少片段引用',
+    'provisional-metadata': '暂定元数据',
+  };
+  return labels[code] ?? code;
 }
 
 function overlayStatusLabel(status: GraphCenterOverlayStatus): string {
