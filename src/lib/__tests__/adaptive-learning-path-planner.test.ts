@@ -833,6 +833,91 @@ describe('adaptive learning path planner', () => {
     expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:graph-frequency-card-a']);
   });
 
+  it('matches ResourceNodes bound to required graph prerequisites', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+    const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
+    const graphTargetId = learningGoal.targetGraphNodeIds[0];
+    const prerequisiteNodeId = 'kn:autocontrol:required-frequency-prerequisite';
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'graph-prerequisite-card',
+        title: '频域先修图谱知识卡',
+        sourceRef: 'frequency-response:graph-prerequisite',
+        renderTarget: '/knowledge/cards/frequency-response-prerequisite',
+        knowledgeNodeIds: ['legacy-frequency-prerequisite'],
+        planningOverride: {
+          abilityImpact: {
+            frequencyResponseInterpretation: 0.2,
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['legacy-frequency-prerequisite'],
+      },
+      learnerState: null,
+      registry,
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph: {
+          ...expandedSubgraph,
+          prerequisitePolicy: [{
+            edgeId: 'edge-required-frequency-prerequisite',
+            sourceNodeId: prerequisiteNodeId,
+            targetNodeId: graphTargetId,
+            domain: 'knowledge',
+            relation: 'requires',
+            strength: 'strong',
+            semantics: 'hard_prerequisite',
+            direction: 'incoming',
+            required: true,
+            rationale: 'Required prerequisite fixture for planner graph matching.',
+          }],
+        },
+        resourceCoverage: {
+          [prerequisiteNodeId]: {
+            domain: 'knowledge',
+            nodeId: prerequisiteNodeId,
+            linkedResourceCount: 1,
+            pathEligibleResourceCount: 1,
+            ragIndexedCount: 0,
+            citationReadyCount: 0,
+            verifiedCitationCount: 0,
+            assessmentResourceCount: 0,
+            simulationResourceCount: 0,
+            arenaPreviewResourceCount: 0,
+            arenaOfficialResourceCount: 0,
+            terminalValidationCapableResourceCount: 0,
+            coverageState: 'partial',
+            missingCoverageTypes: ['rag-indexed-resource'],
+            linkedResourceIds: ['resource:graph-prerequisite-card'],
+            pathEligibleResourceIds: ['knowledge-card:graph-prerequisite-card'],
+          },
+        },
+        learnerOverlay: null,
+        classOverlay: null,
+      },
+    }));
+
+    expect(plan.graphContext?.targetGraphNodeIds).toContain(prerequisiteNodeId);
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:graph-prerequisite-card']);
+    expect(plan.explanations.fallbackReasons).toContain('graph-target-coverage-partial');
+  });
+
   it('does not let graph context linked chunks bypass audited ResourceNodes', () => {
     const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
     const graphTargetId = learningGoal.targetGraphNodeIds[0];

@@ -2036,6 +2036,12 @@ function buildAdaptiveLearningPathGraphContext(
     ...graphNodeIds.capability,
     ...graphNodeIds.quality,
     ...(registeredGoal?.learningGoal?.targetGraphNodeIds ?? []),
+    ...input.expandedSubgraph.prerequisitePolicy
+      .filter((entry) => entry.required && (
+        entry.semantics === 'hard_prerequisite' ||
+        entry.semantics === 'co_requisite'
+      ))
+      .flatMap((entry) => [entry.sourceNodeId, entry.targetNodeId]),
   ]);
   const resourceCoverageStatus = Object.fromEntries(
     Object.entries(input.resourceCoverage ?? {}).map(([nodeId, coverage]) => [
