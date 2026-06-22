@@ -2526,6 +2526,7 @@ describe('adaptive learning path planner', () => {
     }));
 
     const selectedTextbookSection = plan.mainPath.find((node) => node.type === 'textbook_section');
+    const frequencyAliases = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].knowledgeTargetAliases?.['kn-bode'] ?? [];
     expect(selectedTextbookSection).toMatchObject({
       nodeId: expect.stringMatching(/^textbook-section:dorf-modern-control-systems:/),
       pathNodeType: 'textbook_section',
@@ -2534,8 +2535,12 @@ describe('adaptive learning path planner', () => {
     });
     expect(selectedTextbookSection?.knowledgeCoverage).not.toContain('kn-bode');
     expect(selectedTextbookSection?.knowledgeCoverage.some((target) =>
-      (ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].knowledgeTargetAliases?.['kn-bode'] ?? []).includes(target)
+      frequencyAliases.includes(target)
     )).toBe(true);
+    expect(selectedTextbookSection?.resourceRanker?.matchedGraphRefs.knowledge.some((target) =>
+      frequencyAliases.includes(target)
+    )).toBe(true);
+    expect(selectedTextbookSection?.reasonCodes).toContain('ranker:graph-coverage');
     expect(plan.status).toBe('ready');
   });
 

@@ -1693,10 +1693,11 @@ function buildAdaptiveLearningPathPlanInternal(
   const eligibleIds = new Set(pathEligible.map((node) => node.id));
   const targetGraphNodeIds = graphContext?.targetGraphNodeIds.length
     ? graphContext.targetGraphNodeIds
-    : [
+    : unique([
       ...input.goal.knowledgeTargets,
+      ...expandedRegisteredKnowledgeTargets(input.goal, deficits, registeredGoal),
       ...(input.goal.competencyTargets ?? []),
-    ];
+    ]);
   const rankerResult = rankResourceLearnerCandidates({
     candidates: pathEligible.map((node) => {
       const planningUnit = planningUnitForNode(node);
