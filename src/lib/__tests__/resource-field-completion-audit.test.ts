@@ -90,6 +90,15 @@ describe('resource field completion audit', () => {
     expect(indexedMediaRows.some((row) => row.resourceId === 'runtime-media:5-1:5-1-intro-video')).toBe(true);
     expect(indexedMediaRows.some((row) => row.resourceId === 'runtime-media:5-1:5-1 媒体链接登记')).toBe(false);
     expect(indexedMediaRows.some((row) => row.resourceType === 'handout')).toBe(false);
+    const graphBoundStepRow = jsonlRows.find((row) => row.resourceId === 'runtime-step:3-5:step-01');
+    expect(graphBoundStepRow?.missingFieldCodes).not.toContain('missing-knowledge-binding');
+    expect(graphBoundStepRow?.coverage.denominatorKey).toContain('根轨迹法_2_e3f6c0c1');
+    const infographPath = 'course-content/runtime/knowledge/infographs/nodes/Bode图_1_1.png';
+    const infographRow = jsonlRows.find((row) => row.resourceId === 'infograph:Bode图_1_1');
+    const infographHash = `sha256:${createHash('sha256').update(readFileSync(join(process.cwd(), infographPath))).digest('hex')}`;
+    expect(infographRow?.sourcePathOrUrl).toBe(infographPath);
+    expect(infographRow?.sourceHash).toBe(infographHash);
+    expect(infographRow?.missingFieldCodes).not.toContain('missing-content-hash');
 
     const authoringManifestPath = 'course-content/authoring/resources/textbooks/hu-shousong-exercise-analysis-3rd/chapter-01/manifest.json';
     const authoringManifest = JSON.parse(readFileSync(join(process.cwd(), authoringManifestPath), 'utf8'));

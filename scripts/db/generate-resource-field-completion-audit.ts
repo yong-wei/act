@@ -215,10 +215,18 @@ async function collectRuntimeManifestCandidates() {
   const candidates: ResourceFieldCompletionCandidate[] = [];
   const lessonDirs = await safeReadDir(RUNTIME_LESSONS_DIR);
   for (const dirent of lessonDirs.filter((entry) => entry.isDirectory())) {
+    const lessonDir = path.join(RUNTIME_LESSONS_DIR, dirent.name);
     const manifestPath = path.join(RUNTIME_LESSONS_DIR, dirent.name, 'interactive-manifest.json');
-    const manifest = await readJson<RuntimeInteractiveManifest>(manifestPath);
+    const [manifest, graphOverlay, lesson] = await Promise.all([
+      readJson<RuntimeInteractiveManifest>(manifestPath),
+      readJson<RuntimeGraphOverlay>(path.join(lessonDir, 'graph-overlay.json')),
+      readJson<RuntimeLessonJson>(path.join(lessonDir, 'lesson.json')),
+    ]);
     if (!manifest?.steps) continue;
     const lessonId = manifest.lesson_id ?? dirent.name;
+    const stepKnowledgeNodeIds = buildRuntimeStepKnowledgeNodeMap(
+      graphOverlay?.groups ?? lesson?.sequence?.groups ?? [],
+    );
     for (const [stepId, step] of Object.entries(manifest.steps)) {
       candidates.push({
         id: `runtime-step:${lessonId}:${stepId}`,
@@ -226,7 +234,7 @@ async function collectRuntimeManifestCandidates() {
         family: 'runtime-lesson-step',
         sourcePathOrUrl: projectPath(manifestPath),
         sourceRecord: `${lessonId}:${stepId}`,
-        knowledgeNodeIds: [],
+        knowledgeNodeIds: stepKnowledgeNodeIds.get(stepId) ?? [],
         capabilityTargetIds: [],
         segmentRefs: [stepId],
         citationTargets: [],
@@ -414,9 +422,27 @@ function parseRuntimeLessonMediaResources(markdown: string, lessonDirName: strin
   }));
 }
 
+function buildRuntimeStepKnowledgeNodeMap(
+  groups: Array<{ step_ids: string[]; node_ids: string[] }>,
+): Map<string, string[]> {
+  const result = new Map<string, Set<string>>();
+  for (const group of groups) {
+    for (const stepId of group.step_ids ?? []) {
+      if (!result.has(stepId)) result.set(stepId, new Set());
+      for (const nodeId of group.node_ids ?? []) {
+        if (nodeId) result.get(stepId)?.add(nodeId);
+      }
+    }
+  }
+  return new Map(Array.from(result.entries()).map(([stepId, nodeIds]) => [
+    stepId,
+    Array.from(nodeIds).sort((left, right) => left.localeCompare(right)),
+  ]));
+}
+
 async function collectInfographCandidates() {
   const manifest = await readJson<InfographManifest>(INFOGRAPH_MANIFEST_PATH);
-  const candidates = (manifest?.items ?? []).map<ResourceFieldCompletionCandidate>((item) => ({
+  const candidates = await Promise.all((manifest?.items ?? []).map(async (item): Promise<ResourceFieldCompletionCandidate> => ({
     id: `infograph:${item.nodeId ?? item.path ?? item.title}`,
     title: item.title ?? item.nodeId ?? 'Untitled infograph',
     family: 'knowledge-infograph',
@@ -430,8 +456,9 @@ async function collectInfographCandidates() {
     evidenceInstrumentation: [],
     generatedBy: 'external-tool',
     humanConfirmed: false,
+    contentHash: item.path ? await readLocalFileHash(item.path) : null,
     versionRef: 'knowledge-infograph-manifest.v1',
-  }));
+  })));
   return {
     candidates,
     limitations: candidates.length === 0 ? ['No knowledge infograph manifest items were found.'] : [],
@@ -613,6 +640,18 @@ async function fileExists(filePath: string) {
     return true;
   } catch {
     return false;
+  }
+}
+
+async function readLocalFileHash(sourcePath: string) {
+  if (/^https?:\/\//i.test(sourcePath)) return null;
+  try {
+    const absolutePath = path.isAbsolute(sourcePath)
+      ? sourcePath
+      : path.join(process.cwd(), sourcePath);
+    return `sha256:${sha256(await fs.readFile(absolutePath))}`;
+  } catch {
+    return null;
   }
 }
 
