@@ -273,21 +273,28 @@ function sceneRejectionReasons(
     if (!profile.planningUnit) return ['missing-planning-unit-projection'];
     if (!candidate.node.eligibility.pathEligible) return candidate.node.eligibility.reasons;
   }
-  const governanceReasons = nonPathGovernanceRejectionReasons(candidate.node);
+  const governanceReasons = nonPathGovernanceRejectionReasons(candidate.node, scene);
   if (governanceReasons.length > 0) return governanceReasons;
   const availability = profile.sceneAvailability[scene];
   if (!availability.allowed) return [availability.reason ?? `${scene}-scene-unavailable`];
   return [];
 }
 
-function nonPathGovernanceRejectionReasons(node: ResourceNode): string[] {
-  return node.eligibility.reasons.filter((reason) => [
+function nonPathGovernanceRejectionReasons(node: ResourceNode, scene: ResourceLearnerMatchingScene): string[] {
+  const hardReasons = node.eligibility.reasons.filter((reason) => [
     'unavailable-resource',
     'teacher-policy-blocked',
     'missing-privacy-policy',
     'missing-external-privacy-policy',
     'unsafe-external-url',
   ].includes(reason));
+  if (scene !== 'prep-pack' && node.planningMetadata.teacherPolicy === 'teacher-only') {
+    hardReasons.push('teacher-policy-teacher-only');
+  }
+  if (scene !== 'prep-pack' && node.planningMetadata.teacherPolicy === 'teacher-assigned') {
+    hardReasons.push('teacher-assignment-required');
+  }
+  return hardReasons;
 }
 
 function buildFeatureContributions(
@@ -388,7 +395,9 @@ function learnerFitScore(
   const preferredTypes = new Set([
     ...(input.preferredResourceTypes ?? []),
     ...(input.learnerState?.resourcePreference?.preferredModalities ?? []).filter((type): type is ResourceNode['type'] =>
-      Boolean(input.registry?.supportedTypes.includes(type as ResourceNode['type']))
+      input.registry
+        ? input.registry.supportedTypes.includes(type as ResourceNode['type'])
+        : type === node.type
     ),
   ]);
   const modality = preferredTypes.has(node.type) ? 0.35 : 0;

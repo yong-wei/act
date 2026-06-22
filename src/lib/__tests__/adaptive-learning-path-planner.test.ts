@@ -591,6 +591,38 @@ describe('adaptive learning path planner', () => {
     expect(ranking.ranked[0].score).toBe(ranking.ranked[1].score);
   });
 
+  it('preserves learner modality preference when registry metadata is omitted', () => {
+    const registry = buildResourceNodeRegistry({
+      simulations: [{
+        id: 'preference-sim',
+        title: '偏好仿真',
+        launchTarget: '/simulations/preference',
+        knowledgeNodeIds: ['kn-bode'],
+      }],
+    });
+    const node = registry.nodes.find((entry) => entry.id === 'simulation:preference-sim');
+    expect(node).toBeDefined();
+    const ranking = rankResourceLearnerCandidates({
+      candidates: [{
+        node: node!,
+        planningUnit: buildResourceSemanticProjection(node!).planningUnit,
+      }],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: {
+        resourcePreference: {
+          preferredModalities: ['simulation'],
+        },
+      },
+      timeBudgetMinutes: 30,
+    });
+    const learnerFit = ranking.ranked[0].explanation.featureContributions.find((contribution) =>
+      contribution.feature === 'learner-fit'
+    );
+
+    expect(learnerFit?.value).toBeGreaterThanOrEqual(0.35);
+  });
+
   it('keeps Konling citation suitability separate from path PlanningUnit eligibility', () => {
     const registry = buildResourceNodeRegistry({
       externalResources: [{
@@ -682,6 +714,24 @@ describe('adaptive learning path planner', () => {
         planningOverride: {
           teacherPolicy: 'blocked',
         },
+      }, {
+        id: 'teacher-only-konling-card',
+        title: '教师专用知识卡',
+        sourceRef: 'kn-bode:teacher-only',
+        renderTarget: '/knowledge/cards/teacher-only',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          teacherPolicy: 'teacher-only',
+        },
+      }, {
+        id: 'teacher-assigned-konling-card',
+        title: '未分配教师指派知识卡',
+        sourceRef: 'kn-bode:teacher-assigned',
+        renderTarget: '/knowledge/cards/teacher-assigned',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          teacherPolicy: 'teacher-assigned',
+        },
       }],
       externalResources: [{
         id: 'no-privacy-konling-reference',
@@ -722,6 +772,14 @@ describe('adaptive learning path planner', () => {
       expect.objectContaining({
         node: expect.objectContaining({ id: 'external-resource:no-privacy-konling-reference' }),
         rejectionReasons: expect.arrayContaining(['missing-external-privacy-policy']),
+      }),
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'knowledge-card:teacher-only-konling-card' }),
+        rejectionReasons: expect.arrayContaining(['teacher-policy-teacher-only']),
+      }),
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'knowledge-card:teacher-assigned-konling-card' }),
+        rejectionReasons: expect.arrayContaining(['teacher-assignment-required']),
       }),
     ]));
   });
