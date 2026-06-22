@@ -180,6 +180,23 @@ describe('graph center client surface', () => {
     expect(studentHtml).not.toContain('缺少内容哈希');
   });
 
+  it('skips resource field completion summary work for student payloads', () => {
+    const resourceFieldCompletionSummary = {
+      get graphCoverageDiagnostics(): ResourceFieldCompletionGraphSummary['graphCoverageDiagnostics'] {
+        throw new Error('student payload must not compute field completion diagnostics');
+      },
+    } satisfies ResourceFieldCompletionGraphSummary;
+
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'STUDENT',
+      resourceFieldCompletionSummary,
+    });
+
+    expect(payload.selectedNode?.resourceCoverage.fieldCompletion).toBeUndefined();
+  });
+
   it('preserves server-provided coverage when selecting another node from the same payload', () => {
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',

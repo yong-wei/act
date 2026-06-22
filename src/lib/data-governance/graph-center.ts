@@ -1117,11 +1117,13 @@ function buildResourceCoverage(
   });
   const linkedResourceIds = uniqueSorted(linkedResources.map((resource) => resource.id));
   const pathEligibleResourceIds = uniqueSorted(pathEligibleResources.map((resource) => resource.id));
-  const fieldCompletion = summarizeFieldCompletionForGraphCoverage(
-    coverageRefSet,
-    linkedResources,
-    options.resourceFieldCompletionSummary,
-  );
+  const fieldCompletion = options.exposeFieldCompletion
+    ? summarizeFieldCompletionForGraphCoverage(
+      coverageRefSet,
+      linkedResources,
+      options.resourceFieldCompletionSummary,
+    )
+    : undefined;
 
   return {
     domain: node.domain,
@@ -1140,7 +1142,7 @@ function buildResourceCoverage(
     missingCoverageTypes,
     linkedResourceIds,
     pathEligibleResourceIds,
-    ...(options.exposeFieldCompletion ? { fieldCompletion } : {}),
+    ...(fieldCompletion ? { fieldCompletion } : {}),
   };
 }
 
