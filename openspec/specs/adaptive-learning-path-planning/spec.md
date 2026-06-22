@@ -18,12 +18,12 @@ The system SHALL generate adaptive learning paths from learner state, the Resour
 - **AND** internal diagnostic gaps SHALL be available to authorized teacher/admin diagnostics rather than student default UI.
 
 ### Requirement: Objective function is multi-objective
-The system SHALL score candidate paths with a multi-objective function rather than optimizing only for speed or score.
+The system SHALL score candidate paths with a multi-objective function rather than optimizing only for speed or score, and it MAY consume ranked ResourceNode candidate sets produced by the governed resource-learner matching layer.
 
-#### Scenario: Candidate path is scored
-- **WHEN** the planner compares candidate paths
-- **THEN** it SHALL consider expected learning gain, engagement, constraint satisfaction, diversity, fatigue, and dropout risk
-- **AND** it SHALL expose reason metadata for the selected path and rejected alternatives.
+#### Scenario: Candidate resources are scored before path assembly
+- **WHEN** the planner compares graph-driven resource candidates for a LearningGoal
+- **THEN** it SHALL use ranked candidate explanations or equivalent internal scoring metadata that considers graph coverage, capability contribution, evidence potential, learner fit, accessibility, freshness, time cost, cognitive load, readiness, and constraints
+- **AND** it SHALL expose reason metadata for selected and rejected resources or path alternatives.
 
 ### Requirement: Stage 1 planner excludes contextual bandit and RL
 The system SHALL generate Stage 1 MVP paths without contextual bandit, reinforcement learning, or long-horizon hybrid policies.
@@ -219,12 +219,12 @@ The system SHALL persist learning path rounds across registered goals.
 - **AND** it SHALL be resumable without recomputing the original graph/resource basis.
 
 ### Requirement: Generated paths use governed resource nodes
-Adaptive path generation SHALL use only audited resource nodes and checkpoint nodes with registered path semantics.
+Adaptive path generation SHALL use only audited resource nodes and checkpoint nodes with registered path semantics, even when ranking consumes retrieval or citation projections as semantic signals.
 
-#### Scenario: ResourceNode graph profile is used
-- **WHEN** the planner considers a ResourceNode for a graph-driven path
-- **THEN** it SHALL use ResourceNode graph profile metadata including graph refs, scene availability, citation readiness, evidence capability, path profile, readiness, and governance limitations
-- **AND** it SHALL NOT use ResourceSegment, RetrievalChunk, or CitationTarget as a PathNode unless an audited ResourceNode or checkpoint contract authorizes it.
+#### Scenario: Ranked retrieval chunk lacks ResourceNode audit
+- **WHEN** a RetrievalChunk or CitationTarget ranks highly for graph relevance
+- **THEN** the planner SHALL NOT turn it into a PathNode unless an audited ResourceNode or checkpoint contract authorizes it
+- **AND** diagnostics SHALL distinguish retrieval relevance from path eligibility.
 
 ### Requirement: Planner accepts Konling path-generation requests
 The adaptive path planner SHALL accept governed Konling tool requests as one path generation input channel.
