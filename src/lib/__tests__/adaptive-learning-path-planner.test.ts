@@ -675,6 +675,47 @@ describe('adaptive learning path planner', () => {
     expect(ranking.ranked[0].score).toBe(ranking.ranked[1].score);
   });
 
+  it('does not treat ordinary source slugs containing v as versioned refs', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [
+        {
+          id: 'overview',
+          title: 'Overview 卡',
+          sourceRef: 'overview',
+          renderTarget: '/knowledge/cards/overview',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: { estimatedTimeMinutes: 10 },
+        },
+        {
+          id: 'versioned',
+          title: 'Versioned 卡',
+          sourceRef: 'resource:v2',
+          renderTarget: '/knowledge/cards/versioned',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: { estimatedTimeMinutes: 10 },
+        },
+      ],
+    });
+    const ranking = rankResourceLearnerCandidates({
+      candidates: registry.nodes.map((node) => ({
+        node,
+        planningUnit: buildResourceSemanticProjection(node).planningUnit,
+      })),
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 30,
+      registry,
+    });
+    const freshnessById = new Map(ranking.ranked.map((entry) => [
+      entry.node.id,
+      entry.explanation.featureContributions.find((contribution) => contribution.feature === 'freshness')?.value ?? 0,
+    ]));
+
+    expect(freshnessById.get('knowledge-card:overview')).toBe(0.15);
+    expect(freshnessById.get('knowledge-card:versioned')).toBe(0.5);
+  });
+
   it('preserves learner modality preference when registry metadata is omitted', () => {
     const registry = buildResourceNodeRegistry({
       simulations: [{

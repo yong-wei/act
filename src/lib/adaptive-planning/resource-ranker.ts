@@ -410,10 +410,14 @@ function learnerFitScore(
 
 function freshnessScore(node: ResourceNode, profile: ResourceLearnerRankerScoringProfile): number {
   const refs = node.sourceRefs.map((ref) => ref.ref);
-  const hasVersion = refs.some((ref) => ref.startsWith('version:') || ref.includes('v'));
+  const hasVersion = refs.some(isVersionedSourceRef);
   const hasFreshness = refs.some((ref) => ref.startsWith('freshness:') || ref.includes('checked'));
   const citationReady = profile.citationReadiness.status === 'verified' ? 0.4 : 0.15;
   return Math.min(1, (hasVersion ? 0.35 : 0) + (hasFreshness ? 0.25 : 0) + citationReady);
+}
+
+function isVersionedSourceRef(ref: string): boolean {
+  return ref.startsWith('version:') || /(?:^|[:/@._-])v\d+(?:\.\d+)*(?:$|[:/@._-])/i.test(ref);
 }
 
 function matchedGraphRefs(profile: ResourceLearnerRankerScoringProfile, targetGraphNodeIds: string[]): ResourceGraphNodeRefs {
