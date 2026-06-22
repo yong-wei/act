@@ -2114,6 +2114,68 @@ describe('resource node registry', () => {
     expect(invalidPrivacyProjection.resource.governance.auditIssueCodes).toContain('segments.0.invalid-privacy-scope');
     expect(invalidPrivacyProjection.citationTargets[0].status).toBe('missing-target');
     expect(invalidPrivacyProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+    expect(invalidPrivacyProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'invalid-privacy-scope',
+    });
+
+    const blankPrivacyProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:blank-privacy',
+      sourcePath: 'course-content/authoring/videos/blank-privacy.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'blank-privacy.v1',
+      privacyScope: 'student-visible',
+      transcriptRef: 'transcripts/blank-privacy.vtt',
+      segments: [
+        {
+          id: 'blank-privacy',
+          anchorRef: 'blank-privacy',
+          privacyScope: '',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(blankPrivacyProjection.resource.governance.auditIssueCodes).toContain(
+      'segments.0.invalid-privacy-scope',
+    );
+    expect(blankPrivacyProjection.segments[0].privacyScope).toBe('teacher-scoped');
+    expect(blankPrivacyProjection.citationTargets[0].status).toBe('missing-target');
+    expect(blankPrivacyProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+    expect(blankPrivacyProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'invalid-privacy-scope',
+    });
+
+    const nonStringPrivacyProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:non-string-privacy',
+      sourcePath: 'course-content/authoring/videos/non-string-privacy.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'non-string-privacy.v1',
+      privacyScope: 'admin-scoped',
+      transcriptRef: 'transcripts/non-string-privacy.vtt',
+      segments: [
+        {
+          id: 'non-string-privacy',
+          anchorRef: 'non-string-privacy',
+          privacyScope: false,
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(nonStringPrivacyProjection.resource.governance.auditIssueCodes).toContain(
+      'segments.0.invalid-privacy-scope',
+    );
+    expect(nonStringPrivacyProjection.segments[0].privacyScope).toBe('admin-scoped');
+    expect(nonStringPrivacyProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'admin-scoped-resource',
+    });
 
     expect(validateResourceMediaSourceManifest({
       sourceId: 'authoring/video:bad-source-path',
@@ -2238,6 +2300,14 @@ describe('resource node registry', () => {
       'mapped',
       'mapped',
     ]);
+    expect(duplicateSegmentProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'invalid-segment-contract',
+    });
+    expect(duplicateSegmentProjection.segments[1].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'invalid-segment-contract',
+    });
 
     const missingIdCollisionProjection = buildMediaSourceManifestSemanticProjection({
       sourceId: 'authoring/video:id-collision',
@@ -2268,6 +2338,36 @@ describe('resource node registry', () => {
       'media-segment:authoring/video:id-collision:segment:0',
     );
     expect(new Set(missingIdCollisionProjection.segments.map((segment) => segment.id)).size).toBe(2);
+    expect(missingIdCollisionProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'invalid-segment-contract',
+    });
+
+    const blankSegmentIdProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:blank-segment-id',
+      sourcePath: 'course-content/authoring/videos/blank-segment-id.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'blank-segment-id.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/blank-segment-id.vtt',
+      segments: [
+        {
+          id: '   ',
+          anchorRef: 'blank',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(blankSegmentIdProjection.resource.governance.auditIssueCodes).toContain('segments.0.missing-id');
+    expect(blankSegmentIdProjection.citationTargets[0].status).toBe('missing-target');
+    expect(blankSegmentIdProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+    expect(blankSegmentIdProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'invalid-segment-contract',
+    });
 
     const invalidMediaTypeProjection = buildMediaSourceManifestSemanticProjection({
       sourceId: 'authoring/media:invalid-type',
@@ -2292,6 +2392,10 @@ describe('resource node registry', () => {
     expect(invalidMediaTypeProjection.segments[0].kind).toBe('image');
     expect(invalidMediaTypeProjection.citationTargets[0].status).toBe('missing-target');
     expect(invalidMediaTypeProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+    expect(invalidMediaTypeProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'invalid-segment-contract',
+    });
 
     const invalidVersionProjection = buildMediaSourceManifestSemanticProjection({
       sourceId: 'authoring/video:invalid-version',
