@@ -162,9 +162,15 @@ export interface AdaptiveLearningPathGraphContextSummary {
     GraphCenterResourceCoverage,
     'coverageState' | 'pathEligibleResourceCount' | 'linkedResourceCount'
   >>;
+  resourceCoveragePathEligibleResourceIds: Record<string, string[]>;
   versionRefs: KaqArtifactVersionRefs;
   limitations: AdaptiveLearningPathGraphLimitation[];
 }
+
+export type AdaptiveLearningPathGraphContextPersistenceSummary = Omit<
+  AdaptiveLearningPathGraphContextSummary,
+  'resourceCoveragePathEligibleResourceIds'
+>;
 
 export type LearningGoalValidationIssueCode =
   | 'missing-learning-goal'
@@ -636,7 +642,7 @@ export interface AdaptiveLearningPathPersistenceRecord {
     corrections: AdaptiveLearningPathCorrection[];
     feedbackEvents: AdaptiveLearningPathFeedbackEvent[];
     visualization: AdaptiveLearningPathVisualization;
-    graphContext?: AdaptiveLearningPathGraphContextSummary;
+    graphContext?: AdaptiveLearningPathGraphContextPersistenceSummary;
     artifactVersioning: KaqVersionedArtifactMetadata;
     studentFacing: {
       summary: string;
@@ -1890,6 +1896,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
   const studentFacing = buildStudentFacingPathExplanation(plan);
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(plan.goal.id);
   const learningGoal = plan.goal.learningGoal ?? registeredGoal?.learningGoal;
+  const graphContext = serializeGraphContextSummary(plan.graphContext);
   return {
     id: plan.id,
     userId: plan.userId,
@@ -1915,7 +1922,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
       corrections: plan.corrections,
       feedbackEvents: plan.feedbackEvents,
       visualization: plan.visualization,
-      graphContext: plan.graphContext,
+      graphContext,
       artifactVersioning: buildKaqVersionedArtifactMetadata({
         artifactId: plan.id,
         artifactKind: 'path-artifact',
@@ -1935,6 +1942,14 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
       studentFacing,
     },
   };
+}
+
+function serializeGraphContextSummary(
+  graphContext: AdaptiveLearningPathGraphContextSummary | undefined,
+): AdaptiveLearningPathPersistenceRecord['payload']['graphContext'] {
+  if (!graphContext) return undefined;
+  const { resourceCoveragePathEligibleResourceIds: _internalPathEligibleResourceIds, ...serialized } = graphContext;
+  return serialized;
 }
 
 export function normalizeLearningPathPayloadLearningGoal(
@@ -2028,6 +2043,12 @@ function buildAdaptiveLearningPathGraphContext(
       },
     ]),
   );
+  const resourceCoveragePathEligibleResourceIds = Object.fromEntries(
+    Object.entries(input.resourceCoverage ?? {}).map(([nodeId, coverage]) => [
+      nodeId,
+      coverage.pathEligibleResourceIds,
+    ]),
+  );
   const versionRefs = buildKaqArtifactVersionRefs({
     ...input.versionRefs,
     learningGoalPackageVersion: input.learningGoalVersion,
@@ -2051,6 +2072,7 @@ function buildAdaptiveLearningPathGraphContext(
       class: input.classOverlay?.status ?? 'missing',
     },
     resourceCoverageStatus,
+    resourceCoveragePathEligibleResourceIds,
     versionRefs,
     limitations: buildGraphContextLimitations(input),
   };
@@ -2513,6 +2535,7 @@ function buildFeasiblePath(
     }
     if (
       requireNewGoalTarget &&
+      !activeGraphContext &&
       !allPlanningRequirementsSatisfied(nextState, allGoalTargets, constraints) &&
       !canCompletePlanningRequirements(candidateOptions, nextState, completed, allGoalTargets, constraints)
     ) {
@@ -2769,7 +2792,10 @@ function graphTargetsCoveredByPlanningUnit(
     ...planningUnit.knowledgeCoverage,
     ...Object.keys(planningUnit.abilityImpact),
   ]);
-  return graphContext.targetGraphNodeIds.filter((target) => refs.has(target));
+  return graphContext.targetGraphNodeIds.filter((target) =>
+    refs.has(target) ||
+    graphContext.resourceCoveragePathEligibleResourceIds[target]?.includes(planningUnit.resourceNodeId)
+  );
 }
 
 function graphTargetsCoveredByScoredNodes(

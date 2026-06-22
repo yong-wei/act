@@ -619,7 +619,7 @@ describe('adaptive learning path planner', () => {
         title: '频域图谱知识卡',
         sourceRef: 'frequency-response:graph-card',
         renderTarget: '/knowledge/cards/frequency-response',
-        knowledgeNodeIds: [graphTargetId],
+        knowledgeNodeIds: ['legacy-frequency-response-target'],
         planningOverride: {
           abilityImpact: {
             frequencyResponseInterpretation: 0.3,
@@ -712,6 +712,8 @@ describe('adaptive learning path planner', () => {
       graphCatalogVersion: AUTOCONTROL_KAQ_GRAPH_VERSION,
       overlayVersion: GRAPH_CENTER_OVERLAY_VERSION,
     });
+    expect(serialized.payload.graphContext).not.toHaveProperty('resourceCoveragePathEligibleResourceIds');
+    expect(JSON.stringify(serialized.payload.graphContext)).not.toContain('knowledge-card:graph-frequency-card');
   });
 
   it('does not let graph context linked chunks bypass audited ResourceNodes', () => {
