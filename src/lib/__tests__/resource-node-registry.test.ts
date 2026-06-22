@@ -2193,6 +2193,29 @@ describe('resource node registry', () => {
       expect(malformedProjection.planningUnit).toBeNull();
     }
 
+    const malformedSegmentProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:malformed-segment',
+      sourcePath: 'course-content/authoring/videos/malformed-segment.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'malformed-segment.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/malformed-segment.vtt',
+      segments: [null, 'not-an-object'],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(malformedSegmentProjection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
+      'segments.0.invalid-segment',
+      'segments.1.invalid-segment',
+    ]));
+    expect(malformedSegmentProjection.segments).toHaveLength(2);
+    expect(malformedSegmentProjection.citationTargets.map((target) => target.status)).toEqual([
+      'missing-target',
+      'missing-target',
+    ]);
+    expect(malformedSegmentProjection.retrievalChunks.map((chunk) => chunk.projectionStatus)).toEqual([
+      'blocked',
+      'blocked',
+    ]);
+
     const malformedGraphProjection = buildMediaSourceManifestSemanticProjection({
       sourceId: 'authoring/video:malformed-graph',
       sourcePath: 'course-content/authoring/videos/malformed-graph.mp4',

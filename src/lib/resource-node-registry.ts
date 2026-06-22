@@ -1209,12 +1209,22 @@ export function validateResourceMediaSourceManifest(
   }
   const manifestPrivacyScopeValid = isResourceNodePrivacyLevel(manifest.privacyScope);
   if (manifest.privacyScope && !manifestPrivacyScopeValid) issues.push('invalid-privacy-scope');
-  if (!manifestPrivacyScopeValid && !manifest.segments.some((segment) => isResourceNodePrivacyLevel(segment.privacyScope))) {
+  if (
+    !manifestPrivacyScopeValid &&
+    !manifest.segments.some((segment) => (
+      isMediaManifestSegmentRecord(segment) &&
+      isResourceNodePrivacyLevel(segment.privacyScope)
+    ))
+  ) {
     issues.push('missing-privacy-scope');
   }
 
   manifest.segments.forEach((segment, index) => {
     const prefix = `segments.${index}`;
+    if (!isMediaManifestSegmentRecord(segment)) {
+      issues.push(`${prefix}.invalid-segment`);
+      return;
+    }
     if (!segment.id) issues.push(`${prefix}.missing-id`);
     if (!hasMediaSegmentAnchor(manifest.mediaType, segment)) issues.push(`${prefix}.missing-anchor`);
     if (!hasAnyGraphRef(segment.graphNodeRefs)) issues.push(`${prefix}.missing-graph-bindings`);
@@ -1278,7 +1288,9 @@ export function buildMediaSourceManifestSemanticProjection(
     ref: manifest.sourceId,
   };
   const sourceRefs = buildMediaManifestSourceRefs(manifest, sourceRef);
-  const manifestSegments = Array.isArray(manifest.segments) ? manifest.segments : [];
+  const manifestSegments = Array.isArray(manifest.segments)
+    ? manifest.segments.map(normalizeMediaManifestSegment)
+    : [];
   const segments = manifestSegments.map((segment, index): ResourceSegment => {
     const segmentIssues = issuesForMediaSegment(validation.issues, index);
     const segmentId = mediaSegmentId(manifest, segment, index);
@@ -2675,6 +2687,14 @@ function mediaSegmentPrivacyScope(
   ]);
 }
 
+function normalizeMediaManifestSegment(segment: unknown): ResourceMediaManifestSegment {
+  return isMediaManifestSegmentRecord(segment) ? segment : ({} as ResourceMediaManifestSegment);
+}
+
+function isMediaManifestSegmentRecord(segment: unknown): segment is ResourceMediaManifestSegment {
+  return typeof segment === 'object' && segment !== null && !Array.isArray(segment);
+}
+
 function mostRestrictivePrivacyScope(scopes: Array<ResourceNodePrivacyLevel | null | undefined>): ResourceNodePrivacyLevel {
   if (scopes.includes('admin-scoped')) return 'admin-scoped';
   if (scopes.includes('teacher-scoped')) return 'teacher-scoped';
@@ -2836,6 +2856,7 @@ function isMediaCitationBlockingIssue(issue: string): boolean {
     'invalid-privacy-scope',
     'invalid-media-type',
     'missing-segments',
+    'invalid-segment',
     'missing-id',
     'missing-anchor',
     'missing-graph-bindings',
@@ -2903,7 +2924,9 @@ function mergeMediaEvidenceCapability(segments: ResourceSegment[]): ResourceEvid
 }
 
 function estimateMediaManifestMinutes(manifest: ResourceMediaSourceManifest): number {
-  const segments = Array.isArray(manifest.segments) ? manifest.segments : [];
+  const segments = Array.isArray(manifest.segments)
+    ? manifest.segments.filter(isMediaManifestSegmentRecord)
+    : [];
   const durationSeconds = segments.reduce((total, segment) => {
     if (segment.startSeconds === undefined || segment.endSeconds === undefined) return total;
     return total + Math.max(0, (segment.endSeconds ?? 0) - (segment.startSeconds ?? 0));
