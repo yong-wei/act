@@ -701,6 +701,7 @@ describe('adaptive learning path planner', () => {
       'learner-overlay-low-confidence',
       'class-overlay-missing',
     ]));
+    expect(plan.explanations.fallbackReasons).toContain('graph-target-coverage-partial');
     expect(serialized.payload.artifactVersioning.versionRefs).toMatchObject({
       learningGoalPackageVersion: learningGoal.version,
       graphCatalogVersion: AUTOCONTROL_KAQ_GRAPH_VERSION,
@@ -807,6 +808,158 @@ describe('adaptive learning path planner', () => {
       'registry:lesson09-correction-precheck',
       'arena-task:task-second-order-lead-pid',
     ]));
+    expect(plan.graphContext).toBeUndefined();
+    expect(serialized.payload.graphContext).toBeUndefined();
+  });
+
+  it('ignores graph context when the expanded subgraph belongs to another LearningGoal', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'legacy-frequency-card',
+        title: '频域旧目标知识卡',
+        sourceRef: 'frequency-response:legacy-card',
+        renderTarget: '/knowledge/cards/frequency-response-legacy',
+        knowledgeNodeIds: ['legacy-frequency-response-target'],
+        planningOverride: {
+          abilityImpact: {
+            frequencyResponseInterpretation: 0.3,
+          },
+        },
+      }],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['legacy-frequency-response-target'],
+      },
+      learnerState: null,
+      registry,
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph: expandLearningGoalSubgraph('control-correction'),
+        learnerOverlay: null,
+        classOverlay: null,
+      },
+    }));
+    const serialized = serializeLearningPathPlan(plan);
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('knowledge-card:legacy-frequency-card');
+    expect(plan.graphContext).toBeUndefined();
+    expect(serialized.payload.graphContext).toBeUndefined();
+  });
+
+  it('ignores graph context when the expanded subgraph version is stale', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'legacy-frequency-card',
+        title: '频域旧目标知识卡',
+        sourceRef: 'frequency-response:legacy-card',
+        renderTarget: '/knowledge/cards/frequency-response-legacy',
+        knowledgeNodeIds: ['legacy-frequency-response-target'],
+        planningOverride: {
+          abilityImpact: {
+            frequencyResponseInterpretation: 0.3,
+          },
+        },
+      }],
+    });
+    const expandedSubgraph = {
+      ...expandLearningGoalSubgraph(learningGoal.id),
+      learningGoalVersion: 'stale-learning-goal-version',
+    };
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['legacy-frequency-response-target'],
+      },
+      learnerState: null,
+      registry,
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph,
+        learnerOverlay: null,
+        classOverlay: null,
+      },
+    }));
+    const serialized = serializeLearningPathPlan(plan);
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('knowledge-card:legacy-frequency-card');
+    expect(plan.graphContext).toBeUndefined();
+    expect(serialized.payload.graphContext).toBeUndefined();
+  });
+
+  it('ignores graph context when its LearningGoal version is no longer canonical', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'legacy-frequency-card',
+        title: '频域旧目标知识卡',
+        sourceRef: 'frequency-response:legacy-card',
+        renderTarget: '/knowledge/cards/frequency-response-legacy',
+        knowledgeNodeIds: ['legacy-frequency-response-target'],
+        planningOverride: {
+          abilityImpact: {
+            frequencyResponseInterpretation: 0.3,
+          },
+        },
+      }],
+    });
+    const expandedSubgraph = {
+      ...expandLearningGoalSubgraph(learningGoal.id),
+      learningGoalVersion: 'stale-learning-goal-version',
+    };
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['legacy-frequency-response-target'],
+      },
+      learnerState: null,
+      registry,
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: 'stale-learning-goal-version',
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph,
+        learnerOverlay: null,
+        classOverlay: null,
+      },
+    }));
+    const serialized = serializeLearningPathPlan(plan);
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('knowledge-card:legacy-frequency-card');
     expect(plan.graphContext).toBeUndefined();
     expect(serialized.payload.graphContext).toBeUndefined();
   });

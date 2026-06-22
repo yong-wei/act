@@ -2007,6 +2007,9 @@ function buildAdaptiveLearningPathGraphContext(
 ): AdaptiveLearningPathGraphContextSummary | undefined {
   if (!input) return undefined;
   if (input.learningGoalId !== goal.id) return undefined;
+  if (input.expandedSubgraph.learningGoalId !== input.learningGoalId) return undefined;
+  if (input.expandedSubgraph.learningGoalVersion !== input.learningGoalVersion) return undefined;
+  if (registeredGoal?.learningGoal?.version && input.learningGoalVersion !== registeredGoal.learningGoal.version) return undefined;
   const graphNodeIds = input.expandedSubgraph.graphNodeIds;
   const targetGraphNodeIds = unique([
     ...input.expandedSubgraph.fixtures.planner.targetGraphNodeIds,
@@ -3126,6 +3129,9 @@ function buildFallbackReasons(input: {
   const hasGraphStarterPath = input.hasGraphCandidateCoverage
     ? input.mainPathNodes.some((entry) => nodeCoversGoalTarget(entry.node, input.goal, input.graphContext))
     : input.mainPathNodes.length > 0;
+  if (input.hasGraphCandidateCoverage && hasGraphStarterPath && uncoveredTargets.length > 0) {
+    reasons.push('graph-target-coverage-partial');
+  }
   if (input.eligible.length === 0 || input.attemptedCandidates === 0 || (!hasGraphStarterPath && uncoveredTargets.length > 0)) {
     reasons.push('resource-mapping-insufficient');
   }
