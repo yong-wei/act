@@ -5649,20 +5649,28 @@ describe('konling agent runtime', () => {
         create: vi.fn(),
       },
     };
+    const scope = createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' });
+    const planContext: KonlingRuntimeContext['planContext'] = {
+      currentPathId: null,
+      activeNodeId: null,
+      nextNodeIds: [],
+      recentPathIds: [],
+      completedNodeIds: [],
+      status: 'missing',
+    };
+    const graphContext = buildKonlingKaqGraphContext({
+      scope,
+      learningGoalId: 'control-correction',
+      planContext,
+    });
     const runtime = buildKonlingToolRuntime({
       db,
-      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      scope,
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
         permittedTools: ['generate_learning_path'],
-        planContext: {
-          currentPathId: null,
-          activeNodeId: null,
-          nextNodeIds: [],
-          recentPathIds: [],
-          completedNodeIds: [],
-          status: 'missing',
-        },
+        planContext,
+        graphContext,
       }),
     });
 
@@ -5692,6 +5700,19 @@ describe('konling agent runtime', () => {
       }),
     }));
     expect(db.learningPath.upsert).toHaveBeenCalled();
+    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.pathPayload.graphContext).toMatchObject({
+      learningGoalId: 'control-correction',
+      graphVersion: 'autocontrol-kaq-graph.v1',
+      overlayStatus: {
+        learner: 'unavailable',
+        class: 'unavailable',
+      },
+      versionRefs: expect.objectContaining({
+        learningGoalPackageVersion: 'learning-goal-package/v1',
+        graphCatalogVersion: 'autocontrol-kaq-graph.v1',
+      }),
+    });
     expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
       db.learningPath.upsert.mock.invocationCallOrder[0],
     );
@@ -5792,6 +5813,69 @@ describe('konling agent runtime', () => {
       'adaptive_quiz',
       'simulation',
     ]);
+  });
+
+  it('does not reuse runtime graph context across adaptive path goals', async () => {
+    const createdRun = {
+      id: 'tool-run-path-cross-graph',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-cross-graph',
+      correlationId: 'corr-path-cross-graph',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const scope = createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' });
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['generate_learning_path'],
+        graphContext: buildKonlingKaqGraphContext({
+          scope,
+          learningGoalId: 'control-correction',
+        }),
+      }),
+    });
+
+    await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-cross-graph',
+      goalId: 'frequency-response-foundations',
+    });
+
+    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.goalId).toBe('frequency-response-foundations');
+    expect(createdPath.pathPayload.graphContext).toBeNull();
   });
 
   it('hides policy bundle options from Konling output when bundle is in fallback status', () => {
@@ -6848,20 +6932,28 @@ describe('konling agent runtime', () => {
         createMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
     };
+    const scope = createScope({ pageId: 'adaptive-path-center' });
+    const planContext: KonlingRuntimeContext['planContext'] = {
+      currentPathId: 'path-1',
+      activeNodeId: 'node-1',
+      nextNodeIds: [],
+      recentPathIds: ['path-1'],
+      completedNodeIds: [],
+      status: 'available',
+    };
+    const graphContext = buildKonlingKaqGraphContext({
+      scope,
+      learningGoalId: 'control-correction',
+      planContext,
+    });
     const runtime = buildKonlingToolRuntime({
       db,
-      scope: createScope({ pageId: 'adaptive-path-center' }),
+      scope,
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({
         permittedTools: ['revise_learning_path_options'],
-        planContext: {
-          currentPathId: 'path-1',
-          activeNodeId: 'node-1',
-          nextNodeIds: [],
-          recentPathIds: ['path-1'],
-          completedNodeIds: [],
-          status: 'available',
-        },
+        planContext,
+        graphContext,
       }),
     });
 
@@ -6881,6 +6973,11 @@ describe('konling agent runtime', () => {
       pathOptions: expect.any(Array),
     });
     const revisedCreate = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(revisedCreate.pathPayload.graphContext).toMatchObject({
+      learningGoalId: 'control-correction',
+      graphVersion: 'autocontrol-kaq-graph.v1',
+      targetGraphNodeIds: expect.arrayContaining(['cap:autocontrol:synthesize-controller-correction']),
+    });
     expect(revisedCreate.explanationPayload.selectedReasons).toEqual(
       expect.arrayContaining(['policy-simulation-driven']),
     );

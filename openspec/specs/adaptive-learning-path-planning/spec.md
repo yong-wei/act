@@ -195,74 +195,44 @@ Displayed path bundles SHALL expose why options differ and what tradeoffs they m
 - **AND** the context SHALL expose evidence basis and terminal validation references without private raw traces or hidden prompt payloads.
 
 ### Requirement: Planner supports registered learning goals
-The adaptive path planner SHALL generate learning paths for registered LearningGoals rather than for nested LearningGoal packages or fixed demonstration goals.
+The adaptive path planner SHALL generate learning paths for registered LearningGoals with graph-driven context.
 
-#### Scenario: Registered LearningGoal is requested
-- **WHEN** a student requests a path for a `path-ready` LearningGoal
-- **THEN** the planner SHALL load the LearningGoal's K/A/Q objective bindings, allowed resource mix, evidence policy, checkpoint policy, terminal validation policy, and explanation templates
-- **AND** it SHALL return executable path options with current node, alternatives, estimated time, evidence limits, and student-facing rationale.
-
-#### Scenario: Legacy registered goal is requested
-- **WHEN** a caller requests an existing registered goal id that is now represented as a LearningGoal
-- **THEN** the planner SHALL preserve existing compatible output fields
-- **AND** it SHALL include canonical LearningGoal metadata for downstream graph expansion when available.
-
-#### Scenario: Client supplies nested package metadata
-- **WHEN** a client request includes nested `learningGoalPackage` metadata under the requested goal
-- **THEN** the planner SHALL ignore client-supplied nested package fields and resolve the server-owned LearningGoal by id
-- **AND** forged objective ids, graph node ids, resource policies, or evidence policies SHALL NOT override the registered LearningGoal.
+#### Scenario: Graph-driven LearningGoal is requested
+- **WHEN** a student requests a path for a `path-ready` LearningGoal with an ExpandedGoalSubgraph
+- **THEN** the planner SHALL consume the LearningGoal id, LearningGoal version, K/A/Q objective boundary, K/A/Q graph targets, prerequisite policy, allowed resource mix, evidence policy, checkpoint policy, terminal validation policy, and version refs
+- **AND** it SHALL return executable path options with current node, alternatives, estimated time, evidence limits, graph/resource limitations, and student-facing rationale.
 
 ### Requirement: Cold-start learners receive executable starter paths
 The planner SHALL treat cold start as a supported generation state, not as a no-path failure.
 
-#### Scenario: Learner has no usable evidence
-- **WHEN** a student with no governed learning evidence requests a path
-- **THEN** the planner SHALL return at least two executable starter path options
-- **AND** each option SHALL include resource nodes, at least one checkpoint, estimated time, and a clear student-facing explanation that evidence will improve personalization later.
-
-#### Scenario: Learner evidence is low confidence
-- **WHEN** learner evidence is partial, stale, or low confidence
-- **THEN** the planner SHALL preserve usable path nodes
-- **AND** it SHALL mark personalization confidence internally without clearing the main path solely because evidence is weak.
+#### Scenario: Cold-start learner requests a graph-driven path
+- **WHEN** a learner with no usable evidence requests a graph-driven LearningGoal path
+- **THEN** the planner SHALL use the LearningGoal policy, resource coverage, ResourceNode readiness, and graph prerequisites to return executable starter options where resources are available
+- **AND** low evidence SHALL be exposed as a limitation rather than clearing the path.
 
 ### Requirement: Generic path rounds are persisted
-The system SHALL persist learning path rounds across registered goals with versioned graph-driven context.
+The system SHALL persist learning path rounds across registered goals.
 
-#### Scenario: Path activity is recorded
-- **WHEN** a student generates, selects, rejects, switches, starts, completes, skips, resumes, or receives a Konling path adjustment
-- **THEN** the system SHALL append a governed path activity record
-- **AND** the activity SHALL be available to future recommendations without counting selection alone as mastery.
-
-#### Scenario: Graph-driven path round is created
-- **WHEN** a generated path option is created or selected from a LearningGoal
-- **THEN** the persisted path SHALL include owner user, goal id, goal version, graph version, resource registry or projection version, planner version, status, selected option, current node, path payload, explanation payload, alternative payload, and evidence window references
+#### Scenario: Graph-driven path round is persisted
+- **WHEN** a generated graph-driven path option is created or selected
+- **THEN** the persisted path SHALL include owner user, goal id, goal version, graph version, resource registry or projection version, overlay version where used, planner version, status, selected option, current node, path payload, explanation payload, alternative payload, and evidence window references
 - **AND** it SHALL be resumable without recomputing the original graph/resource basis.
 
 ### Requirement: Generated paths use governed resource nodes
 Adaptive path generation SHALL use only audited resource nodes and checkpoint nodes with registered path semantics.
 
-#### Scenario: Path option is generated
-- **WHEN** the planner returns a path option
-- **THEN** every node SHALL reference a governed ResourceNode or generated checkpoint contract
-- **AND** node type, icon key, estimated time, evidence behavior, and launch target SHALL be present where applicable.
-
-#### Scenario: External resource is included
-- **WHEN** a generated path includes an external resource
-- **THEN** the node SHALL expose student-facing source and evidence status
-- **AND** it SHALL NOT be counted as completed or mastery-affecting without explicit governed access or interaction evidence.
+#### Scenario: ResourceNode graph profile is used
+- **WHEN** the planner considers a ResourceNode for a graph-driven path
+- **THEN** it SHALL use ResourceNode graph profile metadata including graph refs, scene availability, citation readiness, evidence capability, path profile, readiness, and governance limitations
+- **AND** it SHALL NOT use ResourceSegment, RetrievalChunk, or CitationTarget as a PathNode unless an audited ResourceNode or checkpoint contract authorizes it.
 
 ### Requirement: Planner accepts Konling path-generation requests
 The adaptive path planner SHALL accept governed Konling tool requests as one path generation input channel.
 
-#### Scenario: Konling invokes planner
-- **WHEN** a governed Konling path tool calls the planner
-- **THEN** the planner SHALL consume registered goal, learner state, user parameters, natural-language intent summary, and resource preferences
-- **AND** it SHALL return structured path options, comparison metadata, and student-safe explanation fields.
-
-#### Scenario: Konling revises existing options
-- **WHEN** Konling requests path option revision
-- **THEN** the planner SHALL preserve the original path request and selection history
-- **AND** it SHALL return revised options without discarding prior rejected or selected alternatives.
+#### Scenario: Konling invokes graph-driven planner
+- **WHEN** a governed Konling path tool calls the planner with graph-driven context
+- **THEN** the planner SHALL consume only server-owned LearningGoal, graph, learner, class, resource, path, and privacy context
+- **AND** client text SHALL NOT expand accessible resources, evidence, graph nodes, or permissions.
 
 ### Requirement: Path execution state distinguishes review, continuation, skip, and return
 Path execution records SHALL preserve distinct learner actions for execution and history views.

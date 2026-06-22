@@ -229,20 +229,10 @@ Konling SHALL expose degraded or unavailable state when simulation context requi
 ### Requirement: Konling exposes governed adaptive path tools
 Konling SHALL expose scoped tools for adaptive learning path generation, revision, selection, rejection, explanation, and outcome recording.
 
-#### Scenario: Student requests a generated path
-- **WHEN** a student asks Konling to generate a learning path from the adaptive path center
-- **THEN** Konling SHALL call a governed path-generation tool using server-owned learner, route, goal, class/course, and privacy context
-- **AND** the tool SHALL return structured path options suitable for page rendering.
-
-#### Scenario: Student revises generated options
-- **WHEN** a student asks for a different time budget, difficulty rhythm, resource preference, checkpoint density, external-resource permission, or goal description
-- **THEN** Konling SHALL call a governed revision tool
-- **AND** the new options SHALL preserve the prior request and evidence chain.
-
-#### Scenario: Student selects or rejects an option
-- **WHEN** a student selects, rejects, switches, or marks a path option useful or not useful
-- **THEN** Konling SHALL record the outcome as governed path activity
-- **AND** selection alone SHALL NOT be treated as mastery evidence.
+#### Scenario: Konling invokes graph-driven path generation
+- **WHEN** a student asks Konling to generate or revise a graph-driven learning path
+- **THEN** Konling SHALL call the governed planner tool with server-owned LearningGoal, graph subgoal, learner, class, resource, path, and privacy context
+- **AND** it SHALL preserve AgentToolRun audit, idempotency, and permission constraints.
 
 ### Requirement: Path tools are auditable and idempotent
 Konling path-generation tools SHALL use the shared AgentToolRun audit and idempotency contract.
