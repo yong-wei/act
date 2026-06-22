@@ -1,7 +1,8 @@
 import { UserRole } from '@prisma/client';
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { OrchestratorBuilder } from '@/features/lesson-engine/orchestrator-builder';
+import { LessonPlanMissingRecovery } from '@/features/lesson-engine/lesson-plan-missing-recovery';
 import { getServerAuthSession } from '@/lib/auth';
 import { resolveScopedReturnTarget, type ReturnTargetParam } from '@/lib/navigation-return-target';
 
@@ -17,7 +18,7 @@ export default async function EditLessonPlanPage(props: PageProps) {
 
   const params = await props.params;
   const query = await props.searchParams;
-  const returnTarget = resolveScopedReturnTarget(query?.returnTo, '/admin/lesson-plans', ['/admin']);
+  const returnTarget = resolveScopedReturnTarget(query?.returnTo, '/admin/lesson-plans', ['/admin', '/playlists']);
   const plan = await prisma.lessonPlan.findUnique({
     where: { id: params.id },
     include: {
@@ -28,7 +29,17 @@ export default async function EditLessonPlanPage(props: PageProps) {
     }
   });
 
-  if (!plan) notFound();
+  if (!plan) {
+    return (
+      <LessonPlanMissingRecovery
+        planId={params.id}
+        listHref="/admin/lesson-plans"
+        createHref="/admin/lesson-plans/new?returnTo=%2Fadmin%2Flesson-plans"
+        title="未找到教案记录"
+        description="该教案 ID 当前不存在，可能已经删除或来自过期链接。请返回教案管理列表重新选择，或创建新的 BOPPPS 教案。"
+      />
+    );
+  }
 
   return (
     <OrchestratorBuilder

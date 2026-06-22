@@ -1,9 +1,9 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Clock, MoreVertical, Play, Edit, Trash2, Loader2 } from 'lucide-react';
+import { BookOpen, Clock, MoreVertical, Play, Edit, Trash2, Loader2, Search, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -37,14 +37,26 @@ function formatStableDate(value: string | Date) {
 export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', currentUserId, returnTo }: LessonPlanListProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [visiblePlans, setVisiblePlans] = useState(plans);
+  const [localPlans, setLocalPlans] = useState(plans);
+  const [searchQuery, setSearchQuery] = useState('');
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    setVisiblePlans(plans);
+    setLocalPlans(plans);
   }, [plans]);
+
+  const visiblePlans = useMemo(() => {
+    const keyword = searchQuery.trim().toLowerCase();
+    if (!keyword) return localPlans;
+    return localPlans.filter((plan) => [
+      plan.title,
+      plan.description,
+      plan.author?.name,
+      plan.presetKey,
+    ].filter(Boolean).join(' ').toLowerCase().includes(keyword));
+  }, [localPlans, searchQuery]);
 
   const startSession = async (planId: string) => {
     setLoadingId(planId);
@@ -82,7 +94,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || res.statusText);
       }
-      setVisiblePlans((prev) => prev.filter((plan) => plan.id !== pendingDelete.id));
+      setLocalPlans((prev) => prev.filter((plan) => plan.id !== pendingDelete.id));
       setPendingDelete(null);
       setMenuOpenId(null);
       router.refresh();
@@ -96,8 +108,35 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {visiblePlans.map((plan) => {
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-900/30 p-3">
+        <label className="relative min-w-[16rem] flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          <input
+            aria-label="搜索教案"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="搜索教案标题、描述或作者"
+            className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 pl-10 pr-10 text-sm text-slate-100 outline-none focus:border-cyan-500"
+          />
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-200"
+              aria-label="清除教案搜索"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
+        </label>
+        <div className="text-sm text-slate-400" aria-live="polite">
+          显示 {visiblePlans.length} / {localPlans.length} 个教案
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {visiblePlans.map((plan) => {
         const isPreset = Boolean(plan.isPreset);
         const canEdit = !isPreset && (!currentUserId || plan.authorId === currentUserId);
         const editHref = `${basePath}/${plan.id}/edit${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`;
@@ -191,9 +230,18 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
           </div>
         </div>
       )})}
-      {visiblePlans.length === 0 && plans.length > 0 && (
+      </div>
+
+      {visiblePlans.length === 0 && localPlans.length > 0 && (
         <div className="col-span-full rounded-xl border border-dashed border-slate-800 bg-slate-900/20 p-8 text-center text-slate-500">
-          当前没有可显示的教案。
+          <p>没有匹配“{searchQuery}”的教案。</p>
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="mt-3 text-sm font-medium text-cyan-300 hover:text-cyan-200"
+          >
+            清除搜索条件
+          </button>
         </div>
       )}
       <Dialog

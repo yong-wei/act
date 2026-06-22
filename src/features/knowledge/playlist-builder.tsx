@@ -9,9 +9,12 @@ import type { KnowledgeNodeData } from './knowledge-graph-system';
 
 interface PlaylistBuilderProps {
   initialData?: any; // For editing existing playlists
+  initialNodeId?: string | null;
 }
 
-export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
+const KNOWLEDGE_NODE_PAGE_SIZE = 40;
+
+export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderProps) {
   const router = useRouter();
   const [nodes, setNodes] = useState<KnowledgeNodeData[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,27 +22,50 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
   const [title, setTitle] = useState(initialData?.title || '');
   const [description, setDescription] = useState(initialData?.description || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [visibleNodeCount, setVisibleNodeCount] = useState(KNOWLEDGE_NODE_PAGE_SIZE);
 
   // Fetch available nodes
   useEffect(() => {
     const fetchNodes = async () => {
       try {
-        const res = await fetch('/api/knowledge/nodes');
+        const res = await fetch('/api/knowledge/nodes?source=db');
         const data = await res.json();
         setNodes(data);
+        if (initialNodeId && Array.isArray(data)) {
+          const initialNode = data.find((node: KnowledgeNodeData) => node.id === initialNodeId);
+          if (initialNode) {
+            setPlaylistItems((current) => current.some((item) => item.nodeId === initialNode.id)
+              ? current
+              : [{
+                nodeId: initialNode.id,
+                nodeName: initialNode.name,
+                nodeType: initialNode.nodeType,
+                duration: 15,
+                interactionMode: 'lecture',
+              }, ...current]);
+            setSearchQuery(initialNode.name);
+          }
+        }
       } catch (e) {
         console.error('Failed to fetch nodes', e);
       }
     };
     fetchNodes();
-  }, []);
+  }, [initialNodeId]);
 
   const filteredNodes = nodes.filter(n =>
     n.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     n.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const visibleNodes = filteredNodes.slice(0, visibleNodeCount);
+  const hasMoreNodes = visibleNodes.length < filteredNodes.length;
+
+  useEffect(() => {
+    setVisibleNodeCount(KNOWLEDGE_NODE_PAGE_SIZE);
+  }, [searchQuery]);
 
   const addItem = (node: KnowledgeNodeData) => {
+    if (playlistItems.some((item) => item.nodeId === node.id)) return;
     setPlaylistItems([...playlistItems, {
       nodeId: node.id,
       nodeName: node.name, // Temp for UI
@@ -68,6 +94,7 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
 
   const handleSave = async () => {
     if (!title) return alert('请输入标题');
+    if (playlistItems.length === 0) return alert('请至少选择一个知识节点');
     setIsSaving(true);
 
     try {
@@ -83,10 +110,12 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
       });
 
       if (res.ok) {
-        router.push('/playlists');
+        const playlist = await res.json();
+        router.push(`/playlists/${playlist.id}/play?intent=start-class`);
         router.refresh();
       } else {
-        alert('保存失败');
+        const payload = await res.json().catch(() => null);
+        alert(payload?.error || '保存失败');
       }
     } catch (e) {
       console.error(e);
@@ -112,9 +141,14 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          <div className="mt-2 text-xs text-slate-400" aria-live="polite">
+            显示 {visibleNodes.length} / {filteredNodes.length} 个知识节点，已选择 {playlistItems.length} 个
+          </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto space-y-2 p-4">
-          {filteredNodes.map(node => (
+          {visibleNodes.map(node => {
+            const selected = playlistItems.some((item) => item.nodeId === node.id);
+            return (
             <div key={node.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700 hover:border-blue-500 transition-colors">
               <div>
                 <div className="font-medium text-slate-200">{node.name}</div>
@@ -122,12 +156,28 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
               </div>
               <button type="button"
                 onClick={() => addItem(node)}
-                className="p-2 bg-blue-600 rounded-full text-white hover:bg-blue-500"
+                disabled={selected}
+                className="p-2 bg-blue-600 rounded-full text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-500"
+                aria-label={selected ? '已加入课程流' : `加入课程流：${node.name}`}
               >
                 <Plus className="h-4 w-4" />
               </button>
             </div>
-          ))}
+          )})}
+          {hasMoreNodes ? (
+            <button
+              type="button"
+              onClick={() => setVisibleNodeCount((current) => current + KNOWLEDGE_NODE_PAGE_SIZE)}
+              className="w-full rounded-lg border border-slate-700 py-2 text-sm text-slate-300 hover:border-blue-500 hover:text-blue-200"
+            >
+              加载更多知识节点
+            </button>
+          ) : null}
+          {filteredNodes.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-700 py-10 text-center text-sm text-slate-500">
+              没有匹配的知识节点。
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 

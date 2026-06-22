@@ -234,7 +234,8 @@ export function KnowledgeGraphSystem({
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
-    const nodeId = new URLSearchParams(window.location.search).get('node');
+    const params = new URLSearchParams(window.location.search);
+    const nodeId = params.get('node') ?? params.get('nodeId');
     initialRequestedNodeIdRef.current = nodeId;
     setRequestedNodeId(nodeId);
   }, []);

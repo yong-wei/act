@@ -429,6 +429,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const requestedRiskId = request.nextUrl.searchParams.get('riskId')?.trim() || null;
+    const requestedSurface = request.nextUrl.searchParams.get('surface')?.trim() || null;
+    const requestedLessonPlanId = request.nextUrl.searchParams.get('lessonPlanId')?.trim() || null;
+    const requestedTab = request.nextUrl.searchParams.get('tab')?.trim() || null;
+    const authoringLessonPlan = requestedSurface === 'authoring' && requestedLessonPlanId
+      ? await prisma.lessonPlan.findUnique({
+          where: { id: requestedLessonPlanId },
+          select: { id: true },
+        })
+      : null;
+    const authoringContext = requestedSurface === 'authoring'
+      ? {
+          surface: 'authoring' as const,
+          lessonPlanId: requestedLessonPlanId,
+          lessonPlanMissing: Boolean(requestedLessonPlanId && !authoringLessonPlan),
+          requestedTab,
+          reportHref: requestedLessonPlanId
+            ? `/admin/data-governance?surface=authoring&tab=reports&lessonPlanId=${encodeURIComponent(requestedLessonPlanId)}`
+            : '/admin/data-governance?surface=authoring&tab=reports',
+          recoveryHref: requestedLessonPlanId
+            ? `/admin/lesson-plans/${encodeURIComponent(requestedLessonPlanId)}/edit?returnTo=%2Fadmin%2Fdata-governance`
+            : '/admin/lesson-plans',
+        }
+      : null;
 
     // Get queue stats from Redis
     const redis = redisClient.getClient();
@@ -625,6 +648,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
+      authoringContext,
       queues: queueStats,
       data: {
         studentSnapshots: studentSnapshotCount,

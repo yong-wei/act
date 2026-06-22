@@ -95,6 +95,8 @@ interface OrchestratorBuilderProps {
   returnPath?: string; // 保存后跳转路径，默认根据当前路径判断
   workbenchReturnUrl?: string;
   workbenchReturnLabel?: string;
+  missingTemplateId?: string | null;
+  templateRecoveryHref?: string;
 }
 
 function createEmptyPlanState(): Record<StageId, LessonItemDraft[]> {
@@ -240,6 +242,8 @@ export function OrchestratorBuilder({
   returnPath,
   workbenchReturnUrl,
   workbenchReturnLabel,
+  missingTemplateId,
+  templateRecoveryHref,
 }: OrchestratorBuilderProps) {
   return (
     <OrchestratorBuilderContent
@@ -248,6 +252,8 @@ export function OrchestratorBuilder({
       returnPath={returnPath}
       workbenchReturnUrl={workbenchReturnUrl}
       workbenchReturnLabel={workbenchReturnLabel}
+      missingTemplateId={missingTemplateId}
+      templateRecoveryHref={templateRecoveryHref}
     />
   );
 }
@@ -257,6 +263,8 @@ function OrchestratorBuilderContent({
   returnPath,
   workbenchReturnUrl,
   workbenchReturnLabel,
+  missingTemplateId,
+  templateRecoveryHref = '/teacher/preset-lessons',
 }: OrchestratorBuilderProps) {
   const router = useRouter();
   const [resources, setResources] = useState<ExtendedTeachingResource[]>([]);
@@ -559,6 +567,15 @@ function OrchestratorBuilderContent({
                     <BookOpen className="h-5 w-5 text-cyan-400" />
                     资源库
                 </h2>
+                {!initialData && missingTemplateId && (
+                  <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs leading-5 text-amber-100">
+                    模板 {missingTemplateId} 当前不可用。已改为空白教案，你可以继续手动编排，或
+                    <Link href={templateRecoveryHref} className="ml-1 underline underline-offset-2 hover:text-amber-50">
+                      重新选择模板
+                    </Link>
+                    。
+                  </div>
+                )}
                 <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500" />
                     <input aria-label="搜索资源或知识卡片..."

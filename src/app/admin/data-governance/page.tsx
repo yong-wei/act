@@ -12,6 +12,9 @@ export default async function AdminDataGovernancePage({
     riskId?: string;
     assignee?: string;
     format?: string;
+    surface?: string;
+    tab?: string;
+    lessonPlanId?: string;
   }>;
 }) {
   const session = await getServerAuthSession();

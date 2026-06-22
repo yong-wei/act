@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth'; // Assuming authOptions is exported from here
+import { BopppsStage, LessonItemType } from '@prisma/client';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
@@ -74,18 +75,56 @@ export async function POST(request: Request) {
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
+    const rawItems = Array.isArray(items) ? items : [];
+    if (rawItems.length === 0) {
+      return NextResponse.json({ error: '请至少选择一个知识节点' }, { status: 400 });
+    }
 
-    // Note: LessonPlan now uses LessonItem which requires resourceId and stage
-    // This endpoint is kept for backward compatibility but items creation is simplified
+    const knowledgeNodeIds = rawItems
+      .map((item: { nodeId?: unknown; knowledgeNodeId?: unknown }) => item.knowledgeNodeId ?? item.nodeId)
+      .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0);
+    if (knowledgeNodeIds.length !== rawItems.length) {
+      return NextResponse.json({ error: '课程流条目缺少知识节点 ID' }, { status: 400 });
+    }
+
+    const existingNodes = await prisma.knowledgeNode.findMany({
+      where: { id: { in: knowledgeNodeIds }, isActive: true },
+      select: { id: true, name: true, description: true },
+    });
+    const existingNodeIds = new Set(existingNodes.map((node) => node.id));
+    const missingNodeId = knowledgeNodeIds.find((id: string) => !existingNodeIds.has(id));
+    if (missingNodeId) {
+      return NextResponse.json({ error: `知识节点不存在或不可用：${missingNodeId}` }, { status: 400 });
+    }
+
     const playlist = await prisma.lessonPlan.create({
       data: {
         title,
         description,
         isPublic: isPublic || false,
         authorId: user.id,
-        // Items are not created here as they require TeachingResource references
-        // Use /api/lesson-plans for full BOPPPS-structured plans
-      }
+        items: {
+          create: rawItems.map((item: any, index: number) => {
+            const knowledgeNodeId = item.knowledgeNodeId ?? item.nodeId;
+            const node = existingNodes.find((candidate) => candidate.id === knowledgeNodeId);
+            return {
+              itemType: LessonItemType.KNOWLEDGE_NODE,
+              knowledgeNodeId,
+              stage: BopppsStage.PARTICIPATORY,
+              order: index + 1,
+              duration: Number.isFinite(Number(item.duration)) ? Math.max(1, Number(item.duration)) : 15,
+              overrideConfig: {
+                titleOverride: item.nodeName ?? node?.name,
+                descriptionOverride: node?.description,
+                interactionMode: item.interactionMode ?? 'lecture',
+              },
+            };
+          }),
+        },
+      },
+      include: {
+        _count: { select: { items: true } },
+      },
     });
 
     return NextResponse.json(playlist);

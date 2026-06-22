@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertTriangle } from 'lucide-react';
 
 interface ResourceEditDialogProps {
   open: boolean;
@@ -65,6 +66,13 @@ export function ResourceEditDialog({
             <p className="text-xs text-slate-500">
               原始标题: {resource?.title}
             </p>
+          </div>
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs leading-5 text-amber-100">
+            <div className="mb-1 flex items-center gap-2 font-medium">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              使用影响
+            </div>
+            保存后会影响引用该资源的教案编排、课堂资源展示和后续证据回放中的资源名称与描述。若资源已经用于正在进行的课堂，请先在教案或 ResourceNode 管理中复核引用关系。
           </div>
           <div className="space-y-2">
             <label htmlFor="resource-edit-dialog-control-2" className="text-sm font-medium text-slate-300">描述</label>

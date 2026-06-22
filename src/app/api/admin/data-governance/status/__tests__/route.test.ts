@@ -66,6 +66,9 @@ const mocks = vi.hoisted(() => ({
     classSessionReport: {
       findMany: vi.fn(),
     },
+    lessonPlan: {
+      findUnique: vi.fn(),
+    },
     studentRiskFlag: {
       count: vi.fn(),
       findMany: vi.fn(),
@@ -441,6 +444,41 @@ describe('GET /api/admin/data-governance/status', () => {
       userId: 'student-1',
       userName: '张三',
       isResolved: false,
+    });
+  });
+
+  it('echoes authoring report context for lesson-plan quality deep links', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({ id: 'plan-1' });
+
+    const response = await GET(createRequest('?surface=authoring&tab=reports&lessonPlanId=plan-1'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.authoringContext).toEqual({
+      surface: 'authoring',
+      lessonPlanId: 'plan-1',
+      lessonPlanMissing: false,
+      requestedTab: 'reports',
+      reportHref: '/admin/data-governance?surface=authoring&tab=reports&lessonPlanId=plan-1',
+      recoveryHref: '/admin/lesson-plans/plan-1/edit?returnTo=%2Fadmin%2Fdata-governance',
+    });
+  });
+
+  it('marks missing lesson plans in authoring report context', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue(null);
+
+    const response = await GET(createRequest('?surface=authoring&tab=reports&lessonPlanId=missing'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.lessonPlan.findUnique).toHaveBeenCalledWith({
+      where: { id: 'missing' },
+      select: { id: true },
+    });
+    expect(payload.authoringContext).toMatchObject({
+      lessonPlanId: 'missing',
+      lessonPlanMissing: true,
+      recoveryHref: '/admin/lesson-plans/missing/edit?returnTo=%2Fadmin%2Fdata-governance',
     });
   });
 

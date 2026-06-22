@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import Image from 'next/image';
-import { BookOpen, FileText, X, ArrowRight, Link2, ChevronDown, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import { BookOpen, FileText, X, ArrowRight, Link2, ChevronDown, ChevronRight, Image as ImageIcon, ListPlus, Target } from 'lucide-react';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
@@ -357,6 +357,8 @@ function ResourcePanelContent({
   const evidenceHref = launchAction.lessonId
     ? `/profile/evidence?lessonId=${encodeURIComponent(launchAction.lessonId)}`
     : '/profile/evidence';
+  const addToPlaylistHref = `/playlists/new?nodeId=${encodeURIComponent(displayNode.id)}`;
+  const learningTaskHref = `/assessment/adaptive-practice?nodeId=${encodeURIComponent(displayNode.id)}&intent=contextual-recommendation`;
 
   const examples = toStringArray(metadata.examples);
   const keywords = toStringArray(metadata.keywords);
@@ -675,6 +677,28 @@ function ResourcePanelContent({
                   data-resource-node-action="review-evidence"
                 >
                   {launchAction.lessonId ? '查看关联课次证据' : '进入证据浏览器'}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href={addToPlaylistHref}
+                  className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                  data-resource-node-action="add-to-course-flow"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <ListPlus className="h-3.5 w-3.5" />
+                    加入课程流
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href={learningTaskHref}
+                  className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                  data-resource-node-action="create-learning-task"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <Target className="h-3.5 w-3.5" />
+                    创建学习任务
+                  </span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </a>
               </div>

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronRight, ChevronDown, BookOpen, Eye, Pencil, Lightbulb, Brain, Scale, type LucideIcon } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronRight, ChevronDown, BookOpen, Eye, Pencil, Lightbulb, Brain, Scale, ListPlus, type LucideIcon } from 'lucide-react';
 import { KnowledgeNodeEditDialog } from './knowledge-node-edit-dialog';
 import { KnowledgeCardDialog } from '@/features/knowledge/knowledge-card';
 import { useRouter } from 'next/navigation';
@@ -32,6 +33,7 @@ const NODE_TYPE_CONFIG: Record<string, { icon: LucideIcon; color: string; label:
   application: { icon: Lightbulb, color: 'text-amber-400', label: '应用' },
   ethics: { icon: Scale, color: 'text-rose-400', label: '伦理' },
 };
+const KNOWLEDGE_TREE_PAGE_SIZE = 40;
 
 interface TreeNode {
   node: KnowledgeNode;
@@ -46,6 +48,7 @@ export function KnowledgeNodeManager({
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [editingNode, setEditingNode] = useState<KnowledgeNode | null>(null);
   const [previewNode, setPreviewNode] = useState<KnowledgeNode | null>(null);
+  const [visibleRootCount, setVisibleRootCount] = useState(KNOWLEDGE_TREE_PAGE_SIZE);
 
   // 构建树形结构
   const tree = useMemo(() => {
@@ -156,6 +159,12 @@ export function KnowledgeNodeManager({
 
     return filterTree(tree);
   }, [tree, searchQuery]);
+  const visibleTree = filteredTree.slice(0, visibleRootCount);
+  const hasMoreRoots = visibleTree.length < filteredTree.length;
+
+  React.useEffect(() => {
+    setVisibleRootCount(KNOWLEDGE_TREE_PAGE_SIZE);
+  }, [searchQuery]);
 
   const toggleExpand = (nodeId: string) => {
     setExpandedNodes((prev) => {
@@ -230,13 +239,23 @@ export function KnowledgeNodeManager({
               onClick={() => setPreviewNode(node)}
               className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-600 rounded"
               title="预览"
+              aria-label={`预览知识节点：${node.name}`}
             >
               <Eye className="h-3.5 w-3.5" />
             </button>
+            <Link
+              href={`/playlists/new?nodeId=${encodeURIComponent(node.id)}`}
+              className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-600 rounded"
+              title="加入课程流"
+              aria-label={`加入课程流：${node.name}`}
+            >
+              <ListPlus className="h-3.5 w-3.5" />
+            </Link>
             <button type="button"
               onClick={() => setEditingNode(node)}
               className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-slate-600 rounded"
               title="编辑"
+              aria-label={`编辑知识节点：${node.name}`}
             >
               <Pencil className="h-3.5 w-3.5" />
             </button>
@@ -267,12 +286,15 @@ export function KnowledgeNodeManager({
             </span>
           );
         })}
+        <span className="ml-auto" aria-live="polite">
+          显示 {visibleTree.length} / {filteredTree.length} 个根节点
+        </span>
       </div>
 
       {/* 树形列表 */}
       <div className="rounded-lg border border-slate-700 bg-slate-800/30 divide-y divide-slate-700/50">
-        {filteredTree.length > 0 ? (
-          filteredTree.map((treeNode) => renderTreeNode(treeNode))
+        {visibleTree.length > 0 ? (
+          visibleTree.map((treeNode) => renderTreeNode(treeNode))
         ) : (
           <div className="py-12 text-center text-slate-500">
             <BookOpen className="mx-auto h-12 w-12 text-slate-600" />
@@ -280,6 +302,15 @@ export function KnowledgeNodeManager({
           </div>
         )}
       </div>
+      {hasMoreRoots ? (
+        <button
+          type="button"
+          onClick={() => setVisibleRootCount((current) => current + KNOWLEDGE_TREE_PAGE_SIZE)}
+          className="w-full rounded-lg border border-slate-700 py-2 text-sm text-slate-300 hover:border-cyan-500 hover:text-cyan-200"
+        >
+          加载更多知识节点
+        </button>
+      ) : null}
 
       {/* 编辑对话框 */}
       <KnowledgeNodeEditDialog
