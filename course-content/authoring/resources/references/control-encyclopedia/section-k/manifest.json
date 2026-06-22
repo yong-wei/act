@@ -1,0 +1,38 @@
+{
+  "id": "K",
+  "slug": "k",
+  "title": "Letter K",
+  "pipeline": "mathpixplus",
+  "referencePath": "reference.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/k-mathpix/k.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/k-mathpix/k.qa.json",
+  "sourcePageStart": 628,
+  "sourcePageEnd": 636,
+  "sourcePageCount": 9,
+  "imageCount": 2,
+  "figureDescriptionCount": 1,
+  "markdownSha256": "ae66fd7164d8831548ea1389c8208344285187f42569bff489970a047f3027ae",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/k-mathpix/k.local.md.images.json",
+  "sourceImageManifestCount": 2,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/k-mathpix/assets/mathpix-source-page-0634-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0634-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0634-01-300dpi.png",
+      "sourcePdfPage": 634,
+      "sha256": "e6d4876af6ae7521d721c8f0438125afbcafd62b3606658a4e146a498675b1a3",
+      "bytes": 57264
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/k-mathpix/assets/mathpix-source-page-0634-02-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0634-02-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0634-02-300dpi.png",
+      "sourcePdfPage": 634,
+      "sha256": "3425dc3313b06acbb60a9910bb9bb7daa59aa6512c7aa46e19ffa35aa9dc24de",
+      "bytes": 36255
+    }
+  ]
+}

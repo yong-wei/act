@@ -1,0 +1,272 @@
+{
+  "id": "E",
+  "slug": "e",
+  "title": "Letter E",
+  "pipeline": "mathpixplus",
+  "referencePath": "reference.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/e.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/e.qa.json",
+  "sourcePageStart": 361,
+  "sourcePageEnd": 440,
+  "sourcePageCount": 80,
+  "imageCount": 28,
+  "figureDescriptionCount": 12,
+  "markdownSha256": "bfb7e93e53d638aca794da89e4f3c745bacace561a7df220d75b66329ebde52a",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/e.local.md.images.json",
+  "sourceImageManifestCount": 28,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0368-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0368-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0368-01-300dpi.png",
+      "sourcePdfPage": 368,
+      "sha256": "8bf2564bff0919e6b0f9819e6e22e68a7bb119c5a784d77d1298db8b7a576b0d",
+      "bytes": 1005
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0368-02-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0368-02-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0368-02-300dpi.png",
+      "sourcePdfPage": 368,
+      "sha256": "e8b22de21ea48353a1af5e311b430a560b72ffa6d67f7ee52a8831d63d4804f3",
+      "bytes": 1242
+    },
+    {
+      "index": 3,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0368-03-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0368-03-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0368-03-300dpi.png",
+      "sourcePdfPage": 368,
+      "sha256": "90a671084fa73f445662a50c92c4b58941c54305c1f4ae0ca005c58d3d234d05",
+      "bytes": 1437
+    },
+    {
+      "index": 4,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0368-04-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0368-04-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0368-04-300dpi.png",
+      "sourcePdfPage": 368,
+      "sha256": "55ecb0cae6e8d4748cfc4497ef03fbc027d3d021ea3bd66deb3ba2dd4d416774",
+      "bytes": 1151
+    },
+    {
+      "index": 5,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0368-05-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0368-05-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0368-05-300dpi.png",
+      "sourcePdfPage": 368,
+      "sha256": "471053ef572e21c2432928e654dcd387d5abdb3878fd068f8ff42fb65770bbc5",
+      "bytes": 985
+    },
+    {
+      "index": 6,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0368-06-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0368-06-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0368-06-300dpi.png",
+      "sourcePdfPage": 368,
+      "sha256": "eeb649a766deec8bc156b92609a356b10aa4e460d293134867ba2fb421ec6789",
+      "bytes": 1673
+    },
+    {
+      "index": 7,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0369-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0369-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0369-01-300dpi.png",
+      "sourcePdfPage": 369,
+      "sha256": "d00f06c6fb0a561414ab5abca714dbaacecb69d1818ac83ca578a956f287967c",
+      "bytes": 54139
+    },
+    {
+      "index": 8,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0371-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0371-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0371-01-300dpi.png",
+      "sourcePdfPage": 371,
+      "sha256": "fe76ac4952367ab7a490249fceddcddde853a31240b34ce5ed4eb1e812eebda5",
+      "bytes": 5326
+    },
+    {
+      "index": 9,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0371-02-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0371-02-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0371-02-300dpi.png",
+      "sourcePdfPage": 371,
+      "sha256": "c33917cb15846432c1f775941cdd13b99e0cabdc5d02ccb3180edafa150c4c13",
+      "bytes": 3873
+    },
+    {
+      "index": 10,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0371-03-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0371-03-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0371-03-300dpi.png",
+      "sourcePdfPage": 371,
+      "sha256": "95e3df6f0ec57d0932c1c14b943d975f494068ae5ddddfca28f35b9bf218026c",
+      "bytes": 5260
+    },
+    {
+      "index": 11,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0371-04-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0371-04-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0371-04-300dpi.png",
+      "sourcePdfPage": 371,
+      "sha256": "90a7d7870d535f41f8f56dbac70412aef3616bf19229a92f332ba49711e8668e",
+      "bytes": 10616
+    },
+    {
+      "index": 12,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0371-05-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0371-05-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0371-05-300dpi.png",
+      "sourcePdfPage": 371,
+      "sha256": "924c5b970b7a5396f10556ee83606b64defca936e07734c94fdfffb8fada6cb0",
+      "bytes": 6616
+    },
+    {
+      "index": 13,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0371-06-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0371-06-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0371-06-300dpi.png",
+      "sourcePdfPage": 371,
+      "sha256": "2e03389b304ec6b5a5c1445e1d5034ca61961de3c3cf5611d0050be888f006ac",
+      "bytes": 1851
+    },
+    {
+      "index": 14,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0371-07-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0371-07-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0371-07-300dpi.png",
+      "sourcePdfPage": 371,
+      "sha256": "51f7d82702b5986a45868dfc106ff1d04ad3dc481675824512f00d9dc20a7cad",
+      "bytes": 2658
+    },
+    {
+      "index": 15,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0371-08-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0371-08-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0371-08-300dpi.png",
+      "sourcePdfPage": 371,
+      "sha256": "7a5c6903b3db25ce2b32af2a82e8f58a032d002acf99cde70553aa06bde95ee9",
+      "bytes": 8933
+    },
+    {
+      "index": 16,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0374-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0374-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0374-01-300dpi.png",
+      "sourcePdfPage": 374,
+      "sha256": "f29cf164695f2e692d12ddb3369741fd7e8468e303951e4f5f29db9050de9cb6",
+      "bytes": 443863
+    },
+    {
+      "index": 17,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0374-02-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0374-02-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0374-02-300dpi.png",
+      "sourcePdfPage": 374,
+      "sha256": "7fa5007b12cc9b99de1a1a141ab855414d9da141d6288e451e4736a3a21345f2",
+      "bytes": 63774
+    },
+    {
+      "index": 18,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0374-03-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0374-03-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0374-03-300dpi.png",
+      "sourcePdfPage": 374,
+      "sha256": "d30195917399a402e92ace719f867e2ed5e028a8eb700e8bcbbe990e4547c434",
+      "bytes": 55436
+    },
+    {
+      "index": 19,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0375-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0375-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0375-01-300dpi.png",
+      "sourcePdfPage": 375,
+      "sha256": "ecf0f77fc91fea4b4401f84f1b5e473cb90740ad942e54fbb1050de893ee1262",
+      "bytes": 97065
+    },
+    {
+      "index": 20,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0376-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0376-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0376-01-300dpi.png",
+      "sourcePdfPage": 376,
+      "sha256": "8695691b6ab587f36a160a5d519c04b49ccd90a4688dbc44e65bbbdb252dbcd5",
+      "bytes": 32931
+    },
+    {
+      "index": 21,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0376-02-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0376-02-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0376-02-300dpi.png",
+      "sourcePdfPage": 376,
+      "sha256": "f98c0b24a895185761c8f2829f81e875a6402724064773f7f4bc562626b7c534",
+      "bytes": 18773
+    },
+    {
+      "index": 22,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0400-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0400-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0400-01-300dpi.png",
+      "sourcePdfPage": 400,
+      "sha256": "1b101c1da1417d63429f6cfe74e769b8133ab4aa50ee0e1f436ea5a6d12d5c0c",
+      "bytes": 149938
+    },
+    {
+      "index": 23,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0401-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0401-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0401-01-300dpi.png",
+      "sourcePdfPage": 401,
+      "sha256": "17c76f2a413582f4ba1fbf4e9c8553bc57267d2c8afb4b744b24fa67ccd80392",
+      "bytes": 222189
+    },
+    {
+      "index": 24,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0431-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0431-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0431-01-300dpi.png",
+      "sourcePdfPage": 431,
+      "sha256": "a99c5cbf62bcdedc2d6f40d0171f31bc4095f17efe971570307cae95bf650b54",
+      "bytes": 198264
+    },
+    {
+      "index": 25,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0437-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0437-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0437-01-300dpi.png",
+      "sourcePdfPage": 437,
+      "sha256": "5a9331404cab80330d69df23f842a5a571376b0e2af3f158e248774c69b8f750",
+      "bytes": 20416
+    },
+    {
+      "index": 26,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0438-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0438-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0438-01-300dpi.png",
+      "sourcePdfPage": 438,
+      "sha256": "e781287b2a1ec7da8eb74eb258f5ba888bf931df8377ec6f07a8a7d21e2fa3f8",
+      "bytes": 19928
+    },
+    {
+      "index": 27,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0439-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0439-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0439-01-300dpi.png",
+      "sourcePdfPage": 439,
+      "sha256": "5f3898dcfe08b9d210521f20c2c0e274b10bb4f12d616b4a162abbec75b4b0ee",
+      "bytes": 30131
+    },
+    {
+      "index": 28,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/e-mathpix/assets/mathpix-source-page-0440-01-300dpi.png",
+      "exportPath": "assets/mathpix-source-page-0440-01-300dpi.png",
+      "originalRelativePath": "assets/mathpix-source-page-0440-01-300dpi.png",
+      "sourcePdfPage": 440,
+      "sha256": "f0fc8824810d601e93bf374673d3174329aa33f5c13b745389fc8711b8ee4e60",
+      "bytes": 30477
+    }
+  ]
+}

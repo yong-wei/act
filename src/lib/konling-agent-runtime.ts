@@ -4921,11 +4921,32 @@ function buildKnowledgeWorkspaceContentCitations(
 
 async function buildTextbookRuntimeContentCitations(): Promise<KonlingCitation[]> {
   const documents = await loadAllTextbookRuntimeSearchDocuments().catch(() => []);
-  const selectedDocuments = [
-    ...documents.filter((document) => document.kind === 'chunk').slice(0, 3),
-    ...documents.filter((document) => document.kind === 'figure').slice(0, 3),
-  ];
+  const selectedDocuments = selectTextbookRuntimeCitationDocuments(documents);
   return selectedDocuments.map((document) => buildTextbookRuntimeContentCitation(document));
+}
+
+function selectTextbookRuntimeCitationDocuments(
+  documents: TextbookRuntimeSearchDocument[],
+): TextbookRuntimeSearchDocument[] {
+  const documentsByBookId = new Map<string, TextbookRuntimeSearchDocument[]>();
+  for (const document of documents) {
+    const bookId = document.metadata.bookId || 'unknown';
+    const bookDocuments = documentsByBookId.get(bookId) ?? [];
+    bookDocuments.push(document);
+    documentsByBookId.set(bookId, bookDocuments);
+  }
+
+  const sortedBookEntries = Array.from(documentsByBookId.entries())
+    .sort(([leftBookId], [rightBookId]) => leftBookId.localeCompare(rightBookId));
+  const selectedDocuments = sortedBookEntries
+    .map(([, bookDocuments]) => bookDocuments.find((document) => document.kind === 'chunk'))
+    .filter((document): document is TextbookRuntimeSearchDocument => Boolean(document));
+  selectedDocuments.push(
+    ...sortedBookEntries
+      .map(([, bookDocuments]) => bookDocuments.find((document) => document.kind === 'figure'))
+      .filter((document): document is TextbookRuntimeSearchDocument => Boolean(document))
+  );
+  return selectedDocuments.slice(0, 8);
 }
 
 function buildTextbookRuntimeContentCitation(

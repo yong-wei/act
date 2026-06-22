@@ -129,6 +129,184 @@ def create_textbook_fixture(root: Path) -> tuple[Path, Path]:
     return authoring_root, runtime_root
 
 
+def create_chinese_textbook_fixture(root: Path) -> tuple[Path, Path]:
+    authoring_root = root / 'authoring' / 'resources' / 'textbooks'
+    runtime_root = root / 'runtime' / 'resources' / 'textbooks'
+    book_dir = authoring_root / 'hu-shousong-auto-control-7th'
+    chapter_dir = book_dir / 'chapter-01'
+    assets_dir = chapter_dir / 'assets'
+    assets_dir.mkdir(parents=True)
+    (assets_dir / 'fig-01-01.png').write_bytes(b'hu-figure-1')
+
+    write_json(book_dir / 'manifest.json', {
+        'bookId': 'hu-shousong-auto-control-7th',
+        'title': '自动控制原理',
+        'authors': ['胡寿松'],
+        'edition': '第七版',
+        'chapters': [
+            {
+                'id': 'chapter-01',
+                'number': 1,
+                'title': '自动控制的一般概念',
+                'textbookPath': 'chapter-01/textbook.md',
+                'manifestPath': 'chapter-01/manifest.json',
+                'assetsPath': 'chapter-01/assets/',
+            },
+        ],
+    })
+    write_json(chapter_dir / 'manifest.json', {
+        'id': 'chapter-01',
+        'number': 1,
+        'title': '自动控制的一般概念',
+        'textbookPath': 'textbook.md',
+        'assetsPath': 'assets/',
+        'images': [
+            {
+                'index': 1,
+                'exportPath': 'assets/fig-01-01.png',
+                'caption': '图1－1 反馈控制原理框图',
+                'sourcePdfPage': 8,
+                'sha256': 'sha-hu-fig-1',
+                'bytes': 11,
+            },
+        ],
+    })
+    (chapter_dir / 'textbook.md').write_text(
+        '\n'.join([
+            '## 第一章 自动控制的一般概念',
+            '',
+            '本章建立自动控制系统、反馈和基本控制方式的整体图景。',
+            '',
+            '## 1－1 自动控制的基本原理与方式',
+            '',
+            '反馈控制系统把给定量与被控量进行比较，并根据偏差形成控制作用。',
+            '',
+            '![图1－1 反馈控制原理框图](assets/fig-01-01.png)',
+            '',
+            '## 1－2 自动控制系统示例',
+            '',
+            '自动驾驶仪、温度控制和液位控制都可以作为反馈系统示例。',
+            '',
+            '## 1－2 若系统输入为单位阶跃，试说明反馈作用',
+            '',
+            '这个重复题号模拟章后习题，不应作为路径规划主节。',
+        ]) + '\n',
+        encoding='utf-8',
+    )
+    return authoring_root, runtime_root
+
+
+def create_reference_fixture(root: Path) -> tuple[Path, Path]:
+    authoring_root = root / 'authoring' / 'resources' / 'references'
+    runtime_root = root / 'runtime' / 'resources' / 'textbooks'
+    reference_dir = authoring_root / 'control-encyclopedia'
+    section_dir = reference_dir / 'section-c'
+    assets_dir = section_dir / 'assets'
+    assets_dir.mkdir(parents=True)
+    (assets_dir / 'classical-frequency.png').write_bytes(b'frequency-figure')
+
+    write_json(reference_dir / 'manifest.json', {
+        'referenceId': 'control-encyclopedia',
+        'title': 'Encyclopedia of Systems and Control',
+        'editors': ['John Baillieul', 'Tariq Samad'],
+        'publicationYear': 2015,
+        'sections': [
+            {
+                'id': 'front-matter',
+                'slug': 'front-matter',
+                'title': 'Front Matter',
+                'directory': 'front-matter',
+                'referencePath': 'front-matter/reference.md',
+                'manifestPath': 'front-matter/manifest.json',
+                'assetsPath': 'front-matter/assets/',
+            },
+            {
+                'id': 'C',
+                'slug': 'c',
+                'title': 'Letter C',
+                'directory': 'section-c',
+                'referencePath': 'section-c/reference.md',
+                'manifestPath': 'section-c/manifest.json',
+                'assetsPath': 'section-c/assets/',
+            },
+        ],
+    })
+    front_matter_dir = reference_dir / 'front-matter'
+    front_matter_dir.mkdir(parents=True)
+    write_json(front_matter_dir / 'manifest.json', {
+        'id': 'front-matter',
+        'slug': 'front-matter',
+        'title': 'Front Matter',
+        'referencePath': 'reference.md',
+        'assetsPath': 'assets/',
+        'images': [],
+    })
+    (front_matter_dir / 'reference.md').write_text(
+        '\n'.join([
+            '## John Baillieul Tariq Samad Editors-in-Chief',
+            '',
+            '## Encyclopedia of Systems and Control',
+            '',
+            'Copyright and preface metadata should not become a runtime section.',
+        ]) + '\n',
+        encoding='utf-8',
+    )
+    write_json(section_dir / 'manifest.json', {
+        'id': 'C',
+        'slug': 'c',
+        'title': 'Letter C',
+        'referencePath': 'reference.md',
+        'assetsPath': 'assets/',
+        'images': [
+            {
+                'index': 1,
+                'exportPath': 'assets/classical-frequency.png',
+                'caption': 'Classical frequency-domain design response comparison.',
+                'sourcePdfPage': 250,
+                'sha256': 'sha-frequency-figure',
+                'bytes': 16,
+            },
+        ],
+    })
+    (section_dir / 'reference.md').write_text(
+        '\n'.join([
+            '## C',
+            '',
+            '## CACSD',
+            '',
+            '- Computer-Aided Control Systems Design: Introduction and Historical Overview',
+            '',
+            '## Classical Frequency-Domain Design Methods',
+            '',
+            '#### Abstract',
+            '',
+            'Classical frequency-domain design uses Bode and Nyquist plots to reason about stability margins.',
+            '',
+            '## Keywords',
+            '',
+            'Bode plot; Nyquist criterion; Stability margin; Compensation',
+            '',
+            '## Design Specifications',
+            '',
+            'Frequency response specifications guide compensator design.',
+            '',
+            '![](assets/classical-frequency.png)',
+            '',
+            '## Bibliography',
+            '',
+            'References omitted in fixture.',
+            '',
+            '# Cash Management',
+            '',
+            '#### Abstract',
+            '',
+            'This finance entry should remain searchable but should not become path eligible for this course.',
+        ]) + '\n',
+        encoding='utf-8',
+    )
+    return authoring_root, runtime_root
+
+
 def test_check_mode_parses_textbook_without_writing_runtime_files(tmp_path):
     authoring_root, runtime_root = create_textbook_fixture(tmp_path)
 
@@ -151,6 +329,96 @@ def test_check_mode_parses_textbook_without_writing_runtime_files(tmp_path):
         'searchDocuments': 7,
     }
     assert not (runtime_root / 'dorf-modern-control-systems').exists()
+
+
+def test_export_parses_chinese_textbook_section_headings_without_promoting_duplicate_exercises(tmp_path):
+    authoring_root, runtime_root = create_chinese_textbook_fixture(tmp_path)
+
+    counts = export_textbook_resources.export_book(
+        book_id='hu-shousong-auto-control-7th',
+        authoring_root=authoring_root,
+        runtime_root=runtime_root,
+        write=True,
+    )
+
+    output_dir = runtime_root / 'hu-shousong-auto-control-7th'
+    assert counts['sections'] == 4
+    assert counts['pathEligibleSections'] == 2
+    assert (output_dir / 'sections' / 'ch01-sec01.md').exists()
+    assert (output_dir / 'sections' / 'ch01-sec02.md').exists()
+    assert (output_dir / 'sections' / 'ch01-sec02-02.md').exists()
+
+    section_by_id = {section['id']: section for section in read_jsonl(output_dir / 'section-index.jsonl')}
+    assert section_by_id['ch01-overview-001']['pathPlanning']['pathEligible'] is False
+    assert section_by_id['ch01-sec01']['pathPlanning']['pathEligible'] is True
+    assert section_by_id['ch01-sec02']['pathPlanning']['pathEligible'] is True
+    assert section_by_id['ch01-sec02-02']['pathPlanning']['pathEligible'] is False
+    assert section_by_id['ch01-sec01']['pathPlanning']['knowledgeNodeIds'] == [
+        '反馈控制系统_1_98dc667a',
+        '自动控制系统_1_9678f418',
+        '课程总图_1_1',
+    ]
+    assert section_by_id['ch01-sec01']['pathPlanning']['capabilityTargetRefs'] == [
+        'engineeringDecision',
+        'selfDirectedLearning',
+    ]
+
+    chunk_document = next(
+        document
+        for document in read_jsonl(output_dir / 'search-documents.jsonl')
+        if document['id'] == 'ch01-sec01__chunk-001'
+    )
+    assert chunk_document['resourceProjection']['resourceId'] == 'textbook-section:hu-shousong-auto-control-7th:ch01-sec01'
+    assert chunk_document['citationAddress']['href'].endswith('/chunks/ch01-sec01__chunk-001.md')
+
+
+def test_export_reference_manifest_as_entry_level_runtime_resource(tmp_path):
+    authoring_root, runtime_root = create_reference_fixture(tmp_path)
+
+    counts = export_textbook_resources.export_book(
+        book_id='control-encyclopedia',
+        authoring_root=authoring_root,
+        runtime_root=runtime_root,
+        write=True,
+    )
+
+    output_dir = runtime_root / 'control-encyclopedia'
+    assert counts['chapters'] == 2
+    assert counts['sections'] == 3
+    assert counts['pathEligibleSections'] == 1
+    assert counts['figures'] == 1
+    assert counts['assets'] == 1
+
+    manifest = json.loads((output_dir / 'manifest.json').read_text(encoding='utf-8'))
+    assert manifest['bookId'] == 'control-encyclopedia'
+    assert manifest['editors'] == ['John Baillieul', 'Tariq Samad']
+    assert manifest['publicationYear'] == 2015
+
+    section_by_title = {section['title']: section for section in read_jsonl(output_dir / 'section-index.jsonl')}
+    assert section_by_title['CACSD']['pathPlanning']['pathEligible'] is False
+    frequency_entry = section_by_title['Classical Frequency-Domain Design Methods']
+    assert frequency_entry['kind'] == 'textbook_reference_entry'
+    assert frequency_entry['pathPlanning']['pathEligible'] is True
+    assert 'Bode图_1_1' in frequency_entry['pathPlanning']['knowledgeNodeIds']
+    assert '奈奎斯特稳定判据_5_a1b34560' in frequency_entry['pathPlanning']['knowledgeNodeIds']
+    assert 'parameterDesign' in frequency_entry['pathPlanning']['capabilityTargetRefs']
+    assert section_by_title['Cash Management']['pathPlanning']['pathEligible'] is False
+
+    figure_records = read_jsonl(output_dir / 'figure-index.jsonl')
+    assert figure_records[0]['runtimeAssetPath'].endswith('/assets/C/classical-frequency.png')
+
+    search_documents = read_jsonl(output_dir / 'search-documents.jsonl')
+    frequency_chunk = next(
+        document
+        for document in search_documents
+        if document['kind'] == 'chunk' and document['title'] == 'Classical Frequency-Domain Design Methods'
+    )
+    assert frequency_chunk['resourceProjection']['resourceId'].startswith(
+        'textbook-section:control-encyclopedia:ref-c-classical-frequency-domain-design-methods-'
+    )
+    assert 'Bode图_1_1' in frequency_chunk['resourceProjection']['knowledgeNodeRefs']
+    figure_document = next(document for document in search_documents if document['kind'] == 'figure')
+    assert figure_document['citationAddress']['href'].endswith('#classical-frequency')
 
 
 def test_export_writes_sections_chunks_citation_map_and_search_documents(tmp_path):

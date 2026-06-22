@@ -1,0 +1,19 @@
+{
+  "id": "front-matter",
+  "slug": "front-matter",
+  "title": "Front Matter",
+  "pipeline": "mathpixplus",
+  "referencePath": "reference.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/front-matter-mathpix/front-matter.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/front-matter-mathpix/front-matter.qa.json",
+  "sourcePageStart": 1,
+  "sourcePageEnd": 25,
+  "sourcePageCount": 25,
+  "imageCount": 0,
+  "figureDescriptionCount": 0,
+  "markdownSha256": "afe76509ba8ef8b01f13693fe5521089655f3ec898102998212ee77b505bb6fc",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/control-encyclopedia/front-matter-mathpix/front-matter.local.md.images.json",
+  "sourceImageManifestCount": 0,
+  "images": []
+}
