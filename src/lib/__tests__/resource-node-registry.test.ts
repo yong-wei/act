@@ -14,6 +14,7 @@ import {
   RESOURCE_SEMANTIC_SOURCE_OWNERSHIP,
   type Resource,
   type ResourceNode,
+  type RuntimeResourceProjectionInput,
 } from '../resource-node-registry';
 import { getAllRegisteredResourceMetadata, getRegisteredResourceMetadata } from '../resource-registry-metadata';
 import {
@@ -235,6 +236,60 @@ function sampleRegistry() {
       },
     ],
   });
+}
+
+function runtimeProjectionSidecar(
+  overrides: Partial<RuntimeResourceProjectionInput>,
+): RuntimeResourceProjectionInput {
+  return {
+    id: 'runtime-step:unit-demo:step',
+    resourceNodeId: 'lesson-step:unit-demo:step',
+    title: 'Runtime step',
+    resourceType: 'lesson_step',
+    sourceKind: 'runtime_lesson_step',
+    sourceRef: 'unit-demo:step',
+    sourcePathOrUrl: 'course-content/runtime/lessons/unit-demo/interactive-manifest.json',
+    sourceRecord: 'unit-demo:step',
+    sourceHash: 'sha256:step',
+    sourceVersionRef: 'interactive-manifest.v2',
+    projectionLevel: 'ResourceNode',
+    routeTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step',
+    graphNodeRefs: {
+      knowledge: ['kn-demo'],
+      capability: ['controlModeling'],
+      quality: [],
+    },
+    estimatedTimeMinutes: 8,
+    evidenceInstrumentation: ['lesson_step_view'],
+    privacyScope: 'student-visible',
+    teacherPolicy: 'allowed',
+    evidenceContract: {
+      eventSource: true,
+      eventType: true,
+      clientEventIdPolicy: true,
+      attemptKey: true,
+      sourceLogId: true,
+      dedupeKey: true,
+      timestamps: true,
+      learningFactPolicy: true,
+      confidencePolicy: true,
+      privacyScope: true,
+    },
+    reviewAudit: {
+      status: 'human-confirmed',
+      reviewerId: 'teacher-1',
+      reviewerRole: 'teacher',
+      reviewedAt: '2026-06-22T00:00:00.000Z',
+      reviewBatchId: 'runtime-projection-batch-1',
+      reviewedSourceHash: 'sha256:step',
+      reviewedVersionRef: 'interactive-manifest.v2',
+      generationToolOrModel: 'template',
+      promptOrManifestHash: null,
+      confidence: 0.9,
+      staleInvalidationRule: 'stale when source hash or version changes',
+    },
+    ...overrides,
+  };
 }
 
 describe('resource node registry', () => {
@@ -1018,6 +1073,121 @@ describe('resource node registry', () => {
       ...gradingArtifactResource,
       rawSubmission: 'student private answer',
     } as any)).toEqual(['rawSubmission']);
+  });
+
+  it('requires human-confirmed runtime projection sidecars before creating PlanningUnits', () => {
+    const confirmedProjection = runtimeProjectionSidecar({
+      id: 'runtime-step:unit-demo:step-1',
+      resourceNodeId: 'lesson-step:unit-demo:step-1',
+      title: '已审核步骤',
+      sourceRef: 'unit-demo:step-1',
+      sourceRecord: 'unit-demo:step-1',
+      sourceHash: 'sha256:step',
+      sourceVersionRef: 'interactive-manifest.v2',
+      routeTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step-1',
+      graphNodeRefs: {
+        knowledge: ['kn-demo'],
+        capability: ['controlModeling'],
+        quality: [],
+      },
+      reviewAudit: {
+        status: 'human-confirmed',
+        reviewerId: 'teacher-1',
+        reviewerRole: 'teacher',
+        reviewedAt: '2026-06-22T00:00:00.000Z',
+        reviewBatchId: 'runtime-projection-batch-1',
+        reviewedSourceHash: 'sha256:step',
+        reviewedVersionRef: 'interactive-manifest.v2',
+        generationToolOrModel: 'template',
+        promptOrManifestHash: null,
+        confidence: 0.92,
+        staleInvalidationRule: 'stale when source hash or version changes',
+      },
+    });
+    const provisionalProjection = runtimeProjectionSidecar({
+      id: 'runtime-step:unit-demo:step-2',
+      resourceNodeId: 'lesson-step:unit-demo:step-2',
+      title: '临时步骤',
+      sourceRef: 'unit-demo:step-2',
+      sourceRecord: 'unit-demo:step-2',
+      sourceHash: 'sha256:step-2',
+      sourceVersionRef: 'interactive-manifest.v2',
+      routeTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step-2',
+      graphNodeRefs: {
+        knowledge: ['kn-demo'],
+        capability: ['controlModeling'],
+        quality: [],
+      },
+      reviewAudit: {
+        status: 'generated-provisional',
+        reviewerId: null,
+        reviewerRole: null,
+        reviewedAt: null,
+        reviewBatchId: null,
+        reviewedSourceHash: null,
+        reviewedVersionRef: 'interactive-manifest.v2',
+        generationToolOrModel: 'template',
+        promptOrManifestHash: null,
+        confidence: null,
+        staleInvalidationRule: 'requires human review before path eligibility or mastery effect',
+      },
+    });
+    const staleProjection = runtimeProjectionSidecar({
+      id: 'runtime-step:unit-demo:step-3',
+      resourceNodeId: 'lesson-step:unit-demo:step-3',
+      title: '过期步骤',
+      sourceRef: 'unit-demo:step-3',
+      sourceRecord: 'unit-demo:step-3',
+      sourceHash: 'sha256:new',
+      sourceVersionRef: 'interactive-manifest.v2',
+      routeTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step-3',
+      graphNodeRefs: {
+        knowledge: ['kn-demo'],
+        capability: ['controlModeling'],
+        quality: [],
+      },
+      reviewAudit: {
+        status: 'human-confirmed',
+        reviewerId: 'teacher-1',
+        reviewerRole: 'teacher',
+        reviewedAt: '2026-06-22T00:00:00.000Z',
+        reviewBatchId: 'runtime-projection-batch-1',
+        reviewedSourceHash: 'sha256:old',
+        reviewedVersionRef: 'interactive-manifest.v2',
+        generationToolOrModel: 'template',
+        promptOrManifestHash: null,
+        confidence: 0.92,
+        staleInvalidationRule: 'stale when source hash or version changes',
+      },
+    });
+    const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: [
+        confirmedProjection,
+        provisionalProjection,
+        staleProjection,
+      ],
+    });
+
+    const confirmed = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-1') as ResourceNode;
+    const provisional = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-2') as ResourceNode;
+    const stale = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-3') as ResourceNode;
+    const confirmedSemanticProjection = buildResourceSemanticProjection(confirmed);
+    const provisionalSemanticProjection = buildResourceSemanticProjection(provisional);
+    const staleSemanticProjection = buildResourceSemanticProjection(stale);
+
+    expect(confirmedSemanticProjection.planningUnit).toMatchObject({
+      id: 'planning-unit:lesson-step:unit-demo:step-1',
+      target: '/interactive-learning/courses/unit-demo/student/demo?step=step-1',
+      knowledgeCoverage: ['kn-demo'],
+      graphNodeRefs: {
+        capability: ['controlModeling'],
+      },
+    });
+    expect(confirmedSemanticProjection.resource.contentHash).toBe('sha256:step');
+    expect(provisionalSemanticProjection.planningUnit).toBeNull();
+    expect(provisionalSemanticProjection.resource.governance.auditIssueCodes).toContain('provisional-runtime-projection');
+    expect(staleSemanticProjection.planningUnit).toBeNull();
+    expect(staleSemanticProjection.resource.governance.auditIssueCodes).toContain('stale-runtime-projection');
   });
 
   it('maps path-eligible ResourceNodes into PlanningUnits through audited planning metadata', () => {

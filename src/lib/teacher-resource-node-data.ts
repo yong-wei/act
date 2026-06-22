@@ -3,6 +3,7 @@ import {
   type KnowledgeNodeResourceInput,
   type RegisteredResourceNodeInput,
   type ResourceNodeRegistry,
+  type RuntimeResourceProjectionInput,
   type RuntimeLessonNodeInput,
   type TextbookResourceNodeInput,
   type TextbookSectionResourceNodeInput,
@@ -35,6 +36,7 @@ export function buildResourceNodeRegistryFromTeachingResources(
   registeredResources: readonly RegisteredResourceNodeInput[] = [],
   runtimeLessons: readonly RuntimeLessonResourceCatalogEntry[] = [],
   runtimeTextbooks: readonly TextbookRuntimeResourceCatalogEntry[] = [],
+  runtimeResourceProjections: readonly RuntimeResourceProjectionInput[] = [],
 ): ResourceNodeRegistry {
   const knowledgeNodesById = new Map<string, KnowledgeNodeResourceInput>();
   const registeredResourceById = new Map(registeredResources.map((resource) => [resource.id, resource]));
@@ -75,6 +77,7 @@ export function buildResourceNodeRegistryFromTeachingResources(
     registeredResources: [...registeredResources],
     knowledgeNodes: Array.from(knowledgeNodesById.values()),
     runtimeLessons: runtimeLessons.map(toRuntimeLessonNodeInput),
+    runtimeResourceProjections: [...runtimeResourceProjections],
     textbooks: runtimeTextbooks.map((entry) => entry.textbook),
     textbookSections: runtimeTextbooks.flatMap(toTextbookSectionNodeInputs),
   });

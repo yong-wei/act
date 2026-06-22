@@ -245,7 +245,15 @@ export interface ResourceNodeAuditIssue {
     | 'missing-checkpoint-required-evidence'
     | 'missing-checkpoint-remediation'
     | 'missing-readiness-metadata'
-    | 'textbook-container-not-path-node';
+    | 'textbook-container-not-path-node'
+    | 'missing-runtime-projection-sidecar'
+    | 'runtime-projection-not-path-resource'
+    | 'missing-runtime-projection-source-hash'
+    | 'missing-runtime-projection-source-version'
+    | 'missing-runtime-projection-evidence-contract'
+    | 'missing-runtime-projection-review-audit'
+    | 'provisional-runtime-projection'
+    | 'stale-runtime-projection';
   message: string;
   severity: 'blocking' | 'warning';
 }
@@ -265,10 +273,90 @@ export interface ResourceNodeSourceOfRecord {
 export type ResourceSemanticSourceOwner = ResourceNodeSourceOwner | 'grading';
 export type ResourceSemanticSourceKind = ResourceNodeSourceKind | 'grading_artifact';
 export type ResourceSemanticProjectionStatus = 'mapped' | 'blocked' | 'not-indexed';
+export type RuntimeResourceProjectionLevel =
+  | 'ResourceNode'
+  | 'ResourceSegment'
+  | 'CitationTarget'
+  | 'RetrievalChunk'
+  | 'PlanningUnit';
+export type RuntimeResourceProjectionReviewStatus =
+  | 'not-reviewed'
+  | 'generated-provisional'
+  | 'model-assisted-provisional'
+  | 'external-tool-provisional'
+  | 'human-confirmed'
+  | 'blocked'
+  | 'stale';
+export type RuntimeResourceProjectionResourceType = ResourceNodeType | 'image';
 
 export interface ResourceSemanticSourceReference {
   kind: ResourceSemanticSourceKind;
   ref: string;
+}
+
+export interface RuntimeResourceProjectionEvidenceContract {
+  eventSource: boolean;
+  eventType: boolean;
+  clientEventIdPolicy: boolean;
+  attemptKey: boolean;
+  sourceLogId: boolean;
+  dedupeKey: boolean;
+  timestamps: boolean;
+  learningFactPolicy: boolean;
+  confidencePolicy: boolean;
+  privacyScope: boolean;
+  complete?: boolean;
+  missingFields?: string[];
+}
+
+export interface RuntimeResourceProjectionReviewAudit {
+  status: RuntimeResourceProjectionReviewStatus;
+  reviewerId: string | null;
+  reviewerRole: string | null;
+  reviewedAt: string | null;
+  reviewBatchId: string | null;
+  reviewedSourceHash: string | null;
+  reviewedVersionRef: string | null;
+  generationToolOrModel: string | null;
+  promptOrManifestHash: string | null;
+  confidence: number | null;
+  staleInvalidationRule: string;
+}
+
+export interface RuntimeResourceProjectionInput {
+  id: string;
+  resourceNodeId?: string | null;
+  title: string;
+  resourceType: RuntimeResourceProjectionResourceType;
+  sourceKind: ResourceNodeSourceKind;
+  sourceRef: string;
+  sourcePathOrUrl: string | null;
+  sourceRecord: string | null;
+  sourceHash: string | null;
+  sourceVersionRef: string | null;
+  projectionLevel: RuntimeResourceProjectionLevel;
+  routeTarget?: string | null;
+  renderTarget?: string | null;
+  graphNodeRefs?: Partial<ResourceGraphNodeRefs>;
+  estimatedTimeMinutes?: number | null;
+  evidenceInstrumentation?: string[];
+  privacyScope?: ResourceNodePrivacyLevel | null;
+  teacherPolicy?: ResourceNodeTeacherPolicy | null;
+  evidenceContract?: RuntimeResourceProjectionEvidenceContract | null;
+  reviewAudit?: RuntimeResourceProjectionReviewAudit | null;
+  readiness?: ResourceNodeReadinessMetadata | null;
+}
+
+export interface RuntimeResourceProjectionMetadata {
+  id: string;
+  projectionLevel: RuntimeResourceProjectionLevel;
+  sourcePathOrUrl: string | null;
+  sourceRecord: string | null;
+  sourceHash: string | null;
+  sourceVersionRef: string | null;
+  graphNodeRefs: ResourceGraphNodeRefs;
+  evidenceContract: RuntimeResourceProjectionEvidenceContract | null;
+  reviewAudit: RuntimeResourceProjectionReviewAudit | null;
 }
 
 export interface ResourceSemanticSourceOfRecord {
@@ -644,6 +732,7 @@ export interface ResourceNode {
   checkpoint: ResourceNodeCheckpointMetadata | null;
   planningMetadata: ResourceNodePlanningMetadata;
   sourceOfRecord: ResourceNodeSourceOfRecord;
+  runtimeProjection?: RuntimeResourceProjectionMetadata | null;
   eligibility: ResourceNodeEligibility;
 }
 
@@ -833,6 +922,7 @@ export interface ResourceNodeRegistryInput {
   knowledgeNodes?: KnowledgeNodeResourceInput[];
   knowledgeCards?: KnowledgeCardResourceNodeInput[];
   runtimeLessons?: RuntimeLessonNodeInput[];
+  runtimeResourceProjections?: RuntimeResourceProjectionInput[];
   textbooks?: TextbookResourceNodeInput[];
   textbookSections?: TextbookSectionResourceNodeInput[];
   simulations?: SimulationResourceNodeInput[];
@@ -853,6 +943,7 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
     ...buildKnowledgeResourceNodes(input.knowledgeNodes ?? []),
     ...buildKnowledgeCardNodes(input.knowledgeCards ?? []),
     ...buildRuntimeLessonNodes(input.runtimeLessons ?? []),
+    ...buildRuntimeProjectionResourceNodes(input.runtimeResourceProjections ?? []),
     ...buildTextbookNodes(input.textbooks ?? []),
     ...buildTextbookSectionNodes(input.textbookSections ?? []),
     ...buildLightweightNodes(input.controlWorkbenchTasks ?? [], 'control_workbench', 'control_workbench'),
@@ -1001,7 +1092,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     type: node.type,
     sourceKind: node.sourceKind,
     sourceRefs: node.sourceRefs,
-    contentHash: null,
+    contentHash: node.runtimeProjection?.sourceHash ?? null,
     knowledgeNodeIds: node.planningMetadata.knowledgeCoverage,
     capabilityTargetIds: Object.keys(node.planningMetadata.abilityImpact).sort((left, right) => left.localeCompare(right)),
     graphProfile: {
@@ -1037,7 +1128,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     citationReadiness,
     evidenceCapability,
     governanceLimitations,
-    contentHash: null,
+    contentHash: node.runtimeProjection?.sourceHash ?? null,
   }];
   const citationTargets: CitationTarget[] = [{
     id: citationTargetId,
@@ -1414,6 +1505,52 @@ function buildRuntimeLessonNodes(lessons: RuntimeLessonNodeInput[]): ResourceNod
   });
 }
 
+function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProjectionInput[]): ResourceNode[] {
+  return projections
+    .filter(isRuntimeResourceNodeProjection)
+    .map((projection) => {
+      const ownership = RESOURCE_SEMANTIC_SOURCE_OWNERSHIP[projection.sourceKind];
+      const routeTarget = projection.routeTarget ?? null;
+      const renderTarget = projection.renderTarget ?? projection.sourcePathOrUrl;
+
+      return createNode({
+        id: projection.resourceNodeId ?? projection.id,
+        title: projection.title,
+        type: projection.resourceType,
+        sourceKind: projection.sourceKind,
+        sourceRef: projection.sourceRecord ?? projection.sourceRef,
+        sourceRefs: [{ kind: projection.sourceKind, ref: projection.sourceRef }],
+        renderTarget,
+        launchTarget: routeTarget,
+        knowledgeCoverage: projection.graphNodeRefs?.knowledge ?? [],
+        sourceOfRecord: {
+          content: ownership.contentOwner as ResourceNodeSourceOwner,
+          catalogMetadata: ownership.catalogMetadataOwner as ResourceNodeSourceOwner,
+          planningMetadata: 'ResourceNode',
+        },
+        evidenceInstrumentation: projection.evidenceInstrumentation ?? [],
+        planningOverride: {
+          estimatedTimeMinutes: projection.estimatedTimeMinutes ?? undefined,
+          abilityImpact: abilityImpactFromTargets(projection.graphNodeRefs?.capability ?? []),
+          privacyLevel: projection.privacyScope ?? undefined,
+          teacherPolicy: projection.teacherPolicy ?? undefined,
+          readiness: projection.readiness ?? undefined,
+        },
+        runtimeProjection: normalizeRuntimeProjectionMetadata(projection),
+      });
+    });
+}
+
+function isRuntimeResourceNodeProjection(
+  projection: RuntimeResourceProjectionInput,
+): projection is RuntimeResourceProjectionInput & { resourceType: ResourceNodeType } {
+  return isResourceNodeType(projection.resourceType) &&
+    (
+      projection.projectionLevel === 'ResourceNode' ||
+      projection.projectionLevel === 'PlanningUnit'
+    );
+}
+
 function buildTextbookNodes(textbooks: TextbookResourceNodeInput[]): ResourceNode[] {
   return textbooks.map((textbook) => createNode({
     id: `textbook:${textbook.bookId}`,
@@ -1642,6 +1779,7 @@ function createNode(input: {
   prerequisites?: string[];
   evidenceInstrumentation: string[];
   planningOverride?: ResourceNodePlanningOverride;
+  runtimeProjection?: RuntimeResourceProjectionMetadata | null;
 }): ResourceNode {
   const privacyLevel: ResourceNodePrivacyLevel = input.teacherOnly ? 'teacher-scoped' : 'student-visible';
   const planningOverride = input.planningOverride ?? {};
@@ -1677,11 +1815,58 @@ function createNode(input: {
       readiness: normalizeReadinessMetadata(planningOverride.readiness),
     },
     sourceOfRecord: input.sourceOfRecord,
+    runtimeProjection: input.runtimeProjection ?? null,
     eligibility: {
       pathEligible: false,
       reasons: [],
       auditIssues: [],
     },
+  };
+}
+
+function normalizeRuntimeProjectionMetadata(
+  projection: RuntimeResourceProjectionInput,
+): RuntimeResourceProjectionMetadata {
+  return {
+    id: projection.id,
+    projectionLevel: projection.projectionLevel,
+    sourcePathOrUrl: projection.sourcePathOrUrl,
+    sourceRecord: projection.sourceRecord,
+    sourceHash: projection.sourceHash,
+    sourceVersionRef: projection.sourceVersionRef,
+    graphNodeRefs: {
+      knowledge: uniqueSorted(projection.graphNodeRefs?.knowledge ?? []),
+      capability: uniqueSorted(projection.graphNodeRefs?.capability ?? []),
+      quality: uniqueSorted(projection.graphNodeRefs?.quality ?? []),
+    },
+    evidenceContract: projection.evidenceContract
+      ? normalizeRuntimeProjectionEvidenceContract(projection.evidenceContract)
+      : null,
+    reviewAudit: projection.reviewAudit ?? null,
+  };
+}
+
+function normalizeRuntimeProjectionEvidenceContract(
+  contract: RuntimeResourceProjectionEvidenceContract,
+): RuntimeResourceProjectionEvidenceContract {
+  const missingFields = [
+    ['eventSource', contract.eventSource],
+    ['eventType', contract.eventType],
+    ['clientEventIdPolicy', contract.clientEventIdPolicy],
+    ['attemptKey', contract.attemptKey],
+    ['sourceLogId', contract.sourceLogId],
+    ['dedupeKey', contract.dedupeKey],
+    ['timestamps', contract.timestamps],
+    ['learningFactPolicy', contract.learningFactPolicy],
+    ['confidencePolicy', contract.confidencePolicy],
+    ['privacyScope', contract.privacyScope],
+  ]
+    .filter(([, value]) => !value)
+    .map(([field]) => field as string);
+  return {
+    ...contract,
+    complete: missingFields.length === 0,
+    missingFields,
   };
 }
 
@@ -1757,14 +1942,39 @@ function mergeOverlappingSources(nodes: ResourceNode[]): Map<string, ResourceNod
     }
     result.set(node.id, {
       ...existing,
+      title: node.runtimeProjection ? node.title : existing.title,
       sourceRefs: uniqueSourceRefs([...existing.sourceRefs, ...node.sourceRefs]),
       renderTarget: existing.renderTarget ?? node.renderTarget,
       launchTarget: existing.launchTarget ?? node.launchTarget,
       planningMetadata: {
         ...existing.planningMetadata,
+        estimatedTimeMinutes: node.runtimeProjection
+          ? node.planningMetadata.estimatedTimeMinutes
+          : existing.planningMetadata.estimatedTimeMinutes,
+        cognitiveLoad: node.runtimeProjection
+          ? node.planningMetadata.cognitiveLoad
+          : existing.planningMetadata.cognitiveLoad,
         knowledgeCoverage: uniqueSorted([
           ...existing.planningMetadata.knowledgeCoverage,
           ...node.planningMetadata.knowledgeCoverage,
+        ]),
+        abilityImpact: {
+          ...existing.planningMetadata.abilityImpact,
+          ...node.planningMetadata.abilityImpact,
+        },
+        cost: node.runtimeProjection ? node.planningMetadata.cost : existing.planningMetadata.cost,
+        availability: node.runtimeProjection
+          ? node.planningMetadata.availability
+          : existing.planningMetadata.availability,
+        teacherPolicy: node.runtimeProjection
+          ? node.planningMetadata.teacherPolicy
+          : existing.planningMetadata.teacherPolicy,
+        privacyLevel: node.runtimeProjection
+          ? node.planningMetadata.privacyLevel
+          : existing.planningMetadata.privacyLevel,
+        terminalConstraints: uniqueSorted([
+          ...existing.planningMetadata.terminalConstraints,
+          ...node.planningMetadata.terminalConstraints,
         ]),
         evidenceInstrumentation: uniqueSorted([
           ...existing.planningMetadata.evidenceInstrumentation,
@@ -1780,6 +1990,7 @@ function mergeOverlappingSources(nodes: ResourceNode[]): Map<string, ResourceNod
           : existing.sourceOfRecord.catalogMetadata,
         planningMetadata: 'ResourceNode',
       },
+      runtimeProjection: existing.runtimeProjection ?? node.runtimeProjection,
     });
   }
   return result;
@@ -1811,6 +2022,10 @@ function inferMediaNodeType(value: string): ResourceNodeType {
   if (/(^|[-_])slides(?:[-_.]|$)/.test(lower)) return 'slides';
   if (/\.(pdf|md|markdown)$/.test(lower)) return 'handout';
   return 'lesson_step';
+}
+
+function isResourceNodeType(value: string): value is ResourceNodeType {
+  return (RESOURCE_NODE_TYPES as readonly string[]).includes(value);
 }
 
 function inferRegisteredNodeType(value: string): ResourceNodeType {
@@ -1874,11 +2089,14 @@ export function buildResourceNodeHighConfidencePlanningAudit(node: ResourceNode)
 } {
   const hasCapabilityMapping = Object.keys(node.planningMetadata.abilityImpact).length > 0;
   const hasEvidenceInstrumentation = node.planningMetadata.evidenceInstrumentation.length > 0;
-  const issues = node.eligibility.auditIssues.map((issue) => (
-    !hasEvidenceInstrumentation && issue.code === 'missing-evidence-instrumentation'
-      ? { ...issue, severity: 'blocking' as const }
-      : issue
-  ));
+  const issues = [
+    ...node.eligibility.auditIssues.map((issue) => (
+      !hasEvidenceInstrumentation && issue.code === 'missing-evidence-instrumentation'
+        ? { ...issue, severity: 'blocking' as const }
+        : issue
+    )),
+    ...auditRuntimeProjectionPlanning(node),
+  ];
 
   if (!hasCapabilityMapping && !issues.some((issue) => issue.code === 'missing-capability-mapping')) {
     issues.push({
@@ -1896,10 +2114,109 @@ export function buildResourceNodeHighConfidencePlanningAudit(node: ResourceNode)
   }
 
   return {
-    pathEligible: node.eligibility.pathEligible && hasCapabilityMapping && hasEvidenceInstrumentation,
+    pathEligible: node.eligibility.pathEligible &&
+      hasCapabilityMapping &&
+      hasEvidenceInstrumentation &&
+      !issues.some((issue) => issue.severity === 'blocking'),
     issues,
     hasBlockingIssue: issues.some((issue) => issue.severity === 'blocking'),
   };
+}
+
+function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIssue[] {
+  if (!requiresRuntimeProjectionAudit(node)) return [];
+  const projection = node.runtimeProjection;
+  if (!projection) {
+    return [{
+      code: 'missing-runtime-projection-sidecar',
+      message: 'Runtime resource has no projection sidecar for path planning.',
+      severity: 'blocking',
+    }];
+  }
+
+  const issues: ResourceNodeAuditIssue[] = [];
+  if (projection.projectionLevel !== 'ResourceNode' && projection.projectionLevel !== 'PlanningUnit') {
+    issues.push({
+      code: 'runtime-projection-not-path-resource',
+      message: `Runtime projection level ${projection.projectionLevel} cannot create a PlanningUnit.`,
+      severity: 'blocking',
+    });
+  }
+  if (!projection.sourceHash) {
+    issues.push({
+      code: 'missing-runtime-projection-source-hash',
+      message: 'Runtime projection lacks a reviewed source hash.',
+      severity: 'blocking',
+    });
+  }
+  if (!projection.sourceVersionRef) {
+    issues.push({
+      code: 'missing-runtime-projection-source-version',
+      message: 'Runtime projection lacks a reviewed source version ref.',
+      severity: 'blocking',
+    });
+  }
+  if (!isRuntimeProjectionEvidenceContractComplete(projection.evidenceContract)) {
+    issues.push({
+      code: 'missing-runtime-projection-evidence-contract',
+      message: 'Runtime projection lacks a complete evidence contract.',
+      severity: 'blocking',
+    });
+  }
+  if (!isRuntimeProjectionReviewHumanConfirmed(projection.reviewAudit)) {
+    issues.push({
+      code: projection.reviewAudit ? 'provisional-runtime-projection' : 'missing-runtime-projection-review-audit',
+      message: 'Runtime projection has not been human-confirmed.',
+      severity: 'blocking',
+    });
+  } else if (
+    projection.reviewAudit.reviewedSourceHash !== projection.sourceHash ||
+    projection.reviewAudit.reviewedVersionRef !== projection.sourceVersionRef
+  ) {
+    issues.push({
+      code: 'stale-runtime-projection',
+      message: 'Runtime projection review is stale for the current source hash or version ref.',
+      severity: 'blocking',
+    });
+  }
+  return issues;
+}
+
+function requiresRuntimeProjectionAudit(node: ResourceNode): boolean {
+  return Boolean(node.runtimeProjection);
+}
+
+function isRuntimeProjectionEvidenceContractComplete(
+  contract: RuntimeResourceProjectionEvidenceContract | null,
+): boolean {
+  if (!contract) return false;
+  if (contract.complete === false) return false;
+  return contract.eventSource &&
+    contract.eventType &&
+    contract.clientEventIdPolicy &&
+    contract.attemptKey &&
+    contract.sourceLogId &&
+    contract.dedupeKey &&
+    contract.timestamps &&
+    contract.learningFactPolicy &&
+    contract.confidencePolicy &&
+    contract.privacyScope;
+}
+
+function isRuntimeProjectionReviewHumanConfirmed(
+  review: RuntimeResourceProjectionReviewAudit | null,
+): review is RuntimeResourceProjectionReviewAudit {
+  return Boolean(
+    review &&
+    review.status === 'human-confirmed' &&
+    review.reviewerId &&
+    review.reviewerRole &&
+    review.reviewedAt &&
+    review.reviewBatchId &&
+    review.reviewedSourceHash &&
+    review.reviewedVersionRef &&
+    review.staleInvalidationRule,
+  );
 }
 
 function buildProjectionAuditIssueCodes(node: ResourceNode): string[] {
