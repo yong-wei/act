@@ -168,6 +168,7 @@ describe('runtime resource projections', () => {
     expect(artifact.rows.find((row) => row.id === 'infograph:kn-demo')).toMatchObject({
       projectionLevel: 'ResourceSegment',
       resourceType: 'image',
+      sourceKind: 'knowledge_graph',
       groundingEligibility: {
         retrievalReady: true,
       },

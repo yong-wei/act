@@ -234,7 +234,7 @@ function resourceNodeIdForRow(row: ResourceFieldCompletionAuditRow): string | nu
 
 function sourceKindForFamily(family: RuntimeResourceProjectionFamily): ResourceNodeSourceKind {
   if (family === 'runtime-lesson-step' || family === 'runtime-lesson-module') return 'runtime_lesson_step';
-  if (family === 'runtime-lesson-media' || family === 'knowledge-infograph') return 'runtime_lesson_media';
+  if (family === 'runtime-lesson-media') return 'runtime_lesson_media';
   if (family === 'runtime-handout') return 'runtime_handout';
   return 'knowledge_graph';
 }
