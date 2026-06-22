@@ -14,6 +14,7 @@ import {
   validateLearningGoalCatalog,
   type AdaptiveLearningPathPlannerInput,
 } from '../adaptive-learning-path-planner';
+import { rankResourceLearnerCandidates } from '../adaptive-planning/resource-ranker';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
@@ -411,6 +412,34 @@ describe('adaptive learning path planner', () => {
       evidenceBehavior: projection.planningUnit!.pathSemantics.evidenceBehavior,
     });
     expect(plan.mainPath.map((node) => node.nodeId)).not.toContain(projection.retrievalChunks[0].id);
+    expect(pathNode?.resourceRanker).toMatchObject({
+      score: expect.any(Number),
+      matchedGraphRefs: {
+        knowledge: ['kn-bode'],
+        capability: [],
+        quality: [],
+      },
+      evidencePotential: expect.any(Number),
+      limitations: expect.arrayContaining(projection.planningUnit!.citationReadiness.limitations),
+      tieBreakReason: expect.stringContaining('scene:path'),
+    });
+    expect(pathNode?.resourceRanker?.featureContributions.map((contribution) => contribution.feature)).toEqual([
+      'graph-coverage',
+      'capability-contribution',
+      'evidence-potential',
+      'learner-fit',
+      'accessibility',
+      'freshness',
+      'time-cost',
+      'cognitive-load',
+      'readiness',
+      'governance',
+    ]);
+    expect(pathNode?.reasonCodes).toEqual(expect.arrayContaining([
+      'ranker:graph-coverage',
+      'ranker:learner-fit',
+      'ranker:time-cost',
+    ]));
     expect(serialized.payload.planNodes).toEqual(expect.arrayContaining([
       expect.objectContaining({
         nodeId: 'registry:bode-card',
@@ -419,6 +448,704 @@ describe('adaptive learning path planner', () => {
         evidenceBehavior: projection.planningUnit!.pathSemantics.evidenceBehavior,
       }),
     ]));
+  });
+
+  it('uses resource ranker scores when selecting the primary path candidate', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'legacy-high-score',
+          label: '旧评分较高的长资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/legacy-high-score',
+          knowledgeNodeIds: ['kn-ranker-target'],
+          planningOverride: {
+            estimatedTimeMinutes: 9,
+            cognitiveLoad: 'high',
+            evidenceInstrumentation: ['legacy_complete'],
+            abilityImpact: { controlModeling: 0.9 },
+            readiness: {
+              minimumCompetency: {},
+              minimumEvidenceCount: 1,
+              requiredCompletedNodeIds: [],
+              requiredOutcomeRefs: ['outcome:legacy-high-score'],
+              unlockMessage: '需要先完成一次基础练习。',
+              fallbackNodeIds: [],
+            },
+          },
+        },
+        {
+          id: 'ranker-best-fit',
+          label: 'Ranker 更匹配的短资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/ranker-best-fit',
+          knowledgeNodeIds: ['kn-ranker-target'],
+          planningOverride: {
+            estimatedTimeMinutes: 4,
+            cognitiveLoad: 'low',
+            evidenceInstrumentation: ['best_fit_complete'],
+            abilityImpact: { controlModeling: 0.1 },
+            terminalConstraints: ['terminal-node'],
+          },
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'temporary-ranker-goal',
+        title: 'Ranker 选择目标',
+        knowledgeTargets: ['kn-ranker-target'],
+        competencyTargets: ['controlModeling'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-ranker-target': { posteriorMastery: 0.35, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.25, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        resourcePreference: {
+          preferredModalities: ['interactive_lesson'],
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.65,
+            evidenceCount: 2,
+            sourceCompleteness: 0.6,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 9,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['registry:ranker-best-fit']);
+    expect(plan.mainPath[0]?.resourceRanker?.score).toBeGreaterThan(
+      plan.alternatives.find((node) => node.nodeId === 'registry:legacy-high-score')?.resourceRanker?.score ?? 0,
+    );
+  });
+
+  it('ranks ResourceNode candidates with learner-fit explanations and rejects retrieval-only inputs', () => {
+    const input = plannerInput();
+    const candidateNodes = input.registry.nodes.filter((node) => [
+      'registry:bode-card',
+      'simulation:cruise',
+      'arena-task:roll-control',
+    ].includes(node.id));
+    const candidates = candidateNodes.map((node) => ({
+      node,
+      planningUnit: buildResourceSemanticProjection(node).planningUnit,
+    }));
+
+    const pathRanking = rankResourceLearnerCandidates({
+      candidates,
+      scene: 'path',
+      targetGraphNodeIds: ['kn-cruise', 'parameterDesign'],
+      learnerState: input.learnerState,
+      preferredResourceTypes: ['simulation'],
+      timeBudgetMinutes: 90,
+      registry: input.registry,
+    });
+    const repeatedPathRanking = rankResourceLearnerCandidates({
+      candidates,
+      scene: 'path',
+      targetGraphNodeIds: ['kn-cruise', 'parameterDesign'],
+      learnerState: input.learnerState,
+      preferredResourceTypes: ['simulation'],
+      timeBudgetMinutes: 90,
+      registry: input.registry,
+    });
+    const konlingRanking = rankResourceLearnerCandidates({
+      candidates,
+      scene: 'konling',
+      targetGraphNodeIds: ['kn-cruise', 'parameterDesign'],
+      learnerState: input.learnerState,
+      preferredResourceTypes: ['simulation'],
+      timeBudgetMinutes: 90,
+      registry: input.registry,
+    });
+
+    expect(pathRanking.ranked.map((entry) => entry.node.id)).toEqual(repeatedPathRanking.ranked.map((entry) => entry.node.id));
+    expect(pathRanking.sceneWeights['time-cost']).toBeGreaterThan(konlingRanking.sceneWeights['time-cost']);
+    expect(konlingRanking.sceneWeights.freshness).toBeGreaterThan(pathRanking.sceneWeights.freshness);
+    pathRanking.sceneWeights.freshness = 99;
+    expect(repeatedPathRanking.sceneWeights.freshness).toBeLessThan(1);
+    expect(pathRanking.ranked[0]).toMatchObject({
+      score: expect.any(Number),
+      reasonCodes: expect.arrayContaining([
+        'ranker:graph-coverage',
+        'ranker:evidence-potential',
+      ]),
+      explanation: {
+        featureContributions: expect.arrayContaining([
+          expect.objectContaining({ feature: 'graph-coverage' }),
+          expect.objectContaining({ feature: 'learner-fit' }),
+          expect.objectContaining({ feature: 'governance' }),
+        ]),
+        tieBreakReason: expect.stringContaining('scene:path'),
+      },
+    });
+
+    const retrievalOnlyNode = candidateNodes.find((node) => node.id === 'registry:bode-card');
+    expect(retrievalOnlyNode).toBeDefined();
+    const retrievalOnlyRanking = rankResourceLearnerCandidates({
+      candidates: [{
+        node: retrievalOnlyNode!,
+        planningUnit: null,
+        rejectionReasons: ['resource-node-planning-audit-required'],
+      }],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: input.learnerState,
+      timeBudgetMinutes: 15,
+      registry: input.registry,
+    });
+
+    expect(retrievalOnlyRanking.ranked).toEqual([]);
+    expect(retrievalOnlyRanking.rejected).toEqual([
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'registry:bode-card' }),
+        rejectionReasons: expect.arrayContaining([
+          'resource-node-planning-audit-required',
+          'missing-planning-unit-projection',
+        ]),
+      }),
+    ]);
+    const missingPlanningUnitRanking = rankResourceLearnerCandidates({
+      candidates: [{
+        node: retrievalOnlyNode!,
+        planningUnit: null,
+      }],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: input.learnerState,
+      timeBudgetMinutes: 15,
+      registry: input.registry,
+    });
+
+    expect(missingPlanningUnitRanking.rejected[0].rejectionReasons).toEqual(['missing-planning-unit-projection']);
+  });
+
+  it('uses stable tie-breaks for same-score resource candidates', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [
+        {
+          id: 'beta',
+          title: 'B 卡',
+          sourceRef: 'kn-bode:beta',
+          renderTarget: '/knowledge/cards/beta',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: { estimatedTimeMinutes: 10 },
+        },
+        {
+          id: 'alpha',
+          title: 'A 卡',
+          sourceRef: 'kn-bode:alpha',
+          renderTarget: '/knowledge/cards/alpha',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: { estimatedTimeMinutes: 10 },
+        },
+      ],
+    });
+    const ranking = rankResourceLearnerCandidates({
+      candidates: registry.nodes.map((node) => ({
+        node,
+        planningUnit: buildResourceSemanticProjection(node).planningUnit,
+      })),
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 30,
+      registry,
+    });
+
+    expect(ranking.ranked.map((entry) => entry.node.id)).toEqual([
+      'knowledge-card:alpha',
+      'knowledge-card:beta',
+    ]);
+    expect(ranking.ranked[0].score).toBe(ranking.ranked[1].score);
+  });
+
+  it('does not treat ordinary source slugs containing v as versioned refs', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [
+        {
+          id: 'overview',
+          title: 'Overview 卡',
+          sourceRef: 'overview',
+          renderTarget: '/knowledge/cards/overview',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: { estimatedTimeMinutes: 10 },
+        },
+        {
+          id: 'versioned',
+          title: 'Versioned 卡',
+          sourceRef: 'resource:v2',
+          renderTarget: '/knowledge/cards/versioned',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: { estimatedTimeMinutes: 10 },
+        },
+      ],
+    });
+    const ranking = rankResourceLearnerCandidates({
+      candidates: registry.nodes.map((node) => ({
+        node,
+        planningUnit: buildResourceSemanticProjection(node).planningUnit,
+      })),
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 30,
+      registry,
+    });
+    const freshnessById = new Map(ranking.ranked.map((entry) => [
+      entry.node.id,
+      entry.explanation.featureContributions.find((contribution) => contribution.feature === 'freshness')?.value ?? 0,
+    ]));
+
+    expect(freshnessById.get('knowledge-card:overview')).toBe(0.15);
+    expect(freshnessById.get('knowledge-card:versioned')).toBe(0.5);
+  });
+
+  it('scores readiness by satisfied learner and constraint state', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'readiness-prep',
+          label: '准备资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/readiness-prep',
+          knowledgeNodeIds: ['kn-bode'],
+        },
+        {
+          id: 'readiness-gated',
+          label: '已解锁资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/readiness-gated',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: {
+            estimatedTimeMinutes: 10,
+            abilityImpact: { controlModeling: 0.2 },
+            readiness: {
+              minimumCompetency: { controlModeling: 0.3 },
+              minimumEvidenceCount: 2,
+              requiredCompletedNodeIds: ['registry:readiness-prep'],
+              requiredOutcomeRefs: ['outcome:readiness-prep'],
+              unlockMessage: '完成准备资源后解锁。',
+              fallbackNodeIds: ['registry:readiness-prep'],
+            },
+          },
+        },
+      ],
+    });
+    const gatedNode = registry.nodes.find((node) => node.id === 'registry:readiness-gated');
+    expect(gatedNode).toBeDefined();
+    const candidate = {
+      node: gatedNode!,
+      planningUnit: buildResourceSemanticProjection(gatedNode!).planningUnit,
+    };
+    const blockedRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 30,
+      registry,
+    });
+    const readyRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: {
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.35, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            score: 0.7,
+            evidenceCount: 2,
+            sourceCompleteness: 0.6,
+          },
+        },
+      },
+      timeBudgetMinutes: 30,
+      completedNodeIds: ['registry:readiness-prep'],
+      availableOutcomeRefs: ['outcome:readiness-prep'],
+      registry,
+    });
+    const blockedReadiness = blockedRanking.ranked[0].explanation.featureContributions
+      .find((contribution) => contribution.feature === 'readiness');
+    const readyReadiness = readyRanking.ranked[0].explanation.featureContributions
+      .find((contribution) => contribution.feature === 'readiness');
+
+    expect(blockedReadiness).toMatchObject({
+      value: 0.55,
+      reason: 'readiness prerequisites remain',
+    });
+    expect(readyReadiness).toMatchObject({
+      value: 1,
+      reason: 'readiness prerequisites satisfied',
+    });
+  });
+
+  it('passes planner readiness constraints into resource ranker selection', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'planner-readiness-prep',
+          label: 'Planner 准备资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/planner-readiness-prep',
+          knowledgeNodeIds: ['kn-prep'],
+        },
+        {
+          id: 'planner-readiness-gated',
+          label: 'Planner 已解锁资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/planner-readiness-gated',
+          knowledgeNodeIds: ['kn-planner-readiness'],
+          planningOverride: {
+            estimatedTimeMinutes: 8,
+            cognitiveLoad: 'low',
+            evidenceInstrumentation: ['gated_complete'],
+            abilityImpact: { controlModeling: 0.4 },
+            readiness: {
+              minimumCompetency: { controlModeling: 0.3 },
+              minimumEvidenceCount: 2,
+              requiredCompletedNodeIds: ['registry:planner-readiness-prep'],
+              requiredOutcomeRefs: ['outcome:planner-readiness-prep'],
+              unlockMessage: '完成准备资源后解锁。',
+              fallbackNodeIds: ['registry:planner-readiness-prep'],
+            },
+          },
+        },
+        {
+          id: 'planner-readiness-fallback',
+          label: 'Planner 无前置低匹配资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/planner-readiness-fallback',
+          knowledgeNodeIds: ['kn-planner-readiness'],
+          planningOverride: {
+            estimatedTimeMinutes: 8,
+            cognitiveLoad: 'low',
+            evidenceInstrumentation: ['fallback_complete'],
+            abilityImpact: { controlModeling: 0.1 },
+          },
+        },
+      ],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'temporary-planner-readiness-goal',
+        title: 'Planner readiness 目标',
+        knowledgeTargets: ['kn-planner-readiness'],
+        competencyTargets: ['controlModeling'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-planner-readiness': { posteriorMastery: 0.35, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.35, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.7,
+            evidenceCount: 2,
+            sourceCompleteness: 0.6,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 8,
+        privacyScopes: ['student-visible'],
+        completedNodeIds: ['registry:planner-readiness-prep'],
+        availableOutcomeRefs: ['outcome:planner-readiness-prep'],
+      },
+    }));
+    const selectedNode = plan.mainPath[0];
+    const readinessContribution = selectedNode?.resourceRanker?.featureContributions
+      .find((contribution) => contribution.feature === 'readiness');
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['registry:planner-readiness-gated']);
+    expect(readinessContribution).toMatchObject({
+      value: 1,
+      reason: 'readiness prerequisites satisfied',
+    });
+  });
+
+  it('preserves learner modality preference when registry metadata is omitted', () => {
+    const registry = buildResourceNodeRegistry({
+      simulations: [{
+        id: 'preference-sim',
+        title: '偏好仿真',
+        launchTarget: '/simulations/preference',
+        knowledgeNodeIds: ['kn-bode'],
+      }],
+    });
+    const node = registry.nodes.find((entry) => entry.id === 'simulation:preference-sim');
+    expect(node).toBeDefined();
+    const ranking = rankResourceLearnerCandidates({
+      candidates: [{
+        node: node!,
+        planningUnit: buildResourceSemanticProjection(node!).planningUnit,
+      }],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: {
+        resourcePreference: {
+          preferredModalities: ['simulation'],
+        },
+      },
+      timeBudgetMinutes: 30,
+    });
+    const learnerFit = ranking.ranked[0].explanation.featureContributions.find((contribution) =>
+      contribution.feature === 'learner-fit'
+    );
+
+    expect(learnerFit?.value).toBeGreaterThanOrEqual(0.35);
+  });
+
+  it('keeps Konling citation suitability separate from path PlanningUnit eligibility', () => {
+    const registry = buildResourceNodeRegistry({
+      externalResources: [{
+        id: 'bode-reference',
+        title: 'Bode Reference',
+        source: 'Example Library',
+        url: 'https://example.edu/bode-reference',
+        estimatedTimeMinutes: 8,
+        knowledgeNodeIds: ['kn-bode'],
+        applicableGoalId: 'goal-bode',
+        evidenceUseStatus: 'reference-only',
+        privacyPolicy: 'student-visible',
+        planningOverride: {
+          abilityImpact: { controlModeling: 0.2 },
+        },
+      }],
+    });
+    const node = registry.nodes.find((entry) => entry.id === 'external-resource:bode-reference');
+    expect(node).toBeDefined();
+    const projection = buildResourceSemanticProjection(node!);
+    expect(projection.planningUnit).toBeNull();
+    expect(projection.resource.graphProfile.sceneAvailability.konling.allowed).toBe(true);
+
+    const konlingRanking = rankResourceLearnerCandidates({
+      candidates: [{
+        node: node!,
+        planningUnit: projection.planningUnit,
+      }],
+      scene: 'konling',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      registry,
+    });
+
+    expect(konlingRanking.rejected).toEqual([]);
+    expect(konlingRanking.ranked).toEqual([
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'external-resource:bode-reference' }),
+        planningUnit: null,
+        explanation: expect.objectContaining({
+          matchedGraphRefs: {
+            knowledge: ['kn-bode'],
+            capability: [],
+            quality: [],
+          },
+          limitations: expect.arrayContaining([
+            'citation-target-not-verified',
+            'external-resource-reference-only',
+          ]),
+          tieBreakReason: expect.stringContaining('scene:konling'),
+        }),
+      }),
+    ]);
+
+    const pathRanking = rankResourceLearnerCandidates({
+      candidates: [{
+        node: node!,
+        planningUnit: projection.planningUnit,
+      }],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      registry,
+    });
+
+    expect(pathRanking.ranked).toEqual([]);
+    expect(pathRanking.rejected[0].rejectionReasons).toEqual(['missing-planning-unit-projection']);
+  });
+
+  it('rejects non-path scene resources blocked by governance audit', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'archived-konling-card',
+        title: '已归档知识卡',
+        sourceRef: 'kn-bode:archived',
+        renderTarget: '/knowledge/cards/archived',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          availability: 'archived',
+        },
+      }, {
+        id: 'blocked-konling-card',
+        title: '教师禁用知识卡',
+        sourceRef: 'kn-bode:blocked',
+        renderTarget: '/knowledge/cards/blocked',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          teacherPolicy: 'blocked',
+        },
+      }, {
+        id: 'teacher-only-konling-card',
+        title: '教师专用知识卡',
+        sourceRef: 'kn-bode:teacher-only',
+        renderTarget: '/knowledge/cards/teacher-only',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          teacherPolicy: 'teacher-only',
+        },
+      }, {
+        id: 'teacher-assigned-konling-card',
+        title: '未分配教师指派知识卡',
+        sourceRef: 'kn-bode:teacher-assigned',
+        renderTarget: '/knowledge/cards/teacher-assigned',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          teacherPolicy: 'teacher-assigned',
+        },
+      }],
+      externalResources: [{
+        id: 'no-privacy-konling-reference',
+        title: '缺少隐私策略外部资料',
+        source: 'Example Library',
+        url: 'https://example.edu/no-privacy',
+        estimatedTimeMinutes: 6,
+        knowledgeNodeIds: ['kn-bode'],
+        applicableGoalId: 'goal-bode',
+        evidenceUseStatus: 'explicit-access-required',
+        planningOverride: {
+          abilityImpact: { controlModeling: 0.2 },
+        },
+      }],
+    });
+    const ranking = rankResourceLearnerCandidates({
+      candidates: registry.nodes.map((node) => ({
+        node,
+        planningUnit: buildResourceSemanticProjection(node).planningUnit,
+      })),
+      scene: 'konling',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      registry,
+    });
+
+    expect(ranking.ranked).toEqual([]);
+    expect(ranking.rejected).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'knowledge-card:archived-konling-card' }),
+        rejectionReasons: expect.arrayContaining(['unavailable-resource']),
+      }),
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'knowledge-card:blocked-konling-card' }),
+        rejectionReasons: expect.arrayContaining(['teacher-policy-blocked']),
+      }),
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'external-resource:no-privacy-konling-reference' }),
+        rejectionReasons: expect.arrayContaining(['missing-external-privacy-policy']),
+      }),
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'knowledge-card:teacher-only-konling-card' }),
+        rejectionReasons: expect.arrayContaining(['teacher-policy-teacher-only']),
+      }),
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'knowledge-card:teacher-assigned-konling-card' }),
+        rejectionReasons: expect.arrayContaining(['teacher-assignment-required']),
+      }),
+    ]));
+  });
+
+  it('only applies teacher assignment authorization to path ranking', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'assigned-path-card',
+        title: '教师已指派知识卡',
+        sourceRef: 'kn-bode:assigned-path',
+        renderTarget: '/knowledge/cards/assigned-path',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          teacherPolicy: 'teacher-assigned',
+        },
+      }],
+    });
+    const assignedNode = registry.nodes.find((node) => node.id === 'knowledge-card:assigned-path-card');
+    expect(assignedNode).toBeDefined();
+    const candidate = {
+      node: assignedNode!,
+      planningUnit: buildResourceSemanticProjection(assignedNode!).planningUnit,
+    };
+    const unauthorizedPathRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      registry,
+    });
+    const authorizedPathRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      teacherAssignedNodeIds: ['knowledge-card:assigned-path-card'],
+      registry,
+    });
+    const konlingRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'konling',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      teacherAssignedNodeIds: ['knowledge-card:assigned-path-card'],
+      registry,
+    });
+    const diagnosisRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'diagnosis',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      teacherAssignedNodeIds: ['knowledge-card:assigned-path-card'],
+      registry,
+    });
+
+    expect(unauthorizedPathRanking.ranked).toEqual([]);
+    expect(unauthorizedPathRanking.rejected[0].rejectionReasons).toContain('teacher-assignment-required');
+    expect(authorizedPathRanking.ranked[0].node.id).toBe('knowledge-card:assigned-path-card');
+    expect(konlingRanking.ranked).toEqual([]);
+    expect(konlingRanking.rejected[0].rejectionReasons).toContain('teacher-assignment-required');
+    expect(diagnosisRanking.ranked).toEqual([]);
+    expect(diagnosisRanking.rejected[0].rejectionReasons).toContain('teacher-assignment-required');
   });
 
   it('can select textbook sections as foundation-remediation path resources', () => {
@@ -687,6 +1414,9 @@ describe('adaptive learning path planner', () => {
     const serialized = serializeLearningPathPlan(plan);
 
     expect(plan.mainPath.map((node) => node.nodeId)).toContain('knowledge-card:graph-frequency-card');
+    const graphMappedNode = plan.mainPath.find((node) => node.nodeId === 'knowledge-card:graph-frequency-card');
+    expect(graphMappedNode?.resourceRanker?.matchedGraphRefs.knowledge).toContain(graphTargetId);
+    expect(graphMappedNode?.reasonCodes).toContain('ranker:graph-coverage');
     expect(plan.graphContext).toMatchObject({
       learningGoalId: learningGoal.id,
       learningGoalVersion: learningGoal.version,
@@ -1268,8 +1998,12 @@ describe('adaptive learning path planner', () => {
     expect(plan.status).toBe('ready');
     expect(plan.policyFamily).toBe('teacher-assigned');
     expect(plan.explanations.selectedReasons).toContain('policy-teacher-assigned');
-    expect(plan.mainPath.find((node) => node.nodeId === 'registry:bode-card')?.teacherPolicy)
-      .toBe('teacher-assigned');
+    const assignedPathNode = plan.mainPath.find((node) => node.nodeId === 'registry:bode-card');
+    expect(assignedPathNode?.teacherPolicy).toBe('teacher-assigned');
+    expect(assignedPathNode?.resourceRanker).toEqual(expect.objectContaining({
+      score: expect.any(Number),
+      matchedGraphRefs: expect.any(Object),
+    }));
   });
 
   it('blocks teacher-assigned resources that are not explicitly assigned', () => {
@@ -2160,6 +2894,7 @@ describe('adaptive learning path planner', () => {
     }));
 
     const selectedTextbookSection = plan.mainPath.find((node) => node.type === 'textbook_section');
+    const frequencyAliases = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].knowledgeTargetAliases?.['kn-bode'] ?? [];
     expect(selectedTextbookSection).toMatchObject({
       nodeId: expect.stringMatching(/^textbook-section:dorf-modern-control-systems:/),
       pathNodeType: 'textbook_section',
@@ -2168,8 +2903,12 @@ describe('adaptive learning path planner', () => {
     });
     expect(selectedTextbookSection?.knowledgeCoverage).not.toContain('kn-bode');
     expect(selectedTextbookSection?.knowledgeCoverage.some((target) =>
-      (ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].knowledgeTargetAliases?.['kn-bode'] ?? []).includes(target)
+      frequencyAliases.includes(target)
     )).toBe(true);
+    expect(selectedTextbookSection?.resourceRanker?.matchedGraphRefs.knowledge.some((target) =>
+      frequencyAliases.includes(target)
+    )).toBe(true);
+    expect(selectedTextbookSection?.reasonCodes).toContain('ranker:graph-coverage');
     expect(plan.status).toBe('ready');
   });
 
