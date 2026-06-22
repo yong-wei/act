@@ -1258,7 +1258,7 @@ export function buildStudentGradingFeedbackView(input: {
       confidence: grade.confidence,
     })),
     profileImpactSummary: grades.map((grade) => grade.profileWritebackCandidate),
-    actionCards: grades.flatMap((grade) => buildStudentGradingFeedbackActionCards(input.asset, grade)),
+    actionCards: grades.flatMap((grade) => buildStudentGradingFeedbackActionCards(input.asset, input.run, grade)),
     konlingEntryPoint: {
       mode: 'feedback-explainer',
       promptContext: `grading:${input.run.id};assignment:${input.asset.assignmentId}`,
@@ -1368,6 +1368,7 @@ function pickCriterionDiffFields(
 
 function buildStudentGradingFeedbackActionCards(
   asset: DocumentSubmissionAsset,
+  run: Pick<DocumentRubricGradingRun, 'id'>,
   grade: CriterionDraftGrade,
 ): StudentGradingFeedbackActionCard[] {
   const context: Pick<StudentFeedbackTaskContext, 'assignmentId' | 'criterionId' | 'source' | 'lifecycleState' | 'returnTo'> = {
@@ -1375,7 +1376,7 @@ function buildStudentGradingFeedbackActionCards(
     criterionId: grade.criterionId,
     source: 'document-feedback',
     lifecycleState: 'returned',
-    returnTo: '/assessment/document-feedback',
+    returnTo: `/assessment/document-feedback?gradingRunId=${encodeURIComponent(run.id)}`,
   };
   return [
     {

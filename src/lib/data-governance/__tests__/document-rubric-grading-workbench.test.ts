@@ -974,7 +974,7 @@ describe('document rubric grading workbench', () => {
       expect(query.get('criterion')).toBe(card.criterionId);
       expect(query.get('source')).toBe('document-feedback');
       expect(query.get('status')).toBe('returned');
-      expect(query.get('returnTo')).toBe('/assessment/document-feedback');
+      expect(query.get('returnTo')).toBe(`/assessment/document-feedback?gradingRunId=${encodeURIComponent(approved.id)}`);
       expect(query.get('action') ?? query.get('intent')).toBeTruthy();
     }
     expect(visibleStudentView.konlingEntryPoint?.mode).toBe('feedback-explainer');

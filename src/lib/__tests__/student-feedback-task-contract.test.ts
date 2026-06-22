@@ -22,7 +22,7 @@ describe('student feedback task contract', () => {
       source: 'batch59',
       status: 'returned',
       action: 'adopt',
-      returnTo: '/assessment/document-feedback',
+      returnTo: '/assessment/document-feedback?gradingRunId=grading-1',
     }));
 
     expect(context).toMatchObject({
@@ -33,7 +33,7 @@ describe('student feedback task contract', () => {
       source: 'batch59',
       lifecycleState: 'adopted',
       completionTarget: 'evidence-growth-portfolio',
-      returnHref: '/assessment/document-feedback?assignment=report-control-design&criterion=model-assumptions&status=adopted&source=batch59',
+      returnHref: '/assessment/document-feedback?gradingRunId=grading-1&assignment=report-control-design&criterion=model-assumptions&status=adopted&source=batch59',
     });
     expect(context.supported).toBe(true);
     expect(context.badges).toEqual(expect.arrayContaining([
@@ -78,14 +78,14 @@ describe('student feedback task contract', () => {
       criterion: 'simulation-evidence',
       source: 'batch58',
       status: 'completed',
-      returnTo: '/assessment/document-feedback',
+      returnTo: '/assessment/document-feedback?gradingRunId=grading-2',
     }));
 
     expect(buildFeedbackTaskHref('/profile/evidence', context, { status: 'completed' })).toBe(
-      '/profile/evidence?assignment=report-control-design&criterion=simulation-evidence&status=completed&source=batch58&returnTo=%2Fassessment%2Fdocument-feedback',
+      '/profile/evidence?assignment=report-control-design&criterion=simulation-evidence&status=completed&source=batch58&returnTo=%2Fassessment%2Fdocument-feedback%3FgradingRunId%3Dgrading-2',
     );
     expect(buildFeedbackTaskHref('/profile/portfolio?category=reflection', context, { intent: 'collect' })).toBe(
-      '/profile/portfolio?category=reflection&assignment=report-control-design&criterion=simulation-evidence&status=completed&source=batch58&intent=collect&returnTo=%2Fassessment%2Fdocument-feedback',
+      '/profile/portfolio?category=reflection&assignment=report-control-design&criterion=simulation-evidence&status=completed&source=batch58&intent=collect&returnTo=%2Fassessment%2Fdocument-feedback%3FgradingRunId%3Dgrading-2',
     );
   });
 

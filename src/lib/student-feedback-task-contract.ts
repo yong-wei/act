@@ -105,7 +105,7 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
     completionTarget: supported ? 'evidence-growth-portfolio' : 'unsupported',
     supported,
   };
-  const returnHref = buildFeedbackTaskHref('/assessment/document-feedback', context, {
+  const returnHref = buildFeedbackTaskHref(returnTo ?? '/assessment/document-feedback', context, {
     status: context.lifecycleState,
     omitReturnTo: true,
   });
