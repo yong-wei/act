@@ -20,6 +20,8 @@ const RUNTIME_LESSONS_DIR = path.join(process.cwd(), 'course-content/runtime/les
 const RUNTIME_KNOWLEDGE_CARDS_DIR = path.join(process.cwd(), 'course-content/runtime/knowledge/cards/nodes');
 const INFOGRAPH_MANIFEST_PATH = path.join(process.cwd(), 'course-content/runtime/knowledge/infographs/manifest.json');
 const AUTHORING_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/authoring/resources/textbooks');
+const STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE = 'student-visible' satisfies ResourceFieldCompletionCandidate['privacyScope'];
+const UNCLASSIFIED_AUDIT_PRIVACY_SCOPE = null satisfies ResourceFieldCompletionCandidate['privacyScope'];
 
 interface RuntimeInteractiveManifest {
   lesson_id?: string;
@@ -181,6 +183,7 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
     citationTargets: [document.resourceProjection.citationTargetRef ?? document.href].filter((value): value is string => Boolean(value)),
     pathTarget: null,
     evidenceInstrumentation: ['textbook_search_document_retrieved'],
+    privacyScope: UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
     contentHash: document.contentHash,
     versionRef: 'textbook-runtime-search-documents.v1',
     humanConfirmed: false,
@@ -241,6 +244,7 @@ async function collectRuntimeManifestCandidates() {
         citationTargets: [],
         pathTarget: `/interactive-learning/courses/${lessonId}`,
         evidenceInstrumentation: step.telemetry_spec ? ['interactive_step_event'] : [],
+        privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
         generatedBy: step.ai_context_spec ? 'template' : null,
         humanConfirmed: false,
         contentHash: manifestHash,
@@ -263,6 +267,7 @@ async function collectRuntimeManifestCandidates() {
           citationTargets: modulePath ? [modulePath] : [],
           pathTarget: null,
           evidenceInstrumentation: moduleEntry.kind?.startsWith('interaction.') ? ['interactive_module_event'] : [],
+          privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
           generatedBy: 'template',
           humanConfirmed: false,
           contentHash: manifestHash,
@@ -301,6 +306,7 @@ async function collectRuntimeMediaCandidates() {
         citationTargets: [relativePath],
         pathTarget: `/course-runtime/lessons/${dirent.name}/media/${mediaRelativePath}`,
         evidenceInstrumentation: [],
+        privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
         generatedBy: 'external-tool',
         humanConfirmed: false,
         contentHash,
@@ -457,6 +463,7 @@ async function collectInfographCandidates() {
     citationTargets: [item.url].filter((value): value is string => Boolean(value)),
     pathTarget: item.url ?? null,
     evidenceInstrumentation: [],
+    privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
     generatedBy: 'external-tool',
     humanConfirmed: false,
     contentHash: item.path ? await readLocalFileHash(item.path) : null,
@@ -487,6 +494,7 @@ async function collectKnowledgeCardCandidates() {
       citationTargets: [sourcePath],
       pathTarget: `/knowledge?node=${encodeURIComponent(nodeId)}`,
       evidenceInstrumentation: [],
+      privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
       generatedBy: 'template',
       humanConfirmed: false,
       contentHash: markdown ? `sha256:${sha256(markdown)}` : null,
@@ -522,6 +530,7 @@ async function collectAuthoringTextbookCandidates() {
       citationTargets: [manifest.sourceMarkdown, manifest.textbookPath].filter((value): value is string => Boolean(value)),
       pathTarget: null,
       evidenceInstrumentation: [],
+      privacyScope: UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
       generatedBy: manifest.pipeline ? 'external-tool' : null,
       humanConfirmed: false,
       contentHash: manifestHash,
@@ -551,6 +560,7 @@ async function collectAuthoringTextbookCandidates() {
         citationTargets: exportPath ? [exportPath] : [],
         pathTarget: null,
         evidenceInstrumentation: [],
+        privacyScope: UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
         generatedBy: manifest.pipeline ? 'external-tool' : null,
         humanConfirmed: false,
         contentHash: image.sha256 ?? null,
@@ -568,6 +578,7 @@ async function collectAuthoringTextbookCandidates() {
         citationTargets: exportPath ? [exportPath] : [],
         pathTarget: null,
         evidenceInstrumentation: [],
+        privacyScope: UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
         generatedBy: manifest.pipeline ? 'external-tool' : null,
         humanConfirmed: false,
         contentHash: image.caption ? `sha256:${sha256(image.caption)}` : manifest.markdownSha256 ?? null,
@@ -611,6 +622,7 @@ async function collectAuthoringTextbookSectionCandidates(input: {
         citationTargets: [`${sourcePath}#L${lineNumber}`],
         pathTarget: null,
         evidenceInstrumentation: [],
+        privacyScope: UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
         generatedBy: input.manifest.pipeline ? 'external-tool' : null,
         humanConfirmed: false,
         contentHash: input.manifest.markdownSha256 ?? null,

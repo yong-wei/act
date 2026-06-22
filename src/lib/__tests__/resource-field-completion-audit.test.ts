@@ -211,6 +211,7 @@ describe('resource field completion audit', () => {
           'eventType',
           'clientEventIdPolicy',
           'learningFactPolicy',
+          'privacyScope',
         ]),
       },
       missingFieldCodes: expect.arrayContaining([
@@ -285,6 +286,7 @@ describe('resource field completion audit', () => {
         pathTarget: 'https://example.edu/versioned-control-note',
         estimatedTimeMinutes: 4,
         evidenceInstrumentation: ['external_resource_access'],
+        privacyScope: 'student-visible',
         contentHash: 'sha256:confirmed',
         versionRef: 'external-resource.v1',
         generatedBy: 'local-model',
@@ -295,6 +297,7 @@ describe('resource field completion audit', () => {
     expect(result.rows[0]).toMatchObject({
       sourceHash: 'sha256:confirmed',
       sourceVersionRef: 'external-resource.v1',
+      completionMethod: 'already-governed',
       reviewStatus: 'human-confirmed',
       reviewAudit: {
         reviewedSourceHash: 'sha256:confirmed',
@@ -303,9 +306,19 @@ describe('resource field completion audit', () => {
         reviewBatchId: 'external-resource.v1',
         generationToolOrModel: 'local-model',
       },
+      evidenceContract: {
+        complete: true,
+        privacyScope: true,
+      },
+      pathEligibility: {
+        afterCompletion: true,
+        masteryAffecting: true,
+        blockedBy: [],
+      },
     });
     expect(result.rows[0].missingFieldCodes).not.toContain('provisional-metadata');
     expect(result.rows[0].pathEligibility.blockedBy).not.toContain('provisional-metadata');
+    expect(result.rows[0].missingFieldCodes).not.toContain('missing-evidence-contract');
   });
 
   it('surfaces missing field codes in graph resource coverage diagnostics', () => {

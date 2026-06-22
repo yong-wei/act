@@ -9,6 +9,7 @@ import {
   buildResourceSemanticProjection,
   type ResourceNode,
   type ResourceNodeRegistry,
+  type ResourceNodePrivacyLevel,
 } from './resource-node-registry';
 
 export const RESOURCE_FIELD_COMPLETION_AUDIT_VERSION = 'resource-field-completion-audit.v1';
@@ -88,6 +89,7 @@ export interface ResourceFieldCompletionCandidate {
   pathTarget?: string | null;
   estimatedTimeMinutes?: number | null;
   evidenceInstrumentation?: string[];
+  privacyScope?: ResourceNodePrivacyLevel | null;
   generatedBy?: 'local-model' | 'external-tool' | 'template' | null;
   humanConfirmed?: boolean;
   contentHash?: string | null;
@@ -384,7 +386,7 @@ function rowFromCandidate(
     timestamps: evidenceInstrumentation.length > 0,
     learningFactPolicy: evidenceInstrumentation.length > 0,
     confidencePolicy: Boolean(candidate.capabilityTargetIds?.length),
-    privacyScope: false,
+    privacyScope: Boolean(candidate.privacyScope),
   });
   const missingFieldCodes = uniqueCodes([
     ...(!candidate.id ? ['missing-stable-id' as const] : []),
