@@ -253,7 +253,7 @@ async function collectRuntimeManifestCandidates() {
       for (const moduleEntry of step.modules ?? []) {
         const moduleId = moduleEntry.id ?? `${stepId}:${moduleEntry.kind ?? 'module'}`;
         const modulePath = moduleEntry.payload?.src
-          ? normalizeRuntimeMediaRef(dirent.name, moduleEntry.payload.src)
+          ? await resolveCitationTarget(lessonDir, moduleEntry.payload.src)
           : null;
         candidates.push({
           id: `runtime-module:${lessonId}:${stepId}:${moduleId}`,
@@ -518,6 +518,10 @@ async function collectAuthoringTextbookCandidates() {
     const bookId = path.basename(path.dirname(path.dirname(manifestPath)));
     const chapterId = `${bookId}:${manifest.id}`;
     const manifestHash = await readLocalFileHash(manifestPath);
+    const chapterCitationTargets = await resolveCitationTargets(chapterDir, [
+      manifest.sourceMarkdown,
+      manifest.textbookPath,
+    ]);
     candidates.push({
       id: `authoring-textbook-chapter:${chapterId}`,
       title: manifest.title ?? manifest.id,
@@ -527,7 +531,7 @@ async function collectAuthoringTextbookCandidates() {
       knowledgeNodeIds: [],
       capabilityTargetIds: [],
       segmentRefs: [manifest.id],
-      citationTargets: [manifest.sourceMarkdown, manifest.textbookPath].filter((value): value is string => Boolean(value)),
+      citationTargets: chapterCitationTargets,
       pathTarget: null,
       evidenceInstrumentation: [],
       privacyScope: UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
@@ -691,9 +695,23 @@ function projectPath(absolutePath: string) {
   return path.relative(process.cwd(), absolutePath);
 }
 
-function normalizeRuntimeMediaRef(lessonDir: string, source: string) {
+async function resolveCitationTargets(baseDir: string, sources: Array<string | null | undefined>) {
+  const resolved = await Promise.all(sources.map((source) => resolveCitationTarget(baseDir, source)));
+  return resolved.filter((value): value is string => Boolean(value));
+}
+
+async function resolveCitationTarget(baseDir: string, source: string | null | undefined) {
+  if (!source) return null;
   if (/^https?:\/\//i.test(source) || source.startsWith('/')) return source;
-  return path.join('course-content/runtime/lessons', lessonDir, source).replaceAll('/../', '/');
+  const absolutePath = path.isAbsolute(source)
+    ? source
+    : path.resolve(baseDir, source);
+  try {
+    await fs.access(absolutePath);
+    return projectPath(absolutePath);
+  } catch {
+    return null;
+  }
 }
 
 function inferRuntimeMediaKind(filename: string) {

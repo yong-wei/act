@@ -118,6 +118,10 @@ describe('resource field completion audit', () => {
     const manifestHash = `sha256:${createHash('sha256').update(readFileSync(join(process.cwd(), authoringManifestPath))).digest('hex')}`;
     expect(chapterRow?.sourceHash).toBe(manifestHash);
     expect(chapterRow?.sourceHash).not.toBe(authoringManifest.markdownSha256);
+    expect(chapterRow?.citationTargets).toContain(
+      'course-content/authoring/resources/textbooks/hu-shousong-exercise-analysis-3rd/chapter-01/textbook.md',
+    );
+    expect(chapterRow?.citationTargets).not.toContain('textbook.md');
     const captionImage = authoringManifest.images.find((image: { caption?: string }) => image.caption);
     const captionRow = jsonlRows.find((row) => (
       row.family === 'authoring-textbook-caption' &&
@@ -127,6 +131,14 @@ describe('resource field completion audit', () => {
     const captionHash = `sha256:${createHash('sha256').update(captionImage.caption).digest('hex')}`;
     expect(captionRow?.sourceHash).toBe(captionHash);
     expect(captionRow?.sourceHash).not.toBe(captionImage.sha256);
+    const staleModuleMediaRow = jsonlRows.find((row) => row.resourceId === 'runtime-module:1-1:step-01:step-01-content-figure-02');
+    expect(staleModuleMediaRow?.citationTargets).toEqual([]);
+    expect(staleModuleMediaRow?.groundingEligibility.citationReady).toBe(false);
+    expect(staleModuleMediaRow?.missingFieldCodes).toContain('missing-citation-target');
+    expect(jsonlRows.some((row) => (
+      row.family === 'runtime-lesson-module' &&
+      row.citationTargets.some((target: string) => target.includes('course-content/runtime/lessons/media/processed'))
+    ))).toBe(false);
 
     expect(knowledgeCardRows).toHaveLength(cardFiles.length);
     expect(new Set(knowledgeCardRows.map((row) => row.sourceRecord))).toEqual(
