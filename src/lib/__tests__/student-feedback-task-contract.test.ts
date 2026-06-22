@@ -127,6 +127,23 @@ describe('student feedback task contract', () => {
     );
   });
 
+  it('does not append internal feedback parameters to external destinations', () => {
+    const context = expectContext(buildFeedbackTaskContext({
+      assignment: 'report-1',
+      criterion: 'validation',
+      source: 'document-feedback',
+      status: 'returned',
+      returnTo: '/assessment/document-feedback?gradingRunId=grading-1',
+    }));
+
+    expect(buildFeedbackTaskHref('https://ocw.mit.edu/control/bode', context, { action: 'revise' })).toBe(
+      'https://ocw.mit.edu/control/bode',
+    );
+    expect(buildFeedbackTaskHref('//ocw.mit.edu/control/bode', context, { action: 'revise' })).toBe(
+      '//ocw.mit.edu/control/bode',
+    );
+  });
+
   it('maps lifecycle status and route actions to audited student-visible states', () => {
     const returned = expectContext(buildFeedbackTaskContext({
       assignment: 'report-control-design',

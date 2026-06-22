@@ -128,6 +128,7 @@ export function buildFeedbackTaskHref(
     omitReturnTo?: boolean;
   } = {},
 ): string {
+  if (isExternalHref(baseHref)) return baseHref;
   const [path, rawQuery = ''] = baseHref.split('?');
   const params = new URLSearchParams(rawQuery);
   params.set('assignment', context.assignmentId);
@@ -139,6 +140,10 @@ export function buildFeedbackTaskHref(
   if (!options.omitReturnTo && context.returnTo) params.set('returnTo', context.returnTo);
   const query = params.toString();
   return query ? `${path}?${query}` : path;
+}
+
+function isExternalHref(href: string): boolean {
+  return /^[a-z][a-z\d+.-]*:/i.test(href) || href.startsWith('//');
 }
 
 export function getFeedbackTaskMissionTarget(context: StudentFeedbackTaskContext): FeedbackTaskMissionTarget | null {
