@@ -2695,9 +2695,9 @@ function buildMediaSegmentAnchor(
 
 function normalizeResourceGraphNodeRefs(refs: ResourceGraphNodeRefs | undefined): ResourceGraphNodeRefs {
   return {
-    knowledge: uniqueSorted(refs?.knowledge ?? []),
-    capability: uniqueSorted(refs?.capability ?? []),
-    quality: uniqueSorted(refs?.quality ?? []),
+    knowledge: uniqueSorted(safeGraphRefValues(refs, 'knowledge')),
+    capability: uniqueSorted(safeGraphRefValues(refs, 'capability')),
+    quality: uniqueSorted(safeGraphRefValues(refs, 'quality')),
   };
 }
 
@@ -2715,7 +2715,7 @@ function buildMediaSegmentSceneAvailability(
 ): ResourceSceneAvailabilityMap {
   const blocked = issues.includes('blocked-ai-use');
   const missingAiUse = issues.includes('missing-ai-use-permission');
-  const declaredSceneAvailability = segment.sceneAvailability ?? {};
+  const declaredSceneAvailability = safeSceneAvailabilityMap(segment.sceneAvailability);
   return Object.fromEntries(RESOURCE_SEGMENT_SCENES.map((scene) => {
     if (scene === 'path') {
       return [scene, { allowed: false, reason: 'resource-node-planning-audit-required' }];
@@ -2851,11 +2851,40 @@ function estimateMediaManifestMinutes(manifest: ResourceMediaSourceManifest): nu
 }
 
 function hasAnyGraphRef(refs: ResourceGraphNodeRefs | undefined): boolean {
-  return Boolean(refs?.knowledge.length || refs?.capability.length || refs?.quality.length);
+  return Boolean(
+    safeGraphRefValues(refs, 'knowledge').length ||
+    safeGraphRefValues(refs, 'capability').length ||
+    safeGraphRefValues(refs, 'quality').length
+  );
 }
 
 function hasAnySceneAvailability(sceneAvailability: Partial<ResourceSceneAvailabilityMap> | undefined): boolean {
-  return Boolean(sceneAvailability && RESOURCE_SEGMENT_SCENES.some((scene) => sceneAvailability[scene]?.allowed !== undefined));
+  const scenes = safeSceneAvailabilityMap(sceneAvailability);
+  return RESOURCE_SEGMENT_SCENES.some((scene) => scenes[scene]?.allowed !== undefined);
+}
+
+function safeGraphRefValues(refs: ResourceGraphNodeRefs | undefined, key: keyof ResourceGraphNodeRefs): string[] {
+  const values = refs?.[key];
+  return Array.isArray(values) ? values.filter((value): value is string => typeof value === 'string') : [];
+}
+
+function safeSceneAvailabilityMap(
+  sceneAvailability: Partial<ResourceSceneAvailabilityMap> | undefined,
+): Partial<ResourceSceneAvailabilityMap> {
+  if (!sceneAvailability || typeof sceneAvailability !== 'object' || Array.isArray(sceneAvailability)) return {};
+  return Object.fromEntries(RESOURCE_SEGMENT_SCENES.flatMap((scene) => {
+    const availability = sceneAvailability[scene];
+    if (
+      availability &&
+      typeof availability === 'object' &&
+      !Array.isArray(availability) &&
+      typeof availability.allowed === 'boolean' &&
+      (availability.reason === null || typeof availability.reason === 'string')
+    ) {
+      return [[scene, availability]];
+    }
+    return [];
+  })) as Partial<ResourceSceneAvailabilityMap>;
 }
 
 function collectForbiddenProjectionFields(value: unknown, forbiddenFields: Set<string>, path = ''): string[] {
