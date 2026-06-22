@@ -23,6 +23,11 @@ const CONTENT_TYPES: Record<string, string> = {
   '.mdx': 'text/markdown; charset=utf-8',
 };
 
+function isPrivateRuntimeGovernancePath(relativePath: string) {
+  const normalizedPath = relativePath.replace(/\\/g, '/').toLowerCase();
+  return normalizedPath === 'resource-governance' || normalizedPath.startsWith('resource-governance/');
+}
+
 export async function GET(_request: Request, props: { params: Promise<{ assetPath: string[] }> }) {
   const params = await props.params;
   const segments = params.assetPath ?? [];
@@ -30,8 +35,14 @@ export async function GET(_request: Request, props: { params: Promise<{ assetPat
     return NextResponse.json({ error: 'Missing asset path' }, { status: 400 });
   }
 
-  const relativePath = normalize(segments.join('/')).replace(/^(\.\.(\/|\\|$))+/, '');
+  const relativePath = normalize(segments.join('/'))
+    .replace(/^(\.\.(\/|\\|$))+/, '')
+    .replace(/^[\\/]+/, '');
   const absolutePath = join(RUNTIME_ROOT, relativePath);
+
+  if (isPrivateRuntimeGovernancePath(relativePath)) {
+    return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+  }
 
   if (!absolutePath.startsWith(RUNTIME_ROOT)) {
     return NextResponse.json({ error: 'Invalid asset path' }, { status: 400 });
