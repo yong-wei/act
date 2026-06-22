@@ -144,6 +144,22 @@ describe('student feedback task contract', () => {
     );
   });
 
+  it('preserves internal URL fragments after appended feedback parameters', () => {
+    const context = expectContext(buildFeedbackTaskContext({
+      assignment: 'report-1',
+      criterion: 'validation',
+      source: 'document-feedback',
+      status: 'returned',
+    }));
+
+    expect(buildFeedbackTaskHref('/course.md#chunk-001', context)).toBe(
+      '/course.md?assignment=report-1&criterion=validation&status=returned&source=document-feedback#chunk-001',
+    );
+    expect(buildFeedbackTaskHref('/course.md?view=compact#page=12', context, { intent: 'revise' })).toBe(
+      '/course.md?view=compact&assignment=report-1&criterion=validation&status=returned&source=document-feedback&intent=revise#page=12',
+    );
+  });
+
   it('maps lifecycle status and route actions to audited student-visible states', () => {
     const returned = expectContext(buildFeedbackTaskContext({
       assignment: 'report-control-design',

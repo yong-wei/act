@@ -129,7 +129,10 @@ export function buildFeedbackTaskHref(
   } = {},
 ): string {
   if (isExternalHref(baseHref)) return baseHref;
-  const [path, rawQuery = ''] = baseHref.split('?');
+  const hashIndex = baseHref.indexOf('#');
+  const hrefWithoutHash = hashIndex >= 0 ? baseHref.slice(0, hashIndex) : baseHref;
+  const rawHash = hashIndex >= 0 ? baseHref.slice(hashIndex + 1) : undefined;
+  const [path, rawQuery = ''] = hrefWithoutHash.split('?');
   const params = new URLSearchParams(rawQuery);
   params.set('assignment', context.assignmentId);
   if (context.criterionId) params.set('criterion', context.criterionId);
@@ -139,7 +142,8 @@ export function buildFeedbackTaskHref(
   if (options.action) params.set('action', options.action);
   if (!options.omitReturnTo && context.returnTo) params.set('returnTo', context.returnTo);
   const query = params.toString();
-  return query ? `${path}?${query}` : path;
+  const hrefWithQuery = query ? `${path}?${query}` : path;
+  return rawHash === undefined ? hrefWithQuery : `${hrefWithQuery}#${rawHash}`;
 }
 
 function isExternalHref(href: string): boolean {
