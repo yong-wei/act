@@ -2029,6 +2029,130 @@ describe('resource node registry', () => {
     expect(missingSceneProjection.resource.graphProfile.governanceLimitations).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: 'segments.0.missing-scene-availability' }),
     ]));
+
+    for (const manifest of [
+      {
+        sourceId: 'authoring/media:image-start-seconds',
+        sourcePath: 'course-content/authoring/media/image-start-seconds.png',
+        mediaType: 'image',
+        sourceVersionRef: 'media.v1',
+        privacyScope: 'student-visible',
+        descriptionRef: 'media/image-start-seconds.md',
+        segments: [
+          {
+            id: 'image',
+            startSeconds: 10,
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: { report: { allowed: true, reason: null } },
+            citationPolicy: 'verified-citation-required',
+            aiUsePermission: 'allowed',
+          },
+        ],
+      },
+      {
+        sourceId: 'authoring/media:slides-start-seconds',
+        sourcePath: 'course-content/authoring/media/slides-start-seconds.pdf',
+        mediaType: 'slides',
+        sourceVersionRef: 'media.v1',
+        privacyScope: 'student-visible',
+        descriptionRef: 'media/slides-start-seconds.md',
+        segments: [
+          {
+            id: 'slide',
+            startSeconds: 10,
+            textRef: 'media/slides-start-seconds.md',
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: { report: { allowed: true, reason: null } },
+            citationPolicy: 'verified-citation-required',
+            aiUsePermission: 'allowed',
+          },
+        ],
+      },
+      {
+        sourceId: 'authoring/media:slides-null-page',
+        sourcePath: 'course-content/authoring/media/slides-null-page.pdf',
+        mediaType: 'slides',
+        sourceVersionRef: 'media.v1',
+        privacyScope: 'student-visible',
+        descriptionRef: 'media/slides-null-page.md',
+        segments: [
+          {
+            id: 'slide',
+            page: null,
+            textRef: 'media/slides-null-page.md',
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: { report: { allowed: true, reason: null } },
+            citationPolicy: 'verified-citation-required',
+            aiUsePermission: 'allowed',
+          },
+        ],
+      },
+      {
+        sourceId: 'authoring/media:video-null-timecode',
+        sourcePath: 'course-content/authoring/media/video-null-timecode.mp4',
+        mediaType: 'video',
+        sourceVersionRef: 'media.v1',
+        privacyScope: 'student-visible',
+        segments: [
+          {
+            id: 'video',
+            startSeconds: null,
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: { report: { allowed: true, reason: null } },
+            citationPolicy: 'source-reference-only',
+            aiUsePermission: 'allowed',
+          },
+        ],
+      },
+    ] as const) {
+      const projection = buildMediaSourceManifestSemanticProjection(
+        manifest as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0],
+      );
+      expect(validateResourceMediaSourceManifest(
+        manifest as unknown as Parameters<typeof validateResourceMediaSourceManifest>[0],
+      ).issues).toContain('segments.0.missing-anchor');
+      expect(projection.citationTargets[0].status).toBe('missing-target');
+      expect(projection.retrievalChunks[0].projectionStatus).toBe('blocked');
+    }
+
+    expect(validateResourceMediaSourceManifest({
+      sourceId: 'authoring/media:video-zero-timecode',
+      sourcePath: 'course-content/authoring/media/video-zero-timecode.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'media.v1',
+      privacyScope: 'student-visible',
+      transcriptRef: 'media/video-zero-timecode.vtt',
+      segments: [
+        {
+          id: 'video',
+          startSeconds: 0,
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'verified-citation-required',
+          aiUsePermission: 'allowed',
+        },
+      ],
+    }).issues).toEqual([]);
+
+    expect(validateResourceMediaSourceManifest({
+      sourceId: 'authoring/media:slides-valid-page',
+      sourcePath: 'course-content/authoring/media/slides-valid-page.pdf',
+      mediaType: 'slides',
+      sourceVersionRef: 'media.v1',
+      privacyScope: 'student-visible',
+      descriptionRef: 'media/slides-valid-page.md',
+      segments: [
+        {
+          id: 'slide',
+          page: 1,
+          textRef: 'media/slides-valid-page.md',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'verified-citation-required',
+          aiUsePermission: 'allowed',
+        },
+      ],
+    }).issues).toEqual([]);
   });
 
   it('blocks admin-scoped resources from learner-facing resource segment scenes', () => {

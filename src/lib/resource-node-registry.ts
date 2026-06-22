@@ -1205,7 +1205,7 @@ export function validateResourceMediaSourceManifest(
   manifest.segments.forEach((segment, index) => {
     const prefix = `segments.${index}`;
     if (!segment.id) issues.push(`${prefix}.missing-id`);
-    if (!segment.anchorRef && segment.startSeconds === undefined && segment.page === undefined) issues.push(`${prefix}.missing-anchor`);
+    if (!hasMediaSegmentAnchor(manifest.mediaType, segment)) issues.push(`${prefix}.missing-anchor`);
     if (!hasAnyGraphRef(segment.graphNodeRefs)) issues.push(`${prefix}.missing-graph-bindings`);
     if (!hasAnySceneAvailability(segment.sceneAvailability)) issues.push(`${prefix}.missing-scene-availability`);
     if (!segment.citationPolicy) issues.push(`${prefix}.missing-citation-policy`);
@@ -1224,7 +1224,7 @@ export function validateResourceMediaSourceManifest(
       (manifest.mediaType === 'video' || manifest.mediaType === 'audio') &&
       !manifest.transcriptRef &&
       !manifest.chapterRef &&
-      segment.startSeconds === undefined
+      !hasFiniteMediaTimecode(segment)
     ) {
       issues.push(`${prefix}.missing-transcript-or-timecode-anchor`);
     }
@@ -2654,6 +2654,24 @@ function issuesForMediaSegment(issues: string[], index: number): string[] {
   return issues
     .filter((issue) => !issue.startsWith('segments.') || issue.startsWith(prefix))
     .map((issue) => issue.startsWith(prefix) ? issue.slice(prefix.length) : issue);
+}
+
+function hasMediaSegmentAnchor(
+  mediaType: ResourceMediaSourceManifest['mediaType'],
+  segment: ResourceMediaManifestSegment,
+): boolean {
+  if (isNonEmptyString(segment.anchorRef)) return true;
+  if (mediaType === 'video' || mediaType === 'audio') return hasFiniteMediaTimecode(segment);
+  if (mediaType === 'slides') return Number.isFinite(segment.page);
+  return false;
+}
+
+function hasFiniteMediaTimecode(segment: ResourceMediaManifestSegment): boolean {
+  return Number.isFinite(segment.startSeconds);
+}
+
+function isNonEmptyString(value: string | null | undefined): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
 function buildMediaSegmentAnchor(
