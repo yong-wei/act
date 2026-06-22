@@ -1202,7 +1202,7 @@ export function validateResourceMediaSourceManifest(
   if (!sourcePath.trim()) issues.push('missing-source-path');
   if (sourcePath && !isSafeMediaSourcePath(sourcePath)) issues.push('unsafe-source-path');
   if (!manifest.sourceVersionRef && !manifest.freshnessRef) issues.push('missing-source-version-or-freshness');
-  if (!['video', 'audio', 'image', 'slides'].includes(manifest.mediaType)) issues.push('invalid-media-type');
+  if (!isMediaSourceManifestType(manifest.mediaType)) issues.push('invalid-media-type');
   if (!Array.isArray(manifest.segments) || manifest.segments.length === 0) {
     issues.push('missing-segments');
     return { verifiedCitationReady: false, issues };
@@ -1219,6 +1219,12 @@ export function validateResourceMediaSourceManifest(
     issues.push('missing-privacy-scope');
   }
 
+  const segmentIdCounts = new Map<string, number>();
+  manifest.segments.forEach((segment) => {
+    if (!isMediaManifestSegmentRecord(segment) || !segment.id) return;
+    segmentIdCounts.set(segment.id, (segmentIdCounts.get(segment.id) ?? 0) + 1);
+  });
+
   manifest.segments.forEach((segment, index) => {
     const prefix = `segments.${index}`;
     if (!isMediaManifestSegmentRecord(segment)) {
@@ -1226,6 +1232,7 @@ export function validateResourceMediaSourceManifest(
       return;
     }
     if (!segment.id) issues.push(`${prefix}.missing-id`);
+    if (segment.id && (segmentIdCounts.get(segment.id) ?? 0) > 1) issues.push(`${prefix}.duplicate-id`);
     if (!hasMediaSegmentAnchor(manifest.mediaType, segment)) issues.push(`${prefix}.missing-anchor`);
     if (!hasAnyGraphRef(segment.graphNodeRefs)) issues.push(`${prefix}.missing-graph-bindings`);
     if (!hasAnySceneAvailability(segment.sceneAvailability)) issues.push(`${prefix}.missing-scene-availability`);
@@ -1283,6 +1290,7 @@ export function buildMediaSourceManifestSemanticProjection(
 ): ResourceSemanticProjection {
   const validation = validateResourceMediaSourceManifest(manifest);
   const resourceId = `media-source:${manifest.sourceId || 'unknown'}`;
+  const mediaType = normalizedMediaManifestType(manifest.mediaType);
   const sourceRef: ResourceSemanticSourceReference = {
     kind: 'media_source_manifest',
     ref: manifest.sourceId,
@@ -1291,9 +1299,10 @@ export function buildMediaSourceManifestSemanticProjection(
   const manifestSegments = Array.isArray(manifest.segments)
     ? manifest.segments.map(normalizeMediaManifestSegment)
     : [];
+  const segmentKeys = allocateMediaSegmentKeys(manifestSegments, validation.issues);
   const segments = manifestSegments.map((segment, index): ResourceSegment => {
     const segmentIssues = issuesForMediaSegment(validation.issues, index);
-    const segmentId = mediaSegmentId(manifest, segment, index);
+    const segmentId = mediaSegmentId(manifest, segmentKeys[index]);
     const privacyScope = mediaSegmentPrivacyScope(manifest, segment);
     const citationReadiness = buildMediaSegmentCitationReadiness(segment, segmentIssues);
     const sceneAvailability = buildMediaSegmentSceneAvailability(segment, segmentIssues, privacyScope);
@@ -1301,7 +1310,7 @@ export function buildMediaSourceManifestSemanticProjection(
       id: segmentId,
       resourceId,
       sourceRef,
-      kind: manifest.mediaType,
+      kind: resourceSegmentKindForMediaManifest(mediaType),
       anchor: buildMediaSegmentAnchor(manifest, segment),
       privacyScope,
       graphNodeRefs: normalizeResourceGraphNodeRefs(segment.graphNodeRefs),
@@ -1317,8 +1326,9 @@ export function buildMediaSourceManifestSemanticProjection(
   });
   const citationTargets = segments.map((segment, index): CitationTarget => {
     const ready = segment.citationReadiness.verified || segment.citationReadiness.status === 'resolvable';
+    const key = mediaSegmentKeyFromProjectedId(manifest, segment.id);
     return {
-      id: `media-citation-target:${manifest.sourceId || 'unknown'}:${manifestSegments[index]?.id || index}`,
+      id: `media-citation-target:${manifest.sourceId || 'unknown'}:${key}`,
       resourceId,
       resourceSegmentId: segment.id,
       sourceRef,
@@ -1330,8 +1340,9 @@ export function buildMediaSourceManifestSemanticProjection(
   });
   const retrievalChunks = segments.map((segment, index): RetrievalChunk => {
     const citationTarget = citationTargets[index];
+    const key = mediaSegmentKeyFromProjectedId(manifest, segment.id);
     return {
-      id: `media-retrieval-chunk:${manifest.sourceId || 'unknown'}:${manifestSegments[index]?.id || index}`,
+      id: `media-retrieval-chunk:${manifest.sourceId || 'unknown'}:${key}`,
       resourceId,
       resourceSegmentId: segment.id,
       citationTargetId: citationTarget.status === 'resolvable' ? citationTarget.id : null,
@@ -1357,7 +1368,7 @@ export function buildMediaSourceManifestSemanticProjection(
     id: resourceId,
     resourceNodeId: resourceId,
     title: manifest.title ?? manifest.sourceId,
-    type: resourceNodeTypeForMediaManifest(manifest.mediaType),
+    type: resourceNodeTypeForMediaManifest(mediaType),
     sourceKind: 'media_source_manifest',
     sourceRefs,
     contentHash: manifest.contentHash ?? null,
@@ -2702,12 +2713,52 @@ function mostRestrictivePrivacyScope(scopes: Array<ResourceNodePrivacyLevel | nu
   return 'teacher-scoped';
 }
 
-function mediaSegmentId(
-  manifest: ResourceMediaSourceManifest,
-  segment: ResourceMediaManifestSegment,
-  index: number,
-): string {
-  return `media-segment:${manifest.sourceId || 'unknown'}:${segment.id || index}`;
+function allocateMediaSegmentKeys(
+  segments: ResourceMediaManifestSegment[],
+  issues: string[],
+): string[] {
+  const segmentIdCounts = new Map<string, number>();
+  for (const segment of segments) {
+    if (!isNonEmptyString(segment.id)) continue;
+    segmentIdCounts.set(segment.id, (segmentIdCounts.get(segment.id) ?? 0) + 1);
+  }
+  const reservedDeclaredKeys = new Set(
+    Array.from(segmentIdCounts.entries())
+      .filter(([, count]) => count === 1)
+      .map(([id]) => id),
+  );
+  const used = new Set<string>();
+  const duplicateIndexes = new Set(
+    issues
+      .map((issue) => issue.match(/^segments\.(\d+)\.duplicate-id$/)?.[1])
+      .filter((index): index is string => Boolean(index))
+      .map(Number),
+  );
+  return segments.map((segment, index) => {
+    const declaredKey = isNonEmptyString(segment.id) ? segment.id : null;
+    if (declaredKey && !duplicateIndexes.has(index) && !used.has(declaredKey)) {
+      used.add(declaredKey);
+      return declaredKey;
+    }
+    const baseKey = declaredKey ? `${declaredKey}#duplicate` : 'segment';
+    let candidate = `${baseKey}:${index}`;
+    let suffix = 1;
+    while (used.has(candidate) || reservedDeclaredKeys.has(candidate)) {
+      candidate = `${baseKey}:${index}:${suffix}`;
+      suffix += 1;
+    }
+    used.add(candidate);
+    return candidate;
+  });
+}
+
+function mediaSegmentId(manifest: ResourceMediaSourceManifest, key: string): string {
+  return `media-segment:${manifest.sourceId || 'unknown'}:${key}`;
+}
+
+function mediaSegmentKeyFromProjectedId(manifest: ResourceMediaSourceManifest, segmentId: string): string {
+  const prefix = `media-segment:${manifest.sourceId || 'unknown'}:`;
+  return segmentId.startsWith(prefix) ? segmentId.slice(prefix.length) : segmentId;
 }
 
 function issuesForMediaSegment(issues: string[], index: number): string[] {
@@ -2747,6 +2798,18 @@ function isMediaCitationPolicy(value: unknown): value is NonNullable<ResourceMed
 
 function isMediaAiUsePermission(value: unknown): value is NonNullable<ResourceMediaManifestSegment['aiUsePermission']> {
   return value === 'allowed' || value === 'restricted' || value === 'blocked';
+}
+
+function isMediaSourceManifestType(value: unknown): value is ResourceMediaSourceManifest['mediaType'] {
+  return value === 'video' || value === 'audio' || value === 'image' || value === 'slides';
+}
+
+function normalizedMediaManifestType(value: unknown): ResourceMediaSourceManifest['mediaType'] {
+  return isMediaSourceManifestType(value) ? value : 'image';
+}
+
+function resourceSegmentKindForMediaManifest(mediaType: ResourceMediaSourceManifest['mediaType']): ResourceSegmentKind {
+  return mediaType;
 }
 
 function buildMediaSegmentAnchor(
@@ -2857,6 +2920,7 @@ function isMediaCitationBlockingIssue(issue: string): boolean {
     'invalid-media-type',
     'missing-segments',
     'invalid-segment',
+    'duplicate-id',
     'missing-id',
     'missing-anchor',
     'missing-graph-bindings',

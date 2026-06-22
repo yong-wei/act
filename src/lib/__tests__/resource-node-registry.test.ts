@@ -2171,6 +2171,128 @@ describe('resource node registry', () => {
       reason: 'no-segment-available',
     });
 
+    const duplicateSegmentProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:duplicate-segment',
+      sourcePath: 'course-content/authoring/videos/duplicate-segment.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'duplicate-segment.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/duplicate-segment.vtt',
+      segments: [
+        {
+          id: 'duplicate',
+          anchorRef: 'duplicate-a',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+        {
+          id: 'duplicate',
+          anchorRef: 'duplicate-b',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+        {
+          id: 'duplicate:0',
+          anchorRef: 'duplicate-c',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+        {
+          id: 'duplicate#duplicate:0',
+          anchorRef: 'duplicate-d',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(duplicateSegmentProjection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
+      'segments.0.duplicate-id',
+      'segments.1.duplicate-id',
+    ]));
+    expect(new Set(duplicateSegmentProjection.segments.map((segment) => segment.id)).size).toBe(4);
+    expect(new Set(duplicateSegmentProjection.citationTargets.map((target) => target.id)).size).toBe(4);
+    expect(new Set(duplicateSegmentProjection.retrievalChunks.map((chunk) => chunk.id)).size).toBe(4);
+    expect(duplicateSegmentProjection.segments[2].id).toBe(
+      'media-segment:authoring/video:duplicate-segment:duplicate:0',
+    );
+    expect(duplicateSegmentProjection.segments[3].id).toBe(
+      'media-segment:authoring/video:duplicate-segment:duplicate#duplicate:0',
+    );
+    expect(duplicateSegmentProjection.citationTargets.map((target) => target.status)).toEqual([
+      'missing-target',
+      'missing-target',
+      'resolvable',
+      'resolvable',
+    ]);
+    expect(duplicateSegmentProjection.retrievalChunks.map((chunk) => chunk.projectionStatus)).toEqual([
+      'blocked',
+      'blocked',
+      'mapped',
+      'mapped',
+    ]);
+
+    const missingIdCollisionProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:id-collision',
+      sourcePath: 'course-content/authoring/videos/id-collision.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'id-collision.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/id-collision.vtt',
+      segments: [
+        {
+          anchorRef: 'missing-id',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+        {
+          id: 'segment:0',
+          anchorRef: 'segment-zero',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(missingIdCollisionProjection.segments[1].id).toBe(
+      'media-segment:authoring/video:id-collision:segment:0',
+    );
+    expect(new Set(missingIdCollisionProjection.segments.map((segment) => segment.id)).size).toBe(2);
+
+    const invalidMediaTypeProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/media:invalid-type',
+      sourcePath: 'course-content/authoring/media/invalid-type.pdf',
+      mediaType: 'pdf',
+      sourceVersionRef: 'invalid-type.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/invalid-type.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(invalidMediaTypeProjection.resource.governance.auditIssueCodes).toContain('invalid-media-type');
+    expect(invalidMediaTypeProjection.resource.type).toBe('external_resource');
+    expect(invalidMediaTypeProjection.segments[0].kind).toBe('image');
+    expect(invalidMediaTypeProjection.citationTargets[0].status).toBe('missing-target');
+    expect(invalidMediaTypeProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+
     for (const segments of [undefined, 'not-an-array']) {
       const malformedProjection = buildMediaSourceManifestSemanticProjection({
         sourceId: `authoring/video:malformed-${String(segments)}`,
