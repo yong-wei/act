@@ -1201,7 +1201,9 @@ export function validateResourceMediaSourceManifest(
   const sourcePath = typeof manifest.sourcePath === 'string' ? manifest.sourcePath : '';
   if (!sourcePath.trim()) issues.push('missing-source-path');
   if (sourcePath && !isSafeMediaSourcePath(sourcePath)) issues.push('unsafe-source-path');
-  if (!manifest.sourceVersionRef && !manifest.freshnessRef) issues.push('missing-source-version-or-freshness');
+  if (!isNonEmptyString(manifest.sourceVersionRef) && !isNonEmptyString(manifest.freshnessRef)) {
+    issues.push('missing-source-version-or-freshness');
+  }
   if (!isMediaSourceManifestType(manifest.mediaType)) issues.push('invalid-media-type');
   if (!Array.isArray(manifest.segments) || manifest.segments.length === 0) {
     issues.push('missing-segments');
@@ -2679,12 +2681,12 @@ function buildMediaManifestSourceRefs(
   primary: ResourceSemanticSourceReference,
 ): ResourceSemanticSourceReference[] {
   const refs = [primary];
-  if (manifest.sourceRepo) refs.push({ kind: 'media_source_manifest', ref: `repo:${manifest.sourceRepo}` });
-  if (manifest.sourceVersionRef) refs.push({ kind: 'media_source_manifest', ref: `version:${manifest.sourceVersionRef}` });
-  if (manifest.freshnessRef) refs.push({ kind: 'media_source_manifest', ref: `freshness:${manifest.freshnessRef}` });
-  if (manifest.transcriptRef) refs.push({ kind: 'media_source_manifest', ref: `transcript:${manifest.transcriptRef}` });
-  if (manifest.chapterRef) refs.push({ kind: 'media_source_manifest', ref: `chapter:${manifest.chapterRef}` });
-  if (manifest.descriptionRef) refs.push({ kind: 'media_source_manifest', ref: `description:${manifest.descriptionRef}` });
+  if (isNonEmptyString(manifest.sourceRepo)) refs.push({ kind: 'media_source_manifest', ref: `repo:${manifest.sourceRepo}` });
+  if (isNonEmptyString(manifest.sourceVersionRef)) refs.push({ kind: 'media_source_manifest', ref: `version:${manifest.sourceVersionRef}` });
+  if (isNonEmptyString(manifest.freshnessRef)) refs.push({ kind: 'media_source_manifest', ref: `freshness:${manifest.freshnessRef}` });
+  if (isNonEmptyString(manifest.transcriptRef)) refs.push({ kind: 'media_source_manifest', ref: `transcript:${manifest.transcriptRef}` });
+  if (isNonEmptyString(manifest.chapterRef)) refs.push({ kind: 'media_source_manifest', ref: `chapter:${manifest.chapterRef}` });
+  if (isNonEmptyString(manifest.descriptionRef)) refs.push({ kind: 'media_source_manifest', ref: `description:${manifest.descriptionRef}` });
   return refs;
 }
 
@@ -3014,7 +3016,9 @@ function hasAnySceneAvailability(sceneAvailability: Partial<ResourceSceneAvailab
 
 function safeGraphRefValues(refs: ResourceGraphNodeRefs | undefined, key: keyof ResourceGraphNodeRefs): string[] {
   const values = refs?.[key];
-  return Array.isArray(values) ? values.filter((value): value is string => typeof value === 'string') : [];
+  return Array.isArray(values)
+    ? values.flatMap((value) => (isNonEmptyString(value) ? [value.trim()] : []))
+    : [];
 }
 
 function safeSceneAvailabilityMap(

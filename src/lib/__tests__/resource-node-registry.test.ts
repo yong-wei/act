@@ -2293,6 +2293,64 @@ describe('resource node registry', () => {
     expect(invalidMediaTypeProjection.citationTargets[0].status).toBe('missing-target');
     expect(invalidMediaTypeProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
 
+    const invalidVersionProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:invalid-version',
+      sourcePath: 'course-content/authoring/videos/invalid-version.mp4',
+      mediaType: 'video',
+      sourceVersionRef: { sha: 'abc123' },
+      freshnessRef: ['checked'],
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/invalid-version.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(invalidVersionProjection.resource.governance.auditIssueCodes).toContain(
+      'missing-source-version-or-freshness',
+    );
+    expect(invalidVersionProjection.resource.sourceRefs).toEqual([
+      { kind: 'media_source_manifest', ref: 'authoring/video:invalid-version' },
+      { kind: 'media_source_manifest', ref: 'transcript:transcripts/invalid-version.vtt' },
+    ]);
+    expect(invalidVersionProjection.citationTargets[0].status).toBe('missing-target');
+    expect(invalidVersionProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+
+    const blankGraphRefProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:blank-graph-ref',
+      sourcePath: 'course-content/authoring/videos/blank-graph-ref.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'blank-graph-ref.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/blank-graph-ref.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['', '   '], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(blankGraphRefProjection.resource.governance.auditIssueCodes).toContain(
+      'segments.0.missing-graph-bindings',
+    );
+    expect(blankGraphRefProjection.segments[0].graphNodeRefs).toEqual({
+      knowledge: [],
+      capability: [],
+      quality: [],
+    });
+    expect(blankGraphRefProjection.citationTargets[0].status).toBe('missing-target');
+    expect(blankGraphRefProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+
     for (const segments of [undefined, 'not-an-array']) {
       const malformedProjection = buildMediaSourceManifestSemanticProjection({
         sourceId: `authoring/video:malformed-${String(segments)}`,
