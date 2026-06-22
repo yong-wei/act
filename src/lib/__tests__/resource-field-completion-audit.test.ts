@@ -72,6 +72,13 @@ describe('resource field completion audit', () => {
       sourceRecord: expect.stringContaining(':generated-data/'),
     });
     expect(nestedMediaRow?.missingFieldCodes).not.toContain('missing-path-target');
+    const runtimeFileMediaRows = jsonlRows.filter((row) => (
+      row.family === 'runtime-lesson-media' &&
+      row.sourceVersionRef === 'runtime-lesson-media.v1'
+    ));
+    expect(runtimeFileMediaRows.length).toBeGreaterThan(0);
+    expect(runtimeFileMediaRows.every((row) => typeof row.sourceHash === 'string' && row.sourceHash.startsWith('sha256:'))).toBe(true);
+    expect(runtimeFileMediaRows.every((row) => !row.missingFieldCodes.includes('missing-content-hash'))).toBe(true);
     const indexedMediaRows = jsonlRows.filter((row) => (
       row.family === 'runtime-lesson-media' &&
       row.resourceId.startsWith('runtime-media:') &&
@@ -386,6 +393,52 @@ describe('resource field completion audit', () => {
     });
 
     expect(studentPayload.resourceCoverage['kn:autocontrol:frequency-response'].fieldCompletion).toBeUndefined();
+  });
+
+  it('combines static audit diagnostics with live teaching resources in Graph Center', () => {
+    const registry = buildResourceNodeRegistry({
+      teachingResources: [{
+        id: 'live-bode-resource',
+        title: 'Live Bode resource',
+        type: 'INTERACTIVE_COMP',
+        registryId: 'bode-live-registry',
+        knowledgeNodeIds: ['kn:autocontrol:frequency-response'],
+        config: {
+          resourceNodePlanning: {
+            abilityImpact: { controlModeling: 0.2 },
+            evidenceInstrumentation: ['TeachingResource.interactionLogs'],
+            estimatedTimeMinutes: 6,
+          },
+        },
+      }],
+    });
+    const resourceFieldCompletionSummary = {
+      graphCoverageDiagnostics: {
+        'knowledge-card:Bode首轮骨架_5_1e07d9da|Bode首轮骨架_5_1e07d9da': coverageSummary({
+          missingFieldCodes: ['provisional-metadata'],
+          sampleLimitations: ['knowledge-card:Bode首轮骨架_5_1e07d9da: metadata is provisional'],
+        }),
+      },
+    };
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:frequency-response',
+      resourceRegistry: registry,
+      viewerRole: 'TEACHER',
+      resourceFieldCompletionSummary,
+    });
+
+    expect(payload.resourceCoverage['kn:autocontrol:frequency-response'].linkedResourceCount).toBe(1);
+    expect(payload.resourceCoverage['kn:autocontrol:frequency-response'].fieldCompletion).toMatchObject({
+      denominator: 2,
+      provisional: 1,
+      pathEligible: 1,
+      missingField: 2,
+      missingFieldCodes: expect.arrayContaining([
+        'missing-content-hash',
+        'provisional-metadata',
+      ]),
+    });
   });
 
   it('snapshots audit JSON schema counts and resource families', () => {

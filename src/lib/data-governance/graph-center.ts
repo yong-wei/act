@@ -1186,11 +1186,18 @@ function summarizeFieldCompletionForGraphCoverage(
       .filter(([denominatorKey]) => denominatorKeyMatchesCoverageRefs(denominatorKey, coverageRefs))
       .map(([, summary]) => summary)
     : [];
-  if (auditSummaries.length > 0) {
-    return summarizeResourceFieldCompletionCoverageSummaries(auditSummaries);
+  const dynamicTeachingResources = auditSummaries.length > 0
+    ? linkedResources.filter((resource) => resource.sourceRefs.some((ref) => ref.kind === 'teaching_resource'))
+    : linkedResources;
+  const dynamicSummary = dynamicTeachingResources.length > 0
+    ? [summarizeResourceFieldCompletionForCoverage(dynamicTeachingResources)]
+    : [];
+  const summaries = [...auditSummaries, ...dynamicSummary];
+  if (summaries.length > 0) {
+    return summarizeResourceFieldCompletionCoverageSummaries(summaries);
   }
 
-  return summarizeResourceFieldCompletionForCoverage(linkedResources);
+  return summarizeResourceFieldCompletionForCoverage([]);
 }
 
 function denominatorKeyMatchesCoverageRefs(denominatorKey: string, coverageRefs: Set<string>): boolean {

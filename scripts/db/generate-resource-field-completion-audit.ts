@@ -277,6 +277,7 @@ async function collectRuntimeMediaCandidates() {
       const relativePath = projectPath(absolutePath);
       const basename = path.basename(absolutePath);
       const mediaRelativePath = path.relative(mediaDir, absolutePath).split(path.sep).join('/');
+      const contentHash = `sha256:${sha256(await fs.readFile(absolutePath))}`;
       candidates.push({
         id: `runtime-media:${dirent.name}:${mediaRelativePath}`,
         title: basename,
@@ -291,6 +292,7 @@ async function collectRuntimeMediaCandidates() {
         evidenceInstrumentation: [],
         generatedBy: 'external-tool',
         humanConfirmed: false,
+        contentHash,
         versionRef: 'runtime-lesson-media.v1',
       });
     }
@@ -678,7 +680,7 @@ function extractMarkdownTitle(markdown: string | null) {
   return titleLine?.replace(/^#\s+/, '').trim() ?? null;
 }
 
-function sha256(value: string) {
+function sha256(value: string | Buffer) {
   return createHash('sha256').update(value).digest('hex');
 }
 
