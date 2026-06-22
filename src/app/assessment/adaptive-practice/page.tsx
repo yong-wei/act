@@ -1327,6 +1327,7 @@ export default function AdaptivePracticePage() {
     assignment: searchParams.get('assignment'),
     criterion: searchParams.get('criterion'),
     source: searchParams.get('source'),
+    feedbackSource: searchParams.get('feedbackSource'),
     status: searchParams.get('status'),
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
@@ -2158,14 +2159,14 @@ export default function AdaptivePracticePage() {
       'started',
     );
     if (!activityWritten) return;
-    window.location.assign(pathNodeContextHref(node, {
+    window.location.assign(withFeedbackTaskHref(pathNodeContextHref(node, {
       goalId: resolveAdaptivePracticeGoalId(
         controlCorrectionPathPlan?.goal.id ?? controlCorrectionPathRound?.goalId ?? activeGoal,
         activeGoal ?? 'control-correction',
       ),
       pathId: controlCorrectionPathPlan?.id ?? controlCorrectionPathRound?.id,
-    }));
-  }, [activeGoal, controlCorrectionPathPlan, controlCorrectionPathRound, writePathNodeActivity]);
+    })));
+  }, [activeGoal, controlCorrectionPathPlan, controlCorrectionPathRound, withFeedbackTaskHref, writePathNodeActivity]);
 
   const retryNextQuestion = useCallback(async () => {
     setPracticeQuestionExpanded(true);
@@ -2497,7 +2498,7 @@ export default function AdaptivePracticePage() {
                         </button>
                       ) : canOpenNextPathAction ? (
                         <Link
-                          href={nextPathAction.href}
+                          href={withFeedbackTaskHref(nextPathAction.href)}
                           className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
                         >
                           <ExternalLink className="size-3.5" aria-hidden="true" />

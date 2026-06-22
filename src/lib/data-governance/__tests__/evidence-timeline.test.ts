@@ -4,6 +4,7 @@ import type { LearningFact } from '@prisma/client';
 import {
   createEvidenceTimelineCursor,
   listEvidenceTimeline,
+  parseEvidenceTimelineFilters,
 } from '../evidence-timeline';
 
 function fact(overrides: Partial<LearningFact> = {}): LearningFact {
@@ -58,6 +59,21 @@ function response(overrides: Record<string, unknown> = {}) {
 }
 
 describe('evidence timeline browser', () => {
+  it('prefers feedbackSource over launch source when parsing assignment filters', () => {
+    const filters = parseEvidenceTimelineFilters(new URLSearchParams({
+      assignment: 'report-1',
+      criterion: 'validation',
+      source: 'adaptive-path-center',
+      feedbackSource: 'document-feedback',
+    }));
+
+    expect(filters).toMatchObject({
+      assignment: 'report-1',
+      criterion: 'validation',
+      assignmentSource: 'document-feedback',
+    });
+  });
+
   it('returns newest-first timeline items with 5-2 rich submission summaries', async () => {
     const db = {
       learningFact: {

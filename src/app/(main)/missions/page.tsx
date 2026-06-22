@@ -37,6 +37,7 @@ export default function MissionsPage() {
     assignment: searchParams.get('assignment') ?? searchParams.get('q'),
     criterion: searchParams.get('criterion'),
     source: searchParams.get('source'),
+    feedbackSource: searchParams.get('feedbackSource'),
     status: searchParams.get('status'),
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
@@ -53,6 +54,7 @@ export default function MissionsPage() {
       if (currentParams.get('q')) missionQuery.set('q', currentParams.get('q') ?? '');
       if (currentParams.get('criterion')) missionQuery.set('criterion', currentParams.get('criterion') ?? '');
       if (currentParams.get('source')) missionQuery.set('source', currentParams.get('source') ?? '');
+      if (currentParams.get('feedbackSource')) missionQuery.set('feedbackSource', currentParams.get('feedbackSource') ?? '');
       if (currentParams.get('status')) missionQuery.set('status', currentParams.get('status') ?? '');
       if (currentParams.get('action')) missionQuery.set('action', currentParams.get('action') ?? '');
       if (currentParams.get('returnTo')) missionQuery.set('returnTo', currentParams.get('returnTo') ?? '');

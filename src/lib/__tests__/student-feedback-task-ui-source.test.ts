@@ -28,6 +28,8 @@ describe('student feedback task UI source contracts', () => {
     expect(gradingUi).toContain('surface="document-feedback"');
     expect(adaptivePractice).toContain('buildFeedbackTaskContext');
     expect(adaptivePractice).toContain('withFeedbackTaskHref');
+    expect(adaptivePractice).toContain('window.location.assign(withFeedbackTaskHref(pathNodeContextHref(node');
+    expect(adaptivePractice).toContain('href={withFeedbackTaskHref(nextPathAction.href)}');
     expect(adaptivePractice).toContain('surface="adaptive-practice"');
     expect(missions).toContain('buildFeedbackTaskContext');
     expect(missions).toContain('buildFeedbackTaskHref(`/simulations/destroyer?mission=');

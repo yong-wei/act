@@ -82,6 +82,7 @@ export default function PortfolioPage() {
     assignment: searchParams.get('assignment'),
     criterion: searchParams.get('criterion'),
     source: searchParams.get('source'),
+    feedbackSource: searchParams.get('feedbackSource'),
     status: searchParams.get('status'),
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),

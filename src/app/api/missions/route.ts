@@ -54,6 +54,7 @@ export async function GET(request: Request) {
       assignment: url.searchParams.get('assignment') ?? url.searchParams.get('q'),
       criterion: url.searchParams.get('criterion'),
       source: url.searchParams.get('source'),
+      feedbackSource: url.searchParams.get('feedbackSource'),
       status: url.searchParams.get('status'),
       action: url.searchParams.get('action'),
       returnTo: url.searchParams.get('returnTo'),

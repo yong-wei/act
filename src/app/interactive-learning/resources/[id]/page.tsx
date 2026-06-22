@@ -26,6 +26,7 @@ export default function InteractiveResourcePage() {
     assignment: searchParams.get('assignment'),
     criterion: searchParams.get('criterion'),
     source,
+    feedbackSource: searchParams.get('feedbackSource'),
     status: searchParams.get('status'),
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),

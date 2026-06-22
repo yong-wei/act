@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
       assignment: request.nextUrl.searchParams.get('assignment'),
       criterion: request.nextUrl.searchParams.get('criterion'),
       source: request.nextUrl.searchParams.get('source'),
+      feedbackSource: request.nextUrl.searchParams.get('feedbackSource'),
       status: request.nextUrl.searchParams.get('status'),
       action: request.nextUrl.searchParams.get('action'),
       returnTo: request.nextUrl.searchParams.get('returnTo'),

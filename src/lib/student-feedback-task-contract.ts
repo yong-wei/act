@@ -16,6 +16,7 @@ export interface FeedbackTaskQuery {
   assignment?: string | string[] | null;
   criterion?: string | string[] | null;
   source?: string | string[] | null;
+  feedbackSource?: string | string[] | null;
   status?: string | string[] | null;
   action?: string | string[] | null;
   returnTo?: string | string[] | null;
@@ -83,7 +84,7 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
   if (!assignmentId) return null;
 
   const criterionId = firstQueryValue(query.criterion);
-  const source = firstQueryValue(query.source);
+  const source = firstQueryValue(query.feedbackSource) ?? firstQueryValue(query.source);
   const action = firstQueryValue(query.action);
   const intent = firstQueryValue(query.intent);
   const lifecycleState = resolveLifecycleState(firstQueryValue(query.status), action, intent);
@@ -134,10 +135,15 @@ export function buildFeedbackTaskHref(
   const rawHash = hashIndex >= 0 ? baseHref.slice(hashIndex + 1) : undefined;
   const [path, rawQuery = ''] = hrefWithoutHash.split('?');
   const params = new URLSearchParams(rawQuery);
+  const existingSource = params.get('source');
   params.set('assignment', context.assignmentId);
   if (context.criterionId) params.set('criterion', context.criterionId);
   params.set('status', options.status ?? context.lifecycleState);
-  if (context.source) params.set('source', context.source);
+  if (context.source && existingSource && existingSource !== context.source) {
+    params.set('feedbackSource', context.source);
+  } else if (context.source) {
+    params.set('source', context.source);
+  }
   if (options.intent) params.set('intent', options.intent);
   if (options.action) params.set('action', options.action);
   if (!options.omitReturnTo && context.returnTo) params.set('returnTo', context.returnTo);

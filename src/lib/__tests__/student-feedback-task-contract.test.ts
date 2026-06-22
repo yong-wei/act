@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildAdaptivePathLaunchHref,
+  resolveAdaptivePathLaunchReturnContext,
+} from '@/features/adaptive/adaptive-learning-center-contracts';
+import {
   buildFeedbackTaskContext,
   buildFeedbackTaskHref,
   buildFeedbackTaskStatusState,
@@ -158,6 +162,41 @@ describe('student feedback task contract', () => {
     expect(buildFeedbackTaskHref('/course.md?view=compact#page=12', context, { intent: 'revise' })).toBe(
       '/course.md?view=compact&assignment=report-1&criterion=validation&status=returned&source=document-feedback&intent=revise#page=12',
     );
+  });
+
+  it('preserves adaptive path source while carrying feedback source separately', () => {
+    const context = expectContext(buildFeedbackTaskContext({
+      assignment: 'report-1',
+      criterion: 'validation',
+      source: 'document-feedback',
+      status: 'returned',
+      returnTo: '/assessment/document-feedback?gradingRunId=grading-1',
+    }));
+    const launchHref = buildAdaptivePathLaunchHref('/interactive-learning/resources/lesson09-correction-precheck', {
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      nodeId: 'node-1',
+      routeIntent: 'path-execution',
+      resourceType: 'resource',
+    });
+    const wrappedHref = buildFeedbackTaskHref(launchHref, context);
+    const wrappedParams = new URLSearchParams(wrappedHref.split('?')[1] ?? '');
+
+    expect(wrappedParams.get('source')).toBe('adaptive-path-center');
+    expect(wrappedParams.get('feedbackSource')).toBe('document-feedback');
+    expect(wrappedParams.get('assignment')).toBe('report-1');
+    expect(wrappedParams.get('criterion')).toBe('validation');
+    expect(resolveAdaptivePathLaunchReturnContext(wrappedParams)).toMatchObject({
+      source: 'adaptive-path-center',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      nodeId: 'node-1',
+    });
+    expect(buildFeedbackTaskContext(Object.fromEntries(wrappedParams))).toMatchObject({
+      assignmentId: 'report-1',
+      source: 'document-feedback',
+      supported: true,
+    });
   });
 
   it('maps lifecycle status and route actions to audited student-visible states', () => {

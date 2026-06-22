@@ -161,7 +161,7 @@ export function parseEvidenceTimelineFilters(searchParams: URLSearchParams): Evi
     sessionId: readSearchString(searchParams.get('sessionId')),
     assignment: readSearchString(searchParams.get('assignment')),
     criterion: readSearchString(searchParams.get('criterion')),
-    assignmentSource: readSearchString(searchParams.get('source')),
+    assignmentSource: readSearchString(searchParams.get('feedbackSource') ?? searchParams.get('source')),
   });
 }
 
