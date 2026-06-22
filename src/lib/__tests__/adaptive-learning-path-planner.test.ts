@@ -1084,6 +1084,70 @@ describe('adaptive learning path planner', () => {
     ]));
   });
 
+  it('only applies teacher assignment authorization to path ranking', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'assigned-path-card',
+        title: '教师已指派知识卡',
+        sourceRef: 'kn-bode:assigned-path',
+        renderTarget: '/knowledge/cards/assigned-path',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          teacherPolicy: 'teacher-assigned',
+        },
+      }],
+    });
+    const assignedNode = registry.nodes.find((node) => node.id === 'knowledge-card:assigned-path-card');
+    expect(assignedNode).toBeDefined();
+    const candidate = {
+      node: assignedNode!,
+      planningUnit: buildResourceSemanticProjection(assignedNode!).planningUnit,
+    };
+    const unauthorizedPathRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      registry,
+    });
+    const authorizedPathRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      teacherAssignedNodeIds: ['knowledge-card:assigned-path-card'],
+      registry,
+    });
+    const konlingRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'konling',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      teacherAssignedNodeIds: ['knowledge-card:assigned-path-card'],
+      registry,
+    });
+    const diagnosisRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'diagnosis',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      teacherAssignedNodeIds: ['knowledge-card:assigned-path-card'],
+      registry,
+    });
+
+    expect(unauthorizedPathRanking.ranked).toEqual([]);
+    expect(unauthorizedPathRanking.rejected[0].rejectionReasons).toContain('teacher-assignment-required');
+    expect(authorizedPathRanking.ranked[0].node.id).toBe('knowledge-card:assigned-path-card');
+    expect(konlingRanking.ranked).toEqual([]);
+    expect(konlingRanking.rejected[0].rejectionReasons).toContain('teacher-assignment-required');
+    expect(diagnosisRanking.ranked).toEqual([]);
+    expect(diagnosisRanking.rejected[0].rejectionReasons).toContain('teacher-assignment-required');
+  });
+
   it('can select textbook sections as foundation-remediation path resources', () => {
     const registry = buildResourceNodeRegistry({
       knowledgeCards: [{
@@ -1934,8 +1998,12 @@ describe('adaptive learning path planner', () => {
     expect(plan.status).toBe('ready');
     expect(plan.policyFamily).toBe('teacher-assigned');
     expect(plan.explanations.selectedReasons).toContain('policy-teacher-assigned');
-    expect(plan.mainPath.find((node) => node.nodeId === 'registry:bode-card')?.teacherPolicy)
-      .toBe('teacher-assigned');
+    const assignedPathNode = plan.mainPath.find((node) => node.nodeId === 'registry:bode-card');
+    expect(assignedPathNode?.teacherPolicy).toBe('teacher-assigned');
+    expect(assignedPathNode?.resourceRanker).toEqual(expect.objectContaining({
+      score: expect.any(Number),
+      matchedGraphRefs: expect.any(Object),
+    }));
   });
 
   it('blocks teacher-assigned resources that are not explicitly assigned', () => {

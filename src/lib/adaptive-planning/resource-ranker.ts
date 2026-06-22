@@ -58,6 +58,7 @@ export interface ResourceLearnerRankerInput {
   timeBudgetMinutes: number;
   completedNodeIds?: string[];
   availableOutcomeRefs?: string[];
+  teacherAssignedNodeIds?: string[];
   registry?: Pick<ResourceNodeRegistry, 'supportedTypes'>;
 }
 
@@ -183,7 +184,7 @@ export function rankResourceLearnerCandidates(input: ResourceLearnerRankerInput)
     const profile = buildScoringProfile(candidate);
     const rejectionReasons = unique([
       ...(candidate.rejectionReasons ?? []),
-      ...sceneRejectionReasons(candidate, input.scene, profile),
+      ...sceneRejectionReasons(candidate, input, profile),
     ]);
     if (rejectionReasons.length > 0) {
       rejected.push({
@@ -268,21 +269,23 @@ function mergeGraphNodeRefs(
 
 function sceneRejectionReasons(
   candidate: ResourceLearnerRankerCandidate,
-  scene: ResourceLearnerMatchingScene,
+  input: ResourceLearnerRankerInput,
   profile: ResourceLearnerRankerScoringProfile,
 ): string[] {
+  const scene = input.scene;
   if (scene === 'path') {
     if (!profile.planningUnit) return ['missing-planning-unit-projection'];
     if (!candidate.node.eligibility.pathEligible) return candidate.node.eligibility.reasons;
   }
-  const governanceReasons = nonPathGovernanceRejectionReasons(candidate.node, scene);
+  const governanceReasons = nonPathGovernanceRejectionReasons(candidate.node, input);
   if (governanceReasons.length > 0) return governanceReasons;
   const availability = profile.sceneAvailability[scene];
   if (!availability.allowed) return [availability.reason ?? `${scene}-scene-unavailable`];
   return [];
 }
 
-function nonPathGovernanceRejectionReasons(node: ResourceNode, scene: ResourceLearnerMatchingScene): string[] {
+function nonPathGovernanceRejectionReasons(node: ResourceNode, input: ResourceLearnerRankerInput): string[] {
+  const scene = input.scene;
   const hardReasons = node.eligibility.reasons.filter((reason) => [
     'unavailable-resource',
     'teacher-policy-blocked',
@@ -293,7 +296,11 @@ function nonPathGovernanceRejectionReasons(node: ResourceNode, scene: ResourceLe
   if (scene !== 'prep-pack' && node.planningMetadata.teacherPolicy === 'teacher-only') {
     hardReasons.push('teacher-policy-teacher-only');
   }
-  if (scene !== 'prep-pack' && node.planningMetadata.teacherPolicy === 'teacher-assigned') {
+  if (
+    scene !== 'prep-pack' &&
+    node.planningMetadata.teacherPolicy === 'teacher-assigned' &&
+    !(scene === 'path' && (input.teacherAssignedNodeIds ?? []).includes(node.id))
+  ) {
     hardReasons.push('teacher-assignment-required');
   }
   return hardReasons;
