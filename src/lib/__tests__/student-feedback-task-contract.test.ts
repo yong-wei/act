@@ -61,6 +61,44 @@ describe('student feedback task contract', () => {
     expect(context.summary).toContain('反馈任务不存在');
   });
 
+  it('supports dynamic document feedback assignments without downgrading them to missing', () => {
+    const context = expectContext(buildFeedbackTaskContext({
+      assignment: 'report-1',
+      criterion: 'validation',
+      source: 'document-feedback',
+      status: 'returned',
+      returnTo: '/assessment/document-feedback?gradingRunId=grading-1',
+    }));
+
+    expect(context).toMatchObject({
+      assignmentId: 'report-1',
+      assignmentTitle: '报告评分反馈',
+      criterionId: 'validation',
+      criterionLabel: 'validation',
+      source: 'document-feedback',
+      lifecycleState: 'returned',
+      supported: true,
+      completionTarget: 'evidence-growth-portfolio',
+      returnHref: '/assessment/document-feedback?gradingRunId=grading-1&assignment=report-1&criterion=validation&status=returned&source=document-feedback',
+    });
+    expect(getFeedbackTaskMissionTarget(context)).toMatchObject({
+      missionOrders: [2, 3, 4],
+    });
+  });
+
+  it('does not support arbitrary unknown assignments without document feedback source', () => {
+    const context = expectContext(buildFeedbackTaskContext({
+      assignment: 'report-1',
+      criterion: 'validation',
+      source: 'batch59',
+      status: 'returned',
+    }));
+
+    expect(context.supported).toBe(false);
+    expect(context.lifecycleState).toBe('missing');
+    expect(getFeedbackTaskMissionTarget(context)).toBeNull();
+  });
+
   it('rejects backslash return targets that browsers can normalize to another origin', () => {
     const context = expectContext(buildFeedbackTaskContext({
       assignment: 'report-control-design',

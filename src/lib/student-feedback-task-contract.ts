@@ -88,13 +88,14 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
   const intent = firstQueryValue(query.intent);
   const lifecycleState = resolveLifecycleState(firstQueryValue(query.status), action, intent);
   const returnTo = sanitizeReturnTo(firstQueryValue(query.returnTo));
-  const supported = assignmentId === REPORT_CONTROL_DESIGN.assignmentId;
+  const isDocumentFeedbackAssignment = source === 'document-feedback' && Boolean(criterionId);
+  const supported = assignmentId === REPORT_CONTROL_DESIGN.assignmentId || isDocumentFeedbackAssignment;
   const criterionLabel = supported && criterionId
     ? REPORT_CONTROL_DESIGN.criteria[criterionId] ?? criterionId
     : criterionId;
   const context: Omit<StudentFeedbackTaskContext, 'returnHref' | 'summary' | 'badges'> = {
     assignmentId,
-    assignmentTitle: supported ? REPORT_CONTROL_DESIGN.assignmentTitle : '未知反馈任务',
+    assignmentTitle: supported ? resolveAssignmentTitle(assignmentId, source) : '未知反馈任务',
     criterionId: criterionId ?? null,
     criterionLabel: criterionLabel ?? null,
     source: source ?? null,
@@ -142,11 +143,17 @@ export function buildFeedbackTaskHref(
 
 export function getFeedbackTaskMissionTarget(context: StudentFeedbackTaskContext): FeedbackTaskMissionTarget | null {
   if (!context.supported) return null;
-  if (context.assignmentId !== REPORT_CONTROL_DESIGN.assignmentId) return null;
+  if (context.assignmentId !== REPORT_CONTROL_DESIGN.assignmentId && context.source !== 'document-feedback') return null;
   return {
     missionOrders: [2, 3, 4],
     reason: '控制设计报告反馈对应 P/PD/PID 控制器补强任务。',
   };
+}
+
+function resolveAssignmentTitle(assignmentId: string, source: string | undefined): string {
+  if (assignmentId === REPORT_CONTROL_DESIGN.assignmentId) return REPORT_CONTROL_DESIGN.assignmentTitle;
+  if (source === 'document-feedback') return '报告评分反馈';
+  return REPORT_CONTROL_DESIGN.assignmentTitle;
 }
 
 export function buildFeedbackTaskStatusState(

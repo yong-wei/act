@@ -52,7 +52,10 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const feedbackContext = buildFeedbackTaskContext({
       assignment: url.searchParams.get('assignment') ?? url.searchParams.get('q'),
+      criterion: url.searchParams.get('criterion'),
+      source: url.searchParams.get('source'),
       status: url.searchParams.get('status'),
+      action: url.searchParams.get('action'),
       returnTo: url.searchParams.get('returnTo'),
       intent: url.searchParams.get('intent'),
     });

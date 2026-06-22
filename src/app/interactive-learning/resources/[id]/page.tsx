@@ -84,7 +84,7 @@ export default function InteractiveResourcePage() {
 
   const handlePathResourceComplete = async (result?: WidgetResult) => {
     if (!pathLaunchContext && feedbackContext) {
-      window.location.assign(buildFeedbackTaskHref('/assessment/document-feedback', feedbackContext, {
+      window.location.assign(buildFeedbackTaskHref(feedbackContext.returnHref, feedbackContext, {
         status: 'completed',
       }));
       return;
@@ -107,7 +107,7 @@ export default function InteractiveResourcePage() {
         throw new Error(`Path resource completion rejected with status ${response.status}`);
       }
       if (feedbackContext) {
-        window.location.assign(buildFeedbackTaskHref('/assessment/document-feedback', feedbackContext, {
+        window.location.assign(buildFeedbackTaskHref(feedbackContext.returnHref, feedbackContext, {
           status: 'completed',
         }));
       }

@@ -31,6 +31,8 @@ describe('student feedback task UI source contracts', () => {
     expect(adaptivePractice).toContain('surface="adaptive-practice"');
     expect(missions).toContain('buildFeedbackTaskContext');
     expect(missions).toContain('buildFeedbackTaskHref(`/simulations/destroyer?mission=');
+    expect(missions).toContain("missionQuery.set('criterion'");
+    expect(missions).toContain("missionQuery.set('source'");
     expect(missions).toContain('fetch(`/api/missions?${missionQuery.toString()}`)');
     expect(missions).toContain('surface="missions"');
     expect(evidence).toContain('buildFeedbackTaskContext');
@@ -42,6 +44,7 @@ describe('student feedback task UI source contracts', () => {
     expect(portfolio).toContain('buildPortfolioFeedbackDraft');
     expect(portfolio).toContain('surface="portfolio"');
     expect(resource).toContain('buildFeedbackTaskContext');
+    expect(resource).toContain('buildFeedbackTaskHref(feedbackContext.returnHref');
     expect(resource).toContain("status: 'completed'");
     expect(resource).toContain('surface="resource"');
     expect(destroyer).toContain('StudentFeedbackTaskPanel');
@@ -49,6 +52,8 @@ describe('student feedback task UI source contracts', () => {
     expect(learningEvidenceRoute).toContain('listEvidenceTimeline');
     expect(learningEvidenceRoute).toContain('buildLearningEvidenceAssignmentResponse');
     expect(missionsRoute).toContain('getFeedbackTaskMissionTarget');
+    expect(missionsRoute).toContain("criterion: url.searchParams.get('criterion')");
+    expect(missionsRoute).toContain("source: url.searchParams.get('source')");
     expect(missionsRoute).toContain('feedbackTarget.missionOrders.includes(mission.order)');
   });
 

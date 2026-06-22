@@ -51,8 +51,12 @@ export default function MissionsPage() {
       const assignment = currentParams.get('assignment') ?? currentParams.get('q');
       if (assignment) missionQuery.set('assignment', assignment);
       if (currentParams.get('q')) missionQuery.set('q', currentParams.get('q') ?? '');
+      if (currentParams.get('criterion')) missionQuery.set('criterion', currentParams.get('criterion') ?? '');
+      if (currentParams.get('source')) missionQuery.set('source', currentParams.get('source') ?? '');
       if (currentParams.get('status')) missionQuery.set('status', currentParams.get('status') ?? '');
+      if (currentParams.get('action')) missionQuery.set('action', currentParams.get('action') ?? '');
       if (currentParams.get('returnTo')) missionQuery.set('returnTo', currentParams.get('returnTo') ?? '');
+      if (currentParams.get('intent')) missionQuery.set('intent', currentParams.get('intent') ?? '');
       const response = await fetch(`/api/missions?${missionQuery.toString()}`);
       if (!response.ok) {
         throw new Error('获取任务列表失败');
