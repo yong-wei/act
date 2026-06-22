@@ -33,7 +33,9 @@ export function textbookSearchDocumentsToLearningEvidenceCorpus(
       redactedSummary: document.title,
       hash: document.contentHash ?? document.resourceProjection.contentHash ?? document.id,
     },
-    resourceProjection: document.resourceProjection,
+    resourceProjection: {
+      ...document.resourceProjection,
+    },
     privacyClass: 'public',
     confidence: 'high',
     freshness: {

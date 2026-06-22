@@ -26,18 +26,21 @@ import {
   canReadGraphCenterLearnerOverlay,
   type GraphCenterClassOverlayInput,
   type GraphCenterLearnerOverlayInput,
+  type ResourceFieldCompletionGraphSummary,
 } from './graph-center';
 import type { LearningEvidenceCorpusChunk } from './learning-evidence-rag-corpus';
 import {
   teachingResourceWhereForGraphCenter,
   type GraphCenterViewerRole,
 } from './graph-center-source-scope';
+import resourceFieldCompletionSummary from '../../../course-content/runtime/resource-governance/resource-field-completion-summary.json';
 
 export interface GraphCenterCoverageSources {
   resourceRegistry: ResourceNodeRegistry;
   evidenceCorpus: LearningEvidenceCorpusChunk[];
   learnerOverlay?: GraphCenterLearnerOverlayInput;
   classOverlay?: GraphCenterClassOverlayInput;
+  resourceFieldCompletionSummary?: ResourceFieldCompletionGraphSummary;
 }
 
 interface TeachingResourceForGraphCenter {
@@ -82,6 +85,7 @@ export async function buildGraphCenterCoverageSources(input: {
       runtimeTextbooks,
     ),
     evidenceCorpus: textbookSearchDocumentsToLearningEvidenceCorpus(textbookDocuments),
+    resourceFieldCompletionSummary: resourceFieldCompletionSummary as ResourceFieldCompletionGraphSummary,
     ...overlays,
   };
 }

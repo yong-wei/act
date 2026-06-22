@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('node:fs/promises', () => ({
   readFile: vi.fn(),
@@ -17,6 +17,10 @@ function requestRuntimeAsset(assetPath: string[]) {
 }
 
 describe('course-runtime asset route', () => {
+  beforeEach(() => {
+    mockedReadFile.mockReset();
+  });
+
   it('serves textbook section markdown with a text markdown content type', async () => {
     mockedReadFile.mockResolvedValueOnce(Buffer.from('# Bode 图频域响应示例', 'utf-8'));
 
@@ -67,5 +71,48 @@ describe('course-runtime asset route', () => {
     ]);
 
     expect(response.status).toBe(404);
+  });
+
+  it('does not expose private resource governance audit artifacts', async () => {
+    const response = await requestRuntimeAsset([
+      'resource-governance',
+      'resource-field-completion-summary.json',
+    ]);
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({ error: 'Asset not found' });
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
+
+  it('does not expose private resource governance artifacts through encoded leading slashes', async () => {
+    const response = await requestRuntimeAsset([
+      '/resource-governance',
+      'resource-field-completion-summary.json',
+    ]);
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({ error: 'Asset not found' });
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
+
+  it('does not expose private resource governance artifacts through case variants', async () => {
+    const response = await requestRuntimeAsset([
+      'Resource-Governance',
+      'resource-field-completion-summary.json',
+    ]);
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({ error: 'Asset not found' });
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
+
+  it('does not expose private resource governance artifacts through backslash segments', async () => {
+    const response = await requestRuntimeAsset([
+      'resource-governance\\resource-field-completion-summary.json',
+    ]);
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({ error: 'Asset not found' });
+    expect(mockedReadFile).not.toHaveBeenCalled();
   });
 });
