@@ -1216,7 +1216,9 @@ export function validateResourceMediaSourceManifest(
     if (!hasAnyGraphRef(segment.graphNodeRefs)) issues.push(`${prefix}.missing-graph-bindings`);
     if (!hasAnySceneAvailability(segment.sceneAvailability)) issues.push(`${prefix}.missing-scene-availability`);
     if (!segment.citationPolicy) issues.push(`${prefix}.missing-citation-policy`);
+    if (segment.citationPolicy && !isMediaCitationPolicy(segment.citationPolicy)) issues.push(`${prefix}.invalid-citation-policy`);
     if (!segment.aiUsePermission) issues.push(`${prefix}.missing-ai-use-permission`);
+    if (segment.aiUsePermission && !isMediaAiUsePermission(segment.aiUsePermission)) issues.push(`${prefix}.invalid-ai-use-permission`);
     if (segment.aiUsePermission === 'blocked') issues.push(`${prefix}.blocked-ai-use`);
     if (!segment.privacyScope && !manifest.privacyScope) issues.push(`${prefix}.missing-privacy-scope`);
     if (
@@ -2702,6 +2704,14 @@ function isNonEmptyString(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function isMediaCitationPolicy(value: unknown): value is NonNullable<ResourceMediaManifestSegment['citationPolicy']> {
+  return value === 'verified-citation-required' || value === 'source-reference-only';
+}
+
+function isMediaAiUsePermission(value: unknown): value is NonNullable<ResourceMediaManifestSegment['aiUsePermission']> {
+  return value === 'allowed' || value === 'restricted' || value === 'blocked';
+}
+
 function buildMediaSegmentAnchor(
   manifest: ResourceMediaSourceManifest,
   segment: ResourceMediaManifestSegment,
@@ -2743,6 +2753,7 @@ function buildMediaSegmentSceneAvailability(
 ): ResourceSceneAvailabilityMap {
   const blocked = issues.includes('blocked-ai-use');
   const missingAiUse = issues.includes('missing-ai-use-permission');
+  const invalidAiUse = issues.includes('invalid-ai-use-permission');
   const declaredSceneAvailability = safeSceneAvailabilityMap(segment.sceneAvailability);
   return Object.fromEntries(RESOURCE_SEGMENT_SCENES.map((scene) => {
     if (scene === 'path') {
@@ -2750,6 +2761,7 @@ function buildMediaSegmentSceneAvailability(
     }
     if (blocked) return [scene, { allowed: false, reason: 'blocked-ai-use' }];
     if (missingAiUse) return [scene, { allowed: false, reason: 'missing-ai-use-permission' }];
+    if (invalidAiUse) return [scene, { allowed: false, reason: 'invalid-ai-use-permission' }];
     const declared = declaredSceneAvailability[scene];
     return [
       scene,
@@ -2809,7 +2821,9 @@ function isMediaCitationBlockingIssue(issue: string): boolean {
     'missing-graph-bindings',
     'missing-scene-availability',
     'missing-citation-policy',
+    'invalid-citation-policy',
     'missing-ai-use-permission',
+    'invalid-ai-use-permission',
     'blocked-ai-use',
     'missing-description',
     'missing-transcript',

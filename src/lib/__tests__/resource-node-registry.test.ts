@@ -1993,6 +1993,43 @@ describe('resource node registry', () => {
       ],
     } as unknown as Parameters<typeof validateResourceMediaSourceManifest>[0]).issues).toContain('missing-source-path');
 
+    const invalidPolicyProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:invalid-policy',
+      sourcePath: 'course-content/authoring/videos/invalid-policy.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'invalid-policy.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/invalid-policy.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'none',
+          aiUsePermission: 'denied',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(invalidPolicyProjection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
+      'segments.0.invalid-citation-policy',
+      'segments.0.invalid-ai-use-permission',
+    ]));
+    expect(invalidPolicyProjection.segments[0].citationReadiness.limitations).toEqual(expect.arrayContaining([
+      'invalid-citation-policy',
+      'invalid-ai-use-permission',
+    ]));
+    expect(invalidPolicyProjection.citationTargets[0].status).toBe('missing-target');
+    expect(invalidPolicyProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+    expect(invalidPolicyProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'invalid-ai-use-permission',
+    });
+    expect(invalidPolicyProjection.resource.graphProfile.sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'no-segment-available',
+    });
+
     for (const segments of [undefined, 'not-an-array']) {
       const malformedProjection = buildMediaSourceManifestSemanticProjection({
         sourceId: `authoring/video:malformed-${String(segments)}`,
