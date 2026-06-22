@@ -2669,9 +2669,10 @@ function mediaSegmentPrivacyScope(
   manifest: ResourceMediaSourceManifest,
   segment: ResourceMediaManifestSegment,
 ): ResourceNodePrivacyLevel {
-  if (isResourceNodePrivacyLevel(segment.privacyScope)) return segment.privacyScope;
-  if (isResourceNodePrivacyLevel(manifest.privacyScope)) return manifest.privacyScope;
-  return 'teacher-scoped';
+  return mostRestrictivePrivacyScope([
+    isResourceNodePrivacyLevel(manifest.privacyScope) ? manifest.privacyScope : undefined,
+    isResourceNodePrivacyLevel(segment.privacyScope) ? segment.privacyScope : undefined,
+  ]);
 }
 
 function mostRestrictivePrivacyScope(scopes: Array<ResourceNodePrivacyLevel | null | undefined>): ResourceNodePrivacyLevel {

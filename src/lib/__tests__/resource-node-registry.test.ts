@@ -1976,16 +1976,16 @@ describe('resource node registry', () => {
     expect(restrictedSegmentProjection.citationTargets[0].privacyScope).toBe('teacher-scoped');
     expect(restrictedSegmentProjection.retrievalChunks[0].privacyScope).toBe('teacher-scoped');
 
-    const segmentScopedManifest = {
-      sourceId: 'authoring/video:segment-scoped-only',
-      sourcePath: 'course-content/authoring/videos/segment-scoped-only.mp4',
+    const segmentScopedValidation = validateResourceMediaSourceManifest({
+      sourceId: 'authoring/video:segment-scoped',
+      sourcePath: 'course-content/authoring/videos/segment-scoped.mp4',
       mediaType: 'video',
       sourceVersionRef: 'segment-scoped.v1',
-      transcriptRef: 'transcripts/segment-scoped-only.vtt',
+      transcriptRef: 'transcripts/segment-scoped.vtt',
       segments: [
         {
-          id: 'student-segment',
-          anchorRef: 'student-segment',
+          id: 'student-visible',
+          anchorRef: 'student-visible',
           privacyScope: 'student-visible',
           graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
           sceneAvailability: { report: { allowed: true, reason: null } },
@@ -1993,73 +1993,69 @@ describe('resource node registry', () => {
           aiUsePermission: 'restricted',
         },
       ],
-    } as unknown as Parameters<typeof validateResourceMediaSourceManifest>[0];
-    expect(validateResourceMediaSourceManifest(segmentScopedManifest).issues).not.toContain('missing-privacy-scope');
+    });
+    expect(segmentScopedValidation.issues).not.toContain('missing-privacy-scope');
+    expect(segmentScopedValidation.issues).not.toContain('segments.0.missing-privacy-scope');
 
-    for (const manifest of [
-      {
-        sourceId: 'authoring/video:admin-manifest',
-        sourcePath: 'course-content/authoring/videos/admin-manifest.mp4',
-        mediaType: 'video',
-        sourceVersionRef: 'admin-manifest.v1',
-        privacyScope: 'admin-scoped',
-        transcriptRef: 'transcripts/admin-manifest.vtt',
-        segments: [
-          {
-            id: 'admin-segment',
-            anchorRef: 'admin-segment',
-            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
-            sceneAvailability: {
-              konling: { allowed: true, reason: null },
-              diagnosis: { allowed: true, reason: null },
-              report: { allowed: true, reason: null },
-            },
-            citationPolicy: 'source-reference-only',
-            aiUsePermission: 'restricted',
+    const adminScopedSegmentProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:admin-scoped',
+      sourcePath: 'course-content/authoring/videos/admin-scoped.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'admin-scoped.v1',
+      transcriptRef: 'transcripts/admin-scoped.vtt',
+      segments: [
+        {
+          id: 'admin-only',
+          anchorRef: 'admin-only',
+          privacyScope: 'admin-scoped',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: {
+            konling: { allowed: true, reason: null },
+            diagnosis: { allowed: true, reason: null },
+            report: { allowed: true, reason: null },
           },
-        ],
-      },
-      {
-        sourceId: 'authoring/video:admin-segment',
-        sourcePath: 'course-content/authoring/videos/admin-segment.mp4',
-        mediaType: 'video',
-        sourceVersionRef: 'admin-segment.v1',
-        privacyScope: 'student-visible',
-        transcriptRef: 'transcripts/admin-segment.vtt',
-        segments: [
-          {
-            id: 'admin-segment',
-            anchorRef: 'admin-segment',
-            privacyScope: 'admin-scoped',
-            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
-            sceneAvailability: {
-              konling: { allowed: true, reason: null },
-              diagnosis: { allowed: true, reason: null },
-              report: { allowed: true, reason: null },
-            },
-            citationPolicy: 'source-reference-only',
-            aiUsePermission: 'restricted',
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(adminScopedSegmentProjection.resource.governance.privacyLevel).toBe('admin-scoped');
+    expect(adminScopedSegmentProjection.segments[0].sceneAvailability).toMatchObject({
+      konling: { allowed: false, reason: 'admin-scoped-resource' },
+      diagnosis: { allowed: false, reason: 'admin-scoped-resource' },
+      report: { allowed: false, reason: 'admin-scoped-resource' },
+    });
+
+    const adminScopedManifestProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:admin-manifest',
+      sourcePath: 'course-content/authoring/videos/admin-manifest.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'admin-manifest.v1',
+      privacyScope: 'admin-scoped',
+      transcriptRef: 'transcripts/admin-manifest.vtt',
+      segments: [
+        {
+          id: 'student-declared',
+          anchorRef: 'student-declared',
+          privacyScope: 'student-visible',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: {
+            konling: { allowed: true, reason: null },
+            diagnosis: { allowed: true, reason: null },
+            report: { allowed: true, reason: null },
           },
-        ],
-      },
-    ] as const) {
-      const projection = buildMediaSourceManifestSemanticProjection(
-        manifest as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0],
-      );
-      expect(projection.resource.governance.privacyLevel).toBe('admin-scoped');
-      expect(projection.segments[0].sceneAvailability.konling).toEqual({
-        allowed: false,
-        reason: 'admin-scoped-resource',
-      });
-      expect(projection.segments[0].sceneAvailability.diagnosis).toEqual({
-        allowed: false,
-        reason: 'admin-scoped-resource',
-      });
-      expect(projection.segments[0].sceneAvailability.report).toEqual({
-        allowed: false,
-        reason: 'admin-scoped-resource',
-      });
-    }
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(adminScopedManifestProjection.resource.governance.privacyLevel).toBe('admin-scoped');
+    expect(adminScopedManifestProjection.segments[0].privacyScope).toBe('admin-scoped');
+    expect(adminScopedManifestProjection.segments[0].sceneAvailability).toMatchObject({
+      konling: { allowed: false, reason: 'admin-scoped-resource' },
+      diagnosis: { allowed: false, reason: 'admin-scoped-resource' },
+      report: { allowed: false, reason: 'admin-scoped-resource' },
+    });
 
     const adminMissingAiUseProjection = buildMediaSourceManifestSemanticProjection({
       sourceId: 'authoring/video:admin-missing-ai-use',
@@ -2115,6 +2111,9 @@ describe('resource node registry', () => {
       'student-visible',
     ]);
     expect(invalidPrivacyProjection.resource.governance.privacyLevel).toBe('teacher-scoped');
+    expect(invalidPrivacyProjection.resource.governance.auditIssueCodes).toContain('segments.0.invalid-privacy-scope');
+    expect(invalidPrivacyProjection.citationTargets[0].status).toBe('missing-target');
+    expect(invalidPrivacyProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
 
     expect(validateResourceMediaSourceManifest({
       sourceId: 'authoring/video:bad-source-path',
