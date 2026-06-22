@@ -1702,6 +1702,9 @@ function buildAdaptiveLearningPathPlanInternal(
       return {
         node,
         planningUnit,
+        matchedGraphRefs: planningUnit && graphContext
+          ? graphMatchedRefsForRanker(planningUnit, graphContext)
+          : undefined,
         limitations: planningUnit?.governanceLimitations.map((limitation) => limitation.code) ?? [],
       };
     }),
@@ -2884,6 +2887,26 @@ function graphTargetsCoveredByPlanningUnit(
     refs.has(target) ||
     graphContext.resourceCoveragePathEligibleResourceIds[target]?.includes(planningUnit.resourceNodeId)
   );
+}
+
+function graphMatchedRefsForRanker(
+  planningUnit: PlanningUnit,
+  graphContext: AdaptiveLearningPathGraphContextSummary,
+): ResourceGraphNodeRefs {
+  return graphTargetsCoveredByPlanningUnit(planningUnit, graphContext).reduce<ResourceGraphNodeRefs>((refs, target) => {
+    if (planningUnit.graphNodeRefs.capability.includes(target) || target.startsWith('capability:') || target.startsWith('cap:')) {
+      refs.capability.push(target);
+    } else if (planningUnit.graphNodeRefs.quality.includes(target) || target.startsWith('quality:') || target.startsWith('qual:')) {
+      refs.quality.push(target);
+    } else {
+      refs.knowledge.push(target);
+    }
+    return refs;
+  }, {
+    knowledge: [],
+    capability: [],
+    quality: [],
+  });
 }
 
 function graphTargetsCoveredByScoredNodes(

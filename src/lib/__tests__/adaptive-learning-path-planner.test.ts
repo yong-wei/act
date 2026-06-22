@@ -928,6 +928,9 @@ describe('adaptive learning path planner', () => {
     const serialized = serializeLearningPathPlan(plan);
 
     expect(plan.mainPath.map((node) => node.nodeId)).toContain('knowledge-card:graph-frequency-card');
+    const graphMappedNode = plan.mainPath.find((node) => node.nodeId === 'knowledge-card:graph-frequency-card');
+    expect(graphMappedNode?.resourceRanker?.matchedGraphRefs.knowledge).toContain(graphTargetId);
+    expect(graphMappedNode?.reasonCodes).toContain('ranker:graph-coverage');
     expect(plan.graphContext).toMatchObject({
       learningGoalId: learningGoal.id,
       learningGoalVersion: learningGoal.version,

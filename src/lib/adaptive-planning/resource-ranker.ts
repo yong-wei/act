@@ -44,6 +44,7 @@ export interface ResourceLearnerMatchingLearnerState {
 export interface ResourceLearnerRankerCandidate {
   node: ResourceNode;
   planningUnit: PlanningUnit | null;
+  matchedGraphRefs?: Partial<ResourceGraphNodeRefs>;
   rejectionReasons?: string[];
   limitations?: string[];
 }
@@ -219,7 +220,7 @@ function buildScoringProfile(candidate: ResourceLearnerRankerCandidate): Resourc
   if (candidate.planningUnit) {
     return {
       planningUnit: candidate.planningUnit,
-      graphNodeRefs: candidate.planningUnit.graphNodeRefs,
+      graphNodeRefs: mergeGraphNodeRefs(candidate.planningUnit.graphNodeRefs, candidate.matchedGraphRefs),
       sceneAvailability: candidate.planningUnit.sceneAvailability,
       citationReadiness: candidate.planningUnit.citationReadiness,
       evidenceCapability: candidate.planningUnit.evidenceCapability,
@@ -236,7 +237,7 @@ function buildScoringProfile(candidate: ResourceLearnerRankerCandidate): Resourc
   const graphProfile = projection.resource.graphProfile;
   return {
     planningUnit: null,
-    graphNodeRefs: graphProfile.graphNodeRefs,
+    graphNodeRefs: mergeGraphNodeRefs(graphProfile.graphNodeRefs, candidate.matchedGraphRefs),
     sceneAvailability: graphProfile.sceneAvailability,
     citationReadiness: graphProfile.citationReadiness,
     evidenceCapability: graphProfile.evidenceCapability,
@@ -249,6 +250,17 @@ function buildScoringProfile(candidate: ResourceLearnerRankerCandidate): Resourc
     cognitiveLoad: graphProfile.pathProfile.cognitiveLoad,
     readiness: graphProfile.pathProfile.readiness,
     evidenceInstrumentation: candidate.node.planningMetadata.evidenceInstrumentation,
+  };
+}
+
+function mergeGraphNodeRefs(
+  base: ResourceGraphNodeRefs,
+  override: Partial<ResourceGraphNodeRefs> | undefined,
+): ResourceGraphNodeRefs {
+  return {
+    knowledge: unique([...base.knowledge, ...(override?.knowledge ?? [])]),
+    capability: unique([...base.capability, ...(override?.capability ?? [])]),
+    quality: unique([...base.quality, ...(override?.quality ?? [])]),
   };
 }
 
