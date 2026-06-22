@@ -92,6 +92,11 @@ interface RuntimeGraphOverlay {
   nodes?: Array<{ id: string; name: string }>;
 }
 
+interface RuntimeLessonDir {
+  lessonKey: string;
+  lessonDir: string;
+}
+
 interface InfographManifest {
   items?: Array<{
     path?: string;
@@ -216,10 +221,9 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
 
 async function collectRuntimeManifestCandidates() {
   const candidates: ResourceFieldCompletionCandidate[] = [];
-  const lessonDirs = await safeReadDir(RUNTIME_LESSONS_DIR);
-  for (const dirent of lessonDirs.filter((entry) => entry.isDirectory())) {
-    const lessonDir = path.join(RUNTIME_LESSONS_DIR, dirent.name);
-    const manifestPath = path.join(RUNTIME_LESSONS_DIR, dirent.name, 'interactive-manifest.json');
+  const lessonDirs = await discoverRuntimeLessonDirs();
+  for (const { lessonDir, lessonKey } of lessonDirs) {
+    const manifestPath = path.join(lessonDir, 'interactive-manifest.json');
     const [manifest, graphOverlay, lesson, manifestHash] = await Promise.all([
       readJson<RuntimeInteractiveManifest>(manifestPath),
       readJson<RuntimeGraphOverlay>(path.join(lessonDir, 'graph-overlay.json')),
@@ -227,7 +231,7 @@ async function collectRuntimeManifestCandidates() {
       readLocalFileHash(manifestPath),
     ]);
     if (!manifest?.steps) continue;
-    const lessonId = manifest.lesson_id ?? dirent.name;
+    const lessonId = manifest.lesson_id ?? lesson?.lesson_id ?? lessonKey;
     const stepKnowledgeNodeIds = buildRuntimeStepKnowledgeNodeMap(
       graphOverlay?.groups ?? lesson?.sequence?.groups ?? [],
     );
@@ -284,9 +288,8 @@ async function collectRuntimeManifestCandidates() {
 
 async function collectRuntimeMediaCandidates() {
   const candidates: ResourceFieldCompletionCandidate[] = [];
-  const lessonDirs = await safeReadDir(RUNTIME_LESSONS_DIR);
-  for (const dirent of lessonDirs.filter((entry) => entry.isDirectory())) {
-    const lessonDir = path.join(RUNTIME_LESSONS_DIR, dirent.name);
+  const lessonDirs = await discoverRuntimeLessonDirs();
+  for (const { lessonDir, lessonKey } of lessonDirs) {
     const mediaDir = path.join(lessonDir, 'media');
     const files = await collectFiles(mediaDir);
     for (const absolutePath of files.filter((file) => !file.endsWith('.md'))) {
@@ -295,16 +298,16 @@ async function collectRuntimeMediaCandidates() {
       const mediaRelativePath = path.relative(mediaDir, absolutePath).split(path.sep).join('/');
       const contentHash = `sha256:${sha256(await fs.readFile(absolutePath))}`;
       candidates.push({
-        id: `runtime-media:${dirent.name}:${mediaRelativePath}`,
+        id: `runtime-media:${lessonKey}:${mediaRelativePath}`,
         title: basename,
         family: 'runtime-lesson-media',
         sourcePathOrUrl: relativePath,
-        sourceRecord: `${dirent.name}:${mediaRelativePath}`,
+        sourceRecord: `${lessonKey}:${mediaRelativePath}`,
         knowledgeNodeIds: [],
         capabilityTargetIds: [],
         segmentRefs: [mediaRelativePath],
         citationTargets: [relativePath],
-        pathTarget: `/course-runtime/lessons/${dirent.name}/media/${mediaRelativePath}`,
+        pathTarget: `/course-runtime/lessons/${lessonKey}/media/${mediaRelativePath}`,
         evidenceInstrumentation: [],
         privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
         generatedBy: 'external-tool',
@@ -322,29 +325,29 @@ async function collectRuntimeMediaCandidates() {
 
 async function collectRuntimeLessonCatalogEntries(): Promise<RuntimeLessonCatalogEntry[]> {
   const entries: RuntimeLessonCatalogEntry[] = [];
-  const lessonDirs = await safeReadDir(RUNTIME_LESSONS_DIR);
-  for (const dirent of lessonDirs.filter((entry) => entry.isDirectory())) {
-    const lessonDir = path.join(RUNTIME_LESSONS_DIR, dirent.name);
+  const lessonDirs = await discoverRuntimeLessonDirs();
+  for (const { lessonDir, lessonKey } of lessonDirs) {
     const [lesson, graphOverlay, mediaResources] = await Promise.all([
       readJson<RuntimeLessonJson>(path.join(lessonDir, 'lesson.json')),
       readJson<RuntimeGraphOverlay>(path.join(lessonDir, 'graph-overlay.json')),
-      collectRuntimeLessonMediaResources(dirent.name, lessonDir),
+      collectRuntimeLessonMediaResources(lessonKey, lessonDir),
     ]);
     if (!lesson || !graphOverlay) continue;
-    const lessonId = lesson.lesson_id ?? graphOverlay.lesson_id ?? dirent.name;
-    const handoutSourcePath = path.join('course-content/runtime/lessons', dirent.name, `${lessonId}-handout.md`);
-    const fallbackHandoutSourcePath = path.join('course-content/runtime/lessons', dirent.name, 'handout.md');
-    const handoutPath = lesson.handout_path ?? `/course-runtime/lessons/${dirent.name}/${lessonId}-handout.md`;
-    const handoutPdfPath = await fileExists(path.join(lessonDir, `${lessonId}-handout.pdf`))
-      ? lesson.handout_pdf_path ?? `/course-runtime/lessons/${dirent.name}/${lessonId}-handout.pdf`
+    const sourceLessonId = lesson.lesson_id ?? graphOverlay.lesson_id ?? lessonKey;
+    const registryLessonId = lessonKey.includes('/') ? lessonKey : sourceLessonId;
+    const handoutSourcePath = path.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.md`);
+    const fallbackHandoutSourcePath = path.join('course-content/runtime/lessons', lessonKey, 'handout.md');
+    const handoutPath = lesson.handout_path ?? `/course-runtime/lessons/${lessonKey}/${sourceLessonId}-handout.md`;
+    const handoutPdfPath = await fileExists(path.join(lessonDir, `${sourceLessonId}-handout.pdf`))
+      ? lesson.handout_pdf_path ?? `/course-runtime/lessons/${lessonKey}/${sourceLessonId}-handout.pdf`
       : null;
     entries.push({
       lesson: {
-        lesson_id: lessonId,
-        title: lesson.title ?? lessonId,
+        lesson_id: registryLessonId,
+        title: lesson.title ?? sourceLessonId,
       },
       graphOverlay: {
-        lesson_id: graphOverlay.lesson_id ?? lessonId,
+        lesson_id: registryLessonId,
         focus_node_ids: graphOverlay.focus_node_ids ?? [],
         entry_nodes: graphOverlay.entry_nodes ?? [],
         summary_nodes: graphOverlay.summary_nodes ?? [],
@@ -652,6 +655,29 @@ async function collectFiles(root: string): Promise<string[]> {
     return [];
   }));
   return nested.flat().sort((left, right) => left.localeCompare(right));
+}
+
+async function discoverRuntimeLessonDirs(): Promise<RuntimeLessonDir[]> {
+  const lessons: RuntimeLessonDir[] = [];
+
+  async function visit(dir: string) {
+    const entries = await safeReadDir(dir);
+    const hasLessonJson = entries.some((entry) => entry.isFile() && entry.name === 'lesson.json');
+    if (hasLessonJson) {
+      lessons.push({
+        lessonKey: path.relative(RUNTIME_LESSONS_DIR, dir).split(path.sep).join('/'),
+        lessonDir: dir,
+      });
+      return;
+    }
+
+    await Promise.all(entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => visit(path.join(dir, entry.name))));
+  }
+
+  await visit(RUNTIME_LESSONS_DIR);
+  return lessons.sort((left, right) => left.lessonKey.localeCompare(right.lessonKey));
 }
 
 async function fileExists(filePath: string) {

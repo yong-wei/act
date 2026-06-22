@@ -79,6 +79,18 @@ describe('resource field completion audit', () => {
     expect(runtimeFileMediaRows.length).toBeGreaterThan(0);
     expect(runtimeFileMediaRows.every((row) => typeof row.sourceHash === 'string' && row.sourceHash.startsWith('sha256:'))).toBe(true);
     expect(runtimeFileMediaRows.every((row) => !row.missingFieldCodes.includes('missing-content-hash'))).toBe(true);
+    const legacyRuntimeMediaPath = 'course-content/runtime/lessons/legacy/1-1/media/h-02-laplace-transform-flow.svg';
+    const legacyRuntimeMediaRow = jsonlRows.find((row) => row.resourceId === 'runtime-media:legacy/1-1:h-02-laplace-transform-flow.svg');
+    const legacyRuntimeMediaHash = `sha256:${createHash('sha256').update(readFileSync(join(process.cwd(), legacyRuntimeMediaPath))).digest('hex')}`;
+    expect(legacyRuntimeMediaRow).toMatchObject({
+      family: 'runtime-lesson-media',
+      sourcePathOrUrl: legacyRuntimeMediaPath,
+      sourceRecord: 'legacy/1-1:h-02-laplace-transform-flow.svg',
+      sourceHash: legacyRuntimeMediaHash,
+      sourceVersionRef: 'runtime-lesson-media.v1',
+      citationTargets: [legacyRuntimeMediaPath],
+    });
+    expect(legacyRuntimeMediaRow?.missingFieldCodes).not.toContain('missing-content-hash');
     const indexedMediaRows = jsonlRows.filter((row) => (
       row.family === 'runtime-lesson-media' &&
       row.resourceId.startsWith('runtime-media:') &&
@@ -90,6 +102,26 @@ describe('resource field completion audit', () => {
     expect(indexedMediaRows.some((row) => row.resourceId === 'runtime-media:5-1:5-1-intro-video')).toBe(true);
     expect(indexedMediaRows.some((row) => row.resourceId === 'runtime-media:5-1:5-1 媒体链接登记')).toBe(false);
     expect(indexedMediaRows.some((row) => row.resourceType === 'handout')).toBe(false);
+    const legacyRuntimeHandoutRow = jsonlRows.find((row) => (
+      row.family === 'runtime-handout' &&
+      row.sourcePathOrUrl === '/course-runtime/lessons/legacy/L-2b/L-2b-handout.md'
+    ));
+    expect(legacyRuntimeHandoutRow).toMatchObject({
+      resourceId: 'runtime-handout:legacy/L-2b',
+      sourceRecord: 'legacy/L-2b',
+      citationTargets: ['/course-runtime/lessons/legacy/L-2b/L-2b-handout.md'],
+      sourceVersionRef: 'resource-node-registry.v1',
+    });
+    const aliasLegacyRuntimeHandoutRow = jsonlRows.find((row) => (
+      row.family === 'runtime-handout' &&
+      row.sourcePathOrUrl === '/course-runtime/lessons/legacy/1-1/1-1-handout.md'
+    ));
+    expect(aliasLegacyRuntimeHandoutRow).toMatchObject({
+      resourceId: 'runtime-handout:legacy/1-1',
+      sourceRecord: 'legacy/1-1',
+      citationTargets: ['/course-runtime/lessons/legacy/1-1/1-1-handout.md'],
+      sourceVersionRef: 'resource-node-registry.v1',
+    });
     const graphBoundStepRow = jsonlRows.find((row) => row.resourceId === 'runtime-step:3-5:step-01');
     const runtimeManifestPath = 'course-content/runtime/lessons/3-5/interactive-manifest.json';
     const runtimeManifestHash = `sha256:${createHash('sha256').update(readFileSync(join(process.cwd(), runtimeManifestPath))).digest('hex')}`;
