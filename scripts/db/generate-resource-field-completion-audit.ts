@@ -110,6 +110,12 @@ interface RuntimeLessonDir {
   lessonDir: string;
 }
 
+interface InteractiveCourseRouteIndex {
+  baseSegments: ReadonlySet<string>;
+  studentSegments: ReadonlySet<string>;
+  teacherSegments: ReadonlySet<string>;
+}
+
 interface InfographManifest {
   items?: Array<{
     path?: string;
@@ -252,7 +258,7 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
 async function collectRuntimeManifestCandidates() {
   const candidates: ResourceFieldCompletionCandidate[] = [];
   const lessonDirs = await discoverRuntimeLessonDirs();
-  const routeSegments = await collectInteractiveCourseRouteSegments();
+  const routeIndex = await collectInteractiveCourseRouteIndex();
   for (const { lessonDir, lessonKey } of lessonDirs) {
     const manifestPath = path.join(lessonDir, 'interactive-manifest.json');
     const [manifest, graphOverlay, lesson, manifestHash] = await Promise.all([
@@ -271,7 +277,7 @@ async function collectRuntimeManifestCandidates() {
         manifest,
         lessonId,
         stepId,
-        routeSegments,
+        routeIndex,
       });
       candidates.push({
         id: `runtime-step:${lessonId}:${stepId}`,
@@ -323,23 +329,31 @@ async function collectRuntimeManifestCandidates() {
   };
 }
 
-async function collectInteractiveCourseRouteSegments() {
+async function collectInteractiveCourseRouteIndex(): Promise<InteractiveCourseRouteIndex> {
   const routesDir = path.join(process.cwd(), 'src/app/interactive-learning/courses');
   const entries = await safeReadDir(routesDir);
-  const segments: string[] = [];
+  const baseSegments: string[] = [];
+  const studentSegments: string[] = [];
+  const teacherSegments: string[] = [];
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    const pagePath = path.join(routesDir, entry.name, 'page.tsx');
-    if (await fileExists(pagePath)) segments.push(entry.name);
+    const courseDir = path.join(routesDir, entry.name);
+    if (await fileExists(path.join(courseDir, 'page.tsx'))) baseSegments.push(entry.name);
+    if (await fileExists(path.join(courseDir, 'student/[sessionId]/page.tsx'))) studentSegments.push(entry.name);
+    if (await fileExists(path.join(courseDir, 'teacher/[sessionId]/page.tsx'))) teacherSegments.push(entry.name);
   }
-  return new Set(segments.sort((left, right) => left.localeCompare(right)));
+  return {
+    baseSegments: sortedSet(baseSegments),
+    studentSegments: sortedSet(studentSegments),
+    teacherSegments: sortedSet(teacherSegments),
+  };
 }
 
 function resolveVerifiedRuntimeStepPath(input: {
   manifest: RuntimeInteractiveManifest;
   lessonId: string;
   stepId: string;
-  routeSegments: ReadonlySet<string>;
+  routeIndex: InteractiveCourseRouteIndex;
 }) {
   const candidates = [
     input.manifest.steps?.[input.stepId]?.preview_contract?.demo_path,
@@ -349,11 +363,11 @@ function resolveVerifiedRuntimeStepPath(input: {
     input.manifest.course_route_segment
       ? `/interactive-learning/courses/${input.manifest.course_route_segment}/student/demo?step=${encodeURIComponent(input.stepId)}`
       : null,
-    inferRouteSegmentFromLessonId(input.lessonId, input.routeSegments)
-      ? `/interactive-learning/courses/${inferRouteSegmentFromLessonId(input.lessonId, input.routeSegments)}/student/demo?step=${encodeURIComponent(input.stepId)}`
+    inferRouteSegmentFromLessonId(input.lessonId, input.routeIndex.baseSegments)
+      ? `/interactive-learning/courses/${inferRouteSegmentFromLessonId(input.lessonId, input.routeIndex.baseSegments)}/student/demo?step=${encodeURIComponent(input.stepId)}`
       : null,
   ];
-  return candidates.find((candidate) => isVerifiedInteractiveCoursePath(candidate, input.routeSegments)) ?? null;
+  return candidates.find((candidate) => isVerifiedInteractiveCoursePath(candidate, input.routeIndex)) ?? null;
 }
 
 function inferRouteSegmentFromLessonId(lessonId: string, routeSegments: ReadonlySet<string>) {
@@ -362,10 +376,20 @@ function inferRouteSegmentFromLessonId(lessonId: string, routeSegments: Readonly
   return matches.length === 1 ? matches[0] : null;
 }
 
-function isVerifiedInteractiveCoursePath(pathTarget: string | null | undefined, routeSegments: ReadonlySet<string>) {
+function isVerifiedInteractiveCoursePath(pathTarget: string | null | undefined, routeIndex: InteractiveCourseRouteIndex) {
   if (!pathTarget) return false;
-  const match = pathTarget.match(/^\/interactive-learning\/courses\/([^/?#]+)/);
-  return Boolean(match?.[1] && routeSegments.has(match[1]));
+  const match = pathTarget.match(/^\/interactive-learning\/courses\/([^/?#]+)(?:\/([^?#]*))?(?:[?#].*)?$/);
+  if (!match?.[1]) return false;
+  const [, segment, subpath = ''] = match;
+  if (!subpath) return routeIndex.baseSegments.has(segment);
+  const parts = subpath.split('/').filter(Boolean);
+  if (parts.length === 2 && parts[0] === 'student') return routeIndex.studentSegments.has(segment);
+  if (parts.length === 2 && parts[0] === 'teacher') return routeIndex.teacherSegments.has(segment);
+  return false;
+}
+
+function sortedSet(values: string[]) {
+  return new Set(values.sort((left, right) => left.localeCompare(right)));
 }
 
 async function collectRuntimeMediaCandidates() {

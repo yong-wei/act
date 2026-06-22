@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+
 import {
   buildResourceNodeRegistry,
   type KnowledgeNodeResourceInput,
@@ -11,6 +14,11 @@ import {
 } from './resource-node-registry';
 import type { RuntimeLessonResourceCatalogEntry } from './course-runtime';
 import type { TextbookRuntimeResourceCatalogEntry } from './textbook-runtime-resources';
+
+const RUNTIME_RESOURCE_PROJECTIONS_PATH = path.join(
+  process.cwd(),
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+);
 
 interface ResourceWithKnowledgeNodes {
   id: string;
@@ -83,6 +91,20 @@ export function buildResourceNodeRegistryFromTeachingResources(
   });
 }
 
+export async function loadRuntimeResourceProjectionInputs(): Promise<RuntimeResourceProjectionInput[]> {
+  try {
+    const content = await readFile(RUNTIME_RESOURCE_PROJECTIONS_PATH, 'utf8');
+    return content
+      .trim()
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as RuntimeResourceProjectionInput);
+  } catch (error) {
+    if (isMissingFileError(error)) return [];
+    throw error;
+  }
+}
+
 export function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return {};
@@ -138,4 +160,8 @@ function toTextbookSectionNodeInputs(
     ...section,
     bookId: entry.textbook.bookId,
   }));
+}
+
+function isMissingFileError(error: unknown): boolean {
+  return Boolean(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT');
 }

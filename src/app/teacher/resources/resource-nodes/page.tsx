@@ -9,8 +9,11 @@ import {
 } from '@/lib/course-runtime';
 import { prisma } from '@/lib/prisma';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
-import { RESOURCE_NODE_TYPES } from '@/lib/resource-node-registry';
-import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
+import { RESOURCE_NODE_TYPES, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
+import {
+  buildResourceNodeRegistryFromTeachingResources,
+  loadRuntimeResourceProjectionInputs,
+} from '@/lib/teacher-resource-node-data';
 import {
   buildTeacherResourceNodeManagementSummary,
   canReadNode,
@@ -46,10 +49,19 @@ export default async function TeacherResourceNodesPage() {
     orderBy: [{ category: 'asc' }, { displayOrder: 'asc' }, { title: 'asc' }],
   });
 
-  const runtimeLessons = await loadAllLessonRuntimeResourceCatalogEntries();
+  const [runtimeLessons, runtimeResourceProjections] = await Promise.all([
+    loadAllLessonRuntimeResourceCatalogEntries(),
+    loadRuntimeResourceProjectionInputs(),
+  ]);
   const registeredResources = getAllRegisteredResourceMetadata();
-  const registry = buildResourceNodeRegistryFromTeachingResources(resources, registeredResources, runtimeLessons);
-  const scope = createScope(session.user.id, resources, registeredResources, runtimeLessons);
+  const registry = buildResourceNodeRegistryFromTeachingResources(
+    resources,
+    registeredResources,
+    runtimeLessons,
+    [],
+    runtimeResourceProjections,
+  );
+  const scope = createScope(session.user.id, resources, registeredResources, runtimeLessons, runtimeResourceProjections);
   const nodes = registry.nodes.filter((node) => canReadNode(node, scope));
 
   return (
@@ -66,6 +78,7 @@ function createScope(
   resources: ReadonlyArray<{ id: string; knowledgeNodes?: Array<{ id: string }> }>,
   registeredResources: ReadonlyArray<{ id: string }>,
   runtimeLessons: ReadonlyArray<RuntimeLessonResourceCatalogEntry>,
+  runtimeResourceProjections: ReadonlyArray<RuntimeResourceProjectionInput>,
 ): TeacherResourceNodeScope {
   const resourceIds = resources.map((resource) => resource.id);
   const registeredResourceIds = registeredResources.map((resource) => resource.id);
@@ -84,6 +97,10 @@ function createScope(
     ...lesson.graphOverlay.nodes.map((node) => node.id),
   ]);
   const runtimeKnowledgeCardIds = runtimeKnowledgeNodeIds.map((id) => `${id}:card`);
+  const runtimeProjectionRefs = runtimeResourceProjections.flatMap((projection) => [
+    projection.sourceRef,
+    projection.sourceRecord,
+  ].filter((value): value is string => Boolean(value)));
   return {
     role: 'TEACHER',
     teacherId,
@@ -93,6 +110,7 @@ function createScope(
       ...knowledgeNodeIds,
       ...knowledgeCardIds,
       ...runtimeSourceRefs,
+      ...runtimeProjectionRefs,
       ...runtimeKnowledgeNodeIds,
       ...runtimeKnowledgeCardIds,
     ]),

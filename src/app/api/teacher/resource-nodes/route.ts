@@ -13,8 +13,11 @@ import {
   type TextbookRuntimeResourceCatalogEntry,
 } from '@/lib/textbook-runtime-resources';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
-import { RESOURCE_NODE_TYPES, type ResourceNodeType } from '@/lib/resource-node-registry';
-import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
+import { RESOURCE_NODE_TYPES, type ResourceNodeType, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
+import {
+  buildResourceNodeRegistryFromTeachingResources,
+  loadRuntimeResourceProjectionInputs,
+} from '@/lib/teacher-resource-node-data';
 import {
   buildTeacherResourceNodeManagementSummary,
   canReadNode,
@@ -54,10 +57,27 @@ export async function GET(request: Request) {
     });
 
     const registeredResources = getAllRegisteredResourceMetadata();
-    const runtimeLessons = await loadAllLessonRuntimeResourceCatalogEntries();
-    const runtimeTextbooks = await loadAllTextbookRuntimeResourceCatalogEntries();
-    const registry = buildResourceNodeRegistryFromTeachingResources(resources, registeredResources, runtimeLessons, runtimeTextbooks);
-    const scope = createScope(session.user.role, session.user.id, resources, registeredResources, runtimeLessons, runtimeTextbooks);
+    const [runtimeLessons, runtimeTextbooks, runtimeResourceProjections] = await Promise.all([
+      loadAllLessonRuntimeResourceCatalogEntries(),
+      loadAllTextbookRuntimeResourceCatalogEntries(),
+      loadRuntimeResourceProjectionInputs(),
+    ]);
+    const registry = buildResourceNodeRegistryFromTeachingResources(
+      resources,
+      registeredResources,
+      runtimeLessons,
+      runtimeTextbooks,
+      runtimeResourceProjections,
+    );
+    const scope = createScope(
+      session.user.role,
+      session.user.id,
+      resources,
+      registeredResources,
+      runtimeLessons,
+      runtimeTextbooks,
+      runtimeResourceProjections,
+    );
     const { searchParams } = new URL(request.url);
     const scopedNodes = registry.nodes.filter((node) => canReadNode(node, scope));
     const filteredNodes = filterTeacherResourceNodes(scopedNodes, {
@@ -91,6 +111,7 @@ function createScope(
   registeredResources: ReadonlyArray<{ id: string }>,
   runtimeLessons: ReadonlyArray<RuntimeLessonResourceCatalogEntry>,
   runtimeTextbooks: ReadonlyArray<TextbookRuntimeResourceCatalogEntry>,
+  runtimeResourceProjections: ReadonlyArray<RuntimeResourceProjectionInput>,
 ): TeacherResourceNodeScope {
   const resourceIds = resources.map((resource) => resource.id);
   const registeredResourceIds = registeredResources.map((resource) => resource.id);
@@ -109,6 +130,10 @@ function createScope(
     ...lesson.graphOverlay.nodes.map((node) => node.id),
   ]);
   const runtimeKnowledgeCardIds = runtimeKnowledgeNodeIds.map((id) => `${id}:card`);
+  const runtimeProjectionRefs = runtimeResourceProjections.flatMap((projection) => [
+    projection.sourceRef,
+    projection.sourceRecord,
+  ].filter((value): value is string => Boolean(value)));
   const textbookSourceRefs = runtimeTextbooks.flatMap((entry) => [
     entry.textbook.bookId,
     ...entry.sections.map((section) => `${entry.textbook.bookId}:${section.sectionId}`),
@@ -126,6 +151,7 @@ function createScope(
       ...knowledgeNodeIds,
       ...knowledgeCardIds,
       ...runtimeSourceRefs,
+      ...runtimeProjectionRefs,
       ...runtimeKnowledgeNodeIds,
       ...runtimeKnowledgeCardIds,
       ...textbookSourceRefs,

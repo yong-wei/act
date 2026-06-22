@@ -6,10 +6,12 @@ const mocks = vi.hoisted(() => {
   const teachingResourceFindMany = vi.fn();
   const teachingResourceUpdate = vi.fn();
   const loadAllLessonRuntimeResourceCatalogEntries = vi.fn();
+  const loadRuntimeResourceProjectionInputs = vi.fn();
 
   return {
     getServerSession,
     loadAllLessonRuntimeResourceCatalogEntries,
+    loadRuntimeResourceProjectionInputs,
     prisma: {
       teachingResource: {
         findFirst: teachingResourceFindFirst,
@@ -47,6 +49,14 @@ vi.mock('@/lib/resource-registry-metadata', () => ({
     },
   ],
 }));
+
+vi.mock('@/lib/teacher-resource-node-data', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/teacher-resource-node-data')>();
+  return {
+    ...actual,
+    loadRuntimeResourceProjectionInputs: mocks.loadRuntimeResourceProjectionInputs,
+  };
+});
 
 import { PATCH } from '../route';
 
@@ -106,6 +116,7 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     mocks.prisma.teachingResource.findFirst.mockResolvedValue(ownedResource);
     mocks.prisma.teachingResource.findMany.mockResolvedValue([ownedResource, prerequisiteResource]);
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
     mocks.prisma.teachingResource.update.mockResolvedValue({
       ...ownedResource,
       displayName: '课堂使用的 Bode 后测',
