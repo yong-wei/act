@@ -1262,7 +1262,8 @@ export function buildMediaSourceManifestSemanticProjection(
     ref: manifest.sourceId,
   };
   const sourceRefs = buildMediaManifestSourceRefs(manifest, sourceRef);
-  const segments = manifest.segments.map((segment, index): ResourceSegment => {
+  const manifestSegments = Array.isArray(manifest.segments) ? manifest.segments : [];
+  const segments = manifestSegments.map((segment, index): ResourceSegment => {
     const segmentIssues = issuesForMediaSegment(validation.issues, index);
     const segmentId = mediaSegmentId(manifest, segment, index);
     const citationReadiness = buildMediaSegmentCitationReadiness(segment, segmentIssues);
@@ -1287,7 +1288,7 @@ export function buildMediaSourceManifestSemanticProjection(
   const citationTargets = segments.map((segment, index): CitationTarget => {
     const ready = segment.citationReadiness.verified || segment.citationReadiness.status === 'resolvable';
     return {
-      id: `media-citation-target:${manifest.sourceId || 'unknown'}:${manifest.segments[index]?.id || index}`,
+      id: `media-citation-target:${manifest.sourceId || 'unknown'}:${manifestSegments[index]?.id || index}`,
       resourceId,
       resourceSegmentId: segment.id,
       sourceRef,
@@ -1299,7 +1300,7 @@ export function buildMediaSourceManifestSemanticProjection(
   const retrievalChunks = segments.map((segment, index): RetrievalChunk => {
     const citationTarget = citationTargets[index];
     return {
-      id: `media-retrieval-chunk:${manifest.sourceId || 'unknown'}:${manifest.segments[index]?.id || index}`,
+      id: `media-retrieval-chunk:${manifest.sourceId || 'unknown'}:${manifestSegments[index]?.id || index}`,
       resourceId,
       resourceSegmentId: segment.id,
       citationTargetId: citationTarget.status === 'resolvable' ? citationTarget.id : null,
@@ -2821,12 +2822,13 @@ function mergeMediaEvidenceCapability(segments: ResourceSegment[]): ResourceEvid
 }
 
 function estimateMediaManifestMinutes(manifest: ResourceMediaSourceManifest): number {
-  const durationSeconds = manifest.segments.reduce((total, segment) => {
+  const segments = Array.isArray(manifest.segments) ? manifest.segments : [];
+  const durationSeconds = segments.reduce((total, segment) => {
     if (segment.startSeconds === undefined || segment.endSeconds === undefined) return total;
     return total + Math.max(0, (segment.endSeconds ?? 0) - (segment.startSeconds ?? 0));
   }, 0);
   if (durationSeconds > 0) return Math.max(1, Math.ceil(durationSeconds / 60));
-  return Math.max(1, manifest.segments.length * 2);
+  return Math.max(1, segments.length * 2);
 }
 
 function hasAnyGraphRef(refs: ResourceGraphNodeRefs | undefined): boolean {

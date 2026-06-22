@@ -1958,6 +1958,52 @@ describe('resource node registry', () => {
     })).toEqual(expect.arrayContaining(['rawMedia', 'transcript', 'descriptionBody']));
   });
 
+  it('returns a blocked media projection for malformed segment lists', () => {
+    const missingSegmentsProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/media:missing-segments',
+      sourcePath: 'course-content/authoring/media/missing-segments.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'media.v1',
+      privacyScope: 'teacher-scoped',
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+
+    expect(missingSegmentsProjection).toMatchObject({
+      resource: {
+        projectionStatus: {
+          retrieval: 'blocked',
+          planning: 'blocked',
+        },
+        graphProfile: {
+          stableSegmentRefs: [],
+          citationReadiness: {
+            status: 'missing-transcript-or-anchor',
+            verified: false,
+            limitations: expect.arrayContaining(['missing-segments']),
+          },
+        },
+        governance: {
+          auditIssueCodes: expect.arrayContaining(['missing-segments']),
+        },
+      },
+      segments: [],
+      citationTargets: [],
+      retrievalChunks: [],
+      planningUnit: null,
+    });
+
+    const nonArraySegmentsProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/media:bad-segments',
+      sourcePath: 'course-content/authoring/media/bad-segments.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'media.v1',
+      privacyScope: 'teacher-scoped',
+      segments: 'not-an-array',
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+
+    expect(nonArraySegmentsProjection.resource.governance.auditIssueCodes).toContain('missing-segments');
+    expect(nonArraySegmentsProjection.retrievalChunks).toEqual([]);
+  });
+
   it('blocks admin-scoped resources from learner-facing resource segment scenes', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [
