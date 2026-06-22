@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -130,6 +130,18 @@ describe('resource field completion audit', () => {
     expect(graphBoundStepRow?.missingFieldCodes).not.toContain('missing-content-hash');
     expect(graphBoundStepRow?.missingFieldCodes).not.toContain('missing-knowledge-binding');
     expect(graphBoundStepRow?.coverage.denominatorKey).toContain('根轨迹法_2_e3f6c0c1');
+    const runtimeStepRows = jsonlRows.filter((row) => row.family === 'runtime-lesson-step');
+    expect(runtimeStepRows.length).toBeGreaterThan(0);
+    for (const row of runtimeStepRows) {
+      if (!row.pathTarget) continue;
+      const routeMatch = String(row.pathTarget).match(/^\/interactive-learning\/courses\/([^/?#]+)\/student\/[^/?#]+(?:\?step=[^#]+)?$/);
+      const routeSegment = routeMatch?.[1];
+      expect(routeSegment).toBeTruthy();
+      expect(existsSync(join(
+        process.cwd(),
+        `src/app/interactive-learning/courses/${routeSegment}/student/[sessionId]/page.tsx`,
+      ))).toBe(true);
+    }
     const manifestModuleRow = jsonlRows.find((row) => row.resourceId === 'runtime-module:3-5:step-01:boundary-card');
     expect(manifestModuleRow?.sourcePathOrUrl).toBe(runtimeManifestPath);
     expect(manifestModuleRow?.sourceHash).toBe(runtimeManifestHash);

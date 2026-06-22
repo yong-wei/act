@@ -10,7 +10,12 @@ import {
   type RuntimeLessonResourceCatalogEntry,
 } from '@/lib/course-runtime';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
-import { buildResourceNodeRegistryFromTeachingResources, asRecord } from '@/lib/teacher-resource-node-data';
+import { type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
+import {
+  buildResourceNodeRegistryFromTeachingResources,
+  asRecord,
+  loadRuntimeResourceProjectionInputs,
+} from '@/lib/teacher-resource-node-data';
 import {
   applyTeacherResourceNodePatch,
   createTeacherResourceNodeView,
@@ -80,8 +85,17 @@ export async function PATCH(
     });
 
     const registeredResources = getAllRegisteredResourceMetadata();
-    const runtimeLessons = await loadAllLessonRuntimeResourceCatalogEntries();
-    const registry = buildResourceNodeRegistryFromTeachingResources(scopedResources, registeredResources, runtimeLessons);
+    const [runtimeLessons, runtimeResourceProjections] = await Promise.all([
+      loadAllLessonRuntimeResourceCatalogEntries(),
+      loadRuntimeResourceProjectionInputs(),
+    ]);
+    const registry = buildResourceNodeRegistryFromTeachingResources(
+      scopedResources,
+      registeredResources,
+      runtimeLessons,
+      [],
+      runtimeResourceProjections,
+    );
     const node = registry.nodes.find((candidate) => candidate.id === nodeId);
     if (!node) {
       return NextResponse.json({
@@ -90,7 +104,14 @@ export async function PATCH(
       }, { status: 403 });
     }
 
-    const scope = createScope(session.user.role, session.user.id, scopedResources, registeredResources, runtimeLessons);
+    const scope = createScope(
+      session.user.role,
+      session.user.id,
+      scopedResources,
+      registeredResources,
+      runtimeLessons,
+      runtimeResourceProjections,
+    );
     const patchResult = applyTeacherResourceNodePatch({ node, scope, patch });
     if (!patchResult.ok) {
       return NextResponse.json({
@@ -136,6 +157,8 @@ export async function PATCH(
       scopedResources.map((candidate) => candidate.id === updatedResource.id ? updatedResource : candidate),
       registeredResources,
       runtimeLessons,
+      [],
+      runtimeResourceProjections,
     );
     const updatedNode = updatedRegistry.nodes.find((candidate) => candidate.id === nodeId) ?? node;
 
@@ -160,6 +183,7 @@ function createScope(
   resources: ReadonlyArray<{ id: string; knowledgeNodes?: Array<{ id: string }> }>,
   registeredResources: ReadonlyArray<{ id: string }>,
   runtimeLessons: ReadonlyArray<RuntimeLessonResourceCatalogEntry>,
+  runtimeResourceProjections: ReadonlyArray<RuntimeResourceProjectionInput>,
 ): TeacherResourceNodeScope {
   const resourceIds = resources.map((resource) => resource.id);
   const registeredResourceIds = registeredResources.map((resource) => resource.id);
@@ -178,6 +202,10 @@ function createScope(
     ...lesson.graphOverlay.nodes.map((node) => node.id),
   ]);
   const runtimeKnowledgeCardIds = runtimeKnowledgeNodeIds.map((id) => `${id}:card`);
+  const runtimeProjectionRefs = runtimeResourceProjections.flatMap((projection) => [
+    projection.sourceRef,
+    projection.sourceRecord,
+  ].filter((value): value is string => Boolean(value)));
   return {
     role: role === 'ADMIN' ? 'ADMIN' : 'TEACHER',
     teacherId,
@@ -187,6 +215,7 @@ function createScope(
       ...knowledgeNodeIds,
       ...knowledgeCardIds,
       ...runtimeSourceRefs,
+      ...runtimeProjectionRefs,
       ...runtimeKnowledgeNodeIds,
       ...runtimeKnowledgeCardIds,
     ]),

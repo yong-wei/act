@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
   loadAllTextbookRuntimeResourceCatalogEntries: vi.fn(),
   loadAllTextbookRuntimeSearchDocuments: vi.fn(),
+  loadRuntimeResourceProjectionInputs: vi.fn(),
   getAllRegisteredResourceMetadata: vi.fn(),
   buildResourceNodeRegistryFromTeachingResources: vi.fn(),
 }));
@@ -49,6 +50,7 @@ vi.mock('@/lib/textbook-runtime-resources', () => ({
 
 vi.mock('@/lib/teacher-resource-node-data', () => ({
   buildResourceNodeRegistryFromTeachingResources: mocks.buildResourceNodeRegistryFromTeachingResources,
+  loadRuntimeResourceProjectionInputs: mocks.loadRuntimeResourceProjectionInputs,
 }));
 
 vi.mock('../adaptive-learner-state-service', async (importOriginal) => {
@@ -70,6 +72,7 @@ describe('graph center production sources', () => {
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
     mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([]);
     mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([]);
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
     mocks.getAllRegisteredResourceMetadata.mockReturnValue([]);
     mocks.buildResourceNodeRegistryFromTeachingResources.mockReturnValue({ resources: {}, nodes: {} });
     mocks.studentProfileFindMany.mockResolvedValue([]);
@@ -77,8 +80,13 @@ describe('graph center production sources', () => {
 
   it('wires a signed-in student into their learner graph overlay source', async () => {
     const state = learnerState('student-1', 'class-1');
+    const runtimeProjection = {
+      id: 'runtime-step:1-1:step-01',
+      sourceRef: '1-1:step-01',
+    };
     mocks.studentProfileFindUnique.mockResolvedValue({ classId: 'class-1' });
     mocks.readAdaptiveLearnerState.mockResolvedValue(state);
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([runtimeProjection]);
 
     const sources = await buildGraphCenterCoverageSources({
       viewerRole: 'STUDENT',
@@ -97,6 +105,25 @@ describe('graph center production sources', () => {
       classId: 'class-1',
       goal: 'control-correction',
     });
+    expect(mocks.buildResourceNodeRegistryFromTeachingResources).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.any(Array),
+      expect.any(Array),
+      expect.any(Array),
+      [runtimeProjection],
+    );
+  });
+
+  it('surfaces runtime projection sidecar loader failures instead of silently dropping projections', async () => {
+    const parseError = new SyntaxError('invalid runtime projection sidecar');
+    mocks.loadRuntimeResourceProjectionInputs.mockRejectedValue(parseError);
+
+    await expect(buildGraphCenterCoverageSources({
+      viewerRole: 'TEACHER',
+      viewerUserId: 'teacher-1',
+    })).rejects.toBe(parseError);
+
+    expect(mocks.buildResourceNodeRegistryFromTeachingResources).not.toHaveBeenCalled();
   });
 
   it('rejects a student learner overlay request for another learner instead of rewriting it', async () => {

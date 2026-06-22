@@ -8,6 +8,7 @@ import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
   type ResourceNode,
+  type ResourceGraphNodeRefs,
   type ResourceNodeRegistry,
   type ResourceNodePrivacyLevel,
 } from './resource-node-registry';
@@ -138,9 +139,12 @@ export interface ResourceFieldCompletionAuditRow {
   title: string;
   sourcePathOrUrl: string | null;
   sourceRecord: string | null;
+  pathTarget: string | null;
+  estimatedTimeMinutes: number | null;
   sourceHash: string | null;
   sourceVersionRef: string | null;
   citationTargets: string[];
+  graphNodeRefs: ResourceGraphNodeRefs;
   missingFieldCodes: ResourceFieldMissingCode[];
   completionMethod: ResourceFieldCompletionMethod;
   reviewStatus: ResourceFieldReviewStatus;
@@ -360,7 +364,14 @@ function rowFromResourceNode(
     versionRefs,
     sourceHash,
     sourceVersionRef: RESOURCE_NODE_REGISTRY_VERSION,
+    pathTarget: node.launchTarget ?? node.renderTarget,
+    estimatedTimeMinutes: node.planningMetadata.estimatedTimeMinutes,
     citationTargets: projection.citationTargets.map((target) => target.target).filter((value): value is string => Boolean(value)),
+    graphNodeRefs: {
+      knowledge: node.planningMetadata.knowledgeCoverage,
+      capability: Object.keys(node.planningMetadata.abilityImpact).sort((left, right) => left.localeCompare(right)),
+      quality: [],
+    },
     sourceWindow,
     coverageKeys: [
       node.id,
@@ -431,7 +442,14 @@ function rowFromCandidate(
     versionRefs,
     sourceHash: candidate.contentHash ?? null,
     sourceVersionRef: candidate.versionRef ?? null,
+    pathTarget: candidate.pathTarget ?? null,
+    estimatedTimeMinutes: candidate.estimatedTimeMinutes ?? null,
     citationTargets: candidate.citationTargets ?? [],
+    graphNodeRefs: {
+      knowledge: candidate.knowledgeNodeIds ?? [],
+      capability: candidate.capabilityTargetIds ?? [],
+      quality: candidate.qualityTargetIds ?? [],
+    },
     sourceWindow: candidate.sourceWindow ?? defaultSourceWindow,
     coverageKeys: [
       candidate.id,
@@ -457,7 +475,10 @@ function buildRow(input: {
   currentPathEligible: boolean;
   sourceHash: string | null;
   sourceVersionRef: string | null;
+  pathTarget: string | null;
+  estimatedTimeMinutes: number | null;
   citationTargets: string[];
+  graphNodeRefs: ResourceGraphNodeRefs;
   sourceWindow: ResourceFieldSourceWindow;
   versionRefs: KaqArtifactVersionRefs;
   coverageKeys: string[];
@@ -480,9 +501,16 @@ function buildRow(input: {
     title: input.title,
     sourcePathOrUrl: input.sourcePathOrUrl,
     sourceRecord: input.sourceRecord,
+    pathTarget: input.pathTarget,
+    estimatedTimeMinutes: input.estimatedTimeMinutes,
     sourceHash: input.sourceHash,
     sourceVersionRef: input.sourceVersionRef,
     citationTargets: uniqueSorted(input.citationTargets),
+    graphNodeRefs: {
+      knowledge: uniqueSorted(input.graphNodeRefs.knowledge),
+      capability: uniqueSorted(input.graphNodeRefs.capability),
+      quality: uniqueSorted(input.graphNodeRefs.quality),
+    },
     missingFieldCodes: input.missingFieldCodes,
     completionMethod: input.completionMethod,
     reviewStatus: input.reviewStatus,

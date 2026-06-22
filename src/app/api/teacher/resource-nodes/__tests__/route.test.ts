@@ -5,11 +5,13 @@ const mocks = vi.hoisted(() => {
   const teachingResourceFindMany = vi.fn();
   const loadAllLessonRuntimeResourceCatalogEntries = vi.fn();
   const loadAllTextbookRuntimeResourceCatalogEntries = vi.fn();
+  const loadRuntimeResourceProjectionInputs = vi.fn();
 
   return {
     getServerSession,
     loadAllLessonRuntimeResourceCatalogEntries,
     loadAllTextbookRuntimeResourceCatalogEntries,
+    loadRuntimeResourceProjectionInputs,
     prisma: {
       teachingResource: {
         findMany: teachingResourceFindMany,
@@ -37,6 +39,14 @@ vi.mock('@/lib/course-runtime', () => ({
 vi.mock('@/lib/textbook-runtime-resources', () => ({
   loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
 }));
+
+vi.mock('@/lib/teacher-resource-node-data', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/teacher-resource-node-data')>();
+  return {
+    ...actual,
+    loadRuntimeResourceProjectionInputs: mocks.loadRuntimeResourceProjectionInputs,
+  };
+});
 
 vi.mock('@/lib/resource-registry-metadata', () => ({
   getAllRegisteredResourceMetadata: () => [
@@ -87,6 +97,7 @@ describe('GET /api/teacher/resource-nodes', () => {
     mocks.prisma.teachingResource.findMany.mockResolvedValue([ownedResource]);
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
     mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([]);
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
   });
 
   it('rejects non-teacher users', async () => {
@@ -241,6 +252,76 @@ describe('GET /api/teacher/resource-nodes', () => {
         renderTarget: null,
       }),
     ]));
+  });
+
+  it('loads runtime projection sidecars into the teacher resource registry', async () => {
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([
+      {
+        id: 'runtime-step:2-4:step-01',
+        resourceNodeId: 'lesson-step:2-4:step-01',
+        title: '频域入口步骤',
+        resourceType: 'lesson_step',
+        sourceKind: 'runtime_lesson_step',
+        sourceRef: '2-4:step-01',
+        sourceRecord: '2-4:step-01',
+        sourcePathOrUrl: 'course-content/runtime/lessons/2-4/interactive-manifest.json',
+        sourceHash: 'sha256:step',
+        sourceVersionRef: 'interactive-manifest.v2',
+        projectionLevel: 'ResourceNode',
+        routeTarget: '/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-01',
+        renderTarget: '/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-01',
+        graphNodeRefs: {
+          knowledge: ['kn-bode'],
+          capability: ['controlModeling'],
+          quality: [],
+        },
+        evidenceInstrumentation: ['lesson_step_view'],
+        privacyScope: 'student-visible',
+        teacherPolicy: 'allowed',
+        evidenceContract: {
+          eventSource: true,
+          eventType: true,
+          clientEventIdPolicy: true,
+          attemptKey: true,
+          sourceLogId: true,
+          dedupeKey: true,
+          timestamps: true,
+          learningFactPolicy: true,
+          confidencePolicy: false,
+          privacyScope: true,
+          complete: false,
+          missingFields: ['confidencePolicy'],
+        },
+        reviewAudit: {
+          status: 'generated-provisional',
+          reviewerId: null,
+          reviewerRole: null,
+          reviewedAt: null,
+          reviewBatchId: null,
+          reviewedSourceHash: null,
+          reviewedVersionRef: 'interactive-manifest.v2',
+          generationToolOrModel: 'template',
+          promptOrManifestHash: null,
+          confidence: null,
+          staleInvalidationRule: 'requires human review before path eligibility or mastery effect',
+        },
+      },
+    ]);
+
+    const response = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?q=频域入口步骤')
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.nodes).toEqual([
+      expect.objectContaining({
+        id: 'lesson-step:2-4:step-01',
+        editable: false,
+        pathEligible: false,
+        pathExclusionReasons: expect.arrayContaining(['provisional-runtime-projection']),
+      }),
+    ]);
   });
 
   it('includes runtime textbook containers and sections as read-only resource nodes', async () => {

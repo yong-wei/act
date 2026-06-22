@@ -12,10 +12,13 @@ import {
 } from '@/lib/resource-field-completion-audit';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
+import { buildRuntimeResourceProjectionArtifacts } from '@/lib/runtime-resource-projections';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const AUDIT_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-audit.jsonl');
 const SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-summary.json');
+const PROJECTION_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
+const PROJECTION_LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projection-limitations.json');
 const RUNTIME_LESSONS_DIR = path.join(process.cwd(), 'course-content/runtime/lessons');
 const RUNTIME_KNOWLEDGE_CARDS_DIR = path.join(process.cwd(), 'course-content/runtime/knowledge/cards/nodes');
 const INFOGRAPH_MANIFEST_PATH = path.join(process.cwd(), 'course-content/runtime/knowledge/infographs/manifest.json');
@@ -26,12 +29,23 @@ const UNCLASSIFIED_AUDIT_PRIVACY_SCOPE = null satisfies ResourceFieldCompletionC
 interface RuntimeInteractiveManifest {
   lesson_id?: string;
   course_title?: string;
+  course_route_segment?: string;
+  preview_mode?: {
+    student_demo_base_path?: string;
+  };
   steps?: Record<string, {
     title?: string;
+    duration_minutes?: number | null;
     modules?: RuntimeInteractiveModule[];
     telemetry_spec?: unknown;
     ai_context_spec?: unknown;
     acceptance_checks?: unknown;
+    preview_contract?: {
+      demo_path?: string;
+    };
+    preview?: {
+      student?: string;
+    };
   }>;
 }
 
@@ -97,6 +111,12 @@ interface RuntimeLessonDir {
   lessonDir: string;
 }
 
+interface InteractiveCourseRouteIndex {
+  baseSegments: ReadonlySet<string>;
+  studentSegments: ReadonlySet<string>;
+  teacherSegments: ReadonlySet<string>;
+}
+
 interface InfographManifest {
   items?: Array<{
     path?: string;
@@ -148,6 +168,10 @@ async function main() {
     sourceWindow: { from: null, to: generatedAt },
     limitations,
   });
+  const projectionArtifacts = buildRuntimeResourceProjectionArtifacts({
+    auditRows: result.rows,
+    generatedAt,
+  });
 
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
   await fs.writeFile(
@@ -156,10 +180,23 @@ async function main() {
     'utf8',
   );
   await fs.writeFile(SUMMARY_JSON_PATH, `${JSON.stringify(result.summary, null, 2)}\n`, 'utf8');
+  await fs.writeFile(
+    PROJECTION_JSONL_PATH,
+    `${projectionArtifacts.rows.map((row) => JSON.stringify(row)).join('\n')}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    PROJECTION_LIMITATIONS_PATH,
+    `${JSON.stringify(projectionArtifacts.limitations, null, 2)}\n`,
+    'utf8',
+  );
 
   console.log(`Resource field completion audit rows: ${result.rows.length}`);
   console.log(`Summary: ${path.relative(process.cwd(), SUMMARY_JSON_PATH)}`);
   console.log(`JSONL: ${path.relative(process.cwd(), AUDIT_JSONL_PATH)}`);
+  console.log(`Runtime resource projections: ${projectionArtifacts.rows.length}`);
+  console.log(`Projection summary: ${path.relative(process.cwd(), PROJECTION_LIMITATIONS_PATH)}`);
+  console.log(`Projection JSONL: ${path.relative(process.cwd(), PROJECTION_JSONL_PATH)}`);
 }
 
 async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>) {
@@ -222,6 +259,7 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
 async function collectRuntimeManifestCandidates() {
   const candidates: ResourceFieldCompletionCandidate[] = [];
   const lessonDirs = await discoverRuntimeLessonDirs();
+  const routeIndex = await collectInteractiveCourseRouteIndex();
   for (const { lessonDir, lessonKey } of lessonDirs) {
     const manifestPath = path.join(lessonDir, 'interactive-manifest.json');
     const [manifest, graphOverlay, lesson, manifestHash] = await Promise.all([
@@ -236,6 +274,12 @@ async function collectRuntimeManifestCandidates() {
       graphOverlay?.groups ?? lesson?.sequence?.groups ?? [],
     );
     for (const [stepId, step] of Object.entries(manifest.steps)) {
+      const verifiedStepPath = resolveVerifiedRuntimeStepPath({
+        manifest,
+        lessonId,
+        stepId,
+        routeIndex,
+      });
       candidates.push({
         id: `runtime-step:${lessonId}:${stepId}`,
         title: step.title ?? stepId,
@@ -246,7 +290,8 @@ async function collectRuntimeManifestCandidates() {
         capabilityTargetIds: [],
         segmentRefs: [stepId],
         citationTargets: [],
-        pathTarget: `/interactive-learning/courses/${lessonId}`,
+        pathTarget: verifiedStepPath,
+        estimatedTimeMinutes: normalizeEstimatedTimeMinutes(step.duration_minutes),
         evidenceInstrumentation: step.telemetry_spec ? ['interactive_step_event'] : [],
         privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
         generatedBy: step.ai_context_spec ? 'template' : null,
@@ -284,6 +329,73 @@ async function collectRuntimeManifestCandidates() {
     candidates,
     limitations: candidates.length === 0 ? ['No runtime interactive lesson steps were found.'] : [],
   };
+}
+
+async function collectInteractiveCourseRouteIndex(): Promise<InteractiveCourseRouteIndex> {
+  const routesDir = path.join(process.cwd(), 'src/app/interactive-learning/courses');
+  const entries = await safeReadDir(routesDir);
+  const baseSegments: string[] = [];
+  const studentSegments: string[] = [];
+  const teacherSegments: string[] = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const courseDir = path.join(routesDir, entry.name);
+    if (await fileExists(path.join(courseDir, 'page.tsx'))) baseSegments.push(entry.name);
+    if (await fileExists(path.join(courseDir, 'student/[sessionId]/page.tsx'))) studentSegments.push(entry.name);
+    if (await fileExists(path.join(courseDir, 'teacher/[sessionId]/page.tsx'))) teacherSegments.push(entry.name);
+  }
+  return {
+    baseSegments: sortedSet(baseSegments),
+    studentSegments: sortedSet(studentSegments),
+    teacherSegments: sortedSet(teacherSegments),
+  };
+}
+
+function resolveVerifiedRuntimeStepPath(input: {
+  manifest: RuntimeInteractiveManifest;
+  lessonId: string;
+  stepId: string;
+  routeIndex: InteractiveCourseRouteIndex;
+}) {
+  const candidates = [
+    input.manifest.steps?.[input.stepId]?.preview_contract?.demo_path,
+    input.manifest.preview_mode?.student_demo_base_path
+      ? `${input.manifest.preview_mode.student_demo_base_path}?step=${encodeURIComponent(input.stepId)}`
+      : null,
+    input.manifest.course_route_segment
+      ? `/interactive-learning/courses/${input.manifest.course_route_segment}/student/demo?step=${encodeURIComponent(input.stepId)}`
+      : null,
+    inferRouteSegmentFromLessonId(input.lessonId, input.routeIndex.baseSegments)
+      ? `/interactive-learning/courses/${inferRouteSegmentFromLessonId(input.lessonId, input.routeIndex.baseSegments)}/student/demo?step=${encodeURIComponent(input.stepId)}`
+      : null,
+  ];
+  return candidates.find((candidate) => isVerifiedInteractiveCoursePath(candidate, input.routeIndex)) ?? null;
+}
+
+function inferRouteSegmentFromLessonId(lessonId: string, routeSegments: ReadonlySet<string>) {
+  const normalized = lessonId.startsWith('unit-') ? lessonId : `unit-${lessonId}`;
+  const matches = Array.from(routeSegments).filter((segment) => segment === lessonId || segment.startsWith(`${normalized}-`));
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function normalizeEstimatedTimeMinutes(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function isVerifiedInteractiveCoursePath(pathTarget: string | null | undefined, routeIndex: InteractiveCourseRouteIndex) {
+  if (!pathTarget) return false;
+  const match = pathTarget.match(/^\/interactive-learning\/courses\/([^/?#]+)(?:\/([^?#]*))?(?:[?#].*)?$/);
+  if (!match?.[1]) return false;
+  const [, segment, subpath = ''] = match;
+  if (!subpath) return routeIndex.baseSegments.has(segment);
+  const parts = subpath.split('/').filter(Boolean);
+  if (parts.length === 2 && parts[0] === 'student') return routeIndex.studentSegments.has(segment);
+  if (parts.length === 2 && parts[0] === 'teacher') return routeIndex.teacherSegments.has(segment);
+  return false;
+}
+
+function sortedSet(values: string[]) {
+  return new Set(values.sort((left, right) => left.localeCompare(right)));
 }
 
 async function collectRuntimeMediaCandidates() {
