@@ -1713,7 +1713,11 @@ function buildAdaptiveLearningPathPlanInternal(
     policyFamily,
   });
   const status: AdaptiveLearningPathStatus = fallbackReasons.length > 0 ? 'fallback' : 'ready';
-  const hasBlockingFallback = fallbackReasons.some(isPathBlockingFallbackReason);
+  const hasPartialGraphStarter = mainPathNodes.length > 0 && fallbackReasons.includes('graph-target-coverage-partial');
+  const hasBlockingFallback = fallbackReasons.some((reason) =>
+    isPathBlockingFallbackReason(reason) &&
+    !(hasPartialGraphStarter && reason === 'terminal-validation-resource-missing')
+  );
   const plannedEntries = hasBlockingFallback ? [] : mainPathNodes;
   const mainPathNodeIds = new Set(plannedEntries.map((entry) => entry.node.id));
   const completedNodeIds = requestedCompletedNodeIds.filter((nodeId) => mainPathNodeIds.has(nodeId));
@@ -2521,7 +2525,11 @@ function buildFeasiblePath(
     remainingMinutes: constraints.timeBudgetMinutes,
   };
 
-  const tryAddOption = (option: CandidateOption, requireNewGoalTarget: boolean): boolean => {
+  const tryAddOption = (
+    option: CandidateOption,
+    requireNewGoalTarget: boolean,
+    enforceCompletionLookahead = true,
+  ): boolean => {
     const addsGoalTarget = option.goalTargets.some((target) => !state.coveredGoalTargets.has(target));
     const addsRequiredRiskIntervention = constraints.requireRiskIntervention &&
       !state.includesRiskIntervention &&
@@ -2535,7 +2543,7 @@ function buildFeasiblePath(
     }
     if (
       requireNewGoalTarget &&
-      !activeGraphContext &&
+      enforceCompletionLookahead &&
       !allPlanningRequirementsSatisfied(nextState, allGoalTargets, constraints) &&
       !canCompletePlanningRequirements(candidateOptions, nextState, completed, allGoalTargets, constraints)
     ) {
@@ -2547,6 +2555,37 @@ function buildFeasiblePath(
 
   for (const option of candidateOptions) {
     tryAddOption(option, true);
+  }
+  const selectedEntries = () => Array.from(state.selected.values());
+  const selectedCoversAllGraphTargets = () => !activeGraphContext || activeGraphContext.targetGraphNodeIds.every((target) =>
+    state.coveredGoalTargets.has(target)
+  );
+  if (
+    activeGraphContext &&
+    (
+      !allPlanningRequirementsSatisfied(state, allGoalTargets, constraints) ||
+      !selectedCoversAllGraphTargets() ||
+      (requiresTerminalValidation(goal) && !endsWithTerminalValidationNode(selectedEntries()))
+    )
+  ) {
+    state = {
+      selected: new Map(),
+      coveredGoalTargets: new Set(),
+      includesRiskIntervention: false,
+      remainingMinutes: constraints.timeBudgetMinutes,
+    };
+  }
+  if (activeGraphContext && state.selected.size === 0) {
+    for (const option of candidateOptions) {
+      if (tryAddOption(option, true, false)) break;
+    }
+    if (requiresTerminalValidation(goal)) {
+      for (const option of candidateOptions) {
+        if (option.chain.entries.some((candidate) => isTerminalNode(candidate.node))) {
+          tryAddOption(option, false, false);
+        }
+      }
+    }
   }
   if (allPlanningRequirementsSatisfied(state, allGoalTargets, constraints)) {
     for (const option of candidateOptions) {
