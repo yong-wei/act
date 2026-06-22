@@ -12,6 +12,7 @@ The system SHALL keep planning metadata, semantic resource mappings, and project
 - **WHEN** a runtime lesson step is projected as a path resource
 - **THEN** it SHALL have a verified route target, LearningGoal or graph bindings, knowledge coverage, ability impact, evidence instrumentation, evidence contract, estimated time, privacy, teacher policy, and human-confirmed review state
 - **AND** missing or provisional fields SHALL prevent PlanningUnit creation.
+- **AND** runtime projection blockers SHALL also make the base ResourceNode eligibility path-ineligible.
 
 #### Scenario: Runtime projection evidence contract is missing
 - **WHEN** a projected runtime resource lacks event source, event type, client event id policy, attempt key, source log id, dedupe key, timestamps, LearningFact policy, confidence policy, or privacy scope

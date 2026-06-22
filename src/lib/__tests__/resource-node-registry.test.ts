@@ -1175,6 +1175,17 @@ describe('resource node registry', () => {
     const provisionalSemanticProjection = buildResourceSemanticProjection(provisional);
     const staleSemanticProjection = buildResourceSemanticProjection(stale);
 
+    expect(confirmed.eligibility.pathEligible).toBe(true);
+    expect(provisional.eligibility.pathEligible).toBe(false);
+    expect(provisional.eligibility.auditIssues).toContainEqual(expect.objectContaining({
+      code: 'provisional-runtime-projection',
+      severity: 'blocking',
+    }));
+    expect(stale.eligibility.pathEligible).toBe(false);
+    expect(stale.eligibility.auditIssues).toContainEqual(expect.objectContaining({
+      code: 'stale-runtime-projection',
+      severity: 'blocking',
+    }));
     expect(confirmedSemanticProjection.planningUnit).toMatchObject({
       id: 'planning-unit:lesson-step:unit-demo:step-1',
       target: '/interactive-learning/courses/unit-demo/student/demo?step=step-1',
@@ -1209,6 +1220,11 @@ describe('resource node registry', () => {
 
     expect(node.renderTarget).toBeNull();
     expect(node.launchTarget).toBeNull();
+    expect(node.eligibility.pathEligible).toBe(false);
+    expect(node.eligibility.auditIssues).toContainEqual(expect.objectContaining({
+      code: 'missing-runtime-projection-route-target',
+      severity: 'blocking',
+    }));
     expect(projection.planningUnit).toBeNull();
     expect(projection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
       'missing-render-or-launch-target',

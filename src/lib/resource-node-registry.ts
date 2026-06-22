@@ -1064,6 +1064,7 @@ export function auditResourceNode(
   }
   issues.push(...auditExternalResourceNode(node));
   issues.push(...auditCheckpointNode(node));
+  issues.push(...auditRuntimeProjectionPlanning(node));
 
   const blockingIssues = issues.filter((issue) => issue.severity === 'blocking');
   return {
@@ -2089,14 +2090,16 @@ export function buildResourceNodeHighConfidencePlanningAudit(node: ResourceNode)
 } {
   const hasCapabilityMapping = Object.keys(node.planningMetadata.abilityImpact).length > 0;
   const hasEvidenceInstrumentation = node.planningMetadata.evidenceInstrumentation.length > 0;
-  const issues = [
-    ...node.eligibility.auditIssues.map((issue) => (
-      !hasEvidenceInstrumentation && issue.code === 'missing-evidence-instrumentation'
-        ? { ...issue, severity: 'blocking' as const }
-        : issue
-    )),
-    ...auditRuntimeProjectionPlanning(node),
-  ];
+  const issues = node.eligibility.auditIssues.map((issue) => (
+    !hasEvidenceInstrumentation && issue.code === 'missing-evidence-instrumentation'
+      ? { ...issue, severity: 'blocking' as const }
+      : issue
+  ));
+  for (const issue of auditRuntimeProjectionPlanning(node)) {
+    if (!issues.some((existing) => existing.code === issue.code)) {
+      issues.push(issue);
+    }
+  }
 
   if (!hasCapabilityMapping && !issues.some((issue) => issue.code === 'missing-capability-mapping')) {
     issues.push({
