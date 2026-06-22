@@ -214,4 +214,33 @@ describe('runtime resource projections', () => {
       reviewedSourceHash: 'sha256:old',
     });
   });
+
+  it('preserves audited registry media types when URLs do not expose file extensions', () => {
+    const audit = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({
+        runtimeLessons: [{
+          lessonId: 'unit-demo',
+          title: 'Demo lesson',
+          knowledgeNodeIds: ['kn-demo'],
+          mediaResources: [{
+            id: 'external-audio',
+            title: 'External audio preview',
+            kind: 'audio',
+            url: 'https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=audio',
+          }],
+        }],
+      }),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+    });
+    const artifact = buildRuntimeResourceProjectionArtifacts({
+      auditRows: audit.rows,
+      generatedAt: '2026-06-22T00:00:00.000Z',
+    });
+
+    expect(artifact.rows.find((row) => row.id === 'runtime-media:unit-demo:external-audio')).toMatchObject({
+      family: 'runtime-lesson-media',
+      resourceType: 'audio',
+      renderTarget: 'https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=audio',
+    });
+  });
 });

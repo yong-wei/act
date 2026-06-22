@@ -1190,6 +1190,32 @@ describe('resource node registry', () => {
     expect(staleSemanticProjection.resource.governance.auditIssueCodes).toContain('stale-runtime-projection');
   });
 
+  it('blocks sidecar-backed PlanningUnits when the projection has no verified route target', () => {
+    const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: [
+        runtimeProjectionSidecar({
+          id: 'runtime-step:unit-demo:no-route',
+          resourceNodeId: 'lesson-step:unit-demo:no-route',
+          title: '缺少真实路由的步骤',
+          sourceRef: 'unit-demo:no-route',
+          sourceRecord: 'unit-demo:no-route',
+          routeTarget: null,
+          renderTarget: 'course-content/runtime/lessons/unit-demo/interactive-manifest.json',
+        }),
+      ],
+    });
+    const node = registry.nodes.find((item) => item.id === 'lesson-step:unit-demo:no-route') as ResourceNode;
+    const projection = buildResourceSemanticProjection(node);
+
+    expect(node.renderTarget).toBeNull();
+    expect(node.launchTarget).toBeNull();
+    expect(projection.planningUnit).toBeNull();
+    expect(projection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
+      'missing-render-or-launch-target',
+      'missing-runtime-projection-route-target',
+    ]));
+  });
+
   it('maps path-eligible ResourceNodes into PlanningUnits through audited planning metadata', () => {
     const registry = sampleRegistry();
     const arenaTask = registry.nodes.find((node) => node.id === 'arena-task:roll-control') as ResourceNode;

@@ -9,16 +9,18 @@ import type {
   ResourceFieldCompletionFamily,
   ResourceFieldMissingCode,
 } from './resource-field-completion-audit';
-import type {
-  ResourceGraphNodeRefs,
-  ResourceNodePrivacyLevel,
-  ResourceNodeSourceKind,
-  RuntimeResourceProjectionResourceType,
-  RuntimeResourceProjectionEvidenceContract,
-  RuntimeResourceProjectionInput,
-  RuntimeResourceProjectionLevel,
-  RuntimeResourceProjectionReviewAudit,
-  RuntimeResourceProjectionReviewStatus,
+import {
+  RESOURCE_NODE_TYPES,
+  type ResourceNodeType,
+  type ResourceGraphNodeRefs,
+  type ResourceNodePrivacyLevel,
+  type ResourceNodeSourceKind,
+  type RuntimeResourceProjectionResourceType,
+  type RuntimeResourceProjectionEvidenceContract,
+  type RuntimeResourceProjectionInput,
+  type RuntimeResourceProjectionLevel,
+  type RuntimeResourceProjectionReviewAudit,
+  type RuntimeResourceProjectionReviewStatus,
 } from './resource-node-registry';
 
 export const RUNTIME_RESOURCE_PROJECTION_ARTIFACT_VERSION = 'runtime-resource-projections.v1';
@@ -238,11 +240,16 @@ function sourceKindForFamily(family: RuntimeResourceProjectionFamily): ResourceN
 }
 
 function resourceTypeForRow(row: ResourceFieldCompletionAuditRow): RuntimeResourceProjectionResourceType {
+  if (isResourceNodeType(row.resourceType)) return row.resourceType;
   if (row.family === 'knowledge-card') return 'knowledge_card';
   if (row.family === 'knowledge-infograph') return 'image';
   if (row.family === 'runtime-lesson-media') return inferRuntimeMediaProjectionType(row);
   if (row.family === 'runtime-handout') return 'handout';
   return 'lesson_step';
+}
+
+function isResourceNodeType(value: string): value is ResourceNodeType {
+  return (RESOURCE_NODE_TYPES as readonly string[]).includes(value);
 }
 
 function inferRuntimeMediaProjectionType(row: ResourceFieldCompletionAuditRow): RuntimeResourceProjectionResourceType {

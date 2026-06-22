@@ -250,6 +250,7 @@ export interface ResourceNodeAuditIssue {
     | 'runtime-projection-not-path-resource'
     | 'missing-runtime-projection-source-hash'
     | 'missing-runtime-projection-source-version'
+    | 'missing-runtime-projection-route-target'
     | 'missing-runtime-projection-evidence-contract'
     | 'missing-runtime-projection-review-audit'
     | 'provisional-runtime-projection'
@@ -1511,7 +1512,6 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
     .map((projection) => {
       const ownership = RESOURCE_SEMANTIC_SOURCE_OWNERSHIP[projection.sourceKind];
       const routeTarget = projection.routeTarget ?? null;
-      const renderTarget = projection.renderTarget ?? projection.sourcePathOrUrl;
 
       return createNode({
         id: projection.resourceNodeId ?? projection.id,
@@ -1520,7 +1520,7 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
         sourceKind: projection.sourceKind,
         sourceRef: projection.sourceRecord ?? projection.sourceRef,
         sourceRefs: [{ kind: projection.sourceKind, ref: projection.sourceRef }],
-        renderTarget,
+        renderTarget: routeTarget,
         launchTarget: routeTarget,
         knowledgeCoverage: projection.graphNodeRefs?.knowledge ?? [],
         sourceOfRecord: {
@@ -2139,6 +2139,13 @@ function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIs
     issues.push({
       code: 'runtime-projection-not-path-resource',
       message: `Runtime projection level ${projection.projectionLevel} cannot create a PlanningUnit.`,
+      severity: 'blocking',
+    });
+  }
+  if (!node.launchTarget) {
+    issues.push({
+      code: 'missing-runtime-projection-route-target',
+      message: 'Runtime path projection lacks a verified route target.',
       severity: 'blocking',
     });
   }
