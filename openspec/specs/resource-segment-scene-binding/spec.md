@@ -18,18 +18,18 @@ The system SHALL support graph-aware and scene-aware resource segment metadata f
 ### Requirement: Segment retrieval does not imply path eligibility
 ResourceSegment, RetrievalChunk, and CitationTarget SHALL NOT automatically become PathNodes.
 
-#### Scenario: Chunk has a valid citation target
-- **WHEN** a RetrievalChunk references a resolvable CitationTarget
+#### Scenario: Ingested media chunk is retrievable
+- **WHEN** a media RetrievalChunk references a resolvable CitationTarget
 - **THEN** it MAY be retrieved or cited according to scope and verification policy
-- **AND** it SHALL NOT be path eligible unless a ResourceNode or generated checkpoint contract produces an audited PlanningUnit.
+- **AND** it SHALL NOT be path eligible unless a separate ResourceNode or checkpoint contract produces an audited PlanningUnit.
 
 ### Requirement: Media source manifests are bounded
-The system SHALL define a bounded manifest contract for future media repository ingestion.
+The system SHALL define and validate a bounded manifest contract for media repository ingestion.
 
 #### Scenario: Media manifest is validated
-- **WHEN** a video or audio source manifest is read
-- **THEN** it SHALL declare source id, source path, segment or timecode refs, graph bindings, scene availability, citation policy, and AI-use permission
-- **AND** missing transcript, anchor, or citation policy SHALL prevent verified citation readiness.
+- **WHEN** a video, audio, image, or slides source manifest is read
+- **THEN** it SHALL declare source id, source path, source version or freshness ref, segment or timecode/page/image refs, graph bindings, scene availability, citation policy, privacy scope, and AI-use permission
+- **AND** missing transcript, image description, anchor, graph binding, or citation policy SHALL prevent verified citation readiness for affected segments.
 
 ### Requirement: Runtime resource segments bind to graph nodes and usage scenes
 The system SHALL support graph-aware and scene-aware resource segment metadata for registered teaching resources.

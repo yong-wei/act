@@ -7,6 +7,7 @@ import {
   PATH_NODE_SEMANTICS,
   RESOURCE_NODE_TYPES,
   auditResourceNode,
+  buildMediaSourceManifestSemanticProjection,
   buildResourceSemanticProjection,
   buildResourceNodeRegistry,
   validateResourceMediaSourceManifest,
@@ -1664,11 +1665,14 @@ describe('resource node registry', () => {
     ]));
   });
 
-  it('validates bounded media source manifests separately from citation verification', () => {
-    expect(validateResourceMediaSourceManifest({
+  it('validates and projects bounded media source manifests without path promotion', () => {
+    const videoManifest = {
       sourceId: 'yong-wei/videos:bode-intro',
       sourcePath: 'yong-wei/videos/bode-intro.mp4',
       mediaType: 'video',
+      sourceVersionRef: 'git:f1cf001',
+      contentHash: 'sha256:video',
+      privacyScope: 'student-visible',
       transcriptRef: 'transcripts/bode-intro.vtt',
       segments: [
         {
@@ -1687,17 +1691,80 @@ describe('resource node registry', () => {
           },
           citationPolicy: 'verified-citation-required',
           aiUsePermission: 'allowed',
+          evidenceInstrumentationRefs: ['media_segment_view'],
         },
       ],
-    })).toEqual({
+    } as const;
+
+    expect(validateResourceMediaSourceManifest(videoManifest)).toEqual({
       verifiedCitationReady: true,
       issues: [],
+    });
+    expect(buildMediaSourceManifestSemanticProjection(videoManifest)).toMatchObject({
+      resource: {
+        id: 'media-source:yong-wei/videos:bode-intro',
+        resourceNodeId: 'media-source:yong-wei/videos:bode-intro',
+        type: 'video',
+        contentHash: 'sha256:video',
+        projectionStatus: {
+          retrieval: 'mapped',
+          planning: 'blocked',
+        },
+      graphProfile: {
+        citationReadiness: {
+          status: 'verified',
+          verified: true,
+        },
+        stableSegmentRefs: ['media-segment:yong-wei/videos:bode-intro:intro-120-180'],
+      },
+        sourceRefs: expect.arrayContaining([
+          { kind: 'media_source_manifest', ref: 'yong-wei/videos:bode-intro' },
+          { kind: 'media_source_manifest', ref: 'version:git:f1cf001' },
+        ]),
+      },
+      segments: [
+        {
+          id: 'media-segment:yong-wei/videos:bode-intro:intro-120-180',
+          anchor: {
+            kind: 'media',
+            ref: 'bode-intro@120-180',
+            startSeconds: 120,
+            endSeconds: 180,
+          },
+          citationReadiness: {
+            verified: true,
+          },
+          evidenceCapability: {
+            instrumentationRefs: ['media_segment_view'],
+            terminalValidationRole: 'supporting',
+          },
+        },
+      ],
+      citationTargets: [
+        {
+          id: 'media-citation-target:yong-wei/videos:bode-intro:intro-120-180',
+          target: 'bode-intro@120-180',
+          status: 'resolvable',
+        },
+      ],
+      retrievalChunks: [
+        {
+          id: 'media-retrieval-chunk:yong-wei/videos:bode-intro:intro-120-180',
+          projectionStatus: 'mapped',
+          pathEligibility: {
+            eligible: false,
+            reason: 'resource-node-planning-audit-required',
+          },
+        },
+      ],
+      planningUnit: null,
     });
 
     expect(validateResourceMediaSourceManifest({
       sourceId: 'yong-wei/videos:bode-intro',
       sourcePath: 'yong-wei/videos/bode-intro.mp4',
       mediaType: 'video',
+      privacyScope: 'student-visible',
       segments: [
         {
           id: 'intro',
@@ -1720,6 +1787,914 @@ describe('resource node registry', () => {
         'segments.0.missing-transcript-or-timecode-anchor',
       ]),
     });
+  });
+
+  it('validates audio slides and image manifests with segment-level limitations', () => {
+    const audioProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'yong-wei/videos:pid-audio',
+      sourcePath: 'yong-wei/videos/pid-audio.mp3',
+      mediaType: 'audio',
+      sourceVersionRef: 'git:audio',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/pid-audio.vtt',
+      segments: [
+        {
+          id: 'pid-audio-main',
+          anchorRef: 'pid-audio@0-45',
+          startSeconds: 0,
+          endSeconds: 45,
+          graphNodeRefs: { knowledge: ['kn-pid'], capability: [], quality: [] },
+          sceneAvailability: { konling: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(audioProjection.resource.type).toBe('audio');
+    expect(audioProjection.resource.governance.privacyLevel).toBe('teacher-scoped');
+    expect(audioProjection.resource.graphProfile.citationReadiness.status).toBe('resolvable');
+    expect(audioProjection.planningUnit).toBeNull();
+
+    const slidesProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/slides:root-locus',
+      sourcePath: 'course-content/authoring/slides/root-locus.pdf',
+      mediaType: 'slides',
+      sourceVersionRef: 'slides.v1',
+      privacyScope: 'student-visible',
+      segments: [
+        {
+          id: 'slide-03',
+          anchorRef: 'slide:3',
+          page: 3,
+          textRef: 'slides/root-locus/slide-03.md',
+          graphNodeRefs: { knowledge: ['kn-root-locus'], capability: ['rootLocusSketch'], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'verified-citation-required',
+          aiUsePermission: 'allowed',
+        },
+      ],
+    });
+    expect(slidesProjection.segments[0].anchor).toMatchObject({ kind: 'page', page: 3 });
+    expect(slidesProjection.retrievalChunks[0].projectionStatus).toBe('mapped');
+
+    const imageProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/images:bode-map',
+      sourcePath: 'course-content/authoring/images/bode-map.png',
+      mediaType: 'image',
+      privacyScope: 'student-visible',
+      segments: [
+        {
+          id: 'image',
+          anchorRef: 'image:bode-map',
+          graphNodeRefs: { knowledge: [], capability: [], quality: [] },
+          sceneAvailability: {},
+          citationPolicy: 'verified-citation-required',
+          aiUsePermission: 'blocked',
+        },
+      ],
+    });
+    expect(imageProjection.resource.type).toBe('external_resource');
+    expect(imageProjection.segments[0].kind).toBe('image');
+    expect(imageProjection.resource.graphProfile.citationReadiness).toMatchObject({
+      status: 'missing-transcript-or-anchor',
+      verified: false,
+      limitations: expect.arrayContaining([
+        'segments.0.missing-description',
+        'segments.0.missing-graph-bindings',
+        'segments.0.missing-scene-availability',
+        'segments.0.blocked-ai-use',
+      ]),
+    });
+    expect(imageProjection.citationTargets[0].status).toBe('missing-target');
+    expect(imageProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+    expect(imageProjection.planningUnit).toBeNull();
+  });
+
+  it('blocks media projection when AI-use permission or safe source metadata is missing', () => {
+    const missingAiUseProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/images:nyquist',
+      sourcePath: 'course-content/authoring/images/nyquist.png',
+      mediaType: 'image',
+      sourceVersionRef: 'image.v1',
+      privacyScope: 'student-visible',
+      descriptionRef: 'images/nyquist.md',
+      segments: [
+        {
+          id: 'image',
+          anchorRef: 'image:nyquist',
+          graphNodeRefs: { knowledge: ['kn-nyquist'], capability: [], quality: [] },
+          sceneAvailability: { konling: { allowed: true, reason: null } },
+          citationPolicy: 'verified-citation-required',
+        },
+      ],
+    });
+
+    expect(missingAiUseProjection.resource.graphProfile.citationReadiness).toMatchObject({
+      verified: false,
+      limitations: expect.arrayContaining(['segments.0.missing-ai-use-permission']),
+    });
+    expect(missingAiUseProjection.segments[0].sceneAvailability.konling).toEqual({
+      allowed: false,
+      reason: 'missing-ai-use-permission',
+    });
+    expect(missingAiUseProjection.citationTargets[0].status).toBe('missing-target');
+    expect(missingAiUseProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+
+    for (const sourcePath of [
+      'file:///etc/passwd',
+      'data:text/plain,hello',
+      'C:/Windows/win.ini',
+      '~/secret.mp4',
+      '//cdn.example.com/video.mp4',
+      'course-content\\authoring\\media\\video.mp4',
+      'course-content/authoring/../secret.mp4',
+    ]) {
+      expect(validateResourceMediaSourceManifest({
+        sourceId: `unsafe:${sourcePath}`,
+        sourcePath,
+        mediaType: 'video',
+        sourceVersionRef: 'unsafe.v1',
+        privacyScope: 'teacher-scoped',
+        transcriptRef: 'transcripts/unsafe.vtt',
+        segments: [
+          {
+            id: 'segment',
+            anchorRef: 'segment',
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: { report: { allowed: true, reason: null } },
+            citationPolicy: 'source-reference-only',
+            aiUsePermission: 'restricted',
+          },
+        ],
+      }).issues).toContain('unsafe-source-path');
+    }
+
+    const freshnessProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/slides:freshness-only',
+      sourcePath: 'course-content/authoring/slides/freshness-only.pdf',
+      mediaType: 'slides',
+      freshnessRef: 'checked:2026-06-22',
+      privacyScope: 'student-visible',
+      descriptionRef: 'slides/freshness-only.md',
+      segments: [
+        {
+          id: 'slide-01',
+          anchorRef: 'slide:1',
+          page: 1,
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'verified-citation-required',
+          aiUsePermission: 'allowed',
+        },
+      ],
+    });
+    expect(freshnessProjection.resource.sourceRefs).toEqual(expect.arrayContaining([
+      { kind: 'media_source_manifest', ref: 'freshness:checked:2026-06-22' },
+    ]));
+
+    const restrictedSegmentProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:restricted-segment',
+      sourcePath: 'course-content/authoring/videos/restricted-segment.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'restricted.v1',
+      privacyScope: 'student-visible',
+      transcriptRef: 'transcripts/restricted-segment.vtt',
+      segments: [
+        {
+          id: 'teacher-only',
+          anchorRef: 'teacher-only',
+          privacyScope: 'teacher-scoped',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(restrictedSegmentProjection.resource.governance.privacyLevel).toBe('teacher-scoped');
+    expect(restrictedSegmentProjection.segments[0].privacyScope).toBe('teacher-scoped');
+    expect(restrictedSegmentProjection.citationTargets[0].privacyScope).toBe('teacher-scoped');
+    expect(restrictedSegmentProjection.retrievalChunks[0].privacyScope).toBe('teacher-scoped');
+
+    const segmentScopedValidation = validateResourceMediaSourceManifest({
+      sourceId: 'authoring/video:segment-scoped',
+      sourcePath: 'course-content/authoring/videos/segment-scoped.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'segment-scoped.v1',
+      transcriptRef: 'transcripts/segment-scoped.vtt',
+      segments: [
+        {
+          id: 'student-visible',
+          anchorRef: 'student-visible',
+          privacyScope: 'student-visible',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(segmentScopedValidation.issues).not.toContain('missing-privacy-scope');
+    expect(segmentScopedValidation.issues).not.toContain('segments.0.missing-privacy-scope');
+
+    const adminScopedSegmentProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:admin-scoped',
+      sourcePath: 'course-content/authoring/videos/admin-scoped.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'admin-scoped.v1',
+      transcriptRef: 'transcripts/admin-scoped.vtt',
+      segments: [
+        {
+          id: 'admin-only',
+          anchorRef: 'admin-only',
+          privacyScope: 'admin-scoped',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: {
+            konling: { allowed: true, reason: null },
+            diagnosis: { allowed: true, reason: null },
+            report: { allowed: true, reason: null },
+          },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(adminScopedSegmentProjection.resource.governance.privacyLevel).toBe('admin-scoped');
+    expect(adminScopedSegmentProjection.segments[0].sceneAvailability).toMatchObject({
+      konling: { allowed: false, reason: 'admin-scoped-resource' },
+      diagnosis: { allowed: false, reason: 'admin-scoped-resource' },
+      report: { allowed: false, reason: 'admin-scoped-resource' },
+    });
+
+    const adminScopedManifestProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:admin-manifest',
+      sourcePath: 'course-content/authoring/videos/admin-manifest.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'admin-manifest.v1',
+      privacyScope: 'admin-scoped',
+      transcriptRef: 'transcripts/admin-manifest.vtt',
+      segments: [
+        {
+          id: 'student-declared',
+          anchorRef: 'student-declared',
+          privacyScope: 'student-visible',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: {
+            konling: { allowed: true, reason: null },
+            diagnosis: { allowed: true, reason: null },
+            report: { allowed: true, reason: null },
+          },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(adminScopedManifestProjection.resource.governance.privacyLevel).toBe('admin-scoped');
+    expect(adminScopedManifestProjection.segments[0].privacyScope).toBe('admin-scoped');
+    expect(adminScopedManifestProjection.segments[0].sceneAvailability).toMatchObject({
+      konling: { allowed: false, reason: 'admin-scoped-resource' },
+      diagnosis: { allowed: false, reason: 'admin-scoped-resource' },
+      report: { allowed: false, reason: 'admin-scoped-resource' },
+    });
+
+    const adminMissingAiUseProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:admin-missing-ai-use',
+      sourcePath: 'course-content/authoring/videos/admin-missing-ai-use.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'admin-missing-ai-use.v1',
+      privacyScope: 'admin-scoped',
+      transcriptRef: 'transcripts/admin-missing-ai-use.vtt',
+      segments: [
+        {
+          id: 'admin-segment',
+          anchorRef: 'admin-segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+        },
+      ],
+    });
+    expect(adminMissingAiUseProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'admin-scoped-resource',
+    });
+
+    const invalidPrivacyProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:invalid-privacy',
+      sourcePath: 'course-content/authoring/videos/invalid-privacy.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'invalid-privacy.v1',
+      transcriptRef: 'transcripts/invalid-privacy.vtt',
+      segments: [
+        {
+          id: 'invalid',
+          anchorRef: 'invalid',
+          privacyScope: 'classroom-visible',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+        {
+          id: 'student',
+          anchorRef: 'student',
+          privacyScope: 'student-visible',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(invalidPrivacyProjection.segments.map((segment) => segment.privacyScope)).toEqual([
+      'teacher-scoped',
+      'student-visible',
+    ]);
+    expect(invalidPrivacyProjection.resource.governance.privacyLevel).toBe('teacher-scoped');
+    expect(invalidPrivacyProjection.resource.governance.auditIssueCodes).toContain('segments.0.invalid-privacy-scope');
+    expect(invalidPrivacyProjection.citationTargets[0].status).toBe('missing-target');
+    expect(invalidPrivacyProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+
+    expect(validateResourceMediaSourceManifest({
+      sourceId: 'authoring/video:bad-source-path',
+      sourcePath: { path: 'course-content/authoring/videos/bad.mp4' },
+      mediaType: 'video',
+      sourceVersionRef: 'bad-source-path.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/bad.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof validateResourceMediaSourceManifest>[0]).issues).toContain('missing-source-path');
+
+    const invalidPolicyProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:invalid-policy',
+      sourcePath: 'course-content/authoring/videos/invalid-policy.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'invalid-policy.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/invalid-policy.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'none',
+          aiUsePermission: 'denied',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(invalidPolicyProjection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
+      'segments.0.invalid-citation-policy',
+      'segments.0.invalid-ai-use-permission',
+    ]));
+    expect(invalidPolicyProjection.segments[0].citationReadiness.limitations).toEqual(expect.arrayContaining([
+      'invalid-citation-policy',
+      'invalid-ai-use-permission',
+    ]));
+    expect(invalidPolicyProjection.citationTargets[0].status).toBe('missing-target');
+    expect(invalidPolicyProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+    expect(invalidPolicyProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'invalid-ai-use-permission',
+    });
+    expect(invalidPolicyProjection.resource.graphProfile.sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'no-segment-available',
+    });
+
+    const duplicateSegmentProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:duplicate-segment',
+      sourcePath: 'course-content/authoring/videos/duplicate-segment.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'duplicate-segment.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/duplicate-segment.vtt',
+      segments: [
+        {
+          id: 'duplicate',
+          anchorRef: 'duplicate-a',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+        {
+          id: 'duplicate',
+          anchorRef: 'duplicate-b',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+        {
+          id: 'duplicate:0',
+          anchorRef: 'duplicate-c',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+        {
+          id: 'duplicate#duplicate:0',
+          anchorRef: 'duplicate-d',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(duplicateSegmentProjection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
+      'segments.0.duplicate-id',
+      'segments.1.duplicate-id',
+    ]));
+    expect(new Set(duplicateSegmentProjection.segments.map((segment) => segment.id)).size).toBe(4);
+    expect(new Set(duplicateSegmentProjection.citationTargets.map((target) => target.id)).size).toBe(4);
+    expect(new Set(duplicateSegmentProjection.retrievalChunks.map((chunk) => chunk.id)).size).toBe(4);
+    expect(duplicateSegmentProjection.segments[2].id).toBe(
+      'media-segment:authoring/video:duplicate-segment:duplicate:0',
+    );
+    expect(duplicateSegmentProjection.segments[3].id).toBe(
+      'media-segment:authoring/video:duplicate-segment:duplicate#duplicate:0',
+    );
+    expect(duplicateSegmentProjection.citationTargets.map((target) => target.status)).toEqual([
+      'missing-target',
+      'missing-target',
+      'resolvable',
+      'resolvable',
+    ]);
+    expect(duplicateSegmentProjection.retrievalChunks.map((chunk) => chunk.projectionStatus)).toEqual([
+      'blocked',
+      'blocked',
+      'mapped',
+      'mapped',
+    ]);
+
+    const missingIdCollisionProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:id-collision',
+      sourcePath: 'course-content/authoring/videos/id-collision.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'id-collision.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/id-collision.vtt',
+      segments: [
+        {
+          anchorRef: 'missing-id',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+        {
+          id: 'segment:0',
+          anchorRef: 'segment-zero',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(missingIdCollisionProjection.segments[1].id).toBe(
+      'media-segment:authoring/video:id-collision:segment:0',
+    );
+    expect(new Set(missingIdCollisionProjection.segments.map((segment) => segment.id)).size).toBe(2);
+
+    const invalidMediaTypeProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/media:invalid-type',
+      sourcePath: 'course-content/authoring/media/invalid-type.pdf',
+      mediaType: 'pdf',
+      sourceVersionRef: 'invalid-type.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/invalid-type.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(invalidMediaTypeProjection.resource.governance.auditIssueCodes).toContain('invalid-media-type');
+    expect(invalidMediaTypeProjection.resource.type).toBe('external_resource');
+    expect(invalidMediaTypeProjection.segments[0].kind).toBe('image');
+    expect(invalidMediaTypeProjection.citationTargets[0].status).toBe('missing-target');
+    expect(invalidMediaTypeProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+
+    const invalidVersionProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:invalid-version',
+      sourcePath: 'course-content/authoring/videos/invalid-version.mp4',
+      mediaType: 'video',
+      sourceVersionRef: { sha: 'abc123' },
+      freshnessRef: ['checked'],
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/invalid-version.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(invalidVersionProjection.resource.governance.auditIssueCodes).toContain(
+      'missing-source-version-or-freshness',
+    );
+    expect(invalidVersionProjection.resource.sourceRefs).toEqual([
+      { kind: 'media_source_manifest', ref: 'authoring/video:invalid-version' },
+      { kind: 'media_source_manifest', ref: 'transcript:transcripts/invalid-version.vtt' },
+    ]);
+    expect(invalidVersionProjection.citationTargets[0].status).toBe('missing-target');
+    expect(invalidVersionProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+
+    const blankGraphRefProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:blank-graph-ref',
+      sourcePath: 'course-content/authoring/videos/blank-graph-ref.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'blank-graph-ref.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/blank-graph-ref.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['', '   '], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
+    expect(blankGraphRefProjection.resource.governance.auditIssueCodes).toContain(
+      'segments.0.missing-graph-bindings',
+    );
+    expect(blankGraphRefProjection.segments[0].graphNodeRefs).toEqual({
+      knowledge: [],
+      capability: [],
+      quality: [],
+    });
+    expect(blankGraphRefProjection.citationTargets[0].status).toBe('missing-target');
+    expect(blankGraphRefProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
+
+    for (const segments of [undefined, 'not-an-array']) {
+      const malformedProjection = buildMediaSourceManifestSemanticProjection({
+        sourceId: `authoring/video:malformed-${String(segments)}`,
+        sourcePath: 'course-content/authoring/videos/malformed.mp4',
+        mediaType: 'video',
+        sourceVersionRef: 'malformed.v1',
+        privacyScope: 'teacher-scoped',
+        transcriptRef: 'transcripts/malformed.vtt',
+        segments,
+      } as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+
+      expect(malformedProjection.resource.governance.auditIssueCodes).toContain('missing-segments');
+      expect(malformedProjection.resource.projectionStatus).toMatchObject({
+        retrieval: 'blocked',
+        planning: 'blocked',
+      });
+      expect(malformedProjection.segments).toEqual([]);
+      expect(malformedProjection.citationTargets).toEqual([]);
+      expect(malformedProjection.retrievalChunks).toEqual([]);
+      expect(malformedProjection.planningUnit).toBeNull();
+    }
+
+    const malformedSegmentProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:malformed-segment',
+      sourcePath: 'course-content/authoring/videos/malformed-segment.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'malformed-segment.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/malformed-segment.vtt',
+      segments: [null, 'not-an-object'],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(malformedSegmentProjection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
+      'segments.0.invalid-segment',
+      'segments.1.invalid-segment',
+    ]));
+    expect(malformedSegmentProjection.segments).toHaveLength(2);
+    expect(malformedSegmentProjection.citationTargets.map((target) => target.status)).toEqual([
+      'missing-target',
+      'missing-target',
+    ]);
+    expect(malformedSegmentProjection.retrievalChunks.map((chunk) => chunk.projectionStatus)).toEqual([
+      'blocked',
+      'blocked',
+    ]);
+
+    const malformedGraphProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:malformed-graph',
+      sourcePath: 'course-content/authoring/videos/malformed-graph.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'malformed-graph.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/malformed-graph.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: {
+            knowledge: 'kn',
+            capability: [],
+            quality: [],
+          },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(malformedGraphProjection.segments[0].graphNodeRefs).toEqual({
+      knowledge: [],
+      capability: [],
+      quality: [],
+    });
+    expect(malformedGraphProjection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
+      'segments.0.missing-graph-bindings',
+    ]));
+
+    for (const sceneAvailability of [undefined, null]) {
+      const malformedSceneProjection = buildMediaSourceManifestSemanticProjection({
+        sourceId: `authoring/video:malformed-scene-${String(sceneAvailability)}`,
+        sourcePath: 'course-content/authoring/videos/malformed-scene.mp4',
+        mediaType: 'video',
+        sourceVersionRef: 'malformed-scene.v1',
+        privacyScope: 'teacher-scoped',
+        transcriptRef: 'transcripts/malformed-scene.vtt',
+        segments: [
+          {
+            id: 'segment',
+            anchorRef: 'segment',
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability,
+            citationPolicy: 'source-reference-only',
+            aiUsePermission: 'restricted',
+          },
+        ],
+      } as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+
+      expect(malformedSceneProjection.resource.governance.auditIssueCodes).toContain('segments.0.missing-scene-availability');
+      expect(malformedSceneProjection.segments[0].sceneAvailability.konling).toEqual({
+        allowed: false,
+        reason: 'not-declared',
+      });
+      expect(malformedSceneProjection.segments[0].governanceLimitations).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: 'missing-scene-availability' }),
+      ]));
+    }
+
+    for (const sceneAvailability of [
+      { report: { allowed: 'yes', reason: null } },
+      { report: 'allowed' },
+      { report: { allowed: false, reason: 123 } },
+    ]) {
+      const malformedSceneValueProjection = buildMediaSourceManifestSemanticProjection({
+        sourceId: `authoring/video:malformed-scene-value-${JSON.stringify(sceneAvailability)}`,
+        sourcePath: 'course-content/authoring/videos/malformed-scene-value.mp4',
+        mediaType: 'video',
+        sourceVersionRef: 'malformed-scene-value.v1',
+        privacyScope: 'teacher-scoped',
+        transcriptRef: 'transcripts/malformed-scene-value.vtt',
+        segments: [
+          {
+            id: 'segment',
+            anchorRef: 'segment',
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability,
+            citationPolicy: 'source-reference-only',
+            aiUsePermission: 'restricted',
+          },
+        ],
+      } as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+
+      expect(malformedSceneValueProjection.resource.governance.auditIssueCodes).toContain('segments.0.missing-scene-availability');
+      expect(malformedSceneValueProjection.segments[0].sceneAvailability.report).toEqual({
+        allowed: false,
+        reason: 'not-declared',
+      });
+      expect(malformedSceneValueProjection.resource.graphProfile.sceneAvailability.report).toEqual({
+        allowed: false,
+        reason: 'no-segment-available',
+      });
+    }
+
+    expect(validateResourceSemanticProjection({
+      sourceKind: 'media_source_manifest',
+      rawMedia: 'base64',
+      transcript: 'hidden transcript',
+      descriptionBody: 'hidden description',
+    })).toEqual(expect.arrayContaining(['rawMedia', 'transcript', 'descriptionBody']));
+  });
+
+  it('returns a blocked media projection for malformed segment lists', () => {
+    const missingSegmentsProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/media:missing-segments',
+      sourcePath: 'course-content/authoring/media/missing-segments.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'media.v1',
+      privacyScope: 'teacher-scoped',
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+
+    expect(missingSegmentsProjection).toMatchObject({
+      resource: {
+        projectionStatus: {
+          retrieval: 'blocked',
+          planning: 'blocked',
+        },
+        graphProfile: {
+          stableSegmentRefs: [],
+          citationReadiness: {
+            status: 'missing-transcript-or-anchor',
+            verified: false,
+            limitations: expect.arrayContaining(['missing-segments']),
+          },
+        },
+        governance: {
+          auditIssueCodes: expect.arrayContaining(['missing-segments']),
+        },
+      },
+      segments: [],
+      citationTargets: [],
+      retrievalChunks: [],
+      planningUnit: null,
+    });
+
+    const nonArraySegmentsProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/media:bad-segments',
+      sourcePath: 'course-content/authoring/media/bad-segments.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'media.v1',
+      privacyScope: 'teacher-scoped',
+      segments: 'not-an-array',
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+
+    expect(nonArraySegmentsProjection.resource.governance.auditIssueCodes).toContain('missing-segments');
+    expect(nonArraySegmentsProjection.retrievalChunks).toEqual([]);
+
+    const missingSceneProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/media:missing-scene',
+      sourcePath: 'course-content/authoring/media/missing-scene.png',
+      mediaType: 'image',
+      sourceVersionRef: 'media.v1',
+      privacyScope: 'student-visible',
+      descriptionRef: 'media/missing-scene.md',
+      segments: [
+        {
+          id: 'image',
+          anchorRef: 'image:missing-scene',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          citationPolicy: 'verified-citation-required',
+          aiUsePermission: 'allowed',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+
+    expect(missingSceneProjection.segments[0].citationReadiness.limitations).toContain('missing-scene-availability');
+    expect(missingSceneProjection.segments[0].sceneAvailability.konling).toEqual({
+      allowed: false,
+      reason: 'not-declared',
+    });
+    expect(missingSceneProjection.resource.graphProfile.governanceLimitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'segments.0.missing-scene-availability' }),
+    ]));
+
+    for (const manifest of [
+      {
+        sourceId: 'authoring/media:image-start-seconds',
+        sourcePath: 'course-content/authoring/media/image-start-seconds.png',
+        mediaType: 'image',
+        sourceVersionRef: 'media.v1',
+        privacyScope: 'student-visible',
+        descriptionRef: 'media/image-start-seconds.md',
+        segments: [
+          {
+            id: 'image',
+            startSeconds: 10,
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: { report: { allowed: true, reason: null } },
+            citationPolicy: 'verified-citation-required',
+            aiUsePermission: 'allowed',
+          },
+        ],
+      },
+      {
+        sourceId: 'authoring/media:slides-start-seconds',
+        sourcePath: 'course-content/authoring/media/slides-start-seconds.pdf',
+        mediaType: 'slides',
+        sourceVersionRef: 'media.v1',
+        privacyScope: 'student-visible',
+        descriptionRef: 'media/slides-start-seconds.md',
+        segments: [
+          {
+            id: 'slide',
+            startSeconds: 10,
+            textRef: 'media/slides-start-seconds.md',
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: { report: { allowed: true, reason: null } },
+            citationPolicy: 'verified-citation-required',
+            aiUsePermission: 'allowed',
+          },
+        ],
+      },
+      {
+        sourceId: 'authoring/media:slides-null-page',
+        sourcePath: 'course-content/authoring/media/slides-null-page.pdf',
+        mediaType: 'slides',
+        sourceVersionRef: 'media.v1',
+        privacyScope: 'student-visible',
+        descriptionRef: 'media/slides-null-page.md',
+        segments: [
+          {
+            id: 'slide',
+            page: null,
+            textRef: 'media/slides-null-page.md',
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: { report: { allowed: true, reason: null } },
+            citationPolicy: 'verified-citation-required',
+            aiUsePermission: 'allowed',
+          },
+        ],
+      },
+      {
+        sourceId: 'authoring/media:video-null-timecode',
+        sourcePath: 'course-content/authoring/media/video-null-timecode.mp4',
+        mediaType: 'video',
+        sourceVersionRef: 'media.v1',
+        privacyScope: 'student-visible',
+        segments: [
+          {
+            id: 'video',
+            startSeconds: null,
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: { report: { allowed: true, reason: null } },
+            citationPolicy: 'source-reference-only',
+            aiUsePermission: 'allowed',
+          },
+        ],
+      },
+    ] as const) {
+      const projection = buildMediaSourceManifestSemanticProjection(
+        manifest as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0],
+      );
+      expect(validateResourceMediaSourceManifest(
+        manifest as unknown as Parameters<typeof validateResourceMediaSourceManifest>[0],
+      ).issues).toContain('segments.0.missing-anchor');
+      expect(projection.citationTargets[0].status).toBe('missing-target');
+      expect(projection.retrievalChunks[0].projectionStatus).toBe('blocked');
+    }
+
+    expect(validateResourceMediaSourceManifest({
+      sourceId: 'authoring/media:video-zero-timecode',
+      sourcePath: 'course-content/authoring/media/video-zero-timecode.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'media.v1',
+      privacyScope: 'student-visible',
+      transcriptRef: 'media/video-zero-timecode.vtt',
+      segments: [
+        {
+          id: 'video',
+          startSeconds: 0,
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'verified-citation-required',
+          aiUsePermission: 'allowed',
+        },
+      ],
+    }).issues).toEqual([]);
+
+    expect(validateResourceMediaSourceManifest({
+      sourceId: 'authoring/media:slides-valid-page',
+      sourcePath: 'course-content/authoring/media/slides-valid-page.pdf',
+      mediaType: 'slides',
+      sourceVersionRef: 'media.v1',
+      privacyScope: 'student-visible',
+      descriptionRef: 'media/slides-valid-page.md',
+      segments: [
+        {
+          id: 'slide',
+          page: 1,
+          textRef: 'media/slides-valid-page.md',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'verified-citation-required',
+          aiUsePermission: 'allowed',
+        },
+      ],
+    }).issues).toEqual([]);
   });
 
   it('blocks admin-scoped resources from learner-facing resource segment scenes', () => {

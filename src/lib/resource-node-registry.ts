@@ -150,6 +150,7 @@ export const PATH_NODE_SEMANTICS: Record<GovernedPathNodeType, ResourceNodePathS
 };
 
 export type ResourceNodeSourceKind =
+  | 'media_source_manifest'
   | 'teaching_resource'
   | 'resource_registry'
   | 'knowledge_graph'
@@ -180,6 +181,7 @@ export type ResourceNodePrivacyLevel = 'student-visible' | 'teacher-scoped' | 'a
 export type ResourceNodeTeacherPolicy = 'allowed' | 'teacher-assigned' | 'teacher-only' | 'blocked';
 export type ResourceNodeCognitiveLoad = 'low' | 'medium' | 'high';
 export type ResourceNodeSourceOwner =
+  | 'media_source_manifest'
   | 'TeachingResource'
   | 'runtime_lesson_media'
   | 'resource_registry'
@@ -378,6 +380,12 @@ export const RESOURCE_SEMANTIC_SOURCE_OWNERSHIP: Record<
   ResourceSemanticSourceKind,
   ResourceSemanticSourceOwnership
 > = {
+  media_source_manifest: {
+    contentOwner: 'media_source_manifest',
+    catalogMetadataOwner: 'media_source_manifest',
+    semanticLayerStores: ['identity', 'sourceRefs', 'contentHash', 'citationRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'rawMedia', 'mediaBytes', 'transcript', 'descriptionBody', 'teacherEditableCatalogMetadata'],
+  },
   teaching_resource: {
     contentOwner: 'TeachingResource',
     catalogMetadataOwner: 'TeachingResource',
@@ -569,7 +577,7 @@ export interface ResourceGovernanceLimitation {
 }
 
 export interface ResourceSegmentAnchor {
-  kind: 'resource' | 'step' | 'media' | 'page' | 'exercise' | 'simulation-task' | 'arena-task';
+  kind: 'resource' | 'step' | 'media' | 'page' | 'image' | 'exercise' | 'simulation-task' | 'arena-task';
   ref: string;
   startSeconds?: number | null;
   endSeconds?: number | null;
@@ -597,18 +605,32 @@ export interface ResourceMediaManifestSegment {
   anchorRef?: string | null;
   startSeconds?: number | null;
   endSeconds?: number | null;
+  page?: number | null;
+  textRef?: string | null;
+  imageDescriptionRef?: string | null;
   graphNodeRefs: ResourceGraphNodeRefs;
   sceneAvailability: Partial<ResourceSceneAvailabilityMap>;
   citationPolicy?: 'verified-citation-required' | 'source-reference-only' | null;
   aiUsePermission?: 'allowed' | 'restricted' | 'blocked' | null;
+  privacyScope?: ResourceNodePrivacyLevel | null;
+  evidenceInstrumentationRefs?: string[];
 }
 
 export interface ResourceMediaSourceManifest {
   sourceId: string;
   sourcePath: string;
+  title?: string | null;
+  sourceRepo?: string | null;
+  sourceVersionRef?: string | null;
+  freshnessRef?: string | null;
+  contentHash?: string | null;
+  license?: string | null;
+  owner?: string | null;
+  privacyScope?: ResourceNodePrivacyLevel | null;
   mediaType: 'video' | 'audio' | 'image' | 'slides';
   transcriptRef?: string | null;
   chapterRef?: string | null;
+  descriptionRef?: string | null;
   segments: ResourceMediaManifestSegment[];
 }
 
@@ -623,6 +645,7 @@ export interface ResourceSegment {
   sourceRef: ResourceSemanticSourceReference;
   kind: ResourceSegmentKind;
   anchor: ResourceSegmentAnchor;
+  privacyScope: ResourceNodePrivacyLevel;
   graphNodeRefs: ResourceGraphNodeRefs;
   sceneAvailability: ResourceSceneAvailabilityMap;
   citationReadiness: ResourceCitationReadiness;
@@ -637,6 +660,7 @@ export interface CitationTarget {
   resourceSegmentId: string;
   sourceRef: ResourceSemanticSourceReference;
   target: string | null;
+  privacyScope: ResourceNodePrivacyLevel;
   status: 'resolvable' | 'missing-target';
   readiness: ResourceCitationReadiness;
 }
@@ -647,6 +671,7 @@ export interface RetrievalChunk {
   resourceSegmentId: string;
   citationTargetId: string | null;
   textHash: string | null;
+  privacyScope: ResourceNodePrivacyLevel;
   projectionStatus: ResourceSemanticProjectionStatus;
   graphNodeRefs: ResourceGraphNodeRefs;
   sceneAvailability: ResourceSceneAvailabilityMap;
@@ -1125,6 +1150,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     sourceRef: primarySourceRef,
     kind: segmentKindForNode(node),
     anchor: buildSegmentAnchor(node, target),
+    privacyScope: node.planningMetadata.privacyLevel,
     graphNodeRefs,
     sceneAvailability,
     citationReadiness,
@@ -1138,6 +1164,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     resourceSegmentId: segmentId,
     sourceRef: primarySourceRef,
     target,
+    privacyScope: node.planningMetadata.privacyLevel,
     status: target ? 'resolvable' : 'missing-target',
     readiness: citationReadiness,
   }];
@@ -1147,6 +1174,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     resourceSegmentId: segmentId,
     citationTargetId,
     textHash: null,
+    privacyScope: node.planningMetadata.privacyLevel,
     projectionStatus: target ? 'not-indexed' : 'blocked',
     graphNodeRefs,
     sceneAvailability,
@@ -1170,34 +1198,221 @@ export function validateResourceMediaSourceManifest(
 ): ResourceMediaSourceManifestValidation {
   const issues: string[] = [];
   if (!manifest.sourceId) issues.push('missing-source-id');
-  if (!manifest.sourcePath) issues.push('missing-source-path');
-  if (!['video', 'audio', 'image', 'slides'].includes(manifest.mediaType)) issues.push('invalid-media-type');
+  const sourcePath = typeof manifest.sourcePath === 'string' ? manifest.sourcePath : '';
+  if (!sourcePath.trim()) issues.push('missing-source-path');
+  if (sourcePath && !isSafeMediaSourcePath(sourcePath)) issues.push('unsafe-source-path');
+  if (!isNonEmptyString(manifest.sourceVersionRef) && !isNonEmptyString(manifest.freshnessRef)) {
+    issues.push('missing-source-version-or-freshness');
+  }
+  if (!isMediaSourceManifestType(manifest.mediaType)) issues.push('invalid-media-type');
   if (!Array.isArray(manifest.segments) || manifest.segments.length === 0) {
     issues.push('missing-segments');
     return { verifiedCitationReady: false, issues };
   }
+  const manifestPrivacyScopeValid = isResourceNodePrivacyLevel(manifest.privacyScope);
+  if (manifest.privacyScope && !manifestPrivacyScopeValid) issues.push('invalid-privacy-scope');
+  if (
+    !manifestPrivacyScopeValid &&
+    !manifest.segments.some((segment) => (
+      isMediaManifestSegmentRecord(segment) &&
+      isResourceNodePrivacyLevel(segment.privacyScope)
+    ))
+  ) {
+    issues.push('missing-privacy-scope');
+  }
+
+  const segmentIdCounts = new Map<string, number>();
+  manifest.segments.forEach((segment) => {
+    if (!isMediaManifestSegmentRecord(segment) || !segment.id) return;
+    segmentIdCounts.set(segment.id, (segmentIdCounts.get(segment.id) ?? 0) + 1);
+  });
 
   manifest.segments.forEach((segment, index) => {
     const prefix = `segments.${index}`;
+    if (!isMediaManifestSegmentRecord(segment)) {
+      issues.push(`${prefix}.invalid-segment`);
+      return;
+    }
     if (!segment.id) issues.push(`${prefix}.missing-id`);
-    if (!segment.anchorRef && segment.startSeconds === undefined) issues.push(`${prefix}.missing-anchor`);
+    if (segment.id && (segmentIdCounts.get(segment.id) ?? 0) > 1) issues.push(`${prefix}.duplicate-id`);
+    if (!hasMediaSegmentAnchor(manifest.mediaType, segment)) issues.push(`${prefix}.missing-anchor`);
     if (!hasAnyGraphRef(segment.graphNodeRefs)) issues.push(`${prefix}.missing-graph-bindings`);
     if (!hasAnySceneAvailability(segment.sceneAvailability)) issues.push(`${prefix}.missing-scene-availability`);
     if (!segment.citationPolicy) issues.push(`${prefix}.missing-citation-policy`);
+    if (segment.citationPolicy && !isMediaCitationPolicy(segment.citationPolicy)) issues.push(`${prefix}.invalid-citation-policy`);
     if (!segment.aiUsePermission) issues.push(`${prefix}.missing-ai-use-permission`);
+    if (segment.aiUsePermission && !isMediaAiUsePermission(segment.aiUsePermission)) issues.push(`${prefix}.invalid-ai-use-permission`);
+    if (segment.aiUsePermission === 'blocked') issues.push(`${prefix}.blocked-ai-use`);
+    if (segment.privacyScope && !isResourceNodePrivacyLevel(segment.privacyScope)) issues.push(`${prefix}.invalid-privacy-scope`);
+    if (!isResourceNodePrivacyLevel(segment.privacyScope) && !manifestPrivacyScopeValid) {
+      issues.push(`${prefix}.missing-privacy-scope`);
+    }
+    if (
+      (manifest.mediaType === 'video' || manifest.mediaType === 'audio') &&
+      segment.citationPolicy === 'verified-citation-required' &&
+      !manifest.transcriptRef &&
+      !manifest.chapterRef
+    ) {
+      issues.push(`${prefix}.missing-transcript`);
+    }
     if (
       (manifest.mediaType === 'video' || manifest.mediaType === 'audio') &&
       !manifest.transcriptRef &&
       !manifest.chapterRef &&
-      segment.startSeconds === undefined
+      !hasFiniteMediaTimecode(segment)
     ) {
       issues.push(`${prefix}.missing-transcript-or-timecode-anchor`);
+    }
+    if (
+      manifest.mediaType === 'slides' &&
+      segment.citationPolicy === 'verified-citation-required' &&
+      !segment.textRef &&
+      !manifest.descriptionRef
+    ) {
+      issues.push(`${prefix}.missing-description`);
+    }
+    if (
+      manifest.mediaType === 'image' &&
+      segment.citationPolicy === 'verified-citation-required' &&
+      !segment.imageDescriptionRef &&
+      !manifest.descriptionRef
+    ) {
+      issues.push(`${prefix}.missing-description`);
     }
   });
 
   return {
     verifiedCitationReady: issues.length === 0,
     issues,
+  };
+}
+
+export function buildMediaSourceManifestSemanticProjection(
+  manifest: ResourceMediaSourceManifest,
+): ResourceSemanticProjection {
+  const validation = validateResourceMediaSourceManifest(manifest);
+  const resourceId = `media-source:${manifest.sourceId || 'unknown'}`;
+  const mediaType = normalizedMediaManifestType(manifest.mediaType);
+  const sourceRef: ResourceSemanticSourceReference = {
+    kind: 'media_source_manifest',
+    ref: manifest.sourceId,
+  };
+  const sourceRefs = buildMediaManifestSourceRefs(manifest, sourceRef);
+  const manifestSegments = Array.isArray(manifest.segments)
+    ? manifest.segments.map(normalizeMediaManifestSegment)
+    : [];
+  const segmentKeys = allocateMediaSegmentKeys(manifestSegments, validation.issues);
+  const segments = manifestSegments.map((segment, index): ResourceSegment => {
+    const segmentIssues = issuesForMediaSegment(validation.issues, index);
+    const segmentId = mediaSegmentId(manifest, segmentKeys[index]);
+    const privacyScope = mediaSegmentPrivacyScope(manifest, segment);
+    const citationReadiness = buildMediaSegmentCitationReadiness(segment, segmentIssues);
+    const sceneAvailability = buildMediaSegmentSceneAvailability(segment, segmentIssues, privacyScope);
+    return {
+      id: segmentId,
+      resourceId,
+      sourceRef,
+      kind: resourceSegmentKindForMediaManifest(mediaType),
+      anchor: buildMediaSegmentAnchor(manifest, segment),
+      privacyScope,
+      graphNodeRefs: normalizeResourceGraphNodeRefs(segment.graphNodeRefs),
+      sceneAvailability,
+      citationReadiness,
+      evidenceCapability: {
+        instrumentationRefs: segment.evidenceInstrumentationRefs ?? [],
+        terminalValidationRole: segment.evidenceInstrumentationRefs?.length ? 'supporting' : 'none',
+      },
+      governanceLimitations: buildMediaSegmentGovernanceLimitations(segmentIssues, sceneAvailability),
+      contentHash: manifest.contentHash ?? null,
+    };
+  });
+  const citationTargets = segments.map((segment, index): CitationTarget => {
+    const ready = segment.citationReadiness.verified || segment.citationReadiness.status === 'resolvable';
+    const key = mediaSegmentKeyFromProjectedId(manifest, segment.id);
+    return {
+      id: `media-citation-target:${manifest.sourceId || 'unknown'}:${key}`,
+      resourceId,
+      resourceSegmentId: segment.id,
+      sourceRef,
+      target: ready ? segment.anchor.ref : null,
+      privacyScope: segment.privacyScope,
+      status: ready ? 'resolvable' : 'missing-target',
+      readiness: segment.citationReadiness,
+    };
+  });
+  const retrievalChunks = segments.map((segment, index): RetrievalChunk => {
+    const citationTarget = citationTargets[index];
+    const key = mediaSegmentKeyFromProjectedId(manifest, segment.id);
+    return {
+      id: `media-retrieval-chunk:${manifest.sourceId || 'unknown'}:${key}`,
+      resourceId,
+      resourceSegmentId: segment.id,
+      citationTargetId: citationTarget.status === 'resolvable' ? citationTarget.id : null,
+      textHash: null,
+      privacyScope: segment.privacyScope,
+      projectionStatus: citationTarget.status === 'resolvable' ? 'mapped' : 'blocked',
+      graphNodeRefs: segment.graphNodeRefs,
+      sceneAvailability: segment.sceneAvailability,
+      citationReadiness: segment.citationReadiness,
+      pathEligibility: {
+        eligible: false,
+        reason: 'resource-node-planning-audit-required',
+      },
+    };
+  });
+  const graphNodeRefs = mergeResourceGraphNodeRefs(segments.map((segment) => segment.graphNodeRefs));
+  const citationReadiness = buildMediaManifestCitationReadiness(validation.issues, segments);
+  const privacyLevel = mostRestrictivePrivacyScope([
+    manifest.privacyScope,
+    ...segments.map((segment) => segment.privacyScope),
+  ]);
+  const resource: Resource = {
+    id: resourceId,
+    resourceNodeId: resourceId,
+    title: manifest.title ?? manifest.sourceId,
+    type: resourceNodeTypeForMediaManifest(mediaType),
+    sourceKind: 'media_source_manifest',
+    sourceRefs,
+    contentHash: manifest.contentHash ?? null,
+    knowledgeNodeIds: graphNodeRefs.knowledge,
+    capabilityTargetIds: graphNodeRefs.capability,
+    graphProfile: {
+      versionRefs: buildKaqArtifactVersionRefs(),
+      graphNodeRefs,
+      sceneAvailability: mergeMediaSceneAvailability(segments),
+      stableSegmentRefs: segments.map((segment) => segment.id),
+      citationReadiness,
+      evidenceCapability: mergeMediaEvidenceCapability(segments),
+      pathProfile: {
+        estimatedTimeMinutes: estimateMediaManifestMinutes(manifest),
+        cognitiveLoad: 'medium',
+        effort: 'medium',
+        readiness: null,
+      },
+      governanceLimitations: buildMediaSegmentGovernanceLimitations(validation.issues, mergeMediaSceneAvailability(segments)),
+    },
+    sourceOfRecord: {
+      content: 'media_source_manifest',
+      catalogMetadata: 'media_source_manifest',
+      planningMetadata: 'ResourceNode',
+    },
+    projectionStatus: {
+      retrieval: retrievalChunks.some((chunk) => chunk.projectionStatus === 'mapped') ? 'mapped' : 'blocked',
+      planning: 'blocked',
+    },
+    governance: {
+      availability: 'available',
+      teacherPolicy: 'allowed',
+      privacyLevel,
+      auditIssueCodes: validation.issues,
+    },
+  };
+  return {
+    resource,
+    segments,
+    citationTargets,
+    retrievalChunks,
+    planningUnit: null,
   };
 }
 
@@ -2449,12 +2664,380 @@ function buildSegmentAnchor(node: ResourceNode, target: string | null): Resource
   return { kind: 'resource', ref };
 }
 
+function isSafeMediaSourcePath(sourcePath: string): boolean {
+  const normalized = sourcePath.replaceAll('\\', '/');
+  return normalized === sourcePath &&
+    !normalized.startsWith('/') &&
+    !normalized.startsWith('//') &&
+    !normalized.startsWith('~') &&
+    !/^[A-Za-z]:\//.test(normalized) &&
+    !/^[A-Za-z][A-Za-z0-9+.-]*:/.test(normalized) &&
+    !normalized.includes('\0') &&
+    normalized.split('/').every((part) => part !== '..');
+}
+
+function buildMediaManifestSourceRefs(
+  manifest: ResourceMediaSourceManifest,
+  primary: ResourceSemanticSourceReference,
+): ResourceSemanticSourceReference[] {
+  const refs = [primary];
+  if (isNonEmptyString(manifest.sourceRepo)) refs.push({ kind: 'media_source_manifest', ref: `repo:${manifest.sourceRepo}` });
+  if (isNonEmptyString(manifest.sourceVersionRef)) refs.push({ kind: 'media_source_manifest', ref: `version:${manifest.sourceVersionRef}` });
+  if (isNonEmptyString(manifest.freshnessRef)) refs.push({ kind: 'media_source_manifest', ref: `freshness:${manifest.freshnessRef}` });
+  if (isNonEmptyString(manifest.transcriptRef)) refs.push({ kind: 'media_source_manifest', ref: `transcript:${manifest.transcriptRef}` });
+  if (isNonEmptyString(manifest.chapterRef)) refs.push({ kind: 'media_source_manifest', ref: `chapter:${manifest.chapterRef}` });
+  if (isNonEmptyString(manifest.descriptionRef)) refs.push({ kind: 'media_source_manifest', ref: `description:${manifest.descriptionRef}` });
+  return refs;
+}
+
+function mediaSegmentPrivacyScope(
+  manifest: ResourceMediaSourceManifest,
+  segment: ResourceMediaManifestSegment,
+): ResourceNodePrivacyLevel {
+  return mostRestrictivePrivacyScope([
+    isResourceNodePrivacyLevel(manifest.privacyScope) ? manifest.privacyScope : undefined,
+    isResourceNodePrivacyLevel(segment.privacyScope) ? segment.privacyScope : undefined,
+  ]);
+}
+
+function normalizeMediaManifestSegment(segment: unknown): ResourceMediaManifestSegment {
+  return isMediaManifestSegmentRecord(segment) ? segment : ({} as ResourceMediaManifestSegment);
+}
+
+function isMediaManifestSegmentRecord(segment: unknown): segment is ResourceMediaManifestSegment {
+  return typeof segment === 'object' && segment !== null && !Array.isArray(segment);
+}
+
+function mostRestrictivePrivacyScope(scopes: Array<ResourceNodePrivacyLevel | null | undefined>): ResourceNodePrivacyLevel {
+  if (scopes.includes('admin-scoped')) return 'admin-scoped';
+  if (scopes.includes('teacher-scoped')) return 'teacher-scoped';
+  if (scopes.includes('student-visible')) return 'student-visible';
+  return 'teacher-scoped';
+}
+
+function allocateMediaSegmentKeys(
+  segments: ResourceMediaManifestSegment[],
+  issues: string[],
+): string[] {
+  const segmentIdCounts = new Map<string, number>();
+  for (const segment of segments) {
+    if (!isNonEmptyString(segment.id)) continue;
+    segmentIdCounts.set(segment.id, (segmentIdCounts.get(segment.id) ?? 0) + 1);
+  }
+  const reservedDeclaredKeys = new Set(
+    Array.from(segmentIdCounts.entries())
+      .filter(([, count]) => count === 1)
+      .map(([id]) => id),
+  );
+  const used = new Set<string>();
+  const duplicateIndexes = new Set(
+    issues
+      .map((issue) => issue.match(/^segments\.(\d+)\.duplicate-id$/)?.[1])
+      .filter((index): index is string => Boolean(index))
+      .map(Number),
+  );
+  return segments.map((segment, index) => {
+    const declaredKey = isNonEmptyString(segment.id) ? segment.id : null;
+    if (declaredKey && !duplicateIndexes.has(index) && !used.has(declaredKey)) {
+      used.add(declaredKey);
+      return declaredKey;
+    }
+    const baseKey = declaredKey ? `${declaredKey}#duplicate` : 'segment';
+    let candidate = `${baseKey}:${index}`;
+    let suffix = 1;
+    while (used.has(candidate) || reservedDeclaredKeys.has(candidate)) {
+      candidate = `${baseKey}:${index}:${suffix}`;
+      suffix += 1;
+    }
+    used.add(candidate);
+    return candidate;
+  });
+}
+
+function mediaSegmentId(manifest: ResourceMediaSourceManifest, key: string): string {
+  return `media-segment:${manifest.sourceId || 'unknown'}:${key}`;
+}
+
+function mediaSegmentKeyFromProjectedId(manifest: ResourceMediaSourceManifest, segmentId: string): string {
+  const prefix = `media-segment:${manifest.sourceId || 'unknown'}:`;
+  return segmentId.startsWith(prefix) ? segmentId.slice(prefix.length) : segmentId;
+}
+
+function issuesForMediaSegment(issues: string[], index: number): string[] {
+  const prefix = `segments.${index}.`;
+  return issues
+    .filter((issue) => !issue.startsWith('segments.') || issue.startsWith(prefix))
+    .map((issue) => issue.startsWith(prefix) ? issue.slice(prefix.length) : issue);
+}
+
+function hasMediaSegmentAnchor(
+  mediaType: ResourceMediaSourceManifest['mediaType'],
+  segment: ResourceMediaManifestSegment,
+): boolean {
+  if (isNonEmptyString(segment.anchorRef)) return true;
+  if (mediaType === 'video' || mediaType === 'audio') return hasFiniteMediaTimecode(segment);
+  if (mediaType === 'slides') return Number.isFinite(segment.page);
+  return false;
+}
+
+function hasFiniteMediaTimecode(segment: ResourceMediaManifestSegment): boolean {
+  return Number.isFinite(segment.startSeconds);
+}
+
+function isNonEmptyString(value: string | null | undefined): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function resourceNodeTypeForMediaManifest(
+  mediaType: ResourceMediaSourceManifest['mediaType'],
+): ResourceNodeType {
+  return mediaType === 'image' ? 'external_resource' : mediaType;
+}
+
+function isMediaCitationPolicy(value: unknown): value is NonNullable<ResourceMediaManifestSegment['citationPolicy']> {
+  return value === 'verified-citation-required' || value === 'source-reference-only';
+}
+
+function isMediaAiUsePermission(value: unknown): value is NonNullable<ResourceMediaManifestSegment['aiUsePermission']> {
+  return value === 'allowed' || value === 'restricted' || value === 'blocked';
+}
+
+function isMediaSourceManifestType(value: unknown): value is ResourceMediaSourceManifest['mediaType'] {
+  return value === 'video' || value === 'audio' || value === 'image' || value === 'slides';
+}
+
+function normalizedMediaManifestType(value: unknown): ResourceMediaSourceManifest['mediaType'] {
+  return isMediaSourceManifestType(value) ? value : 'image';
+}
+
+function resourceSegmentKindForMediaManifest(mediaType: ResourceMediaSourceManifest['mediaType']): ResourceSegmentKind {
+  return mediaType;
+}
+
+function buildMediaSegmentAnchor(
+  manifest: ResourceMediaSourceManifest,
+  segment: ResourceMediaManifestSegment,
+): ResourceSegmentAnchor {
+  const ref = segment.anchorRef ?? `${manifest.sourceId}:${segment.id}`;
+  if (manifest.mediaType === 'slides') {
+    return { kind: 'page', ref, page: segment.page ?? null };
+  }
+  if (manifest.mediaType === 'image') {
+    return { kind: 'image', ref };
+  }
+  return {
+    kind: 'media',
+    ref,
+    startSeconds: segment.startSeconds ?? null,
+    endSeconds: segment.endSeconds ?? null,
+  };
+}
+
+function normalizeResourceGraphNodeRefs(refs: ResourceGraphNodeRefs | undefined): ResourceGraphNodeRefs {
+  return {
+    knowledge: uniqueSorted(safeGraphRefValues(refs, 'knowledge')),
+    capability: uniqueSorted(safeGraphRefValues(refs, 'capability')),
+    quality: uniqueSorted(safeGraphRefValues(refs, 'quality')),
+  };
+}
+
+function mergeResourceGraphNodeRefs(refs: ResourceGraphNodeRefs[]): ResourceGraphNodeRefs {
+  return {
+    knowledge: uniqueSorted(refs.flatMap((ref) => ref.knowledge)),
+    capability: uniqueSorted(refs.flatMap((ref) => ref.capability)),
+    quality: uniqueSorted(refs.flatMap((ref) => ref.quality)),
+  };
+}
+
+function buildMediaSegmentSceneAvailability(
+  segment: ResourceMediaManifestSegment,
+  issues: string[],
+  privacyScope: ResourceNodePrivacyLevel,
+): ResourceSceneAvailabilityMap {
+  const blocked = issues.includes('blocked-ai-use');
+  const missingAiUse = issues.includes('missing-ai-use-permission');
+  const invalidAiUse = issues.includes('invalid-ai-use-permission');
+  const declaredSceneAvailability = safeSceneAvailabilityMap(segment.sceneAvailability);
+  return Object.fromEntries(RESOURCE_SEGMENT_SCENES.map((scene) => {
+    if (scene === 'path') {
+      return [scene, { allowed: false, reason: 'resource-node-planning-audit-required' }];
+    }
+    if (privacyScope === 'admin-scoped') return [scene, { allowed: false, reason: 'admin-scoped-resource' }];
+    if (blocked) return [scene, { allowed: false, reason: 'blocked-ai-use' }];
+    if (missingAiUse) return [scene, { allowed: false, reason: 'missing-ai-use-permission' }];
+    if (invalidAiUse) return [scene, { allowed: false, reason: 'invalid-ai-use-permission' }];
+    const declared = declaredSceneAvailability[scene];
+    return [
+      scene,
+      declared ?? { allowed: false, reason: 'not-declared' },
+    ];
+  })) as ResourceSceneAvailabilityMap;
+}
+
+function mergeMediaSceneAvailability(segments: ResourceSegment[]): ResourceSceneAvailabilityMap {
+  return Object.fromEntries(RESOURCE_SEGMENT_SCENES.map((scene) => {
+    if (scene === 'path') {
+      return [scene, { allowed: false, reason: 'resource-node-planning-audit-required' }];
+    }
+    const anyAllowed = segments.some((segment) => segment.sceneAvailability[scene].allowed);
+    return [
+      scene,
+      {
+        allowed: anyAllowed,
+        reason: anyAllowed ? null : 'no-segment-available',
+      },
+    ];
+  })) as ResourceSceneAvailabilityMap;
+}
+
+function buildMediaSegmentCitationReadiness(
+  segment: ResourceMediaManifestSegment,
+  issues: string[],
+): ResourceCitationReadiness {
+  if (issues.length === 0 && segment.citationPolicy === 'verified-citation-required') {
+    return { status: 'verified', verified: true, limitations: [] };
+  }
+  if (!issues.some(isMediaCitationBlockingIssue)) {
+    return {
+      status: 'resolvable',
+      verified: false,
+      limitations: segment.citationPolicy === 'source-reference-only' ? ['source-reference-only'] : ['citation-target-not-verified'],
+    };
+  }
+  return {
+    status: 'missing-transcript-or-anchor',
+    verified: false,
+    limitations: issues,
+  };
+}
+
+function isMediaCitationBlockingIssue(issue: string): boolean {
+  return [
+    'missing-source-id',
+    'missing-source-path',
+    'unsafe-source-path',
+    'missing-source-version-or-freshness',
+    'missing-privacy-scope',
+    'invalid-privacy-scope',
+    'invalid-media-type',
+    'missing-segments',
+    'invalid-segment',
+    'duplicate-id',
+    'missing-id',
+    'missing-anchor',
+    'missing-graph-bindings',
+    'missing-scene-availability',
+    'missing-citation-policy',
+    'invalid-citation-policy',
+    'missing-ai-use-permission',
+    'invalid-ai-use-permission',
+    'blocked-ai-use',
+    'missing-description',
+    'missing-transcript',
+    'missing-transcript-or-timecode-anchor',
+  ].includes(issue);
+}
+
+function buildMediaManifestCitationReadiness(
+  issues: string[],
+  segments: ResourceSegment[],
+): ResourceCitationReadiness {
+  if (issues.length === 0 && segments.every((segment) => segment.citationReadiness.verified)) {
+    return { status: 'verified', verified: true, limitations: [] };
+  }
+  if (segments.some((segment) => segment.citationReadiness.status === 'resolvable' || segment.citationReadiness.verified)) {
+    return {
+      status: 'resolvable',
+      verified: false,
+      limitations: uniqueSorted(segments.flatMap((segment) => segment.citationReadiness.limitations)),
+    };
+  }
+  return {
+    status: 'missing-transcript-or-anchor',
+    verified: false,
+    limitations: issues,
+  };
+}
+
+function buildMediaSegmentGovernanceLimitations(
+  issues: string[],
+  sceneAvailability: ResourceSceneAvailabilityMap,
+): ResourceGovernanceLimitation[] {
+  const limitations = issues.map((code) => ({
+    code,
+    message: `Media manifest limitation: ${code}.`,
+    scenes: [...RESOURCE_SEGMENT_SCENES],
+  }));
+  for (const scene of RESOURCE_SEGMENT_SCENES) {
+    const availability = sceneAvailability[scene];
+    if (!availability.allowed && availability.reason) {
+      limitations.push({
+        code: `scene:${scene}:${availability.reason}`,
+        message: `Media segment is not available for ${scene}: ${availability.reason}.`,
+        scenes: [scene],
+      });
+    }
+  }
+  return limitations;
+}
+
+function mergeMediaEvidenceCapability(segments: ResourceSegment[]): ResourceEvidenceCapability {
+  const instrumentationRefs = uniqueSorted(segments.flatMap((segment) => segment.evidenceCapability.instrumentationRefs));
+  return {
+    instrumentationRefs,
+    terminalValidationRole: instrumentationRefs.length ? 'supporting' : 'none',
+  };
+}
+
+function estimateMediaManifestMinutes(manifest: ResourceMediaSourceManifest): number {
+  const segments = Array.isArray(manifest.segments)
+    ? manifest.segments.filter(isMediaManifestSegmentRecord)
+    : [];
+  const durationSeconds = segments.reduce((total, segment) => {
+    if (segment.startSeconds === undefined || segment.endSeconds === undefined) return total;
+    return total + Math.max(0, (segment.endSeconds ?? 0) - (segment.startSeconds ?? 0));
+  }, 0);
+  if (durationSeconds > 0) return Math.max(1, Math.ceil(durationSeconds / 60));
+  return Math.max(1, segments.length * 2);
+}
+
 function hasAnyGraphRef(refs: ResourceGraphNodeRefs | undefined): boolean {
-  return Boolean(refs?.knowledge.length || refs?.capability.length || refs?.quality.length);
+  return Boolean(
+    safeGraphRefValues(refs, 'knowledge').length ||
+    safeGraphRefValues(refs, 'capability').length ||
+    safeGraphRefValues(refs, 'quality').length
+  );
 }
 
 function hasAnySceneAvailability(sceneAvailability: Partial<ResourceSceneAvailabilityMap> | undefined): boolean {
-  return Boolean(sceneAvailability && RESOURCE_SEGMENT_SCENES.some((scene) => sceneAvailability[scene]?.allowed !== undefined));
+  const scenes = safeSceneAvailabilityMap(sceneAvailability);
+  return RESOURCE_SEGMENT_SCENES.some((scene) => scenes[scene]?.allowed !== undefined);
+}
+
+function safeGraphRefValues(refs: ResourceGraphNodeRefs | undefined, key: keyof ResourceGraphNodeRefs): string[] {
+  const values = refs?.[key];
+  return Array.isArray(values)
+    ? values.flatMap((value) => (isNonEmptyString(value) ? [value.trim()] : []))
+    : [];
+}
+
+function safeSceneAvailabilityMap(
+  sceneAvailability: Partial<ResourceSceneAvailabilityMap> | undefined,
+): Partial<ResourceSceneAvailabilityMap> {
+  if (!sceneAvailability || typeof sceneAvailability !== 'object' || Array.isArray(sceneAvailability)) return {};
+  return Object.fromEntries(RESOURCE_SEGMENT_SCENES.flatMap((scene) => {
+    const availability = sceneAvailability[scene];
+    if (
+      availability &&
+      typeof availability === 'object' &&
+      !Array.isArray(availability) &&
+      typeof availability.allowed === 'boolean' &&
+      (availability.reason === null || typeof availability.reason === 'string')
+    ) {
+      return [[scene, availability]];
+    }
+    return [];
+  })) as Partial<ResourceSceneAvailabilityMap>;
 }
 
 function collectForbiddenProjectionFields(value: unknown, forbiddenFields: Set<string>, path = ''): string[] {
