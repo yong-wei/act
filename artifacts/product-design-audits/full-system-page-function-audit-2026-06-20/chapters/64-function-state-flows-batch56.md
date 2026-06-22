@@ -131,3 +131,10 @@ no-match URL 初始页仍显示用户管理长页；可见搜索后页面高度�
 
 - 418 部分关闭：管理员用户页和教师报告页已通过 320px/390px DOM width 与截图验收，账号/学生长字符串在移动卡片中允许换行；学生证据目标、管理员配置和业务主动作固定区仍由对应变更关闭。
 - 419 部分关闭：管理员用户搜索结果、治理状态、教师报告交付和教师班级详情补充 `status/live` 或键盘 a11y 证据；API 404、GET 405、治理导出和缺失对象完整状态仍保留。
+
+## #619 学生反馈闭环整改记录（2026-06-22）
+
+整改变更：`audit-remediation-student-learning-closure`。证据：`../remediation/audit-remediation-student-learning-closure/evidence.md`。
+
+- 408/409/410/411 的学生反馈目标已关闭：证据页实际切换到 `/api/learning-evidence`，缺失/不支持 assignment 会进入恢复状态；自适应练习、资源详情、仿真任务和 returnTo 也接入同一上下文，完成后进入待写回状态。
+- 419 的学生反馈 API/UI 错位部分已关闭：学习证据 API 与证据页共享反馈任务上下文和筛选语义。

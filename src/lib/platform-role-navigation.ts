@@ -989,6 +989,18 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: 'redesign-learner-data-and-report-surfaces',
   }),
   primaryRoute({
+    href: '/missions',
+    routeFile: 'src/app/(main)/missions/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['student'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    mobileNavigation: 'role-route-tabs',
+    owningChange: 'redesign-learner-data-and-report-surfaces',
+  }),
+  primaryRoute({
     href: '/interactive-learning/control-workbench',
     routeFile: 'src/app/interactive-learning/control-workbench/page.tsx',
     frame: 'mission-workspace',

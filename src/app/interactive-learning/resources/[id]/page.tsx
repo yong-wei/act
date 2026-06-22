@@ -11,6 +11,8 @@ import {
   buildAdaptivePathCompletionRequest,
   resolveAdaptivePathLaunchReturnContext,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
+import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 import type { WidgetResult } from '@/resources/widgets/widget-props';
 
 export default function InteractiveResourcePage() {
@@ -20,6 +22,15 @@ export default function InteractiveResourcePage() {
   const source = searchParams.get('source');
   const categorySlug = searchParams.get('category');
   const pathLaunchContext = resolveAdaptivePathLaunchReturnContext(searchParams);
+  const feedbackContext = buildFeedbackTaskContext({
+    assignment: searchParams.get('assignment'),
+    criterion: searchParams.get('criterion'),
+    source,
+    status: searchParams.get('status'),
+    action: searchParams.get('action'),
+    returnTo: searchParams.get('returnTo'),
+    intent: searchParams.get('intent'),
+  });
   const [resource, setResource] = useState<TeachingResource | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +83,12 @@ export default function InteractiveResourcePage() {
   }, [resourceId]);
 
   const handlePathResourceComplete = async (result?: WidgetResult) => {
+    if (!pathLaunchContext && feedbackContext) {
+      window.location.assign(buildFeedbackTaskHref('/assessment/document-feedback', feedbackContext, {
+        status: 'completed',
+      }));
+      return;
+    }
     if (!pathLaunchContext) return;
     const request = buildAdaptivePathCompletionRequest({
       launchContext: pathLaunchContext,
@@ -88,6 +105,11 @@ export default function InteractiveResourcePage() {
       });
       if (!response.ok) {
         throw new Error(`Path resource completion rejected with status ${response.status}`);
+      }
+      if (feedbackContext) {
+        window.location.assign(buildFeedbackTaskHref('/assessment/document-feedback', feedbackContext, {
+          status: 'completed',
+        }));
       }
     } catch (completionError) {
       console.error('Failed to write path resource completion', completionError);
@@ -121,6 +143,7 @@ export default function InteractiveResourcePage() {
         data-route-family={sourceContext.family}
         data-route-source={sourceContext.href}
       >
+        <StudentFeedbackTaskPanel context={feedbackContext} surface="resource" className="mb-4" />
         <div className="h-[calc(100vh-12rem)] min-h-[calc(100vh-12rem)] overflow-hidden rounded-lg border border-platform-border bg-platform-surface">
         {isLoading ? (
           <div className="flex h-full min-h-[20rem] items-center justify-center text-platform-fg-secondary">

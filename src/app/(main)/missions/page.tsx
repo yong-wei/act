@@ -6,11 +6,13 @@
  * 展示所有学习任务和用户进度
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { MissionCard, MissionCardSkeleton, type MissionData } from '@/features/mission/mission-card';
+import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 
 interface MissionsResponse {
   missions: MissionData[];
@@ -25,21 +27,33 @@ export default function MissionsPage() {
   const sessionData = useSession();
   const status = sessionData?.status ?? 'loading';
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchParamsKey = searchParams.toString();
   const [data, setData] = useState<MissionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'unlocked' | 'completed'>('all');
+  const feedbackContext = buildFeedbackTaskContext({
+    assignment: searchParams.get('assignment') ?? searchParams.get('q'),
+    criterion: searchParams.get('criterion'),
+    source: searchParams.get('source'),
+    status: searchParams.get('status'),
+    action: searchParams.get('action'),
+    returnTo: searchParams.get('returnTo'),
+    intent: searchParams.get('intent'),
+  });
 
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchMissions();
-    }
-  }, [status]);
-
-  const fetchMissions = async () => {
+  const fetchMissions = useCallback(async (paramsKey = searchParamsKey) => {
     try {
       setLoading(true);
-      const response = await fetch('/api/missions');
+      const currentParams = new URLSearchParams(paramsKey);
+      const missionQuery = new URLSearchParams();
+      const assignment = currentParams.get('assignment') ?? currentParams.get('q');
+      if (assignment) missionQuery.set('assignment', assignment);
+      if (currentParams.get('q')) missionQuery.set('q', currentParams.get('q') ?? '');
+      if (currentParams.get('status')) missionQuery.set('status', currentParams.get('status') ?? '');
+      if (currentParams.get('returnTo')) missionQuery.set('returnTo', currentParams.get('returnTo') ?? '');
+      const response = await fetch(`/api/missions?${missionQuery.toString()}`);
       if (!response.ok) {
         throw new Error('获取任务列表失败');
       }
@@ -50,15 +64,27 @@ export default function MissionsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParamsKey]);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      void fetchMissions(searchParamsKey);
+    }
+  }, [fetchMissions, status, searchParamsKey]);
 
   const handleStartMission = (missionId: string) => {
-    router.push(`/simulations/destroyer?mission=${missionId}`);
+    const href = feedbackContext
+      ? buildFeedbackTaskHref(`/simulations/destroyer?mission=${encodeURIComponent(missionId)}`, feedbackContext, {
+          intent: 'mission',
+          status: feedbackContext.lifecycleState,
+        })
+      : `/simulations/destroyer?mission=${encodeURIComponent(missionId)}`;
+    router.push(href);
   };
 
   if (status === 'loading' || loading) {
     return (
-      <div className="surface-page">
+      <div className="surface-page" data-commercial-workspace="mission-workspace">
         <header className="surface-topbar px-6 py-4">
           <div className="mx-auto flex max-w-[1600px] items-center gap-4">
             <div className="h-6 w-6 rounded bg-accent" />
@@ -78,7 +104,7 @@ export default function MissionsPage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div className="surface-page flex items-center justify-center" data-commercial-workspace="mission-workspace">
         <div className="text-center">
           <p className="text-xl text-muted-foreground">请先登录</p>
           <Link
@@ -94,11 +120,11 @@ export default function MissionsPage() {
 
   if (error) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div className="surface-page flex items-center justify-center" data-commercial-workspace="mission-workspace">
         <div className="text-center">
           <p className="text-xl text-red-400">{error}</p>
           <button type="button"
-            onClick={fetchMissions}
+            onClick={() => void fetchMissions()}
             className="btn-ghost-themed mt-4 rounded-lg border px-6 py-2"
           >
             重试
@@ -116,7 +142,7 @@ export default function MissionsPage() {
   }) || [];
 
   return (
-    <div className="surface-page">
+    <div className="surface-page" data-commercial-workspace="mission-workspace">
       {/* 头部导航 */}
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
@@ -143,6 +169,7 @@ export default function MissionsPage() {
       </header>
 
       <main className="mx-auto max-w-[1600px] px-6 py-8">
+        <StudentFeedbackTaskPanel context={feedbackContext} surface="missions" className="mb-6" />
         {/* 统计卡片 */}
         <div className="mb-8 grid gap-4 md:grid-cols-4">
           <StatCard
@@ -241,6 +268,12 @@ export default function MissionsPage() {
               <MissionCard
                 key={mission.id}
                 mission={mission}
+                launchHref={feedbackContext
+                  ? buildFeedbackTaskHref(`/simulations/destroyer?mission=${encodeURIComponent(mission.id)}`, feedbackContext, {
+                      intent: 'mission',
+                      status: feedbackContext.lifecycleState,
+                    })
+                  : undefined}
                 onStart={handleStartMission}
               />
             ))}

@@ -8,6 +8,11 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+import {
+  buildFeedbackTaskContext,
+  getFeedbackTaskMissionTarget,
+  hasFeedbackTaskQuery,
+} from '@/lib/student-feedback-task-contract';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +37,7 @@ export interface MissionWithProgress {
   completedAt?: Date;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerAuthSession();
 
@@ -44,6 +49,16 @@ export async function GET() {
     }
 
     const userId = session.user.id;
+    const url = new URL(request.url);
+    const feedbackContext = buildFeedbackTaskContext({
+      assignment: url.searchParams.get('assignment') ?? url.searchParams.get('q'),
+      status: url.searchParams.get('status'),
+      returnTo: url.searchParams.get('returnTo'),
+      intent: url.searchParams.get('intent'),
+    });
+    const feedbackScoped = hasFeedbackTaskQuery({
+      assignment: url.searchParams.get('assignment') ?? url.searchParams.get('q'),
+    });
 
     // 获取所有任务
     const missions = await prisma.mission.findMany({
@@ -93,12 +108,26 @@ export async function GET() {
       };
     });
 
+    const feedbackTarget = feedbackContext ? getFeedbackTaskMissionTarget(feedbackContext) : null;
+    const scopedMissions = feedbackScoped && feedbackContext
+      ? feedbackTarget
+        ? missionsWithProgress.filter((mission) => feedbackTarget.missionOrders.includes(mission.order))
+        : []
+      : missionsWithProgress;
+    const statisticsMissions = feedbackScoped ? scopedMissions : missionsWithProgress;
+    const unlockedCount = feedbackScoped
+      ? statisticsMissions.filter((mission) => mission.status === 'UNLOCKED').length
+      : userProgress.filter((progress) => progress.status === 'UNLOCKED').length
+        + (missions.length > 0 && !progressMap.has(missions[0].id) ? 1 : 0);
+
     return NextResponse.json({
-      missions: missionsWithProgress,
+      feedbackTask: feedbackContext,
+      feedbackMissionTarget: feedbackTarget,
+      missions: scopedMissions,
       statistics: {
-        total: missions.length,
-        completed: userProgress.filter((p) => p.status === 'COMPLETED').length,
-        unlocked: userProgress.filter((p) => p.status === 'UNLOCKED').length + (missions.length > 0 && !progressMap.has(missions[0].id) ? 1 : 0),
+        total: statisticsMissions.length,
+        completed: statisticsMissions.filter((mission) => mission.status === 'COMPLETED').length,
+        unlocked: unlockedCount,
       },
     });
   } catch (error) {

@@ -10,6 +10,7 @@ import {
   type CompetencyDimension,
 } from './competency-model';
 import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
+import { buildFeedbackTaskHref, type StudentFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
 import type { LearningEvidenceCitationChipPayload } from './learning-evidence-rag-corpus';
 
 const execFileAsync = promisify(execFile);
@@ -228,6 +229,7 @@ export interface DocumentRubricEvidenceWriteback {
     sourceEventId: string;
     contextJson: {
       gradingRunId: string;
+      feedbackSource: 'document-feedback';
       rubricId: string;
       rubricVersion: string;
       criterionId: string;
@@ -997,6 +999,7 @@ function buildApprovedGradingEvidenceFacts(input: {
       sourceEventId: `${input.run.id}:${grade.criterionId}:${input.run.rubricVersion}`,
       contextJson: {
         gradingRunId: input.run.id,
+        feedbackSource: 'document-feedback',
         rubricId: input.rubric.id,
         rubricVersion: input.rubric.version,
         criterionId: grade.criterionId,
@@ -1367,14 +1370,20 @@ function buildStudentGradingFeedbackActionCards(
   asset: DocumentSubmissionAsset,
   grade: CriterionDraftGrade,
 ): StudentGradingFeedbackActionCard[] {
-  const query = `assignment=${encodeURIComponent(asset.assignmentId)}&criterion=${encodeURIComponent(grade.criterionId)}`;
+  const context: Pick<StudentFeedbackTaskContext, 'assignmentId' | 'criterionId' | 'source' | 'lifecycleState' | 'returnTo'> = {
+    assignmentId: asset.assignmentId,
+    criterionId: grade.criterionId,
+    source: 'document-feedback',
+    lifecycleState: 'returned',
+    returnTo: '/assessment/document-feedback',
+  };
   return [
     {
       id: `feedback-action:${grade.criterionId}:learner-record`,
       criterionId: grade.criterionId,
       label: '查看学情画像',
       destinationType: 'learner-record',
-      href: `/profile/evidence?${query}`,
+      href: buildFeedbackTaskHref('/profile/evidence', context, { action: 'review-evidence' }),
       evidenceRefCount: grade.evidenceRefs.length,
     },
     {
@@ -1382,7 +1391,7 @@ function buildStudentGradingFeedbackActionCards(
       criterionId: grade.criterionId,
       label: '查看练习入口',
       destinationType: 'path',
-      href: `/assessment/adaptive-practice?${query}`,
+      href: buildFeedbackTaskHref('/assessment/adaptive-practice', context, { intent: 'document-feedback' }),
       evidenceRefCount: grade.evidenceRefs.length,
     },
     {
@@ -1390,7 +1399,7 @@ function buildStudentGradingFeedbackActionCards(
       criterionId: grade.criterionId,
       label: '练习相关任务',
       destinationType: 'practice',
-      href: `/assessment/adaptive-practice?intent=practice&${query}`,
+      href: buildFeedbackTaskHref('/assessment/adaptive-practice?intent=practice', context, { action: 'practice' }),
       evidenceRefCount: grade.evidenceRefs.length,
     },
     {
@@ -1398,7 +1407,7 @@ function buildStudentGradingFeedbackActionCards(
       criterionId: grade.criterionId,
       label: '复习关联资源',
       destinationType: 'resource',
-      href: `/interactive-learning/resources/lesson09-correction-precheck?${query}`,
+      href: buildFeedbackTaskHref('/interactive-learning/resources/lesson09-correction-precheck', context, { action: 'revise' }),
       evidenceRefCount: grade.evidenceRefs.length,
     },
   ];

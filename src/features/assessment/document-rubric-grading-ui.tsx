@@ -5,6 +5,8 @@ import type {
 import type { AuditedActionState } from '@/lib/action-status-contract';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
+import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import type { StudentFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
 import { DocumentGradingApprovalButton } from './document-rubric-grading-actions';
 
 export function TeacherDocumentGradingWorkbench({
@@ -181,7 +183,13 @@ export function TeacherDocumentGradingEmptyState({
   );
 }
 
-export function StudentDocumentGradingFeedback({ view }: { view: StudentGradingFeedbackView }) {
+export function StudentDocumentGradingFeedback({
+  view,
+  feedbackContext,
+}: {
+  view: StudentGradingFeedbackView;
+  feedbackContext?: StudentFeedbackTaskContext | null;
+}) {
   return (
     <section className="w-full" data-intelligent-teaching-assistant-demo-surface="document-feedback">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
@@ -190,6 +198,7 @@ export function StudentDocumentGradingFeedback({ view }: { view: StudentGradingF
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">报告反馈</h1>
           <p className="mt-2 text-sm text-muted-foreground">{view.assignmentId} · {view.status}</p>
         </header>
+        <StudentFeedbackTaskPanel context={feedbackContext ?? null} surface="document-feedback" />
 
         {view.status === 'visible' && view.document ? (
           <section className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">

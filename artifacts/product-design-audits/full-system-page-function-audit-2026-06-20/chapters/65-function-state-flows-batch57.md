@@ -125,3 +125,10 @@ STUDENT no-match API 返回 `total:293`，ADMIN no-match 返回 `total:1`，TEAC
 - 428 已关闭：治理 `resolve` 缺失 riskId/不存在 risk 显示 blocked 恢复状态和审计记录。
 - 429 已关闭：治理导出提供可下载文件、文件名和 export-ready 审计记录。
 - 430 已关闭：配置缺失 provider/model 测试显示明确对象不存在状态。
+
+## #619 学生反馈闭环整改记录（2026-06-22）
+
+整改变更：`audit-remediation-student-learning-closure`。证据：`../remediation/audit-remediation-student-learning-closure/evidence.md`。
+
+- 420/421/423 已关闭：报告反馈页解析 assignment/criterion/status/action；学习证据 API 返回结构化 assignment 响应；自适应练习在 `intent=document-feedback` 或 `status=completed` 下展示反馈任务完成与待写回状态，不再由 query 参数直接声明写回成功。
+- 422 的反馈 assignment 缺失恢复部分已关闭：反馈任务合同区分缺失/不支持 assignment 和真实空结果；lessonId/sourceEventId 的通用对象缺失问题保留给证据对象垂直变更。

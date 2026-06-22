@@ -154,3 +154,10 @@ API 同时确认：`/api/teacher/document-grading/writeback-preview` 返回 404�
 整改变更：`audit-remediation-mobile-a11y-shell`。证据：`../remediation/audit-remediation-mobile-a11y-shell/evidence.md`。
 
 - 319 部分关闭：管理员用户页账号表在 640px 以下卡片化，长邮箱/长学号允许换行，并通过 320px/390px DOM width 与截图验收；批量导入批次治理已由 #614 覆盖，任务大厅、作品集、评分动作等其他 24 个状态仍归属垂直变更。
+
+## #619 学生反馈闭环整改记录（2026-06-22）
+
+整改变更：`audit-remediation-student-learning-closure`。证据：`../remediation/audit-remediation-student-learning-closure/evidence.md`。
+
+- 310/311 的学生反馈任务部分已关闭：任务大厅和作品集现在解析反馈 assignment/status/returnTo，分别显示反馈任务状态与作品集候选草稿。
+- 312 的学生反馈可读状态部分已关闭：反馈任务目标页统一展示状态面板和返回报告反馈路径。

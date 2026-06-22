@@ -6,6 +6,7 @@ import { StudentDocumentGradingFeedback } from '@/features/assessment/document-r
 import { buildDocumentRubricDemoViews } from '@/features/assessment/document-rubric-grading-demo';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { buildFeedbackTaskContext, type FeedbackTaskQuery } from '@/lib/student-feedback-task-contract';
 import {
   buildStudentGradingFeedbackView,
   createHiddenStudentGradingFeedbackView,
@@ -15,7 +16,10 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-function renderDocumentFeedbackShell(view: Parameters<typeof StudentDocumentGradingFeedback>[0]['view']) {
+function renderDocumentFeedbackShell(
+  view: Parameters<typeof StudentDocumentGradingFeedback>[0]['view'],
+  feedbackContext: ReturnType<typeof buildFeedbackTaskContext>,
+) {
   return (
     <AppShell
       viewerRole="student"
@@ -25,7 +29,7 @@ function renderDocumentFeedbackShell(view: Parameters<typeof StudentDocumentGrad
       sidebarMode="collapsible"
       className="surface-page"
     >
-      <StudentDocumentGradingFeedback view={view} />
+      <StudentDocumentGradingFeedback view={view} feedbackContext={feedbackContext} />
     </AppShell>
   );
 }
@@ -33,7 +37,7 @@ function renderDocumentFeedbackShell(view: Parameters<typeof StudentDocumentGrad
 export default async function DocumentFeedbackPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ gradingRunId?: string; demo?: string }>;
+  searchParams?: Promise<{ gradingRunId?: string; demo?: string } & FeedbackTaskQuery>;
 }) {
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
@@ -44,15 +48,16 @@ export default async function DocumentFeedbackPage({
   }
 
   const params = await searchParams;
+  const feedbackContext = buildFeedbackTaskContext(params ?? {});
   if (params?.demo === '1') {
     const { studentView } = await buildDocumentRubricDemoViews({
       studentId: session.user.id,
       viewerStudentId: session.user.id,
     });
-    return renderDocumentFeedbackShell(studentView);
+    return renderDocumentFeedbackShell(studentView, feedbackContext);
   }
   if (!params?.gradingRunId) {
-    return renderDocumentFeedbackShell(createHiddenStudentGradingFeedbackView({ studentId: session.user.id }));
+    return renderDocumentFeedbackShell(createHiddenStudentGradingFeedbackView({ studentId: session.user.id }), feedbackContext);
   }
 
   const draft = await prisma.learningEvidenceDraft.findFirst({
@@ -76,5 +81,5 @@ export default async function DocumentFeedbackPage({
         viewerStudentId: session.user.id,
       })
     : createHiddenStudentGradingFeedbackView({ studentId: session.user.id });
-  return renderDocumentFeedbackShell(studentView);
+  return renderDocumentFeedbackShell(studentView, feedbackContext);
 }

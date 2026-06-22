@@ -20,6 +20,7 @@ import {
   writeApprovedGradingEvidence,
   type RubricDefinition,
 } from '../document-rubric-grading-workbench';
+import { listEvidenceTimeline } from '../evidence-timeline';
 
 const now = new Date('2026-06-04T08:00:00.000Z');
 
@@ -612,6 +613,7 @@ describe('document rubric grading workbench', () => {
     expect(writeback.facts[0].contextJson).toEqual(expect.objectContaining({
       classId: 'class-1',
       assignmentId: 'report-1',
+      feedbackSource: 'document-feedback',
       goalId: 'control-report',
       targetGoal: 'control-report',
       learningGoal: 'control-report',
@@ -642,6 +644,94 @@ describe('document rubric grading workbench', () => {
       ]),
     }));
     expect(db.studentEvidenceFeatureCache.deleteMany).toHaveBeenCalledWith({ where: { userId: 'student-1' } });
+  });
+
+  it('keeps document feedback action source aligned with written learner evidence filters', async () => {
+    const submission = asset();
+    const converted = await convertSubmissionDocument({
+      asset: submission,
+      adapter: createMarkItDownConversionAdapter({
+        now,
+        preserveSpanMapping: true,
+        runner: (documentAsset) => textFixtureMarkItDownRunner(documentAsset, true),
+      }),
+      now,
+    });
+    const approved = approveGradingRun(createDraftRubricGrading({
+      convertedDocument: converted,
+      rubric: rubric(),
+      now,
+    }), { reviewerId: 'teacher-1', decision: 'approved', now });
+    const db = mockEvidenceDb();
+    const writeback = await writeApprovedGradingEvidence({
+      db,
+      run: approved,
+      rubric: rubric(),
+      studentId: submission.studentId,
+      goalContext: {
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    });
+    const studentView = buildStudentGradingFeedbackView({
+      asset: submission,
+      convertedDocument: converted,
+      rubric: rubric(),
+      run: approved,
+      viewerStudentId: submission.studentId,
+    });
+    const learnerRecordCard = studentView.actionCards.find((card) => card.destinationType === 'learner-record');
+    const learnerRecordQuery = new URLSearchParams(learnerRecordCard?.href.split('?')[1] ?? '');
+    const matchingFact = writeback.facts.find((fact) => (
+      fact.contextJson.assignmentId === learnerRecordQuery.get('assignment') &&
+      fact.contextJson.criterionId === learnerRecordQuery.get('criterion')
+    ));
+    expect(learnerRecordQuery.get('source')).toBe('document-feedback');
+    expect(matchingFact?.contextJson.feedbackSource).toBe(learnerRecordQuery.get('source'));
+
+    const timelineDb = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue(writeback.facts.map((fact, index) => ({
+          id: `fact-${index}`,
+          moduleId: null,
+          sessionId: null,
+          lessonId: null,
+          sourceLogId: null,
+          courseId: 'automatic-control',
+          createdAt: now,
+          ...fact,
+        }))),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+    const timeline = await listEvidenceTimeline({
+      db: timelineDb,
+      userId: submission.studentId,
+      filters: {
+        assignment: learnerRecordQuery.get('assignment') ?? undefined,
+        criterion: learnerRecordQuery.get('criterion') ?? undefined,
+        assignmentSource: learnerRecordQuery.get('source') ?? undefined,
+      },
+    });
+
+    expect(timelineDb.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        AND: expect.arrayContaining([
+          { contextJson: { path: ['assignmentId'], equals: submission.assignmentId } },
+          expect.objectContaining({
+            OR: expect.arrayContaining([
+              { contextJson: { path: ['feedbackSource'], equals: 'document-feedback' } },
+            ]),
+          }),
+        ]),
+      }),
+    }));
+    expect(timeline.items.map((item) => item.id)).toContain('fact-0');
   });
 
   it('preserves limited evidence confidence and original AI draft across teacher edits', async () => {
@@ -878,6 +968,15 @@ describe('document rubric grading workbench', () => {
       .toContain('/interactive-learning/resources/lesson09-correction-precheck');
     expect(visibleStudentView.actionCards.find((card) => card.destinationType === 'practice')?.href)
       .toContain('/assessment/adaptive-practice?intent=practice');
+    for (const card of visibleStudentView.actionCards) {
+      const query = new URLSearchParams(card.href.split('?')[1] ?? '');
+      expect(query.get('assignment')).toBe(submission.assignmentId);
+      expect(query.get('criterion')).toBe(card.criterionId);
+      expect(query.get('source')).toBe('document-feedback');
+      expect(query.get('status')).toBe('returned');
+      expect(query.get('returnTo')).toBe('/assessment/document-feedback');
+      expect(query.get('action') ?? query.get('intent')).toBeTruthy();
+    }
     expect(visibleStudentView.konlingEntryPoint?.mode).toBe('feedback-explainer');
     expect(visibleStudentView.konlingEntryPoint?.serverContext).toEqual(expect.objectContaining({
       gradingRunId: approved.id,

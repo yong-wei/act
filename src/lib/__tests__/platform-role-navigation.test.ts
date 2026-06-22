@@ -299,6 +299,7 @@ describe('platform role navigation', () => {
       '/arena',
       '/arena/challenges/[taskId]',
       '/assessment/adaptive-practice',
+      '/missions',
       '/interactive-learning/control-workbench',
       '/dashboard',
       '/profile',
