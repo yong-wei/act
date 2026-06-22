@@ -194,6 +194,7 @@ export async function persistLearningPathRound(
     plannerVersion: input.plan.stage,
     status: record.payload.status,
     artifactVersioning: record.payload.artifactVersioning,
+    graphContext: record.payload.graphContext ?? null,
     mainPathNodeIds: input.plan.mainPath.map((node) => node.nodeId),
     planNodes: record.payload.planNodes,
     score: record.payload.score,

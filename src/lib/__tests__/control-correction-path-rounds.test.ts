@@ -356,6 +356,40 @@ describe('control-correction path rounds', () => {
           selectedStyleId: 'foundation-remediation',
         },
       }],
+      graphContext: {
+        learningGoalId: 'control-correction',
+        learningGoalVersion: 'learning-goal-package/v1',
+        graphVersion: 'autocontrol-kaq-graph.v1',
+        objectiveBoundary: {
+          knowledgeObjectiveIds: ['knowledge:autocontrol:control-correction'],
+          capabilityObjectiveIds: ['capability:autocontrol:correction-design'],
+          qualityObjectiveIds: [],
+        },
+        targetGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+        prerequisitePolicy: [],
+        overlayStatus: {
+          learner: 'available',
+          class: 'missing',
+        },
+        resourceCoverageStatus: {
+          'cap:autocontrol:synthesize-controller-correction': {
+            coverageState: 'partial',
+            linkedResourceCount: 1,
+            pathEligibleResourceCount: 1,
+          },
+        },
+        versionRefs: {
+          artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+          learningGoalPackageVersion: 'learning-goal-package/v1',
+          graphCatalogVersion: 'autocontrol-kaq-graph.v1',
+          overlayVersion: 'graph-center-overlay.v1',
+        },
+        limitations: [{
+          code: 'class-overlay-missing',
+          severity: 'warning',
+          message: 'class overlay missing in test fixture',
+        }],
+      },
     };
 
     await persistControlCorrectionPathRound(db, {
@@ -395,6 +429,15 @@ describe('control-correction path rounds', () => {
               plannerVersion: 'adaptive-learning-path-planner.v1',
             }),
             limitations: expect.any(Array),
+          }),
+          graphContext: expect.objectContaining({
+            learningGoalId: 'control-correction',
+            graphVersion: 'autocontrol-kaq-graph.v1',
+            targetGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+            overlayStatus: {
+              learner: 'available',
+              class: 'missing',
+            },
           }),
           policyBundle: expect.objectContaining({
             paths: [

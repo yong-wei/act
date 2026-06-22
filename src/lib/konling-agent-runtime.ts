@@ -36,6 +36,7 @@ import {
 import {
   buildAdaptiveLearningPathPlan,
   getRegisteredAdaptiveLearningPathGoal,
+  type AdaptiveLearningPathGraphContextInput,
   type AdaptiveLearningPathPolicyFamily,
   type AdaptiveLearningPathLearnerState,
   type AdaptiveLearningPathPlan,
@@ -52,6 +53,7 @@ import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-c
 import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
+import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
@@ -1864,12 +1866,14 @@ async function buildAdaptivePathToolOutput(
   const plannerRevisionPreference = operation === 'revised'
     ? buildAdaptivePathRevisionPlannerPreference(args)
     : {};
+  const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId);
   const plan = buildAdaptiveLearningPathPlan({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
     learnerState: normalizeAdaptivePathLearnerStateForPlanner(input.context.learnerState as any)
       ?? buildColdStartAdaptivePathLearnerState(registeredGoal.goal.knowledgeTargets),
     registry,
+    graphContext,
     constraints: {
       timeBudgetMinutes: timeBudget.effectiveMinutes,
       privacyScopes: ['student-visible'],
@@ -1958,6 +1962,24 @@ async function buildAdaptivePathToolOutput(
       '证据不足时会先给出可开始的基础路径，并提示需要补充的学习记录。',
       ...(timeBudget.adjusted ? ['当前目标需要包含终端验证，系统已按最小可行学习时长生成路径。'] : []),
     ],
+  };
+}
+
+function buildAdaptivePathPlannerGraphContext(
+  graphContext: KonlingKaqGraphContext | null | undefined,
+  goalId: string,
+): AdaptiveLearningPathGraphContextInput | undefined {
+  if (!graphContext?.learningGoal || !graphContext.expandedSubgraph) return undefined;
+  if (graphContext.learningGoal.id !== goalId) return undefined;
+  return {
+    learningGoalId: graphContext.learningGoal.id,
+    learningGoalVersion: graphContext.learningGoal.version,
+    objectiveBoundary: graphContext.learningGoal.objectiveBoundary,
+    expandedSubgraph: expandLearningGoalSubgraph(graphContext.learningGoal.id),
+    resourceCoverage: graphContext.resourceCoverage,
+    learnerOverlay: graphContext.learnerOverlay,
+    classOverlay: graphContext.classOverlay,
+    versionRefs: graphContext.versionRefs ?? undefined,
   };
 }
 

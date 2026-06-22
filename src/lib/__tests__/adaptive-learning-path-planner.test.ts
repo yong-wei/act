@@ -17,8 +17,11 @@ import {
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
+  AUTOCONTROL_KAQ_GRAPH_VERSION,
   AUTOCONTROL_KAQ_OBJECTIVES,
 } from '../data-governance/autocontrol-kaq-graph-catalog';
+import { expandLearningGoalSubgraph } from '../graphs/goal-subgraph-expansion-service';
+import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
 import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '../resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
 
@@ -604,6 +607,208 @@ describe('adaptive learning path planner', () => {
       learningGoal: undefined,
       learningGoalPackage: controlCorrectionPlan.goal.learningGoal,
     }, 'control-correction')?.id).toBe('control-correction');
+  });
+
+  it('consumes graph-driven LearningGoal context and records overlay limitations', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+    const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
+    const graphTargetId = learningGoal.targetGraphNodeIds[0];
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'graph-frequency-card',
+        title: '频域图谱知识卡',
+        sourceRef: 'frequency-response:graph-card',
+        renderTarget: '/knowledge/cards/frequency-response',
+        knowledgeNodeIds: [graphTargetId],
+        planningOverride: {
+          abilityImpact: {
+            frequencyResponseInterpretation: 0.3,
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['legacy-frequency-response-target'],
+      },
+      learnerState: null,
+      registry,
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph,
+        resourceCoverage: {
+          [graphTargetId]: {
+            domain: 'knowledge',
+            nodeId: graphTargetId,
+            linkedResourceCount: 1,
+            pathEligibleResourceCount: 1,
+            ragIndexedCount: 0,
+            citationReadyCount: 0,
+            verifiedCitationCount: 0,
+            assessmentResourceCount: 0,
+            simulationResourceCount: 0,
+            arenaPreviewResourceCount: 0,
+            arenaOfficialResourceCount: 0,
+            terminalValidationCapableResourceCount: 0,
+            coverageState: 'partial',
+            missingCoverageTypes: ['rag-indexed-resource', 'citation-ready-resource'],
+            linkedResourceIds: ['resource:graph-frequency-card'],
+            pathEligibleResourceIds: ['knowledge-card:graph-frequency-card'],
+          },
+        },
+        learnerOverlay: {
+          status: 'low-confidence',
+          learnerId: 'student-1',
+          generatedAt: '2026-06-22T00:00:00.000Z',
+          items: {},
+          limitations: [{ code: 'learner-overlay-low-confidence', message: 'overlay confidence is low' }],
+        },
+        classOverlay: null,
+        versionRefs: buildKaqArtifactVersionRefs({
+          learningGoalPackageVersion: 'forged-learning-goal-version',
+          graphCatalogVersion: 'forged-graph-version',
+          overlayVersion: GRAPH_CENTER_OVERLAY_VERSION,
+        }),
+      },
+    }));
+    const serialized = serializeLearningPathPlan(plan);
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('knowledge-card:graph-frequency-card');
+    expect(plan.graphContext).toMatchObject({
+      learningGoalId: learningGoal.id,
+      learningGoalVersion: learningGoal.version,
+      targetGraphNodeIds: expect.arrayContaining([graphTargetId]),
+      overlayStatus: {
+        learner: 'low-confidence',
+        class: 'missing',
+      },
+    });
+    expect(plan.graphContext?.limitations.map((item) => item.code)).toEqual(expect.arrayContaining([
+      'resource-coverage-partial',
+      'learner-overlay-low-confidence',
+      'class-overlay-missing',
+    ]));
+    expect(serialized.payload.artifactVersioning.versionRefs).toMatchObject({
+      learningGoalPackageVersion: learningGoal.version,
+      graphCatalogVersion: AUTOCONTROL_KAQ_GRAPH_VERSION,
+      overlayVersion: GRAPH_CENTER_OVERLAY_VERSION,
+    });
+    expect(serialized.payload.graphContext?.versionRefs).toMatchObject({
+      learningGoalPackageVersion: learningGoal.version,
+      graphCatalogVersion: AUTOCONTROL_KAQ_GRAPH_VERSION,
+      overlayVersion: GRAPH_CENTER_OVERLAY_VERSION,
+    });
+  });
+
+  it('does not let graph context linked chunks bypass audited ResourceNodes', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+    const graphTargetId = learningGoal.targetGraphNodeIds[0];
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: [],
+      },
+      learnerState: null,
+      registry: buildResourceNodeRegistry({ registeredResources: [] }),
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph: expandLearningGoalSubgraph(learningGoal.id),
+        resourceCoverage: {
+          [graphTargetId]: {
+            domain: 'knowledge',
+            nodeId: graphTargetId,
+            linkedResourceCount: 1,
+            pathEligibleResourceCount: 0,
+            ragIndexedCount: 1,
+            citationReadyCount: 1,
+            verifiedCitationCount: 1,
+            assessmentResourceCount: 0,
+            simulationResourceCount: 0,
+            arenaPreviewResourceCount: 0,
+            arenaOfficialResourceCount: 0,
+            terminalValidationCapableResourceCount: 0,
+            coverageState: 'missing',
+            missingCoverageTypes: ['path-eligible-resource'],
+            linkedResourceIds: [
+              'resource-segment:frequency-response-segment',
+              'retrieval-chunk:frequency-response-chunk',
+              'citation-target:frequency-response-citation',
+            ],
+            pathEligibleResourceIds: [],
+          },
+        },
+        learnerOverlay: null,
+        classOverlay: null,
+      },
+    }));
+
+    expect(plan.mainPath).toEqual([]);
+    expect(plan.explanations.fallbackReasons).toContain('resource-mapping-insufficient');
+    expect(plan.graphContext?.limitations.map((item) => item.code)).toEqual(expect.arrayContaining([
+      'resource-coverage-missing-path-eligible',
+      'learner-overlay-missing',
+      'class-overlay-missing',
+    ]));
+    expect(JSON.stringify(serializeLearningPathPlan(plan))).not.toContain('retrieval-chunk:frequency-response-chunk');
+    expect(JSON.stringify(serializeLearningPathPlan(plan))).not.toContain('citation-target:frequency-response-citation');
+  });
+
+  it('ignores graph context when its LearningGoal differs from the planner goal', () => {
+    const frequencyGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+      learnerState: null,
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: frequencyGoal.id,
+        learningGoalVersion: frequencyGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: frequencyGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: frequencyGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: frequencyGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph: expandLearningGoalSubgraph(frequencyGoal.id),
+        learnerOverlay: null,
+        classOverlay: null,
+      },
+    }));
+    const serialized = serializeLearningPathPlan(plan);
+
+    expect(plan.goal.id).toBe('control-correction');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(expect.arrayContaining([
+      'registry:lesson09-correction-precheck',
+      'arena-task:task-second-order-lead-pid',
+    ]));
+    expect(plan.graphContext).toBeUndefined();
+    expect(serialized.payload.graphContext).toBeUndefined();
   });
 
   it('keeps unknown LearningGoal ids on the existing registered-goal rejection path', () => {

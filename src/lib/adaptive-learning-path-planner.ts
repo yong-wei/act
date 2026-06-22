@@ -2,6 +2,17 @@ import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_OBJECTIVES,
 } from './data-governance/autocontrol-kaq-graph-catalog';
+import type {
+  GraphCenterClassOverlay,
+  GraphCenterLearnerOverlay,
+  GraphCenterOverlayStatus,
+  GraphCenterResourceCoverage,
+} from './data-governance/graph-center';
+import type {
+  ExpandedGoalSubgraph,
+  GoalSubgraphLimitation,
+  GoalSubgraphPolicyEntry,
+} from './graphs/goal-subgraph-expansion-service';
 import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
@@ -15,7 +26,9 @@ import {
   type ResourceNodeReadinessMetadata,
 } from './resource-node-registry';
 import {
+  buildKaqArtifactVersionRefs,
   buildKaqVersionedArtifactMetadata,
+  type KaqArtifactVersionRefs,
   type KaqVersionedArtifactMetadata,
 } from './kaq-artifact-versioning';
 
@@ -107,6 +120,50 @@ export interface LearningGoalDefinition {
   status: LearningGoalStatus;
   version: string;
   limitations: string[];
+}
+
+export interface AdaptiveLearningPathGraphContextInput {
+  learningGoalId: string;
+  learningGoalVersion: string;
+  objectiveBoundary: {
+    knowledgeObjectiveIds: string[];
+    capabilityObjectiveIds: string[];
+    qualityObjectiveIds: string[];
+  };
+  expandedSubgraph: ExpandedGoalSubgraph;
+  resourceCoverage?: Record<string, GraphCenterResourceCoverage>;
+  learnerOverlay?: GraphCenterLearnerOverlay | null;
+  classOverlay?: GraphCenterClassOverlay | null;
+  versionRefs?: Partial<KaqArtifactVersionRefs>;
+}
+
+export interface AdaptiveLearningPathGraphLimitation {
+  code: string;
+  severity: 'blocking' | 'warning';
+  message: string;
+  nodeId?: string;
+}
+
+export interface AdaptiveLearningPathGraphContextSummary {
+  learningGoalId: string;
+  learningGoalVersion: string;
+  graphVersion: string;
+  objectiveBoundary: AdaptiveLearningPathGraphContextInput['objectiveBoundary'];
+  targetGraphNodeIds: string[];
+  prerequisitePolicy: Array<Pick<
+    GoalSubgraphPolicyEntry,
+    'edgeId' | 'sourceNodeId' | 'targetNodeId' | 'semantics' | 'required'
+  >>;
+  overlayStatus: {
+    learner: GraphCenterOverlayStatus | 'missing';
+    class: GraphCenterOverlayStatus | 'missing';
+  };
+  resourceCoverageStatus: Record<string, Pick<
+    GraphCenterResourceCoverage,
+    'coverageState' | 'pathEligibleResourceCount' | 'linkedResourceCount'
+  >>;
+  versionRefs: KaqArtifactVersionRefs;
+  limitations: AdaptiveLearningPathGraphLimitation[];
 }
 
 export type LearningGoalValidationIssueCode =
@@ -257,6 +314,7 @@ export interface AdaptiveLearningPathPlannerInput {
   learnerState: AdaptiveLearningPathLearnerState | null;
   registry: ResourceNodeRegistry;
   constraints: AdaptiveLearningPathConstraints;
+  graphContext?: AdaptiveLearningPathGraphContextInput;
   policyFamily?: AdaptiveLearningPathPolicyFamily;
   policyBundle?: {
     families: AdaptiveLearningPathPolicyFamily[];
@@ -549,6 +607,7 @@ export interface AdaptiveLearningPathPlan {
   corrections: AdaptiveLearningPathCorrection[];
   feedbackEvents: AdaptiveLearningPathFeedbackEvent[];
   visualization: AdaptiveLearningPathVisualization;
+  graphContext?: AdaptiveLearningPathGraphContextSummary;
 }
 
 export interface AdaptiveLearningPathPersistenceRecord {
@@ -577,6 +636,7 @@ export interface AdaptiveLearningPathPersistenceRecord {
     corrections: AdaptiveLearningPathCorrection[];
     feedbackEvents: AdaptiveLearningPathFeedbackEvent[];
     visualization: AdaptiveLearningPathVisualization;
+    graphContext?: AdaptiveLearningPathGraphContextSummary;
     artifactVersioning: KaqVersionedArtifactMetadata;
     studentFacing: {
       summary: string;
@@ -1604,6 +1664,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
   const policyMetadata = ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily];
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const graphContext = buildAdaptiveLearningPathGraphContext(input.graphContext, input.goal, registeredGoal);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const confidence = resolvePlanConfidence(input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
@@ -1619,7 +1680,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const scored = pathEligible
     .filter((node) => goalAllowsResourceNode(node, registeredGoal))
     .filter((node) =>
-      nodeMatchesGoal(node, input.goal, deficits) ||
+      nodeMatchesGoal(node, input.goal, deficits, graphContext) ||
       (input.constraints.requireRiskIntervention && isRiskInterventionNode(node))
     )
     .map((node) => scoreNode(node, deficits, input.learnerState, input.constraints, policyFamily, preferenceContext))
@@ -1629,6 +1690,7 @@ function buildAdaptiveLearningPathPlanInternal(
     input.registry,
     input.constraints,
     input.goal,
+    graphContext,
     eligibleIds,
     requestedCompletedNodeIds,
   );
@@ -1639,6 +1701,8 @@ function buildAdaptiveLearningPathPlanInternal(
     mainPathNodes,
     constraints: input.constraints,
     goal: input.goal,
+    graphContext,
+    hasGraphCandidateCoverage: Boolean(graphContext && graphTargetsCoveredByScoredNodes(scored, graphContext).length > 0),
     attemptedCandidates: scored.length,
     policyFamily,
   });
@@ -1665,6 +1729,7 @@ function buildAdaptiveLearningPathPlanInternal(
     input.registry,
     eligibleIds,
     input.goal,
+    graphContext,
     input.constraints,
     planningCompletedNodeIds,
   );
@@ -1721,6 +1786,7 @@ function buildAdaptiveLearningPathPlanInternal(
       hasUsablePath: mainPath.length > 0,
       generatedAt: now,
     }),
+    graphContext,
   };
 }
 
@@ -1849,11 +1915,13 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
       corrections: plan.corrections,
       feedbackEvents: plan.feedbackEvents,
       visualization: plan.visualization,
+      graphContext: plan.graphContext,
       artifactVersioning: buildKaqVersionedArtifactMetadata({
         artifactId: plan.id,
         artifactKind: 'path-artifact',
         generatedAt: plan.executionStatus.updatedAt,
         versionRefs: {
+          ...plan.graphContext?.versionRefs,
           learningGoalPackageVersion: learningGoal?.version ?? null,
         },
         requiredRefs: [
@@ -1930,6 +1998,123 @@ function attachLearningGoal(
   const { learningGoal: _clientLearningGoal, learningGoalPackage: _legacyLearningGoalPackage, ...safeGoal } = goal;
   const learningGoal = registeredGoal?.learningGoal;
   return learningGoal ? { ...safeGoal, learningGoal } : safeGoal;
+}
+
+function buildAdaptiveLearningPathGraphContext(
+  input: AdaptiveLearningPathGraphContextInput | undefined,
+  goal: AdaptiveLearningPathGoal,
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+): AdaptiveLearningPathGraphContextSummary | undefined {
+  if (!input) return undefined;
+  if (input.learningGoalId !== goal.id) return undefined;
+  const graphNodeIds = input.expandedSubgraph.graphNodeIds;
+  const targetGraphNodeIds = unique([
+    ...input.expandedSubgraph.fixtures.planner.targetGraphNodeIds,
+    ...graphNodeIds.knowledge,
+    ...graphNodeIds.capability,
+    ...graphNodeIds.quality,
+    ...(registeredGoal?.learningGoal?.targetGraphNodeIds ?? []),
+  ]);
+  const resourceCoverageStatus = Object.fromEntries(
+    Object.entries(input.resourceCoverage ?? {}).map(([nodeId, coverage]) => [
+      nodeId,
+      {
+        coverageState: coverage.coverageState,
+        linkedResourceCount: coverage.linkedResourceCount,
+        pathEligibleResourceCount: coverage.pathEligibleResourceCount,
+      },
+    ]),
+  );
+  const versionRefs = buildKaqArtifactVersionRefs({
+    ...input.versionRefs,
+    learningGoalPackageVersion: input.learningGoalVersion,
+    graphCatalogVersion: input.expandedSubgraph.graphVersion,
+  });
+  return {
+    learningGoalId: input.learningGoalId,
+    learningGoalVersion: input.learningGoalVersion,
+    graphVersion: input.expandedSubgraph.graphVersion,
+    objectiveBoundary: input.objectiveBoundary,
+    targetGraphNodeIds,
+    prerequisitePolicy: input.expandedSubgraph.prerequisitePolicy.map((entry) => ({
+      edgeId: entry.edgeId,
+      sourceNodeId: entry.sourceNodeId,
+      targetNodeId: entry.targetNodeId,
+      semantics: entry.semantics,
+      required: entry.required,
+    })),
+    overlayStatus: {
+      learner: input.learnerOverlay?.status ?? 'missing',
+      class: input.classOverlay?.status ?? 'missing',
+    },
+    resourceCoverageStatus,
+    versionRefs,
+    limitations: buildGraphContextLimitations(input),
+  };
+}
+
+function buildGraphContextLimitations(
+  input: AdaptiveLearningPathGraphContextInput,
+): AdaptiveLearningPathGraphLimitation[] {
+  const limitations: AdaptiveLearningPathGraphLimitation[] = [
+    ...input.expandedSubgraph.limitations.map(goalSubgraphLimitation),
+  ];
+  for (const coverage of Object.values(input.resourceCoverage ?? {})) {
+    if (coverage.pathEligibleResourceCount === 0) {
+      limitations.push({
+        code: 'resource-coverage-missing-path-eligible',
+        severity: 'blocking',
+        nodeId: coverage.nodeId,
+        message: `Graph node ${coverage.nodeId} has no audited path-eligible ResourceNode coverage.`,
+      });
+    } else if (coverage.coverageState !== 'sufficient') {
+      limitations.push({
+        code: 'resource-coverage-partial',
+        severity: 'warning',
+        nodeId: coverage.nodeId,
+        message: `Graph node ${coverage.nodeId} resource coverage is ${coverage.coverageState}.`,
+      });
+    }
+  }
+  limitations.push(...overlayLimitations('learner', input.learnerOverlay));
+  limitations.push(...overlayLimitations('class', input.classOverlay));
+  return limitations;
+}
+
+function goalSubgraphLimitation(limitation: GoalSubgraphLimitation): AdaptiveLearningPathGraphLimitation {
+  return {
+    code: limitation.code,
+    severity: limitation.severity,
+    nodeId: limitation.graphNodeId ?? undefined,
+    message: limitation.message,
+  };
+}
+
+function overlayLimitations(
+  kind: 'learner' | 'class',
+  overlay: GraphCenterLearnerOverlay | GraphCenterClassOverlay | null | undefined,
+): AdaptiveLearningPathGraphLimitation[] {
+  if (!overlay) {
+    return [{
+      code: `${kind}-overlay-missing`,
+      severity: 'warning',
+      message: `${kind} overlay is unavailable; planner must treat overlay guidance as a limitation.`,
+    }];
+  }
+  const limitations = overlay.limitations.map((limitation) => ({
+    code: limitation.code,
+    severity: 'warning' as const,
+    nodeId: limitation.nodeId,
+    message: limitation.message,
+  }));
+  if (overlay.status !== 'available') {
+    limitations.unshift({
+      code: `${kind}-overlay-${overlay.status}`,
+      severity: 'warning',
+      message: `${kind} overlay status is ${overlay.status}.`,
+    });
+  }
+  return limitations;
 }
 
 function buildCapabilityEvidence(
@@ -2048,9 +2233,13 @@ function nodeMatchesGoal(
   node: ResourceNode,
   goal: AdaptiveLearningPathGoal,
   deficits: AdaptiveLearningPathDeficit[],
+  graphContext?: AdaptiveLearningPathGraphContextSummary,
 ): boolean {
   const planningUnit = planningUnitForNode(node);
   if (!planningUnit) return false;
+  if (graphContext?.targetGraphNodeIds.length && graphTargetsCoveredByPlanningUnit(planningUnit, graphContext).length > 0) {
+    return true;
+  }
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(goal.id);
   const knowledgeTargets = new Set([
     ...goal.knowledgeTargets,
@@ -2266,18 +2455,23 @@ function buildFeasiblePath(
   registry: ResourceNodeRegistry,
   constraints: AdaptiveLearningPathConstraints,
   goal: AdaptiveLearningPathGoal,
+  graphContext: AdaptiveLearningPathGraphContextSummary | undefined,
   eligibleIds: Set<string>,
   completedNodeIds: string[],
 ): ScoredNode[] {
   const nodesById = new Map(registry.nodes.filter((node) => eligibleIds.has(node.id)).map((node) => [node.id, node]));
   const scoredById = new Map(scoredNodes.map((entry) => [entry.node.id, entry]));
   const completed = new Set(completedNodeIds);
+  const graphGoalTargets = graphContext?.targetGraphNodeIds.length
+    ? graphTargetsCoveredByScoredNodes(scoredNodes, graphContext)
+    : [];
+  const activeGraphContext = graphGoalTargets.length > 0 ? graphContext : undefined;
   const allGoalTargets = new Set([
-    ...goal.knowledgeTargets,
-    ...(goal.competencyTargets ?? []),
+    ...(activeGraphContext ? graphGoalTargets : goal.knowledgeTargets),
+    ...(activeGraphContext ? [] : (goal.competencyTargets ?? [])),
   ]);
   const candidateOptions = scoredNodes.flatMap((entry): CandidateOption[] => {
-    const chain = buildCandidateChain(entry, nodesById, scoredById, goal);
+    const chain = buildCandidateChain(entry, nodesById, scoredById, goal, activeGraphContext);
     if (!chain) {
       return [];
     }
@@ -2291,7 +2485,7 @@ function buildFeasiblePath(
     return [{
       entry,
       chain,
-      goalTargets: goalTargetsCoveredByNodes(chain.entries.map((candidate) => candidate.node), goal),
+      goalTargets: goalTargetsCoveredByNodes(chain.entries.map((candidate) => candidate.node), goal, activeGraphContext),
       includesRiskIntervention,
     }];
   });
@@ -2328,7 +2522,6 @@ function buildFeasiblePath(
   for (const option of candidateOptions) {
     tryAddOption(option, true);
   }
-
   if (allPlanningRequirementsSatisfied(state, allGoalTargets, constraints)) {
     for (const option of candidateOptions) {
       tryAddOption(option, false);
@@ -2429,6 +2622,7 @@ function buildCandidateChain(
   nodesById: Map<string, ResourceNode>,
   scoredById: Map<string, ScoredNode>,
   goal: AdaptiveLearningPathGoal,
+  graphContext: AdaptiveLearningPathGraphContextSummary | undefined,
 ): CandidateChain | null {
   if (hasCyclicPrerequisites(entry.node, nodesById)) return null;
   const entries = expandPrerequisites(entry, nodesById, scoredById);
@@ -2441,7 +2635,7 @@ function buildCandidateChain(
     entries: uniqueEntries,
     estimatedMinutes: uniqueEntries.reduce((sum, candidate) =>
       sum + requirePlanningUnit(candidate.node).estimatedTimeMinutes, 0),
-    coversGoalTarget: uniqueEntries.some((candidate) => nodeCoversGoalTarget(candidate.node, goal)),
+    coversGoalTarget: uniqueEntries.some((candidate) => nodeCoversGoalTarget(candidate.node, goal, graphContext)),
   };
 }
 
@@ -2455,20 +2649,37 @@ function uniqueScoredEntries(entries: ScoredNode[]): ScoredNode[] {
   return Array.from(result.values());
 }
 
-function nodeCoversGoalTarget(node: ResourceNode, goal: AdaptiveLearningPathGoal): boolean {
+function nodeCoversGoalTarget(
+  node: ResourceNode,
+  goal: AdaptiveLearningPathGoal,
+  graphContext?: AdaptiveLearningPathGraphContextSummary,
+): boolean {
   const planningUnit = planningUnitForNode(node);
   if (!planningUnit) return false;
+  if (graphContext?.targetGraphNodeIds.length) {
+    return graphTargetsCoveredByPlanningUnit(planningUnit, graphContext).length > 0;
+  }
   return goal.knowledgeTargets.some((target) => planningUnitCoversKnowledgeTarget(planningUnit, goal, target)) ||
     Object.keys(planningUnit.abilityImpact).some((dimension) =>
       (goal.competencyTargets ?? []).includes(dimension)
     );
 }
 
-function goalTargetsCoveredByNodes(nodes: ResourceNode[], goal: AdaptiveLearningPathGoal): string[] {
+function goalTargetsCoveredByNodes(
+  nodes: ResourceNode[],
+  goal: AdaptiveLearningPathGoal,
+  graphContext?: AdaptiveLearningPathGraphContextSummary,
+): string[] {
   const covered = new Set<string>();
   for (const node of nodes) {
     const planningUnit = planningUnitForNode(node);
     if (!planningUnit) continue;
+    if (graphContext?.targetGraphNodeIds.length) {
+      for (const target of graphTargetsCoveredByPlanningUnit(planningUnit, graphContext)) {
+        covered.add(target);
+      }
+      continue;
+    }
     for (const target of goal.knowledgeTargets) {
       if (planningUnitCoversKnowledgeTarget(planningUnit, goal, target)) {
         covered.add(target);
@@ -2520,10 +2731,20 @@ function chainHasTerminalViolation(entries: ScoredNode[]): boolean {
     (terminalIndexes.length === 1 && terminalIndexes[0] !== entries.length - 1);
 }
 
-function uncoveredGoalTargets(nodes: ResourceNode[], goal: AdaptiveLearningPathGoal): string[] {
+function uncoveredGoalTargets(
+  nodes: ResourceNode[],
+  goal: AdaptiveLearningPathGoal,
+  graphContext?: AdaptiveLearningPathGraphContextSummary,
+): string[] {
   const planningUnits = nodes
     .map((node) => planningUnitForNode(node))
     .filter((unit): unit is PlanningUnit => Boolean(unit));
+  if (graphContext?.targetGraphNodeIds.length) {
+    const coveredGraphTargets = new Set(planningUnits.flatMap((unit) =>
+      graphTargetsCoveredByPlanningUnit(unit, graphContext)
+    ));
+    return graphContext.targetGraphNodeIds.filter((target) => !coveredGraphTargets.has(target));
+  }
   const coveredKnowledge = new Set(planningUnits.flatMap((unit) => unit.knowledgeCoverage));
   const coveredCompetencies = new Set(planningUnits.flatMap((unit) => Object.keys(unit.abilityImpact)));
   return [
@@ -2532,6 +2753,30 @@ function uncoveredGoalTargets(nodes: ResourceNode[], goal: AdaptiveLearningPathG
     ),
     ...(goal.competencyTargets ?? []).filter((target) => !coveredCompetencies.has(target)),
   ];
+}
+
+function graphTargetsCoveredByPlanningUnit(
+  planningUnit: PlanningUnit,
+  graphContext: AdaptiveLearningPathGraphContextSummary,
+): string[] {
+  const refs = new Set([
+    ...planningUnit.graphNodeRefs.knowledge,
+    ...planningUnit.graphNodeRefs.capability,
+    ...planningUnit.graphNodeRefs.quality,
+    ...planningUnit.knowledgeCoverage,
+    ...Object.keys(planningUnit.abilityImpact),
+  ]);
+  return graphContext.targetGraphNodeIds.filter((target) => refs.has(target));
+}
+
+function graphTargetsCoveredByScoredNodes(
+  scoredNodes: ScoredNode[],
+  graphContext: AdaptiveLearningPathGraphContextSummary,
+): string[] {
+  return unique(scoredNodes.flatMap((entry) => {
+    const planningUnit = planningUnitForNode(entry.node);
+    return planningUnit ? graphTargetsCoveredByPlanningUnit(planningUnit, graphContext) : [];
+  }));
 }
 
 function shouldRedactBlockedNode(node: ResourceNode, reasonCodes: string[]): boolean {
@@ -2809,6 +3054,7 @@ function buildAlternatives(
   registry: ResourceNodeRegistry,
   eligibleIds: Set<string>,
   goal: AdaptiveLearningPathGoal,
+  graphContext: AdaptiveLearningPathGraphContextSummary | undefined,
   constraints: AdaptiveLearningPathConstraints,
   completedNodeIds: string[],
 ): AdaptiveLearningPathAlternative[] {
@@ -2816,11 +3062,14 @@ function buildAlternatives(
   const nodesById = new Map(registry.nodes.filter((node) => eligibleIds.has(node.id)).map((node) => [node.id, node]));
   const scoredById = new Map(scored.map((entry) => [entry.node.id, entry]));
   const completed = new Set(completedNodeIds);
+  const activeGraphContext = graphContext && graphTargetsCoveredByScoredNodes(scored, graphContext).length > 0
+    ? graphContext
+    : undefined;
   const nonSelected = scored
     .filter((entry) => !selected.has(entry.node.id))
     .slice(0, 8)
     .map((entry) => {
-      const chain = buildCandidateChain(entry, nodesById, scoredById, goal);
+      const chain = buildCandidateChain(entry, nodesById, scoredById, goal, activeGraphContext);
       const blockedByPrerequisite = !chain || !chain.coversGoalTarget;
       const blockedByTerminal = Boolean(chain && chainHasTerminalViolation(chain.entries));
       const remainingMinutes = chain?.entries.reduce(
@@ -2858,21 +3107,31 @@ function buildFallbackReasons(input: {
   mainPathNodes: ScoredNode[];
   constraints: AdaptiveLearningPathConstraints;
   goal: AdaptiveLearningPathGoal;
+  graphContext?: AdaptiveLearningPathGraphContextSummary;
+  hasGraphCandidateCoverage: boolean;
   attemptedCandidates: number;
   policyFamily: AdaptiveLearningPathPolicyFamily;
 }): string[] {
   const reasons: string[] = [];
   const confidence = input.learnerState?.evidence?.confidence;
-  const uncoveredTargets = uncoveredGoalTargets(input.mainPathNodes.map((entry) => entry.node), input.goal);
+  const activeGraphContext = input.hasGraphCandidateCoverage ? input.graphContext : undefined;
+  const uncoveredTargets = uncoveredGoalTargets(
+    input.mainPathNodes.map((entry) => entry.node),
+    input.goal,
+    activeGraphContext,
+  );
   if (!input.learnerState) reasons.push('learner-state-missing');
   if ((confidence?.score ?? 0) < 0.35 || (confidence?.evidenceCount ?? 0) === 0) reasons.push('learner-evidence-low-confidence');
   if (input.deficits.length === 0) reasons.push('learner-deficit-not-detected');
-  if (input.eligible.length === 0 || input.attemptedCandidates === 0 || uncoveredTargets.length > 0) {
+  const hasGraphStarterPath = input.hasGraphCandidateCoverage
+    ? input.mainPathNodes.some((entry) => nodeCoversGoalTarget(entry.node, input.goal, input.graphContext))
+    : input.mainPathNodes.length > 0;
+  if (input.eligible.length === 0 || input.attemptedCandidates === 0 || (!hasGraphStarterPath && uncoveredTargets.length > 0)) {
     reasons.push('resource-mapping-insufficient');
   }
   if (
     input.attemptedCandidates > 0 &&
-    !input.mainPathNodes.some((entry) => nodeCoversGoalTarget(entry.node, input.goal))
+    !input.mainPathNodes.some((entry) => nodeCoversGoalTarget(entry.node, input.goal, activeGraphContext))
   ) {
     reasons.push('feasible-goal-path-missing');
   }
