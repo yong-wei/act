@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
+import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
   buildAdaptivePathLaunchHref,
@@ -55,6 +56,7 @@ import {
 } from '@/lib/adaptive-path-generation-panel';
 import { resolveAdaptivePathExecutionNodeStatus } from '@/lib/adaptive-path-execution-state';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
+import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 
 type PostLearningPathNodeAction = {
   href: string;
@@ -1321,6 +1323,24 @@ export default function AdaptivePracticePage() {
   const isDemoMode = searchParams.get('demo') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
+  const feedbackContext = buildFeedbackTaskContext({
+    assignment: searchParams.get('assignment'),
+    criterion: searchParams.get('criterion'),
+    source: searchParams.get('source'),
+    feedbackSource: searchParams.get('feedbackSource'),
+    status: searchParams.get('status'),
+    action: searchParams.get('action'),
+    returnTo: searchParams.get('returnTo'),
+    intent: searchParams.get('intent'),
+  });
+  const withFeedbackTaskHref = useCallback((href: string, options?: Parameters<typeof buildFeedbackTaskHref>[2]) => (
+    feedbackContext
+      ? buildFeedbackTaskHref(href, feedbackContext, {
+          status: feedbackContext.lifecycleState,
+          ...options,
+        })
+      : href
+  ), [feedbackContext]);
   const requestedGoal = searchParams.get('goal');
   const requestedIntent = searchParams.get('intent');
   const explicitGoal = isAdaptivePracticeGoalId(requestedGoal) ? requestedGoal : null;
@@ -1357,17 +1377,20 @@ export default function AdaptivePracticePage() {
   if (activeGoalQuery && activePathId) activeGoalQuery.set('pathId', activePathId);
   if (activeGoalQuery && activeNodeId) activeGoalQuery.set('nodeId', activeNodeId);
   if (activeGoalQuery && activeOptionId) activeGoalQuery.set('optionId', activeOptionId);
-  const activeGoalContextHref = activeGoal
+  const activeGoalContextHref = withFeedbackTaskHref(activeGoal
     ? `/assessment/adaptive-practice?${activeGoalQuery?.toString() ?? ''}`
-    : '/assessment/adaptive-practice';
+    : '/assessment/adaptive-practice');
   const controlCorrectionQuery = new URLSearchParams({ goal: 'control-correction', intent: routeIntent });
   if (activePathId) controlCorrectionQuery.set('pathId', activePathId);
   if (activeNodeId) controlCorrectionQuery.set('nodeId', activeNodeId);
   if (activeOptionId) controlCorrectionQuery.set('optionId', activeOptionId);
-  const controlCorrectionContextHref = `/assessment/adaptive-practice?${controlCorrectionQuery.toString()}`;
+  const controlCorrectionContextHref = withFeedbackTaskHref(`/assessment/adaptive-practice?${controlCorrectionQuery.toString()}`);
   const controlCorrectionGenerationHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';
   const frequencyResponseGenerationHref = '/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation';
   const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';
+  const feedbackControlCorrectionGenerationHref = withFeedbackTaskHref(controlCorrectionGenerationHref);
+  const feedbackFrequencyResponseGenerationHref = withFeedbackTaskHref(frequencyResponseGenerationHref);
+  const feedbackGenericPathGenerationHref = withFeedbackTaskHref(genericPathGenerationHref);
   const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoalContextHref)}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
   const { assistantEntryPoint, openAssistantEntryPoint, updatePageContext } = useGlobalAI();
@@ -1896,7 +1919,7 @@ export default function AdaptivePracticePage() {
           ? payload.result.pathId
           : currentPathId;
         if (generatedPathId) selectionQuery.set('pathId', generatedPathId);
-        window.location.assign(`/assessment/adaptive-practice?${selectionQuery.toString()}`);
+        window.location.assign(withFeedbackTaskHref(`/assessment/adaptive-practice?${selectionQuery.toString()}`));
         return;
       }
       const rationale = Array.isArray(payload.result?.studentSafeRationale)
@@ -1924,6 +1947,7 @@ export default function AdaptivePracticePage() {
     pathOptions,
     refreshLatestLearningPathAfterKonling,
     routeIntent,
+    withFeedbackTaskHref,
   ]);
 
   const submitPathChoice = useCallback(async (
@@ -1961,7 +1985,7 @@ export default function AdaptivePracticePage() {
           ? pathUpdate.currentNodeId
           : option.activeNodeIds?.[0] ?? option.nodeIds?.[0] ?? controlCorrectionPathPlan?.currentNodeId ?? controlCorrectionPathRound?.currentNodeId;
         if (currentNodeId) executionQuery.set('nodeId', currentNodeId);
-        window.location.assign(`/assessment/adaptive-practice?${executionQuery.toString()}`);
+        window.location.assign(withFeedbackTaskHref(`/assessment/adaptive-practice?${executionQuery.toString()}`));
         return;
       }
       setPathChoiceMessage('路径选择证据已记录。');
@@ -1977,6 +2001,7 @@ export default function AdaptivePracticePage() {
     pathOptions,
     pathSelectionHistory,
     reloadControlCorrectionPath,
+    withFeedbackTaskHref,
   ]);
 
   const launchPathNodeAction = useCallback(async (action: PostLearningPathNodeAction) => {
@@ -1991,11 +2016,11 @@ export default function AdaptivePracticePage() {
         const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径节点启动失败');
       }
-      window.location.assign(action.redirectHref);
+      window.location.assign(withFeedbackTaskHref(action.redirectHref));
     } catch (launchError) {
       setError(launchError instanceof Error ? launchError.message : '路径节点启动失败');
     }
-  }, []);
+  }, [withFeedbackTaskHref]);
 
   const launchPathNode = useCallback(async (node: PracticeEntryRouteNode) => {
     if (!isPostLearningPathNodeAction(node.action)) return;
@@ -2134,14 +2159,14 @@ export default function AdaptivePracticePage() {
       'started',
     );
     if (!activityWritten) return;
-    window.location.assign(pathNodeContextHref(node, {
+    window.location.assign(withFeedbackTaskHref(pathNodeContextHref(node, {
       goalId: resolveAdaptivePracticeGoalId(
         controlCorrectionPathPlan?.goal.id ?? controlCorrectionPathRound?.goalId ?? activeGoal,
         activeGoal ?? 'control-correction',
       ),
       pathId: controlCorrectionPathPlan?.id ?? controlCorrectionPathRound?.id,
-    }));
-  }, [activeGoal, controlCorrectionPathPlan, controlCorrectionPathRound, writePathNodeActivity]);
+    })));
+  }, [activeGoal, controlCorrectionPathPlan, controlCorrectionPathRound, withFeedbackTaskHref, writePathNodeActivity]);
 
   const retryNextQuestion = useCallback(async () => {
     setPracticeQuestionExpanded(true);
@@ -2307,7 +2332,9 @@ export default function AdaptivePracticePage() {
             id: 'adaptive-path-konling',
             label: '控灵助手',
             control: 'konling',
-            href: pathAdvisorContextGoal ? `/assessment/adaptive-practice?goal=${pathAdvisorContextGoal}&intent=contextual-recommendation` : genericPathGenerationHref,
+            href: pathAdvisorContextGoal
+              ? withFeedbackTaskHref(`/assessment/adaptive-practice?goal=${pathAdvisorContextGoal}&intent=contextual-recommendation`)
+              : feedbackGenericPathGenerationHref,
             icon: <BrainCircuit className="h-4 w-4 text-primary" />,
           },
           {
@@ -2339,6 +2366,7 @@ export default function AdaptivePracticePage() {
           data-learner-record-evidence-confidence={controlCorrectionCenter?.nextAction.confidence ?? 'unknown'}
           data-learner-record-evidence-need={controlCorrectionCenter?.readinessGate.missing.length ? 'learning-task-evidence-needed' : 'generic-path-center'}
         >
+          <StudentFeedbackTaskPanel context={feedbackContext} surface="adaptive-practice" />
           {controlCorrectionCenter ? (
             <span
               className="sr-only"
@@ -2376,7 +2404,7 @@ export default function AdaptivePracticePage() {
                   </button>
                 ) : (
                   <Link
-                    href={genericPathGenerationHref}
+                    href={feedbackGenericPathGenerationHref}
                     data-adaptive-path-generation-action="choose-generation-goal"
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
                   >
@@ -2470,7 +2498,7 @@ export default function AdaptivePracticePage() {
                         </button>
                       ) : canOpenNextPathAction ? (
                         <Link
-                          href={nextPathAction.href}
+                          href={withFeedbackTaskHref(nextPathAction.href)}
                           className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
                         >
                           <ExternalLink className="size-3.5" aria-hidden="true" />
@@ -2714,7 +2742,7 @@ export default function AdaptivePracticePage() {
                   面向时域指标、根轨迹设计、仿真验证和 Arena 迁移，适合生成可执行的校正学习路径。
                 </p>
                 <Link
-                  href={controlCorrectionGenerationHref}
+                  href={feedbackControlCorrectionGenerationHref}
                   data-adaptive-path-generation-action="enter-registered-goal-context"
                   className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
                 >
@@ -2741,7 +2769,7 @@ export default function AdaptivePracticePage() {
                   面向 Bode 图、频域稳定性和基础练习，适合先补齐学习证据，再进入可比较路径。
                 </p>
                 <Link
-                  href={frequencyResponseGenerationHref}
+                  href={feedbackFrequencyResponseGenerationHref}
                   data-adaptive-path-generation-action="enter-registered-goal-context"
                   className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
                 >
@@ -3374,7 +3402,7 @@ export default function AdaptivePracticePage() {
                           <span className="text-xs text-subtle">{item.createdAt}</span>
                           {item.nodeId && activeExecutionPathId && pathExecutionNodes.some((node) => node.nodeId === item.nodeId) ? (
                             <Link
-                              href={`/assessment/adaptive-practice?goal=${encodeURIComponent(activeExecutionGoalId)}&intent=path-execution&pathId=${encodeURIComponent(activeExecutionPathId)}&nodeId=${encodeURIComponent(item.nodeId)}`}
+                              href={withFeedbackTaskHref(`/assessment/adaptive-practice?goal=${encodeURIComponent(activeExecutionGoalId)}&intent=path-execution&pathId=${encodeURIComponent(activeExecutionPathId)}&nodeId=${encodeURIComponent(item.nodeId)}`)}
                               className="rounded-md border border-border px-2 py-1 text-xs text-foreground hover:border-primary"
                             >
                               查看节点

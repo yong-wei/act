@@ -18,6 +18,9 @@ export interface EvidenceTimelineFilters {
   factType?: string;
   outcome?: string;
   sessionId?: string;
+  assignment?: string;
+  criterion?: string;
+  assignmentSource?: string;
 }
 
 export interface EvidenceTimelineCursor {
@@ -156,6 +159,9 @@ export function parseEvidenceTimelineFilters(searchParams: URLSearchParams): Evi
     factType: readSearchString(searchParams.get('factType')),
     outcome: readSearchString(searchParams.get('outcome')),
     sessionId: readSearchString(searchParams.get('sessionId')),
+    assignment: readSearchString(searchParams.get('assignment')),
+    criterion: readSearchString(searchParams.get('criterion')),
+    assignmentSource: readSearchString(searchParams.get('feedbackSource') ?? searchParams.get('source')),
   });
 }
 
@@ -273,9 +279,30 @@ function buildLearningFactWhere(
   if (filters.outcome) where.outcome = filters.outcome;
   if (filters.sessionId) where.sessionId = filters.sessionId;
 
+  const scopedConditions: Prisma.LearningFactWhereInput[] = [];
+  if (filters.assignment) {
+    scopedConditions.push({ contextJson: { path: ['assignmentId'], equals: filters.assignment } });
+  }
+  if (filters.criterion) {
+    scopedConditions.push({ contextJson: { path: ['criterionId'], equals: filters.criterion } });
+  }
+  if (filters.assignmentSource) {
+    const sourceConditions: Prisma.LearningFactWhereInput[] = [
+      { contextJson: { path: ['source'], equals: filters.assignmentSource } },
+      { contextJson: { path: ['feedbackSource'], equals: filters.assignmentSource } },
+      { contextJson: { path: ['gradingRunId'], equals: filters.assignmentSource } },
+    ];
+    if (filters.assignmentSource === 'document-feedback' && filters.assignment && filters.criterion) {
+      sourceConditions.push({ factType: 'document_rubric_grading' });
+    }
+    scopedConditions.push({
+      OR: sourceConditions,
+    });
+  }
+
   const cursor = decodeCursor(filters.cursor);
   if (cursor) {
-    where.AND = [
+    scopedConditions.push(
       {
         OR: [
           { startedAt: { lt: new Date(cursor.startedAt) } },
@@ -290,7 +317,11 @@ function buildLearningFactWhere(
           },
         ],
       },
-    ];
+    );
+  }
+
+  if (scopedConditions.length > 0) {
+    where.AND = scopedConditions;
   }
 
   return where;
@@ -692,6 +723,9 @@ function normalizeFilters(filters: EvidenceTimelineFilters): EvidenceTimelineFil
     factType: readSearchString(filters.factType),
     outcome: readSearchString(filters.outcome),
     sessionId: readSearchString(filters.sessionId),
+    assignment: readSearchString(filters.assignment),
+    criterion: readSearchString(filters.criterion),
+    assignmentSource: readSearchString(filters.assignmentSource),
   });
 }
 

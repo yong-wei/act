@@ -28,6 +28,11 @@ interface EvidenceTimelineBrowserProps {
   contextBadges?: string[];
   initialLessonId?: string;
   initialSessionId?: string;
+  assignment?: string;
+  criterion?: string;
+  assignmentStatus?: string;
+  assignmentSource?: string;
+  returnTo?: string;
   title: string;
   subtitle?: string;
 }
@@ -36,6 +41,11 @@ export interface EvidenceTimelineBrowserUrlFilters {
   dimension?: string;
   lessonId?: string;
   sessionId?: string;
+  assignment?: string;
+  criterion?: string;
+  assignmentStatus?: string;
+  assignmentSource?: string;
+  returnTo?: string;
   factType?: string;
   outcome?: string;
   cursor?: string | null;
@@ -46,6 +56,11 @@ export function buildEvidenceTimelineBrowserUrl(apiPath: string, filters: Eviden
   if (filters.dimension) params.set('dimension', filters.dimension);
   if (filters.lessonId?.trim()) params.set('lessonId', filters.lessonId.trim());
   if (filters.sessionId?.trim()) params.set('sessionId', filters.sessionId.trim());
+  if (filters.assignment?.trim()) params.set('assignment', filters.assignment.trim());
+  if (filters.criterion?.trim()) params.set('criterion', filters.criterion.trim());
+  if (filters.assignmentStatus?.trim()) params.set('status', filters.assignmentStatus.trim());
+  if (filters.assignmentSource?.trim()) params.set('source', filters.assignmentSource.trim());
+  if (filters.returnTo?.trim()) params.set('returnTo', filters.returnTo.trim());
   if (filters.factType) params.set('factType', filters.factType);
   if (filters.outcome) params.set('outcome', filters.outcome);
   if (filters.cursor) params.set('cursor', filters.cursor);
@@ -60,6 +75,11 @@ export function EvidenceTimelineBrowser({
   contextBadges = [],
   initialLessonId,
   initialSessionId,
+  assignment,
+  criterion,
+  assignmentStatus,
+  assignmentSource,
+  returnTo,
   title,
   subtitle,
 }: EvidenceTimelineBrowserProps) {
@@ -87,9 +107,14 @@ export function EvidenceTimelineBrowser({
       sessionId,
       factType,
       outcome,
+      assignment,
+      criterion,
+      assignmentStatus,
+      assignmentSource,
+      returnTo,
       cursor,
     });
-  }, [apiPath, dimension, factType, lessonId, outcome, sessionId]);
+  }, [apiPath, assignment, assignmentSource, assignmentStatus, criterion, dimension, factType, lessonId, outcome, returnTo, sessionId]);
 
   const loadPage = useCallback(async (cursor?: string | null) => {
     const requestId = requestSequenceRef.current + 1;

@@ -147,3 +147,10 @@ API 关键结果：
 
 - 404 已关闭：治理 `riskId`、`assign/resolve/export` 均进入对象化动作状态；export 提供文件名与下载入口。
 - 405 已关闭：配置 `audit/model-test` 参数由模型测试状态面板承接，缺失 provider/model 有明确恢复路径。
+
+## #619 学生反馈闭环整改记录（2026-06-22）
+
+整改变更：`audit-remediation-student-learning-closure`。证据：`../remediation/audit-remediation-student-learning-closure/evidence.md`。
+
+- 395/396/397 的学生反馈链路已关闭：报告反馈、证据、成长、作品集、任务大厅、自适应练习、仿真任务和资源详情共用反馈任务上下文，并保留 assignment、criterion、status 和 returnTo；资源完成回到报告反馈并进入 completed/待写回状态，不伪造已持久化写回。
+- 400/401 的反馈收录相关部分已关闭：作品集在 `assignment=report-control-design&intent=collect` 下生成候选草稿，避免把候选误报为已保存档案。

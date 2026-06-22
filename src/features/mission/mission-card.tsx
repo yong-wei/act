@@ -31,6 +31,7 @@ export interface MissionData {
 
 interface MissionCardProps {
   mission: MissionData;
+  launchHref?: string;
   onStart?: (missionId: string) => void;
 }
 
@@ -79,7 +80,7 @@ const statusConfig = {
   },
 };
 
-export function MissionCard({ mission, onStart }: MissionCardProps) {
+export function MissionCard({ mission, launchHref, onStart }: MissionCardProps) {
   const difficulty = difficultyConfig[mission.difficulty];
   const status = statusConfig[mission.status];
   const isPlayable = mission.status !== 'LOCKED';
@@ -191,7 +192,7 @@ export function MissionCard({ mission, onStart }: MissionCardProps) {
 
   if (isPlayable) {
     return (
-      <Link href={`/simulations/destroyer?mission=${mission.id}`} prefetch={false} className="block">
+      <Link href={launchHref ?? `/simulations/destroyer?mission=${mission.id}`} prefetch={false} className="block">
         {cardContent}
       </Link>
     );

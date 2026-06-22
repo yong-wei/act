@@ -4,6 +4,7 @@ import type { LearningFact } from '@prisma/client';
 import {
   createEvidenceTimelineCursor,
   listEvidenceTimeline,
+  parseEvidenceTimelineFilters,
 } from '../evidence-timeline';
 
 function fact(overrides: Partial<LearningFact> = {}): LearningFact {
@@ -58,6 +59,21 @@ function response(overrides: Record<string, unknown> = {}) {
 }
 
 describe('evidence timeline browser', () => {
+  it('prefers feedbackSource over launch source when parsing assignment filters', () => {
+    const filters = parseEvidenceTimelineFilters(new URLSearchParams({
+      assignment: 'report-1',
+      criterion: 'validation',
+      source: 'adaptive-path-center',
+      feedbackSource: 'document-feedback',
+    }));
+
+    expect(filters).toMatchObject({
+      assignment: 'report-1',
+      criterion: 'validation',
+      assignmentSource: 'document-feedback',
+    });
+  });
+
   it('returns newest-first timeline items with 5-2 rich submission summaries', async () => {
     const db = {
       learningFact: {
@@ -121,6 +137,132 @@ describe('evidence timeline browser', () => {
       ],
     });
     expect(page.nextCursor).toBeTruthy();
+  });
+
+  it('scopes feedback assignment evidence by assignment, criterion, and source fields', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'feedback-fact',
+            contextJson: {
+              assignmentId: 'report-control-design',
+              criterionId: 'simulation-evidence',
+              source: 'batch59',
+            },
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: {
+        assignment: 'report-control-design',
+        criterion: 'simulation-evidence',
+        assignmentSource: 'batch59',
+      },
+    });
+
+    expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'student-1',
+        AND: expect.arrayContaining([
+          { contextJson: { path: ['assignmentId'], equals: 'report-control-design' } },
+          { contextJson: { path: ['criterionId'], equals: 'simulation-evidence' } },
+          expect.objectContaining({
+            OR: expect.arrayContaining([
+              { contextJson: { path: ['source'], equals: 'batch59' } },
+              { contextJson: { path: ['feedbackSource'], equals: 'batch59' } },
+              { contextJson: { path: ['gradingRunId'], equals: 'batch59' } },
+            ]),
+          }),
+        ]),
+      }),
+    }));
+    expect(page.items.map((item) => item.id)).toEqual(['feedback-fact']);
+  });
+
+  it('keeps legacy document feedback facts visible when source markers are missing', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'legacy-document-feedback-fact',
+            factType: 'document_rubric_grading',
+            contextJson: {
+              assignmentId: 'report-control-design',
+              criterionId: 'simulation-evidence',
+              gradingRunId: 'grading-run-1',
+            },
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: {
+        assignment: 'report-control-design',
+        criterion: 'simulation-evidence',
+        assignmentSource: 'document-feedback',
+      },
+    });
+
+    expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        AND: expect.arrayContaining([
+          { contextJson: { path: ['assignmentId'], equals: 'report-control-design' } },
+          { contextJson: { path: ['criterionId'], equals: 'simulation-evidence' } },
+          expect.objectContaining({
+            OR: expect.arrayContaining([
+              { factType: 'document_rubric_grading' },
+            ]),
+          }),
+        ]),
+      }),
+    }));
+    expect(page.items.map((item) => item.id)).toEqual(['legacy-document-feedback-fact']);
+  });
+
+  it('does not broaden document feedback legacy fallback without assignment and criterion', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: {
+        assignment: 'report-control-design',
+        assignmentSource: 'document-feedback',
+      },
+    });
+    await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: {
+        assignmentSource: 'document-feedback',
+      },
+    });
+
+    for (const call of db.learningFact.findMany.mock.calls) {
+      const sourceCondition = call[0].where.AND?.find((condition: { OR?: unknown[] }) => condition.OR);
+      expect(sourceCondition?.OR).not.toContainEqual({ factType: 'document_rubric_grading' });
+    }
   });
 
   it('redacts raw question answers from teacher evidence timeline summaries', async () => {

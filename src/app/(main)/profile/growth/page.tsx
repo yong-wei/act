@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Radar,
@@ -27,8 +27,10 @@ import {
 } from 'recharts';
 import { AppShell } from '@/components/platform/app-shell';
 import { UserMenu } from '@/components/shared/user-menu';
+import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
+import { buildFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
 import { getCompetencyLabel, COMPETENCY_DIMENSIONS } from '@/lib/data-governance/competency-model';
 import type { CompetencyVector, TrendVector } from '@/lib/data-governance/competency-model';
 import type { RoleBasedLearningDiagnosis } from '@/lib/data-governance/role-based-learning-diagnosis';
@@ -91,6 +93,7 @@ const learnerDataShell = buildLearnerDataRouteShell('/profile/growth');
 
 export default function GrowthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const sessionData = useSession();
   const session = sessionData?.data;
   const status = sessionData?.status ?? 'loading';
@@ -224,6 +227,16 @@ export default function GrowthPage() {
   const hasCompetencyChartData = (snapshot?.currentSnapshot?.factCount ?? 0) > 0
     && barData.some((entry) => entry.score > 0 || entry.confidence > 0);
   const groupedGrowthRecords = groupGrowthTimelineRecords(growthRecords);
+  const feedbackContext = buildFeedbackTaskContext({
+    assignment: searchParams.get('assignment'),
+    criterion: searchParams.get('criterion'),
+    source: searchParams.get('source'),
+    feedbackSource: searchParams.get('feedbackSource'),
+    status: searchParams.get('status'),
+    action: searchParams.get('action'),
+    returnTo: searchParams.get('returnTo'),
+    intent: searchParams.get('intent'),
+  });
 
   return (
     <AppShell
@@ -261,6 +274,7 @@ export default function GrowthPage() {
         data-learner-record-evidence-confidence={hasCompetencyChartData ? 'medium' : 'low'}
         data-learner-record-missing-source={hasCompetencyChartData ? 'complete' : 'missing-evidence'}
       >
+        <StudentFeedbackTaskPanel context={feedbackContext} surface="growth" className="mb-6" />
         {/* Top Cards */}
         <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* Learning Stage Card */}

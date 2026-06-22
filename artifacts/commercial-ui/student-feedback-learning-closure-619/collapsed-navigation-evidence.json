@@ -1,0 +1,22 @@
+{
+  "id": "student-feedback-learning-closure-619-collapsed-navigation",
+  "createdAt": "2026-06-22T14:16:00.000+08:00",
+  "change": "audit-remediation-student-learning-closure",
+  "purpose": "Structured desktop-collapsed navigation evidence for the student feedback task routes touched by issue 619.",
+  "routes": [
+    {
+      "href": "/missions",
+      "width": 1440,
+      "navigationState": "desktop-collapsed",
+      "routeFile": "src/app/(main)/missions/page.tsx",
+      "routeArchetype": "mission-workspace"
+    },
+    {
+      "href": "/profile/portfolio",
+      "width": 1440,
+      "navigationState": "desktop-collapsed",
+      "routeFile": "src/app/(main)/profile/portfolio/page.tsx",
+      "routeArchetype": "report-ledger"
+    }
+  ]
+}

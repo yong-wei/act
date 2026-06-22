@@ -125,3 +125,12 @@
 - 439 已关闭：用户重置/导出深链不再忽略筛选；导出按钮使用当前 `q/role` 过滤并通过服务端导出完整筛选集 CSV。
 - 440 已关闭：治理分派校验缺失 risk/assignee，真实分派写入风险审计；治理导出提供 JSON/CSV/XLSX 文件名、下载入口和审计摘要。
 - 441 已关闭：已知 provider 下缺失 model 显示 blocked 模型测试状态和恢复动作。
+
+## #619 学生反馈闭环整改记录（2026-06-22）
+
+整改变更：`audit-remediation-student-learning-closure`。证据：`../remediation/audit-remediation-student-learning-closure/evidence.md`。
+
+- 432 已关闭：报告反馈页将 `action=adopt`、`intent=revise` 和 completed 状态映射为 adopted、revising、completed 等可见状态；`action=writeback` 只进入待写回，只有 `status=written-back/teacher-visible` 才展示成功。
+- 433 已关闭：任务大厅页面/API 解析反馈 assignment/status/returnTo，并通过显式 assignment→mission order 映射收敛 PID 补强任务和返回路径。
+- 434 已关闭：作品集收录入口生成反馈候选草稿，显示来源、候选状态和返回报告反馈路径。
+- 442 的学生反馈任务状态部分已关闭：学生反馈目标页统一接入动作状态面板；教师、管理员和统计导出状态继续按对应变更跟踪。
