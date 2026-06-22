@@ -1337,7 +1337,7 @@ export function buildMediaSourceManifestSemanticProjection(
     id: resourceId,
     resourceNodeId: resourceId,
     title: manifest.title ?? manifest.sourceId,
-    type: manifest.mediaType,
+    type: resourceNodeTypeForMediaManifest(manifest.mediaType),
     sourceKind: 'media_source_manifest',
     sourceRefs,
     contentHash: manifest.contentHash ?? null,
@@ -2702,6 +2702,12 @@ function hasFiniteMediaTimecode(segment: ResourceMediaManifestSegment): boolean 
 
 function isNonEmptyString(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+function resourceNodeTypeForMediaManifest(
+  mediaType: ResourceMediaSourceManifest['mediaType'],
+): ResourceNodeType {
+  return mediaType === 'image' ? 'external_resource' : mediaType;
 }
 
 function isMediaCitationPolicy(value: unknown): value is NonNullable<ResourceMediaManifestSegment['citationPolicy']> {

@@ -1853,6 +1853,8 @@ describe('resource node registry', () => {
         },
       ],
     });
+    expect(imageProjection.resource.type).toBe('external_resource');
+    expect(imageProjection.segments[0].kind).toBe('image');
     expect(imageProjection.resource.graphProfile.citationReadiness).toMatchObject({
       status: 'missing-transcript-or-anchor',
       verified: false,
