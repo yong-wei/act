@@ -2002,6 +2002,33 @@ describe('resource node registry', () => {
 
     expect(nonArraySegmentsProjection.resource.governance.auditIssueCodes).toContain('missing-segments');
     expect(nonArraySegmentsProjection.retrievalChunks).toEqual([]);
+
+    const missingSceneProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/media:missing-scene',
+      sourcePath: 'course-content/authoring/media/missing-scene.png',
+      mediaType: 'image',
+      sourceVersionRef: 'media.v1',
+      privacyScope: 'student-visible',
+      descriptionRef: 'media/missing-scene.md',
+      segments: [
+        {
+          id: 'image',
+          anchorRef: 'image:missing-scene',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          citationPolicy: 'verified-citation-required',
+          aiUsePermission: 'allowed',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+
+    expect(missingSceneProjection.segments[0].citationReadiness.limitations).toContain('missing-scene-availability');
+    expect(missingSceneProjection.segments[0].sceneAvailability.konling).toEqual({
+      allowed: false,
+      reason: 'not-declared',
+    });
+    expect(missingSceneProjection.resource.graphProfile.governanceLimitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'segments.0.missing-scene-availability' }),
+    ]));
   });
 
   it('blocks admin-scoped resources from learner-facing resource segment scenes', () => {

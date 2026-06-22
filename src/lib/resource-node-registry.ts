@@ -2697,13 +2697,14 @@ function buildMediaSegmentSceneAvailability(
 ): ResourceSceneAvailabilityMap {
   const blocked = issues.includes('blocked-ai-use');
   const missingAiUse = issues.includes('missing-ai-use-permission');
+  const declaredSceneAvailability = segment.sceneAvailability ?? {};
   return Object.fromEntries(RESOURCE_SEGMENT_SCENES.map((scene) => {
     if (scene === 'path') {
       return [scene, { allowed: false, reason: 'resource-node-planning-audit-required' }];
     }
     if (blocked) return [scene, { allowed: false, reason: 'blocked-ai-use' }];
     if (missingAiUse) return [scene, { allowed: false, reason: 'missing-ai-use-permission' }];
-    const declared = segment.sceneAvailability[scene];
+    const declared = declaredSceneAvailability[scene];
     return [
       scene,
       declared ?? { allowed: false, reason: 'not-declared' },
