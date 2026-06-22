@@ -1515,6 +1515,9 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
       const routeTarget = projection.routeTarget ?? null;
       const capabilityTargets = uniqueSorted(projection.graphNodeRefs?.capability ?? []);
       const resourceType = runtimeProjectionResourceNodeType(projection.resourceType);
+      const renderTarget = projection.projectionLevel === 'ResourceNode' || projection.projectionLevel === 'PlanningUnit'
+        ? routeTarget
+        : projection.renderTarget ?? routeTarget;
 
       return createNode({
         id: projection.resourceNodeId ?? projection.id,
@@ -1523,7 +1526,7 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
         sourceKind: projection.sourceKind,
         sourceRef: projection.sourceRecord ?? projection.sourceRef,
         sourceRefs: [{ kind: projection.sourceKind, ref: projection.sourceRef }],
-        renderTarget: routeTarget,
+        renderTarget,
         launchTarget: routeTarget,
         knowledgeCoverage: projection.graphNodeRefs?.knowledge ?? [],
         sourceOfRecord: {

@@ -35,6 +35,7 @@ interface RuntimeInteractiveManifest {
   };
   steps?: Record<string, {
     title?: string;
+    duration_minutes?: number | null;
     modules?: RuntimeInteractiveModule[];
     telemetry_spec?: unknown;
     ai_context_spec?: unknown;
@@ -290,6 +291,7 @@ async function collectRuntimeManifestCandidates() {
         segmentRefs: [stepId],
         citationTargets: [],
         pathTarget: verifiedStepPath,
+        estimatedTimeMinutes: normalizeEstimatedTimeMinutes(step.duration_minutes),
         evidenceInstrumentation: step.telemetry_spec ? ['interactive_step_event'] : [],
         privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
         generatedBy: step.ai_context_spec ? 'template' : null,
@@ -374,6 +376,10 @@ function inferRouteSegmentFromLessonId(lessonId: string, routeSegments: Readonly
   const normalized = lessonId.startsWith('unit-') ? lessonId : `unit-${lessonId}`;
   const matches = Array.from(routeSegments).filter((segment) => segment === lessonId || segment.startsWith(`${normalized}-`));
   return matches.length === 1 ? matches[0] : null;
+}
+
+function normalizeEstimatedTimeMinutes(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
 }
 
 function isVerifiedInteractiveCoursePath(pathTarget: string | null | undefined, routeIndex: InteractiveCourseRouteIndex) {

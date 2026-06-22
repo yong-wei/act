@@ -1252,10 +1252,22 @@ describe('resource node registry', () => {
           routeTarget: null,
           renderTarget: 'course-content/runtime/lessons/unit-demo/interactive-manifest.json',
         }),
+        runtimeProjectionSidecar({
+          id: 'runtime-step:unit-demo:planning-no-route',
+          resourceNodeId: 'lesson-step:unit-demo:planning-no-route',
+          title: '缺少真实路由的规划步骤',
+          sourceRef: 'unit-demo:planning-no-route',
+          sourceRecord: 'unit-demo:planning-no-route',
+          projectionLevel: 'PlanningUnit',
+          routeTarget: null,
+          renderTarget: 'course-content/runtime/lessons/unit-demo/interactive-manifest.json',
+        }),
       ],
     });
     const node = registry.nodes.find((item) => item.id === 'lesson-step:unit-demo:no-route') as ResourceNode;
+    const planningNode = registry.nodes.find((item) => item.id === 'lesson-step:unit-demo:planning-no-route') as ResourceNode;
     const projection = buildResourceSemanticProjection(node);
+    const planningProjection = buildResourceSemanticProjection(planningNode);
 
     expect(node.renderTarget).toBeNull();
     expect(node.launchTarget).toBeNull();
@@ -1269,6 +1281,13 @@ describe('resource node registry', () => {
       'missing-render-or-launch-target',
       'missing-runtime-projection-route-target',
     ]));
+    expect(planningNode.renderTarget).toBeNull();
+    expect(planningNode.launchTarget).toBeNull();
+    expect(planningNode.eligibility.auditIssues).toContainEqual(expect.objectContaining({
+      code: 'missing-runtime-projection-route-target',
+      severity: 'blocking',
+    }));
+    expect(planningProjection.planningUnit).toBeNull();
   });
 
   it('attaches ResourceSegment runtime sidecars to existing runtime resources as planning blockers', () => {
@@ -1384,6 +1403,61 @@ describe('resource node registry', () => {
       'missing-capability-mapping',
       'provisional-runtime-projection',
     ]));
+  });
+
+  it('keeps ResourceSegment sidecar render targets without treating them as launch targets', () => {
+    const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: [
+        runtimeProjectionSidecar({
+          id: 'infograph:kn-demo',
+          resourceNodeId: null,
+          title: '知识图谱信息图',
+          resourceType: 'image',
+          sourceKind: 'knowledge_graph',
+          sourceRef: 'kn-demo',
+          sourceRecord: 'kn-demo',
+          projectionLevel: 'ResourceSegment',
+          routeTarget: null,
+          renderTarget: '/course-runtime/knowledge/infographs/nodes/kn-demo.png',
+          sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+          graphNodeRefs: {
+            knowledge: ['kn-demo'],
+            capability: ['controlModeling'],
+            quality: [],
+          },
+          reviewAudit: {
+            status: 'generated-provisional',
+            reviewerId: null,
+            reviewerRole: null,
+            reviewedAt: null,
+            reviewBatchId: null,
+            reviewedSourceHash: null,
+            reviewedVersionRef: 'knowledge-infograph-manifest.v1',
+            generationToolOrModel: 'template',
+            promptOrManifestHash: null,
+            confidence: null,
+            staleInvalidationRule: 'requires human review before path eligibility or mastery effect',
+          },
+        }),
+      ],
+    });
+    const node = registry.nodes.find((item) => item.id === 'infograph:kn-demo') as ResourceNode;
+    const projection = buildResourceSemanticProjection(node);
+
+    expect(node.renderTarget).toBe('/course-runtime/knowledge/infographs/nodes/kn-demo.png');
+    expect(node.launchTarget).toBeNull();
+    expect(node.eligibility.auditIssues).not.toContainEqual(expect.objectContaining({
+      code: 'missing-render-or-launch-target',
+    }));
+    expect(node.eligibility.auditIssues).toContainEqual(expect.objectContaining({
+      code: 'runtime-projection-not-path-resource',
+      severity: 'blocking',
+    }));
+    expect(projection.planningUnit).toBeNull();
+    expect(projection.citationTargets).toContainEqual(expect.objectContaining({
+      target: '/course-runtime/knowledge/infographs/nodes/kn-demo.png',
+      status: 'resolvable',
+    }));
   });
 
   it('maps path-eligible ResourceNodes into PlanningUnits through audited planning metadata', () => {

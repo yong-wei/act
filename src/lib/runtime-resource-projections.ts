@@ -135,7 +135,7 @@ function rowToRuntimeProjection(
       : null,
     renderTarget: row.pathTarget ?? row.sourcePathOrUrl,
     graphNodeRefs: normalizeGraphNodeRefs(row.graphNodeRefs),
-    estimatedTimeMinutes: null,
+    estimatedTimeMinutes: row.estimatedTimeMinutes,
     evidenceInstrumentation: evidenceInstrumentationFromContract(row.evidenceContract, row.family),
     privacyScope: privacyScopeFromContract(row.evidenceContract),
     teacherPolicy: 'allowed',

@@ -127,6 +127,7 @@ describe('runtime resource projections', () => {
       sourceVersionRef: 'interactive-manifest.v2',
       routeTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step-1',
       renderTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step-1',
+      estimatedTimeMinutes: 8,
       graphNodeRefs: {
         knowledge: ['kn-demo'],
         capability: ['controlModeling'],

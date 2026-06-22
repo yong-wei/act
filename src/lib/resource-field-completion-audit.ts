@@ -140,6 +140,7 @@ export interface ResourceFieldCompletionAuditRow {
   sourcePathOrUrl: string | null;
   sourceRecord: string | null;
   pathTarget: string | null;
+  estimatedTimeMinutes: number | null;
   sourceHash: string | null;
   sourceVersionRef: string | null;
   citationTargets: string[];
@@ -364,6 +365,7 @@ function rowFromResourceNode(
     sourceHash,
     sourceVersionRef: RESOURCE_NODE_REGISTRY_VERSION,
     pathTarget: node.launchTarget ?? node.renderTarget,
+    estimatedTimeMinutes: node.planningMetadata.estimatedTimeMinutes,
     citationTargets: projection.citationTargets.map((target) => target.target).filter((value): value is string => Boolean(value)),
     graphNodeRefs: {
       knowledge: node.planningMetadata.knowledgeCoverage,
@@ -441,6 +443,7 @@ function rowFromCandidate(
     sourceHash: candidate.contentHash ?? null,
     sourceVersionRef: candidate.versionRef ?? null,
     pathTarget: candidate.pathTarget ?? null,
+    estimatedTimeMinutes: candidate.estimatedTimeMinutes ?? null,
     citationTargets: candidate.citationTargets ?? [],
     graphNodeRefs: {
       knowledge: candidate.knowledgeNodeIds ?? [],
@@ -473,6 +476,7 @@ function buildRow(input: {
   sourceHash: string | null;
   sourceVersionRef: string | null;
   pathTarget: string | null;
+  estimatedTimeMinutes: number | null;
   citationTargets: string[];
   graphNodeRefs: ResourceGraphNodeRefs;
   sourceWindow: ResourceFieldSourceWindow;
@@ -498,6 +502,7 @@ function buildRow(input: {
     sourcePathOrUrl: input.sourcePathOrUrl,
     sourceRecord: input.sourceRecord,
     pathTarget: input.pathTarget,
+    estimatedTimeMinutes: input.estimatedTimeMinutes,
     sourceHash: input.sourceHash,
     sourceVersionRef: input.sourceVersionRef,
     citationTargets: uniqueSorted(input.citationTargets),
