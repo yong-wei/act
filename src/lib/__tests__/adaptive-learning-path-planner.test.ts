@@ -468,7 +468,7 @@ describe('adaptive learning path planner', () => {
               minimumCompetency: {},
               minimumEvidenceCount: 1,
               requiredCompletedNodeIds: [],
-              requiredOutcomeRefs: [],
+              requiredOutcomeRefs: ['outcome:legacy-high-score'],
               unlockMessage: '需要先完成一次基础练习。',
               fallbackNodeIds: [],
             },
@@ -714,6 +714,181 @@ describe('adaptive learning path planner', () => {
 
     expect(freshnessById.get('knowledge-card:overview')).toBe(0.15);
     expect(freshnessById.get('knowledge-card:versioned')).toBe(0.5);
+  });
+
+  it('scores readiness by satisfied learner and constraint state', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'readiness-prep',
+          label: '准备资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/readiness-prep',
+          knowledgeNodeIds: ['kn-bode'],
+        },
+        {
+          id: 'readiness-gated',
+          label: '已解锁资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/readiness-gated',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: {
+            estimatedTimeMinutes: 10,
+            abilityImpact: { controlModeling: 0.2 },
+            readiness: {
+              minimumCompetency: { controlModeling: 0.3 },
+              minimumEvidenceCount: 2,
+              requiredCompletedNodeIds: ['registry:readiness-prep'],
+              requiredOutcomeRefs: ['outcome:readiness-prep'],
+              unlockMessage: '完成准备资源后解锁。',
+              fallbackNodeIds: ['registry:readiness-prep'],
+            },
+          },
+        },
+      ],
+    });
+    const gatedNode = registry.nodes.find((node) => node.id === 'registry:readiness-gated');
+    expect(gatedNode).toBeDefined();
+    const candidate = {
+      node: gatedNode!,
+      planningUnit: buildResourceSemanticProjection(gatedNode!).planningUnit,
+    };
+    const blockedRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 30,
+      registry,
+    });
+    const readyRanking = rankResourceLearnerCandidates({
+      candidates: [candidate],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: {
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.35, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            score: 0.7,
+            evidenceCount: 2,
+            sourceCompleteness: 0.6,
+          },
+        },
+      },
+      timeBudgetMinutes: 30,
+      completedNodeIds: ['registry:readiness-prep'],
+      availableOutcomeRefs: ['outcome:readiness-prep'],
+      registry,
+    });
+    const blockedReadiness = blockedRanking.ranked[0].explanation.featureContributions
+      .find((contribution) => contribution.feature === 'readiness');
+    const readyReadiness = readyRanking.ranked[0].explanation.featureContributions
+      .find((contribution) => contribution.feature === 'readiness');
+
+    expect(blockedReadiness).toMatchObject({
+      value: 0.55,
+      reason: 'readiness prerequisites remain',
+    });
+    expect(readyReadiness).toMatchObject({
+      value: 1,
+      reason: 'readiness prerequisites satisfied',
+    });
+  });
+
+  it('passes planner readiness constraints into resource ranker selection', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'planner-readiness-prep',
+          label: 'Planner 准备资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/planner-readiness-prep',
+          knowledgeNodeIds: ['kn-prep'],
+        },
+        {
+          id: 'planner-readiness-gated',
+          label: 'Planner 已解锁资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/planner-readiness-gated',
+          knowledgeNodeIds: ['kn-planner-readiness'],
+          planningOverride: {
+            estimatedTimeMinutes: 8,
+            cognitiveLoad: 'low',
+            evidenceInstrumentation: ['gated_complete'],
+            abilityImpact: { controlModeling: 0.4 },
+            readiness: {
+              minimumCompetency: { controlModeling: 0.3 },
+              minimumEvidenceCount: 2,
+              requiredCompletedNodeIds: ['registry:planner-readiness-prep'],
+              requiredOutcomeRefs: ['outcome:planner-readiness-prep'],
+              unlockMessage: '完成准备资源后解锁。',
+              fallbackNodeIds: ['registry:planner-readiness-prep'],
+            },
+          },
+        },
+        {
+          id: 'planner-readiness-fallback',
+          label: 'Planner 无前置低匹配资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/planner-readiness-fallback',
+          knowledgeNodeIds: ['kn-planner-readiness'],
+          planningOverride: {
+            estimatedTimeMinutes: 8,
+            cognitiveLoad: 'low',
+            evidenceInstrumentation: ['fallback_complete'],
+            abilityImpact: { controlModeling: 0.1 },
+          },
+        },
+      ],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'temporary-planner-readiness-goal',
+        title: 'Planner readiness 目标',
+        knowledgeTargets: ['kn-planner-readiness'],
+        competencyTargets: ['controlModeling'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-planner-readiness': { posteriorMastery: 0.35, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.35, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.7,
+            evidenceCount: 2,
+            sourceCompleteness: 0.6,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 8,
+        privacyScopes: ['student-visible'],
+        completedNodeIds: ['registry:planner-readiness-prep'],
+        availableOutcomeRefs: ['outcome:planner-readiness-prep'],
+      },
+    }));
+    const selectedNode = plan.mainPath[0];
+    const readinessContribution = selectedNode?.resourceRanker?.featureContributions
+      .find((contribution) => contribution.feature === 'readiness');
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['registry:planner-readiness-gated']);
+    expect(readinessContribution).toMatchObject({
+      value: 1,
+      reason: 'readiness prerequisites satisfied',
+    });
   });
 
   it('preserves learner modality preference when registry metadata is omitted', () => {

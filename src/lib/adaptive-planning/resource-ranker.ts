@@ -56,6 +56,8 @@ export interface ResourceLearnerRankerInput {
   learnerState: ResourceLearnerMatchingLearnerState | null;
   preferredResourceTypes?: ResourceNode['type'][];
   timeBudgetMinutes: number;
+  completedNodeIds?: string[];
+  availableOutcomeRefs?: string[];
   registry?: Pick<ResourceNodeRegistry, 'supportedTypes'>;
 }
 
@@ -310,7 +312,7 @@ function buildFeatureContributions(
   const freshness = freshnessScore(node, profile);
   const timeCost = 1 - Math.min(1, profile.estimatedTimeMinutes / Math.max(input.timeBudgetMinutes, 1));
   const cognitiveLoad = profile.cognitiveLoad === 'low' ? 1 : profile.cognitiveLoad === 'medium' ? 0.7 : 0.35;
-  const readiness = profile.readiness ? 0.55 : 1;
+  const readiness = readinessScore(profile, input);
   const governance = Math.max(0, 1 - Math.min(profile.governanceLimitations.length, 4) * 0.2);
   const matchedRefs = matchedGraphRefs(profile, input.targetGraphNodeIds);
   return [
@@ -322,7 +324,7 @@ function buildFeatureContributions(
     { feature: 'freshness', value: freshness, reason: 'versioned source context and citation readiness' },
     { feature: 'time-cost', value: timeCost, reason: 'fits within planner time budget' },
     { feature: 'cognitive-load', value: cognitiveLoad, reason: `${profile.cognitiveLoad} cognitive load` },
-    { feature: 'readiness', value: readiness, reason: profile.readiness ? 'readiness prerequisites remain' : 'ready without extra prerequisites' },
+    { feature: 'readiness', value: readiness.value, reason: readiness.reason },
     { feature: 'governance', value: governance, reason: 'resource governance limitations' },
   ];
 }
@@ -406,6 +408,52 @@ function learnerFitScore(
     return sum + (1 - Math.min(1, Math.max(0, state.posteriorMastery ?? 0.5)));
   }, 0);
   return Math.min(1, modality + weakKnowledge);
+}
+
+function readinessScore(
+  profile: ResourceLearnerRankerScoringProfile,
+  input: ResourceLearnerRankerInput,
+): { value: number; reason: string } {
+  const readiness = profile.readiness;
+  if (!readiness) {
+    return { value: 1, reason: 'ready without extra prerequisites' };
+  }
+  const completed = new Set(input.completedNodeIds ?? []);
+  const availableOutcomeRefs = new Set(input.availableOutcomeRefs ?? []);
+  const missingCompetencies = Object.entries(readiness.minimumCompetency)
+    .filter(([dimension, minimum]) => learnerCompetencyScore(input.learnerState, dimension) < minimum)
+    .map(([dimension]) => dimension);
+  const missingEvidenceCount = Math.max(0, readiness.minimumEvidenceCount - learnerEvidenceCount(input.learnerState, readiness));
+  const missingCompletedNodeIds = readiness.requiredCompletedNodeIds.filter((nodeId) => !completed.has(nodeId));
+  const missingOutcomeRefs = readiness.requiredOutcomeRefs.filter((ref) => !availableOutcomeRefs.has(ref));
+  const ready = missingCompetencies.length === 0 &&
+    missingEvidenceCount === 0 &&
+    missingCompletedNodeIds.length === 0 &&
+    missingOutcomeRefs.length === 0;
+  if (ready) {
+    return { value: 1, reason: 'readiness prerequisites satisfied' };
+  }
+  return { value: 0.55, reason: 'readiness prerequisites remain' };
+}
+
+function learnerCompetencyScore(
+  learnerState: ResourceLearnerMatchingLearnerState | null,
+  dimension: string,
+): number {
+  return learnerState?.primaryCompetencies?.vector?.[dimension]?.score ?? 0;
+}
+
+function learnerEvidenceCount(
+  learnerState: ResourceLearnerMatchingLearnerState | null,
+  readiness: ResourceNodeReadinessMetadata,
+): number {
+  const competencyEvidence = Object.keys(readiness.minimumCompetency)
+    .map((dimension) => learnerState?.primaryCompetencies?.vector?.[dimension]?.evidenceCount ?? 0);
+  return Math.max(
+    learnerState?.evidence?.confidence?.evidenceCount ?? 0,
+    ...competencyEvidence,
+    0,
+  );
 }
 
 function freshnessScore(node: ResourceNode, profile: ResourceLearnerRankerScoringProfile): number {

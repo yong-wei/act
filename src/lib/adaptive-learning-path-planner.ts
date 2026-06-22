@@ -1715,6 +1715,8 @@ function buildAdaptiveLearningPathPlanInternal(
     learnerState: input.learnerState,
     preferredResourceTypes: input.resourcePreferences,
     timeBudgetMinutes: input.constraints.timeBudgetMinutes,
+    completedNodeIds: input.constraints.completedNodeIds ?? [],
+    availableOutcomeRefs: input.constraints.availableOutcomeRefs ?? [],
     registry: input.registry,
   });
   const rankerByNodeId = new Map(rankerResult.ranked.map((entry) => [entry.node.id, entry.explanation]));
