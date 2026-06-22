@@ -90,6 +90,8 @@ describe('lesson plan empty-item guards', () => {
   it('rejects direct launch for a zero-item lesson plan', async () => {
     mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
       title: '空教案',
+      authorId: 'teacher-1',
+      isPublic: false,
       _count: { items: 0 },
     });
 
@@ -101,6 +103,41 @@ describe('lesson plan empty-item guards', () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toContain('至少 1 个环节');
+    expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects direct launch by students before creating a classroom session', async () => {
+    mocks.getServerSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' });
+
+    const response = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({ planId: 'public-plan' }),
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.error).toContain('教师或管理员');
+    expect(mocks.prisma.lessonPlan.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects teachers launching another teacher private lesson plan', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
+      title: '他人私有教案',
+      authorId: 'teacher-2',
+      isPublic: false,
+      _count: { items: 2 },
+    });
+
+    const response = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({ planId: 'private-plan' }),
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.error).toContain('无权启动');
     expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
   });
 });

@@ -8,6 +8,14 @@ export type GovernanceQueueStats = {
 export type GovernanceStatusPayload = {
   status: string;
   timestamp: string;
+  authoringContext?: {
+    surface: 'authoring';
+    lessonPlanId: string | null;
+    lessonPlanMissing: boolean;
+    requestedTab: string | null;
+    reportHref: string;
+    recoveryHref: string;
+  } | null;
   freshness: {
     lastSnapshotMinutes: number | null;
     status: string;

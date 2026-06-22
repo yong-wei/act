@@ -15,6 +15,20 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
 
+export async function GET() {
+  return NextResponse.json(
+    {
+      error: '请在预置教案页面选择“使用模板”来克隆教案。',
+      recoveryHref: '/teacher/preset-lessons',
+      method: 'POST',
+    },
+    {
+      status: 405,
+      headers: { Allow: 'POST' },
+    },
+  );
+}
+
 export async function POST(request: Request) {
   try {
     // 验证用户身份

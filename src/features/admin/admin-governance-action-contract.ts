@@ -16,6 +16,9 @@ export type GovernanceActionQuery = {
   riskId?: string | null;
   assignee?: string | null;
   format?: string | null;
+  surface?: string | null;
+  tab?: string | null;
+  lessonPlanId?: string | null;
 };
 
 export type GovernanceActionAuditRecord = {

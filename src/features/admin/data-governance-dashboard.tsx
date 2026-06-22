@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   Database,
   Download,
+  FileText,
   RefreshCw,
   ShieldAlert,
   Workflow,
@@ -33,7 +34,10 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
   const [status, setStatus] = useState<GovernanceStatusPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'sources' | 'cache'>('overview');
+  const initialTab = initialActionQuery?.surface === 'authoring' && initialActionQuery?.tab === 'reports'
+    ? 'sessions'
+    : 'overview';
+  const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'sources' | 'cache'>(initialTab);
   const [executedActionState, setExecutedActionState] = useState<AuditedActionState | null>(null);
   const [executedAuditRecord, setExecutedAuditRecord] = useState<GovernanceActionAuditRecord | null>(null);
 
@@ -43,6 +47,15 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
       const params = new URLSearchParams();
       if (initialActionQuery?.riskId?.trim()) {
         params.set('riskId', initialActionQuery.riskId.trim());
+      }
+      if (initialActionQuery?.surface === 'authoring') {
+        params.set('surface', 'authoring');
+      }
+      if (initialActionQuery?.tab?.trim()) {
+        params.set('tab', initialActionQuery.tab.trim());
+      }
+      if (initialActionQuery?.lessonPlanId?.trim()) {
+        params.set('lessonPlanId', initialActionQuery.lessonPlanId.trim());
       }
       const response = await fetch(`/api/admin/data-governance/status${params.size ? `?${params}` : ''}`, {
         cache: 'no-store',
@@ -58,7 +71,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
     } finally {
       setLoading(false);
     }
-  }, [initialActionQuery?.riskId]);
+  }, [initialActionQuery?.lessonPlanId, initialActionQuery?.riskId, initialActionQuery?.surface, initialActionQuery?.tab]);
 
   useEffect(() => {
     fetchStatus();
@@ -108,6 +121,9 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
     if (!status || !overview) return '数据治理看板暂无可展示数据。';
     return `数据治理看板已更新，当前状态为 ${status.status}，当前标签为 ${overview.tabs.find((tab) => tab.id === activeTab)?.label ?? '概览'}。`;
   }, [activeTab, error, loading, overview, status]);
+  const authoringSurfaceActive = initialActionQuery?.surface === 'authoring';
+  const authoringLessonPlanId = initialActionQuery?.lessonPlanId?.trim() || null;
+  const authoringLessonPlanMissing = Boolean(status?.authoringContext?.lessonPlanMissing);
 
   const executeGovernanceAction = async (input: {
     action: 'resolve' | 'assign';
@@ -333,6 +349,40 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
               <div>风险：{visibleAuditRecord.riskId ?? '-'}</div>
               <div>负责人：{visibleAuditRecord.assignee ?? '-'}</div>
               <div>回滚可用：{visibleAuditRecord.undoAvailable ? '是' : '否'}</div>
+            </div>
+          </section>
+        ) : null}
+
+        {authoringSurfaceActive ? (
+          <section
+            className="admin-console-surface-soft flex flex-wrap items-start justify-between gap-4 text-sm"
+            data-admin-governance-authoring-surface="quality-reports"
+          >
+            <div className="flex items-start gap-3">
+              <FileText className="mt-0.5 h-5 w-5 text-cyan-300" />
+              <div>
+                <h2 className="admin-console-title font-semibold">作者态质量报告</h2>
+                <p className="admin-console-muted mt-1">
+                  当前入口来自作者态治理链接，已切换到课堂质量报告视图。
+                  {authoringLessonPlanMissing
+                    ? `目标教案 ${authoringLessonPlanId} 当前不存在，请返回教案管理重新选择。`
+                    : authoringLessonPlanId
+                    ? `目标教案：${authoringLessonPlanId}`
+                    : '当前链接缺少 lessonPlanId，请从具体教案或资源治理项重新进入。'}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('sessions')}
+                className="admin-console-button px-3 py-1.5"
+              >
+                查看质量报告
+              </button>
+              <a href="/admin/lesson-plans" className="admin-console-button px-3 py-1.5">
+                返回教案管理
+              </a>
             </div>
           </section>
         ) : null}

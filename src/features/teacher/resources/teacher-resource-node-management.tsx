@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -40,24 +41,48 @@ const AVAILABILITY_OPTIONS: Array<ResourceNodeAvailability | 'all'> = ['all', 'a
 const POLICY_OPTIONS: Array<ResourceNodeTeacherPolicy | 'all'> = ['all', 'allowed', 'teacher-assigned', 'teacher-only', 'blocked'];
 const PRIVACY_OPTIONS: Array<ResourceNodePrivacyLevel | 'all'> = ['all', 'student-visible', 'teacher-scoped', 'admin-scoped'];
 const COGNITIVE_LOAD_OPTIONS: ResourceNodeCognitiveLoad[] = ['low', 'medium', 'high'];
+const RESOURCE_NODE_PAGE_SIZE = 25;
 
 export function TeacherResourceNodeManagement({
   initialNodes,
   initialSummary,
   supportedTypes,
 }: TeacherResourceNodeManagementProps) {
+  const searchParams = useSearchParams();
+  const initialStatus = searchParams.get('status');
   const [nodes, setNodes] = useState(initialNodes);
   const [catalogSummary, setCatalogSummary] = useState(initialSummary);
   const [selectedId, setSelectedId] = useState(initialNodes[0]?.id ?? '');
-  const [query, setQuery] = useState('');
-  const [nodeType, setNodeType] = useState<ResourceNodeType | 'all'>('all');
-  const [availability, setAvailability] = useState<ResourceNodeAvailability | 'all'>('all');
-  const [teacherPolicy, setTeacherPolicy] = useState<ResourceNodeTeacherPolicy | 'all'>('all');
-  const [privacyLevel, setPrivacyLevel] = useState<ResourceNodePrivacyLevel | 'all'>('all');
-  const [pathFilter, setPathFilter] = useState<PathFilter>('all');
-  const [knowledgeMapping, setKnowledgeMapping] = useState<ResourceNodeKnowledgeMappingFilter>('all');
-  const [courseModule, setCourseModule] = useState('');
-  const [knowledge, setKnowledge] = useState('');
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
+  const [nodeType, setNodeType] = useState<ResourceNodeType | 'all'>(
+    supportedTypes.includes(searchParams.get('nodeType') as ResourceNodeType)
+      ? searchParams.get('nodeType') as ResourceNodeType
+      : 'all',
+  );
+  const [availability, setAvailability] = useState<ResourceNodeAvailability | 'all'>(
+    AVAILABILITY_OPTIONS.includes(searchParams.get('availability') as ResourceNodeAvailability)
+      ? searchParams.get('availability') as ResourceNodeAvailability
+      : 'all',
+  );
+  const [teacherPolicy, setTeacherPolicy] = useState<ResourceNodeTeacherPolicy | 'all'>(
+    POLICY_OPTIONS.includes(searchParams.get('teacherPolicy') as ResourceNodeTeacherPolicy)
+      ? searchParams.get('teacherPolicy') as ResourceNodeTeacherPolicy
+      : 'all',
+  );
+  const [privacyLevel, setPrivacyLevel] = useState<ResourceNodePrivacyLevel | 'all'>(
+    PRIVACY_OPTIONS.includes(searchParams.get('privacyLevel') as ResourceNodePrivacyLevel)
+      ? searchParams.get('privacyLevel') as ResourceNodePrivacyLevel
+      : 'all',
+  );
+  const [pathFilter, setPathFilter] = useState<PathFilter>(initialStatus === 'blocked' ? 'excluded' : 'all');
+  const [knowledgeMapping, setKnowledgeMapping] = useState<ResourceNodeKnowledgeMappingFilter>(
+    searchParams.get('knowledgeMapping') === 'mapped' || searchParams.get('knowledgeMapping') === 'unmapped'
+      ? searchParams.get('knowledgeMapping') as ResourceNodeKnowledgeMappingFilter
+      : 'all',
+  );
+  const [courseModule, setCourseModule] = useState(searchParams.get('courseModule') ?? '');
+  const [knowledge, setKnowledge] = useState(searchParams.get('knowledge') ?? '');
+  const [visibleLimit, setVisibleLimit] = useState(RESOURCE_NODE_PAGE_SIZE);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const filteredNodes = useMemo(() => {
@@ -92,6 +117,12 @@ export function TeacherResourceNodeManagement({
 
   const selectedNode = filteredNodes.find((node) => node.id === selectedId) ?? filteredNodes[0] ?? null;
   const summary = buildSummary(filteredNodes);
+  const visibleNodes = filteredNodes.slice(0, visibleLimit);
+  const hasMoreNodes = visibleNodes.length < filteredNodes.length;
+
+  useEffect(() => {
+    setVisibleLimit(RESOURCE_NODE_PAGE_SIZE);
+  }, [availability, courseModule, knowledge, knowledgeMapping, nodeType, pathFilter, privacyLevel, query, teacherPolicy]);
 
   useEffect(() => {
     let cancelled = false;
@@ -184,6 +215,11 @@ export function TeacherResourceNodeManagement({
             <SummaryCell label="告警" value={summary.warningNodes} />
           </div>
         </div>
+        {initialStatus === 'blocked' ? (
+          <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            当前按阻断资源打开：已筛选为“已排除路径资格”。可在右侧明细查看阻断原因，并按需调整教师策略。
+          </div>
+        ) : null}
       </div>
 
       <section className="mb-6 border-y border-slate-800 py-4">
@@ -242,7 +278,7 @@ export function TeacherResourceNodeManagement({
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
         <section className="min-w-0">
           <div className="grid gap-3">
-            {filteredNodes.map((node) => (
+            {visibleNodes.map((node) => (
               <button
                 key={node.id}
                 type="button"
@@ -288,6 +324,18 @@ export function TeacherResourceNodeManagement({
               </button>
             ))}
           </div>
+          {hasMoreNodes ? (
+            <div className="mt-4 flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-3 text-sm text-slate-400">
+              <span>已显示 {visibleNodes.length} / {filteredNodes.length} 个 ResourceNode</span>
+              <button
+                type="button"
+                onClick={() => setVisibleLimit((current) => current + RESOURCE_NODE_PAGE_SIZE)}
+                className="rounded-md border border-slate-700 px-3 py-1.5 text-slate-200 hover:border-cyan-500 hover:text-cyan-200"
+              >
+                加载更多
+              </button>
+            </div>
+          ) : null}
         </section>
 
         <aside className="rounded-lg border border-slate-800 bg-slate-900/80 p-5">
