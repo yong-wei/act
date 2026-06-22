@@ -21,6 +21,7 @@ import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
   type PlanningUnit,
+  type ResourceGraphNodeRefs,
   type ResourceNode,
   type ResourceNodeCheckpointMetadata,
   type ResourceNodeExternalResourceMetadata,
