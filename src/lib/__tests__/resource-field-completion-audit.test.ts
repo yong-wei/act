@@ -102,6 +102,13 @@ describe('resource field completion audit', () => {
 
     const authoringManifestPath = 'course-content/authoring/resources/textbooks/hu-shousong-exercise-analysis-3rd/chapter-01/manifest.json';
     const authoringManifest = JSON.parse(readFileSync(join(process.cwd(), authoringManifestPath), 'utf8'));
+    const chapterRow = jsonlRows.find((row) => (
+      row.family === 'authoring-textbook-chapter' &&
+      row.sourcePathOrUrl === authoringManifestPath
+    ));
+    const manifestHash = `sha256:${createHash('sha256').update(readFileSync(join(process.cwd(), authoringManifestPath))).digest('hex')}`;
+    expect(chapterRow?.sourceHash).toBe(manifestHash);
+    expect(chapterRow?.sourceHash).not.toBe(authoringManifest.markdownSha256);
     const captionImage = authoringManifest.images.find((image: { caption?: string }) => image.caption);
     const captionRow = jsonlRows.find((row) => (
       row.family === 'authoring-textbook-caption' &&

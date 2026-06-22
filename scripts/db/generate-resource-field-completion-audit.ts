@@ -506,6 +506,7 @@ async function collectAuthoringTextbookCandidates() {
     const chapterDir = path.dirname(manifestPath);
     const bookId = path.basename(path.dirname(path.dirname(manifestPath)));
     const chapterId = `${bookId}:${manifest.id}`;
+    const manifestHash = await readLocalFileHash(manifestPath);
     candidates.push({
       id: `authoring-textbook-chapter:${chapterId}`,
       title: manifest.title ?? manifest.id,
@@ -520,7 +521,7 @@ async function collectAuthoringTextbookCandidates() {
       evidenceInstrumentation: [],
       generatedBy: manifest.pipeline ? 'external-tool' : null,
       humanConfirmed: false,
-      contentHash: manifest.markdownSha256 ?? null,
+      contentHash: manifestHash,
       versionRef: 'authoring-textbook-manifest.v1',
     });
     const sectionCandidates = await collectAuthoringTextbookSectionCandidates({
