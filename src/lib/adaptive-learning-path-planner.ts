@@ -14,6 +14,10 @@ import type {
   GoalSubgraphPolicyEntry,
 } from './graphs/goal-subgraph-expansion-service';
 import {
+  rankResourceLearnerCandidates,
+  type ResourceLearnerRankerExplanation,
+} from './adaptive-planning/resource-ranker';
+import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
   type PlanningUnit,
@@ -367,6 +371,7 @@ export interface AdaptiveLearningPathPlanNode {
   terminalConstraints: string[];
   score: number;
   reasonCodes: string[];
+  resourceRanker?: ResourceLearnerRankerExplanation;
   status: 'current' | 'next' | 'completed' | 'blocked' | 'alternative' | 'locked';
   readiness?: AdaptiveLearningPathNodeReadiness;
 }
@@ -377,6 +382,7 @@ export interface AdaptiveLearningPathAlternative {
   title: string;
   reasonCodes: string[];
   score: number;
+  resourceRanker?: ResourceLearnerRankerExplanation;
   blocked: boolean;
 }
 
@@ -656,6 +662,7 @@ interface ScoredNode {
   node: ResourceNode;
   score: number;
   reasonCodes: string[];
+  resourceRanker?: ResourceLearnerRankerExplanation;
 }
 
 interface CandidateChain {
@@ -1683,13 +1690,49 @@ function buildAdaptiveLearningPathPlanInternal(
     .filter((node) => policyAllowsNode(node, policyFamily, input.constraints))
     .filter((node) => externalResourceAllowed(node, input, registeredGoal));
   const eligibleIds = new Set(pathEligible.map((node) => node.id));
+  const targetGraphNodeIds = graphContext?.targetGraphNodeIds.length
+    ? graphContext.targetGraphNodeIds
+    : [
+      ...input.goal.knowledgeTargets,
+      ...(input.goal.competencyTargets ?? []),
+    ];
+  const rankerResult = rankResourceLearnerCandidates({
+    candidates: pathEligible.map((node) => {
+      const planningUnit = planningUnitForNode(node);
+      return {
+        node,
+        planningUnit,
+        limitations: planningUnit?.governanceLimitations.map((limitation) => limitation.code) ?? [],
+      };
+    }),
+    scene: 'path',
+    targetGraphNodeIds,
+    learnerState: input.learnerState,
+    preferredResourceTypes: input.resourcePreferences,
+    timeBudgetMinutes: input.constraints.timeBudgetMinutes,
+    registry: input.registry,
+  });
+  const rankerByNodeId = new Map(rankerResult.ranked.map((entry) => [entry.node.id, entry.explanation]));
   const scored = pathEligible
     .filter((node) => goalAllowsResourceNode(node, registeredGoal))
     .filter((node) =>
       nodeMatchesGoal(node, input.goal, deficits, graphContext) ||
       (input.constraints.requireRiskIntervention && isRiskInterventionNode(node))
     )
-    .map((node) => scoreNode(node, deficits, input.learnerState, input.constraints, policyFamily, preferenceContext))
+    .map((node) => {
+      const scoredNode = scoreNode(node, deficits, input.learnerState, input.constraints, policyFamily, preferenceContext);
+      const resourceRanker = rankerByNodeId.get(node.id);
+      return {
+        ...scoredNode,
+        resourceRanker,
+        reasonCodes: unique([
+          ...scoredNode.reasonCodes,
+          ...(resourceRanker?.featureContributions
+            .filter((contribution) => contribution.value > 0)
+            .map((contribution) => `ranker:${contribution.feature}`) ?? []),
+        ]),
+      };
+    })
     .sort((left, right) => right.score - left.score || left.node.id.localeCompare(right.node.id));
   const mainPathNodes = buildFeasiblePath(
     scored,
@@ -2970,6 +3013,7 @@ function toPlanNode(
     terminalConstraints: entry.node.planningMetadata.terminalConstraints,
     score: entry.score,
     reasonCodes: entry.reasonCodes,
+    resourceRanker: entry.resourceRanker,
     status: isCompleted ? 'completed' : locked ? 'locked' : entry.node.id === currentNodeId ? 'current' : 'next',
     readiness,
   };
@@ -3167,6 +3211,7 @@ function buildAlternatives(
             ? ['time-budget-insufficient']
           : entry.reasonCodes.length > 0 ? entry.reasonCodes : ['lower-objective-score'],
         score: blockedByPrerequisite || blockedByTerminal || blockedByBudget ? 0 : entry.score,
+        resourceRanker: entry.resourceRanker,
         blocked: blockedByPrerequisite || blockedByTerminal || blockedByBudget,
       };
     })

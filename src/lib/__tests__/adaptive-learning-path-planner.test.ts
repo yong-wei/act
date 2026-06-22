@@ -14,6 +14,7 @@ import {
   validateLearningGoalCatalog,
   type AdaptiveLearningPathPlannerInput,
 } from '../adaptive-learning-path-planner';
+import { rankResourceLearnerCandidates } from '../adaptive-planning/resource-ranker';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
@@ -411,6 +412,34 @@ describe('adaptive learning path planner', () => {
       evidenceBehavior: projection.planningUnit!.pathSemantics.evidenceBehavior,
     });
     expect(plan.mainPath.map((node) => node.nodeId)).not.toContain(projection.retrievalChunks[0].id);
+    expect(pathNode?.resourceRanker).toMatchObject({
+      score: expect.any(Number),
+      matchedGraphRefs: {
+        knowledge: ['kn-bode'],
+        capability: [],
+        quality: [],
+      },
+      evidencePotential: expect.any(Number),
+      limitations: expect.arrayContaining(projection.planningUnit!.citationReadiness.limitations),
+      tieBreakReason: expect.stringContaining('scene:path'),
+    });
+    expect(pathNode?.resourceRanker?.featureContributions.map((contribution) => contribution.feature)).toEqual([
+      'graph-coverage',
+      'capability-contribution',
+      'evidence-potential',
+      'learner-fit',
+      'accessibility',
+      'freshness',
+      'time-cost',
+      'cognitive-load',
+      'readiness',
+      'governance',
+    ]);
+    expect(pathNode?.reasonCodes).toEqual(expect.arrayContaining([
+      'ranker:graph-coverage',
+      'ranker:learner-fit',
+      'ranker:time-cost',
+    ]));
     expect(serialized.payload.planNodes).toEqual(expect.arrayContaining([
       expect.objectContaining({
         nodeId: 'registry:bode-card',
@@ -419,6 +448,218 @@ describe('adaptive learning path planner', () => {
         evidenceBehavior: projection.planningUnit!.pathSemantics.evidenceBehavior,
       }),
     ]));
+  });
+
+  it('ranks ResourceNode candidates with learner-fit explanations and rejects retrieval-only inputs', () => {
+    const input = plannerInput();
+    const candidateNodes = input.registry.nodes.filter((node) => [
+      'registry:bode-card',
+      'simulation:cruise',
+      'arena-task:roll-control',
+    ].includes(node.id));
+    const candidates = candidateNodes.map((node) => ({
+      node,
+      planningUnit: buildResourceSemanticProjection(node).planningUnit,
+    }));
+
+    const pathRanking = rankResourceLearnerCandidates({
+      candidates,
+      scene: 'path',
+      targetGraphNodeIds: ['kn-cruise', 'parameterDesign'],
+      learnerState: input.learnerState,
+      preferredResourceTypes: ['simulation'],
+      timeBudgetMinutes: 90,
+      registry: input.registry,
+    });
+    const repeatedPathRanking = rankResourceLearnerCandidates({
+      candidates,
+      scene: 'path',
+      targetGraphNodeIds: ['kn-cruise', 'parameterDesign'],
+      learnerState: input.learnerState,
+      preferredResourceTypes: ['simulation'],
+      timeBudgetMinutes: 90,
+      registry: input.registry,
+    });
+    const konlingRanking = rankResourceLearnerCandidates({
+      candidates,
+      scene: 'konling',
+      targetGraphNodeIds: ['kn-cruise', 'parameterDesign'],
+      learnerState: input.learnerState,
+      preferredResourceTypes: ['simulation'],
+      timeBudgetMinutes: 90,
+      registry: input.registry,
+    });
+
+    expect(pathRanking.ranked.map((entry) => entry.node.id)).toEqual(repeatedPathRanking.ranked.map((entry) => entry.node.id));
+    expect(pathRanking.sceneWeights['time-cost']).toBeGreaterThan(konlingRanking.sceneWeights['time-cost']);
+    expect(konlingRanking.sceneWeights.freshness).toBeGreaterThan(pathRanking.sceneWeights.freshness);
+    pathRanking.sceneWeights.freshness = 99;
+    expect(repeatedPathRanking.sceneWeights.freshness).toBeLessThan(1);
+    expect(pathRanking.ranked[0]).toMatchObject({
+      score: expect.any(Number),
+      reasonCodes: expect.arrayContaining([
+        'ranker:graph-coverage',
+        'ranker:evidence-potential',
+      ]),
+      explanation: {
+        featureContributions: expect.arrayContaining([
+          expect.objectContaining({ feature: 'graph-coverage' }),
+          expect.objectContaining({ feature: 'learner-fit' }),
+          expect.objectContaining({ feature: 'governance' }),
+        ]),
+        tieBreakReason: expect.stringContaining('scene:path'),
+      },
+    });
+
+    const retrievalOnlyNode = candidateNodes.find((node) => node.id === 'registry:bode-card');
+    expect(retrievalOnlyNode).toBeDefined();
+    const retrievalOnlyRanking = rankResourceLearnerCandidates({
+      candidates: [{
+        node: retrievalOnlyNode!,
+        planningUnit: null,
+        rejectionReasons: ['resource-node-planning-audit-required'],
+      }],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: input.learnerState,
+      timeBudgetMinutes: 15,
+      registry: input.registry,
+    });
+
+    expect(retrievalOnlyRanking.ranked).toEqual([]);
+    expect(retrievalOnlyRanking.rejected).toEqual([
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'registry:bode-card' }),
+        rejectionReasons: expect.arrayContaining([
+          'resource-node-planning-audit-required',
+          'missing-planning-unit-projection',
+        ]),
+      }),
+    ]);
+    const missingPlanningUnitRanking = rankResourceLearnerCandidates({
+      candidates: [{
+        node: retrievalOnlyNode!,
+        planningUnit: null,
+      }],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: input.learnerState,
+      timeBudgetMinutes: 15,
+      registry: input.registry,
+    });
+
+    expect(missingPlanningUnitRanking.rejected[0].rejectionReasons).toEqual(['missing-planning-unit-projection']);
+  });
+
+  it('uses stable tie-breaks for same-score resource candidates', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [
+        {
+          id: 'beta',
+          title: 'B 卡',
+          sourceRef: 'kn-bode:beta',
+          renderTarget: '/knowledge/cards/beta',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: { estimatedTimeMinutes: 10 },
+        },
+        {
+          id: 'alpha',
+          title: 'A 卡',
+          sourceRef: 'kn-bode:alpha',
+          renderTarget: '/knowledge/cards/alpha',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: { estimatedTimeMinutes: 10 },
+        },
+      ],
+    });
+    const ranking = rankResourceLearnerCandidates({
+      candidates: registry.nodes.map((node) => ({
+        node,
+        planningUnit: buildResourceSemanticProjection(node).planningUnit,
+      })),
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 30,
+      registry,
+    });
+
+    expect(ranking.ranked.map((entry) => entry.node.id)).toEqual([
+      'knowledge-card:alpha',
+      'knowledge-card:beta',
+    ]);
+    expect(ranking.ranked[0].score).toBe(ranking.ranked[1].score);
+  });
+
+  it('keeps Konling citation suitability separate from path PlanningUnit eligibility', () => {
+    const registry = buildResourceNodeRegistry({
+      externalResources: [{
+        id: 'bode-reference',
+        title: 'Bode Reference',
+        source: 'Example Library',
+        url: 'https://example.edu/bode-reference',
+        estimatedTimeMinutes: 8,
+        knowledgeNodeIds: ['kn-bode'],
+        applicableGoalId: 'goal-bode',
+        evidenceUseStatus: 'reference-only',
+        privacyPolicy: 'student-visible',
+        planningOverride: {
+          abilityImpact: { controlModeling: 0.2 },
+        },
+      }],
+    });
+    const node = registry.nodes.find((entry) => entry.id === 'external-resource:bode-reference');
+    expect(node).toBeDefined();
+    const projection = buildResourceSemanticProjection(node!);
+    expect(projection.planningUnit).toBeNull();
+    expect(projection.resource.graphProfile.sceneAvailability.konling.allowed).toBe(true);
+
+    const konlingRanking = rankResourceLearnerCandidates({
+      candidates: [{
+        node: node!,
+        planningUnit: projection.planningUnit,
+      }],
+      scene: 'konling',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      registry,
+    });
+
+    expect(konlingRanking.rejected).toEqual([]);
+    expect(konlingRanking.ranked).toEqual([
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'external-resource:bode-reference' }),
+        planningUnit: null,
+        explanation: expect.objectContaining({
+          matchedGraphRefs: {
+            knowledge: ['kn-bode'],
+            capability: [],
+            quality: [],
+          },
+          limitations: expect.arrayContaining([
+            'citation-target-not-verified',
+            'external-resource-reference-only',
+          ]),
+          tieBreakReason: expect.stringContaining('scene:konling'),
+        }),
+      }),
+    ]);
+
+    const pathRanking = rankResourceLearnerCandidates({
+      candidates: [{
+        node: node!,
+        planningUnit: projection.planningUnit,
+      }],
+      scene: 'path',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      registry,
+    });
+
+    expect(pathRanking.ranked).toEqual([]);
+    expect(pathRanking.rejected[0].rejectionReasons).toEqual(['missing-planning-unit-projection']);
   });
 
   it('can select textbook sections as foundation-remediation path resources', () => {
