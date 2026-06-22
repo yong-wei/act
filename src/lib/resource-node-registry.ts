@@ -1210,7 +1210,7 @@ export function validateResourceMediaSourceManifest(
     return { verifiedCitationReady: false, issues };
   }
   const manifestPrivacyScopeValid = isResourceNodePrivacyLevel(manifest.privacyScope);
-  if (manifest.privacyScope && !manifestPrivacyScopeValid) issues.push('invalid-privacy-scope');
+  if (isDeclaredValue(manifest.privacyScope) && !manifestPrivacyScopeValid) issues.push('invalid-privacy-scope');
   if (
     !manifestPrivacyScopeValid &&
     !manifest.segments.some((segment) => (
@@ -1223,7 +1223,7 @@ export function validateResourceMediaSourceManifest(
 
   const segmentIdCounts = new Map<string, number>();
   manifest.segments.forEach((segment) => {
-    if (!isMediaManifestSegmentRecord(segment) || !segment.id) return;
+    if (!isMediaManifestSegmentRecord(segment) || !isNonEmptyString(segment.id)) return;
     segmentIdCounts.set(segment.id, (segmentIdCounts.get(segment.id) ?? 0) + 1);
   });
 
@@ -1233,8 +1233,8 @@ export function validateResourceMediaSourceManifest(
       issues.push(`${prefix}.invalid-segment`);
       return;
     }
-    if (!segment.id) issues.push(`${prefix}.missing-id`);
-    if (segment.id && (segmentIdCounts.get(segment.id) ?? 0) > 1) issues.push(`${prefix}.duplicate-id`);
+    if (!isNonEmptyString(segment.id)) issues.push(`${prefix}.missing-id`);
+    if (isNonEmptyString(segment.id) && (segmentIdCounts.get(segment.id) ?? 0) > 1) issues.push(`${prefix}.duplicate-id`);
     if (!hasMediaSegmentAnchor(manifest.mediaType, segment)) issues.push(`${prefix}.missing-anchor`);
     if (!hasAnyGraphRef(segment.graphNodeRefs)) issues.push(`${prefix}.missing-graph-bindings`);
     if (!hasAnySceneAvailability(segment.sceneAvailability)) issues.push(`${prefix}.missing-scene-availability`);
@@ -1243,7 +1243,7 @@ export function validateResourceMediaSourceManifest(
     if (!segment.aiUsePermission) issues.push(`${prefix}.missing-ai-use-permission`);
     if (segment.aiUsePermission && !isMediaAiUsePermission(segment.aiUsePermission)) issues.push(`${prefix}.invalid-ai-use-permission`);
     if (segment.aiUsePermission === 'blocked') issues.push(`${prefix}.blocked-ai-use`);
-    if (segment.privacyScope && !isResourceNodePrivacyLevel(segment.privacyScope)) issues.push(`${prefix}.invalid-privacy-scope`);
+    if (isDeclaredValue(segment.privacyScope) && !isResourceNodePrivacyLevel(segment.privacyScope)) issues.push(`${prefix}.invalid-privacy-scope`);
     if (!isResourceNodePrivacyLevel(segment.privacyScope) && !manifestPrivacyScopeValid) {
       issues.push(`${prefix}.missing-privacy-scope`);
     }
@@ -2694,8 +2694,12 @@ function mediaSegmentPrivacyScope(
   manifest: ResourceMediaSourceManifest,
   segment: ResourceMediaManifestSegment,
 ): ResourceNodePrivacyLevel {
+  const manifestScope = isResourceNodePrivacyLevel(manifest.privacyScope) ? manifest.privacyScope : undefined;
+  if (isDeclaredValue(segment.privacyScope) && !isResourceNodePrivacyLevel(segment.privacyScope)) {
+    return mostRestrictivePrivacyScope([manifestScope, 'teacher-scoped']);
+  }
   return mostRestrictivePrivacyScope([
-    isResourceNodePrivacyLevel(manifest.privacyScope) ? manifest.privacyScope : undefined,
+    manifestScope,
     isResourceNodePrivacyLevel(segment.privacyScope) ? segment.privacyScope : undefined,
   ]);
 }
@@ -2788,6 +2792,10 @@ function isNonEmptyString(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function isDeclaredValue(value: unknown): boolean {
+  return value !== undefined && value !== null;
+}
+
 function resourceNodeTypeForMediaManifest(
   mediaType: ResourceMediaSourceManifest['mediaType'],
 ): ResourceNodeType {
@@ -2857,15 +2865,25 @@ function buildMediaSegmentSceneAvailability(
   const blocked = issues.includes('blocked-ai-use');
   const missingAiUse = issues.includes('missing-ai-use-permission');
   const invalidAiUse = issues.includes('invalid-ai-use-permission');
+  const invalidPrivacyScope = issues.includes('invalid-privacy-scope');
+  const structuralBlock = issues.some((issue) => [
+    'invalid-media-type',
+    'invalid-segment',
+    'missing-id',
+    'duplicate-id',
+    'missing-anchor',
+  ].includes(issue));
   const declaredSceneAvailability = safeSceneAvailabilityMap(segment.sceneAvailability);
   return Object.fromEntries(RESOURCE_SEGMENT_SCENES.map((scene) => {
     if (scene === 'path') {
       return [scene, { allowed: false, reason: 'resource-node-planning-audit-required' }];
     }
     if (privacyScope === 'admin-scoped') return [scene, { allowed: false, reason: 'admin-scoped-resource' }];
+    if (structuralBlock) return [scene, { allowed: false, reason: 'invalid-segment-contract' }];
     if (blocked) return [scene, { allowed: false, reason: 'blocked-ai-use' }];
     if (missingAiUse) return [scene, { allowed: false, reason: 'missing-ai-use-permission' }];
     if (invalidAiUse) return [scene, { allowed: false, reason: 'invalid-ai-use-permission' }];
+    if (invalidPrivacyScope) return [scene, { allowed: false, reason: 'invalid-privacy-scope' }];
     const declared = declaredSceneAvailability[scene];
     return [
       scene,
