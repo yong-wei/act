@@ -1408,7 +1408,7 @@ function buildStudentGradingFeedbackActionCards(
       criterionId: grade.criterionId,
       label: '复习关联资源',
       destinationType: 'resource',
-      href: buildFeedbackTaskHref('/interactive-learning/resources/lesson09-correction-precheck', context, { action: 'revise' }),
+      href: buildFeedbackTaskHref('/interactive-learning/resources/lesson09-correction-precheck', context, { intent: 'revise' }),
       evidenceRefCount: grade.evidenceRefs.length,
     },
   ];

@@ -21,6 +21,7 @@ import {
   type RubricDefinition,
 } from '../document-rubric-grading-workbench';
 import { listEvidenceTimeline } from '../evidence-timeline';
+import { buildFeedbackTaskContext } from '../../student-feedback-task-contract';
 
 const now = new Date('2026-06-04T08:00:00.000Z');
 
@@ -964,8 +965,13 @@ describe('document rubric grading workbench', () => {
       'practice',
       'resource',
     ]));
-    expect(visibleStudentView.actionCards.find((card) => card.destinationType === 'resource')?.href)
-      .toContain('/interactive-learning/resources/lesson09-correction-precheck');
+    const resourceCardHref = visibleStudentView.actionCards.find((card) => card.destinationType === 'resource')?.href;
+    expect(resourceCardHref).toContain('/interactive-learning/resources/lesson09-correction-precheck');
+    expect(resourceCardHref).toContain('intent=revise');
+    const resourceCardContext = buildFeedbackTaskContext(Object.fromEntries(
+      new URLSearchParams(resourceCardHref?.split('?')[1] ?? ''),
+    ));
+    expect(resourceCardContext?.lifecycleState).toBe('revising');
     expect(visibleStudentView.actionCards.find((card) => card.destinationType === 'practice')?.href)
       .toContain('/assessment/adaptive-practice?intent=practice');
     for (const card of visibleStudentView.actionCards) {

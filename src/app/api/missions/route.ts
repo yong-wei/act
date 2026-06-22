@@ -114,7 +114,9 @@ export async function GET(request: Request) {
     const feedbackTarget = feedbackContext ? getFeedbackTaskMissionTarget(feedbackContext) : null;
     const scopedMissions = feedbackScoped && feedbackContext
       ? feedbackTarget
-        ? missionsWithProgress.filter((mission) => feedbackTarget.missionOrders.includes(mission.order))
+        ? unlockFirstFeedbackMissionTarget(
+            missionsWithProgress.filter((mission) => feedbackTarget.missionOrders.includes(mission.order)),
+          )
         : []
       : missionsWithProgress;
     const statisticsMissions = feedbackScoped ? scopedMissions : missionsWithProgress;
@@ -141,4 +143,13 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
+}
+
+function unlockFirstFeedbackMissionTarget(missions: MissionWithProgress[]): MissionWithProgress[] {
+  if (missions.some((mission) => mission.status === 'UNLOCKED' || mission.status === 'COMPLETED')) {
+    return missions;
+  }
+  return missions.map((mission, index) => (
+    index === 0 ? { ...mission, status: 'UNLOCKED' } : mission
+  ));
 }
