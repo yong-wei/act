@@ -1976,6 +1976,146 @@ describe('resource node registry', () => {
     expect(restrictedSegmentProjection.citationTargets[0].privacyScope).toBe('teacher-scoped');
     expect(restrictedSegmentProjection.retrievalChunks[0].privacyScope).toBe('teacher-scoped');
 
+    const segmentScopedManifest = {
+      sourceId: 'authoring/video:segment-scoped-only',
+      sourcePath: 'course-content/authoring/videos/segment-scoped-only.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'segment-scoped.v1',
+      transcriptRef: 'transcripts/segment-scoped-only.vtt',
+      segments: [
+        {
+          id: 'student-segment',
+          anchorRef: 'student-segment',
+          privacyScope: 'student-visible',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof validateResourceMediaSourceManifest>[0];
+    expect(validateResourceMediaSourceManifest(segmentScopedManifest).issues).not.toContain('missing-privacy-scope');
+
+    for (const manifest of [
+      {
+        sourceId: 'authoring/video:admin-manifest',
+        sourcePath: 'course-content/authoring/videos/admin-manifest.mp4',
+        mediaType: 'video',
+        sourceVersionRef: 'admin-manifest.v1',
+        privacyScope: 'admin-scoped',
+        transcriptRef: 'transcripts/admin-manifest.vtt',
+        segments: [
+          {
+            id: 'admin-segment',
+            anchorRef: 'admin-segment',
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: {
+              konling: { allowed: true, reason: null },
+              diagnosis: { allowed: true, reason: null },
+              report: { allowed: true, reason: null },
+            },
+            citationPolicy: 'source-reference-only',
+            aiUsePermission: 'restricted',
+          },
+        ],
+      },
+      {
+        sourceId: 'authoring/video:admin-segment',
+        sourcePath: 'course-content/authoring/videos/admin-segment.mp4',
+        mediaType: 'video',
+        sourceVersionRef: 'admin-segment.v1',
+        privacyScope: 'student-visible',
+        transcriptRef: 'transcripts/admin-segment.vtt',
+        segments: [
+          {
+            id: 'admin-segment',
+            anchorRef: 'admin-segment',
+            privacyScope: 'admin-scoped',
+            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+            sceneAvailability: {
+              konling: { allowed: true, reason: null },
+              diagnosis: { allowed: true, reason: null },
+              report: { allowed: true, reason: null },
+            },
+            citationPolicy: 'source-reference-only',
+            aiUsePermission: 'restricted',
+          },
+        ],
+      },
+    ] as const) {
+      const projection = buildMediaSourceManifestSemanticProjection(
+        manifest as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0],
+      );
+      expect(projection.resource.governance.privacyLevel).toBe('admin-scoped');
+      expect(projection.segments[0].sceneAvailability.konling).toEqual({
+        allowed: false,
+        reason: 'admin-scoped-resource',
+      });
+      expect(projection.segments[0].sceneAvailability.diagnosis).toEqual({
+        allowed: false,
+        reason: 'admin-scoped-resource',
+      });
+      expect(projection.segments[0].sceneAvailability.report).toEqual({
+        allowed: false,
+        reason: 'admin-scoped-resource',
+      });
+    }
+
+    const adminMissingAiUseProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:admin-missing-ai-use',
+      sourcePath: 'course-content/authoring/videos/admin-missing-ai-use.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'admin-missing-ai-use.v1',
+      privacyScope: 'admin-scoped',
+      transcriptRef: 'transcripts/admin-missing-ai-use.vtt',
+      segments: [
+        {
+          id: 'admin-segment',
+          anchorRef: 'admin-segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+        },
+      ],
+    });
+    expect(adminMissingAiUseProjection.segments[0].sceneAvailability.report).toEqual({
+      allowed: false,
+      reason: 'admin-scoped-resource',
+    });
+
+    const invalidPrivacyProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:invalid-privacy',
+      sourcePath: 'course-content/authoring/videos/invalid-privacy.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'invalid-privacy.v1',
+      transcriptRef: 'transcripts/invalid-privacy.vtt',
+      segments: [
+        {
+          id: 'invalid',
+          anchorRef: 'invalid',
+          privacyScope: 'classroom-visible',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+        {
+          id: 'student',
+          anchorRef: 'student',
+          privacyScope: 'student-visible',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: { report: { allowed: true, reason: null } },
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    } as unknown as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    expect(invalidPrivacyProjection.segments.map((segment) => segment.privacyScope)).toEqual([
+      'teacher-scoped',
+      'student-visible',
+    ]);
+    expect(invalidPrivacyProjection.resource.governance.privacyLevel).toBe('teacher-scoped');
+
     expect(validateResourceMediaSourceManifest({
       sourceId: 'authoring/video:bad-source-path',
       sourcePath: { path: 'course-content/authoring/videos/bad.mp4' },
