@@ -217,10 +217,11 @@ async function collectRuntimeManifestCandidates() {
   for (const dirent of lessonDirs.filter((entry) => entry.isDirectory())) {
     const lessonDir = path.join(RUNTIME_LESSONS_DIR, dirent.name);
     const manifestPath = path.join(RUNTIME_LESSONS_DIR, dirent.name, 'interactive-manifest.json');
-    const [manifest, graphOverlay, lesson] = await Promise.all([
+    const [manifest, graphOverlay, lesson, manifestHash] = await Promise.all([
       readJson<RuntimeInteractiveManifest>(manifestPath),
       readJson<RuntimeGraphOverlay>(path.join(lessonDir, 'graph-overlay.json')),
       readJson<RuntimeLessonJson>(path.join(lessonDir, 'lesson.json')),
+      readLocalFileHash(manifestPath),
     ]);
     if (!manifest?.steps) continue;
     const lessonId = manifest.lesson_id ?? dirent.name;
@@ -242,6 +243,7 @@ async function collectRuntimeManifestCandidates() {
         evidenceInstrumentation: step.telemetry_spec ? ['interactive_step_event'] : [],
         generatedBy: step.ai_context_spec ? 'template' : null,
         humanConfirmed: false,
+        contentHash: manifestHash,
         versionRef: 'interactive-manifest.v2',
       });
       for (const moduleEntry of step.modules ?? []) {
@@ -263,6 +265,7 @@ async function collectRuntimeManifestCandidates() {
           evidenceInstrumentation: moduleEntry.kind?.startsWith('interaction.') ? ['interactive_module_event'] : [],
           generatedBy: 'template',
           humanConfirmed: false,
+          contentHash: manifestHash,
           versionRef: 'interactive-manifest.v2',
         });
       }

@@ -91,8 +91,17 @@ describe('resource field completion audit', () => {
     expect(indexedMediaRows.some((row) => row.resourceId === 'runtime-media:5-1:5-1 媒体链接登记')).toBe(false);
     expect(indexedMediaRows.some((row) => row.resourceType === 'handout')).toBe(false);
     const graphBoundStepRow = jsonlRows.find((row) => row.resourceId === 'runtime-step:3-5:step-01');
+    const runtimeManifestPath = 'course-content/runtime/lessons/3-5/interactive-manifest.json';
+    const runtimeManifestHash = `sha256:${createHash('sha256').update(readFileSync(join(process.cwd(), runtimeManifestPath))).digest('hex')}`;
+    expect(graphBoundStepRow?.sourcePathOrUrl).toBe(runtimeManifestPath);
+    expect(graphBoundStepRow?.sourceHash).toBe(runtimeManifestHash);
+    expect(graphBoundStepRow?.missingFieldCodes).not.toContain('missing-content-hash');
     expect(graphBoundStepRow?.missingFieldCodes).not.toContain('missing-knowledge-binding');
     expect(graphBoundStepRow?.coverage.denominatorKey).toContain('根轨迹法_2_e3f6c0c1');
+    const manifestModuleRow = jsonlRows.find((row) => row.resourceId === 'runtime-module:3-5:step-01:boundary-card');
+    expect(manifestModuleRow?.sourcePathOrUrl).toBe(runtimeManifestPath);
+    expect(manifestModuleRow?.sourceHash).toBe(runtimeManifestHash);
+    expect(manifestModuleRow?.missingFieldCodes).not.toContain('missing-content-hash');
     const infographPath = 'course-content/runtime/knowledge/infographs/nodes/Bode图_1_1.png';
     const infographRow = jsonlRows.find((row) => row.resourceId === 'infograph:Bode图_1_1');
     const infographHash = `sha256:${createHash('sha256').update(readFileSync(join(process.cwd(), infographPath))).digest('hex')}`;
