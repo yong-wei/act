@@ -450,6 +450,90 @@ describe('adaptive learning path planner', () => {
     ]));
   });
 
+  it('uses resource ranker scores when selecting the primary path candidate', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'legacy-high-score',
+          label: '旧评分较高的长资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/legacy-high-score',
+          knowledgeNodeIds: ['kn-ranker-target'],
+          planningOverride: {
+            estimatedTimeMinutes: 9,
+            cognitiveLoad: 'high',
+            evidenceInstrumentation: ['legacy_complete'],
+            abilityImpact: { controlModeling: 0.9 },
+            readiness: {
+              minimumCompetency: {},
+              minimumEvidenceCount: 1,
+              requiredCompletedNodeIds: [],
+              requiredOutcomeRefs: [],
+              unlockMessage: '需要先完成一次基础练习。',
+              fallbackNodeIds: [],
+            },
+          },
+        },
+        {
+          id: 'ranker-best-fit',
+          label: 'Ranker 更匹配的短资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/ranker-best-fit',
+          knowledgeNodeIds: ['kn-ranker-target'],
+          planningOverride: {
+            estimatedTimeMinutes: 4,
+            cognitiveLoad: 'low',
+            evidenceInstrumentation: ['best_fit_complete'],
+            abilityImpact: { controlModeling: 0.1 },
+            terminalConstraints: ['terminal-node'],
+          },
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'temporary-ranker-goal',
+        title: 'Ranker 选择目标',
+        knowledgeTargets: ['kn-ranker-target'],
+        competencyTargets: ['controlModeling'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-ranker-target': { posteriorMastery: 0.35, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.25, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        resourcePreference: {
+          preferredModalities: ['interactive_lesson'],
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.65,
+            evidenceCount: 2,
+            sourceCompleteness: 0.6,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 9,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['registry:ranker-best-fit']);
+    expect(plan.mainPath[0]?.resourceRanker?.score).toBeGreaterThan(
+      plan.alternatives.find((node) => node.nodeId === 'registry:legacy-high-score')?.resourceRanker?.score ?? 0,
+    );
+  });
+
   it('ranks ResourceNode candidates with learner-fit explanations and rejects retrieval-only inputs', () => {
     const input = plannerInput();
     const candidateNodes = input.registry.nodes.filter((node) => [

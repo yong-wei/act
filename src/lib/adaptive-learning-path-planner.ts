@@ -1727,8 +1727,12 @@ function buildAdaptiveLearningPathPlanInternal(
     .map((node) => {
       const scoredNode = scoreNode(node, deficits, input.learnerState, input.constraints, policyFamily, preferenceContext);
       const resourceRanker = rankerByNodeId.get(node.id);
+      const score = resourceRanker
+        ? round(scoredNode.score + resourceRanker.score, 3)
+        : scoredNode.score;
       return {
         ...scoredNode,
+        score,
         resourceRanker,
         reasonCodes: unique([
           ...scoredNode.reasonCodes,
