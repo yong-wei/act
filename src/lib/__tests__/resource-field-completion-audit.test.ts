@@ -72,6 +72,29 @@ describe('resource field completion audit', () => {
       sourceRecord: expect.stringContaining(':generated-data/'),
     });
     expect(nestedMediaRow?.missingFieldCodes).not.toContain('missing-path-target');
+    const indexedMediaRows = jsonlRows.filter((row) => (
+      row.family === 'runtime-lesson-media' &&
+      row.resourceId.startsWith('runtime-media:') &&
+      row.sourceVersionRef === 'resource-node-registry.v1'
+    ));
+    expect(indexedMediaRows.length).toBeGreaterThan(0);
+    expect(indexedMediaRows.every((row) => !row.missingFieldCodes.includes('missing-evidence-instrumentation'))).toBe(true);
+    expect(indexedMediaRows.some((row) => row.evidenceContract.complete)).toBe(true);
+    expect(indexedMediaRows.some((row) => row.resourceId === 'runtime-media:5-1:5-1-intro-video')).toBe(true);
+    expect(indexedMediaRows.some((row) => row.resourceId === 'runtime-media:5-1:5-1 媒体链接登记')).toBe(false);
+    expect(indexedMediaRows.some((row) => row.resourceType === 'handout')).toBe(false);
+
+    const authoringManifestPath = 'course-content/authoring/resources/textbooks/hu-shousong-exercise-analysis-3rd/chapter-01/manifest.json';
+    const authoringManifest = JSON.parse(readFileSync(join(process.cwd(), authoringManifestPath), 'utf8'));
+    const captionImage = authoringManifest.images.find((image: { caption?: string }) => image.caption);
+    const captionRow = jsonlRows.find((row) => (
+      row.family === 'authoring-textbook-caption' &&
+      row.sourcePathOrUrl === authoringManifestPath &&
+      row.sourceRecord === `caption:${captionImage.index ?? captionImage.exportPath}`
+    ));
+    const captionHash = `sha256:${createHash('sha256').update(captionImage.caption).digest('hex')}`;
+    expect(captionRow?.sourceHash).toBe(captionHash);
+    expect(captionRow?.sourceHash).not.toBe(captionImage.sha256);
 
     expect(knowledgeCardRows).toHaveLength(cardFiles.length);
     expect(new Set(knowledgeCardRows.map((row) => row.sourceRecord))).toEqual(

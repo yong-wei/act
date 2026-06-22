@@ -306,9 +306,10 @@ async function collectRuntimeLessonCatalogEntries(): Promise<RuntimeLessonCatalo
   const lessonDirs = await safeReadDir(RUNTIME_LESSONS_DIR);
   for (const dirent of lessonDirs.filter((entry) => entry.isDirectory())) {
     const lessonDir = path.join(RUNTIME_LESSONS_DIR, dirent.name);
-    const [lesson, graphOverlay] = await Promise.all([
+    const [lesson, graphOverlay, mediaResources] = await Promise.all([
       readJson<RuntimeLessonJson>(path.join(lessonDir, 'lesson.json')),
       readJson<RuntimeGraphOverlay>(path.join(lessonDir, 'graph-overlay.json')),
+      collectRuntimeLessonMediaResources(dirent.name, lessonDir),
     ]);
     if (!lesson || !graphOverlay) continue;
     const lessonId = lesson.lesson_id ?? graphOverlay.lesson_id ?? dirent.name;
@@ -337,10 +338,78 @@ async function collectRuntimeLessonCatalogEntries(): Promise<RuntimeLessonCatalo
         ? handoutSourcePath
         : fallbackHandoutSourcePath,
       handoutPdfPath,
-      mediaResources: [],
+      mediaResources,
     });
   }
   return entries.sort((left, right) => left.lesson.lesson_id.localeCompare(right.lesson.lesson_id));
+}
+
+async function collectRuntimeLessonMediaResources(lessonDirName: string, lessonDir: string): Promise<RuntimeLessonCatalogEntry['mediaResources']> {
+  const mediaDir = path.join(lessonDir, 'media');
+  const mediaIndexFiles = (await safeReadDir(mediaDir))
+    .filter((entry) => entry.isFile() && entry.name.endsWith('-media.md'))
+    .map((entry) => path.join(mediaDir, entry.name))
+    .sort((left, right) => left.localeCompare(right));
+  const resources: RuntimeLessonCatalogEntry['mediaResources'] = [];
+
+  for (const mediaIndexPath of mediaIndexFiles) {
+    const markdown = await readText(mediaIndexPath);
+    if (!markdown) continue;
+    resources.push(...parseRuntimeLessonMediaResources(markdown, lessonDirName));
+  }
+
+  return resources;
+}
+
+function parseRuntimeLessonMediaResources(markdown: string, lessonDirName: string): RuntimeLessonCatalogEntry['mediaResources'] {
+  const resources: RuntimeLessonCatalogEntry['mediaResources'] = [];
+  const lines = markdown.split(/\r?\n/);
+  let currentFilename: string | null = null;
+  let currentTitle: string | null = null;
+  let currentUrl: string | null = null;
+
+  const flushCurrent = () => {
+    if (!currentFilename) return;
+    if (!isRuntimeHandoutMarkdownFilename(currentFilename)) {
+      const kind = inferRuntimeMediaKind(currentFilename);
+      resources.push({
+        id: normalizeRuntimeMediaId(currentFilename),
+        title: currentTitle ?? currentFilename,
+        kind,
+        url: currentUrl,
+        filename: currentFilename,
+      });
+    }
+    currentFilename = null;
+    currentTitle = null;
+    currentUrl = null;
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const headingMatch = line.match(/^#{1,6}\s+(.+)$/);
+    if (headingMatch) {
+      const filename = headingMatch[1].trim();
+      flushCurrent();
+      if (!isRuntimeMediaIndexFilename(filename)) continue;
+      currentFilename = filename;
+      continue;
+    }
+    if (currentFilename && !currentTitle && line.startsWith('- ')) {
+      currentTitle = line.slice(2).trim();
+      continue;
+    }
+    if (currentFilename && !currentUrl && /^https?:\/\//i.test(line)) {
+      currentUrl = line;
+      continue;
+    }
+  }
+
+  flushCurrent();
+  return resources.map((resource) => ({
+    ...resource,
+    url: resource.url ?? `/course-runtime/lessons/${lessonDirName}/media/${resource.filename}`,
+  }));
 }
 
 async function collectInfographCandidates() {
@@ -468,7 +537,7 @@ async function collectAuthoringTextbookCandidates() {
         evidenceInstrumentation: [],
         generatedBy: manifest.pipeline ? 'external-tool' : null,
         humanConfirmed: false,
-        contentHash: image.sha256 ?? manifest.markdownSha256 ?? null,
+        contentHash: image.caption ? `sha256:${sha256(image.caption)}` : manifest.markdownSha256 ?? null,
         versionRef: 'authoring-textbook-manifest.v1',
       });
     }
@@ -568,6 +637,30 @@ function projectPath(absolutePath: string) {
 function normalizeRuntimeMediaRef(lessonDir: string, source: string) {
   if (/^https?:\/\//i.test(source) || source.startsWith('/')) return source;
   return path.join('course-content/runtime/lessons', lessonDir, source).replaceAll('/../', '/');
+}
+
+function inferRuntimeMediaKind(filename: string) {
+  const ext = path.extname(filename).toLowerCase();
+  if (ext === '.mp4' || ext === '.webm') return 'video';
+  if (ext === '.m4a' || ext === '.mp3' || ext === '.wav') return 'audio';
+  if (ext === '.pdf' && /(^|[-_])slides(?:[-_.]|$)/i.test(path.basename(filename))) return 'slides';
+  if (ext === '.pdf') return 'pdf';
+  return 'other';
+}
+
+function normalizeRuntimeMediaId(filename: string) {
+  return filename.replace(/\.[^.]+$/, '');
+}
+
+function isRuntimeHandoutMarkdownFilename(filename: string) {
+  return filename === 'handout.md' || /-handout\.md$/i.test(filename);
+}
+
+function isRuntimeMediaIndexFilename(filename: string) {
+  const ext = path.extname(filename).toLowerCase();
+  if (!ext) return false;
+  if (isRuntimeHandoutMarkdownFilename(filename)) return true;
+  return ['.mp4', '.webm', '.m4a', '.mp3', '.wav', '.pdf'].includes(ext);
 }
 
 function slugifyAuthoringSection(title: string, lineNumber: number, index: number) {
