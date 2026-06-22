@@ -1509,15 +1509,17 @@ function buildRuntimeLessonNodes(lessons: RuntimeLessonNodeInput[]): ResourceNod
 
 function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProjectionInput[]): ResourceNode[] {
   return projections
-    .filter(isRuntimeResourceNodeProjection)
+    .filter(isRuntimeResourceProjectionResourceNodeCandidate)
     .map((projection) => {
       const ownership = RESOURCE_SEMANTIC_SOURCE_OWNERSHIP[projection.sourceKind];
       const routeTarget = projection.routeTarget ?? null;
+      const capabilityTargets = uniqueSorted(projection.graphNodeRefs?.capability ?? []);
+      const resourceType = runtimeProjectionResourceNodeType(projection.resourceType);
 
       return createNode({
         id: projection.resourceNodeId ?? projection.id,
         title: projection.title,
-        type: projection.resourceType,
+        type: resourceType,
         sourceKind: projection.sourceKind,
         sourceRef: projection.sourceRecord ?? projection.sourceRef,
         sourceRefs: [{ kind: projection.sourceKind, ref: projection.sourceRef }],
@@ -1532,7 +1534,7 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
         evidenceInstrumentation: projection.evidenceInstrumentation ?? [],
         planningOverride: {
           estimatedTimeMinutes: projection.estimatedTimeMinutes ?? undefined,
-          abilityImpact: abilityImpactFromTargets(projection.graphNodeRefs?.capability ?? []),
+          abilityImpact: Object.fromEntries(capabilityTargets.map((target) => [target, 0.25])),
           privacyLevel: projection.privacyScope ?? undefined,
           teacherPolicy: projection.teacherPolicy ?? undefined,
           readiness: projection.readiness ?? undefined,
@@ -1542,14 +1544,17 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
     });
 }
 
-function isRuntimeResourceNodeProjection(
+function isRuntimeResourceProjectionResourceNodeCandidate(
   projection: RuntimeResourceProjectionInput,
-): projection is RuntimeResourceProjectionInput & { resourceType: ResourceNodeType } {
-  return isResourceNodeType(projection.resourceType) &&
-    (
-      projection.projectionLevel === 'ResourceNode' ||
-      projection.projectionLevel === 'PlanningUnit'
-    );
+): boolean {
+  return isResourceNodeType(projection.resourceType) || projection.resourceType === 'image';
+}
+
+function runtimeProjectionResourceNodeType(
+  resourceType: RuntimeResourceProjectionResourceType,
+): ResourceNodeType {
+  if (isResourceNodeType(resourceType)) return resourceType;
+  return 'handout';
 }
 
 function buildTextbookNodes(textbooks: TextbookResourceNodeInput[]): ResourceNode[] {
@@ -1959,10 +1964,12 @@ function mergeOverlappingSources(nodes: ResourceNode[]): Map<string, ResourceNod
           ...existing.planningMetadata.knowledgeCoverage,
           ...node.planningMetadata.knowledgeCoverage,
         ]),
-        abilityImpact: {
-          ...existing.planningMetadata.abilityImpact,
-          ...node.planningMetadata.abilityImpact,
-        },
+        abilityImpact: node.runtimeProjection
+          ? node.planningMetadata.abilityImpact
+          : {
+              ...existing.planningMetadata.abilityImpact,
+              ...node.planningMetadata.abilityImpact,
+            },
         cost: node.runtimeProjection ? node.planningMetadata.cost : existing.planningMetadata.cost,
         availability: node.runtimeProjection
           ? node.planningMetadata.availability
@@ -2149,6 +2156,13 @@ function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIs
     issues.push({
       code: 'missing-runtime-projection-route-target',
       message: 'Runtime path projection lacks a verified route target.',
+      severity: 'blocking',
+    });
+  }
+  if (projection.graphNodeRefs.capability.length === 0) {
+    issues.push({
+      code: 'missing-capability-mapping',
+      message: 'Runtime projection lacks sidecar capability target mappings.',
       severity: 'blocking',
     });
   }

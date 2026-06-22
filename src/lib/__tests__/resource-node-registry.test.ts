@@ -1160,20 +1160,51 @@ describe('resource node registry', () => {
         staleInvalidationRule: 'stale when source hash or version changes',
       },
     });
+    const missingCapabilityProjection = runtimeProjectionSidecar({
+      id: 'runtime-step:unit-demo:step-4',
+      resourceNodeId: 'lesson-step:unit-demo:step-4',
+      title: '缺少能力映射的步骤',
+      sourceRef: 'unit-demo:step-4',
+      sourceRecord: 'unit-demo:step-4',
+      sourceHash: 'sha256:step-4',
+      sourceVersionRef: 'interactive-manifest.v2',
+      routeTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step-4',
+      graphNodeRefs: {
+        knowledge: ['kn-demo'],
+        capability: [],
+        quality: [],
+      },
+      reviewAudit: {
+        status: 'human-confirmed',
+        reviewerId: 'teacher-1',
+        reviewerRole: 'teacher',
+        reviewedAt: '2026-06-22T00:00:00.000Z',
+        reviewBatchId: 'runtime-projection-batch-1',
+        reviewedSourceHash: 'sha256:step-4',
+        reviewedVersionRef: 'interactive-manifest.v2',
+        generationToolOrModel: 'template',
+        promptOrManifestHash: null,
+        confidence: 0.92,
+        staleInvalidationRule: 'stale when source hash or version changes',
+      },
+    });
     const registry = buildResourceNodeRegistry({
       runtimeResourceProjections: [
         confirmedProjection,
         provisionalProjection,
         staleProjection,
+        missingCapabilityProjection,
       ],
     });
 
     const confirmed = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-1') as ResourceNode;
     const provisional = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-2') as ResourceNode;
     const stale = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-3') as ResourceNode;
+    const missingCapability = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-4') as ResourceNode;
     const confirmedSemanticProjection = buildResourceSemanticProjection(confirmed);
     const provisionalSemanticProjection = buildResourceSemanticProjection(provisional);
     const staleSemanticProjection = buildResourceSemanticProjection(stale);
+    const missingCapabilitySemanticProjection = buildResourceSemanticProjection(missingCapability);
 
     expect(confirmed.eligibility.pathEligible).toBe(true);
     expect(provisional.eligibility.pathEligible).toBe(false);
@@ -1184,6 +1215,12 @@ describe('resource node registry', () => {
     expect(stale.eligibility.pathEligible).toBe(false);
     expect(stale.eligibility.auditIssues).toContainEqual(expect.objectContaining({
       code: 'stale-runtime-projection',
+      severity: 'blocking',
+    }));
+    expect(missingCapability.planningMetadata.abilityImpact).toEqual({});
+    expect(missingCapability.eligibility.pathEligible).toBe(false);
+    expect(missingCapability.eligibility.auditIssues).toContainEqual(expect.objectContaining({
+      code: 'missing-capability-mapping',
       severity: 'blocking',
     }));
     expect(confirmedSemanticProjection.planningUnit).toMatchObject({
@@ -1199,6 +1236,8 @@ describe('resource node registry', () => {
     expect(provisionalSemanticProjection.resource.governance.auditIssueCodes).toContain('provisional-runtime-projection');
     expect(staleSemanticProjection.planningUnit).toBeNull();
     expect(staleSemanticProjection.resource.governance.auditIssueCodes).toContain('stale-runtime-projection');
+    expect(missingCapabilitySemanticProjection.planningUnit).toBeNull();
+    expect(missingCapabilitySemanticProjection.resource.governance.auditIssueCodes).toContain('missing-capability-mapping');
   });
 
   it('blocks sidecar-backed PlanningUnits when the projection has no verified route target', () => {
@@ -1229,6 +1268,121 @@ describe('resource node registry', () => {
     expect(projection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
       'missing-render-or-launch-target',
       'missing-runtime-projection-route-target',
+    ]));
+  });
+
+  it('attaches ResourceSegment runtime sidecars to existing runtime resources as planning blockers', () => {
+    const registry = buildResourceNodeRegistry({
+      runtimeLessons: [
+        {
+          lessonId: 'unit-demo',
+          title: '示例单元',
+          knowledgeNodeIds: ['kn-demo'],
+          handoutPath: 'course-content/runtime/lessons/unit-demo/handout.md',
+          mediaResources: [
+            {
+              id: 'figure.png',
+              title: '示例图片',
+              kind: 'other',
+              url: 'course-content/runtime/lessons/unit-demo/figure.png',
+            },
+          ],
+        },
+      ],
+      runtimeResourceProjections: [
+        runtimeProjectionSidecar({
+          id: 'runtime-handout:unit-demo',
+          resourceNodeId: 'runtime-handout:unit-demo',
+          title: '示例单元讲义',
+          resourceType: 'handout',
+          sourceKind: 'runtime_handout',
+          sourceRef: 'unit-demo',
+          sourceRecord: 'unit-demo',
+          projectionLevel: 'ResourceSegment',
+          routeTarget: null,
+          graphNodeRefs: {
+            knowledge: ['kn-demo'],
+            capability: ['controlModeling'],
+            quality: [],
+          },
+          reviewAudit: {
+            status: 'generated-provisional',
+            reviewerId: null,
+            reviewerRole: null,
+            reviewedAt: null,
+            reviewBatchId: null,
+            reviewedSourceHash: null,
+            reviewedVersionRef: 'interactive-manifest.v2',
+            generationToolOrModel: 'template',
+            promptOrManifestHash: null,
+            confidence: null,
+            staleInvalidationRule: 'requires human review before path eligibility or mastery effect',
+          },
+        }),
+        runtimeProjectionSidecar({
+          id: 'runtime-media:unit-demo:figure.png',
+          resourceNodeId: 'runtime-media:unit-demo:figure.png',
+          title: '示例图片',
+          resourceType: 'image',
+          sourceKind: 'runtime_lesson_media',
+          sourceRef: 'unit-demo:figure.png',
+          sourceRecord: 'unit-demo:figure.png',
+          projectionLevel: 'ResourceSegment',
+          routeTarget: null,
+          sourcePathOrUrl: 'course-content/runtime/lessons/unit-demo/figure.png',
+          graphNodeRefs: {
+            knowledge: ['kn-demo'],
+            capability: [],
+            quality: [],
+          },
+          reviewAudit: {
+            status: 'generated-provisional',
+            reviewerId: null,
+            reviewerRole: null,
+            reviewedAt: null,
+            reviewBatchId: null,
+            reviewedSourceHash: null,
+            reviewedVersionRef: 'interactive-manifest.v2',
+            generationToolOrModel: 'template',
+            promptOrManifestHash: null,
+            confidence: null,
+            staleInvalidationRule: 'requires human review before path eligibility or mastery effect',
+          },
+        }),
+      ],
+    });
+    const node = registry.nodes.find((item) => item.id === 'runtime-handout:unit-demo') as ResourceNode;
+    const imageMediaNode = registry.nodes.find((item) => item.id === 'runtime-media:unit-demo:figure.png') as ResourceNode;
+    const projection = buildResourceSemanticProjection(node);
+    const imageMediaProjection = buildResourceSemanticProjection(imageMediaNode);
+
+    expect(node.runtimeProjection?.projectionLevel).toBe('ResourceSegment');
+    expect(node.eligibility.pathEligible).toBe(false);
+    expect(node.eligibility.auditIssues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'runtime-projection-not-path-resource' }),
+      expect.objectContaining({ code: 'provisional-runtime-projection' }),
+    ]));
+    expect(projection.planningUnit).toBeNull();
+    expect(projection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
+      'runtime-projection-not-path-resource',
+      'provisional-runtime-projection',
+    ]));
+    expect(imageMediaNode.type).toBe('handout');
+    expect(imageMediaNode.runtimeProjection?.projectionLevel).toBe('ResourceSegment');
+    expect(imageMediaNode.planningMetadata.abilityImpact).toEqual({});
+    expect(imageMediaNode.eligibility.pathEligible).toBe(false);
+    expect(imageMediaNode.eligibility.auditIssues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'runtime-projection-not-path-resource' }),
+      expect.objectContaining({ code: 'missing-capability-mapping' }),
+      expect.objectContaining({ code: 'provisional-runtime-projection' }),
+    ]));
+    expect(imageMediaProjection.planningUnit).toBeNull();
+    expect(imageMediaProjection.resource.capabilityTargetIds).toEqual([]);
+    expect(imageMediaProjection.resource.graphProfile.graphNodeRefs.capability).toEqual([]);
+    expect(imageMediaProjection.resource.governance.auditIssueCodes).toEqual(expect.arrayContaining([
+      'runtime-projection-not-path-resource',
+      'missing-capability-mapping',
+      'provisional-runtime-projection',
     ]));
   });
 
