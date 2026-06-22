@@ -1202,11 +1202,14 @@ export function validateResourceMediaSourceManifest(
   if (!sourcePath.trim()) issues.push('missing-source-path');
   if (sourcePath && !isSafeMediaSourcePath(sourcePath)) issues.push('unsafe-source-path');
   if (!manifest.sourceVersionRef && !manifest.freshnessRef) issues.push('missing-source-version-or-freshness');
-  if (!manifest.privacyScope) issues.push('missing-privacy-scope');
   if (!['video', 'audio', 'image', 'slides'].includes(manifest.mediaType)) issues.push('invalid-media-type');
   if (!Array.isArray(manifest.segments) || manifest.segments.length === 0) {
     issues.push('missing-segments');
     return { verifiedCitationReady: false, issues };
+  }
+  const hasManifestPrivacyScope = isResourceNodePrivacyLevel(manifest.privacyScope);
+  if (!hasManifestPrivacyScope && !manifest.segments.some((segment) => isResourceNodePrivacyLevel(segment.privacyScope))) {
+    issues.push('missing-privacy-scope');
   }
 
   manifest.segments.forEach((segment, index) => {
@@ -1220,7 +1223,9 @@ export function validateResourceMediaSourceManifest(
     if (!segment.aiUsePermission) issues.push(`${prefix}.missing-ai-use-permission`);
     if (segment.aiUsePermission && !isMediaAiUsePermission(segment.aiUsePermission)) issues.push(`${prefix}.invalid-ai-use-permission`);
     if (segment.aiUsePermission === 'blocked') issues.push(`${prefix}.blocked-ai-use`);
-    if (!segment.privacyScope && !manifest.privacyScope) issues.push(`${prefix}.missing-privacy-scope`);
+    if (!isResourceNodePrivacyLevel(segment.privacyScope) && !hasManifestPrivacyScope) {
+      issues.push(`${prefix}.missing-privacy-scope`);
+    }
     if (
       (manifest.mediaType === 'video' || manifest.mediaType === 'audio') &&
       segment.citationPolicy === 'verified-citation-required' &&
@@ -1276,7 +1281,11 @@ export function buildMediaSourceManifestSemanticProjection(
     const segmentIssues = issuesForMediaSegment(validation.issues, index);
     const segmentId = mediaSegmentId(manifest, segment, index);
     const citationReadiness = buildMediaSegmentCitationReadiness(segment, segmentIssues);
-    const sceneAvailability = buildMediaSegmentSceneAvailability(segment, segmentIssues);
+    const sceneAvailability = buildMediaSegmentSceneAvailability(
+      segment,
+      segmentIssues,
+      mediaSegmentPrivacyScope(manifest, segment),
+    );
     return {
       id: segmentId,
       resourceId,
@@ -2661,7 +2670,7 @@ function mediaSegmentPrivacyScope(
   manifest: ResourceMediaSourceManifest,
   segment: ResourceMediaManifestSegment,
 ): ResourceNodePrivacyLevel {
-  return segment.privacyScope ?? manifest.privacyScope ?? 'teacher-scoped';
+  return mostRestrictivePrivacyScope([manifest.privacyScope, segment.privacyScope]);
 }
 
 function mostRestrictivePrivacyScope(scopes: Array<ResourceNodePrivacyLevel | null | undefined>): ResourceNodePrivacyLevel {
@@ -2756,6 +2765,7 @@ function mergeResourceGraphNodeRefs(refs: ResourceGraphNodeRefs[]): ResourceGrap
 function buildMediaSegmentSceneAvailability(
   segment: ResourceMediaManifestSegment,
   issues: string[],
+  privacyScope: ResourceNodePrivacyLevel,
 ): ResourceSceneAvailabilityMap {
   const blocked = issues.includes('blocked-ai-use');
   const missingAiUse = issues.includes('missing-ai-use-permission');
@@ -2765,6 +2775,7 @@ function buildMediaSegmentSceneAvailability(
     if (scene === 'path') {
       return [scene, { allowed: false, reason: 'resource-node-planning-audit-required' }];
     }
+    if (privacyScope === 'admin-scoped') return [scene, { allowed: false, reason: 'admin-scoped-resource' }];
     if (blocked) return [scene, { allowed: false, reason: 'blocked-ai-use' }];
     if (missingAiUse) return [scene, { allowed: false, reason: 'missing-ai-use-permission' }];
     if (invalidAiUse) return [scene, { allowed: false, reason: 'invalid-ai-use-permission' }];
