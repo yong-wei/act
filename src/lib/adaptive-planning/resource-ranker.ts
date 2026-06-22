@@ -273,9 +273,21 @@ function sceneRejectionReasons(
     if (!profile.planningUnit) return ['missing-planning-unit-projection'];
     if (!candidate.node.eligibility.pathEligible) return candidate.node.eligibility.reasons;
   }
+  const governanceReasons = nonPathGovernanceRejectionReasons(candidate.node);
+  if (governanceReasons.length > 0) return governanceReasons;
   const availability = profile.sceneAvailability[scene];
   if (!availability.allowed) return [availability.reason ?? `${scene}-scene-unavailable`];
   return [];
+}
+
+function nonPathGovernanceRejectionReasons(node: ResourceNode): string[] {
+  return node.eligibility.reasons.filter((reason) => [
+    'unavailable-resource',
+    'teacher-policy-blocked',
+    'missing-privacy-policy',
+    'missing-external-privacy-policy',
+    'unsafe-external-url',
+  ].includes(reason));
 }
 
 function buildFeatureContributions(

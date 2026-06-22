@@ -662,6 +662,70 @@ describe('adaptive learning path planner', () => {
     expect(pathRanking.rejected[0].rejectionReasons).toEqual(['missing-planning-unit-projection']);
   });
 
+  it('rejects non-path scene resources blocked by governance audit', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'archived-konling-card',
+        title: '已归档知识卡',
+        sourceRef: 'kn-bode:archived',
+        renderTarget: '/knowledge/cards/archived',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          availability: 'archived',
+        },
+      }, {
+        id: 'blocked-konling-card',
+        title: '教师禁用知识卡',
+        sourceRef: 'kn-bode:blocked',
+        renderTarget: '/knowledge/cards/blocked',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          teacherPolicy: 'blocked',
+        },
+      }],
+      externalResources: [{
+        id: 'no-privacy-konling-reference',
+        title: '缺少隐私策略外部资料',
+        source: 'Example Library',
+        url: 'https://example.edu/no-privacy',
+        estimatedTimeMinutes: 6,
+        knowledgeNodeIds: ['kn-bode'],
+        applicableGoalId: 'goal-bode',
+        evidenceUseStatus: 'explicit-access-required',
+        planningOverride: {
+          abilityImpact: { controlModeling: 0.2 },
+        },
+      }],
+    });
+    const ranking = rankResourceLearnerCandidates({
+      candidates: registry.nodes.map((node) => ({
+        node,
+        planningUnit: buildResourceSemanticProjection(node).planningUnit,
+      })),
+      scene: 'konling',
+      targetGraphNodeIds: ['kn-bode'],
+      learnerState: null,
+      timeBudgetMinutes: 20,
+      registry,
+    });
+
+    expect(ranking.ranked).toEqual([]);
+    expect(ranking.rejected).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'knowledge-card:archived-konling-card' }),
+        rejectionReasons: expect.arrayContaining(['unavailable-resource']),
+      }),
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'knowledge-card:blocked-konling-card' }),
+        rejectionReasons: expect.arrayContaining(['teacher-policy-blocked']),
+      }),
+      expect.objectContaining({
+        node: expect.objectContaining({ id: 'external-resource:no-privacy-konling-reference' }),
+        rejectionReasons: expect.arrayContaining(['missing-external-privacy-policy']),
+      }),
+    ]));
+  });
+
   it('can select textbook sections as foundation-remediation path resources', () => {
     const registry = buildResourceNodeRegistry({
       knowledgeCards: [{
