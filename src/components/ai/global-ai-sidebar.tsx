@@ -183,7 +183,7 @@ export function GlobalAISidebar() {
 
     const updateAvoidance = () => {
       const hasDesktopInspector = window.matchMedia('(min-width: 1024px)').matches
-        && Boolean(document.querySelector('[data-knowledge-inspector="stable-rail"]'));
+        && Boolean(document.querySelector('[data-knowledge-inspector="floating-right-edge"]'));
       setKnowledgeInspectorAvoidanceActive(hasDesktopInspector);
     };
 

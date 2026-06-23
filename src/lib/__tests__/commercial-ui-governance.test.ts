@@ -4118,7 +4118,10 @@ describe('commercial UI governance', () => {
       'utf8',
     );
 
-    expect(scriptSource).toContain('const isMobileViewport = numberFromEvidence(viewport.width) === 320;');
+    expect(scriptSource).toContain('const viewportWidth = numberFromEvidence(viewport.width);');
+    expect(scriptSource).toContain('const isMobileViewport = viewportWidth === 320;');
+    expect(scriptSource).toContain('const isTabletBreakpointViewport = [1024, 1100, 1279].includes(viewportWidth ?? 0);');
+    expect(scriptSource).toContain('`${name}:invalid-tablet-screenshot-width`');
     expect(scriptSource).toContain('const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;');
     expect(scriptSource).toContain('const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;');
     expect(scriptSource).toContain("visibleLocalToolPanelState === 'closed' || (name.includes('konling') && visibleLocalToolPanelState === null)");
@@ -4133,7 +4136,9 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).not.toContain('hoveredCanvasNodeDragPointCandidates');
     expect(captureScriptSource).toContain('async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string)');
     expect(captureScriptSource).toContain('pinnedLayoutSignature.includes(expectedNodeId)');
-    expect(captureScriptSource).toContain('dragCanvasNodeUntilPinned(page, selectedNodeId)');
+    expect(captureScriptSource).toContain("const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '积分环节_2_11005';");
+    expect(captureScriptSource).toContain("const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';");
+    expect(captureScriptSource).toContain('dragCanvasNodeUntilPinned(page, dragNodeId)');
     expect(scriptSource).toContain('objectRecord(objectRecord(state.interactionEvidence).drag).selectedNodeId === state.selectedNode');
     expect(scriptSource).toContain("pinnedLayoutSignature).includes(String(state.selectedNode ?? ''))");
     expect(captureScriptSource).toContain("document.querySelector('[data-knowledge-local-panel=\"node-hover-preview\"]')");
@@ -4147,6 +4152,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('const focusEvidence = await captureFocusEvidence(browser);');
     expect(captureScriptSource).toContain('focusEvidence,');
     expect(captureScriptSource).toContain("'src/features/knowledge/graph/knowledge-graph-2d.tsx'");
+    expect(captureScriptSource).toContain("'src/app/knowledge/page.tsx'");
     expect(captureScriptSource).toContain("'src/features/knowledge/graph/visual-config.ts'");
     expect(captureScriptSource).toContain("'src/components/ai/global-ai-button.tsx'");
     expect(captureScriptSource).toContain("'src/components/ai/global-ai-sidebar.tsx'");
@@ -4168,28 +4174,66 @@ describe('commercial UI governance', () => {
     expect(globalAiSidebarSource).toContain('请求的知识节点暂不可用，控灵将仅使用当前筛选与视图状态。');
     expect(globalAiSidebarSource).not.toContain('当前节点: ${nodeId}');
     expect(globalAiSidebarSource).not.toContain('请求节点 ${nodeId} 暂不可用。');
-    expect(globalAiSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"stable-rail\"]')");
+    expect(globalAiSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"floating-right-edge\"]')");
     expect(globalAiSidebarSource).toContain("right: 'calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem))'");
     expect(globalsSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
     expect(globalsSource).toContain('height: calc(100vh - 8rem) !important;');
     expect(globalsSource).toContain('[data-knowledge-mobile-inspector-policy="suspend"]');
     expect(globalsSource).toContain('display: none !important;');
     expect(captureScriptSource).toContain("'desktop-local-tools-directory-dark'");
+    expect(captureScriptSource).toContain("'desktop-local-tools-filter-dark'");
+    expect(captureScriptSource).toContain("'desktop-local-tools-view-dark'");
+    expect(scriptSource).toContain("'desktop-local-tools-legend-dark'");
+    expect(scriptSource).toContain("'desktop-local-tools-directory-dark'");
+    expect(scriptSource).toContain("'desktop-local-tools-filter-dark'");
+    expect(scriptSource).toContain("'desktop-local-tools-view-dark'");
+    expect(captureScriptSource).toContain("'desktop-wide-default-dark'");
+    expect(captureScriptSource).toContain("'desktop-wide-inspector-tools-dark'");
+    expect(captureScriptSource).toContain("'desktop-selected-page-tools-menu-dark'");
+    expect(captureScriptSource).toContain('async function openPageToolMenu(page: Page)');
+    expect(captureScriptSource).toContain("'tablet-1100-default-dark'");
+    expect(captureScriptSource).toContain("'tablet-1100-local-tools-filter-dark'");
+    expect(captureScriptSource).toContain("'tablet-1100-selected-inspector-dark'");
+    expect(captureScriptSource).toContain("'tablet-1024-inspector-tools-konling-dark'");
+    expect(captureScriptSource).toContain("'tablet-1100-inspector-tools-konling-dark'");
+    expect(captureScriptSource).toContain("'tablet-1279-inspector-tools-konling-dark'");
+    expect(scriptSource).toContain("if (name.startsWith('tablet-')) return 'tablet-1100-default-dark';");
+    expect(scriptSource).toContain("'tablet-1100-local-tools-filter-dark'");
+    expect(scriptSource).toContain("'tablet-1100-selected-inspector-dark'");
+    expect(scriptSource).toContain("'tablet-1024-inspector-tools-konling-dark'");
+    expect(scriptSource).toContain("'tablet-1100-inspector-tools-konling-dark'");
+    expect(scriptSource).toContain("'tablet-1279-inspector-tools-konling-dark'");
+    expect(captureScriptSource).toContain('const canvasRect = rectFor(canvas);');
+    expect(captureScriptSource).toContain('canvas: canvasRect');
     expect(captureScriptSource).toContain("openDesktopTool(page, 'chapter-directory')");
     expect(captureScriptSource).toContain('button[aria-label="呼出控灵 AI助手"]');
     expect(captureScriptSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
     expect(captureScriptSource).toContain('konlingAssistantSurface');
     expect(captureScriptSource).toContain('konlingInspectorAvoidance');
     expect(captureScriptSource).toContain('konlingMobileInspectorPolicy');
+    expect(captureScriptSource).toContain('dockInspectorAvoidance');
     expect(captureScriptSource).toContain('data-konling-knowledge-context');
-    expect(captureScriptSource).toContain("await page.waitForSelector('[data-knowledge-inspector=\"stable-rail\"]'");
+    expect(captureScriptSource).toContain("await page.waitForSelector('[data-knowledge-inspector=\"floating-right-edge\"]'");
     expect(captureScriptSource).not.toMatch(
       /name: 'desktop-stress-expanded-tool-inspector-konling-dark'[\s\S]*?await closeInspectorIfPresent\(page\);[\s\S]*?name: 'mobile-320-local-tools-dark'/,
     );
     expect(scriptSource).toContain('expectedKonlingContext');
     expect(scriptSource).toContain('markers.konlingKnowledgeContext === expectedKonlingContext');
     expect(scriptSource).toContain('`${name}:inspector-rect-missing`');
+    expect(scriptSource).toContain('`${name}:inspector-overlaps-app-shell-header`');
+    expect(scriptSource).toContain('numberFromEvidence(markerRects.inspector.top) >= 88');
+    expect(scriptSource).toContain('`${name}:inspector-overlaps-tablet-mobile-navigation`');
+    expect(scriptSource).toContain('numberFromEvidence(markerRects.inspector.top) >= 314');
     expect(scriptSource).toContain('`${name}:konling-inspector-avoidance-missing`');
+    expect(scriptSource).toContain('`${name}:tablet-local-tool-panel-not-suspended-while-konling-open`');
+    expect(scriptSource).toContain('`${name}:expanded-dock-overlaps-tools`');
+    expect(scriptSource).toContain("'desktop-selected-page-tools-menu-dark'");
+    expect(scriptSource).toContain('`${name}:dock-inspector-avoidance-missing`');
+    expect(scriptSource).toContain('`${name}:dock-overlaps-inspector`');
+    expect(globalsSource).toContain('@media (min-width: 1024px) and (max-width: 1279px)');
+    expect(globalsSource).toContain('body:has([data-knowledge-inspector="floating-right-edge"]) [data-page-floating-controls]');
+    expect(globalsSource).toContain('[data-knowledge-desktop-command-system] {\n      display: none !important;');
+    expect(readFileSync(join(process.cwd(), 'src/components/shared/page-floating-controls.tsx'), 'utf8')).toContain('knowledgeInspectorAvoidanceActive');
     expect(scriptSource).toContain("konlingRuntimeSource.includes(\"const contextNodeId = hint?.status === 'degraded'\")");
     expect(scriptSource).toContain('const productQaSourcePaths = [');
     expect(scriptSource).toContain('globalAiButtonSourcePath');
@@ -4198,8 +4242,10 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('graph2dSourcePath');
     expect(scriptSource).toContain('floatingControlsSourcePath');
     expect(scriptSource).toContain('captureScriptSourcePath');
-    expect(scriptSource).toContain('stringRecordsEqualForPaths(visualReviewSourceSha256, currentSourceSha256, productQaSourcePaths)');
-    expect(scriptSource).not.toContain('const governanceScriptSourcePath');
+    expect(scriptSource).toContain('governanceScriptSourcePath');
+    expect(scriptSource).toContain('stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)');
+    expect(scriptSource).toContain('`${sourcePath}:sha-missing`');
+    expect(scriptSource).toContain('Object.entries(sourceHashes).map');
     expect(captureScriptSource).toContain("'scripts/tests/capture-knowledge-workspace-product-qa.ts'");
     expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
     expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");
@@ -4226,6 +4272,8 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).not.toContain('parsed.currentSourceSha256');
     expect(scriptSource).toContain('visual-review:stale-screenshot-review');
     expect(scriptSource).toContain('visual-review:stale-source-review');
+    expect(scriptSource).toContain("'tabletBreakpoint'");
+    expect(scriptSource).toContain("'canvasGeometry'");
   });
 
   it('keeps general commercial source palette governance limited to added lines', () => {

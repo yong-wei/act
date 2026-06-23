@@ -109,6 +109,24 @@ function PageFloatingControls({
   const triggerLabel = primaryControl?.label.includes('控灵') ? '控灵' : primaryControl ? '工具' : '工具';
   const panelId = 'page-floating-controls-panel';
   const panelTitleId = 'page-floating-controls-title';
+  const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
+
+  useEffect(() => {
+    const syncKnowledgeInspectorAvoidance = () => {
+      setKnowledgeInspectorAvoidanceActive(
+        window.matchMedia('(min-width: 1024px)').matches
+        && Boolean(document.querySelector('[data-knowledge-inspector="floating-right-edge"]')),
+      );
+    };
+    syncKnowledgeInspectorAvoidance();
+    const observer = new MutationObserver(syncKnowledgeInspectorAvoidance);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', syncKnowledgeInspectorAvoidance);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', syncKnowledgeInspectorAvoidance);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -170,9 +188,13 @@ function PageFloatingControls({
     <div
       ref={menuRef}
       className="no-print fixed bottom-4 right-6 z-[120] flex flex-col items-end"
+      style={knowledgeInspectorAvoidanceActive ? {
+        right: 'calc(1.5rem + var(--knowledge-inspector-width, clamp(22.5rem, 30vw, 28.75rem)))',
+      } : undefined}
       data-page-floating-controls="true"
       data-platform-floating-dock={behavior === 'collapsed' ? 'collapsed' : 'enabled'}
       data-platform-floating-dock-safe-area="bottom-right"
+      data-platform-floating-dock-inspector-avoidance={knowledgeInspectorAvoidanceActive ? 'active' : undefined}
     >
       {isMenuOpen ? (
         <div

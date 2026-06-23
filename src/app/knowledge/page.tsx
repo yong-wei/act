@@ -15,6 +15,7 @@ function resolveKnowledgeShellRole(role: string | undefined): PlatformRole | nul
 function KnowledgeMapSurface() {
   return (
     <section
+      className="h-[calc(100dvh-7rem-1px)] min-h-0 overflow-hidden max-lg:h-[calc(100dvh-18.625rem)] lg:max-xl:h-[calc(100dvh-10.5rem)]"
       data-commercial-student-entry-route="/knowledge"
       data-commercial-workspace="knowledge-data-map"
       data-commercial-workspace-zone="instrument-area"
