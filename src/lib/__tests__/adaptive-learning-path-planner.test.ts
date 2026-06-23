@@ -1571,6 +1571,156 @@ describe('adaptive learning path planner', () => {
     expect(plan.mainPath[0]?.reasonCodes).toContain('ranker:selected-graph-focus');
   });
 
+  it('blocks non-final terminal repair violations even for graph partial starters', () => {
+    const originalRepair = deterministicPathConstraintRepairAdapter.repair;
+    deterministicPathConstraintRepairAdapter.repair = (repairInput) => {
+      const repairedNodeId = repairInput.candidates.find((candidate) => candidate.nodeId === 'knowledge-card:graph-frequency-card-b')?.nodeId
+        ?? repairInput.candidates[0]?.nodeId
+        ?? 'knowledge-card:graph-frequency-card-b';
+      return {
+        status: 'infeasible',
+        draftNodeIds: repairInput.draftNodeIds,
+        repairedNodeIds: [repairedNodeId],
+        insertedNodeIds: [],
+        removedNodeIds: [],
+        checkpointNodeIds: [],
+        terminalValidationNodeIds: [],
+        repairedConstraints: [],
+        tradeoffs: [],
+        limitations: [],
+        infeasibleReasons: [{
+          code: 'terminal-validation-not-final',
+          nodeIds: [repairedNodeId],
+          message: `Terminal validation ${repairedNodeId} must be the final node in the repaired path.`,
+        }],
+        versionRefs: Object.fromEntries(
+          Object.entries(repairInput.versionRefs).map(([key, value]) => [key, value ?? null])
+        ),
+      };
+    };
+
+    try {
+      const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+      const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
+      const [firstTarget, secondTarget, missingTarget] = learningGoal.targetGraphNodeIds;
+      const registry = buildResourceNodeRegistry({
+        knowledgeCards: [{
+          id: 'graph-frequency-card-a',
+          title: '频域图谱知识卡 A',
+          sourceRef: 'frequency-response:graph-card-a',
+          renderTarget: '/knowledge/cards/frequency-response-a',
+          knowledgeNodeIds: ['legacy-frequency-response-a'],
+          planningOverride: {
+            abilityImpact: {
+              frequencyResponseInterpretation: 0.3,
+            },
+          },
+        }, {
+          id: 'graph-frequency-card-b',
+          title: '频域图谱知识卡 B',
+          sourceRef: 'frequency-response:graph-card-b',
+          renderTarget: '/knowledge/cards/frequency-response-b',
+          knowledgeNodeIds: ['legacy-frequency-response-b'],
+          planningOverride: {
+            abilityImpact: {
+              frequencyResponseInterpretation: 0.25,
+            },
+          },
+        }],
+      });
+
+      const plan = buildAdaptiveLearningPathPlan(plannerInput({
+        goal: {
+          id: learningGoal.id,
+          title: learningGoal.title,
+          knowledgeTargets: ['legacy-frequency-response-a', 'legacy-frequency-response-b'],
+        },
+        learnerState: null,
+        registry,
+        constraints: {
+          timeBudgetMinutes: 30,
+          privacyScopes: ['student-visible'],
+        },
+        graphContext: {
+          learningGoalId: learningGoal.id,
+          learningGoalVersion: learningGoal.version,
+          objectiveBoundary: {
+            knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+            capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+            qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+          },
+          expandedSubgraph,
+          selectedGraphNodeIds: [secondTarget],
+          resourceCoverage: {
+            [firstTarget]: {
+              domain: 'knowledge',
+              nodeId: firstTarget,
+              linkedResourceCount: 1,
+              pathEligibleResourceCount: 1,
+              ragIndexedCount: 0,
+              citationReadyCount: 0,
+              verifiedCitationCount: 0,
+              assessmentResourceCount: 0,
+              simulationResourceCount: 0,
+              arenaPreviewResourceCount: 0,
+              arenaOfficialResourceCount: 0,
+              terminalValidationCapableResourceCount: 0,
+              coverageState: 'partial',
+              missingCoverageTypes: ['rag-indexed-resource'],
+              linkedResourceIds: ['resource:graph-frequency-card-a'],
+              pathEligibleResourceIds: ['knowledge-card:graph-frequency-card-a'],
+            },
+            [secondTarget]: {
+              domain: 'knowledge',
+              nodeId: secondTarget,
+              linkedResourceCount: 1,
+              pathEligibleResourceCount: 1,
+              ragIndexedCount: 0,
+              citationReadyCount: 0,
+              verifiedCitationCount: 0,
+              assessmentResourceCount: 0,
+              simulationResourceCount: 0,
+              arenaPreviewResourceCount: 0,
+              arenaOfficialResourceCount: 0,
+              terminalValidationCapableResourceCount: 0,
+              coverageState: 'partial',
+              missingCoverageTypes: ['rag-indexed-resource'],
+              linkedResourceIds: ['resource:graph-frequency-card-b'],
+              pathEligibleResourceIds: ['knowledge-card:graph-frequency-card-b'],
+            },
+            [missingTarget]: {
+              domain: 'knowledge',
+              nodeId: missingTarget,
+              linkedResourceCount: 0,
+              pathEligibleResourceCount: 0,
+              ragIndexedCount: 0,
+              citationReadyCount: 0,
+              verifiedCitationCount: 0,
+              assessmentResourceCount: 0,
+              simulationResourceCount: 0,
+              arenaPreviewResourceCount: 0,
+              arenaOfficialResourceCount: 0,
+              terminalValidationCapableResourceCount: 0,
+              coverageState: 'missing',
+              missingCoverageTypes: ['path-eligible-resource'],
+              linkedResourceIds: [],
+              pathEligibleResourceIds: [],
+            },
+          },
+          learnerOverlay: null,
+          classOverlay: null,
+        },
+      }));
+
+      expect(plan.status).toBe('fallback');
+      expect(plan.explanations.fallbackReasons).toContain('graph-target-coverage-partial');
+      expect(plan.explanations.fallbackReasons).toContain('terminal-validation-not-final');
+      expect(plan.mainPath).toEqual([]);
+    } finally {
+      deterministicPathConstraintRepairAdapter.repair = originalRepair;
+    }
+  });
+
   it('matches ResourceNodes bound to required graph prerequisites', () => {
     const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
     const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);

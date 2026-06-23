@@ -40,6 +40,7 @@ export interface PathConstraintInfeasibleReason {
     | 'hard-prerequisite-missing'
     | 'checkpoint-resource-missing'
     | 'terminal-validation-resource-missing'
+    | 'terminal-validation-not-final'
     | 'time-budget-insufficient'
     | 'locked-node-without-fallback';
   nodeIds: string[];
@@ -618,14 +619,17 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
   const terminalValidationNodeIds = selectedIds.filter((nodeId) =>
     candidatesById.get(nodeId)?.terminalValidation === 'official'
   );
+  const terminalNodeIds = selectedIds.filter((nodeId) =>
+    Boolean(candidatesById.get(nodeId)?.terminalValidation)
+  );
   const nonEndpointTerminalValidationNodeIds = input.constraints.terminalValidationRequired
-    ? terminalValidationNodeIds.filter((nodeId) => selectedIds.at(-1) !== nodeId)
+    ? terminalNodeIds.filter((nodeId) => selectedIds.at(-1) !== nodeId)
     : [];
   if (nonEndpointTerminalValidationNodeIds.length > 0) {
     infeasibleReasons.push({
-      code: 'terminal-validation-resource-missing',
+      code: 'terminal-validation-not-final',
       nodeIds: nonEndpointTerminalValidationNodeIds,
-      message: 'Official terminal validation must be the final node in the repaired path.',
+      message: 'Terminal validation must be the final node in the repaired path.',
     });
   }
   if (insertedNodeIds.length > 0) {

@@ -3498,6 +3498,7 @@ function isPathBlockingFallbackReason(reason: string): boolean {
     'risk-intervention-resource-missing',
     'teacher-assignment-resource-missing',
     'terminal-validation-resource-missing',
+    'terminal-validation-not-final',
     'locked-node-without-fallback',
     'hard-prerequisite-missing',
   ].includes(reason);

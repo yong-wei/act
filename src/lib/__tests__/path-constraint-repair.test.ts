@@ -1375,8 +1375,50 @@ describe('path constraint repair', () => {
     expect(repair.repairedNodeIds).toEqual(['terminal', 'target']);
     expect(repair.terminalValidationNodeIds).toEqual(['terminal']);
     expect(repair.infeasibleReasons).toContainEqual(expect.objectContaining({
-      code: 'terminal-validation-resource-missing',
+      code: 'terminal-validation-not-final',
       nodeIds: ['terminal'],
+    }));
+  });
+
+  it('marks non-endpoint preview terminal validation as infeasible', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['preview-terminal', 'target'],
+      candidates: [
+        {
+          nodeId: 'preview-terminal',
+          estimatedTimeMinutes: 6,
+          prerequisiteNodeIds: [],
+          terminalValidation: 'preview',
+        },
+        {
+          nodeId: 'target',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: ['preview-terminal'],
+        },
+        {
+          nodeId: 'official-terminal',
+          estimatedTimeMinutes: 10,
+          prerequisiteNodeIds: ['target'],
+          terminalValidation: 'official',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 40,
+        requiredCheckpointCount: 0,
+        terminalValidationRequired: true,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('infeasible');
+    expect(repair.repairedNodeIds).toEqual(['preview-terminal', 'target', 'official-terminal']);
+    expect(repair.terminalValidationNodeIds).toEqual(['official-terminal']);
+    expect(repair.infeasibleReasons).toContainEqual(expect.objectContaining({
+      code: 'terminal-validation-not-final',
+      nodeIds: ['preview-terminal'],
     }));
   });
 
