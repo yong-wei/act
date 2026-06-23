@@ -396,7 +396,7 @@ function ResourcePanelContent({
       aria-modal="false"
       tabIndex={-1}
       onKeyDown={handleInspectorKeyDown}
-      className={`fixed inset-x-2 bottom-20 z-50 max-h-[calc(72vh-4.5rem)] overflow-y-auto rounded-xl pb-16 shadow-xl transition-transform duration-300 lg:fixed lg:inset-x-auto lg:bottom-20 lg:right-[var(--knowledge-workspace-inset,1rem)] lg:top-[calc(72px+var(--knowledge-workspace-inset,1rem))] lg:z-40 lg:max-h-none lg:w-[var(--knowledge-inspector-width,clamp(22.5rem,30vw,28.75rem))] lg:rounded-xl lg:pb-0 lg:shadow-2xl ${panelTheme.shell} translate-x-0`}
+      className={`fixed inset-x-2 bottom-20 z-50 max-h-[calc(72vh-4.5rem)] overflow-y-auto rounded-xl pb-16 shadow-xl transition-transform duration-300 lg:fixed lg:inset-x-auto lg:bottom-20 lg:right-[var(--knowledge-workspace-inset,1rem)] lg:top-[calc(18.625rem+var(--knowledge-workspace-inset,1rem))] lg:z-40 lg:max-h-none lg:w-[var(--knowledge-inspector-width,clamp(22.5rem,30vw,28.75rem))] lg:rounded-xl lg:pb-0 lg:shadow-2xl xl:top-[calc(72px+var(--knowledge-workspace-inset,1rem))] ${panelTheme.shell} translate-x-0`}
       data-knowledge-local-panel="resource-panel"
       data-knowledge-inspector="floating-right-edge"
       data-knowledge-inspector-responsive="desktop-floating-mobile-sheet"

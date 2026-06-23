@@ -1982,6 +1982,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['desktop-wide-inspector-tools-dark', 'dark', 1920, 'collapsed', 'collapsed'],
     ['tablet-1100-default-dark', 'dark', 1100, 'collapsed', 'collapsed'],
     ['tablet-1100-local-tools-filter-dark', 'dark', 1100, 'collapsed', 'collapsed'],
+    ['tablet-1100-selected-inspector-dark', 'dark', 1100, 'collapsed', 'collapsed'],
     ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile', 'expanded'],
@@ -2070,6 +2071,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         'desktop-stress-expanded-tool-inspector-konling-dark',
         'desktop-wide-inspector-tools-dark',
         'tablet-1100-local-tools-filter-dark',
+        'tablet-1100-selected-inspector-dark',
       ].includes(name)
         ? (
             numberFromEvidence(canvasRect.left) === numberFromEvidence(baselineCanvasRect.left)
@@ -2129,6 +2131,13 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
             numberFromEvidence(markerRects.inspector.top) >= 88
               ? null
               : `${name}:inspector-overlaps-app-shell-header`
+          )
+        : null,
+      name.startsWith('tablet-1100') && markerRects.inspector
+        ? (
+            numberFromEvidence(markerRects.inspector.top) >= 314
+              ? null
+              : `${name}:inspector-overlaps-tablet-mobile-navigation`
           )
         : null,
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
