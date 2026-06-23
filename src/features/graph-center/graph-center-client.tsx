@@ -4,6 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { AlertTriangle, Filter, Network, PanelRightOpen, UserRound, UsersRound } from 'lucide-react';
 import {
   buildGraphCenterPayload,
+  type GraphCenterAction,
   type GraphCenterDomain,
   type GraphCenterLearnerOverlayReasonCode,
   type GraphCenterLearnerOverlayState,
@@ -189,45 +190,67 @@ export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplay
             </span>
           </div>
           <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-            {payload.graph.nodes.map((node) => (
-              <button
-                key={node.id}
-                type="button"
-                onClick={() => setSelectedNodeId(node.id)}
-                className={[
-                  'min-h-28 rounded-md border p-3 text-left transition',
-                  payload.selectedNode?.node.id === node.id
-                    ? 'border-platform-action-primary bg-platform-action-subtle'
-                    : 'border-platform-border bg-platform-canvas-muted hover:border-platform-action-primary/60',
-                ].join(' ')}
-              >
-                <span className="block text-sm font-semibold text-platform-fg-primary">{node.title}</span>
-                <span className="mt-1 line-clamp-3 block text-xs leading-5 text-platform-fg-muted">{node.description}</span>
-                <span className="mt-2 flex flex-wrap gap-1">
-                  {node.portraitDimensions.map((dimension) => (
-                    <span
-                      key={dimension}
-                      className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted"
-                    >
-                      {dimension}
+            {payload.graph.nodes.map((node) => {
+              const nodeActions = payload.nodeDetails[node.id]?.actions ?? [];
+              return (
+                <button
+                  key={node.id}
+                  type="button"
+                  onClick={() => setSelectedNodeId(node.id)}
+                  className={[
+                    'min-h-28 rounded-md border p-3 text-left transition',
+                    payload.selectedNode?.node.id === node.id
+                      ? 'border-platform-action-primary bg-platform-action-subtle'
+                      : 'border-platform-border bg-platform-canvas-muted hover:border-platform-action-primary/60',
+                  ].join(' ')}
+                >
+                  <span className="block text-sm font-semibold text-platform-fg-primary">{node.title}</span>
+                  <span className="mt-1 line-clamp-3 block text-xs leading-5 text-platform-fg-muted">{node.description}</span>
+                  <span className="mt-2 flex flex-wrap gap-1">
+                    {node.portraitDimensions.map((dimension) => (
+                      <span
+                        key={dimension}
+                        className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted"
+                      >
+                        {dimension}
+                      </span>
+                    ))}
+                    <span className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted">
+                      {coverageStateLabel(payload.resourceCoverage[node.id].coverageState)}
                     </span>
-                  ))}
-                  <span className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted">
-                    {coverageStateLabel(payload.resourceCoverage[node.id].coverageState)}
+                    {displayMode === 'learner' && payload.learnerOverlay.items[node.id] && (
+                      <span className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted">
+                        {learnerStateLabel(payload.learnerOverlay.items[node.id].state)}
+                      </span>
+                    )}
+                    {displayMode === 'class' && payload.classOverlay.items[node.id] && (
+                      <span className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted">
+                        {classHeatLabel(payload.classOverlay.items[node.id].suppressionReason)}
+                      </span>
+                    )}
                   </span>
-                  {displayMode === 'learner' && payload.learnerOverlay.items[node.id] && (
-                    <span className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted">
-                      {learnerStateLabel(payload.learnerOverlay.items[node.id].state)}
+                  {nodeActions.length > 0 && (
+                    <span
+                      className="mt-2 grid gap-1"
+                      data-graph-center-node-actions={node.id}
+                    >
+                      {nodeActions.map((action) => (
+                        <span
+                          key={action.id}
+                          className="rounded-sm bg-platform-canvas px-1.5 py-1 text-[11px] leading-4 text-platform-fg-muted"
+                          data-action-status={action.status}
+                          data-action-reason={action.reasonCode}
+                        >
+                          <span className="font-medium text-platform-fg-primary">{action.label}</span>
+                          <span> · {actionStatusLabel(action.status)}</span>
+                          {action.reason && <span> · {action.reason}</span>}
+                        </span>
+                      ))}
                     </span>
                   )}
-                  {displayMode === 'class' && payload.classOverlay.items[node.id] && (
-                    <span className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted">
-                      {classHeatLabel(payload.classOverlay.items[node.id].suppressionReason)}
-                    </span>
-                  )}
-                </span>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -242,6 +265,7 @@ export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplay
                 <h3 className="text-lg font-semibold text-platform-fg-primary">{payload.selectedNode.node.title}</h3>
                 <p className="mt-1 text-sm leading-6 text-platform-fg-muted">{payload.selectedNode.node.description}</p>
               </div>
+              <GraphCenterActionGroup nodeId={payload.selectedNode.node.id} actions={payload.selectedNode.actions} />
               <DetailGroup label="目标">
                 {payload.selectedNode.objectives.map((objective) => (
                   <span key={objective.id}>{objective.title}</span>
@@ -311,6 +335,68 @@ export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplay
         </aside>
       </div>
     </section>
+  );
+}
+
+function GraphCenterActionGroup({ nodeId, actions }: { nodeId: string; actions: GraphCenterAction[] }) {
+  return (
+    <div
+      className="space-y-2"
+      data-graph-center-actions="true"
+      data-graph-center-node-actions={nodeId}
+    >
+      <div className="text-xs font-medium text-platform-fg-muted">可执行动作</div>
+      <div className="grid gap-2">
+        {actions.map((action) => (
+          <GraphCenterActionItem key={action.id} action={action} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GraphCenterActionItem({ action }: { action: GraphCenterAction }) {
+  const body = (
+    <>
+      <span className="flex items-center justify-between gap-2">
+        <span className="font-medium">{action.label}</span>
+        <span className="text-[11px] text-platform-fg-muted">{actionStatusLabel(action.status)}</span>
+      </span>
+      <span className="mt-1 block text-xs leading-5 text-platform-fg-muted">
+        {action.reason ?? action.description}
+      </span>
+    </>
+  );
+  const className = [
+    'block rounded-md border px-3 py-2 text-left text-xs transition',
+    action.status === 'available'
+      ? 'border-platform-action-primary/45 bg-platform-action-subtle/70 text-platform-fg-primary hover:border-platform-action-primary'
+      : 'border-platform-border bg-platform-canvas-muted text-platform-fg-primary',
+  ].join(' ');
+
+  if (action.target && action.status === 'available') {
+    return (
+      <a
+        href={action.target.href}
+        className={className}
+        data-action-status={action.status}
+        data-graph-center-action-id={action.id}
+      >
+        {body}
+      </a>
+    );
+  }
+
+  return (
+    <div
+      className={className}
+      data-action-status={action.status}
+      data-action-reason={action.reasonCode}
+      data-graph-center-action-id={action.id}
+      aria-disabled="true"
+    >
+      {body}
+    </div>
   );
 }
 
@@ -661,6 +747,15 @@ function coverageStateLabel(state: GraphCenterResourceCoverageState): string {
     'not-audited': '未审计',
   };
   return labels[state];
+}
+
+function actionStatusLabel(status: GraphCenterAction['status']): string {
+  const labels: Record<GraphCenterAction['status'], string> = {
+    available: '可用',
+    degraded: '降级',
+    disabled: '不可用',
+  };
+  return labels[status];
 }
 
 function missingCoverageLabel(type: GraphCenterResourceCoverageMissingType): string {

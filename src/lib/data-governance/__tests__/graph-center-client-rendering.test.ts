@@ -91,6 +91,34 @@ describe('graph center client surface', () => {
     expect(html).toContain('已校验引用 1');
   });
 
+  it('renders graph center actions in selected detail and list fallback paths', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'STUDENT',
+      resourceRegistry: buildFullCoverageRegistry(),
+      evidenceCorpus: [verifiedChunk()],
+      learnerOverlay: {
+        state: learnerState('learner-1', 0.84, 0.72, 3),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'student',
+        authorized: true,
+      },
+    });
+    const html = renderToStaticMarkup(createElement(GraphCenterClient, { initialPayload: payload }));
+
+    expect(html).toContain('data-graph-center-actions="true"');
+    expect(html).toContain('data-graph-center-node-actions="kn:autocontrol:controller-correction"');
+    expect(html).toContain('进入学习路径');
+    expect(html).toContain('查看推荐资源');
+    expect(html).toContain('复查个人证据');
+    expect(html).toContain('向 Konling 提问');
+    expect(html).toContain('data-action-status="available"');
+    expect(html).toContain('data-action-status="degraded"');
+    expect(html).toContain('证据复查需要学习者证据路由接入');
+    expect(html).toContain('href="/interactive-learning?learningGoalId=knowledge%3Aautocontrol%3Acontroller-correction&amp;graphNodeId=kn%3Aautocontrol%3Acontroller-correction"');
+  });
+
   it('renders class heat mode with suppression and denominator labels', () => {
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',
