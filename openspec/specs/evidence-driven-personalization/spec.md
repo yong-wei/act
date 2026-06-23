@@ -108,19 +108,14 @@ Profile, diagnosis, and recommendation outputs SHALL distinguish desired capabil
 - **AND** it SHALL prefer starter or evidence-gathering recommendations over high-confidence mastery claims.
 
 ### Requirement: Personalization consumes knowledge capability evidence writeback
-Profile, diagnosis, and recommendation personalization SHALL consume knowledge/capability evidence only after it has been materialized from governed sources.
+Profile, diagnosis, path planning, and recommendation personalization SHALL consume knowledge, capability, and quality evidence only after it has been materialized from governed sources.
 
-#### Scenario: Evidence updates capability state
-- **WHEN** path execution, exercise, teacher-approved grading, simulation, Arena, interactive lesson, or approved Konling tool outcome is materialized
-- **THEN** the evidence SHALL identify knowledge node, capability target where available, source type, evidence window, confidence, source coverage, freshness, and privacy-safe references
-- **AND** personalization MAY use it as rationale according to its confidence and scope.
+#### Scenario: Evidence updates graph overlay state
+- **WHEN** path execution, exercise, teacher-approved grading, simulation, Arena, interactive lesson, or approved Konling tool outcome is materialized through K/A/Q evidence writeback
+- **THEN** personalization MAY use it as rationale according to its target refs, confidence, authority, freshness, source coverage, privacy-safe references, and limitation metadata
+- **AND** raw source payloads or unreviewed model narrative SHALL NOT bypass the writeback governance layer.
 
-#### Scenario: Raw assistant narrative exists
-- **WHEN** raw Konling dialogue or unreviewed model narrative mentions learner mastery
-- **THEN** personalization SHALL NOT treat it as high-confidence mastery evidence
-- **AND** it MAY only use a governed AgentToolRun, approved intervention outcome, materialized evidence summary, or verified citation summary.
-
-#### Scenario: Evidence is context-only
-- **WHEN** navigation, passive views, generic chat, or uncompleted resource access is observed
-- **THEN** personalization SHALL identify it as context or low-confidence evidence
-- **AND** it SHALL NOT use it as the sole basis for a high-confidence mastery claim.
+#### Scenario: Writeback is degraded
+- **WHEN** evidence is missing required graph/resource/version/citation context or is preview-only
+- **THEN** personalization SHALL expose the limiting evidence state
+- **AND** it SHALL NOT present the recommendation, profile claim, or diagnosis as a complete precise mastery judgment.
