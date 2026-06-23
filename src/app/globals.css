@@ -195,6 +195,10 @@
   }
 
   @media (min-width: 1024px) {
+    body:has([data-knowledge-inspector="floating-right-edge"]) [data-page-floating-controls] {
+      right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;
+    }
+
     body:has([data-knowledge-inspector="floating-right-edge"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"] {
       top: 7rem !important;
       right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;

@@ -4189,6 +4189,8 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("'desktop-local-tools-view-dark'");
     expect(captureScriptSource).toContain("'desktop-wide-default-dark'");
     expect(captureScriptSource).toContain("'desktop-wide-inspector-tools-dark'");
+    expect(captureScriptSource).toContain("'desktop-selected-page-tools-menu-dark'");
+    expect(captureScriptSource).toContain('async function openPageToolMenu(page: Page)');
     expect(captureScriptSource).toContain("'tablet-1100-default-dark'");
     expect(captureScriptSource).toContain("'tablet-1100-local-tools-filter-dark'");
     expect(captureScriptSource).toContain("'tablet-1100-selected-inspector-dark'");
@@ -4209,6 +4211,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('konlingAssistantSurface');
     expect(captureScriptSource).toContain('konlingInspectorAvoidance');
     expect(captureScriptSource).toContain('konlingMobileInspectorPolicy');
+    expect(captureScriptSource).toContain('dockInspectorAvoidance');
     expect(captureScriptSource).toContain('data-konling-knowledge-context');
     expect(captureScriptSource).toContain("await page.waitForSelector('[data-knowledge-inspector=\"floating-right-edge\"]'");
     expect(captureScriptSource).not.toMatch(
@@ -4224,8 +4227,13 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('`${name}:konling-inspector-avoidance-missing`');
     expect(scriptSource).toContain('`${name}:tablet-local-tool-panel-not-suspended-while-konling-open`');
     expect(scriptSource).toContain('`${name}:expanded-dock-overlaps-tools`');
+    expect(scriptSource).toContain("'desktop-selected-page-tools-menu-dark'");
+    expect(scriptSource).toContain('`${name}:dock-inspector-avoidance-missing`');
+    expect(scriptSource).toContain('`${name}:dock-overlaps-inspector`');
     expect(globalsSource).toContain('@media (min-width: 1024px) and (max-width: 1279px)');
+    expect(globalsSource).toContain('body:has([data-knowledge-inspector="floating-right-edge"]) [data-page-floating-controls]');
     expect(globalsSource).toContain('[data-knowledge-desktop-command-system] {\n      display: none !important;');
+    expect(readFileSync(join(process.cwd(), 'src/components/shared/page-floating-controls.tsx'), 'utf8')).toContain('knowledgeInspectorAvoidanceActive');
     expect(scriptSource).toContain("konlingRuntimeSource.includes(\"const contextNodeId = hint?.status === 'degraded'\")");
     expect(scriptSource).toContain('const productQaSourcePaths = [');
     expect(scriptSource).toContain('globalAiButtonSourcePath');

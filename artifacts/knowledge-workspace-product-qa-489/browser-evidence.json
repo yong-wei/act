@@ -1,7 +1,7 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-06-23T08:34:43.970Z",
+  "capturedAt": "2026-06-23T10:00:49.808Z",
   "baseUrl": "http://localhost:3001",
   "selectedNodeId": "积分环节_2_11005",
   "designSourceOfTruth": {
@@ -41,11 +41,11 @@
     "src/components/ai/global-ai-sidebar.tsx": "750fa13d6a913abbbcc5c0b6ac870e34e89ba2ce0c45d570ee20d1c7b65b7208",
     "src/components/providers/global-ai-provider.tsx": "5b7703d37cc6be9fbae080cec062d12c27ccd0381976045031b0400095fa42e8",
     "src/components/platform/app-shell.tsx": "40059baa242f29147dafb3f80fcc1115b587e69b9e2f473e18f47dfec5ceccb0",
-    "src/components/shared/page-floating-controls.tsx": "84473a65da676404075c0be58ce9061d6b4a94924e9e23ec490a7bf7642a0652",
-    "src/app/globals.css": "abf1f2a095102904f8540bea1c3c02e142934e9724fbdd1de3eab3b063e95ed2",
+    "src/components/shared/page-floating-controls.tsx": "0e96814a2eb0637dfbc9200283d5100014ae95ad5258f3b6187ed8420e158707",
+    "src/app/globals.css": "6c9afafe3a80ade03918e3fe67162a405a2fe5edf8ff6df17f0b7c74b3a5dfb6",
     "src/lib/konling-agent-runtime.ts": "99a16e39a74f419c8a28d102b3c05a7e1c242ae764a002601031276b353e1757",
-    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "127be23b0e7b6093efa01593dabfec0b66bd6c8e39ae3d1ae5ffaacc4afd967b",
-    "scripts/tests/test-commercial-ui-governance.ts": "5487be191de7230f3621f67f22be1b20aec1c136c92a22e4b40f75839ab3afdd"
+    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "d229f1021594d5096cf45c42829ac8f8e06c10fcdc386d860f7d3f2e4694cb34",
+    "scripts/tests/test-commercial-ui-governance.ts": "0eca74d510a837af16d0d96be4e14f2c9dd97813b75696296e950ffc65174599"
   },
   "stateMatrix": [
     {
@@ -64,7 +64,7 @@
       "interactionState": "default graph",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-default-collapsed-dark.png",
-      "screenshotSha256": "18d7522c307167ec57778ddb408c3b979daa4a2d22a804762cc43f5e63e90f32",
+      "screenshotSha256": "e867cfe6bcd8be8876fd268410d808030f6139e8fd7aeb9937383e8f4b222acb",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -91,6 +91,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -162,7 +163,7 @@
       "interactionState": "navigation preference persisted",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-expanded-persisted-dark.png",
-      "screenshotSha256": "69e3df487da24db98731f4d8b4b3bf7e8d33ced0ae417dc44ea036fa90cc2ad2",
+      "screenshotSha256": "bf77d854be469e5c7b9d6b1e31cf1bd282f3b0dbad430067e01514abb98255bd",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -189,6 +190,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -287,6 +289,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -392,6 +395,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -497,6 +501,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -608,6 +613,7 @@
           "clear-pins"
         ],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -686,7 +692,7 @@
       "interactionState": "selected inspector",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-inspector-light.png",
-      "screenshotSha256": "0c2e4c5a35ae0465eb5a6a87b2bb7ff434593ba7a86cd93f3743143af18113c6",
+      "screenshotSha256": "b868363878f5d0047135720fbf543a9550757ab278c8dd3ca2715e72f640ec46",
       "markers": {
         "htmlClass": "light",
         "workspace": "canvas-first",
@@ -721,6 +727,7 @@
         ],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": "active",
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -755,9 +762,9 @@
             "height": 792
           },
           "dock": {
-            "left": 1326,
+            "left": 894,
             "top": 904,
-            "right": 1416,
+            "right": 984,
             "bottom": 944,
             "width": 90,
             "height": 40
@@ -799,7 +806,7 @@
       "interactionState": "hover click drag persistence evidence",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "923d5274f242d3d2f1341cceec8384a98ec8b75a5dc3f777072fe7773746ba04",
+      "screenshotSha256": "bcc81841ef71a233fece725a425d8c25054767e57ff7ea434db373fca475db51",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -839,6 +846,7 @@
           "clear-pins"
         ],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": "active",
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -880,9 +888,9 @@
             "height": 792
           },
           "dock": {
-            "left": 1326,
+            "left": 894,
             "top": 904,
-            "right": 1416,
+            "right": 984,
             "bottom": 944,
             "width": 90,
             "height": 40
@@ -949,6 +957,127 @@
       }
     },
     {
+      "name": "desktop-selected-page-tools-menu-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3001/knowledge?node=%E7%A7%AF%E5%88%86%E7%8E%AF%E8%8A%82_2_11005&qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "collapsed",
+      "dockState": "expanded",
+      "localToolState": "closed",
+      "selectedNode": "积分环节_2_11005",
+      "interactionState": "selected inspector with page tool menu expanded",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-page-tools-menu-dark.png",
+      "screenshotSha256": "3e7af1497d8585e1e3dd6783d5ea6ae4772a27201d4573842f43ae32b1163ded",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "selected-node",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "积分环节_2_11005",
+          "visibleNodeCount": "596",
+          "visibleLinkCount": "1290",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "activeLocalPanel": null,
+        "desktopToolPanel": null,
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": "floating-right-edge",
+        "inspectorResponsive": "desktop-floating-mobile-sheet",
+        "inspectorFocusContract": "mobile-trap-escape-return",
+        "inspectorDockSafeArea": "bottom-padding",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "infograph-preview",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "mobileLayoutControls": [],
+        "dockState": "collapsed",
+        "dockInspectorAvoidance": "active",
+        "effectiveDockState": "expanded",
+        "expandedDockVisible": true,
+        "konlingAssistantSurface": null,
+        "konlingInspectorAvoidance": null,
+        "konlingMobileInspectorPolicy": null,
+        "konlingKnowledgeContext": "selected-node",
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 93,
+            "right": 1416,
+            "bottom": 940,
+            "width": 1320,
+            "height": 847
+          },
+          "desktopTools": {
+            "left": 112,
+            "top": 109,
+            "right": 669,
+            "bottom": 194,
+            "width": 557,
+            "height": 85
+          },
+          "mobileTools": null,
+          "activeLocalPanel": null,
+          "inspector": {
+            "left": 992,
+            "top": 88,
+            "right": 1424,
+            "bottom": 880,
+            "width": 432,
+            "height": 792
+          },
+          "dock": {
+            "left": 760,
+            "top": 774,
+            "right": 984,
+            "bottom": 944,
+            "width": 224,
+            "height": 170
+          },
+          "expandedDock": {
+            "left": 760,
+            "top": 774,
+            "right": 984,
+            "bottom": 892,
+            "width": 224,
+            "height": 118
+          }
+        },
+        "documentScroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 960,
+          "bodyScrollWidth": 1440,
+          "bodyScrollHeight": 960
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "inspectorOverlapsActiveLocalPanel": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
       "name": "desktop-explicit-relayout-dark",
       "route": "/knowledge",
       "url": "http://localhost:3001/knowledge?node=%E7%A7%AF%E5%88%86%E7%8E%AF%E8%8A%82_2_11005&qa=knowledge-product",
@@ -964,7 +1093,7 @@
       "interactionState": "explicit relayout control visible",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-explicit-relayout-dark.png",
-      "screenshotSha256": "e5371024961f913c4b1a5d132fcae8ef00b48f6b616ae3c0bb7789512850a262",
+      "screenshotSha256": "ba339ece3fbd746541477a27fc57ff1f1d9e2fc600ae63762546fe557f7b32b3",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1005,6 +1134,7 @@
           "clear-pins"
         ],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": "active",
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -1046,9 +1176,9 @@
             "height": 792
           },
           "dock": {
-            "left": 1326,
+            "left": 894,
             "top": 904,
-            "right": 1416,
+            "right": 984,
             "bottom": 944,
             "width": 90,
             "height": 40
@@ -1117,6 +1247,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "expanded",
         "expandedDockVisible": true,
         "konlingAssistantSurface": "global-sidebar",
@@ -1222,6 +1353,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "expanded",
         "expandedDockVisible": true,
         "konlingAssistantSurface": "global-sidebar",
@@ -1327,6 +1459,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "expanded",
         "expandedDockVisible": true,
         "konlingAssistantSurface": "global-sidebar",
@@ -1405,7 +1538,7 @@
       "interactionState": "expanded shell local tool inspector konling stress state",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "678a6ff4b39602992a3213a06dd79f28c2c22f12d2bb51dcbc40d2f3d92c8049",
+      "screenshotSha256": "4152b2e1ba7061408b911452ce6eebdea321d17bb395a8b0faf670cbb7481540",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1440,6 +1573,7 @@
         ],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": "active",
         "effectiveDockState": "expanded",
         "expandedDockVisible": true,
         "konlingAssistantSurface": "global-sidebar",
@@ -1481,9 +1615,9 @@
             "height": 792
           },
           "dock": {
-            "left": 1342,
+            "left": 910,
             "top": 904,
-            "right": 1416,
+            "right": 984,
             "bottom": 944,
             "width": 74,
             "height": 40
@@ -1559,6 +1693,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -1630,7 +1765,7 @@
       "interactionState": "wide desktop floating local tool and inspector",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-wide-inspector-tools-dark.png",
-      "screenshotSha256": "d55716e53dda102443274a8840a4a6e0a02ade5a0104b69de810f79aa07a9265",
+      "screenshotSha256": "bf2cbe4ab63318ae3dc36d26dfe644630e0e022d84fa6de8fb92037a72fabc0c",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1665,6 +1800,7 @@
         ],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": "active",
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -1706,9 +1842,9 @@
             "height": 912
           },
           "dock": {
-            "left": 1806,
+            "left": 1346,
             "top": 1024,
-            "right": 1896,
+            "right": 1436,
             "bottom": 1064,
             "width": 90,
             "height": 40
@@ -1750,7 +1886,7 @@
       "interactionState": "xl breakpoint lower bound workspace containment",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-default-dark.png",
-      "screenshotSha256": "483e631b56098bbd71eff1e8f8fcec2a91b2a0850a4c50b92e29125cf24a5370",
+      "screenshotSha256": "28af82f127ed37b130c1b10ce250c33ad79af1416200d5c5667790d748754b0b",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1777,6 +1913,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -1875,6 +2012,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -1953,7 +2091,7 @@
       "interactionState": "tablet breakpoint selected inspector below mobile navigation",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-selected-inspector-dark.png",
-      "screenshotSha256": "df378fa05177121c8db7920181f9c830055c3779364c6d9c2c06ff52e5bdd38c",
+      "screenshotSha256": "7f396349e5e8cee6c4a4f5b7f7eaf10c12e67cb7ef324f408f713be1ab5879f6",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1988,6 +2126,7 @@
         ],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": "active",
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -2022,9 +2161,9 @@
             "height": 506
           },
           "dock": {
-            "left": 986,
+            "left": 626,
             "top": 844,
-            "right": 1076,
+            "right": 716,
             "bottom": 884,
             "width": 90,
             "height": 40
@@ -2066,7 +2205,7 @@
       "interactionState": "tablet lower boundary inspector konling local tool suspension",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "cebfd0fce9bdde82d6e0ff2a9dd6946592d61ae5dce3a6963bd30d141d5e413b",
+      "screenshotSha256": "7f7fcc94a031f7e79ab5928fb8f863e4252ac81570f5eb385ff4973f82737c16",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -2101,6 +2240,7 @@
         ],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": "active",
         "effectiveDockState": "expanded",
         "expandedDockVisible": true,
         "konlingAssistantSurface": "global-sidebar",
@@ -2128,9 +2268,9 @@
             "height": 506
           },
           "dock": {
-            "left": 926,
+            "left": 566,
             "top": 844,
-            "right": 1000,
+            "right": 640,
             "bottom": 884,
             "width": 74,
             "height": 40
@@ -2179,7 +2319,7 @@
       "interactionState": "tablet breakpoint inspector konling local tool suspension",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "e31230df0b627986d65101dfae831431afbeb1a50369fd853971d9bed7cb846f",
+      "screenshotSha256": "5a68575850b0c96924de35eff71ff201f401e91a3a9e49681b7cc245477dbee9",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -2214,6 +2354,7 @@
         ],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": "active",
         "effectiveDockState": "expanded",
         "expandedDockVisible": true,
         "konlingAssistantSurface": "global-sidebar",
@@ -2241,9 +2382,9 @@
             "height": 506
           },
           "dock": {
-            "left": 1002,
+            "left": 642,
             "top": 844,
-            "right": 1076,
+            "right": 716,
             "bottom": 884,
             "width": 74,
             "height": 40
@@ -2292,7 +2433,7 @@
       "interactionState": "tablet upper boundary inspector konling local tool suspension",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "26baebcdd4a1f1262b7089b98f520c6b9410f067e9617717f5849319cc61e476",
+      "screenshotSha256": "bc8c27ad79e4f6cf2655207209f07fc1cbf7734dab39d28ebcb7923690dc3f9b",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -2327,6 +2468,7 @@
         ],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": "active",
         "effectiveDockState": "expanded",
         "expandedDockVisible": true,
         "konlingAssistantSurface": "global-sidebar",
@@ -2354,9 +2496,9 @@
             "height": 506
           },
           "dock": {
-            "left": 1181,
+            "left": 797,
             "top": 844,
-            "right": 1255,
+            "right": 871,
             "bottom": 884,
             "width": 74,
             "height": 40
@@ -2438,6 +2580,7 @@
           "clear-pins"
         ],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -2509,7 +2652,7 @@
       "interactionState": "mobile selected inspector sheet",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/mobile-320-selected-inspector-dark.png",
-      "screenshotSha256": "a4758ea037cd421ca1d4c19cb6382efef94f17015297b9795b7bc4a3a3ec75ba",
+      "screenshotSha256": "6ea99fe66161ba3f3a2a30514f68c19f394a8b7ff91b4213b11b570c168d993e",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -2544,6 +2687,7 @@
         ],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -2649,6 +2793,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "expanded",
         "expandedDockVisible": true,
         "konlingAssistantSurface": "global-sidebar",
@@ -2747,6 +2892,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "expanded",
         "expandedDockVisible": true,
         "konlingAssistantSurface": "global-sidebar",
@@ -2818,7 +2964,7 @@
       "interactionState": "light theme default graph",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/light-theme-default.png",
-      "screenshotSha256": "9dfc11b877feb2085ec4f7b81db88a8bc69eb1a48c0788dfb6321e2652412657",
+      "screenshotSha256": "77c7a3009197002c881c59f1df19283e57055b6de3ea57d33863f456862e95a5",
       "markers": {
         "htmlClass": "light",
         "workspace": "canvas-first",
@@ -2845,6 +2991,7 @@
         "inspectorSections": [],
         "mobileLayoutControls": [],
         "dockState": "collapsed",
+        "dockInspectorAvoidance": null,
         "effectiveDockState": "collapsed",
         "expandedDockVisible": false,
         "konlingAssistantSurface": null,
@@ -2971,7 +3118,7 @@
   },
   "independentVisualReview": {
     "path": "artifacts/knowledge-workspace-product-qa-489/visual-review.md",
-    "reviewer": "ui-flow-reviewer:019ef393-54c4-7a91-86b9-984538f7ea55; critical-reviewer:019ef393-8291-7dc3-8bc0-0e3fb09caaae; main-thread-tablet-boundary-regression-review",
+    "reviewer": "ui-flow-reviewer:019ef393-54c4-7a91-86b9-984538f7ea55; critical-reviewer:019ef393-8291-7dc3-8bc0-0e3fb09caaae; main-thread-floating-controls-inspector-regression-review",
     "finalResult": "passed",
     "blockingFindings": [],
     "dimensions": {
@@ -2991,32 +3138,33 @@
       "canvasGeometry": "PASS"
     },
     "reviewedStateSha256": {
-      "desktop-default-collapsed-dark": "18d7522c307167ec57778ddb408c3b979daa4a2d22a804762cc43f5e63e90f32",
-      "desktop-expanded-persisted-dark": "69e3df487da24db98731f4d8b4b3bf7e8d33ced0ae417dc44ea036fa90cc2ad2",
+      "desktop-default-collapsed-dark": "e867cfe6bcd8be8876fd268410d808030f6139e8fd7aeb9937383e8f4b222acb",
+      "desktop-expanded-persisted-dark": "bf77d854be469e5c7b9d6b1e31cf1bd282f3b0dbad430067e01514abb98255bd",
       "desktop-local-tools-legend-dark": "5a3c9fd3919522f6e42f8046ced47aa2f61818cf3f76b670aaa21510fdff99f0",
       "desktop-local-tools-directory-dark": "c7c1868ba66547ee43e1bbbc0141195b107bb84dbb91e141a6f417ec3e8eb797",
       "desktop-local-tools-filter-dark": "bfce1abf6469ec83c7331320bdb0bebbd7fd799f1434391fc22ca0ee684d9b25",
       "desktop-local-tools-view-dark": "f9e162fa668bfa0c31b598b3f681ce8dbefe51be9fbc61bdb358069420a7c957",
-      "desktop-selected-inspector-light": "0c2e4c5a35ae0465eb5a6a87b2bb7ff434593ba7a86cd93f3743143af18113c6",
-      "desktop-hover-click-drag-dark": "923d5274f242d3d2f1341cceec8384a98ec8b75a5dc3f777072fe7773746ba04",
-      "desktop-explicit-relayout-dark": "e5371024961f913c4b1a5d132fcae8ef00b48f6b616ae3c0bb7789512850a262",
+      "desktop-selected-inspector-light": "b868363878f5d0047135720fbf543a9550757ab278c8dd3ca2715e72f640ec46",
+      "desktop-hover-click-drag-dark": "bcc81841ef71a233fece725a425d8c25054767e57ff7ea434db373fca475db51",
+      "desktop-selected-page-tools-menu-dark": "3e7af1497d8585e1e3dd6783d5ea6ae4772a27201d4573842f43ae32b1163ded",
+      "desktop-explicit-relayout-dark": "ba339ece3fbd746541477a27fc57ff1f1d9e2fc600ae63762546fe557f7b32b3",
       "desktop-konling-selected-expanded-dark": "104ca3b07e99f23183b16133864eb4413d6aa642d2bdfadef12350dc772c637e",
       "desktop-konling-no-selection-dark": "141c0dacb15d14ab8015c1a4e51817c046bde052c987fb344015a246910902ab",
       "desktop-konling-degraded-dark": "980f0c381d699d579da7345bc74e017e638a9532a0f46c1051174e40f7155133",
-      "desktop-stress-expanded-tool-inspector-konling-dark": "678a6ff4b39602992a3213a06dd79f28c2c22f12d2bb51dcbc40d2f3d92c8049",
+      "desktop-stress-expanded-tool-inspector-konling-dark": "4152b2e1ba7061408b911452ce6eebdea321d17bb395a8b0faf670cbb7481540",
       "desktop-wide-default-dark": "6b0ad22a7169127a2f0844dd29cab4ad4fdab50fca5a3e876641ba74fd18b718",
-      "desktop-wide-inspector-tools-dark": "d55716e53dda102443274a8840a4a6e0a02ade5a0104b69de810f79aa07a9265",
-      "tablet-1100-default-dark": "483e631b56098bbd71eff1e8f8fcec2a91b2a0850a4c50b92e29125cf24a5370",
+      "desktop-wide-inspector-tools-dark": "bf2cbe4ab63318ae3dc36d26dfe644630e0e022d84fa6de8fb92037a72fabc0c",
+      "tablet-1100-default-dark": "28af82f127ed37b130c1b10ce250c33ad79af1416200d5c5667790d748754b0b",
       "tablet-1100-local-tools-filter-dark": "101e420a7b2834303039f9292210248e814c2d3a7209ca6422d598d63dea728a",
-      "tablet-1100-selected-inspector-dark": "df378fa05177121c8db7920181f9c830055c3779364c6d9c2c06ff52e5bdd38c",
-      "tablet-1024-inspector-tools-konling-dark": "cebfd0fce9bdde82d6e0ff2a9dd6946592d61ae5dce3a6963bd30d141d5e413b",
-      "tablet-1100-inspector-tools-konling-dark": "e31230df0b627986d65101dfae831431afbeb1a50369fd853971d9bed7cb846f",
-      "tablet-1279-inspector-tools-konling-dark": "26baebcdd4a1f1262b7089b98f520c6b9410f067e9617717f5849319cc61e476",
+      "tablet-1100-selected-inspector-dark": "7f396349e5e8cee6c4a4f5b7f7eaf10c12e67cb7ef324f408f713be1ab5879f6",
+      "tablet-1024-inspector-tools-konling-dark": "7f7fcc94a031f7e79ab5928fb8f863e4252ac81570f5eb385ff4973f82737c16",
+      "tablet-1100-inspector-tools-konling-dark": "5a68575850b0c96924de35eff71ff201f401e91a3a9e49681b7cc245477dbee9",
+      "tablet-1279-inspector-tools-konling-dark": "bc8c27ad79e4f6cf2655207209f07fc1cbf7734dab39d28ebcb7923690dc3f9b",
       "mobile-320-local-tools-dark": "9ecffefc7554381810a132186bfd6a1c2b5a4e0a2efd1a578002dce8cd98435b",
-      "mobile-320-selected-inspector-dark": "a4758ea037cd421ca1d4c19cb6382efef94f17015297b9795b7bc4a3a3ec75ba",
+      "mobile-320-selected-inspector-dark": "6ea99fe66161ba3f3a2a30514f68c19f394a8b7ff91b4213b11b570c168d993e",
       "mobile-320-konling-expanded-dark": "05906070093f58dcd3dc046c6928fca0486afb67cc6089208445255e1815b31e",
       "mobile-320-inspector-konling-stress-dark": "05906070093f58dcd3dc046c6928fca0486afb67cc6089208445255e1815b31e",
-      "light-theme-default": "9dfc11b877feb2085ec4f7b81db88a8bc69eb1a48c0788dfb6321e2652412657"
+      "light-theme-default": "77c7a3009197002c881c59f1df19283e57055b6de3ea57d33863f456862e95a5"
     },
     "reviewedSourceSha256": {
       "src/features/knowledge/knowledge-graph-system.tsx": "d9b693c7c41bf8545c9ef8fe32a4b871af3782d3ab3271c6b2d55a2ec69515d8",
@@ -3028,11 +3176,11 @@
       "src/components/ai/global-ai-sidebar.tsx": "750fa13d6a913abbbcc5c0b6ac870e34e89ba2ce0c45d570ee20d1c7b65b7208",
       "src/components/providers/global-ai-provider.tsx": "5b7703d37cc6be9fbae080cec062d12c27ccd0381976045031b0400095fa42e8",
       "src/components/platform/app-shell.tsx": "40059baa242f29147dafb3f80fcc1115b587e69b9e2f473e18f47dfec5ceccb0",
-      "src/components/shared/page-floating-controls.tsx": "84473a65da676404075c0be58ce9061d6b4a94924e9e23ec490a7bf7642a0652",
-      "src/app/globals.css": "abf1f2a095102904f8540bea1c3c02e142934e9724fbdd1de3eab3b063e95ed2",
+      "src/components/shared/page-floating-controls.tsx": "0e96814a2eb0637dfbc9200283d5100014ae95ad5258f3b6187ed8420e158707",
+      "src/app/globals.css": "6c9afafe3a80ade03918e3fe67162a405a2fe5edf8ff6df17f0b7c74b3a5dfb6",
       "src/lib/konling-agent-runtime.ts": "99a16e39a74f419c8a28d102b3c05a7e1c242ae764a002601031276b353e1757",
-      "scripts/tests/capture-knowledge-workspace-product-qa.ts": "127be23b0e7b6093efa01593dabfec0b66bd6c8e39ae3d1ae5ffaacc4afd967b",
-      "scripts/tests/test-commercial-ui-governance.ts": "5487be191de7230f3621f67f22be1b20aec1c136c92a22e4b40f75839ab3afdd"
+      "scripts/tests/capture-knowledge-workspace-product-qa.ts": "d229f1021594d5096cf45c42829ac8f8e06c10fcdc386d860f7d3f2e4694cb34",
+      "scripts/tests/test-commercial-ui-governance.ts": "0eca74d510a837af16d0d96be4e14f2c9dd97813b75696296e950ffc65174599"
     }
   },
   "temporaryExceptions": []

@@ -1973,6 +1973,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['desktop-local-tools-view-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-selected-inspector-light', 'light', 1440, 'collapsed', 'collapsed'],
     ['desktop-hover-click-drag-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-selected-page-tools-menu-dark', 'dark', 1440, 'collapsed', 'expanded'],
     ['desktop-explicit-relayout-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-konling-selected-expanded-dark', 'dark', 1440, 'collapsed', 'expanded'],
     ['desktop-konling-no-selection-dark', 'dark', 1440, 'collapsed', 'expanded'],
@@ -2055,7 +2056,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       numberFromEvidence(documentScroll.scrollHeight) <= numberFromEvidence(documentScroll.viewportHeight)
         ? null
         : `${name}:page-vertical-scroll`,
-      name.startsWith('desktop') && dockState === 'collapsed'
+      name.startsWith('desktop') && dockState === 'collapsed' && markers.dockInspectorAvoidance !== 'active'
         ? (
             numberFromEvidence(dockRect.left) === numberFromEvidence(baselineDockRect.left)
             && numberFromEvidence(dockRect.top) === numberFromEvidence(baselineDockRect.top)
@@ -2070,6 +2071,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         'desktop-local-tools-view-dark',
         'desktop-selected-inspector-light',
         'desktop-hover-click-drag-dark',
+        'desktop-selected-page-tools-menu-dark',
         'desktop-explicit-relayout-dark',
         'desktop-stress-expanded-tool-inspector-konling-dark',
         'desktop-wide-inspector-tools-dark',
@@ -2182,6 +2184,15 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         : null,
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (booleanFromEvidence(overlaps.expandedDockOverlapsDesktopTools) === false ? null : `${name}:expanded-dock-overlaps-tools`)
+        : null,
+      name === 'desktop-selected-page-tools-menu-dark'
+        ? (markers.dockInspectorAvoidance === 'active' ? null : `${name}:dock-inspector-avoidance-missing`)
+        : null,
+      name === 'desktop-selected-page-tools-menu-dark'
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
+        : null,
+      name === 'desktop-selected-page-tools-menu-dark'
+        ? (booleanFromEvidence(overlaps.dockOverlapsInspector) === false ? null : `${name}:dock-overlaps-inspector`)
         : null,
       name === 'mobile-320-inspector-konling-stress-dark'
         ? (!markerRects.inspector ? null : `${name}:mobile-inspector-not-suspended`)
@@ -2416,6 +2427,9 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
   const resourcePanelSource = existsSync(path.join(repoRoot, 'src/features/knowledge/resource-panel/resource-panel.tsx'))
     ? readFileSync(path.join(repoRoot, 'src/features/knowledge/resource-panel/resource-panel.tsx'), 'utf8')
     : '';
+  const floatingControlsSource = existsSync(path.join(repoRoot, 'src/components/shared/page-floating-controls.tsx'))
+    ? readFileSync(path.join(repoRoot, 'src/components/shared/page-floating-controls.tsx'), 'utf8')
+    : '';
 
   if (!evidence) {
     return [knowledgeGraphGovernanceViolation('Knowledge graph governance evidence file is missing.', [
@@ -2532,6 +2546,8 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     || !graphSource.includes('data-knowledge-local-panel="view-layout-controls"')
     || !resourcePanelSource.includes('data-knowledge-local-panel="resource-panel"')
     || !resourcePanelSource.includes('data-knowledge-inspector="floating-right-edge"')
+    || !floatingControlsSource.includes('knowledgeInspectorAvoidanceActive')
+    || !floatingControlsSource.includes('data-platform-floating-dock-inspector-avoidance')
   ) {
     violations.push(knowledgeGraphGovernanceViolation('Knowledge graph local tool DOM contracts are incomplete.', [
       'legend',
@@ -2539,6 +2555,7 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
       'view-layout-controls',
       'resource-panel',
       'floating-right-edge-inspector',
+      'floating-dock-inspector-avoidance',
     ]));
   }
 

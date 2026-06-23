@@ -315,6 +315,11 @@ async function expandDock(page: Page) {
   await page.waitForSelector('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]', { timeout: 8000 });
 }
 
+async function openPageToolMenu(page: Page) {
+  await clickIfPresent(page, '[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
+  await page.waitForSelector('[data-platform-floating-dock-expanded-panel]', { timeout: 8000 });
+}
+
 async function closeInspectorIfPresent(page: Page) {
   await clickIfPresent(page, 'button[aria-label="关闭知识节点检查器"]');
   await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', {
@@ -540,6 +545,7 @@ async function captureMarkers(page: Page) {
         .map((element) => element.getAttribute('data-knowledge-layout-control') ?? '')
         .filter(Boolean),
       dockState: dock?.getAttribute('data-platform-floating-dock') ?? null,
+       dockInspectorAvoidance: dock?.getAttribute('data-platform-floating-dock-inspector-avoidance') ?? null,
        effectiveDockState: konlingSidebar || expandedDock ? 'expanded' : (dock?.getAttribute('data-platform-floating-dock') ?? null),
        expandedDockVisible: Boolean(konlingSidebar || expandedDock),
        konlingAssistantSurface: konlingSidebar?.getAttribute('data-konling-assistant-surface') ?? null,
@@ -859,6 +865,23 @@ async function main() {
           afterDrag,
           afterHover,
         };
+      },
+    },
+    {
+      name: 'desktop-selected-page-tools-menu-dark',
+      theme: 'dark',
+      width: 1440,
+      height: 960,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'expanded',
+      localToolState: 'closed',
+      selectedNode: selectedNodeId,
+      interactionState: 'selected inspector with page tool menu expanded',
+      query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      beforeShot: async (page) => {
+        await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
+        await openPageToolMenu(page);
       },
     },
     {
