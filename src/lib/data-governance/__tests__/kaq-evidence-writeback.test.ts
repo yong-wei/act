@@ -990,6 +990,62 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.audit.limitationCodes).not.toContain('unverified-resource-node-id');
   });
 
+  it('keeps non-resource sibling contributions when resource target version refs are missing', () => {
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-resource-target-sibling-version-1',
+      source: {
+        sourceClass: 'teacher-approved-grading',
+        sourceId: 'grading-run-resource-sibling-1',
+        sourceRef: { kind: 'DocumentRubricGrading', id: 'grading-run-resource-sibling-1' },
+        official: true,
+        teacherApproved: true,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'teacher', id: 'teacher-1' },
+      privacyScope: 'teacher',
+      materializedAt: '2026-06-23T03:36:10.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:36:10.000Z' },
+      versionRefs: buildKaqArtifactVersionRefs({
+        resourceRegistryVersion: null,
+        resourceProjectionVersion: null,
+      }),
+      resourceTargetRegistry: registry,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.82,
+          terminalValidationCandidate: true,
+        },
+        {
+          domain: 'quality',
+          objectiveId: 'quality:autocontrol:evidence-integrity',
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
+          learningGoalId: 'control-correction',
+          resourceNodeId: 'registry:lesson09-correction-precheck',
+          confidence: 0.7,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.overlayUpdates).toHaveLength(1);
+    expect(result.overlayUpdates[0]).toMatchObject({
+      domain: 'capability',
+      terminalValidationAccepted: true,
+      limitationCodes: [],
+    });
+    expect(result.audit.limitationCodes).toEqual(expect.arrayContaining([
+      'missing-version-ref:resourceRegistryVersion',
+      'missing-version-ref:resourceProjectionVersion',
+    ]));
+  });
+
   it('builds governed candidate inputs for path execution, Konling, and teacher-approved grading outcomes', () => {
     const pathInput = buildPathExecutionWritebackInput({
       id: 'path-writeback-1',

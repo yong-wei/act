@@ -207,6 +207,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     limitationCodes: uniqueSorted([
       ...validateTargetBinding(contribution),
       ...validateCatalogTarget(contribution),
+      ...validateResourceTargetVersionRefs(input, contribution),
       ...validateResourceTarget(contribution, input.resourceTargetRegistry),
       ...(contribution.limitationCodes ?? []),
       ...(isPreview && contribution.terminalValidationCandidate ? ['preview-not-terminal-validation' as const] : []),
@@ -220,7 +221,6 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     ]),
   }));
   const globalBlocking = (versionLimitations.some(isBlockingVersionLimitation) && input.source.official)
-    || hasBlockingResourceTargetVersionLimitation(input, versionLimitations)
     || sourceLimitations.length > 0
     || subjectLimitations.length > 0;
   const overlayUpdates = globalBlocking
@@ -450,11 +450,23 @@ function validateRequiredVersionRefs(input: KaqEvidenceWritebackInput): string[]
     ...REQUIRED_VERSION_REFS,
     ...(SOURCE_VERSION_REFS[input.source.sourceClass] ?? []),
     ...(input.source.citationRefs?.length ? ['citationVersion' as keyof KaqArtifactVersionRefs] : []),
-    ...(input.contributions.some((contribution) => Boolean(contribution.resourceNodeId)) ? RESOURCE_TARGET_VERSION_REFS : []),
   ]);
   return [
     ...validateKaqArtifactVersionRefs(input.versionRefs, requiredRefs),
     ...(input.versionRefs ? detectKaqArtifactStaleness(input.versionRefs) : []),
+  ]
+    .map((limitation) => `${limitation.code}:${limitation.ref}`);
+}
+
+function validateResourceTargetVersionRefs(
+  input: KaqEvidenceWritebackInput,
+  contribution: KaqEvidenceContributionInput,
+): string[] {
+  if (!normalizeOptionalId(contribution.resourceNodeId)) return [];
+  return [
+    ...validateKaqArtifactVersionRefs(input.versionRefs, RESOURCE_TARGET_VERSION_REFS),
+    ...(input.versionRefs ? detectKaqArtifactStaleness(input.versionRefs)
+      .filter((limitation) => RESOURCE_TARGET_VERSION_REFS.includes(limitation.ref)) : []),
   ]
     .map((limitation) => `${limitation.code}:${limitation.ref}`);
 }
@@ -524,23 +536,14 @@ function isBlockingContribution(limitationCodes: string[]): boolean {
     'objective-domain-mismatch',
     'graph-node-domain-mismatch',
     'target-objective-node-mismatch',
+    'missing-version-ref:resourceRegistryVersion',
+    'missing-version-ref:resourceProjectionVersion',
     'unverified-resource-node-id',
   ].includes(code));
 }
 
 function isBlockingVersionLimitation(limitationCode: string): boolean {
   return limitationCode.startsWith('missing-version-ref:');
-}
-
-function hasBlockingResourceTargetVersionLimitation(
-  input: KaqEvidenceWritebackInput,
-  limitationCodes: string[],
-): boolean {
-  if (!input.contributions.some((contribution) => normalizeOptionalId(contribution.resourceNodeId))) return false;
-  return limitationCodes.some((code) => [
-    'missing-version-ref:resourceRegistryVersion',
-    'missing-version-ref:resourceProjectionVersion',
-  ].includes(code));
 }
 
 function resolveAuthorityLevel(source: KaqEvidenceWritebackSource): KaqEvidenceAuthorityLevel {
