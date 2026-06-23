@@ -758,6 +758,7 @@ function evidenceTypeForSourceClass(
 ): AdaptiveLearningPathEvidenceType | null {
   if (sourceClass === 'simulation-validation') return 'simulation-run';
   if (sourceClass === 'arena-official') return 'arena-official-evaluation';
+  if (sourceClass === 'teacher-approved-grading' || sourceClass === 'instructional-checkpoint') return 'question';
   return null;
 }
 

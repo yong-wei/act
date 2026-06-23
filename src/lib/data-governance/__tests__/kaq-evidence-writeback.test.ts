@@ -744,6 +744,86 @@ describe('K/A/Q evidence writeback governance', () => {
     });
   });
 
+  it('rejects approved grading when the LearningGoal only accepts simulation-run terminal evidence', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-grading-policy-mismatch-1',
+      source: {
+        sourceClass: 'teacher-approved-grading',
+        sourceId: 'grading-run-policy-mismatch-1',
+        sourceRef: { kind: 'DocumentRubricGrading', id: 'grading-run-policy-mismatch-1' },
+        official: true,
+        teacherApproved: true,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'teacher', id: 'teacher-1' },
+      privacyScope: 'teacher',
+      materializedAt: '2026-06-23T03:34:00.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:32:00.000Z',
+        to: '2026-06-23T03:34:00.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'simulation-validation-practice',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.audit.limitationCodes).toContain('terminal-validation-policy-mismatch');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      terminalValidationAccepted: false,
+      limitationCodes: ['terminal-validation-policy-mismatch'],
+    });
+  });
+
+  it('rejects approved checkpoints when the LearningGoal only accepts simulation-run terminal evidence', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-checkpoint-policy-mismatch-1',
+      source: {
+        sourceClass: 'instructional-checkpoint',
+        sourceId: 'checkpoint-policy-mismatch-1',
+        sourceRef: { kind: 'InstructionalCheckpoint', id: 'checkpoint-policy-mismatch-1' },
+        official: true,
+        teacherApproved: true,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'teacher', id: 'teacher-1' },
+      privacyScope: 'teacher',
+      materializedAt: '2026-06-23T03:34:00.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:32:00.000Z',
+        to: '2026-06-23T03:34:00.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'simulation-validation-practice',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.audit.limitationCodes).toContain('terminal-validation-policy-mismatch');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      terminalValidationAccepted: false,
+      limitationCodes: ['terminal-validation-policy-mismatch'],
+    });
+  });
+
   it('does not fabricate overlay state for invalid non-official targets', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-invalid-konling-1',
