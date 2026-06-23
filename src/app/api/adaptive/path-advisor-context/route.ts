@@ -28,6 +28,7 @@ const PATH_ADVISOR_GOAL_CONTEXTS: Record<string, {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const goalId = url.searchParams.get('goal');
+  const graphNodeId = url.searchParams.get('nodeId')?.trim() || null;
   if (!goalId || !isRegisteredAdaptiveLearningPathGoal(goalId)) {
     return NextResponse.json({ error: '学习路径目标未注册' }, { status: 400 });
   }
@@ -56,11 +57,13 @@ export async function GET(request: Request) {
     courseId: goalId,
     pageId: 'adaptive-path-center',
     goalId,
+    ...(graphNodeId ? { graphNodeId } : {}),
     context: {
       'student-path-center': true,
       'learner-state-summary': true,
       'evidence-citations': true,
       'path-execution-context': true,
+      ...(graphNodeId ? { 'graph-node-context': true } : {}),
     },
   });
   if (!modeContextToken) {
@@ -70,6 +73,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     goalId,
     classId,
+    graphNodeId,
     modeContextToken,
     ...goalContext,
   });

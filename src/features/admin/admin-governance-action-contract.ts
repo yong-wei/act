@@ -19,6 +19,8 @@ export type GovernanceActionQuery = {
   surface?: string | null;
   tab?: string | null;
   lessonPlanId?: string | null;
+  graphNodeId?: string | null;
+  audit?: string | null;
 };
 
 export type GovernanceActionAuditRecord = {

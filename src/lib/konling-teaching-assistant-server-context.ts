@@ -24,6 +24,7 @@ interface SignedModeContextPayload {
   resourceId?: string;
   teacherId?: string;
   goalId?: string;
+  graphNodeId?: string;
   classReportId?: string;
   prepPackId?: string;
   issuedAt?: string;
@@ -122,6 +123,7 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
   const verifiedHints = signedPayload ? {
     ...input.clientContextHints,
     ...(signedPayload.goalId ? { goalId: signedPayload.goalId } : {}),
+    ...(signedPayload.graphNodeId ? { graphNodeId: signedPayload.graphNodeId } : {}),
     ...(signedPayload.classReportId ? { classReportId: signedPayload.classReportId } : {}),
     ...(signedPayload.prepPackId ? { prepPackId: signedPayload.prepPackId } : {}),
   } : input.clientContextHints;
@@ -157,6 +159,20 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
   return {};
 }
 
+export function resolveKonlingTeachingAssistantSignedGraphNodeId(input: {
+  modeId?: string | null;
+  scope: KonlingRuntimeScope;
+  clientContextHints?: Record<string, unknown> | null;
+}): string | null {
+  const mode = resolveKonlingTeachingAssistantMode(input.modeId);
+  const signedPayload = verifySignedModeContext(input.clientContextHints, {
+    modeId: mode.id,
+    scope: input.scope,
+    hints: input.clientContextHints,
+  });
+  return signedPayload?.graphNodeId ?? null;
+}
+
 export async function resolveKonlingTeachingAssistantScopeOverride(input: {
   db: KonlingTeachingAssistantServerContextDb;
   modeId?: string | null;
@@ -175,7 +191,8 @@ export async function resolveKonlingTeachingAssistantScopeOverride(input: {
       payload.context['student-path-center'] === true &&
       (!payload.courseId || payload.courseId === stringHint(input.clientContextHints, 'courseId')) &&
       (!payload.pageId || payload.pageId === 'adaptive-path-center' || payload.pageId === 'student-path-center') &&
-      (!payload.goalId || payload.goalId === stringHint(input.clientContextHints, 'goalId'))
+      (!payload.goalId || payload.goalId === stringHint(input.clientContextHints, 'goalId')) &&
+      (!payload.graphNodeId || payload.graphNodeId === stringHint(input.clientContextHints, 'graphNodeId'))
     ) {
       return { classId: payload.classId };
     }
@@ -403,6 +420,7 @@ function verifySignedModeContext(
     if (!payload.goalId || !payload.classReportId) return null;
   }
   if (payload.goalId && stringHint(input.hints, 'goalId') && payload.goalId !== stringHint(input.hints, 'goalId')) return null;
+  if (payload.graphNodeId && stringHint(input.hints, 'graphNodeId') && payload.graphNodeId !== stringHint(input.hints, 'graphNodeId')) return null;
   if (payload.classReportId && stringHint(input.hints, 'classReportId') && payload.classReportId !== stringHint(input.hints, 'classReportId')) return null;
   if (payload.prepPackId && stringHint(input.hints, 'prepPackId') && payload.prepPackId !== stringHint(input.hints, 'prepPackId')) return null;
   if (!payload.expiresAt) return null;

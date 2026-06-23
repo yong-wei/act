@@ -641,7 +641,12 @@ describe('adaptive learning center UI contracts', () => {
       .toContain('if (value.length === 0) return [];');
     expect(pageSource).toContain('checkpointPreference: pathGenerationPanel.checkpointPreference');
     expect(pageSource).toContain('allowExternalResources: pathGenerationPanel.allowExternalResources');
-    expect(pageSource).toContain('naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent');
+    expect(pageSource).toContain('naturalLanguageIntent: graphNodeId');
+    expect(pageSource).toContain('pathGenerationPanel.naturalLanguageIntent');
+    expect(pageSource).toContain("if (activeNodeId) contextQuery.set('nodeId', activeNodeId)");
+    expect(pageSource).toContain('...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {})');
+    expect(pageSource).toContain('const graphNodeId = assistantEntryPoint?.mode ===');
+    expect(pageSource).toContain('graphNodeId,');
     expect(pageSource).toContain('excludedNodeIds: operation ===');
     expect(pageSource).toContain('preferredOptionId: operation !==');
     expect(pageSource).toContain('requestedAt: new Date().toISOString()');
@@ -668,6 +673,13 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('runtime.reviseLearningPathOptions(toolInput)');
     expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
     expect(routeSource).toContain('modeContextToken');
+    expect(routeSource).toContain('const graphNodeId = typeof body.graphNodeId');
+    expect(routeSource).toContain("...(toolInput.graphNodeId ? { graphNodeId: toolInput.graphNodeId } : {})");
+    expect(routeSource).toContain('resolveKonlingTeachingAssistantSignedGraphNodeId');
+    expect(routeSource).toContain('const signedGraphNodeId = resolveKonlingTeachingAssistantSignedGraphNodeId');
+    expect(routeSource).toContain('if (requestedToolInput.graphNodeId && !signedGraphNodeId)');
+    expect(routeSource).toContain("error: '图谱节点上下文未签名或已失效'");
+    expect(routeSource).toContain('graphNodeId: signedGraphNodeId');
     expect(routeSource).toContain('readPathOptionStyleLookup');
     expect(routeSource).toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
     expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
@@ -675,16 +687,19 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('requestedAt: typeof body.requestedAt');
     expect(routeSource).toContain('const pathPlanContext = toolInput.pathId');
     expect(routeSource).toContain('readPathAdvisorPlanContext(toolInput.pathId, goalId, session.user.id, classId)');
-    expect(routeSource).toContain('const pathAwareCitationContext = buildPathAwareCitationContext');
-    expect(routeSource).toContain('citationContext: pathAwareCitationContext');
+    expect(routeSource).toContain('const graphRuntimeContext = pathPlanContext');
+    expect(routeSource).toContain('citationContext: buildPathAwareCitationContext(');
     expect(routeSource).toContain('graphContext: buildKonlingRuntimeGraphContext');
     expect(routeSource).toContain('runtimeContext: graphRuntimeContext');
+    expect(routeSource).toContain('clientHints: clientContextHints');
     expect(routeSource).toContain("missingCitationClasses: citationContext.missingCitationClasses.filter((item) => item !== 'path-execution')");
     expect(routeSource).toContain("lowConfidenceReasons: citationContext.lowConfidenceReasons.filter((item) => item !== 'missing-path-execution')");
     expect(routeSource).toContain('lastExecutionMetadata: true');
     expect(routeSource).toContain('...readStringArray(executionMetadata.completedNodeIds)');
     expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
       .toContain('currentNodeId: input.context.planContext?.activeNodeId ?? null');
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+      .toContain('selectedGraphNodeIds: normalizeAdaptivePathSelectedGraphNodeIds');
   });
 
   it('preserves empty path generation resource preference through goal-change URLs', () => {
@@ -809,7 +824,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('): Promise<boolean> =>');
     expect(source).toContain('const activityWritten = await writePathNodeActivity');
     expect(source).toContain('if (!activityWritten) return;');
-    expect(source).toContain('window.location.assign(pathNodeContextHref');
+    expect(source).toContain('window.location.assign(withFeedbackTaskHref(pathNodeContextHref');
     expect(source).toContain("goalId: AdaptivePracticeGoalId");
     expect(source).toContain('function resolveAdaptivePracticeGoalId');
     expect(source).toContain('goalId: resolveAdaptivePracticeGoalId');

@@ -5677,6 +5677,7 @@ describe('konling agent runtime', () => {
     const result = await runtime.generateLearningPath({
       idempotencyKey: 'path-gen-1',
       goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
       timeBudgetMinutes: 90,
       difficultyRhythm: 'steady',
       naturalLanguageIntent: '我想先补相位裕度，再做仿真验证。',
@@ -5695,6 +5696,7 @@ describe('konling agent runtime', () => {
         toolName: 'generate_learning_path',
         idempotencyKey: 'path-gen-1',
         inputSummary: expect.objectContaining({
+          graphNodeId: 'kn:autocontrol:controller-correction',
           naturalLanguageIntent: 'student-provided-natural-language-path-intent',
         }),
       }),
@@ -5704,6 +5706,7 @@ describe('konling agent runtime', () => {
     expect(createdPath.pathPayload.graphContext).toMatchObject({
       learningGoalId: 'control-correction',
       graphVersion: 'autocontrol-kaq-graph.v1',
+      selectedGraphNodeIds: ['kn:autocontrol:controller-correction'],
       overlayStatus: {
         learner: 'unavailable',
         class: 'unavailable',
@@ -5716,6 +5719,9 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
       db.learningPath.upsert.mock.invocationCallOrder[0],
     );
+    expect(createdPath.inputSnapshot.request).toEqual(expect.objectContaining({
+      graphNodeId: 'kn:autocontrol:controller-correction',
+    }));
     expect(result.pathOptions).toHaveLength(1);
     expect(result.pathOptions[0]).toEqual(expect.objectContaining({
       styleId: 'recommended',

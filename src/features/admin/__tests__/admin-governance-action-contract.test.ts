@@ -7,7 +7,11 @@ import {
   buildGovernanceActionContract,
   type GovernanceRiskSummary,
 } from '../admin-governance-action-contract';
-import { resolveGovernanceRouteRiskActionTarget } from '../data-governance-dashboard';
+import {
+  graphCenterAuditInitialTab,
+  normalizeGraphCenterAuditContext,
+  resolveGovernanceRouteRiskActionTarget,
+} from '../data-governance-dashboard';
 
 const risks: GovernanceRiskSummary[] = [
   {
@@ -132,6 +136,17 @@ describe('admin governance action contract', () => {
     }, 'missing-risk')).toBeNull();
   });
 
+  it('maps Graph Center governance audit links to concrete dashboard tabs', () => {
+    expect(normalizeGraphCenterAuditContext('resource-binding')).toBe('resource-binding');
+    expect(normalizeGraphCenterAuditContext('citation-readiness')).toBe('citation-readiness');
+    expect(normalizeGraphCenterAuditContext('overlay-limitations')).toBe('overlay-limitations');
+    expect(normalizeGraphCenterAuditContext('new-audit')).toBe('custom');
+    expect(graphCenterAuditInitialTab('resource-binding')).toBe('sources');
+    expect(graphCenterAuditInitialTab('citation-readiness')).toBe('sources');
+    expect(graphCenterAuditInitialTab('overlay-limitations')).toBe('cache');
+    expect(graphCenterAuditInitialTab('custom')).toBe('overview');
+  });
+
   it('keeps governance dashboard tabs, status updates, and risk tables accessible on mobile', () => {
     expect(dataGovernanceDashboardSource).toContain('data-admin-governance-status');
     expect(dataGovernanceDashboardSource).toContain('aria-pressed={activeTab === tab.id}');
@@ -139,5 +154,8 @@ describe('admin governance action contract', () => {
     expect(dataGovernanceDashboardSource).toContain('data-admin-mobile-cards="true"');
     expect(dataGovernanceDashboardSource).toContain('aria-label={`处置治理风险 ${risk.flagLabel} ${risk.userName}`}');
     expect(dataGovernanceDashboardSource).toContain('aria-label="刷新数据治理状态"');
+    expect(dataGovernanceDashboardSource).toContain("params.set('graphNodeId', initialActionQuery.graphNodeId.trim())");
+    expect(dataGovernanceDashboardSource).toContain("params.set('audit', initialActionQuery.audit.trim())");
+    expect(dataGovernanceDashboardSource).toContain('data-graph-center-preferred-tab');
   });
 });

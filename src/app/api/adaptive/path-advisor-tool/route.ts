@@ -14,6 +14,7 @@ import {
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import {
+  resolveKonlingTeachingAssistantSignedGraphNodeId,
   resolveKonlingTeachingAssistantServerModeContext,
 } from '@/lib/konling-teaching-assistant-server-context';
 import { prisma } from '@/lib/prisma';
@@ -71,7 +72,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: scopeResult.error }, { status: scopeResult.status });
     }
 
-    const toolInput = await buildPathAdvisorToolInput(body, goalId, session.user.id);
+    const requestedToolInput = await buildPathAdvisorToolInput(body, goalId, session.user.id);
+    const requestedContextHints = {
+      modeContextToken,
+      goalId,
+      ...(requestedToolInput.graphNodeId ? { graphNodeId: requestedToolInput.graphNodeId } : {}),
+    };
+    const signedGraphNodeId = resolveKonlingTeachingAssistantSignedGraphNodeId({
+      modeId: 'path-advisor',
+      scope: scopeResult.scope,
+      clientContextHints: requestedContextHints,
+    });
+    if (requestedToolInput.graphNodeId && !signedGraphNodeId) {
+      return NextResponse.json({ error: '图谱节点上下文未签名或已失效' }, { status: 403 });
+    }
+    const toolInput = signedGraphNodeId
+      ? { ...requestedToolInput, graphNodeId: signedGraphNodeId }
+      : requestedToolInput;
     const pathPlanContext = toolInput.pathId
       ? await readPathAdvisorPlanContext(toolInput.pathId, goalId, session.user.id, classId)
       : null;
@@ -90,30 +107,28 @@ export async function POST(request: Request) {
       },
       trustedContentContext: true,
     });
-    const runtimeContext = pathPlanContext
-      ? (() => {
-          const pathAwareCitationContext = buildPathAwareCitationContext(
-            baseRuntimeContext.citationContext,
-            pathPlanContext,
-          );
-          const graphRuntimeContext = {
-            ...baseRuntimeContext,
-            planContext: pathPlanContext,
-            citationContext: pathAwareCitationContext,
-          };
-          return {
-            ...graphRuntimeContext,
-            graphContext: buildKonlingRuntimeGraphContext({
-              scope: scopeResult.scope,
-              runtimeContext: graphRuntimeContext,
-              clientHints: { modeContextToken, goalId },
-            }),
-          };
-        })()
-      : baseRuntimeContext;
     const clientContextHints = {
       modeContextToken,
       goalId,
+      ...(toolInput.graphNodeId ? { graphNodeId: toolInput.graphNodeId } : {}),
+    };
+    const graphRuntimeContext = pathPlanContext
+      ? {
+          ...baseRuntimeContext,
+          planContext: pathPlanContext,
+          citationContext: buildPathAwareCitationContext(
+            baseRuntimeContext.citationContext,
+            pathPlanContext,
+          ),
+        }
+      : baseRuntimeContext;
+    const runtimeContext = {
+      ...graphRuntimeContext,
+      graphContext: buildKonlingRuntimeGraphContext({
+        scope: scopeResult.scope,
+        runtimeContext: graphRuntimeContext,
+        clientHints: clientContextHints,
+      }),
     };
     const modeContract = buildKonlingTeachingAssistantRuntimeContract({
       modeId: 'path-advisor',
@@ -231,6 +246,9 @@ async function buildPathAdvisorToolInput(body: Record<string, unknown>, goalId: 
   const excludedNodeIds = Array.isArray(body.excludedNodeIds)
     ? body.excludedNodeIds.filter((item): item is string => typeof item === 'string' && item.length > 0)
     : undefined;
+  const graphNodeId = typeof body.graphNodeId === 'string' && body.graphNodeId.trim().length > 0
+    ? body.graphNodeId.trim()
+    : undefined;
   const difficultyRhythm: 'gentle' | 'steady' | 'challenge' | undefined =
     body.difficultyRhythm === 'gentle' || body.difficultyRhythm === 'steady' || body.difficultyRhythm === 'challenge'
       ? body.difficultyRhythm
@@ -252,8 +270,13 @@ async function buildPathAdvisorToolInput(body: Record<string, unknown>, goalId: 
     checkpointPreference,
     allowExternalResources: typeof body.allowExternalResources === 'boolean' ? body.allowExternalResources : undefined,
     naturalLanguageIntent: typeof body.naturalLanguageIntent === 'string' && body.naturalLanguageIntent.trim().length > 0
-      ? body.naturalLanguageIntent.trim()
+      ? graphNodeId
+        ? `优先围绕图谱节点 ${graphNodeId} 生成或调整路径。\n${body.naturalLanguageIntent.trim()}`
+        : body.naturalLanguageIntent.trim()
+      : graphNodeId
+        ? `优先围绕图谱节点 ${graphNodeId} 生成或调整路径。`
       : undefined,
+    graphNodeId,
     priorRequestId: typeof body.priorRequestId === 'string' && body.priorRequestId.length > 0 ? body.priorRequestId : undefined,
     selectedStyleId,
     styleId: selectedStyleId,

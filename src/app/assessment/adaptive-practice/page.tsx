@@ -125,6 +125,7 @@ interface SubmitAnswerResponse {
 interface PathAdvisorContextResponse {
   goalId: AdaptivePracticeGoalId;
   classId: string;
+  graphNodeId?: string | null;
   modeContextToken: string;
   courseTitle: string;
   topic: string;
@@ -1546,7 +1547,9 @@ export default function AdaptivePracticePage() {
     let cancelled = false;
     async function registerPathAdvisorEntryPoint() {
       try {
-        const response = await fetch(`/api/adaptive/path-advisor-context?goal=${encodeURIComponent(contextGoal)}`);
+        const contextQuery = new URLSearchParams({ goal: contextGoal });
+        if (activeNodeId) contextQuery.set('nodeId', activeNodeId);
+        const response = await fetch(`/api/adaptive/path-advisor-context?${contextQuery.toString()}`);
         if (!response.ok) {
           if (!cancelled) updatePageContext({ assistantEntryPoint: null });
           return;
@@ -1565,7 +1568,9 @@ export default function AdaptivePracticePage() {
           quickQuestions: [
             {
               label: '生成路径',
-              question: `请为我生成一组${payload.courseTitle}学习路径，优先给出 2 到 3 条可比较方案。`,
+              question: payload.graphNodeId
+                ? `请围绕图谱节点 ${payload.graphNodeId} 为我生成一组${payload.courseTitle}学习路径，优先给出 2 到 3 条可比较方案。`
+                : `请为我生成一组${payload.courseTitle}学习路径，优先给出 2 到 3 条可比较方案。`,
             },
             {
               label: '按时间调整',
@@ -1579,6 +1584,7 @@ export default function AdaptivePracticePage() {
               classId: payload.classId,
               courseId: payload.goalId,
               goalId: payload.goalId,
+              ...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {}),
               pageId: 'adaptive-path-center',
               modeContextToken: payload.modeContextToken,
             },
@@ -1594,7 +1600,7 @@ export default function AdaptivePracticePage() {
       cancelled = true;
       updatePageContext({ assistantEntryPoint: null });
     };
-  }, [authStatus, isDemoMode, pathAdvisorContextGoal, updatePageContext]);
+  }, [activeNodeId, authStatus, isDemoMode, pathAdvisorContextGoal, updatePageContext]);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -1846,6 +1852,9 @@ export default function AdaptivePracticePage() {
     const modeContextToken = assistantEntryPoint?.mode === 'path-advisor'
       ? assistantEntryPoint.serverContext.modeContextToken
       : null;
+    const graphNodeId = assistantEntryPoint?.mode === 'path-advisor'
+      ? assistantEntryPoint.serverContext.graphNodeId ?? activeNodeId
+      : activeNodeId;
     if (!modeContextToken) {
       setPathChoiceMessage('路径生成上下文还在准备，请稍后重试。');
       return;
@@ -1871,7 +1880,12 @@ export default function AdaptivePracticePage() {
           resourcePreference: pathGenerationPanel.resourcePreference,
           checkpointPreference: pathGenerationPanel.checkpointPreference,
           allowExternalResources: pathGenerationPanel.allowExternalResources,
-          naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent,
+          naturalLanguageIntent: graphNodeId
+            ? [
+                `优先围绕图谱节点 ${graphNodeId} 生成或调整路径。`,
+                pathGenerationPanel.naturalLanguageIntent,
+              ].filter(Boolean).join('\n')
+            : pathGenerationPanel.naturalLanguageIntent,
           excludedNodeIds: operation === 'revise'
             ? pathExecutionNodes
                 .filter((node) => node.status === 'skipped' || node.status === 'blocked')
@@ -1880,6 +1894,7 @@ export default function AdaptivePracticePage() {
           preferredOptionId: operation !== 'generate' ? option?.optionId : undefined,
           requestedAt: new Date().toISOString(),
           modeContextToken,
+          graphNodeId,
           agentSessionId: pathAdvisorAgentSessionId ?? undefined,
           priorRequestId: operation === 'revise' ? currentPathId ?? undefined : undefined,
           selectedOptionId: operation !== 'generate' ? option?.optionId : undefined,
@@ -1936,6 +1951,7 @@ export default function AdaptivePracticePage() {
       setPathGenerationPending(null);
     }
   }, [
+    activeNodeId,
     activePathId,
     assistantEntryPoint,
     authStatus,

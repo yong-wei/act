@@ -33,6 +33,11 @@ import {
 } from '@/lib/teacher-report-grading-contracts';
 
 type HeatmapView = 'score' | 'change' | 'risk';
+type GraphCenterClassView = 'diagnosis' | 'population';
+
+function normalizeGraphCenterClassView(view: string | null): GraphCenterClassView {
+  return view === 'population' ? 'population' : 'diagnosis';
+}
 
 export default function ClassAnalyticsV2Page() {
   const router = useRouter();
@@ -42,10 +47,14 @@ export default function ClassAnalyticsV2Page() {
   const sessionData = useSession();
   const session = sessionData?.data;
   const status = sessionData?.status ?? 'loading';
+  const graphCenterNodeId = searchParams.get('graphNodeId')?.trim() || null;
+  const graphCenterView = normalizeGraphCenterClassView(searchParams.get('view'));
+  const graphCenterPopulationActive = Boolean(graphCenterNodeId && graphCenterView === 'population');
+  const graphCenterViewLabel = graphCenterPopulationActive ? '影响学生' : '薄弱节点诊断';
 
   const [insights, setInsights] = useState<TeacherClassInsightsPayload | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapData | null>(null);
-  const [heatmapView, setHeatmapView] = useState<HeatmapView>('score');
+  const [heatmapView, setHeatmapView] = useState<HeatmapView>(() => graphCenterPopulationActive ? 'risk' : 'score');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deliveryState, setDeliveryState] = useState<AuditedActionState | null>(null);
@@ -88,6 +97,12 @@ export default function ClassAnalyticsV2Page() {
       void fetchData();
     }
   }, [classId, fetchData, router, session, status]);
+
+  useEffect(() => {
+    if (graphCenterPopulationActive) {
+      setHeatmapView('risk');
+    }
+  }, [graphCenterPopulationActive]);
 
   const matrixByStudent = useMemo(() => {
     const matrix = new Map<string, Map<string, HeatmapData['matrix'][number]>>();
@@ -279,6 +294,9 @@ export default function ClassAnalyticsV2Page() {
       data-report-ledger-watermark="low-contrast-brand"
       data-report-ledger-privacy-scope="teacher-review"
       data-report-ledger-export="restricted"
+      data-graph-center-class-context={graphCenterNodeId ? 'true' : undefined}
+      data-graph-center-node-id={graphCenterNodeId ?? undefined}
+      data-graph-center-view={graphCenterNodeId ? graphCenterView : undefined}
     >
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
@@ -310,6 +328,19 @@ export default function ClassAnalyticsV2Page() {
           onDownload={handleReportDownload}
           onCopySummary={handleCopySummary}
         />
+        {graphCenterNodeId ? (
+          <section
+            className="mb-6 rounded-lg border border-border bg-muted/40 p-4 text-sm text-subtle"
+            data-graph-center-class-action-context="true"
+            data-graph-center-node-id={graphCenterNodeId}
+            data-graph-center-view={graphCenterView}
+          >
+            <div className="font-semibold text-foreground">图谱上下文：{graphCenterViewLabel}</div>
+            <div className="mt-1">
+              当前班级诊断已定位到图谱节点 <span className="font-mono text-xs text-foreground">{graphCenterNodeId}</span>。
+            </div>
+          </section>
+        ) : null}
         <div className="sr-only" role="status" aria-live="polite" data-teacher-report-delivery-status>
           {activeDeliveryState?.announcement ?? activeDeliveryState?.message ?? '教师报告交付动作已就绪。'}
         </div>
@@ -413,7 +444,11 @@ export default function ClassAnalyticsV2Page() {
           </div>
         </section>
 
-        <section className="surface-card mb-8 p-6">
+        <section
+          className="surface-card mb-8 p-6"
+          data-graph-center-diagnosis-view={graphCenterNodeId && graphCenterView === 'diagnosis' ? 'true' : undefined}
+          data-graph-center-node-id={graphCenterNodeId ?? undefined}
+        >
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-foreground">能力矩阵</h2>
@@ -493,7 +528,12 @@ export default function ClassAnalyticsV2Page() {
           )}
         </section>
 
-        <section className="surface-card p-6">
+        <section
+          id="graph-center-affected-population"
+          className="surface-card p-6"
+          data-graph-center-population-view={graphCenterPopulationActive ? 'true' : undefined}
+          data-graph-center-node-id={graphCenterNodeId ?? undefined}
+        >
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-foreground">重点学生</h2>

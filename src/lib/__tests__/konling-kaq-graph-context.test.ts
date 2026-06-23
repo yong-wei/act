@@ -273,6 +273,44 @@ describe('Konling K/A/Q graph context', () => {
     expect(context.clientHintsRejected).toEqual(['selectedGraphNodeIds', 'resourceIds']);
   });
 
+  it('accepts a signed path-advisor graph node hint only when it belongs to the learning goal subgraph', () => {
+    const context = buildKonlingKaqGraphContext({
+      scope: {
+        courseId: 'control-correction',
+        role: 'student',
+        targetUserId: 'student-1',
+        classId: null,
+      },
+      clientHints: {
+        graphNodeId: 'kn:autocontrol:controller-correction',
+      },
+      planContext: planContext(),
+      citationContext: citationContext(),
+    });
+
+    expect(context.selectedGraphNodeIds).toEqual(['kn:autocontrol:controller-correction']);
+    expect(context.clientHintsAccepted).toEqual(['graphNodeId']);
+    expect(context.clientHintsRejected).toEqual([]);
+
+    const outsideGoalContext = buildKonlingKaqGraphContext({
+      scope: {
+        courseId: 'control-correction',
+        role: 'student',
+        targetUserId: 'student-1',
+        classId: null,
+      },
+      clientHints: {
+        graphNodeId: 'kn:autocontrol:forged-node',
+      },
+      planContext: planContext(),
+      citationContext: citationContext(),
+    });
+
+    expect(outsideGoalContext.selectedGraphNodeIds).toEqual([]);
+    expect(outsideGoalContext.clientHintsAccepted).toEqual([]);
+    expect(outsideGoalContext.clientHintsRejected).toEqual(['graphNodeId']);
+  });
+
   it('projects class overlay out of student-visible graph context', () => {
     const context = buildKonlingKaqGraphContext({
       scope: {

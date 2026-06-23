@@ -631,18 +631,30 @@ function buildStudentGraphCenterActions(input: {
           ? '证据复查需要学习者证据路由接入。'
           : '学习者 overlay 不可用，暂不能复查个人证据。',
     },
-    {
-      id: 'student:ask-konling',
-      role: 'student',
-      label: '向 Konling 提问',
-      description: '以当前图谱节点和目标作为提问上下文。',
-      status: 'available',
-      target: buildGraphCenterActionTarget('/interactive-learning', {
-        learningGoalId: learningGoalId ?? input.node.id,
-        graphNodeId: input.node.id,
-        konlingIntent: 'graph-question',
-      }),
-    },
+    adaptivePracticeGoal
+      ? {
+          id: 'student:ask-konling',
+          role: 'student',
+          label: '向 Konling 提问',
+          description: '以当前图谱节点和目标作为提问上下文。',
+          status: 'available',
+          target: buildGraphCenterActionTarget('/assessment/adaptive-practice', {
+            goal: adaptivePracticeGoal,
+            nodeId: input.node.id,
+            intent: 'contextual-recommendation',
+          }),
+        }
+      : {
+          id: 'student:ask-konling',
+          role: 'student',
+          label: '向 Konling 提问',
+          description: '以当前图谱节点和目标作为提问上下文。',
+          status: learningGoalId ? 'degraded' : 'disabled',
+          reasonCode: 'missing-path-context',
+          reason: learningGoalId
+            ? '该节点尚未接入可进入的 Konling 图谱提问上下文。'
+            : '该节点尚未绑定可进入的学习目标。',
+        },
   ];
 }
 

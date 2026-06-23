@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   buildGraphCenterPayload,
@@ -17,6 +19,35 @@ import { teachingResourceWhereForGraphCenter } from '../graph-center-source-scop
 import { filterTeacherResourceNodes } from '../../teacher-resource-node-management';
 import { buildResourceNodeRegistry } from '../../resource-node-registry';
 import type { TextbookRuntimeSearchDocument } from '../../textbook-runtime-resources';
+
+const teacherAnalyticsV2Source = readFileSync(
+  join(process.cwd(), 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx'),
+  'utf8',
+);
+const adminDataGovernancePageSource = readFileSync(
+  join(process.cwd(), 'src/app/admin/data-governance/page.tsx'),
+  'utf8',
+);
+const adminDataGovernanceDashboardSource = readFileSync(
+  join(process.cwd(), 'src/features/admin/data-governance-dashboard.tsx'),
+  'utf8',
+);
+const adaptivePracticePageSource = readFileSync(
+  join(process.cwd(), 'src/app/assessment/adaptive-practice/page.tsx'),
+  'utf8',
+);
+const adaptivePathAdvisorContextRouteSource = readFileSync(
+  join(process.cwd(), 'src/app/api/adaptive/path-advisor-context/route.ts'),
+  'utf8',
+);
+const adaptivePathAdvisorToolRouteSource = readFileSync(
+  join(process.cwd(), 'src/app/api/adaptive/path-advisor-tool/route.ts'),
+  'utf8',
+);
+const adminDataGovernanceStatusRouteSource = readFileSync(
+  join(process.cwd(), 'src/app/api/admin/data-governance/status/route.ts'),
+  'utf8',
+);
 
 describe('graph center payload service', () => {
   it('builds a knowledge-domain payload with objectives, portrait dimensions, and selected node detail', () => {
@@ -526,6 +557,25 @@ describe('graph center payload service', () => {
       reason: '该节点尚未接入可进入的自适应学习路径入口。',
     });
     expect(unmappedPathAction?.target).toBeUndefined();
+    expect(studentPayload.selectedNode?.actions.find((action) => action.id === 'student:ask-konling')).toMatchObject({
+      status: 'available',
+      target: {
+        route: '/assessment/adaptive-practice',
+        params: {
+          goal: 'control-correction',
+          nodeId: 'kn:autocontrol:controller-correction',
+          intent: 'contextual-recommendation',
+        },
+        href: '/assessment/adaptive-practice?goal=control-correction&nodeId=kn%3Aautocontrol%3Acontroller-correction&intent=contextual-recommendation',
+      },
+    });
+    const unmappedKonlingAction = unmappedPathPayload.selectedNode?.actions.find((action) => action.id === 'student:ask-konling');
+    expect(unmappedKonlingAction).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-path-context',
+      reason: '该节点尚未接入可进入的 Konling 图谱提问上下文。',
+    });
+    expect(unmappedKonlingAction?.target).toBeUndefined();
     expect(studentPayload.selectedNode?.actions.find((action) => action.id === 'student:review-evidence')).toMatchObject({
       status: 'degraded',
       reasonCode: 'missing-evidence-route',
@@ -588,6 +638,18 @@ describe('graph center payload service', () => {
         },
       },
     });
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:inspect-affected-population')).toMatchObject({
+      status: 'available',
+      target: {
+        route: '/teacher/classes/[classId]/analytics-v2',
+        params: {
+          classId: 'class-1',
+          graphNodeId: 'kn:autocontrol:feedback-loop',
+          view: 'population',
+        },
+        href: '/teacher/classes/class-1/analytics-v2?graphNodeId=kn%3Aautocontrol%3Afeedback-loop&view=population',
+      },
+    });
     expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:inspect-resource-gap')).toMatchObject({
       status: 'degraded',
       reasonCode: 'missing-resource-context',
@@ -619,6 +681,13 @@ describe('graph center payload service', () => {
     expect(adminPayload.selectedNode?.actions.find((action) => action.id === 'admin:inspect-overlay-limitations')).toMatchObject({
       status: 'degraded',
       reasonCode: 'missing-overlay-context',
+      target: {
+        route: '/admin/data-governance',
+        params: {
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
+          audit: 'overlay-limitations',
+        },
+      },
     });
 
     const routeLedgerHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
@@ -628,6 +697,30 @@ describe('graph center payload service', () => {
       ...(adminPayload.selectedNode?.actions ?? []),
     ].flatMap((action) => action.target ? [action.target.route] : []);
     expect(actionRoutes.every((route) => routeLedgerHrefs.has(route))).toBe(true);
+  });
+
+  it('keeps Graph Center action targets wired to pages that consume their query context', () => {
+    expect(teacherAnalyticsV2Source).toContain("searchParams.get('graphNodeId')");
+    expect(teacherAnalyticsV2Source).toContain("searchParams.get('view')");
+    expect(teacherAnalyticsV2Source).toContain('data-graph-center-class-action-context');
+    expect(teacherAnalyticsV2Source).toContain("setHeatmapView('risk')");
+    expect(teacherAnalyticsV2Source).toContain('data-graph-center-population-view');
+    expect(adminDataGovernancePageSource).toContain('graphNodeId?: string');
+    expect(adminDataGovernancePageSource).toContain('audit?: string');
+    expect(adminDataGovernanceDashboardSource).toContain('initialActionQuery?.graphNodeId');
+    expect(adminDataGovernanceDashboardSource).toContain('data-graph-center-governance-audit-context');
+    expect(adminDataGovernanceDashboardSource).toContain("params.set('graphNodeId', initialActionQuery.graphNodeId.trim())");
+    expect(adminDataGovernanceDashboardSource).toContain("params.set('audit', initialActionQuery.audit.trim())");
+    expect(adminDataGovernanceDashboardSource).toContain('graphCenterAuditInitialTab');
+    expect(adminDataGovernanceStatusRouteSource).toContain("request.nextUrl.searchParams.get('graphNodeId')");
+    expect(adminDataGovernanceStatusRouteSource).toContain('graphCenterAudit');
+    expect(adaptivePracticePageSource).toContain("if (activeNodeId) contextQuery.set('nodeId', activeNodeId)");
+    expect(adaptivePracticePageSource).toContain('...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {})');
+    expect(adaptivePracticePageSource).toContain('graphNodeId,');
+    expect(adaptivePathAdvisorContextRouteSource).toContain("url.searchParams.get('nodeId')");
+    expect(adaptivePathAdvisorContextRouteSource).toContain("'graph-node-context'");
+    expect(adaptivePathAdvisorToolRouteSource).toContain('const graphNodeId = typeof body.graphNodeId');
+    expect(adaptivePathAdvisorToolRouteSource).toContain('toolInput.graphNodeId');
   });
 
   it('uses resource-node knowledge coverage refs for teacher resource gap links', () => {
