@@ -368,17 +368,24 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     const candidate = candidatesById.get(nodeId);
     if (!candidate) continue;
     const nodeIndex = selectedIds.indexOf(nodeId);
+    const beforeSelectedIds = [...selectedIds];
+    const beforeInsertedNodeIds = [...insertedNodeIds];
+    let insertedPrerequisite = false;
+    let prerequisitesSatisfied = true;
     for (const prerequisiteId of candidate.prerequisiteNodeIds) {
       if (selectedIds.includes(prerequisiteId)) continue;
-      if (insertCandidate(prerequisiteId, nodeId)) {
-        repairedConstraints.push('hard-prerequisites');
-        continue;
+      if (tryInsertCandidate(prerequisiteId, nodeId)) {
+        insertedPrerequisite = true;
+      } else {
+        prerequisitesSatisfied = false;
+        break;
       }
-      infeasibleReasons.push({
-        code: 'hard-prerequisite-missing',
-        nodeIds: [nodeId, prerequisiteId],
-        message: `Node ${nodeId} requires missing prerequisite ${prerequisiteId}.`,
-      });
+    }
+    if (insertedPrerequisite && prerequisitesSatisfied) {
+      repairedConstraints.push('hard-prerequisites');
+    } else if (!prerequisitesSatisfied) {
+      selectedIds.splice(0, selectedIds.length, ...beforeSelectedIds);
+      insertedNodeIds.splice(0, insertedNodeIds.length, ...beforeInsertedNodeIds);
     }
     if (nodeIndex >= 0) {
       selectedIds.sort((left, right) => comparePathNodeOrder(left, right, candidatesById));
@@ -746,7 +753,7 @@ function prerequisiteOrderViolations(
     if (nodeIndex === undefined) continue;
     for (const prerequisiteId of candidatesById.get(nodeId)?.prerequisiteNodeIds ?? []) {
       const prerequisiteIndex = selectedIndexById.get(prerequisiteId);
-      if (prerequisiteIndex !== undefined && prerequisiteIndex > nodeIndex) {
+      if (prerequisiteIndex === undefined || prerequisiteIndex > nodeIndex) {
         violations.push({ nodeId, prerequisiteId });
       }
     }

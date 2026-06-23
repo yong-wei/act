@@ -34,6 +34,41 @@ describe('path constraint repair', () => {
     expect(repair.limitations).toContain('removed-optional-node:heavy-lab');
   });
 
+  it('drops hard prerequisite reasons for optional nodes removed by budget repair', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['bad', 'terminal'],
+      candidates: [
+        { nodeId: 'present', estimatedTimeMinutes: 5, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'bad',
+          estimatedTimeMinutes: 30,
+          prerequisiteNodeIds: ['present', 'missing'],
+          removable: true,
+        },
+        {
+          nodeId: 'terminal',
+          estimatedTimeMinutes: 10,
+          prerequisiteNodeIds: [],
+          terminalValidation: 'official',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 10,
+        requiredCheckpointCount: 0,
+        terminalValidationRequired: true,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['terminal']);
+    expect(repair.removedNodeIds).toEqual(['bad']);
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
   it('inserts checkpoint and terminal validation candidates before returning a repaired path', () => {
     const repair = repairPathConstraints({
       draftNodeIds: ['intro'],
