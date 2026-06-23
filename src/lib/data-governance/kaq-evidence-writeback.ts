@@ -40,7 +40,8 @@ export type KaqEvidenceLimitationCode =
   | 'missing-version-ref'
   | 'preview-not-terminal-validation'
   | 'ai-mediated-low-authority'
-  | 'source-not-terminal-validation-authority';
+  | 'source-not-terminal-validation-authority'
+  | 'low-confidence-terminal-validation';
 
 export interface KaqEvidenceSourceRef {
   kind: string;
@@ -109,6 +110,7 @@ export interface KaqEvidenceOverlayUpdate {
   sourceClass: KaqEvidenceSourceClass;
   sourceId: string | null;
   sourceRef: KaqEvidenceSourceRef | null;
+  citationRefs: string[] | null;
   targetRef: KaqEvidenceTargetRef;
   subject: KaqEvidenceSubjectScope;
   confidence: number;
@@ -127,6 +129,7 @@ export interface KaqEvidenceWritebackAuditEvent {
   sourceClass: KaqEvidenceSourceClass;
   sourceId: string | null;
   sourceRef: KaqEvidenceSourceRef | null;
+  citationRefs: string[] | null;
   targetRefs: KaqEvidenceTargetRef[];
   subject: KaqEvidenceSubjectScope;
   versionRefs: KaqArtifactVersionRefs | null;
@@ -165,6 +168,7 @@ const REQUIRED_VERSION_REFS: Array<keyof KaqArtifactVersionRefs> = [
   'graphCatalogVersion',
   'overlayVersion',
 ];
+const TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD = 0.6;
 
 const SOURCE_VERSION_REFS: Partial<Record<KaqEvidenceSourceClass, Array<keyof KaqArtifactVersionRefs>>> = {
   'path-execution': ['plannerVersion'],
@@ -197,6 +201,9 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       ...(!isPreview && contribution.terminalValidationCandidate && !canSourceSatisfyTerminalValidation(input.source)
         ? ['source-not-terminal-validation-authority' as const]
         : []),
+      ...(contribution.terminalValidationCandidate && clampConfidence(contribution.confidence) < TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD
+        ? ['low-confidence-terminal-validation' as const]
+        : []),
     ]),
   }));
   const hasBlockingTarget = contributionEvaluations.some((evaluation) => isBlockingContribution(evaluation.limitationCodes));
@@ -225,6 +232,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       sourceClass: input.source.sourceClass,
       sourceId: input.source.sourceId,
       sourceRef: input.source.sourceRef,
+      citationRefs: input.source.citationRefs ?? null,
       targetRefs: input.contributions.map(toTargetRef),
       subject: input.subject,
       versionRefs: input.versionRefs,
@@ -251,6 +259,7 @@ export function projectKaqEvidenceWritebackForConsumer(
       ...update,
       sourceRef: consumer === 'student' || consumer === 'teacher' ? null : update.sourceRef,
       sourceId: consumer === 'student' || consumer === 'teacher' ? null : update.sourceId,
+      citationRefs: consumer === 'student' || consumer === 'teacher' ? null : update.citationRefs,
     })),
     audit: projectAudit(result.audit, consumer),
   };
@@ -374,7 +383,7 @@ export function buildTeacherApprovedGradingWritebackInput(input: {
         graphNodeId: input.graphNodeId,
         learningGoalId: input.learningGoalId,
         confidence: clampConfidence(input.score),
-        terminalValidationCandidate: true,
+        terminalValidationCandidate: clampConfidence(input.score) >= TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD,
       },
     ],
   };
@@ -400,6 +409,7 @@ function materializeContribution(
     sourceClass: input.source.sourceClass,
     sourceId: input.source.sourceId,
     sourceRef: input.source.sourceRef,
+    citationRefs: input.source.citationRefs ?? null,
     targetRef: toTargetRef(contribution),
     subject: input.subject,
     confidence: resolveConfidence(contribution.confidence, authorityLevel, limitationCodes),
@@ -524,6 +534,7 @@ function projectAudit(
       ...audit,
       sourceId: null,
       sourceRef: null,
+      citationRefs: null,
       actor: { type: audit.actor.type, id: 'redacted' },
     };
   }

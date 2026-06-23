@@ -351,7 +351,11 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(teacher.overlayUpdates[0].sourceRef).toBeNull();
     expect(teacher.overlayUpdates[0].sourceId).toBeNull();
     expect(admin.audit?.sourceRef).toEqual({ kind: 'AgentToolRun', id: 'tool-run-1' });
+    expect(admin.audit?.citationRefs).toEqual(['citation:path-execution-1']);
     expect(admin.overlayUpdates[0].sourceId).toBe('tool-run-1');
+    expect(admin.overlayUpdates[0].citationRefs).toEqual(['citation:path-execution-1']);
+    expect(student.overlayUpdates[0].citationRefs).toBeNull();
+    expect(teacher.overlayUpdates[0].citationRefs).toBeNull();
     expect(service.audit?.actor).toEqual({ type: 'service', id: 'konling-runtime' });
   });
 
@@ -560,6 +564,45 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.status).toBe('blocked');
     expect(result.overlayUpdates).toEqual([]);
     expect(result.audit.limitationCodes).toContain('missing-subject-owner');
+  });
+
+  it('does not accept low-confidence teacher-approved grading as terminal validation', () => {
+    const input = buildTeacherApprovedGradingWritebackInput({
+      id: 'grading-writeback-low-score-1',
+      gradingRunId: 'grading-run-low-score-1',
+      subject,
+      teacherId: 'teacher-9',
+      learningGoalId: 'control-correction',
+      objectiveId: 'quality:autocontrol:evidence-integrity',
+      graphNodeId: 'qual:autocontrol:evidence-integrity',
+      score: 0,
+      versionRefs,
+      materializedAt: '2026-06-23T03:35:30.000Z',
+    });
+    const result = materializeKaqEvidenceWriteback(input);
+    const forcedCandidate = materializeKaqEvidenceWriteback({
+      ...input,
+      id: 'grading-writeback-low-score-forced-1',
+      contributions: [
+        {
+          ...input.contributions[0],
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(input.contributions[0].terminalValidationCandidate).toBe(false);
+    expect(result.status).toBe('accepted');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      sourceClass: 'teacher-approved-grading',
+      terminalValidationAccepted: false,
+      limitationCodes: [],
+    });
+    expect(forcedCandidate.status).toBe('degraded');
+    expect(forcedCandidate.overlayUpdates[0]).toMatchObject({
+      terminalValidationAccepted: false,
+      limitationCodes: ['low-confidence-terminal-validation'],
+    });
   });
 
   it('builds governed candidate inputs for path execution, Konling, and teacher-approved grading outcomes', () => {
