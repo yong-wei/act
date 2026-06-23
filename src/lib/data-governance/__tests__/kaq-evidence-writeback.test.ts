@@ -839,6 +839,105 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.overlayUpdates[0].id).toBe('writeback-trim-id-1:1');
   });
 
+  it('blocks non-replayable materialization timestamps before overlay materialization', () => {
+    const blank = materializeKaqEvidenceWriteback({
+      id: 'writeback-missing-materialized-at-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-missing-materialized-at-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-missing-materialized-at-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '   ',
+      evidenceWindow: { from: null, to: '   ' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+    const invalid = materializeKaqEvidenceWriteback({
+      id: 'writeback-invalid-materialized-at-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-invalid-materialized-at-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-invalid-materialized-at-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: 'not-a-date',
+      evidenceWindow: { from: null, to: 'not-a-date' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(blank.status).toBe('blocked');
+    expect(blank.overlayUpdates).toEqual([]);
+    expect(blank.audit.materializedAt).toBe('');
+    expect(blank.audit.limitationCodes).toContain('invalid-materialized-at');
+    expect(invalid.status).toBe('blocked');
+    expect(invalid.overlayUpdates).toEqual([]);
+    expect(invalid.audit.limitationCodes).toContain('invalid-materialized-at');
+  });
+
+  it('trims materialization timestamp before writing audit and overlay state', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-trim-materialized-at-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-trim-materialized-at-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-trim-materialized-at-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: ' 2026-06-23T03:34:00.000Z ',
+      evidenceWindow: { from: null, to: ' 2026-06-23T03:34:00.000Z ' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('accepted');
+    expect(result.audit.materializedAt).toBe('2026-06-23T03:34:00.000Z');
+    expect(result.overlayUpdates[0].materializedAt).toBe('2026-06-23T03:34:00.000Z');
+  });
+
   it('blocks missing actor identity before overlay materialization', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-actor-missing-1',
@@ -1531,6 +1630,46 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(selectedInput.contributions).toEqual([]);
     expect(result.status).toBe('blocked');
     expect(result.overlayUpdates).toEqual([]);
+  });
+
+  it('normalizes teacher-approved grading targets before inferring contribution domain', () => {
+    const gradingInput = buildTeacherApprovedGradingWritebackInput({
+      id: ' grading-writeback-trim-target-1 ',
+      gradingRunId: ' grading-run-trim-target-1 ',
+      subject,
+      teacherId: ' teacher-9 ',
+      learningGoalId: ' control-correction ',
+      objectiveId: ' capability:autocontrol:validate-with-simulation-evidence ',
+      graphNodeId: ' cap:autocontrol:validate-with-simulation-evidence ',
+      score: 0.91,
+      versionRefs,
+      materializedAt: ' 2026-06-23T03:37:15.000Z ',
+    });
+
+    const result = materializeKaqEvidenceWriteback(gradingInput);
+
+    expect(gradingInput).toMatchObject({
+      id: 'grading-writeback-trim-target-1',
+      source: {
+        sourceId: 'grading-run-trim-target-1',
+        sourceRef: { kind: 'DocumentRubricGrading', id: 'grading-run-trim-target-1' },
+      },
+      actor: { type: 'teacher', id: 'teacher-9' },
+      materializedAt: '2026-06-23T03:37:15.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:37:15.000Z' },
+    });
+    expect(gradingInput.contributions[0]).toMatchObject({
+      domain: 'capability',
+      objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+      graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+      learningGoalId: 'control-correction',
+    });
+    expect(result.status).toBe('accepted');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      domain: 'capability',
+      terminalValidationAccepted: true,
+      limitationCodes: [],
+    });
   });
 
   it('blocks teacher-approved grading helper output when teacher identity is blank', () => {

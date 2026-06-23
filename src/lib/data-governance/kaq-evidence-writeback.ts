@@ -32,6 +32,7 @@ export type KaqEvidenceLimitationCode =
   | 'missing-target-binding'
   | 'missing-learning-goal-boundary'
   | 'missing-writeback-id'
+  | 'invalid-materialized-at'
   | 'missing-subject-owner'
   | 'missing-actor-id'
   | 'subject-owner-mismatch'
@@ -203,11 +204,13 @@ const AUTOCONTROL_GRAPH_NODES_BY_ID = new Map(
 
 export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput): KaqEvidenceWritebackResult {
   const writebackId = normalizeOptionalId(input.id) ?? '';
+  const materializedAt = normalizeOptionalId(input.materializedAt) ?? '';
   const normalizedSource = normalizeSource(input.source);
   const normalizedSubject = normalizeSubject(input.subject);
   const normalizedActor = normalizeActor(input.actor);
   const versionLimitations = validateRequiredVersionRefs(input);
   const writebackLimitations = validateWritebackId(writebackId);
+  const materializedAtLimitations = validateMaterializedAt(materializedAt);
   const sourceLimitations = validateSource(normalizedSource);
   const subjectLimitations = validateSubject(normalizedSubject);
   const actorLimitations = validateActor(normalizedActor);
@@ -233,6 +236,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
   }));
   const globalBlocking = (versionLimitations.some(isBlockingVersionLimitation) && input.source.official)
     || writebackLimitations.length > 0
+    || materializedAtLimitations.length > 0
     || sourceLimitations.length > 0
     || subjectLimitations.length > 0
     || actorLimitations.length > 0;
@@ -240,7 +244,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     ? []
     : contributionEvaluations
       .map(({ contribution, limitationCodes }, index) => materializeContribution(
-        { ...input, id: writebackId, source: normalizedSource, subject: normalizedSubject, actor: normalizedActor },
+        { ...input, id: writebackId, source: normalizedSource, subject: normalizedSubject, actor: normalizedActor, materializedAt },
         contribution,
         uniqueSorted([...versionLimitations, ...limitationCodes]),
         index,
@@ -250,6 +254,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
   const limitationCodes = uniqueSorted([
     ...versionLimitations,
     ...writebackLimitations,
+    ...materializedAtLimitations,
     ...sourceLimitations,
     ...subjectLimitations,
     ...actorLimitations,
@@ -275,7 +280,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       limitationCodes,
       actor: normalizedActor,
       privacyScope: input.privacyScope,
-      materializedAt: input.materializedAt,
+      materializedAt,
       aiGenerated: normalizedSource.aiGenerated,
       teacherApproved: normalizedSource.teacherApproved,
       status,
@@ -398,28 +403,35 @@ export function buildTeacherApprovedGradingWritebackInput(input: {
   versionRefs: KaqArtifactVersionRefs;
   materializedAt: string;
 }): KaqEvidenceWritebackInput {
+  const id = normalizeOptionalId(input.id) ?? '';
+  const gradingRunId = normalizeOptionalId(input.gradingRunId) ?? '';
+  const teacherId = normalizeOptionalId(input.teacherId) ?? '';
+  const learningGoalId = normalizeOptionalId(input.learningGoalId) ?? '';
+  const objectiveId = normalizeOptionalId(input.objectiveId) ?? '';
+  const graphNodeId = normalizeOptionalId(input.graphNodeId) ?? '';
+  const materializedAt = normalizeOptionalId(input.materializedAt) ?? '';
   return {
-    id: input.id,
+    id,
     source: {
       sourceClass: 'teacher-approved-grading',
-      sourceId: input.gradingRunId,
-      sourceRef: { kind: 'DocumentRubricGrading', id: input.gradingRunId },
+      sourceId: gradingRunId,
+      sourceRef: { kind: 'DocumentRubricGrading', id: gradingRunId },
       official: true,
       teacherApproved: true,
       aiGenerated: input.aiGenerated ?? false,
     },
     subject: input.subject,
-    actor: { type: 'teacher', id: input.teacherId },
+    actor: { type: 'teacher', id: teacherId },
     privacyScope: 'teacher',
-    materializedAt: input.materializedAt,
-    evidenceWindow: { from: null, to: input.materializedAt },
+    materializedAt,
+    evidenceWindow: { from: null, to: materializedAt },
     versionRefs: input.versionRefs,
     contributions: [
       {
-        domain: inferDomainFromObjectiveId(input.objectiveId),
-        objectiveId: input.objectiveId,
-        graphNodeId: input.graphNodeId,
-        learningGoalId: input.learningGoalId,
+        domain: inferDomainFromObjectiveId(objectiveId),
+        objectiveId,
+        graphNodeId,
+        learningGoalId,
         confidence: clampConfidence(input.score),
         terminalValidationCandidate: clampConfidence(input.score) >= TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD,
       },
@@ -514,6 +526,12 @@ function validateSubject(subject: KaqEvidenceSubjectScope): KaqEvidenceLimitatio
 
 function validateWritebackId(writebackId: string): KaqEvidenceLimitationCode[] {
   return writebackId.length > 0 ? [] : ['missing-writeback-id'];
+}
+
+function validateMaterializedAt(materializedAt: string): KaqEvidenceLimitationCode[] {
+  return materializedAt.length > 0 && !Number.isNaN(Date.parse(materializedAt))
+    ? []
+    : ['invalid-materialized-at'];
 }
 
 function validateActor(actor: KaqEvidenceWritebackActor): KaqEvidenceLimitationCode[] {
