@@ -1814,11 +1814,24 @@ function buildAdaptiveLearningPathPlanInternal(
     },
   });
   const scoredByNodeId = new Map(repairEntries.map((entry) => [entry.node.id, entry]));
-  const repairedMainPathNodes = constraintRepair.status === 'infeasible'
-    ? mainPathNodes
-    : constraintRepair.repairedNodeIds
-      .map((nodeId) => scoredByNodeId.get(nodeId))
-      .filter((entry): entry is ScoredNode => Boolean(entry));
+  const repairedEntries = constraintRepair.repairedNodeIds
+    .map((nodeId) => scoredByNodeId.get(nodeId))
+    .filter((entry): entry is ScoredNode => Boolean(entry));
+  const repairedMainPathNodes = repairedEntries.length > 0 ? repairedEntries : mainPathNodes;
+  const originalFallbackReasons = constraintRepair.status === 'infeasible'
+    ? buildFallbackReasons({
+        learnerState: input.learnerState,
+        deficits,
+        eligible,
+        mainPathNodes,
+        constraints: input.constraints,
+        goal: input.goal,
+        graphContext,
+        hasGraphCandidateCoverage: Boolean(graphContext && graphTargetsCoveredByScoredNodes(scored, graphContext).length > 0),
+        attemptedCandidates: scored.length,
+        policyFamily,
+      })
+    : [];
   const fallbackReasons = buildFallbackReasons({
     learnerState: input.learnerState,
     deficits,
@@ -1831,6 +1844,7 @@ function buildAdaptiveLearningPathPlanInternal(
     attemptedCandidates: scored.length,
     policyFamily,
   });
+  fallbackReasons.push(...originalFallbackReasons.filter((reason) => isPathBlockingFallbackReason(reason)));
   fallbackReasons.push(...constraintRepair.infeasibleReasons.map((reason) => reason.code));
   const uniqueFallbackReasons = unique(fallbackReasons);
   const status: AdaptiveLearningPathStatus = uniqueFallbackReasons.length > 0 ? 'fallback' : 'ready';

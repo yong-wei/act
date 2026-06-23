@@ -3482,6 +3482,90 @@ describe('adaptive learning path planner', () => {
     ]);
   });
 
+  it('keeps repaired path nodes when only non-blocking checkpoint infeasibility remains', () => {
+    const registry = buildResourceNodeRegistry({
+      textbookSections: [{
+        bookId: 'repair-nonblocking',
+        sectionId: 'prep',
+        title: '准备教材段',
+        citationHref: '/course-runtime/resources/textbooks/repair-nonblocking/sections/prep.md',
+        knowledgeNodeIds: ['prep-only'],
+        estimatedTimeMinutes: 5,
+        planningOverride: {
+          evidenceInstrumentation: ['textbook_section_viewed'],
+        },
+      }, {
+        bookId: 'repair-nonblocking',
+        sectionId: 'locked',
+        title: '锁定教材段',
+        citationHref: '/course-runtime/resources/textbooks/repair-nonblocking/sections/locked.md',
+        knowledgeNodeIds: ['kn-bode'],
+        estimatedTimeMinutes: 10,
+        planningOverride: {
+          evidenceInstrumentation: ['textbook_section_viewed'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.8 },
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: ['textbook-section:repair-nonblocking:prep'],
+            unlockMessage: '先完成准备教材段。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-bode': { posteriorMastery: 0.2, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.2, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.6,
+            evidenceCount: 1,
+            sourceCompleteness: 0.6,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 20,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.status).toBe('fallback');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual([
+      'textbook-section:repair-nonblocking:prep',
+      'textbook-section:repair-nonblocking:locked',
+    ]);
+    expect(plan.currentNodeId).toBe('textbook-section:repair-nonblocking:prep');
+    expect(plan.explanations.fallbackReasons).toContain('checkpoint-resource-missing');
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'infeasible',
+      draftNodeIds: ['textbook-section:repair-nonblocking:locked'],
+      repairedNodeIds: [
+        'textbook-section:repair-nonblocking:prep',
+        'textbook-section:repair-nonblocking:locked',
+      ],
+      insertedNodeIds: ['textbook-section:repair-nonblocking:prep'],
+      repairedConstraints: expect.arrayContaining(['locked-node-fallback']),
+      infeasibleReasons: expect.arrayContaining([
+        expect.objectContaining({ code: 'checkpoint-resource-missing' }),
+      ]),
+    });
+  });
+
   it('does not publish a ready path when time budget cannot include locked fallback support', () => {
     const registry = buildResourceNodeRegistry({
       knowledgeCards: [{
