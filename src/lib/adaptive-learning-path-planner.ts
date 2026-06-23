@@ -917,7 +917,7 @@ const CONTROL_CORRECTION_LEARNING_GOAL = defineLearningGoal({
   ],
   goalSliceId: 'control-correction',
   resourceMix: packageResourceMix(['simulation', 'arena_task'], ['control_workbench', 'simulation', 'arena_task', 'checkpoint']),
-  evidencePolicy: packageEvidencePolicy(['question', 'simulation-run', 'arena-official-evaluation', 'reflection']),
+  evidencePolicy: packageEvidencePolicy(['question', 'path-execution', 'simulation-run', 'arena-official-evaluation', 'reflection']),
   terminalValidationPolicy: terminalValidationPolicy(
     true,
     ['simulation-run', 'arena-official-evaluation', 'question'],
