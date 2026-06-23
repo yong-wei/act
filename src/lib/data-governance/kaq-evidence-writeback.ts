@@ -453,7 +453,8 @@ function validateRequiredVersionRefs(input: KaqEvidenceWritebackInput): string[]
   ]);
   return [
     ...validateKaqArtifactVersionRefs(input.versionRefs, requiredRefs),
-    ...(input.versionRefs ? detectKaqArtifactStaleness(input.versionRefs) : []),
+    ...(input.versionRefs ? detectKaqArtifactStaleness(input.versionRefs)
+      .filter((limitation) => requiredRefs.includes(limitation.ref)) : []),
   ]
     .map((limitation) => `${limitation.code}:${limitation.ref}`);
 }

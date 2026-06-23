@@ -1046,6 +1046,95 @@ describe('K/A/Q evidence writeback governance', () => {
     ]));
   });
 
+  it('does not apply stale resource version refs to non-resource contributions', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-stale-resource-version-non-resource-1',
+      source: {
+        sourceClass: 'teacher-approved-grading',
+        sourceId: 'grading-run-stale-resource-version-1',
+        sourceRef: { kind: 'DocumentRubricGrading', id: 'grading-run-stale-resource-version-1' },
+        official: true,
+        teacherApproved: true,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'teacher', id: 'teacher-1' },
+      privacyScope: 'teacher',
+      materializedAt: '2026-06-23T03:36:15.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:36:15.000Z' },
+      versionRefs: buildKaqArtifactVersionRefs({
+        resourceRegistryVersion: 'resource-node-registry.v0',
+        resourceProjectionVersion: 'resource-semantic-projection.v0',
+      }),
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.82,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('accepted');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      terminalValidationAccepted: true,
+      limitationCodes: [],
+    });
+    expect(result.audit.limitationCodes).toEqual([]);
+  });
+
+  it('applies stale resource version refs to resource-targeted contributions', () => {
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-stale-resource-version-target-1',
+      source: {
+        sourceClass: 'teacher-approved-grading',
+        sourceId: 'grading-run-stale-resource-target-1',
+        sourceRef: { kind: 'DocumentRubricGrading', id: 'grading-run-stale-resource-target-1' },
+        official: true,
+        teacherApproved: true,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'teacher', id: 'teacher-1' },
+      privacyScope: 'teacher',
+      materializedAt: '2026-06-23T03:36:20.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:36:20.000Z' },
+      versionRefs: buildKaqArtifactVersionRefs({
+        resourceRegistryVersion: 'resource-node-registry.v0',
+        resourceProjectionVersion: 'resource-semantic-projection.v0',
+      }),
+      resourceTargetRegistry: registry,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          resourceNodeId: 'registry:lesson09-correction-precheck',
+          confidence: 0.82,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      terminalValidationAccepted: false,
+      limitationCodes: [
+        'stale-version-ref:resourceProjectionVersion',
+        'stale-version-ref:resourceRegistryVersion',
+      ],
+    });
+    expect(result.audit.limitationCodes).toEqual(expect.arrayContaining([
+      'stale-version-ref:resourceRegistryVersion',
+      'stale-version-ref:resourceProjectionVersion',
+    ]));
+  });
+
   it('builds governed candidate inputs for path execution, Konling, and teacher-approved grading outcomes', () => {
     const pathInput = buildPathExecutionWritebackInput({
       id: 'path-writeback-1',
