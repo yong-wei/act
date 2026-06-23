@@ -990,6 +990,76 @@ describe('path constraint repair', () => {
     expect(repair.infeasibleReasons).toEqual([]);
   });
 
+  it('keeps official terminal validation at the path endpoint after prerequisite sorting', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['lesson', 'terminal'],
+      candidates: [
+        { nodeId: 'prep', estimatedTimeMinutes: 5, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'lesson',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: ['prep'],
+        },
+        {
+          nodeId: 'terminal',
+          estimatedTimeMinutes: 10,
+          prerequisiteNodeIds: [],
+          terminalValidation: 'official',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 30,
+        requiredCheckpointCount: 0,
+        terminalValidationRequired: true,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['prep', 'lesson', 'terminal']);
+    expect(repair.insertedNodeIds).toEqual(['prep']);
+    expect(repair.terminalValidationNodeIds).toEqual(['terminal']);
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
+  it('marks paths infeasible when terminal endpoint ordering conflicts with hard prerequisites', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['lesson'],
+      candidates: [
+        {
+          nodeId: 'terminal',
+          estimatedTimeMinutes: 10,
+          prerequisiteNodeIds: [],
+          terminalValidation: 'official',
+        },
+        {
+          nodeId: 'lesson',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: ['terminal'],
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 30,
+        requiredCheckpointCount: 0,
+        terminalValidationRequired: true,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('infeasible');
+    expect(repair.repairedNodeIds).toEqual(['lesson', 'terminal']);
+    expect(repair.infeasibleReasons).toContainEqual(expect.objectContaining({
+      code: 'hard-prerequisite-missing',
+      nodeIds: ['lesson', 'terminal'],
+    }));
+  });
+
   it('returns structured infeasible reasons for missing terminal validation and locked heavy nodes', () => {
     const repair = repairPathConstraints({
       draftNodeIds: ['intro', 'locked-lab'],

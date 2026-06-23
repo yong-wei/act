@@ -329,7 +329,7 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
       });
     }
     if (nodeIndex >= 0) {
-      selectedIds.sort((left, right) => prerequisiteDepth(left, candidatesById) - prerequisiteDepth(right, candidatesById));
+      selectedIds.sort((left, right) => comparePathNodeOrder(left, right, candidatesById));
     }
   }
 
@@ -523,6 +523,14 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     limitations.push(`removed-optional-node:${removable.nodeId}`);
   }
 
+  for (const violation of prerequisiteOrderViolations(selectedIds, candidatesById)) {
+    infeasibleReasons.push({
+      code: 'hard-prerequisite-missing',
+      nodeIds: [violation.nodeId, violation.prerequisiteId],
+      message: `Node ${violation.nodeId} requires prerequisite ${violation.prerequisiteId} before it in the repaired path.`,
+    });
+  }
+
   const checkpointNodeIds = checkpointIds(selectedIds, candidatesById);
   const terminalValidationNodeIds = selectedIds.filter((nodeId) =>
     candidatesById.get(nodeId)?.terminalValidation === 'official'
@@ -638,6 +646,36 @@ function prerequisiteDepth(
   const prerequisites = candidatesById.get(nodeId)?.prerequisiteNodeIds ?? [];
   if (prerequisites.length === 0) return 0;
   return 1 + Math.max(...prerequisites.map((id) => prerequisiteDepth(id, candidatesById, seen)), 0);
+}
+
+function comparePathNodeOrder(
+  left: string,
+  right: string,
+  candidatesById: Map<string, PathConstraintRepairCandidate>,
+): number {
+  const leftTerminalRank = candidatesById.get(left)?.terminalValidation === 'official' ? 1 : 0;
+  const rightTerminalRank = candidatesById.get(right)?.terminalValidation === 'official' ? 1 : 0;
+  return leftTerminalRank - rightTerminalRank ||
+    prerequisiteDepth(left, candidatesById) - prerequisiteDepth(right, candidatesById);
+}
+
+function prerequisiteOrderViolations(
+  nodeIds: string[],
+  candidatesById: Map<string, PathConstraintRepairCandidate>,
+): Array<{ nodeId: string; prerequisiteId: string }> {
+  const selectedIndexById = new Map(nodeIds.map((nodeId, index) => [nodeId, index]));
+  const violations: Array<{ nodeId: string; prerequisiteId: string }> = [];
+  for (const nodeId of nodeIds) {
+    const nodeIndex = selectedIndexById.get(nodeId);
+    if (nodeIndex === undefined) continue;
+    for (const prerequisiteId of candidatesById.get(nodeId)?.prerequisiteNodeIds ?? []) {
+      const prerequisiteIndex = selectedIndexById.get(prerequisiteId);
+      if (prerequisiteIndex !== undefined && prerequisiteIndex > nodeIndex) {
+        violations.push({ nodeId, prerequisiteId });
+      }
+    }
+  }
+  return violations;
 }
 
 function dedupeReasons(reasons: PathConstraintInfeasibleReason[]): PathConstraintInfeasibleReason[] {
