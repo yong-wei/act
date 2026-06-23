@@ -1,5 +1,5 @@
 import type { KaqArtifactVersionRefs } from '../kaq-artifact-versioning';
-import { validateKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
+import { detectKaqArtifactStaleness, validateKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_OBJECTIVE_CATALOG,
@@ -206,14 +206,18 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
         : []),
     ]),
   }));
-  const hasBlockingTarget = contributionEvaluations.some((evaluation) => isBlockingContribution(evaluation.limitationCodes));
   const globalBlocking = (versionLimitations.length > 0 && input.source.official)
-    || subjectLimitations.length > 0
-    || hasBlockingTarget;
+    || subjectLimitations.length > 0;
   const overlayUpdates = globalBlocking
     ? []
     : contributionEvaluations
-      .map(({ contribution, limitationCodes }, index) => materializeContribution(input, contribution, limitationCodes, index, authorityLevel))
+      .map(({ contribution, limitationCodes }, index) => materializeContribution(
+        input,
+        contribution,
+        uniqueSorted([...versionLimitations, ...limitationCodes]),
+        index,
+        authorityLevel,
+      ))
       .filter((update): update is KaqEvidenceOverlayUpdate => Boolean(update));
   const limitationCodes = uniqueSorted([
     ...versionLimitations,
@@ -396,7 +400,7 @@ function materializeContribution(
   index: number,
   authorityLevel: KaqEvidenceAuthorityLevel,
 ): KaqEvidenceOverlayUpdate | null {
-  if (isBlockingContribution(limitationCodes) && input.source.official) return null;
+  if (isBlockingContribution(limitationCodes)) return null;
   const terminalValidationAccepted = contribution.terminalValidationCandidate
     && canSourceSatisfyTerminalValidation(input.source)
     && authorityLevel !== 'preview'
@@ -429,7 +433,10 @@ function validateRequiredVersionRefs(input: KaqEvidenceWritebackInput): string[]
     ...(SOURCE_VERSION_REFS[input.source.sourceClass] ?? []),
     ...(input.source.citationRefs?.length ? ['citationVersion' as keyof KaqArtifactVersionRefs] : []),
   ]);
-  return validateKaqArtifactVersionRefs(input.versionRefs, requiredRefs)
+  return [
+    ...validateKaqArtifactVersionRefs(input.versionRefs, requiredRefs),
+    ...(input.versionRefs ? detectKaqArtifactStaleness(input.versionRefs) : []),
+  ]
     .map((limitation) => `${limitation.code}:${limitation.ref}`);
 }
 

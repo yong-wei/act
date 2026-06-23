@@ -305,6 +305,88 @@ describe('K/A/Q evidence writeback governance', () => {
     ]));
   });
 
+  it('carries non-official version limitations into overlay updates', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-konling-missing-version-1',
+      source: {
+        sourceClass: 'konling-intervention',
+        sourceId: 'tool-run-missing-version-1',
+        sourceRef: { kind: 'AgentToolRun', id: 'tool-run-missing-version-1' },
+        official: false,
+        teacherApproved: false,
+        aiGenerated: true,
+        citationRefs: ['citation:missing-version-1'],
+      },
+      subject,
+      actor: { type: 'service', id: 'konling-runtime' },
+      privacyScope: 'student',
+      materializedAt: '2026-06-23T03:32:30.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:32:30.000Z' },
+      versionRefs: buildKaqArtifactVersionRefs({
+        groundingVersion: null,
+        citationVersion: null,
+      }),
+      contributions: [
+        {
+          domain: 'quality',
+          objectiveId: 'quality:autocontrol:ai-use-responsibility',
+          graphNodeId: 'qual:autocontrol:ai-use-responsibility',
+          learningGoalId: 'control-correction',
+          confidence: 0.58,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.overlayUpdates).toHaveLength(1);
+    expect(result.overlayUpdates[0].limitationCodes).toEqual(expect.arrayContaining([
+      'missing-version-ref:groundingVersion',
+      'missing-version-ref:citationVersion',
+    ]));
+    expect(result.overlayUpdates[0].confidence).toBeLessThanOrEqual(0.6);
+    expect(result.audit.limitationCodes).toEqual(expect.arrayContaining([
+      'missing-version-ref:groundingVersion',
+      'missing-version-ref:citationVersion',
+    ]));
+  });
+
+  it('blocks stale official terminal validation refs', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-arena-stale-version-1',
+      source: {
+        sourceClass: 'arena-official',
+        sourceId: 'arena-submission-stale-1',
+        sourceRef: { kind: 'ArenaSubmission', id: 'arena-submission-stale-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'arena-evaluator' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:32:40.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:32:40.000Z' },
+      versionRefs: buildKaqArtifactVersionRefs({
+        graphCatalogVersion: 'autocontrol-kaq-graph.stale',
+      }),
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:transfer-to-ship-ocean-mission',
+          graphNodeId: 'cap:autocontrol:transfer-to-ship-ocean-mission',
+          learningGoalId: 'control-correction',
+          confidence: 0.88,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('stale-version-ref:graphCatalogVersion');
+  });
+
   it('projects privacy-safe views for student, teacher, admin, and service consumers', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-konling-1',
@@ -421,6 +503,53 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(mismatched.status).toBe('blocked');
     expect(mismatched.overlayUpdates).toEqual([]);
     expect(mismatched.audit.limitationCodes).toContain('target-objective-node-mismatch');
+  });
+
+  it('keeps valid sibling contributions when one target binding is invalid', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-partial-target-1',
+      source: {
+        sourceClass: 'teacher-approved-grading',
+        sourceId: 'grading-run-partial-1',
+        sourceRef: { kind: 'DocumentRubricGrading', id: 'grading-run-partial-1' },
+        official: true,
+        teacherApproved: true,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'teacher', id: 'teacher-1' },
+      privacyScope: 'teacher',
+      materializedAt: '2026-06-23T03:33:45.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:33:45.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.82,
+          terminalValidationCandidate: true,
+        },
+        {
+          domain: 'quality',
+          objectiveId: 'quality:not-real',
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
+          learningGoalId: 'control-correction',
+          confidence: 0.7,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.overlayUpdates).toHaveLength(1);
+    expect(result.overlayUpdates[0]).toMatchObject({
+      domain: 'capability',
+      terminalValidationAccepted: true,
+      limitationCodes: [],
+    });
+    expect(result.audit.limitationCodes).toContain('unknown-objective-id');
   });
 
   it('does not fabricate overlay state for invalid non-official targets', () => {
