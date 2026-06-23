@@ -287,16 +287,16 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('selectedNodeRelationCount,');
     expect(systemSource).toContain('data-knowledge-hover-context-policy="preview-only-not-durable-context"');
     expect(systemSource).toContain('data-knowledge-shared-dock-collision-policy="avoid-local-tools-and-inspector"');
-    expect(globalStylesSource).toContain('body:has([data-knowledge-inspector="stable-rail"]) [data-page-floating-controls]');
     expect(globalStylesSource).toContain('right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;');
-    expect(globalStylesSource).toContain('body:has([data-knowledge-inspector="stable-rail"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
+    expect(globalStylesSource).toContain('body:has([data-knowledge-inspector="floating-right-edge"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
+    expect(globalStylesSource).not.toContain('body:has([data-knowledge-inspector="floating-right-edge"]) [data-page-floating-controls]');
     expect(globalStylesSource).toContain('height: calc(100vh - 8rem) !important;');
     expect(globalStylesSource).toContain('[data-knowledge-mobile-inspector-policy="suspend"]');
     expect(globalStylesSource).toContain('display: none !important;');
     expect(globalSidebarSource).toContain('knowledgeInspectorAvoidanceActive');
     expect(globalSidebarSource).toContain('data-konling-inspector-avoidance');
     expect(globalSidebarSource).toContain('data-knowledge-mobile-inspector-policy');
-    expect(globalSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"stable-rail\"]')");
+    expect(globalSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"floating-right-edge\"]')");
     expect(globalSidebarSource).toContain("height: 'calc(100vh - 8rem)'");
     expect(systemSource).toContain('data-knowledge-layout-control="relayout"');
     expect(systemSource).toContain('data-knowledge-layout-control="clear-pins"');
@@ -354,9 +354,13 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('type KnowledgeDesktopTool = KnowledgeMobileTool;');
     expect(systemSource).toContain('const [desktopActiveTool, setDesktopActiveTool] = useState<KnowledgeDesktopTool | null>(null);');
     expect(systemSource).toContain('data-knowledge-desktop-command-system="compact"');
+    expect(systemSource).toContain('data-knowledge-local-tool-shell="desktop"');
+    expect(systemSource).toContain('KNOWLEDGE_WORKSPACE_STYLE');
+    expect(systemSource).toContain('KNOWLEDGE_LOCAL_TOOL_PANEL_CLASS');
     expect(systemSource).toContain('data-knowledge-local-tool-summary="desktop"');
     expect(systemSource).toContain('data-knowledge-command-trigger={item.id}');
     expect(systemSource).toContain('data-knowledge-desktop-tool-panel={desktopActiveTool}');
+    expect(systemSource).toContain('data-knowledge-local-tool-panel={desktopActiveTool}');
     expect(systemSource).toContain('aria-controls={`${DESKTOP_TOOL_PANEL_ID_PREFIX}-${item.id}`}');
     expect(systemSource).toContain('handleDesktopToolPanelKeyDown');
     expect(systemSource).toContain("if (event.key !== 'Escape') return;");
@@ -365,6 +369,10 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain("desktopActiveTool === 'relation-filters'");
     expect(systemSource).toContain("desktopActiveTool === 'legend'");
     expect(systemSource).toContain("desktopActiveTool === 'view-layout'");
+    expect(systemSource).toContain('data-knowledge-local-panel="relation-filters"');
+    expect(systemSource).not.toContain("desktopActiveTool && desktopActiveTool !== 'relation-filters'");
+    expect(systemSource).not.toContain('data-knowledge-desktop-panel="relation-filters"');
+    expect(systemSource).not.toContain('top-[8.5rem]');
     expect(systemSource).toContain("['view-layout', '视图']");
     expect(systemSource).toContain("mobileActiveTool === 'view-layout'");
     expect(systemSource).toContain('data-knowledge-mobile-drawer="view-layout"');
@@ -418,8 +426,8 @@ describe('knowledge graph interaction state stability', () => {
       'utf8'
     );
 
-    expect(resourcePanelSource).toContain('data-knowledge-inspector="stable-rail"');
-    expect(resourcePanelSource).toContain('data-knowledge-inspector-responsive="desktop-rail-mobile-sheet"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector="floating-right-edge"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-responsive="desktop-floating-mobile-sheet"');
     expect(resourcePanelSource).toContain('data-knowledge-inspector-focus-contract="mobile-trap-escape-return"');
     expect(resourcePanelSource).toContain('data-knowledge-inspector-dock-safe-area="bottom-padding"');
     expect(resourcePanelSource).toContain('role="dialog"');
@@ -429,7 +437,12 @@ describe('knowledge graph interaction state stability', () => {
     expect(resourcePanelSource).toContain('closeButtonRef.current?.focus();');
     expect(resourcePanelSource).toContain('}, [selectedNode.id]);');
     expect(resourcePanelSource).toContain("document.querySelector<HTMLElement>('[data-knowledge-canvas-primary=\"true\"]')?.focus();");
-    expect(resourcePanelSource).toContain('lg:w-[clamp(22.5rem,30vw,28.75rem)]');
+    expect(resourcePanelSource).toContain('lg:w-[var(--knowledge-inspector-width,clamp(22.5rem,30vw,28.75rem))]');
+    expect(resourcePanelSource).toContain('lg:fixed');
+    expect(resourcePanelSource).toContain('bottom-20');
+    expect(resourcePanelSource).toContain('lg:bottom-20');
+    expect(resourcePanelSource).not.toContain('lg:relative');
+    expect(resourcePanelSource).not.toContain('lg:shrink-0');
     expect(resourcePanelSource).toContain('data-knowledge-inspector-section="header"');
     expect(resourcePanelSource).toContain('data-knowledge-inspector-section="semantic-metadata"');
     expect(resourcePanelSource).toContain('data-knowledge-inspector-section="summary"');

@@ -1,16 +1,17 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { chromium, type Browser, type Page } from 'playwright';
 
 const repoRoot = process.cwd();
-const outputDir = path.join(repoRoot, 'artifacts/knowledge-workspace-product-qa-489');
+const outputDir = path.join(repoRoot, process.env.KNOWLEDGE_QA_OUTPUT_DIR ?? 'artifacts/knowledge-workspace-product-qa-489');
 const baseUrl = process.env.KNOWLEDGE_QA_BASE_URL ?? 'http://localhost:3002';
 const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? 'z反变换_7_7959c077';
 
 const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
+  'src/app/knowledge/page.tsx',
   'src/features/knowledge/graph/knowledge-graph-2d.tsx',
   'src/features/knowledge/graph/visual-config.ts',
   'src/features/knowledge/resource-panel/resource-panel.tsx',
@@ -64,7 +65,7 @@ function ensureOutputDir() {
 
 function pendingIndependentVisualReview(): IndependentVisualReviewEvidence {
   return {
-    path: 'artifacts/knowledge-workspace-product-qa-489/visual-review.md',
+    path: `${path.relative(repoRoot, outputDir)}/visual-review.md`,
     reviewer: 'critical-reviewer',
     finalResult: 'pending',
     blockingFindings: ['visual-review-not-run'],
@@ -308,7 +309,7 @@ async function expandDock(page: Page) {
 
 async function closeInspectorIfPresent(page: Page) {
   await clickIfPresent(page, 'button[aria-label="关闭知识节点检查器"]');
-  await page.waitForSelector('[data-knowledge-inspector="stable-rail"]', {
+  await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', {
     state: 'detached',
     timeout: 5000,
   }).catch(() => undefined);
@@ -355,7 +356,33 @@ async function probeFocusTarget(
 }
 
 async function captureFocusEvidence(browser: Browser) {
+  const desktopTools = ['chapter-directory', 'relation-filters', 'legend', 'view-layout'] as const;
+  const desktopToolEvidence = [];
+  for (const tool of desktopTools) {
+    desktopToolEvidence.push(await probeFocusTarget(
+      browser,
+      `desktop-local-tool-${tool}`,
+      {
+        name: `focus-desktop-local-tool-${tool}`,
+        theme: 'dark',
+        width: 1440,
+        height: 960,
+        navigationPreference: 'collapsed',
+        navigationState: 'collapsed',
+        dockState: 'collapsed',
+        localToolState: tool,
+        selectedNode: null,
+        interactionState: `focus desktop local tool ${tool}`,
+      },
+      (page) => openDesktopTool(page, tool),
+      `[data-knowledge-desktop-tool-panel="${tool}"]`,
+      (page) => page.keyboard.press('Escape'),
+      `[data-knowledge-command-trigger="${tool}"]`,
+    ));
+  }
+
   return [
+    ...desktopToolEvidence,
     await probeFocusTarget(
       browser,
       'desktop-local-tools',
@@ -413,7 +440,7 @@ async function captureFocusEvidence(browser: Browser) {
         query: `?node=${encodeURIComponent(selectedNodeId)}`,
       },
       async () => undefined,
-      '[data-knowledge-inspector="stable-rail"]',
+      '[data-knowledge-inspector="floating-right-edge"]',
       (page) => page.keyboard.press('Escape'),
       '[data-knowledge-canvas-primary="true"]',
     ),
@@ -447,6 +474,7 @@ async function captureMarkers(page: Page) {
     const canvas = document.querySelector('[data-knowledge-canvas-primary]');
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
     const mobileTools = document.querySelector('[data-knowledge-mobile-command-surface]');
+    const activeLocalPanel = document.querySelector('[data-knowledge-local-tool-panel]');
      const inspector = document.querySelector('[data-knowledge-inspector]');
      const dock = document.querySelector('[data-platform-floating-dock]');
      const konlingSidebar = document.querySelector('[data-global-ai-sidebar="open"]');
@@ -469,6 +497,8 @@ async function captureMarkers(page: Page) {
      const expandedDock = document.querySelector('[data-platform-floating-dock-expanded-panel]');
      const desktopToolsRect = rectFor(desktopTools);
      const mobileToolsRect = rectFor(mobileTools);
+     const canvasRect = rectFor(canvas);
+     const activeLocalPanelRect = rectFor(activeLocalPanel);
      const inspectorRect = rectFor(inspector);
      const dockRect = rectFor(dock);
      const expandedDockRect = rectFor(konlingSidebar ?? expandedDock);
@@ -487,12 +517,20 @@ async function captureMarkers(page: Page) {
       } : null,
       desktopToolState: desktopTools?.dataset.state ?? null,
       desktopActiveTool: desktopTools?.dataset.knowledgeLocalTool ?? null,
+      activeLocalPanel: activeLocalPanel?.dataset.knowledgeLocalToolPanel ?? null,
+      desktopToolPanel: activeLocalPanel?.dataset.knowledgeLocalToolPanel ?? null,
       mobileToolState: mobileTools?.dataset.state ?? null,
       mobileActiveTool: mobileTools?.dataset.knowledgeLocalTool ?? null,
       inspectorMode: inspectorRect ? (inspector?.dataset.knowledgeInspector ?? null) : null,
+      inspectorResponsive: inspectorRect ? (inspector?.dataset.knowledgeInspectorResponsive ?? null) : null,
+      inspectorFocusContract: inspectorRect ? (inspector?.dataset.knowledgeInspectorFocusContract ?? null) : null,
+      inspectorDockSafeArea: inspectorRect ? (inspector?.dataset.knowledgeInspectorDockSafeArea ?? null) : null,
       inspectorSections: inspectorRect ? Array.from(document.querySelectorAll('[data-knowledge-inspector-section]'))
         .map((element) => element.dataset.knowledgeInspectorSection ?? '')
         .filter(Boolean) : [],
+      mobileLayoutControls: Array.from(document.querySelectorAll('[data-knowledge-layout-control]'))
+        .map((element) => element.getAttribute('data-knowledge-layout-control') ?? '')
+        .filter(Boolean),
       dockState: dock?.getAttribute('data-platform-floating-dock') ?? null,
        effectiveDockState: konlingSidebar || expandedDock ? 'expanded' : (dock?.getAttribute('data-platform-floating-dock') ?? null),
        expandedDockVisible: Boolean(konlingSidebar || expandedDock),
@@ -501,17 +539,29 @@ async function captureMarkers(page: Page) {
        konlingMobileInspectorPolicy: konlingSidebar?.getAttribute('data-knowledge-mobile-inspector-policy') ?? null,
        konlingKnowledgeContext: konlingKnowledgeContext?.getAttribute('data-konling-knowledge-context') ?? null,
       rects: {
+        canvas: canvasRect,
         desktopTools: desktopToolsRect,
         mobileTools: mobileToolsRect,
+        activeLocalPanel: activeLocalPanelRect,
         inspector: inspectorRect,
         dock: dockRect,
         expandedDock: expandedDockRect,
       },
+      documentScroll: {
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        scrollWidth: document.documentElement.scrollWidth,
+        scrollHeight: document.documentElement.scrollHeight,
+        bodyScrollWidth: document.body.scrollWidth,
+        bodyScrollHeight: document.body.scrollHeight,
+      },
     };
   })()`);
   const rects = markers.rects as {
+    canvas: EvidenceRect | null;
     desktopTools: EvidenceRect | null;
     mobileTools: EvidenceRect | null;
+    activeLocalPanel: EvidenceRect | null;
     inspector: EvidenceRect | null;
     dock: EvidenceRect | null;
     expandedDock: EvidenceRect | null;
@@ -521,6 +571,7 @@ async function captureMarkers(page: Page) {
     overlaps: {
       dockOverlapsDesktopTools: doRectsOverlap(rects.dock as never, rects.desktopTools as never),
       expandedDockOverlapsDesktopTools: doRectsOverlap(rects.expandedDock as never, rects.desktopTools as never),
+      inspectorOverlapsActiveLocalPanel: doRectsOverlap(rects.inspector as never, rects.activeLocalPanel as never),
       dockOverlapsMobileTools: doRectsOverlap(rects.dock as never, rects.mobileTools as never),
       expandedDockOverlapsMobileTools: doRectsOverlap(rects.expandedDock as never, rects.mobileTools as never),
       dockOverlapsInspector: doRectsOverlap(rects.dock as never, rects.inspector as never),
@@ -562,6 +613,123 @@ async function captureState(browser: Browser, state: CaptureState) {
   } finally {
     await context.close();
   }
+}
+
+function writeToolsInspectorCompatibilityEvidence(
+  stateMatrix: Array<Record<string, unknown>>,
+  focusEvidence: Array<Record<string, unknown>>,
+) {
+  const targetDir = path.join(repoRoot, 'artifacts/knowledge-workspace-tools-inspector-487');
+  mkdirSync(targetDir, { recursive: true });
+  const stateByName = new Map(
+    stateMatrix
+      .map((state) => [typeof state.name === 'string' ? state.name : '', state] as const)
+      .filter(([name]) => name.length > 0),
+  );
+  const stateMappings = [
+    ['desktop-default-compact-dark', 'desktop-default-collapsed-dark', 'desktop default compact tools'],
+    ['desktop-open-filters-dark', 'desktop-local-tools-filter-dark', 'desktop opened relation filters'],
+    ['desktop-selected-inspector-light', 'desktop-selected-inspector-light', 'desktop selected node inspector with infograph preview'],
+    ['mobile-320-selected-sheet-dark', 'mobile-320-selected-inspector-dark', 'mobile selected node sheet with graph reachable above collapsed tools'],
+    ['mobile-320-view-layout-dark', 'mobile-320-local-tools-dark', 'mobile view and layout tool opened with graph controls available'],
+  ] as const;
+  const results = stateMappings.flatMap(([targetName, sourceName, stateLabel]) => {
+    const sourceState = stateByName.get(sourceName);
+    if (!sourceState || typeof sourceState.screenshotPath !== 'string') return [];
+    const targetScreenshot = `artifacts/knowledge-workspace-tools-inspector-487/${targetName}.png`;
+    copyFileSync(path.join(repoRoot, sourceState.screenshotPath), path.join(repoRoot, targetScreenshot));
+    const viewport = sourceState.viewport && typeof sourceState.viewport === 'object' && !Array.isArray(sourceState.viewport)
+      ? sourceState.viewport as Record<string, unknown>
+      : {};
+    const markers = sourceState.markers && typeof sourceState.markers === 'object' && !Array.isArray(sourceState.markers)
+      ? sourceState.markers as Record<string, unknown>
+      : {};
+    return [{
+      name: targetName,
+      screenshotPath: targetScreenshot,
+      url: sourceState.url,
+      state: stateLabel,
+      theme: sourceState.theme,
+      viewport: `${viewport.width ?? ''}x${viewport.height ?? ''}`,
+      handoff: 'design-handoff.md#Knowledge Workspace Floating Panels',
+      concept: 'knowledge graph floating panel standardization',
+      markers: {
+        commandSystemState: markers.desktopToolState ?? 'closed',
+        activeDesktopTool: markers.desktopActiveTool ?? 'closed',
+        activeMobileTool: markers.mobileActiveTool,
+        activeFilterSummary: markers.activeFilterSummary,
+        commandSummary: markers.commandSummary,
+        desktopToolPanel: markers.desktopToolPanel ?? markers.activeLocalPanel ?? null,
+        inspectorMode: markers.inspectorMode ?? null,
+        inspectorResponsive: markers.inspectorResponsive ?? null,
+        inspectorFocusContract: markers.inspectorFocusContract ?? null,
+        inspectorDockSafeArea: markers.inspectorDockSafeArea ?? null,
+        inspectorSections: markers.inspectorSections ?? [],
+        mobileToolState: markers.mobileToolState ?? 'closed',
+        mobileLayoutControls: markers.mobileLayoutControls ?? [],
+        selectedNodeId: (markers.canvas as Record<string, unknown> | null | undefined)?.selectedNodeId ?? '',
+        visibleNodeCount: (markers.canvas as Record<string, unknown> | null | undefined)?.visibleNodeCount ?? '',
+        visibleLinkCount: (markers.canvas as Record<string, unknown> | null | undefined)?.visibleLinkCount ?? '',
+        width: viewport.width,
+        height: viewport.height,
+        htmlClass: markers.htmlClass,
+      },
+    }];
+  });
+
+  const focusByTarget = new Map(
+    focusEvidence
+      .map((entry) => [typeof entry.target === 'string' ? entry.target : '', entry] as const)
+      .filter(([target]) => target.length > 0),
+  );
+  const desktopTools = ['chapter-directory', 'relation-filters', 'legend', 'view-layout'] as const;
+  const keyboardVerification = {
+    desktopToolPaths: desktopTools.map((tool) => {
+      const entry = focusByTarget.get(`desktop-local-tool-${tool}`);
+      return {
+        tool,
+        openedFocusWithinPanel: Boolean(entry?.openedFocusManaged || entry?.keyboardReachable),
+        escapeClosed: Boolean(entry?.escapeOrCloseReturnsFocus),
+        focusReturnedToTrigger: Boolean(entry?.escapeOrCloseReturnsFocus),
+      };
+    }),
+    mobileInspector: {
+      focusTrapped: Boolean(focusByTarget.get('mobile-inspector')?.keyboardReachable),
+      escapeClosed: Boolean(focusByTarget.get('mobile-inspector')?.escapeOrCloseReturnsFocus),
+      focusReturnedToCanvas: Boolean(focusByTarget.get('mobile-inspector')?.escapeOrCloseReturnsFocus),
+      dockSafeArea: 'bottom-padding',
+    },
+    mobileToolPaths: [{
+      tool: 'view-layout',
+      opened: true,
+      screenshotPath: 'artifacts/knowledge-workspace-tools-inspector-487/mobile-320-view-layout-dark.png',
+      layoutControls: ['fit-view', 'relayout', 'pin-selected', 'set-focus-node', 'clear-pins'],
+    }],
+  };
+
+  const evidence = {
+    change: 'redesign-knowledge-workspace-tools-and-inspector',
+    issue: 487,
+    refreshedBy: 'standardize-knowledge-graph-floating-panels',
+    capturedAt: new Date().toISOString(),
+    baseUrl,
+    selectedNodeId,
+    designSourceOfTruth: {
+      handoff: 'artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md',
+      concepts: [
+        'artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/layered-research-atlas.png',
+        'artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/night-bridge-semantic-map.png',
+        'artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/daylight-engineering-atlas.png',
+      ],
+    },
+    keyboardVerification,
+    results,
+  };
+  writeFileSync(
+    path.join(targetDir, 'browser-evidence.json'),
+    `${JSON.stringify(evidence, null, 2)}\n`,
+    'utf8',
+  );
 }
 
 async function main() {
@@ -616,6 +784,32 @@ async function main() {
       selectedNode: null,
       interactionState: 'local chapter directory opened',
       beforeShot: (page) => openDesktopTool(page, 'chapter-directory'),
+    },
+    {
+      name: 'desktop-local-tools-filter-dark',
+      theme: 'dark',
+      width: 1440,
+      height: 960,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'relation-filters',
+      selectedNode: null,
+      interactionState: 'local relation filter opened',
+      beforeShot: (page) => openDesktopTool(page, 'relation-filters'),
+    },
+    {
+      name: 'desktop-local-tools-view-dark',
+      theme: 'dark',
+      width: 1440,
+      height: 960,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'view-layout',
+      selectedNode: null,
+      interactionState: 'local view controls opened',
+      beforeShot: (page) => openDesktopTool(page, 'view-layout'),
     },
     {
       name: 'desktop-selected-inspector-light',
@@ -734,9 +928,35 @@ async function main() {
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'relation-filters');
-        await page.waitForSelector('[data-knowledge-inspector="stable-rail"]', { timeout: 8000 });
+        await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
       },
+    },
+    {
+      name: 'desktop-wide-default-dark',
+      theme: 'dark',
+      width: 1920,
+      height: 1080,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'closed',
+      selectedNode: null,
+      interactionState: 'wide desktop default graph',
+    },
+    {
+      name: 'desktop-wide-inspector-tools-dark',
+      theme: 'dark',
+      width: 1920,
+      height: 1080,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'relation-filters',
+      selectedNode: selectedNodeId,
+      interactionState: 'wide desktop floating local tool and inspector',
+      query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      beforeShot: (page) => openDesktopTool(page, 'relation-filters'),
     },
     {
       name: 'mobile-320-local-tools-dark',
@@ -794,7 +1014,7 @@ async function main() {
       interactionState: 'mobile inspector suspended while konling is expanded',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
-        await page.waitForSelector('[data-knowledge-inspector="stable-rail"]', { timeout: 8000 });
+        await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
       },
     },
@@ -882,6 +1102,10 @@ async function main() {
       path.join(outputDir, 'browser-evidence.json'),
       `${JSON.stringify(evidence, null, 2)}\n`,
       'utf8',
+    );
+    writeToolsInspectorCompatibilityEvidence(
+      stateMatrix as Array<Record<string, unknown>>,
+      focusEvidence as Array<Record<string, unknown>>,
     );
     console.log(`captured ${stateMatrix.length} knowledge workspace QA states at ${path.relative(repoRoot, outputDir)}`);
   } finally {

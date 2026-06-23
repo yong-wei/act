@@ -396,10 +396,10 @@ function ResourcePanelContent({
       aria-modal="false"
       tabIndex={-1}
       onKeyDown={handleInspectorKeyDown}
-      className={`fixed inset-x-2 bottom-2 z-50 max-h-[72vh] overflow-y-auto rounded-xl pb-16 shadow-xl transition-transform duration-300 lg:relative lg:inset-auto lg:z-20 lg:h-full lg:max-h-none lg:w-[clamp(22.5rem,30vw,28.75rem)] lg:shrink-0 lg:rounded-none lg:border-y-0 lg:border-r-0 lg:pb-0 lg:shadow-none ${panelTheme.shell} translate-x-0`}
+      className={`fixed inset-x-2 bottom-20 z-50 max-h-[calc(72vh-4.5rem)] overflow-y-auto rounded-xl pb-16 shadow-xl transition-transform duration-300 lg:fixed lg:inset-x-auto lg:bottom-20 lg:right-[var(--knowledge-workspace-inset,1rem)] lg:top-[var(--knowledge-workspace-inset,1rem)] lg:z-40 lg:max-h-none lg:w-[var(--knowledge-inspector-width,clamp(22.5rem,30vw,28.75rem))] lg:rounded-xl lg:pb-0 lg:shadow-2xl ${panelTheme.shell} translate-x-0`}
       data-knowledge-local-panel="resource-panel"
-      data-knowledge-inspector="stable-rail"
-      data-knowledge-inspector-responsive="desktop-rail-mobile-sheet"
+      data-knowledge-inspector="floating-right-edge"
+      data-knowledge-inspector-responsive="desktop-floating-mobile-sheet"
       data-knowledge-inspector-focus-contract="mobile-trap-escape-return"
       data-knowledge-inspector-dock-safe-area="bottom-padding"
       aria-label="知识节点检查器"

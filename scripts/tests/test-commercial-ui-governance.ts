@@ -1797,10 +1797,10 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
     defaultMarkers.activeDesktopTool === 'closed' ? null : 'default:active-tool-not-closed',
     openFilterMarkers.commandSystemState === 'open' ? null : 'filters:command-system-not-open',
     openFilterMarkers.activeDesktopTool === 'relation-filters' ? null : 'filters:active-tool-not-relation-filters',
-    desktopInspectorMarkers.inspectorMode === 'stable-rail' ? null : 'desktop-inspector:not-stable-rail',
-    desktopInspectorMarkers.inspectorResponsive === 'desktop-rail-mobile-sheet' ? null : 'desktop-inspector:responsive-contract-missing',
-    mobileInspectorMarkers.inspectorMode === 'stable-rail' ? null : 'mobile-inspector:not-stable-rail',
-    mobileInspectorMarkers.inspectorResponsive === 'desktop-rail-mobile-sheet' ? null : 'mobile-inspector:responsive-contract-missing',
+    desktopInspectorMarkers.inspectorMode === 'floating-right-edge' ? null : 'desktop-inspector:not-floating-right-edge',
+    desktopInspectorMarkers.inspectorResponsive === 'desktop-floating-mobile-sheet' ? null : 'desktop-inspector:responsive-contract-missing',
+    mobileInspectorMarkers.inspectorMode === 'floating-right-edge' ? null : 'mobile-inspector:not-floating-right-edge',
+    mobileInspectorMarkers.inspectorResponsive === 'desktop-floating-mobile-sheet' ? null : 'mobile-inspector:responsive-contract-missing',
     mobileInspectorMarkers.inspectorFocusContract === 'mobile-trap-escape-return' ? null : 'mobile-inspector:focus-contract-missing',
     mobileInspectorMarkers.inspectorDockSafeArea === 'bottom-padding' ? null : 'mobile-inspector:dock-safe-area-missing',
     mobileViewLayoutMarkers.activeMobileTool === 'view-layout' ? null : 'mobile-view-layout:not-active',
@@ -1885,6 +1885,7 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
 function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceViolation[] {
   const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_WORKSPACE_PRODUCT_QA_EVIDENCE_PATH);
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
+  const knowledgePageSourcePath = 'src/app/knowledge/page.tsx';
   const graph2dSourcePath = 'src/features/knowledge/graph/knowledge-graph-2d.tsx';
   const graphVisualConfigSourcePath = 'src/features/knowledge/graph/visual-config.ts';
   const resourcePanelSourcePath = 'src/features/knowledge/resource-panel/resource-panel.tsx';
@@ -1898,6 +1899,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const captureScriptSourcePath = 'scripts/tests/capture-knowledge-workspace-product-qa.ts';
   const productQaSourcePaths = [
     graphSourcePath,
+    knowledgePageSourcePath,
     graph2dSourcePath,
     graphVisualConfigSourcePath,
     resourcePanelSourcePath,
@@ -1965,6 +1967,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['desktop-expanded-persisted-dark', 'dark', 1440, 'expanded', 'collapsed'],
     ['desktop-local-tools-legend-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-local-tools-directory-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-local-tools-filter-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-local-tools-view-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-selected-inspector-light', 'light', 1440, 'collapsed', 'collapsed'],
     ['desktop-hover-click-drag-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-explicit-relayout-dark', 'dark', 1440, 'collapsed', 'collapsed'],
@@ -1972,12 +1976,19 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['desktop-konling-no-selection-dark', 'dark', 1440, 'collapsed', 'expanded'],
     ['desktop-konling-degraded-dark', 'dark', 1440, 'collapsed', 'expanded'],
     ['desktop-stress-expanded-tool-inspector-konling-dark', 'dark', 1440, 'expanded', 'expanded'],
+    ['desktop-wide-default-dark', 'dark', 1920, 'collapsed', 'collapsed'],
+    ['desktop-wide-inspector-tools-dark', 'dark', 1920, 'collapsed', 'collapsed'],
     ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile', 'expanded'],
     ['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile', 'expanded'],
     ['light-theme-default', 'light', 1440, 'collapsed', 'collapsed'],
   ] as const;
+  const desktopGeometryBaselineName = (name: string, navigationState: string) => {
+    if (name.startsWith('desktop-wide')) return 'desktop-wide-default-dark';
+    if (navigationState === 'expanded') return 'desktop-expanded-persisted-dark';
+    return 'desktop-default-collapsed-dark';
+  };
   const stateProblems = requiredStates.flatMap(([name, theme, width, navigationState, dockState]) => {
     const state = stateByName.get(name);
     const viewport = objectRecord(state?.viewport);
@@ -1985,6 +1996,13 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const canvas = objectRecord(markers.canvas);
     const overlaps = objectRecord(markers.overlaps);
     const markerRects = objectRecord(markers.rects);
+    const documentScroll = objectRecord(markers.documentScroll);
+    const dockRect = objectRecord(markerRects.dock);
+    const canvasRect = objectRecord(markerRects.canvas);
+    const baselineState = stateByName.get(desktopGeometryBaselineName(name, navigationState));
+    const baselineRects = objectRecord(objectRecord(baselineState?.markers).rects);
+    const baselineDockRect = objectRecord(baselineRects.dock);
+    const baselineCanvasRect = objectRecord(baselineRects.canvas);
     const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
     const isMobileViewport = numberFromEvidence(viewport.width) === 320;
     const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;
@@ -2013,6 +2031,33 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         ? (typeof artifact?.height === 'number' && artifact.height >= 700 ? null : `${name}:mobile-screenshot-too-short`)
         : (typeof artifact?.height === 'number' && artifact.height >= 800 ? null : `${name}:desktop-screenshot-too-short`),
       markers.effectiveDockState === dockState ? null : `${name}:dock-marker-state`,
+      typeof numberFromEvidence(canvasRect.width) === 'number' && typeof numberFromEvidence(canvasRect.height) === 'number'
+        ? null
+        : `${name}:canvas-rect-missing`,
+      numberFromEvidence(documentScroll.scrollWidth) <= numberFromEvidence(documentScroll.viewportWidth)
+        ? null
+        : `${name}:page-horizontal-scroll`,
+      numberFromEvidence(documentScroll.scrollHeight) <= numberFromEvidence(documentScroll.viewportHeight)
+        ? null
+        : `${name}:page-vertical-scroll`,
+      name.startsWith('desktop') && dockState === 'collapsed'
+        ? (
+            numberFromEvidence(dockRect.left) === numberFromEvidence(baselineDockRect.left)
+            && numberFromEvidence(dockRect.top) === numberFromEvidence(baselineDockRect.top)
+              ? null
+              : `${name}:collapsed-dock-moved`
+          )
+        : null,
+      ['desktop-selected-inspector-light', 'desktop-hover-click-drag-dark', 'desktop-explicit-relayout-dark', 'desktop-stress-expanded-tool-inspector-konling-dark', 'desktop-wide-inspector-tools-dark'].includes(name)
+        ? (
+            numberFromEvidence(canvasRect.left) === numberFromEvidence(baselineCanvasRect.left)
+            && numberFromEvidence(canvasRect.top) === numberFromEvidence(baselineCanvasRect.top)
+            && numberFromEvidence(canvasRect.width) === numberFromEvidence(baselineCanvasRect.width)
+            && numberFromEvidence(canvasRect.height) === numberFromEvidence(baselineCanvasRect.height)
+              ? null
+              : `${name}:canvas-rect-changed`
+          )
+        : null,
       name.includes('konling')
         ? (markers.konlingAssistantSurface === 'global-sidebar' ? null : `${name}:konling-surface-missing`)
         : null,
@@ -2140,9 +2185,24 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     graphSource.includes('activeFilters: [activeFilterSummary]')
       ? 'graph-source:raw-filter-summary-leaks-to-assistant'
       : null,
-    resourcePanelSource.includes('data-knowledge-inspector="stable-rail"')
+    resourcePanelSource.includes('data-knowledge-inspector="floating-right-edge"')
       ? null
-      : 'resource-panel:stable-rail-missing',
+      : 'resource-panel:floating-right-edge-missing',
+    resourcePanelSource.includes('lg:fixed')
+      ? null
+      : 'resource-panel:floating-fixed-position-missing',
+    resourcePanelSource.includes('lg:relative')
+      ? 'resource-panel:desktop-rail-layout-still-present'
+      : null,
+    graphSource.includes('data-knowledge-local-tool-shell="desktop"')
+      ? null
+      : 'graph-source:shared-local-tool-shell-missing',
+    graphSource.includes('data-knowledge-local-tool-panel={desktopActiveTool}')
+      ? null
+      : 'graph-source:shared-local-tool-panel-marker-missing',
+    graphSource.includes('data-knowledge-desktop-panel="relation-filters"')
+      ? 'graph-source:relation-filter-separate-panel-still-present'
+      : null,
     resourcePanelSource.includes('data-knowledge-inspector-section="infograph-preview"')
       ? null
       : 'resource-panel:infograph-preview-missing',
@@ -2392,14 +2452,14 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     || !graphSource.includes('data-knowledge-mobile-drawer="view-layout"')
     || !graphSource.includes('data-knowledge-local-panel="view-layout-controls"')
     || !resourcePanelSource.includes('data-knowledge-local-panel="resource-panel"')
-    || !resourcePanelSource.includes('data-knowledge-inspector="stable-rail"')
+    || !resourcePanelSource.includes('data-knowledge-inspector="floating-right-edge"')
   ) {
     violations.push(knowledgeGraphGovernanceViolation('Knowledge graph local tool DOM contracts are incomplete.', [
       'legend',
       'mobile-view-layout',
       'view-layout-controls',
       'resource-panel',
-      'stable-rail-inspector',
+      'floating-right-edge-inspector',
     ]));
   }
 

@@ -4147,6 +4147,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('const focusEvidence = await captureFocusEvidence(browser);');
     expect(captureScriptSource).toContain('focusEvidence,');
     expect(captureScriptSource).toContain("'src/features/knowledge/graph/knowledge-graph-2d.tsx'");
+    expect(captureScriptSource).toContain("'src/app/knowledge/page.tsx'");
     expect(captureScriptSource).toContain("'src/features/knowledge/graph/visual-config.ts'");
     expect(captureScriptSource).toContain("'src/components/ai/global-ai-button.tsx'");
     expect(captureScriptSource).toContain("'src/components/ai/global-ai-sidebar.tsx'");
@@ -4168,13 +4169,19 @@ describe('commercial UI governance', () => {
     expect(globalAiSidebarSource).toContain('请求的知识节点暂不可用，控灵将仅使用当前筛选与视图状态。');
     expect(globalAiSidebarSource).not.toContain('当前节点: ${nodeId}');
     expect(globalAiSidebarSource).not.toContain('请求节点 ${nodeId} 暂不可用。');
-    expect(globalAiSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"stable-rail\"]')");
+    expect(globalAiSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"floating-right-edge\"]')");
     expect(globalAiSidebarSource).toContain("right: 'calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem))'");
     expect(globalsSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
     expect(globalsSource).toContain('height: calc(100vh - 8rem) !important;');
     expect(globalsSource).toContain('[data-knowledge-mobile-inspector-policy="suspend"]');
     expect(globalsSource).toContain('display: none !important;');
     expect(captureScriptSource).toContain("'desktop-local-tools-directory-dark'");
+    expect(captureScriptSource).toContain("'desktop-local-tools-filter-dark'");
+    expect(captureScriptSource).toContain("'desktop-local-tools-view-dark'");
+    expect(captureScriptSource).toContain("'desktop-wide-default-dark'");
+    expect(captureScriptSource).toContain("'desktop-wide-inspector-tools-dark'");
+    expect(captureScriptSource).toContain('const canvasRect = rectFor(canvas);');
+    expect(captureScriptSource).toContain('canvas: canvasRect');
     expect(captureScriptSource).toContain("openDesktopTool(page, 'chapter-directory')");
     expect(captureScriptSource).toContain('button[aria-label="呼出控灵 AI助手"]');
     expect(captureScriptSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
@@ -4182,7 +4189,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('konlingInspectorAvoidance');
     expect(captureScriptSource).toContain('konlingMobileInspectorPolicy');
     expect(captureScriptSource).toContain('data-konling-knowledge-context');
-    expect(captureScriptSource).toContain("await page.waitForSelector('[data-knowledge-inspector=\"stable-rail\"]'");
+    expect(captureScriptSource).toContain("await page.waitForSelector('[data-knowledge-inspector=\"floating-right-edge\"]'");
     expect(captureScriptSource).not.toMatch(
       /name: 'desktop-stress-expanded-tool-inspector-konling-dark'[\s\S]*?await closeInspectorIfPresent\(page\);[\s\S]*?name: 'mobile-320-local-tools-dark'/,
     );
