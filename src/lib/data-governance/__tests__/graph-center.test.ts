@@ -514,6 +514,18 @@ describe('graph center payload service', () => {
         href: '/assessment/adaptive-practice?goal=frequency-response-foundations&nodeId=kn%3Aautocontrol%3Afrequency-response&intent=contextual-recommendation',
       },
     });
+    const unmappedPathPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:feedback-loop',
+      viewerRole: 'STUDENT',
+    });
+    const unmappedPathAction = unmappedPathPayload.selectedNode?.actions.find((action) => action.id === 'student:start-path');
+    expect(unmappedPathAction).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-path-context',
+      reason: '该节点尚未接入可进入的自适应学习路径入口。',
+    });
+    expect(unmappedPathAction?.target).toBeUndefined();
     expect(studentPayload.selectedNode?.actions.find((action) => action.id === 'student:review-evidence')).toMatchObject({
       status: 'degraded',
       reasonCode: 'missing-evidence-route',

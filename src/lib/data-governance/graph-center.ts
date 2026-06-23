@@ -569,7 +569,7 @@ function buildStudentGraphCenterActions(input: {
   const learnerOverlayUnauthorized = input.learnerOverlay.status === 'unauthorized';
 
   return [
-    learningGoalId
+    adaptivePracticeGoal
       ? {
           id: 'student:start-path',
           role: 'student',
@@ -577,7 +577,7 @@ function buildStudentGraphCenterActions(input: {
           description: '从当前 LearningGoal 与图谱节点进入学习路径。',
           status: 'available',
           target: buildGraphCenterActionTarget('/assessment/adaptive-practice', {
-            ...(adaptivePracticeGoal ? { goal: adaptivePracticeGoal } : {}),
+            goal: adaptivePracticeGoal,
             nodeId: input.node.id,
             intent: 'contextual-recommendation',
           }),
@@ -587,9 +587,11 @@ function buildStudentGraphCenterActions(input: {
           role: 'student',
           label: '进入学习路径',
           description: '从当前 LearningGoal 与图谱节点进入学习路径。',
-          status: 'disabled',
+          status: learningGoalId ? 'degraded' : 'disabled',
           reasonCode: 'missing-path-context',
-          reason: '该节点尚未绑定可进入的学习目标。',
+          reason: learningGoalId
+            ? '该节点尚未接入可进入的自适应学习路径入口。'
+            : '该节点尚未绑定可进入的学习目标。',
         },
     firstResourceId
       ? {
