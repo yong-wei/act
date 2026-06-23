@@ -394,6 +394,45 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.audit.versionRefs?.citationVersion).toBeNull();
   });
 
+  it('blocks production writeback when the artifact versioning ref is blank', () => {
+    const input = {
+      id: 'writeback-arena-blank-artifact-versioning-1',
+      source: {
+        sourceClass: 'arena-official',
+        sourceId: 'arena-submission-blank-artifact-versioning-1',
+        sourceRef: { kind: 'ArenaSubmission', id: 'arena-submission-blank-artifact-versioning-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'arena-evaluator' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:32:40.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:32:40.000Z' },
+      versionRefs: {
+        ...versionRefs,
+        artifactVersioningVersion: '   ',
+      },
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:transfer-to-ship-ocean-mission',
+          graphNodeId: 'cap:autocontrol:transfer-to-ship-ocean-mission',
+          learningGoalId: 'control-correction',
+          confidence: 0.88,
+          terminalValidationCandidate: true,
+        },
+      ],
+    } as unknown as Parameters<typeof materializeKaqEvidenceWriteback>[0];
+    const result = materializeKaqEvidenceWriteback(input);
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('missing-version-ref:artifactVersioningVersion');
+    expect(result.audit.versionRefs?.artifactVersioningVersion).toBeNull();
+  });
+
   it('degrades stale official terminal validation refs without accepting terminal mastery', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-arena-stale-version-1',

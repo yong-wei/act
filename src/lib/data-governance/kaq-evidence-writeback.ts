@@ -185,6 +185,7 @@ const PREVIEW_SOURCE_CLASSES = new Set<KaqEvidenceSourceClass>([
 ]);
 
 const REQUIRED_VERSION_REFS: Array<keyof KaqArtifactVersionRefs> = [
+  'artifactVersioningVersion',
   'learningGoalPackageVersion',
   'objectiveCatalogVersion',
   'graphCatalogVersion',

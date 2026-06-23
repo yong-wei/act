@@ -86,7 +86,7 @@ Production writeback SHALL emit an audit trail suitable for replay and diagnosis
 - **THEN** the audit record SHALL include the blocking reason without fabricating overlay state.
 
 #### Scenario: Version refs are blank
-- **WHEN** a writeback supplies required version refs as blank strings
+- **WHEN** a writeback supplies required version refs, including the artifact versioning schema ref, as blank strings
 - **THEN** the writeback SHALL treat those refs as missing before validation and audit materialization.
 
 #### Scenario: Writeback refs are missing
