@@ -904,6 +904,70 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(invalid.audit.limitationCodes).toContain('invalid-materialized-at');
   });
 
+  it('requires strict ISO materialization timestamps', () => {
+    const impossibleDate = materializeKaqEvidenceWriteback({
+      id: 'writeback-impossible-materialized-at-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-impossible-materialized-at-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-impossible-materialized-at-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-02-30T00:00:00.000Z',
+      evidenceWindow: { from: null, to: '2026-02-30T00:00:00.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+    const localeDate = materializeKaqEvidenceWriteback({
+      id: 'writeback-locale-materialized-at-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-locale-materialized-at-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-locale-materialized-at-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '06/07/2026',
+      evidenceWindow: { from: null, to: '06/07/2026' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(impossibleDate.status).toBe('blocked');
+    expect(impossibleDate.overlayUpdates).toEqual([]);
+    expect(impossibleDate.audit.limitationCodes).toContain('invalid-materialized-at');
+    expect(localeDate.status).toBe('blocked');
+    expect(localeDate.overlayUpdates).toEqual([]);
+    expect(localeDate.audit.limitationCodes).toContain('invalid-materialized-at');
+  });
+
   it('trims materialization timestamp before writing audit and overlay state', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-trim-materialized-at-1',
@@ -1143,6 +1207,52 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(missingKind.status).toBe('blocked');
     expect(missingKind.overlayUpdates).toEqual([]);
     expect(missingKind.audit.limitationCodes).toContain('missing-source-ref');
+  });
+
+  it('blocks source refs that do not match source class or source id', () => {
+    const baseInput: Parameters<typeof materializeKaqEvidenceWriteback>[0] = {
+      id: 'writeback-source-ref-mismatch-1',
+      source: {
+        sourceClass: 'arena-official',
+        sourceId: 'arena-submission-source-ref-mismatch-1',
+        sourceRef: { kind: 'AgentToolRun', id: 'arena-submission-source-ref-mismatch-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'arena-evaluator' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:34:12.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:34:12.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    };
+    const mismatchedClass = materializeKaqEvidenceWriteback(baseInput);
+    const mismatchedId = materializeKaqEvidenceWriteback({
+      ...baseInput,
+      id: 'writeback-source-ref-id-mismatch-1',
+      source: {
+        ...baseInput.source,
+        sourceRef: { kind: 'ArenaSubmission', id: 'different-arena-submission' },
+      },
+    });
+
+    expect(mismatchedClass.status).toBe('blocked');
+    expect(mismatchedClass.overlayUpdates).toEqual([]);
+    expect(mismatchedClass.audit.limitationCodes).toContain('source-ref-class-mismatch');
+    expect(mismatchedId.status).toBe('blocked');
+    expect(mismatchedId.overlayUpdates).toEqual([]);
+    expect(mismatchedId.audit.limitationCodes).toContain('source-ref-id-mismatch');
   });
 
   it('does not accept low-confidence teacher-approved grading as terminal validation', () => {

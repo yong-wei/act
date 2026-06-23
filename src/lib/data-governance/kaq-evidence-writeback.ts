@@ -49,6 +49,8 @@ export type KaqEvidenceLimitationCode =
   | 'source-not-terminal-validation-authority'
   | 'low-confidence-terminal-validation'
   | 'missing-source-ref'
+  | 'source-ref-class-mismatch'
+  | 'source-ref-id-mismatch'
   | 'unverified-resource-node-id';
 
 export interface KaqEvidenceSourceRef {
@@ -190,6 +192,16 @@ const TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD = 0.6;
 const SOURCE_VERSION_REFS: Partial<Record<KaqEvidenceSourceClass, Array<keyof KaqArtifactVersionRefs>>> = {
   'path-execution': ['plannerVersion'],
   'konling-intervention': ['groundingVersion'],
+};
+const SOURCE_REF_KINDS: Record<KaqEvidenceSourceClass, string> = {
+  'instructional-checkpoint': 'InstructionalCheckpoint',
+  'path-execution': 'LearningPathExecution',
+  'simulation-preview': 'SimulationRun',
+  'simulation-validation': 'SimulationRun',
+  'arena-preview': 'ArenaSubmission',
+  'arena-official': 'ArenaSubmission',
+  'konling-intervention': 'AgentToolRun',
+  'teacher-approved-grading': 'DocumentRubricGrading',
 };
 
 const AUTOCONTROL_OBJECTIVES: KaqObjective[] = [
@@ -529,7 +541,7 @@ function validateWritebackId(writebackId: string): KaqEvidenceLimitationCode[] {
 }
 
 function validateMaterializedAt(materializedAt: string): KaqEvidenceLimitationCode[] {
-  return materializedAt.length > 0 && !Number.isNaN(Date.parse(materializedAt))
+  return isStrictIsoTimestamp(materializedAt)
     ? []
     : ['invalid-materialized-at'];
 }
@@ -542,7 +554,11 @@ function validateSource(source: KaqEvidenceWritebackSource): KaqEvidenceLimitati
   const sourceId = typeof source.sourceId === 'string' ? source.sourceId.trim() : '';
   const sourceRefKind = typeof source.sourceRef?.kind === 'string' ? source.sourceRef.kind.trim() : '';
   const sourceRefId = typeof source.sourceRef?.id === 'string' ? source.sourceRef.id.trim() : '';
-  return sourceId && sourceRefKind && sourceRefId ? [] : ['missing-source-ref'];
+  if (!sourceId || !sourceRefKind || !sourceRefId) return ['missing-source-ref'];
+  return [
+    ...(sourceRefKind === SOURCE_REF_KINDS[source.sourceClass] ? [] : ['source-ref-class-mismatch' as const]),
+    ...(sourceRefId === sourceId ? [] : ['source-ref-id-mismatch' as const]),
+  ];
 }
 
 function normalizeSource(source: KaqEvidenceWritebackSource): KaqEvidenceWritebackSource {
@@ -570,6 +586,13 @@ function normalizeActor(actor: KaqEvidenceWritebackActor): KaqEvidenceWritebackA
     ...actor,
     id: normalizeOptionalId(actor.id) ?? '',
   };
+}
+
+function isStrictIsoTimestamp(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value)) return false;
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) return false;
+  return new Date(parsed).toISOString() === (value.includes('.') ? value : value.replace('Z', '.000Z'));
 }
 
 function validateCatalogTarget(contribution: KaqEvidenceContributionInput): KaqEvidenceLimitationCode[] {

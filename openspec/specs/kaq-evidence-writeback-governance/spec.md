@@ -75,3 +75,7 @@ Production writeback SHALL emit an audit trail suitable for replay and diagnosis
 #### Scenario: Source refs are missing
 - **WHEN** a production source lacks a replayable source id, source ref kind, or source ref id
 - **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.
+
+#### Scenario: Source refs do not match source authority
+- **WHEN** a production source ref kind does not match the declared evidence source class or the source ref id does not match the source id
+- **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.
