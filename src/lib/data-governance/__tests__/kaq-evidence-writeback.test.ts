@@ -1894,6 +1894,61 @@ describe('K/A/Q evidence writeback governance', () => {
     });
   });
 
+  it('blocks non-terminal official evidence that violates the LearningGoal evidence policy', () => {
+    const input = buildTeacherApprovedGradingWritebackInput({
+      id: 'grading-writeback-policy-mismatch-1',
+      gradingRunId: 'grading-run-policy-mismatch-1',
+      subject,
+      teacherId: 'teacher-9',
+      learningGoalId: 'simulation-validation-practice',
+      objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+      graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+      score: 0.4,
+      versionRefs,
+      materializedAt: '2026-06-23T03:35:33.000Z',
+    });
+    const result = materializeKaqEvidenceWriteback(input);
+
+    expect(input.contributions[0].terminalValidationCandidate).toBe(false);
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('learning-goal-evidence-policy-mismatch');
+  });
+
+  it('blocks non-terminal approved checkpoint evidence that violates the LearningGoal evidence policy', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'checkpoint-writeback-policy-mismatch-1',
+      source: {
+        sourceClass: 'instructional-checkpoint',
+        sourceId: 'checkpoint-non-terminal-policy-mismatch-1',
+        sourceRef: { kind: 'InstructionalCheckpoint', id: 'checkpoint-non-terminal-policy-mismatch-1' },
+        official: true,
+        teacherApproved: true,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'teacher', id: 'teacher-9' },
+      privacyScope: 'teacher',
+      materializedAt: '2026-06-23T03:35:34.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:35:34.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'simulation-validation-practice',
+          confidence: 0.4,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('learning-goal-evidence-policy-mismatch');
+  });
+
   it('normalizes teacher-approved grading scores by rubric max score', () => {
     const failingInput = buildTeacherApprovedGradingWritebackInput({
       id: 'grading-writeback-raw-failing-1',

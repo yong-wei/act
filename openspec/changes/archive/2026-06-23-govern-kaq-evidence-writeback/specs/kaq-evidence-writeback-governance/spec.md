@@ -36,8 +36,8 @@ The system SHALL distinguish exploratory or preview evidence from governed termi
 - **THEN** it MAY contribute low-confidence context according to policy
 - **AND** it SHALL NOT satisfy official terminal validation or high-confidence mastery by itself.
 
-#### Scenario: Preview evidence violates LearningGoal evidence policy
-- **WHEN** preview or context evidence targets a LearningGoal whose evidence policy does not accept that evidence type
+#### Scenario: Non-terminal evidence violates LearningGoal evidence policy
+- **WHEN** preview, official, or context evidence targets a LearningGoal whose evidence policy does not accept that evidence type
 - **THEN** the writeback SHALL reject the contribution before overlay materialization
 - **AND** the limitation SHALL be visible to authorized diagnostics.
 

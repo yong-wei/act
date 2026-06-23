@@ -562,7 +562,7 @@ function validateLearningGoalEvidencePolicy(
   source: KaqEvidenceWritebackSource,
   contribution: KaqEvidenceContributionInput,
 ): KaqEvidenceLimitationCode[] {
-  if (!PREVIEW_SOURCE_CLASSES.has(source.sourceClass)) return [];
+  if (contribution.terminalValidationCandidate) return [];
   const learningGoalId = normalizeOptionalId(contribution.learningGoalId);
   const learningGoal = learningGoalId ? getLearningGoal(learningGoalId) : null;
   const evidenceType = evidenceTypeForSourceClass(source.sourceClass);
