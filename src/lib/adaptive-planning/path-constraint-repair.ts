@@ -135,20 +135,65 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     ];
   };
 
-  const isFallbackSupportForSelected = (
-    candidateNodeId: string,
-    selectedNodeIds = selectedIds,
-  ): boolean => selectedNodeIds.some((nodeId) => {
-    const candidate = candidatesById.get(nodeId);
-    if (!candidate?.locked) return false;
-    return (candidate.fallbackNodeIds ?? []).some((fallbackNodeId) =>
-      unique([...prerequisiteClosure(fallbackNodeId), fallbackNodeId]).includes(candidateNodeId)
-    );
-  });
-
   const isUsableFallbackCandidate = (fallbackNodeId: string): boolean => {
     return candidatesById.has(fallbackNodeId);
   };
+
+  const fallbackChainForNodeId = (fallbackNodeId: string): string[] =>
+    unique([...prerequisiteClosure(fallbackNodeId), fallbackNodeId]);
+
+  const sortedFallbackNodeIds = (candidate: PathConstraintRepairCandidate): string[] =>
+    [...candidate.fallbackNodeIds ?? []]
+      .filter((fallbackNodeId) => isUsableFallbackCandidate(fallbackNodeId))
+      .sort((left, right) =>
+        estimatedMinutes(fallbackChainForNodeId(left), candidatesById) - estimatedMinutes(fallbackChainForNodeId(right), candidatesById) ||
+        left.localeCompare(right)
+      );
+
+  const fallbackChainHasReadyLockedSupport = (
+    fallbackChain: string[],
+    selectedNodeIds: string[],
+  ): boolean => fallbackChain.every((id) => {
+    const candidate = candidatesById.get(id);
+    if (!candidate?.locked) return true;
+    return readyFallbackChainsForLockedNode(id, selectedNodeIds).length > 0;
+  });
+
+  const readyFallbackChainsForLockedNode = (
+    nodeId: string,
+    selectedNodeIds: string[],
+  ): string[][] => {
+    const nodeIndex = selectedNodeIds.indexOf(nodeId);
+    if (nodeIndex < 0) return [];
+    const candidate = candidatesById.get(nodeId);
+    if (!candidate?.locked) return [];
+    return sortedFallbackNodeIds(candidate)
+      .map((fallbackNodeId) => fallbackChainForNodeId(fallbackNodeId))
+      .filter((fallbackChain) => fallbackChain.every((id) => {
+        const selectedIndex = selectedNodeIds.indexOf(id);
+        return selectedIndex >= 0 && selectedIndex < nodeIndex;
+      }) && fallbackChainHasReadyLockedSupport(fallbackChain, selectedNodeIds))
+      .sort((left, right) =>
+        estimatedMinutes(left, candidatesById) - estimatedMinutes(right, candidatesById) ||
+        (left.at(-1) ?? '').localeCompare(right.at(-1) ?? '')
+      );
+  };
+
+  const fallbackSupportNodeIdsForSelected = (selectedNodeIds = selectedIds): Set<string> => {
+    const supportNodeIds = new Set<string>();
+    for (const nodeId of selectedNodeIds) {
+      const [supportChain] = readyFallbackChainsForLockedNode(nodeId, selectedNodeIds);
+      for (const supportNodeId of supportChain ?? []) {
+        supportNodeIds.add(supportNodeId);
+      }
+    }
+    return supportNodeIds;
+  };
+
+  const isFallbackSupportForSelected = (
+    candidateNodeId: string,
+    selectedNodeIds = selectedIds,
+  ): boolean => fallbackSupportNodeIdsForSelected(selectedNodeIds).has(candidateNodeId);
 
   const canReduceSelectionToBudget = (initialSelectedIds: string[]): boolean => {
     const candidateIds = [...initialSelectedIds];
@@ -215,9 +260,8 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
 
     const nodeId = initialSelectedIds[lockedIndex];
     const candidate = candidatesById.get(nodeId)!;
-    const fallbackChains = (candidate.fallbackNodeIds ?? [])
-      .filter((fallbackNodeId) => isUsableFallbackCandidate(fallbackNodeId))
-      .map((fallbackNodeId) => unique([...prerequisiteClosure(fallbackNodeId), fallbackNodeId]));
+    const fallbackChains = sortedFallbackNodeIds(candidate)
+      .map((fallbackNodeId) => fallbackChainForNodeId(fallbackNodeId));
     for (const fallbackChain of fallbackChains) {
       const nodeIndex = initialSelectedIds.indexOf(nodeId);
       const fallbackChainReady = nodeIndex < 0 || fallbackChain.every((id) => {
@@ -288,6 +332,14 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     }
     return false;
   };
+
+  const canUseFallbackChainForLockedNode = (
+    fallbackChain: string[],
+    nodeId: string,
+    options: { requireBudgetFeasible?: boolean } = {},
+  ): boolean => fallbackChainHasReadyLockedSupport(fallbackChain, selectedIds) &&
+    (options.requireBudgetFeasible === false ||
+      canSatisfyLockedFallbacks(selectedIds, nextLockedStartIndex(selectedIds, nodeId)));
 
   const tryInsertCandidateWithinBudget = (nodeId: string, beforeNodeId?: string): boolean => {
     const beforeSelectedIds = [...selectedIds];
@@ -401,20 +453,24 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     let fallbackSatisfied = false;
     let fallbackRepaired = false;
     const attemptFallback = (requireBudgetFeasible: boolean): boolean => {
-      for (const fallbackNodeId of candidate.fallbackNodeIds ?? []) {
-        if (!isUsableFallbackCandidate(fallbackNodeId)) continue;
+      const fallbackNodeIds = sortedFallbackNodeIds(candidate);
+      const readyFallbackNodeIds = fallbackNodeIds.filter((fallbackNodeId) => {
+        const nodeIndex = selectedIds.indexOf(nodeId);
+        return nodeIndex < 0 || fallbackChainForNodeId(fallbackNodeId).every((id) => {
+          const selectedIndex = selectedIds.indexOf(id);
+          return selectedIndex >= 0 && selectedIndex < nodeIndex;
+        });
+      });
+      for (const fallbackNodeId of unique([...readyFallbackNodeIds, ...fallbackNodeIds])) {
         const fallbackIndex = selectedIds.indexOf(fallbackNodeId);
         const nodeIndex = selectedIds.indexOf(nodeId);
-        const fallbackChain = unique([...prerequisiteClosure(fallbackNodeId), fallbackNodeId]);
+        const fallbackChain = fallbackChainForNodeId(fallbackNodeId);
         const fallbackChainReady = nodeIndex < 0 || fallbackChain.every((id) => {
           const selectedIndex = selectedIds.indexOf(id);
           return selectedIndex >= 0 && selectedIndex < nodeIndex;
         });
         if (fallbackIndex >= 0 && fallbackChainReady) {
-          if (
-            requireBudgetFeasible &&
-            !canSatisfyLockedFallbacks(selectedIds, nextLockedStartIndex(selectedIds, nodeId))
-          ) continue;
+          if (!canUseFallbackChainForLockedNode(fallbackChain, nodeId, { requireBudgetFeasible })) continue;
           fallbackSatisfied = true;
           return true;
         }
@@ -433,21 +489,20 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
             selectedIds.splice(anchorIndex, 0, ...idsToMove);
             return true;
           };
-          const moved = requireBudgetFeasible
-            ? withFeasibleMutation(moveFallback, () => canSatisfyLockedFallbacks(selectedIds))
-            : moveFallback();
+          const moved = withFeasibleMutation(
+            moveFallback,
+            () => canUseFallbackChainForLockedNode(fallbackChain, nodeId, { requireBudgetFeasible }),
+          );
           if (!moved) continue;
           fallbackSatisfied = true;
           fallbackRepaired = true;
           return true;
         }
         const insertedCount = insertedNodeIds.length;
-        const inserted = requireBudgetFeasible
-          ? withFeasibleMutation(
-              () => insertCandidate(fallbackNodeId, nodeId, { collectReasons: false }),
-              () => canSatisfyLockedFallbacks(selectedIds),
-            )
-          : tryInsertCandidate(fallbackNodeId, nodeId);
+        const inserted = withFeasibleMutation(
+          () => insertCandidate(fallbackNodeId, nodeId, { collectReasons: false }),
+          () => canUseFallbackChainForLockedNode(fallbackChain, nodeId, { requireBudgetFeasible }),
+        );
         if (inserted) {
           fallbackSatisfied = true;
           fallbackRepaired = insertedNodeIds.length > insertedCount;
@@ -478,6 +533,23 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
   for (const nodeId of unsatisfiedLockedNodeIds) {
     const candidate = candidatesById.get(nodeId);
     if (!candidate?.locked) continue;
+    const selectedCheckpointIds = checkpointIds(selectedIds, candidatesById);
+    const selectedCoverageCounts = coverageCounts(selectedIds, candidatesById);
+    const requiredCoverageTargets = new Set(input.constraints.requiredCoverageTargetIds ?? []);
+    if (
+      candidate.removable &&
+      (!candidate.checkpointRole || selectedCheckpointIds.length > input.constraints.requiredCheckpointCount) &&
+      candidate.terminalValidation !== 'official' &&
+      preservesRequiredCoverage(candidate, selectedCoverageCounts, requiredCoverageTargets) &&
+      !isPrerequisiteForSelected(candidate.nodeId, selectedIds, candidatesById) &&
+      !isFallbackSupportForSelected(candidate.nodeId)
+    ) {
+      selectedIds.splice(selectedIds.indexOf(candidate.nodeId), 1);
+      removedNodeIds.push(candidate.nodeId);
+      repairedConstraints.push('locked-node-fallback');
+      limitations.push(`removed-optional-node:${candidate.nodeId}`);
+      continue;
+    }
     if ((candidate.fallbackNodeIds ?? []).length === 0) {
       infeasibleReasons.push({
         code: 'locked-node-without-fallback',
@@ -518,6 +590,10 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
       break;
     }
     selectedIds.splice(selectedIds.indexOf(removable.nodeId), 1);
+    const insertedIndex = insertedNodeIds.indexOf(removable.nodeId);
+    if (insertedIndex >= 0) {
+      insertedNodeIds.splice(insertedIndex, 1);
+    }
     removedNodeIds.push(removable.nodeId);
     repairedConstraints.push('time-budget');
     limitations.push(`removed-optional-node:${removable.nodeId}`);
