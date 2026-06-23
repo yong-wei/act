@@ -351,7 +351,7 @@ describe('K/A/Q evidence writeback governance', () => {
     ]));
   });
 
-  it('blocks stale official terminal validation refs', () => {
+  it('degrades stale official terminal validation refs without accepting terminal mastery', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-arena-stale-version-1',
       source: {
@@ -382,8 +382,12 @@ describe('K/A/Q evidence writeback governance', () => {
       ],
     });
 
-    expect(result.status).toBe('blocked');
-    expect(result.overlayUpdates).toEqual([]);
+    expect(result.status).toBe('degraded');
+    expect(result.overlayUpdates).toHaveLength(1);
+    expect(result.overlayUpdates[0]).toMatchObject({
+      terminalValidationAccepted: false,
+      limitationCodes: ['stale-version-ref:graphCatalogVersion'],
+    });
     expect(result.audit.limitationCodes).toContain('stale-version-ref:graphCatalogVersion');
   });
 
@@ -793,5 +797,26 @@ describe('K/A/Q evidence writeback governance', () => {
     });
     expect(gradingInput.actor).toEqual({ type: 'teacher', id: 'teacher-9' });
     expect(gradingInput.contributions[0].domain).toBe('quality');
+  });
+
+  it('does not write path selection as K/A/Q capability evidence', () => {
+    const selectedInput = buildPathExecutionWritebackInput({
+      id: 'path-selection-writeback-1',
+      executionId: 'path-selection-1',
+      subject,
+      learningGoalId: 'control-correction',
+      terminalObjectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+      terminalGraphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+      outcome: 'selected' as Parameters<typeof buildPathExecutionWritebackInput>[0]['outcome'],
+      score: 0.91,
+      versionRefs,
+      materializedAt: '2026-06-23T03:37:00.000Z',
+    });
+
+    const result = materializeKaqEvidenceWriteback(selectedInput);
+
+    expect(selectedInput.contributions).toEqual([]);
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
   });
 });

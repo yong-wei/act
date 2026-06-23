@@ -206,7 +206,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
         : []),
     ]),
   }));
-  const globalBlocking = (versionLimitations.length > 0 && input.source.official)
+  const globalBlocking = (versionLimitations.some(isBlockingVersionLimitation) && input.source.official)
     || subjectLimitations.length > 0;
   const overlayUpdates = globalBlocking
     ? []
@@ -276,7 +276,7 @@ export function buildPathExecutionWritebackInput(input: {
   learningGoalId: string;
   terminalObjectiveId: string;
   terminalGraphNodeId: string;
-  outcome: 'completed' | 'deviated' | 'fallback' | 'selected';
+  outcome: 'completed' | 'deviated' | 'fallback';
   score: number;
   versionRefs: KaqArtifactVersionRefs;
   materializedAt: string;
@@ -297,16 +297,18 @@ export function buildPathExecutionWritebackInput(input: {
     materializedAt: input.materializedAt,
     evidenceWindow: { from: null, to: input.materializedAt },
     versionRefs: input.versionRefs,
-    contributions: [
-      {
-        domain: 'capability',
-        objectiveId: input.terminalObjectiveId,
-        graphNodeId: input.terminalGraphNodeId,
-        learningGoalId: input.learningGoalId,
-        confidence: clampConfidence(input.score),
-        terminalValidationCandidate: input.outcome === 'completed',
-      },
-    ],
+    contributions: String(input.outcome) === 'selected'
+      ? []
+      : [
+        {
+          domain: 'capability',
+          objectiveId: input.terminalObjectiveId,
+          graphNodeId: input.terminalGraphNodeId,
+          learningGoalId: input.learningGoalId,
+          confidence: clampConfidence(input.score),
+          terminalValidationCandidate: input.outcome === 'completed',
+        },
+      ],
   };
 }
 
@@ -489,6 +491,10 @@ function isBlockingContribution(limitationCodes: string[]): boolean {
     'graph-node-domain-mismatch',
     'target-objective-node-mismatch',
   ].includes(code));
+}
+
+function isBlockingVersionLimitation(limitationCode: string): boolean {
+  return limitationCode.startsWith('missing-version-ref:');
 }
 
 function resolveAuthorityLevel(source: KaqEvidenceWritebackSource): KaqEvidenceAuthorityLevel {
