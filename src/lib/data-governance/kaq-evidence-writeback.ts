@@ -39,7 +39,8 @@ export type KaqEvidenceLimitationCode =
   | 'target-objective-node-mismatch'
   | 'missing-version-ref'
   | 'preview-not-terminal-validation'
-  | 'ai-mediated-low-authority';
+  | 'ai-mediated-low-authority'
+  | 'source-not-terminal-validation-authority';
 
 export interface KaqEvidenceSourceRef {
   kind: string;
@@ -193,6 +194,9 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       ...(contribution.limitationCodes ?? []),
       ...(isPreview && contribution.terminalValidationCandidate ? ['preview-not-terminal-validation' as const] : []),
       ...(input.source.aiGenerated && !input.source.teacherApproved ? ['ai-mediated-low-authority' as const] : []),
+      ...(!isPreview && contribution.terminalValidationCandidate && !canSourceSatisfyTerminalValidation(input.source)
+        ? ['source-not-terminal-validation-authority' as const]
+        : []),
     ]),
   }));
   const hasBlockingTarget = contributionEvaluations.some((evaluation) => isBlockingContribution(evaluation.limitationCodes));
@@ -385,6 +389,7 @@ function materializeContribution(
 ): KaqEvidenceOverlayUpdate | null {
   if (isBlockingContribution(limitationCodes) && input.source.official) return null;
   const terminalValidationAccepted = contribution.terminalValidationCandidate
+    && canSourceSatisfyTerminalValidation(input.source)
     && authorityLevel !== 'preview'
     && !input.source.aiGenerated
     && limitationCodes.length === 0;
@@ -475,6 +480,14 @@ function resolveAuthorityLevel(source: KaqEvidenceWritebackSource): KaqEvidenceA
   if (source.sourceClass === 'konling-intervention') return 'ai-mediated';
   if (source.official) return 'official';
   return 'governed';
+}
+
+function canSourceSatisfyTerminalValidation(source: KaqEvidenceWritebackSource): boolean {
+  if (source.sourceClass === 'arena-official') return source.official;
+  if (source.sourceClass === 'simulation-validation') return source.official;
+  if (source.sourceClass === 'teacher-approved-grading') return source.teacherApproved;
+  if (source.sourceClass === 'instructional-checkpoint') return source.teacherApproved;
+  return false;
 }
 
 function resolveConfidence(

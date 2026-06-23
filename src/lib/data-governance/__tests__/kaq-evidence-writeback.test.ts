@@ -174,6 +174,93 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.overlayUpdates[0].confidence).toBeLessThanOrEqual(0.4);
   });
 
+  it('does not accept path execution completion as terminal validation by itself', () => {
+    const pathInput = buildPathExecutionWritebackInput({
+      id: 'path-terminal-candidate-1',
+      executionId: 'path-exec-terminal-1',
+      subject,
+      learningGoalId: 'control-correction',
+      terminalObjectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+      terminalGraphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+      outcome: 'completed',
+      score: 0.91,
+      versionRefs,
+      materializedAt: '2026-06-23T03:31:45.000Z',
+    });
+
+    const result = materializeKaqEvidenceWriteback(pathInput);
+
+    expect(result.status).toBe('degraded');
+    expect(result.overlayUpdates).toHaveLength(1);
+    expect(result.overlayUpdates[0]).toMatchObject({
+      sourceClass: 'path-execution',
+      terminalValidationAccepted: false,
+      limitationCodes: ['source-not-terminal-validation-authority'],
+    });
+    expect(result.audit.limitationCodes).toContain('source-not-terminal-validation-authority');
+  });
+
+  it('requires teacher approval before instructional checkpoints satisfy terminal validation', () => {
+    const baseInput: Parameters<typeof materializeKaqEvidenceWriteback>[0] = {
+      id: 'checkpoint-terminal-candidate-1',
+      source: {
+        sourceClass: 'instructional-checkpoint',
+        sourceId: 'checkpoint-1',
+        sourceRef: { kind: 'InstructionalCheckpoint', id: 'checkpoint-1' },
+        official: false,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'lesson-runtime' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:31:50.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:30:00.000Z',
+        to: '2026-06-23T03:31:50.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.88,
+          terminalValidationCandidate: true,
+        },
+      ],
+    };
+
+    const unapproved = materializeKaqEvidenceWriteback(baseInput);
+    const approved = materializeKaqEvidenceWriteback({
+      ...baseInput,
+      id: 'checkpoint-terminal-candidate-2',
+      source: {
+        ...baseInput.source,
+        sourceId: 'checkpoint-2',
+        sourceRef: { kind: 'InstructionalCheckpoint', id: 'checkpoint-2' },
+        teacherApproved: true,
+      },
+      actor: { type: 'teacher', id: 'teacher-1' },
+      privacyScope: 'teacher',
+    });
+
+    expect(unapproved.status).toBe('degraded');
+    expect(unapproved.overlayUpdates[0]).toMatchObject({
+      sourceClass: 'instructional-checkpoint',
+      terminalValidationAccepted: false,
+      limitationCodes: ['source-not-terminal-validation-authority'],
+    });
+    expect(approved.status).toBe('accepted');
+    expect(approved.overlayUpdates[0]).toMatchObject({
+      sourceClass: 'instructional-checkpoint',
+      authorityLevel: 'teacher-approved',
+      terminalValidationAccepted: true,
+      limitationCodes: [],
+    });
+  });
+
   it('blocks production writeback when required version refs are missing', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-arena-1',
