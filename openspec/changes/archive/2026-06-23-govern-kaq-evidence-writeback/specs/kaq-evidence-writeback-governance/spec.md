@@ -58,6 +58,10 @@ Production writeback SHALL emit an audit trail suitable for replay and diagnosis
 - **WHEN** writeback is rejected or degraded because evidence, scope, target, citation, or version context is missing
 - **THEN** the audit record SHALL include the blocking reason without fabricating overlay state.
 
+#### Scenario: Actor refs are missing
+- **WHEN** a production writeback lacks a replayable actor or service id
+- **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.
+
 #### Scenario: Source refs are missing
 - **WHEN** a production source lacks a replayable source id, source ref kind, or source ref id
 - **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.

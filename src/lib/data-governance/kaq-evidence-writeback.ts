@@ -32,6 +32,7 @@ export type KaqEvidenceLimitationCode =
   | 'missing-target-binding'
   | 'missing-learning-goal-boundary'
   | 'missing-subject-owner'
+  | 'missing-actor-id'
   | 'subject-owner-mismatch'
   | 'unknown-objective-id'
   | 'unknown-graph-node-id'
@@ -202,9 +203,11 @@ const AUTOCONTROL_GRAPH_NODES_BY_ID = new Map(
 export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput): KaqEvidenceWritebackResult {
   const normalizedSource = normalizeSource(input.source);
   const normalizedSubject = normalizeSubject(input.subject);
+  const normalizedActor = normalizeActor(input.actor);
   const versionLimitations = validateRequiredVersionRefs(input);
   const sourceLimitations = validateSource(normalizedSource);
   const subjectLimitations = validateSubject(normalizedSubject);
+  const actorLimitations = validateActor(normalizedActor);
   const authorityLevel = resolveAuthorityLevel(normalizedSource);
   const isPreview = authorityLevel === 'preview';
   const contributionEvaluations = input.contributions.map((contribution) => ({
@@ -227,12 +230,13 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
   }));
   const globalBlocking = (versionLimitations.some(isBlockingVersionLimitation) && input.source.official)
     || sourceLimitations.length > 0
-    || subjectLimitations.length > 0;
+    || subjectLimitations.length > 0
+    || actorLimitations.length > 0;
   const overlayUpdates = globalBlocking
     ? []
     : contributionEvaluations
       .map(({ contribution, limitationCodes }, index) => materializeContribution(
-        { ...input, source: normalizedSource, subject: normalizedSubject },
+        { ...input, source: normalizedSource, subject: normalizedSubject, actor: normalizedActor },
         contribution,
         uniqueSorted([...versionLimitations, ...limitationCodes]),
         index,
@@ -243,6 +247,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     ...versionLimitations,
     ...sourceLimitations,
     ...subjectLimitations,
+    ...actorLimitations,
     ...contributionEvaluations.flatMap((evaluation) => evaluation.limitationCodes),
   ]);
   const status = resolveStatus(globalBlocking, overlayUpdates, limitationCodes);
@@ -263,7 +268,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       versionRefs: input.versionRefs,
       confidence: averageConfidence(input.contributions),
       limitationCodes,
-      actor: input.actor,
+      actor: normalizedActor,
       privacyScope: input.privacyScope,
       materializedAt: input.materializedAt,
       aiGenerated: normalizedSource.aiGenerated,
@@ -502,6 +507,10 @@ function validateSubject(subject: KaqEvidenceSubjectScope): KaqEvidenceLimitatio
   ];
 }
 
+function validateActor(actor: KaqEvidenceWritebackActor): KaqEvidenceLimitationCode[] {
+  return actor.id.length > 0 ? [] : ['missing-actor-id'];
+}
+
 function validateSource(source: KaqEvidenceWritebackSource): KaqEvidenceLimitationCode[] {
   const sourceId = typeof source.sourceId === 'string' ? source.sourceId.trim() : '';
   const sourceRefKind = typeof source.sourceRef?.kind === 'string' ? source.sourceRef.kind.trim() : '';
@@ -526,6 +535,13 @@ function normalizeSubject(subject: KaqEvidenceSubjectScope): KaqEvidenceSubjectS
     ownerUserId: normalizeOptionalId(subject.ownerUserId) ?? '',
     studentId: normalizeOptionalId(subject.studentId),
     classId: normalizeOptionalId(subject.classId),
+  };
+}
+
+function normalizeActor(actor: KaqEvidenceWritebackActor): KaqEvidenceWritebackActor {
+  return {
+    ...actor,
+    id: normalizeOptionalId(actor.id) ?? '',
   };
 }
 

@@ -768,6 +768,75 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.audit.limitationCodes).toContain('missing-subject-owner');
   });
 
+  it('blocks missing actor identity before overlay materialization', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-actor-missing-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-missing-actor-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-missing-actor-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: '   ' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:34:00.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:34:00.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.actor).toEqual({ type: 'service', id: '' });
+    expect(result.audit.limitationCodes).toContain('missing-actor-id');
+  });
+
+  it('trims actor identity before writing audit and overlay state', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-actor-trim-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-trim-actor-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-trim-actor-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: ' simulation-validation ' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:34:02.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:34:02.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('accepted');
+    expect(result.overlayUpdates).toHaveLength(1);
+    expect(result.audit.actor).toEqual({ type: 'service', id: 'simulation-validation' });
+  });
+
   it('blocks blank LearningGoal boundaries before terminal validation', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-blank-learning-goal-1',
@@ -1391,5 +1460,27 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(selectedInput.contributions).toEqual([]);
     expect(result.status).toBe('blocked');
     expect(result.overlayUpdates).toEqual([]);
+  });
+
+  it('blocks teacher-approved grading helper output when teacher identity is blank', () => {
+    const gradingInput = buildTeacherApprovedGradingWritebackInput({
+      id: 'grading-writeback-blank-teacher-1',
+      gradingRunId: 'grading-run-blank-teacher-1',
+      subject,
+      teacherId: '   ',
+      learningGoalId: 'control-correction',
+      objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+      graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+      score: 0.91,
+      versionRefs,
+      materializedAt: '2026-06-23T03:37:30.000Z',
+    });
+
+    const result = materializeKaqEvidenceWriteback(gradingInput);
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.actor).toEqual({ type: 'teacher', id: '' });
+    expect(result.audit.limitationCodes).toContain('missing-actor-id');
   });
 });
