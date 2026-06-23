@@ -3179,9 +3179,13 @@ function toRepairCandidate(
     terminalValidation: officialTerminalValidation
       ? 'official'
       : previewTerminalValidation ? 'preview' : undefined,
-    locked: !completed && readiness.state !== 'ready',
+    locked: !completed &&
+      readiness.state !== 'ready' &&
+      (!readiness.reasonCodes.includes('readiness-metadata-missing') ||
+        officialTerminalValidation ||
+        previewTerminalValidation),
     fallbackNodeIds: readiness.fallbackNodeIds,
-    removable: !officialTerminalValidation && !checkpointRole,
+    removable: !officialTerminalValidation,
     serialOnly: planningUnit.effort === 'high' || entry.node.planningMetadata.cognitiveLoad === 'high',
   };
 }
@@ -3469,6 +3473,7 @@ function isPathBlockingFallbackReason(reason: string): boolean {
     'risk-intervention-resource-missing',
     'teacher-assignment-resource-missing',
     'terminal-validation-resource-missing',
+    'locked-node-without-fallback',
   ].includes(reason);
 }
 

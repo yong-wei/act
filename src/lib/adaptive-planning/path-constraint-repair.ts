@@ -274,12 +274,13 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
   }
 
   while (estimatedMinutes(selectedIds, candidatesById) > input.constraints.timeBudgetMinutes) {
+    const selectedCheckpointIds = checkpointIds(selectedIds, candidatesById);
     const removable = selectedIds
       .map((nodeId) => candidatesById.get(nodeId))
       .filter((candidate): candidate is PathConstraintRepairCandidate => Boolean(candidate))
       .filter((candidate) =>
         candidate.removable &&
-        !candidate.checkpointRole &&
+        (!candidate.checkpointRole || selectedCheckpointIds.length > input.constraints.requiredCheckpointCount) &&
         candidate.terminalValidation !== 'official' &&
         !isPrerequisiteForSelected(candidate.nodeId, selectedIds, candidatesById) &&
         !isFallbackSupportForSelected(candidate.nodeId)

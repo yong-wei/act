@@ -365,6 +365,43 @@ describe('path constraint repair', () => {
     }));
   });
 
+  it('removes optional extra checkpoints when the minimum checkpoint count remains satisfied', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro', 'required-checkpoint', 'extra-checkpoint'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 5, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'required-checkpoint',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'extra-checkpoint',
+          estimatedTimeMinutes: 15,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+          removable: true,
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 20,
+        requiredCheckpointCount: 1,
+        terminalValidationRequired: false,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['intro', 'required-checkpoint']);
+    expect(repair.removedNodeIds).toEqual(['extra-checkpoint']);
+    expect(repair.checkpointNodeIds).toEqual(['required-checkpoint']);
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
   it('returns structured infeasible reasons for missing terminal validation and locked heavy nodes', () => {
     const repair = repairPathConstraints({
       draftNodeIds: ['intro', 'locked-lab'],

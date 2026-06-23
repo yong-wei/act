@@ -3026,6 +3026,105 @@ describe('adaptive learning path planner', () => {
     });
   });
 
+  it('removes extra registered checkpoint resources to satisfy the time budget', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'repair-intro-card',
+        title: '路径修复导入卡',
+        sourceRef: 'repair-budget:intro',
+        renderTarget: '/knowledge/cards/repair-intro',
+        knowledgeNodeIds: ['control-correction:time-domain-targets'],
+        planningOverride: {
+          estimatedTimeMinutes: 5,
+          evidenceInstrumentation: ['knowledge_card_viewed'],
+        },
+      }],
+      simulations: [{
+        id: 'repair-extra-simulation',
+        title: '路径修复额外仿真',
+        launchTarget: '/simulations/repair-extra-simulation',
+        knowledgeNodeIds: ['control-correction:simulation-validation'],
+        planningOverride: {
+          estimatedTimeMinutes: 12,
+          abilityImpact: { engineeringDecision: 1 },
+          evidenceInstrumentation: ['simulation_run'],
+        },
+      }, {
+        id: 'repair-terminal-simulation',
+        title: '路径修复终端验证仿真',
+        launchTarget: '/simulations/repair-terminal-simulation',
+        knowledgeNodeIds: ['control-correction:simulation-validation'],
+        planningOverride: {
+          estimatedTimeMinutes: 15,
+          abilityImpact: { engineeringDecision: 0.01 },
+          evidenceInstrumentation: ['simulation_run'],
+          terminalConstraints: ['terminal-validation'],
+          readiness: {
+            minimumCompetency: {},
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: [],
+            unlockMessage: '可以完成终端验证。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:simulation-validation',
+        ],
+        competencyTargets: ['engineeringDecision'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.25, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            engineeringDecision: { score: 0.3, confidence: 0.65, evidenceCount: 3 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.65,
+            evidenceCount: 3,
+            sourceCompleteness: 0.65,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 20,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.status).toBe('ready');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual([
+      'knowledge-card:repair-intro-card',
+      'simulation:repair-terminal-simulation',
+    ]);
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('simulation:repair-extra-simulation');
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'repaired',
+      removedNodeIds: ['simulation:repair-extra-simulation'],
+      checkpointNodeIds: ['simulation:repair-terminal-simulation'],
+      terminalValidationNodeIds: ['simulation:repair-terminal-simulation'],
+      repairedConstraints: expect.arrayContaining(['time-budget']),
+      infeasibleReasons: [],
+    });
+  });
+
   it('does not force ordinary tail nodes to satisfy checkpoint policy', () => {
     const registry = buildResourceNodeRegistry({
       textbooks: [{
@@ -3231,6 +3330,74 @@ describe('adaptive learning path planner', () => {
       removedNodeIds: [],
       infeasibleReasons: expect.arrayContaining([
         expect.objectContaining({ code: 'time-budget-insufficient' }),
+      ]),
+    });
+  });
+
+  it('does not publish a path when a locked readiness node has no fallback', () => {
+    const registry = buildResourceNodeRegistry({
+      simulations: [{
+        id: 'locked-validation-lab',
+        title: '锁定验证实验',
+        launchTarget: '/simulations/locked-validation-lab',
+        knowledgeNodeIds: ['kn-locked-validation'],
+        planningOverride: {
+          estimatedTimeMinutes: 25,
+          cognitiveLoad: 'high',
+          evidenceInstrumentation: ['simulation_run'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.7 },
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: [],
+            unlockMessage: '需要先完成准备资源。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'temporary-locked-lab-goal',
+        title: '锁定实验目标',
+        knowledgeTargets: ['kn-locked-validation'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-locked-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.2, confidence: 0.6, evidenceCount: 1 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.6,
+            evidenceCount: 1,
+            sourceCompleteness: 0.5,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.status).toBe('fallback');
+    expect(plan.mainPath).toEqual([]);
+    expect(plan.currentNodeId).toBeNull();
+    expect(plan.explanations.fallbackReasons).toContain('locked-node-without-fallback');
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'infeasible',
+      infeasibleReasons: expect.arrayContaining([
+        expect.objectContaining({ code: 'locked-node-without-fallback' }),
       ]),
     });
   });
