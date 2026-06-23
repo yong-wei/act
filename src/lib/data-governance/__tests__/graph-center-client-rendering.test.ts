@@ -206,7 +206,7 @@ describe('graph center client surface', () => {
     expect(teacherHtml).toContain('registry:sample: metadata is provisional');
     expect(teacherHtml).toContain('data-graph-center-action-id="teacher:inspect-resource-gap"');
     expect(teacherHtml).toContain('data-action-status="degraded"');
-    expect(teacherHtml).toContain('href="/teacher/resources/resource-nodes?knowledge=kn%3Aautocontrol%3Acontroller-correction&amp;pathEligibility=excluded"');
+    expect(teacherHtml).toContain('href="/teacher/resources/resource-nodes?knowledge=%E4%B8%B2%E8%81%94%E6%A0%A1%E6%AD%A3_6_fede5751&amp;pathEligibility=excluded"');
     expect(studentHtml).not.toContain('字段完成');
     expect(studentHtml).not.toContain('缺少内容哈希');
   });

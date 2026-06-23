@@ -150,6 +150,7 @@ export interface GraphCenterResourceCoverage {
   linkedResourceIds: string[];
   pathEligibleResourceIds: string[];
   pathEligibleResourceRouteIds: string[];
+  filterKnowledgeRefs: string[];
   fieldCompletion?: ResourceFieldCompletionCoverageSummary;
 }
 
@@ -664,6 +665,7 @@ function buildTeacherGraphCenterActions(input: {
   const resourceGapStatus: GraphCenterActionStatus = input.resourceCoverage.coverageState === 'sufficient'
     ? 'available'
     : 'degraded';
+  const resourceGapKnowledgeRef = input.resourceCoverage.filterKnowledgeRefs[0] ?? input.node.id;
 
   return [
     classRouteId
@@ -720,7 +722,7 @@ function buildTeacherGraphCenterActions(input: {
       reasonCode: resourceGapStatus === 'degraded' ? 'missing-resource-context' : undefined,
       reason: resourceGapStatus === 'degraded' ? '该节点资源覆盖不足，需要教师补齐资源上下文。' : undefined,
       target: buildGraphCenterActionTarget('/teacher/resources/resource-nodes', {
-        knowledge: input.node.id,
+        knowledge: resourceGapKnowledgeRef,
         pathEligibility: resourceGapStatus === 'degraded' ? 'excluded' : 'all',
       }),
     },
@@ -1499,6 +1501,9 @@ function buildResourceCoverage(
     const routeId = resourceRouteIdForInteractiveResource(resource);
     return routeId ? [routeId] : [];
   }));
+  const filterKnowledgeRefs = uniqueSorted(linkedResources.flatMap((resource) =>
+    resource.planningMetadata.knowledgeCoverage.filter((ref) => coverageRefSet.has(ref))
+  ));
   const fieldCompletion = options.exposeFieldCompletion
     ? summarizeFieldCompletionForGraphCoverage(
       coverageRefSet,
@@ -1525,6 +1530,7 @@ function buildResourceCoverage(
     linkedResourceIds,
     pathEligibleResourceIds,
     pathEligibleResourceRouteIds,
+    filterKnowledgeRefs,
     ...(fieldCompletion ? { fieldCompletion } : {}),
   };
 }
@@ -1553,6 +1559,7 @@ function emptyResourceCoverage(
     linkedResourceIds: [],
     pathEligibleResourceIds: [],
     pathEligibleResourceRouteIds: [],
+    filterKnowledgeRefs: [],
     ...(options.exposeFieldCompletion ? { fieldCompletion: summarizeResourceFieldCompletionForCoverage([]) } : {}),
   };
 }

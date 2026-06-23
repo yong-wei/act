@@ -14,6 +14,7 @@ import {
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 import { textbookSearchDocumentsToLearningEvidenceCorpus } from '../graph-center-evidence';
 import { teachingResourceWhereForGraphCenter } from '../graph-center-source-scope';
+import { filterTeacherResourceNodes } from '../../teacher-resource-node-management';
 import { buildResourceNodeRegistry } from '../../resource-node-registry';
 import type { TextbookRuntimeSearchDocument } from '../../textbook-runtime-resources';
 
@@ -519,6 +520,7 @@ describe('graph center payload service', () => {
     });
     expect(studentPayload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toContain('arena-task:full-coverage-arena-official');
     expect(studentPayload.selectedNode?.resourceCoverage.pathEligibleResourceRouteIds[0]).toBe('full-coverage-assessment');
+    expect(studentPayload.selectedNode?.resourceCoverage.filterKnowledgeRefs).toContain('PID控制器_6_656b8b52');
     expect(studentPayload.selectedNode?.actions.find((action) => action.id === 'student:inspect-resource')).toMatchObject({
       status: 'available',
       target: {
@@ -580,7 +582,7 @@ describe('graph center payload service', () => {
       target: {
         route: '/teacher/resources/resource-nodes',
         params: {
-          knowledge: 'kn:autocontrol:feedback-loop',
+          knowledge: '反馈_1_1',
           pathEligibility: 'excluded',
         },
       },
@@ -614,6 +616,26 @@ describe('graph center payload service', () => {
       ...(adminPayload.selectedNode?.actions ?? []),
     ].flatMap((action) => action.target ? [action.target.route] : []);
     expect(actionRoutes.every((route) => routeLedgerHrefs.has(route))).toBe(true);
+  });
+
+  it('uses resource-node knowledge coverage refs for teacher resource gap links', () => {
+    const resourceRegistry = fullCoverageRegistry();
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'TEACHER',
+      resourceRegistry,
+    });
+    const action = payload.selectedNode?.actions.find((item) => item.id === 'teacher:inspect-resource-gap');
+    const knowledge = action?.target?.params.knowledge;
+
+    expect(knowledge).toBe('PID控制器_6_656b8b52');
+    expect(knowledge).not.toBe('kn:autocontrol:controller-correction');
+    expect(filterTeacherResourceNodes(resourceRegistry.nodes, {
+      knowledge,
+    }).map((node) => node.id)).toEqual(expect.arrayContaining([
+      'registry:full-coverage-assessment',
+    ]));
   });
 
   it('uses authorization reason codes for unauthorized graph center actions', () => {
