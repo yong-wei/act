@@ -142,7 +142,7 @@ export function LessonRuntimeShell({
       >
         {mode === 'invalid' ? (
           <PlatformSurface
-            className="mx-auto flex min-h-[52vh] w-full max-w-3xl flex-col items-center justify-center px-6 py-12 text-center"
+            className="flex min-h-[52vh] w-full flex-col items-center justify-center px-6 py-12 text-center"
             data-lesson-runtime-invalid-session
           >
             <BookOpen className="h-10 w-10 text-platform-action-primary" />
@@ -210,7 +210,7 @@ export function LessonRuntimeShell({
 
             {hasSteps ? (
               <nav
-                className="relative z-10 mx-auto mt-4 flex max-w-4xl items-center justify-between gap-2 rounded-lg border border-platform-border bg-platform-surface/95 px-3 py-2 shadow-lg backdrop-blur"
+                className="relative z-10 mt-4 flex w-full items-center justify-between gap-2 rounded-lg border border-platform-border bg-platform-surface/95 px-3 py-2 shadow-lg backdrop-blur"
                 data-lesson-runtime-bottom-navigation
               >
                 <button

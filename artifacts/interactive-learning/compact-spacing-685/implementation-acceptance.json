@@ -1,0 +1,341 @@
+{
+  "changeId": "standardize-sitewide-compact-spacing",
+  "generatedAt": "2026-06-23T16:13:22.663Z",
+  "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+  "compactSpacingEvidence": "artifacts/commercial-ui/compact-spacing-685/evidence.json",
+  "interactiveVisualComponentArtifacts": [
+    {
+      "componentId": "sitewide-compact-page-edge",
+      "componentKind": "visual.stage",
+      "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+      "designContractPath": "openspec/changes/archive/2026-06-23-standardize-sitewide-compact-spacing/design.md",
+      "visualSourcePath": "artifacts/interactive-learning/compact-spacing-685/visual-source.md",
+      "manifestAuditPath": "artifacts/commercial-ui/compact-spacing-685/inventory.json",
+      "testResultPath": "artifacts/interactive-learning/compact-spacing-685/test-result.json",
+      "browserAuditPath": "artifacts/interactive-learning/compact-spacing-685/browser-audit.json",
+      "evidenceSamplePath": "artifacts/interactive-learning/compact-spacing-685/evidence-sample.json",
+      "reviewerEvidencePath": "artifacts/interactive-learning/compact-spacing-685/reviewer-evidence.md",
+      "artifactPaths": [
+        {
+          "path": "artifacts/commercial-ui/compact-spacing-685/evidence.json",
+          "exists": true,
+          "current": true,
+          "componentId": "sitewide-compact-page-edge"
+        },
+        {
+          "path": "artifacts/commercial-ui/compact-spacing-685/inventory.json",
+          "exists": true,
+          "current": true,
+          "componentId": "sitewide-compact-page-edge"
+        },
+        {
+          "path": "artifacts/interactive-learning/compact-spacing-685/browser-audit.json",
+          "exists": true,
+          "current": true,
+          "componentId": "sitewide-compact-page-edge"
+        },
+        {
+          "path": "artifacts/interactive-learning/compact-spacing-685/test-result.json",
+          "exists": true,
+          "current": true,
+          "componentId": "sitewide-compact-page-edge"
+        },
+        {
+          "path": "artifacts/interactive-learning/compact-spacing-685/evidence-sample.json",
+          "exists": true,
+          "current": true,
+          "componentId": "sitewide-compact-page-edge"
+        },
+        {
+          "path": "artifacts/interactive-learning/compact-spacing-685/reviewer-evidence.md",
+          "exists": true,
+          "current": true,
+          "componentId": "sitewide-compact-page-edge",
+          "state": "passed-local-subagent-review"
+        }
+      ],
+      "teachingMapping": {
+        "lessonId": "1-2",
+        "stepId": "shared-lesson-runtime-shell",
+        "learningGoalId": "lg-compact-courseware-reading-space",
+        "handoutAnchor": "sitewide-compact-page-edge-contract",
+        "bopppsPhase": "participatory-learning",
+        "interactiveContractStepId": "standardize-sitewide-compact-spacing"
+      },
+      "screenshots": [
+        {
+          "componentId": "sitewide-compact-page-edge",
+          "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+          "role": "student",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "student-unreleased",
+          "path": "artifacts/commercial-ui/compact-spacing-685/interactive-course-entry-1440-interactive-learning-courses-unit-1-2-modeling-from-object-to-system.png",
+          "sha256": "08d1768d91a57a11b3ab0543ff0416dd1d9956b962430c2fbf3ed143d993a08c",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "sitewide-compact-page-edge",
+          "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+          "role": "student",
+          "theme": "dark",
+          "viewport": "mobile",
+          "state": "student-released",
+          "path": "artifacts/commercial-ui/compact-spacing-685/student-runtime-320-interactive-learning-courses-unit-1-2-modeling-from-object-to-system-student-demo-step-step-07.png",
+          "sha256": "c39b04e4208c2f011f8c99160e6cea50f730d21fe43739329e3294fa433d2d1e",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "sitewide-compact-page-edge",
+          "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+          "role": "student",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "student-submitted",
+          "path": "artifacts/commercial-ui/compact-spacing-685/student-runtime-1024-interactive-learning-courses-unit-1-2-modeling-from-object-to-system-student-demo-step-step-07.png",
+          "sha256": "384023f1dabc92421c92dcb621e7d5d6f3ea30e49077471bb612ed5875a4df10",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "sitewide-compact-page-edge",
+          "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+          "role": "teacher",
+          "theme": "dark",
+          "viewport": "projection",
+          "state": "teacher-reveal",
+          "path": "artifacts/commercial-ui/compact-spacing-685/teacher-runtime-1920-interactive-learning-courses-unit-1-2-modeling-from-object-to-system-teacher-demo-step-step-07.png",
+          "sha256": "2b44eeecf1895be7ba57eb32cae7484fffc1df2fcfa42a75c71c2b77a5b7e905",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "sitewide-compact-page-edge",
+          "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+          "role": "teacher",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "teacher-answer-reveal",
+          "path": "artifacts/commercial-ui/compact-spacing-685/teacher-runtime-1440-interactive-learning-courses-unit-1-2-modeling-from-object-to-system-teacher-demo-step-step-07.png",
+          "sha256": "60f0c0729caa485160092f0b0b213112d744eca81176df45c76cf3bbfd274ab3",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "sitewide-compact-page-edge",
+          "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+          "role": "teacher",
+          "theme": "dark",
+          "viewport": "desktop",
+          "state": "teacher-diagnostics",
+          "path": "artifacts/commercial-ui/compact-spacing-685/teacher-runtime-1100-interactive-learning-courses-unit-1-2-modeling-from-object-to-system-teacher-demo-step-step-07.png",
+          "sha256": "a6d588b96d022d051ffd62d44860e83cb4de80169522af8de00aef12212e9bd9",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "sitewide-compact-page-edge",
+          "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+          "role": "student",
+          "theme": "dark",
+          "viewport": "projection",
+          "state": "student-released",
+          "path": "artifacts/commercial-ui/compact-spacing-685/student-runtime-2560-interactive-learning-courses-unit-1-2-modeling-from-object-to-system-student-demo-step-step-07.png",
+          "sha256": "4853a6d6def9a2e8f662d77aa72ad63b75e16ce82640217dc0c961f3228d603c",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true,
+          "intentionalReuseReason": "projection-width compact edge evidence from student runtime"
+        }
+      ],
+      "browserAudit": {
+        "path": "artifacts/interactive-learning/compact-spacing-685/browser-audit.json",
+        "roles": [
+          "student",
+          "teacher"
+        ],
+        "routes": [
+          "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+          "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-07",
+          "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/teacher/demo?step=step-07"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "viewports": [
+          "mobile",
+          "desktop",
+          "projection"
+        ],
+        "states": [
+          "student-unreleased",
+          "student-released",
+          "student-submitted",
+          "teacher-reveal",
+          "teacher-answer-reveal",
+          "teacher-diagnostics"
+        ],
+        "noHorizontalOverflow": true,
+        "teacherControlsClearPrimaryStage": true
+      },
+      "evidenceSample": {
+        "path": "artifacts/interactive-learning/compact-spacing-685/evidence-sample.json",
+        "eventType": "interactive_visual_compact_spacing_qa",
+        "clientEventId": "compact-spacing-685-layout-sample",
+        "attemptKey": "compact-spacing-685",
+        "sourceLogId": "compact-spacing-685-browser-audit",
+        "lessonKey": "unit-1-2-modeling-from-object-to-system-v1",
+        "stepId": "step-07",
+        "moduleId": "lesson-runtime-shell",
+        "componentKind": "visual.stage",
+        "componentId": "sitewide-compact-page-edge",
+        "actorRole": "teacher",
+        "clientEventAt": "2026-06-23T16:13:22.663Z",
+        "theme": "dark",
+        "viewport": "desktop",
+        "schemaVersion": "1.0.0",
+        "serverRecordedAt": "2026-06-23T16:13:22.663Z",
+        "payload": {
+          "compactSpacingEvidence": "artifacts/commercial-ui/compact-spacing-685/evidence.json",
+          "requiredWidths": [
+            1024,
+            1100,
+            1279,
+            1440,
+            1920,
+            2560,
+            768,
+            320
+          ],
+          "routeFamilies": [
+            "adaptive-practice",
+            "form-first",
+            "interactive-course-entry",
+            "knowledge-map",
+            "report-evidence",
+            "simulation-workspace",
+            "student-runtime",
+            "teacher-operations",
+            "teacher-runtime",
+            "text-first"
+          ],
+          "navigationStates": [
+            "auth-callback-panel",
+            "desktop-collapsed",
+            "desktop-expanded",
+            "hidden-immersive",
+            "mobile-drawer",
+            "workspace-command-surface"
+          ],
+          "diagnostics": []
+        },
+        "classification": [
+          "InteractionLog",
+          "LearningFact"
+        ],
+        "affectsTeacherDiagnostics": true,
+        "affectsAbilitySnapshots": false,
+        "affectsRecommendationInputs": false,
+        "compactSpacingEvidenceSha256": "f57525df221d81299705f3d817693aee5b9e42aebce5f1e6370d308df6470166"
+      },
+      "diagnosticPolicy": {
+        "denominator": "all compact spacing route-width captures",
+        "dedupeKey": "route+viewportWidth+navigationState",
+        "attemptPolicy": "latest capture per route and width",
+        "resubmissionDisplay": "replace stale compact spacing visual evidence after shared shell changes",
+        "unreleasedStudentInclusion": "include student demo runtime before classroom release",
+        "freeTextRedaction": "redact-by-default",
+        "access": "teacher-admin-only",
+        "labelsUseTeachingSemantics": true
+      },
+      "visibleTextSamples": [
+        "方框图——系统的结构表达",
+        "第 07 页",
+        "账号登录",
+        "报告评分工作台"
+      ],
+      "blockingFindings": [],
+      "semanticLeakFindings": [],
+      "teacherDiagnostics": true,
+      "stateRecoverability": {
+        "studentVisualState": true,
+        "submittedState": true,
+        "teacherRevealState": true,
+        "answerRevealState": true,
+        "diagnosticsAggregationState": true
+      },
+      "subagentReview": {
+        "status": "passed",
+        "reviewers": [
+          "ui-flow-reviewer",
+          "test-engineer",
+          "critical-reviewer"
+        ],
+        "blockerRemediation": "Added hidden-immersive/auth-callback-panel navigation boundary hard gate and unit coverage."
+      },
+      "githubReviewRemediation": "Promoted --platform-page-edge-x breakpoint updates to :root so admin and premium lesson shells inherit tablet/desktop edge tokens."
+    }
+  ],
+  "acceptance": {
+    "requiredWidths": [
+      1024,
+      1100,
+      1279,
+      1440,
+      1920,
+      2560,
+      768,
+      320
+    ],
+    "requiredRouteFamilies": [
+      "adaptive-practice",
+      "form-first",
+      "interactive-course-entry",
+      "knowledge-map",
+      "report-evidence",
+      "simulation-workspace",
+      "student-runtime",
+      "teacher-operations",
+      "teacher-runtime",
+      "text-first"
+    ],
+    "navigationStates": [
+      "auth-callback-panel",
+      "desktop-collapsed",
+      "desktop-expanded",
+      "hidden-immersive",
+      "mobile-drawer",
+      "workspace-command-surface"
+    ],
+    "noHorizontalOverflow": true,
+    "auxiliaryCollisionFree": true,
+    "hydrationReady": true,
+    "finalUrlMatches": true,
+    "pageLevelCenteredWrappersAbsent": true,
+    "formFirstUsesIntrinsicEdgeMode": true,
+    "expandedNavigationUsesBoundary": true
+  }
+}

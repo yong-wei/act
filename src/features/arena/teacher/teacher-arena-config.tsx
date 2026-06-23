@@ -280,7 +280,7 @@ export function TeacherArenaConfig() {
   return (
     <main className="surface-page min-h-screen">
       <header className="surface-topbar">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-5">
+        <div className="flex w-full items-center justify-between px-6 py-5">
           <Link href="/teacher" className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
             <ArrowLeft className="h-4 w-4" />
             返回教师工作台
@@ -292,7 +292,7 @@ export function TeacherArenaConfig() {
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-[1600px] gap-8 px-6 py-10 lg:grid-cols-[1.2fr_0.8fr]">
+      <section className="grid w-full gap-8 px-6 py-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-5">
           <div>
             <h1 className="text-4xl font-semibold text-foreground">竞技场挑战配置</h1>

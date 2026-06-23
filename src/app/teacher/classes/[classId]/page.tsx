@@ -421,7 +421,7 @@ export default function ClassDetailPage() {
   if (loading) {
     return (
       <main
-        className="surface-page mx-auto max-w-[1600px] px-6 py-8"
+        className="surface-page px-6 py-8"
         data-commercial-operations-workspace="teacher-operations"
         data-commercial-workspace-zone="instrument-area"
       >
@@ -436,7 +436,7 @@ export default function ClassDetailPage() {
   if (!classData) {
     return (
       <main
-        className="surface-page mx-auto max-w-[1600px] px-6 py-8"
+        className="surface-page px-6 py-8"
         data-commercial-operations-workspace="teacher-operations"
         data-commercial-workspace-zone="instrument-area"
       >
@@ -455,7 +455,7 @@ export default function ClassDetailPage() {
 
   return (
     <main
-      className="surface-page mx-auto max-w-[1600px] px-6 py-8"
+      className="surface-page px-6 py-8"
       data-commercial-operations-workspace="teacher-operations"
       data-commercial-workspace-zone="instrument-area"
     >

@@ -180,7 +180,7 @@ export function EvidenceTimelineBrowser({
     <div className={chrome === 'standalone' ? 'surface-page' : undefined}>
       {chrome === 'standalone' ? (
         <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
+        <div className="flex w-full items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href={backHref} className="text-subtle transition hover:text-foreground">
               <ArrowLeft className="h-6 w-6" />
@@ -211,7 +211,7 @@ export function EvidenceTimelineBrowser({
         </header>
       ) : null}
 
-      <main className={chrome === 'standalone' ? 'mx-auto grid max-w-[1600px] gap-6 px-6 py-8 lg:grid-cols-[300px_1fr]' : 'grid gap-6 lg:grid-cols-[300px_1fr]'}>
+      <main className={chrome === 'standalone' ? 'grid w-full gap-6 px-6 py-8 lg:grid-cols-[300px_1fr]' : 'grid gap-6 lg:grid-cols-[300px_1fr]'}>
         <aside className="surface-card h-fit p-5" data-learner-record-surface="evidence-filter">
           <div className="mb-4 flex items-center gap-2">
             <Filter className="h-4 w-4 text-amber-500" />

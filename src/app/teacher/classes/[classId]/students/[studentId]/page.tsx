@@ -103,7 +103,7 @@ export default function TeacherStudentInsightsPage() {
       data-operations-status-semantics="ready"
     >
       <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
+        <div className="flex w-full items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href={`/teacher/classes/${classId}`} className="text-subtle transition hover:text-foreground">
               <ArrowLeft className="h-6 w-6" />
@@ -120,7 +120,7 @@ export default function TeacherStudentInsightsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      <main className="px-6 py-8">
         <section className="teacher-insight-hero mb-8">
           <div className="grid gap-4 xl:grid-cols-[1.25fr,0.75fr]">
             <div className="space-y-4">

@@ -227,7 +227,7 @@ export function UNIT_4_5TeacherPage({
         }
       />
 
-      <main className="premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-6">
+      <main className="premium-lesson-main py-4 sm:py-6">
         <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_320px]">
           <div className="premium-lesson-panel-soft flex flex-wrap items-center justify-between gap-3 px-4 py-4">
             <div>

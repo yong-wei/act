@@ -47,7 +47,7 @@ function LoginContent() {
       data-auth-route-trace="callback-to-role-cockpit"
       data-auth-error-state="destination-preserved"
     >
-      <main className="mx-auto grid max-w-[1180px] gap-5 lg:grid-cols-[1fr_380px]">
+      <main className="grid w-full gap-5 lg:grid-cols-[1fr_380px]">
         <section className="surface-card p-6">
           <p className="text-xs uppercase tracking-[0.24em] text-primary">商业入口 · 账号与画像</p>
           <h1 className="mt-3 text-2xl font-semibold text-foreground">账号登录</h1>
@@ -103,7 +103,7 @@ function LoginCommercialFallback() {
       data-auth-route-trace="callback-to-role-cockpit"
       data-auth-error-state="destination-preserved"
     >
-      <main className="mx-auto grid max-w-[1180px] gap-5 lg:grid-cols-[1fr_380px]">
+      <main className="grid w-full gap-5 lg:grid-cols-[1fr_380px]">
         <section className="surface-card p-6">
           <p className="text-xs uppercase tracking-[0.24em] text-primary">商业入口 · 账号与画像</p>
           <h1 className="mt-3 text-2xl font-semibold text-foreground">账号登录</h1>

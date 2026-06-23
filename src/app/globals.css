@@ -72,6 +72,22 @@
     --platform-brand-focus-ring: 190 90% 64%;
     --platform-brand-evidence: 42 88% 58%;
     --platform-brand-report-output: 262 62% 68%;
+    --platform-page-edge-x-mobile: 1rem;
+    --platform-page-edge-x-tablet: 1.5rem;
+    --platform-page-edge-x-desktop: 1.5rem;
+    --platform-page-edge-x: var(--platform-page-edge-x-mobile);
+  }
+
+  @media (min-width: 640px) {
+    :root {
+      --platform-page-edge-x: var(--platform-page-edge-x-tablet);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      --platform-page-edge-x: var(--platform-page-edge-x-desktop);
+    }
   }
 
   .light {
@@ -155,6 +171,19 @@
 @layer components {
   .surface-page {
     @apply min-h-screen bg-background text-foreground;
+    --platform-page-edge-x: var(--platform-page-edge-x-mobile);
+  }
+
+  @media (min-width: 640px) {
+    .surface-page {
+      --platform-page-edge-x: var(--platform-page-edge-x-tablet);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .surface-page {
+      --platform-page-edge-x: var(--platform-page-edge-x-desktop);
+    }
   }
 
   [data-route-family="learner-data-pathway"] {
@@ -730,7 +759,8 @@
   }
 
   .admin-console-container {
-    @apply mx-auto w-full max-w-[1600px] px-6;
+    @apply w-full;
+    padding-inline: var(--platform-page-edge-x);
   }
 
   .admin-console-topbar {
@@ -1193,8 +1223,24 @@
     @apply sticky top-0 z-40 border-b border-white/10 bg-slate-950/90 backdrop-blur;
   }
 
+  .premium-lesson-topbar .premium-lesson-control {
+    min-width: 0;
+  }
+
+  .premium-lesson-topbar .premium-lesson-select {
+    min-width: 0;
+    max-width: min(9.5rem, 48vw);
+  }
+
+  @media (max-width: 640px) {
+    .premium-lesson-topbar .premium-lesson-caption {
+      display: none;
+    }
+  }
+
   .premium-lesson-main {
-    @apply mx-auto max-w-[1080px] space-y-3 px-3 py-3 sm:space-y-4 sm:px-4 sm:py-4;
+    @apply w-full space-y-3 py-3 sm:space-y-4 sm:py-4;
+    padding-inline: var(--platform-page-edge-x);
   }
 
   .interactive-courseware-stack {

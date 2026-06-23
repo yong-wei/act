@@ -96,7 +96,7 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
     : criterionId;
   const context: Omit<StudentFeedbackTaskContext, 'returnHref' | 'summary' | 'badges'> = {
     assignmentId,
-    assignmentTitle: supported ? resolveAssignmentTitle(assignmentId, source) : '未知反馈任务',
+    assignmentTitle: supported ? resolveAssignmentTitle(assignmentId, source ?? undefined) : '未知反馈任务',
     criterionId: criterionId ?? null,
     criterionLabel: criterionLabel ?? null,
     source: source ?? null,

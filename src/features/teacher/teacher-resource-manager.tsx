@@ -78,7 +78,7 @@ export function TeacherResourceManager({
   const totalVisibleDomainCount = activeTab === 'knowledge' ? knowledgeNodes.length : searchableResources.length;
 
   return (
-    <main className="mx-auto max-w-[1600px] px-6 py-8">
+    <main className="px-6 py-8">
       {/* 页面标题 */}
       <div className="mb-8">
         <Link

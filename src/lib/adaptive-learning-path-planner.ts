@@ -2197,7 +2197,7 @@ function overlayLimitations(
       message: `${kind} overlay is unavailable; planner must treat overlay guidance as a limitation.`,
     }];
   }
-  const limitations = overlay.limitations.map((limitation) => ({
+  const limitations: AdaptiveLearningPathGraphLimitation[] = overlay.limitations.map((limitation) => ({
     code: limitation.code,
     severity: 'warning' as const,
     nodeId: limitation.nodeId,

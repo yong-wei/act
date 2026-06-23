@@ -1,7 +1,7 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-06-18T10:27:13.456Z",
-  "sourceCommit": "worktree:3db4f7bf6f02ede8d0467b24",
+  "generatedAt": "2026-06-23T15:13:20.104Z",
+  "sourceCommit": "worktree:e54e752a706533d8dc46dc5e",
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
   "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
   "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
@@ -398,5 +398,15 @@
     "appShellBreadcrumbsAccountControls": true,
     "rightBottomKonlingDock": true
   },
-  "temporaryExceptions": []
+  "temporaryExceptions": [],
+  "compactSpacingBuildRefresh": {
+    "change": "standardize-sitewide-compact-spacing",
+    "reason": "Build gate surfaced strict TypeScript fixes in adaptive path adjacent source files.",
+    "files": [
+      "src/app/api/adaptive/path-advisor-tool/route.ts",
+      "src/lib/adaptive-learning-path-planner.ts",
+      "src/lib/ai-prompt-builder.ts",
+      "src/lib/student-feedback-task-contract.ts"
+    ]
+  }
 }
