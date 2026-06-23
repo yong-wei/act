@@ -41,7 +41,8 @@ export type KaqEvidenceLimitationCode =
   | 'preview-not-terminal-validation'
   | 'ai-mediated-low-authority'
   | 'source-not-terminal-validation-authority'
-  | 'low-confidence-terminal-validation';
+  | 'low-confidence-terminal-validation'
+  | 'unverified-resource-node-id';
 
 export interface KaqEvidenceSourceRef {
   kind: string;
@@ -168,6 +169,10 @@ const REQUIRED_VERSION_REFS: Array<keyof KaqArtifactVersionRefs> = [
   'graphCatalogVersion',
   'overlayVersion',
 ];
+const RESOURCE_TARGET_VERSION_REFS: Array<keyof KaqArtifactVersionRefs> = [
+  'resourceRegistryVersion',
+  'resourceProjectionVersion',
+];
 const TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD = 0.6;
 
 const SOURCE_VERSION_REFS: Partial<Record<KaqEvidenceSourceClass, Array<keyof KaqArtifactVersionRefs>>> = {
@@ -195,6 +200,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     limitationCodes: uniqueSorted([
       ...validateTargetBinding(contribution),
       ...validateCatalogTarget(contribution),
+      ...validateResourceTarget(contribution),
       ...(contribution.limitationCodes ?? []),
       ...(isPreview && contribution.terminalValidationCandidate ? ['preview-not-terminal-validation' as const] : []),
       ...(input.source.aiGenerated && !input.source.teacherApproved ? ['ai-mediated-low-authority' as const] : []),
@@ -406,7 +412,7 @@ function materializeContribution(
   const terminalValidationAccepted = contribution.terminalValidationCandidate
     && canSourceSatisfyTerminalValidation(input.source)
     && authorityLevel !== 'preview'
-    && !input.source.aiGenerated
+    && (!input.source.aiGenerated || input.source.teacherApproved)
     && limitationCodes.length === 0;
 
   return {
@@ -434,6 +440,7 @@ function validateRequiredVersionRefs(input: KaqEvidenceWritebackInput): string[]
     ...REQUIRED_VERSION_REFS,
     ...(SOURCE_VERSION_REFS[input.source.sourceClass] ?? []),
     ...(input.source.citationRefs?.length ? ['citationVersion' as keyof KaqArtifactVersionRefs] : []),
+    ...(input.contributions.some((contribution) => Boolean(contribution.resourceNodeId)) ? RESOURCE_TARGET_VERSION_REFS : []),
   ]);
   return [
     ...validateKaqArtifactVersionRefs(input.versionRefs, requiredRefs),
@@ -476,6 +483,10 @@ function validateCatalogTarget(contribution: KaqEvidenceContributionInput): KaqE
   return limitations;
 }
 
+function validateResourceTarget(contribution: KaqEvidenceContributionInput): KaqEvidenceLimitationCode[] {
+  return contribution.resourceNodeId ? ['unverified-resource-node-id'] : [];
+}
+
 function graphNodeSupportsObjective(graphNode: KaqGraphNode, objective: KaqObjective): boolean {
   return graphNode.objectiveIds.includes(objective.id)
     || Boolean(objective.graphBinding?.bindingRefs.includes(graphNode.id));
@@ -490,6 +501,7 @@ function isBlockingContribution(limitationCodes: string[]): boolean {
     'objective-domain-mismatch',
     'graph-node-domain-mismatch',
     'target-objective-node-mismatch',
+    'unverified-resource-node-id',
   ].includes(code));
 }
 

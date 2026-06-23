@@ -738,6 +738,78 @@ describe('K/A/Q evidence writeback governance', () => {
     });
   });
 
+  it('accepts teacher-approved AI grading provenance as terminal validation when confidence passes', () => {
+    const input = buildTeacherApprovedGradingWritebackInput({
+      id: 'grading-writeback-ai-approved-1',
+      gradingRunId: 'grading-run-ai-approved-1',
+      subject,
+      teacherId: 'teacher-9',
+      learningGoalId: 'control-correction',
+      objectiveId: 'quality:autocontrol:evidence-integrity',
+      graphNodeId: 'qual:autocontrol:evidence-integrity',
+      score: 0.86,
+      versionRefs,
+      materializedAt: '2026-06-23T03:35:40.000Z',
+    });
+    const result = materializeKaqEvidenceWriteback({
+      ...input,
+      source: {
+        ...input.source,
+        aiGenerated: true,
+      },
+    });
+
+    expect(result.status).toBe('accepted');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      aiGenerated: true,
+      teacherApproved: true,
+      terminalValidationAccepted: true,
+      limitationCodes: [],
+    });
+  });
+
+  it('requires resource target version refs and blocks unverified resource node ids', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-resource-target-1',
+      source: {
+        sourceClass: 'teacher-approved-grading',
+        sourceId: 'grading-run-resource-1',
+        sourceRef: { kind: 'DocumentRubricGrading', id: 'grading-run-resource-1' },
+        official: true,
+        teacherApproved: true,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'teacher', id: 'teacher-1' },
+      privacyScope: 'teacher',
+      materializedAt: '2026-06-23T03:35:45.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:35:45.000Z' },
+      versionRefs: buildKaqArtifactVersionRefs({
+        resourceRegistryVersion: null,
+        resourceProjectionVersion: null,
+      }),
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          resourceNodeId: 'resource:not-verified',
+          confidence: 0.8,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toEqual(expect.arrayContaining([
+      'missing-version-ref:resourceRegistryVersion',
+      'missing-version-ref:resourceProjectionVersion',
+      'unverified-resource-node-id',
+    ]));
+  });
+
   it('builds governed candidate inputs for path execution, Konling, and teacher-approved grading outcomes', () => {
     const pathInput = buildPathExecutionWritebackInput({
       id: 'path-writeback-1',
