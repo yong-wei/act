@@ -592,6 +592,7 @@ function normalizeSource(source: KaqEvidenceWritebackSource): KaqEvidenceWriteba
     .filter((ref) => ref.length > 0);
   return {
     ...source,
+    aiGenerated: source.sourceClass === 'konling-intervention' ? true : source.aiGenerated,
     sourceId: normalizeOptionalId(source.sourceId) ?? '',
     sourceRef: {
       kind: normalizeOptionalId(source.sourceRef?.kind) ?? '',

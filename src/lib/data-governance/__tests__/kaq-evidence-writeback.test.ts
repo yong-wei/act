@@ -484,6 +484,47 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.overlayUpdates[0].citationRefs).toEqual(['citation:path-execution-1']);
   });
 
+  it('forces AI provenance for direct Konling materialization inputs', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-konling-ai-provenance-1',
+      source: {
+        sourceClass: 'konling-intervention',
+        sourceId: 'tool-run-1',
+        sourceRef: { kind: 'AgentToolRun', id: 'tool-run-1' },
+        official: false,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'konling-runtime' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:33:00.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:25:00.000Z',
+        to: '2026-06-23T03:33:00.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'quality',
+          objectiveId: 'quality:autocontrol:evidence-integrity',
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
+          learningGoalId: 'control-correction',
+          confidence: 0.58,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.audit.aiGenerated).toBe(true);
+    expect(result.audit.limitationCodes).toContain('ai-mediated-low-authority');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      aiGenerated: true,
+      limitationCodes: ['ai-mediated-low-authority'],
+    });
+  });
+
   it('blocks unknown, mismatched, or cross-domain target bindings', () => {
     const unknown = materializeKaqEvidenceWriteback({
       id: 'writeback-invalid-target-1',
