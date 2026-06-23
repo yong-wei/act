@@ -8,6 +8,7 @@ import {
   projectKaqEvidenceWritebackForConsumer,
 } from '../kaq-evidence-writeback';
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
+import { buildControlCorrectionResourceNodeRegistry } from '../../control-correction-resource-seed';
 
 const versionRefs = buildKaqArtifactVersionRefs({
   citationVersion: 'learning-evidence-citation.v1',
@@ -699,6 +700,53 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.audit.limitationCodes).toContain('missing-subject-owner');
   });
 
+  it('blocks writeback with missing replayable source refs before terminal validation', () => {
+    const baseInput: Parameters<typeof materializeKaqEvidenceWriteback>[0] = {
+      id: 'writeback-missing-source-ref-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: '',
+        sourceRef: { kind: 'SimulationRun', id: '' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:34:10.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:34:10.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    };
+    const missingId = materializeKaqEvidenceWriteback(baseInput);
+    const missingKind = materializeKaqEvidenceWriteback({
+      ...baseInput,
+      id: 'writeback-missing-source-ref-kind-1',
+      source: {
+        ...baseInput.source,
+        sourceId: 'simulation-run-missing-kind-1',
+        sourceRef: { kind: ' ', id: 'simulation-run-missing-kind-1' },
+      },
+    });
+
+    expect(missingId.status).toBe('blocked');
+    expect(missingId.overlayUpdates).toEqual([]);
+    expect(missingId.audit.limitationCodes).toContain('missing-source-ref');
+    expect(missingKind.status).toBe('blocked');
+    expect(missingKind.overlayUpdates).toEqual([]);
+    expect(missingKind.audit.limitationCodes).toContain('missing-source-ref');
+  });
+
   it('does not accept low-confidence teacher-approved grading as terminal validation', () => {
     const input = buildTeacherApprovedGradingWritebackInput({
       id: 'grading-writeback-low-score-1',
@@ -808,6 +856,138 @@ describe('K/A/Q evidence writeback governance', () => {
       'missing-version-ref:resourceProjectionVersion',
       'unverified-resource-node-id',
     ]));
+  });
+
+  it('accepts resource-targeted evidence when the resource node is verified by registry input', () => {
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-resource-target-verified-1',
+      source: {
+        sourceClass: 'teacher-approved-grading',
+        sourceId: 'grading-run-resource-verified-1',
+        sourceRef: { kind: 'DocumentRubricGrading', id: 'grading-run-resource-verified-1' },
+        official: true,
+        teacherApproved: true,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'teacher', id: 'teacher-1' },
+      privacyScope: 'teacher',
+      materializedAt: '2026-06-23T03:35:50.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:35:50.000Z' },
+      versionRefs,
+      resourceTargetRegistry: registry,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          resourceNodeId: 'registry:lesson09-correction-precheck',
+          confidence: 0.8,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('accepted');
+    expect(result.overlayUpdates).toHaveLength(1);
+    expect(result.overlayUpdates[0]).toMatchObject({
+      targetRef: {
+        resourceNodeId: 'registry:lesson09-correction-precheck',
+      },
+      terminalValidationAccepted: true,
+      limitationCodes: [],
+    });
+    expect(result.audit.limitationCodes).not.toContain('unverified-resource-node-id');
+  });
+
+  it('blocks verified resource targets when resource version refs are missing', () => {
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-resource-target-missing-version-1',
+      source: {
+        sourceClass: 'teacher-approved-grading',
+        sourceId: 'grading-run-resource-missing-version-1',
+        sourceRef: { kind: 'DocumentRubricGrading', id: 'grading-run-resource-missing-version-1' },
+        official: true,
+        teacherApproved: true,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'teacher', id: 'teacher-1' },
+      privacyScope: 'teacher',
+      materializedAt: '2026-06-23T03:35:55.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:35:55.000Z' },
+      versionRefs: buildKaqArtifactVersionRefs({
+        resourceRegistryVersion: null,
+        resourceProjectionVersion: null,
+      }),
+      resourceTargetRegistry: registry,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          resourceNodeId: 'registry:lesson09-correction-precheck',
+          confidence: 0.8,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toEqual(expect.arrayContaining([
+      'missing-version-ref:resourceRegistryVersion',
+      'missing-version-ref:resourceProjectionVersion',
+    ]));
+    expect(result.audit.limitationCodes).not.toContain('unverified-resource-node-id');
+  });
+
+  it('blocks non-official resource-targeted evidence when resource version refs are missing', () => {
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-resource-target-konling-missing-version-1',
+      source: {
+        sourceClass: 'konling-intervention',
+        sourceId: 'tool-run-resource-target-1',
+        sourceRef: { kind: 'AgentToolRun', id: 'tool-run-resource-target-1' },
+        official: false,
+        teacherApproved: false,
+        aiGenerated: true,
+      },
+      subject,
+      actor: { type: 'service', id: 'konling-runtime' },
+      privacyScope: 'student',
+      materializedAt: '2026-06-23T03:36:05.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:36:05.000Z' },
+      versionRefs: buildKaqArtifactVersionRefs({
+        resourceRegistryVersion: null,
+        resourceProjectionVersion: null,
+      }),
+      resourceTargetRegistry: registry,
+      contributions: [
+        {
+          domain: 'quality',
+          objectiveId: 'quality:autocontrol:ai-use-responsibility',
+          graphNodeId: 'qual:autocontrol:ai-use-responsibility',
+          learningGoalId: 'control-correction',
+          resourceNodeId: 'registry:lesson09-correction-precheck',
+          confidence: 0.5,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toEqual(expect.arrayContaining([
+      'missing-version-ref:resourceRegistryVersion',
+      'missing-version-ref:resourceProjectionVersion',
+    ]));
+    expect(result.audit.limitationCodes).not.toContain('unverified-resource-node-id');
   });
 
   it('builds governed candidate inputs for path execution, Konling, and teacher-approved grading outcomes', () => {

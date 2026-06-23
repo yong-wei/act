@@ -42,6 +42,7 @@ export type KaqEvidenceLimitationCode =
   | 'ai-mediated-low-authority'
   | 'source-not-terminal-validation-authority'
   | 'low-confidence-terminal-validation'
+  | 'missing-source-ref'
   | 'unverified-resource-node-id';
 
 export interface KaqEvidenceSourceRef {
@@ -95,6 +96,7 @@ export interface KaqEvidenceWritebackInput {
   materializedAt: string;
   evidenceWindow: KaqEvidenceWindow;
   versionRefs: KaqArtifactVersionRefs | null;
+  resourceTargetRegistry?: KaqEvidenceResourceTargetRegistry | null;
   contributions: KaqEvidenceContributionInput[];
 }
 
@@ -158,6 +160,10 @@ export interface KaqEvidenceWritebackProjection {
   audit: KaqEvidenceWritebackAuditEvent | null;
 }
 
+export interface KaqEvidenceResourceTargetRegistry {
+  nodes: Array<{ id: string }>;
+}
+
 const PREVIEW_SOURCE_CLASSES = new Set<KaqEvidenceSourceClass>([
   'simulation-preview',
   'arena-preview',
@@ -192,6 +198,7 @@ const AUTOCONTROL_GRAPH_NODES_BY_ID = new Map(
 
 export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput): KaqEvidenceWritebackResult {
   const versionLimitations = validateRequiredVersionRefs(input);
+  const sourceLimitations = validateSource(input.source);
   const subjectLimitations = validateSubject(input.subject);
   const authorityLevel = resolveAuthorityLevel(input.source);
   const isPreview = authorityLevel === 'preview';
@@ -200,7 +207,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     limitationCodes: uniqueSorted([
       ...validateTargetBinding(contribution),
       ...validateCatalogTarget(contribution),
-      ...validateResourceTarget(contribution),
+      ...validateResourceTarget(contribution, input.resourceTargetRegistry),
       ...(contribution.limitationCodes ?? []),
       ...(isPreview && contribution.terminalValidationCandidate ? ['preview-not-terminal-validation' as const] : []),
       ...(input.source.aiGenerated && !input.source.teacherApproved ? ['ai-mediated-low-authority' as const] : []),
@@ -213,6 +220,8 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     ]),
   }));
   const globalBlocking = (versionLimitations.some(isBlockingVersionLimitation) && input.source.official)
+    || hasBlockingResourceTargetVersionLimitation(input, versionLimitations)
+    || sourceLimitations.length > 0
     || subjectLimitations.length > 0;
   const overlayUpdates = globalBlocking
     ? []
@@ -227,6 +236,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       .filter((update): update is KaqEvidenceOverlayUpdate => Boolean(update));
   const limitationCodes = uniqueSorted([
     ...versionLimitations,
+    ...sourceLimitations,
     ...subjectLimitations,
     ...contributionEvaluations.flatMap((evaluation) => evaluation.limitationCodes),
   ]);
@@ -465,6 +475,13 @@ function validateSubject(subject: KaqEvidenceSubjectScope): KaqEvidenceLimitatio
   ];
 }
 
+function validateSource(source: KaqEvidenceWritebackSource): KaqEvidenceLimitationCode[] {
+  const sourceId = typeof source.sourceId === 'string' ? source.sourceId.trim() : '';
+  const sourceRefKind = typeof source.sourceRef?.kind === 'string' ? source.sourceRef.kind.trim() : '';
+  const sourceRefId = typeof source.sourceRef?.id === 'string' ? source.sourceRef.id.trim() : '';
+  return sourceId && sourceRefKind && sourceRefId ? [] : ['missing-source-ref'];
+}
+
 function validateCatalogTarget(contribution: KaqEvidenceContributionInput): KaqEvidenceLimitationCode[] {
   const objective = contribution.objectiveId
     ? AUTOCONTROL_OBJECTIVES_BY_ID.get(contribution.objectiveId)
@@ -483,8 +500,14 @@ function validateCatalogTarget(contribution: KaqEvidenceContributionInput): KaqE
   return limitations;
 }
 
-function validateResourceTarget(contribution: KaqEvidenceContributionInput): KaqEvidenceLimitationCode[] {
-  return contribution.resourceNodeId ? ['unverified-resource-node-id'] : [];
+function validateResourceTarget(
+  contribution: KaqEvidenceContributionInput,
+  registry: KaqEvidenceResourceTargetRegistry | null | undefined,
+): KaqEvidenceLimitationCode[] {
+  const resourceNodeId = normalizeOptionalId(contribution.resourceNodeId);
+  if (!resourceNodeId) return [];
+  const verifiedNodeIds = new Set((registry?.nodes ?? []).map((node) => node.id));
+  return verifiedNodeIds.has(resourceNodeId) ? [] : ['unverified-resource-node-id'];
 }
 
 function graphNodeSupportsObjective(graphNode: KaqGraphNode, objective: KaqObjective): boolean {
@@ -507,6 +530,17 @@ function isBlockingContribution(limitationCodes: string[]): boolean {
 
 function isBlockingVersionLimitation(limitationCode: string): boolean {
   return limitationCode.startsWith('missing-version-ref:');
+}
+
+function hasBlockingResourceTargetVersionLimitation(
+  input: KaqEvidenceWritebackInput,
+  limitationCodes: string[],
+): boolean {
+  if (!input.contributions.some((contribution) => normalizeOptionalId(contribution.resourceNodeId))) return false;
+  return limitationCodes.some((code) => [
+    'missing-version-ref:resourceRegistryVersion',
+    'missing-version-ref:resourceProjectionVersion',
+  ].includes(code));
 }
 
 function resolveAuthorityLevel(source: KaqEvidenceWritebackSource): KaqEvidenceAuthorityLevel {
@@ -571,7 +605,7 @@ function toTargetRef(contribution: KaqEvidenceContributionInput): KaqEvidenceTar
     objectiveId: contribution.objectiveId ?? null,
     graphNodeId: contribution.graphNodeId ?? null,
     learningGoalId: contribution.learningGoalId ?? null,
-    resourceNodeId: contribution.resourceNodeId ?? null,
+    resourceNodeId: normalizeOptionalId(contribution.resourceNodeId),
   };
 }
 
@@ -589,6 +623,12 @@ function inferDomainFromObjectiveId(objectiveId: string): KaqObjectiveDomain {
 function clampConfidence(value: number): number {
   if (!Number.isFinite(value)) return 0;
   return Math.min(1, Math.max(0, value));
+}
+
+function normalizeOptionalId(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
 }
 
 function uniqueSorted<T extends string>(items: T[]): T[] {

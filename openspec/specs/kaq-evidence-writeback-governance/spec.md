@@ -15,6 +15,11 @@ The system SHALL materialize evidence into knowledge, capability, and quality ov
 - **THEN** production overlay writeback SHALL be rejected or downgraded
 - **AND** the limitation SHALL be visible to authorized diagnostics.
 
+#### Scenario: Evidence targets a ResourceNode
+- **WHEN** evidence includes a ResourceNode target
+- **THEN** the writeback layer SHALL require resource registry and projection version refs
+- **AND** it SHALL materialize the target only when the ResourceNode id is present in verified registry or projection input.
+
 ### Requirement: Preview and official evidence are distinct
 The system SHALL distinguish exploratory or preview evidence from governed terminal validation evidence.
 
@@ -44,3 +49,7 @@ Production writeback SHALL emit an audit trail suitable for replay and diagnosis
 #### Scenario: Writeback is blocked
 - **WHEN** writeback is rejected or degraded because evidence, scope, target, citation, or version context is missing
 - **THEN** the audit record SHALL include the blocking reason without fabricating overlay state.
+
+#### Scenario: Source refs are missing
+- **WHEN** a production source lacks a replayable source id, source ref kind, or source ref id
+- **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.
