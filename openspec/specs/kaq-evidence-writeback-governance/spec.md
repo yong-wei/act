@@ -68,6 +68,10 @@ Production writeback SHALL emit an audit trail suitable for replay and diagnosis
 - **WHEN** a production writeback lacks a replayable materializedAt timestamp
 - **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.
 
+#### Scenario: Evidence window is not replayable
+- **WHEN** a production writeback contains blank, non-replayable, or inverted evidence-window timestamps
+- **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.
+
 #### Scenario: Actor refs are missing
 - **WHEN** a production writeback lacks a replayable actor or service id
 - **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.

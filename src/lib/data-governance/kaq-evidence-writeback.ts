@@ -33,6 +33,7 @@ export type KaqEvidenceLimitationCode =
   | 'missing-learning-goal-boundary'
   | 'missing-writeback-id'
   | 'invalid-materialized-at'
+  | 'invalid-evidence-window'
   | 'missing-subject-owner'
   | 'missing-actor-id'
   | 'subject-owner-mismatch'
@@ -217,12 +218,14 @@ const AUTOCONTROL_GRAPH_NODES_BY_ID = new Map(
 export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput): KaqEvidenceWritebackResult {
   const writebackId = normalizeOptionalId(input.id) ?? '';
   const materializedAt = normalizeOptionalId(input.materializedAt) ?? '';
+  const evidenceWindow = normalizeEvidenceWindow(input.evidenceWindow);
   const normalizedSource = normalizeSource(input.source);
   const normalizedSubject = normalizeSubject(input.subject);
   const normalizedActor = normalizeActor(input.actor);
   const versionLimitations = validateRequiredVersionRefs(input);
   const writebackLimitations = validateWritebackId(writebackId);
   const materializedAtLimitations = validateMaterializedAt(materializedAt);
+  const evidenceWindowLimitations = validateEvidenceWindow(evidenceWindow);
   const sourceLimitations = validateSource(normalizedSource);
   const subjectLimitations = validateSubject(normalizedSubject);
   const actorLimitations = validateActor(normalizedActor);
@@ -249,6 +252,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
   const globalBlocking = (versionLimitations.some(isBlockingVersionLimitation) && input.source.official)
     || writebackLimitations.length > 0
     || materializedAtLimitations.length > 0
+    || evidenceWindowLimitations.length > 0
     || sourceLimitations.length > 0
     || subjectLimitations.length > 0
     || actorLimitations.length > 0;
@@ -256,7 +260,15 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     ? []
     : contributionEvaluations
       .map(({ contribution, limitationCodes }, index) => materializeContribution(
-        { ...input, id: writebackId, source: normalizedSource, subject: normalizedSubject, actor: normalizedActor, materializedAt },
+        {
+          ...input,
+          id: writebackId,
+          source: normalizedSource,
+          subject: normalizedSubject,
+          actor: normalizedActor,
+          materializedAt,
+          evidenceWindow,
+        },
         contribution,
         uniqueSorted([...versionLimitations, ...limitationCodes]),
         index,
@@ -267,6 +279,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     ...versionLimitations,
     ...writebackLimitations,
     ...materializedAtLimitations,
+    ...evidenceWindowLimitations,
     ...sourceLimitations,
     ...subjectLimitations,
     ...actorLimitations,
@@ -546,6 +559,14 @@ function validateMaterializedAt(materializedAt: string): KaqEvidenceLimitationCo
     : ['invalid-materialized-at'];
 }
 
+function validateEvidenceWindow(evidenceWindow: KaqEvidenceWindow): KaqEvidenceLimitationCode[] {
+  const fromValid = evidenceWindow.from === null || isStrictIsoTimestamp(evidenceWindow.from);
+  const toValid = evidenceWindow.to === null || isStrictIsoTimestamp(evidenceWindow.to);
+  const ordered = evidenceWindow.from === null || evidenceWindow.to === null
+    || Date.parse(evidenceWindow.from) <= Date.parse(evidenceWindow.to);
+  return fromValid && toValid && ordered ? [] : ['invalid-evidence-window'];
+}
+
 function validateActor(actor: KaqEvidenceWritebackActor): KaqEvidenceLimitationCode[] {
   return actor.id.length > 0 ? [] : ['missing-actor-id'];
 }
@@ -578,6 +599,13 @@ function normalizeSubject(subject: KaqEvidenceSubjectScope): KaqEvidenceSubjectS
     ownerUserId: normalizeOptionalId(subject.ownerUserId) ?? '',
     studentId: normalizeOptionalId(subject.studentId),
     classId: normalizeOptionalId(subject.classId),
+  };
+}
+
+function normalizeEvidenceWindow(evidenceWindow: KaqEvidenceWindow): KaqEvidenceWindow {
+  return {
+    from: typeof evidenceWindow.from === 'string' ? evidenceWindow.from.trim() : null,
+    to: typeof evidenceWindow.to === 'string' ? evidenceWindow.to.trim() : null,
   };
 }
 

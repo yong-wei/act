@@ -1002,6 +1002,105 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.overlayUpdates[0].materializedAt).toBe('2026-06-23T03:34:00.000Z');
   });
 
+  it('blocks non-replayable evidence windows before overlay materialization', () => {
+    const baseInput: Parameters<typeof materializeKaqEvidenceWriteback>[0] = {
+      id: 'writeback-invalid-window-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-invalid-window-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-invalid-window-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:34:01.000Z',
+      evidenceWindow: { from: '   ', to: '2026-06-23T03:34:01.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    };
+    const blank = materializeKaqEvidenceWriteback(baseInput);
+    const locale = materializeKaqEvidenceWriteback({
+      ...baseInput,
+      id: 'writeback-locale-window-1',
+      source: {
+        ...baseInput.source,
+        sourceId: 'simulation-run-locale-window-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-locale-window-1' },
+      },
+      evidenceWindow: { from: null, to: '06/07/2026' },
+    });
+    const inverted = materializeKaqEvidenceWriteback({
+      ...baseInput,
+      id: 'writeback-inverted-window-1',
+      source: {
+        ...baseInput.source,
+        sourceId: 'simulation-run-inverted-window-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-inverted-window-1' },
+      },
+      evidenceWindow: {
+        from: '2026-06-23T03:35:01.000Z',
+        to: '2026-06-23T03:34:01.000Z',
+      },
+    });
+
+    for (const result of [blank, locale, inverted]) {
+      expect(result.status).toBe('blocked');
+      expect(result.overlayUpdates).toEqual([]);
+      expect(result.audit.limitationCodes).toContain('invalid-evidence-window');
+    }
+  });
+
+  it('trims replayable evidence windows before overlay materialization', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-trim-window-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-trim-window-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-trim-window-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:34:03.000Z',
+      evidenceWindow: {
+        from: ' 2026-06-23T03:33:03.000Z ',
+        to: ' 2026-06-23T03:34:03.000Z ',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('accepted');
+    expect(result.overlayUpdates[0].evidenceWindow).toEqual({
+      from: '2026-06-23T03:33:03.000Z',
+      to: '2026-06-23T03:34:03.000Z',
+    });
+  });
+
   it('blocks missing actor identity before overlay materialization', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-actor-missing-1',
