@@ -797,6 +797,7 @@ function evidenceTypeForSourceClass(
   if (sourceClass === 'simulation-preview' || sourceClass === 'arena-preview') return 'simulation-run';
   if (sourceClass === 'simulation-validation') return 'simulation-run';
   if (sourceClass === 'arena-official') return 'arena-official-evaluation';
+  if (sourceClass === 'konling-intervention') return 'agent-interaction';
   if (sourceClass === 'teacher-approved-grading' || sourceClass === 'instructional-checkpoint') return 'question';
   return null;
 }

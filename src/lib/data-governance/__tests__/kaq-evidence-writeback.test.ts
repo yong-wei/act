@@ -19,6 +19,11 @@ const subject = {
   studentId: 'student-1',
   classId: 'class-1',
 };
+const konlingAllowedTarget = {
+  learningGoalId: 'ship-ocean-transfer-application',
+  objectiveId: 'quality:autocontrol:model-boundary-awareness',
+  graphNodeId: 'qual:autocontrol:model-boundary-awareness',
+};
 
 describe('K/A/Q evidence writeback governance', () => {
   it('routes knowledge, capability, and quality contributions separately from one governed source', () => {
@@ -411,9 +416,9 @@ describe('K/A/Q evidence writeback governance', () => {
       contributions: [
         {
           domain: 'quality',
-          objectiveId: 'quality:autocontrol:evidence-integrity',
-          graphNodeId: 'qual:autocontrol:evidence-integrity',
-          learningGoalId: 'control-correction',
+          objectiveId: konlingAllowedTarget.objectiveId,
+          graphNodeId: konlingAllowedTarget.graphNodeId,
+          learningGoalId: konlingAllowedTarget.learningGoalId,
           confidence: 0.58,
           terminalValidationCandidate: false,
         },
@@ -457,9 +462,9 @@ describe('K/A/Q evidence writeback governance', () => {
       contributions: [
         {
           domain: 'quality',
-          objectiveId: 'quality:autocontrol:evidence-integrity',
-          graphNodeId: 'qual:autocontrol:evidence-integrity',
-          learningGoalId: 'control-correction',
+          objectiveId: konlingAllowedTarget.objectiveId,
+          graphNodeId: konlingAllowedTarget.graphNodeId,
+          learningGoalId: konlingAllowedTarget.learningGoalId,
           confidence: 0.58,
           terminalValidationCandidate: false,
         },
@@ -619,9 +624,9 @@ describe('K/A/Q evidence writeback governance', () => {
       contributions: [
         {
           domain: 'quality',
-          objectiveId: 'quality:autocontrol:evidence-integrity',
-          graphNodeId: 'qual:autocontrol:evidence-integrity',
-          learningGoalId: 'control-correction',
+          objectiveId: konlingAllowedTarget.objectiveId,
+          graphNodeId: konlingAllowedTarget.graphNodeId,
+          learningGoalId: konlingAllowedTarget.learningGoalId,
           confidence: 0.58,
           terminalValidationCandidate: false,
         },
@@ -673,9 +678,9 @@ describe('K/A/Q evidence writeback governance', () => {
       contributions: [
         {
           domain: 'quality',
-          objectiveId: 'quality:autocontrol:evidence-integrity',
-          graphNodeId: 'qual:autocontrol:evidence-integrity',
-          learningGoalId: 'control-correction',
+          objectiveId: konlingAllowedTarget.objectiveId,
+          graphNodeId: konlingAllowedTarget.graphNodeId,
+          learningGoalId: konlingAllowedTarget.learningGoalId,
           confidence: 0.58,
           terminalValidationCandidate: false,
         },
@@ -710,9 +715,9 @@ describe('K/A/Q evidence writeback governance', () => {
       contributions: [
         {
           domain: 'quality',
-          objectiveId: 'quality:autocontrol:evidence-integrity',
-          graphNodeId: 'qual:autocontrol:evidence-integrity',
-          learningGoalId: 'control-correction',
+          objectiveId: konlingAllowedTarget.objectiveId,
+          graphNodeId: konlingAllowedTarget.graphNodeId,
+          learningGoalId: konlingAllowedTarget.learningGoalId,
           confidence: 0.58,
           terminalValidationCandidate: false,
         },
@@ -751,9 +756,9 @@ describe('K/A/Q evidence writeback governance', () => {
       contributions: [
         {
           domain: 'quality',
-          objectiveId: 'quality:autocontrol:evidence-integrity',
-          graphNodeId: 'qual:autocontrol:evidence-integrity',
-          learningGoalId: 'control-correction',
+          objectiveId: konlingAllowedTarget.objectiveId,
+          graphNodeId: konlingAllowedTarget.graphNodeId,
+          learningGoalId: konlingAllowedTarget.learningGoalId,
           confidence: 1,
           terminalValidationCandidate: false,
         },
@@ -768,6 +773,43 @@ describe('K/A/Q evidence writeback governance', () => {
       confidence: 0.65,
       limitationCodes: [],
     });
+  });
+
+  it('blocks Konling evidence that violates the LearningGoal evidence policy', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-konling-policy-mismatch-1',
+      source: {
+        sourceClass: 'konling-intervention',
+        sourceId: 'tool-run-policy-mismatch-1',
+        sourceRef: { kind: 'AgentToolRun', id: 'tool-run-policy-mismatch-1' },
+        official: false,
+        teacherApproved: false,
+        aiGenerated: true,
+      },
+      subject,
+      actor: { type: 'service', id: 'konling-runtime' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:33:05.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:25:00.000Z',
+        to: '2026-06-23T03:33:05.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'quality',
+          objectiveId: 'quality:autocontrol:model-boundary-awareness',
+          graphNodeId: 'qual:autocontrol:model-boundary-awareness',
+          learningGoalId: 'feedback-loop-concept-foundations',
+          confidence: 0.58,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('learning-goal-evidence-policy-mismatch');
   });
 
   it('blocks unknown, mismatched, or cross-domain target bindings', () => {
@@ -2307,6 +2349,7 @@ describe('K/A/Q evidence writeback governance', () => {
       'missing-version-ref:resourceRegistryVersion',
       'missing-version-ref:resourceProjectionVersion',
     ]));
+    expect(result.audit.limitationCodes).not.toContain('learning-goal-evidence-policy-mismatch');
   });
 
   it('does not apply stale resource version refs to non-resource contributions', () => {
@@ -2415,9 +2458,9 @@ describe('K/A/Q evidence writeback governance', () => {
       id: 'konling-writeback-1',
       toolRunId: 'tool-run-2',
       subject,
-      learningGoalId: 'control-correction',
-      qualityObjectiveId: 'quality:autocontrol:ai-use-responsibility',
-      graphNodeId: 'qual:autocontrol:ai-use-responsibility',
+      learningGoalId: konlingAllowedTarget.learningGoalId,
+      qualityObjectiveId: konlingAllowedTarget.objectiveId,
+      graphNodeId: konlingAllowedTarget.graphNodeId,
       accepted: true,
       citationRefs: ['citation:tool-run-2'],
       versionRefs,
