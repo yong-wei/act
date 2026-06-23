@@ -379,6 +379,7 @@ export function buildTeacherApprovedGradingWritebackInput(input: {
   objectiveId: string;
   graphNodeId: string;
   score: number;
+  aiGenerated?: boolean;
   versionRefs: KaqArtifactVersionRefs;
   materializedAt: string;
 }): KaqEvidenceWritebackInput {
@@ -390,7 +391,7 @@ export function buildTeacherApprovedGradingWritebackInput(input: {
       sourceRef: { kind: 'DocumentRubricGrading', id: input.gradingRunId },
       official: true,
       teacherApproved: true,
-      aiGenerated: false,
+      aiGenerated: input.aiGenerated ?? false,
     },
     subject: input.subject,
     actor: { type: 'teacher', id: input.teacherId },

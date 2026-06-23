@@ -833,23 +833,40 @@ describe('K/A/Q evidence writeback governance', () => {
       objectiveId: 'quality:autocontrol:evidence-integrity',
       graphNodeId: 'qual:autocontrol:evidence-integrity',
       score: 0.86,
+      aiGenerated: true,
       versionRefs,
       materializedAt: '2026-06-23T03:35:40.000Z',
     });
-    const result = materializeKaqEvidenceWriteback({
-      ...input,
-      source: {
-        ...input.source,
-        aiGenerated: true,
-      },
-    });
+    const result = materializeKaqEvidenceWriteback(input);
 
+    expect(input.source.aiGenerated).toBe(true);
     expect(result.status).toBe('accepted');
     expect(result.overlayUpdates[0]).toMatchObject({
       aiGenerated: true,
       teacherApproved: true,
       terminalValidationAccepted: true,
       limitationCodes: [],
+    });
+  });
+
+  it('defaults teacher-approved grading helper to non-AI provenance', () => {
+    const input = buildTeacherApprovedGradingWritebackInput({
+      id: 'grading-writeback-human-approved-1',
+      gradingRunId: 'grading-run-human-approved-1',
+      subject,
+      teacherId: 'teacher-9',
+      learningGoalId: 'control-correction',
+      objectiveId: 'quality:autocontrol:evidence-integrity',
+      graphNodeId: 'qual:autocontrol:evidence-integrity',
+      score: 0.86,
+      versionRefs,
+      materializedAt: '2026-06-23T03:35:42.000Z',
+    });
+
+    expect(input.source).toMatchObject({
+      sourceClass: 'teacher-approved-grading',
+      teacherApproved: true,
+      aiGenerated: false,
     });
   });
 
