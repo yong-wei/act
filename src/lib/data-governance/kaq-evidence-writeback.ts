@@ -46,6 +46,7 @@ export type KaqEvidenceLimitationCode =
   | 'unknown-graph-node-id'
   | 'unknown-learning-goal-id'
   | 'learning-goal-target-mismatch'
+  | 'learning-goal-evidence-policy-mismatch'
   | 'terminal-validation-policy-mismatch'
   | 'objective-domain-mismatch'
   | 'graph-node-domain-mismatch'
@@ -253,6 +254,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     contribution,
     limitationCodes: uniqueSorted([
       ...validateTargetBinding(contribution),
+      ...validateLearningGoalEvidencePolicy(normalizedSource, contribution),
       ...validateTerminalValidationPolicy(normalizedSource, contribution),
       ...validateCatalogTarget(contribution),
       ...validateResourceTargetVersionRefs(normalizedInput, contribution),
@@ -556,6 +558,20 @@ function validateTargetBinding(contribution: KaqEvidenceContributionInput): KaqE
   ];
 }
 
+function validateLearningGoalEvidencePolicy(
+  source: KaqEvidenceWritebackSource,
+  contribution: KaqEvidenceContributionInput,
+): KaqEvidenceLimitationCode[] {
+  if (!PREVIEW_SOURCE_CLASSES.has(source.sourceClass)) return [];
+  const learningGoalId = normalizeOptionalId(contribution.learningGoalId);
+  const learningGoal = learningGoalId ? getLearningGoal(learningGoalId) : null;
+  const evidenceType = evidenceTypeForSourceClass(source.sourceClass);
+  if (!learningGoal || !evidenceType) return [];
+  return learningGoal.evidencePolicy.requiredEvidenceTypes.includes(evidenceType)
+    ? []
+    : ['learning-goal-evidence-policy-mismatch'];
+}
+
 function validateTerminalValidationPolicy(
   source: KaqEvidenceWritebackSource,
   contribution: KaqEvidenceContributionInput,
@@ -743,6 +759,7 @@ function isBlockingContribution(limitationCodes: string[]): boolean {
     'missing-learning-goal-boundary',
     'unknown-learning-goal-id',
     'learning-goal-target-mismatch',
+    'learning-goal-evidence-policy-mismatch',
     'unknown-objective-id',
     'unknown-graph-node-id',
     'objective-domain-mismatch',
@@ -777,6 +794,7 @@ function canSourceSatisfyTerminalValidation(source: KaqEvidenceWritebackSource):
 function evidenceTypeForSourceClass(
   sourceClass: KaqEvidenceSourceClass,
 ): AdaptiveLearningPathEvidenceType | null {
+  if (sourceClass === 'simulation-preview' || sourceClass === 'arena-preview') return 'simulation-run';
   if (sourceClass === 'simulation-validation') return 'simulation-run';
   if (sourceClass === 'arena-official') return 'arena-official-evaluation';
   if (sourceClass === 'teacher-approved-grading' || sourceClass === 'instructional-checkpoint') return 'question';

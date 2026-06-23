@@ -219,6 +219,43 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.audit.limitationCodes).not.toContain('source-ref-class-mismatch');
   });
 
+  it('blocks preview evidence that violates the LearningGoal evidence policy', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-preview-policy-mismatch-1',
+      source: {
+        sourceClass: 'simulation-preview',
+        sourceId: 'simulation-run-preview-policy-mismatch-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-preview-policy-mismatch-1' },
+        official: false,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-preview' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:31:42.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:30:00.000Z',
+        to: '2026-06-23T03:31:42.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:model-feedback-system',
+          graphNodeId: 'cap:autocontrol:model-feedback-system',
+          learningGoalId: 'feedback-loop-concept-foundations',
+          confidence: 0.88,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('learning-goal-evidence-policy-mismatch');
+  });
+
   it('does not accept path execution completion as terminal validation by itself', () => {
     const pathInput = buildPathExecutionWritebackInput({
       id: 'path-terminal-candidate-1',
