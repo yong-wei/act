@@ -374,7 +374,7 @@ function GraphCenterActionItem({ action }: { action: GraphCenterAction }) {
       : 'border-platform-border bg-platform-canvas-muted text-platform-fg-primary',
   ].join(' ');
 
-  if (action.target && action.status !== 'disabled') {
+  if (action.target && isGraphCenterActionLinkable(action)) {
     return (
       <a
         href={action.target.href}
@@ -398,6 +398,14 @@ function GraphCenterActionItem({ action }: { action: GraphCenterAction }) {
       {body}
     </div>
   );
+}
+
+function isGraphCenterActionLinkable(action: GraphCenterAction): boolean {
+  if (action.status === 'available') return true;
+  if (action.status === 'disabled') return false;
+  return action.reasonCode === 'missing-resource-context' ||
+    action.reasonCode === 'missing-citation-context' ||
+    action.reasonCode === 'missing-overlay-context';
 }
 
 function OverlayModeButton({
