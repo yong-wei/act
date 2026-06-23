@@ -738,8 +738,8 @@ function comparePathNodeOrder(
   right: string,
   candidatesById: Map<string, PathConstraintRepairCandidate>,
 ): number {
-  const leftTerminalRank = candidatesById.get(left)?.terminalValidation === 'official' ? 1 : 0;
-  const rightTerminalRank = candidatesById.get(right)?.terminalValidation === 'official' ? 1 : 0;
+  const leftTerminalRank = candidatesById.get(left)?.terminalValidation ? 1 : 0;
+  const rightTerminalRank = candidatesById.get(right)?.terminalValidation ? 1 : 0;
   return leftTerminalRank - rightTerminalRank ||
     prerequisiteDepth(left, candidatesById) - prerequisiteDepth(right, candidatesById);
 }

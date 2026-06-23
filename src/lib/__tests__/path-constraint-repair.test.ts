@@ -1457,6 +1457,46 @@ describe('path constraint repair', () => {
     }));
   });
 
+  it('keeps optional terminal validation after deeper prerequisite chains', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['lesson', 'preview-terminal'],
+      candidates: [
+        {
+          nodeId: 'prep',
+          estimatedTimeMinutes: 4,
+          prerequisiteNodeIds: [],
+        },
+        {
+          nodeId: 'lesson',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: ['prep'],
+        },
+        {
+          nodeId: 'preview-terminal',
+          estimatedTimeMinutes: 6,
+          prerequisiteNodeIds: [],
+          terminalValidation: 'preview',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 30,
+        requiredCheckpointCount: 0,
+        terminalValidationRequired: false,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['prep', 'lesson', 'preview-terminal']);
+    expect(repair.insertedNodeIds).toEqual(['prep']);
+    expect(repair.infeasibleReasons).not.toContainEqual(expect.objectContaining({
+      code: 'terminal-validation-not-final',
+    }));
+  });
+
   it('marks non-endpoint preview terminal validation as infeasible', () => {
     const repair = repairPathConstraints({
       draftNodeIds: ['preview-terminal', 'target'],
@@ -1491,7 +1531,7 @@ describe('path constraint repair', () => {
     });
 
     expect(repair.status).toBe('infeasible');
-    expect(repair.repairedNodeIds).toEqual(['preview-terminal', 'target', 'official-terminal']);
+    expect(repair.repairedNodeIds).toEqual(['target', 'preview-terminal', 'official-terminal']);
     expect(repair.terminalValidationNodeIds).toEqual(['official-terminal']);
     expect(repair.infeasibleReasons).toContainEqual(expect.objectContaining({
       code: 'terminal-validation-not-final',
