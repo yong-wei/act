@@ -639,7 +639,9 @@ describe('graph center payload service', () => {
       },
     });
     expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:inspect-affected-population')).toMatchObject({
-      status: 'available',
+      status: 'degraded',
+      reasonCode: 'missing-route-context',
+      reason: '班级诊断入口当前只保留图谱节点提示，尚未按该节点过滤受影响学生。',
       target: {
         route: '/teacher/classes/[classId]/analytics-v2',
         params: {

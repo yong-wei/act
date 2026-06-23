@@ -1714,6 +1714,7 @@ function buildAdaptiveLearningPathPlanInternal(
     }),
     scene: 'path',
     targetGraphNodeIds,
+    selectedGraphNodeIds: graphContext?.selectedGraphNodeIds ?? [],
     learnerState: input.learnerState,
     preferredResourceTypes: input.resourcePreferences,
     timeBudgetMinutes: input.constraints.timeBudgetMinutes,

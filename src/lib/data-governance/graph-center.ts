@@ -709,8 +709,10 @@ function buildTeacherGraphCenterActions(input: {
           id: 'teacher:inspect-affected-population',
           role: 'teacher',
           label: '查看影响学生',
-          description: '查看当前节点关联的班级样本与受影响人群。',
-          status: 'available',
+          description: '进入班级受影响学生视图。',
+          status: 'degraded',
+          reasonCode: 'missing-route-context',
+          reason: '班级诊断入口当前只保留图谱节点提示，尚未按该节点过滤受影响学生。',
           target: buildGraphCenterActionTarget('/teacher/classes/[classId]/analytics-v2', {
             classId: classRouteId,
             graphNodeId: input.node.id,
