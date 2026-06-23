@@ -1005,6 +1005,60 @@ async function main() {
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
     },
     {
+      name: 'tablet-1024-inspector-tools-konling-dark',
+      theme: 'dark',
+      width: 1024,
+      height: 900,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'expanded',
+      localToolState: 'relation-filters',
+      selectedNode: selectedNodeId,
+      interactionState: 'tablet lower boundary inspector konling local tool suspension',
+      query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      beforeShot: async (page) => {
+        await openDesktopTool(page, 'relation-filters');
+        await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
+        await expandDock(page);
+      },
+    },
+    {
+      name: 'tablet-1100-inspector-tools-konling-dark',
+      theme: 'dark',
+      width: 1100,
+      height: 900,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'expanded',
+      localToolState: 'relation-filters',
+      selectedNode: selectedNodeId,
+      interactionState: 'tablet breakpoint inspector konling local tool suspension',
+      query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      beforeShot: async (page) => {
+        await openDesktopTool(page, 'relation-filters');
+        await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
+        await expandDock(page);
+      },
+    },
+    {
+      name: 'tablet-1279-inspector-tools-konling-dark',
+      theme: 'dark',
+      width: 1279,
+      height: 900,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'expanded',
+      localToolState: 'relation-filters',
+      selectedNode: selectedNodeId,
+      interactionState: 'tablet upper boundary inspector konling local tool suspension',
+      query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      beforeShot: async (page) => {
+        await openDesktopTool(page, 'relation-filters');
+        await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
+        await expandDock(page);
+      },
+    },
+    {
       name: 'mobile-320-local-tools-dark',
       theme: 'dark',
       width: 320,

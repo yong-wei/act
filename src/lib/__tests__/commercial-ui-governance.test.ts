@@ -4120,7 +4120,7 @@ describe('commercial UI governance', () => {
 
     expect(scriptSource).toContain('const viewportWidth = numberFromEvidence(viewport.width);');
     expect(scriptSource).toContain('const isMobileViewport = viewportWidth === 320;');
-    expect(scriptSource).toContain('const isTabletBreakpointViewport = viewportWidth === 1100;');
+    expect(scriptSource).toContain('const isTabletBreakpointViewport = [1024, 1100, 1279].includes(viewportWidth ?? 0);');
     expect(scriptSource).toContain('`${name}:invalid-tablet-screenshot-width`');
     expect(scriptSource).toContain('const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;');
     expect(scriptSource).toContain('const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;');
@@ -4192,9 +4192,15 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'tablet-1100-default-dark'");
     expect(captureScriptSource).toContain("'tablet-1100-local-tools-filter-dark'");
     expect(captureScriptSource).toContain("'tablet-1100-selected-inspector-dark'");
-    expect(scriptSource).toContain("if (name.startsWith('tablet-1100')) return 'tablet-1100-default-dark';");
+    expect(captureScriptSource).toContain("'tablet-1024-inspector-tools-konling-dark'");
+    expect(captureScriptSource).toContain("'tablet-1100-inspector-tools-konling-dark'");
+    expect(captureScriptSource).toContain("'tablet-1279-inspector-tools-konling-dark'");
+    expect(scriptSource).toContain("if (name.startsWith('tablet-')) return 'tablet-1100-default-dark';");
     expect(scriptSource).toContain("'tablet-1100-local-tools-filter-dark'");
     expect(scriptSource).toContain("'tablet-1100-selected-inspector-dark'");
+    expect(scriptSource).toContain("'tablet-1024-inspector-tools-konling-dark'");
+    expect(scriptSource).toContain("'tablet-1100-inspector-tools-konling-dark'");
+    expect(scriptSource).toContain("'tablet-1279-inspector-tools-konling-dark'");
     expect(captureScriptSource).toContain('const canvasRect = rectFor(canvas);');
     expect(captureScriptSource).toContain('canvas: canvasRect');
     expect(captureScriptSource).toContain("openDesktopTool(page, 'chapter-directory')");
@@ -4216,6 +4222,10 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('`${name}:inspector-overlaps-tablet-mobile-navigation`');
     expect(scriptSource).toContain('numberFromEvidence(markerRects.inspector.top) >= 314');
     expect(scriptSource).toContain('`${name}:konling-inspector-avoidance-missing`');
+    expect(scriptSource).toContain('`${name}:tablet-local-tool-panel-not-suspended-while-konling-open`');
+    expect(scriptSource).toContain('`${name}:expanded-dock-overlaps-tools`');
+    expect(globalsSource).toContain('@media (min-width: 1024px) and (max-width: 1279px)');
+    expect(globalsSource).toContain('[data-knowledge-desktop-command-system] {\n      display: none !important;');
     expect(scriptSource).toContain("konlingRuntimeSource.includes(\"const contextNodeId = hint?.status === 'degraded'\")");
     expect(scriptSource).toContain('const productQaSourcePaths = [');
     expect(scriptSource).toContain('globalAiButtonSourcePath');

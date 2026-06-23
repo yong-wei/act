@@ -1983,6 +1983,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['tablet-1100-default-dark', 'dark', 1100, 'collapsed', 'collapsed'],
     ['tablet-1100-local-tools-filter-dark', 'dark', 1100, 'collapsed', 'collapsed'],
     ['tablet-1100-selected-inspector-dark', 'dark', 1100, 'collapsed', 'collapsed'],
+    ['tablet-1024-inspector-tools-konling-dark', 'dark', 1024, 'collapsed', 'expanded'],
+    ['tablet-1100-inspector-tools-konling-dark', 'dark', 1100, 'collapsed', 'expanded'],
+    ['tablet-1279-inspector-tools-konling-dark', 'dark', 1279, 'collapsed', 'expanded'],
     ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile', 'expanded'],
@@ -1990,7 +1993,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['light-theme-default', 'light', 1440, 'collapsed', 'collapsed'],
   ] as const;
   const desktopGeometryBaselineName = (name: string, navigationState: string) => {
-    if (name.startsWith('tablet-1100')) return 'tablet-1100-default-dark';
+    if (name.startsWith('tablet-')) return 'tablet-1100-default-dark';
     if (name.startsWith('desktop-wide')) return 'desktop-wide-default-dark';
     if (navigationState === 'expanded') return 'desktop-expanded-persisted-dark';
     return 'desktop-default-collapsed-dark';
@@ -2012,7 +2015,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
     const viewportWidth = numberFromEvidence(viewport.width);
     const isMobileViewport = viewportWidth === 320;
-    const isTabletBreakpointViewport = viewportWidth === 1100;
+    const isTabletBreakpointViewport = [1024, 1100, 1279].includes(viewportWidth ?? 0);
     const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;
     const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;
     if (!state) return [`${name}:missing-state`];
@@ -2036,7 +2039,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         ? (artifact?.width === 320 ? null : `${name}:invalid-mobile-screenshot-width`)
         : (
             isTabletBreakpointViewport
-              ? (artifact?.width === 1100 ? null : `${name}:invalid-tablet-screenshot-width`)
+              ? (artifact?.width === viewportWidth ? null : `${name}:invalid-tablet-screenshot-width`)
               : (typeof artifact?.width === 'number' && artifact.width >= 1200 ? null : `${name}:desktop-screenshot-too-narrow`)
           ),
       isMobileViewport
@@ -2072,6 +2075,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         'desktop-wide-inspector-tools-dark',
         'tablet-1100-local-tools-filter-dark',
         'tablet-1100-selected-inspector-dark',
+        'tablet-1100-inspector-tools-konling-dark',
       ].includes(name)
         ? (
             numberFromEvidence(canvasRect.left) === numberFromEvidence(baselineCanvasRect.left)
@@ -2133,7 +2137,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
               : `${name}:inspector-overlaps-app-shell-header`
           )
         : null,
-      name.startsWith('tablet-1100') && markerRects.inspector
+      name.startsWith('tablet-') && markerRects.inspector
         ? (
             numberFromEvidence(markerRects.inspector.top) >= 314
               ? null
@@ -2142,6 +2146,36 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         : null,
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (markers.konlingInspectorAvoidance === 'active' ? null : `${name}:konling-inspector-avoidance-missing`)
+        : null,
+      name === 'tablet-1100-inspector-tools-konling-dark'
+        ? (markers.konlingInspectorAvoidance === 'active' ? null : `${name}:konling-inspector-avoidance-missing`)
+        : null,
+      name === 'tablet-1024-inspector-tools-konling-dark'
+        ? (markers.konlingInspectorAvoidance === 'active' ? null : `${name}:konling-inspector-avoidance-missing`)
+        : null,
+      name === 'tablet-1279-inspector-tools-konling-dark'
+        ? (markers.konlingInspectorAvoidance === 'active' ? null : `${name}:konling-inspector-avoidance-missing`)
+        : null,
+      name === 'tablet-1100-inspector-tools-konling-dark'
+        ? (!markerRects.activeLocalPanel ? null : `${name}:tablet-local-tool-panel-not-suspended-while-konling-open`)
+        : null,
+      name === 'tablet-1024-inspector-tools-konling-dark'
+        ? (!markerRects.activeLocalPanel ? null : `${name}:tablet-local-tool-panel-not-suspended-while-konling-open`)
+        : null,
+      name === 'tablet-1279-inspector-tools-konling-dark'
+        ? (!markerRects.activeLocalPanel ? null : `${name}:tablet-local-tool-panel-not-suspended-while-konling-open`)
+        : null,
+      name === 'tablet-1100-inspector-tools-konling-dark'
+        ? (booleanFromEvidence(overlaps.inspectorOverlapsActiveLocalPanel) === false ? null : `${name}:inspector-overlaps-local-tool-panel`)
+        : null,
+      name === 'tablet-1024-inspector-tools-konling-dark'
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsDesktopTools) === false ? null : `${name}:expanded-dock-overlaps-tools`)
+        : null,
+      name === 'tablet-1100-inspector-tools-konling-dark'
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsDesktopTools) === false ? null : `${name}:expanded-dock-overlaps-tools`)
+        : null,
+      name === 'tablet-1279-inspector-tools-konling-dark'
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsDesktopTools) === false ? null : `${name}:expanded-dock-overlaps-tools`)
         : null,
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
