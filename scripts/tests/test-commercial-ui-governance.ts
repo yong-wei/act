@@ -2124,6 +2124,13 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (markerRects.inspector ? null : `${name}:inspector-rect-missing`)
         : null,
+      name.startsWith('desktop') && markerRects.inspector
+        ? (
+            numberFromEvidence(markerRects.inspector.top) >= 88
+              ? null
+              : `${name}:inspector-overlaps-app-shell-header`
+          )
+        : null,
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (markers.konlingInspectorAvoidance === 'active' ? null : `${name}:konling-inspector-avoidance-missing`)
         : null,

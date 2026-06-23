@@ -4209,6 +4209,8 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('expectedKonlingContext');
     expect(scriptSource).toContain('markers.konlingKnowledgeContext === expectedKonlingContext');
     expect(scriptSource).toContain('`${name}:inspector-rect-missing`');
+    expect(scriptSource).toContain('`${name}:inspector-overlaps-app-shell-header`');
+    expect(scriptSource).toContain('numberFromEvidence(markerRects.inspector.top) >= 88');
     expect(scriptSource).toContain('`${name}:konling-inspector-avoidance-missing`');
     expect(scriptSource).toContain("konlingRuntimeSource.includes(\"const contextNodeId = hint?.status === 'degraded'\")");
     expect(scriptSource).toContain('const productQaSourcePaths = [');

@@ -30,6 +30,7 @@
 - `mobile-320-local-tools-dark`、`mobile-320-selected-inspector-dark`、`mobile-320-inspector-konling-stress-dark` 的 `scrollHeight` 与 `viewportHeight` 均为 `800`。
 - `tablet-1100-default-dark` 与 `tablet-1100-local-tools-filter-dark` 的 `scrollWidth=viewportWidth=1100`、`scrollHeight=viewportHeight=900`，覆盖 1024-1279px 的移动导航与桌面工具并存断点回归。
 - `tablet-1100-local-tools-filter-dark` 中关系筛选面板为 `left=40 top=162 width=466 height=669 bottom=831`，完整落在 900px 视口内，且画布与 1100px 默认态完全一致。
+- 桌面 inspector 均锚定在 AppShell 头部下方：`desktop-selected-inspector-light`、`desktop-stress-expanded-tool-inspector-konling-dark` 与 `desktop-wide-inspector-tools-dark` 的 `top=88`，不覆盖 72px 平台头部。
 - `desktop-stress-expanded-tool-inspector-konling-dark` 中 expanded Konling、左侧本地工具、右侧 inspector 三者未重叠，`konlingInspectorAvoidance` 为 `active`。
 - `desktop-expanded-persisted-dark` 与 `desktop-stress-expanded-tool-inspector-konling-dark` 的 canvas 均为 `left=272 top=93 width=1144 height=847`。
 - `desktop-wide-default-dark` 与 `desktop-wide-inspector-tools-dark` 的 canvas 均为 `left=270 top=93 width=1452 height=967`。
