@@ -196,23 +196,28 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     selectedNodeIds = selectedIds,
   ): boolean => fallbackSupportNodeIdsForSelected(selectedNodeIds).has(candidateNodeId);
 
+  const canRemoveCandidateFromSelection = (
+    candidate: PathConstraintRepairCandidate,
+    candidateIds: string[],
+  ): boolean => {
+    const selectedCheckpointIds = checkpointIds(candidateIds, candidatesById);
+    const selectedCoverageCounts = coverageCounts(candidateIds, candidatesById);
+    const requiredCoverageTargets = new Set(input.constraints.requiredCoverageTargetIds ?? []);
+    return candidate.removable === true &&
+      (!candidate.checkpointRole || selectedCheckpointIds.length > input.constraints.requiredCheckpointCount) &&
+      candidate.terminalValidation !== 'official' &&
+      preservesRequiredCoverage(candidate, selectedCoverageCounts, requiredCoverageTargets) &&
+      !isPrerequisiteForSelected(candidate.nodeId, candidateIds, candidatesById) &&
+      !isFallbackSupportForSelected(candidate.nodeId, candidateIds);
+  };
+
   const canReduceSelectionToBudget = (initialSelectedIds: string[]): boolean => {
     const candidateIds = [...initialSelectedIds];
-    const requiredCoverageTargets = new Set(input.constraints.requiredCoverageTargetIds ?? []);
     while (estimatedMinutes(candidateIds, candidatesById) > input.constraints.timeBudgetMinutes) {
-      const selectedCheckpointIds = checkpointIds(candidateIds, candidatesById);
-      const selectedCoverageCounts = coverageCounts(candidateIds, candidatesById);
       const removable = candidateIds
         .map((nodeId) => candidatesById.get(nodeId))
         .filter((candidate): candidate is PathConstraintRepairCandidate => Boolean(candidate))
-        .filter((candidate) =>
-          candidate.removable &&
-          (!candidate.checkpointRole || selectedCheckpointIds.length > input.constraints.requiredCheckpointCount) &&
-          candidate.terminalValidation !== 'official' &&
-          preservesRequiredCoverage(candidate, selectedCoverageCounts, requiredCoverageTargets) &&
-          !isPrerequisiteForSelected(candidate.nodeId, candidateIds, candidatesById) &&
-          !isFallbackSupportForSelected(candidate.nodeId, candidateIds)
-        )
+        .filter((candidate) => canRemoveCandidateFromSelection(candidate, candidateIds))
         .sort((left, right) => right.estimatedTimeMinutes - left.estimatedTimeMinutes || left.nodeId.localeCompare(right.nodeId))[0];
       if (!removable) return false;
       candidateIds.splice(candidateIds.indexOf(removable.nodeId), 1);
@@ -290,6 +295,10 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
       if (canSatisfyLockedFallbacks(nextSelectedIds, 0, seenStates)) {
         return true;
       }
+    }
+    if (canRemoveCandidateFromSelection(candidate, initialSelectedIds)) {
+      const nextSelectedIds = initialSelectedIds.filter((id) => id !== nodeId);
+      return canSatisfyLockedFallbacks(nextSelectedIds, lockedIndex, seenStates);
     }
     return false;
   };
@@ -541,17 +550,7 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
   for (const nodeId of unsatisfiedLockedNodeIds) {
     const candidate = candidatesById.get(nodeId);
     if (!candidate?.locked) continue;
-    const selectedCheckpointIds = checkpointIds(selectedIds, candidatesById);
-    const selectedCoverageCounts = coverageCounts(selectedIds, candidatesById);
-    const requiredCoverageTargets = new Set(input.constraints.requiredCoverageTargetIds ?? []);
-    if (
-      candidate.removable &&
-      (!candidate.checkpointRole || selectedCheckpointIds.length > input.constraints.requiredCheckpointCount) &&
-      candidate.terminalValidation !== 'official' &&
-      preservesRequiredCoverage(candidate, selectedCoverageCounts, requiredCoverageTargets) &&
-      !isPrerequisiteForSelected(candidate.nodeId, selectedIds, candidatesById) &&
-      !isFallbackSupportForSelected(candidate.nodeId)
-    ) {
+    if (canRemoveCandidateFromSelection(candidate, selectedIds)) {
       selectedIds.splice(selectedIds.indexOf(candidate.nodeId), 1);
       removedNodeIds.push(candidate.nodeId);
       repairedConstraints.push('locked-node-fallback');
@@ -574,20 +573,10 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
   }
 
   while (estimatedMinutes(selectedIds, candidatesById) > input.constraints.timeBudgetMinutes) {
-    const selectedCheckpointIds = checkpointIds(selectedIds, candidatesById);
-    const selectedCoverageCounts = coverageCounts(selectedIds, candidatesById);
-    const requiredCoverageTargets = new Set(input.constraints.requiredCoverageTargetIds ?? []);
     const removable = selectedIds
       .map((nodeId) => candidatesById.get(nodeId))
       .filter((candidate): candidate is PathConstraintRepairCandidate => Boolean(candidate))
-      .filter((candidate) =>
-        candidate.removable &&
-        (!candidate.checkpointRole || selectedCheckpointIds.length > input.constraints.requiredCheckpointCount) &&
-        candidate.terminalValidation !== 'official' &&
-        preservesRequiredCoverage(candidate, selectedCoverageCounts, requiredCoverageTargets) &&
-        !isPrerequisiteForSelected(candidate.nodeId, selectedIds, candidatesById) &&
-        !isFallbackSupportForSelected(candidate.nodeId)
-      )
+      .filter((candidate) => canRemoveCandidateFromSelection(candidate, selectedIds))
       .sort((left, right) => right.estimatedTimeMinutes - left.estimatedTimeMinutes || left.nodeId.localeCompare(right.nodeId))[0];
     if (!removable) {
       infeasibleReasons.push({

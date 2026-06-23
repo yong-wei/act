@@ -134,6 +134,46 @@ describe('path constraint repair', () => {
     expect(repair.limitations).toContain('checkpoint-resource-missing');
   });
 
+  it('replaces an unsatisfied locked coverage node with a checkpoint covering the same required target', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['locked-lab'],
+      candidates: [
+        {
+          nodeId: 'locked-lab',
+          estimatedTimeMinutes: 20,
+          prerequisiteNodeIds: [],
+          locked: true,
+          fallbackNodeIds: [],
+          removable: true,
+          coverageTargetIds: ['required-target'],
+        },
+        {
+          nodeId: 'replacement-checkpoint',
+          estimatedTimeMinutes: 6,
+          prerequisiteNodeIds: [],
+          checkpointRole: 'formative',
+          coverageTargetIds: ['required-target'],
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 10,
+        requiredCheckpointCount: 1,
+        terminalValidationRequired: false,
+        requiredCoverageTargetIds: ['required-target'],
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['replacement-checkpoint']);
+    expect(repair.insertedNodeIds).toEqual(['replacement-checkpoint']);
+    expect(repair.removedNodeIds).toEqual(['locked-lab']);
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
   it('inserts bounded fallback nodes before locked future milestones', () => {
     const repair = repairPathConstraints({
       draftNodeIds: ['locked-lab'],
