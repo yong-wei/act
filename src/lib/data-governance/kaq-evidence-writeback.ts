@@ -197,10 +197,12 @@ const AUTOCONTROL_GRAPH_NODES_BY_ID = new Map(
 );
 
 export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput): KaqEvidenceWritebackResult {
+  const normalizedSource = normalizeSource(input.source);
+  const normalizedSubject = normalizeSubject(input.subject);
   const versionLimitations = validateRequiredVersionRefs(input);
-  const sourceLimitations = validateSource(input.source);
-  const subjectLimitations = validateSubject(input.subject);
-  const authorityLevel = resolveAuthorityLevel(input.source);
+  const sourceLimitations = validateSource(normalizedSource);
+  const subjectLimitations = validateSubject(normalizedSubject);
+  const authorityLevel = resolveAuthorityLevel(normalizedSource);
   const isPreview = authorityLevel === 'preview';
   const contributionEvaluations = input.contributions.map((contribution) => ({
     contribution,
@@ -211,8 +213,8 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       ...validateResourceTarget(contribution, input.resourceTargetRegistry),
       ...(contribution.limitationCodes ?? []),
       ...(isPreview && contribution.terminalValidationCandidate ? ['preview-not-terminal-validation' as const] : []),
-      ...(input.source.aiGenerated && !input.source.teacherApproved ? ['ai-mediated-low-authority' as const] : []),
-      ...(!isPreview && contribution.terminalValidationCandidate && !canSourceSatisfyTerminalValidation(input.source)
+      ...(normalizedSource.aiGenerated && !normalizedSource.teacherApproved ? ['ai-mediated-low-authority' as const] : []),
+      ...(!isPreview && contribution.terminalValidationCandidate && !canSourceSatisfyTerminalValidation(normalizedSource)
         ? ['source-not-terminal-validation-authority' as const]
         : []),
       ...(contribution.terminalValidationCandidate && clampConfidence(contribution.confidence) < TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD
@@ -227,7 +229,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     ? []
     : contributionEvaluations
       .map(({ contribution, limitationCodes }, index) => materializeContribution(
-        input,
+        { ...input, source: normalizedSource, subject: normalizedSubject },
         contribution,
         uniqueSorted([...versionLimitations, ...limitationCodes]),
         index,
@@ -249,20 +251,20 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     audit: {
       eventType: 'kaq-evidence-writeback.materialized',
       writebackId: input.id,
-      sourceClass: input.source.sourceClass,
-      sourceId: input.source.sourceId,
-      sourceRef: input.source.sourceRef,
-      citationRefs: input.source.citationRefs ?? null,
+      sourceClass: normalizedSource.sourceClass,
+      sourceId: normalizedSource.sourceId,
+      sourceRef: normalizedSource.sourceRef,
+      citationRefs: normalizedSource.citationRefs ?? null,
       targetRefs: input.contributions.map(toTargetRef),
-      subject: input.subject,
+      subject: normalizedSubject,
       versionRefs: input.versionRefs,
       confidence: averageConfidence(input.contributions),
       limitationCodes,
       actor: input.actor,
       privacyScope: input.privacyScope,
       materializedAt: input.materializedAt,
-      aiGenerated: input.source.aiGenerated,
-      teacherApproved: input.source.teacherApproved,
+      aiGenerated: normalizedSource.aiGenerated,
+      teacherApproved: normalizedSource.teacherApproved,
       status,
     },
   };
@@ -496,6 +498,26 @@ function validateSource(source: KaqEvidenceWritebackSource): KaqEvidenceLimitati
   const sourceRefKind = typeof source.sourceRef?.kind === 'string' ? source.sourceRef.kind.trim() : '';
   const sourceRefId = typeof source.sourceRef?.id === 'string' ? source.sourceRef.id.trim() : '';
   return sourceId && sourceRefKind && sourceRefId ? [] : ['missing-source-ref'];
+}
+
+function normalizeSource(source: KaqEvidenceWritebackSource): KaqEvidenceWritebackSource {
+  return {
+    ...source,
+    sourceId: normalizeOptionalId(source.sourceId) ?? '',
+    sourceRef: {
+      kind: normalizeOptionalId(source.sourceRef?.kind) ?? '',
+      id: normalizeOptionalId(source.sourceRef?.id) ?? '',
+    },
+  };
+}
+
+function normalizeSubject(subject: KaqEvidenceSubjectScope): KaqEvidenceSubjectScope {
+  return {
+    ...subject,
+    ownerUserId: normalizeOptionalId(subject.ownerUserId) ?? '',
+    studentId: normalizeOptionalId(subject.studentId),
+    classId: normalizeOptionalId(subject.classId),
+  };
 }
 
 function validateCatalogTarget(contribution: KaqEvidenceContributionInput): KaqEvidenceLimitationCode[] {

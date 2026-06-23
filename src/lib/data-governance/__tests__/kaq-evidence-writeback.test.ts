@@ -737,6 +737,60 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.audit.limitationCodes).toContain('missing-learning-goal-boundary');
   });
 
+  it('normalizes accepted source and subject identifiers before materialization', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-normalized-source-subject-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: ' simulation-run-normalized-1 ',
+        sourceRef: { kind: ' SimulationRun ', id: ' simulation-run-normalized-1 ' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject: {
+        ownerUserId: ' student-1 ',
+        studentId: ' student-1 ',
+        classId: ' class-1 ',
+      },
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:34:07.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:34:07.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('accepted');
+    expect(result.audit).toMatchObject({
+      sourceId: 'simulation-run-normalized-1',
+      sourceRef: { kind: 'SimulationRun', id: 'simulation-run-normalized-1' },
+      subject: {
+        ownerUserId: 'student-1',
+        studentId: 'student-1',
+        classId: 'class-1',
+      },
+    });
+    expect(result.overlayUpdates[0]).toMatchObject({
+      sourceId: 'simulation-run-normalized-1',
+      sourceRef: { kind: 'SimulationRun', id: 'simulation-run-normalized-1' },
+      subject: {
+        ownerUserId: 'student-1',
+        studentId: 'student-1',
+        classId: 'class-1',
+      },
+    });
+  });
+
   it('blocks writeback with missing replayable source refs before terminal validation', () => {
     const baseInput: Parameters<typeof materializeKaqEvidenceWriteback>[0] = {
       id: 'writeback-missing-source-ref-1',
