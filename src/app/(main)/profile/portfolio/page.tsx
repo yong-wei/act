@@ -209,7 +209,7 @@ export default function PortfolioPage() {
     <div className="surface-page" data-commercial-workspace="learner-record">
       {/* Header */}
       <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
+        <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/profile" className="text-subtle transition hover:text-foreground">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +222,7 @@ export default function PortfolioPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      <main className="px-6 py-8">
         <StudentFeedbackTaskPanel context={feedbackContext} surface="portfolio" className="mb-6" />
         {/* Introduction Card */}
         <div className="surface-card mb-8 bg-gradient-to-br from-card via-card to-violet-500/10 p-6">

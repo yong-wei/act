@@ -239,7 +239,7 @@ function ReportFeedbackTaskPanel({
 }) {
   return (
     <section className="border-b border-cyan-400/20 bg-slate-950/70 px-5 py-4" data-ai-task-boundary="report-feedback">
-      <div className="mx-auto grid max-w-[1600px] gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid w-full gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-3">
           <ActionStatusPanel state={state} />
           <div className="rounded border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs text-slate-300">

@@ -149,7 +149,7 @@ export function PremiumLessonEntryPage({
       data-return-target="/interactive-learning/courses"
     >
       <header className="premium-lesson-topbar" data-commercial-workspace-zone="context-strip">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6">
+        <div className="flex w-full items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <Link
             href="/interactive-learning/courses"
             className="premium-lesson-nav-button inline-flex items-center gap-1 px-3 py-1"
@@ -164,7 +164,7 @@ export function PremiumLessonEntryPage({
         </div>
       </header>
 
-      <main className="premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-8">
+      <main className="premium-lesson-main py-4 sm:py-8">
         <div className="mt-4 grid gap-4 md:grid-cols-3" data-commercial-workspace-zone="command-bar">
           {showTeacherSection ? (
             <section className="premium-lesson-panel p-5">

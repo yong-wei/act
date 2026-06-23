@@ -192,9 +192,10 @@ export async function POST(request: Request) {
 }
 
 function buildPathAwareCitationContext(
-  citationContext: KonlingCitationContext,
+  citationContext: KonlingCitationContext | undefined,
   planContext: KonlingPlanContext,
-): KonlingCitationContext {
+): KonlingCitationContext | undefined {
+  if (!citationContext) return undefined;
   if (!planContext.currentPathId) return citationContext;
   const pathCitationId = `path:${planContext.currentPathId}`;
   const evidenceCitations = citationContext.evidenceCitations.some((citation) => citation.id === pathCitationId)

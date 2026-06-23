@@ -299,7 +299,7 @@ export default function ClassAnalyticsV2Page() {
       data-graph-center-view={graphCenterNodeId ? graphCenterView : undefined}
     >
       <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
+        <div className="flex w-full items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href={`/teacher/classes/${classId}`} className="text-subtle transition hover:text-foreground" aria-label="返回班级详情">
               <ArrowLeft className="h-6 w-6" />
@@ -321,7 +321,7 @@ export default function ClassAnalyticsV2Page() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-6 pb-32 pt-8 md:pb-8">
+      <main className="px-6 pb-32 pt-8 md:pb-8">
         <ReportDeliveryPanel
           state={activeDeliveryState}
           versionLabel={reportVersionLabel}
@@ -641,7 +641,7 @@ function ReportDeliveryDock({
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur md:hidden"
       data-teacher-report-delivery="mobile-fixed-actions"
     >
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-sm font-medium text-foreground">教师报告交付 · {versionLabel}</p>
           <p className="text-xs text-subtle">{state ? state.message : '固定动作区可在长报告任意位置完成导出和摘要复制。'}</p>

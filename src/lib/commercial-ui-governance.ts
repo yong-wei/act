@@ -52,6 +52,10 @@ export type CommercialUiGovernanceRule =
   | 'interactive-visual-component.diagnostics-exposure'
   | 'adaptive-path-product-qa.missing-evidence'
   | 'adaptive-path-product-qa.incomplete-evidence'
+  | 'compact-spacing.missing-inventory'
+  | 'compact-spacing.unclassified-inventory'
+  | 'compact-spacing.incomplete-visual-evidence'
+  | 'compact-spacing.unregistered-page-wrapper'
   | 'allowlist.invalid-entry';
 
 export type CommercialUiGovernanceCategory =
@@ -70,6 +74,7 @@ export type CommercialUiGovernanceCategory =
   | 'interactive-learning-product-qa'
   | 'interactive-visual-component'
   | 'adaptive-path-product-qa'
+  | 'compact-spacing'
   | 'allowlist';
 
 export interface CommercialUiGovernanceViolation {
@@ -92,6 +97,53 @@ export interface CommercialUiGovernanceAllowlistEntry {
   owningChange?: string;
   expiresOn?: string;
   removalCondition?: string;
+}
+
+export type CommercialCompactSpacingInventoryClassification =
+  | 'migrated'
+  | 'component-intrinsic-exception'
+  | 'temporary-exception'
+  | 'unclassified';
+
+export interface CommercialCompactSpacingInventoryEntry {
+  path: string;
+  owner: string;
+  scope: string;
+  classification: CommercialCompactSpacingInventoryClassification;
+  reason: string;
+  removalCondition: string;
+  evidence?: readonly string[];
+}
+
+export interface CommercialCompactSpacingViewportEvidence {
+  href: string;
+  family?: string;
+  edgeMode?: 'page-edge' | 'intrinsic';
+  finalUrl?: string;
+  finalUrlMatches?: boolean;
+  width: number;
+  viewportWidth: number;
+  navigationState: CommercialVisualQaNavigationState;
+  primaryContentLeft: number;
+  primaryContentRight: number;
+  primaryContentWidth?: number;
+  navigationBoundaryRight?: number;
+  compactEdgeMaxPx: number;
+  horizontalOverflow: boolean;
+  auxiliaryCollisionFree: boolean;
+  hydrationReady?: boolean;
+  pageLevelCenteredWrapperCount?: number;
+  pageLevelCenteredWrappers?: readonly {
+    tagName?: string;
+    className?: string;
+    left?: number;
+    right?: number;
+    width?: number;
+  }[];
+  screenshot: string;
+  screenshotSha256: string;
+  screenshotExists?: boolean;
+  screenshotSha256Matches?: boolean;
 }
 
 export interface CommercialShellInventoryEntry {
@@ -884,6 +936,9 @@ export interface CommercialUiGovernanceInput {
   adaptivePathProductQa?: CommercialAdaptivePathProductQaEvidence;
   adaptivePathProductQaSourceRefreshRequired?: boolean;
   adaptivePathProductQaEvidenceRefreshed?: boolean;
+  compactSpacingRequired?: boolean;
+  compactSpacingInventory?: readonly CommercialCompactSpacingInventoryEntry[];
+  compactSpacingVisualEvidence?: readonly CommercialCompactSpacingViewportEvidence[];
 }
 
 export interface CommercialUiGovernanceResult {
@@ -1572,6 +1627,133 @@ function buildShellViolations(shellInventory: readonly CommercialShellInventoryE
       message: `Route ${entry.route} uses an unregistered route frame.`,
       evidence: [entry.shellName ?? entry.route],
     }));
+}
+
+const COMMERCIAL_COMPACT_SPACING_REQUIRED_WIDTHS = [1024, 1100, 1279, 1440, 1920, 2560, 768, 320] as const;
+const COMMERCIAL_COMPACT_SPACING_REQUIRED_FAMILIES = [
+  'knowledge-map',
+  'interactive-course-entry',
+  'student-runtime',
+  'teacher-runtime',
+  'adaptive-practice',
+  'simulation-workspace',
+  'teacher-operations',
+  'form-first',
+  'text-first',
+  'report-evidence',
+] as const;
+
+const COMMERCIAL_COMPACT_SPACING_REQUIRED_NAVIGATION_STATES: readonly CommercialVisualQaNavigationState[] = [
+  'desktop-expanded',
+  'desktop-collapsed',
+  'workspace-command-surface',
+  'hidden-immersive',
+  'auth-callback-panel',
+];
+
+function buildCompactSpacingViolations({
+  required,
+  inventory,
+  visualEvidence,
+}: {
+  required?: boolean;
+  inventory?: readonly CommercialCompactSpacingInventoryEntry[];
+  visualEvidence?: readonly CommercialCompactSpacingViewportEvidence[];
+}) {
+  if (!required) return [];
+
+  const violations: CommercialUiGovernanceViolation[] = [];
+  if (!inventory || inventory.length === 0) {
+    violations.push(withCategory({
+      path: 'artifacts/commercial-ui/compact-spacing-685/inventory.json',
+      rule: 'compact-spacing.missing-inventory',
+      message: 'Compact spacing governance requires a closed inventory for page-level centered width wrappers.',
+      evidence: ['compactSpacingInventory is empty'],
+    }));
+  } else {
+    for (const entry of inventory) {
+      const missing = [
+        !entry.path ? 'missing path' : undefined,
+        !entry.owner ? 'missing owner' : undefined,
+        !entry.scope ? 'missing scope' : undefined,
+        !entry.reason ? 'missing reason' : undefined,
+        !entry.removalCondition ? 'missing removalCondition' : undefined,
+        entry.classification === 'unclassified' ? 'unclassified' : undefined,
+      ].filter((item): item is string => Boolean(item));
+      if (missing.length > 0) {
+        violations.push(withCategory({
+          path: entry.path || 'artifacts/commercial-ui/compact-spacing-685/inventory.json',
+          rule: 'compact-spacing.unclassified-inventory',
+          message: 'Compact spacing inventory entries must classify every page-level wrapper with owner, scope, reason, and removal condition.',
+          evidence: missing,
+        }));
+      }
+    }
+  }
+
+  const evidenceByWidth = new Map((visualEvidence ?? []).map((evidence) => [evidence.width, evidence]));
+  const missingWidths = COMMERCIAL_COMPACT_SPACING_REQUIRED_WIDTHS.filter((width) => !evidenceByWidth.has(width));
+  const missingFamilyWidths = COMMERCIAL_COMPACT_SPACING_REQUIRED_FAMILIES.flatMap((family) => (
+    COMMERCIAL_COMPACT_SPACING_REQUIRED_WIDTHS
+      .filter((width) => !(visualEvidence ?? []).some((evidence) => evidence.family === family && evidence.width === width))
+      .map((width) => `missing ${family}@${width}`)
+  ));
+  const missingNavigationStates = COMMERCIAL_COMPACT_SPACING_REQUIRED_NAVIGATION_STATES
+    .filter((navigationState) => !(visualEvidence ?? []).some((evidence) => evidence.navigationState === navigationState))
+    .map((navigationState) => `missing navigationState=${navigationState}`);
+  const invalidEvidence = (visualEvidence ?? []).flatMap((evidence) => {
+    const leftEdge = Math.max(0, evidence.primaryContentLeft - (evidence.navigationBoundaryRight ?? 0));
+    const rightEdge = evidence.viewportWidth - evidence.primaryContentRight;
+    const maxEdge = evidence.compactEdgeMaxPx;
+    const edgeMode = evidence.edgeMode ?? 'page-edge';
+    const failures = [
+      edgeMode === 'page-edge' && leftEdge > maxEdge + 96
+        ? `leftEdge=${leftEdge} exceeds compact tolerance ${maxEdge}`
+        : undefined,
+      edgeMode === 'page-edge' && rightEdge > maxEdge + 96
+        ? `rightEdge=${rightEdge} exceeds compact tolerance ${maxEdge}`
+        : undefined,
+      edgeMode === 'intrinsic' && evidence.primaryContentWidth !== undefined && evidence.primaryContentWidth > evidence.viewportWidth
+        ? `primaryContentWidth=${evidence.primaryContentWidth} exceeds viewportWidth=${evidence.viewportWidth}`
+        : undefined,
+      evidence.horizontalOverflow ? 'horizontalOverflow=true' : undefined,
+      !evidence.auxiliaryCollisionFree ? 'auxiliaryCollisionFree=false' : undefined,
+      evidence.hydrationReady !== true ? 'hydrationReady=false' : undefined,
+      evidence.finalUrlMatches !== true ? `finalUrl=${evidence.finalUrl ?? 'missing'}` : undefined,
+      (evidence.navigationState === 'hidden-immersive' || evidence.navigationState === 'auth-callback-panel') &&
+        (evidence.navigationBoundaryRight ?? 0) > 0
+        ? `navigationState=${evidence.navigationState} exposes navigationBoundaryRight=${evidence.navigationBoundaryRight}`
+        : undefined,
+      (evidence.pageLevelCenteredWrapperCount ?? 0) > 0
+        ? `pageLevelCenteredWrapperCount=${evidence.pageLevelCenteredWrapperCount}`
+        : undefined,
+      !evidence.screenshot ? 'missing screenshot' : undefined,
+      !evidence.screenshotSha256 ? 'missing screenshotSha256' : undefined,
+      evidence.screenshotExists !== true ? 'screenshotExists=false' : undefined,
+      evidence.screenshotSha256Matches !== true ? 'screenshotSha256Matches=false' : undefined,
+    ].filter((item): item is string => Boolean(item));
+    return failures.map((failure) => `${evidence.href}@${evidence.width}:${failure}`);
+  });
+  if (
+    missingWidths.length > 0
+    || missingFamilyWidths.length > 0
+    || missingNavigationStates.length > 0
+    || invalidEvidence.length > 0
+  ) {
+    violations.push(withCategory({
+      path: 'artifacts/commercial-ui/compact-spacing-685/evidence.json',
+      rule: 'compact-spacing.incomplete-visual-evidence',
+      message: 'Compact spacing visual evidence must cover required viewports and prove stable page edges without overflow or auxiliary collisions.',
+      evidence: [
+        ...missingWidths.map((width) => `missing width=${width}`),
+        ...missingFamilyWidths,
+        ...missingNavigationStates,
+        ...invalidEvidence,
+      ],
+    }));
+  }
+
+  return violations;
 }
 
 function buildModuleChromeViolations(moduleChromeInventory: readonly CommercialModuleChromeInventoryEntry[] = []) {
@@ -4144,6 +4326,11 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
       input.adaptivePathProductQaSourceRefreshRequired,
       input.adaptivePathProductQaEvidenceRefreshed,
     ),
+    ...buildCompactSpacingViolations({
+      required: input.compactSpacingRequired,
+      inventory: input.compactSpacingInventory,
+      visualEvidence: input.compactSpacingVisualEvidence,
+    }),
     ...buildReportExportViolations(reportSurfaceInventory, input.visualEvidence),
     ...buildAccessibilityViolations(
       requiredVisualRoutes,

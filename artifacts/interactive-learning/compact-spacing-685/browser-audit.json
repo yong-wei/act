@@ -1,0 +1,72 @@
+{
+  "changeId": "standardize-sitewide-compact-spacing",
+  "generatedAt": "2026-06-23T16:13:22.663Z",
+  "path": "artifacts/interactive-learning/compact-spacing-685/browser-audit.json",
+  "roles": [
+    "student",
+    "teacher"
+  ],
+  "routes": [
+    "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+    "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-07",
+    "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/teacher/demo?step=step-07"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "viewports": [
+    "mobile",
+    "desktop",
+    "projection"
+  ],
+  "states": [
+    "student-unreleased",
+    "student-released",
+    "student-submitted",
+    "teacher-reveal",
+    "teacher-answer-reveal",
+    "teacher-diagnostics"
+  ],
+  "noHorizontalOverflow": true,
+  "teacherControlsClearPrimaryStage": true,
+  "routeFamilies": [
+    "adaptive-practice",
+    "form-first",
+    "interactive-course-entry",
+    "knowledge-map",
+    "report-evidence",
+    "simulation-workspace",
+    "student-runtime",
+    "teacher-operations",
+    "teacher-runtime",
+    "text-first"
+  ],
+  "widths": [
+    1024,
+    1100,
+    1279,
+    1440,
+    1920,
+    2560,
+    768,
+    320
+  ],
+  "evidenceManifest": "artifacts/commercial-ui/compact-spacing-685/evidence.json",
+  "screenshotCount": 80,
+  "navigationStates": [
+    "auth-callback-panel",
+    "desktop-collapsed",
+    "desktop-expanded",
+    "hidden-immersive",
+    "mobile-drawer",
+    "workspace-command-surface"
+  ],
+  "diagnostics": [],
+  "auxiliaryCollisionFree": true,
+  "hydrationReady": true,
+  "finalUrlMatches": true,
+  "pageLevelCenteredWrappersAbsent": true,
+  "compactSpacingEvidence": "artifacts/commercial-ui/compact-spacing-685/evidence.json",
+  "visualEvidenceCount": 80
+}

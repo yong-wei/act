@@ -627,7 +627,7 @@ describe('platform UI contracts', () => {
     expect(evidenceSource).toContain('chrome="embedded"');
     expect(evidenceBrowserSource).toContain("chrome?: 'standalone' | 'embedded'");
     expect(evidenceBrowserSource).toContain("chrome === 'standalone' ? 'surface-page' : undefined");
-    expect(evidenceBrowserSource).toContain("chrome === 'standalone' ? 'mx-auto grid");
+    expect(evidenceBrowserSource).toContain("chrome === 'standalone' ? 'grid w-full");
     expect(knowledgeSource).toContain('data-knowledge-data-map-surface="knowledge-graph"');
     expect(knowledgeSource).toContain('data-commercial-student-entry-route="/knowledge"');
     expect(knowledgeSidebarSource).toContain('data-knowledge-local-panel="chapter-directory"');
@@ -1498,5 +1498,20 @@ describe('platform UI contracts', () => {
     expect(shellMarkup).not.toContain('lg:grid-cols-[248px_1fr]');
     expect(shellMarkup).not.toContain('xl:grid-cols-[248px_minmax(0,1fr)]');
     expect(shellMarkup).not.toContain('aria-label="平台导航"');
+  });
+
+  it('uses compact fixed page edges instead of centered AppShell and course runtime caps', () => {
+    const appShellSource = readSource('src/components/platform/app-shell.tsx');
+    const globalsSource = readSource('src/app/globals.css');
+    const runtimeShellSource = readSource('src/features/interactive/shared/lesson-runtime-shell.tsx');
+
+    expect(appShellSource).toContain('APP_SHELL_COMPACT_PAGE_EDGE_CLASS');
+    expect(appShellSource).toContain('data-platform-compact-page-edge');
+    expect(appShellSource).not.toMatch(/contentFrameClassNames[\s\S]*mx-auto[\s\S]*max-w-/);
+    expect(globalsSource).toContain('--platform-page-edge-x');
+    expect(globalsSource).toContain('--platform-page-edge-x-mobile');
+    expect(globalsSource).toContain('--platform-page-edge-x-desktop');
+    expect(globalsSource).not.toMatch(/\.premium-lesson-main\s*\{[\s\S]*@apply\s+mx-auto\s+max-w-/);
+    expect(runtimeShellSource).not.toContain('max-w-4xl');
   });
 });

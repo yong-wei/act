@@ -1,0 +1,32 @@
+{
+  "changeId": "standardize-sitewide-compact-spacing",
+  "generatedAt": "2026-06-23T16:13:22.663Z",
+  "commands": [
+    {
+      "command": "rtk npm run test:unit -- src/lib/__tests__/platform-ui-contracts.test.ts src/lib/__tests__/commercial-ui-governance.test.ts",
+      "status": "passed",
+      "summary": "2 files, 172 tests"
+    },
+    {
+      "command": "rtk node scripts/tests/capture-compact-spacing-qa.mjs",
+      "status": "passed",
+      "evidence": "artifacts/commercial-ui/compact-spacing-685/evidence.json",
+      "summary": "80 screenshots, 10 route families, 8 widths; refreshed after global page-edge variable fix"
+    },
+    {
+      "command": "rtk npm run test:commercial-ui-governance",
+      "status": "passed",
+      "summary": "226 changed files scanned; hidden/auth navigation boundary semantics enforced"
+    },
+    {
+      "command": "rtk openspec validate standardize-sitewide-compact-spacing --strict",
+      "status": "passed"
+    },
+    {
+      "command": "rtk npm run build",
+      "status": "passed",
+      "summary": "Next.js build and TypeScript passed; existing Turbopack trace warnings remain"
+    }
+  ],
+  "diagnostics": []
+}

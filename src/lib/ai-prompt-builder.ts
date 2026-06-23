@@ -6,6 +6,7 @@
 
 import type { AIContext, PageContext, UserProfile, LearningStyle, KnowledgeType, PromptBuilderOptions } from '@/types/ai-context';
 import { KONLING_BRAND } from './ai-branding';
+import type { KaqArtifactVersionRefs } from './kaq-artifact-versioning';
 
 interface KonlingPromptRuntimeContext {
   learnerState?: unknown;
@@ -65,7 +66,7 @@ interface KonlingPromptRuntimeContext {
     } | null;
     citationRefs?: string[];
     evidenceRefs?: string[];
-    versionRefs?: Record<string, string | null | undefined> | null;
+    versionRefs?: Record<string, string | null | undefined> | KaqArtifactVersionRefs | null;
     confidence?: string;
     missingGrounding?: Array<{
       class?: string;

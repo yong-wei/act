@@ -81,7 +81,7 @@ export function ChapterCategoryClient({
       )}
     >
       <section
-        className="mx-auto max-w-[1280px] px-6 py-10"
+        className="px-6 py-10"
         data-commercial-workspace="interactive-learning"
         data-commercial-student-entry-route="/interactive-learning/chapter-components/[category]"
         data-route-family="interactive-learning-chapter-components"

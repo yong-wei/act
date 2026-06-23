@@ -492,7 +492,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
       data-return-target={returnHref}
     >
       <section className="border-b border-border/70 bg-card/80 px-6 py-5" data-commercial-workspace-zone="context-strip">
-        <div className="mx-auto flex max-w-[1600px] flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm text-primary">{modeLabel(session.mode)} · {workspaceLabel}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-normal">{taskTitle}</h1>
@@ -508,7 +508,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1600px] gap-4 px-4 py-5 sm:px-6 lg:px-8">
+      <section className="grid w-full gap-4 px-4 py-5 sm:px-6 lg:px-8">
         <div
           className="grid min-h-[360px] gap-4"
           data-commercial-workspace-zone="instrument-area"
@@ -689,11 +689,11 @@ export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchReso
   if (!result.ok) {
     return (
       <main className="min-h-screen bg-background px-6 py-10 text-foreground">
-        <div className="surface-card mx-auto max-w-5xl rounded-lg border-red-500/30 bg-red-500/10 p-6">
-          <p className="text-sm text-red-600 dark:text-red-300">无法解析竞技场挑战</p>
+        <div className="surface-card w-full rounded-lg border border-platform-evidence-unsupported bg-platform-surface p-6">
+          <p className="text-sm text-platform-evidence-unsupported">无法解析竞技场挑战</p>
           <h1 className="mt-2 text-2xl font-semibold">工作台上下文不可用</h1>
-          <p className="mt-3 text-sm leading-6 text-red-600 dark:text-red-200">{result.error.message}</p>
-          <Link className="mt-5 inline-flex text-sm font-medium text-red-600 underline dark:text-red-200" href="/arena">
+          <p className="mt-3 text-sm leading-6 text-platform-fg-secondary">{result.error.message}</p>
+          <Link className="mt-5 inline-flex text-sm font-medium text-platform-evidence-unsupported underline" href="/arena">
             返回竞技场大厅
           </Link>
         </div>

@@ -31,7 +31,7 @@ export function UNIT_4_6CourseHeader({
 
   return (
     <header className="premium-lesson-topbar">
-      <div className="mx-auto max-w-[1280px] px-3 py-2 sm:px-4 sm:py-2.5">
+      <div className="w-full px-3 py-2 sm:px-4 sm:py-2.5">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <Link
