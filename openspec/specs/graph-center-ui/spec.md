@@ -12,6 +12,11 @@ The system SHALL provide a graph-center surface that can display knowledge, capa
 - **AND** it SHALL expose knowledge, capability, and quality graph-domain switching
 - **AND** selected-node details SHALL expose role-scoped actions when path, resource, overlay, citation, diagnosis, prep-pack, or audit targets are available.
 
+#### Scenario: User filters graph center
+- **WHEN** a user filters by objective or portrait dimension
+- **THEN** graph-center payload and visible nodes SHALL reflect the filter
+- **AND** selected node detail SHALL continue to identify objective bindings, portrait dimensions, and authorized role-scoped actions.
+
 ### Requirement: Knowledge graph compatibility is preserved
 The graph-center foundation SHALL preserve existing knowledge graph access while the new center is introduced.
 
@@ -27,4 +32,3 @@ The graph-center surface SHALL provide an inspectable list/detail path in additi
 - **WHEN** the viewport is mobile or keyboard interaction is used
 - **THEN** graph nodes SHALL remain reachable through a list, table, or equivalent detail navigation
 - **AND** node details SHALL have explicit headings, labels, status text, action labels, and disabled/degraded reasons where actions are not available.
-

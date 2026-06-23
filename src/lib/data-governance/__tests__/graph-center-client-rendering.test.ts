@@ -204,6 +204,9 @@ describe('graph center client surface', () => {
     expect(teacherHtml).toContain('缺少内容哈希');
     expect(teacherHtml).toContain('暂定元数据');
     expect(teacherHtml).toContain('registry:sample: metadata is provisional');
+    expect(teacherHtml).toContain('data-graph-center-action-id="teacher:inspect-resource-gap"');
+    expect(teacherHtml).toContain('data-action-status="degraded"');
+    expect(teacherHtml).toContain('href="/teacher/resources/resource-nodes?graphNodeId=kn%3Aautocontrol%3Acontroller-correction&amp;learningGoalId=knowledge%3Aautocontrol%3Acontroller-correction"');
     expect(studentHtml).not.toContain('字段完成');
     expect(studentHtml).not.toContain('缺少内容哈希');
   });

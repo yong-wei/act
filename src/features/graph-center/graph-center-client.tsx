@@ -374,7 +374,7 @@ function GraphCenterActionItem({ action }: { action: GraphCenterAction }) {
       : 'border-platform-border bg-platform-canvas-muted text-platform-fg-primary',
   ].join(' ');
 
-  if (action.target && action.status === 'available') {
+  if (action.target && action.status !== 'disabled') {
     return (
       <a
         href={action.target.href}
