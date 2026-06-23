@@ -4118,7 +4118,10 @@ describe('commercial UI governance', () => {
       'utf8',
     );
 
-    expect(scriptSource).toContain('const isMobileViewport = numberFromEvidence(viewport.width) === 320;');
+    expect(scriptSource).toContain('const viewportWidth = numberFromEvidence(viewport.width);');
+    expect(scriptSource).toContain('const isMobileViewport = viewportWidth === 320;');
+    expect(scriptSource).toContain('const isTabletBreakpointViewport = viewportWidth === 1100;');
+    expect(scriptSource).toContain('`${name}:invalid-tablet-screenshot-width`');
     expect(scriptSource).toContain('const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;');
     expect(scriptSource).toContain('const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;');
     expect(scriptSource).toContain("visibleLocalToolPanelState === 'closed' || (name.includes('konling') && visibleLocalToolPanelState === null)");
@@ -4180,6 +4183,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'desktop-local-tools-view-dark'");
     expect(captureScriptSource).toContain("'desktop-wide-default-dark'");
     expect(captureScriptSource).toContain("'desktop-wide-inspector-tools-dark'");
+    expect(captureScriptSource).toContain("'tablet-1100-default-dark'");
     expect(captureScriptSource).toContain('const canvasRect = rectFor(canvas);');
     expect(captureScriptSource).toContain('canvas: canvasRect');
     expect(captureScriptSource).toContain("openDesktopTool(page, 'chapter-directory')");
@@ -4205,8 +4209,10 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('graph2dSourcePath');
     expect(scriptSource).toContain('floatingControlsSourcePath');
     expect(scriptSource).toContain('captureScriptSourcePath');
-    expect(scriptSource).toContain('stringRecordsEqualForPaths(visualReviewSourceSha256, currentSourceSha256, productQaSourcePaths)');
-    expect(scriptSource).not.toContain('const governanceScriptSourcePath');
+    expect(scriptSource).toContain('governanceScriptSourcePath');
+    expect(scriptSource).toContain('stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)');
+    expect(scriptSource).toContain('`${sourcePath}:sha-missing`');
+    expect(scriptSource).toContain('Object.entries(sourceHashes).map');
     expect(captureScriptSource).toContain("'scripts/tests/capture-knowledge-workspace-product-qa.ts'");
     expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
     expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");
@@ -4233,6 +4239,8 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).not.toContain('parsed.currentSourceSha256');
     expect(scriptSource).toContain('visual-review:stale-screenshot-review');
     expect(scriptSource).toContain('visual-review:stale-source-review');
+    expect(scriptSource).toContain("'tabletBreakpoint'");
+    expect(scriptSource).toContain("'canvasGeometry'");
   });
 
   it('keeps general commercial source palette governance limited to added lines', () => {

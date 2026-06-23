@@ -1897,6 +1897,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const globalsSourcePath = 'src/app/globals.css';
   const konlingRuntimeSourcePath = 'src/lib/konling-agent-runtime.ts';
   const captureScriptSourcePath = 'scripts/tests/capture-knowledge-workspace-product-qa.ts';
+  const governanceScriptSourcePath = 'scripts/tests/test-commercial-ui-governance.ts';
   const productQaSourcePaths = [
     graphSourcePath,
     knowledgePageSourcePath,
@@ -1911,6 +1912,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     globalsSourcePath,
     konlingRuntimeSourcePath,
     captureScriptSourcePath,
+    governanceScriptSourcePath,
   ];
   const graphSource = existsSync(path.join(repoRoot, graphSourcePath))
     ? readFileSync(path.join(repoRoot, graphSourcePath), 'utf8')
@@ -1978,6 +1980,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['desktop-stress-expanded-tool-inspector-konling-dark', 'dark', 1440, 'expanded', 'expanded'],
     ['desktop-wide-default-dark', 'dark', 1920, 'collapsed', 'collapsed'],
     ['desktop-wide-inspector-tools-dark', 'dark', 1920, 'collapsed', 'collapsed'],
+    ['tablet-1100-default-dark', 'dark', 1100, 'collapsed', 'collapsed'],
     ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile', 'expanded'],
@@ -2004,7 +2007,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const baselineDockRect = objectRecord(baselineRects.dock);
     const baselineCanvasRect = objectRecord(baselineRects.canvas);
     const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
-    const isMobileViewport = numberFromEvidence(viewport.width) === 320;
+    const viewportWidth = numberFromEvidence(viewport.width);
+    const isMobileViewport = viewportWidth === 320;
+    const isTabletBreakpointViewport = viewportWidth === 1100;
     const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;
     const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;
     if (!state) return [`${name}:missing-state`];
@@ -2024,10 +2029,14 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       artifact ? null : `${name}:missing-screenshot`,
       artifact?.sha256 === state.screenshotSha256 ? null : `${name}:screenshot-sha-mismatch`,
       artifact?.imageFormat === 'png' || artifact?.imageFormat === 'jpeg' ? null : `${name}:invalid-image-format`,
-      numberFromEvidence(viewport.width) === 320
+      isMobileViewport
         ? (artifact?.width === 320 ? null : `${name}:invalid-mobile-screenshot-width`)
-        : (typeof artifact?.width === 'number' && artifact.width >= 1200 ? null : `${name}:desktop-screenshot-too-narrow`),
-      numberFromEvidence(viewport.width) === 320
+        : (
+            isTabletBreakpointViewport
+              ? (artifact?.width === 1100 ? null : `${name}:invalid-tablet-screenshot-width`)
+              : (typeof artifact?.width === 'number' && artifact.width >= 1200 ? null : `${name}:desktop-screenshot-too-narrow`)
+          ),
+      isMobileViewport
         ? (typeof artifact?.height === 'number' && artifact.height >= 700 ? null : `${name}:mobile-screenshot-too-short`)
         : (typeof artifact?.height === 'number' && artifact.height >= 800 ? null : `${name}:desktop-screenshot-too-short`),
       markers.effectiveDockState === dockState ? null : `${name}:dock-marker-state`,
@@ -2145,6 +2154,14 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const sourceHashes = objectRecord(evidence.currentSourceSha256);
   const currentSourceSha256 = stringRecord(evidence.currentSourceSha256);
   const sourceProblems = [
+    ...productQaSourcePaths.map((sourcePath) => (
+      typeof sourceHashes[sourcePath] === 'string' ? null : `${sourcePath}:sha-missing`
+    )),
+    ...Object.entries(sourceHashes).map(([sourcePath, recordedSha256]) => (
+      existsSync(path.join(repoRoot, sourcePath)) && recordedSha256 === fileSha256(sourcePath)
+        ? null
+        : `${sourcePath}:sha-mismatch`
+    )),
     sourceEvidence.sharedAppShell === true ? null : 'source-evidence:shared-app-shell',
     sourceEvidence.noCompetingGlobalNavigation === true ? null : 'source-evidence:no-competing-global-navigation',
     sourceEvidence.compactLocalTools === true ? null : 'source-evidence:compact-local-tools',
@@ -2211,9 +2228,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       && konlingRuntimeSource.includes("const contextNodeId = hint?.status === 'degraded'")
       ? null
       : 'konling-runtime:degraded-context-missing',
-    ...productQaSourcePaths.map((sourcePath) => (
-      sourceHashes[sourcePath] === fileSha256(sourcePath) ? null : `${sourcePath}:sha-mismatch`
-    )),
   ].filter((entry): entry is string => Boolean(entry));
 
   const focusEvidence = Array.isArray(evidence.focusEvidence)
@@ -2272,7 +2286,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     stringRecordsEqual(visualReviewStateSha256, stateScreenshotSha256)
       ? null
       : 'visual-review:stale-screenshot-review',
-    stringRecordsEqualForPaths(visualReviewSourceSha256, currentSourceSha256, productQaSourcePaths)
+    stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)
       ? null
       : 'visual-review:stale-source-review',
     ...[
@@ -2287,7 +2301,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       'keyboardFocus',
       'themeParity',
       'mobileBehavior',
+      'tabletBreakpoint',
       'stressNonOverlap',
+      'canvasGeometry',
     ].filter((key) => visualReviewDimensions[key] !== 'PASS').map((key) => `visual-review:${key}`),
   ].filter((entry): entry is string => Boolean(entry));
 

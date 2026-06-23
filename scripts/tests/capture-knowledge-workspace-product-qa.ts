@@ -959,6 +959,18 @@ async function main() {
       beforeShot: (page) => openDesktopTool(page, 'relation-filters'),
     },
     {
+      name: 'tablet-1100-default-dark',
+      theme: 'dark',
+      width: 1100,
+      height: 900,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'closed',
+      selectedNode: null,
+      interactionState: 'xl breakpoint lower bound workspace containment',
+    },
+    {
       name: 'mobile-320-local-tools-dark',
       theme: 'dark',
       width: 320,
