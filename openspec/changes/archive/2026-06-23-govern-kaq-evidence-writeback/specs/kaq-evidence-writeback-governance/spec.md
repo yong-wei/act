@@ -38,7 +38,12 @@ The system SHALL distinguish exploratory or preview evidence from governed termi
 
 #### Scenario: Official validation is materialized
 - **WHEN** official Arena evaluation, governed simulation validation, teacher-approved grading, or a policy-approved checkpoint is materialized
-- **THEN** it MAY update terminal validation or capability state only if required source, scope, confidence, and version refs pass validation.
+- **THEN** it MAY update terminal validation or capability state only if required source, LearningGoal evidence policy, scope, confidence, and version refs pass validation.
+
+#### Scenario: Terminal validation evidence violates LearningGoal policy
+- **WHEN** evidence requests terminal validation for a LearningGoal whose policy does not accept that evidence type
+- **THEN** terminal validation SHALL be rejected for that contribution
+- **AND** the limitation SHALL be visible to authorized diagnostics.
 
 #### Scenario: Teacher-approved grading uses rubric score scale
 - **WHEN** teacher-approved grading evidence is built from a raw rubric score and rubric max score
@@ -78,6 +83,10 @@ Production writeback SHALL emit an audit trail suitable for replay and diagnosis
 
 #### Scenario: Evidence window is not replayable
 - **WHEN** a production writeback contains blank, non-replayable, or inverted evidence-window timestamps
+- **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.
+
+#### Scenario: Evidence window extends beyond materialization time
+- **WHEN** a production writeback evidence window contains timestamps after materializedAt
 - **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.
 
 #### Scenario: Actor refs are missing

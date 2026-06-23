@@ -704,6 +704,46 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.audit.limitationCodes).toContain('learning-goal-target-mismatch');
   });
 
+  it('rejects terminal validation outside the LearningGoal evidence policy', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-terminal-policy-mismatch-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-terminal-policy-mismatch-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-terminal-policy-mismatch-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:34:00.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:32:00.000Z',
+        to: '2026-06-23T03:34:00.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:model-feedback-system',
+          graphNodeId: 'cap:autocontrol:model-feedback-system',
+          learningGoalId: 'feedback-loop-concept-foundations',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.audit.limitationCodes).toContain('terminal-validation-policy-mismatch');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      terminalValidationAccepted: false,
+      limitationCodes: ['terminal-validation-policy-mismatch'],
+    });
+  });
+
   it('does not fabricate overlay state for invalid non-official targets', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-invalid-konling-1',
@@ -1139,6 +1179,43 @@ describe('K/A/Q evidence writeback governance', () => {
       expect(result.overlayUpdates).toEqual([]);
       expect(result.audit.limitationCodes).toContain('invalid-evidence-window');
     }
+  });
+
+  it('blocks evidence windows that extend past materialization time', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-future-window-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-future-window-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-future-window-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:34:01.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:33:01.000Z',
+        to: '2026-06-23T03:35:01.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('invalid-evidence-window');
   });
 
   it('trims replayable evidence windows before overlay materialization', () => {

@@ -1,6 +1,10 @@
 import type { KaqArtifactVersionRefs } from '../kaq-artifact-versioning';
 import { detectKaqArtifactStaleness, validateKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
-import { getLearningGoal, type LearningGoalDefinition } from '../adaptive-learning-path-planner';
+import {
+  getLearningGoal,
+  type AdaptiveLearningPathEvidenceType,
+  type LearningGoalDefinition,
+} from '../adaptive-learning-path-planner';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_OBJECTIVE_CATALOG,
@@ -41,6 +45,7 @@ export type KaqEvidenceLimitationCode =
   | 'unknown-graph-node-id'
   | 'unknown-learning-goal-id'
   | 'learning-goal-target-mismatch'
+  | 'terminal-validation-policy-mismatch'
   | 'objective-domain-mismatch'
   | 'graph-node-domain-mismatch'
   | 'target-objective-node-mismatch'
@@ -234,7 +239,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
   const versionLimitations = validateRequiredVersionRefs(normalizedInput);
   const writebackLimitations = validateWritebackId(writebackId);
   const materializedAtLimitations = validateMaterializedAt(materializedAt);
-  const evidenceWindowLimitations = validateEvidenceWindow(evidenceWindow);
+  const evidenceWindowLimitations = validateEvidenceWindow(evidenceWindow, materializedAt);
   const sourceLimitations = validateSource(normalizedSource);
   const subjectLimitations = validateSubject(normalizedSubject);
   const actorLimitations = validateActor(normalizedActor);
@@ -244,6 +249,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     contribution,
     limitationCodes: uniqueSorted([
       ...validateTargetBinding(contribution),
+      ...validateTerminalValidationPolicy(normalizedSource, contribution),
       ...validateCatalogTarget(contribution),
       ...validateResourceTargetVersionRefs(input, contribution),
       ...validateResourceTarget(contribution, input.resourceTargetRegistry),
@@ -544,6 +550,20 @@ function validateTargetBinding(contribution: KaqEvidenceContributionInput): KaqE
   ];
 }
 
+function validateTerminalValidationPolicy(
+  source: KaqEvidenceWritebackSource,
+  contribution: KaqEvidenceContributionInput,
+): KaqEvidenceLimitationCode[] {
+  if (!contribution.terminalValidationCandidate || !canSourceSatisfyTerminalValidation(source)) return [];
+  const learningGoalId = normalizeOptionalId(contribution.learningGoalId);
+  const learningGoal = learningGoalId ? getLearningGoal(learningGoalId) : null;
+  const evidenceType = evidenceTypeForSourceClass(source.sourceClass);
+  if (!learningGoal || !evidenceType) return [];
+  return learningGoal.terminalValidationPolicy.acceptedEvidenceTypes.includes(evidenceType)
+    ? []
+    : ['terminal-validation-policy-mismatch'];
+}
+
 function validateSubject(subject: KaqEvidenceSubjectScope): KaqEvidenceLimitationCode[] {
   const ownerUserId = typeof subject.ownerUserId === 'string' ? subject.ownerUserId.trim() : '';
   const studentId = typeof subject.studentId === 'string' ? subject.studentId.trim() : '';
@@ -563,12 +583,20 @@ function validateMaterializedAt(materializedAt: string): KaqEvidenceLimitationCo
     : ['invalid-materialized-at'];
 }
 
-function validateEvidenceWindow(evidenceWindow: KaqEvidenceWindow): KaqEvidenceLimitationCode[] {
+function validateEvidenceWindow(
+  evidenceWindow: KaqEvidenceWindow,
+  materializedAt: string,
+): KaqEvidenceLimitationCode[] {
   const fromValid = evidenceWindow.from === null || isStrictIsoTimestamp(evidenceWindow.from);
   const toValid = evidenceWindow.to === null || isStrictIsoTimestamp(evidenceWindow.to);
+  const materializedAtValid = isStrictIsoTimestamp(materializedAt);
   const ordered = evidenceWindow.from === null || evidenceWindow.to === null
     || Date.parse(evidenceWindow.from) <= Date.parse(evidenceWindow.to);
-  return fromValid && toValid && ordered ? [] : ['invalid-evidence-window'];
+  const notFuture = !materializedAtValid || (
+    (evidenceWindow.from === null || Date.parse(evidenceWindow.from) <= Date.parse(materializedAt))
+    && (evidenceWindow.to === null || Date.parse(evidenceWindow.to) <= Date.parse(materializedAt))
+  );
+  return fromValid && toValid && ordered && notFuture ? [] : ['invalid-evidence-window'];
 }
 
 function validateActor(actor: KaqEvidenceWritebackActor): KaqEvidenceLimitationCode[] {
@@ -723,6 +751,14 @@ function canSourceSatisfyTerminalValidation(source: KaqEvidenceWritebackSource):
   if (source.sourceClass === 'teacher-approved-grading') return source.teacherApproved;
   if (source.sourceClass === 'instructional-checkpoint') return source.teacherApproved;
   return false;
+}
+
+function evidenceTypeForSourceClass(
+  sourceClass: KaqEvidenceSourceClass,
+): AdaptiveLearningPathEvidenceType | null {
+  if (sourceClass === 'simulation-validation') return 'simulation-run';
+  if (sourceClass === 'arena-official') return 'arena-official-evaluation';
+  return null;
 }
 
 function resolveConfidence(
