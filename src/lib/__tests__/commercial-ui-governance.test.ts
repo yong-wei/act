@@ -4181,6 +4181,10 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'desktop-local-tools-directory-dark'");
     expect(captureScriptSource).toContain("'desktop-local-tools-filter-dark'");
     expect(captureScriptSource).toContain("'desktop-local-tools-view-dark'");
+    expect(scriptSource).toContain("'desktop-local-tools-legend-dark'");
+    expect(scriptSource).toContain("'desktop-local-tools-directory-dark'");
+    expect(scriptSource).toContain("'desktop-local-tools-filter-dark'");
+    expect(scriptSource).toContain("'desktop-local-tools-view-dark'");
     expect(captureScriptSource).toContain("'desktop-wide-default-dark'");
     expect(captureScriptSource).toContain("'desktop-wide-inspector-tools-dark'");
     expect(captureScriptSource).toContain("'tablet-1100-default-dark'");

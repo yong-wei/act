@@ -2057,7 +2057,17 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
               : `${name}:collapsed-dock-moved`
           )
         : null,
-      ['desktop-selected-inspector-light', 'desktop-hover-click-drag-dark', 'desktop-explicit-relayout-dark', 'desktop-stress-expanded-tool-inspector-konling-dark', 'desktop-wide-inspector-tools-dark'].includes(name)
+      [
+        'desktop-local-tools-legend-dark',
+        'desktop-local-tools-directory-dark',
+        'desktop-local-tools-filter-dark',
+        'desktop-local-tools-view-dark',
+        'desktop-selected-inspector-light',
+        'desktop-hover-click-drag-dark',
+        'desktop-explicit-relayout-dark',
+        'desktop-stress-expanded-tool-inspector-konling-dark',
+        'desktop-wide-inspector-tools-dark',
+      ].includes(name)
         ? (
             numberFromEvidence(canvasRect.left) === numberFromEvidence(baselineCanvasRect.left)
             && numberFromEvidence(canvasRect.top) === numberFromEvidence(baselineCanvasRect.top)
