@@ -768,6 +768,77 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.audit.limitationCodes).toContain('missing-subject-owner');
   });
 
+  it('blocks missing writeback identity before overlay materialization', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: '   ',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-missing-writeback-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-missing-writeback-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:33:58.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:33:58.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.id).toBe('');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.writebackId).toBe('');
+    expect(result.audit.limitationCodes).toContain('missing-writeback-id');
+  });
+
+  it('trims writeback identity before deriving audit and overlay ids', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: ' writeback-trim-id-1 ',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-trim-writeback-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-trim-writeback-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:33:59.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:33:59.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('accepted');
+    expect(result.id).toBe('writeback-trim-id-1');
+    expect(result.audit.writebackId).toBe('writeback-trim-id-1');
+    expect(result.overlayUpdates[0].id).toBe('writeback-trim-id-1:1');
+  });
+
   it('blocks missing actor identity before overlay materialization', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-actor-missing-1',

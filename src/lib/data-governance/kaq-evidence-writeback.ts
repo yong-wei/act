@@ -31,6 +31,7 @@ export type KaqEvidenceWritebackStatus = 'accepted' | 'degraded' | 'blocked';
 export type KaqEvidenceLimitationCode =
   | 'missing-target-binding'
   | 'missing-learning-goal-boundary'
+  | 'missing-writeback-id'
   | 'missing-subject-owner'
   | 'missing-actor-id'
   | 'subject-owner-mismatch'
@@ -201,10 +202,12 @@ const AUTOCONTROL_GRAPH_NODES_BY_ID = new Map(
 );
 
 export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput): KaqEvidenceWritebackResult {
+  const writebackId = normalizeOptionalId(input.id) ?? '';
   const normalizedSource = normalizeSource(input.source);
   const normalizedSubject = normalizeSubject(input.subject);
   const normalizedActor = normalizeActor(input.actor);
   const versionLimitations = validateRequiredVersionRefs(input);
+  const writebackLimitations = validateWritebackId(writebackId);
   const sourceLimitations = validateSource(normalizedSource);
   const subjectLimitations = validateSubject(normalizedSubject);
   const actorLimitations = validateActor(normalizedActor);
@@ -229,6 +232,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     ]),
   }));
   const globalBlocking = (versionLimitations.some(isBlockingVersionLimitation) && input.source.official)
+    || writebackLimitations.length > 0
     || sourceLimitations.length > 0
     || subjectLimitations.length > 0
     || actorLimitations.length > 0;
@@ -236,7 +240,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     ? []
     : contributionEvaluations
       .map(({ contribution, limitationCodes }, index) => materializeContribution(
-        { ...input, source: normalizedSource, subject: normalizedSubject, actor: normalizedActor },
+        { ...input, id: writebackId, source: normalizedSource, subject: normalizedSubject, actor: normalizedActor },
         contribution,
         uniqueSorted([...versionLimitations, ...limitationCodes]),
         index,
@@ -245,6 +249,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       .filter((update): update is KaqEvidenceOverlayUpdate => Boolean(update));
   const limitationCodes = uniqueSorted([
     ...versionLimitations,
+    ...writebackLimitations,
     ...sourceLimitations,
     ...subjectLimitations,
     ...actorLimitations,
@@ -253,12 +258,12 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
   const status = resolveStatus(globalBlocking, overlayUpdates, limitationCodes);
 
   return {
-    id: input.id,
+    id: writebackId,
     status,
     overlayUpdates: status === 'blocked' ? [] : overlayUpdates,
     audit: {
       eventType: 'kaq-evidence-writeback.materialized',
-      writebackId: input.id,
+      writebackId,
       sourceClass: normalizedSource.sourceClass,
       sourceId: normalizedSource.sourceId,
       sourceRef: normalizedSource.sourceRef,
@@ -505,6 +510,10 @@ function validateSubject(subject: KaqEvidenceSubjectScope): KaqEvidenceLimitatio
     ...(ownerUserId.length > 0 ? [] : ['missing-subject-owner' as const]),
     ...(studentId && studentId !== ownerUserId ? ['subject-owner-mismatch' as const] : []),
   ];
+}
+
+function validateWritebackId(writebackId: string): KaqEvidenceLimitationCode[] {
+  return writebackId.length > 0 ? [] : ['missing-writeback-id'];
 }
 
 function validateActor(actor: KaqEvidenceWritebackActor): KaqEvidenceLimitationCode[] {
