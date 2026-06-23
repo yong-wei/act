@@ -92,7 +92,7 @@ export interface KonlingKaqGraphContext {
   versionRefs: KaqArtifactVersionRefs | null;
   confidence: 'high' | 'medium' | 'low';
   missingGrounding: KonlingGraphMissingGrounding[];
-  clientHintsAccepted: [];
+  clientHintsAccepted: string[];
   clientHintsRejected: string[];
 }
 
@@ -137,8 +137,12 @@ export function buildKonlingKaqGraphContext(input: KonlingKaqGraphContextInput):
         ...expandedSubgraph.graphNodeIds.quality,
       ]
     : [];
+  const graphNodeHint = resolveGraphNodeIdClientHint(input.clientHints, groundingNodeIds);
   const selectedGraphNodeIds = normalizeSelectedGraphNodeIds(
-    input.selectedGraphNodeIds ?? [],
+    [
+      ...(input.selectedGraphNodeIds ?? []),
+      ...(graphNodeHint.acceptedGraphNodeId ? [graphNodeHint.acceptedGraphNodeId] : []),
+    ],
     groundingNodeIds,
   );
   const graphCenterContext = buildGraphCenterContext({
@@ -189,8 +193,8 @@ export function buildKonlingKaqGraphContext(input: KonlingKaqGraphContextInput):
     versionRefs,
     confidence: buildGraphContextConfidence(missingGrounding),
     missingGrounding,
-    clientHintsAccepted: [],
-    clientHintsRejected: Object.keys(input.clientHints ?? {}),
+    clientHintsAccepted: graphNodeHint.clientHintsAccepted,
+    clientHintsRejected: graphNodeHint.clientHintsRejected,
   };
 }
 
@@ -306,6 +310,27 @@ function buildPathArtifact(planContext: KonlingPlanContext): KonlingPathArtifact
 function normalizeSelectedGraphNodeIds(selectedNodeIds: string[], allowedNodeIds: string[]): string[] {
   const allowed = new Set(allowedNodeIds);
   return uniqueSorted(selectedNodeIds.filter((nodeId) => allowed.has(nodeId)));
+}
+
+function resolveGraphNodeIdClientHint(
+  clientHints: Record<string, unknown> | null | undefined,
+  allowedNodeIds: string[],
+): {
+  acceptedGraphNodeId: string | null;
+  clientHintsAccepted: string[];
+  clientHintsRejected: string[];
+} {
+  const hintKeys = Object.keys(clientHints ?? {});
+  const graphNodeId = typeof clientHints?.graphNodeId === 'string'
+    ? clientHints.graphNodeId.trim()
+    : '';
+  const allowed = new Set(allowedNodeIds);
+  const accepted = graphNodeId && allowed.has(graphNodeId);
+  return {
+    acceptedGraphNodeId: accepted ? graphNodeId : null,
+    clientHintsAccepted: accepted ? ['graphNodeId'] : [],
+    clientHintsRejected: hintKeys.filter((key) => key !== 'graphNodeId' || !accepted),
+  };
 }
 
 function filterResourceCoverage(

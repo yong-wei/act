@@ -432,6 +432,19 @@ export async function GET(request: NextRequest) {
     const requestedSurface = request.nextUrl.searchParams.get('surface')?.trim() || null;
     const requestedLessonPlanId = request.nextUrl.searchParams.get('lessonPlanId')?.trim() || null;
     const requestedTab = request.nextUrl.searchParams.get('tab')?.trim() || null;
+    const requestedGraphNodeId = request.nextUrl.searchParams.get('graphNodeId')?.trim() || null;
+    const requestedGraphAudit = request.nextUrl.searchParams.get('audit')?.trim() || null;
+    const graphCenterAudit = requestedGraphNodeId
+      ? {
+          graphNodeId: requestedGraphNodeId,
+          audit: requestedGraphAudit,
+          preferredTab: requestedGraphAudit === 'overlay-limitations'
+            ? 'cache' as const
+            : requestedGraphAudit === 'resource-binding' || requestedGraphAudit === 'citation-readiness'
+              ? 'sources' as const
+              : 'overview' as const,
+        }
+      : null;
     const authoringLessonPlan = requestedSurface === 'authoring' && requestedLessonPlanId
       ? await prisma.lessonPlan.findUnique({
           where: { id: requestedLessonPlanId },
@@ -649,6 +662,7 @@ export async function GET(request: NextRequest) {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       authoringContext,
+      graphCenterAudit,
       queues: queueStats,
       data: {
         studentSnapshots: studentSnapshotCount,

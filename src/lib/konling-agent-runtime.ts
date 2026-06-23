@@ -1361,6 +1361,7 @@ const adaptivePathToolBaseParameters = z.object({
   idempotencyKey: KONLING_REQUIRED_IDEMPOTENCY_KEY_PARAMETER,
   goalId: z.string().min(1).optional(),
   pathId: z.string().min(1).optional(),
+  graphNodeId: z.string().min(1).optional(),
   routeIntent: z.string().min(1).optional(),
   naturalLanguageIntent: z.string().max(500).optional(),
 });
@@ -1866,7 +1867,7 @@ async function buildAdaptivePathToolOutput(
   const plannerRevisionPreference = operation === 'revised'
     ? buildAdaptivePathRevisionPlannerPreference(args)
     : {};
-  const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId);
+  const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId, args.graphNodeId);
   const plan = buildAdaptiveLearningPathPlan({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
@@ -1905,6 +1906,7 @@ async function buildAdaptivePathToolOutput(
         resourcePreference: resourcePreferences,
         checkpointPreference: args.checkpointPreference ?? null,
         allowExternalResources: args.allowExternalResources ?? false,
+        graphNodeId: args.graphNodeId ?? null,
         intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
         excludedNodeIds: args.excludedNodeIds ?? [],
         preferredStyleId: args.preferredStyleId ?? null,
@@ -1925,6 +1927,7 @@ async function buildAdaptivePathToolOutput(
         outcome: 'revised',
         priorRequestId: 'priorRequestId' in args ? args.priorRequestId ?? null : null,
         checkpointPreference: args.checkpointPreference ?? null,
+        graphNodeId: args.graphNodeId ?? null,
         intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
         excludedNodeIds: args.excludedNodeIds ?? [],
         preferredStyleId: args.preferredStyleId ?? null,
@@ -1946,6 +1949,7 @@ async function buildAdaptivePathToolOutput(
       resourcePreference: resourcePreferences,
       checkpointPreference: args.checkpointPreference ?? null,
       allowExternalResources: args.allowExternalResources ?? false,
+      graphNodeId: args.graphNodeId ?? null,
       intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
       excludedNodeIds: args.excludedNodeIds ?? [],
       preferredStyleId: args.preferredStyleId ?? null,
@@ -1968,19 +1972,37 @@ async function buildAdaptivePathToolOutput(
 function buildAdaptivePathPlannerGraphContext(
   graphContext: KonlingKaqGraphContext | null | undefined,
   goalId: string,
+  graphNodeId?: string | null,
 ): AdaptiveLearningPathGraphContextInput | undefined {
   if (!graphContext?.learningGoal || !graphContext.expandedSubgraph) return undefined;
   if (graphContext.learningGoal.id !== goalId) return undefined;
+  const expandedSubgraph = expandLearningGoalSubgraph(graphContext.learningGoal.id);
   return {
     learningGoalId: graphContext.learningGoal.id,
     learningGoalVersion: graphContext.learningGoal.version,
     objectiveBoundary: graphContext.learningGoal.objectiveBoundary,
-    expandedSubgraph: expandLearningGoalSubgraph(graphContext.learningGoal.id),
+    expandedSubgraph,
+    selectedGraphNodeIds: normalizeAdaptivePathSelectedGraphNodeIds([
+      ...graphContext.selectedGraphNodeIds,
+      ...(graphNodeId ? [graphNodeId] : []),
+    ], expandedSubgraph),
     resourceCoverage: graphContext.resourceCoverage,
     learnerOverlay: graphContext.learnerOverlay,
     classOverlay: graphContext.classOverlay,
     versionRefs: graphContext.versionRefs ?? undefined,
   };
+}
+
+function normalizeAdaptivePathSelectedGraphNodeIds(
+  selectedGraphNodeIds: string[],
+  expandedSubgraph: ReturnType<typeof expandLearningGoalSubgraph>,
+): string[] {
+  const allowed = new Set([
+    ...expandedSubgraph.graphNodeIds.knowledge,
+    ...expandedSubgraph.graphNodeIds.capability,
+    ...expandedSubgraph.graphNodeIds.quality,
+  ]);
+  return Array.from(new Set(selectedGraphNodeIds.filter((nodeId) => allowed.has(nodeId)))).sort();
 }
 
 function buildAdaptivePathRevisionPlannerPreference(
@@ -2494,6 +2516,7 @@ function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown)
     idempotencyKey: getString(record, 'idempotencyKey') || null,
     goalId: getString(record, 'goalId') || null,
     pathId: getString(record, 'pathId') || null,
+    graphNodeId: getString(record, 'graphNodeId') || null,
     routeIntentProvided: Boolean(getString(record, 'routeIntent')),
     naturalLanguageIntent: summarizeStudentIntent(getString(record, 'naturalLanguageIntent')),
   };

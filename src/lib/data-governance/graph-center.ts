@@ -53,8 +53,10 @@ export type GraphCenterLimitationCode =
   | 'learner-overlay-unauthorized'
   | 'learner-overlay-empty'
   | 'learner-overlay-low-confidence'
+  | 'learner-overlay-suppressed'
   | 'class-overlay-unauthorized'
   | 'class-overlay-empty'
+  | 'class-overlay-low-confidence'
   | 'class-overlay-suppressed'
   | 'resource-coverage-indexed-without-verified-citation';
 export type GraphCenterLearnerOverlayState =
@@ -71,6 +73,24 @@ export type GraphCenterLearnerOverlayReasonCode =
   | 'collect-evidence'
   | 'resource-coverage-needed'
   | 'locked-path';
+export type GraphCenterActionRole = 'student' | 'teacher' | 'admin';
+export type GraphCenterActionStatus = 'available' | 'disabled' | 'degraded';
+export type GraphCenterActionReasonCode =
+  | 'missing-path-context'
+  | 'missing-resource-context'
+  | 'missing-citation-context'
+  | 'missing-overlay-context'
+  | 'missing-route-context'
+  | 'missing-authorization'
+  | 'missing-evidence-route';
+export type GraphCenterActionRoute =
+  | '/interactive-learning'
+  | '/assessment/adaptive-practice'
+  | '/interactive-learning/resources/[id]'
+  | '/teacher/classes/[classId]/analytics-v2'
+  | '/teacher/resources/resource-nodes'
+  | '/teacher/prep-packs'
+  | '/admin/data-governance';
 
 export interface GraphCenterPayloadInput {
   domain?: GraphCenterDomain;
@@ -130,10 +150,29 @@ export interface GraphCenterResourceCoverage {
   missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
   linkedResourceIds: string[];
   pathEligibleResourceIds: string[];
+  pathEligibleResourceRouteIds: string[];
+  filterKnowledgeRefs: string[];
   fieldCompletion?: ResourceFieldCompletionCoverageSummary;
 }
 
 export type ResourceFieldCompletionGraphSummary = Pick<ResourceFieldCompletionAuditSummary, 'graphCoverageDiagnostics'>;
+
+export interface GraphCenterActionTarget {
+  route: GraphCenterActionRoute;
+  href: string;
+  params: Record<string, string>;
+}
+
+export interface GraphCenterAction {
+  id: `${GraphCenterActionRole}:${string}`;
+  role: GraphCenterActionRole;
+  label: string;
+  description?: string;
+  status: GraphCenterActionStatus;
+  reasonCode?: GraphCenterActionReasonCode;
+  reason?: string;
+  target?: GraphCenterActionTarget;
+}
 
 export interface GraphCenterEvidenceWindow {
   from: string | null;
@@ -251,6 +290,7 @@ export interface GraphCenterSelectedNodeDetail {
   outgoingEdges: KaqGraphEdge[];
   boundResourceRefs: string[];
   resourceCoverage: GraphCenterResourceCoverage;
+  actions: GraphCenterAction[];
   limitations: GraphCenterLimitation[];
 }
 
@@ -296,6 +336,20 @@ const OBJECTIVES = [
 ];
 
 const OBJECTIVE_BY_ID = new Map(OBJECTIVES.map((objective) => [objective.id, objective]));
+type GraphCenterAdaptivePracticeGoal = 'control-correction' | 'frequency-response-foundations';
+const ADAPTIVE_PRACTICE_GOAL_BY_GRAPH_NODE_ID: Record<string, GraphCenterAdaptivePracticeGoal> = {
+  'kn:autocontrol:time-domain-performance': 'control-correction',
+  'kn:autocontrol:root-locus': 'control-correction',
+  'kn:autocontrol:controller-correction': 'control-correction',
+  'kn:autocontrol:simulation-validation': 'control-correction',
+  'cap:autocontrol:synthesize-controller-correction': 'control-correction',
+  'cap:autocontrol:validate-with-simulation-evidence': 'control-correction',
+  'cap:autocontrol:transfer-to-ship-ocean-mission': 'control-correction',
+  'qual:autocontrol:evidence-integrity': 'control-correction',
+  'kn:autocontrol:frequency-response': 'frequency-response-foundations',
+  'kn:autocontrol:stability-margin': 'frequency-response-foundations',
+  'cap:autocontrol:interpret-time-frequency-response': 'frequency-response-foundations',
+};
 const CONTROL_CORRECTION_CAPABILITY_TARGET_REFS_BY_NODE_ID: Record<string, string[]> = {
   'cap:autocontrol:interpret-time-frequency-response': [
     'control-correction:time-domain-targets:apply',
@@ -353,7 +407,17 @@ export function buildGraphCenterPayload(input: GraphCenterPayloadInput = {}): Gr
     ...learnerOverlay.limitations,
     ...classOverlay.limitations,
   ];
-  const nodeDetails = buildNodeDetails(filteredNodes, filteredEdges, resourceCoverage, limitations);
+  const nodeDetails = buildNodeDetails(
+    filteredNodes,
+    filteredEdges,
+    resourceCoverage,
+    limitations,
+    {
+      viewerRole: input.viewerRole,
+      learnerOverlay,
+      classOverlay,
+    },
+  );
 
   return {
     domains: buildDomains(),
@@ -444,21 +508,352 @@ function buildNodeDetails(
   edges: KaqGraphEdge[],
   resourceCoverage: Record<string, GraphCenterResourceCoverage>,
   limitations: GraphCenterLimitation[],
+  actionContext: {
+    viewerRole: GraphCenterViewerRole;
+    learnerOverlay: GraphCenterLearnerOverlay;
+    classOverlay: GraphCenterClassOverlay;
+  },
 ): Record<string, GraphCenterSelectedNodeDetail> {
-  return Object.fromEntries(nodes.map((node) => [
-    node.id,
-    {
+  return Object.fromEntries(nodes.map((node) => {
+    const objectives = node.objectiveIds
+      .map((id) => OBJECTIVE_BY_ID.get(id))
+      .filter((objective): objective is KaqObjective => Boolean(objective));
+    const nodeLimitations = limitations.filter((limitation) => limitation.nodeId === node.id);
+    const coverage = resourceCoverage[node.id];
+    return [
+      node.id,
+      {
       node,
-      objectives: node.objectiveIds
-        .map((id) => OBJECTIVE_BY_ID.get(id))
-        .filter((objective): objective is KaqObjective => Boolean(objective)),
+      objectives,
       incomingEdges: edges.filter((edge) => edge.targetNodeId === node.id),
       outgoingEdges: edges.filter((edge) => edge.sourceNodeId === node.id),
       boundResourceRefs: buildBoundResourceRefs(node),
-      resourceCoverage: resourceCoverage[node.id],
-      limitations: limitations.filter((limitation) => limitation.nodeId === node.id),
+      resourceCoverage: coverage,
+      actions: buildGraphCenterActions({
+        node,
+        objectives,
+        resourceCoverage: coverage,
+        limitations: nodeLimitations,
+        ...actionContext,
+      }),
+      limitations: nodeLimitations,
+    }];
+  }));
+}
+
+function buildGraphCenterActions(input: {
+  node: KaqGraphNode;
+  objectives: KaqObjective[];
+  resourceCoverage: GraphCenterResourceCoverage;
+  limitations: GraphCenterLimitation[];
+  viewerRole: GraphCenterViewerRole;
+  learnerOverlay: GraphCenterLearnerOverlay;
+  classOverlay: GraphCenterClassOverlay;
+}): GraphCenterAction[] {
+  const role = normalizeGraphCenterActionRole(input.viewerRole);
+  if (!role) return [];
+  if (role === 'teacher') return buildTeacherGraphCenterActions(input);
+  if (role === 'admin') return buildAdminGraphCenterActions(input);
+  return buildStudentGraphCenterActions(input);
+}
+
+function buildStudentGraphCenterActions(input: {
+  node: KaqGraphNode;
+  objectives: KaqObjective[];
+  resourceCoverage: GraphCenterResourceCoverage;
+  learnerOverlay: GraphCenterLearnerOverlay;
+}): GraphCenterAction[] {
+  const learningGoalId = input.objectives[0]?.id ?? input.node.objectiveIds[0] ?? null;
+  const adaptivePracticeGoal = ADAPTIVE_PRACTICE_GOAL_BY_GRAPH_NODE_ID[input.node.id] ?? null;
+  const firstResourceId = input.resourceCoverage.pathEligibleResourceRouteIds[0] ?? null;
+  const hasLearnerOverlay = Boolean(input.learnerOverlay.items[input.node.id]);
+  const learnerOverlayUnauthorized = input.learnerOverlay.status === 'unauthorized';
+
+  return [
+    adaptivePracticeGoal
+      ? {
+          id: 'student:start-path',
+          role: 'student',
+          label: '进入学习路径',
+          description: '从当前 LearningGoal 与图谱节点进入学习路径。',
+          status: 'available',
+          target: buildGraphCenterActionTarget('/assessment/adaptive-practice', {
+            goal: adaptivePracticeGoal,
+            graphNodeId: input.node.id,
+            intent: 'contextual-recommendation',
+          }),
+        }
+      : {
+          id: 'student:start-path',
+          role: 'student',
+          label: '进入学习路径',
+          description: '从当前 LearningGoal 与图谱节点进入学习路径。',
+          status: learningGoalId ? 'degraded' : 'disabled',
+          reasonCode: 'missing-path-context',
+          reason: learningGoalId
+            ? '该节点尚未接入可进入的自适应学习路径入口。'
+            : '该节点尚未绑定可进入的学习目标。',
+        },
+    firstResourceId
+      ? {
+          id: 'student:inspect-resource',
+          role: 'student',
+          label: '查看推荐资源',
+          description: '查看当前节点已绑定且路径可用的推荐资源。',
+          status: 'available',
+          target: buildGraphCenterActionTarget('/interactive-learning/resources/[id]', {
+            resourceId: firstResourceId,
+            graphNodeId: input.node.id,
+          }),
+        }
+      : {
+          id: 'student:inspect-resource',
+          role: 'student',
+          label: '查看推荐资源',
+          description: '查看当前节点已绑定且路径可用的推荐资源。',
+          status: 'degraded',
+          reasonCode: 'missing-resource-context',
+          reason: '该节点尚未绑定可直接查看的推荐资源。',
+        },
+    {
+      id: 'student:review-evidence',
+      role: 'student',
+      label: '复查个人证据',
+      description: '保留当前图谱节点和学习者证据上下文。',
+      status: hasLearnerOverlay ? 'degraded' : 'disabled',
+      reasonCode: learnerOverlayUnauthorized
+        ? 'missing-authorization'
+        : hasLearnerOverlay
+          ? 'missing-evidence-route'
+          : 'missing-overlay-context',
+      reason: learnerOverlayUnauthorized
+        ? '当前用户无权读取该学习者图谱 overlay。'
+        : hasLearnerOverlay
+          ? '证据复查需要学习者证据路由接入。'
+          : '学习者 overlay 不可用，暂不能复查个人证据。',
     },
-  ]));
+    adaptivePracticeGoal
+      ? {
+          id: 'student:ask-konling',
+          role: 'student',
+          label: '向 Konling 提问',
+          description: '以当前图谱节点和目标作为提问上下文。',
+          status: 'available',
+          target: buildGraphCenterActionTarget('/assessment/adaptive-practice', {
+            goal: adaptivePracticeGoal,
+            graphNodeId: input.node.id,
+            intent: 'contextual-recommendation',
+          }),
+        }
+      : {
+          id: 'student:ask-konling',
+          role: 'student',
+          label: '向 Konling 提问',
+          description: '以当前图谱节点和目标作为提问上下文。',
+          status: learningGoalId ? 'degraded' : 'disabled',
+          reasonCode: 'missing-path-context',
+          reason: learningGoalId
+            ? '该节点尚未接入可进入的 Konling 图谱提问上下文。'
+            : '该节点尚未绑定可进入的学习目标。',
+        },
+  ];
+}
+
+function buildTeacherGraphCenterActions(input: {
+  node: KaqGraphNode;
+  objectives: KaqObjective[];
+  resourceCoverage: GraphCenterResourceCoverage;
+  classOverlay: GraphCenterClassOverlay;
+}): GraphCenterAction[] {
+  const classId = input.classOverlay.classId;
+  const classItem = input.classOverlay.items[input.node.id];
+  const hasClassContext = Boolean(classId && classItem);
+  const classRouteId = hasClassContext ? classId : null;
+  const classOverlayUnauthorized = input.classOverlay.status === 'unauthorized';
+  const missingClassReasonCode: GraphCenterActionReasonCode = classOverlayUnauthorized
+    ? 'missing-authorization'
+    : 'missing-overlay-context';
+  const missingClassReason = classOverlayUnauthorized
+    ? '当前用户无权读取该班级图谱 overlay。'
+    : '班级 overlay 不可用，暂不能定位薄弱节点。';
+  const resourceGapStatus: GraphCenterActionStatus = input.resourceCoverage.coverageState === 'sufficient'
+    ? 'available'
+    : 'degraded';
+  const resourceGapKnowledgeRef = input.resourceCoverage.filterKnowledgeRefs[0] ?? input.node.id;
+  const prepPackStatus: GraphCenterActionStatus = classId ? 'degraded' : classOverlayUnauthorized ? 'disabled' : 'degraded';
+
+  return [
+    classRouteId
+      ? {
+          id: 'teacher:diagnose-weak-node',
+          role: 'teacher',
+          label: '诊断薄弱节点',
+          description: '打开班级诊断并保留当前图谱节点。',
+          status: 'available',
+          target: buildGraphCenterActionTarget('/teacher/classes/[classId]/analytics-v2', {
+            classId: classRouteId,
+            graphNodeId: input.node.id,
+          }),
+        }
+      : {
+          id: 'teacher:diagnose-weak-node',
+          role: 'teacher',
+          label: '诊断薄弱节点',
+          description: '打开班级诊断并保留当前图谱节点。',
+          status: classOverlayUnauthorized ? 'disabled' : 'degraded',
+          reasonCode: missingClassReasonCode,
+          reason: missingClassReason,
+        },
+    classRouteId
+      ? {
+          id: 'teacher:inspect-affected-population',
+          role: 'teacher',
+          label: '查看影响学生',
+          description: '进入班级受影响学生视图。',
+          status: 'degraded',
+          reasonCode: 'missing-route-context',
+          reason: '班级诊断入口当前只保留图谱节点提示，尚未按该节点过滤受影响学生。',
+          target: buildGraphCenterActionTarget('/teacher/classes/[classId]/analytics-v2', {
+            classId: classRouteId,
+            graphNodeId: input.node.id,
+            view: 'population',
+          }),
+        }
+      : {
+          id: 'teacher:inspect-affected-population',
+          role: 'teacher',
+          label: '查看影响学生',
+          description: '查看当前节点关联的班级样本与受影响人群。',
+          status: classOverlayUnauthorized ? 'disabled' : 'degraded',
+          reasonCode: missingClassReasonCode,
+          reason: classOverlayUnauthorized
+            ? missingClassReason
+            : '班级 overlay 不可用，暂不能查看影响学生。',
+        },
+    {
+      id: 'teacher:inspect-resource-gap',
+      role: 'teacher',
+      label: '检查资源缺口',
+      description: '查看资源绑定、引用与路径可用性的缺口。',
+      status: resourceGapStatus,
+      reasonCode: resourceGapStatus === 'degraded' ? 'missing-resource-context' : undefined,
+      reason: resourceGapStatus === 'degraded' ? '该节点资源覆盖不足，需要教师补齐资源上下文。' : undefined,
+      target: buildGraphCenterActionTarget('/teacher/resources/resource-nodes', {
+        knowledge: resourceGapKnowledgeRef,
+        pathEligibility: resourceGapStatus === 'degraded' ? 'excluded' : 'all',
+      }),
+    },
+    {
+      id: 'teacher:open-prep-pack',
+      role: 'teacher',
+      label: '生成备课包',
+      description: '进入当前班级备课包入口。',
+      status: prepPackStatus,
+      reasonCode: classId ? 'missing-route-context' : missingClassReasonCode,
+      reason: classId
+        ? '备课包入口当前只支持班级上下文，尚未消费图谱节点或学习目标。'
+        : classOverlayUnauthorized
+          ? missingClassReason
+          : '缺少班级上下文，备课包只能进入通用复核入口。',
+      target: classId
+        ? buildGraphCenterActionTarget('/teacher/prep-packs', {
+            classId,
+          })
+        : undefined,
+    },
+  ];
+}
+
+function buildAdminGraphCenterActions(input: {
+  node: KaqGraphNode;
+  resourceCoverage: GraphCenterResourceCoverage;
+  learnerOverlay: GraphCenterLearnerOverlay;
+  classOverlay: GraphCenterClassOverlay;
+}): GraphCenterAction[] {
+  const citationStatus: GraphCenterActionStatus = input.resourceCoverage.verifiedCitationCount > 0
+    ? 'available'
+    : 'degraded';
+  const hasOverlayContext = input.learnerOverlay.status === 'available' || input.classOverlay.status === 'available';
+
+  return [
+    {
+      id: 'admin:inspect-resource-binding',
+      role: 'admin',
+      label: '检查资源绑定',
+      description: '检查当前节点的资源绑定与路径资格。',
+      status: 'available',
+      target: buildGraphCenterActionTarget('/admin/data-governance', {
+        graphNodeId: input.node.id,
+        audit: 'resource-binding',
+      }),
+    },
+    {
+      id: 'admin:inspect-citation-readiness',
+      role: 'admin',
+      label: '检查引用就绪',
+      description: '检查 RAG 索引、可引用目标与已校验引用。',
+      status: citationStatus,
+      reasonCode: citationStatus === 'degraded' ? 'missing-citation-context' : undefined,
+      reason: citationStatus === 'degraded' ? '该节点尚无已校验引用，需要治理引用上下文。' : undefined,
+      target: buildGraphCenterActionTarget('/admin/data-governance', {
+        graphNodeId: input.node.id,
+        audit: 'citation-readiness',
+      }),
+    },
+    {
+      id: 'admin:inspect-overlay-limitations',
+      role: 'admin',
+      label: '检查 overlay 限制',
+      description: '检查学习者、班级 overlay 的抑制、过期与权限限制。',
+      status: hasOverlayContext ? 'available' : 'degraded',
+      reasonCode: hasOverlayContext ? undefined : 'missing-overlay-context',
+      reason: hasOverlayContext ? undefined : '缺少学习者或班级 overlay 上下文，只能查看图谱主体限制。',
+      target: buildGraphCenterActionTarget('/admin/data-governance', {
+        graphNodeId: input.node.id,
+        audit: 'overlay-limitations',
+      }),
+    },
+  ];
+}
+
+function normalizeGraphCenterActionRole(viewerRole: GraphCenterViewerRole): GraphCenterActionRole | null {
+  if (viewerRole === 'STUDENT') return 'student';
+  if (viewerRole === 'TEACHER') return 'teacher';
+  if (viewerRole === 'ADMIN') return 'admin';
+  return null;
+}
+
+function buildGraphCenterActionTarget(
+  route: GraphCenterActionRoute,
+  params: Record<string, string>,
+): GraphCenterActionTarget {
+  if (route === '/interactive-learning/resources/[id]') {
+    const { resourceId, ...queryParams } = params;
+    return {
+      route,
+      params,
+      href: `${route.replace('[id]', encodeURIComponent(resourceId))}${formatGraphCenterActionQuery(queryParams)}`,
+    };
+  }
+  if (route === '/teacher/classes/[classId]/analytics-v2') {
+    const { classId, ...queryParams } = params;
+    return {
+      route,
+      params,
+      href: `${route.replace('[classId]', encodeURIComponent(classId))}${formatGraphCenterActionQuery(queryParams)}`,
+    };
+  }
+  return {
+    route,
+    params,
+    href: `${route}${formatGraphCenterActionQuery(params)}`,
+  };
+}
+
+function formatGraphCenterActionQuery(params: Record<string, string>): string {
+  const entries = Object.entries(params).filter(([, value]) => value.length > 0);
+  if (entries.length === 0) return '';
+  return `?${new URLSearchParams(entries).toString()}`;
 }
 
 function buildLimitations(
@@ -1117,6 +1512,13 @@ function buildResourceCoverage(
   });
   const linkedResourceIds = uniqueSorted(linkedResources.map((resource) => resource.id));
   const pathEligibleResourceIds = uniqueSorted(pathEligibleResources.map((resource) => resource.id));
+  const pathEligibleResourceRouteIds = uniqueSorted(pathEligibleResources.flatMap((resource) => {
+    const routeId = resourceRouteIdForInteractiveResource(resource);
+    return routeId ? [routeId] : [];
+  }));
+  const filterKnowledgeRefs = uniqueSorted(linkedResources.flatMap((resource) =>
+    resource.planningMetadata.knowledgeCoverage.filter((ref) => coverageRefSet.has(ref))
+  ));
   const fieldCompletion = options.exposeFieldCompletion
     ? summarizeFieldCompletionForGraphCoverage(
       coverageRefSet,
@@ -1142,6 +1544,8 @@ function buildResourceCoverage(
     missingCoverageTypes,
     linkedResourceIds,
     pathEligibleResourceIds,
+    pathEligibleResourceRouteIds,
+    filterKnowledgeRefs,
     ...(fieldCompletion ? { fieldCompletion } : {}),
   };
 }
@@ -1169,8 +1573,17 @@ function emptyResourceCoverage(
     missingCoverageTypes,
     linkedResourceIds: [],
     pathEligibleResourceIds: [],
+    pathEligibleResourceRouteIds: [],
+    filterKnowledgeRefs: [],
     ...(options.exposeFieldCompletion ? { fieldCompletion: summarizeResourceFieldCompletionForCoverage([]) } : {}),
   };
+}
+
+function resourceRouteIdForInteractiveResource(resource: ResourceNode): string | null {
+  if (resource.sourceKind === 'resource_registry' || resource.sourceKind === 'teaching_resource') {
+    return resource.sourceRef;
+  }
+  return null;
 }
 
 interface ResourceCoverageBuildOptions {

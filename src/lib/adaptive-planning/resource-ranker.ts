@@ -53,6 +53,7 @@ export interface ResourceLearnerRankerInput {
   candidates: ResourceLearnerRankerCandidate[];
   scene: ResourceLearnerMatchingScene;
   targetGraphNodeIds: string[];
+  selectedGraphNodeIds?: string[];
   learnerState: ResourceLearnerMatchingLearnerState | null;
   preferredResourceTypes?: ResourceNode['type'][];
   timeBudgetMinutes: number;
@@ -65,6 +66,7 @@ export interface ResourceLearnerRankerInput {
 export interface ResourceLearnerRankerFeatureContribution {
   feature:
     | 'graph-coverage'
+    | 'selected-graph-focus'
     | 'capability-contribution'
     | 'evidence-potential'
     | 'learner-fit'
@@ -127,6 +129,7 @@ interface ResourceLearnerRankerScoringProfile {
 const SCENE_WEIGHTS: Record<ResourceLearnerMatchingScene, Record<ResourceLearnerRankerFeatureContribution['feature'], number>> = {
   path: {
     'graph-coverage': 1.2,
+    'selected-graph-focus': 1.6,
     'capability-contribution': 1,
     'evidence-potential': 0.9,
     'learner-fit': 0.8,
@@ -139,6 +142,7 @@ const SCENE_WEIGHTS: Record<ResourceLearnerMatchingScene, Record<ResourceLearner
   },
   konling: {
     'graph-coverage': 1.1,
+    'selected-graph-focus': 1.2,
     'capability-contribution': 0.5,
     'evidence-potential': 0.7,
     'learner-fit': 0.6,
@@ -151,6 +155,7 @@ const SCENE_WEIGHTS: Record<ResourceLearnerMatchingScene, Record<ResourceLearner
   },
   diagnosis: {
     'graph-coverage': 1,
+    'selected-graph-focus': 1.1,
     'capability-contribution': 0.9,
     'evidence-potential': 1.1,
     'learner-fit': 0.9,
@@ -163,6 +168,7 @@ const SCENE_WEIGHTS: Record<ResourceLearnerMatchingScene, Record<ResourceLearner
   },
   'prep-pack': {
     'graph-coverage': 0.9,
+    'selected-graph-focus': 1,
     'capability-contribution': 0.7,
     'evidence-potential': 0.9,
     'learner-fit': 1,
@@ -312,6 +318,7 @@ function buildFeatureContributions(
   input: ResourceLearnerRankerInput,
 ): ResourceLearnerRankerFeatureContribution[] {
   const graphCoverage = graphCoverageScore(profile, input.targetGraphNodeIds);
+  const selectedGraphFocus = selectedGraphFocusScore(profile, input.selectedGraphNodeIds ?? []);
   const capability = capabilityContributionScore(profile, input.learnerState);
   const evidence = evidencePotentialScore(profile);
   const learner = learnerFitScore(node, profile, input);
@@ -324,6 +331,7 @@ function buildFeatureContributions(
   const matchedRefs = matchedGraphRefs(profile, input.targetGraphNodeIds);
   return [
     { feature: 'graph-coverage', value: graphCoverage, reason: `matched ${matchedRefs.knowledge.length + matchedRefs.capability.length + matchedRefs.quality.length} graph refs` },
+    { feature: 'selected-graph-focus', value: selectedGraphFocus, reason: 'matches graph node selected by the entry point' },
     { feature: 'capability-contribution', value: capability, reason: 'ability impact against weak competency dimensions' },
     { feature: 'evidence-potential', value: evidence, reason: 'instrumentation and terminal validation capacity' },
     { feature: 'learner-fit', value: learner, reason: 'learner preference and weak knowledge fit' },
@@ -370,6 +378,13 @@ function graphCoverageScore(profile: ResourceLearnerRankerScoringProfile, target
   const matched = matchedGraphRefs(profile, targetGraphNodeIds);
   const matchedCount = matched.knowledge.length + matched.capability.length + matched.quality.length;
   return Math.min(1, matchedCount / targetGraphNodeIds.length);
+}
+
+function selectedGraphFocusScore(profile: ResourceLearnerRankerScoringProfile, selectedGraphNodeIds: string[]): number {
+  if (selectedGraphNodeIds.length === 0) return 0;
+  const matched = matchedGraphRefs(profile, selectedGraphNodeIds);
+  const matchedCount = matched.knowledge.length + matched.capability.length + matched.quality.length;
+  return Math.min(1, matchedCount / selectedGraphNodeIds.length);
 }
 
 function capabilityContributionScore(

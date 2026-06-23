@@ -425,6 +425,7 @@ describe('adaptive learning path planner', () => {
     });
     expect(pathNode?.resourceRanker?.featureContributions.map((contribution) => contribution.feature)).toEqual([
       'graph-coverage',
+      'selected-graph-focus',
       'capability-contribution',
       'evidence-potential',
       'learner-fit',
@@ -1497,6 +1498,7 @@ describe('adaptive learning path planner', () => {
           qualityObjectiveIds: learningGoal.qualityObjectiveIds,
         },
         expandedSubgraph,
+        selectedGraphNodeIds: [secondTarget],
         resourceCoverage: {
           [firstTarget]: {
             domain: 'knowledge',
@@ -1560,7 +1562,12 @@ describe('adaptive learning path planner', () => {
 
     expect(plan.status).toBe('fallback');
     expect(plan.explanations.fallbackReasons).toContain('graph-target-coverage-partial');
-    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:graph-frequency-card-a']);
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:graph-frequency-card-b']);
+    expect(plan.mainPath[0]?.resourceRanker?.featureContributions).toContainEqual(expect.objectContaining({
+      feature: 'selected-graph-focus',
+      value: 1,
+    }));
+    expect(plan.mainPath[0]?.reasonCodes).toContain('ranker:selected-graph-focus');
   });
 
   it('matches ResourceNodes bound to required graph prerequisites', () => {

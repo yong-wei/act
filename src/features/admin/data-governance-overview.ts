@@ -16,6 +16,11 @@ export type GovernanceStatusPayload = {
     reportHref: string;
     recoveryHref: string;
   } | null;
+  graphCenterAudit?: {
+    graphNodeId: string;
+    audit: string | null;
+    preferredTab: 'sources' | 'cache' | 'overview';
+  } | null;
   freshness: {
     lastSnapshotMinutes: number | null;
     status: string;

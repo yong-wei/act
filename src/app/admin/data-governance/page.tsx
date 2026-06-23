@@ -15,6 +15,8 @@ export default async function AdminDataGovernancePage({
     surface?: string;
     tab?: string;
     lessonPlanId?: string;
+    graphNodeId?: string;
+    audit?: string;
   }>;
 }) {
   const session = await getServerAuthSession();

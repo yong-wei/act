@@ -91,6 +91,34 @@ describe('graph center client surface', () => {
     expect(html).toContain('已校验引用 1');
   });
 
+  it('renders graph center actions in selected detail and list fallback paths', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'STUDENT',
+      resourceRegistry: buildFullCoverageRegistry(),
+      evidenceCorpus: [verifiedChunk()],
+      learnerOverlay: {
+        state: learnerState('learner-1', 0.84, 0.72, 3),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'student',
+        authorized: true,
+      },
+    });
+    const html = renderToStaticMarkup(createElement(GraphCenterClient, { initialPayload: payload }));
+
+    expect(html).toContain('data-graph-center-actions="true"');
+    expect(html).toContain('data-graph-center-node-actions="kn:autocontrol:controller-correction"');
+    expect(html).toContain('进入学习路径');
+    expect(html).toContain('查看推荐资源');
+    expect(html).toContain('复查个人证据');
+    expect(html).toContain('向 Konling 提问');
+    expect(html).toContain('data-action-status="available"');
+    expect(html).toContain('data-action-status="degraded"');
+    expect(html).toContain('证据复查需要学习者证据路由接入');
+    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction&amp;graphNodeId=kn%3Aautocontrol%3Acontroller-correction&amp;intent=contextual-recommendation"');
+  });
+
   it('renders class heat mode with suppression and denominator labels', () => {
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',
@@ -176,6 +204,13 @@ describe('graph center client surface', () => {
     expect(teacherHtml).toContain('缺少内容哈希');
     expect(teacherHtml).toContain('暂定元数据');
     expect(teacherHtml).toContain('registry:sample: metadata is provisional');
+    expect(teacherHtml).toContain('data-graph-center-action-id="teacher:inspect-resource-gap"');
+    expect(teacherHtml).toContain('data-action-status="degraded"');
+    expect(teacherHtml).toContain('href="/teacher/resources/resource-nodes?knowledge=%E4%B8%B2%E8%81%94%E6%A0%A1%E6%AD%A3_6_fede5751&amp;pathEligibility=excluded"');
+    expect(teacherHtml).toContain('data-graph-center-action-id="teacher:inspect-affected-population"');
+    expect(teacherHtml).toContain('data-graph-center-action-id="teacher:open-prep-pack"');
+    expect(teacherHtml).not.toContain('href="/teacher/classes/class-1/analytics-v2?graphNodeId=kn%3Aautocontrol%3Acontroller-correction&amp;view=population"');
+    expect(teacherHtml).not.toContain('href="/teacher/prep-packs?classId=class-1"');
     expect(studentHtml).not.toContain('字段完成');
     expect(studentHtml).not.toContain('缺少内容哈希');
   });

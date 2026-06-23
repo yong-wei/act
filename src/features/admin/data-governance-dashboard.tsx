@@ -30,13 +30,35 @@ type DataGovernanceDashboardProps = {
   initialActionQuery?: GovernanceActionQuery | null;
 };
 
+type GraphCenterAuditContext = 'resource-binding' | 'citation-readiness' | 'overlay-limitations' | 'custom';
+
+export function normalizeGraphCenterAuditContext(audit: string | null | undefined): GraphCenterAuditContext | null {
+  const trimmed = audit?.trim();
+  if (!trimmed) return null;
+  if (
+    trimmed === 'resource-binding' ||
+    trimmed === 'citation-readiness' ||
+    trimmed === 'overlay-limitations'
+  ) {
+    return trimmed;
+  }
+  return 'custom';
+}
+
+export function graphCenterAuditInitialTab(audit: GraphCenterAuditContext | null): 'overview' | 'sessions' | 'sources' | 'cache' {
+  if (audit === 'resource-binding' || audit === 'citation-readiness') return 'sources';
+  if (audit === 'overlay-limitations') return 'cache';
+  return 'overview';
+}
+
 export function DataGovernanceDashboard({ currentUser, initialActionQuery }: DataGovernanceDashboardProps) {
   const [status, setStatus] = useState<GovernanceStatusPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const initialGraphCenterAuditContext = normalizeGraphCenterAuditContext(initialActionQuery?.audit);
   const initialTab = initialActionQuery?.surface === 'authoring' && initialActionQuery?.tab === 'reports'
     ? 'sessions'
-    : 'overview';
+    : graphCenterAuditInitialTab(initialGraphCenterAuditContext);
   const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'sources' | 'cache'>(initialTab);
   const [executedActionState, setExecutedActionState] = useState<AuditedActionState | null>(null);
   const [executedAuditRecord, setExecutedAuditRecord] = useState<GovernanceActionAuditRecord | null>(null);
@@ -57,6 +79,12 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
       if (initialActionQuery?.lessonPlanId?.trim()) {
         params.set('lessonPlanId', initialActionQuery.lessonPlanId.trim());
       }
+      if (initialActionQuery?.graphNodeId?.trim()) {
+        params.set('graphNodeId', initialActionQuery.graphNodeId.trim());
+      }
+      if (initialActionQuery?.audit?.trim()) {
+        params.set('audit', initialActionQuery.audit.trim());
+      }
       const response = await fetch(`/api/admin/data-governance/status${params.size ? `?${params}` : ''}`, {
         cache: 'no-store',
       });
@@ -71,7 +99,14 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
     } finally {
       setLoading(false);
     }
-  }, [initialActionQuery?.lessonPlanId, initialActionQuery?.riskId, initialActionQuery?.surface, initialActionQuery?.tab]);
+  }, [
+    initialActionQuery?.audit,
+    initialActionQuery?.graphNodeId,
+    initialActionQuery?.lessonPlanId,
+    initialActionQuery?.riskId,
+    initialActionQuery?.surface,
+    initialActionQuery?.tab,
+  ]);
 
   useEffect(() => {
     fetchStatus();
@@ -124,6 +159,8 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
   const authoringSurfaceActive = initialActionQuery?.surface === 'authoring';
   const authoringLessonPlanId = initialActionQuery?.lessonPlanId?.trim() || null;
   const authoringLessonPlanMissing = Boolean(status?.authoringContext?.lessonPlanMissing);
+  const graphCenterNodeId = status?.graphCenterAudit?.graphNodeId ?? initialActionQuery?.graphNodeId?.trim() ?? null;
+  const graphCenterAuditContext = normalizeGraphCenterAuditContext(status?.graphCenterAudit?.audit ?? initialActionQuery?.audit);
 
   const executeGovernanceAction = async (input: {
     action: 'resolve' | 'assign';
@@ -268,6 +305,10 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
       data-report-ledger-watermark="low-contrast-brand"
       data-report-ledger-privacy-scope="admin-governance"
       data-report-ledger-export="deferred"
+      data-graph-center-governance-context={graphCenterNodeId ? 'true' : undefined}
+      data-graph-center-node-id={graphCenterNodeId ?? undefined}
+      data-graph-center-audit={graphCenterNodeId && graphCenterAuditContext ? graphCenterAuditContext : undefined}
+      data-graph-center-preferred-tab={status.graphCenterAudit?.preferredTab}
     >
       <AdminConsoleHeader
         currentUser={currentUser}
@@ -300,6 +341,21 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
             {error}
           </div>
         )}
+        {graphCenterNodeId ? (
+          <section
+            className="admin-console-notice"
+            data-graph-center-governance-audit-context="true"
+            data-graph-center-node-id={graphCenterNodeId}
+            data-graph-center-audit={graphCenterAuditContext ?? 'unspecified'}
+            data-graph-center-preferred-tab={status.graphCenterAudit?.preferredTab ?? graphCenterAuditInitialTab(graphCenterAuditContext)}
+          >
+            <div className="font-semibold text-foreground">图谱治理上下文</div>
+            <div className="mt-1 text-sm">
+              当前审计已定位到图谱节点 <span className="font-mono text-xs">{graphCenterNodeId}</span>
+              {graphCenterAuditContext ? `，审计类型：${graphCenterAuditContext}` : '。'}
+            </div>
+          </section>
+        ) : null}
         <div
           className="sr-only"
           role="status"

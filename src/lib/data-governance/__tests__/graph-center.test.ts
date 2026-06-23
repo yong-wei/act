@@ -1,9 +1,12 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   buildGraphCenterPayload,
   canReadGraphCenterClassOverlay,
   canReadGraphCenterLearnerOverlay,
 } from '../graph-center';
+import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '../../platform-role-navigation';
 import type { AdaptiveLearnerState, MasteryEvidenceReference } from '../adaptive-learner-state-service';
 import {
   createLearningEvidenceCorpusChunk,
@@ -13,8 +16,38 @@ import {
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 import { textbookSearchDocumentsToLearningEvidenceCorpus } from '../graph-center-evidence';
 import { teachingResourceWhereForGraphCenter } from '../graph-center-source-scope';
+import { filterTeacherResourceNodes } from '../../teacher-resource-node-management';
 import { buildResourceNodeRegistry } from '../../resource-node-registry';
 import type { TextbookRuntimeSearchDocument } from '../../textbook-runtime-resources';
+
+const teacherAnalyticsV2Source = readFileSync(
+  join(process.cwd(), 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx'),
+  'utf8',
+);
+const adminDataGovernancePageSource = readFileSync(
+  join(process.cwd(), 'src/app/admin/data-governance/page.tsx'),
+  'utf8',
+);
+const adminDataGovernanceDashboardSource = readFileSync(
+  join(process.cwd(), 'src/features/admin/data-governance-dashboard.tsx'),
+  'utf8',
+);
+const adaptivePracticePageSource = readFileSync(
+  join(process.cwd(), 'src/app/assessment/adaptive-practice/page.tsx'),
+  'utf8',
+);
+const adaptivePathAdvisorContextRouteSource = readFileSync(
+  join(process.cwd(), 'src/app/api/adaptive/path-advisor-context/route.ts'),
+  'utf8',
+);
+const adaptivePathAdvisorToolRouteSource = readFileSync(
+  join(process.cwd(), 'src/app/api/adaptive/path-advisor-tool/route.ts'),
+  'utf8',
+);
+const adminDataGovernanceStatusRouteSource = readFileSync(
+  join(process.cwd(), 'src/app/api/admin/data-governance/status/route.ts'),
+  'utf8',
+);
 
 describe('graph center payload service', () => {
   it('builds a knowledge-domain payload with objectives, portrait dimensions, and selected node detail', () => {
@@ -414,6 +447,408 @@ describe('graph center payload service', () => {
       freshness: 'current',
     });
     expect(Object.hasOwn(payload.graph.nodes[0], 'learnerOverlay')).toBe(false);
+  });
+
+  it('derives role-scoped graph center actions with explicit disabled reasons', () => {
+    const readOnlyPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+    });
+    const studentPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'STUDENT',
+      resourceRegistry: fullCoverageRegistry(),
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-controller-correction-verified',
+          knowledgeNodeRefs: ['PID控制器_6_656b8b52'],
+          citationAddress: {
+            kind: 'text',
+            sourceRefId: 'lesson15-series-knowledge-deck',
+            href: '/interactive-learning/resources/lesson15-series-knowledge-deck',
+            locator: 'section#pid',
+            contentHash: 'hash-controller-correction',
+          },
+          contentHash: 'hash-controller-correction',
+        }),
+      ],
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-1',
+          targetId: 'kn:autocontrol:controller-correction',
+          score: 0.52,
+          confidence: 0.72,
+          evidenceCount: 2,
+        }),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'student',
+        authorized: true,
+      },
+    });
+    const teacherPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:feedback-loop',
+      viewerRole: 'TEACHER',
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: true,
+        learnerStates: [
+          learnerState({ userId: 'learner-1', targetId: 'kn:autocontrol:feedback-loop', score: 0.2, confidence: 0.7, evidenceCount: 1 }),
+          learnerState({ userId: 'learner-2', targetId: 'kn:autocontrol:feedback-loop', score: 0.3, confidence: 0.7, evidenceCount: 1 }),
+          learnerState({ userId: 'learner-3', targetId: 'kn:autocontrol:feedback-loop', score: 0.4, confidence: 0.7, evidenceCount: 1 }),
+          learnerState({ userId: 'learner-4', targetId: 'kn:autocontrol:feedback-loop', score: 0.5, confidence: 0.7, evidenceCount: 1 }),
+          learnerState({ userId: 'learner-5', targetId: 'kn:autocontrol:feedback-loop', score: 0.6, confidence: 0.7, evidenceCount: 1 }),
+        ],
+      },
+    });
+    const adminPayload = buildGraphCenterPayload({
+      domain: 'quality',
+      selectedNodeId: 'qual:autocontrol:evidence-integrity',
+      viewerRole: 'ADMIN',
+    });
+
+    expect(readOnlyPayload.selectedNode?.actions).toEqual([]);
+    expect(studentPayload.selectedNode?.actions.map((action) => action.id)).toEqual([
+      'student:start-path',
+      'student:inspect-resource',
+      'student:review-evidence',
+      'student:ask-konling',
+    ]);
+    expect(studentPayload.selectedNode?.actions.find((action) => action.id === 'student:start-path')).toMatchObject({
+      status: 'available',
+      role: 'student',
+      target: {
+        route: '/assessment/adaptive-practice',
+        params: {
+          goal: 'control-correction',
+          graphNodeId: 'kn:autocontrol:controller-correction',
+          intent: 'contextual-recommendation',
+        },
+      },
+    });
+    const frequencyPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:frequency-response',
+      viewerRole: 'STUDENT',
+    });
+    expect(frequencyPayload.selectedNode?.actions.find((action) => action.id === 'student:start-path')).toMatchObject({
+      status: 'available',
+      target: {
+        route: '/assessment/adaptive-practice',
+        params: {
+          goal: 'frequency-response-foundations',
+          graphNodeId: 'kn:autocontrol:frequency-response',
+          intent: 'contextual-recommendation',
+        },
+        href: '/assessment/adaptive-practice?goal=frequency-response-foundations&graphNodeId=kn%3Aautocontrol%3Afrequency-response&intent=contextual-recommendation',
+      },
+    });
+    const unmappedPathPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:feedback-loop',
+      viewerRole: 'STUDENT',
+    });
+    const unmappedPathAction = unmappedPathPayload.selectedNode?.actions.find((action) => action.id === 'student:start-path');
+    expect(unmappedPathAction).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-path-context',
+      reason: '该节点尚未接入可进入的自适应学习路径入口。',
+    });
+    expect(unmappedPathAction?.target).toBeUndefined();
+    expect(studentPayload.selectedNode?.actions.find((action) => action.id === 'student:ask-konling')).toMatchObject({
+      status: 'available',
+      target: {
+        route: '/assessment/adaptive-practice',
+        params: {
+          goal: 'control-correction',
+          graphNodeId: 'kn:autocontrol:controller-correction',
+          intent: 'contextual-recommendation',
+        },
+        href: '/assessment/adaptive-practice?goal=control-correction&graphNodeId=kn%3Aautocontrol%3Acontroller-correction&intent=contextual-recommendation',
+      },
+    });
+    const unmappedKonlingAction = unmappedPathPayload.selectedNode?.actions.find((action) => action.id === 'student:ask-konling');
+    expect(unmappedKonlingAction).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-path-context',
+      reason: '该节点尚未接入可进入的 Konling 图谱提问上下文。',
+    });
+    expect(unmappedKonlingAction?.target).toBeUndefined();
+    expect(studentPayload.selectedNode?.actions.find((action) => action.id === 'student:review-evidence')).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-evidence-route',
+    });
+    expect(studentPayload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toContain('arena-task:full-coverage-arena-official');
+    expect(studentPayload.selectedNode?.resourceCoverage.pathEligibleResourceRouteIds[0]).toBe('full-coverage-assessment');
+    expect(studentPayload.selectedNode?.resourceCoverage.filterKnowledgeRefs).toContain('PID控制器_6_656b8b52');
+    expect(studentPayload.selectedNode?.actions.find((action) => action.id === 'student:inspect-resource')).toMatchObject({
+      status: 'available',
+      target: {
+        route: '/interactive-learning/resources/[id]',
+        params: {
+          resourceId: 'full-coverage-assessment',
+          graphNodeId: 'kn:autocontrol:controller-correction',
+        },
+        href: '/interactive-learning/resources/full-coverage-assessment?graphNodeId=kn%3Aautocontrol%3Acontroller-correction',
+      },
+    });
+    const arenaOnlyPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'STUDENT',
+      resourceRegistry: buildResourceNodeRegistry({
+        arenaTasks: [{
+          id: 'arena-only',
+          title: 'Arena only resource',
+          launchTarget: '/arena/arena-only',
+          knowledgeNodeIds: ['PID控制器_6_656b8b52'],
+          official: true,
+          planningOverride: {
+            estimatedTimeMinutes: 12,
+            terminalConstraints: ['terminal-validation'],
+            evidenceInstrumentation: ['arena_evaluation_complete'],
+          },
+        }],
+      }),
+    });
+    expect(arenaOnlyPayload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toEqual(['arena-task:arena-only']);
+    expect(arenaOnlyPayload.selectedNode?.resourceCoverage.pathEligibleResourceRouteIds).toEqual([]);
+    const arenaOnlyResourceAction = arenaOnlyPayload.selectedNode?.actions.find((action) => action.id === 'student:inspect-resource');
+    expect(arenaOnlyResourceAction).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-resource-context',
+    });
+    expect(arenaOnlyResourceAction?.target).toBeUndefined();
+
+    expect(teacherPayload.selectedNode?.actions.map((action) => action.id)).toEqual([
+      'teacher:diagnose-weak-node',
+      'teacher:inspect-affected-population',
+      'teacher:inspect-resource-gap',
+      'teacher:open-prep-pack',
+    ]);
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:diagnose-weak-node')).toMatchObject({
+      status: 'available',
+      target: {
+        route: '/teacher/classes/[classId]/analytics-v2',
+        params: {
+          classId: 'class-1',
+          graphNodeId: 'kn:autocontrol:feedback-loop',
+        },
+      },
+    });
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:inspect-affected-population')).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-route-context',
+      reason: '班级诊断入口当前只保留图谱节点提示，尚未按该节点过滤受影响学生。',
+      target: {
+        route: '/teacher/classes/[classId]/analytics-v2',
+        params: {
+          classId: 'class-1',
+          graphNodeId: 'kn:autocontrol:feedback-loop',
+          view: 'population',
+        },
+        href: '/teacher/classes/class-1/analytics-v2?graphNodeId=kn%3Aautocontrol%3Afeedback-loop&view=population',
+      },
+    });
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:inspect-resource-gap')).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-resource-context',
+      target: {
+        route: '/teacher/resources/resource-nodes',
+        params: {
+          knowledge: '反馈_1_1',
+          pathEligibility: 'excluded',
+        },
+      },
+    });
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-route-context',
+      reason: '备课包入口当前只支持班级上下文，尚未消费图谱节点或学习目标。',
+      target: {
+        route: '/teacher/prep-packs',
+        params: {
+          classId: 'class-1',
+        },
+        href: '/teacher/prep-packs?classId=class-1',
+      },
+    });
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')?.target?.params).not.toHaveProperty('graphNodeId');
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')?.target?.params).not.toHaveProperty('learningGoalId');
+
+    expect(adminPayload.selectedNode?.actions.map((action) => action.id)).toEqual([
+      'admin:inspect-resource-binding',
+      'admin:inspect-citation-readiness',
+      'admin:inspect-overlay-limitations',
+    ]);
+    expect(adminPayload.selectedNode?.actions.every((action) => action.role === 'admin')).toBe(true);
+    expect(adminPayload.selectedNode?.actions.find((action) => action.id === 'admin:inspect-resource-binding')).toMatchObject({
+      status: 'available',
+      target: {
+        route: '/admin/data-governance',
+        params: {
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
+          audit: 'resource-binding',
+        },
+      },
+    });
+    expect(adminPayload.selectedNode?.actions.find((action) => action.id === 'admin:inspect-overlay-limitations')).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-overlay-context',
+      target: {
+        route: '/admin/data-governance',
+        params: {
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
+          audit: 'overlay-limitations',
+        },
+      },
+    });
+
+    const routeLedgerHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
+    const actionRoutes = [
+      ...(studentPayload.selectedNode?.actions ?? []),
+      ...(teacherPayload.selectedNode?.actions ?? []),
+      ...(adminPayload.selectedNode?.actions ?? []),
+    ].flatMap((action) => action.target ? [action.target.route] : []);
+    expect(actionRoutes.every((route) => routeLedgerHrefs.has(route))).toBe(true);
+  });
+
+  it('keeps Graph Center action targets wired to pages that consume their query context', () => {
+    expect(teacherAnalyticsV2Source).toContain("searchParams.get('graphNodeId')");
+    expect(teacherAnalyticsV2Source).toContain("searchParams.get('view')");
+    expect(teacherAnalyticsV2Source).toContain('data-graph-center-class-action-context');
+    expect(teacherAnalyticsV2Source).toContain("setHeatmapView('risk')");
+    expect(teacherAnalyticsV2Source).toContain('data-graph-center-population-view');
+    expect(adminDataGovernancePageSource).toContain('graphNodeId?: string');
+    expect(adminDataGovernancePageSource).toContain('audit?: string');
+    expect(adminDataGovernanceDashboardSource).toContain('initialActionQuery?.graphNodeId');
+    expect(adminDataGovernanceDashboardSource).toContain('data-graph-center-governance-audit-context');
+    expect(adminDataGovernanceDashboardSource).toContain("params.set('graphNodeId', initialActionQuery.graphNodeId.trim())");
+    expect(adminDataGovernanceDashboardSource).toContain("params.set('audit', initialActionQuery.audit.trim())");
+    expect(adminDataGovernanceDashboardSource).toContain('graphCenterAuditInitialTab');
+    expect(adminDataGovernanceStatusRouteSource).toContain("request.nextUrl.searchParams.get('graphNodeId')");
+    expect(adminDataGovernanceStatusRouteSource).toContain('graphCenterAudit');
+    expect(adaptivePracticePageSource).toContain("const activeGraphNodeId = searchParams.get('graphNodeId')");
+    expect(adaptivePracticePageSource).toContain("if (activeGraphNodeId) contextQuery.set('graphNodeId', activeGraphNodeId)");
+    expect(adaptivePracticePageSource).toContain('...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {})');
+    expect(adaptivePracticePageSource).toContain('graphNodeId,');
+    expect(adaptivePathAdvisorContextRouteSource).toContain("url.searchParams.get('graphNodeId')");
+    expect(adaptivePathAdvisorContextRouteSource).toContain('isGraphNodeInLearningGoalSubgraph(goalId, graphNodeId)');
+    expect(adaptivePathAdvisorContextRouteSource).toContain("'graph-node-context'");
+    expect(adaptivePathAdvisorToolRouteSource).toContain('const graphNodeId = typeof body.graphNodeId');
+    expect(adaptivePathAdvisorToolRouteSource).toContain('toolInput.graphNodeId');
+  });
+
+  it('uses resource-node knowledge coverage refs for teacher resource gap links', () => {
+    const resourceRegistry = fullCoverageRegistry();
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'TEACHER',
+      resourceRegistry,
+    });
+    const action = payload.selectedNode?.actions.find((item) => item.id === 'teacher:inspect-resource-gap');
+    const knowledge = action?.target?.params.knowledge;
+
+    expect(knowledge).toBe('PID控制器_6_656b8b52');
+    expect(knowledge).not.toBe('kn:autocontrol:controller-correction');
+    expect(filterTeacherResourceNodes(resourceRegistry.nodes, {
+      knowledge,
+    }).map((node) => node.id)).toEqual(expect.arrayContaining([
+      'registry:full-coverage-assessment',
+    ]));
+  });
+
+  it('uses authorization reason codes for unauthorized graph center actions', () => {
+    const unauthorizedLearnerPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'STUDENT',
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-2',
+          targetId: 'kn:autocontrol:controller-correction',
+          score: 0.2,
+          confidence: 0.9,
+          evidenceCount: 8,
+        }),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'student',
+        authorized: false,
+      },
+    });
+    const unauthorizedClassPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:feedback-loop',
+      viewerRole: 'TEACHER',
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: false,
+        learnerStates: [
+          learnerState({ userId: 'learner-1', targetId: 'kn:autocontrol:feedback-loop', score: 0.2, confidence: 0.7, evidenceCount: 1 }),
+        ],
+      },
+    });
+
+    expect(unauthorizedLearnerPayload.learnerOverlay.status).toBe('unauthorized');
+    expect(unauthorizedLearnerPayload.selectedNode?.actions.find((action) => action.id === 'student:review-evidence')).toMatchObject({
+      status: 'disabled',
+      reasonCode: 'missing-authorization',
+      reason: '当前用户无权读取该学习者图谱 overlay。',
+    });
+    expect(unauthorizedClassPayload.classOverlay.status).toBe('unauthorized');
+    expect(unauthorizedClassPayload.selectedNode?.actions.find((action) => action.id === 'teacher:diagnose-weak-node')).toMatchObject({
+      status: 'disabled',
+      reasonCode: 'missing-authorization',
+      reason: '当前用户无权读取该班级图谱 overlay。',
+    });
+    expect(unauthorizedClassPayload.selectedNode?.actions.find((action) => action.id === 'teacher:inspect-affected-population')).toMatchObject({
+      status: 'disabled',
+      reasonCode: 'missing-authorization',
+      reason: '当前用户无权读取该班级图谱 overlay。',
+    });
+    expect(unauthorizedClassPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')).toMatchObject({
+      status: 'disabled',
+      reasonCode: 'missing-authorization',
+      reason: '当前用户无权读取该班级图谱 overlay。',
+      target: undefined,
+    });
+  });
+
+  it('does not route arena-only path resources through the interactive resource detail page', () => {
+    const arenaOnlyRegistry = buildResourceNodeRegistry({
+      arenaTasks: [
+        {
+          id: 'only-arena-official',
+          title: 'Only Arena official',
+          launchTarget: '/arena/only-arena-official',
+          knowledgeNodeIds: ['PID控制器_6_656b8b52'],
+          official: true,
+          planningOverride: {
+            estimatedTimeMinutes: 12,
+            evidenceInstrumentation: ['arena_simulation_run'],
+          },
+        },
+      ],
+    });
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'STUDENT',
+      resourceRegistry: arenaOnlyRegistry,
+    });
+    const inspectAction = payload.selectedNode?.actions.find((action) => action.id === 'student:inspect-resource');
+
+    expect(payload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toEqual(['arena-task:only-arena-official']);
+    expect(payload.selectedNode?.resourceCoverage.pathEligibleResourceRouteIds).toEqual([]);
+    expect(inspectAction).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-resource-context',
+    });
+    expect(inspectAction?.target).toBeUndefined();
   });
 
   it('rejects unauthorized learner overlays without leaking inferred state', () => {

@@ -136,6 +136,7 @@ export interface AdaptiveLearningPathGraphContextInput {
     qualityObjectiveIds: string[];
   };
   expandedSubgraph: ExpandedGoalSubgraph;
+  selectedGraphNodeIds?: string[];
   resourceCoverage?: Record<string, GraphCenterResourceCoverage>;
   learnerOverlay?: GraphCenterLearnerOverlay | null;
   classOverlay?: GraphCenterClassOverlay | null;
@@ -155,6 +156,7 @@ export interface AdaptiveLearningPathGraphContextSummary {
   graphVersion: string;
   objectiveBoundary: AdaptiveLearningPathGraphContextInput['objectiveBoundary'];
   targetGraphNodeIds: string[];
+  selectedGraphNodeIds: string[];
   prerequisitePolicy: Array<Pick<
     GoalSubgraphPolicyEntry,
     'edgeId' | 'sourceNodeId' | 'targetNodeId' | 'semantics' | 'required'
@@ -1712,6 +1714,7 @@ function buildAdaptiveLearningPathPlanInternal(
     }),
     scene: 'path',
     targetGraphNodeIds,
+    selectedGraphNodeIds: graphContext?.selectedGraphNodeIds ?? [],
     learnerState: input.learnerState,
     preferredResourceTypes: input.resourcePreferences,
     timeBudgetMinutes: input.constraints.timeBudgetMinutes,
@@ -2098,6 +2101,8 @@ function buildAdaptiveLearningPathGraphContext(
       ))
       .flatMap((entry) => [entry.sourceNodeId, entry.targetNodeId]),
   ]);
+  const selectedGraphNodeIds = unique((input.selectedGraphNodeIds ?? [])
+    .filter((nodeId) => targetGraphNodeIds.includes(nodeId)));
   const resourceCoverageStatus = Object.fromEntries(
     Object.entries(input.resourceCoverage ?? {}).map(([nodeId, coverage]) => [
       nodeId,
@@ -2125,6 +2130,7 @@ function buildAdaptiveLearningPathGraphContext(
     graphVersion: input.expandedSubgraph.graphVersion,
     objectiveBoundary: input.objectiveBoundary,
     targetGraphNodeIds,
+    selectedGraphNodeIds,
     prerequisitePolicy: input.expandedSubgraph.prerequisitePolicy.map((entry) => ({
       edgeId: entry.edgeId,
       sourceNodeId: entry.sourceNodeId,

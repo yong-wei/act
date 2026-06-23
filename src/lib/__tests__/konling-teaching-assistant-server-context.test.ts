@@ -3,6 +3,7 @@ import { createHmac } from 'node:crypto';
 
 import {
   createKonlingTeachingAssistantServerContextToken,
+  resolveKonlingTeachingAssistantSignedGraphNodeId,
   resolveKonlingTeachingAssistantScopeOverride,
   resolveKonlingTeachingAssistantServerModeContext,
 } from '@/lib/konling-teaching-assistant-server-context';
@@ -124,9 +125,12 @@ describe('Konling teaching-assistant server context', () => {
       classId: 'class-1',
       courseId: 'course-1',
       pageId: 'adaptive-path-center',
+      goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
       context: {
         'student-path-center': true,
         'learner-state-summary': true,
+        'graph-node-context': true,
       },
     });
 
@@ -141,10 +145,15 @@ describe('Konling teaching-assistant server context', () => {
         privacyScopes: ['student-visible'],
       }),
       runtimeContext,
-      clientContextHints: { modeContextToken },
+      clientContextHints: {
+        modeContextToken,
+        goalId: 'control-correction',
+        graphNodeId: 'kn:autocontrol:controller-correction',
+      },
     })).resolves.toEqual({
       'student-path-center': true,
       'learner-state-summary': true,
+      'graph-node-context': true,
     });
 
     await expect(resolveKonlingTeachingAssistantServerModeContext({
@@ -159,7 +168,9 @@ describe('Konling teaching-assistant server context', () => {
       }),
       runtimeContext,
       clientContextHints: {
-        'student-path-center': true,
+        modeContextToken,
+        goalId: 'control-correction',
+        graphNodeId: 'kn:autocontrol:forged-node',
       },
     })).resolves.toEqual({});
 
@@ -175,6 +186,49 @@ describe('Konling teaching-assistant server context', () => {
       runtimeContext,
       clientContextHints: { modeContextToken },
     })).resolves.toEqual({});
+  });
+
+  it('resolves signed path-advisor graph node ids as canonical server context', () => {
+    const modeContextToken = createKonlingTeachingAssistantServerContextToken({
+      mode: 'path-advisor',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+      goalId: 'control-correction',
+      graphNodeId: 'kn:autocontrol:controller-correction',
+      context: {
+        'student-path-center': true,
+        'learner-state-summary': true,
+        'graph-node-context': true,
+      },
+    });
+    const studentPathScope = scope({
+      role: 'student',
+      authenticatedUserId: 'student-1',
+      targetUserId: 'student-1',
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+      privacyScopes: ['student-visible'],
+    });
+
+    expect(resolveKonlingTeachingAssistantSignedGraphNodeId({
+      modeId: 'path-advisor',
+      scope: studentPathScope,
+      clientContextHints: {
+        modeContextToken,
+        goalId: 'control-correction',
+      },
+    })).toBe('kn:autocontrol:controller-correction');
+
+    expect(resolveKonlingTeachingAssistantSignedGraphNodeId({
+      modeId: 'path-advisor',
+      scope: studentPathScope,
+      clientContextHints: {
+        modeContextToken,
+        goalId: 'control-correction',
+        graphNodeId: 'kn:autocontrol:forged-node',
+      },
+    })).toBeNull();
   });
 
   it('does not sign server context tokens with the documented placeholder secret', () => {
