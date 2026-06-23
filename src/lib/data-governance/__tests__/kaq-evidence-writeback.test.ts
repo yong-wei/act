@@ -1393,6 +1393,57 @@ describe('K/A/Q evidence writeback governance', () => {
     });
   });
 
+  it('normalizes teacher-approved grading scores by rubric max score', () => {
+    const failingInput = buildTeacherApprovedGradingWritebackInput({
+      id: 'grading-writeback-raw-failing-1',
+      gradingRunId: 'grading-run-raw-failing-1',
+      subject,
+      teacherId: 'teacher-9',
+      learningGoalId: 'control-correction',
+      objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+      graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+      score: 1,
+      maxScore: 4,
+      versionRefs,
+      materializedAt: '2026-06-23T03:35:35.000Z',
+    });
+    const passingInput = buildTeacherApprovedGradingWritebackInput({
+      id: 'grading-writeback-raw-passing-1',
+      gradingRunId: 'grading-run-raw-passing-1',
+      subject,
+      teacherId: 'teacher-9',
+      learningGoalId: 'control-correction',
+      objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+      graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+      score: 3,
+      maxScore: 4,
+      versionRefs,
+      materializedAt: '2026-06-23T03:35:36.000Z',
+    });
+
+    const failing = materializeKaqEvidenceWriteback(failingInput);
+    const passing = materializeKaqEvidenceWriteback(passingInput);
+
+    expect(failingInput.contributions[0]).toMatchObject({
+      confidence: 0.25,
+      terminalValidationCandidate: false,
+    });
+    expect(failing.overlayUpdates[0]).toMatchObject({
+      confidence: 0.25,
+      terminalValidationAccepted: false,
+      limitationCodes: [],
+    });
+    expect(passingInput.contributions[0]).toMatchObject({
+      confidence: 0.75,
+      terminalValidationCandidate: true,
+    });
+    expect(passing.overlayUpdates[0]).toMatchObject({
+      confidence: 0.75,
+      terminalValidationAccepted: true,
+      limitationCodes: [],
+    });
+  });
+
   it('accepts teacher-approved AI grading provenance as terminal validation when confidence passes', () => {
     const input = buildTeacherApprovedGradingWritebackInput({
       id: 'grading-writeback-ai-approved-1',

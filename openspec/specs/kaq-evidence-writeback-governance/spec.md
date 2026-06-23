@@ -42,6 +42,11 @@ The system SHALL distinguish exploratory or preview evidence from governed termi
 - **WHEN** official Arena evaluation, governed simulation validation, teacher-approved grading, or a policy-approved checkpoint is materialized
 - **THEN** it MAY update terminal validation or capability state only if required source, scope, confidence, and version refs pass validation.
 
+#### Scenario: Teacher-approved grading uses rubric score scale
+- **WHEN** teacher-approved grading evidence is built from a raw rubric score and rubric max score
+- **THEN** the writeback confidence SHALL be normalized by the max score
+- **AND** terminal validation SHALL only be requested when the normalized score passes the terminal validation threshold.
+
 ### Requirement: AI-generated evidence is flagged
 Evidence writeback SHALL preserve whether AI produced or mediated the source.
 

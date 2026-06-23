@@ -424,6 +424,7 @@ export function buildTeacherApprovedGradingWritebackInput(input: {
   objectiveId: string;
   graphNodeId: string;
   score: number;
+  maxScore?: number;
   aiGenerated?: boolean;
   versionRefs: KaqArtifactVersionRefs;
   materializedAt: string;
@@ -435,6 +436,8 @@ export function buildTeacherApprovedGradingWritebackInput(input: {
   const objectiveId = normalizeOptionalId(input.objectiveId) ?? '';
   const graphNodeId = normalizeOptionalId(input.graphNodeId) ?? '';
   const materializedAt = normalizeOptionalId(input.materializedAt) ?? '';
+  const normalizedScore = normalizeGradingScore(input.score, input.maxScore);
+  const terminalValidationCandidate = normalizedScore >= TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD;
   return {
     id,
     source: {
@@ -457,8 +460,8 @@ export function buildTeacherApprovedGradingWritebackInput(input: {
         objectiveId,
         graphNodeId,
         learningGoalId,
-        confidence: clampConfidence(input.score),
-        terminalValidationCandidate: clampConfidence(input.score) >= TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD,
+        confidence: normalizedScore,
+        terminalValidationCandidate,
       },
     ],
   };
@@ -614,6 +617,12 @@ function normalizeActor(actor: KaqEvidenceWritebackActor): KaqEvidenceWritebackA
     ...actor,
     id: normalizeOptionalId(actor.id) ?? '',
   };
+}
+
+function normalizeGradingScore(score: number, maxScore: number | undefined): number {
+  return Number.isFinite(maxScore) && typeof maxScore === 'number' && maxScore > 0
+    ? clampConfidence(score / maxScore)
+    : clampConfidence(score);
 }
 
 function isStrictIsoTimestamp(value: string): boolean {
