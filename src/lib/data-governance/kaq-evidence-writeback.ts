@@ -474,8 +474,10 @@ function validateResourceTargetVersionRefs(
 
 function validateTargetBinding(contribution: KaqEvidenceContributionInput): KaqEvidenceLimitationCode[] {
   return [
-    ...(!contribution.objectiveId && !contribution.graphNodeId ? ['missing-target-binding' as const] : []),
-    ...(!contribution.learningGoalId ? ['missing-learning-goal-boundary' as const] : []),
+    ...(!normalizeOptionalId(contribution.objectiveId) && !normalizeOptionalId(contribution.graphNodeId)
+      ? ['missing-target-binding' as const]
+      : []),
+    ...(!normalizeOptionalId(contribution.learningGoalId) ? ['missing-learning-goal-boundary' as const] : []),
   ];
 }
 
@@ -496,15 +498,17 @@ function validateSource(source: KaqEvidenceWritebackSource): KaqEvidenceLimitati
 }
 
 function validateCatalogTarget(contribution: KaqEvidenceContributionInput): KaqEvidenceLimitationCode[] {
-  const objective = contribution.objectiveId
-    ? AUTOCONTROL_OBJECTIVES_BY_ID.get(contribution.objectiveId)
+  const objectiveId = normalizeOptionalId(contribution.objectiveId);
+  const graphNodeId = normalizeOptionalId(contribution.graphNodeId);
+  const objective = objectiveId
+    ? AUTOCONTROL_OBJECTIVES_BY_ID.get(objectiveId)
     : null;
-  const graphNode = contribution.graphNodeId
-    ? AUTOCONTROL_GRAPH_NODES_BY_ID.get(contribution.graphNodeId)
+  const graphNode = graphNodeId
+    ? AUTOCONTROL_GRAPH_NODES_BY_ID.get(graphNodeId)
     : null;
   const limitations: KaqEvidenceLimitationCode[] = [];
-  if (contribution.objectiveId && !objective) limitations.push('unknown-objective-id');
-  if (contribution.graphNodeId && !graphNode) limitations.push('unknown-graph-node-id');
+  if (objectiveId && !objective) limitations.push('unknown-objective-id');
+  if (graphNodeId && !graphNode) limitations.push('unknown-graph-node-id');
   if (objective && objective.domain !== contribution.domain) limitations.push('objective-domain-mismatch');
   if (graphNode && graphNode.domain !== contribution.domain) limitations.push('graph-node-domain-mismatch');
   if (objective && graphNode && !graphNodeSupportsObjective(graphNode, objective)) {
@@ -606,9 +610,9 @@ function projectAudit(
 
 function toTargetRef(contribution: KaqEvidenceContributionInput): KaqEvidenceTargetRef {
   return {
-    objectiveId: contribution.objectiveId ?? null,
-    graphNodeId: contribution.graphNodeId ?? null,
-    learningGoalId: contribution.learningGoalId ?? null,
+    objectiveId: normalizeOptionalId(contribution.objectiveId),
+    graphNodeId: normalizeOptionalId(contribution.graphNodeId),
+    learningGoalId: normalizeOptionalId(contribution.learningGoalId),
     resourceNodeId: normalizeOptionalId(contribution.resourceNodeId),
   };
 }

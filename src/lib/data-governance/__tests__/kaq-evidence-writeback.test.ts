@@ -700,6 +700,43 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.audit.limitationCodes).toContain('missing-subject-owner');
   });
 
+  it('blocks blank LearningGoal boundaries before terminal validation', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-blank-learning-goal-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-run-blank-learning-goal-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-blank-learning-goal-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:34:05.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:34:05.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: '   ',
+          confidence: 0.9,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.targetRefs[0]).toMatchObject({
+      learningGoalId: null,
+    });
+    expect(result.audit.limitationCodes).toContain('missing-learning-goal-boundary');
+  });
+
   it('blocks writeback with missing replayable source refs before terminal validation', () => {
     const baseInput: Parameters<typeof materializeKaqEvidenceWriteback>[0] = {
       id: 'writeback-missing-source-ref-1',
