@@ -4,13 +4,18 @@
 Defines the Stage 1 adaptive learning path planner contract: deterministic rules plus graph search over learner state and ResourceNodes, explainable scoring, visualization payloads, and feedback/correction records without contextual bandit or reinforcement learning.
 ## Requirements
 ### Requirement: Path planner generates constrained explainable paths
-The system SHALL generate adaptive learning paths from learner state, the ResourceNode graph, registered goal strategy, teacher policy, and planning constraints.
+The system SHALL generate adaptive learning paths from learner state, the ResourceNode graph, registered LearningGoal strategy, teacher policy, planning constraints, ranked resource candidates, and bounded repair output where available.
 
 #### Scenario: Planner creates a feasible path
 - **WHEN** a student requests a learning path with a time budget and registered learning goal
 - **THEN** the planner SHALL infer deficits when evidence exists, otherwise apply the goal's starter-path policy
 - **AND** it SHALL filter ResourceNodes and apply prerequisites, availability, teacher policy, privacy, device, risk-intervention, and time constraints for both personalized and starter paths
 - **AND** it SHALL return a feasible plan DAG with current node, next nodes, alternatives, estimates, and explanations.
+
+#### Scenario: Planner repairs a graph-driven draft path
+- **WHEN** graph search produces a draft path with bounded alternatives
+- **THEN** the planner MAY invoke path constraint repair to satisfy prerequisites, time budget, checkpoint policy, terminal validation policy, readiness, and serial/parallel constraints
+- **AND** repaired paths and infeasible fallback states SHALL expose explanation metadata rather than hiding constraint failures.
 
 #### Scenario: Planner exposes fallback state
 - **WHEN** learner evidence or resource mapping is insufficient for confident personalization
@@ -32,6 +37,11 @@ The system SHALL generate Stage 1 MVP paths without contextual bandit, reinforce
 - **WHEN** Stage 1 path planning is active
 - **THEN** rules plus graph search SHALL produce feasible paths and deterministic explanation metadata
 - **AND** contextual bandit SHALL NOT be required for a feasible path or visualization.
+
+#### Scenario: Repair runs in Stage 1
+- **WHEN** path constraint repair is enabled
+- **THEN** it SHALL remain a deterministic or solver-bounded feasibility step after candidate filtering and ranking
+- **AND** it SHALL NOT introduce contextual bandit, reinforcement learning, or black-box long-horizon policy selection.
 
 ### Requirement: Learning path visualization is available
 The system SHALL expose path visualization data for map, timeline, and evidence views.
