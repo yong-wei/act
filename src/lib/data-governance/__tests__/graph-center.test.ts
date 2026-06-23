@@ -488,11 +488,29 @@ describe('graph center payload service', () => {
       status: 'available',
       role: 'student',
       target: {
-        route: '/interactive-learning',
+        route: '/assessment/adaptive-practice',
         params: {
-          learningGoalId: 'knowledge:autocontrol:controller-correction',
-          graphNodeId: 'kn:autocontrol:controller-correction',
+          goal: 'control-correction',
+          nodeId: 'kn:autocontrol:controller-correction',
+          intent: 'contextual-recommendation',
         },
+      },
+    });
+    const frequencyPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:frequency-response',
+      viewerRole: 'STUDENT',
+    });
+    expect(frequencyPayload.selectedNode?.actions.find((action) => action.id === 'student:start-path')).toMatchObject({
+      status: 'available',
+      target: {
+        route: '/assessment/adaptive-practice',
+        params: {
+          goal: 'frequency-response-foundations',
+          nodeId: 'kn:autocontrol:frequency-response',
+          intent: 'contextual-recommendation',
+        },
+        href: '/assessment/adaptive-practice?goal=frequency-response-foundations&nodeId=kn%3Aautocontrol%3Afrequency-response&intent=contextual-recommendation',
       },
     });
     expect(studentPayload.selectedNode?.actions.find((action) => action.id === 'student:review-evidence')).toMatchObject({
@@ -559,6 +577,13 @@ describe('graph center payload service', () => {
     expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:inspect-resource-gap')).toMatchObject({
       status: 'degraded',
       reasonCode: 'missing-resource-context',
+      target: {
+        route: '/teacher/resources/resource-nodes',
+        params: {
+          knowledge: 'kn:autocontrol:feedback-loop',
+          pathEligibility: 'excluded',
+        },
+      },
     });
 
     expect(adminPayload.selectedNode?.actions.map((action) => action.id)).toEqual([

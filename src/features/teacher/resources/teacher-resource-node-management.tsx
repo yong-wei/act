@@ -50,6 +50,12 @@ export function TeacherResourceNodeManagement({
 }: TeacherResourceNodeManagementProps) {
   const searchParams = useSearchParams();
   const initialStatus = searchParams.get('status');
+  const initialPathEligibility = searchParams.get('pathEligibility');
+  const initialPathFilter: PathFilter = initialPathEligibility === 'eligible' || initialPathEligibility === 'excluded'
+    ? initialPathEligibility
+    : initialStatus === 'blocked'
+      ? 'excluded'
+      : 'all';
   const [nodes, setNodes] = useState(initialNodes);
   const [catalogSummary, setCatalogSummary] = useState(initialSummary);
   const [selectedId, setSelectedId] = useState(initialNodes[0]?.id ?? '');
@@ -74,7 +80,7 @@ export function TeacherResourceNodeManagement({
       ? searchParams.get('privacyLevel') as ResourceNodePrivacyLevel
       : 'all',
   );
-  const [pathFilter, setPathFilter] = useState<PathFilter>(initialStatus === 'blocked' ? 'excluded' : 'all');
+  const [pathFilter, setPathFilter] = useState<PathFilter>(initialPathFilter);
   const [knowledgeMapping, setKnowledgeMapping] = useState<ResourceNodeKnowledgeMappingFilter>(
     searchParams.get('knowledgeMapping') === 'mapped' || searchParams.get('knowledgeMapping') === 'unmapped'
       ? searchParams.get('knowledgeMapping') as ResourceNodeKnowledgeMappingFilter
@@ -215,7 +221,7 @@ export function TeacherResourceNodeManagement({
             <SummaryCell label="告警" value={summary.warningNodes} />
           </div>
         </div>
-        {initialStatus === 'blocked' ? (
+        {initialPathFilter === 'excluded' ? (
           <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
             当前按阻断资源打开：已筛选为“已排除路径资格”。可在右侧明细查看阻断原因，并按需调整教师策略。
           </div>

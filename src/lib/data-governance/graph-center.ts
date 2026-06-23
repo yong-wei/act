@@ -84,6 +84,7 @@ export type GraphCenterActionReasonCode =
   | 'missing-evidence-route';
 export type GraphCenterActionRoute =
   | '/interactive-learning'
+  | '/assessment/adaptive-practice'
   | '/interactive-learning/resources/[id]'
   | '/teacher/classes/[classId]/analytics-v2'
   | '/teacher/resources/resource-nodes'
@@ -333,6 +334,20 @@ const OBJECTIVES = [
 ];
 
 const OBJECTIVE_BY_ID = new Map(OBJECTIVES.map((objective) => [objective.id, objective]));
+type GraphCenterAdaptivePracticeGoal = 'control-correction' | 'frequency-response-foundations';
+const ADAPTIVE_PRACTICE_GOAL_BY_GRAPH_NODE_ID: Record<string, GraphCenterAdaptivePracticeGoal> = {
+  'kn:autocontrol:time-domain-performance': 'control-correction',
+  'kn:autocontrol:root-locus': 'control-correction',
+  'kn:autocontrol:controller-correction': 'control-correction',
+  'kn:autocontrol:simulation-validation': 'control-correction',
+  'cap:autocontrol:synthesize-controller-correction': 'control-correction',
+  'cap:autocontrol:validate-with-simulation-evidence': 'control-correction',
+  'cap:autocontrol:transfer-to-ship-ocean-mission': 'control-correction',
+  'qual:autocontrol:evidence-integrity': 'control-correction',
+  'kn:autocontrol:frequency-response': 'frequency-response-foundations',
+  'kn:autocontrol:stability-margin': 'frequency-response-foundations',
+  'cap:autocontrol:interpret-time-frequency-response': 'frequency-response-foundations',
+};
 const CONTROL_CORRECTION_CAPABILITY_TARGET_REFS_BY_NODE_ID: Record<string, string[]> = {
   'cap:autocontrol:interpret-time-frequency-response': [
     'control-correction:time-domain-targets:apply',
@@ -547,6 +562,7 @@ function buildStudentGraphCenterActions(input: {
   learnerOverlay: GraphCenterLearnerOverlay;
 }): GraphCenterAction[] {
   const learningGoalId = input.objectives[0]?.id ?? input.node.objectiveIds[0] ?? null;
+  const adaptivePracticeGoal = ADAPTIVE_PRACTICE_GOAL_BY_GRAPH_NODE_ID[input.node.id] ?? null;
   const firstResourceId = input.resourceCoverage.pathEligibleResourceRouteIds[0] ?? null;
   const hasLearnerOverlay = Boolean(input.learnerOverlay.items[input.node.id]);
   const learnerOverlayUnauthorized = input.learnerOverlay.status === 'unauthorized';
@@ -559,9 +575,10 @@ function buildStudentGraphCenterActions(input: {
           label: '进入学习路径',
           description: '从当前 LearningGoal 与图谱节点进入学习路径。',
           status: 'available',
-          target: buildGraphCenterActionTarget('/interactive-learning', {
-            learningGoalId,
-            graphNodeId: input.node.id,
+          target: buildGraphCenterActionTarget('/assessment/adaptive-practice', {
+            ...(adaptivePracticeGoal ? { goal: adaptivePracticeGoal } : {}),
+            nodeId: input.node.id,
+            intent: 'contextual-recommendation',
           }),
         }
       : {
@@ -703,8 +720,8 @@ function buildTeacherGraphCenterActions(input: {
       reasonCode: resourceGapStatus === 'degraded' ? 'missing-resource-context' : undefined,
       reason: resourceGapStatus === 'degraded' ? '该节点资源覆盖不足，需要教师补齐资源上下文。' : undefined,
       target: buildGraphCenterActionTarget('/teacher/resources/resource-nodes', {
-        graphNodeId: input.node.id,
-        learningGoalId,
+        knowledge: input.node.id,
+        pathEligibility: resourceGapStatus === 'degraded' ? 'excluded' : 'all',
       }),
     },
     {

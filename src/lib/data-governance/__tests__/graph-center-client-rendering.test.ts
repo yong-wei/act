@@ -116,7 +116,7 @@ describe('graph center client surface', () => {
     expect(html).toContain('data-action-status="available"');
     expect(html).toContain('data-action-status="degraded"');
     expect(html).toContain('证据复查需要学习者证据路由接入');
-    expect(html).toContain('href="/interactive-learning?learningGoalId=knowledge%3Aautocontrol%3Acontroller-correction&amp;graphNodeId=kn%3Aautocontrol%3Acontroller-correction"');
+    expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction&amp;nodeId=kn%3Aautocontrol%3Acontroller-correction&amp;intent=contextual-recommendation"');
   });
 
   it('renders class heat mode with suppression and denominator labels', () => {
@@ -206,7 +206,7 @@ describe('graph center client surface', () => {
     expect(teacherHtml).toContain('registry:sample: metadata is provisional');
     expect(teacherHtml).toContain('data-graph-center-action-id="teacher:inspect-resource-gap"');
     expect(teacherHtml).toContain('data-action-status="degraded"');
-    expect(teacherHtml).toContain('href="/teacher/resources/resource-nodes?graphNodeId=kn%3Aautocontrol%3Acontroller-correction&amp;learningGoalId=knowledge%3Aautocontrol%3Acontroller-correction"');
+    expect(teacherHtml).toContain('href="/teacher/resources/resource-nodes?knowledge=kn%3Aautocontrol%3Acontroller-correction&amp;pathEligibility=excluded"');
     expect(studentHtml).not.toContain('字段完成');
     expect(studentHtml).not.toContain('缺少内容哈希');
   });
