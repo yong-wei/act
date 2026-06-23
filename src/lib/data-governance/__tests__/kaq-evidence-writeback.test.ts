@@ -287,6 +287,27 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.audit.limitationCodes).toContain('source-not-terminal-validation-authority');
   });
 
+  it('blocks path execution evidence that violates the LearningGoal evidence policy', () => {
+    const pathInput = buildPathExecutionWritebackInput({
+      id: 'path-policy-mismatch-1',
+      executionId: 'path-exec-policy-mismatch-1',
+      subject,
+      learningGoalId: 'feedback-loop-concept-foundations',
+      terminalObjectiveId: 'capability:autocontrol:model-feedback-system',
+      terminalGraphNodeId: 'cap:autocontrol:model-feedback-system',
+      outcome: 'deviated',
+      score: 0.88,
+      versionRefs,
+      materializedAt: '2026-06-23T03:31:46.000Z',
+    });
+
+    const result = materializeKaqEvidenceWriteback(pathInput);
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('learning-goal-evidence-policy-mismatch');
+  });
+
   it('requires teacher approval before instructional checkpoints satisfy terminal validation', () => {
     const baseInput: Parameters<typeof materializeKaqEvidenceWriteback>[0] = {
       id: 'checkpoint-terminal-candidate-1',

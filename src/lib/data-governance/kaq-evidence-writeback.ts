@@ -794,6 +794,7 @@ function canSourceSatisfyTerminalValidation(source: KaqEvidenceWritebackSource):
 function evidenceTypeForSourceClass(
   sourceClass: KaqEvidenceSourceClass,
 ): AdaptiveLearningPathEvidenceType | null {
+  if (sourceClass === 'path-execution') return 'path-execution';
   if (sourceClass === 'simulation-preview' || sourceClass === 'arena-preview') return 'simulation-run';
   if (sourceClass === 'simulation-validation') return 'simulation-run';
   if (sourceClass === 'arena-official') return 'arena-official-evaluation';

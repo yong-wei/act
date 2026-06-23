@@ -65,6 +65,7 @@ export type AdaptiveLearningPathFeedbackType =
   | 'helpfulness';
 export type AdaptiveLearningPathEvidenceType =
   | 'question'
+  | 'path-execution'
   | 'simulation-run'
   | 'arena-official-evaluation'
   | 'reflection'
