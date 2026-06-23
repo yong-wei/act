@@ -747,8 +747,8 @@ function isBlockingVersionLimitation(limitationCode: string): boolean {
 
 function resolveAuthorityLevel(source: KaqEvidenceWritebackSource): KaqEvidenceAuthorityLevel {
   if (PREVIEW_SOURCE_CLASSES.has(source.sourceClass)) return 'preview';
-  if (source.teacherApproved) return 'teacher-approved';
   if (source.sourceClass === 'konling-intervention') return 'ai-mediated';
+  if (source.teacherApproved) return 'teacher-approved';
   if (source.official) return 'official';
   return 'governed';
 }

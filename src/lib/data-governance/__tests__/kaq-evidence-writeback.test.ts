@@ -525,6 +525,48 @@ describe('K/A/Q evidence writeback governance', () => {
     });
   });
 
+  it('keeps approved Konling evidence under AI-mediated authority', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-konling-approved-authority-1',
+      source: {
+        sourceClass: 'konling-intervention',
+        sourceId: 'tool-run-approved-1',
+        sourceRef: { kind: 'AgentToolRun', id: 'tool-run-approved-1' },
+        official: false,
+        teacherApproved: true,
+        aiGenerated: true,
+      },
+      subject,
+      actor: { type: 'service', id: 'konling-runtime' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:33:00.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:25:00.000Z',
+        to: '2026-06-23T03:33:00.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'quality',
+          objectiveId: 'quality:autocontrol:evidence-integrity',
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
+          learningGoalId: 'control-correction',
+          confidence: 1,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('accepted');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      authorityLevel: 'ai-mediated',
+      aiGenerated: true,
+      teacherApproved: true,
+      confidence: 0.65,
+      limitationCodes: [],
+    });
+  });
+
   it('blocks unknown, mismatched, or cross-domain target bindings', () => {
     const unknown = materializeKaqEvidenceWriteback({
       id: 'writeback-invalid-target-1',
