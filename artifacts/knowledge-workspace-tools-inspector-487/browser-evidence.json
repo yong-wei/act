@@ -2,9 +2,9 @@
   "change": "redesign-knowledge-workspace-tools-and-inspector",
   "issue": 487,
   "refreshedBy": "standardize-knowledge-graph-floating-panels",
-  "capturedAt": "2026-06-23T05:31:48.264Z",
+  "capturedAt": "2026-06-23T07:14:44.396Z",
   "baseUrl": "http://localhost:3001",
-  "selectedNodeId": "稳定性_1_1",
+  "selectedNodeId": "积分环节_2_11005",
   "designSourceOfTruth": {
     "handoff": "artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md",
     "concepts": [
@@ -123,7 +123,7 @@
     {
       "name": "desktop-selected-inspector-light",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-selected-inspector-light.png",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_1&qa=knowledge-product",
+      "url": "http://localhost:3001/knowledge?node=%E7%A7%AF%E5%88%86%E7%8E%AF%E8%8A%82_2_11005&qa=knowledge-product",
       "state": "desktop selected node inspector with infograph preview",
       "theme": "light",
       "viewport": "1440x960",
@@ -149,7 +149,7 @@
         ],
         "mobileToolState": "closed",
         "mobileLayoutControls": [],
-        "selectedNodeId": "稳定性_1_1",
+        "selectedNodeId": "积分环节_2_11005",
         "visibleNodeCount": "596",
         "visibleLinkCount": "1290",
         "width": 1440,
@@ -160,7 +160,7 @@
     {
       "name": "mobile-320-selected-sheet-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-selected-sheet-dark.png",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_1&qa=knowledge-product",
+      "url": "http://localhost:3001/knowledge?node=%E7%A7%AF%E5%88%86%E7%8E%AF%E8%8A%82_2_11005&qa=knowledge-product",
       "state": "mobile selected node sheet with graph reachable above collapsed tools",
       "theme": "dark",
       "viewport": "320x800",
@@ -186,7 +186,7 @@
         ],
         "mobileToolState": "closed",
         "mobileLayoutControls": [],
-        "selectedNodeId": "稳定性_1_1",
+        "selectedNodeId": "积分环节_2_11005",
         "visibleNodeCount": "596",
         "visibleLinkCount": "1290",
         "width": 320,

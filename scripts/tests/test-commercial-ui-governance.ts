@@ -1981,6 +1981,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['desktop-wide-default-dark', 'dark', 1920, 'collapsed', 'collapsed'],
     ['desktop-wide-inspector-tools-dark', 'dark', 1920, 'collapsed', 'collapsed'],
     ['tablet-1100-default-dark', 'dark', 1100, 'collapsed', 'collapsed'],
+    ['tablet-1100-local-tools-filter-dark', 'dark', 1100, 'collapsed', 'collapsed'],
     ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile', 'expanded'],
@@ -1988,6 +1989,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['light-theme-default', 'light', 1440, 'collapsed', 'collapsed'],
   ] as const;
   const desktopGeometryBaselineName = (name: string, navigationState: string) => {
+    if (name.startsWith('tablet-1100')) return 'tablet-1100-default-dark';
     if (name.startsWith('desktop-wide')) return 'desktop-wide-default-dark';
     if (navigationState === 'expanded') return 'desktop-expanded-persisted-dark';
     return 'desktop-default-collapsed-dark';
@@ -2067,6 +2069,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         'desktop-explicit-relayout-dark',
         'desktop-stress-expanded-tool-inspector-konling-dark',
         'desktop-wide-inspector-tools-dark',
+        'tablet-1100-local-tools-filter-dark',
       ].includes(name)
         ? (
             numberFromEvidence(canvasRect.left) === numberFromEvidence(baselineCanvasRect.left)

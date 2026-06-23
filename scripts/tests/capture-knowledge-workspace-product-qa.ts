@@ -7,7 +7,8 @@ import { chromium, type Browser, type Page } from 'playwright';
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, process.env.KNOWLEDGE_QA_OUTPUT_DIR ?? 'artifacts/knowledge-workspace-product-qa-489');
 const baseUrl = process.env.KNOWLEDGE_QA_BASE_URL ?? 'http://localhost:3002';
-const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? 'z反变换_7_7959c077';
+const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '积分环节_2_11005';
+const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';
 
 const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
@@ -208,6 +209,15 @@ async function selectedNodeHoverDragPointCandidates(page: Page, expectedNodeId: 
   const expectedLabel = expectedNodeId.split('_')[0] ?? expectedNodeId;
   await page.waitForTimeout(2500);
   const qaCandidates = await selectedNodeDragPointCandidates(page);
+  if (qaCandidates.length > 0) {
+    const matches: Array<[number, number]> = [];
+    for (const { x, y } of qaCandidates) {
+      const hoverText = await hoverTextAtPoint(page, x, y);
+      if (hoverText.includes(expectedLabel)) matches.push([x, y]);
+      if (matches.length >= 8) return matches;
+    }
+    return qaCandidates.slice(0, 8).map(({ x, y }) => [x, y] as [number, number]);
+  }
   const canvasBox = await page.locator('[data-knowledge-canvas-primary] canvas').boundingBox();
   const gridCandidates: Array<[number, number]> = [];
   if (canvasBox) {
@@ -235,8 +245,6 @@ async function selectedNodeHoverDragPointCandidates(page: Page, expectedNodeId: 
 async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
   const candidates = await selectedNodeHoverDragPointCandidates(page, expectedNodeId);
   for (const [x, y] of candidates) {
-    const hoverText = await hoverTextAtPoint(page, x, y);
-    if (!hoverText.includes(expectedNodeId.split('_')[0] ?? expectedNodeId)) continue;
     await page.mouse.down();
     await page.mouse.move(x + 80, y + 36, { steps: 8 });
     await page.mouse.up();
@@ -833,14 +841,14 @@ async function main() {
       navigationState: 'collapsed',
       dockState: 'collapsed',
       localToolState: 'view-layout',
-      selectedNode: selectedNodeId,
+      selectedNode: dragNodeId,
       interactionState: 'hover click drag persistence evidence',
-      query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      query: `?node=${encodeURIComponent(dragNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
         const beforeDrag = await captureMarkerSnapshot(page);
         await waitForSelectedNodeRuntimePosition(page);
-        const drag = await dragCanvasNodeUntilPinned(page, selectedNodeId);
+        const drag = await dragCanvasNodeUntilPinned(page, dragNodeId);
         const afterDrag = await captureMarkerSnapshot(page);
         await page.mouse.move(720, 360);
         const afterHover = await captureMarkerSnapshot(page);
@@ -969,6 +977,19 @@ async function main() {
       localToolState: 'closed',
       selectedNode: null,
       interactionState: 'xl breakpoint lower bound workspace containment',
+    },
+    {
+      name: 'tablet-1100-local-tools-filter-dark',
+      theme: 'dark',
+      width: 1100,
+      height: 900,
+      navigationPreference: 'collapsed',
+      navigationState: 'collapsed',
+      dockState: 'collapsed',
+      localToolState: 'relation-filters',
+      selectedNode: null,
+      interactionState: 'xl breakpoint lower bound relation filter containment',
+      beforeShot: (page) => openDesktopTool(page, 'relation-filters'),
     },
     {
       name: 'mobile-320-local-tools-dark',

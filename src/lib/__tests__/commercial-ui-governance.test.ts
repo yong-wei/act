@@ -4136,7 +4136,9 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).not.toContain('hoveredCanvasNodeDragPointCandidates');
     expect(captureScriptSource).toContain('async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string)');
     expect(captureScriptSource).toContain('pinnedLayoutSignature.includes(expectedNodeId)');
-    expect(captureScriptSource).toContain('dragCanvasNodeUntilPinned(page, selectedNodeId)');
+    expect(captureScriptSource).toContain("const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '积分环节_2_11005';");
+    expect(captureScriptSource).toContain("const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';");
+    expect(captureScriptSource).toContain('dragCanvasNodeUntilPinned(page, dragNodeId)');
     expect(scriptSource).toContain('objectRecord(objectRecord(state.interactionEvidence).drag).selectedNodeId === state.selectedNode');
     expect(scriptSource).toContain("pinnedLayoutSignature).includes(String(state.selectedNode ?? ''))");
     expect(captureScriptSource).toContain("document.querySelector('[data-knowledge-local-panel=\"node-hover-preview\"]')");
@@ -4188,6 +4190,9 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'desktop-wide-default-dark'");
     expect(captureScriptSource).toContain("'desktop-wide-inspector-tools-dark'");
     expect(captureScriptSource).toContain("'tablet-1100-default-dark'");
+    expect(captureScriptSource).toContain("'tablet-1100-local-tools-filter-dark'");
+    expect(scriptSource).toContain("if (name.startsWith('tablet-1100')) return 'tablet-1100-default-dark';");
+    expect(scriptSource).toContain("'tablet-1100-local-tools-filter-dark'");
     expect(captureScriptSource).toContain('const canvasRect = rectFor(canvas);');
     expect(captureScriptSource).toContain('canvas: canvasRect');
     expect(captureScriptSource).toContain("openDesktopTool(page, 'chapter-directory')");
