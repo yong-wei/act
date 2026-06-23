@@ -80,6 +80,7 @@ export type GraphCenterActionReasonCode =
   | 'missing-resource-context'
   | 'missing-citation-context'
   | 'missing-overlay-context'
+  | 'missing-route-context'
   | 'missing-authorization'
   | 'missing-evidence-route';
 export type GraphCenterActionRoute =
@@ -578,7 +579,7 @@ function buildStudentGraphCenterActions(input: {
           status: 'available',
           target: buildGraphCenterActionTarget('/assessment/adaptive-practice', {
             goal: adaptivePracticeGoal,
-            nodeId: input.node.id,
+            graphNodeId: input.node.id,
             intent: 'contextual-recommendation',
           }),
         }
@@ -640,7 +641,7 @@ function buildStudentGraphCenterActions(input: {
           status: 'available',
           target: buildGraphCenterActionTarget('/assessment/adaptive-practice', {
             goal: adaptivePracticeGoal,
-            nodeId: input.node.id,
+            graphNodeId: input.node.id,
             intent: 'contextual-recommendation',
           }),
         }
@@ -666,7 +667,6 @@ function buildTeacherGraphCenterActions(input: {
 }): GraphCenterAction[] {
   const classId = input.classOverlay.classId;
   const classItem = input.classOverlay.items[input.node.id];
-  const learningGoalId = input.objectives[0]?.id ?? input.node.objectiveIds[0] ?? input.node.id;
   const hasClassContext = Boolean(classId && classItem);
   const classRouteId = hasClassContext ? classId : null;
   const classOverlayUnauthorized = input.classOverlay.status === 'unauthorized';
@@ -680,6 +680,7 @@ function buildTeacherGraphCenterActions(input: {
     ? 'available'
     : 'degraded';
   const resourceGapKnowledgeRef = input.resourceCoverage.filterKnowledgeRefs[0] ?? input.node.id;
+  const prepPackStatus: GraphCenterActionStatus = classId ? 'degraded' : classOverlayUnauthorized ? 'disabled' : 'degraded';
 
   return [
     classRouteId
@@ -744,18 +745,16 @@ function buildTeacherGraphCenterActions(input: {
       id: 'teacher:open-prep-pack',
       role: 'teacher',
       label: '生成备课包',
-      description: '进入备课包工作流并保留班级和图谱节点上下文。',
-      status: classId ? 'available' : classOverlayUnauthorized ? 'disabled' : 'degraded',
-      reasonCode: classId ? undefined : missingClassReasonCode,
+      description: '进入当前班级备课包入口。',
+      status: prepPackStatus,
+      reasonCode: classId ? 'missing-route-context' : missingClassReasonCode,
       reason: classId
-        ? undefined
+        ? '备课包入口当前只支持班级上下文，尚未消费图谱节点或学习目标。'
         : classOverlayUnauthorized
           ? missingClassReason
           : '缺少班级上下文，备课包只能进入通用复核入口。',
       target: classId
         ? buildGraphCenterActionTarget('/teacher/prep-packs', {
-            graphNodeId: input.node.id,
-            learningGoalId,
             classId,
           })
         : undefined,

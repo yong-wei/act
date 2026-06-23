@@ -643,7 +643,10 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('allowExternalResources: pathGenerationPanel.allowExternalResources');
     expect(pageSource).toContain('naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent');
     expect(pageSource).not.toContain('`优先围绕图谱节点 ${graphNodeId} 生成或调整路径。`');
-    expect(pageSource).toContain("if (activeNodeId) contextQuery.set('nodeId', activeNodeId)");
+    expect(pageSource).toContain("const activeGraphNodeId = searchParams.get('graphNodeId')");
+    expect(pageSource).toContain("if (activeGoalQuery && activeGraphNodeId) activeGoalQuery.set('graphNodeId', activeGraphNodeId)");
+    expect(pageSource).toContain("if (activeGraphNodeId) contextQuery.set('graphNodeId', activeGraphNodeId)");
+    expect(pageSource).not.toContain("if (activeNodeId) contextQuery.set('nodeId', activeNodeId)");
     expect(pageSource).toContain('...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {})');
     expect(pageSource).toContain('const graphNodeId = assistantEntryPoint?.mode ===');
     expect(pageSource).toContain('graphNodeId,');

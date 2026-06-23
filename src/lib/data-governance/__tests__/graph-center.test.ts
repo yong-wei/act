@@ -523,7 +523,7 @@ describe('graph center payload service', () => {
         route: '/assessment/adaptive-practice',
         params: {
           goal: 'control-correction',
-          nodeId: 'kn:autocontrol:controller-correction',
+          graphNodeId: 'kn:autocontrol:controller-correction',
           intent: 'contextual-recommendation',
         },
       },
@@ -539,10 +539,10 @@ describe('graph center payload service', () => {
         route: '/assessment/adaptive-practice',
         params: {
           goal: 'frequency-response-foundations',
-          nodeId: 'kn:autocontrol:frequency-response',
+          graphNodeId: 'kn:autocontrol:frequency-response',
           intent: 'contextual-recommendation',
         },
-        href: '/assessment/adaptive-practice?goal=frequency-response-foundations&nodeId=kn%3Aautocontrol%3Afrequency-response&intent=contextual-recommendation',
+        href: '/assessment/adaptive-practice?goal=frequency-response-foundations&graphNodeId=kn%3Aautocontrol%3Afrequency-response&intent=contextual-recommendation',
       },
     });
     const unmappedPathPayload = buildGraphCenterPayload({
@@ -563,10 +563,10 @@ describe('graph center payload service', () => {
         route: '/assessment/adaptive-practice',
         params: {
           goal: 'control-correction',
-          nodeId: 'kn:autocontrol:controller-correction',
+          graphNodeId: 'kn:autocontrol:controller-correction',
           intent: 'contextual-recommendation',
         },
-        href: '/assessment/adaptive-practice?goal=control-correction&nodeId=kn%3Aautocontrol%3Acontroller-correction&intent=contextual-recommendation',
+        href: '/assessment/adaptive-practice?goal=control-correction&graphNodeId=kn%3Aautocontrol%3Acontroller-correction&intent=contextual-recommendation',
       },
     });
     const unmappedKonlingAction = unmappedPathPayload.selectedNode?.actions.find((action) => action.id === 'student:ask-konling');
@@ -661,6 +661,20 @@ describe('graph center payload service', () => {
         },
       },
     });
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')).toMatchObject({
+      status: 'degraded',
+      reasonCode: 'missing-route-context',
+      reason: '备课包入口当前只支持班级上下文，尚未消费图谱节点或学习目标。',
+      target: {
+        route: '/teacher/prep-packs',
+        params: {
+          classId: 'class-1',
+        },
+        href: '/teacher/prep-packs?classId=class-1',
+      },
+    });
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')?.target?.params).not.toHaveProperty('graphNodeId');
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')?.target?.params).not.toHaveProperty('learningGoalId');
 
     expect(adminPayload.selectedNode?.actions.map((action) => action.id)).toEqual([
       'admin:inspect-resource-binding',
@@ -714,10 +728,12 @@ describe('graph center payload service', () => {
     expect(adminDataGovernanceDashboardSource).toContain('graphCenterAuditInitialTab');
     expect(adminDataGovernanceStatusRouteSource).toContain("request.nextUrl.searchParams.get('graphNodeId')");
     expect(adminDataGovernanceStatusRouteSource).toContain('graphCenterAudit');
-    expect(adaptivePracticePageSource).toContain("if (activeNodeId) contextQuery.set('nodeId', activeNodeId)");
+    expect(adaptivePracticePageSource).toContain("const activeGraphNodeId = searchParams.get('graphNodeId')");
+    expect(adaptivePracticePageSource).toContain("if (activeGraphNodeId) contextQuery.set('graphNodeId', activeGraphNodeId)");
     expect(adaptivePracticePageSource).toContain('...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {})');
     expect(adaptivePracticePageSource).toContain('graphNodeId,');
-    expect(adaptivePathAdvisorContextRouteSource).toContain("url.searchParams.get('nodeId')");
+    expect(adaptivePathAdvisorContextRouteSource).toContain("url.searchParams.get('graphNodeId')");
+    expect(adaptivePathAdvisorContextRouteSource).toContain('isGraphNodeInLearningGoalSubgraph(goalId, graphNodeId)');
     expect(adaptivePathAdvisorContextRouteSource).toContain("'graph-node-context'");
     expect(adaptivePathAdvisorToolRouteSource).toContain('const graphNodeId = typeof body.graphNodeId');
     expect(adaptivePathAdvisorToolRouteSource).toContain('toolInput.graphNodeId');

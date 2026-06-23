@@ -5,6 +5,7 @@ import {
   createKonlingTeachingAssistantServerContextToken,
 } from '@/lib/konling-teaching-assistant-server-context';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,9 +29,12 @@ const PATH_ADVISOR_GOAL_CONTEXTS: Record<string, {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const goalId = url.searchParams.get('goal');
-  const graphNodeId = url.searchParams.get('nodeId')?.trim() || null;
+  const graphNodeId = url.searchParams.get('graphNodeId')?.trim() || null;
   if (!goalId || !isRegisteredAdaptiveLearningPathGoal(goalId)) {
     return NextResponse.json({ error: '学习路径目标未注册' }, { status: 400 });
+  }
+  if (graphNodeId && !isGraphNodeInLearningGoalSubgraph(goalId, graphNodeId)) {
+    return NextResponse.json({ error: '图谱节点不属于当前学习路径目标' }, { status: 400 });
   }
 
   const session = await getServerAuthSession();
@@ -77,4 +81,13 @@ export async function GET(request: Request) {
     modeContextToken,
     ...goalContext,
   });
+}
+
+function isGraphNodeInLearningGoalSubgraph(goalId: string, graphNodeId: string): boolean {
+  const expansion = expandLearningGoalSubgraph(goalId);
+  return [
+    ...expansion.graphNodeIds.knowledge,
+    ...expansion.graphNodeIds.capability,
+    ...expansion.graphNodeIds.quality,
+  ].includes(graphNodeId);
 }

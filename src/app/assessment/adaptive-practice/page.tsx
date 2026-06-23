@@ -1373,10 +1373,12 @@ export default function AdaptivePracticePage() {
   const showPresetGoalCards = false;
   const activePathId = searchParams.get('pathId');
   const activeNodeId = searchParams.get('nodeId');
+  const activeGraphNodeId = searchParams.get('graphNodeId');
   const activeOptionId = searchParams.get('optionId');
   const activeGoalQuery = activeGoal ? new URLSearchParams({ goal: activeGoal, intent: routeIntent }) : null;
   if (activeGoalQuery && activePathId) activeGoalQuery.set('pathId', activePathId);
   if (activeGoalQuery && activeNodeId) activeGoalQuery.set('nodeId', activeNodeId);
+  if (activeGoalQuery && activeGraphNodeId) activeGoalQuery.set('graphNodeId', activeGraphNodeId);
   if (activeGoalQuery && activeOptionId) activeGoalQuery.set('optionId', activeOptionId);
   const activeGoalContextHref = withFeedbackTaskHref(activeGoal
     ? `/assessment/adaptive-practice?${activeGoalQuery?.toString() ?? ''}`
@@ -1548,7 +1550,7 @@ export default function AdaptivePracticePage() {
     async function registerPathAdvisorEntryPoint() {
       try {
         const contextQuery = new URLSearchParams({ goal: contextGoal });
-        if (activeNodeId) contextQuery.set('nodeId', activeNodeId);
+        if (activeGraphNodeId) contextQuery.set('graphNodeId', activeGraphNodeId);
         const response = await fetch(`/api/adaptive/path-advisor-context?${contextQuery.toString()}`);
         if (!response.ok) {
           if (!cancelled) updatePageContext({ assistantEntryPoint: null });
@@ -1600,7 +1602,7 @@ export default function AdaptivePracticePage() {
       cancelled = true;
       updatePageContext({ assistantEntryPoint: null });
     };
-  }, [activeNodeId, authStatus, isDemoMode, pathAdvisorContextGoal, updatePageContext]);
+  }, [activeGraphNodeId, authStatus, isDemoMode, pathAdvisorContextGoal, updatePageContext]);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -1853,8 +1855,8 @@ export default function AdaptivePracticePage() {
       ? assistantEntryPoint.serverContext.modeContextToken
       : null;
     const graphNodeId = assistantEntryPoint?.mode === 'path-advisor'
-      ? assistantEntryPoint.serverContext.graphNodeId ?? activeNodeId
-      : activeNodeId;
+      ? assistantEntryPoint.serverContext.graphNodeId ?? activeGraphNodeId
+      : activeGraphNodeId;
     if (!modeContextToken) {
       setPathChoiceMessage('路径生成上下文还在准备，请稍后重试。');
       return;
@@ -1946,7 +1948,7 @@ export default function AdaptivePracticePage() {
       setPathGenerationPending(null);
     }
   }, [
-    activeNodeId,
+    activeGraphNodeId,
     activePathId,
     assistantEntryPoint,
     authStatus,
