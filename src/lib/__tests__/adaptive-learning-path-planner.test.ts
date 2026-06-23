@@ -3125,6 +3125,236 @@ describe('adaptive learning path planner', () => {
     });
   });
 
+  it('does not remove the only node covering a required target during time budget repair', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'coverage-intro-card',
+        title: '覆盖保护导入卡',
+        sourceRef: 'repair-budget:coverage-intro',
+        renderTarget: '/knowledge/cards/coverage-intro',
+        knowledgeNodeIds: ['control-correction:time-domain-targets'],
+        planningOverride: {
+          estimatedTimeMinutes: 5,
+          evidenceInstrumentation: ['knowledge_card_viewed'],
+        },
+      }],
+      simulations: [{
+        id: 'coverage-only-simulation',
+        title: '唯一覆盖仿真目标的仿真',
+        launchTarget: '/simulations/coverage-only-simulation',
+        knowledgeNodeIds: ['control-correction:simulation-validation'],
+        planningOverride: {
+          estimatedTimeMinutes: 12,
+          abilityImpact: { engineeringDecision: 1 },
+          evidenceInstrumentation: ['simulation_run'],
+        },
+      }, {
+        id: 'coverage-terminal-simulation',
+        title: '覆盖保护终端验证仿真',
+        launchTarget: '/simulations/coverage-terminal-simulation',
+        knowledgeNodeIds: ['control-correction:time-domain-targets'],
+        planningOverride: {
+          estimatedTimeMinutes: 15,
+          abilityImpact: { engineeringDecision: 0.01 },
+          evidenceInstrumentation: ['simulation_run'],
+          terminalConstraints: ['terminal-validation'],
+          readiness: {
+            minimumCompetency: {},
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: [],
+            unlockMessage: '可以完成终端验证。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:simulation-validation',
+        ],
+        competencyTargets: ['engineeringDecision'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.25, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            engineeringDecision: { score: 0.3, confidence: 0.65, evidenceCount: 3 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.65,
+            evidenceCount: 3,
+            sourceCompleteness: 0.65,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 20,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.status).toBe('fallback');
+    expect(plan.mainPath).toEqual([]);
+    expect(plan.explanations.fallbackReasons).toContain('time-budget-insufficient');
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'infeasible',
+      repairedNodeIds: expect.arrayContaining([
+        'simulation:coverage-only-simulation',
+        'simulation:coverage-terminal-simulation',
+      ]),
+      infeasibleReasons: expect.arrayContaining([
+        expect.objectContaining({ code: 'time-budget-insufficient' }),
+      ]),
+    });
+    expect(plan.constraintRepair?.removedNodeIds).not.toContain('simulation:coverage-only-simulation');
+  });
+
+  it('protects legacy goal coverage when graph context has no covered path candidates', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!;
+    const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
+    const graphTargetId = learningGoal.targetGraphNodeIds[0];
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'legacy-a-card',
+        title: 'Legacy A 知识卡',
+        sourceRef: 'repair-budget:legacy-a',
+        renderTarget: '/knowledge/cards/legacy-a',
+        knowledgeNodeIds: ['legacy-a'],
+        planningOverride: {
+          estimatedTimeMinutes: 5,
+          evidenceInstrumentation: ['knowledge_card_viewed'],
+        },
+      }],
+      simulations: [{
+        id: 'legacy-b-simulation',
+        title: 'Legacy B 唯一仿真',
+        launchTarget: '/simulations/legacy-b',
+        knowledgeNodeIds: ['legacy-b'],
+        planningOverride: {
+          estimatedTimeMinutes: 12,
+          abilityImpact: { engineeringDecision: 1 },
+          evidenceInstrumentation: ['simulation_run'],
+        },
+      }, {
+        id: 'legacy-terminal-simulation',
+        title: 'Legacy 终端验证仿真',
+        launchTarget: '/simulations/legacy-terminal',
+        knowledgeNodeIds: ['legacy-a'],
+        planningOverride: {
+          estimatedTimeMinutes: 15,
+          abilityImpact: { engineeringDecision: 0.01 },
+          evidenceInstrumentation: ['simulation_run'],
+          terminalConstraints: ['terminal-validation'],
+          readiness: {
+            minimumCompetency: {},
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: [],
+            unlockMessage: '可以完成终端验证。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['legacy-a', 'legacy-b'],
+        competencyTargets: ['engineeringDecision'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'legacy-a': { posteriorMastery: 0.25, confidence: 0.7, evidenceCount: 2 },
+            'legacy-b': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            engineeringDecision: { score: 0.3, confidence: 0.65, evidenceCount: 3 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.65,
+            evidenceCount: 3,
+            sourceCompleteness: 0.65,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 20,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph,
+        resourceCoverage: {
+          [graphTargetId]: {
+            domain: 'knowledge',
+            nodeId: graphTargetId,
+            linkedResourceCount: 0,
+            pathEligibleResourceCount: 0,
+            ragIndexedCount: 0,
+            citationReadyCount: 0,
+            verifiedCitationCount: 0,
+            assessmentResourceCount: 0,
+            simulationResourceCount: 0,
+            arenaPreviewResourceCount: 0,
+            arenaOfficialResourceCount: 0,
+            terminalValidationCapableResourceCount: 0,
+            coverageState: 'missing',
+            missingCoverageTypes: ['linked-resource'],
+            linkedResourceIds: [],
+            pathEligibleResourceIds: [],
+            pathEligibleResourceRouteIds: [],
+            filterKnowledgeRefs: [],
+          },
+        },
+      },
+    }));
+
+    expect(plan.status).toBe('fallback');
+    expect(plan.mainPath).toEqual([]);
+    expect(plan.explanations.fallbackReasons).toContain('time-budget-insufficient');
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'infeasible',
+      repairedNodeIds: expect.arrayContaining([
+        'simulation:legacy-b-simulation',
+        'simulation:legacy-terminal-simulation',
+      ]),
+      infeasibleReasons: expect.arrayContaining([
+        expect.objectContaining({ code: 'time-budget-insufficient' }),
+      ]),
+    });
+    expect(plan.constraintRepair?.removedNodeIds).not.toContain('simulation:legacy-b-simulation');
+  });
+
   it('does not force ordinary tail nodes to satisfy checkpoint policy', () => {
     const registry = buildResourceNodeRegistry({
       textbooks: [{

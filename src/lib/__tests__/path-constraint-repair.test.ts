@@ -402,6 +402,89 @@ describe('path constraint repair', () => {
     expect(repair.infeasibleReasons).toEqual([]);
   });
 
+  it('does not remove the only selected node covering a required target', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro', 'only-target', 'terminal'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 5, prerequisiteNodeIds: [], coverageTargetIds: ['intro-target'] },
+        {
+          nodeId: 'only-target',
+          estimatedTimeMinutes: 15,
+          prerequisiteNodeIds: ['intro'],
+          removable: true,
+          coverageTargetIds: ['required-target'],
+        },
+        {
+          nodeId: 'terminal',
+          estimatedTimeMinutes: 10,
+          prerequisiteNodeIds: ['intro'],
+          terminalValidation: 'official',
+          coverageTargetIds: ['intro-target'],
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 20,
+        requiredCheckpointCount: 0,
+        terminalValidationRequired: true,
+        requiredCoverageTargetIds: ['intro-target', 'required-target'],
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('infeasible');
+    expect(repair.removedNodeIds).toEqual([]);
+    expect(repair.infeasibleReasons).toContainEqual(expect.objectContaining({
+      code: 'time-budget-insufficient',
+    }));
+  });
+
+  it('can remove a budget candidate when another selected node covers the same required target', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro', 'duplicate-target', 'target-backup', 'terminal'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 5, prerequisiteNodeIds: [], coverageTargetIds: ['intro-target'] },
+        {
+          nodeId: 'duplicate-target',
+          estimatedTimeMinutes: 15,
+          prerequisiteNodeIds: ['intro'],
+          removable: true,
+          coverageTargetIds: ['required-target'],
+        },
+        {
+          nodeId: 'target-backup',
+          estimatedTimeMinutes: 4,
+          prerequisiteNodeIds: ['intro'],
+          coverageTargetIds: ['required-target'],
+        },
+        {
+          nodeId: 'terminal',
+          estimatedTimeMinutes: 10,
+          prerequisiteNodeIds: ['intro'],
+          terminalValidation: 'official',
+          coverageTargetIds: ['intro-target'],
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 20,
+        requiredCheckpointCount: 0,
+        terminalValidationRequired: true,
+        requiredCoverageTargetIds: ['intro-target', 'required-target'],
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.removedNodeIds).toEqual(['duplicate-target']);
+    expect(repair.repairedNodeIds).toEqual(['intro', 'target-backup', 'terminal']);
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
   it('returns structured infeasible reasons for missing terminal validation and locked heavy nodes', () => {
     const repair = repairPathConstraints({
       draftNodeIds: ['intro', 'locked-lab'],

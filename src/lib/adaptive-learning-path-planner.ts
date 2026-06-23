@@ -1766,6 +1766,9 @@ function buildAdaptiveLearningPathPlanInternal(
     eligibleIds,
     requestedCompletedNodeIds,
   );
+  const repairCoverageGraphContext = graphContext && graphTargetsCoveredByScoredNodes(scored, graphContext).length > 0
+    ? graphContext
+    : undefined;
   const repairEntries = expandRepairCandidateEntries(
     uniqueScoredEntries([...mainPathNodes, ...scored]),
     input.registry,
@@ -1788,6 +1791,7 @@ function buildAdaptiveLearningPathPlanInternal(
       input.learnerState,
       checkpointResourceTypes,
       forcedCheckpointNodeIds,
+      goalTargetsCoveredByNodes([entry.node], input.goal, repairCoverageGraphContext),
     )
   );
   const constraintRepair = deterministicPathConstraintRepairAdapter.repair({
@@ -1797,6 +1801,11 @@ function buildAdaptiveLearningPathPlanInternal(
       timeBudgetMinutes: input.constraints.timeBudgetMinutes,
       requiredCheckpointCount: registeredGoal?.checkpointPolicy.minCheckpoints ?? 0,
       terminalValidationRequired: requiresTerminalValidation(input.goal),
+      requiredCoverageTargetIds: goalTargetsCoveredByNodes(
+        mainPathNodes.map((entry) => entry.node),
+        input.goal,
+        repairCoverageGraphContext,
+      ),
     },
     versionRefs: {
       ...graphContext?.versionRefs,
@@ -3158,6 +3167,7 @@ function toRepairCandidate(
   learnerState: AdaptiveLearningPathLearnerState | null,
   checkpointResourceTypes: Set<ResourceNode['type']>,
   forcedCheckpointNodeIds: Set<string>,
+  coverageTargetIds: string[],
 ): PathConstraintRepairCandidate {
   const planningUnit = requirePlanningUnit(entry.node);
   const readiness = evaluateNodeReadiness(entry.node, learnerState, constraints, completedNodeIds);
@@ -3187,6 +3197,7 @@ function toRepairCandidate(
     fallbackNodeIds: readiness.fallbackNodeIds,
     removable: !officialTerminalValidation,
     serialOnly: planningUnit.effort === 'high' || entry.node.planningMetadata.cognitiveLoad === 'high',
+    coverageTargetIds,
   };
 }
 

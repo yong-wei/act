@@ -14,6 +14,7 @@ export interface PathConstraintRepairCandidate {
   removable?: boolean;
   serialOnly?: boolean;
   parallelizable?: boolean;
+  coverageTargetIds?: string[];
 }
 
 export interface PathConstraintRepairInput {
@@ -23,6 +24,7 @@ export interface PathConstraintRepairInput {
     timeBudgetMinutes: number;
     requiredCheckpointCount: number;
     terminalValidationRequired: boolean;
+    requiredCoverageTargetIds?: string[];
     allowParallelGroups?: boolean;
   };
   versionRefs: Record<string, string | null | undefined>;
@@ -275,6 +277,8 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
 
   while (estimatedMinutes(selectedIds, candidatesById) > input.constraints.timeBudgetMinutes) {
     const selectedCheckpointIds = checkpointIds(selectedIds, candidatesById);
+    const selectedCoverageCounts = coverageCounts(selectedIds, candidatesById);
+    const requiredCoverageTargets = new Set(input.constraints.requiredCoverageTargetIds ?? []);
     const removable = selectedIds
       .map((nodeId) => candidatesById.get(nodeId))
       .filter((candidate): candidate is PathConstraintRepairCandidate => Boolean(candidate))
@@ -282,6 +286,7 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
         candidate.removable &&
         (!candidate.checkpointRole || selectedCheckpointIds.length > input.constraints.requiredCheckpointCount) &&
         candidate.terminalValidation !== 'official' &&
+        preservesRequiredCoverage(candidate, selectedCoverageCounts, requiredCoverageTargets) &&
         !isPrerequisiteForSelected(candidate.nodeId, selectedIds, candidatesById) &&
         !isFallbackSupportForSelected(candidate.nodeId)
       )
@@ -356,6 +361,31 @@ function hasOfficialTerminalValidation(
   candidatesById: Map<string, PathConstraintRepairCandidate>,
 ): boolean {
   return nodeIds.some((nodeId) => candidatesById.get(nodeId)?.terminalValidation === 'official');
+}
+
+function coverageCounts(
+  nodeIds: string[],
+  candidatesById: Map<string, PathConstraintRepairCandidate>,
+): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const nodeId of nodeIds) {
+    const candidate = candidatesById.get(nodeId);
+    for (const targetId of candidate?.coverageTargetIds ?? []) {
+      counts.set(targetId, (counts.get(targetId) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
+function preservesRequiredCoverage(
+  candidate: PathConstraintRepairCandidate,
+  selectedCoverageCounts: Map<string, number>,
+  requiredCoverageTargets: Set<string>,
+): boolean {
+  if (requiredCoverageTargets.size === 0) return true;
+  return (candidate.coverageTargetIds ?? []).every((targetId) =>
+    !requiredCoverageTargets.has(targetId) || (selectedCoverageCounts.get(targetId) ?? 0) > 1
+  );
 }
 
 function estimatedMinutes(
