@@ -1420,6 +1420,43 @@ describe('path constraint repair', () => {
     }));
   });
 
+  it('inserts checkpoints before optional terminal validation resources', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['preview-terminal'],
+      candidates: [
+        {
+          nodeId: 'preview-terminal',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: [],
+          terminalValidation: 'preview',
+        },
+        {
+          nodeId: 'checkpoint',
+          estimatedTimeMinutes: 5,
+          prerequisiteNodeIds: [],
+          checkpointRole: 'diagnostic',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 30,
+        requiredCheckpointCount: 1,
+        terminalValidationRequired: false,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['checkpoint', 'preview-terminal']);
+    expect(repair.insertedNodeIds).toEqual(['checkpoint']);
+    expect(repair.checkpointNodeIds).toEqual(['checkpoint']);
+    expect(repair.infeasibleReasons).not.toContainEqual(expect.objectContaining({
+      code: 'terminal-validation-not-final',
+    }));
+  });
+
   it('marks non-endpoint preview terminal validation as infeasible', () => {
     const repair = repairPathConstraints({
       draftNodeIds: ['preview-terminal', 'target'],

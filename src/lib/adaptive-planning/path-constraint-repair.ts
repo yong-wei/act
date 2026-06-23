@@ -72,6 +72,9 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
   const limitations: string[] = [];
   const infeasibleReasons: PathConstraintInfeasibleReason[] = [];
 
+  const firstTerminalValidationNodeId = (nodeIds: string[]): string | undefined =>
+    nodeIds.find((nodeId) => Boolean(candidatesById.get(nodeId)?.terminalValidation));
+
   const insertCandidate = (
     nodeId: string,
     beforeNodeId?: string,
@@ -312,9 +315,7 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     seenStates.add(stateKey);
 
     if (checkpointIds(initialSelectedIds, candidatesById).length < input.constraints.requiredCheckpointCount) {
-      const terminalBeforeInsert = initialSelectedIds.find((nodeId) =>
-        candidatesById.get(nodeId)?.terminalValidation === 'official'
-      );
+      const terminalBeforeInsert = firstTerminalValidationNodeId(initialSelectedIds);
       return input.candidates
         .filter((candidate) => candidate.checkpointRole && !initialSelectedIds.includes(candidate.nodeId))
         .sort((left, right) => left.estimatedTimeMinutes - right.estimatedTimeMinutes || left.nodeId.localeCompare(right.nodeId))
@@ -402,7 +403,7 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     }
   }
 
-  const terminalBeforeInsert = selectedIds.find((nodeId) => candidatesById.get(nodeId)?.terminalValidation === 'official');
+  const terminalBeforeInsert = firstTerminalValidationNodeId(selectedIds);
   while (checkpointIds(selectedIds, candidatesById).length < input.constraints.requiredCheckpointCount) {
     const checkpoint = input.candidates
       .filter((candidate) => candidate.checkpointRole && !selectedIds.includes(candidate.nodeId))
@@ -611,9 +612,7 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
   const terminalNodeIds = selectedIds.filter((nodeId) =>
     Boolean(candidatesById.get(nodeId)?.terminalValidation)
   );
-  const nonEndpointTerminalValidationNodeIds = input.constraints.terminalValidationRequired
-    ? terminalNodeIds.filter((nodeId) => selectedIds.at(-1) !== nodeId)
-    : [];
+  const nonEndpointTerminalValidationNodeIds = terminalNodeIds.filter((nodeId) => selectedIds.at(-1) !== nodeId);
   if (nonEndpointTerminalValidationNodeIds.length > 0) {
     infeasibleReasons.push({
       code: 'terminal-validation-not-final',
