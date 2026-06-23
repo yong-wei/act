@@ -290,6 +290,437 @@ describe('path constraint repair', () => {
     expect(repair.infeasibleReasons).toEqual([]);
   });
 
+  it('tries later checkpoint candidates when the shortest insertable checkpoint exceeds the budget with prerequisites', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 8, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'heavy-prep',
+          estimatedTimeMinutes: 30,
+          prerequisiteNodeIds: [],
+          removable: true,
+        },
+        {
+          nodeId: 'bad-checkpoint',
+          estimatedTimeMinutes: 1,
+          prerequisiteNodeIds: ['heavy-prep'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'good-checkpoint',
+          estimatedTimeMinutes: 9,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 20,
+        requiredCheckpointCount: 1,
+        terminalValidationRequired: false,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['intro', 'good-checkpoint']);
+    expect(repair.insertedNodeIds).toEqual(['good-checkpoint']);
+    expect(repair.checkpointNodeIds).toEqual(['good-checkpoint']);
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
+  it('keeps trying checkpoint combinations until all required checkpoints fit the budget', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 5, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'heavy-prep',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: [],
+          removable: true,
+        },
+        {
+          nodeId: 'bad-checkpoint-1',
+          estimatedTimeMinutes: 1,
+          prerequisiteNodeIds: ['heavy-prep'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'good-checkpoint-1',
+          estimatedTimeMinutes: 5,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'good-checkpoint-2',
+          estimatedTimeMinutes: 5,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 15,
+        requiredCheckpointCount: 2,
+        terminalValidationRequired: false,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['intro', 'good-checkpoint-1', 'good-checkpoint-2']);
+    expect(repair.insertedNodeIds).toEqual(['good-checkpoint-1', 'good-checkpoint-2']);
+    expect(repair.checkpointNodeIds).toEqual(['good-checkpoint-1', 'good-checkpoint-2']);
+    expect(repair.repairedNodeIds).not.toContain('heavy-prep');
+    expect(repair.repairedNodeIds).not.toContain('bad-checkpoint-1');
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
+  it('tries later checkpoint candidates when the shortest candidate only exceeds budget after terminal validation', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 5, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'heavy-prep',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: [],
+          removable: true,
+        },
+        {
+          nodeId: 'bad-checkpoint',
+          estimatedTimeMinutes: 1,
+          prerequisiteNodeIds: ['heavy-prep'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'good-checkpoint',
+          estimatedTimeMinutes: 7,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'terminal',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: ['intro'],
+          terminalValidation: 'official',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 20,
+        requiredCheckpointCount: 1,
+        terminalValidationRequired: true,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['intro', 'good-checkpoint', 'terminal']);
+    expect(repair.insertedNodeIds).toEqual(['good-checkpoint', 'terminal']);
+    expect(repair.checkpointNodeIds).toEqual(['good-checkpoint']);
+    expect(repair.terminalValidationNodeIds).toEqual(['terminal']);
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
+  it('tries later official terminal validation candidates when the shortest terminal exceeds the budget with prerequisites', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro', 'checkpoint'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 5, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'checkpoint',
+          estimatedTimeMinutes: 7,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'heavy-prep',
+          estimatedTimeMinutes: 20,
+          prerequisiteNodeIds: [],
+          removable: true,
+        },
+        {
+          nodeId: 'cheap-terminal-heavy-chain',
+          estimatedTimeMinutes: 1,
+          prerequisiteNodeIds: ['heavy-prep'],
+          terminalValidation: 'official',
+        },
+        {
+          nodeId: 'later-terminal-feasible',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: ['intro'],
+          terminalValidation: 'official',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 20,
+        requiredCheckpointCount: 1,
+        terminalValidationRequired: true,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['intro', 'checkpoint', 'later-terminal-feasible']);
+    expect(repair.insertedNodeIds).toEqual(['later-terminal-feasible']);
+    expect(repair.terminalValidationNodeIds).toEqual(['later-terminal-feasible']);
+    expect(repair.repairedNodeIds).not.toContain('heavy-prep');
+    expect(repair.repairedNodeIds).not.toContain('cheap-terminal-heavy-chain');
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
+  it('selects terminal validation that remains feasible after locked fallback repair', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro', 'locked-lab', 'checkpoint'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 5, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'locked-lab',
+          estimatedTimeMinutes: 5,
+          prerequisiteNodeIds: ['intro'],
+          locked: true,
+          fallbackNodeIds: ['light-fallback'],
+        },
+        {
+          nodeId: 'checkpoint',
+          estimatedTimeMinutes: 3,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'light-fallback',
+          estimatedTimeMinutes: 5,
+          prerequisiteNodeIds: ['intro'],
+          removable: true,
+        },
+        {
+          nodeId: 'heavy-prep',
+          estimatedTimeMinutes: 4,
+          prerequisiteNodeIds: [],
+          removable: true,
+        },
+        {
+          nodeId: 'cheap-terminal-heavy-chain',
+          estimatedTimeMinutes: 1,
+          prerequisiteNodeIds: ['heavy-prep'],
+          terminalValidation: 'official',
+        },
+        {
+          nodeId: 'later-terminal-feasible',
+          estimatedTimeMinutes: 4,
+          prerequisiteNodeIds: ['intro'],
+          terminalValidation: 'official',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 22,
+        requiredCheckpointCount: 1,
+        terminalValidationRequired: true,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual([
+      'intro',
+      'light-fallback',
+      'locked-lab',
+      'checkpoint',
+      'later-terminal-feasible',
+    ]);
+    expect(repair.terminalValidationNodeIds).toEqual(['later-terminal-feasible']);
+    expect(repair.repairedNodeIds).not.toContain('heavy-prep');
+    expect(repair.repairedNodeIds).not.toContain('cheap-terminal-heavy-chain');
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
+  it('tries later checkpoint candidates when the shortest candidate only exceeds budget after locked fallback repair', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro', 'locked-lab'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 5, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'locked-lab',
+          estimatedTimeMinutes: 5,
+          prerequisiteNodeIds: ['intro'],
+          locked: true,
+          fallbackNodeIds: ['fallback-prep'],
+        },
+        {
+          nodeId: 'fallback-prep',
+          estimatedTimeMinutes: 7,
+          prerequisiteNodeIds: ['intro'],
+          removable: true,
+        },
+        {
+          nodeId: 'heavy-prep',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: [],
+          removable: true,
+        },
+        {
+          nodeId: 'bad-checkpoint',
+          estimatedTimeMinutes: 1,
+          prerequisiteNodeIds: ['heavy-prep'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'good-checkpoint',
+          estimatedTimeMinutes: 3,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 20,
+        requiredCheckpointCount: 1,
+        terminalValidationRequired: false,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['intro', 'fallback-prep', 'locked-lab', 'good-checkpoint']);
+    expect(repair.insertedNodeIds).toEqual(['good-checkpoint', 'fallback-prep']);
+    expect(repair.checkpointNodeIds).toEqual(['good-checkpoint']);
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
+  it('tries later locked fallback candidates when the first fallback exceeds the budget', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro', 'locked-lab', 'checkpoint'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 5, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'locked-lab',
+          estimatedTimeMinutes: 5,
+          prerequisiteNodeIds: ['intro'],
+          locked: true,
+          fallbackNodeIds: ['heavy-fallback', 'light-fallback'],
+        },
+        {
+          nodeId: 'checkpoint',
+          estimatedTimeMinutes: 3,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'heavy-fallback',
+          estimatedTimeMinutes: 20,
+          prerequisiteNodeIds: ['intro'],
+          removable: true,
+        },
+        {
+          nodeId: 'light-fallback',
+          estimatedTimeMinutes: 4,
+          prerequisiteNodeIds: ['intro'],
+          removable: true,
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 20,
+        requiredCheckpointCount: 1,
+        terminalValidationRequired: false,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual(['intro', 'light-fallback', 'locked-lab', 'checkpoint']);
+    expect(repair.insertedNodeIds).toEqual(['light-fallback']);
+    expect(repair.repairedNodeIds).not.toContain('heavy-fallback');
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
+  it('selects fallback chains that keep later locked nodes feasible', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['intro', 'locked-a', 'locked-b', 'checkpoint'],
+      candidates: [
+        { nodeId: 'intro', estimatedTimeMinutes: 5, prerequisiteNodeIds: [] },
+        {
+          nodeId: 'locked-a',
+          estimatedTimeMinutes: 4,
+          prerequisiteNodeIds: ['intro'],
+          locked: true,
+          fallbackNodeIds: ['heavy-a-fallback', 'light-a-fallback'],
+        },
+        {
+          nodeId: 'locked-b',
+          estimatedTimeMinutes: 4,
+          prerequisiteNodeIds: ['intro'],
+          locked: true,
+          fallbackNodeIds: ['b-fallback'],
+        },
+        {
+          nodeId: 'checkpoint',
+          estimatedTimeMinutes: 2,
+          prerequisiteNodeIds: ['intro'],
+          checkpointRole: 'formative',
+        },
+        {
+          nodeId: 'heavy-a-fallback',
+          estimatedTimeMinutes: 5,
+          prerequisiteNodeIds: ['intro'],
+          removable: true,
+        },
+        {
+          nodeId: 'light-a-fallback',
+          estimatedTimeMinutes: 2,
+          prerequisiteNodeIds: ['intro'],
+          removable: true,
+        },
+        {
+          nodeId: 'b-fallback',
+          estimatedTimeMinutes: 5,
+          prerequisiteNodeIds: ['intro'],
+          removable: true,
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 22,
+        requiredCheckpointCount: 1,
+        terminalValidationRequired: false,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('repaired');
+    expect(repair.repairedNodeIds).toEqual([
+      'intro',
+      'light-a-fallback',
+      'locked-a',
+      'b-fallback',
+      'locked-b',
+      'checkpoint',
+    ]);
+    expect(repair.repairedNodeIds).not.toContain('heavy-a-fallback');
+    expect(repair.infeasibleReasons).toEqual([]);
+  });
+
   it('skips cyclic checkpoint candidates and tries the next feasible candidate', () => {
     const repair = repairPathConstraints({
       draftNodeIds: ['intro'],
@@ -362,6 +793,80 @@ describe('path constraint repair', () => {
     expect(repair.infeasibleReasons).toContainEqual(expect.objectContaining({
       code: 'time-budget-insufficient',
       nodeIds: ['prep-card', 'locked-lab'],
+    }));
+  });
+
+  it('keeps an already-ready fallback as satisfied when the final budget is infeasible', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['prep-card', 'locked-lab'],
+      candidates: [
+        { nodeId: 'prep-card', estimatedTimeMinutes: 8, prerequisiteNodeIds: [], removable: true },
+        {
+          nodeId: 'locked-lab',
+          estimatedTimeMinutes: 25,
+          prerequisiteNodeIds: [],
+          locked: true,
+          fallbackNodeIds: ['prep-card'],
+          terminalValidation: 'official',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 25,
+        requiredCheckpointCount: 0,
+        terminalValidationRequired: true,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('infeasible');
+    expect(repair.repairedNodeIds).toEqual(['prep-card', 'locked-lab']);
+    expect(repair.infeasibleReasons).toContainEqual(expect.objectContaining({
+      code: 'time-budget-insufficient',
+    }));
+    expect(repair.infeasibleReasons).not.toContainEqual(expect.objectContaining({
+      code: 'locked-node-without-fallback',
+    }));
+  });
+
+  it('audits locked fallback candidates inserted before locked milestones', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['locked-a'],
+      candidates: [
+        {
+          nodeId: 'locked-a',
+          estimatedTimeMinutes: 10,
+          prerequisiteNodeIds: [],
+          locked: true,
+          fallbackNodeIds: ['locked-b'],
+        },
+        {
+          nodeId: 'locked-b',
+          estimatedTimeMinutes: 5,
+          prerequisiteNodeIds: [],
+          locked: true,
+          fallbackNodeIds: [],
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 20,
+        requiredCheckpointCount: 0,
+        terminalValidationRequired: false,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('infeasible');
+    expect(repair.repairedNodeIds).toEqual(['locked-b', 'locked-a']);
+    expect(repair.insertedNodeIds).toEqual(['locked-b']);
+    expect(repair.infeasibleReasons).toContainEqual(expect.objectContaining({
+      code: 'locked-node-without-fallback',
+      nodeIds: ['locked-b'],
     }));
   });
 

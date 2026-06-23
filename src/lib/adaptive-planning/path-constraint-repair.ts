@@ -135,13 +135,182 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     ];
   };
 
-  const isFallbackSupportForSelected = (candidateNodeId: string): boolean => selectedIds.some((nodeId) => {
+  const isFallbackSupportForSelected = (
+    candidateNodeId: string,
+    selectedNodeIds = selectedIds,
+  ): boolean => selectedNodeIds.some((nodeId) => {
     const candidate = candidatesById.get(nodeId);
     if (!candidate?.locked) return false;
     return (candidate.fallbackNodeIds ?? []).some((fallbackNodeId) =>
       unique([...prerequisiteClosure(fallbackNodeId), fallbackNodeId]).includes(candidateNodeId)
     );
   });
+
+  const isUsableFallbackCandidate = (fallbackNodeId: string): boolean => {
+    return candidatesById.has(fallbackNodeId);
+  };
+
+  const canReduceSelectionToBudget = (initialSelectedIds: string[]): boolean => {
+    const candidateIds = [...initialSelectedIds];
+    const requiredCoverageTargets = new Set(input.constraints.requiredCoverageTargetIds ?? []);
+    while (estimatedMinutes(candidateIds, candidatesById) > input.constraints.timeBudgetMinutes) {
+      const selectedCheckpointIds = checkpointIds(candidateIds, candidatesById);
+      const selectedCoverageCounts = coverageCounts(candidateIds, candidatesById);
+      const removable = candidateIds
+        .map((nodeId) => candidatesById.get(nodeId))
+        .filter((candidate): candidate is PathConstraintRepairCandidate => Boolean(candidate))
+        .filter((candidate) =>
+          candidate.removable &&
+          (!candidate.checkpointRole || selectedCheckpointIds.length > input.constraints.requiredCheckpointCount) &&
+          candidate.terminalValidation !== 'official' &&
+          preservesRequiredCoverage(candidate, selectedCoverageCounts, requiredCoverageTargets) &&
+          !isPrerequisiteForSelected(candidate.nodeId, candidateIds, candidatesById) &&
+          !isFallbackSupportForSelected(candidate.nodeId, candidateIds)
+        )
+        .sort((left, right) => right.estimatedTimeMinutes - left.estimatedTimeMinutes || left.nodeId.localeCompare(right.nodeId))[0];
+      if (!removable) return false;
+      candidateIds.splice(candidateIds.indexOf(removable.nodeId), 1);
+    }
+    return true;
+  };
+
+  const insertIntoSelection = (
+    targetSelectedIds: string[],
+    nodeId: string,
+    beforeNodeId?: string,
+    stack = new Set<string>(),
+  ): boolean => {
+    if (!candidatesById.has(nodeId)) return false;
+    if (targetSelectedIds.includes(nodeId)) return true;
+    if (stack.has(nodeId)) return false;
+    const candidate = candidatesById.get(nodeId)!;
+    const nextStack = new Set(stack);
+    nextStack.add(nodeId);
+    for (const prerequisiteId of candidate.prerequisiteNodeIds) {
+      if (!insertIntoSelection(targetSelectedIds, prerequisiteId, beforeNodeId ?? nodeId, nextStack)) {
+        return false;
+      }
+    }
+    const beforeIndex = beforeNodeId ? targetSelectedIds.indexOf(beforeNodeId) : -1;
+    if (beforeIndex >= 0) {
+      targetSelectedIds.splice(beforeIndex, 0, nodeId);
+    } else {
+      targetSelectedIds.push(nodeId);
+    }
+    return true;
+  };
+
+  const canSatisfyLockedFallbacks = (
+    initialSelectedIds: string[],
+    startIndex = 0,
+    seenStates = new Set<string>(),
+  ): boolean => {
+    const stateKey = `${startIndex}:${initialSelectedIds.join('\u0000')}`;
+    if (seenStates.has(stateKey)) return false;
+    seenStates.add(stateKey);
+    const lockedIndex = initialSelectedIds.findIndex((nodeId, index) =>
+      index >= startIndex && Boolean(candidatesById.get(nodeId)?.locked)
+    );
+    if (lockedIndex < 0) return canReduceSelectionToBudget(initialSelectedIds);
+
+    const nodeId = initialSelectedIds[lockedIndex];
+    const candidate = candidatesById.get(nodeId)!;
+    const fallbackChains = (candidate.fallbackNodeIds ?? [])
+      .filter((fallbackNodeId) => isUsableFallbackCandidate(fallbackNodeId))
+      .map((fallbackNodeId) => unique([...prerequisiteClosure(fallbackNodeId), fallbackNodeId]));
+    for (const fallbackChain of fallbackChains) {
+      const nodeIndex = initialSelectedIds.indexOf(nodeId);
+      const fallbackChainReady = nodeIndex < 0 || fallbackChain.every((id) => {
+        const selectedIndex = initialSelectedIds.indexOf(id);
+        return selectedIndex >= 0 && selectedIndex < nodeIndex;
+      });
+      if (fallbackChainReady && canSatisfyLockedFallbacks(initialSelectedIds, lockedIndex + 1, seenStates)) {
+        return true;
+      }
+
+      const nextSelectedIds = [...initialSelectedIds];
+      const nextNodeIndex = nextSelectedIds.indexOf(nodeId);
+      for (const id of fallbackChain) {
+        const selectedIndex = nextSelectedIds.indexOf(id);
+        if (selectedIndex >= 0) {
+          nextSelectedIds.splice(selectedIndex, 1);
+        }
+      }
+      const anchorIndex = nextNodeIndex >= 0 ? nextSelectedIds.indexOf(nodeId) : -1;
+      if (anchorIndex >= 0) {
+        nextSelectedIds.splice(anchorIndex, 0, ...fallbackChain);
+      } else if (!insertIntoSelection(nextSelectedIds, fallbackChain.at(-1) ?? '', nodeId)) {
+        continue;
+      }
+      if (canSatisfyLockedFallbacks(nextSelectedIds, 0, seenStates)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const canCompleteMandatoryRepairsWithinBudget = (
+    initialSelectedIds: string[],
+    seenStates = new Set<string>(),
+  ): boolean => {
+    const stateKey = initialSelectedIds.join('\u0000');
+    if (seenStates.has(stateKey)) return false;
+    seenStates.add(stateKey);
+
+    if (checkpointIds(initialSelectedIds, candidatesById).length < input.constraints.requiredCheckpointCount) {
+      const terminalBeforeInsert = initialSelectedIds.find((nodeId) =>
+        candidatesById.get(nodeId)?.terminalValidation === 'official'
+      );
+      return input.candidates
+        .filter((candidate) => candidate.checkpointRole && !initialSelectedIds.includes(candidate.nodeId))
+        .sort((left, right) => left.estimatedTimeMinutes - right.estimatedTimeMinutes || left.nodeId.localeCompare(right.nodeId))
+        .some((candidate) => {
+          const candidateIds = [...initialSelectedIds];
+          return insertIntoSelection(candidateIds, candidate.nodeId, terminalBeforeInsert) &&
+            canCompleteMandatoryRepairsWithinBudget(candidateIds, seenStates);
+        });
+    }
+
+    const terminalOptions = input.constraints.terminalValidationRequired &&
+      !hasOfficialTerminalValidation(initialSelectedIds, candidatesById)
+      ? input.candidates
+          .filter((candidate) => candidate.terminalValidation === 'official' && !initialSelectedIds.includes(candidate.nodeId))
+          .sort((left, right) => left.estimatedTimeMinutes - right.estimatedTimeMinutes || left.nodeId.localeCompare(right.nodeId))
+      : [null];
+    for (const terminalOption of terminalOptions) {
+      const candidateIds = [...initialSelectedIds];
+      if (terminalOption && !insertIntoSelection(candidateIds, terminalOption.nodeId)) {
+        continue;
+      }
+      if (canSatisfyLockedFallbacks(candidateIds)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const tryInsertCandidateWithinBudget = (nodeId: string, beforeNodeId?: string): boolean => {
+    const beforeSelectedIds = [...selectedIds];
+    const beforeInsertedNodeIds = [...insertedNodeIds];
+    const inserted = insertCandidate(nodeId, beforeNodeId, { collectReasons: false });
+    if (inserted && canCompleteMandatoryRepairsWithinBudget(selectedIds)) return true;
+    selectedIds.splice(0, selectedIds.length, ...beforeSelectedIds);
+    insertedNodeIds.splice(0, insertedNodeIds.length, ...beforeInsertedNodeIds);
+    return false;
+  };
+
+  const withFeasibleMutation = (
+    mutate: () => boolean,
+    isFeasible: () => boolean = () => canReduceSelectionToBudget(selectedIds),
+  ): boolean => {
+    const beforeSelectedIds = [...selectedIds];
+    const beforeInsertedNodeIds = [...insertedNodeIds];
+    const mutated = mutate();
+    if (mutated && isFeasible()) return true;
+    selectedIds.splice(0, selectedIds.length, ...beforeSelectedIds);
+    insertedNodeIds.splice(0, insertedNodeIds.length, ...beforeInsertedNodeIds);
+    return false;
+  };
 
   for (const nodeId of [...selectedIds]) {
     const candidate = candidatesById.get(nodeId);
@@ -181,7 +350,7 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     const inserted = input.candidates
       .filter((candidate) => candidate.checkpointRole && !selectedIds.includes(candidate.nodeId))
       .sort((left, right) => left.estimatedTimeMinutes - right.estimatedTimeMinutes || left.nodeId.localeCompare(right.nodeId))
-      .some((candidate) => tryInsertCandidate(candidate.nodeId, terminalBeforeInsert));
+      .some((candidate) => tryInsertCandidateWithinBudget(candidate.nodeId, terminalBeforeInsert));
     if (inserted) {
       repairedConstraints.push('checkpoint-coverage');
     } else {
@@ -195,10 +364,16 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
   }
 
   if (input.constraints.terminalValidationRequired && !hasOfficialTerminalValidation(selectedIds, candidatesById)) {
-    const insertedTerminal = input.candidates
+    const terminalCandidates = input.candidates
       .filter((candidate) => candidate.terminalValidation === 'official' && !selectedIds.includes(candidate.nodeId))
-      .sort((left, right) => left.estimatedTimeMinutes - right.estimatedTimeMinutes || left.nodeId.localeCompare(right.nodeId))
-      .some((candidate) => tryInsertCandidate(candidate.nodeId));
+      .sort((left, right) => left.estimatedTimeMinutes - right.estimatedTimeMinutes || left.nodeId.localeCompare(right.nodeId));
+    const insertedTerminal = terminalCandidates
+      .some((candidate) =>
+        withFeasibleMutation(
+          () => insertCandidate(candidate.nodeId, undefined, { collectReasons: false }),
+          () => canSatisfyLockedFallbacks(selectedIds),
+        )
+      ) || terminalCandidates.some((candidate) => tryInsertCandidate(candidate.nodeId));
     if (insertedTerminal) {
       repairedConstraints.push('terminal-validation');
     } else {
@@ -213,53 +388,96 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
     }
   }
 
-  for (const nodeId of [...selectedIds]) {
+  let fallbackScanIndex = 0;
+  const auditedLockedNodeIds = new Set<string>();
+  const unsatisfiedLockedNodeIds = new Set<string>();
+  while (fallbackScanIndex < selectedIds.length) {
+    const nodeId = selectedIds[fallbackScanIndex];
     const candidate = candidatesById.get(nodeId);
-    if (!candidate?.locked) continue;
+    if (!candidate?.locked || auditedLockedNodeIds.has(nodeId)) {
+      fallbackScanIndex += 1;
+      continue;
+    }
     let fallbackSatisfied = false;
     let fallbackRepaired = false;
-    for (const fallbackNodeId of candidate.fallbackNodeIds ?? []) {
-      if (!candidatesById.has(fallbackNodeId)) continue;
-      const fallbackIndex = selectedIds.indexOf(fallbackNodeId);
-      const nodeIndex = selectedIds.indexOf(nodeId);
-      const fallbackChain = unique([...prerequisiteClosure(fallbackNodeId), fallbackNodeId]);
-      const fallbackChainReady = nodeIndex < 0 || fallbackChain.every((id) => {
-        const selectedIndex = selectedIds.indexOf(id);
-        return selectedIndex >= 0 && selectedIndex < nodeIndex;
-      });
-      if (fallbackIndex >= 0 && fallbackChainReady) {
-        fallbackSatisfied = true;
-        break;
-      }
-      if (fallbackIndex >= 0 && nodeIndex >= 0) {
-        const idsToMove = fallbackChain;
-        for (const id of idsToMove) {
+    const attemptFallback = (requireBudgetFeasible: boolean): boolean => {
+      for (const fallbackNodeId of candidate.fallbackNodeIds ?? []) {
+        if (!isUsableFallbackCandidate(fallbackNodeId)) continue;
+        const fallbackIndex = selectedIds.indexOf(fallbackNodeId);
+        const nodeIndex = selectedIds.indexOf(nodeId);
+        const fallbackChain = unique([...prerequisiteClosure(fallbackNodeId), fallbackNodeId]);
+        const fallbackChainReady = nodeIndex < 0 || fallbackChain.every((id) => {
           const selectedIndex = selectedIds.indexOf(id);
-          if (selectedIndex >= 0) {
-            selectedIds.splice(selectedIndex, 1);
-          } else {
-            insertedNodeIds.push(id);
-          }
+          return selectedIndex >= 0 && selectedIndex < nodeIndex;
+        });
+        if (fallbackIndex >= 0 && fallbackChainReady) {
+          if (
+            requireBudgetFeasible &&
+            !canSatisfyLockedFallbacks(selectedIds, nextLockedStartIndex(selectedIds, nodeId))
+          ) continue;
+          fallbackSatisfied = true;
+          return true;
         }
-        const anchorIndex = selectedIds.indexOf(nodeId);
-        selectedIds.splice(anchorIndex, 0, ...idsToMove);
-        fallbackSatisfied = true;
-        fallbackRepaired = true;
-        break;
+        if (fallbackIndex >= 0 && nodeIndex >= 0) {
+          const moveFallback = () => {
+            const idsToMove = fallbackChain;
+            for (const id of idsToMove) {
+              const selectedIndex = selectedIds.indexOf(id);
+              if (selectedIndex >= 0) {
+                selectedIds.splice(selectedIndex, 1);
+              } else {
+                insertedNodeIds.push(id);
+              }
+            }
+            const anchorIndex = selectedIds.indexOf(nodeId);
+            selectedIds.splice(anchorIndex, 0, ...idsToMove);
+            return true;
+          };
+          const moved = requireBudgetFeasible
+            ? withFeasibleMutation(moveFallback, () => canSatisfyLockedFallbacks(selectedIds))
+            : moveFallback();
+          if (!moved) continue;
+          fallbackSatisfied = true;
+          fallbackRepaired = true;
+          return true;
+        }
+        const insertedCount = insertedNodeIds.length;
+        const inserted = requireBudgetFeasible
+          ? withFeasibleMutation(
+              () => insertCandidate(fallbackNodeId, nodeId, { collectReasons: false }),
+              () => canSatisfyLockedFallbacks(selectedIds),
+            )
+          : tryInsertCandidate(fallbackNodeId, nodeId);
+        if (inserted) {
+          fallbackSatisfied = true;
+          fallbackRepaired = insertedNodeIds.length > insertedCount;
+          return true;
+        }
       }
-      const insertedCount = insertedNodeIds.length;
-      if (tryInsertCandidate(fallbackNodeId, nodeId)) {
-        fallbackSatisfied = true;
-        fallbackRepaired = insertedNodeIds.length > insertedCount;
-        break;
-      }
-    }
+      return false;
+    };
+    attemptFallback(true) || attemptFallback(false);
     if (fallbackSatisfied) {
       if (fallbackRepaired) {
         repairedConstraints.push('locked-node-fallback');
+        auditedLockedNodeIds.clear();
+        unsatisfiedLockedNodeIds.clear();
+        fallbackScanIndex = 0;
+        continue;
       }
+      auditedLockedNodeIds.add(nodeId);
+      unsatisfiedLockedNodeIds.delete(nodeId);
+      fallbackScanIndex += 1;
       continue;
     }
+    auditedLockedNodeIds.add(nodeId);
+    unsatisfiedLockedNodeIds.add(nodeId);
+    fallbackScanIndex += 1;
+  }
+
+  for (const nodeId of unsatisfiedLockedNodeIds) {
+    const candidate = candidatesById.get(nodeId);
+    if (!candidate?.locked) continue;
     if ((candidate.fallbackNodeIds ?? []).length === 0) {
       infeasibleReasons.push({
         code: 'locked-node-without-fallback',
@@ -403,6 +621,11 @@ function isPrerequisiteForSelected(
   return selectedIds.some((nodeId) =>
     candidatesById.get(nodeId)?.prerequisiteNodeIds.includes(candidateNodeId)
   );
+}
+
+function nextLockedStartIndex(selectedIds: string[], nodeId: string): number {
+  const index = selectedIds.indexOf(nodeId);
+  return index >= 0 ? index + 1 : 0;
 }
 
 function prerequisiteDepth(
