@@ -641,8 +641,8 @@ describe('adaptive learning center UI contracts', () => {
       .toContain('if (value.length === 0) return [];');
     expect(pageSource).toContain('checkpointPreference: pathGenerationPanel.checkpointPreference');
     expect(pageSource).toContain('allowExternalResources: pathGenerationPanel.allowExternalResources');
-    expect(pageSource).toContain('naturalLanguageIntent: graphNodeId');
-    expect(pageSource).toContain('pathGenerationPanel.naturalLanguageIntent');
+    expect(pageSource).toContain('naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent');
+    expect(pageSource).not.toContain('`优先围绕图谱节点 ${graphNodeId} 生成或调整路径。`');
     expect(pageSource).toContain("if (activeNodeId) contextQuery.set('nodeId', activeNodeId)");
     expect(pageSource).toContain('...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {})');
     expect(pageSource).toContain('const graphNodeId = assistantEntryPoint?.mode ===');
@@ -674,6 +674,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
     expect(routeSource).toContain('modeContextToken');
     expect(routeSource).toContain('const graphNodeId = typeof body.graphNodeId');
+    expect(routeSource).toContain('? body.naturalLanguageIntent.trim()');
+    expect(routeSource).not.toContain('`优先围绕图谱节点 ${graphNodeId} 生成或调整路径。');
     expect(routeSource).toContain("...(toolInput.graphNodeId ? { graphNodeId: toolInput.graphNodeId } : {})");
     expect(routeSource).toContain('resolveKonlingTeachingAssistantSignedGraphNodeId');
     expect(routeSource).toContain('const signedGraphNodeId = resolveKonlingTeachingAssistantSignedGraphNodeId');

@@ -270,11 +270,7 @@ async function buildPathAdvisorToolInput(body: Record<string, unknown>, goalId: 
     checkpointPreference,
     allowExternalResources: typeof body.allowExternalResources === 'boolean' ? body.allowExternalResources : undefined,
     naturalLanguageIntent: typeof body.naturalLanguageIntent === 'string' && body.naturalLanguageIntent.trim().length > 0
-      ? graphNodeId
-        ? `优先围绕图谱节点 ${graphNodeId} 生成或调整路径。\n${body.naturalLanguageIntent.trim()}`
-        : body.naturalLanguageIntent.trim()
-      : graphNodeId
-        ? `优先围绕图谱节点 ${graphNodeId} 生成或调整路径。`
+      ? body.naturalLanguageIntent.trim()
       : undefined,
     graphNodeId,
     priorRequestId: typeof body.priorRequestId === 'string' && body.priorRequestId.length > 0 ? body.priorRequestId : undefined,

@@ -1880,12 +1880,7 @@ export default function AdaptivePracticePage() {
           resourcePreference: pathGenerationPanel.resourcePreference,
           checkpointPreference: pathGenerationPanel.checkpointPreference,
           allowExternalResources: pathGenerationPanel.allowExternalResources,
-          naturalLanguageIntent: graphNodeId
-            ? [
-                `优先围绕图谱节点 ${graphNodeId} 生成或调整路径。`,
-                pathGenerationPanel.naturalLanguageIntent,
-              ].filter(Boolean).join('\n')
-            : pathGenerationPanel.naturalLanguageIntent,
+          naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent,
           excludedNodeIds: operation === 'revise'
             ? pathExecutionNodes
                 .filter((node) => node.status === 'skipped' || node.status === 'blocked')
