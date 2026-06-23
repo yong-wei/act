@@ -1253,8 +1253,28 @@ describe('K/A/Q evidence writeback governance', () => {
         to: '2026-06-23T03:34:01.000Z',
       },
     });
+    const missingEnd = materializeKaqEvidenceWriteback({
+      ...baseInput,
+      id: 'writeback-missing-window-end-1',
+      source: {
+        ...baseInput.source,
+        sourceId: 'simulation-run-missing-window-end-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-missing-window-end-1' },
+      },
+      evidenceWindow: { from: '2026-06-23T03:33:01.000Z', to: null },
+    });
+    const missingBoth = materializeKaqEvidenceWriteback({
+      ...baseInput,
+      id: 'writeback-missing-window-both-1',
+      source: {
+        ...baseInput.source,
+        sourceId: 'simulation-run-missing-window-both-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-missing-window-both-1' },
+      },
+      evidenceWindow: { from: null, to: null },
+    });
 
-    for (const result of [blank, locale, inverted]) {
+    for (const result of [blank, locale, inverted, missingEnd, missingBoth]) {
       expect(result.status).toBe('blocked');
       expect(result.overlayUpdates).toEqual([]);
       expect(result.audit.limitationCodes).toContain('invalid-evidence-window');
@@ -1678,6 +1698,38 @@ describe('K/A/Q evidence writeback governance', () => {
       terminalValidationAccepted: true,
       limitationCodes: [],
     });
+  });
+
+  it('rejects invalid rubric max scores instead of treating raw scores as normalized', () => {
+    for (const [maxScore, idSuffix] of [[0, 'zero'], [-4, 'negative'], [Number.NaN, 'nan']] as const) {
+      const input = buildTeacherApprovedGradingWritebackInput({
+        id: `grading-writeback-invalid-max-score-${idSuffix}`,
+        gradingRunId: `grading-run-invalid-max-score-${idSuffix}`,
+        subject,
+        teacherId: 'teacher-9',
+        learningGoalId: 'control-correction',
+        objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+        graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+        score: 1,
+        maxScore,
+        versionRefs,
+        materializedAt: '2026-06-23T03:35:37.000Z',
+      });
+      const result = materializeKaqEvidenceWriteback(input);
+
+      expect(input.contributions[0]).toMatchObject({
+        confidence: 0,
+        terminalValidationCandidate: false,
+        limitationCodes: ['invalid-grading-max-score'],
+      });
+      expect(result.status).toBe('degraded');
+      expect(result.overlayUpdates[0]).toMatchObject({
+        confidence: 0,
+        terminalValidationAccepted: false,
+        limitationCodes: ['invalid-grading-max-score'],
+      });
+      expect(result.audit.limitationCodes).toContain('invalid-grading-max-score');
+    }
   });
 
   it('accepts teacher-approved AI grading provenance as terminal validation when confidence passes', () => {

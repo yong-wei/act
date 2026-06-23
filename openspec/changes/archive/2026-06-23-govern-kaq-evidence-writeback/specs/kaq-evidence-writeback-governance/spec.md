@@ -50,6 +50,11 @@ The system SHALL distinguish exploratory or preview evidence from governed termi
 - **THEN** the writeback confidence SHALL be normalized by the max score
 - **AND** terminal validation SHALL only be requested when the normalized score passes the terminal validation threshold.
 
+#### Scenario: Teacher-approved grading has invalid rubric max score
+- **WHEN** teacher-approved grading evidence supplies a non-positive or non-finite rubric max score
+- **THEN** terminal validation SHALL be rejected for that contribution
+- **AND** the limitation SHALL be visible to authorized diagnostics.
+
 ### Requirement: AI-generated evidence is flagged
 Evidence writeback SHALL preserve whether AI produced or mediated the source.
 
@@ -83,6 +88,10 @@ Production writeback SHALL emit an audit trail suitable for replay and diagnosis
 
 #### Scenario: Evidence window is not replayable
 - **WHEN** a production writeback contains blank, non-replayable, or inverted evidence-window timestamps
+- **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.
+
+#### Scenario: Evidence window lacks replayable end time
+- **WHEN** a production writeback evidence window lacks a strict end timestamp
 - **THEN** the writeback SHALL be blocked before terminal validation or overlay materialization.
 
 #### Scenario: Evidence window extends beyond materialization time

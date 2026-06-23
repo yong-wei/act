@@ -38,6 +38,7 @@ export type KaqEvidenceLimitationCode =
   | 'missing-writeback-id'
   | 'invalid-materialized-at'
   | 'invalid-evidence-window'
+  | 'invalid-grading-max-score'
   | 'missing-subject-owner'
   | 'missing-actor-id'
   | 'subject-owner-mismatch'
@@ -444,6 +445,7 @@ export function buildTeacherApprovedGradingWritebackInput(input: {
   const graphNodeId = normalizeOptionalId(input.graphNodeId) ?? '';
   const materializedAt = normalizeOptionalId(input.materializedAt) ?? '';
   const normalizedScore = normalizeGradingScore(input.score, input.maxScore);
+  const validMaxScore = input.maxScore === undefined || isValidGradingMaxScore(input.maxScore);
   const terminalValidationCandidate = normalizedScore >= TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD;
   return {
     id,
@@ -469,6 +471,7 @@ export function buildTeacherApprovedGradingWritebackInput(input: {
         learningGoalId,
         confidence: normalizedScore,
         terminalValidationCandidate,
+        limitationCodes: validMaxScore ? undefined : ['invalid-grading-max-score'],
       },
     ],
   };
@@ -588,7 +591,7 @@ function validateEvidenceWindow(
   materializedAt: string,
 ): KaqEvidenceLimitationCode[] {
   const fromValid = evidenceWindow.from === null || isStrictIsoTimestamp(evidenceWindow.from);
-  const toValid = evidenceWindow.to === null || isStrictIsoTimestamp(evidenceWindow.to);
+  const toValid = evidenceWindow.to !== null && isStrictIsoTimestamp(evidenceWindow.to);
   const materializedAtValid = isStrictIsoTimestamp(materializedAt);
   const ordered = evidenceWindow.from === null || evidenceWindow.to === null
     || Date.parse(evidenceWindow.from) <= Date.parse(evidenceWindow.to);
@@ -654,9 +657,14 @@ function normalizeActor(actor: KaqEvidenceWritebackActor): KaqEvidenceWritebackA
 }
 
 function normalizeGradingScore(score: number, maxScore: number | undefined): number {
-  return Number.isFinite(maxScore) && typeof maxScore === 'number' && maxScore > 0
+  if (maxScore !== undefined && !isValidGradingMaxScore(maxScore)) return 0;
+  return isValidGradingMaxScore(maxScore)
     ? clampConfidence(score / maxScore)
     : clampConfidence(score);
+}
+
+function isValidGradingMaxScore(maxScore: number | undefined): maxScore is number {
+  return typeof maxScore === 'number' && Number.isFinite(maxScore) && maxScore > 0;
 }
 
 function isStrictIsoTimestamp(value: string): boolean {
