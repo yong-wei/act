@@ -352,6 +352,48 @@ describe('K/A/Q evidence writeback governance', () => {
     ]));
   });
 
+  it('treats blank version refs as missing before materialization', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-konling-blank-version-1',
+      source: {
+        sourceClass: 'konling-intervention',
+        sourceId: 'tool-run-blank-version-1',
+        sourceRef: { kind: 'AgentToolRun', id: 'tool-run-blank-version-1' },
+        official: false,
+        teacherApproved: false,
+        aiGenerated: true,
+        citationRefs: ['citation:blank-version-1'],
+      },
+      subject,
+      actor: { type: 'service', id: 'konling-runtime' },
+      privacyScope: 'student',
+      materializedAt: '2026-06-23T03:32:35.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:32:35.000Z' },
+      versionRefs: buildKaqArtifactVersionRefs({
+        groundingVersion: '   ',
+        citationVersion: '   ',
+      }),
+      contributions: [
+        {
+          domain: 'quality',
+          objectiveId: 'quality:autocontrol:evidence-integrity',
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
+          learningGoalId: 'control-correction',
+          confidence: 0.58,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.overlayUpdates[0].limitationCodes).toEqual(expect.arrayContaining([
+      'missing-version-ref:groundingVersion',
+      'missing-version-ref:citationVersion',
+    ]));
+    expect(result.audit.versionRefs?.groundingVersion).toBeNull();
+    expect(result.audit.versionRefs?.citationVersion).toBeNull();
+  });
+
   it('degrades stale official terminal validation refs without accepting terminal mastery', () => {
     const result = materializeKaqEvidenceWriteback({
       id: 'writeback-arena-stale-version-1',

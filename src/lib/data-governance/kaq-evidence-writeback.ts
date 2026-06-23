@@ -228,6 +228,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
   const normalizedSource = normalizeSource(input.source);
   const normalizedSubject = normalizeSubject(input.subject);
   const normalizedActor = normalizeActor(input.actor);
+  const normalizedVersionRefs = normalizeVersionRefs(input.versionRefs);
   const normalizedInput = {
     ...input,
     id: writebackId,
@@ -236,6 +237,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     actor: normalizedActor,
     materializedAt,
     evidenceWindow,
+    versionRefs: normalizedVersionRefs,
   };
   const versionLimitations = validateRequiredVersionRefs(normalizedInput);
   const writebackLimitations = validateWritebackId(writebackId);
@@ -252,7 +254,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       ...validateTargetBinding(contribution),
       ...validateTerminalValidationPolicy(normalizedSource, contribution),
       ...validateCatalogTarget(contribution),
-      ...validateResourceTargetVersionRefs(input, contribution),
+      ...validateResourceTargetVersionRefs(normalizedInput, contribution),
       ...validateResourceTarget(contribution, input.resourceTargetRegistry),
       ...(contribution.limitationCodes ?? []),
       ...(isPreview && contribution.terminalValidationCandidate ? ['preview-not-terminal-validation' as const] : []),
@@ -308,7 +310,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       citationRefs: normalizedSource.citationRefs ?? null,
       targetRefs: input.contributions.map(toTargetRef),
       subject: normalizedSubject,
-      versionRefs: input.versionRefs,
+      versionRefs: normalizedVersionRefs,
       confidence: averageConfidence(input.contributions),
       limitationCodes,
       actor: normalizedActor,
@@ -661,6 +663,16 @@ function normalizeGradingScore(score: number, maxScore: number | undefined): num
   return isValidGradingMaxScore(maxScore)
     ? clampConfidence(score / maxScore)
     : clampConfidence(score);
+}
+
+function normalizeVersionRefs(refs: KaqArtifactVersionRefs | null): KaqArtifactVersionRefs | null {
+  if (!refs) return null;
+  return Object.fromEntries(
+    Object.entries(refs).map(([key, value]) => [
+      key,
+      typeof value === 'string' ? value.trim() || null : value,
+    ]),
+  ) as KaqArtifactVersionRefs;
 }
 
 function isValidGradingMaxScore(maxScore: number | undefined): maxScore is number {
