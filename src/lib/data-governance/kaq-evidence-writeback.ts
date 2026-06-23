@@ -222,7 +222,16 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
   const normalizedSource = normalizeSource(input.source);
   const normalizedSubject = normalizeSubject(input.subject);
   const normalizedActor = normalizeActor(input.actor);
-  const versionLimitations = validateRequiredVersionRefs(input);
+  const normalizedInput = {
+    ...input,
+    id: writebackId,
+    source: normalizedSource,
+    subject: normalizedSubject,
+    actor: normalizedActor,
+    materializedAt,
+    evidenceWindow,
+  };
+  const versionLimitations = validateRequiredVersionRefs(normalizedInput);
   const writebackLimitations = validateWritebackId(writebackId);
   const materializedAtLimitations = validateMaterializedAt(materializedAt);
   const evidenceWindowLimitations = validateEvidenceWindow(evidenceWindow);
@@ -260,15 +269,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
     ? []
     : contributionEvaluations
       .map(({ contribution, limitationCodes }, index) => materializeContribution(
-        {
-          ...input,
-          id: writebackId,
-          source: normalizedSource,
-          subject: normalizedSubject,
-          actor: normalizedActor,
-          materializedAt,
-          evidenceWindow,
-        },
+        normalizedInput,
         contribution,
         uniqueSorted([...versionLimitations, ...limitationCodes]),
         index,
@@ -586,6 +587,9 @@ function validateSource(source: KaqEvidenceWritebackSource): KaqEvidenceLimitati
 }
 
 function normalizeSource(source: KaqEvidenceWritebackSource): KaqEvidenceWritebackSource {
+  const citationRefs = source.citationRefs
+    ?.map((ref) => ref.trim())
+    .filter((ref) => ref.length > 0);
   return {
     ...source,
     sourceId: normalizeOptionalId(source.sourceId) ?? '',
@@ -593,6 +597,7 @@ function normalizeSource(source: KaqEvidenceWritebackSource): KaqEvidenceWriteba
       kind: normalizeOptionalId(source.sourceRef?.kind) ?? '',
       id: normalizeOptionalId(source.sourceRef?.id) ?? '',
     },
+    citationRefs: citationRefs?.length ? citationRefs : undefined,
   };
 }
 

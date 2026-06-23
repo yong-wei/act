@@ -446,6 +446,44 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(service.audit?.actor).toEqual({ type: 'service', id: 'konling-runtime' });
   });
 
+  it('normalizes citation refs before materialization', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-konling-citations-1',
+      source: {
+        sourceClass: 'konling-intervention',
+        sourceId: 'tool-run-1',
+        sourceRef: { kind: 'AgentToolRun', id: 'tool-run-1' },
+        official: false,
+        teacherApproved: false,
+        aiGenerated: true,
+        citationRefs: [' citation:path-execution-1 ', '   '],
+      },
+      subject,
+      actor: { type: 'service', id: 'konling-runtime' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:33:00.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:25:00.000Z',
+        to: '2026-06-23T03:33:00.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'quality',
+          objectiveId: 'quality:autocontrol:evidence-integrity',
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
+          learningGoalId: 'control-correction',
+          confidence: 0.58,
+          terminalValidationCandidate: false,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.audit.citationRefs).toEqual(['citation:path-execution-1']);
+    expect(result.overlayUpdates[0].citationRefs).toEqual(['citation:path-execution-1']);
+  });
+
   it('blocks unknown, mismatched, or cross-domain target bindings', () => {
     const unknown = materializeKaqEvidenceWriteback({
       id: 'writeback-invalid-target-1',

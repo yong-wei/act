@@ -54,6 +54,11 @@ Evidence writeback SHALL preserve whether AI produced or mediated the source.
 - **WHEN** a Konling intervention, recommendation, or tool outcome is materialized as evidence
 - **THEN** the writeback SHALL flag AI involvement, identify the AgentToolRun or governed outcome ref, preserve citations where available, and avoid using raw model narrative as high-confidence mastery evidence.
 
+#### Scenario: Citation refs are normalized
+- **WHEN** an AI-mediated or governed source supplies citation refs for materialization
+- **THEN** the writeback SHALL trim citation ref ids and remove blank citation refs before audit or overlay materialization
+- **AND** version-ref requirements SHALL be evaluated from the normalized citation ref list.
+
 ### Requirement: Evidence writeback is auditable
 Production writeback SHALL emit an audit trail suitable for replay and diagnosis.
 
