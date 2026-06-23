@@ -1,5 +1,6 @@
 import type { KaqArtifactVersionRefs } from '../kaq-artifact-versioning';
 import { detectKaqArtifactStaleness, validateKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
+import { getLearningGoal, type LearningGoalDefinition } from '../adaptive-learning-path-planner';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_OBJECTIVE_CATALOG,
@@ -34,6 +35,8 @@ export type KaqEvidenceLimitationCode =
   | 'subject-owner-mismatch'
   | 'unknown-objective-id'
   | 'unknown-graph-node-id'
+  | 'unknown-learning-goal-id'
+  | 'learning-goal-target-mismatch'
   | 'objective-domain-mismatch'
   | 'graph-node-domain-mismatch'
   | 'target-objective-node-mismatch'
@@ -476,11 +479,17 @@ function validateResourceTargetVersionRefs(
 }
 
 function validateTargetBinding(contribution: KaqEvidenceContributionInput): KaqEvidenceLimitationCode[] {
+  const learningGoalId = normalizeOptionalId(contribution.learningGoalId);
+  const learningGoal = learningGoalId ? getLearningGoal(learningGoalId) : null;
   return [
     ...(!normalizeOptionalId(contribution.objectiveId) && !normalizeOptionalId(contribution.graphNodeId)
       ? ['missing-target-binding' as const]
       : []),
-    ...(!normalizeOptionalId(contribution.learningGoalId) ? ['missing-learning-goal-boundary' as const] : []),
+    ...(!learningGoalId ? ['missing-learning-goal-boundary' as const] : []),
+    ...(learningGoalId && !learningGoal ? ['unknown-learning-goal-id' as const] : []),
+    ...(learningGoal && !learningGoalMatchesContributionTarget(learningGoal, contribution)
+      ? ['learning-goal-target-mismatch' as const]
+      : []),
   ];
 }
 
@@ -550,6 +559,21 @@ function validateResourceTarget(
   return verifiedNodeIds.has(resourceNodeId) ? [] : ['unverified-resource-node-id'];
 }
 
+function learningGoalMatchesContributionTarget(
+  learningGoal: LearningGoalDefinition,
+  contribution: KaqEvidenceContributionInput,
+): boolean {
+  const objectiveId = normalizeOptionalId(contribution.objectiveId);
+  const graphNodeId = normalizeOptionalId(contribution.graphNodeId);
+  const objectiveIdsByDomain: Record<KaqObjectiveDomain, string[]> = {
+    knowledge: learningGoal.knowledgeObjectiveIds,
+    capability: learningGoal.capabilityObjectiveIds,
+    quality: learningGoal.qualityObjectiveIds,
+  };
+  return (!objectiveId || objectiveIdsByDomain[contribution.domain].includes(objectiveId))
+    && (!graphNodeId || learningGoal.targetGraphNodeIds.includes(graphNodeId));
+}
+
 function graphNodeSupportsObjective(graphNode: KaqGraphNode, objective: KaqObjective): boolean {
   return graphNode.objectiveIds.includes(objective.id)
     || Boolean(objective.graphBinding?.bindingRefs.includes(graphNode.id));
@@ -559,6 +583,8 @@ function isBlockingContribution(limitationCodes: string[]): boolean {
   return limitationCodes.some((code) => [
     'missing-target-binding',
     'missing-learning-goal-boundary',
+    'unknown-learning-goal-id',
+    'learning-goal-target-mismatch',
     'unknown-objective-id',
     'unknown-graph-node-id',
     'objective-domain-mismatch',

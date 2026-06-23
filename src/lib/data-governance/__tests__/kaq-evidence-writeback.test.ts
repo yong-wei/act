@@ -330,8 +330,8 @@ describe('K/A/Q evidence writeback governance', () => {
       contributions: [
         {
           domain: 'quality',
-          objectiveId: 'quality:autocontrol:ai-use-responsibility',
-          graphNodeId: 'qual:autocontrol:ai-use-responsibility',
+          objectiveId: 'quality:autocontrol:evidence-integrity',
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
           learningGoalId: 'control-correction',
           confidence: 0.58,
           terminalValidationCandidate: false,
@@ -416,8 +416,8 @@ describe('K/A/Q evidence writeback governance', () => {
       contributions: [
         {
           domain: 'quality',
-          objectiveId: 'quality:autocontrol:ai-use-responsibility',
-          graphNodeId: 'qual:autocontrol:ai-use-responsibility',
+          objectiveId: 'quality:autocontrol:evidence-integrity',
+          graphNodeId: 'qual:autocontrol:evidence-integrity',
           learningGoalId: 'control-correction',
           confidence: 0.58,
           terminalValidationCandidate: false,
@@ -555,6 +555,74 @@ describe('K/A/Q evidence writeback governance', () => {
       limitationCodes: [],
     });
     expect(result.audit.limitationCodes).toContain('unknown-objective-id');
+  });
+
+  it('blocks unknown LearningGoal targets before overlay materialization', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-unknown-learning-goal-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-validation-unknown-goal-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-validation-unknown-goal-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:33:48.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:33:48.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'not-a-registered-goal',
+          confidence: 0.91,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('unknown-learning-goal-id');
+  });
+
+  it('blocks registered LearningGoal targets that do not match the contribution boundary', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-mismatched-learning-goal-1',
+      source: {
+        sourceClass: 'simulation-validation',
+        sourceId: 'simulation-validation-mismatched-goal-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-validation-mismatched-goal-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'simulation-validation' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:33:49.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:33:49.000Z' },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'ship-ocean-transfer-application',
+          confidence: 0.91,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('learning-goal-target-mismatch');
   });
 
   it('does not fabricate overlay state for invalid non-official targets', () => {

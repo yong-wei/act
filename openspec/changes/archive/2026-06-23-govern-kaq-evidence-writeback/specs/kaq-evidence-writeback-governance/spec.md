@@ -13,6 +13,16 @@ The system SHALL materialize evidence into knowledge, capability, and quality ov
 - **THEN** production overlay writeback SHALL be rejected or downgraded
 - **AND** the limitation SHALL be visible to authorized diagnostics.
 
+#### Scenario: Evidence targets an unknown LearningGoal
+- **WHEN** evidence names a LearningGoal id that is not present in the registered LearningGoal catalog
+- **THEN** production overlay writeback SHALL be rejected before terminal validation or overlay materialization
+- **AND** the limitation SHALL be visible to authorized diagnostics.
+
+#### Scenario: Evidence target falls outside the LearningGoal boundary
+- **WHEN** evidence names a registered LearningGoal but its K/A/Q objective or graph node target is outside that LearningGoal boundary
+- **THEN** production overlay writeback SHALL be rejected before terminal validation or overlay materialization
+- **AND** the limitation SHALL be visible to authorized diagnostics.
+
 #### Scenario: Evidence targets a ResourceNode
 - **WHEN** evidence includes a ResourceNode target
 - **THEN** the writeback layer SHALL require resource registry and projection version refs
