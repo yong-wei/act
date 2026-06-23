@@ -1448,6 +1448,86 @@ describe('adaptive learning path planner', () => {
     expect(JSON.stringify(serialized.payload.graphContext)).not.toContain('knowledge-card:graph-frequency-card');
   });
 
+  it('blocks graph-driven paths when LearningGoal baseline coverage is incomplete', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+    const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
+    const graphTargetId = learningGoal.targetGraphNodeIds[0];
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'baseline-frequency-card',
+        title: '频域基线知识卡',
+        sourceRef: 'frequency-response:baseline-card',
+        renderTarget: '/knowledge/cards/frequency-response-baseline',
+        knowledgeNodeIds: ['legacy-frequency-response-baseline'],
+        planningOverride: {
+          abilityImpact: {
+            frequencyResponseInterpretation: 0.3,
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['legacy-frequency-response-baseline'],
+      },
+      learnerState: null,
+      registry,
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph,
+        resourceCoverage: {
+          [graphTargetId]: {
+            domain: 'knowledge',
+            nodeId: graphTargetId,
+            linkedResourceCount: 1,
+            pathEligibleResourceCount: 1,
+            ragIndexedCount: 1,
+            citationReadyCount: 1,
+            verifiedCitationCount: 1,
+            assessmentResourceCount: 0,
+            simulationResourceCount: 0,
+            arenaPreviewResourceCount: 0,
+            arenaOfficialResourceCount: 0,
+            terminalValidationCapableResourceCount: 0,
+            coverageState: 'sufficient',
+            missingCoverageTypes: [],
+            linkedResourceIds: ['knowledge-card:baseline-frequency-card'],
+            pathEligibleResourceIds: ['knowledge-card:baseline-frequency-card'],
+            pathEligibleResourceRouteIds: ['knowledge-card:baseline-frequency-card'],
+            filterKnowledgeRefs: [graphTargetId],
+          },
+        },
+        learningGoalBaseline: {
+          coverageState: 'limited',
+          missingBaselineCategories: ['checkpoint', 'remediation'],
+          reviewedBindingCount: 4,
+          limitationReason: 'missing-baseline-categories:checkpoint,remediation',
+          sourceWindow: { from: null, to: '2026-06-24T00:00:00.000Z' },
+        },
+      },
+    }));
+
+    expect(plan.graphContext?.limitations).toContainEqual(expect.objectContaining({
+      code: 'learning-goal-baseline-incomplete',
+      severity: 'blocking',
+    }));
+    expect(plan.explanations.fallbackReasons).toContain('learning-goal-baseline-incomplete');
+    expect(plan.mainPath).toEqual([]);
+  });
+
   it('keeps graph partial fallback to a minimal starter when full target coverage is unavailable', () => {
     const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
     const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);

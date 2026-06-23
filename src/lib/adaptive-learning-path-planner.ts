@@ -146,6 +146,13 @@ export interface AdaptiveLearningPathGraphContextInput {
   resourceCoverage?: Record<string, GraphCenterResourceCoverage>;
   learnerOverlay?: GraphCenterLearnerOverlay | null;
   classOverlay?: GraphCenterClassOverlay | null;
+  learningGoalBaseline?: {
+    coverageState: 'complete' | 'limited';
+    missingBaselineCategories: string[];
+    reviewedBindingCount: number;
+    limitationReason: string | null;
+    sourceWindow: { from: string | null; to: string | null };
+  } | null;
   versionRefs?: Partial<KaqArtifactVersionRefs>;
 }
 
@@ -176,6 +183,7 @@ export interface AdaptiveLearningPathGraphContextSummary {
     'coverageState' | 'pathEligibleResourceCount' | 'linkedResourceCount'
   >>;
   resourceCoveragePathEligibleResourceIds: Record<string, string[]>;
+  learningGoalBaseline?: NonNullable<AdaptiveLearningPathGraphContextInput['learningGoalBaseline']>;
   versionRefs: KaqArtifactVersionRefs;
   limitations: AdaptiveLearningPathGraphLimitation[];
 }
@@ -2223,6 +2231,7 @@ function buildAdaptiveLearningPathGraphContext(
     },
     resourceCoverageStatus,
     resourceCoveragePathEligibleResourceIds,
+    ...(input.learningGoalBaseline ? { learningGoalBaseline: input.learningGoalBaseline } : {}),
     versionRefs,
     limitations: buildGraphContextLimitations(input),
   };
@@ -2251,6 +2260,13 @@ function buildGraphContextLimitations(
       });
     }
   }
+  if (input.learningGoalBaseline?.coverageState === 'limited') {
+    limitations.push({
+      code: 'learning-goal-baseline-incomplete',
+      severity: 'blocking',
+      message: `LearningGoal baseline is incomplete: ${input.learningGoalBaseline.missingBaselineCategories.join(', ') || input.learningGoalBaseline.limitationReason || 'missing reviewed baseline coverage'}.`,
+    });
+  }
   limitations.push(...overlayLimitations('learner', input.learnerOverlay));
   limitations.push(...overlayLimitations('class', input.classOverlay));
   return limitations;
@@ -2276,7 +2292,7 @@ function overlayLimitations(
       message: `${kind} overlay is unavailable; planner must treat overlay guidance as a limitation.`,
     }];
   }
-  const limitations = overlay.limitations.map((limitation) => ({
+  const limitations: AdaptiveLearningPathGraphLimitation[] = overlay.limitations.map((limitation) => ({
     code: limitation.code,
     severity: 'warning' as const,
     nodeId: limitation.nodeId,
@@ -3469,6 +3485,9 @@ function buildFallbackReasons(input: {
   ) {
     reasons.push('feasible-goal-path-missing');
   }
+  if (input.graphContext?.limitations.some((item) => item.code === 'learning-goal-baseline-incomplete')) {
+    reasons.push('learning-goal-baseline-incomplete');
+  }
   if (input.attemptedCandidates > 0 && input.mainPathNodes.length === 0) {
     reasons.push('time-budget-insufficient');
   }
@@ -3501,6 +3520,7 @@ function isPathBlockingFallbackReason(reason: string): boolean {
     'terminal-validation-not-final',
     'locked-node-without-fallback',
     'hard-prerequisite-missing',
+    'learning-goal-baseline-incomplete',
   ].includes(reason);
 }
 

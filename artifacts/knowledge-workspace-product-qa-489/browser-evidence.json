@@ -43,9 +43,9 @@
     "src/components/platform/app-shell.tsx": "40059baa242f29147dafb3f80fcc1115b587e69b9e2f473e18f47dfec5ceccb0",
     "src/components/shared/page-floating-controls.tsx": "0e96814a2eb0637dfbc9200283d5100014ae95ad5258f3b6187ed8420e158707",
     "src/app/globals.css": "6c9afafe3a80ade03918e3fe67162a405a2fe5edf8ff6df17f0b7c74b3a5dfb6",
-    "src/lib/konling-agent-runtime.ts": "99a16e39a74f419c8a28d102b3c05a7e1c242ae764a002601031276b353e1757",
+    "src/lib/konling-agent-runtime.ts": "667fb25c519de08ae8b89bf10ad60781995fed0fdd8d77933bb184bf164fda45",
     "scripts/tests/capture-knowledge-workspace-product-qa.ts": "d229f1021594d5096cf45c42829ac8f8e06c10fcdc386d860f7d3f2e4694cb34",
-    "scripts/tests/test-commercial-ui-governance.ts": "0eca74d510a837af16d0d96be4e14f2c9dd97813b75696296e950ffc65174599"
+    "scripts/tests/test-commercial-ui-governance.ts": "4ead6c8169d1c7fa36aab85021fed079be2b3a9fff928902658fca8ded18f136"
   },
   "stateMatrix": [
     {
@@ -3178,9 +3178,9 @@
       "src/components/platform/app-shell.tsx": "40059baa242f29147dafb3f80fcc1115b587e69b9e2f473e18f47dfec5ceccb0",
       "src/components/shared/page-floating-controls.tsx": "0e96814a2eb0637dfbc9200283d5100014ae95ad5258f3b6187ed8420e158707",
       "src/app/globals.css": "6c9afafe3a80ade03918e3fe67162a405a2fe5edf8ff6df17f0b7c74b3a5dfb6",
-      "src/lib/konling-agent-runtime.ts": "99a16e39a74f419c8a28d102b3c05a7e1c242ae764a002601031276b353e1757",
+      "src/lib/konling-agent-runtime.ts": "667fb25c519de08ae8b89bf10ad60781995fed0fdd8d77933bb184bf164fda45",
       "scripts/tests/capture-knowledge-workspace-product-qa.ts": "d229f1021594d5096cf45c42829ac8f8e06c10fcdc386d860f7d3f2e4694cb34",
-      "scripts/tests/test-commercial-ui-governance.ts": "0eca74d510a837af16d0d96be4e14f2c9dd97813b75696296e950ffc65174599"
+      "scripts/tests/test-commercial-ui-governance.ts": "4ead6c8169d1c7fa36aab85021fed079be2b3a9fff928902658fca8ded18f136"
     }
   },
   "temporaryExceptions": []

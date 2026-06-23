@@ -165,7 +165,7 @@ export function getFeedbackTaskMissionTarget(context: StudentFeedbackTaskContext
   };
 }
 
-function resolveAssignmentTitle(assignmentId: string, source: string | undefined): string {
+function resolveAssignmentTitle(assignmentId: string, source: string | null | undefined): string {
   if (assignmentId === REPORT_CONTROL_DESIGN.assignmentId) return REPORT_CONTROL_DESIGN.assignmentTitle;
   if (source === 'document-feedback') return '报告评分反馈';
   return REPORT_CONTROL_DESIGN.assignmentTitle;

@@ -2009,6 +2009,12 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const documentScroll = objectRecord(markers.documentScroll);
     const dockRect = objectRecord(markerRects.dock);
     const canvasRect = objectRecord(markerRects.canvas);
+    const inspectorRect = objectRecord(markerRects.inspector);
+    const inspectorTop = numberFromEvidence(inspectorRect.top);
+    const documentScrollWidth = numberFromEvidence(documentScroll.scrollWidth);
+    const documentScrollViewportWidth = numberFromEvidence(documentScroll.viewportWidth);
+    const documentScrollHeight = numberFromEvidence(documentScroll.scrollHeight);
+    const documentScrollViewportHeight = numberFromEvidence(documentScroll.viewportHeight);
     const baselineState = stateByName.get(desktopGeometryBaselineName(name, navigationState));
     const baselineRects = objectRecord(objectRecord(baselineState?.markers).rects);
     const baselineDockRect = objectRecord(baselineRects.dock);
@@ -2050,10 +2056,14 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       typeof numberFromEvidence(canvasRect.width) === 'number' && typeof numberFromEvidence(canvasRect.height) === 'number'
         ? null
         : `${name}:canvas-rect-missing`,
-      numberFromEvidence(documentScroll.scrollWidth) <= numberFromEvidence(documentScroll.viewportWidth)
+      typeof documentScrollWidth === 'number' &&
+      typeof documentScrollViewportWidth === 'number' &&
+      documentScrollWidth <= documentScrollViewportWidth
         ? null
         : `${name}:page-horizontal-scroll`,
-      numberFromEvidence(documentScroll.scrollHeight) <= numberFromEvidence(documentScroll.viewportHeight)
+      typeof documentScrollHeight === 'number' &&
+      typeof documentScrollViewportHeight === 'number' &&
+      documentScrollHeight <= documentScrollViewportHeight
         ? null
         : `${name}:page-vertical-scroll`,
       name.startsWith('desktop') && dockState === 'collapsed' && markers.dockInspectorAvoidance !== 'active'
@@ -2130,18 +2140,18 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
           )
         : null,
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
-        ? (markerRects.inspector ? null : `${name}:inspector-rect-missing`)
+        ? (Object.keys(inspectorRect).length > 0 ? null : `${name}:inspector-rect-missing`)
         : null,
-      name.startsWith('desktop') && markerRects.inspector
+      name.startsWith('desktop') && Object.keys(inspectorRect).length > 0
         ? (
-            numberFromEvidence(markerRects.inspector.top) >= 88
+            typeof inspectorTop === 'number' && inspectorTop >= 88
               ? null
               : `${name}:inspector-overlaps-app-shell-header`
           )
         : null,
-      name.startsWith('tablet-') && markerRects.inspector
+      name.startsWith('tablet-') && Object.keys(inspectorRect).length > 0
         ? (
-            numberFromEvidence(markerRects.inspector.top) >= 314
+            typeof inspectorTop === 'number' && inspectorTop >= 314
               ? null
               : `${name}:inspector-overlaps-tablet-mobile-navigation`
           )

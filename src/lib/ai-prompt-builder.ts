@@ -65,7 +65,7 @@ interface KonlingPromptRuntimeContext {
     } | null;
     citationRefs?: string[];
     evidenceRefs?: string[];
-    versionRefs?: Record<string, string | null | undefined> | null;
+    versionRefs?: object | null;
     confidence?: string;
     missingGrounding?: Array<{
       class?: string;

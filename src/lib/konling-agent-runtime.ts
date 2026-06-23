@@ -49,6 +49,7 @@ import {
   resolveKonlingGraphContextLearningGoalId,
   type KonlingKaqGraphContext,
 } from '@/lib/konling-kaq-graph-context';
+import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-resource-baseline-runtime';
 import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-center';
 import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
@@ -1891,30 +1892,35 @@ async function buildAdaptivePathToolOutput(
     requestedAt: args.requestedAt,
     now: new Date(),
   });
-  await persistLearningPathRound(input.db as any, {
-    plan,
-    classId: input.scope.classId ?? null,
-    learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
-    inputSnapshot: {
-      source: 'konling-tool',
-      operation,
-      toolScope: buildAdaptivePathToolScope(input, goalId, args.pathId),
-      request: redactSensitivePayload({
-        requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
-        effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
-        difficultyRhythm: args.difficultyRhythm ?? null,
-        resourcePreference: resourcePreferences,
-        checkpointPreference: args.checkpointPreference ?? null,
-        allowExternalResources: args.allowExternalResources ?? false,
-        graphNodeId: args.graphNodeId ?? null,
-        intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
-        excludedNodeIds: args.excludedNodeIds ?? [],
-        preferredStyleId: args.preferredStyleId ?? null,
-        requestedAt: args.requestedAt ?? null,
-      }),
-    },
+  const toolScope = buildAdaptivePathToolScope(input, goalId, args.pathId);
+  const requestSnapshot = redactSensitivePayload({
+    requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
+    effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
+    difficultyRhythm: args.difficultyRhythm ?? null,
+    resourcePreference: resourcePreferences,
+    checkpointPreference: args.checkpointPreference ?? null,
+    allowExternalResources: args.allowExternalResources ?? false,
+    graphNodeId: args.graphNodeId ?? null,
+    intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+    excludedNodeIds: args.excludedNodeIds ?? [],
+    preferredStyleId: args.preferredStyleId ?? null,
+    requestedAt: args.requestedAt ?? null,
   });
-  if (operation === 'revised') {
+  const hasPersistablePath = plan.mainPath.length > 0;
+  if (hasPersistablePath) {
+    await persistLearningPathRound(input.db as any, {
+      plan,
+      classId: input.scope.classId ?? null,
+      learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
+      inputSnapshot: {
+        source: 'konling-tool',
+        operation,
+        toolScope,
+        request: requestSnapshot,
+      },
+    });
+  }
+  if (operation === 'revised' && hasPersistablePath) {
     await recordPathChoiceEvidence(input.db as any, {
       pathId: args.pathId ?? input.context.planContext?.currentPathId ?? plan.id,
       userId: input.scope.targetUserId,
@@ -1938,9 +1944,11 @@ async function buildAdaptivePathToolOutput(
       actorRole: input.scope.role,
     });
   }
+  const pathOptions = hasPersistablePath ? buildStudentSafePathOptions(plan) : [];
   return {
     operation,
-    scope: buildAdaptivePathToolScope(input, goalId, args.pathId),
+    scope: toolScope,
+    generationStatus: hasPersistablePath ? 'persisted' : 'blocked',
     request: {
       requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
       effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
@@ -1955,12 +1963,15 @@ async function buildAdaptivePathToolOutput(
       preferredStyleId: args.preferredStyleId ?? null,
       requestedAt: args.requestedAt ?? null,
     },
-    pathId: plan.id,
-    pathOptions: buildStudentSafePathOptions(plan),
+    pathId: hasPersistablePath ? plan.id : null,
+    pathOptions,
     comparison: {
-      optionCount: Math.max(1, plan.alternatives.length + 1),
-      message: '已根据你的学习证据生成可比较的路径方案。',
+      optionCount: pathOptions.length,
+      message: hasPersistablePath
+        ? '已根据你的学习证据生成可比较的路径方案。'
+        : '当前目标缺少已审核的基线资源，暂不能生成可执行学习路径。',
     },
+    limitations: plan.explanations.fallbackReasons,
     studentSafeRationale: [
       '路径会依据你的当前目标、学习证据和可用时间生成。',
       '证据不足时会先给出可开始的基础路径，并提示需要补充的学习记录。',
@@ -1989,6 +2000,7 @@ function buildAdaptivePathPlannerGraphContext(
     resourceCoverage: graphContext.resourceCoverage,
     learnerOverlay: graphContext.learnerOverlay,
     classOverlay: graphContext.classOverlay,
+    learningGoalBaseline: getLearningGoalResourceBaselineForPlanner(graphContext.learningGoal.id),
     versionRefs: graphContext.versionRefs ?? undefined,
   };
 }
