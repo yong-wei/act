@@ -38,6 +38,11 @@ The system SHALL distinguish exploratory or preview evidence from governed termi
 - **THEN** it MAY contribute low-confidence context according to policy
 - **AND** it SHALL NOT satisfy official terminal validation or high-confidence mastery by itself.
 
+#### Scenario: Arena preview uses SimulationRun source refs
+- **WHEN** Arena preview evidence is materialized from its canonical SimulationRun envelope
+- **THEN** the writeback SHALL accept the SimulationRun source ref for preview context overlay materialization
+- **AND** it SHALL continue to reject terminal validation for the preview-only contribution.
+
 #### Scenario: Official validation is materialized
 - **WHEN** official Arena evaluation, governed simulation validation, teacher-approved grading, or a policy-approved checkpoint is materialized
 - **THEN** it MAY update terminal validation or capability state only if required source, LearningGoal evidence policy, scope, confidence, and version refs pass validation.
@@ -88,6 +93,10 @@ Production writeback SHALL emit an audit trail suitable for replay and diagnosis
 #### Scenario: Version refs are blank
 - **WHEN** a writeback supplies required version refs, including the artifact versioning schema ref, as blank strings
 - **THEN** the writeback SHALL treat those refs as missing before validation and audit materialization.
+
+#### Scenario: Artifact versioning schema ref is stale
+- **WHEN** a writeback supplies a non-current artifact versioning schema ref
+- **THEN** the writeback SHALL surface a stale version limitation before terminal validation.
 
 #### Scenario: Writeback refs are missing
 - **WHEN** a production writeback lacks a replayable writeback id

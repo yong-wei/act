@@ -53,15 +53,19 @@ describe('K/A/Q artifact versioning', () => {
   });
 
   it('marks stale artifact refs as limitations without rewriting history', () => {
-    const staleRefs = buildKaqArtifactVersionRefs({
-      learningGoalPackageVersion: 'learning-goal-package/v0',
-      graphCatalogVersion: 'autocontrol-kaq-graph.v0',
-      resourceProjectionVersion: 'resource-semantic-projection.v0',
-      overlayVersion: 'graph-center-overlay.v0',
-      groundingVersion: 'konling-graph-grounding.v0',
-    });
+    const staleRefs = {
+      ...buildKaqArtifactVersionRefs({
+        learningGoalPackageVersion: 'learning-goal-package/v0',
+        graphCatalogVersion: 'autocontrol-kaq-graph.v0',
+        resourceProjectionVersion: 'resource-semantic-projection.v0',
+        overlayVersion: 'graph-center-overlay.v0',
+        groundingVersion: 'konling-graph-grounding.v0',
+      }),
+      artifactVersioningVersion: 'kaq-artifact-versioning.v0',
+    } as unknown as ReturnType<typeof buildKaqArtifactVersionRefs>;
 
     expect(detectKaqArtifactStaleness(staleRefs)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'stale-version-ref', ref: 'artifactVersioningVersion' }),
       expect.objectContaining({ code: 'stale-version-ref', ref: 'learningGoalPackageVersion' }),
       expect.objectContaining({ code: 'stale-version-ref', ref: 'graphCatalogVersion' }),
       expect.objectContaining({ code: 'stale-version-ref', ref: 'resourceProjectionVersion' }),

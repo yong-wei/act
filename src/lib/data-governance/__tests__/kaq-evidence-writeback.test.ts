@@ -175,6 +175,50 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(result.overlayUpdates[0].confidence).toBeLessThanOrEqual(0.4);
   });
 
+  it('materializes Arena preview evidence through the SimulationRun envelope', () => {
+    const result = materializeKaqEvidenceWriteback({
+      id: 'writeback-arena-preview-run-1',
+      source: {
+        sourceClass: 'arena-preview',
+        sourceId: 'simulation-run-arena-preview-1',
+        sourceRef: { kind: 'SimulationRun', id: 'simulation-run-arena-preview-1' },
+        official: false,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'arena-preview' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:31:40.000Z',
+      evidenceWindow: {
+        from: '2026-06-23T03:30:00.000Z',
+        to: '2026-06-23T03:31:40.000Z',
+      },
+      versionRefs,
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
+          graphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+          learningGoalId: 'control-correction',
+          confidence: 0.88,
+          terminalValidationCandidate: true,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('degraded');
+    expect(result.overlayUpdates).toHaveLength(1);
+    expect(result.overlayUpdates[0]).toMatchObject({
+      sourceClass: 'arena-preview',
+      sourceRef: { kind: 'SimulationRun', id: 'simulation-run-arena-preview-1' },
+      authorityLevel: 'preview',
+      terminalValidationAccepted: false,
+      limitationCodes: ['preview-not-terminal-validation'],
+    });
+    expect(result.audit.limitationCodes).not.toContain('source-ref-class-mismatch');
+  });
+
   it('does not accept path execution completion as terminal validation by itself', () => {
     const pathInput = buildPathExecutionWritebackInput({
       id: 'path-terminal-candidate-1',
@@ -471,6 +515,47 @@ describe('K/A/Q evidence writeback governance', () => {
       limitationCodes: ['stale-version-ref:graphCatalogVersion'],
     });
     expect(result.audit.limitationCodes).toContain('stale-version-ref:graphCatalogVersion');
+  });
+
+  it('degrades official writeback when the artifact versioning ref is stale', () => {
+    const input = {
+      id: 'writeback-arena-stale-artifact-versioning-1',
+      source: {
+        sourceClass: 'arena-official',
+        sourceId: 'arena-submission-stale-artifact-versioning-1',
+        sourceRef: { kind: 'ArenaSubmission', id: 'arena-submission-stale-artifact-versioning-1' },
+        official: true,
+        teacherApproved: false,
+        aiGenerated: false,
+      },
+      subject,
+      actor: { type: 'service', id: 'arena-evaluator' },
+      privacyScope: 'service',
+      materializedAt: '2026-06-23T03:32:45.000Z',
+      evidenceWindow: { from: null, to: '2026-06-23T03:32:45.000Z' },
+      versionRefs: {
+        ...versionRefs,
+        artifactVersioningVersion: 'kaq-artifact-versioning.v0',
+      },
+      contributions: [
+        {
+          domain: 'capability',
+          objectiveId: 'capability:autocontrol:transfer-to-ship-ocean-mission',
+          graphNodeId: 'cap:autocontrol:transfer-to-ship-ocean-mission',
+          learningGoalId: 'control-correction',
+          confidence: 0.88,
+          terminalValidationCandidate: true,
+        },
+      ],
+    } as unknown as Parameters<typeof materializeKaqEvidenceWriteback>[0];
+    const result = materializeKaqEvidenceWriteback(input);
+
+    expect(result.status).toBe('degraded');
+    expect(result.overlayUpdates[0]).toMatchObject({
+      terminalValidationAccepted: false,
+      limitationCodes: ['stale-version-ref:artifactVersioningVersion'],
+    });
+    expect(result.audit.limitationCodes).toContain('stale-version-ref:artifactVersioningVersion');
   });
 
   it('projects privacy-safe views for student, teacher, admin, and service consumers', () => {

@@ -206,7 +206,7 @@ const SOURCE_REF_KINDS: Record<KaqEvidenceSourceClass, string> = {
   'path-execution': 'LearningPathExecution',
   'simulation-preview': 'SimulationRun',
   'simulation-validation': 'SimulationRun',
-  'arena-preview': 'ArenaSubmission',
+  'arena-preview': 'SimulationRun',
   'arena-official': 'ArenaSubmission',
   'konling-intervention': 'AgentToolRun',
   'teacher-approved-grading': 'DocumentRubricGrading',
