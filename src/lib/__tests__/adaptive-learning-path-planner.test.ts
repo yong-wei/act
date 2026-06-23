@@ -14,6 +14,7 @@ import {
   validateLearningGoalCatalog,
   type AdaptiveLearningPathPlannerInput,
 } from '../adaptive-learning-path-planner';
+import { deterministicPathConstraintRepairAdapter } from '../adaptive-planning/path-constraint-repair';
 import { rankResourceLearnerCandidates } from '../adaptive-planning/resource-ranker';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import {
@@ -3564,6 +3565,49 @@ describe('adaptive learning path planner', () => {
         expect.objectContaining({ code: 'checkpoint-resource-missing' }),
       ]),
     });
+  });
+
+  it('blocks repaired paths that still violate hard prerequisite order', () => {
+    const originalRepair = deterministicPathConstraintRepairAdapter.repair;
+    deterministicPathConstraintRepairAdapter.repair = (repairInput) => {
+      const repairedNodeId = repairInput.candidates.find((candidate) => candidate.nodeId === 'registry:bode-card')?.nodeId
+        ?? repairInput.candidates[0]?.nodeId
+        ?? 'registry:bode-card';
+      return {
+        status: 'infeasible',
+        draftNodeIds: repairInput.draftNodeIds,
+        repairedNodeIds: [repairedNodeId],
+        insertedNodeIds: [],
+        removedNodeIds: [],
+        checkpointNodeIds: [],
+        terminalValidationNodeIds: [],
+        repairedConstraints: [],
+        tradeoffs: [],
+        limitations: [],
+        infeasibleReasons: [{
+          code: 'hard-prerequisite-missing',
+          nodeIds: [repairedNodeId, 'simulation:cruise'],
+          message: `Node ${repairedNodeId} requires prerequisite simulation:cruise before it in the repaired path.`,
+        }],
+        versionRefs: Object.fromEntries(
+          Object.entries(repairInput.versionRefs).map(([key, value]) => [key, value ?? null])
+        ),
+      };
+    };
+
+    try {
+      const plan = buildAdaptiveLearningPathPlan(plannerInput());
+
+      expect(plan.status).toBe('fallback');
+      expect(plan.mainPath).toEqual([]);
+      expect(plan.explanations.fallbackReasons).toContain('hard-prerequisite-missing');
+      expect(plan.constraintRepair?.repairedNodeIds.length).toBeGreaterThan(0);
+      expect(plan.constraintRepair?.infeasibleReasons).toContainEqual(expect.objectContaining({
+        code: 'hard-prerequisite-missing',
+      }));
+    } finally {
+      deterministicPathConstraintRepairAdapter.repair = originalRepair;
+    }
   });
 
   it('does not publish a ready path when time budget cannot include locked fallback support', () => {
