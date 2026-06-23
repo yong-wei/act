@@ -18,6 +18,12 @@ import {
   type ResourceLearnerRankerExplanation,
 } from './adaptive-planning/resource-ranker';
 import {
+  PATH_CONSTRAINT_REPAIR_VERSION,
+  deterministicPathConstraintRepairAdapter,
+  type PathConstraintRepairCandidate,
+  type PathConstraintRepairResult,
+} from './adaptive-planning/path-constraint-repair';
+import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
   type PlanningUnit,
@@ -623,6 +629,7 @@ export interface AdaptiveLearningPathPlan {
   feedbackEvents: AdaptiveLearningPathFeedbackEvent[];
   visualization: AdaptiveLearningPathVisualization;
   graphContext?: AdaptiveLearningPathGraphContextSummary;
+  constraintRepair?: PathConstraintRepairResult;
 }
 
 export interface AdaptiveLearningPathPersistenceRecord {
@@ -652,6 +659,7 @@ export interface AdaptiveLearningPathPersistenceRecord {
     feedbackEvents: AdaptiveLearningPathFeedbackEvent[];
     visualization: AdaptiveLearningPathVisualization;
     graphContext?: AdaptiveLearningPathGraphContextPersistenceSummary;
+    constraintRepair?: PathConstraintRepairResult;
     artifactVersioning: KaqVersionedArtifactMetadata;
     studentFacing: {
       summary: string;
@@ -1758,11 +1766,55 @@ function buildAdaptiveLearningPathPlanInternal(
     eligibleIds,
     requestedCompletedNodeIds,
   );
+  const repairEntries = expandRepairCandidateEntries(
+    uniqueScoredEntries([...mainPathNodes, ...scored]),
+    input.registry,
+    eligibleIds,
+    requestedCompletedNodeIds,
+    input.constraints,
+    input.learnerState,
+  );
+  const checkpointResourceTypes = new Set<ResourceNode['type']>(
+    registeredGoal?.checkpointPolicy.checkpointResourceTypes ?? []
+  );
+  const forcedCheckpointNodeIds = new Set(
+    selectRepairCheckpointNodeIds(mainPathNodes, registeredGoal)
+  );
+  const repairCandidates = repairEntries.map((entry) =>
+    toRepairCandidate(
+      entry,
+      requestedCompletedNodeIds,
+      input.constraints,
+      input.learnerState,
+      checkpointResourceTypes,
+      forcedCheckpointNodeIds,
+    )
+  );
+  const constraintRepair = deterministicPathConstraintRepairAdapter.repair({
+    draftNodeIds: mainPathNodes.map((entry) => entry.node.id),
+    candidates: repairCandidates,
+    constraints: {
+      timeBudgetMinutes: input.constraints.timeBudgetMinutes,
+      requiredCheckpointCount: registeredGoal?.checkpointPolicy.minCheckpoints ?? 0,
+      terminalValidationRequired: requiresTerminalValidation(input.goal),
+    },
+    versionRefs: {
+      ...graphContext?.versionRefs,
+      plannerVersion: 'adaptive-learning-path-planner.v1',
+      repairVersion: PATH_CONSTRAINT_REPAIR_VERSION,
+    },
+  });
+  const scoredByNodeId = new Map(repairEntries.map((entry) => [entry.node.id, entry]));
+  const repairedMainPathNodes = constraintRepair.status === 'infeasible'
+    ? mainPathNodes
+    : constraintRepair.repairedNodeIds
+      .map((nodeId) => scoredByNodeId.get(nodeId))
+      .filter((entry): entry is ScoredNode => Boolean(entry));
   const fallbackReasons = buildFallbackReasons({
     learnerState: input.learnerState,
     deficits,
     eligible,
-    mainPathNodes,
+    mainPathNodes: repairedMainPathNodes,
     constraints: input.constraints,
     goal: input.goal,
     graphContext,
@@ -1770,13 +1822,15 @@ function buildAdaptiveLearningPathPlanInternal(
     attemptedCandidates: scored.length,
     policyFamily,
   });
-  const status: AdaptiveLearningPathStatus = fallbackReasons.length > 0 ? 'fallback' : 'ready';
-  const hasPartialGraphStarter = mainPathNodes.length > 0 && fallbackReasons.includes('graph-target-coverage-partial');
-  const hasBlockingFallback = fallbackReasons.some((reason) =>
+  fallbackReasons.push(...constraintRepair.infeasibleReasons.map((reason) => reason.code));
+  const uniqueFallbackReasons = unique(fallbackReasons);
+  const status: AdaptiveLearningPathStatus = uniqueFallbackReasons.length > 0 ? 'fallback' : 'ready';
+  const hasPartialGraphStarter = repairedMainPathNodes.length > 0 && uniqueFallbackReasons.includes('graph-target-coverage-partial');
+  const hasBlockingFallback = uniqueFallbackReasons.some((reason) =>
     isPathBlockingFallbackReason(reason) &&
     !(hasPartialGraphStarter && reason === 'terminal-validation-resource-missing')
   );
-  const plannedEntries = hasBlockingFallback ? [] : mainPathNodes;
+  const plannedEntries = hasBlockingFallback ? [] : repairedMainPathNodes;
   const mainPathNodeIds = new Set(plannedEntries.map((entry) => entry.node.id));
   const completedNodeIds = requestedCompletedNodeIds.filter((nodeId) => mainPathNodeIds.has(nodeId));
   const planningCompletedNodeIds = requestedCompletedNodeIds.filter((nodeId) => eligibleIds.has(nodeId));
@@ -1805,7 +1859,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const explanations: AdaptiveLearningPathExplanation = {
     selectedReasons: mainPath.flatMap((node) => node.reasonCodes),
     rejectedAlternatives: alternatives.filter((item) => item.blocked || !mainPath.some((node) => node.nodeId === item.nodeId)),
-    fallbackReasons,
+    fallbackReasons: uniqueFallbackReasons,
   };
   const policyBundleRequest = resolvePolicyBundleRequest(input, confidence, registeredGoal);
   const capabilityTargets = resolveCapabilityTargets(input.goal, registeredGoal);
@@ -1855,6 +1909,7 @@ function buildAdaptiveLearningPathPlanInternal(
       generatedAt: now,
     }),
     graphContext,
+    constraintRepair,
   };
 }
 
@@ -1985,6 +2040,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
       feedbackEvents: plan.feedbackEvents,
       visualization: plan.visualization,
       graphContext,
+      constraintRepair: plan.constraintRepair,
       artifactVersioning: buildKaqVersionedArtifactMetadata({
         artifactId: plan.id,
         artifactKind: 'path-artifact',
@@ -2781,6 +2837,44 @@ function uniqueScoredEntries(entries: ScoredNode[]): ScoredNode[] {
   return Array.from(result.values());
 }
 
+function expandRepairCandidateEntries(
+  seedEntries: ScoredNode[],
+  registry: ResourceNodeRegistry,
+  eligibleIds: Set<string>,
+  completedNodeIds: string[],
+  constraints: AdaptiveLearningPathConstraints,
+  learnerState: AdaptiveLearningPathLearnerState | null,
+): ScoredNode[] {
+  const nodesById = new Map(registry.nodes.filter((node) => eligibleIds.has(node.id)).map((node) => [node.id, node]));
+  const entriesById = new Map(seedEntries.map((entry) => [entry.node.id, entry]));
+  const queue = [...seedEntries];
+
+  while (queue.length > 0) {
+    const entry = queue.shift()!;
+    const planningUnit = planningUnitForNode(entry.node);
+    const readiness = evaluateNodeReadiness(entry.node, learnerState, constraints, completedNodeIds);
+    const relatedNodeIds = unique([
+      ...(planningUnit?.prerequisites ?? []),
+      ...readiness.fallbackNodeIds,
+    ]);
+
+    for (const nodeId of relatedNodeIds) {
+      if (entriesById.has(nodeId)) continue;
+      const node = nodesById.get(nodeId);
+      if (!node) continue;
+      const repairEntry: ScoredNode = {
+        node,
+        score: 0,
+        reasonCodes: ['repair-support-candidate'],
+      };
+      entriesById.set(nodeId, repairEntry);
+      queue.push(repairEntry);
+    }
+  }
+
+  return Array.from(entriesById.values());
+}
+
 function nodeCoversGoalTarget(
   node: ResourceNode,
   goal: AdaptiveLearningPathGoal,
@@ -3055,6 +3149,57 @@ function toPlanNode(
     status: isCompleted ? 'completed' : locked ? 'locked' : entry.node.id === currentNodeId ? 'current' : 'next',
     readiness,
   };
+}
+
+function toRepairCandidate(
+  entry: ScoredNode,
+  completedNodeIds: string[],
+  constraints: AdaptiveLearningPathConstraints,
+  learnerState: AdaptiveLearningPathLearnerState | null,
+  checkpointResourceTypes: Set<ResourceNode['type']>,
+  forcedCheckpointNodeIds: Set<string>,
+): PathConstraintRepairCandidate {
+  const planningUnit = requirePlanningUnit(entry.node);
+  const readiness = evaluateNodeReadiness(entry.node, learnerState, constraints, completedNodeIds);
+  const officialTerminalValidation = isTerminalValidationNode(entry.node);
+  const previewTerminalValidation = !officialTerminalValidation &&
+    entry.node.planningMetadata.terminalConstraints.includes('terminal-validation');
+  const completed = completedNodeIds.includes(entry.node.id);
+  const checkpointRole = entry.node.checkpoint ||
+    entry.node.type === 'checkpoint' ||
+    checkpointResourceTypes.has(entry.node.type) ||
+    forcedCheckpointNodeIds.has(entry.node.id)
+    ? entry.node.checkpoint?.assessmentPurpose ?? 'formative'
+    : undefined;
+  return {
+    nodeId: entry.node.id,
+    estimatedTimeMinutes: completed ? 0 : planningUnit.estimatedTimeMinutes,
+    prerequisiteNodeIds: planningUnit.prerequisites,
+    checkpointRole,
+    terminalValidation: officialTerminalValidation
+      ? 'official'
+      : previewTerminalValidation ? 'preview' : undefined,
+    locked: !completed && readiness.state !== 'ready',
+    fallbackNodeIds: readiness.fallbackNodeIds,
+    removable: !officialTerminalValidation && !checkpointRole,
+    serialOnly: planningUnit.effort === 'high' || entry.node.planningMetadata.cognitiveLoad === 'high',
+  };
+}
+
+function selectRepairCheckpointNodeIds(
+  entries: ScoredNode[],
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+): string[] {
+  if (entries.length === 0) return [];
+  const policy = registeredGoal?.checkpointPolicy;
+  const preferred = policy
+    ? entries
+        .filter((entry) => policy.checkpointResourceTypes.includes(entry.node.type))
+        .map((entry) => entry.node.id)
+    : [];
+  const minimum = Math.max(0, policy?.minCheckpoints ?? 0);
+  if (preferred.length >= minimum) return preferred.slice(0, minimum);
+  return preferred;
 }
 
 function pathNodeEvidenceStatus(node: ResourceNode): AdaptiveLearningPathPlanNode['evidenceStatus'] {

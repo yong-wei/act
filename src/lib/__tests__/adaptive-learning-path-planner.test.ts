@@ -2637,6 +2637,63 @@ describe('adaptive learning path planner', () => {
     expect(mainIds).not.toContain('registry:control-correction-invalid-quiz');
   });
 
+  it('records bounded constraint repair coverage in path artifacts', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry: buildControlCorrectionResourceNodeRegistry({ includeInvalidFixture: true }),
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 4 },
+            engineeringDecision: { score: 0.42, confidence: 0.6, evidenceCount: 3 },
+            crossDomainTransfer: { score: 0.28, confidence: 0.5, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.68,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            ArenaSubmission: 'partial',
+          },
+        },
+      },
+    }));
+    const serialized = serializeLearningPathPlan(plan);
+
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'satisfied',
+      checkpointNodeIds: expect.any(Array),
+      terminalValidationNodeIds: ['arena-task:task-second-order-lead-pid'],
+      versionRefs: expect.objectContaining({
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      }),
+    });
+    expect(plan.constraintRepair?.terminalValidationNodeIds).toEqual([
+      plan.mainPath.at(-1)?.nodeId,
+    ]);
+    expect(serialized.payload.constraintRepair).toEqual(plan.constraintRepair);
+  });
+
   it('generates a control-correction terminal validation path from central registered resources', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: getAllRegisteredResourceMetadata(),
@@ -2916,7 +2973,266 @@ describe('adaptive learning path planner', () => {
       frequencyAliases.includes(target)
     )).toBe(true);
     expect(selectedTextbookSection?.reasonCodes).toContain('ranker:graph-coverage');
+    expect(plan.status).toBe('fallback');
+    expect(plan.explanations.fallbackReasons).toContain('checkpoint-resource-missing');
+  });
+
+  it('uses registered checkpoint resource types in constraint repair artifacts', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'policy-checkpoint-card',
+        title: '策略允许的检查知识卡',
+        sourceRef: 'frequency-response:policy-checkpoint-card',
+        renderTarget: '/knowledge/cards/policy-checkpoint-card',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          estimatedTimeMinutes: 8,
+          evidenceInstrumentation: ['knowledge_card_viewed'],
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      policyFamily: 'foundation-remediation',
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-bode': { posteriorMastery: 0.18, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.65,
+            evidenceCount: 3,
+            sourceCompleteness: 0.65,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
     expect(plan.status).toBe('ready');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:policy-checkpoint-card']);
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'satisfied',
+      checkpointNodeIds: ['knowledge-card:policy-checkpoint-card'],
+      infeasibleReasons: [],
+    });
+  });
+
+  it('does not force ordinary tail nodes to satisfy checkpoint policy', () => {
+    const registry = buildResourceNodeRegistry({
+      textbooks: [{
+        bookId: 'dorf-modern-control-systems',
+        title: 'Modern Control Systems',
+      }],
+      textbookSections: [textbookRuntimeFixtureSections()[0]],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      policyFamily: 'foundation-remediation',
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-bode': { posteriorMastery: 0.18, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.65,
+            evidenceCount: 3,
+            sourceCompleteness: 0.65,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.mainPath.map((node) => node.type)).toEqual(['textbook_section']);
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'infeasible',
+      checkpointNodeIds: [],
+      infeasibleReasons: expect.arrayContaining([
+        expect.objectContaining({ code: 'checkpoint-resource-missing' }),
+      ]),
+    });
+    expect(plan.explanations.fallbackReasons).toContain('checkpoint-resource-missing');
+  });
+
+  it('includes eligible unscored readiness fallbacks in constraint repair candidates', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'low-risk-prep-card',
+        title: '低风险准备知识卡',
+        sourceRef: 'control-correction:low-risk-prep-card',
+        renderTarget: '/knowledge/cards/low-risk-prep-card',
+        knowledgeNodeIds: ['control-correction:time-domain-targets'],
+        planningOverride: {
+          estimatedTimeMinutes: 8,
+          evidenceInstrumentation: ['knowledge_card_viewed'],
+        },
+      }],
+      simulations: [{
+        id: 'locked-validation-lab',
+        title: '锁定验证实验',
+        launchTarget: '/simulations/locked-validation-lab',
+        knowledgeNodeIds: ['kn-locked-validation'],
+        planningOverride: {
+          estimatedTimeMinutes: 25,
+          cognitiveLoad: 'high',
+          evidenceInstrumentation: ['simulation_run'],
+          terminalConstraints: ['terminal-validation'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.7 },
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: ['knowledge-card:low-risk-prep-card'],
+            unlockMessage: '先完成准备知识卡。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'temporary-locked-lab-goal',
+        title: '锁定实验目标',
+        knowledgeTargets: ['kn-locked-validation'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'kn-locked-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.2, confidence: 0.6, evidenceCount: 1 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.6,
+            evidenceCount: 1,
+            sourceCompleteness: 0.5,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('simulation:locked-validation-lab');
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'repaired',
+      insertedNodeIds: ['knowledge-card:low-risk-prep-card'],
+      repairedConstraints: expect.arrayContaining(['locked-node-fallback']),
+      infeasibleReasons: [],
+    });
+    expect(plan.constraintRepair?.repairedNodeIds).toEqual([
+      'knowledge-card:low-risk-prep-card',
+      'simulation:locked-validation-lab',
+    ]);
+  });
+
+  it('does not publish a ready path when time budget cannot include locked fallback support', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'low-risk-prep-card',
+        title: '低风险准备知识卡',
+        sourceRef: 'control-correction:low-risk-prep-card',
+        renderTarget: '/knowledge/cards/low-risk-prep-card',
+        knowledgeNodeIds: ['control-correction:time-domain-targets'],
+        planningOverride: {
+          estimatedTimeMinutes: 8,
+          evidenceInstrumentation: ['knowledge_card_viewed'],
+        },
+      }],
+      simulations: [{
+        id: 'locked-validation-lab',
+        title: '锁定验证实验',
+        launchTarget: '/simulations/locked-validation-lab',
+        knowledgeNodeIds: ['kn-locked-validation'],
+        planningOverride: {
+          estimatedTimeMinutes: 25,
+          cognitiveLoad: 'high',
+          evidenceInstrumentation: ['simulation_run'],
+          terminalConstraints: ['terminal-validation'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.7 },
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: ['knowledge-card:low-risk-prep-card'],
+            unlockMessage: '先完成准备知识卡。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'temporary-locked-lab-goal',
+        title: '锁定实验目标',
+        knowledgeTargets: ['kn-locked-validation'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-locked-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.2, confidence: 0.6, evidenceCount: 1 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.6,
+            evidenceCount: 1,
+            sourceCompleteness: 0.5,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 25,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.status).toBe('fallback');
+    expect(plan.mainPath).toEqual([]);
+    expect(plan.currentNodeId).toBeNull();
+    expect(plan.explanations.fallbackReasons).toContain('time-budget-insufficient');
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'infeasible',
+      repairedNodeIds: ['knowledge-card:low-risk-prep-card', 'simulation:locked-validation-lab'],
+      removedNodeIds: [],
+      infeasibleReasons: expect.arrayContaining([
+        expect.objectContaining({ code: 'time-budget-insufficient' }),
+      ]),
+    });
   });
 
   it('does not admit unrelated resources by competency when a knowledge target is declared', () => {
