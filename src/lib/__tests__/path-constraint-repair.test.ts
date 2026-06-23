@@ -1342,6 +1342,44 @@ describe('path constraint repair', () => {
     }));
   });
 
+  it('marks non-endpoint official terminal validation as infeasible', () => {
+    const repair = repairPathConstraints({
+      draftNodeIds: ['target', 'terminal'],
+      candidates: [
+        {
+          nodeId: 'target',
+          estimatedTimeMinutes: 8,
+          prerequisiteNodeIds: [],
+          locked: true,
+          fallbackNodeIds: ['terminal'],
+        },
+        {
+          nodeId: 'terminal',
+          estimatedTimeMinutes: 10,
+          prerequisiteNodeIds: [],
+          terminalValidation: 'official',
+        },
+      ],
+      constraints: {
+        timeBudgetMinutes: 30,
+        requiredCheckpointCount: 0,
+        terminalValidationRequired: true,
+      },
+      versionRefs: {
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        repairVersion: 'path-constraint-repair.v1',
+      },
+    });
+
+    expect(repair.status).toBe('infeasible');
+    expect(repair.repairedNodeIds).toEqual(['terminal', 'target']);
+    expect(repair.terminalValidationNodeIds).toEqual(['terminal']);
+    expect(repair.infeasibleReasons).toContainEqual(expect.objectContaining({
+      code: 'terminal-validation-resource-missing',
+      nodeIds: ['terminal'],
+    }));
+  });
+
   it('returns structured infeasible reasons for missing terminal validation and locked heavy nodes', () => {
     const repair = repairPathConstraints({
       draftNodeIds: ['intro', 'locked-lab'],

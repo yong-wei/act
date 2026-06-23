@@ -618,6 +618,16 @@ export function repairPathConstraints(input: PathConstraintRepairInput): PathCon
   const terminalValidationNodeIds = selectedIds.filter((nodeId) =>
     candidatesById.get(nodeId)?.terminalValidation === 'official'
   );
+  const nonEndpointTerminalValidationNodeIds = input.constraints.terminalValidationRequired
+    ? terminalValidationNodeIds.filter((nodeId) => selectedIds.at(-1) !== nodeId)
+    : [];
+  if (nonEndpointTerminalValidationNodeIds.length > 0) {
+    infeasibleReasons.push({
+      code: 'terminal-validation-resource-missing',
+      nodeIds: nonEndpointTerminalValidationNodeIds,
+      message: 'Official terminal validation must be the final node in the repaired path.',
+    });
+  }
   if (insertedNodeIds.length > 0) {
     tradeoffs.push(`inserted-bounded-nodes:${insertedNodeIds.join(',')}`);
   }
