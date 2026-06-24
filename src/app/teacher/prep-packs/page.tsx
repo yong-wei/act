@@ -12,7 +12,14 @@ export const revalidate = 0;
 export default async function TeacherPrepPacksPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ packId?: string; cluster?: string; classId?: string }>;
+  searchParams?: Promise<{
+    packId?: string;
+    cluster?: string;
+    classId?: string;
+    graphNodeId?: string;
+    learningGoalId?: string;
+    resourceGapStatus?: string;
+  }>;
 }) {
   const session = await getServerAuthSession();
   if (!session?.user) {
@@ -40,6 +47,16 @@ export default async function TeacherPrepPacksPage({
           where: {
             teacherId: session.user.id,
             source: { path: ['sourceEvidenceRefs'], array_contains: [`role-diagnosis:${params.cluster}`] },
+          },
+          orderBy: { updatedAt: 'desc' },
+          select: { id: true },
+        })
+      : params?.graphNodeId
+        ? await prisma.courseEnhancementPack.findFirst({
+          where: {
+            teacherId: session.user.id,
+            ...(params.classId ? { classId: params.classId } : {}),
+            source: { path: ['sourceEvidenceRefs'], array_contains: [`graph-node:${params.graphNodeId}`] },
           },
           orderBy: { updatedAt: 'desc' },
           select: { id: true },

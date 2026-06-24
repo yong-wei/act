@@ -42,6 +42,38 @@ export type RoleBasedLearningDiagnosisLimitationReason =
   | 'missing-snapshot'
   | 'document-grading-workbench-not-present';
 
+export interface RoleBasedLearningDiagnosisGraphContextInput {
+  nodesByDimension?: Record<string, Array<{
+    graphNodeId: string;
+    learningGoalId?: string | null;
+    overlayState?: string | null;
+    overlayConfidence?: LearningEvidenceConfidence | string | null;
+    resourceCoverage?: {
+      coverageState?: string | null;
+      missingCoverageTypes?: string[];
+      resourceNodeIds?: string[];
+      citationRefs?: string[];
+      versionRefs?: string[];
+    } | null;
+  }>>;
+}
+
+export interface RoleBasedLearningDiagnosisGraphContext {
+  learningGoalIds: string[];
+  graphNodeIds: string[];
+  overlay: {
+    state: string;
+    confidence: LearningEvidenceConfidence;
+  };
+  resourceCoverage: {
+    coverageState: string;
+    missingCoverageTypes: string[];
+    resourceNodeIds: string[];
+    citationRefs: string[];
+    versionRefs: string[];
+  };
+}
+
 export interface RoleBasedLearningDiagnosisInput {
   view: RoleBasedLearningDiagnosisView;
   goalId: string;
@@ -57,6 +89,7 @@ export interface RoleBasedLearningDiagnosisInput {
   gradingSummary?: Record<string, any> | null;
   evidenceCorpus?: LearningEvidenceCorpusChunk[];
   diagnosisReportSnapshot?: DiagnosisReportSnapshot | null;
+  graphContext?: RoleBasedLearningDiagnosisGraphContextInput | null;
   now?: Date;
 }
 
@@ -129,6 +162,7 @@ export interface RoleBasedLearningDiagnosisRootCauseCluster {
     missing: number;
     lowConfidence: number;
   };
+  graphContext?: RoleBasedLearningDiagnosisGraphContext;
   interventionPriority: 'low' | 'medium' | 'high';
   drilldownRefs: Array<{ kind: 'student-consultation'; userId: string; href: string }>;
 }
@@ -679,6 +713,7 @@ function sanitizeInputForView(input: RoleBasedLearningDiagnosisInput): RoleBased
     gradingSummary: input.gradingSummary ?? null,
     evidenceCorpus: [],
     diagnosisReportSnapshot: null,
+    graphContext: null,
     now: input.now,
   };
 }
@@ -729,22 +764,56 @@ function buildTeacherClassClusters(input: RoleBasedLearningDiagnosisInput, claim
   const metric = report.metrics?.simulationPassRate ?? firstMetric(report.metrics);
   const coverage = metric?.sourceCoverage ?? {};
   const drilldownRefs = buildTeacherDrilldownRefs(input);
-  return claims.map((claim) => ({
-    id: `cluster:${input.goalId}:${claim.dimensionId}`,
-    dimensionId: claim.dimensionId,
-    label: claim.rootCause,
-    affectedPopulation: numberOr(metric?.sourceCoverage?.readyStudents, drilldownRefs.length),
-    denominator: numberOr(classInfo.studentCount, numberOr(metric?.denominator, drilldownRefs.length)),
-    confidence: claim.confidence.state,
-    evidenceCoverage: {
-      ready: numberOr(coverage.readyStudents, 0),
-      stale: numberOr(coverage.staleStudents, 0),
-      missing: numberOr(coverage.missingStudents, 0),
-      lowConfidence: numberOr(coverage.lowConfidenceStudents, 0),
+  return claims.map((claim) => {
+    const graphContext = graphContextForDimension(input, claim.dimensionId);
+    return {
+      id: `cluster:${input.goalId}:${claim.dimensionId}`,
+      dimensionId: claim.dimensionId,
+      label: claim.rootCause,
+      affectedPopulation: numberOr(metric?.sourceCoverage?.readyStudents, drilldownRefs.length),
+      denominator: numberOr(classInfo.studentCount, numberOr(metric?.denominator, drilldownRefs.length)),
+      confidence: claim.confidence.state,
+      evidenceCoverage: {
+        ready: numberOr(coverage.readyStudents, 0),
+        stale: numberOr(coverage.staleStudents, 0),
+        missing: numberOr(coverage.missingStudents, 0),
+        lowConfidence: numberOr(coverage.lowConfidenceStudents, 0),
+      },
+      ...(graphContext ? { graphContext } : {}),
+      interventionPriority: priorityFor(metric?.value, claim.confidence.state),
+      drilldownRefs,
+    };
+  });
+}
+
+function graphContextForDimension(
+  input: RoleBasedLearningDiagnosisInput,
+  dimensionId: string,
+): RoleBasedLearningDiagnosisGraphContext | null {
+  const nodes = input.graphContext?.nodesByDimension?.[dimensionId] ?? [];
+  if (nodes.length === 0) return null;
+  const learningGoalIds = uniqueStrings(nodes.map((node) => node.learningGoalId));
+  const graphNodeIds = uniqueStrings(nodes.map((node) => node.graphNodeId));
+  const coverageStates = nodes.map((node) => stringOrNull(node.resourceCoverage?.coverageState)).filter((item): item is string => Boolean(item));
+  return {
+    learningGoalIds,
+    graphNodeIds,
+    overlay: {
+      state: stringOrNull(nodes[0]?.overlayState) ?? 'unknown',
+      confidence: isConfidence(nodes[0]?.overlayConfidence) ? nodes[0].overlayConfidence : 'none',
     },
-    interventionPriority: priorityFor(metric?.value, claim.confidence.state),
-    drilldownRefs,
-  }));
+    resourceCoverage: {
+      coverageState: coverageStates.includes('missing')
+        ? 'missing'
+        : coverageStates.includes('partial')
+          ? 'partial'
+          : coverageStates[0] ?? 'unknown',
+      missingCoverageTypes: uniqueStrings(nodes.flatMap((node) => node.resourceCoverage?.missingCoverageTypes ?? [])),
+      resourceNodeIds: uniqueStrings(nodes.flatMap((node) => node.resourceCoverage?.resourceNodeIds ?? [])),
+      citationRefs: uniqueStrings(nodes.flatMap((node) => node.resourceCoverage?.citationRefs ?? [])),
+      versionRefs: uniqueStrings(nodes.flatMap((node) => node.resourceCoverage?.versionRefs ?? [])),
+    },
+  };
 }
 
 function buildTeacherDrilldownRefs(input: RoleBasedLearningDiagnosisInput) {
@@ -782,6 +851,7 @@ function materializationInputs(input: RoleBasedLearningDiagnosisInput) {
     input.teacherReport ? 'control-correction-teacher-report' : null,
     input.gradingSummary ? 'grading-summary' : null,
     input.evidenceCorpus?.length ? 'learning-evidence-rag-corpus' : null,
+    input.graphContext ? 'graph-center-context' : null,
   ].filter((item): item is string => Boolean(item));
 }
 
@@ -896,4 +966,8 @@ function numberOr(value: unknown, fallback: number) {
 
 function stringOrNull(value: unknown) {
   return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function uniqueStrings(values: unknown[]): string[] {
+  return Array.from(new Set(values.filter((value): value is string => typeof value === 'string' && value.length > 0)));
 }

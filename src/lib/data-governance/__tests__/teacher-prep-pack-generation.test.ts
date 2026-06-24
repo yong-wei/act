@@ -320,6 +320,139 @@ describe('teacher prep pack generation', () => {
     expect(validateTeacherPrepPack(pack)).toEqual([]);
   });
 
+  it('generates graph-aware prep-pack candidates from diagnosis weak nodes and resource gaps', () => {
+    const graphAwareDiagnosis = diagnosis() as RoleBasedLearningDiagnosis & {
+      rootCauseClusters: Array<RoleBasedLearningDiagnosis['rootCauseClusters'][number] & {
+        graphContext: {
+          learningGoalIds: string[];
+          graphNodeIds: string[];
+          overlay: { state: string; confidence: string };
+          resourceCoverage: {
+            coverageState: string;
+            missingCoverageTypes: string[];
+            resourceNodeIds: string[];
+            citationRefs: string[];
+            versionRefs: string[];
+          };
+        };
+      }>;
+    };
+    graphAwareDiagnosis.rootCauseClusters[0] = {
+      ...graphAwareDiagnosis.rootCauseClusters[0],
+      graphContext: {
+        learningGoalIds: ['control-correction'],
+        graphNodeIds: ['kn:autocontrol:feedback-loop'],
+        overlay: { state: 'needs-attention', confidence: 'medium' },
+        resourceCoverage: {
+          coverageState: 'partial',
+          missingCoverageTypes: ['practice', 'validated-citation'],
+          resourceNodeIds: ['resource:feedback-loop-card'],
+          citationRefs: ['chunk-feedback-loop'],
+          versionRefs: ['graph-center-resource-coverage.v1'],
+        },
+      },
+    };
+
+    const pack = generateTeacherPrepPack({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      nextLesson: { lessonId: 'lesson-2', title: '根轨迹校正', plannedAt: now.toISOString() },
+      diagnosis: graphAwareDiagnosis,
+      resourceNodes: [
+        resourceNode({
+          id: 'feedback-loop-practice',
+          title: 'feedback-loop graph practice',
+          type: 'quiz',
+          planningMetadata: {
+            ...resourceNode({ id: 'template', title: 'template', type: 'quiz' }).planningMetadata,
+            knowledgeCoverage: ['kn:autocontrol:feedback-loop'],
+            abilityImpact: { 'control-correction': 0.7 },
+          },
+        }),
+      ],
+      now,
+    });
+
+    const graphCandidate = pack.candidates.find((item) => item.itemType === 'interactive-question');
+
+    expect(graphCandidate).toMatchObject({
+      graphTargets: {
+        learningGoalIds: ['control-correction'],
+        graphNodeIds: ['kn:autocontrol:feedback-loop'],
+      },
+      resourceCoverageGaps: [{
+        graphNodeId: 'kn:autocontrol:feedback-loop',
+        coverageState: 'partial',
+        missingCoverageTypes: ['practice', 'validated-citation'],
+        resourceNodeIds: ['resource:feedback-loop-card'],
+        citationRefs: ['chunk-feedback-loop'],
+        versionRefs: ['graph-center-resource-coverage.v1'],
+      }],
+      sourceDiagnosisRefs: [{
+        clusterId: 'cluster-modeling',
+        claimIds: ['claim-control-modeling'],
+      }],
+      confidence: {
+        limitations: expect.arrayContaining(['resource-coverage-gap:practice', 'resource-coverage-gap:validated-citation']),
+      },
+      insertionTarget: {
+        resourceNodeId: 'feedback-loop-practice',
+      },
+    });
+    expect(graphCandidate?.methodologyNotes).toEqual(expect.arrayContaining([
+      'Targets K/A/Q graph node kn:autocontrol:feedback-loop for LearningGoal control-correction.',
+    ]));
+    expect(validateTeacherPrepPack(pack)).toEqual([]);
+
+    const approved = reviewTeacherPrepPackItem({
+      item: graphCandidate!,
+      reviewerId: 'teacher-1',
+      teacherId: pack.teacherId,
+      decision: 'approve',
+      now,
+    });
+    const enhancementPack = createCourseEnhancementPackFromPrepPack({
+      prepPack: { ...pack, candidates: [approved] },
+      teacherId: 'teacher-1',
+      now,
+    });
+    const active = activateCourseEnhancementPack({
+      pack: enhancementPack,
+      teacherId: 'teacher-1',
+      runtimeContext: {
+        lessonId: 'lesson-2',
+        classId: 'class-1',
+        stages: [{ id: 'stage-participatory', stage: 'participatory-learning', stepIds: ['step-quiz'] }],
+        lessonStepIds: ['step-quiz'],
+        resourceNodeIds: ['feedback-loop-practice'],
+        classSessionIds: ['session-1'],
+      },
+      now,
+    });
+    const withImpact = recordCourseEnhancementPackImpactEvidence({
+      pack: active,
+      itemId: active.items[0].id,
+      evidenceRef: {
+        sourceType: 'learning-fact',
+        sourceId: 'learning-fact-graph-1',
+        displayTitle: 'Graph-aware prep item impact',
+        collectedAt: now.toISOString(),
+        safeForTeacherReport: true,
+      },
+    });
+
+    expect(enhancementPack.source.sourceEvidenceRefs).toEqual(expect.arrayContaining([
+      'graph-node:kn:autocontrol:feedback-loop',
+      'learning-goal:control-correction',
+      'role-diagnosis:cluster-modeling',
+    ]));
+    expect(withImpact.items[0].impactEvidence[0]).toEqual(expect.objectContaining({
+      targetGraphNodeId: 'kn:autocontrol:feedback-loop',
+      sourceDiagnosisRefs: ['role-diagnosis:cluster-modeling'],
+    }));
+  });
+
   it('backfills citation chips for legacy diagnosis evidence refs', () => {
     const legacyDiagnosis = diagnosis();
     delete (legacyDiagnosis.claims[0].evidenceRefs[0] as { citationChip?: unknown }).citationChip;
@@ -458,6 +591,232 @@ describe('teacher prep pack generation', () => {
     expect(validateTeacherPrepPack(pack)).toEqual([]);
   });
 
+  it('suppresses low-denominator graph-aware prep-pack claims without leaking private evidence', () => {
+    const lowDenominatorDiagnosis = diagnosis();
+    lowDenominatorDiagnosis.rootCauseClusters = [{
+      ...lowDenominatorDiagnosis.rootCauseClusters[0],
+      affectedPopulation: 1,
+      denominator: 3,
+      label: 'raw answer body should not leak',
+      graphContext: {
+        learningGoalIds: ['control-correction'],
+        graphNodeIds: ['kn:autocontrol:feedback-loop'],
+        overlay: { state: 'needs-attention', confidence: 'low' },
+        resourceCoverage: {
+          coverageState: 'missing',
+          missingCoverageTypes: ['resource-node'],
+          resourceNodeIds: [],
+          citationRefs: [],
+          versionRefs: [],
+        },
+      },
+    } as typeof lowDenominatorDiagnosis.rootCauseClusters[number] & {
+      graphContext: {
+        learningGoalIds: string[];
+        graphNodeIds: string[];
+        overlay: { state: string; confidence: string };
+        resourceCoverage: {
+          coverageState: string;
+          missingCoverageTypes: string[];
+          resourceNodeIds: string[];
+          citationRefs: string[];
+          versionRefs: string[];
+        };
+      };
+    }];
+
+    const pack = generateTeacherPrepPack({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      nextLesson: { lessonId: 'lesson-2', title: '根轨迹校正', plannedAt: now.toISOString() },
+      diagnosis: lowDenominatorDiagnosis,
+      resourceNodes: [],
+      now,
+    });
+    const candidate = pack.candidates[0];
+
+    expect(candidate).toMatchObject({
+      insertionTarget: { type: 'draft-resource-request' },
+      affectedGroup: {
+        count: null,
+        denominator: null,
+        visibility: 'low-denominator-suppressed',
+      },
+      confidence: {
+        state: 'low',
+        limitations: expect.arrayContaining([
+          'low-denominator-suppressed',
+          'missing-resource-coverage',
+          'resource-coverage-gap:resource-node',
+        ]),
+      },
+    });
+    expect(JSON.stringify(candidate)).not.toMatch(/raw answer body/i);
+    expect(JSON.stringify(candidate)).not.toMatch(/\b1\/3\b/);
+    expect(validateTeacherPrepPack(pack)).toEqual([]);
+  });
+
+  it('keeps low-denominator resource-backed candidates out of runtime insertion', () => {
+    const lowDenominatorDiagnosis = diagnosis();
+    lowDenominatorDiagnosis.rootCauseClusters = [{
+      ...lowDenominatorDiagnosis.rootCauseClusters[0],
+      affectedPopulation: 1,
+      denominator: 3,
+    }];
+
+    const pack = generateTeacherPrepPack({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      nextLesson: { lessonId: 'lesson-2', title: '根轨迹校正', plannedAt: now.toISOString() },
+      diagnosis: lowDenominatorDiagnosis,
+      resourceNodes: [resourceNode({ id: 'quiz-modeling', title: '控制建模互动题', type: 'quiz' })],
+      now,
+    });
+    const candidate = pack.candidates[0];
+    const approved = reviewTeacherPrepPackItem({
+      item: candidate,
+      reviewerId: 'teacher-1',
+      teacherId: pack.teacherId,
+      decision: 'approve',
+      now,
+    });
+    const reviewedPack = { ...pack, candidates: [approved] };
+    const enhancementPack = createCourseEnhancementPackFromPrepPack({
+      prepPack: reviewedPack,
+      teacherId: 'teacher-1',
+      now,
+    });
+
+    expect(candidate.linkedResource?.nodeId).toBe('quiz-modeling');
+    expect(candidate.insertionTarget.type).toBe('draft-resource-request');
+    expect(candidate.draftResourceRequest?.reason).toContain('Low-denominator diagnosis signals');
+    expect(JSON.stringify(candidate)).not.toMatch(/\b1\/3\b/);
+    expect(isTeacherPrepPackInsertionEligible(approved, reviewedPack)).toBe(false);
+    expect(buildTeacherPrepPackInsertionPayload({ pack: reviewedPack, now }).items).toHaveLength(0);
+    expect(enhancementPack.items).toHaveLength(0);
+    expect(validateTeacherPrepPack(reviewedPack)).toEqual([]);
+    expect(validateCourseEnhancementPack(enhancementPack)).toEqual(['missing-enhancement-items']);
+  });
+
+  it('suppresses zero-count low-denominator diagnosis distribution', () => {
+    const lowDenominatorDiagnosis = diagnosis();
+    lowDenominatorDiagnosis.rootCauseClusters = [{
+      ...lowDenominatorDiagnosis.rootCauseClusters[0],
+      affectedPopulation: 0,
+      denominator: 3,
+    }];
+
+    const pack = generateTeacherPrepPack({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      nextLesson: { lessonId: 'lesson-2', title: '根轨迹校正', plannedAt: now.toISOString() },
+      diagnosis: lowDenominatorDiagnosis,
+      resourceNodes: [resourceNode({ id: 'quiz-modeling', title: '控制建模互动题', type: 'quiz' })],
+      now,
+    });
+    const candidate = pack.candidates[0];
+
+    expect(candidate.affectedGroup).toEqual(expect.objectContaining({
+      count: null,
+      denominator: null,
+      visibility: 'low-denominator-suppressed',
+    }));
+    expect(candidate.insertionTarget.type).toBe('draft-resource-request');
+    expect(JSON.stringify(candidate)).not.toMatch(/\b0\/3\b/);
+    expect(validateTeacherPrepPack(pack)).toEqual([]);
+  });
+
+  it('does not allow approval patches to bypass low-denominator insertion suppression', () => {
+    const lowDenominatorDiagnosis = diagnosis();
+    lowDenominatorDiagnosis.rootCauseClusters = [{
+      ...lowDenominatorDiagnosis.rootCauseClusters[0],
+      affectedPopulation: 1,
+      denominator: 3,
+    }];
+
+    const pack = generateTeacherPrepPack({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      nextLesson: { lessonId: 'lesson-2', title: '根轨迹校正', plannedAt: now.toISOString() },
+      diagnosis: lowDenominatorDiagnosis,
+      resourceNodes: [resourceNode({ id: 'quiz-modeling', title: '控制建模互动题', type: 'quiz' })],
+      now,
+    });
+    const patchedApproval = reviewTeacherPrepPackItem({
+      item: pack.candidates[0],
+      reviewerId: 'teacher-1',
+      teacherId: pack.teacherId,
+      decision: 'approve',
+      patch: {
+        insertionTarget: {
+          type: 'lesson-stage',
+          lessonId: 'lesson-2',
+          lessonStage: 'participatory-learning',
+        },
+      },
+      now,
+    });
+    const reviewedPack = { ...pack, candidates: [patchedApproval] };
+    const enhancementPack = createCourseEnhancementPackFromPrepPack({
+      prepPack: reviewedPack,
+      teacherId: 'teacher-1',
+      now,
+    });
+
+    expect(patchedApproval.review.state).toBe('edited');
+    expect(validateTeacherPrepPackItem(patchedApproval)).toEqual(expect.arrayContaining([
+      'item-low-denominator-target-not-draft',
+    ]));
+    expect(isTeacherPrepPackInsertionEligible(patchedApproval, reviewedPack)).toBe(false);
+    expect(buildTeacherPrepPackInsertionPayload({ pack: reviewedPack, now }).items).toHaveLength(0);
+    expect(enhancementPack.items).toHaveLength(0);
+  });
+
+  it('redacts low-denominator upstream diagnosis evidence capsules in candidates and exports', () => {
+    const lowDenominatorDiagnosis = diagnosis();
+    lowDenominatorDiagnosis.rootCauseClusters = [{
+      ...lowDenominatorDiagnosis.rootCauseClusters[0],
+      affectedPopulation: 1,
+      denominator: 3,
+    }];
+    lowDenominatorDiagnosis.claims[0].evidenceRefs[0] = {
+      ...lowDenominatorDiagnosis.claims[0].evidenceRefs[0],
+      capsule: '1/3 learners affected; prior 0/3 baseline.',
+    };
+
+    const pack = generateTeacherPrepPack({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      nextLesson: { lessonId: 'lesson-2', title: '根轨迹校正', plannedAt: now.toISOString() },
+      diagnosis: lowDenominatorDiagnosis,
+      resourceNodes: [],
+      now,
+    });
+    const approvedForExport = {
+      ...pack.candidates[0],
+      review: { state: 'approved' as const, reviewerId: 'teacher-1', reviewedAt: now.toISOString(), notes: null },
+    };
+    const exportPayload = buildTeacherPrepPackExportPayload({
+      pack: { ...pack, candidates: [approvedForExport] },
+      now,
+    });
+
+    expect(JSON.stringify(pack.candidates[0])).not.toMatch(/\b(?:0|1)\/3\b/);
+    expect(JSON.stringify(exportPayload)).not.toMatch(/\b(?:0|1)\/3\b/);
+    expect(pack.candidates[0].evidenceBasis).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        sourceId: 'chunk-diagnosis-1',
+        capsule: 'Low-denominator diagnosis evidence capsule suppressed; use citation reference for audit.',
+      }),
+    ]));
+    expect(validateTeacherPrepPack(pack)).toEqual([]);
+  });
+
   it('generates teacher-note candidates but keeps unsupported notes out of automatic insertion', () => {
     const pack = generateTeacherPrepPack({
       teacherId: 'teacher-1',
@@ -488,6 +847,58 @@ describe('teacher prep pack generation', () => {
       pack: { ...pack, candidates: [approvedNote] },
       now,
     }).items).toHaveLength(0);
+  });
+
+  it('keeps low-denominator teacher-note candidates out of runtime insertion', () => {
+    const lowDenominatorDiagnosis = diagnosis();
+    lowDenominatorDiagnosis.rootCauseClusters = [{
+      ...lowDenominatorDiagnosis.rootCauseClusters[0],
+      affectedPopulation: 1,
+      denominator: 3,
+    }];
+
+    const pack = generateTeacherPrepPack({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      nextLesson: { lessonId: 'lesson-2', title: '根轨迹校正', plannedAt: now.toISOString() },
+      diagnosis: lowDenominatorDiagnosis,
+      resourceNodes: [resourceNode({
+        id: 'teacher-note-modeling',
+        title: 'controlModeling teacher note',
+        type: 'lesson_step',
+        sourceRef: 'step-teacher-note',
+      })],
+      now,
+    });
+    const teacherNote = pack.candidates.find((item) => item.itemType === 'teacher-note');
+    const approvedNote = reviewTeacherPrepPackItem({
+      item: teacherNote!,
+      reviewerId: 'teacher-1',
+      teacherId: pack.teacherId,
+      decision: 'approve',
+      now,
+    });
+    const reviewedPack = { ...pack, candidates: [approvedNote] };
+    const enhancementPack = createCourseEnhancementPackFromPrepPack({
+      prepPack: reviewedPack,
+      teacherId: 'teacher-1',
+      now,
+    });
+
+    expect(teacherNote?.linkedResource?.nodeId).toBe('teacher-note-modeling');
+    expect(teacherNote?.affectedGroup).toEqual(expect.objectContaining({
+      count: null,
+      denominator: null,
+      visibility: 'low-denominator-suppressed',
+    }));
+    expect(teacherNote?.insertionTarget.type).toBe('draft-resource-request');
+    expect(JSON.stringify(teacherNote)).not.toMatch(/\b(?:0|1)\/3\b/);
+    expect(isTeacherPrepPackInsertionEligible(approvedNote, reviewedPack)).toBe(false);
+    expect(buildTeacherPrepPackInsertionPayload({ pack: reviewedPack, now }).items).toHaveLength(0);
+    expect(enhancementPack.items).toHaveLength(0);
+    expect(buildTeacherPrepPackExportPayload({ pack: reviewedPack, now }).items).toHaveLength(1);
+    expect(JSON.stringify(buildTeacherPrepPackExportPayload({ pack: reviewedPack, now }))).not.toMatch(/\b(?:0|1)\/3\b/);
   });
 
   it('redacts hyphenated forbidden privacy tokens before approved export', () => {

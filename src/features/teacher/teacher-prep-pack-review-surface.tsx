@@ -71,49 +71,7 @@ export function TeacherPrepPackReviewSurface({
       <section className="mt-6 grid gap-4 lg:grid-cols-[1fr_340px]">
         <div className="space-y-4">
           {pack?.items.length ? pack.items.map((item) => (
-            <article
-              key={item.id}
-              className="surface-card p-5"
-              data-prep-pack-candidate={item.id}
-              data-prep-pack-lifecycle-state={pack.status}
-              data-prep-pack-base-manifest-mutated="false"
-            >
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-primary">候选项</p>
-                  <h2 className="mt-1 text-xl font-semibold text-foreground">{item.title}</h2>
-                  <p className="mt-2 text-sm leading-6 text-subtle" data-prep-pack-rationale>
-                    {item.methodologyNotes.join('；')}
-                  </p>
-                </div>
-                <span className="rounded-full border border-border px-3 py-1 text-xs text-subtle">
-                  {pack.status}
-                </span>
-              </div>
-
-              <div className="mt-5 grid gap-3 md:grid-cols-3">
-                <div className="rounded-lg border border-border bg-muted/20 p-3" data-prep-pack-source-evidence>
-                  <p className="text-xs text-subtle">来源证据</p>
-                  <ul className="mt-2 space-y-1 text-sm text-foreground">
-                    {item.evidenceBasis.map((evidence) => (
-                      <li key={`${item.id}-${evidence.sourceType}-${evidence.sourceId}`}>
-                        {evidence.displayTitle || evidence.sourceId}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="rounded-lg border border-border bg-muted/20 p-3" data-prep-pack-insertion-target>
-                  <p className="text-xs text-subtle">插入目标</p>
-                  <p className="mt-2 text-sm text-foreground">{formatInsertionTarget(item.insertionTarget)}</p>
-                </div>
-                <div className="rounded-lg border border-border bg-muted/20 p-3" data-prep-pack-runtime-diff>
-                  <p className="text-xs text-subtle">Runtime diff</p>
-                  <p className="mt-2 text-sm text-foreground">
-                    新增 1 个 overlay item；阶段 {item.insertionTarget.lessonStage ?? '未指定'}；基础 manifest 未修改。
-                  </p>
-                </div>
-              </div>
-            </article>
+            <PrepPackReviewItem key={item.id} item={item} packStatus={pack.status} />
           )) : (
             <section className="surface-card p-6" data-prep-pack-empty-state>
               {recovery?.reason === 'storage-missing' ? (
@@ -180,6 +138,91 @@ export function TeacherPrepPackReviewSurface({
   );
 }
 
+function PrepPackReviewItem({
+  item,
+  packStatus,
+}: {
+  item: CourseEnhancementPackItem;
+  packStatus: CourseEnhancementPack['status'];
+}) {
+  const rationale = item.rationale ?? item.methodologyNotes.join('；');
+  const confidence = item.confidence ?? { state: 'none' as const, score: 0, limitations: ['missing-confidence-metadata'] };
+
+  return (
+    <article
+      className="surface-card p-5"
+      data-prep-pack-candidate={item.id}
+      data-prep-pack-lifecycle-state={packStatus}
+      data-prep-pack-base-manifest-mutated="false"
+    >
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.22em] text-primary">候选项</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">{item.title}</h2>
+                  <p className="mt-2 text-sm leading-6 text-subtle" data-prep-pack-rationale>
+                    {rationale}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-subtle" data-prep-pack-methodology>
+                    {item.methodologyNotes.join('；')}
+                  </p>
+                </div>
+                <span className="rounded-full border border-border px-3 py-1 text-xs text-subtle">
+                  {packStatus}
+                </span>
+              </div>
+
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
+                <div className="rounded-lg border border-border bg-muted/20 p-3" data-prep-pack-source-evidence>
+                  <p className="text-xs text-subtle">来源证据</p>
+                  <ul className="mt-2 space-y-1 text-sm text-foreground">
+                    {item.evidenceBasis.map((evidence) => (
+                      <li key={`${item.id}-${evidence.sourceType}-${evidence.sourceId}`}>
+                        <span className="font-medium">{evidence.displayTitle || evidence.sourceId}</span>
+                        <span className="block text-xs text-subtle">{evidence.capsule}</span>
+                        <span className="block text-xs text-subtle">
+                          Citation {evidence.citationChip.chunkId} · {evidence.citationChip.authorityLevel} · {evidence.citationChip.privacyVisibility}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-3" data-prep-pack-insertion-target>
+                  <p className="text-xs text-subtle">插入目标</p>
+                  <p className="mt-2 text-sm text-foreground">{formatInsertionTarget(item.insertionTarget)}</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-3" data-prep-pack-runtime-diff>
+                  <p className="text-xs text-subtle">Runtime diff</p>
+                  <p className="mt-2 text-sm text-foreground">
+                    新增 1 个 overlay item；阶段 {item.insertionTarget.lessonStage ?? '未指定'}；基础 manifest 未修改。
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3" data-prep-pack-selection-conditions>
+                <p className="text-xs text-subtle">选择依据与会改变选择的证据</p>
+                <ul className="mt-2 space-y-1 text-sm text-foreground">
+                  <li>Confidence {confidence.state} · score {Math.round(confidence.score * 100)}%</li>
+                  {confidence.limitations.map((limitation) => (
+                    <li key={`${item.id}-limitation-${limitation}`}>Limitation: {formatSelectionCondition(limitation)}</li>
+                  ))}
+                  {(item.resourceCoverageGaps ?? []).map((gap) => (
+                    <li key={`${item.id}-gap-${gap.graphNodeId}`}>
+                      Resource gap {gap.graphNodeId}: {gap.coverageState}
+                      {gap.missingCoverageTypes.length ? `; missing ${gap.missingCoverageTypes.join(', ')}` : ''}
+                    </li>
+                  ))}
+                  {(item.sourceDiagnosisRefs ?? []).map((ref) => (
+                    <li key={`${item.id}-diagnosis-${ref.clusterId}`}>
+                      Source diagnosis {ref.clusterId}{ref.claimIds.length ? `; claims ${ref.claimIds.join(', ')}` : ''}
+                    </li>
+                  ))}
+                  <li>{selectionChangeSummary(item, confidence.limitations)}</li>
+                </ul>
+              </div>
+    </article>
+  );
+}
+
 function isLifecycleActionDisabled(
   actionId: string,
   actionContext: PrepPackReviewActionContext | undefined,
@@ -202,4 +245,35 @@ function formatInsertionTarget(target: TeacherPrepPackInsertionTarget): string {
     target.classSessionId,
   ].filter(Boolean);
   return parts.length > 0 ? parts.join(' / ') : target.type;
+}
+
+function formatSelectionCondition(limitation: string): string {
+  if (limitation === 'low-denominator-suppressed') return 'sample size must reach the privacy threshold before insertion';
+  if (limitation === 'missing-resource-coverage') return 'resource coverage must be linked or replaced by a draft request';
+  if (limitation === 'stale-overlay') return 'graph overlay must refresh to current evidence';
+  if (limitation === 'missing-evidence') return 'diagnosis needs governed evidence before selection confidence can rise';
+  if (limitation.startsWith('resource-coverage-gap:')) {
+    return `${limitation.slice('resource-coverage-gap:'.length)} coverage gap must be filled`;
+  }
+  return limitation;
+}
+
+function selectionChangeSummary(item: CourseEnhancementPackItem, limitations: string[]): string {
+  const changes: string[] = [];
+  if (limitations.includes('low-denominator-suppressed')) {
+    changes.push('denominator reaches the privacy threshold');
+  }
+  if (limitations.includes('stale-overlay')) {
+    changes.push('overlay evidence refreshes from stale to current');
+  }
+  if ((item.resourceCoverageGaps ?? []).length > 0 || limitations.includes('missing-resource-coverage')) {
+    changes.push('resource coverage gaps are resolved');
+  }
+  if (item.evidenceBasis.some((evidence) => evidence.citationChip.authorityLevel !== 'verified')) {
+    changes.push('verified citations replace weaker evidence');
+  }
+  if (changes.length === 0) {
+    return 'Selection would change if newer governed evidence lowers confidence or contradicts the diagnosis.';
+  }
+  return `Selection would change when ${changes.join(', ')}.`;
 }

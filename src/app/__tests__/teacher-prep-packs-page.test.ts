@@ -66,6 +66,33 @@ describe('TeacherPrepPacksPage', () => {
     });
   });
 
+  it('loads a prep pack by the Graph Center graph-node context', async () => {
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({
+        classId: 'class-1',
+        graphNodeId: 'kn:autocontrol:feedback-loop',
+        learningGoalId: 'knowledge:autocontrol:feedback-loop',
+        resourceGapStatus: 'partial',
+      }),
+    });
+
+    expect(mocks.findFirstCourseEnhancementPack).toHaveBeenCalledWith({
+      where: {
+        teacherId: 'teacher-1',
+        classId: 'class-1',
+        source: {
+          path: ['sourceEvidenceRefs'],
+          array_contains: ['graph-node:kn:autocontrol:feedback-loop'],
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      select: { id: true },
+    });
+    expect(element).toMatchObject({
+      props: { pack: { id: 'enhancement-pack-1' } },
+    });
+  });
+
   it('renders the empty review state when a diagnosis cluster has no matching pack', async () => {
     mocks.findFirstCourseEnhancementPack.mockResolvedValue(null);
 

@@ -48,6 +48,10 @@ const adminDataGovernanceStatusRouteSource = readFileSync(
   join(process.cwd(), 'src/app/api/admin/data-governance/status/route.ts'),
   'utf8',
 );
+const teacherPrepPacksPageSource = readFileSync(
+  join(process.cwd(), 'src/app/teacher/prep-packs/page.tsx'),
+  'utf8',
+);
 
 describe('graph center payload service', () => {
   it('builds a knowledge-domain payload with objectives, portrait dimensions, and selected node detail', () => {
@@ -664,19 +668,20 @@ describe('graph center payload service', () => {
       },
     });
     expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')).toMatchObject({
-      status: 'degraded',
-      reasonCode: 'missing-route-context',
-      reason: '备课包入口当前只支持班级上下文，尚未消费图谱节点或学习目标。',
+      status: 'available',
       target: {
         route: '/teacher/prep-packs',
         params: {
           classId: 'class-1',
+          graphNodeId: 'kn:autocontrol:feedback-loop',
+          learningGoalId: 'knowledge:autocontrol:feedback-loop',
+          resourceGapStatus: 'partial',
         },
-        href: '/teacher/prep-packs?classId=class-1',
+        href: '/teacher/prep-packs?classId=class-1&graphNodeId=kn%3Aautocontrol%3Afeedback-loop&learningGoalId=knowledge%3Aautocontrol%3Afeedback-loop&resourceGapStatus=partial',
       },
     });
-    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')?.target?.params).not.toHaveProperty('graphNodeId');
-    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')?.target?.params).not.toHaveProperty('learningGoalId');
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')?.target?.params).toHaveProperty('graphNodeId');
+    expect(teacherPayload.selectedNode?.actions.find((action) => action.id === 'teacher:open-prep-pack')?.target?.params).toHaveProperty('learningGoalId');
 
     expect(adminPayload.selectedNode?.actions.map((action) => action.id)).toEqual([
       'admin:inspect-resource-binding',
@@ -739,6 +744,10 @@ describe('graph center payload service', () => {
     expect(adaptivePathAdvisorContextRouteSource).toContain("'graph-node-context'");
     expect(adaptivePathAdvisorToolRouteSource).toContain('const graphNodeId = typeof body.graphNodeId');
     expect(adaptivePathAdvisorToolRouteSource).toContain('toolInput.graphNodeId');
+    expect(teacherPrepPacksPageSource).toContain('graphNodeId?: string');
+    expect(teacherPrepPacksPageSource).toContain('learningGoalId?: string');
+    expect(teacherPrepPacksPageSource).toContain('resourceGapStatus?: string');
+    expect(teacherPrepPacksPageSource).toContain("source: { path: ['sourceEvidenceRefs'], array_contains: [`graph-node:${params.graphNodeId}`] }");
   });
 
   it('uses resource-node knowledge coverage refs for teacher resource gap links', () => {
