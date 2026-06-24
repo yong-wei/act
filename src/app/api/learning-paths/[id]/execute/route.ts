@@ -556,11 +556,15 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
   });
   const kaqMetadata = toRecord(answer?.questionRef?.metadata).kaq;
   const kaqReview = toRecord(toRecord(kaqMetadata).review);
+  const kaqLearningGoalIds = arrayOfStrings(toRecord(kaqMetadata).learningGoalIds);
   const reviewedKaqAnswer = firstString(kaqReview.state) === 'reviewed';
   const readinessGateEligible = reviewedKaqAnswer && firstString(toRecord(kaqMetadata).purpose) === 'readiness-gate';
+  const learningGoalMatches = typeof input.goalId === 'string' && input.goalId.trim().length > 0
+    ? kaqLearningGoalIds.includes(input.goalId)
+    : true;
   const pathContextMatches = answer ? matchesAdaptiveAssessmentPathContext(answer, input) : false;
   const adaptiveAssessmentRef = answer
-    ? pathContextMatches && readinessGateEligible
+    ? pathContextMatches && readinessGateEligible && learningGoalMatches
       ? compactObject({
         kind: 'AdaptiveAssessmentAnswer',
         id: answer.id,
@@ -570,9 +574,7 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
         reviewState: firstString(kaqReview.state),
         readinessGateEligible,
         terminalValidationEligible: readinessGateEligible,
-        learningGoalIds: Array.isArray(toRecord(kaqMetadata).learningGoalIds)
-          ? toRecord(kaqMetadata).learningGoalIds
-          : undefined,
+        learningGoalIds: kaqLearningGoalIds.length > 0 ? kaqLearningGoalIds : undefined,
         outcomeRefs: Array.isArray(toRecord(kaqMetadata).outcomeRefs)
           ? toRecord(kaqMetadata).outcomeRefs
           : undefined,
@@ -588,7 +590,11 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
       : unknownEvidenceRef(
         'AdaptiveAssessmentAnswer',
         id,
-        pathContextMatches ? 'adaptive-assessment-readiness-not-eligible' : 'adaptive-assessment-path-mismatch',
+        pathContextMatches
+          ? readinessGateEligible
+            ? 'adaptive-assessment-goal-mismatch'
+            : 'adaptive-assessment-readiness-not-eligible'
+          : 'adaptive-assessment-path-mismatch',
       )
     : unknownEvidenceRef('AdaptiveAssessmentAnswer', id);
   return {

@@ -1018,6 +1018,73 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('keeps adaptive outcome gates locked when readiness evidence belongs to another learning goal', async () => {
+    useStructuredAdaptiveAssessmentPath();
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue({
+      id: 'answer-other-goal',
+      questionId: 'preset-q-02',
+      score: 100,
+      abilityEstimate: 0.62,
+      answeredAt: new Date('2026-06-04T09:59:00.000Z'),
+      questionRef: {
+        knowledgeTags: ['frequency-response:bode-basics'],
+        questionType: 'bode-to-stability',
+        difficulty: 0.58,
+        metadata: {
+          kaq: {
+            immutableContentHash: 'reviewed-other-goal-hash-1',
+            learningGoalIds: ['frequency-response-foundations'],
+            purpose: 'readiness-gate',
+            outcomeRefs: ['quiz-outcome:frequency-response-foundations:readiness-gate:preset-q-02'],
+            review: { state: 'reviewed' },
+          },
+        },
+      },
+      abilityEstimateSnapshot: {
+        dimensions: {
+          pathExecution: {
+            pathId: 'path-1',
+            nodeId: 'adaptive-quiz:control-target-check',
+            goalId: 'control-correction',
+          },
+        },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      idempotencyKey: 'other-goal-adaptive-outcome',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          id: 'answer-other-goal',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-other-goal',
+          provenance: 'unknown',
+          mismatchReason: 'adaptive-assessment-goal-mismatch',
+        }),
+      }),
+      evidenceRefs: [],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'adaptive-quiz:control-target-check',
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: [],
+        }),
+      }),
+    }));
+  });
+
   it('keeps adaptive outcome gates locked when the answer ref is missing from server ownership', async () => {
     useStructuredAdaptiveAssessmentPath();
     mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(null);
