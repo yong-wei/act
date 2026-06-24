@@ -799,8 +799,8 @@ function graphContextForDimension(
     learningGoalIds,
     graphNodeIds,
     overlay: {
-      state: stringOrNull(nodes[0]?.overlayState) ?? 'unknown',
-      confidence: isConfidence(nodes[0]?.overlayConfidence) ? nodes[0].overlayConfidence : 'none',
+      state: aggregateOverlayState(nodes.map((node) => node.overlayState)),
+      confidence: aggregateOverlayConfidence(nodes.map((node) => node.overlayConfidence)),
     },
     resourceCoverage: {
       coverageState: coverageStates.includes('missing')
@@ -814,6 +814,24 @@ function graphContextForDimension(
       versionRefs: uniqueStrings(nodes.flatMap((node) => node.resourceCoverage?.versionRefs ?? [])),
     },
   };
+}
+
+function aggregateOverlayState(states: Array<string | null | undefined>): string {
+  const normalized = uniqueStrings(states.map((state) => stringOrNull(state) ?? 'unknown'));
+  if (normalized.includes('stale')) return 'stale';
+  if (normalized.includes('needs-attention')) return 'needs-attention';
+  if (normalized.includes('partial')) return 'partial';
+  if (normalized.includes('current')) return 'current';
+  if (normalized.includes('ready')) return 'ready';
+  return normalized[0] ?? 'unknown';
+}
+
+function aggregateOverlayConfidence(values: Array<LearningEvidenceConfidence | string | null | undefined>): LearningEvidenceConfidence {
+  const confidences = values.map((value) => (isConfidence(value) ? value : 'none'));
+  if (confidences.includes('none')) return 'none';
+  if (confidences.includes('low')) return 'low';
+  if (confidences.includes('medium')) return 'medium';
+  return confidences.includes('high') ? 'high' : 'none';
 }
 
 function buildTeacherDrilldownRefs(input: RoleBasedLearningDiagnosisInput) {

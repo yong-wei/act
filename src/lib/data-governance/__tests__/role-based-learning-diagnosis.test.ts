@@ -260,6 +260,18 @@ describe('role-based learning diagnosis materialization', () => {
               citationRefs: ['chunk-feedback-loop'],
               versionRefs: ['graph-center-resource-coverage.v1'],
             },
+          }, {
+            graphNodeId: 'kn:autocontrol:closed-loop-error',
+            learningGoalId: 'control-correction',
+            overlayState: 'stale',
+            overlayConfidence: 'low',
+            resourceCoverage: {
+              coverageState: 'missing',
+              missingCoverageTypes: ['simulation'],
+              resourceNodeIds: [],
+              citationRefs: ['chunk-closed-loop-error'],
+              versionRefs: ['graph-center-overlay.v1'],
+            },
           }],
         },
       },
@@ -307,17 +319,17 @@ describe('role-based learning diagnosis materialization', () => {
       interventionPriority: 'high',
       graphContext: {
         learningGoalIds: ['control-correction'],
-        graphNodeIds: ['kn:autocontrol:feedback-loop'],
+        graphNodeIds: ['kn:autocontrol:feedback-loop', 'kn:autocontrol:closed-loop-error'],
         overlay: {
-          state: 'needs-attention',
-          confidence: 'medium',
+          state: 'stale',
+          confidence: 'low',
         },
         resourceCoverage: {
-          coverageState: 'partial',
-          missingCoverageTypes: ['practice', 'validated-citation'],
+          coverageState: 'missing',
+          missingCoverageTypes: ['practice', 'validated-citation', 'simulation'],
           resourceNodeIds: ['resource:feedback-loop-card'],
-          citationRefs: ['chunk-feedback-loop'],
-          versionRefs: ['graph-center-resource-coverage.v1'],
+          citationRefs: ['chunk-feedback-loop', 'chunk-closed-loop-error'],
+          versionRefs: ['graph-center-resource-coverage.v1', 'graph-center-overlay.v1'],
         },
       },
     });
