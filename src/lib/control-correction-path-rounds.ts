@@ -1179,8 +1179,17 @@ function isTrustedAdaptiveAssessmentOutcomeRef(value: unknown): boolean {
     provenance === 'official' &&
     record.readinessGateEligible === true &&
     firstString(record.reviewState) === 'reviewed' &&
+    isPassingAdaptiveAssessmentOutcomeRef(record) &&
     firstString(record.id, record.answerId, record.sourceId) !== undefined &&
     firstString(record.mismatchReason) === undefined;
+}
+
+function isPassingAdaptiveAssessmentOutcomeRef(record: Record<string, unknown>): boolean {
+  if (record.isCorrect === true) return true;
+  if (record.isCorrect === false) return false;
+  const score = readNumber(record.score);
+  if (score !== undefined) return score <= 1 ? score >= 0.6 : score >= 60;
+  return false;
 }
 
 function isTrustedControlWorkbenchOutcomeRef(value: unknown): boolean {

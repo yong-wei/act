@@ -2085,6 +2085,149 @@ describe('control-correction path rounds', () => {
     ]));
   });
 
+  it('keeps adaptive outcome gates locked when reviewed readiness quiz failed', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'adaptive-quiz:control-target-check',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'adaptive-quiz:control-target-check',
+          'control-workbench:lead-design',
+        ],
+        planNodes: [
+          { nodeId: 'adaptive-quiz:control-target-check', type: 'adaptive_quiz', status: 'current' },
+          {
+            nodeId: 'control-workbench:lead-design',
+            type: 'control_workbench',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成自适应练习结果同步后会自动进入。',
+              unlockMessage: '完成自适应练习结果同步后会自动进入。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['adaptive-quiz:control-target-check'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-adaptive-quiz-failed',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-1',
+          provenance: 'official',
+          reviewState: 'reviewed',
+          readinessGateEligible: true,
+          isCorrect: false,
+          score: 0,
+        },
+      },
+    });
+
+    const updateArg = vi.mocked(db.learningPath.update).mock.calls[0]?.[0];
+    expect(updateArg.data.currentNodeId).toBe('adaptive-quiz:control-target-check');
+    expect(updateArg.data.lastExecutionMetadata.availableOutcomeRefs ?? [])
+      .not.toContain('adaptive_assessment:answer-1');
+    expect(updateArg.data.pathPayload.planNodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'control-workbench:lead-design',
+        status: 'locked',
+        readiness: expect.objectContaining({
+          state: 'locked',
+          missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+        }),
+      }),
+    ]));
+  });
+
+  it('keeps adaptive outcome gates locked when readiness ref lacks assessment score', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'adaptive-quiz:control-target-check',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'adaptive-quiz:control-target-check',
+          'control-workbench:lead-design',
+        ],
+        planNodes: [
+          { nodeId: 'adaptive-quiz:control-target-check', type: 'adaptive_quiz', status: 'current' },
+          {
+            nodeId: 'control-workbench:lead-design',
+            type: 'control_workbench',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成自适应练习结果同步后会自动进入。',
+              unlockMessage: '完成自适应练习结果同步后会自动进入。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['adaptive-quiz:control-target-check'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-adaptive-quiz-unscored',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-1',
+          provenance: 'official',
+          reviewState: 'reviewed',
+          readinessGateEligible: true,
+          completionResult: {
+            success: true,
+          },
+        },
+      },
+    });
+
+    const updateArg = vi.mocked(db.learningPath.update).mock.calls[0]?.[0];
+    expect(updateArg.data.currentNodeId).toBe('adaptive-quiz:control-target-check');
+    expect(updateArg.data.lastExecutionMetadata.availableOutcomeRefs ?? [])
+      .not.toContain('adaptive_assessment:answer-1');
+    expect(updateArg.data.pathPayload.planNodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'control-workbench:lead-design',
+        status: 'locked',
+        readiness: expect.objectContaining({
+          state: 'locked',
+          missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+        }),
+      }),
+    ]));
+  });
+
   it('preserves completed terminal validation when reviewing the terminal node', async () => {
     const db = mockDb();
     const completedTerminalValidation = {
