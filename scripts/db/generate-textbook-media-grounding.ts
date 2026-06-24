@@ -110,7 +110,10 @@ async function buildTextbookDocuments(manifest: RuntimeTextbookManifest): Promis
 }
 
 async function loadMediaProjectionRows(filePath: string): Promise<RuntimeResourceProjectionArtifactRow[]> {
-  const content = await fs.readFile(filePath, 'utf-8').catch(() => '');
+  const content = await readRequiredTextFile(
+    filePath,
+    'Missing runtime resource projections. Run the upstream projection generator before textbook-media grounding.',
+  );
   return content
     .split('\n')
     .filter((line) => line.trim().length > 0)
@@ -137,6 +140,14 @@ async function readJsonl<T>(filePath: string): Promise<T[]> {
     .split('\n')
     .filter((line) => line.trim().length > 0)
     .map((line) => JSON.parse(line) as T);
+}
+
+async function readRequiredTextFile(filePath: string, message: string): Promise<string> {
+  try {
+    return await fs.readFile(filePath, 'utf-8');
+  } catch (error) {
+    throw new Error(`${message}\nRequired file: ${filePath}`, { cause: error });
+  }
 }
 
 async function assertRuntimeHrefExists(href: string): Promise<void> {
