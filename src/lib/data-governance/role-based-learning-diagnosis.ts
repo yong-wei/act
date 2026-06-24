@@ -72,6 +72,14 @@ export interface RoleBasedLearningDiagnosisGraphContext {
     citationRefs: string[];
     versionRefs: string[];
   };
+  resourceCoverageByNode?: Array<{
+    graphNodeId: string;
+    coverageState: string;
+    missingCoverageTypes: string[];
+    resourceNodeIds: string[];
+    citationRefs: string[];
+    versionRefs: string[];
+  }>;
 }
 
 export interface RoleBasedLearningDiagnosisInput {
@@ -795,6 +803,14 @@ function graphContextForDimension(
   const learningGoalIds = uniqueStrings(nodes.map((node) => node.learningGoalId));
   const graphNodeIds = uniqueStrings(nodes.map((node) => node.graphNodeId));
   const coverageStates = nodes.map((node) => stringOrNull(node.resourceCoverage?.coverageState)).filter((item): item is string => Boolean(item));
+  const resourceCoverageByNode = nodes.map((node) => ({
+    graphNodeId: node.graphNodeId,
+    coverageState: stringOrNull(node.resourceCoverage?.coverageState) ?? 'unknown',
+    missingCoverageTypes: uniqueStrings(node.resourceCoverage?.missingCoverageTypes ?? []),
+    resourceNodeIds: uniqueStrings(node.resourceCoverage?.resourceNodeIds ?? []),
+    citationRefs: uniqueStrings(node.resourceCoverage?.citationRefs ?? []),
+    versionRefs: uniqueStrings(node.resourceCoverage?.versionRefs ?? []),
+  }));
   return {
     learningGoalIds,
     graphNodeIds,
@@ -813,6 +829,7 @@ function graphContextForDimension(
       citationRefs: uniqueStrings(nodes.flatMap((node) => node.resourceCoverage?.citationRefs ?? [])),
       versionRefs: uniqueStrings(nodes.flatMap((node) => node.resourceCoverage?.versionRefs ?? [])),
     },
+    resourceCoverageByNode,
   };
 }
 

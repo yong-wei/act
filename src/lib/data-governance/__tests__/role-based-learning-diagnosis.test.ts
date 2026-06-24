@@ -331,6 +331,21 @@ describe('role-based learning diagnosis materialization', () => {
           citationRefs: ['chunk-feedback-loop', 'chunk-closed-loop-error'],
           versionRefs: ['graph-center-resource-coverage.v1', 'graph-center-overlay.v1'],
         },
+        resourceCoverageByNode: [{
+          graphNodeId: 'kn:autocontrol:feedback-loop',
+          coverageState: 'partial',
+          missingCoverageTypes: ['practice', 'validated-citation'],
+          resourceNodeIds: ['resource:feedback-loop-card'],
+          citationRefs: ['chunk-feedback-loop'],
+          versionRefs: ['graph-center-resource-coverage.v1'],
+        }, {
+          graphNodeId: 'kn:autocontrol:closed-loop-error',
+          coverageState: 'missing',
+          missingCoverageTypes: ['simulation'],
+          resourceNodeIds: [],
+          citationRefs: ['chunk-closed-loop-error'],
+          versionRefs: ['graph-center-overlay.v1'],
+        }],
       },
     });
     expect(diagnosis.drilldownRefs).toEqual([

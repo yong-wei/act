@@ -1400,10 +1400,7 @@ function graphTargetsFor(graphContext?: RoleBasedLearningDiagnosisGraphContext):
 
 function resourceCoverageGapsFor(graphContext?: RoleBasedLearningDiagnosisGraphContext): TeacherPrepPackResourceCoverageGap[] {
   if (!graphContext) return [];
-  if (graphContext.resourceCoverage.coverageState === 'sufficient' && graphContext.resourceCoverage.missingCoverageTypes.length === 0) {
-    return [];
-  }
-  return graphContext.graphNodeIds.map((graphNodeId) => ({
+  const coverageByNode = graphContext.resourceCoverageByNode ?? graphContext.graphNodeIds.map((graphNodeId) => ({
     graphNodeId,
     coverageState: graphContext.resourceCoverage.coverageState,
     missingCoverageTypes: graphContext.resourceCoverage.missingCoverageTypes,
@@ -1411,6 +1408,19 @@ function resourceCoverageGapsFor(graphContext?: RoleBasedLearningDiagnosisGraphC
     citationRefs: graphContext.resourceCoverage.citationRefs,
     versionRefs: graphContext.resourceCoverage.versionRefs,
   }));
+  return coverageByNode
+    .filter((coverage) =>
+      coverage.coverageState !== 'sufficient' ||
+      coverage.missingCoverageTypes.length > 0
+    )
+    .map((coverage) => ({
+      graphNodeId: coverage.graphNodeId,
+      coverageState: coverage.coverageState,
+      missingCoverageTypes: coverage.missingCoverageTypes,
+      resourceNodeIds: coverage.resourceNodeIds,
+      citationRefs: coverage.citationRefs,
+      versionRefs: coverage.versionRefs,
+    }));
 }
 
 function sourceDiagnosisRefsFor(

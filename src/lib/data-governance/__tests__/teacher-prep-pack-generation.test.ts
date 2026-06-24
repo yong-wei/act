@@ -334,6 +334,14 @@ describe('teacher prep pack generation', () => {
             citationRefs: string[];
             versionRefs: string[];
           };
+          resourceCoverageByNode?: Array<{
+            graphNodeId: string;
+            coverageState: string;
+            missingCoverageTypes: string[];
+            resourceNodeIds: string[];
+            citationRefs: string[];
+            versionRefs: string[];
+          }>;
         };
       }>;
     };
@@ -341,15 +349,30 @@ describe('teacher prep pack generation', () => {
       ...graphAwareDiagnosis.rootCauseClusters[0],
       graphContext: {
         learningGoalIds: ['control-correction'],
-        graphNodeIds: ['kn:autocontrol:feedback-loop'],
+        graphNodeIds: ['kn:autocontrol:feedback-loop', 'kn:autocontrol:stable-error'],
         overlay: { state: 'needs-attention', confidence: 'medium' },
         resourceCoverage: {
+          coverageState: 'partial',
+          missingCoverageTypes: ['practice', 'validated-citation'],
+          resourceNodeIds: ['resource:feedback-loop-card', 'resource:stable-error-card'],
+          citationRefs: ['chunk-feedback-loop', 'chunk-stable-error'],
+          versionRefs: ['graph-center-resource-coverage.v1', 'graph-center-resource-coverage.v2'],
+        },
+        resourceCoverageByNode: [{
+          graphNodeId: 'kn:autocontrol:feedback-loop',
           coverageState: 'partial',
           missingCoverageTypes: ['practice', 'validated-citation'],
           resourceNodeIds: ['resource:feedback-loop-card'],
           citationRefs: ['chunk-feedback-loop'],
           versionRefs: ['graph-center-resource-coverage.v1'],
-        },
+        }, {
+          graphNodeId: 'kn:autocontrol:stable-error',
+          coverageState: 'sufficient',
+          missingCoverageTypes: [],
+          resourceNodeIds: ['resource:stable-error-card'],
+          citationRefs: ['chunk-stable-error'],
+          versionRefs: ['graph-center-resource-coverage.v2'],
+        }],
       },
     };
 
@@ -379,7 +402,7 @@ describe('teacher prep pack generation', () => {
     expect(graphCandidate).toMatchObject({
       graphTargets: {
         learningGoalIds: ['control-correction'],
-        graphNodeIds: ['kn:autocontrol:feedback-loop'],
+        graphNodeIds: ['kn:autocontrol:feedback-loop', 'kn:autocontrol:stable-error'],
       },
       resourceCoverageGaps: [{
         graphNodeId: 'kn:autocontrol:feedback-loop',
@@ -401,8 +424,9 @@ describe('teacher prep pack generation', () => {
       },
     });
     expect(graphCandidate?.methodologyNotes).toEqual(expect.arrayContaining([
-      'Targets K/A/Q graph node kn:autocontrol:feedback-loop for LearningGoal control-correction.',
+      'Targets K/A/Q graph node kn:autocontrol:feedback-loop, kn:autocontrol:stable-error for LearningGoal control-correction.',
     ]));
+    expect(graphCandidate?.resourceCoverageGaps).toHaveLength(1);
     expect(validateTeacherPrepPack(pack)).toEqual([]);
 
     const approved = reviewTeacherPrepPackItem({
@@ -451,6 +475,88 @@ describe('teacher prep pack generation', () => {
       targetGraphNodeId: 'kn:autocontrol:feedback-loop',
       sourceDiagnosisRefs: ['role-diagnosis:cluster-modeling'],
     }));
+  });
+
+  it('keeps not-audited graph nodes as resource coverage gaps without flagging sufficient nodes', () => {
+    const graphAwareDiagnosis = diagnosis() as RoleBasedLearningDiagnosis & {
+      rootCauseClusters: Array<RoleBasedLearningDiagnosis['rootCauseClusters'][number] & {
+        graphContext: {
+          learningGoalIds: string[];
+          graphNodeIds: string[];
+          overlay: { state: string; confidence: string };
+          resourceCoverage: {
+            coverageState: string;
+            missingCoverageTypes: string[];
+            resourceNodeIds: string[];
+            citationRefs: string[];
+            versionRefs: string[];
+          };
+          resourceCoverageByNode: Array<{
+            graphNodeId: string;
+            coverageState: string;
+            missingCoverageTypes: string[];
+            resourceNodeIds: string[];
+            citationRefs: string[];
+            versionRefs: string[];
+          }>;
+        };
+      }>;
+    };
+    graphAwareDiagnosis.rootCauseClusters[0] = {
+      ...graphAwareDiagnosis.rootCauseClusters[0],
+      graphContext: {
+        learningGoalIds: ['control-correction'],
+        graphNodeIds: ['kn:autocontrol:not-audited', 'kn:autocontrol:sufficient'],
+        overlay: { state: 'needs-attention', confidence: 'medium' },
+        resourceCoverage: {
+          coverageState: 'not-audited',
+          missingCoverageTypes: [],
+          resourceNodeIds: ['resource:sufficient-card'],
+          citationRefs: [],
+          versionRefs: ['graph-center-resource-coverage.v3'],
+        },
+        resourceCoverageByNode: [{
+          graphNodeId: 'kn:autocontrol:not-audited',
+          coverageState: 'not-audited',
+          missingCoverageTypes: [],
+          resourceNodeIds: [],
+          citationRefs: [],
+          versionRefs: ['graph-center-resource-coverage.v3'],
+        }, {
+          graphNodeId: 'kn:autocontrol:sufficient',
+          coverageState: 'sufficient',
+          missingCoverageTypes: [],
+          resourceNodeIds: ['resource:sufficient-card'],
+          citationRefs: ['chunk-sufficient'],
+          versionRefs: ['graph-center-resource-coverage.v3'],
+        }],
+      },
+    };
+
+    const pack = generateTeacherPrepPack({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      nextLesson: { lessonId: 'lesson-2', title: '根轨迹校正', plannedAt: now.toISOString() },
+      diagnosis: graphAwareDiagnosis,
+      resourceNodes: [],
+      now,
+    });
+    const graphCandidate = pack.candidates.find((item) => item.itemType === 'interactive-question');
+
+    expect(graphCandidate?.graphTargets?.graphNodeIds).toEqual([
+      'kn:autocontrol:not-audited',
+      'kn:autocontrol:sufficient',
+    ]);
+    expect(graphCandidate?.resourceCoverageGaps).toEqual([{
+      graphNodeId: 'kn:autocontrol:not-audited',
+      coverageState: 'not-audited',
+      missingCoverageTypes: [],
+      resourceNodeIds: [],
+      citationRefs: [],
+      versionRefs: ['graph-center-resource-coverage.v3'],
+    }]);
+    expect(validateTeacherPrepPack(pack)).toEqual([]);
   });
 
   it('backfills citation chips for legacy diagnosis evidence refs', () => {
