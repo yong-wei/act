@@ -13,11 +13,20 @@ const buildScript = read('scripts/build.sh');
 const serviceScript = read('deploy/podman/configure-service.sh');
 const deployScript = read('deploy/podman/deploy.sh');
 const remoteDeployScript = read('scripts/remote-deploy.sh');
+const graphCenterSources = read('src/lib/data-governance/graph-center-sources.ts');
+const learningGoalBaselineRuntime = read('src/lib/learning-goal-resource-baseline-runtime.ts');
 
 assert.equal(
   dockerignore.includes('course-content/runtime'),
   true,
   'Docker 构建上下文应排除 course-content/runtime，避免把运行时资源打进镜像',
+);
+
+assert.equal(
+  /from ['"].*resource-field-completion-summary\.json['"]/.test(graphCenterSources) ||
+    /from ['"].*learning-goal-resource-baseline-matrix\.json['"]/.test(learningGoalBaselineRuntime),
+  false,
+  '源码不得静态 import 外置 runtime governance JSON，否则 Docker 构建上下文排除 runtime 后会失败',
 );
 
 assert.equal(
