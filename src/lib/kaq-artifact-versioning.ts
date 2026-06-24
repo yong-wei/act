@@ -92,6 +92,7 @@ export function detectKaqArtifactStaleness(
   currentRefs: KaqArtifactVersionRefs = DEFAULT_KAQ_ARTIFACT_VERSION_REFS,
 ): KaqArtifactVersionLimitation[] {
   return ([
+    'artifactVersioningVersion',
     'learningGoalPackageVersion',
     'objectiveCatalogVersion',
     'graphCatalogVersion',

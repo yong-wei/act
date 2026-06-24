@@ -71,6 +71,7 @@ export type AdaptiveLearningPathFeedbackType =
   | 'helpfulness';
 export type AdaptiveLearningPathEvidenceType =
   | 'question'
+  | 'path-execution'
   | 'simulation-run'
   | 'arena-official-evaluation'
   | 'reflection'
@@ -934,12 +935,12 @@ const CONTROL_CORRECTION_LEARNING_GOAL = defineLearningGoal({
   ],
   goalSliceId: 'control-correction',
   resourceMix: packageResourceMix(['simulation', 'arena_task'], ['control_workbench', 'simulation', 'arena_task', 'checkpoint']),
-  evidencePolicy: packageEvidencePolicy(['question', 'simulation-run', 'arena-official-evaluation', 'reflection']),
+  evidencePolicy: packageEvidencePolicy(['question', 'path-execution', 'simulation-run', 'arena-official-evaluation', 'reflection']),
   terminalValidationPolicy: terminalValidationPolicy(
     true,
-    ['simulation-run', 'arena-official-evaluation'],
-    ['simulation', 'arena_task'],
-    '以仿真回放或官方 Arena 评测作为路径终点，验证校正方案是否满足目标。',
+    ['simulation-run', 'arena-official-evaluation', 'question'],
+    ['simulation', 'arena_task', 'checkpoint'],
+    '以仿真回放、官方 Arena 评测或教师确认的检查点作为路径终点，验证校正方案是否满足目标。',
   ),
   pathPolicyFamily: 'simulation-driven',
   limitations: [QUALITY_EVIDENCE_LIMITATION],

@@ -1,0 +1,885 @@
+import type { KaqArtifactVersionRefs } from '../kaq-artifact-versioning';
+import { detectKaqArtifactStaleness, validateKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
+import {
+  getLearningGoal,
+  type AdaptiveLearningPathEvidenceType,
+  type LearningGoalDefinition,
+} from '../adaptive-learning-path-planner';
+import {
+  AUTOCONTROL_KAQ_GRAPH_CATALOG,
+  AUTOCONTROL_KAQ_OBJECTIVE_CATALOG,
+} from './autocontrol-kaq-graph-catalog';
+import type { KaqGraphNode } from './kaq-graph-schema';
+import type { KaqObjective, KaqObjectiveDomain } from './kaq-objective-taxonomy';
+
+export type KaqEvidenceSourceClass =
+  | 'instructional-checkpoint'
+  | 'path-execution'
+  | 'simulation-preview'
+  | 'simulation-validation'
+  | 'arena-preview'
+  | 'arena-official'
+  | 'konling-intervention'
+  | 'teacher-approved-grading';
+
+export type KaqEvidenceAuthorityLevel =
+  | 'preview'
+  | 'official'
+  | 'teacher-approved'
+  | 'ai-mediated'
+  | 'governed';
+
+export type KaqEvidencePrivacyScope = 'student' | 'teacher' | 'admin' | 'service';
+export type KaqEvidenceWritebackStatus = 'accepted' | 'degraded' | 'blocked';
+
+export type KaqEvidenceLimitationCode =
+  | 'missing-target-binding'
+  | 'missing-learning-goal-boundary'
+  | 'missing-writeback-id'
+  | 'invalid-materialized-at'
+  | 'invalid-evidence-window'
+  | 'invalid-grading-max-score'
+  | 'missing-subject-owner'
+  | 'missing-actor-id'
+  | 'subject-owner-mismatch'
+  | 'unknown-objective-id'
+  | 'unknown-graph-node-id'
+  | 'unknown-learning-goal-id'
+  | 'learning-goal-target-mismatch'
+  | 'learning-goal-evidence-policy-mismatch'
+  | 'terminal-validation-policy-mismatch'
+  | 'objective-domain-mismatch'
+  | 'graph-node-domain-mismatch'
+  | 'target-objective-node-mismatch'
+  | 'missing-version-ref'
+  | 'preview-not-terminal-validation'
+  | 'ai-mediated-low-authority'
+  | 'source-not-terminal-validation-authority'
+  | 'low-confidence-terminal-validation'
+  | 'missing-source-ref'
+  | 'source-ref-class-mismatch'
+  | 'source-ref-id-mismatch'
+  | 'unverified-resource-node-id';
+
+export interface KaqEvidenceSourceRef {
+  kind: string;
+  id: string;
+}
+
+export interface KaqEvidenceWritebackSource {
+  sourceClass: KaqEvidenceSourceClass;
+  sourceId: string;
+  sourceRef: KaqEvidenceSourceRef;
+  official: boolean;
+  teacherApproved: boolean;
+  aiGenerated: boolean;
+  citationRefs?: string[];
+}
+
+export interface KaqEvidenceWritebackActor {
+  type: 'student' | 'teacher' | 'admin' | 'service';
+  id: string;
+}
+
+export interface KaqEvidenceSubjectScope {
+  ownerUserId: string;
+  studentId?: string | null;
+  classId?: string | null;
+}
+
+export interface KaqEvidenceWindow {
+  from: string | null;
+  to: string | null;
+}
+
+export interface KaqEvidenceContributionInput {
+  domain: KaqObjectiveDomain;
+  objectiveId?: string | null;
+  graphNodeId?: string | null;
+  learningGoalId?: string | null;
+  resourceNodeId?: string | null;
+  confidence: number;
+  terminalValidationCandidate: boolean;
+  limitationCodes?: KaqEvidenceLimitationCode[];
+}
+
+export interface KaqEvidenceWritebackInput {
+  id: string;
+  source: KaqEvidenceWritebackSource;
+  subject: KaqEvidenceSubjectScope;
+  actor: KaqEvidenceWritebackActor;
+  privacyScope: KaqEvidencePrivacyScope;
+  materializedAt: string;
+  evidenceWindow: KaqEvidenceWindow;
+  versionRefs: KaqArtifactVersionRefs | null;
+  resourceTargetRegistry?: KaqEvidenceResourceTargetRegistry | null;
+  contributions: KaqEvidenceContributionInput[];
+}
+
+export interface KaqEvidenceTargetRef {
+  objectiveId: string | null;
+  graphNodeId: string | null;
+  learningGoalId: string | null;
+  resourceNodeId: string | null;
+}
+
+export interface KaqEvidenceOverlayUpdate {
+  id: string;
+  domain: KaqObjectiveDomain;
+  sourceClass: KaqEvidenceSourceClass;
+  sourceId: string | null;
+  sourceRef: KaqEvidenceSourceRef | null;
+  citationRefs: string[] | null;
+  targetRef: KaqEvidenceTargetRef;
+  subject: KaqEvidenceSubjectScope;
+  confidence: number;
+  authorityLevel: KaqEvidenceAuthorityLevel;
+  terminalValidationAccepted: boolean;
+  evidenceWindow: KaqEvidenceWindow;
+  limitationCodes: string[];
+  aiGenerated: boolean;
+  teacherApproved: boolean;
+  materializedAt: string;
+}
+
+export interface KaqEvidenceWritebackAuditEvent {
+  eventType: 'kaq-evidence-writeback.materialized';
+  writebackId: string;
+  sourceClass: KaqEvidenceSourceClass;
+  sourceId: string | null;
+  sourceRef: KaqEvidenceSourceRef | null;
+  citationRefs: string[] | null;
+  targetRefs: KaqEvidenceTargetRef[];
+  subject: KaqEvidenceSubjectScope;
+  versionRefs: KaqArtifactVersionRefs | null;
+  confidence: number | null;
+  limitationCodes: string[];
+  actor: KaqEvidenceWritebackActor;
+  privacyScope: KaqEvidencePrivacyScope;
+  materializedAt: string;
+  aiGenerated: boolean;
+  teacherApproved: boolean;
+  status: KaqEvidenceWritebackStatus;
+}
+
+export interface KaqEvidenceWritebackResult {
+  id: string;
+  status: KaqEvidenceWritebackStatus;
+  overlayUpdates: KaqEvidenceOverlayUpdate[];
+  audit: KaqEvidenceWritebackAuditEvent;
+}
+
+export interface KaqEvidenceWritebackProjection {
+  id: string;
+  status: KaqEvidenceWritebackStatus;
+  overlayUpdates: KaqEvidenceOverlayUpdate[];
+  audit: KaqEvidenceWritebackAuditEvent | null;
+}
+
+export interface KaqEvidenceResourceTargetRegistry {
+  nodes: Array<{ id: string }>;
+}
+
+const PREVIEW_SOURCE_CLASSES = new Set<KaqEvidenceSourceClass>([
+  'simulation-preview',
+  'arena-preview',
+]);
+
+const REQUIRED_VERSION_REFS: Array<keyof KaqArtifactVersionRefs> = [
+  'artifactVersioningVersion',
+  'learningGoalPackageVersion',
+  'objectiveCatalogVersion',
+  'graphCatalogVersion',
+  'overlayVersion',
+];
+const RESOURCE_TARGET_VERSION_REFS: Array<keyof KaqArtifactVersionRefs> = [
+  'resourceRegistryVersion',
+  'resourceProjectionVersion',
+];
+const TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD = 0.6;
+
+const SOURCE_VERSION_REFS: Partial<Record<KaqEvidenceSourceClass, Array<keyof KaqArtifactVersionRefs>>> = {
+  'path-execution': ['plannerVersion'],
+  'konling-intervention': ['groundingVersion'],
+};
+const SOURCE_REF_KINDS: Record<KaqEvidenceSourceClass, string> = {
+  'instructional-checkpoint': 'InstructionalCheckpoint',
+  'path-execution': 'LearningPathExecution',
+  'simulation-preview': 'SimulationRun',
+  'simulation-validation': 'SimulationRun',
+  'arena-preview': 'SimulationRun',
+  'arena-official': 'ArenaSubmission',
+  'konling-intervention': 'AgentToolRun',
+  'teacher-approved-grading': 'DocumentRubricGrading',
+};
+
+const AUTOCONTROL_OBJECTIVES: KaqObjective[] = [
+  ...AUTOCONTROL_KAQ_OBJECTIVE_CATALOG.knowledge,
+  ...AUTOCONTROL_KAQ_OBJECTIVE_CATALOG.capability,
+  ...AUTOCONTROL_KAQ_OBJECTIVE_CATALOG.quality,
+];
+const AUTOCONTROL_OBJECTIVES_BY_ID = new Map(AUTOCONTROL_OBJECTIVES.map((objective) => [objective.id, objective]));
+const AUTOCONTROL_GRAPH_NODES_BY_ID = new Map(
+  AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.map((node) => [node.id, node] as const),
+);
+
+export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput): KaqEvidenceWritebackResult {
+  const writebackId = normalizeOptionalId(input.id) ?? '';
+  const materializedAt = normalizeOptionalId(input.materializedAt) ?? '';
+  const evidenceWindow = normalizeEvidenceWindow(input.evidenceWindow);
+  const normalizedSource = normalizeSource(input.source);
+  const normalizedSubject = normalizeSubject(input.subject);
+  const normalizedActor = normalizeActor(input.actor);
+  const normalizedVersionRefs = normalizeVersionRefs(input.versionRefs);
+  const normalizedInput = {
+    ...input,
+    id: writebackId,
+    source: normalizedSource,
+    subject: normalizedSubject,
+    actor: normalizedActor,
+    materializedAt,
+    evidenceWindow,
+    versionRefs: normalizedVersionRefs,
+  };
+  const versionLimitations = validateRequiredVersionRefs(normalizedInput);
+  const writebackLimitations = validateWritebackId(writebackId);
+  const materializedAtLimitations = validateMaterializedAt(materializedAt);
+  const evidenceWindowLimitations = validateEvidenceWindow(evidenceWindow, materializedAt);
+  const sourceLimitations = validateSource(normalizedSource);
+  const subjectLimitations = validateSubject(normalizedSubject);
+  const actorLimitations = validateActor(normalizedActor);
+  const authorityLevel = resolveAuthorityLevel(normalizedSource);
+  const isPreview = authorityLevel === 'preview';
+  const contributionEvaluations = input.contributions.map((contribution) => ({
+    contribution,
+    limitationCodes: uniqueSorted([
+      ...validateTargetBinding(contribution),
+      ...validateLearningGoalEvidencePolicy(normalizedSource, contribution),
+      ...validateTerminalValidationPolicy(normalizedSource, contribution),
+      ...validateCatalogTarget(contribution),
+      ...validateResourceTargetVersionRefs(normalizedInput, contribution),
+      ...validateResourceTarget(contribution, input.resourceTargetRegistry),
+      ...(contribution.limitationCodes ?? []),
+      ...(isPreview && contribution.terminalValidationCandidate ? ['preview-not-terminal-validation' as const] : []),
+      ...(normalizedSource.aiGenerated && !normalizedSource.teacherApproved ? ['ai-mediated-low-authority' as const] : []),
+      ...(!isPreview && contribution.terminalValidationCandidate && !canSourceSatisfyTerminalValidation(normalizedSource)
+        ? ['source-not-terminal-validation-authority' as const]
+        : []),
+      ...(contribution.terminalValidationCandidate && clampConfidence(contribution.confidence) < TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD
+        ? ['low-confidence-terminal-validation' as const]
+        : []),
+    ]),
+  }));
+  const globalBlocking = (versionLimitations.some(isBlockingVersionLimitation) && input.source.official)
+    || writebackLimitations.length > 0
+    || materializedAtLimitations.length > 0
+    || evidenceWindowLimitations.length > 0
+    || sourceLimitations.length > 0
+    || subjectLimitations.length > 0
+    || actorLimitations.length > 0;
+  const overlayUpdates = globalBlocking
+    ? []
+    : contributionEvaluations
+      .map(({ contribution, limitationCodes }, index) => materializeContribution(
+        normalizedInput,
+        contribution,
+        uniqueSorted([...versionLimitations, ...limitationCodes]),
+        index,
+        authorityLevel,
+      ))
+      .filter((update): update is KaqEvidenceOverlayUpdate => Boolean(update));
+  const limitationCodes = uniqueSorted([
+    ...(input.contributions.length === 0 ? ['missing-target-binding' as const] : []),
+    ...versionLimitations,
+    ...writebackLimitations,
+    ...materializedAtLimitations,
+    ...evidenceWindowLimitations,
+    ...sourceLimitations,
+    ...subjectLimitations,
+    ...actorLimitations,
+    ...contributionEvaluations.flatMap((evaluation) => evaluation.limitationCodes),
+  ]);
+  const status = resolveStatus(globalBlocking, overlayUpdates, limitationCodes);
+
+  return {
+    id: writebackId,
+    status,
+    overlayUpdates: status === 'blocked' ? [] : overlayUpdates,
+    audit: {
+      eventType: 'kaq-evidence-writeback.materialized',
+      writebackId,
+      sourceClass: normalizedSource.sourceClass,
+      sourceId: normalizedSource.sourceId,
+      sourceRef: normalizedSource.sourceRef,
+      citationRefs: normalizedSource.citationRefs ?? null,
+      targetRefs: input.contributions.map(toTargetRef),
+      subject: normalizedSubject,
+      versionRefs: normalizedVersionRefs,
+      confidence: averageConfidence(input.contributions),
+      limitationCodes,
+      actor: normalizedActor,
+      privacyScope: input.privacyScope,
+      materializedAt,
+      aiGenerated: normalizedSource.aiGenerated,
+      teacherApproved: normalizedSource.teacherApproved,
+      status,
+    },
+  };
+}
+
+export function projectKaqEvidenceWritebackForConsumer(
+  result: KaqEvidenceWritebackResult,
+  consumer: KaqEvidencePrivacyScope,
+): KaqEvidenceWritebackProjection {
+  return {
+    id: result.id,
+    status: result.status,
+    overlayUpdates: result.overlayUpdates.map((update) => ({
+      ...update,
+      sourceRef: consumer === 'student' || consumer === 'teacher' ? null : update.sourceRef,
+      sourceId: consumer === 'student' || consumer === 'teacher' ? null : update.sourceId,
+      citationRefs: consumer === 'student' || consumer === 'teacher' ? null : update.citationRefs,
+    })),
+    audit: projectAudit(result.audit, consumer),
+  };
+}
+
+export function buildPathExecutionWritebackInput(input: {
+  id: string;
+  executionId: string;
+  subject: KaqEvidenceSubjectScope;
+  learningGoalId: string;
+  terminalObjectiveId: string;
+  terminalGraphNodeId: string;
+  outcome: 'selected' | 'completed' | 'deviated' | 'fallback';
+  score: number;
+  versionRefs: KaqArtifactVersionRefs;
+  materializedAt: string;
+}): KaqEvidenceWritebackInput {
+  return {
+    id: input.id,
+    source: {
+      sourceClass: 'path-execution',
+      sourceId: input.executionId,
+      sourceRef: { kind: 'LearningPathExecution', id: input.executionId },
+      official: true,
+      teacherApproved: false,
+      aiGenerated: false,
+    },
+    subject: input.subject,
+    actor: { type: 'service', id: 'adaptive-path-execution' },
+    privacyScope: 'service',
+    materializedAt: input.materializedAt,
+    evidenceWindow: { from: null, to: input.materializedAt },
+    versionRefs: input.versionRefs,
+    contributions: String(input.outcome) === 'selected'
+      ? []
+      : [
+        {
+          domain: 'capability',
+          objectiveId: input.terminalObjectiveId,
+          graphNodeId: input.terminalGraphNodeId,
+          learningGoalId: input.learningGoalId,
+          confidence: clampConfidence(input.score),
+          terminalValidationCandidate: input.outcome === 'completed',
+        },
+      ],
+  };
+}
+
+export function buildKonlingInterventionWritebackInput(input: {
+  id: string;
+  toolRunId: string;
+  subject: KaqEvidenceSubjectScope;
+  learningGoalId: string;
+  qualityObjectiveId: string;
+  graphNodeId: string;
+  accepted: boolean;
+  citationRefs?: string[];
+  versionRefs: KaqArtifactVersionRefs;
+  materializedAt: string;
+}): KaqEvidenceWritebackInput {
+  return {
+    id: input.id,
+    source: {
+      sourceClass: 'konling-intervention',
+      sourceId: input.toolRunId,
+      sourceRef: { kind: 'AgentToolRun', id: input.toolRunId },
+      official: false,
+      teacherApproved: false,
+      aiGenerated: true,
+      citationRefs: input.citationRefs,
+    },
+    subject: input.subject,
+    actor: { type: 'service', id: 'konling-runtime' },
+    privacyScope: 'student',
+    materializedAt: input.materializedAt,
+    evidenceWindow: { from: null, to: input.materializedAt },
+    versionRefs: input.versionRefs,
+    contributions: [
+      {
+        domain: 'quality',
+        objectiveId: input.qualityObjectiveId,
+        graphNodeId: input.graphNodeId,
+        learningGoalId: input.learningGoalId,
+        confidence: input.accepted ? 0.58 : 0.35,
+        terminalValidationCandidate: false,
+      },
+    ],
+  };
+}
+
+export function buildTeacherApprovedGradingWritebackInput(input: {
+  id: string;
+  gradingRunId: string;
+  subject: KaqEvidenceSubjectScope;
+  teacherId: string;
+  learningGoalId: string;
+  objectiveId: string;
+  graphNodeId: string;
+  score: number;
+  maxScore?: number;
+  aiGenerated?: boolean;
+  versionRefs: KaqArtifactVersionRefs;
+  materializedAt: string;
+}): KaqEvidenceWritebackInput {
+  const id = normalizeOptionalId(input.id) ?? '';
+  const gradingRunId = normalizeOptionalId(input.gradingRunId) ?? '';
+  const teacherId = normalizeOptionalId(input.teacherId) ?? '';
+  const learningGoalId = normalizeOptionalId(input.learningGoalId) ?? '';
+  const objectiveId = normalizeOptionalId(input.objectiveId) ?? '';
+  const graphNodeId = normalizeOptionalId(input.graphNodeId) ?? '';
+  const materializedAt = normalizeOptionalId(input.materializedAt) ?? '';
+  const normalizedScore = normalizeGradingScore(input.score, input.maxScore);
+  const validMaxScore = input.maxScore === undefined || isValidGradingMaxScore(input.maxScore);
+  const terminalValidationCandidate = normalizedScore >= TERMINAL_VALIDATION_CONFIDENCE_THRESHOLD;
+  return {
+    id,
+    source: {
+      sourceClass: 'teacher-approved-grading',
+      sourceId: gradingRunId,
+      sourceRef: { kind: 'DocumentRubricGrading', id: gradingRunId },
+      official: true,
+      teacherApproved: true,
+      aiGenerated: input.aiGenerated ?? false,
+    },
+    subject: input.subject,
+    actor: { type: 'teacher', id: teacherId },
+    privacyScope: 'teacher',
+    materializedAt,
+    evidenceWindow: { from: null, to: materializedAt },
+    versionRefs: input.versionRefs,
+    contributions: [
+      {
+        domain: inferDomainFromObjectiveId(objectiveId),
+        objectiveId,
+        graphNodeId,
+        learningGoalId,
+        confidence: normalizedScore,
+        terminalValidationCandidate,
+        limitationCodes: validMaxScore ? undefined : ['invalid-grading-max-score'],
+      },
+    ],
+  };
+}
+
+function materializeContribution(
+  input: KaqEvidenceWritebackInput,
+  contribution: KaqEvidenceContributionInput,
+  limitationCodes: string[],
+  index: number,
+  authorityLevel: KaqEvidenceAuthorityLevel,
+): KaqEvidenceOverlayUpdate | null {
+  if (isBlockingContribution(limitationCodes)) return null;
+  const terminalValidationAccepted = contribution.terminalValidationCandidate
+    && canSourceSatisfyTerminalValidation(input.source)
+    && authorityLevel !== 'preview'
+    && (!input.source.aiGenerated || input.source.teacherApproved)
+    && limitationCodes.length === 0;
+
+  return {
+    id: `${input.id}:${index + 1}`,
+    domain: contribution.domain,
+    sourceClass: input.source.sourceClass,
+    sourceId: input.source.sourceId,
+    sourceRef: input.source.sourceRef,
+    citationRefs: input.source.citationRefs ?? null,
+    targetRef: toTargetRef(contribution),
+    subject: input.subject,
+    confidence: resolveConfidence(contribution.confidence, authorityLevel, limitationCodes),
+    authorityLevel,
+    terminalValidationAccepted,
+    evidenceWindow: input.evidenceWindow,
+    limitationCodes,
+    aiGenerated: input.source.aiGenerated,
+    teacherApproved: input.source.teacherApproved,
+    materializedAt: input.materializedAt,
+  };
+}
+
+function validateRequiredVersionRefs(input: KaqEvidenceWritebackInput): string[] {
+  const requiredRefs = uniqueSorted([
+    ...REQUIRED_VERSION_REFS,
+    ...(SOURCE_VERSION_REFS[input.source.sourceClass] ?? []),
+    ...(input.source.citationRefs?.length ? ['citationVersion' as keyof KaqArtifactVersionRefs] : []),
+  ]);
+  return [
+    ...validateKaqArtifactVersionRefs(input.versionRefs, requiredRefs),
+    ...(input.versionRefs ? detectKaqArtifactStaleness(input.versionRefs)
+      .filter((limitation) => requiredRefs.includes(limitation.ref)) : []),
+  ]
+    .map((limitation) => `${limitation.code}:${limitation.ref}`);
+}
+
+function validateResourceTargetVersionRefs(
+  input: KaqEvidenceWritebackInput,
+  contribution: KaqEvidenceContributionInput,
+): string[] {
+  if (!normalizeOptionalId(contribution.resourceNodeId)) return [];
+  return [
+    ...validateKaqArtifactVersionRefs(input.versionRefs, RESOURCE_TARGET_VERSION_REFS),
+    ...(input.versionRefs ? detectKaqArtifactStaleness(input.versionRefs)
+      .filter((limitation) => RESOURCE_TARGET_VERSION_REFS.includes(limitation.ref)) : []),
+  ]
+    .map((limitation) => `${limitation.code}:${limitation.ref}`);
+}
+
+function validateTargetBinding(contribution: KaqEvidenceContributionInput): KaqEvidenceLimitationCode[] {
+  const learningGoalId = normalizeOptionalId(contribution.learningGoalId);
+  const learningGoal = learningGoalId ? getLearningGoal(learningGoalId) : null;
+  return [
+    ...(!normalizeOptionalId(contribution.objectiveId) && !normalizeOptionalId(contribution.graphNodeId)
+      ? ['missing-target-binding' as const]
+      : []),
+    ...(!learningGoalId ? ['missing-learning-goal-boundary' as const] : []),
+    ...(learningGoalId && !learningGoal ? ['unknown-learning-goal-id' as const] : []),
+    ...(learningGoal && !learningGoalMatchesContributionTarget(learningGoal, contribution)
+      ? ['learning-goal-target-mismatch' as const]
+      : []),
+  ];
+}
+
+function validateLearningGoalEvidencePolicy(
+  source: KaqEvidenceWritebackSource,
+  contribution: KaqEvidenceContributionInput,
+): KaqEvidenceLimitationCode[] {
+  if (contribution.terminalValidationCandidate && canSourceSatisfyTerminalValidation(source)) return [];
+  const learningGoalId = normalizeOptionalId(contribution.learningGoalId);
+  const learningGoal = learningGoalId ? getLearningGoal(learningGoalId) : null;
+  const evidenceType = evidenceTypeForSourceClass(source.sourceClass);
+  if (!learningGoal || !evidenceType) return [];
+  return learningGoal.evidencePolicy.requiredEvidenceTypes.includes(evidenceType)
+    ? []
+    : ['learning-goal-evidence-policy-mismatch'];
+}
+
+function validateTerminalValidationPolicy(
+  source: KaqEvidenceWritebackSource,
+  contribution: KaqEvidenceContributionInput,
+): KaqEvidenceLimitationCode[] {
+  if (!contribution.terminalValidationCandidate || !canSourceSatisfyTerminalValidation(source)) return [];
+  const learningGoalId = normalizeOptionalId(contribution.learningGoalId);
+  const learningGoal = learningGoalId ? getLearningGoal(learningGoalId) : null;
+  const evidenceType = evidenceTypeForSourceClass(source.sourceClass);
+  if (!learningGoal || !evidenceType) return [];
+  return learningGoal.terminalValidationPolicy.acceptedEvidenceTypes.includes(evidenceType)
+    ? []
+    : ['terminal-validation-policy-mismatch'];
+}
+
+function validateSubject(subject: KaqEvidenceSubjectScope): KaqEvidenceLimitationCode[] {
+  const ownerUserId = typeof subject.ownerUserId === 'string' ? subject.ownerUserId.trim() : '';
+  const studentId = typeof subject.studentId === 'string' ? subject.studentId.trim() : '';
+  return [
+    ...(ownerUserId.length > 0 ? [] : ['missing-subject-owner' as const]),
+    ...(studentId && studentId !== ownerUserId ? ['subject-owner-mismatch' as const] : []),
+  ];
+}
+
+function validateWritebackId(writebackId: string): KaqEvidenceLimitationCode[] {
+  return writebackId.length > 0 ? [] : ['missing-writeback-id'];
+}
+
+function validateMaterializedAt(materializedAt: string): KaqEvidenceLimitationCode[] {
+  return isStrictIsoTimestamp(materializedAt)
+    ? []
+    : ['invalid-materialized-at'];
+}
+
+function validateEvidenceWindow(
+  evidenceWindow: KaqEvidenceWindow,
+  materializedAt: string,
+): KaqEvidenceLimitationCode[] {
+  const fromValid = evidenceWindow.from === null || isStrictIsoTimestamp(evidenceWindow.from);
+  const toValid = evidenceWindow.to !== null && isStrictIsoTimestamp(evidenceWindow.to);
+  const materializedAtValid = isStrictIsoTimestamp(materializedAt);
+  const ordered = evidenceWindow.from === null || evidenceWindow.to === null
+    || Date.parse(evidenceWindow.from) <= Date.parse(evidenceWindow.to);
+  const notFuture = !materializedAtValid || (
+    (evidenceWindow.from === null || Date.parse(evidenceWindow.from) <= Date.parse(materializedAt))
+    && (evidenceWindow.to === null || Date.parse(evidenceWindow.to) <= Date.parse(materializedAt))
+  );
+  return fromValid && toValid && ordered && notFuture ? [] : ['invalid-evidence-window'];
+}
+
+function validateActor(actor: KaqEvidenceWritebackActor): KaqEvidenceLimitationCode[] {
+  return actor.id.length > 0 ? [] : ['missing-actor-id'];
+}
+
+function validateSource(source: KaqEvidenceWritebackSource): KaqEvidenceLimitationCode[] {
+  const sourceId = typeof source.sourceId === 'string' ? source.sourceId.trim() : '';
+  const sourceRefKind = typeof source.sourceRef?.kind === 'string' ? source.sourceRef.kind.trim() : '';
+  const sourceRefId = typeof source.sourceRef?.id === 'string' ? source.sourceRef.id.trim() : '';
+  if (!sourceId || !sourceRefKind || !sourceRefId) return ['missing-source-ref'];
+  return [
+    ...(sourceRefKind === SOURCE_REF_KINDS[source.sourceClass] ? [] : ['source-ref-class-mismatch' as const]),
+    ...(sourceRefId === sourceId ? [] : ['source-ref-id-mismatch' as const]),
+  ];
+}
+
+function normalizeSource(source: KaqEvidenceWritebackSource): KaqEvidenceWritebackSource {
+  const citationRefs = source.citationRefs
+    ?.map((ref) => ref.trim())
+    .filter((ref) => ref.length > 0);
+  return {
+    ...source,
+    aiGenerated: source.sourceClass === 'konling-intervention' ? true : source.aiGenerated,
+    sourceId: normalizeOptionalId(source.sourceId) ?? '',
+    sourceRef: {
+      kind: normalizeOptionalId(source.sourceRef?.kind) ?? '',
+      id: normalizeOptionalId(source.sourceRef?.id) ?? '',
+    },
+    citationRefs: citationRefs?.length ? citationRefs : undefined,
+  };
+}
+
+function normalizeSubject(subject: KaqEvidenceSubjectScope): KaqEvidenceSubjectScope {
+  return {
+    ...subject,
+    ownerUserId: normalizeOptionalId(subject.ownerUserId) ?? '',
+    studentId: normalizeOptionalId(subject.studentId),
+    classId: normalizeOptionalId(subject.classId),
+  };
+}
+
+function normalizeEvidenceWindow(evidenceWindow: KaqEvidenceWindow): KaqEvidenceWindow {
+  return {
+    from: typeof evidenceWindow.from === 'string' ? evidenceWindow.from.trim() : null,
+    to: typeof evidenceWindow.to === 'string' ? evidenceWindow.to.trim() : null,
+  };
+}
+
+function normalizeActor(actor: KaqEvidenceWritebackActor): KaqEvidenceWritebackActor {
+  return {
+    ...actor,
+    id: normalizeOptionalId(actor.id) ?? '',
+  };
+}
+
+function normalizeGradingScore(score: number, maxScore: number | undefined): number {
+  if (maxScore !== undefined && !isValidGradingMaxScore(maxScore)) return 0;
+  return isValidGradingMaxScore(maxScore)
+    ? clampConfidence(score / maxScore)
+    : clampConfidence(score);
+}
+
+function normalizeVersionRefs(refs: KaqArtifactVersionRefs | null): KaqArtifactVersionRefs | null {
+  if (!refs) return null;
+  return Object.fromEntries(
+    Object.entries(refs).map(([key, value]) => [
+      key,
+      typeof value === 'string' ? value.trim() || null : value,
+    ]),
+  ) as KaqArtifactVersionRefs;
+}
+
+function isValidGradingMaxScore(maxScore: number | undefined): maxScore is number {
+  return typeof maxScore === 'number' && Number.isFinite(maxScore) && maxScore > 0;
+}
+
+function isStrictIsoTimestamp(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value)) return false;
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) return false;
+  return new Date(parsed).toISOString() === (value.includes('.') ? value : value.replace('Z', '.000Z'));
+}
+
+function validateCatalogTarget(contribution: KaqEvidenceContributionInput): KaqEvidenceLimitationCode[] {
+  const objectiveId = normalizeOptionalId(contribution.objectiveId);
+  const graphNodeId = normalizeOptionalId(contribution.graphNodeId);
+  const objective = objectiveId
+    ? AUTOCONTROL_OBJECTIVES_BY_ID.get(objectiveId)
+    : null;
+  const graphNode = graphNodeId
+    ? AUTOCONTROL_GRAPH_NODES_BY_ID.get(graphNodeId)
+    : null;
+  const limitations: KaqEvidenceLimitationCode[] = [];
+  if (objectiveId && !objective) limitations.push('unknown-objective-id');
+  if (graphNodeId && !graphNode) limitations.push('unknown-graph-node-id');
+  if (objective && objective.domain !== contribution.domain) limitations.push('objective-domain-mismatch');
+  if (graphNode && graphNode.domain !== contribution.domain) limitations.push('graph-node-domain-mismatch');
+  if (objective && graphNode && !graphNodeSupportsObjective(graphNode, objective)) {
+    limitations.push('target-objective-node-mismatch');
+  }
+  return limitations;
+}
+
+function validateResourceTarget(
+  contribution: KaqEvidenceContributionInput,
+  registry: KaqEvidenceResourceTargetRegistry | null | undefined,
+): KaqEvidenceLimitationCode[] {
+  const resourceNodeId = normalizeOptionalId(contribution.resourceNodeId);
+  if (!resourceNodeId) return [];
+  const verifiedNodeIds = new Set((registry?.nodes ?? []).map((node) => node.id));
+  return verifiedNodeIds.has(resourceNodeId) ? [] : ['unverified-resource-node-id'];
+}
+
+function learningGoalMatchesContributionTarget(
+  learningGoal: LearningGoalDefinition,
+  contribution: KaqEvidenceContributionInput,
+): boolean {
+  const objectiveId = normalizeOptionalId(contribution.objectiveId);
+  const graphNodeId = normalizeOptionalId(contribution.graphNodeId);
+  const objectiveIdsByDomain: Record<KaqObjectiveDomain, string[]> = {
+    knowledge: learningGoal.knowledgeObjectiveIds,
+    capability: learningGoal.capabilityObjectiveIds,
+    quality: learningGoal.qualityObjectiveIds,
+  };
+  return (!objectiveId || objectiveIdsByDomain[contribution.domain].includes(objectiveId))
+    && (!graphNodeId || learningGoal.targetGraphNodeIds.includes(graphNodeId));
+}
+
+function graphNodeSupportsObjective(graphNode: KaqGraphNode, objective: KaqObjective): boolean {
+  return graphNode.objectiveIds.includes(objective.id)
+    || Boolean(objective.graphBinding?.bindingRefs.includes(graphNode.id));
+}
+
+function isBlockingContribution(limitationCodes: string[]): boolean {
+  return limitationCodes.some((code) => [
+    'missing-target-binding',
+    'missing-learning-goal-boundary',
+    'unknown-learning-goal-id',
+    'learning-goal-target-mismatch',
+    'learning-goal-evidence-policy-mismatch',
+    'unknown-objective-id',
+    'unknown-graph-node-id',
+    'objective-domain-mismatch',
+    'graph-node-domain-mismatch',
+    'target-objective-node-mismatch',
+    'missing-version-ref:resourceRegistryVersion',
+    'missing-version-ref:resourceProjectionVersion',
+    'unverified-resource-node-id',
+  ].includes(code));
+}
+
+function isBlockingVersionLimitation(limitationCode: string): boolean {
+  return limitationCode.startsWith('missing-version-ref:');
+}
+
+function resolveAuthorityLevel(source: KaqEvidenceWritebackSource): KaqEvidenceAuthorityLevel {
+  if (PREVIEW_SOURCE_CLASSES.has(source.sourceClass)) return 'preview';
+  if (source.sourceClass === 'konling-intervention') return 'ai-mediated';
+  if (source.teacherApproved) return 'teacher-approved';
+  if (source.official) return 'official';
+  return 'governed';
+}
+
+function canSourceSatisfyTerminalValidation(source: KaqEvidenceWritebackSource): boolean {
+  if (source.sourceClass === 'arena-official') return source.official;
+  if (source.sourceClass === 'simulation-validation') return source.official;
+  if (source.sourceClass === 'teacher-approved-grading') return source.teacherApproved;
+  if (source.sourceClass === 'instructional-checkpoint') return source.teacherApproved;
+  return false;
+}
+
+function evidenceTypeForSourceClass(
+  sourceClass: KaqEvidenceSourceClass,
+): AdaptiveLearningPathEvidenceType | null {
+  if (sourceClass === 'path-execution') return 'path-execution';
+  if (sourceClass === 'simulation-preview' || sourceClass === 'arena-preview') return 'simulation-run';
+  if (sourceClass === 'simulation-validation') return 'simulation-run';
+  if (sourceClass === 'arena-official') return 'arena-official-evaluation';
+  if (sourceClass === 'konling-intervention') return 'agent-interaction';
+  if (sourceClass === 'teacher-approved-grading' || sourceClass === 'instructional-checkpoint') return 'question';
+  return null;
+}
+
+function resolveConfidence(
+  confidence: number,
+  authorityLevel: KaqEvidenceAuthorityLevel,
+  limitationCodes: string[],
+): number {
+  const base = clampConfidence(confidence);
+  const caps = [
+    authorityLevel === 'preview' ? 0.4 : 1,
+    authorityLevel === 'ai-mediated' ? 0.65 : 1,
+    limitationCodes.length > 0 ? 0.6 : 1,
+  ];
+  return round(Math.min(base, ...caps));
+}
+
+function resolveStatus(
+  globalBlocking: boolean,
+  overlayUpdates: KaqEvidenceOverlayUpdate[],
+  limitationCodes: string[],
+): KaqEvidenceWritebackStatus {
+  if (globalBlocking || overlayUpdates.length === 0) return 'blocked';
+  if (limitationCodes.length > 0) return 'degraded';
+  return 'accepted';
+}
+
+function projectAudit(
+  audit: KaqEvidenceWritebackAuditEvent,
+  consumer: KaqEvidencePrivacyScope,
+): KaqEvidenceWritebackAuditEvent | null {
+  if (consumer === 'student') return null;
+  if (consumer === 'teacher') {
+    return {
+      ...audit,
+      sourceId: null,
+      sourceRef: null,
+      citationRefs: null,
+      actor: { type: audit.actor.type, id: 'redacted' },
+    };
+  }
+  return audit;
+}
+
+function toTargetRef(contribution: KaqEvidenceContributionInput): KaqEvidenceTargetRef {
+  return {
+    objectiveId: normalizeOptionalId(contribution.objectiveId),
+    graphNodeId: normalizeOptionalId(contribution.graphNodeId),
+    learningGoalId: normalizeOptionalId(contribution.learningGoalId),
+    resourceNodeId: normalizeOptionalId(contribution.resourceNodeId),
+  };
+}
+
+function averageConfidence(contributions: KaqEvidenceContributionInput[]): number | null {
+  if (contributions.length === 0) return null;
+  return round(contributions.reduce((sum, contribution) => sum + clampConfidence(contribution.confidence), 0) / contributions.length);
+}
+
+function inferDomainFromObjectiveId(objectiveId: string): KaqObjectiveDomain {
+  if (objectiveId.startsWith('knowledge:')) return 'knowledge';
+  if (objectiveId.startsWith('capability:')) return 'capability';
+  return 'quality';
+}
+
+function clampConfidence(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(1, Math.max(0, value));
+}
+
+function normalizeOptionalId(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function uniqueSorted<T extends string>(items: T[]): T[] {
+  return Array.from(new Set(items)).sort();
+}
+
+function round(value: number): number {
+  return Math.round(value * 1000) / 1000;
+}
