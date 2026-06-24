@@ -1,11 +1,11 @@
 {
   "artifactVersion": "textbook-media-grounding.v1",
-  "generatedAt": "2026-06-24T05:20:59.469Z",
+  "generatedAt": "2026-06-24T05:43:43.771Z",
   "sourcePackageId": "hu-shousong-exercise-analysis-3rd",
   "denominator": {
     "textbookDocuments": 10,
     "mediaProjectionRows": 920,
-    "reviewedTextbookCandidates": 10,
+    "reviewedTextbookCandidates": 0,
     "reviewedMediaProjections": 0
   },
   "sourceWindow": {
@@ -18,8 +18,8 @@
     ]
   },
   "reviewStatus": {
-    "textbookHumanConfirmed": 10,
-    "textbookProvisional": 0,
+    "textbookHumanConfirmed": 0,
+    "textbookProvisional": 10,
     "mediaHumanConfirmed": 0,
     "mediaProvisional": 920,
     "mediaBlocked": 0,
@@ -33,7 +33,7 @@
     "missing-upstream-media-projection-review": 920,
     "path-promotion-blocked": 920,
     "provisional-review-state": 920,
-    "unsafe-citation-address": 736
+    "unsafe-citation-address": 746
   },
   "limitationReasons": [
     "missing-upstream-media-projection-review",

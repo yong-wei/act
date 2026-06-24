@@ -14,7 +14,7 @@ function textbookDocument(overrides: Partial<TextbookRuntimeSearchDocument> = {}
     id: 'ch04-sec01__chunk-001',
     kind: 'chunk',
     title: '第 4 章 根轨迹法',
-    href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#chunk-001',
+    href: '/course-runtime/lessons/unit-4-1/textbook/ch04-sec01.md#chunk-001',
     text: '根轨迹描述闭环极点随增益变化的轨迹。',
     contentHash: 'sha256:textbook-section',
     resourceProjection: {
@@ -29,7 +29,7 @@ function textbookDocument(overrides: Partial<TextbookRuntimeSearchDocument> = {}
     citationAddress: {
       kind: 'text',
       sourceRefId: 'ch04-sec01__chunk-001',
-      href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#chunk-001',
+      href: '/course-runtime/lessons/unit-4-1/textbook/ch04-sec01.md#chunk-001',
       locator: 'p.42#chunk-001',
       contentHash: 'sha256:textbook-section',
     },
@@ -140,7 +140,7 @@ describe('textbook and media grounding artifacts', () => {
           citationAddress: {
             kind: 'image',
             sourceRefId: 'fig-04-01',
-            href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#fig-04-01',
+            href: '/course-runtime/lessons/unit-4-1/textbook/ch04-sec01.md#fig-04-01',
             locator: 'p.43#fig-04-01',
             contentHash: 'sha256:textbook-section',
           },
@@ -168,7 +168,7 @@ describe('textbook and media grounding artifacts', () => {
         retrievalChunkId: 'retrieval-chunk:ch04-sec01__chunk-001',
         address: expect.objectContaining({
           kind: 'text',
-          href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#chunk-001',
+          href: '/course-runtime/lessons/unit-4-1/textbook/ch04-sec01.md#chunk-001',
           locator: 'p.42#chunk-001',
         }),
         pathEligibility: {
@@ -183,6 +183,72 @@ describe('textbook and media grounding artifacts', () => {
       reviewedTextbookCandidates: 2,
       reviewedMediaProjections: 0,
     });
+  });
+
+  it('does not expose citation targets for non-deployable textbook runtime-resource paths', () => {
+    const artifacts = buildTextbookMediaGroundingArtifacts({
+      sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      reviewBatchId: 'textbook-grounding-2026-06-24',
+      textbookDocuments: [
+        textbookDocument({
+          id: 'ch04-sec01__ignored-runtime-resource',
+          href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#chunk-001',
+          citationAddress: {
+            kind: 'text',
+            sourceRefId: 'ch04-sec01__ignored-runtime-resource',
+            href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#chunk-001',
+            locator: 'p.42#chunk-001',
+            contentHash: 'sha256:textbook-section',
+          },
+        }),
+      ],
+      mediaProjections: [],
+    });
+
+    expect(artifacts.citationTargets).toEqual([]);
+    expect(artifacts.candidates).toEqual([
+      expect.objectContaining({
+        documentId: 'ch04-sec01__ignored-runtime-resource',
+        reviewState: 'generated-provisional',
+        limitationReason: 'unsafe-citation-address',
+      }),
+    ]);
+  });
+
+  it('does not create citation targets for provisional textbook candidates', () => {
+    const artifacts = buildTextbookMediaGroundingArtifacts({
+      sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      reviewBatchId: 'textbook-grounding-2026-06-24',
+      textbookDocuments: [
+        textbookDocument({
+          id: 'ch04-sec01__missing-source-hash',
+          contentHash: null,
+          resourceProjection: {
+            ...textbookDocument().resourceProjection,
+            contentHash: null,
+          },
+          citationAddress: {
+            kind: 'text',
+            sourceRefId: 'ch04-sec01__missing-source-hash',
+            href: '/course-runtime/lessons/unit-4-1/textbook/ch04-sec01.md#chunk-001',
+            locator: 'p.42#chunk-001',
+            contentHash: null,
+          },
+        }),
+      ],
+      mediaProjections: [],
+    });
+
+    expect(artifacts.citationTargets).toEqual([]);
+    expect(artifacts.candidates).toEqual([
+      expect.objectContaining({
+        documentId: 'ch04-sec01__missing-source-hash',
+        reviewState: 'generated-provisional',
+        limitationReason: 'missing-source-hash',
+      }),
+    ]);
   });
 
   it('records media projection limitations without creating private raw-media ingestion results', () => {

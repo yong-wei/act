@@ -187,7 +187,7 @@ async function readJson<T>(filePath: string): Promise<T> {
 }
 
 async function writeJsonl(filePath: string, rows: readonly unknown[]) {
-  await fs.writeFile(filePath, rows.map((row) => JSON.stringify(row)).join('\n') + '\n', 'utf-8');
+  await fs.writeFile(filePath, rows.length > 0 ? `${rows.map((row) => JSON.stringify(row)).join('\n')}\n` : '', 'utf-8');
 }
 
 function printSummary(artifacts: TextbookMediaGroundingArtifacts) {

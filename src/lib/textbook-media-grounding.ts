@@ -127,8 +127,12 @@ export function buildTextbookMediaGroundingArtifacts(input: {
   const candidates = input.textbookDocuments
     .map((document) => buildTextbookCandidate(input.sourcePackageId, input.reviewBatchId, document))
     .sort((left, right) => left.candidateId.localeCompare(right.candidateId));
+  const candidateByDocumentId = new Map(candidates.map((candidate) => [candidate.documentId, candidate]));
   const citationTargets = input.textbookDocuments
-    .flatMap((document) => buildTextbookCitationTarget(input.sourcePackageId, document))
+    .flatMap((document) => {
+      const candidate = candidateByDocumentId.get(document.id);
+      return candidate ? buildTextbookCitationTarget(input.sourcePackageId, document, candidate) : [];
+    })
     .sort((left, right) => left.citationTargetId.localeCompare(right.citationTargetId));
   const mediaReviewStatusCounts = countMediaReviewStatuses(input.mediaProjections);
   const allLimitations = [
@@ -228,17 +232,19 @@ function buildTextbookCandidate(
 function buildTextbookCitationTarget(
   sourcePackageId: string,
   document: TextbookRuntimeSearchDocument,
+  candidate: TextbookSectionGroundingCandidate,
 ): TextbookSectionCitationTargetArtifact[] {
+  if (candidate.reviewState !== 'human-confirmed' || candidate.limitationReason || !candidate.sourceHash) return [];
   if (!document.citationAddress || !isSafeServerOwnedAddress(document.citationAddress.href)) return [];
   return [{
     artifactVersion: TEXTBOOK_MEDIA_GROUNDING_ARTIFACT_VERSION,
     sourcePackageId,
     citationTargetId: `citation-target:${document.resourceProjection.citationTargetRef ?? document.id}`,
     retrievalChunkId: `retrieval-chunk:${document.id}`,
-    candidateId: `textbook-section:${document.metadata.bookId}:${document.metadata.sectionId}:${document.id}`,
+    candidateId: candidate.candidateId,
     documentId: document.id,
     address: document.citationAddress,
-    contentHash: document.contentHash ?? document.resourceProjection.contentHash ?? document.citationAddress.contentHash ?? null,
+    contentHash: candidate.sourceHash,
     sourceVersionRefs: document.resourceProjection.versionRefs,
     pathEligibility: {
       eligible: false,
@@ -317,7 +323,8 @@ function isSafeServerOwnedAddress(href: string | null | undefined): boolean {
   }
   return href === '/knowledge' ||
     href.startsWith('/knowledge?') ||
-    href.startsWith('/course-runtime/') ||
+    href.startsWith('/course-runtime/lessons/') ||
+    href.startsWith('/course-runtime/knowledge/') ||
     href.startsWith('/interactive-learning/') ||
     href.startsWith('/learning-paths/');
 }
