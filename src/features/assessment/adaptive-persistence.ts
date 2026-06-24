@@ -196,6 +196,9 @@ function isMasteryEligiblePersistedAnswer(row: PersistedAssessmentAnswerRow): bo
   const kaqMetadata = toRecord(toRecord(row.questionRef?.metadata).kaq);
   const review = toRecord(kaqMetadata.review);
   if (kaqMetadata.learningFactEligible === false) return false;
+  if (Object.keys(kaqMetadata).length === 0) {
+    return row.questionId.startsWith('preset-q-');
+  }
   return review.state === 'reviewed';
 }
 

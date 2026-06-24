@@ -199,6 +199,52 @@ describe('K/A/Q adaptive assessment persistence', () => {
     ))).toBe(true);
   });
 
+  it('keeps legacy preset answers in reviewed mastery rebuild history', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS[0];
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([{
+      id: 'answer-legacy-preset',
+      userId: 'student-quiz',
+      questionId: 'preset-q-legacy',
+      selectedOptionKey: 'A',
+      isCorrect: true,
+      responseTimeSeconds: 28,
+      answeredAt: new Date('2026-06-24T07:30:00.000Z'),
+      session: {
+        sessionKey: 'session-legacy-preset',
+      },
+      questionRef: {
+        difficulty: 0.5,
+        questionType: 'pole-to-behavior',
+        domains: ['complex', 'time'],
+        knowledgeTags: question.knowledgeTags,
+        metadata: {},
+      },
+    }]);
+
+    await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: 'adaptive-quiz:control-correction:precheck',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }, db);
+
+    const masteryRows = db.adaptiveMasteryUpdate.createMany.mock.calls[0][0].data;
+    expect(masteryRows.length).toBeGreaterThan(0);
+    expect(masteryRows.every((row: { answerId: string; priorMastery: number }) => (
+      row.answerId === 'answer-quiz-1' && row.priorMastery > 0.35
+    ))).toBe(true);
+  });
+
   it('keeps generated provisional questions out of mastery updates and LearningFact materialization', async () => {
     const db = createMockDb();
     const generated = generateQuestion({
