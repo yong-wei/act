@@ -697,8 +697,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('graphContext: buildKonlingRuntimeGraphContext');
     expect(routeSource).toContain('runtimeContext: graphRuntimeContext');
     expect(routeSource).toContain('clientHints: clientContextHints');
-    expect(routeSource).toContain("missingCitationClasses: citationContext.missingCitationClasses.filter((item) => item !== 'path-execution')");
-    expect(routeSource).toContain("lowConfidenceReasons: citationContext.lowConfidenceReasons.filter((item) => item !== 'missing-path-execution')");
+    expect(routeSource).toContain('const baseCitationContext = citationContext ?? createMissingPathAdvisorCitationContext()');
+    expect(routeSource).toContain("missingCitationClasses: baseCitationContext.missingCitationClasses.filter((item) => item !== 'path-execution')");
+    expect(routeSource).toContain("lowConfidenceReasons: baseCitationContext.lowConfidenceReasons.filter((item) => item !== 'missing-path-execution')");
     expect(routeSource).toContain('lastExecutionMetadata: true');
     expect(routeSource).toContain('...readStringArray(executionMetadata.completedNodeIds)');
     expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))

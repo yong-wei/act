@@ -1144,6 +1144,257 @@ describe('commercial UI governance', () => {
     );
   });
 
+  it('requires compact spacing inventory and viewport evidence when the scoped change is under review', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      compactSpacingRequired: true,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'compact-spacing',
+          rule: 'compact-spacing.missing-inventory',
+        }),
+        expect.objectContaining({
+          category: 'compact-spacing',
+          rule: 'compact-spacing.incomplete-visual-evidence',
+        }),
+      ]),
+    );
+  });
+
+  const compactSpacingFamilies = [
+    'knowledge-map',
+    'interactive-course-entry',
+    'student-runtime',
+    'teacher-runtime',
+    'adaptive-practice',
+    'simulation-workspace',
+    'teacher-operations',
+    'form-first',
+    'text-first',
+    'report-evidence',
+  ];
+  const compactSpacingWidths = [1024, 1100, 1279, 1440, 1920, 2560, 768, 320];
+  const completeCompactSpacingVisualEvidence = () => compactSpacingFamilies.flatMap((family) => (
+    compactSpacingWidths.map((width, index) => ({
+      href: `/${family}`,
+      family,
+      edgeMode: family === 'form-first' ? 'intrinsic' as const : 'page-edge' as const,
+      finalUrl: `/${family}`,
+      finalUrlMatches: true,
+      width,
+      viewportWidth: width,
+      navigationState: family === 'form-first'
+        ? 'auth-callback-panel' as const
+        : ['student-runtime', 'teacher-runtime'].includes(family)
+          ? 'hidden-immersive' as const
+          : width >= 1440
+            ? (index % 2 === 0 ? 'desktop-expanded' as const : 'desktop-collapsed' as const)
+            : 'workspace-command-surface' as const,
+      primaryContentLeft: width >= 1024 ? 24 : 12,
+      primaryContentRight: width - (width >= 1024 ? 24 : 12),
+      navigationBoundaryRight: 0,
+      compactEdgeMaxPx: width >= 1024 ? 32 : 16,
+      horizontalOverflow: false,
+      auxiliaryCollisionFree: true,
+      hydrationReady: true,
+      pageLevelCenteredWrapperCount: 0,
+      pageLevelCenteredWrappers: [],
+      screenshot: `artifacts/commercial-ui/compact-spacing-685/${family}-${width}.png`,
+      screenshotSha256: `${family}-${width}-sha`,
+      screenshotExists: true,
+      screenshotSha256Matches: true,
+    }))
+  ));
+
+  it('passes compact spacing governance with closed inventory and complete viewport evidence', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      compactSpacingRequired: true,
+      compactSpacingInventory: [
+        {
+          path: 'src/components/platform/app-shell.tsx',
+          owner: 'standardize-sitewide-compact-spacing',
+          scope: 'AppShell route frame content wrapper',
+          classification: 'migrated',
+          reason: 'Primary route frames now use compact fixed page edges.',
+          removalCondition: 'Permanent sitewide shell contract.',
+        },
+      ],
+      compactSpacingVisualEvidence: completeCompactSpacingVisualEvidence(),
+    }));
+
+    expect(result.blockingViolations).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'compact-spacing',
+        }),
+      ]),
+    );
+  });
+
+  it('fails compact spacing governance when a required route family is missing', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      compactSpacingRequired: true,
+      compactSpacingInventory: [{
+        path: 'src/components/platform/app-shell.tsx',
+        owner: 'standardize-sitewide-compact-spacing',
+        scope: 'AppShell route frame content wrapper',
+        classification: 'migrated',
+        reason: 'Primary route frames now use compact fixed page edges.',
+        removalCondition: 'Permanent sitewide shell contract.',
+      }],
+      compactSpacingVisualEvidence: completeCompactSpacingVisualEvidence().filter((entry) => entry.family !== 'teacher-runtime'),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'compact-spacing',
+          rule: 'compact-spacing.incomplete-visual-evidence',
+        }),
+      ]),
+    );
+  });
+
+  it('fails compact spacing governance when screenshots are stale or missing', () => {
+    const evidence = completeCompactSpacingVisualEvidence();
+    evidence[0] = {
+      ...evidence[0],
+      screenshotExists: true,
+      screenshotSha256Matches: false,
+    };
+    const result = evaluateCommercialUiGovernance(baseInput({
+      compactSpacingRequired: true,
+      compactSpacingInventory: [{
+        path: 'src/components/platform/app-shell.tsx',
+        owner: 'standardize-sitewide-compact-spacing',
+        scope: 'AppShell route frame content wrapper',
+        classification: 'migrated',
+        reason: 'Primary route frames now use compact fixed page edges.',
+        removalCondition: 'Permanent sitewide shell contract.',
+      }],
+      compactSpacingVisualEvidence: evidence,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'compact-spacing',
+          rule: 'compact-spacing.incomplete-visual-evidence',
+        }),
+      ]),
+    );
+  });
+
+  it('measures expanded desktop content edge relative to the navigation boundary', () => {
+    const evidence = completeCompactSpacingVisualEvidence();
+    const expandedIndex = evidence.findIndex((entry) => (
+      entry.family === 'knowledge-map'
+      && entry.width === 1440
+    ));
+    evidence[expandedIndex] = {
+      ...evidence[expandedIndex],
+      navigationState: 'desktop-expanded',
+      primaryContentLeft: 248,
+      navigationBoundaryRight: 248,
+    };
+    const result = evaluateCommercialUiGovernance(baseInput({
+      compactSpacingRequired: true,
+      compactSpacingInventory: [{
+        path: 'src/components/platform/app-shell.tsx',
+        owner: 'standardize-sitewide-compact-spacing',
+        scope: 'AppShell route frame content wrapper',
+        classification: 'migrated',
+        reason: 'Primary route frames now use compact fixed page edges.',
+        removalCondition: 'Permanent sitewide shell contract.',
+      }],
+      compactSpacingVisualEvidence: evidence,
+    }));
+
+    expect(result.blockingViolations).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'compact-spacing',
+          rule: 'compact-spacing.incomplete-visual-evidence',
+        }),
+      ]),
+    );
+  });
+
+  it('fails hidden or auth compact spacing states when a navigation boundary is visible', () => {
+    const evidence = completeCompactSpacingVisualEvidence();
+    const hiddenIndex = evidence.findIndex((entry) => (
+      entry.navigationState === 'hidden-immersive'
+      && entry.width === 1440
+    ));
+    const authIndex = evidence.findIndex((entry) => (
+      entry.navigationState === 'auth-callback-panel'
+      && entry.width === 1440
+    ));
+    evidence[hiddenIndex] = {
+      ...evidence[hiddenIndex],
+      navigationBoundaryRight: 72,
+      primaryContentLeft: 72,
+    };
+    evidence[authIndex] = {
+      ...evidence[authIndex],
+      navigationBoundaryRight: 72,
+      primaryContentLeft: 72,
+    };
+    const result = evaluateCommercialUiGovernance(baseInput({
+      compactSpacingRequired: true,
+      compactSpacingInventory: [{
+        path: 'src/components/platform/app-shell.tsx',
+        owner: 'standardize-sitewide-compact-spacing',
+        scope: 'AppShell route frame content wrapper',
+        classification: 'migrated',
+        reason: 'Primary route frames now use compact fixed page edges.',
+        removalCondition: 'Permanent sitewide shell contract.',
+      }],
+      compactSpacingVisualEvidence: evidence,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'compact-spacing',
+          rule: 'compact-spacing.incomplete-visual-evidence',
+          evidence: expect.arrayContaining([
+            expect.stringContaining('navigationState=hidden-immersive exposes navigationBoundaryRight=72'),
+            expect.stringContaining('navigationState=auth-callback-panel exposes navigationBoundaryRight=72'),
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails unregistered page-level centered max-width wrappers', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      sourceViolations: [{
+        path: 'src/app/teacher/classes/page.tsx',
+        rule: 'compact-spacing.unregistered-page-wrapper',
+        message: 'Page-level centered maximum-width wrapper is not registered in the compact spacing inventory.',
+        evidence: ['L50:className="mx-auto max-w-[1600px] px-6 py-8"'],
+      }],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'compact-spacing',
+          rule: 'compact-spacing.unregistered-page-wrapper',
+          path: 'src/app/teacher/classes/page.tsx',
+        }),
+      ]),
+    );
+  });
+
   it('passes final adaptive path product QA evidence when the integrated matrix is complete', () => {
     const result = evaluateCommercialUiGovernance(baseInput({
       adaptivePathProductQaRequired: true,
@@ -4221,9 +4472,9 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('markers.konlingKnowledgeContext === expectedKonlingContext');
     expect(scriptSource).toContain('`${name}:inspector-rect-missing`');
     expect(scriptSource).toContain('`${name}:inspector-overlaps-app-shell-header`');
-    expect(scriptSource).toContain('numberFromEvidence(markerRects.inspector.top) >= 88');
+    expect(scriptSource).toContain('inspectorTop >= 88');
     expect(scriptSource).toContain('`${name}:inspector-overlaps-tablet-mobile-navigation`');
-    expect(scriptSource).toContain('numberFromEvidence(markerRects.inspector.top) >= 314');
+    expect(scriptSource).toContain('inspectorTop >= 314');
     expect(scriptSource).toContain('`${name}:konling-inspector-avoidance-missing`');
     expect(scriptSource).toContain('`${name}:tablet-local-tool-panel-not-suspended-while-konling-open`');
     expect(scriptSource).toContain('`${name}:expanded-dock-overlaps-tools`');

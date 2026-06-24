@@ -29,7 +29,7 @@ export default async function TeacherLessonPlansPage() {
       data-commercial-workspace-zone="instrument-area"
       data-operations-status-semantics={plans.length === 0 ? 'empty' : 'updated'}
     >
-      <div className="max-w-[1600px] mx-auto space-y-8">
+      <div className="space-y-8">
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-6">

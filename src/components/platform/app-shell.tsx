@@ -146,13 +146,21 @@ const frameClassNames: Record<PlatformPrimaryRouteFrame, string> = {
   'report-ledger': 'bg-platform-canvas-muted',
 };
 
+export const APP_SHELL_COMPACT_PAGE_EDGE_CLASS = [
+  'w-full',
+  'px-[var(--platform-page-edge-x-mobile)]',
+  'py-5',
+  'sm:px-[var(--platform-page-edge-x-tablet)]',
+  'lg:px-[var(--platform-page-edge-x-desktop)]',
+].join(' ');
+
 const contentFrameClassNames: Record<PlatformPrimaryRouteFrame, string> = {
-  'public-entry': 'mx-auto max-w-5xl',
-  'learning-atlas': 'mx-auto max-w-7xl',
-  'mission-workspace': 'mx-auto max-w-[1600px]',
-  'knowledge-data-map': 'mx-auto max-w-[1500px]',
-  'operations-console': 'mx-auto max-w-[1440px]',
-  'report-ledger': 'mx-auto max-w-[1480px]',
+  'public-entry': APP_SHELL_COMPACT_PAGE_EDGE_CLASS,
+  'learning-atlas': APP_SHELL_COMPACT_PAGE_EDGE_CLASS,
+  'mission-workspace': APP_SHELL_COMPACT_PAGE_EDGE_CLASS,
+  'knowledge-data-map': APP_SHELL_COMPACT_PAGE_EDGE_CLASS,
+  'operations-console': APP_SHELL_COMPACT_PAGE_EDGE_CLASS,
+  'report-ledger': APP_SHELL_COMPACT_PAGE_EDGE_CLASS,
 };
 
 const contextualReturnBreadcrumbLabels: Record<string, string> = {
@@ -597,7 +605,10 @@ function AppShellDesktopLayout({
             </nav>
           )
         ) : null}
-        <div className={cn('px-4 py-5 sm:px-6', resolvedRouteMetadata?.frame && contentFrameClassNames[resolvedRouteMetadata.frame])}>
+        <div
+          className={cn(resolvedRouteMetadata?.frame ? contentFrameClassNames[resolvedRouteMetadata.frame] : APP_SHELL_COMPACT_PAGE_EDGE_CLASS)}
+          data-platform-compact-page-edge="true"
+        >
           {AppShellWorkspace({ slots: workspaceSlots, children })}
         </div>
         <AppShellFloatingDockRegistration

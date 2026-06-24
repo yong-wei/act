@@ -1,0 +1,60 @@
+{
+  "path": "artifacts/interactive-learning/compact-spacing-685/evidence-sample.json",
+  "eventType": "interactive_visual_compact_spacing_qa",
+  "clientEventId": "compact-spacing-685-layout-sample",
+  "attemptKey": "compact-spacing-685",
+  "sourceLogId": "compact-spacing-685-browser-audit",
+  "lessonKey": "unit-1-2-modeling-from-object-to-system-v1",
+  "stepId": "step-07",
+  "moduleId": "lesson-runtime-shell",
+  "componentKind": "visual.stage",
+  "componentId": "sitewide-compact-page-edge",
+  "actorRole": "teacher",
+  "clientEventAt": "2026-06-23T16:13:22.663Z",
+  "theme": "dark",
+  "viewport": "desktop",
+  "schemaVersion": "1.0.0",
+  "serverRecordedAt": "2026-06-23T16:13:22.663Z",
+  "payload": {
+    "compactSpacingEvidence": "artifacts/commercial-ui/compact-spacing-685/evidence.json",
+    "requiredWidths": [
+      1024,
+      1100,
+      1279,
+      1440,
+      1920,
+      2560,
+      768,
+      320
+    ],
+    "routeFamilies": [
+      "adaptive-practice",
+      "form-first",
+      "interactive-course-entry",
+      "knowledge-map",
+      "report-evidence",
+      "simulation-workspace",
+      "student-runtime",
+      "teacher-operations",
+      "teacher-runtime",
+      "text-first"
+    ],
+    "navigationStates": [
+      "auth-callback-panel",
+      "desktop-collapsed",
+      "desktop-expanded",
+      "hidden-immersive",
+      "mobile-drawer",
+      "workspace-command-surface"
+    ],
+    "diagnostics": []
+  },
+  "classification": [
+    "InteractionLog",
+    "LearningFact"
+  ],
+  "affectsTeacherDiagnostics": true,
+  "affectsAbilitySnapshots": false,
+  "affectsRecommendationInputs": false,
+  "compactSpacingEvidenceSha256": "f57525df221d81299705f3d817693aee5b9e42aebce5f1e6370d308df6470166"
+}

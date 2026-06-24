@@ -32,7 +32,7 @@ export default async function TeacherLayout({
       data-commercial-workspace-zone="context-strip"
     >
       <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto max-w-[1600px]">
+        <div className="w-full">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-wrap items-center gap-4 sm:gap-6">
               <Link href="/" className="flex shrink-0 items-center gap-3 whitespace-nowrap text-subtle transition hover:text-foreground">

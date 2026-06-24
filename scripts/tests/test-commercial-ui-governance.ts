@@ -15,6 +15,8 @@ import {
   type CommercialInteractiveVisualAcceptanceArtifact,
   type CommercialVisualAcceptanceRoute,
   type CommercialInteractiveLearningProductQaEvidence,
+  type CommercialCompactSpacingInventoryEntry,
+  type CommercialCompactSpacingViewportEvidence,
   type CommercialModuleChromeInventoryEntry,
   type CommercialNavigationCoverageInput,
   type CommercialShellInventoryEntry,
@@ -49,6 +51,17 @@ import { relationPassesActiveFilters } from '../../src/features/knowledge/graph/
 const repoRoot = path.resolve(__dirname, '../..');
 const today = new Date().toISOString().slice(0, 10);
 const allowedModuleNamespaces = new Set(['activity', 'analytics', 'compute', 'content', 'layout', 'visual']);
+const COMPACT_SPACING_INVENTORY_PATH = 'artifacts/commercial-ui/compact-spacing-685/inventory.json';
+const COMPACT_SPACING_EVIDENCE_PATH = 'artifacts/commercial-ui/compact-spacing-685/evidence.json';
+const COMPACT_SPACING_SOURCE_PATHS = [
+  'src/components/platform/app-shell.tsx',
+  'src/app/globals.css',
+  'src/features/interactive/shared/lesson-runtime-shell.tsx',
+  'src/features/interactive/shared/course-entry-shell.tsx',
+  'src/features/interactive/shared/premium-lesson-entry-page.tsx',
+  'src/lib/commercial-ui-governance.ts',
+  'scripts/tests/test-commercial-ui-governance.ts',
+];
 
 function git(args: string[]) {
   try {
@@ -303,6 +316,37 @@ function lineEvidence(source: string, pattern: RegExp, label: string, file?: str
   return [...evidence];
 }
 
+function fullSourceLineEvidence(source: string, pattern: RegExp, label: string) {
+  const evidence = new Set<string>();
+  source.split('\n').forEach((line, index) => {
+    if (pattern.test(line)) evidence.add(`${label}:L${index + 1}:${line.trim().slice(0, 140)}`);
+    pattern.lastIndex = 0;
+  });
+  return [...evidence];
+}
+
+function compactSpacingInventoryEntries() {
+  return readCompactSpacingInventory() ?? [];
+}
+
+function compactSpacingPathPatternMatches(pattern: string, file: string) {
+  const escaped = pattern
+    .split('**').map((part) => part
+      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+      .replace(/\*/g, '[^/]*'))
+    .join('.*');
+  return new RegExp(`^${escaped}$`).test(file);
+}
+
+function isCompactSpacingExceptionPath(file: string) {
+  return compactSpacingInventoryEntries().some((entry) => (
+    (entry.classification === 'component-intrinsic-exception' || entry.classification === 'temporary-exception')
+    && entry.path.split(',').map((item) => item.trim()).some((pattern) => (
+      pattern.length > 0 && compactSpacingPathPatternMatches(pattern, file)
+    ))
+  ));
+}
+
 function buildSourceViolations(files: string[]): CommercialUiGovernanceViolation[] {
   return sourceFilesForTokenGate(files).flatMap((file) => {
     const source = readFileSync(path.join(repoRoot, file), 'utf8');
@@ -320,6 +364,11 @@ function buildSourceViolations(files: string[]): CommercialUiGovernanceViolation
       'decorative-gradient',
       file,
     );
+    const compactSpacingEvidence = fullSourceLineEvidence(
+      source,
+      /\b(?:mx-auto\s+(?:\S+\s+){0,6}?max-w-(?:\[[^\]]+\]|\w+)|max-w-(?:\[[^\]]+\]|\w+)(?:\s+\S+){0,6}?\s+mx-auto|container\s+mx-auto|premium-lesson-main\s+mx-auto\s+max-w-\[[^\]]+\])/g,
+      'centered-page-wrapper',
+    );
     const violations: CommercialUiGovernanceViolation[] = [];
     if (rawPaletteEvidence.length > 0 || rawRgbaEvidence.length > 0 || tailwindColorEvidence.length > 0) {
       violations.push({
@@ -335,6 +384,14 @@ function buildSourceViolations(files: string[]): CommercialUiGovernanceViolation
         rule: 'token.raw-decorative-gradient',
         message: 'Changed commercial UI source contains decorative gradients outside approved primitives.',
         evidence: gradientEvidence,
+      });
+    }
+    if (compactSpacingEvidence.length > 0 && !isCompactSpacingExceptionPath(file)) {
+      violations.push({
+        path: file,
+        rule: 'compact-spacing.unregistered-page-wrapper',
+        message: 'Page-level centered maximum-width wrapper is not registered in the compact spacing inventory.',
+        evidence: compactSpacingEvidence,
       });
     }
     return violations;
@@ -2011,10 +2068,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const canvasRect = objectRecord(markerRects.canvas);
     const inspectorRect = objectRecord(markerRects.inspector);
     const inspectorTop = numberFromEvidence(inspectorRect.top);
-    const documentScrollWidth = numberFromEvidence(documentScroll.scrollWidth);
-    const documentScrollViewportWidth = numberFromEvidence(documentScroll.viewportWidth);
-    const documentScrollHeight = numberFromEvidence(documentScroll.scrollHeight);
-    const documentScrollViewportHeight = numberFromEvidence(documentScroll.viewportHeight);
     const baselineState = stateByName.get(desktopGeometryBaselineName(name, navigationState));
     const baselineRects = objectRecord(objectRecord(baselineState?.markers).rects);
     const baselineDockRect = objectRecord(baselineRects.dock);
@@ -2025,6 +2078,10 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const isTabletBreakpointViewport = [1024, 1100, 1279].includes(viewportWidth ?? 0);
     const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;
     const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;
+    const scrollWidth = numberFromEvidence(documentScroll.scrollWidth);
+    const scrollHeight = numberFromEvidence(documentScroll.scrollHeight);
+    const viewportScrollWidth = numberFromEvidence(documentScroll.viewportWidth);
+    const viewportScrollHeight = numberFromEvidence(documentScroll.viewportHeight);
     if (!state) return [`${name}:missing-state`];
     const expectedKonlingContext = name.includes('konling')
       ? (name.includes('degraded') ? 'degraded' : (state.selectedNode ? 'selected-node' : 'no-selection'))
@@ -2056,14 +2113,14 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       typeof numberFromEvidence(canvasRect.width) === 'number' && typeof numberFromEvidence(canvasRect.height) === 'number'
         ? null
         : `${name}:canvas-rect-missing`,
-      typeof documentScrollWidth === 'number' &&
-      typeof documentScrollViewportWidth === 'number' &&
-      documentScrollWidth <= documentScrollViewportWidth
+      typeof scrollWidth === 'number'
+        && typeof viewportScrollWidth === 'number'
+        && scrollWidth <= viewportScrollWidth
         ? null
         : `${name}:page-horizontal-scroll`,
-      typeof documentScrollHeight === 'number' &&
-      typeof documentScrollViewportHeight === 'number' &&
-      documentScrollHeight <= documentScrollViewportHeight
+      typeof scrollHeight === 'number'
+        && typeof viewportScrollHeight === 'number'
+        && scrollHeight <= viewportScrollHeight
         ? null
         : `${name}:page-vertical-scroll`,
       name.startsWith('desktop') && dockState === 'collapsed' && markers.dockInspectorAvoidance !== 'active'
@@ -2140,18 +2197,18 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
           )
         : null,
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
-        ? (Object.keys(inspectorRect).length > 0 ? null : `${name}:inspector-rect-missing`)
+        ? (typeof inspectorTop === 'number' ? null : `${name}:inspector-rect-missing`)
         : null,
-      name.startsWith('desktop') && Object.keys(inspectorRect).length > 0
+      name.startsWith('desktop') && typeof inspectorTop === 'number'
         ? (
-            typeof inspectorTop === 'number' && inspectorTop >= 88
+            inspectorTop >= 88
               ? null
               : `${name}:inspector-overlaps-app-shell-header`
           )
         : null,
-      name.startsWith('tablet-') && Object.keys(inspectorRect).length > 0
+      name.startsWith('tablet-') && typeof inspectorTop === 'number'
         ? (
-            typeof inspectorTop === 'number' && inspectorTop >= 314
+            inspectorTop >= 314
               ? null
               : `${name}:inspector-overlaps-tablet-mobile-navigation`
           )
@@ -2791,6 +2848,40 @@ function shouldRequireInteractiveVisualComponentArtifacts(files: readonly string
   ));
 }
 
+function shouldRequireCompactSpacingEvidence(files: readonly string[]) {
+  return files.some((file) => (
+    COMPACT_SPACING_SOURCE_PATHS.includes(file)
+    || file.startsWith('src/features/interactive/unit-')
+    || file.startsWith('src/app/teacher/')
+    || file.startsWith('src/app/(main)/')
+    || file.startsWith('src/features/control-workbench/')
+    || file === COMPACT_SPACING_INVENTORY_PATH
+    || file === COMPACT_SPACING_EVIDENCE_PATH
+    || file.startsWith('artifacts/commercial-ui/compact-spacing-685/')
+    || file.startsWith('openspec/changes/standardize-sitewide-compact-spacing/')
+    || (file.startsWith('openspec/changes/archive/') && file.includes('/standardize-sitewide-compact-spacing/'))
+  ));
+}
+
+function readCompactSpacingInventory(): CommercialCompactSpacingInventoryEntry[] | undefined {
+  const raw = readJsonFile<{ inventory?: CommercialCompactSpacingInventoryEntry[] }>(COMPACT_SPACING_INVENTORY_PATH);
+  return Array.isArray(raw?.inventory) ? raw.inventory : undefined;
+}
+
+function readCompactSpacingVisualEvidence(): CommercialCompactSpacingViewportEvidence[] | undefined {
+  const raw = readJsonFile<{ visualEvidence?: CommercialCompactSpacingViewportEvidence[] }>(COMPACT_SPACING_EVIDENCE_PATH);
+  return Array.isArray(raw?.visualEvidence)
+    ? raw.visualEvidence.map((entry) => {
+      const artifact = simulationViewportArtifact(entry.screenshot);
+      return {
+        ...entry,
+        screenshotExists: Boolean(artifact),
+        screenshotSha256Matches: Boolean(artifact && entry.screenshotSha256 === artifact.sha256),
+      };
+    })
+    : undefined;
+}
+
 function normalizeInteractiveVisualComponentArtifacts(
   raw: unknown,
 ): CommercialInteractiveVisualAcceptanceArtifact[] {
@@ -2998,6 +3089,7 @@ const interactiveLearningProductQaEvidenceRefreshed = interactiveLearningProduct
 const adaptivePathProductQaRequired = shouldRequireAdaptivePathProductQa(files);
 const adaptivePathProductQaSourceRefreshRequired = files.some(adaptivePathSourceFileChanged);
 const adaptivePathProductQaEvidenceRefreshed = adaptivePathProductQaEvidenceCoversLatestSource(files);
+const compactSpacingRequired = shouldRequireCompactSpacingEvidence(files);
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,
@@ -3036,6 +3128,9 @@ const result = evaluateCommercialUiGovernance({
   adaptivePathProductQa: adaptivePathProductQaRequired
     ? readAdaptivePathProductQaEvidence()
     : undefined,
+  compactSpacingRequired,
+  compactSpacingInventory: compactSpacingRequired ? readCompactSpacingInventory() : undefined,
+  compactSpacingVisualEvidence: compactSpacingRequired ? readCompactSpacingVisualEvidence() : undefined,
   reportSurfaceInventory: PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === surface.ownerRoute)
   )),

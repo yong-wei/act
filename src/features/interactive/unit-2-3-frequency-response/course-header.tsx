@@ -31,7 +31,7 @@ export function UNIT_2_3CourseHeader({
 
   return (
     <header className="premium-lesson-topbar">
-      <div className="mx-auto max-w-[1280px] px-3 py-2 sm:px-4 sm:py-2.5">
+      <div className="w-full px-3 py-2 sm:px-4 sm:py-2.5">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <Link href={`/interactive-learning/courses/${UNIT_2_3_ROUTE_SEGMENT}`} className="premium-lesson-nav-button shrink-0">

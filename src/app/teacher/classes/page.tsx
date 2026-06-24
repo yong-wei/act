@@ -47,7 +47,7 @@ export default function ClassesPage() {
   if (loading) {
     return (
       <main
-        className="mx-auto max-w-[1600px] px-6 py-8"
+        className="px-6 py-8"
         data-commercial-operations-workspace="teacher-operations"
         data-commercial-workspace-zone="instrument-area"
         data-operations-status-semantics="loading"
@@ -66,7 +66,7 @@ export default function ClassesPage() {
 
   return (
     <main
-      className="mx-auto max-w-[1600px] px-6 py-8"
+      className="px-6 py-8"
       data-commercial-operations-workspace="teacher-operations"
       data-commercial-workspace-zone="instrument-area"
       data-operations-status-semantics={filteredClasses.length === 0 ? 'empty' : 'active'}

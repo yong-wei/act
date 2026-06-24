@@ -228,11 +228,14 @@
     "konlingRightBottomOnly": true,
     "studentGuestNoTeacherStats": true,
     "courseShellNoPrimaryPremiumLessonShell": true,
-    "standardModuleChromeRegistered": true
+    "standardModuleChromeRegistered": true,
+    "compactSpacingVisualEvidence": true,
+    "compactSpacingNoHorizontalOverflow": true,
+    "compactSpacingAuxiliaryCollisionFree": true
   },
   "temporaryExceptions": [],
-  "generatedAt": "2026-06-21T05:22:16.837Z",
-  "sourceCommit": "332dec0a6ca620ba8a083f82a95475c010664fd1",
+  "generatedAt": "2026-06-23T14:49:13.926Z",
+  "sourceCommit": "worktree:823897bf2471e322:standardize-sitewide-compact-spacing",
   "designHandoffSha256": "227cc9c1f7ecc4299a4d483be75b538e5b82a45c4df73ec4e697797de5088058",
   "handoffMatrixSha256": "d5d0911fe72e658944d8a6a5b63d02b247420bf3efcba72d9abc270cfc9e60ff",
   "conceptImageSha256": {
@@ -242,5 +245,42 @@
     "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/02-teacher-classroom-qr-waiting.png": "2fcc4c6b11eef7bf26bcd1031e27c73a0efb2f7b493a681ba750d289a2fca5fd",
     "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png": "2ba9fdcdcb5fafc11af7a6635cd614f06b81df7e4f91915a89ce12f78391ad6a",
     "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png": "cef103b464a93f8c546afa73a696287c56446ec9b013fd0f88224f473dfa7059"
+  },
+  "compactSpacingEvidence": {
+    "change": "standardize-sitewide-compact-spacing",
+    "evidence": "artifacts/commercial-ui/compact-spacing-685/evidence.json",
+    "implementationAcceptance": "artifacts/interactive-learning/compact-spacing-685/implementation-acceptance.json",
+    "generatedAt": "2026-06-23T14:49:13.926Z",
+    "requiredWidths": [
+      1024,
+      1100,
+      1279,
+      1440,
+      1920,
+      2560,
+      768,
+      320
+    ],
+    "requiredRouteFamilies": [
+      "adaptive-practice",
+      "form-first",
+      "interactive-course-entry",
+      "knowledge-map",
+      "report-evidence",
+      "simulation-workspace",
+      "student-runtime",
+      "teacher-operations",
+      "teacher-runtime",
+      "text-first"
+    ],
+    "navigationStates": [
+      "auth-callback-panel",
+      "desktop-collapsed",
+      "desktop-expanded",
+      "hidden-immersive",
+      "mobile-drawer",
+      "workspace-command-surface"
+    ],
+    "diagnostics": []
   }
 }
