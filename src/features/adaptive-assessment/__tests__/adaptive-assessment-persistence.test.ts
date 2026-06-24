@@ -139,6 +139,66 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(JSON.stringify(factPayload)).not.toContain(correctOptionText!);
   });
 
+  it('excludes historical provisional answers from reviewed mastery rebuilds', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS[0];
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([{
+      id: 'answer-generated-history',
+      userId: 'student-quiz',
+      questionId: 'generated-q-history',
+      selectedOptionKey: 'A',
+      isCorrect: true,
+      responseTimeSeconds: 28,
+      answeredAt: new Date('2026-06-24T07:30:00.000Z'),
+      session: {
+        sessionKey: 'session-generated-history',
+      },
+      questionRef: {
+        difficulty: 0.7,
+        questionType: 'multi-criteria',
+        domains: ['complex', 'frequency'],
+        knowledgeTags: question.knowledgeTags,
+        metadata: {
+          kaq: {
+            learningFactEligible: false,
+            review: { state: 'provisional' },
+          },
+        },
+      },
+    }]);
+
+    await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: 'adaptive-quiz:control-correction:precheck',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }, db);
+
+    expect(db.adaptiveAssessmentAnswer.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      include: expect.objectContaining({
+        questionRef: expect.objectContaining({
+          select: expect.objectContaining({
+            metadata: true,
+          }),
+        }),
+      }),
+    }));
+    const masteryRows = db.adaptiveMasteryUpdate.createMany.mock.calls[0][0].data;
+    expect(masteryRows.length).toBeGreaterThan(0);
+    expect(masteryRows.every((row: { answerId: string; priorMastery: number }) => (
+      row.answerId === 'answer-quiz-1' && row.priorMastery === 0.35
+    ))).toBe(true);
+  });
+
   it('keeps generated provisional questions out of mastery updates and LearningFact materialization', async () => {
     const db = createMockDb();
     const generated = generateQuestion({

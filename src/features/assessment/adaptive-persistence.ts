@@ -54,6 +54,7 @@ type PersistedAssessmentAnswerRow = {
     questionType?: string;
     domains?: string[];
     knowledgeTags?: string[];
+    metadata?: unknown;
   };
 };
 
@@ -183,6 +184,19 @@ function toQuestionDomains(value: unknown): QuestionDomain[] | undefined {
     typeof entry === 'string' && QUESTION_DOMAINS.has(entry as QuestionDomain)
   ));
   return domains.length > 0 ? domains : undefined;
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function isMasteryEligiblePersistedAnswer(row: PersistedAssessmentAnswerRow): boolean {
+  const kaqMetadata = toRecord(toRecord(row.questionRef?.metadata).kaq);
+  const review = toRecord(kaqMetadata.review);
+  if (kaqMetadata.learningFactEligible === false) return false;
+  return review.state === 'reviewed';
 }
 
 function abilityConfidenceInterval(theta: number, answerCount: number): [number, number] {
@@ -439,6 +453,7 @@ async function persistAdaptiveAssessmentSubmission(
           questionType: true,
           domains: true,
           knowledgeTags: true,
+          metadata: true,
         },
       },
     },
@@ -456,7 +471,8 @@ async function persistAdaptiveAssessmentSubmission(
       },
     },
   });
-  const persistedAnswerRecords = toAdaptiveAnswerRecords(persistedAnswersBefore);
+  const eligiblePersistedAnswersBefore = persistedAnswersBefore.filter(isMasteryEligiblePersistedAnswer);
+  const persistedAnswerRecords = toAdaptiveAnswerRecords(eligiblePersistedAnswersBefore);
   const answerHistory = existingAnswer
     ? persistedAnswerRecords
     : [...persistedAnswerRecords, details.record];
@@ -537,7 +553,7 @@ async function persistAdaptiveAssessmentSubmission(
   });
 
   const rebuiltUpdates = rebuildMasteryUpdatesFromAnswers([
-    ...toMasteryAnswers(persistedAnswersBefore),
+    ...toMasteryAnswers(eligiblePersistedAnswersBefore),
     {
       id: answer.id,
       questionId: details.question.id,
@@ -653,6 +669,7 @@ async function loadPersistedAnswerRecords(
           questionType: true,
           domains: true,
           knowledgeTags: true,
+          metadata: true,
         },
       },
     },
