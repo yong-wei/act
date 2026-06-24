@@ -2018,6 +2018,73 @@ describe('control-correction path rounds', () => {
     ]));
   });
 
+  it('unlocks adaptive outcome gates from governed checkpoint assessment refs', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'checkpoint:control-correction-review',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'checkpoint:control-correction-review',
+          'control-workbench:lead-design',
+        ],
+        planNodes: [
+          { nodeId: 'checkpoint:control-correction-review', type: 'checkpoint', status: 'current' },
+          {
+            nodeId: 'control-workbench:lead-design',
+            type: 'control_workbench',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成阶段测评结果同步后会自动进入。',
+              unlockMessage: '完成阶段测评结果同步后会自动进入。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['checkpoint:control-correction-review'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'checkpoint:control-correction-review',
+      resourceType: 'checkpoint',
+      status: 'completed',
+      idempotencyKey: 'complete-checkpoint-assessment',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-1',
+          provenance: 'official',
+          reviewState: 'reviewed',
+          readinessGateEligible: true,
+          score: 100,
+        },
+      },
+    });
+
+    const updateArg = vi.mocked(db.learningPath.update).mock.calls[0]?.[0];
+    expect(updateArg.data.currentNodeId).toBe('control-workbench:lead-design');
+    expect(updateArg.data.lastExecutionMetadata.availableOutcomeRefs)
+      .toEqual(expect.arrayContaining(['adaptive_assessment:answer-1']));
+    expect(updateArg.data.pathPayload.planNodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'control-workbench:lead-design',
+        status: 'current',
+        readiness: expect.objectContaining({ state: 'ready' }),
+      }),
+    ]));
+  });
+
   it('keeps adaptive outcome gates locked for unknown assessment refs', async () => {
     const db = mockDb();
     const path = {

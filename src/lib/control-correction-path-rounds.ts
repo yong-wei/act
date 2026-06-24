@@ -1109,7 +1109,7 @@ function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
   addTrustedOutcomeRef(refs, adaptiveAssessmentRef);
   addTrustedOutcomeRef(refs, controlWorkbenchRef);
 
-  if (input.resourceType === 'adaptive_quiz' && isTrustedAdaptiveAssessmentOutcomeRef(adaptiveAssessmentRef)) {
+  if (isAdaptiveAssessmentCompletionResourceType(input.resourceType) && isTrustedAdaptiveAssessmentOutcomeRef(adaptiveAssessmentRef)) {
     const assessmentId = firstString(
       adaptiveAssessmentRef.id,
       adaptiveAssessmentRef.answerId,
@@ -1157,6 +1157,10 @@ function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
   }
 
   return [...refs];
+}
+
+function isAdaptiveAssessmentCompletionResourceType(resourceType: string): boolean {
+  return resourceType === 'adaptive_quiz' || resourceType === 'checkpoint';
 }
 
 function addTrustedOutcomeRef(refs: Set<string>, value: unknown): void {
