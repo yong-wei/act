@@ -60,6 +60,7 @@ COPY . .
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS=--max-old-space-size=4096
 ENV SKIP_WASM_BUILD=1
 
 # Build the application

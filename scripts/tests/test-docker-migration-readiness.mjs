@@ -141,6 +141,12 @@ function main() {
     'Dockerfile 必须在容器内执行 npm run build，确保走统一构建链路'
   );
 
+  assert.match(
+    dockerfile,
+    /ENV NODE_OPTIONS=--max-old-space-size=4096/,
+    'Dockerfile builder 阶段必须提高 Node heap，避免容器内 Next 构建因默认堆内存不足失败'
+  );
+
   const packageBuildScript = packageJson.scripts.build;
   const wasmBuildIndex = Math.min(
     ...[
