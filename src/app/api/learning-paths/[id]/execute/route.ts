@@ -544,6 +544,7 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
           knowledgeTags: true,
           questionType: true,
           difficulty: true,
+          metadata: true,
         },
       },
       abilityEstimateSnapshot: {
@@ -553,13 +554,28 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
       },
     },
   });
+  const kaqMetadata = toRecord(answer?.questionRef?.metadata).kaq;
+  const kaqReview = toRecord(toRecord(kaqMetadata).review);
+  const reviewedKaqAnswer = firstString(kaqReview.state) === 'reviewed';
+  const readinessGateEligible = reviewedKaqAnswer && firstString(toRecord(kaqMetadata).purpose) === 'readiness-gate';
+  const pathContextMatches = answer ? matchesAdaptiveAssessmentPathContext(answer, input) : false;
   const adaptiveAssessmentRef = answer
-    ? matchesAdaptiveAssessmentPathContext(answer, input)
+    ? pathContextMatches && readinessGateEligible
       ? compactObject({
         kind: 'AdaptiveAssessmentAnswer',
         id: answer.id,
         provenance: 'official',
         questionId: answer.questionId,
+        questionSnapshotId: firstString(toRecord(kaqMetadata).immutableContentHash),
+        reviewState: firstString(kaqReview.state),
+        readinessGateEligible,
+        terminalValidationEligible: readinessGateEligible,
+        learningGoalIds: Array.isArray(toRecord(kaqMetadata).learningGoalIds)
+          ? toRecord(kaqMetadata).learningGoalIds
+          : undefined,
+        outcomeRefs: Array.isArray(toRecord(kaqMetadata).outcomeRefs)
+          ? toRecord(kaqMetadata).outcomeRefs
+          : undefined,
         score: readFinite(answer.score),
         abilityEstimate: readFinite(answer.abilityEstimate),
         knowledgeTags: Array.isArray(answer.questionRef?.knowledgeTags)
@@ -569,7 +585,11 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
         difficulty: readFinite(answer.questionRef?.difficulty),
         answeredAt: answer.answeredAt instanceof Date ? answer.answeredAt.toISOString() : undefined,
       })
-      : unknownEvidenceRef('AdaptiveAssessmentAnswer', id, 'adaptive-assessment-path-mismatch')
+      : unknownEvidenceRef(
+        'AdaptiveAssessmentAnswer',
+        id,
+        pathContextMatches ? 'adaptive-assessment-readiness-not-eligible' : 'adaptive-assessment-path-mismatch',
+      )
     : unknownEvidenceRef('AdaptiveAssessmentAnswer', id);
   return {
     ...input,

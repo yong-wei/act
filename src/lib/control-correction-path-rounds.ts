@@ -1177,6 +1177,8 @@ function isTrustedAdaptiveAssessmentOutcomeRef(value: unknown): boolean {
   const provenance = readProvenance(record);
   return kind === 'AdaptiveAssessmentAnswer' &&
     provenance === 'official' &&
+    record.readinessGateEligible === true &&
+    firstString(record.reviewState) === 'reviewed' &&
     firstString(record.id, record.answerId, record.sourceId) !== undefined &&
     firstString(record.mismatchReason) === undefined;
 }

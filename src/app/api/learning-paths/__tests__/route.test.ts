@@ -962,6 +962,15 @@ describe('learning path round API routes', () => {
         knowledgeTags: ['control-correction:time-domain-targets'],
         questionType: 'pole-to-behavior',
         difficulty: 0.58,
+        metadata: {
+          kaq: {
+            immutableContentHash: 'reviewed-hash-1',
+            learningGoalIds: ['control-correction'],
+            purpose: 'readiness-gate',
+            outcomeRefs: ['quiz-outcome:control-correction:readiness-gate:preset-q-01'],
+            review: { state: 'reviewed' },
+          },
+        },
       },
       abilityEstimateSnapshot: {
         dimensions: {
@@ -1046,6 +1055,140 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('keeps adaptive outcome gates locked when the answer is provisional K/A/Q evidence', async () => {
+    useStructuredAdaptiveAssessmentPath();
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue({
+      id: 'answer-generated',
+      questionId: 'generated-q-01',
+      score: 100,
+      abilityEstimate: 0.62,
+      answeredAt: new Date('2026-06-04T09:59:00.000Z'),
+      questionRef: {
+        knowledgeTags: ['controller-tuning'],
+        questionType: 'multi-criteria',
+        difficulty: 0.7,
+        metadata: {
+          kaq: {
+            immutableContentHash: 'generated-hash-1',
+            learningGoalIds: ['control-correction'],
+            purpose: 'practice',
+            outcomeRefs: ['quiz-outcome:control-correction:practice:generated-q-01'],
+            review: { state: 'provisional' },
+          },
+        },
+      },
+      abilityEstimateSnapshot: {
+        dimensions: {
+          pathExecution: {
+            pathId: 'path-1',
+            nodeId: 'adaptive-quiz:control-target-check',
+            goalId: 'control-correction',
+          },
+        },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      idempotencyKey: 'provisional-adaptive-outcome',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          id: 'answer-generated',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-generated',
+          provenance: 'unknown',
+          mismatchReason: 'adaptive-assessment-readiness-not-eligible',
+        }),
+      }),
+      evidenceRefs: [],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'adaptive-quiz:control-target-check',
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: [],
+        }),
+      }),
+    }));
+  });
+
+  it('keeps adaptive outcome gates locked when reviewed K/A/Q evidence is not readiness-gate purpose', async () => {
+    useStructuredAdaptiveAssessmentPath();
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue({
+      id: 'answer-practice',
+      questionId: 'preset-q-03',
+      score: 100,
+      abilityEstimate: 0.62,
+      answeredAt: new Date('2026-06-04T09:59:00.000Z'),
+      questionRef: {
+        knowledgeTags: ['controller-tuning'],
+        questionType: 'multi-criteria',
+        difficulty: 0.7,
+        metadata: {
+          kaq: {
+            immutableContentHash: 'reviewed-practice-hash-1',
+            learningGoalIds: ['control-correction'],
+            purpose: 'practice',
+            outcomeRefs: ['quiz-outcome:control-correction:practice:preset-q-03'],
+            review: { state: 'reviewed' },
+          },
+        },
+      },
+      abilityEstimateSnapshot: {
+        dimensions: {
+          pathExecution: {
+            pathId: 'path-1',
+            nodeId: 'adaptive-quiz:control-target-check',
+            goalId: 'control-correction',
+          },
+        },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      idempotencyKey: 'practice-adaptive-outcome',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          id: 'answer-practice',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-practice',
+          provenance: 'unknown',
+          mismatchReason: 'adaptive-assessment-readiness-not-eligible',
+        }),
+      }),
+      evidenceRefs: [],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'adaptive-quiz:control-target-check',
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: [],
+        }),
+      }),
+    }));
+  });
+
   it('keeps adaptive outcome gates locked when the answer belongs to another path node', async () => {
     useStructuredAdaptiveAssessmentPath();
     mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue({
@@ -1058,6 +1201,15 @@ describe('learning path round API routes', () => {
         knowledgeTags: ['control-correction:time-domain-targets'],
         questionType: 'pole-to-behavior',
         difficulty: 0.58,
+        metadata: {
+          kaq: {
+            immutableContentHash: 'reviewed-hash-1',
+            learningGoalIds: ['control-correction'],
+            purpose: 'readiness-gate',
+            outcomeRefs: ['quiz-outcome:control-correction:readiness-gate:preset-q-01'],
+            review: { state: 'reviewed' },
+          },
+        },
       },
       abilityEstimateSnapshot: {
         dimensions: {
@@ -1116,6 +1268,15 @@ describe('learning path round API routes', () => {
         knowledgeTags: ['control-correction:time-domain-targets'],
         questionType: 'pole-to-behavior',
         difficulty: 0.58,
+        metadata: {
+          kaq: {
+            immutableContentHash: 'reviewed-hash-1',
+            learningGoalIds: ['control-correction'],
+            purpose: 'readiness-gate',
+            outcomeRefs: ['quiz-outcome:control-correction:readiness-gate:preset-q-01'],
+            review: { state: 'reviewed' },
+          },
+        },
       },
       abilityEstimateSnapshot: {
         dimensions: {

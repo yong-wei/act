@@ -13,7 +13,9 @@ export type LearningFactProfilePolicyReason =
   | 'legacy_evidence_context_only'
   | 'missing_evidence_context_only'
   | 'official_arena_evaluation'
-  | 'adaptive_assessment_evidence';
+  | 'adaptive_assessment_evidence'
+  | 'adaptive_assessment_provisional_context_only'
+  | 'adaptive_assessment_missing_kaq_context_only';
 
 export interface LearningFactEvidenceGovernance {
   evidenceQuality: SubmissionEvidenceQuality;
@@ -48,6 +50,32 @@ export function resolveLearningFactEvidenceGovernance(
   payload: Record<string, unknown>,
 ): Prisma.InputJsonObject | null {
   if (actionType === 'answer_submit' && payload.assessmentSource === 'adaptive_assessment') {
+    const kaqQuizEvidence = readRecord(payload.kaqQuizEvidence);
+    if (Object.keys(kaqQuizEvidence).length === 0) {
+      return toJsonObject({
+        evidenceQuality: 'partial',
+        payloadEvidenceQuality: 'partial',
+        sourceState: 'manifest-submission-v2',
+        evidenceReason: 'adaptive_assessment_missing_kaq_evidence',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'adaptive_assessment_missing_kaq_context_only',
+      });
+    }
+    if (
+      kaqQuizEvidence.learningFactEligible === false ||
+      kaqQuizEvidence.studentCompetencySnapshotEffect === 'no-op'
+    ) {
+      return toJsonObject({
+        evidenceQuality: 'partial',
+        payloadEvidenceQuality: 'partial',
+        sourceState: 'manifest-submission-v2',
+        evidenceReason: 'adaptive_assessment_provisional',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'adaptive_assessment_provisional_context_only',
+      });
+    }
     return toJsonObject({
       evidenceQuality: 'rich',
       payloadEvidenceQuality: 'rich',

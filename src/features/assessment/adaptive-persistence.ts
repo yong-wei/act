@@ -5,6 +5,10 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
+import {
+  buildKaqQuizQuestionMetadata,
+  materializeKaqQuizOutcomeEvidence,
+} from '@/features/adaptive-assessment/kaq-quiz-foundation';
 
 import {
   buildSubmitAnswerResult,
@@ -144,6 +148,7 @@ function questionMetadataContentHash(question: SubmittedAnswerDetails['question'
     knowledgeTags: [...question.knowledgeTags].sort(),
     difficulty: Number(question.difficulty.toFixed(6)),
     optionCount: question.options.length,
+    kaq: buildKaqQuizQuestionMetadata(question).immutableContentHash,
   };
 
   return createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
@@ -283,6 +288,15 @@ function buildAssessmentLearningEvent(params: {
   masteryConfidence?: number;
 }): LearningEvent {
   const occurredAt = new Date(params.details.record.createdAt).toISOString();
+  const kaqQuizEvidence = materializeKaqQuizOutcomeEvidence({
+    question: params.details.question,
+    sessionId: params.details.record.sessionId,
+    answerId: params.answerId,
+    isCorrect: params.details.record.isCorrect,
+    score: params.score,
+    scoringVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+    occurredAt,
+  });
 
   return {
     eventId: `adaptive-assessment:${params.answerId}`,
@@ -305,10 +319,17 @@ function buildAssessmentLearningEvent(params: {
       answerId: params.answerId,
       questionId: params.details.question.id,
       questionRefId: params.questionRefId,
+      questionSnapshotId: kaqQuizEvidence.questionSnapshotId,
+      quizSetId: kaqQuizEvidence.quizSetId,
+      attemptKey: kaqQuizEvidence.attemptKey,
       selectedOptionKey: params.details.selectedOptionKey,
       correctOptionKey: params.details.correctOptionKey,
       isCorrect: params.details.record.isCorrect,
       score: params.score,
+      denominator: kaqQuizEvidence.denominator,
+      retryPolicy: kaqQuizEvidence.retryPolicy,
+      scoringVersion: kaqQuizEvidence.scoringVersion,
+      rubricVersion: kaqQuizEvidence.rubricVersion,
       durationSeconds: params.details.record.timeSpent,
       knowledgeTags: params.details.question.knowledgeTags,
       abilityEstimate: params.details.result.estimatedAbility,
@@ -316,6 +337,24 @@ function buildAssessmentLearningEvent(params: {
       masteryConfidence: params.masteryConfidence,
       confidence: params.masteryConfidence,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      eventSource: kaqQuizEvidence.eventSource,
+      sourceLogId: kaqQuizEvidence.sourceLogId,
+      dedupeKey: kaqQuizEvidence.dedupeKey,
+      learningFactEligible: kaqQuizEvidence.learningFactEligible,
+      readinessGateEligible: kaqQuizEvidence.readinessGateEligible,
+      terminalValidationEligible: kaqQuizEvidence.terminalValidationEligible,
+      studentCompetencySnapshotEffect: kaqQuizEvidence.studentCompetencySnapshotEffect,
+      learningGoalIds: kaqQuizEvidence.learningGoalIds,
+      kaqObjectiveIds: kaqQuizEvidence.kaqObjectiveIds,
+      knowledgeObjectiveIds: kaqQuizEvidence.knowledgeObjectiveIds,
+      applicationObjectiveIds: kaqQuizEvidence.applicationObjectiveIds,
+      qualityObjectiveIds: kaqQuizEvidence.qualityObjectiveIds,
+      graphNodeIds: kaqQuizEvidence.graphNodeIds,
+      capabilityTargetIds: kaqQuizEvidence.capabilityTargetIds,
+      qualityTargetIds: kaqQuizEvidence.qualityTargetIds,
+      misconceptionTags: kaqQuizEvidence.misconceptionTags,
+      remediationResourceNodeIds: kaqQuizEvidence.remediationResourceNodeIds,
+      kaqQuizEvidence,
       ...(params.details.pathContext ? { pathExecution: params.details.pathContext } : {}),
       privacyLevel: 'restricted',
     },
@@ -356,6 +395,7 @@ async function persistAdaptiveAssessmentSubmission(
   });
 
   const contentHash = questionMetadataContentHash(details.question);
+  const kaqMetadata = buildKaqQuizQuestionMetadata(details.question);
   const questionRef = await tx.adaptiveAssessmentItemRef.upsert({
     where: {
       questionId_algorithmVersion_contentHash: {
@@ -375,9 +415,10 @@ async function persistAdaptiveAssessmentSubmission(
       difficulty: details.question.difficulty,
       optionCount: details.question.options.length,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-      metadata: details.question.generatedMetadata
-        ? { generatedMetadata: details.question.generatedMetadata }
-        : {},
+      metadata: {
+        kaq: kaqMetadata,
+        ...(details.question.generatedMetadata ? { generatedMetadata: details.question.generatedMetadata } : {}),
+      },
     },
   });
 
@@ -446,6 +487,24 @@ async function persistAdaptiveAssessmentSubmission(
   });
   const createdAnswer = !existingAnswer && answer.answeredAt.getTime() === answeredAt.getTime();
   if (!createdAnswer) {
+    return {
+      durableSessionId: session.id,
+      durableAnswerId: answer.id,
+      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      masteryUpdateCount: 0,
+      result,
+    };
+  }
+  const kaqQuizEvidence = materializeKaqQuizOutcomeEvidence({
+    question: details.question,
+    sessionId: details.record.sessionId,
+    answerId: answer.id,
+    isCorrect: details.record.isCorrect,
+    score,
+    scoringVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+    occurredAt: answeredAt.toISOString(),
+  });
+  if (!kaqQuizEvidence.learningFactEligible) {
     return {
       durableSessionId: session.id,
       durableAnswerId: answer.id,

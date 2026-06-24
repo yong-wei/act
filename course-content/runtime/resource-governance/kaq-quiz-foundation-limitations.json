@@ -1,0 +1,30 @@
+{
+  "artifactVersion": "kaq-quiz-foundation-bank.v1",
+  "generatedAt": "2026-06-24T11:32:23.820Z",
+  "rows": [
+    {
+      "learningGoalId": null,
+      "reason": "generated-only-not-readiness-eligible",
+      "scope": "generated-question-policy",
+      "severity": "warning",
+      "denominator": 0,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-06-22T15:15:02.987Z"
+      },
+      "versionRefs": {
+        "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+        "learningGoalPackageVersion": "learning-goal-package/v1",
+        "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+        "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+        "resourceRegistryVersion": "resource-node-registry.v1",
+        "resourceProjectionVersion": "resource-semantic-projection.v1",
+        "overlayVersion": "graph-center-overlay.v1",
+        "plannerVersion": "adaptive-learning-path-planner.v1",
+        "groundingVersion": "konling-graph-grounding.v1",
+        "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+        "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+      }
+    }
+  ]
+}
