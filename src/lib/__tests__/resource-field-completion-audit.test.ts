@@ -707,6 +707,58 @@ describe('resource field completion audit', () => {
     ]));
   });
 
+  it('reports only locked high-complexity resource ids in limitations', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [
+        {
+          ...baselineAuditRow('quiz:frequency-practice-ready', 'quiz'),
+          reviewStatus: 'human-confirmed',
+          graphNodeRefs: {
+            knowledge: ['kn:autocontrol:frequency-response'],
+            capability: [],
+            quality: [],
+          },
+          reviewAudit: {
+            ...baselineAuditRow('quiz:frequency-practice-ready', 'quiz').reviewAudit,
+            reviewerId: 'curriculum-reviewer',
+            reviewerRole: 'teacher',
+            reviewedAt: '2026-06-24T00:00:00.000Z',
+            reviewBatchId: 'test-baseline',
+            reviewedSourceHash: 'sha256:quiz:frequency-practice-ready',
+            reviewedVersionRef: 'resource-node-registry.v1',
+          },
+        },
+        {
+          ...baselineAuditRow('simulation:frequency-practice-locked', 'simulation'),
+          reviewStatus: 'not-reviewed',
+          graphNodeRefs: {
+            knowledge: ['kn:autocontrol:frequency-response'],
+            capability: [],
+            quality: [],
+          },
+        },
+      ],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+    const limitation = result.limitations.limitations.find((item) =>
+      item.learningGoalId === 'frequency-response-foundations'
+    )!;
+
+    expect(row.categories.practice.resourceIds).toEqual([
+      'quiz:frequency-practice-ready',
+      'simulation:frequency-practice-locked',
+    ]);
+    expect(row.categories.practice.highComplexityLocked).toBe(1);
+    expect(row.categories.practice.highComplexityLockedResourceIds).toEqual([
+      'simulation:frequency-practice-locked',
+    ]);
+    expect(limitation.blockedHighComplexityResourceIds).toEqual([
+      'simulation:frequency-practice-locked',
+    ]);
+  });
+
   it('does not count checkpoint rows as terminal validation unless the LearningGoal policy accepts checkpoints', () => {
     const result = buildLearningGoalResourceBaselineArtifacts({
       registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,

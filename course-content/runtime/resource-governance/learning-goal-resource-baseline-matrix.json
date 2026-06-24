@@ -1,9 +1,9 @@
 {
   "artifactVersion": "learning-goal-resource-baseline.v1",
-  "generatedAt": "2026-06-24T01:13:15.402Z",
+  "generatedAt": "2026-06-22T15:15:02.987Z",
   "sourceWindow": {
     "from": null,
-    "to": "2026-06-24T01:13:15.402Z"
+    "to": "2026-06-22T15:15:02.987Z"
   },
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
@@ -122,14 +122,31 @@
       ],
       "categories": {
         "concept": {
-          "linked": 46,
+          "linked": 116,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 46,
+          "citationReady": 63,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
           "resourceIds": [
+            "knowledge-card:串联校正_6_fede5751",
+            "knowledge-card:传统设计四联图校正_4_47004",
+            "knowledge-card:动态性能指标_3_a10733c1",
+            "knowledge-card:工程指标代价函数翻译_4_47003",
+            "knowledge-card:性能指标_1_1",
+            "knowledge-card:控制器频域特性矩阵_4_42008",
+            "knowledge-card:根轨迹_1_1",
+            "knowledge-card:根轨迹_4_c19f8854",
+            "knowledge-card:根轨迹增益换算_3_4b1d9e6c",
+            "knowledge-card:根轨迹完整法则_3_0f2e7b11",
+            "knowledge-card:根轨迹绘制规则_3_2f9e8cb3",
+            "knowledge-card:稳态误差双路径判断_3_37002",
+            "knowledge-card:给定-扰动双通道误差分析_3_37001",
+            "knowledge-card:跨模型验证比较_4_47006",
+            "knowledge-card:零点引入与根轨迹重排_3_35001",
+            "knowledge-card:频域PD与超前整定_4_42011",
+            "knowledge-card:频域PI与滞后整定_4_42010",
             "registry:classroom-ethical-trigger",
             "registry:ethics-arctic-v1",
             "registry:lesson01-loop-scenario-lab-v1",
@@ -175,10 +192,81 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:2-2:step-09",
+            "runtime-step:2-2:step-10",
+            "runtime-step:2-2:step-11",
+            "runtime-step:2-2:step-12",
+            "runtime-step:2-2:step-13",
+            "runtime-step:3-5:step-01",
+            "runtime-step:3-5:step-02",
+            "runtime-step:3-5:step-03",
+            "runtime-step:3-5:step-04",
+            "runtime-step:3-5:step-05",
+            "runtime-step:3-5:step-06",
+            "runtime-step:3-6:step-01",
+            "runtime-step:3-6:step-02",
+            "runtime-step:3-6:step-03",
+            "runtime-step:3-6:step-04",
+            "runtime-step:3-6:step-05",
+            "runtime-step:3-6:step-06",
+            "runtime-step:3-7:step-01",
+            "runtime-step:3-7:step-02",
+            "runtime-step:3-7:step-03",
+            "runtime-step:3-7:step-04",
+            "runtime-step:3-7:step-05",
+            "runtime-step:3-7:step-06",
+            "runtime-step:3-7:step-07",
+            "runtime-step:3-7:step-08",
+            "runtime-step:3-9:step-01",
+            "runtime-step:3-9:step-02",
+            "runtime-step:3-9:step-03",
+            "runtime-step:4-2:step-04",
+            "runtime-step:4-2:step-05",
+            "runtime-step:4-2:step-06",
+            "runtime-step:4-2:step-07",
+            "runtime-step:4-2:step-08",
+            "runtime-step:4-2:step-09",
+            "runtime-step:4-2:step-10",
+            "runtime-step:4-2:step-11",
+            "runtime-step:4-2:step-12",
+            "runtime-step:4-2:step-13",
+            "runtime-step:4-2:step-14",
+            "runtime-step:4-2:step-15",
+            "runtime-step:4-7:step-03",
+            "runtime-step:4-7:step-04",
+            "runtime-step:4-7:step-05",
+            "runtime-step:4-7:step-06",
+            "runtime-step:4-7:step-07",
+            "runtime-step:5-1:step-12",
+            "runtime-step:5-1:step-13",
+            "runtime-step:5-1:step-14"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
+            "knowledge-card:串联校正_6_fede5751",
+            "knowledge-card:传统设计四联图校正_4_47004",
+            "knowledge-card:动态性能指标_3_a10733c1",
+            "knowledge-card:工程指标代价函数翻译_4_47003",
+            "knowledge-card:性能指标_1_1",
+            "knowledge-card:控制器频域特性矩阵_4_42008",
+            "knowledge-card:根轨迹_1_1",
+            "knowledge-card:根轨迹_4_c19f8854",
+            "knowledge-card:根轨迹增益换算_3_4b1d9e6c",
+            "knowledge-card:根轨迹完整法则_3_0f2e7b11",
+            "knowledge-card:根轨迹绘制规则_3_2f9e8cb3",
+            "knowledge-card:稳态误差双路径判断_3_37002",
+            "knowledge-card:给定-扰动双通道误差分析_3_37001",
+            "knowledge-card:跨模型验证比较_4_47006",
+            "knowledge-card:零点引入与根轨迹重排_3_35001",
+            "knowledge-card:频域PD与超前整定_4_42011",
+            "knowledge-card:频域PI与滞后整定_4_42010",
             "registry:classroom-ethical-trigger",
             "registry:ethics-arctic-v1",
             "registry:lesson01-loop-scenario-lab-v1",
@@ -224,7 +312,60 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:2-2:step-09",
+            "runtime-step:2-2:step-10",
+            "runtime-step:2-2:step-11",
+            "runtime-step:2-2:step-12",
+            "runtime-step:2-2:step-13",
+            "runtime-step:3-5:step-01",
+            "runtime-step:3-5:step-02",
+            "runtime-step:3-5:step-03",
+            "runtime-step:3-5:step-04",
+            "runtime-step:3-5:step-05",
+            "runtime-step:3-5:step-06",
+            "runtime-step:3-6:step-01",
+            "runtime-step:3-6:step-02",
+            "runtime-step:3-6:step-03",
+            "runtime-step:3-6:step-04",
+            "runtime-step:3-6:step-05",
+            "runtime-step:3-6:step-06",
+            "runtime-step:3-7:step-01",
+            "runtime-step:3-7:step-02",
+            "runtime-step:3-7:step-03",
+            "runtime-step:3-7:step-04",
+            "runtime-step:3-7:step-05",
+            "runtime-step:3-7:step-06",
+            "runtime-step:3-7:step-07",
+            "runtime-step:3-7:step-08",
+            "runtime-step:3-9:step-01",
+            "runtime-step:3-9:step-02",
+            "runtime-step:3-9:step-03",
+            "runtime-step:4-2:step-04",
+            "runtime-step:4-2:step-05",
+            "runtime-step:4-2:step-06",
+            "runtime-step:4-2:step-07",
+            "runtime-step:4-2:step-08",
+            "runtime-step:4-2:step-09",
+            "runtime-step:4-2:step-10",
+            "runtime-step:4-2:step-11",
+            "runtime-step:4-2:step-12",
+            "runtime-step:4-2:step-13",
+            "runtime-step:4-2:step-14",
+            "runtime-step:4-2:step-15",
+            "runtime-step:4-7:step-03",
+            "runtime-step:4-7:step-04",
+            "runtime-step:4-7:step-05",
+            "runtime-step:4-7:step-06",
+            "runtime-step:4-7:step-07",
+            "runtime-step:5-1:step-12",
+            "runtime-step:5-1:step-13",
+            "runtime-step:5-1:step-14"
           ],
           "missing": true
         },
@@ -242,6 +383,7 @@
             "registry:lesson15-series-precheck"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
             "registry:lesson09-correction-precheck",
             "registry:lesson15-series-exit-quiz",
@@ -275,6 +417,20 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
@@ -304,6 +460,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -317,18 +474,36 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
         "citation": {
-          "linked": 61,
+          "linked": 78,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 61,
+          "citationReady": 78,
           "assessment": 5,
           "checkpoint": 0,
           "highComplexityLocked": 12,
           "resourceIds": [
+            "knowledge-card:串联校正_6_fede5751",
+            "knowledge-card:传统设计四联图校正_4_47004",
+            "knowledge-card:动态性能指标_3_a10733c1",
+            "knowledge-card:工程指标代价函数翻译_4_47003",
+            "knowledge-card:性能指标_1_1",
+            "knowledge-card:控制器频域特性矩阵_4_42008",
+            "knowledge-card:根轨迹_1_1",
+            "knowledge-card:根轨迹_4_c19f8854",
+            "knowledge-card:根轨迹增益换算_3_4b1d9e6c",
+            "knowledge-card:根轨迹完整法则_3_0f2e7b11",
+            "knowledge-card:根轨迹绘制规则_3_2f9e8cb3",
+            "knowledge-card:稳态误差双路径判断_3_37002",
+            "knowledge-card:给定-扰动双通道误差分析_3_37001",
+            "knowledge-card:跨模型验证比较_4_47006",
+            "knowledge-card:零点引入与根轨迹重排_3_35001",
+            "knowledge-card:频域PD与超前整定_4_42011",
+            "knowledge-card:频域PI与滞后整定_4_42010",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:classroom-ethical-trigger",
@@ -392,7 +567,38 @@
             "registry:widget-physics-mech"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
+            "knowledge-card:串联校正_6_fede5751",
+            "knowledge-card:传统设计四联图校正_4_47004",
+            "knowledge-card:动态性能指标_3_a10733c1",
+            "knowledge-card:工程指标代价函数翻译_4_47003",
+            "knowledge-card:性能指标_1_1",
+            "knowledge-card:控制器频域特性矩阵_4_42008",
+            "knowledge-card:根轨迹_1_1",
+            "knowledge-card:根轨迹_4_c19f8854",
+            "knowledge-card:根轨迹增益换算_3_4b1d9e6c",
+            "knowledge-card:根轨迹完整法则_3_0f2e7b11",
+            "knowledge-card:根轨迹绘制规则_3_2f9e8cb3",
+            "knowledge-card:稳态误差双路径判断_3_37002",
+            "knowledge-card:给定-扰动双通道误差分析_3_37001",
+            "knowledge-card:跨模型验证比较_4_47006",
+            "knowledge-card:零点引入与根轨迹重排_3_35001",
+            "knowledge-card:频域PD与超前整定_4_42011",
+            "knowledge-card:频域PI与滞后整定_4_42010",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:classroom-ethical-trigger",
@@ -480,6 +686,20 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
@@ -513,7 +733,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-24T01:13:15.402Z"
+          "to": "2026-06-22T15:15:02.987Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -584,14 +804,19 @@
       ],
       "categories": {
         "concept": {
-          "linked": 12,
+          "linked": 37,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 12,
+          "citationReady": 17,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
           "resourceIds": [
+            "knowledge-card:Bode图_1_1",
+            "knowledge-card:Bode首轮骨架_5_1e07d9da",
+            "knowledge-card:正弦稳态响应_5_b6dc1100",
+            "knowledge-card:频域分析_2_2e257d89",
+            "knowledge-card:频域响应_1_1",
             "registry:lesson12-bode-plot-recognition",
             "registry:lesson12-bode-slope-puzzle",
             "registry:lesson12-bode-step-sorter",
@@ -603,10 +828,36 @@
             "runtime-handout:legacy/L-2c",
             "runtime-media:1-1:1-1-slides",
             "runtime-media:2-3:2-3-slides",
-            "runtime-media:2-4:2-4-slides"
+            "runtime-media:2-4:2-4-slides",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:2-3:step-01",
+            "runtime-step:2-3:step-02",
+            "runtime-step:2-3:step-03",
+            "runtime-step:2-3:step-04",
+            "runtime-step:2-3:step-05",
+            "runtime-step:2-3:step-06",
+            "runtime-step:2-3:step-07",
+            "runtime-step:2-3:step-08",
+            "runtime-step:2-3:step-11",
+            "runtime-step:2-3:step-12",
+            "runtime-step:2-3:step-13",
+            "runtime-step:2-3:step-14",
+            "runtime-step:2-3:step-15",
+            "runtime-step:2-4:step-09",
+            "runtime-step:2-4:step-10"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
+            "knowledge-card:Bode图_1_1",
+            "knowledge-card:Bode首轮骨架_5_1e07d9da",
+            "knowledge-card:正弦稳态响应_5_b6dc1100",
+            "knowledge-card:频域分析_2_2e257d89",
+            "knowledge-card:频域响应_1_1",
             "registry:lesson12-bode-plot-recognition",
             "registry:lesson12-bode-slope-puzzle",
             "registry:lesson12-bode-step-sorter",
@@ -618,7 +869,27 @@
             "runtime-handout:legacy/L-2c",
             "runtime-media:1-1:1-1-slides",
             "runtime-media:2-3:2-3-slides",
-            "runtime-media:2-4:2-4-slides"
+            "runtime-media:2-4:2-4-slides",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:2-3:step-01",
+            "runtime-step:2-3:step-02",
+            "runtime-step:2-3:step-03",
+            "runtime-step:2-3:step-04",
+            "runtime-step:2-3:step-05",
+            "runtime-step:2-3:step-06",
+            "runtime-step:2-3:step-07",
+            "runtime-step:2-3:step-08",
+            "runtime-step:2-3:step-11",
+            "runtime-step:2-3:step-12",
+            "runtime-step:2-3:step-13",
+            "runtime-step:2-3:step-14",
+            "runtime-step:2-3:step-15",
+            "runtime-step:2-4:step-09",
+            "runtime-step:2-4:step-10"
           ],
           "missing": true
         },
@@ -635,6 +906,7 @@
             "registry:lesson12-frequency-precheck"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
             "registry:lesson12-bode-post-quiz",
             "registry:lesson12-frequency-precheck"
@@ -654,6 +926,7 @@
             "registry:lesson12-frequency-precheck"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
             "registry:lesson12-bode-post-quiz",
             "registry:lesson12-frequency-precheck"
@@ -670,6 +943,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -683,18 +957,24 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
         "citation": {
-          "linked": 14,
+          "linked": 19,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 14,
+          "citationReady": 19,
           "assessment": 2,
           "checkpoint": 0,
           "highComplexityLocked": 0,
           "resourceIds": [
+            "knowledge-card:Bode图_1_1",
+            "knowledge-card:Bode首轮骨架_5_1e07d9da",
+            "knowledge-card:正弦稳态响应_5_b6dc1100",
+            "knowledge-card:频域分析_2_2e257d89",
+            "knowledge-card:频域响应_1_1",
             "registry:lesson12-bode-plot-recognition",
             "registry:lesson12-bode-post-quiz",
             "registry:lesson12-bode-slope-puzzle",
@@ -711,7 +991,13 @@
             "runtime-media:2-4:2-4-slides"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
+            "knowledge-card:Bode图_1_1",
+            "knowledge-card:Bode首轮骨架_5_1e07d9da",
+            "knowledge-card:正弦稳态响应_5_b6dc1100",
+            "knowledge-card:频域分析_2_2e257d89",
+            "knowledge-card:频域响应_1_1",
             "registry:lesson12-bode-plot-recognition",
             "registry:lesson12-bode-post-quiz",
             "registry:lesson12-bode-slope-puzzle",
@@ -739,6 +1025,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         }
@@ -758,7 +1045,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-24T01:13:15.402Z"
+          "to": "2026-06-22T15:15:02.987Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -825,14 +1112,15 @@
       ],
       "categories": {
         "concept": {
-          "linked": 62,
+          "linked": 65,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 62,
+          "citationReady": 63,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
           "resourceIds": [
+            "knowledge-card:反馈_1_1",
             "registry:control-odyssey-v1",
             "registry:lesson01-component-role-match-v1",
             "registry:lesson01-feedback-bridge-v1",
@@ -894,10 +1182,14 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
+            "knowledge-card:反馈_1_1",
             "registry:control-odyssey-v1",
             "registry:lesson01-component-role-match-v1",
             "registry:lesson01-feedback-bridge-v1",
@@ -959,7 +1251,9 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10"
           ],
           "missing": true
         },
@@ -996,6 +1290,7 @@
             "registry:lesson17-df-precheck"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
             "registry:lesson01-feedback-exit-quiz-v1",
             "registry:lesson01-feedback-precheck-v1",
@@ -1065,6 +1360,18 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:lesson01-feedback-exit-quiz-v1",
             "registry:lesson01-feedback-precheck-v1",
@@ -1111,6 +1418,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -1124,18 +1432,20 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
         "citation": {
-          "linked": 94,
+          "linked": 95,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 94,
+          "citationReady": 95,
           "assessment": 22,
           "checkpoint": 0,
           "highComplexityLocked": 10,
           "resourceIds": [
+            "knowledge-card:反馈_1_1",
             "registry:control-odyssey-v1",
             "registry:lesson01-component-role-match-v1",
             "registry:lesson01-feedback-bridge-v1",
@@ -1232,7 +1542,20 @@
             "registry:widget-physics-mech"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
+            "knowledge-card:反馈_1_1",
             "registry:control-odyssey-v1",
             "registry:lesson01-component-role-match-v1",
             "registry:lesson01-feedback-bridge-v1",
@@ -1340,6 +1663,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         }
@@ -1359,7 +1683,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-24T01:13:15.402Z"
+          "to": "2026-06-22T15:15:02.987Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -1426,14 +1750,16 @@
       ],
       "categories": {
         "concept": {
-          "linked": 65,
+          "linked": 76,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 65,
+          "citationReady": 67,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
           "resourceIds": [
+            "knowledge-card:建模_1_2",
+            "knowledge-card:零初值传递函数_2_21001",
             "registry:control-odyssey-v1",
             "registry:lesson01-component-role-match-v1",
             "registry:lesson01-feedback-bridge-v1",
@@ -1498,10 +1824,22 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-2:step-01",
+            "runtime-step:1-2:step-02",
+            "runtime-step:1-2:step-03",
+            "runtime-step:1-2:step-04",
+            "runtime-step:1-2:step-05",
+            "runtime-step:1-2:step-14",
+            "runtime-step:2-1:step-06",
+            "runtime-step:2-1:step-07",
+            "runtime-step:2-1:step-08"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
+            "knowledge-card:建模_1_2",
+            "knowledge-card:零初值传递函数_2_21001",
             "registry:control-odyssey-v1",
             "registry:lesson01-component-role-match-v1",
             "registry:lesson01-feedback-bridge-v1",
@@ -1566,7 +1904,16 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-2:step-01",
+            "runtime-step:1-2:step-02",
+            "runtime-step:1-2:step-03",
+            "runtime-step:1-2:step-04",
+            "runtime-step:1-2:step-05",
+            "runtime-step:1-2:step-14",
+            "runtime-step:2-1:step-06",
+            "runtime-step:2-1:step-07",
+            "runtime-step:2-1:step-08"
           ],
           "missing": true
         },
@@ -1603,6 +1950,7 @@
             "registry:lesson17-df-precheck"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
             "registry:lesson01-feedback-exit-quiz-v1",
             "registry:lesson01-feedback-precheck-v1",
@@ -1672,6 +2020,18 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:lesson01-feedback-exit-quiz-v1",
             "registry:lesson01-feedback-precheck-v1",
@@ -1718,6 +2078,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -1731,18 +2092,21 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
         "citation": {
-          "linked": 97,
+          "linked": 99,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 97,
+          "citationReady": 99,
           "assessment": 22,
           "checkpoint": 0,
           "highComplexityLocked": 10,
           "resourceIds": [
+            "knowledge-card:建模_1_2",
+            "knowledge-card:零初值传递函数_2_21001",
             "registry:control-odyssey-v1",
             "registry:lesson01-component-role-match-v1",
             "registry:lesson01-feedback-bridge-v1",
@@ -1842,7 +2206,21 @@
             "registry:widget-physics-mech"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
+            "knowledge-card:建模_1_2",
+            "knowledge-card:零初值传递函数_2_21001",
             "registry:control-odyssey-v1",
             "registry:lesson01-component-role-match-v1",
             "registry:lesson01-feedback-bridge-v1",
@@ -1953,6 +2331,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         }
@@ -1972,7 +2351,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-24T01:13:15.402Z"
+          "to": "2026-06-22T15:15:02.987Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -2041,14 +2420,17 @@
       ],
       "categories": {
         "concept": {
-          "linked": 70,
+          "linked": 82,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 70,
+          "citationReady": 73,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
           "resourceIds": [
+            "knowledge-card:动态性能指标_3_a10733c1",
+            "knowledge-card:稳态误差双路径判断_3_37002",
+            "knowledge-card:终值定理_3_be8fe1ad",
             "registry:classroom-ethical-trigger",
             "registry:control-odyssey-v1",
             "registry:ethics-arctic-v1",
@@ -2118,10 +2500,23 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:2-2:step-09",
+            "runtime-step:2-2:step-10",
+            "runtime-step:2-2:step-11",
+            "runtime-step:2-2:step-12",
+            "runtime-step:2-2:step-13",
+            "runtime-step:3-7:step-05",
+            "runtime-step:3-7:step-06",
+            "runtime-step:3-7:step-07",
+            "runtime-step:3-7:step-08"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
+            "knowledge-card:动态性能指标_3_a10733c1",
+            "knowledge-card:稳态误差双路径判断_3_37002",
+            "knowledge-card:终值定理_3_be8fe1ad",
             "registry:classroom-ethical-trigger",
             "registry:control-odyssey-v1",
             "registry:ethics-arctic-v1",
@@ -2191,7 +2586,16 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:2-2:step-09",
+            "runtime-step:2-2:step-10",
+            "runtime-step:2-2:step-11",
+            "runtime-step:2-2:step-12",
+            "runtime-step:2-2:step-13",
+            "runtime-step:3-7:step-05",
+            "runtime-step:3-7:step-06",
+            "runtime-step:3-7:step-07",
+            "runtime-step:3-7:step-08"
           ],
           "missing": true
         },
@@ -2228,6 +2632,7 @@
             "registry:lesson17-df-precheck"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
             "registry:lesson01-feedback-exit-quiz-v1",
             "registry:lesson01-feedback-precheck-v1",
@@ -2299,6 +2704,20 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
@@ -2347,6 +2766,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -2360,18 +2780,22 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
         "citation": {
-          "linked": 104,
+          "linked": 107,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 104,
+          "citationReady": 107,
           "assessment": 24,
           "checkpoint": 0,
           "highComplexityLocked": 12,
           "resourceIds": [
+            "knowledge-card:动态性能指标_3_a10733c1",
+            "knowledge-card:稳态误差双路径判断_3_37002",
+            "knowledge-card:终值定理_3_be8fe1ad",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:classroom-ethical-trigger",
@@ -2478,7 +2902,24 @@
             "registry:widget-physics-mech"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
+            "knowledge-card:动态性能指标_3_a10733c1",
+            "knowledge-card:稳态误差双路径判断_3_37002",
+            "knowledge-card:终值定理_3_be8fe1ad",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:classroom-ethical-trigger",
@@ -2596,6 +3037,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         }
@@ -2615,7 +3057,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-24T01:13:15.402Z"
+          "to": "2026-06-22T15:15:02.987Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -2683,14 +3125,17 @@
       ],
       "categories": {
         "concept": {
-          "linked": 67,
+          "linked": 79,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 67,
+          "citationReady": 70,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
           "resourceIds": [
+            "knowledge-card:时域指标到目标极点区域_3_36001",
+            "knowledge-card:根轨迹完整法则_3_0f2e7b11",
+            "knowledge-card:根轨迹法_2_e3f6c0c1",
             "registry:control-odyssey-v1",
             "registry:lesson01-component-role-match-v1",
             "registry:lesson01-feedback-bridge-v1",
@@ -2757,10 +3202,23 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:3-5:step-01",
+            "runtime-step:3-5:step-02",
+            "runtime-step:3-5:step-03",
+            "runtime-step:3-6:step-01",
+            "runtime-step:3-6:step-02",
+            "runtime-step:3-6:step-03",
+            "runtime-step:3-6:step-04",
+            "runtime-step:3-6:step-05",
+            "runtime-step:3-6:step-06"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
+            "knowledge-card:时域指标到目标极点区域_3_36001",
+            "knowledge-card:根轨迹完整法则_3_0f2e7b11",
+            "knowledge-card:根轨迹法_2_e3f6c0c1",
             "registry:control-odyssey-v1",
             "registry:lesson01-component-role-match-v1",
             "registry:lesson01-feedback-bridge-v1",
@@ -2827,7 +3285,16 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:3-5:step-01",
+            "runtime-step:3-5:step-02",
+            "runtime-step:3-5:step-03",
+            "runtime-step:3-6:step-01",
+            "runtime-step:3-6:step-02",
+            "runtime-step:3-6:step-03",
+            "runtime-step:3-6:step-04",
+            "runtime-step:3-6:step-05",
+            "runtime-step:3-6:step-06"
           ],
           "missing": true
         },
@@ -2867,6 +3334,7 @@
             "registry:lesson17-df-precheck"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
             "registry:lesson01-feedback-exit-quiz-v1",
             "registry:lesson01-feedback-precheck-v1",
@@ -2944,6 +3412,20 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
@@ -2995,6 +3477,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -3008,18 +3491,22 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
         "citation": {
-          "linked": 104,
+          "linked": 107,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 104,
+          "citationReady": 107,
           "assessment": 27,
           "checkpoint": 0,
           "highComplexityLocked": 12,
           "resourceIds": [
+            "knowledge-card:时域指标到目标极点区域_3_36001",
+            "knowledge-card:根轨迹完整法则_3_0f2e7b11",
+            "knowledge-card:根轨迹法_2_e3f6c0c1",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:control-odyssey-v1",
@@ -3126,7 +3613,24 @@
             "registry:widget-physics-mech"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
+            "knowledge-card:时域指标到目标极点区域_3_36001",
+            "knowledge-card:根轨迹完整法则_3_0f2e7b11",
+            "knowledge-card:根轨迹法_2_e3f6c0c1",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:control-odyssey-v1",
@@ -3244,6 +3748,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         }
@@ -3263,7 +3768,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-24T01:13:15.402Z"
+          "to": "2026-06-22T15:15:02.987Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -3338,14 +3843,19 @@
       ],
       "categories": {
         "concept": {
-          "linked": 30,
+          "linked": 81,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 30,
+          "citationReady": 35,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
           "resourceIds": [
+            "knowledge-card:幅值裕度_5_73af26a5",
+            "knowledge-card:截止频率_5_c7d09ff7",
+            "knowledge-card:相角裕度_5_5a74b451",
+            "knowledge-card:穿越频率_5_c4c2b93c",
+            "knowledge-card:频率特性_5_404adfdd",
             "registry:classroom-ethical-trigger",
             "registry:ethics-arctic-v1",
             "registry:lesson01-loop-scenario-lab-v1",
@@ -3375,10 +3885,62 @@
             "registry:physics-modeling-mechanical-v1",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:2-3:step-09",
+            "runtime-step:2-3:step-10",
+            "runtime-step:2-4:step-01",
+            "runtime-step:2-4:step-02",
+            "runtime-step:2-4:step-03",
+            "runtime-step:2-4:step-07",
+            "runtime-step:2-4:step-08",
+            "runtime-step:2-4:step-11",
+            "runtime-step:2-4:step-12",
+            "runtime-step:2-4:step-13",
+            "runtime-step:3-5:step-10",
+            "runtime-step:3-5:step-11",
+            "runtime-step:3-5:step-12",
+            "runtime-step:3-6:step-01",
+            "runtime-step:3-6:step-02",
+            "runtime-step:3-6:step-03",
+            "runtime-step:3-6:step-04",
+            "runtime-step:3-6:step-05",
+            "runtime-step:3-6:step-06",
+            "runtime-step:3-6:step-10",
+            "runtime-step:3-6:step-11",
+            "runtime-step:3-6:step-12",
+            "runtime-step:3-6:step-13",
+            "runtime-step:3-7:step-13",
+            "runtime-step:3-7:step-14",
+            "runtime-step:3-7:step-15",
+            "runtime-step:3-7:step-16",
+            "runtime-step:3-7:step-17",
+            "runtime-step:3-8:step-06",
+            "runtime-step:3-8:step-07",
+            "runtime-step:3-8:step-08",
+            "runtime-step:3-8:step-09",
+            "runtime-step:3-8:step-10",
+            "runtime-step:3-8:step-11",
+            "runtime-step:3-9:step-08",
+            "runtime-step:3-9:step-09",
+            "runtime-step:3-9:step-10",
+            "runtime-step:4-1:step-01",
+            "runtime-step:4-1:step-02",
+            "runtime-step:4-1:step-03",
+            "runtime-step:4-1:step-04",
+            "runtime-step:4-1:step-07",
+            "runtime-step:4-1:step-08",
+            "runtime-step:4-1:step-09",
+            "runtime-step:4-5:step-01",
+            "runtime-step:4-5:step-02"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
+            "knowledge-card:幅值裕度_5_73af26a5",
+            "knowledge-card:截止频率_5_c7d09ff7",
+            "knowledge-card:相角裕度_5_5a74b451",
+            "knowledge-card:穿越频率_5_c4c2b93c",
+            "knowledge-card:频率特性_5_404adfdd",
             "registry:classroom-ethical-trigger",
             "registry:ethics-arctic-v1",
             "registry:lesson01-loop-scenario-lab-v1",
@@ -3408,7 +3970,53 @@
             "registry:physics-modeling-mechanical-v1",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:2-3:step-09",
+            "runtime-step:2-3:step-10",
+            "runtime-step:2-4:step-01",
+            "runtime-step:2-4:step-02",
+            "runtime-step:2-4:step-03",
+            "runtime-step:2-4:step-07",
+            "runtime-step:2-4:step-08",
+            "runtime-step:2-4:step-11",
+            "runtime-step:2-4:step-12",
+            "runtime-step:2-4:step-13",
+            "runtime-step:3-5:step-10",
+            "runtime-step:3-5:step-11",
+            "runtime-step:3-5:step-12",
+            "runtime-step:3-6:step-01",
+            "runtime-step:3-6:step-02",
+            "runtime-step:3-6:step-03",
+            "runtime-step:3-6:step-04",
+            "runtime-step:3-6:step-05",
+            "runtime-step:3-6:step-06",
+            "runtime-step:3-6:step-10",
+            "runtime-step:3-6:step-11",
+            "runtime-step:3-6:step-12",
+            "runtime-step:3-6:step-13",
+            "runtime-step:3-7:step-13",
+            "runtime-step:3-7:step-14",
+            "runtime-step:3-7:step-15",
+            "runtime-step:3-7:step-16",
+            "runtime-step:3-7:step-17",
+            "runtime-step:3-8:step-06",
+            "runtime-step:3-8:step-07",
+            "runtime-step:3-8:step-08",
+            "runtime-step:3-8:step-09",
+            "runtime-step:3-8:step-10",
+            "runtime-step:3-8:step-11",
+            "runtime-step:3-9:step-08",
+            "runtime-step:3-9:step-09",
+            "runtime-step:3-9:step-10",
+            "runtime-step:4-1:step-01",
+            "runtime-step:4-1:step-02",
+            "runtime-step:4-1:step-03",
+            "runtime-step:4-1:step-04",
+            "runtime-step:4-1:step-07",
+            "runtime-step:4-1:step-08",
+            "runtime-step:4-1:step-09",
+            "runtime-step:4-5:step-01",
+            "runtime-step:4-5:step-02"
           ],
           "missing": true
         },
@@ -3425,6 +4033,7 @@
             "registry:lesson13-phase-stability-exit-quiz"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
             "registry:lesson13-phase-concept-quiz",
             "registry:lesson13-phase-stability-exit-quiz"
@@ -3455,6 +4064,19 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
@@ -3482,6 +4104,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -3495,18 +4118,24 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
         "citation": {
-          "linked": 43,
+          "linked": 48,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 43,
+          "citationReady": 48,
           "assessment": 4,
           "checkpoint": 0,
           "highComplexityLocked": 11,
           "resourceIds": [
+            "knowledge-card:幅值裕度_5_73af26a5",
+            "knowledge-card:截止频率_5_c7d09ff7",
+            "knowledge-card:相角裕度_5_5a74b451",
+            "knowledge-card:穿越频率_5_c4c2b93c",
+            "knowledge-card:频率特性_5_404adfdd",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:classroom-ethical-trigger",
@@ -3552,7 +4181,25 @@
             "registry:widget-physics-mech"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
+            "knowledge-card:幅值裕度_5_73af26a5",
+            "knowledge-card:截止频率_5_c7d09ff7",
+            "knowledge-card:相角裕度_5_5a74b451",
+            "knowledge-card:穿越频率_5_c4c2b93c",
+            "knowledge-card:频率特性_5_404adfdd",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:classroom-ethical-trigger",
@@ -3609,6 +4256,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         }
@@ -3628,7 +4276,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-24T01:13:15.402Z"
+          "to": "2026-06-22T15:15:02.987Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -3696,14 +4344,17 @@
       ],
       "categories": {
         "concept": {
-          "linked": 29,
+          "linked": 41,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 29,
+          "citationReady": 32,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
           "resourceIds": [
+            "knowledge-card:传统设计四联图校正_4_47004",
+            "knowledge-card:数据驱动控制_5_54003",
+            "knowledge-card:跨模型验证比较_4_47006",
             "registry:classroom-ethical-trigger",
             "registry:ethics-arctic-v1",
             "registry:lesson01-loop-scenario-lab-v1",
@@ -3732,10 +4383,23 @@
             "registry:physics-modeling-mechanical-v1",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:4-7:step-03",
+            "runtime-step:4-7:step-04",
+            "runtime-step:4-7:step-05",
+            "runtime-step:4-7:step-06",
+            "runtime-step:4-7:step-07",
+            "runtime-step:5-4:step-09",
+            "runtime-step:5-4:step-10",
+            "runtime-step:5-4:step-11",
+            "runtime-step:5-4:step-12"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
+            "knowledge-card:传统设计四联图校正_4_47004",
+            "knowledge-card:数据驱动控制_5_54003",
+            "knowledge-card:跨模型验证比较_4_47006",
             "registry:classroom-ethical-trigger",
             "registry:ethics-arctic-v1",
             "registry:lesson01-loop-scenario-lab-v1",
@@ -3764,7 +4428,16 @@
             "registry:physics-modeling-mechanical-v1",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:4-7:step-03",
+            "runtime-step:4-7:step-04",
+            "runtime-step:4-7:step-05",
+            "runtime-step:4-7:step-06",
+            "runtime-step:4-7:step-07",
+            "runtime-step:5-4:step-09",
+            "runtime-step:5-4:step-10",
+            "runtime-step:5-4:step-11",
+            "runtime-step:5-4:step-12"
           ],
           "missing": true
         },
@@ -3778,6 +4451,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -3803,6 +4477,19 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
@@ -3828,6 +4515,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -3841,18 +4529,22 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
         "citation": {
-          "linked": 40,
+          "linked": 43,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 40,
+          "citationReady": 43,
           "assessment": 2,
           "checkpoint": 0,
           "highComplexityLocked": 11,
           "resourceIds": [
+            "knowledge-card:传统设计四联图校正_4_47004",
+            "knowledge-card:数据驱动控制_5_54003",
+            "knowledge-card:跨模型验证比较_4_47006",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:classroom-ethical-trigger",
@@ -3895,7 +4587,23 @@
             "registry:widget-physics-mech"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
+            "knowledge-card:传统设计四联图校正_4_47004",
+            "knowledge-card:数据驱动控制_5_54003",
+            "knowledge-card:跨模型验证比较_4_47006",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:classroom-ethical-trigger",
@@ -3959,6 +4667,17 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:lesson13-cruise-typhoon-sim",
             "registry:sim-pid-v1",
@@ -3989,7 +4708,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-24T01:13:15.402Z"
+          "to": "2026-06-22T15:15:02.987Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -4067,14 +4786,16 @@
       ],
       "categories": {
         "concept": {
-          "linked": 32,
+          "linked": 45,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 32,
+          "citationReady": 34,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
           "resourceIds": [
+            "knowledge-card:MASS自动化等级责任边界_5_53008",
+            "knowledge-card:船舶航向控制对象_2_21004",
             "registry:classroom-ethical-trigger",
             "registry:ethics-arctic-v1",
             "registry:lesson01-loop-scenario-lab-v1",
@@ -4106,10 +4827,24 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:2-1:step-01",
+            "runtime-step:2-1:step-02",
+            "runtime-step:2-1:step-03",
+            "runtime-step:2-1:step-04",
+            "runtime-step:2-1:step-05",
+            "runtime-step:5-3:step-09",
+            "runtime-step:5-3:step-11",
+            "runtime-step:5-3:step-12",
+            "runtime-step:5-3:step-13",
+            "runtime-step:5-3:step-14",
+            "runtime-step:5-3:step-15"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
+            "knowledge-card:MASS自动化等级责任边界_5_53008",
+            "knowledge-card:船舶航向控制对象_2_21004",
             "registry:classroom-ethical-trigger",
             "registry:ethics-arctic-v1",
             "registry:lesson01-loop-scenario-lab-v1",
@@ -4141,7 +4876,18 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:2-1:step-01",
+            "runtime-step:2-1:step-02",
+            "runtime-step:2-1:step-03",
+            "runtime-step:2-1:step-04",
+            "runtime-step:2-1:step-05",
+            "runtime-step:5-3:step-09",
+            "runtime-step:5-3:step-11",
+            "runtime-step:5-3:step-12",
+            "runtime-step:5-3:step-13",
+            "runtime-step:5-3:step-14",
+            "runtime-step:5-3:step-15"
           ],
           "missing": true
         },
@@ -4155,6 +4901,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -4181,6 +4928,20 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
@@ -4207,6 +4968,7 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
@@ -4220,18 +4982,21 @@
           "highComplexityLocked": 0,
           "resourceIds": [],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [],
           "missing": true
         },
         "citation": {
-          "linked": 44,
+          "linked": 46,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 44,
+          "citationReady": 46,
           "assessment": 2,
           "checkpoint": 0,
           "highComplexityLocked": 12,
           "resourceIds": [
+            "knowledge-card:MASS自动化等级责任边界_5_53008",
+            "knowledge-card:船舶航向控制对象_2_21004",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:classroom-ethical-trigger",
@@ -4278,7 +5043,23 @@
             "registry:widget-physics-mech"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
+            "knowledge-card:MASS自动化等级责任边界_5_53008",
+            "knowledge-card:船舶航向控制对象_2_21004",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:classroom-ethical-trigger",
@@ -4349,6 +5130,20 @@
             "registry:sim-scene-lng"
           ],
           "pathEligibleResourceIds": [],
+          "highComplexityLockedResourceIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple",
+            "registry:sim-pid-v1",
+            "registry:sim-scene-container",
+            "registry:sim-scene-cruise",
+            "registry:sim-scene-destroyer",
+            "registry:sim-scene-dredger",
+            "registry:sim-scene-drilling",
+            "registry:sim-scene-icebreaker",
+            "registry:sim-scene-lng"
+          ],
           "provisionalResourceIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
@@ -4382,7 +5177,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-24T01:13:15.402Z"
+          "to": "2026-06-22T15:15:02.987Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -4410,6 +5205,6 @@
     "complete": 0,
     "limited": 9,
     "reviewedBindings": 0,
-    "provisionalLinkedResources": 121
+    "provisionalLinkedResources": 291
   }
 }

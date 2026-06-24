@@ -46,6 +46,7 @@ export interface LearningGoalResourceBaselineCategorySummary {
   highComplexityLocked: number;
   resourceIds: string[];
   pathEligibleResourceIds: string[];
+  highComplexityLockedResourceIds: string[];
   provisionalResourceIds: string[];
   missing: boolean;
 }
@@ -199,7 +200,7 @@ export function buildLearningGoalResourceBaselineArtifacts(input: {
       missingBaselineCategories: row.missingBaselineCategories,
       provisionalResourceIds: uniqueSorted(Object.values(row.categories).flatMap((category) => category.provisionalResourceIds)),
       blockedHighComplexityResourceIds: uniqueSorted(Object.values(row.categories).flatMap((category) =>
-        category.highComplexityLocked > 0 ? category.resourceIds : []
+        category.highComplexityLockedResourceIds
       )),
       studentSafeReason: 'This goal needs more reviewed learning resources before a production path can be generated.',
       denominator: {
@@ -321,12 +322,11 @@ function summarizeCategory(
   const linkedRows = rows.filter((row) => rowMatchesCategory(row, category, learningGoal));
   const reviewedRows = linkedRows.filter((row) => row.reviewStatus === 'human-confirmed');
   const eligibleRows = linkedRows.filter((row) => isReviewedBaselineRow(row) && row.pathEligibility.current);
+  const eligibleResourceIds = new Set(eligibleRows.map((row) => row.resourceId));
+  const highComplexityLockedRows = linkedRows.filter((row) =>
+    isHighComplexityBaselineResource(row) && !eligibleResourceIds.has(row.resourceId)
+  );
   const provisionalRows = linkedRows.filter((row) => row.reviewStatus !== 'human-confirmed' && !isReviewedBaselineRow(row));
-  const highComplexityLocked = linkedRows.filter((row) =>
-    isHighComplexityBaselineResource(row)
-  ).length - eligibleRows.filter((row) =>
-    isHighComplexityBaselineResource(row)
-  ).length;
 
   for (const row of eligibleRows.slice(0, requiredBindingCount(category))) {
     const binding = buildReviewedBinding(row, learningGoal, category, generatedAt);
@@ -340,9 +340,10 @@ function summarizeCategory(
     citationReady: linkedRows.filter((row) => row.groundingEligibility.citationReady).length,
     assessment: linkedRows.filter(isAssessmentRow).length,
     checkpoint: linkedRows.filter((row) => row.resourceType === 'checkpoint').length,
-    highComplexityLocked: Math.max(0, highComplexityLocked),
+    highComplexityLocked: highComplexityLockedRows.length,
     resourceIds: uniqueSorted(linkedRows.map((row) => row.resourceId)),
     pathEligibleResourceIds: uniqueSorted(eligibleRows.map((row) => row.resourceId)),
+    highComplexityLockedResourceIds: uniqueSorted(highComplexityLockedRows.map((row) => row.resourceId)),
     provisionalResourceIds: uniqueSorted(provisionalRows.map((row) => row.resourceId)),
     missing: eligibleRows.length === 0,
   };
