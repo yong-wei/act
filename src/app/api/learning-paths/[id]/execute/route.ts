@@ -536,6 +536,7 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
     select: {
       id: true,
       questionId: true,
+      isCorrect: true,
       score: true,
       abilityEstimate: true,
       answeredAt: true,
@@ -578,6 +579,7 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
         outcomeRefs: Array.isArray(toRecord(kaqMetadata).outcomeRefs)
           ? toRecord(kaqMetadata).outcomeRefs
           : undefined,
+        isCorrect: typeof answer.isCorrect === 'boolean' ? answer.isCorrect : undefined,
         score: readFinite(answer.score),
         abilityEstimate: readFinite(answer.abilityEstimate),
         knowledgeTags: Array.isArray(answer.questionRef?.knowledgeTags)
@@ -638,7 +640,16 @@ function isTrustedAdaptiveAssessmentPathCompletionRef(value: unknown): boolean {
   return firstString(record.kind) === 'AdaptiveAssessmentAnswer' &&
     firstString(record.provenance) === 'official' &&
     record.readinessGateEligible === true &&
-    firstString(record.reviewState) === 'reviewed';
+    firstString(record.reviewState) === 'reviewed' &&
+    isPassingAdaptiveAssessmentPathCompletionRef(record);
+}
+
+function isPassingAdaptiveAssessmentPathCompletionRef(record: Record<string, unknown>): boolean {
+  if (record.isCorrect === true) return true;
+  if (record.isCorrect === false) return false;
+  const score = readFinite(record.score);
+  if (score !== undefined) return score <= 1 ? score >= 0.6 : score >= 60;
+  return false;
 }
 
 function resolveGovernedInstrumentedPathNodeOutcomeEvidence<T extends {

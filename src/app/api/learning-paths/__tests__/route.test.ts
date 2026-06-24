@@ -990,6 +990,7 @@ describe('learning path round API routes', () => {
     mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue({
       id: 'answer-1',
       questionId: 'preset-q-01',
+      isCorrect: true,
       score: 100,
       abilityEstimate: 0.62,
       answeredAt: new Date('2026-06-04T09:59:00.000Z'),
@@ -1219,6 +1220,78 @@ describe('learning path round API routes', () => {
         }),
       }),
       evidenceRefs: [],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'checkpoint:control-correction-review',
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: [],
+          availableOutcomeRefs: [],
+        }),
+      }),
+    }));
+  });
+
+  it('does not complete checkpoint assessment nodes when the reviewed readiness answer failed', async () => {
+    useStructuredCheckpointAssessmentPath();
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue({
+      id: 'answer-1',
+      questionId: 'preset-q-01',
+      isCorrect: false,
+      score: 0,
+      abilityEstimate: 0.34,
+      answeredAt: new Date('2026-06-04T09:59:00.000Z'),
+      questionRef: {
+        knowledgeTags: ['controller-tuning'],
+        questionType: 'multi-criteria',
+        difficulty: 0.7,
+        metadata: {
+          kaq: {
+            immutableContentHash: 'reviewed-hash-1',
+            learningGoalIds: ['control-correction'],
+            purpose: 'readiness-gate',
+            outcomeRefs: ['quiz-outcome:control-correction:readiness-gate:preset-q-01'],
+            review: { state: 'reviewed' },
+          },
+        },
+      },
+      abilityEstimateSnapshot: {
+        dimensions: {
+          pathExecution: {
+            pathId: 'path-1',
+            nodeId: 'checkpoint:control-correction-review',
+            goalId: 'control-correction',
+          },
+        },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'checkpoint:control-correction-review',
+      resourceType: 'checkpoint',
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      idempotencyKey: 'failed-checkpoint-answer-ref',
+      liftMetadata: {
+        pathActivityKind: 'checkpoint-pass',
+        adaptiveAssessmentRef: { id: 'answer-1' },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'started',
+      completedAt: null,
+      failedAt: null,
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-1',
+          provenance: 'official',
+          isCorrect: false,
+          score: 0,
+        }),
+      }),
     }));
     expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
