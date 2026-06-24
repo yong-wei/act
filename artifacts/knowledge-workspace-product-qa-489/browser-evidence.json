@@ -43,7 +43,7 @@
     "src/components/platform/app-shell.tsx": "8e1895b445fc3d0d92a73aeda10172f0528dbf1c67ddfc9fd8a465fe3330dffc",
     "src/components/shared/page-floating-controls.tsx": "0e96814a2eb0637dfbc9200283d5100014ae95ad5258f3b6187ed8420e158707",
     "src/app/globals.css": "a9d12ebf1937a6c1cb582b7a928c6ec2a8ea93ee34df61acbe66572fb53ab70b",
-    "src/lib/konling-agent-runtime.ts": "3a7c833b09f5ef30e5ee72738d6f14ac57be3e74469c0a7f5d2f901b36328982",
+    "src/lib/konling-agent-runtime.ts": "b81f61b21eb208b88077d82d3372213ad65503581dd4299830f949728d0623f6",
     "scripts/tests/capture-knowledge-workspace-product-qa.ts": "d229f1021594d5096cf45c42829ac8f8e06c10fcdc386d860f7d3f2e4694cb34",
     "scripts/tests/test-commercial-ui-governance.ts": "d5180758b2818f1de9930d80f8d583fe431b84da840c3396f5d4c72e567a9608"
   },
@@ -3178,7 +3178,7 @@
       "src/components/platform/app-shell.tsx": "8e1895b445fc3d0d92a73aeda10172f0528dbf1c67ddfc9fd8a465fe3330dffc",
       "src/components/shared/page-floating-controls.tsx": "0e96814a2eb0637dfbc9200283d5100014ae95ad5258f3b6187ed8420e158707",
       "src/app/globals.css": "a9d12ebf1937a6c1cb582b7a928c6ec2a8ea93ee34df61acbe66572fb53ab70b",
-      "src/lib/konling-agent-runtime.ts": "3a7c833b09f5ef30e5ee72738d6f14ac57be3e74469c0a7f5d2f901b36328982",
+      "src/lib/konling-agent-runtime.ts": "b81f61b21eb208b88077d82d3372213ad65503581dd4299830f949728d0623f6",
       "scripts/tests/capture-knowledge-workspace-product-qa.ts": "d229f1021594d5096cf45c42829ac8f8e06c10fcdc386d860f7d3f2e4694cb34",
       "scripts/tests/test-commercial-ui-governance.ts": "d5180758b2818f1de9930d80f8d583fe431b84da840c3396f5d4c72e567a9608"
     }

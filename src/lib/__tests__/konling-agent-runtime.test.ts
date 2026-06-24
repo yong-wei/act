@@ -5607,7 +5607,7 @@ describe('konling agent runtime', () => {
     expect(db.konlingMemory.create).not.toHaveBeenCalled();
   });
 
-  it('generates adaptive paths through an audited tool run before persisting the path round', async () => {
+  it('blocks graph-driven adaptive path generation when the LearningGoal baseline artifact is limited', async () => {
     const createdRun = {
       id: 'tool-run-path-1',
       ownerUserId: 'student-1',
@@ -5681,15 +5681,28 @@ describe('konling agent runtime', () => {
       timeBudgetMinutes: 90,
       difficultyRhythm: 'steady',
       naturalLanguageIntent: '我想先补相位裕度，再做仿真验证。',
-    }) as { pathOptions: Array<Record<string, unknown>> };
+    }) as {
+      generationStatus: string;
+      pathId: string | null;
+      pathOptions: Array<Record<string, unknown>>;
+      comparison: { optionCount: number; message: string };
+      limitations: string[];
+    };
 
     expect(result).toMatchObject({
       operation: 'generated',
+      generationStatus: 'blocked',
+      pathId: null,
       scope: expect.objectContaining({
         targetUserId: 'student-1',
         goalId: 'control-correction',
       }),
-      pathOptions: expect.any(Array),
+      pathOptions: [],
+      comparison: expect.objectContaining({
+        optionCount: 0,
+        message: '当前目标缺少已审核的基线资源，暂不能生成可执行学习路径。',
+      }),
+      limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
     });
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
@@ -5701,51 +5714,17 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
-    expect(db.learningPath.upsert).toHaveBeenCalled();
-    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
-    expect(createdPath.pathPayload.graphContext).toMatchObject({
-      learningGoalId: 'control-correction',
-      graphVersion: 'autocontrol-kaq-graph.v1',
-      selectedGraphNodeIds: ['kn:autocontrol:controller-correction'],
-      overlayStatus: {
-        learner: 'unavailable',
-        class: 'unavailable',
-      },
-      versionRefs: expect.objectContaining({
-        learningGoalPackageVersion: 'learning-goal-package/v1',
-        graphCatalogVersion: 'autocontrol-kaq-graph.v1',
-      }),
-    });
-    expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
-      db.learningPath.upsert.mock.invocationCallOrder[0],
-    );
-    expect(createdPath.inputSnapshot.request).toEqual(expect.objectContaining({
-      graphNodeId: 'kn:autocontrol:controller-correction',
-    }));
-    expect(result.pathOptions).toHaveLength(1);
-    expect(result.pathOptions[0]).toEqual(expect.objectContaining({
-      styleId: 'recommended',
-      label: '推荐学习路径',
-      estimatedMinutes: expect.any(Number),
-      nodeSummaries: expect.arrayContaining([
-        expect.objectContaining({
-          nodeId: expect.any(String),
-          title: expect.any(String),
-          resourceType: expect.any(String),
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+    expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        status: 'succeeded',
+        outputSummary: expect.objectContaining({
+          generationStatus: 'blocked',
+          limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
         }),
-      ]),
-      limitations: expect.any(Array),
+      }),
     }));
-    const nodeIds = (result.pathOptions[0].nodeSummaries as Array<{ nodeId: string }>).map((node) => node.nodeId);
-    expect(nodeIds).toEqual(expect.arrayContaining([
-      'registry:lesson09-correction-precheck',
-      'registry:lesson09-summary-card',
-      'registry:arena-challenge-workbench',
-    ]));
-    expect(nodeIds[0]).toBe('registry:lesson09-correction-precheck');
-    expect(nodeIds).not.toContain('knowledge-card:control-correction-time-domain-targets');
-    expect(nodeIds.at(-1)).toBe('registry:arena-challenge-workbench');
-    expect(JSON.stringify(result)).not.toMatch(/missing-|low-evidence|no-path|stage-1-rules-graph|policyFamily/);
+    expect(JSON.stringify(result)).not.toMatch(/stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
   });
@@ -5819,6 +5798,83 @@ describe('konling agent runtime', () => {
       'adaptive_quiz',
       'simulation',
     ]);
+  });
+
+  it('uses non-baseline blocked copy when path constraints exclude all candidates', async () => {
+    const createdRun = {
+      id: 'tool-run-path-excluded-resources',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-excluded-resources',
+      correlationId: 'corr-path-excluded-resources',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['generate_learning_path'],
+      }),
+    });
+
+    const result = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-excluded-resources',
+      goalId: 'control-correction',
+      excludedNodeIds: [
+        'registry:lesson09-correction-precheck',
+        'knowledge-card:control-correction-time-domain-targets',
+        'knowledge-card:lesson09-summary-card',
+        'registry:lesson09-summary-card',
+        'simulation:control-correction-step-response-lab',
+        'arena-task:task-second-order-lead-pid',
+        'registry:arena-challenge-workbench',
+        'reflection:control-correction-design-reflection',
+        'ai_intervention:control-correction-path-coach',
+      ],
+    }) as {
+      generationStatus: string;
+      pathOptions: Array<Record<string, unknown>>;
+      comparison: { message: string };
+      limitations: string[];
+    };
+
+    expect(result.generationStatus).toBe('blocked');
+    expect(result.pathOptions).toEqual([]);
+    expect(result.limitations).not.toContain('learning-goal-baseline-incomplete');
+    expect(result.comparison.message).not.toContain('基线资源');
+    expect(result.comparison.message).toBe('当前限制条件下暂不能生成可执行学习路径，请调整目标、时间或资源偏好后重试。');
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 
   it('does not reuse runtime graph context across adaptive path goals', async () => {
@@ -6947,11 +7003,6 @@ describe('konling agent runtime', () => {
       completedNodeIds: [],
       status: 'available',
     };
-    const graphContext = buildKonlingKaqGraphContext({
-      scope,
-      learningGoalId: 'control-correction',
-      planContext,
-    });
     const runtime = buildKonlingToolRuntime({
       db,
       scope,
@@ -6959,7 +7010,6 @@ describe('konling agent runtime', () => {
       context: createRuntimeContext({
         permittedTools: ['revise_learning_path_options'],
         planContext,
-        graphContext,
       }),
     });
 
@@ -6979,11 +7029,7 @@ describe('konling agent runtime', () => {
       pathOptions: expect.any(Array),
     });
     const revisedCreate = db.learningPath.upsert.mock.calls[0][0].create;
-    expect(revisedCreate.pathPayload.graphContext).toMatchObject({
-      learningGoalId: 'control-correction',
-      graphVersion: 'autocontrol-kaq-graph.v1',
-      targetGraphNodeIds: expect.arrayContaining(['cap:autocontrol:synthesize-controller-correction']),
-    });
+    expect(revisedCreate.pathPayload.graphContext).toBeNull();
     expect(revisedCreate.explanationPayload.selectedReasons).toEqual(
       expect.arrayContaining(['policy-simulation-driven']),
     );

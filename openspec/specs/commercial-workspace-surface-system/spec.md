@@ -389,4 +389,3 @@ Interactive course runtime pages SHALL render course headers, student runtime pa
 - **WHEN** an interactive course runtime renders at 320px width
 - **THEN** compact spacing SHALL collapse to mobile-safe edges
 - **AND** secondary controls SHALL remain reachable without horizontal overflow or squeezed desktop-only gutters.
-

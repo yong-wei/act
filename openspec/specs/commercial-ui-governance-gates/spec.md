@@ -763,4 +763,3 @@ Commercial UI governance SHALL maintain an explicit exception list for legitimat
 #### Scenario: Unregistered centered layout is introduced
 - **WHEN** a new or modified UI surface introduces a page-level centered maximum-width wrapper without an approved exception
 - **THEN** commercial UI governance SHALL fail in blocking mode.
-

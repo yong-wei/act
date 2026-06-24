@@ -5,11 +5,19 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { buildGraphCenterPayload } from '../data-governance/graph-center';
+import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '../adaptive-learning-path-planner';
+import {
+  buildLearningGoalResourceBaselineArtifacts,
+  FIRST_BATCH_LEARNING_GOAL_IDS,
+  LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
+} from '../learning-goal-resource-baseline';
 import {
   buildResourceFieldCompletionAudit,
   RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
   type ResourceFieldCompletionCoverageSummary,
+  type ResourceFieldCompletionAuditRow,
 } from '../resource-field-completion-audit';
+import { buildKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
 import { buildResourceNodeRegistry } from '../resource-node-registry';
 
 describe('resource field completion audit', () => {
@@ -377,6 +385,466 @@ describe('resource field completion audit', () => {
     expect(result.rows[0].missingFieldCodes).not.toContain('missing-evidence-contract');
   });
 
+  it('materializes LearningGoal baseline artifacts for the fixed first batch', () => {
+    const matrix = JSON.parse(readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/learning-goal-resource-baseline-matrix.json'),
+      'utf8',
+    ));
+    const limitations = JSON.parse(readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/learning-goal-resource-baseline-limitations.json'),
+      'utf8',
+    ));
+    const reviewedBindings = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/learning-goal-resource-baseline-reviewed-bindings.jsonl'),
+      'utf8',
+    )
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line));
+    const reviewedBindingIds = new Set(reviewedBindings.map((row) => row.bindingId));
+    const auditRows = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-field-completion-audit.jsonl'),
+      'utf8',
+    )
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    const auditRowById = new Map(auditRows.map((row) => [row.resourceId, row]));
+
+    expect(matrix.artifactVersion).toBe(LEARNING_GOAL_RESOURCE_BASELINE_VERSION);
+    expect(matrix.batchLearningGoalIds).toEqual([...FIRST_BATCH_LEARNING_GOAL_IDS]);
+    expect(matrix.rows.map((row) => row.learningGoalId)).toEqual([...FIRST_BATCH_LEARNING_GOAL_IDS]);
+    expect(matrix.rows).toHaveLength(9);
+    expect(matrix.totals.reviewedBindings).toBe(reviewedBindings.length);
+    expect(matrix.totals.limited).toBe(9);
+    expect(reviewedBindings.length).toBe(0);
+    for (const row of matrix.rows) {
+      expect(row.requiredCategories).toEqual(expect.arrayContaining([
+        'concept',
+        'diagnostic',
+        'practice',
+        'checkpoint',
+        'remediation',
+      ]));
+      expect(row.denominator).toMatchObject({
+        requiredCategoryCount: row.requiredCategories.length,
+        artifactVersion: LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
+      });
+      expect(row.selectedReviewedBindingIds.every((bindingId) => reviewedBindingIds.has(bindingId))).toBe(true);
+      for (const category of Object.values(row.categories)) {
+        expect(category.pathEligible).toBeLessThanOrEqual(category.humanConfirmed);
+        expect(category.pathEligibleResourceIds.filter((id) => category.provisionalResourceIds.includes(id))).toEqual([]);
+      }
+    }
+    for (const binding of reviewedBindings) {
+      const auditRow = auditRowById.get(binding.resourceId);
+      expect(auditRow).toMatchObject({
+        reviewStatus: 'human-confirmed',
+        sourceHash: expect.any(String),
+        sourceVersionRef: expect.any(String),
+      });
+      expect(auditRow.pathEligibility.blockedBy).toEqual([]);
+      expect(binding).toMatchObject({
+        humanConfirmed: true,
+        pathEligible: true,
+        evidenceContractComplete: true,
+      });
+      expect(binding.reviewAudit).toMatchObject({
+        reviewerId: 'openspec-buddy:learning-goal-resource-baseline-completion',
+        reviewerRole: 'curriculum-governance',
+        reviewBatchId: LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
+      });
+    }
+    expect(limitations.artifactVersion).toBe(LEARNING_GOAL_RESOURCE_BASELINE_VERSION);
+    expect(limitations.totals.learningGoals).toBe(9);
+    expect(limitations.totals.limited).toBe(9);
+    expect(limitations.limitations.every((item) => item.severity === 'blocking')).toBe(true);
+    expect(limitations.limitations.every((item) => item.studentSafeReason && !item.studentSafeReason.includes('internal'))).toBe(true);
+  });
+
+  it('keeps provisional baseline rows out of path-eligible LearningGoal coverage', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('knowledge-card:reviewed-frequency', 'knowledge_card'),
+        reviewStatus: 'human-confirmed',
+        missingFieldCodes: [],
+        graphNodeRefs: {
+          knowledge: ['Bode图_1_1'],
+          capability: [],
+          quality: [],
+        },
+        reviewAudit: {
+          ...baselineAuditRow('knowledge-card:reviewed-frequency', 'knowledge_card').reviewAudit,
+          reviewerId: 'curriculum-reviewer',
+          reviewerRole: 'teacher',
+          reviewedAt: '2026-06-24T00:00:00.000Z',
+          reviewBatchId: 'test-baseline',
+          reviewedSourceHash: 'sha256:knowledge-card:reviewed-frequency',
+          reviewedVersionRef: 'resource-node-registry.v1',
+        },
+      }, {
+        ...baselineAuditRow('knowledge-card:provisional-frequency', 'knowledge_card'),
+        reviewStatus: 'generated-provisional',
+        missingFieldCodes: ['provisional-metadata', 'missing-human-review'],
+        graphNodeRefs: {
+          knowledge: ['Bode图_1_1'],
+          capability: [],
+          quality: [],
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.concept.linked).toBe(2);
+    expect(row.categories.concept.humanConfirmed).toBe(1);
+    expect(row.categories.concept.pathEligible).toBe(1);
+    expect(row.categories.concept.pathEligibleResourceIds).toEqual(['knowledge-card:reviewed-frequency']);
+    expect(row.categories.concept.provisionalResourceIds).toEqual(['knowledge-card:provisional-frequency']);
+    expect(row.selectedReviewedBindingIds).toContain(
+      'frequency-response-foundations:concept:knowledge-card:reviewed-frequency',
+    );
+    expect(row.selectedReviewedBindingIds.some((bindingId) => bindingId.includes('provisional-frequency'))).toBe(false);
+  });
+
+  it('does not promote not-reviewed baseline rows even when they are path eligible', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('knowledge-card:not-reviewed-frequency', 'knowledge_card'),
+        reviewStatus: 'not-reviewed',
+        missingFieldCodes: ['missing-human-review'],
+        pathEligibility: {
+          current: true,
+          afterCompletion: true,
+          masteryAffecting: true,
+          blockedBy: ['missing-human-review'],
+        },
+        graphNodeRefs: {
+          knowledge: ['Bode图_1_1'],
+          capability: [],
+          quality: [],
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.concept.linked).toBe(1);
+    expect(row.categories.concept.humanConfirmed).toBe(0);
+    expect(row.categories.concept.pathEligible).toBe(0);
+    expect(row.selectedReviewedBindingIds).toEqual([]);
+    expect(result.reviewedBindings).toEqual([]);
+  });
+
+  it('matches audit family resource types against canonical LearningGoal resource mix', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('knowledge-card:frequency-family-type', 'knowledge-card'),
+        family: 'knowledge-card',
+        reviewStatus: 'human-confirmed',
+        graphNodeRefs: {
+          knowledge: ['kn:autocontrol:frequency-response'],
+          capability: [],
+          quality: [],
+        },
+        reviewAudit: {
+          ...baselineAuditRow('knowledge-card:frequency-family-type', 'knowledge-card').reviewAudit,
+          reviewerId: 'curriculum-reviewer',
+          reviewerRole: 'teacher',
+          reviewedAt: '2026-06-24T00:00:00.000Z',
+          reviewBatchId: 'test-baseline',
+          reviewedSourceHash: 'sha256:knowledge-card:frequency-family-type',
+          reviewedVersionRef: 'resource-node-registry.v1',
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.concept.linked).toBe(1);
+    expect(row.categories.concept.humanConfirmed).toBe(1);
+    expect(row.categories.concept.pathEligible).toBe(1);
+    expect(row.selectedReviewedBindingIds).toContain(
+      'frequency-response-foundations:concept:knowledge-card:frequency-family-type',
+    );
+  });
+
+  it('counts human-confirmed baseline rows separately from path-eligible rows', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('knowledge-card:confirmed-missing-path-fields', 'knowledge_card'),
+        reviewStatus: 'human-confirmed',
+        sourceHash: null,
+        missingFieldCodes: ['missing-content-hash'],
+        pathEligibility: {
+          current: false,
+          afterCompletion: true,
+          masteryAffecting: true,
+          blockedBy: ['missing-content-hash'],
+        },
+        graphNodeRefs: {
+          knowledge: ['kn:autocontrol:frequency-response'],
+          capability: [],
+          quality: [],
+        },
+        reviewAudit: {
+          ...baselineAuditRow('knowledge-card:confirmed-missing-path-fields', 'knowledge_card').reviewAudit,
+          reviewerId: 'curriculum-reviewer',
+          reviewerRole: 'teacher',
+          reviewedAt: '2026-06-24T00:00:00.000Z',
+          reviewBatchId: 'test-baseline',
+          reviewedSourceHash: null,
+          reviewedVersionRef: 'resource-node-registry.v1',
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.concept.linked).toBe(1);
+    expect(row.categories.concept.humanConfirmed).toBe(1);
+    expect(row.categories.concept.pathEligible).toBe(0);
+    expect(row.selectedReviewedBindingIds).toEqual([]);
+    expect(result.reviewedBindings).toEqual([]);
+  });
+
+  it('counts authoring textbook sections as canonical textbook resources without path promotion', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('authoring-textbook-section:confirmed-pending-governance', 'authoring-textbook-section'),
+        family: 'authoring-textbook-section',
+        reviewStatus: 'human-confirmed',
+        sourceHash: null,
+        missingFieldCodes: ['missing-content-hash'],
+        pathEligibility: {
+          current: false,
+          afterCompletion: true,
+          masteryAffecting: true,
+          blockedBy: ['missing-content-hash'],
+        },
+        graphNodeRefs: {
+          knowledge: ['kn:autocontrol:frequency-response'],
+          capability: [],
+          quality: [],
+        },
+        reviewAudit: {
+          ...baselineAuditRow(
+            'authoring-textbook-section:confirmed-pending-governance',
+            'authoring-textbook-section',
+          ).reviewAudit,
+          reviewerId: 'curriculum-reviewer',
+          reviewerRole: 'teacher',
+          reviewedAt: '2026-06-24T00:00:00.000Z',
+          reviewBatchId: 'test-baseline',
+          reviewedSourceHash: null,
+          reviewedVersionRef: 'resource-node-registry.v1',
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.concept.linked).toBe(1);
+    expect(row.categories.concept.humanConfirmed).toBe(1);
+    expect(row.categories.concept.pathEligible).toBe(0);
+    expect(row.selectedReviewedBindingIds).toEqual([]);
+    expect(result.reviewedBindings).toEqual([]);
+  });
+
+  it('keeps a LearningGoal limited until concept coverage has two reviewed bindings', () => {
+    const reviewedRow = (
+      resourceId: string,
+      resourceType: string,
+    ): ResourceFieldCompletionAuditRow => ({
+      ...baselineAuditRow(resourceId, resourceType),
+      reviewStatus: 'human-confirmed',
+      graphNodeRefs: {
+        knowledge: ['kn:autocontrol:frequency-response'],
+        capability: [],
+        quality: [],
+      },
+      reviewAudit: {
+        ...baselineAuditRow(resourceId, resourceType).reviewAudit,
+        reviewerId: 'curriculum-reviewer',
+        reviewerRole: 'teacher',
+        reviewedAt: '2026-06-24T00:00:00.000Z',
+        reviewBatchId: 'test-baseline',
+        reviewedSourceHash: `sha256:${resourceId}`,
+        reviewedVersionRef: 'resource-node-registry.v1',
+      },
+    });
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [
+        reviewedRow('knowledge-card:frequency-concept-one', 'knowledge_card'),
+        reviewedRow('quiz:frequency-diagnostic', 'quiz'),
+        reviewedRow('simulation:frequency-practice', 'simulation'),
+        reviewedRow('checkpoint:frequency-checkpoint', 'checkpoint'),
+        reviewedRow('konling:frequency-remediation', 'konling'),
+      ],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.concept.pathEligible).toBe(1);
+    expect(row.categories.diagnostic.pathEligible).toBe(1);
+    expect(row.categories.practice.pathEligible).toBe(2);
+    expect(row.categories.checkpoint.pathEligible).toBe(1);
+    expect(row.categories.remediation.pathEligible).toBe(1);
+    expect(row.missingBaselineCategories).toEqual(['concept']);
+    expect(row.coverageState).toBe('limited');
+    expect(result.limitations.limitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        learningGoalId: 'frequency-response-foundations',
+        missingBaselineCategories: ['concept'],
+      }),
+    ]));
+  });
+
+  it('reports only locked high-complexity resource ids in limitations', () => {
+    const frequencyGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'];
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: {
+        ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+        'frequency-response-foundations': {
+          ...frequencyGoal,
+          allowedResourceMix: [...frequencyGoal.allowedResourceMix, 'project'],
+        },
+      },
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [
+        {
+          ...baselineAuditRow('quiz:frequency-practice-ready', 'quiz'),
+          reviewStatus: 'human-confirmed',
+          graphNodeRefs: {
+            knowledge: ['kn:autocontrol:frequency-response'],
+            capability: [],
+            quality: [],
+          },
+          reviewAudit: {
+            ...baselineAuditRow('quiz:frequency-practice-ready', 'quiz').reviewAudit,
+            reviewerId: 'curriculum-reviewer',
+            reviewerRole: 'teacher',
+            reviewedAt: '2026-06-24T00:00:00.000Z',
+            reviewBatchId: 'test-baseline',
+            reviewedSourceHash: 'sha256:quiz:frequency-practice-ready',
+            reviewedVersionRef: 'resource-node-registry.v1',
+          },
+        },
+        {
+          ...baselineAuditRow('simulation:frequency-practice-locked', 'simulation'),
+          reviewStatus: 'not-reviewed',
+          graphNodeRefs: {
+            knowledge: ['kn:autocontrol:frequency-response'],
+            capability: [],
+            quality: [],
+          },
+        },
+        {
+          ...baselineAuditRow('project:frequency-design-project-locked', 'project'),
+          reviewStatus: 'not-reviewed',
+          graphNodeRefs: {
+            knowledge: ['kn:autocontrol:frequency-response'],
+            capability: [],
+            quality: [],
+          },
+        },
+      ],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+    const limitation = result.limitations.limitations.find((item) =>
+      item.learningGoalId === 'frequency-response-foundations'
+    )!;
+
+    expect(row.categories.practice.resourceIds).toEqual([
+      'project:frequency-design-project-locked',
+      'quiz:frequency-practice-ready',
+      'simulation:frequency-practice-locked',
+    ]);
+    expect(row.categories.practice.highComplexityLocked).toBe(2);
+    expect(row.categories.practice.highComplexityLockedResourceIds).toEqual([
+      'project:frequency-design-project-locked',
+      'simulation:frequency-practice-locked',
+    ]);
+    expect(limitation.blockedHighComplexityResourceIds).toEqual([
+      'project:frequency-design-project-locked',
+      'simulation:frequency-practice-locked',
+    ]);
+  });
+
+  it('does not count checkpoint rows as terminal validation unless the LearningGoal policy accepts checkpoints', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('checkpoint:control-correction-review', 'checkpoint'),
+        reviewStatus: 'human-confirmed',
+        graphNodeRefs: {
+          knowledge: ['kn:autocontrol:controller-correction'],
+          capability: [],
+          quality: [],
+        },
+        reviewAudit: {
+          ...baselineAuditRow('checkpoint:control-correction-review', 'checkpoint').reviewAudit,
+          reviewerId: 'curriculum-reviewer',
+          reviewerRole: 'teacher',
+          reviewedAt: '2026-06-24T00:00:00.000Z',
+          reviewBatchId: 'test-baseline',
+          reviewedSourceHash: 'sha256:checkpoint:control-correction-review',
+          reviewedVersionRef: 'resource-node-registry.v1',
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'control-correction')!;
+
+    expect(row.categories.checkpoint.pathEligible).toBe(1);
+    expect(row.categories['terminal-validation'].pathEligible).toBe(0);
+    expect(row.selectedReviewedBindingIds).toContain(
+      'control-correction:checkpoint:checkpoint:control-correction-review',
+    );
+    expect(row.selectedReviewedBindingIds.some((bindingId) => bindingId.includes(':terminal-validation:'))).toBe(false);
+    expect(row.missingBaselineCategories).toEqual(expect.arrayContaining(['terminal-validation']));
+  });
+
+  it('counts reviewed quizzes as both diagnostic and practice baseline coverage', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('quiz:frequency-response-practice', 'quiz'),
+        reviewStatus: 'human-confirmed',
+        graphNodeRefs: {
+          knowledge: ['kn:autocontrol:frequency-response'],
+          capability: [],
+          quality: [],
+        },
+        reviewAudit: {
+          ...baselineAuditRow('quiz:frequency-response-practice', 'quiz').reviewAudit,
+          reviewerId: 'curriculum-reviewer',
+          reviewerRole: 'teacher',
+          reviewedAt: '2026-06-24T00:00:00.000Z',
+          reviewBatchId: 'test-baseline',
+          reviewedSourceHash: 'sha256:quiz:frequency-response-practice',
+          reviewedVersionRef: 'resource-node-registry.v1',
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.diagnostic.pathEligible).toBe(1);
+    expect(row.categories.practice.pathEligible).toBe(1);
+    expect(row.selectedReviewedBindingIds).toEqual(expect.arrayContaining([
+      'frequency-response-foundations:diagnostic:quiz:frequency-response-practice',
+      'frequency-response-foundations:practice:quiz:frequency-response-practice',
+    ]));
+  });
+
   it('surfaces missing field codes in graph resource coverage diagnostics', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [{
@@ -639,5 +1107,76 @@ function coverageSummary(
     sampleLimitations: [],
     artifactVersion: RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
     ...overrides,
+  };
+}
+
+function baselineAuditRow(
+  resourceId: string,
+  resourceType: string,
+): ResourceFieldCompletionAuditRow {
+  return {
+    resourceId,
+    resourceType,
+    family: 'resource-node',
+    title: resourceId,
+    sourcePathOrUrl: `/resources/${resourceId}`,
+    sourceRecord: resourceId,
+    pathTarget: `/resources/${resourceId}`,
+    estimatedTimeMinutes: 5,
+    sourceHash: `sha256:${resourceId}`,
+    sourceVersionRef: 'resource-node-registry.v1',
+    citationTargets: [`/resources/${resourceId}`],
+    graphNodeRefs: {
+      knowledge: [],
+      capability: [],
+      quality: [],
+    },
+    missingFieldCodes: [],
+    completionMethod: 'already-governed',
+    reviewStatus: 'not-reviewed',
+    reviewAudit: {
+      reviewerId: null,
+      reviewerRole: null,
+      reviewedAt: null,
+      reviewBatchId: null,
+      reviewedSourceHash: null,
+      reviewedVersionRef: null,
+      generationToolOrModel: null,
+      promptOrManifestHash: null,
+      confidence: null,
+      staleInvalidationRule: 'invalidate on source change',
+    },
+    evidenceContract: {
+      eventSource: true,
+      eventType: true,
+      clientEventIdPolicy: true,
+      attemptKey: true,
+      sourceLogId: true,
+      dedupeKey: true,
+      timestamps: true,
+      learningFactPolicy: true,
+      confidencePolicy: true,
+      privacyScope: true,
+      complete: true,
+      missingFields: [],
+    },
+    pathEligibility: {
+      current: true,
+      afterCompletion: true,
+      masteryAffecting: true,
+      blockedBy: [],
+    },
+    groundingEligibility: {
+      retrievalReady: true,
+      citationReady: true,
+      authoringTriageReady: true,
+    },
+    coverage: {
+      denominatorKey: resourceId,
+      sourceWindow: { from: null, to: '2026-06-24T00:00:00.000Z' },
+      artifactVersion: RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
+      limitationReason: null,
+    },
+    versionRefs: buildKaqArtifactVersionRefs(),
   };
 }

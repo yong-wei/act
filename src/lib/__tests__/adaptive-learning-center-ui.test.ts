@@ -668,6 +668,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain("fetch('/api/adaptive/path-advisor-tool'");
     expect(pageSource).toContain('data-adaptive-path-generation-intent="editable"');
     expect(pageSource).toContain("submitPathGeneration('revise', optionForWrite)");
+    expect(pageSource).toContain("payload.result?.generationStatus === 'blocked'");
+    expect(pageSource).toContain('setPathChoiceMessage(blockedMessage)');
     expect(pageSource).toContain('selectedOptionId');
     expect(pageSource).toContain('rejectedOptionIds');
     expect(pageSource).not.toContain('Konling parameters');
@@ -697,8 +699,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('graphContext: buildKonlingRuntimeGraphContext');
     expect(routeSource).toContain('runtimeContext: graphRuntimeContext');
     expect(routeSource).toContain('clientHints: clientContextHints');
-    expect(routeSource).toContain("missingCitationClasses: citationContext.missingCitationClasses.filter((item) => item !== 'path-execution')");
-    expect(routeSource).toContain("lowConfidenceReasons: citationContext.lowConfidenceReasons.filter((item) => item !== 'missing-path-execution')");
+    expect(routeSource).toContain('const baseCitationContext = citationContext ?? createMissingPathAdvisorCitationContext()');
+    expect(routeSource).toContain("missingCitationClasses: baseCitationContext.missingCitationClasses.filter((item) => item !== 'path-execution')");
+    expect(routeSource).toContain("lowConfidenceReasons: baseCitationContext.lowConfidenceReasons.filter((item) => item !== 'missing-path-execution')");
     expect(routeSource).toContain('lastExecutionMetadata: true');
     expect(routeSource).toContain('...readStringArray(executionMetadata.completedNodeIds)');
     expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))

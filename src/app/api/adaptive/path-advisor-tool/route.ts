@@ -194,21 +194,39 @@ export async function POST(request: Request) {
 function buildPathAwareCitationContext(
   citationContext: KonlingCitationContext | undefined,
   planContext: KonlingPlanContext,
-): KonlingCitationContext | undefined {
-  if (!citationContext) return undefined;
-  if (!planContext.currentPathId) return citationContext;
+): KonlingCitationContext {
+  const baseCitationContext = citationContext ?? createMissingPathAdvisorCitationContext();
+  if (!planContext.currentPathId) return baseCitationContext;
   const pathCitationId = `path:${planContext.currentPathId}`;
-  const evidenceCitations = citationContext.evidenceCitations.some((citation) => citation.id === pathCitationId)
-    ? citationContext.evidenceCitations
+  const evidenceCitations = baseCitationContext.evidenceCitations.some((citation) => citation.id === pathCitationId)
+    ? baseCitationContext.evidenceCitations
     : [
-        ...citationContext.evidenceCitations,
+        ...baseCitationContext.evidenceCitations,
         buildPathExecutionCitation(pathCitationId),
       ];
   return {
-    ...citationContext,
+    ...baseCitationContext,
     evidenceCitations,
-    missingCitationClasses: citationContext.missingCitationClasses.filter((item) => item !== 'path-execution'),
-    lowConfidenceReasons: citationContext.lowConfidenceReasons.filter((item) => item !== 'missing-path-execution'),
+    missingCitationClasses: baseCitationContext.missingCitationClasses.filter((item) => item !== 'path-execution'),
+    lowConfidenceReasons: baseCitationContext.lowConfidenceReasons.filter((item) => item !== 'missing-path-execution'),
+  };
+}
+
+function createMissingPathAdvisorCitationContext(): KonlingCitationContext {
+  return {
+    required: true,
+    contentCitations: [],
+    evidenceCitations: [],
+    missingCitationClasses: ['content', 'evidence'],
+    lowConfidenceReasons: ['missing-content', 'missing-evidence'],
+    responseProtocol: {
+      requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+      minimum: {
+        content: 1,
+        evidenceWhenAvailable: 1,
+      },
+      fallbackWhenMissing: 'low-confidence',
+    },
   };
 }
 

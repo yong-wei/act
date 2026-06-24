@@ -1913,6 +1913,13 @@ export default function AdaptivePracticePage() {
       if (typeof payload.agentSessionId === 'string') {
         setPathAdvisorAgentSessionId(payload.agentSessionId);
       }
+      if (payload.result?.generationStatus === 'blocked') {
+        const blockedMessage = typeof payload.result.comparison?.message === 'string'
+          ? payload.result.comparison.message
+          : '当前限制条件下暂不能生成可执行学习路径，请调整目标、时间或资源偏好后重试。';
+        setPathChoiceMessage(blockedMessage);
+        return;
+      }
       if (operation !== 'explain') {
         await refreshLatestLearningPathAfterKonling();
         window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {

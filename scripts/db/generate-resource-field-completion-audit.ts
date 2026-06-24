@@ -10,6 +10,10 @@ import {
   buildResourceFieldCompletionAudit,
   type ResourceFieldCompletionCandidate,
 } from '@/lib/resource-field-completion-audit';
+import {
+  buildLearningGoalResourceBaselineArtifacts,
+} from '@/lib/learning-goal-resource-baseline';
+import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
 import { buildRuntimeResourceProjectionArtifacts } from '@/lib/runtime-resource-projections';
@@ -19,6 +23,9 @@ const AUDIT_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-audit.
 const SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-summary.json');
 const PROJECTION_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
 const PROJECTION_LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projection-limitations.json');
+const BASELINE_MATRIX_JSON_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
+const BASELINE_LIMITATIONS_JSON_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-limitations.json');
+const BASELINE_REVIEWED_BINDINGS_JSONL_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-reviewed-bindings.jsonl');
 const RUNTIME_LESSONS_DIR = path.join(process.cwd(), 'course-content/runtime/lessons');
 const RUNTIME_KNOWLEDGE_CARDS_DIR = path.join(process.cwd(), 'course-content/runtime/knowledge/cards/nodes');
 const INFOGRAPH_MANIFEST_PATH = path.join(process.cwd(), 'course-content/runtime/knowledge/infographs/manifest.json');
@@ -172,6 +179,12 @@ async function main() {
     auditRows: result.rows,
     generatedAt,
   });
+  const baselineArtifacts = buildLearningGoalResourceBaselineArtifacts({
+    registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+    auditRows: result.rows,
+    generatedAt,
+    sourceWindow: { from: null, to: generatedAt },
+  });
 
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
   await fs.writeFile(
@@ -190,6 +203,21 @@ async function main() {
     `${JSON.stringify(projectionArtifacts.limitations, null, 2)}\n`,
     'utf8',
   );
+  await fs.writeFile(
+    BASELINE_MATRIX_JSON_PATH,
+    `${JSON.stringify(baselineArtifacts.matrix, null, 2)}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    BASELINE_LIMITATIONS_JSON_PATH,
+    `${JSON.stringify(baselineArtifacts.limitations, null, 2)}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    BASELINE_REVIEWED_BINDINGS_JSONL_PATH,
+    `${baselineArtifacts.reviewedBindings.map((row) => JSON.stringify(row)).join('\n')}\n`,
+    'utf8',
+  );
 
   console.log(`Resource field completion audit rows: ${result.rows.length}`);
   console.log(`Summary: ${path.relative(process.cwd(), SUMMARY_JSON_PATH)}`);
@@ -197,6 +225,9 @@ async function main() {
   console.log(`Runtime resource projections: ${projectionArtifacts.rows.length}`);
   console.log(`Projection summary: ${path.relative(process.cwd(), PROJECTION_LIMITATIONS_PATH)}`);
   console.log(`Projection JSONL: ${path.relative(process.cwd(), PROJECTION_JSONL_PATH)}`);
+  console.log(`LearningGoal baseline matrix: ${path.relative(process.cwd(), BASELINE_MATRIX_JSON_PATH)}`);
+  console.log(`LearningGoal baseline limitations: ${path.relative(process.cwd(), BASELINE_LIMITATIONS_JSON_PATH)}`);
+  console.log(`LearningGoal baseline reviewed bindings: ${baselineArtifacts.reviewedBindings.length}`);
 }
 
 async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>) {

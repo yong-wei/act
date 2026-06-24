@@ -412,4 +412,3 @@ The platform route archetypes SHALL share the compact spacing model unless an ar
 - **WHEN** desktop navigation switches between expanded, collapsed, or hidden states
 - **THEN** the content edge MAY move by the navigation rail width
 - **AND** it SHALL NOT move because the content frame is centered inside a maximum-width container.
-
