@@ -78,7 +78,7 @@ if [ -z "$DB_PASSWORD" ]; then
 fi
 DB_PASSWORD="${DB_PASSWORD:-ChangeMe_Act_2026!}"
 APP_PORT="${APP_PORT:-8083}"
-APP_IMAGE="${APP_IMAGE:-act-obe-platform:20260301-amd64}"
+APP_IMAGE="${APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"
 APP_DEPLOY_SCRIPT="${APP_DEPLOY_SCRIPT:-${PROJECT_DIR}/scripts/4-deploy.sh}"
 NETWORK_NAME="${NETWORK_NAME:-${PODMAN_NETWORK:-act-obe-network}}"
 DB_HOST_ALIAS="${DB_HOST_ALIAS:-${DB_CONTAINER}.dns.podman}"

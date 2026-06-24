@@ -48,6 +48,13 @@ assert.equal(
 );
 
 assert.equal(
+  deployScript.includes('APP_IMAGE="${APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"') &&
+    serviceScript.includes('APP_IMAGE="${APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"'),
+  true,
+  '部署脚本应默认使用 podman load 产生的 localhost 应用镜像，避免误选旧的 docker.io/library 标签',
+);
+
+assert.equal(
   remoteDeployScript.includes('rsync -az --delete') &&
     remoteDeployScript.includes('course-content/runtime') &&
     (remoteDeployScript.includes('${REMOTE_PROJECT_DIR}/course-content/runtime') ||

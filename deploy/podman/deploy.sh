@@ -115,7 +115,7 @@ DB_PASSWORD="${DB_PASSWORD:-ChangeMe_Act_2026!}"
 APP_DOMAIN="${APP_DOMAIN:-act.adapt-learn.online}"
 NEXTAUTH_URL="$(normalize_public_app_url "${NEXTAUTH_URL:-}" "$APP_DOMAIN")"
 
-APP_IMAGE="${APP_IMAGE:-act-obe-platform:20260301-amd64}"
+APP_IMAGE="${APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"
 DB_IMAGE="${DB_IMAGE:-${POSTGRES_IMAGE:-postgres:15-alpine-amd64}}"
 REDIS_IMAGE="${REDIS_IMAGE:-docker.io/redis:7-alpine}"
 NODE_ENV="${NODE_ENV:-production}"
