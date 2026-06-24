@@ -39,6 +39,7 @@ describe('K/A/Q quiz foundation coverage', () => {
     expect(artifacts.reviewedItems[0]).toMatchObject({
       questionId: 'preset-q-01',
       metadata: expect.objectContaining({
+        questionType: 'pole-to-behavior',
         learningGoalIds: expect.arrayContaining(['control-correction']),
         knowledgeObjectiveIds: expect.any(Array),
         capabilityTargetIds: expect.any(Array),

@@ -30,6 +30,7 @@ export interface KaqQuizReviewAudit {
 }
 
 export interface KaqQuizQuestionMetadata {
+  questionType: CrossDomainQuestion['type'];
   learningGoalIds: string[];
   kaqObjectiveIds: string[];
   knowledgeObjectiveIds: string[];
@@ -309,6 +310,7 @@ export function buildKaqQuizQuestionMetadata(
   });
 
   return {
+    questionType: question.type,
     learningGoalIds: [row.learningGoalId],
     kaqObjectiveIds: [...knowledgeObjectiveIds, ...capabilityTargetIds, ...qualityTargetIds],
     knowledgeObjectiveIds,

@@ -25,6 +25,65 @@ function createEvent(overrides: Partial<LearningEvent> = {}): LearningEvent {
   };
 }
 
+const TEST_KAQ_VERSION_REFS = {
+  artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+  learningGoalPackageVersion: 'learning-goal-package/v1',
+  objectiveCatalogVersion: 'autocontrol-kaq-objectives.v1',
+  graphCatalogVersion: 'autocontrol-kaq-graph.v1',
+  resourceRegistryVersion: 'resource-node-registry.v1',
+  resourceProjectionVersion: 'resource-semantic-projection.v1',
+  overlayVersion: 'graph-center-overlay.v1',
+  plannerVersion: 'adaptive-learning-path-planner.v1',
+  groundingVersion: 'konling-graph-grounding.v1',
+  questionBankVersion: 'kaq-quiz-foundation-bank.v1',
+};
+
+function createGovernedKaqQuizEvidence(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    questionSnapshotId: 'question-snapshot:reviewed',
+    quizSetId: 'kaq-quiz-set:control-correction:readiness-gate',
+    questionId: 'preset-q-01',
+    answerId: 'answer-1',
+    sessionId: 'adaptive-student-1',
+    attemptKey: 'adaptive-student-1:preset-q-01',
+    scoringVersion: 'adaptive-assessment-bkt-v1',
+    rubricVersion: 'kaq-quiz-foundation-bank.v1:rubric',
+    denominator: 1,
+    retryPolicy: { maxAttemptsAffectingMastery: 1, idempotencyScope: 'session-question' },
+    eventSource: 'adaptive_assessment',
+    eventType: 'answer_submit',
+    sourceLogId: 'adaptive-assessment:answer-1',
+    dedupeKey: 'adaptive-assessment:adaptive-student-1:preset-q-01',
+    occurredAt: '2026-04-16T02:41:03.547Z',
+    score: 100,
+    isCorrect: true,
+    confidence: { level: 'high', score: 1, basis: 'reviewed-question-bank' },
+    reviewState: 'reviewed',
+    reviewAudit: {
+      state: 'reviewed',
+      reviewerRole: 'assessment-content-reviewer',
+      reviewedAt: '2026-06-24T00:00:00.000Z',
+      reviewBatchId: 'kaq-quiz-foundation-bank.v1',
+      sourceHash: 'hash',
+      metadataVersionRef: 'kaq-quiz-foundation-bank.v1',
+    },
+    learningGoalIds: ['control-correction'],
+    kaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
+    knowledgeObjectiveIds: ['knowledge:autocontrol:controller-correction'],
+    applicationObjectiveIds: ['capability:autocontrol:synthesize-controller-correction'],
+    qualityObjectiveIds: ['quality:autocontrol:evidence-integrity'],
+    graphNodeIds: ['kn:autocontrol:controller-correction'],
+    capabilityTargetIds: ['capability:autocontrol:synthesize-controller-correction'],
+    qualityTargetIds: ['quality:autocontrol:evidence-integrity'],
+    learningFactEligible: true,
+    readinessGateEligible: true,
+    terminalValidationEligible: true,
+    studentCompetencySnapshotEffect: 'update',
+    versionRefs: TEST_KAQ_VERSION_REFS,
+    ...overrides,
+  };
+}
+
 describe('eventToLearningFactInput', () => {
   it('materializes legacy submit events as lesson_submit facts when payload carries the canonical event type', () => {
     const fact = eventToLearningFactInput(createEvent());
@@ -166,6 +225,8 @@ describe('eventToLearningFactInput', () => {
           sourceLogId: 'adaptive-assessment:answer-1',
           dedupeKey: 'adaptive-assessment:adaptive-student-1:preset-q-01',
           occurredAt: '2026-04-16T02:41:03.547Z',
+          score: 100,
+          isCorrect: true,
           confidence: { level: 'high', score: 1, basis: 'reviewed-question-bank' },
           reviewState: 'reviewed',
           reviewAudit: {
@@ -176,10 +237,19 @@ describe('eventToLearningFactInput', () => {
             sourceHash: 'hash',
             metadataVersionRef: 'kaq-quiz-foundation-bank.v1',
           },
+          learningGoalIds: ['control-correction'],
+          kaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
+          knowledgeObjectiveIds: ['knowledge:autocontrol:controller-correction'],
+          applicationObjectiveIds: ['capability:autocontrol:synthesize-controller-correction'],
+          qualityObjectiveIds: ['quality:autocontrol:evidence-integrity'],
+          graphNodeIds: ['kn:autocontrol:controller-correction'],
+          capabilityTargetIds: ['capability:autocontrol:synthesize-controller-correction'],
+          qualityTargetIds: ['quality:autocontrol:evidence-integrity'],
           learningFactEligible: true,
           readinessGateEligible: true,
           terminalValidationEligible: true,
           studentCompetencySnapshotEffect: 'update',
+          versionRefs: TEST_KAQ_VERSION_REFS,
         },
         privacyLevel: 'restricted',
       },
@@ -228,6 +298,183 @@ describe('eventToLearningFactInput', () => {
         score: 100,
         durationSeconds: 30,
         algorithmVersion: 'adaptive-assessment-bkt-v1',
+      },
+    }));
+
+    expect(fact?.contextJson).toMatchObject({
+      evidenceGovernance: {
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'adaptive_assessment_missing_kaq_context_only',
+      },
+    });
+    expect(fact?.competencyContribution).toEqual({});
+  });
+
+  it('keeps incomplete non-empty K/A/Q adaptive evidence as context-only facts', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'adaptive-assessment:malformed-answer-1',
+      actionType: 'answer_submit',
+      sessionId: 'adaptive-malformed-1',
+      payload: {
+        eventType: 'answer_submit',
+        assessmentSource: 'adaptive_assessment',
+        moduleId: 'adaptive-assessment',
+        sessionId: 'adaptive-malformed-1',
+        answerId: 'malformed-answer-1',
+        questionId: 'preset-q-01',
+        questionRefId: 'item-ref-malformed',
+        selectedOptionKey: 'A',
+        correctOptionKey: 'A',
+        isCorrect: true,
+        score: 100,
+        durationSeconds: 30,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        kaqQuizEvidence: {
+          questionSnapshotId: 'question-snapshot:malformed',
+        },
+      },
+    }));
+
+    expect(fact?.contextJson).toMatchObject({
+      evidenceGovernance: {
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'adaptive_assessment_missing_kaq_context_only',
+      },
+    });
+    expect(fact?.competencyContribution).toEqual({});
+  });
+
+  it('requires complete governed K/A/Q evidence before assigning adaptive profile weight', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'adaptive-assessment:incomplete-reviewed-answer-1',
+      actionType: 'answer_submit',
+      sessionId: 'adaptive-incomplete-reviewed-1',
+      payload: {
+        eventType: 'answer_submit',
+        assessmentSource: 'adaptive_assessment',
+        moduleId: 'adaptive-assessment',
+        sessionId: 'adaptive-incomplete-reviewed-1',
+        answerId: 'incomplete-reviewed-answer-1',
+        questionId: 'preset-q-01',
+        questionRefId: 'item-ref-incomplete-reviewed',
+        selectedOptionKey: 'A',
+        correctOptionKey: 'A',
+        isCorrect: true,
+        score: 100,
+        durationSeconds: 30,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        kaqQuizEvidence: {
+          questionSnapshotId: 'question-snapshot:incomplete-reviewed',
+          quizSetId: 'kaq-quiz-set:control-correction:readiness-gate',
+          questionId: 'preset-q-01',
+          answerId: 'incomplete-reviewed-answer-1',
+          sessionId: 'adaptive-incomplete-reviewed-1',
+          attemptKey: 'adaptive-incomplete-reviewed-1:preset-q-01',
+          scoringVersion: 'adaptive-assessment-bkt-v1',
+          rubricVersion: 'kaq-quiz-foundation-bank.v1:rubric',
+          denominator: 1,
+          retryPolicy: { maxAttemptsAffectingMastery: 1, idempotencyScope: 'session-question' },
+          eventSource: 'adaptive_assessment',
+          eventType: 'answer_submit',
+          sourceLogId: 'adaptive-assessment:incomplete-reviewed-answer-1',
+          dedupeKey: 'adaptive-assessment:adaptive-incomplete-reviewed-1:preset-q-01',
+          occurredAt: '2026-04-16T02:41:03.547Z',
+          confidence: { level: 'high', score: 1, basis: 'reviewed-question-bank' },
+          reviewState: 'reviewed',
+          reviewAudit: {
+            state: 'reviewed',
+            reviewerRole: 'assessment-content-reviewer',
+            reviewedAt: '2026-06-24T00:00:00.000Z',
+            reviewBatchId: 'kaq-quiz-foundation-bank.v1',
+            sourceHash: 'hash',
+            metadataVersionRef: 'kaq-quiz-foundation-bank.v1',
+          },
+          learningFactEligible: true,
+          readinessGateEligible: true,
+          terminalValidationEligible: true,
+          studentCompetencySnapshotEffect: 'update',
+        },
+      },
+    }));
+
+    expect(fact?.contextJson).toMatchObject({
+      evidenceGovernance: {
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'adaptive_assessment_missing_kaq_context_only',
+      },
+    });
+    expect(fact?.competencyContribution).toEqual({});
+  });
+
+  it('keeps K/A/Q adaptive evidence with empty governance strings as context-only facts', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'adaptive-assessment:empty-governance-answer-1',
+      actionType: 'answer_submit',
+      sessionId: 'adaptive-empty-governance-1',
+      payload: {
+        eventType: 'answer_submit',
+        assessmentSource: 'adaptive_assessment',
+        moduleId: 'adaptive-assessment',
+        sessionId: 'adaptive-empty-governance-1',
+        answerId: 'empty-governance-answer-1',
+        questionId: 'preset-q-01',
+        questionRefId: 'item-ref-empty-governance',
+        selectedOptionKey: 'A',
+        correctOptionKey: 'A',
+        isCorrect: true,
+        score: 100,
+        durationSeconds: 30,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        kaqQuizEvidence: createGovernedKaqQuizEvidence({
+          questionSnapshotId: '',
+          sourceLogId: '   ',
+          confidence: { level: '', score: 1, basis: 'reviewed-question-bank' },
+          reviewAudit: {
+            state: 'reviewed',
+            reviewerRole: 'assessment-content-reviewer',
+            reviewedAt: '2026-06-24T00:00:00.000Z',
+            reviewBatchId: '',
+            sourceHash: '',
+            metadataVersionRef: 'kaq-quiz-foundation-bank.v1',
+          },
+        }),
+      },
+    }));
+
+    expect(fact?.contextJson).toMatchObject({
+      evidenceGovernance: {
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'adaptive_assessment_missing_kaq_context_only',
+      },
+    });
+    expect(fact?.competencyContribution).toEqual({});
+  });
+
+  it('keeps K/A/Q adaptive evidence without evidence score as context-only facts', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'adaptive-assessment:missing-score-answer-1',
+      actionType: 'answer_submit',
+      sessionId: 'adaptive-missing-score-1',
+      payload: {
+        eventType: 'answer_submit',
+        assessmentSource: 'adaptive_assessment',
+        moduleId: 'adaptive-assessment',
+        sessionId: 'adaptive-missing-score-1',
+        answerId: 'missing-score-answer-1',
+        questionId: 'preset-q-01',
+        questionRefId: 'item-ref-missing-score',
+        selectedOptionKey: 'A',
+        correctOptionKey: 'A',
+        durationSeconds: 30,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        kaqQuizEvidence: createGovernedKaqQuizEvidence({
+          score: undefined,
+          isCorrect: undefined,
+        }),
       },
     }));
 
