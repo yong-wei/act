@@ -515,7 +515,7 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
   db: any,
   input: T,
 ): Promise<T> {
-  if (input.resourceType !== 'adaptive_quiz' || input.status !== 'completed') return input;
+  if (!isAssessmentCompletionResourceType(input.resourceType) || input.status !== 'completed') return input;
   const ref = toRecord(input.liftMetadata?.adaptiveAssessmentRef);
   const id = readRefId(ref, ['id', 'answerId', 'sourceId', 'ref']);
   if (!id) {
@@ -615,7 +615,7 @@ function downgradeUntrustedAdaptiveAssessmentCompletion<T extends {
   liftMetadata?: Record<string, unknown>;
 }>(input: T): T {
   if (
-    input.resourceType !== 'adaptive_quiz' ||
+    !isAssessmentCompletionResourceType(input.resourceType) ||
     input.status !== 'completed' ||
     isTrustedAdaptiveAssessmentPathCompletionRef(toRecord(input.liftMetadata).adaptiveAssessmentRef)
   ) {
@@ -627,6 +627,10 @@ function downgradeUntrustedAdaptiveAssessmentCompletion<T extends {
     completedAt: null,
     failedAt: null,
   };
+}
+
+function isAssessmentCompletionResourceType(resourceType: string): boolean {
+  return resourceType === 'adaptive_quiz' || resourceType === 'checkpoint';
 }
 
 function isTrustedAdaptiveAssessmentPathCompletionRef(value: unknown): boolean {

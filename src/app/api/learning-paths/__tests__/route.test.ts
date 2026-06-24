@@ -195,6 +195,41 @@ function useStructuredAdaptiveAssessmentPath() {
   });
 }
 
+function useStructuredCheckpointAssessmentPath() {
+  mocks.prisma.learningPath.findUnique.mockResolvedValue({
+    id: 'path-1',
+    userId: 'student-1',
+    classId: 'class-1',
+    goalId: 'control-correction',
+    pathStatus: 'active',
+    currentNodeId: 'checkpoint:control-correction-review',
+    nodeIds: ['checkpoint:control-correction-review', 'control-workbench:lead-design'],
+    pathPayload: {
+      mainPathNodeIds: ['checkpoint:control-correction-review', 'control-workbench:lead-design'],
+      planNodes: [
+        {
+          nodeId: 'checkpoint:control-correction-review',
+          type: 'checkpoint',
+          target: '/assessment/adaptive-practice',
+        },
+        {
+          nodeId: 'control-workbench:lead-design',
+          type: 'control_workbench',
+          target: '/interactive-learning/control-workbench',
+          status: 'locked',
+          readiness: {
+            state: 'locked',
+            missingCompletedNodeIds: ['checkpoint:control-correction-review'],
+            missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+          },
+        },
+      ],
+    },
+    terminalValidation: { nodeId: null, state: 'not-required' },
+    lastExecutionMetadata: { completedNodeIds: [] },
+  });
+}
+
 describe('learning path round API routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1153,6 +1188,43 @@ describe('learning path round API routes', () => {
       data: expect.objectContaining({
         currentNodeId: 'adaptive-quiz:control-target-check',
         lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: [],
+        }),
+      }),
+    }));
+  });
+
+  it('does not complete checkpoint assessment nodes when no answer ref is provided', async () => {
+    useStructuredCheckpointAssessmentPath();
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'checkpoint:control-correction-review',
+      resourceType: 'checkpoint',
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      idempotencyKey: 'missing-checkpoint-answer-ref',
+      liftMetadata: { pathActivityKind: 'checkpoint-pass' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.adaptiveAssessmentAnswer.findFirst).not.toHaveBeenCalled();
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'started',
+      completedAt: null,
+      failedAt: null,
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          provenance: 'pending',
+        }),
+      }),
+      evidenceRefs: [],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'checkpoint:control-correction-review',
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: [],
           availableOutcomeRefs: [],
         }),
       }),
@@ -4343,7 +4415,7 @@ describe('learning path round API routes', () => {
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
-  it('preserves completed return replays and repairs checkpoint retries', async () => {
+  it('preserves return replays and does not complete checkpoint retries without answer refs', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',
       userId: 'student-1',
@@ -4412,7 +4484,8 @@ describe('learning path round API routes', () => {
         lastExecutionMetadata: expect.objectContaining({
           lastExecution: expect.objectContaining({
             nodeId: 'node-2',
-            status: 'completed',
+            status: 'started',
+            completedAt: null,
           }),
         }),
       }),
