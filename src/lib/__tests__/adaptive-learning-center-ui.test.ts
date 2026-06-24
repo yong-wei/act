@@ -668,6 +668,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain("fetch('/api/adaptive/path-advisor-tool'");
     expect(pageSource).toContain('data-adaptive-path-generation-intent="editable"');
     expect(pageSource).toContain("submitPathGeneration('revise', optionForWrite)");
+    expect(pageSource).toContain("payload.result?.generationStatus === 'blocked'");
+    expect(pageSource).toContain('setPathChoiceMessage(blockedMessage)');
     expect(pageSource).toContain('selectedOptionId');
     expect(pageSource).toContain('rejectedOptionIds');
     expect(pageSource).not.toContain('Konling parameters');
