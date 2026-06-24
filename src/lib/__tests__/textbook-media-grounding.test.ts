@@ -185,7 +185,7 @@ describe('textbook and media grounding artifacts', () => {
     });
   });
 
-  it('does not expose citation targets when the generator cannot provide a citation address', () => {
+  it('does not expose citation targets when a textbook document lacks citation address metadata', () => {
     const artifacts = buildTextbookMediaGroundingArtifacts({
       sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
       generatedAt: '2026-06-24T00:00:00.000Z',

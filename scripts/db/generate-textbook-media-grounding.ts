@@ -10,7 +10,6 @@ import type { TextbookRuntimeSearchDocument } from '@/lib/textbook-runtime-resou
 import { buildKaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
 
 const SOURCE_PACKAGE_ID = 'hu-shousong-exercise-analysis-3rd';
-const AUTHORING_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/authoring/resources/textbooks', SOURCE_PACKAGE_ID);
 const RUNTIME_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/runtime/resources/textbooks', SOURCE_PACKAGE_ID);
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const RUNTIME_PROJECTIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
@@ -18,81 +17,38 @@ const CANDIDATES_PATH = path.join(OUTPUT_DIR, 'textbook-section-grounding-candid
 const CITATION_TARGETS_PATH = path.join(OUTPUT_DIR, 'textbook-section-citation-targets.jsonl');
 const LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'textbook-media-grounding-limitations.json');
 
-interface TextbookManifest {
+interface RuntimeTextbookManifest {
   bookId?: string;
-  updatedAt?: string;
+  version?: string;
   title?: string;
-  chapters?: Array<{
-    id?: string;
-    number?: number;
-    title?: string;
-    manifestPath?: string;
-    markdownSha256?: string;
-  }>;
+  authoringManifestHash?: string;
 }
 
-interface ChapterManifest {
+interface RuntimeTextbookSectionIndexEntry {
   id?: string;
-  number?: number;
+  bookId?: string;
   title?: string;
-  sourcePageStart?: number;
-  sourcePageEnd?: number;
-  sourcePageCount?: number;
-  markdownSha256?: string;
+  kind?: string;
+  chapterId?: string | null;
+  chapterNumber?: number | null;
+  contentHash?: string | null;
+  href?: string;
+  pathPlanning?: {
+    knowledgeNodeIds?: string[];
+    capabilityTargetRefs?: string[];
+  };
 }
-
-const CHAPTER_BINDINGS: Record<number, { knowledgeNodeRefs: string[]; capabilityTargetRefs: string[] }> = {
-  1: {
-    knowledgeNodeRefs: ['自动控制系统_1_9678f418', '反馈控制系统_1_98dc667a'],
-    capabilityTargetRefs: ['controlModeling'],
-  },
-  2: {
-    knowledgeNodeRefs: ['动态数学模型_2_b7f98344', '传递函数_2_2c5e2589'],
-    capabilityTargetRefs: ['controlModeling'],
-  },
-  3: {
-    knowledgeNodeRefs: ['时域响应_1_1', '稳定性_1_1'],
-    capabilityTargetRefs: ['diagnosticAssessment'],
-  },
-  4: {
-    knowledgeNodeRefs: ['根轨迹_4_1', '闭环极点_4_1'],
-    capabilityTargetRefs: ['parameterDesign'],
-  },
-  5: {
-    knowledgeNodeRefs: ['频率特性_5_1', '相位裕度_5_1'],
-    capabilityTargetRefs: ['engineeringDecision'],
-  },
-  6: {
-    knowledgeNodeRefs: ['控制器_1_1', '校正装置_6_1'],
-    capabilityTargetRefs: ['parameterDesign'],
-  },
-  7: {
-    knowledgeNodeRefs: ['离散系统_7_1', '采样控制_7_1'],
-    capabilityTargetRefs: ['controlModeling'],
-  },
-  8: {
-    knowledgeNodeRefs: ['非线性系统_8_1', '相平面法_8_1'],
-    capabilityTargetRefs: ['engineeringDecision'],
-  },
-  9: {
-    knowledgeNodeRefs: ['状态空间表达式_1_6a8a62c1', '状态反馈_9_1'],
-    capabilityTargetRefs: ['controlModeling'],
-  },
-  10: {
-    knowledgeNodeRefs: ['最优控制_10_1', '动态规划_10_1'],
-    capabilityTargetRefs: ['engineeringDecision'],
-  },
-};
 
 async function main() {
   const generatedAt = new Date().toISOString();
-  const textbookManifest = await readJson<TextbookManifest>(path.join(AUTHORING_TEXTBOOK_ROOT, 'manifest.json'));
+  await assertRuntimeExportExists();
+  const textbookManifest = await readJson<RuntimeTextbookManifest>(path.join(RUNTIME_TEXTBOOK_ROOT, 'manifest.json'));
   const textbookDocuments = await buildTextbookDocuments(textbookManifest);
   const mediaProjections = await loadMediaProjectionRows(RUNTIME_PROJECTIONS_PATH);
   const artifacts = buildTextbookMediaGroundingArtifacts({
     sourcePackageId: SOURCE_PACKAGE_ID,
     generatedAt,
-    reviewBatchId: `textbook-grounding-${(textbookManifest.updatedAt ?? generatedAt).slice(0, 10)}`,
+    reviewBatchId: `textbook-grounding-${generatedAt.slice(0, 10)}`,
     textbookDocuments,
     mediaProjections,
     maxLimitationRows: 100,
@@ -105,57 +61,48 @@ async function main() {
   printSummary(artifacts);
 }
 
-async function buildTextbookDocuments(manifest: TextbookManifest): Promise<TextbookRuntimeSearchDocument[]> {
+async function buildTextbookDocuments(manifest: RuntimeTextbookManifest): Promise<TextbookRuntimeSearchDocument[]> {
   const bookId = manifest.bookId ?? SOURCE_PACKAGE_ID;
-  const chapters = manifest.chapters ?? [];
-  const documents = await Promise.all(chapters.map(async (chapter): Promise<TextbookRuntimeSearchDocument | null> => {
-    if (!chapter.id) return null;
-    const chapterManifest = await readJson<ChapterManifest>(
-      path.join(AUTHORING_TEXTBOOK_ROOT, chapter.manifestPath ?? `${chapter.id}/manifest.json`),
-    );
-    const chapterNumber = chapterManifest.number ?? chapter.number ?? null;
-    const binding = chapterNumber ? CHAPTER_BINDINGS[chapterNumber] : undefined;
-    const sectionId = chapter.id;
-    const pageAnchor = pageAnchorFor(chapterManifest);
-    const contentHash = chapterManifest.markdownSha256 ?? chapter.markdownSha256 ?? null;
-    const title = chapterManifest.title ?? chapter.title ?? sectionId;
-    const href = `/course-runtime/resources/textbooks/${bookId}/sections/${sectionId}.md#${pageAnchor}`;
-    const hasRuntimeSection = await fileExists(path.join(RUNTIME_TEXTBOOK_ROOT, 'sections', `${sectionId}.md`));
+  const sections = await readJsonl<RuntimeTextbookSectionIndexEntry>(path.join(RUNTIME_TEXTBOOK_ROOT, 'section-index.jsonl'));
+  const documents = await Promise.all(sections.map(async (section): Promise<TextbookRuntimeSearchDocument | null> => {
+    if (!section.id || !section.href) return null;
+    await assertRuntimeHrefExists(section.href);
+    const sectionId = section.id;
+    const locator = sectionId;
+    const href = `${section.href}#${locator}`;
+    const contentHash = section.contentHash ?? null;
     return {
-      id: `${sectionId}__source-window`,
-      kind: 'chunk',
-      title,
+      id: `${sectionId}__section`,
+      kind: section.kind ?? 'textbook_section',
+      title: section.title ?? sectionId,
       href,
-      text: `${title}，页码范围 ${pageAnchor}。`,
+      text: section.title ?? sectionId,
       contentHash,
       resourceProjection: {
         resourceId: `textbook-section:${bookId}:${sectionId}`,
         segmentRef: sectionId,
-        citationTargetRef: `${sectionId}__source-window`,
-        knowledgeNodeRefs: binding?.knowledgeNodeRefs ?? [],
-        capabilityTargetRefs: binding?.capabilityTargetRefs ?? [],
+        citationTargetRef: `${sectionId}__section`,
+        knowledgeNodeRefs: section.pathPlanning?.knowledgeNodeIds ?? [],
+        capabilityTargetRefs: section.pathPlanning?.capabilityTargetRefs ?? [],
         contentHash,
         versionRefs: buildKaqArtifactVersionRefs({
+          resourceRegistryVersion: manifest.version ?? 'textbook-resource-export.v1',
           resourceProjectionVersion: 'resource-semantic-projection.v1',
           groundingVersion: 'textbook-media-grounding.v1',
         }),
       },
-      ...(hasRuntimeSection
-        ? {
-          citationAddress: {
-            kind: 'text' as const,
-            sourceRefId: `${sectionId}__source-window`,
-            href,
-            locator: pageAnchor,
-            contentHash,
-          },
-        }
-        : {}),
+      citationAddress: {
+        kind: 'text',
+        sourceRefId: `${sectionId}__section`,
+        href,
+        locator,
+        contentHash,
+      },
       metadata: {
         bookId,
         sectionId,
-        chapterId: chapter.id,
-        chapterNumber,
+        chapterId: section.chapterId ?? null,
+        chapterNumber: section.chapterNumber ?? null,
       },
     };
   }));
@@ -180,24 +127,46 @@ function isMediaProjectionRow(row: RuntimeResourceProjectionArtifactRow): boolea
     row.resourceType === 'slides';
 }
 
-function pageAnchorFor(chapter: ChapterManifest): string {
-  if (typeof chapter.sourcePageStart === 'number' && typeof chapter.sourcePageEnd === 'number') {
-    return `pages-${chapter.sourcePageStart}-${chapter.sourcePageEnd}`;
-  }
-  if (typeof chapter.number === 'number') return `chapter-${String(chapter.number).padStart(2, '0')}`;
-  return chapter.id ?? 'chapter';
-}
-
 async function readJson<T>(filePath: string): Promise<T> {
   return JSON.parse(await fs.readFile(filePath, 'utf-8')) as T;
 }
 
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
+async function readJsonl<T>(filePath: string): Promise<T[]> {
+  const content = await fs.readFile(filePath, 'utf-8');
+  return content
+    .split('\n')
+    .filter((line) => line.trim().length > 0)
+    .map((line) => JSON.parse(line) as T);
+}
+
+async function assertRuntimeHrefExists(href: string): Promise<void> {
+  const [pathname] = href.split('#');
+  const prefix = '/course-runtime/';
+  if (!pathname.startsWith(prefix)) {
+    throw new Error(`Textbook runtime section href must start with ${prefix}: ${href}`);
+  }
+  const relativePath = pathname.slice(prefix.length);
+  const absolutePath = path.join(process.cwd(), 'course-content/runtime', relativePath);
+  await fs.access(absolutePath);
+}
+
+async function assertRuntimeExportExists(): Promise<void> {
+  const requiredFiles = ['manifest.json', 'section-index.jsonl'];
+  const missingFiles: string[] = [];
+  for (const fileName of requiredFiles) {
+    const filePath = path.join(RUNTIME_TEXTBOOK_ROOT, fileName);
+    try {
+      await fs.access(filePath);
+    } catch {
+      missingFiles.push(filePath);
+    }
+  }
+  if (missingFiles.length > 0) {
+    throw new Error([
+      `Missing runtime textbook export for ${SOURCE_PACKAGE_ID}:`,
+      ...missingFiles.map((filePath) => `- ${filePath}`),
+      `Run: python3 course-content/scripts/export_textbook_resources.py --book ${SOURCE_PACKAGE_ID}`,
+    ].join('\n'));
   }
 }
 
