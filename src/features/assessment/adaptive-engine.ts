@@ -5,6 +5,7 @@ import {
   type QuestionDomain,
   type QuestionType,
 } from '@/features/assessment/adaptive-question-bank';
+import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
 
 export interface AdaptiveAnswerRecord {
   sessionId: string;
@@ -313,6 +314,7 @@ export function getDiagnosticFromAnswers(answers: AdaptiveAnswerRecord[]): Diagn
 export function selectNextQuestion(params: {
   userId: string;
   sessionId: string;
+  goalId?: string | null;
 }): {
   question: PublicQuestion;
   estimatedAbility: number;
@@ -329,6 +331,7 @@ export function selectNextQuestionFromAnswers(
   params: {
     userId: string;
     sessionId: string;
+    goalId?: string | null;
   },
   answers: AdaptiveAnswerRecord[],
   askedQuestionIds = new Set(
@@ -346,8 +349,14 @@ export function selectNextQuestionFromAnswers(
   const weakAreas = new Set(buildAdaptiveWeakAreas(answers));
   const targetDifficulty = clamp((theta + 3) / 6, 0, 1);
 
-  const candidates = allQuestions();
+  const targetGoalId = typeof params.goalId === 'string' && params.goalId.trim().length > 0
+    ? params.goalId.trim()
+    : null;
+  const candidates = filterQuestionsByGoal(allQuestions(), targetGoalId);
   const unaskedCandidates = candidates.filter((question) => !askedQuestionIds.has(question.id));
+  if (targetGoalId && unaskedCandidates.length === 0) {
+    throw new Error(`学习目标 ${targetGoalId} 的已审核 readiness 题目已完成`);
+  }
   const selectionPool = unaskedCandidates.length > 0 ? unaskedCandidates : candidates;
   const scored = selectionPool.map((question) => {
     const closeness = 1 - Math.abs(question.difficulty - targetDifficulty);
@@ -368,6 +377,20 @@ export function selectNextQuestionFromAnswers(
     estimatedAbility: Number(theta.toFixed(2)),
     confidenceInterval,
   };
+}
+
+function filterQuestionsByGoal(questions: CrossDomainQuestion[], targetGoalId?: string | null): CrossDomainQuestion[] {
+  if (!targetGoalId) return questions;
+  const scopedQuestions = questions.filter((question) => {
+    const metadata = buildKaqQuizQuestionMetadata(question);
+    return metadata.learningGoalIds.includes(targetGoalId) &&
+      metadata.review.state === 'reviewed' &&
+      metadata.purpose === 'readiness-gate';
+  });
+  if (scopedQuestions.length === 0) {
+    throw new Error(`未找到学习目标 ${targetGoalId} 的已审核 readiness 题目`);
+  }
+  return scopedQuestions;
 }
 
 export function generateQuestion(params: {

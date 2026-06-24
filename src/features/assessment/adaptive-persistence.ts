@@ -764,7 +764,7 @@ export async function getDiagnosticWithPersistenceFallback(
 }
 
 export async function selectNextQuestionWithPersistenceFallback(
-  params: { userId: string; sessionId: string },
+  params: { userId: string; sessionId: string; goalId?: string | null },
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<{

@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+
 import { PRESET_QUESTIONS } from '../adaptive-question-bank';
 import {
   getAbilityReportWithPersistenceFallback,
@@ -350,6 +352,58 @@ describe('submitAnswerDurably', () => {
     expect(db.adaptiveAssessmentSession.updateMany).toHaveBeenCalledTimes(PRESET_QUESTIONS.length);
     expect(db.adaptiveAssessmentSession.updateMany.mock.calls.at(-1)?.[0].data.selectedQuestionIds)
       .toHaveLength(PRESET_QUESTIONS.length);
+  });
+
+  it('scopes persisted next-question selections to the path learning goal', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+    }, db);
+
+    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    expect(metadata.learningGoalIds).toContain('control-correction');
+    expect(metadata.purpose).toBe('readiness-gate');
+    expect(metadata.review.state).toBe('reviewed');
+  });
+
+  it('fails path next-question selection for unknown learning goals', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+
+    await expect(selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'unknown-goal',
+    }, db)).rejects.toThrow('未找到学习目标 unknown-goal 的已审核 readiness 题目');
+  });
+
+  it('does not fall back to non-readiness questions when path readiness questions are exhausted', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const controlCorrectionReadinessQuestionIds = PRESET_QUESTIONS
+      .filter((question) => {
+        const metadata = buildKaqQuizQuestionMetadata(question);
+        return metadata.learningGoalIds.includes('control-correction') &&
+          metadata.purpose === 'readiness-gate' &&
+          metadata.review.state === 'reviewed';
+      })
+      .map((question) => question.id);
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'session-1',
+      selectedQuestionIds: controlCorrectionReadinessQuestionIds,
+    });
+
+    await expect(selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+    }, db)).rejects.toThrow('学习目标 control-correction 的已审核 readiness 题目已完成');
   });
 
   it('retries next-question selection when the persisted asked set changed concurrently', async () => {

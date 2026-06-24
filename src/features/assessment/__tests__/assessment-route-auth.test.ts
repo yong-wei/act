@@ -240,13 +240,150 @@ describe('assessment API auth boundaries', () => {
     const response = await nextQuestionRequest({
       userId: 'victim-user',
       sessionId: 'session-1',
+      goalId: 'control-correction',
     });
 
     expect(response.status).toBe(200);
     expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
       userId: 'student-1',
       sessionId: 'session-1',
+      goalId: 'control-correction',
     });
+  });
+
+  it('derives path next-question goal from the server-owned learning path', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      goalId: 'control-correction',
+      nodeIds: ['adaptive-quiz:control-target-check'],
+      pathPayload: {
+        mainPathNodeIds: ['adaptive-quiz:control-target-check'],
+        planNodes: [{ nodeId: 'adaptive-quiz:control-target-check', type: 'adaptive_quiz' }],
+      },
+    });
+
+    const response = await nextQuestionRequest({
+      userId: 'victim-user',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:control-target-check',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.findFirst).toHaveBeenCalledWith({
+      where: {
+        id: 'path-1',
+        userId: 'student-1',
+        currentNodeId: 'adaptive-quiz:control-target-check',
+      },
+      select: {
+        goalId: true,
+        nodeIds: true,
+        pathPayload: true,
+      },
+    });
+    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      goalId: 'control-correction',
+    });
+  });
+
+  it('rejects path next-question requests with mismatched client goal', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      goalId: 'control-correction',
+      nodeIds: ['adaptive-quiz:control-target-check'],
+      pathPayload: {
+        mainPathNodeIds: ['adaptive-quiz:control-target-check'],
+        planNodes: [{ nodeId: 'adaptive-quiz:control-target-check', type: 'adaptive_quiz' }],
+      },
+    });
+
+    const response = await nextQuestionRequest({
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      goalId: 'frequency-response-foundations',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:control-target-check',
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: '路径自适应题目请求的 goalId 与服务端路径目标不匹配',
+    });
+    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+  });
+
+  it('rejects path next-question requests with mismatched session scope', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await nextQuestionRequest({
+      sessionId: 'session-1',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:control-target-check',
+    });
+
+    expect(response.status).toBe(400);
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+  });
+
+  it('rejects path next-question requests with only a path id', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await nextQuestionRequest({
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: '路径自适应题目请求缺少完整 path/node 上下文',
+    });
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+  });
+
+  it('rejects path next-question requests with only a node id', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await nextQuestionRequest({
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      goalId: 'control-correction',
+      nodeId: 'adaptive-quiz:control-target-check',
+    });
+
+    expect(response.status).toBe(400);
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+  });
+
+  it('rejects path-scoped next-question sessions without path fields', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await nextQuestionRequest({
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      goalId: 'control-correction',
+    });
+
+    expect(response.status).toBe(400);
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
   });
 
   it('rejects unauthenticated diagnostic reads', async () => {
