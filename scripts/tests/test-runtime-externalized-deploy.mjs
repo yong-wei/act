@@ -9,7 +9,9 @@ function read(file) {
 }
 
 const dockerignore = read('.dockerignore');
+const dockerfile = read('Dockerfile');
 const buildScript = read('scripts/build.sh');
+const packageJson = JSON.parse(read('package.json'));
 const serviceScript = read('deploy/podman/configure-service.sh');
 const deployScript = read('deploy/podman/deploy.sh');
 const remoteDeployScript = read('scripts/remote-deploy.sh');
@@ -24,6 +26,33 @@ assert.equal(
   buildScript.includes('course-content/runtime') && buildScript.includes('.dockerignore'),
   true,
   '构建脚本应显式校验 course-content/runtime 已被 .dockerignore 排除',
+);
+
+assert.equal(
+  packageJson.scripts['db:export-textbook-resources'] ===
+    'python3 course-content/scripts/export_textbook_resources.py --book hu-shousong-exercise-analysis-3rd',
+  true,
+  'package.json 必须提供可复现的教材 runtime 导出脚本',
+);
+
+assert.equal(
+  packageJson.scripts.build.includes('npm run db:export-textbook-resources') &&
+    packageJson.scripts.build.indexOf('npm run db:export-textbook-resources') <
+      packageJson.scripts.build.indexOf('node ./scripts/build-next-with-trace-check.mjs'),
+  true,
+  'npm run build 必须在 Next 构建前导出教材 runtime 资源',
+);
+
+assert.equal(
+  packageJson.scripts['db:textbook-media-grounding'].startsWith('npm run db:export-textbook-resources &&'),
+  true,
+  '教材 media grounding 生成必须先刷新教材 runtime 导出',
+);
+
+assert.equal(
+  dockerfile.includes('FROM base AS builder') && dockerfile.includes('RUN apk add --no-cache python3'),
+  true,
+  'Docker builder 阶段必须安装 python3 以执行教材 runtime 导出脚本',
 );
 
 assert.equal(
@@ -57,7 +86,7 @@ assert.equal(
 assert.equal(
   serviceScript.includes('pg_isready') &&
     serviceScript.includes('until') &&
-    serviceScript.includes('ExecStart=/usr/bin/podman start ${APP_CONTAINER}'),
+    serviceScript.includes('ExecStart=/bin/sh -lc \'"${APP_DEPLOY_SCRIPT}" --app-only\''),
   true,
   'systemd 配置脚本应在启动应用容器前等待数据库就绪，避免 Prisma 首次启动抢跑',
 );
@@ -73,6 +102,16 @@ assert.equal(
   remoteDeployScript.includes("test -d '${REMOTE_PROJECT_DIR}/course-content/runtime'"),
   true,
   '远端部署脚本应校验远端 runtime 目录存在后再执行部署验证',
+);
+
+assert.equal(
+  remoteDeployScript.includes('TEXTBOOK_RUNTIME_BOOK_ID') &&
+    remoteDeployScript.includes('LOCAL_TEXTBOOK_RUNTIME_DIR') &&
+    remoteDeployScript.includes('REMOTE_TEXTBOOK_RUNTIME_DIR') &&
+    remoteDeployScript.includes('manifest.json') &&
+    remoteDeployScript.includes('search-documents.jsonl'),
+  true,
+  '远端部署脚本应校验教材 runtime 导出文件已同步',
 );
 
 console.log('runtime externalized deploy test passed');
