@@ -389,4 +389,50 @@ describe('textbook and media grounding artifacts', () => {
       expect.objectContaining({ generatedByPrivateParser: true }),
     ]));
   });
+
+  it('treats stale human media reviews as limitations', () => {
+    const artifacts = buildTextbookMediaGroundingArtifacts({
+      sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      reviewBatchId: 'textbook-grounding-2026-06-24',
+      textbookDocuments: [],
+      mediaProjections: [
+        mediaProjection({
+          id: 'runtime-media:unit-4-1:stale-human-review',
+          citationTargets: ['/course-runtime/lessons/unit-4-1/media/reviewed-image.png'],
+          reviewAudit: {
+            ...mediaProjection().reviewAudit,
+            reviewBatchId: 'media-ingestion-2026-06-24',
+            reviewerId: 'reviewer-1',
+            reviewerRole: 'teacher',
+            reviewedAt: '2026-06-24T00:00:00.000Z',
+            reviewedSourceHash: 'sha256:old-video-source',
+            reviewedVersionRef: 'runtime-lesson-media.v1',
+            status: 'human-confirmed',
+          },
+          pathEligibility: {
+            current: false,
+            afterCompletion: false,
+            masteryAffecting: false,
+            blockedBy: [],
+          },
+        }),
+      ],
+    });
+
+    expect(artifacts.limitations.denominator.reviewedMediaProjections).toBe(0);
+    expect(artifacts.limitations.reviewStatus.mediaHumanConfirmed).toBe(0);
+    expect(artifacts.limitations.limitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'runtime-media:unit-4-1:stale-human-review',
+        sourceKind: 'media-projection',
+        reason: 'missing-upstream-media-projection-review',
+      }),
+      expect.objectContaining({
+        id: 'runtime-media:unit-4-1:stale-human-review',
+        sourceKind: 'media-projection',
+        reason: 'provisional-review-state',
+      }),
+    ]));
+  });
 });

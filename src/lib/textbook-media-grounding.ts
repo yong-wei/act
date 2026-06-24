@@ -156,7 +156,7 @@ export function buildTextbookMediaGroundingArtifacts(input: {
         textbookDocuments: input.textbookDocuments.length,
         mediaProjectionRows: input.mediaProjections.length,
         reviewedTextbookCandidates: candidates.filter((candidate) => candidate.reviewState === 'human-confirmed').length,
-        reviewedMediaProjections: input.mediaProjections.filter((row) => row.reviewAudit.status === 'human-confirmed').length,
+        reviewedMediaProjections: input.mediaProjections.filter(hasCurrentHumanMediaProjectionReview).length,
       },
       sourceWindow: {
         textbookBookIds: uniqueSorted(input.textbookDocuments.map((document) => document.metadata.bookId)),
@@ -165,10 +165,10 @@ export function buildTextbookMediaGroundingArtifacts(input: {
       reviewStatus: {
         textbookHumanConfirmed: candidates.filter((candidate) => candidate.reviewState === 'human-confirmed').length,
         textbookProvisional: candidates.filter((candidate) => candidate.reviewState === 'generated-provisional').length,
-        mediaHumanConfirmed: input.mediaProjections.filter((row) => row.reviewAudit.status === 'human-confirmed').length,
+        mediaHumanConfirmed: input.mediaProjections.filter(hasCurrentHumanMediaProjectionReview).length,
         mediaProvisional: input.mediaProjections.filter((row) => isMediaReviewProvisional(row.reviewAudit.status)).length,
         mediaBlocked: input.mediaProjections.filter((row) => row.reviewAudit.status === 'blocked').length,
-        mediaStale: input.mediaProjections.filter((row) => row.reviewAudit.status === 'stale').length,
+        mediaStale: input.mediaProjections.filter((row) => row.reviewAudit.status === 'stale' || isStaleMediaProjectionReview(row)).length,
       },
       mediaReviewStatusCounts,
       limitationCounts: countLimitations(allLimitations),
@@ -280,11 +280,12 @@ function buildMediaLimitations(
   row: RuntimeResourceProjectionArtifactRow,
 ): TextbookMediaGroundingLimitation[] {
   const hasUnsafeCitationTarget = row.citationTargets.some((target) => !isSafeServerOwnedAddress(target));
+  const hasCurrentHumanReview = hasCurrentHumanMediaProjectionReview(row);
   const reasons = uniqueSorted([
-    row.reviewAudit.status !== 'human-confirmed' ? 'missing-upstream-media-projection-review' : null,
+    !hasCurrentHumanReview ? 'missing-upstream-media-projection-review' : null,
     row.citationTargets.length === 0 ? 'missing-media-citation-target' : null,
     hasUnsafeCitationTarget ? 'unsafe-citation-address' : null,
-    row.reviewAudit.status !== 'human-confirmed' ? 'provisional-review-state' : null,
+    !hasCurrentHumanReview ? 'provisional-review-state' : null,
     row.pathEligibility.blockedBy.length > 0 ? 'path-promotion-blocked' : null,
   ].filter((reason): reason is TextbookMediaGroundingLimitationReason => Boolean(reason)));
 
@@ -303,6 +304,16 @@ function buildMediaLimitations(
     retentionRule: row.reviewAudit.staleInvalidationRule,
     generatedByPrivateParser: false,
   }));
+}
+
+function hasCurrentHumanMediaProjectionReview(row: RuntimeResourceProjectionArtifactRow): boolean {
+  return row.reviewAudit.status === 'human-confirmed' && !isStaleMediaProjectionReview(row);
+}
+
+function isStaleMediaProjectionReview(row: RuntimeResourceProjectionArtifactRow): boolean {
+  return row.reviewAudit.status === 'human-confirmed' &&
+    (row.reviewAudit.reviewedSourceHash !== row.sourceHash ||
+      row.reviewAudit.reviewedVersionRef !== row.sourceVersionRef);
 }
 
 function firstLimitation(

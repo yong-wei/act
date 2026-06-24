@@ -39,7 +39,6 @@ async function main() {
     reviewBatchId: `textbook-grounding-${generatedAt.slice(0, 10)}`,
     textbookDocuments,
     mediaProjections,
-    maxLimitationRows: 100,
   });
 
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
