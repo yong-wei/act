@@ -351,7 +351,7 @@ export function buildPathExecutionWritebackInput(input: {
   learningGoalId: string;
   terminalObjectiveId: string;
   terminalGraphNodeId: string;
-  outcome: 'completed' | 'deviated' | 'fallback';
+  outcome: 'selected' | 'completed' | 'deviated' | 'fallback';
   score: number;
   versionRefs: KaqArtifactVersionRefs;
   materializedAt: string;

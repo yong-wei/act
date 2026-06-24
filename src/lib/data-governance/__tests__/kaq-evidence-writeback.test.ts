@@ -2552,7 +2552,7 @@ describe('K/A/Q evidence writeback governance', () => {
       learningGoalId: 'control-correction',
       terminalObjectiveId: 'capability:autocontrol:validate-with-simulation-evidence',
       terminalGraphNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
-      outcome: 'selected' as Parameters<typeof buildPathExecutionWritebackInput>[0]['outcome'],
+      outcome: 'selected',
       score: 0.91,
       versionRefs,
       materializedAt: '2026-06-23T03:37:00.000Z',
