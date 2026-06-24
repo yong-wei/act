@@ -325,6 +325,7 @@ function isSafeServerOwnedAddress(href: string | null | undefined): boolean {
     href.startsWith('/knowledge?') ||
     href.startsWith('/course-runtime/lessons/') ||
     href.startsWith('/course-runtime/knowledge/') ||
+    href.startsWith('/course-runtime/resources/textbooks/') ||
     href.startsWith('/interactive-learning/') ||
     href.startsWith('/learning-paths/');
 }

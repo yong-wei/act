@@ -11,6 +11,7 @@ import { buildKaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
 
 const SOURCE_PACKAGE_ID = 'hu-shousong-exercise-analysis-3rd';
 const AUTHORING_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/authoring/resources/textbooks', SOURCE_PACKAGE_ID);
+const RUNTIME_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/runtime/resources/textbooks', SOURCE_PACKAGE_ID);
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const RUNTIME_PROJECTIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
 const CANDIDATES_PATH = path.join(OUTPUT_DIR, 'textbook-section-grounding-candidates.jsonl');
@@ -119,6 +120,7 @@ async function buildTextbookDocuments(manifest: TextbookManifest): Promise<Textb
     const contentHash = chapterManifest.markdownSha256 ?? chapter.markdownSha256 ?? null;
     const title = chapterManifest.title ?? chapter.title ?? sectionId;
     const href = `/course-runtime/resources/textbooks/${bookId}/sections/${sectionId}.md#${pageAnchor}`;
+    const hasRuntimeSection = await fileExists(path.join(RUNTIME_TEXTBOOK_ROOT, 'sections', `${sectionId}.md`));
     return {
       id: `${sectionId}__source-window`,
       kind: 'chunk',
@@ -138,13 +140,17 @@ async function buildTextbookDocuments(manifest: TextbookManifest): Promise<Textb
           groundingVersion: 'textbook-media-grounding.v1',
         }),
       },
-      citationAddress: {
-        kind: 'text',
-        sourceRefId: `${sectionId}__source-window`,
-        href,
-        locator: pageAnchor,
-        contentHash,
-      },
+      ...(hasRuntimeSection
+        ? {
+          citationAddress: {
+            kind: 'text' as const,
+            sourceRefId: `${sectionId}__source-window`,
+            href,
+            locator: pageAnchor,
+            contentHash,
+          },
+        }
+        : {}),
       metadata: {
         bookId,
         sectionId,
@@ -184,6 +190,15 @@ function pageAnchorFor(chapter: ChapterManifest): string {
 
 async function readJson<T>(filePath: string): Promise<T> {
   return JSON.parse(await fs.readFile(filePath, 'utf-8')) as T;
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function writeJsonl(filePath: string, rows: readonly unknown[]) {
