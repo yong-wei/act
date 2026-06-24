@@ -441,6 +441,27 @@ describe('assessment API auth boundaries', () => {
     expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
   });
 
+  it('allows path-selection next-question requests with only a path id', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await nextQuestionRequest({
+      sessionId: 'practice-1',
+      goalId: 'control-correction',
+      routeIntent: 'path-selection',
+      pathId: 'path-1',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+      userId: 'student-1',
+      sessionId: 'practice-1',
+      goalId: 'control-correction',
+    });
+  });
+
   it('rejects path next-question requests with only a path id', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
@@ -449,6 +470,26 @@ describe('assessment API auth boundaries', () => {
     const response = await nextQuestionRequest({
       sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
       goalId: 'control-correction',
+      pathId: 'path-1',
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: '路径自适应题目请求缺少完整 path/node 上下文',
+    });
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+  });
+
+  it('rejects path-execution next-question requests with only a path id', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await nextQuestionRequest({
+      sessionId: 'practice-1',
+      goalId: 'control-correction',
+      routeIntent: 'path-execution',
       pathId: 'path-1',
     });
 

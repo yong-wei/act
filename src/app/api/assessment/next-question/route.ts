@@ -10,6 +10,7 @@ interface NextQuestionRequest {
   userId?: string;
   sessionId?: string;
   goalId?: string | null;
+  routeIntent?: string | null;
   pathId?: string | null;
   nodeId?: string | null;
 }
@@ -48,7 +49,11 @@ export async function POST(request: Request) {
 async function readVerifiedPathGoalId(body: NextQuestionRequest, userId: string, sessionId: string): Promise<string | null> {
   const pathId = typeof body.pathId === 'string' && body.pathId.trim().length > 0 ? body.pathId.trim() : null;
   const nodeId = typeof body.nodeId === 'string' && body.nodeId.trim().length > 0 ? body.nodeId.trim() : null;
-  if (!pathId && !nodeId && !sessionId.startsWith('adaptive-path:')) return null;
+  const routeIntent = typeof body.routeIntent === 'string' && body.routeIntent.trim().length > 0 ? body.routeIntent.trim() : null;
+  const requiresPathContext = sessionId.startsWith('adaptive-path:')
+    || routeIntent === 'path-execution'
+    || Boolean(nodeId);
+  if (!requiresPathContext) return null;
   if (!pathId || !nodeId) {
     throw new Error('路径自适应题目请求缺少完整 path/node 上下文');
   }
