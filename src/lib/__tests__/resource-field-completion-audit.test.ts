@@ -708,8 +708,15 @@ describe('resource field completion audit', () => {
   });
 
   it('reports only locked high-complexity resource ids in limitations', () => {
+    const frequencyGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'];
     const result = buildLearningGoalResourceBaselineArtifacts({
-      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      registeredGoals: {
+        ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+        'frequency-response-foundations': {
+          ...frequencyGoal,
+          allowedResourceMix: [...frequencyGoal.allowedResourceMix, 'project'],
+        },
+      },
       generatedAt: '2026-06-24T00:00:00.000Z',
       auditRows: [
         {
@@ -739,6 +746,15 @@ describe('resource field completion audit', () => {
             quality: [],
           },
         },
+        {
+          ...baselineAuditRow('project:frequency-design-project-locked', 'project'),
+          reviewStatus: 'not-reviewed',
+          graphNodeRefs: {
+            knowledge: ['kn:autocontrol:frequency-response'],
+            capability: [],
+            quality: [],
+          },
+        },
       ],
     });
     const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
@@ -747,14 +763,17 @@ describe('resource field completion audit', () => {
     )!;
 
     expect(row.categories.practice.resourceIds).toEqual([
+      'project:frequency-design-project-locked',
       'quiz:frequency-practice-ready',
       'simulation:frequency-practice-locked',
     ]);
-    expect(row.categories.practice.highComplexityLocked).toBe(1);
+    expect(row.categories.practice.highComplexityLocked).toBe(2);
     expect(row.categories.practice.highComplexityLockedResourceIds).toEqual([
+      'project:frequency-design-project-locked',
       'simulation:frequency-practice-locked',
     ]);
     expect(limitation.blockedHighComplexityResourceIds).toEqual([
+      'project:frequency-design-project-locked',
       'simulation:frequency-practice-locked',
     ]);
   });

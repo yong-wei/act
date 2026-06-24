@@ -487,6 +487,7 @@ function isHighComplexityBaselineResource(row: ResourceFieldCompletionAuditRow):
   return resourceType === 'simulation' ||
     resourceType === 'arena_task' ||
     resourceType === 'control_workbench' ||
+    resourceType === 'project' ||
     resourceType === 'checkpoint';
 }
 
