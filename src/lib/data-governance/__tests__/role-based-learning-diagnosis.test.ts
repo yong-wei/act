@@ -242,10 +242,39 @@ describe('role-based learning diagnosis materialization', () => {
   });
 
   it('materializes a teacher class diagnosis with clusters, denominators, intervention priority, and scoped drilldowns', () => {
-    const diagnosis = materializeRoleBasedLearningDiagnosis({
+    const graphAwareInput = {
       ...baseInput,
       view: 'teacher-class',
       teacherClassIds: ['class-1'],
+      graphContext: {
+        nodesByDimension: {
+          modeling: [{
+            graphNodeId: 'kn:autocontrol:feedback-loop',
+            learningGoalId: 'control-correction',
+            overlayState: 'needs-attention',
+            overlayConfidence: 'medium',
+            resourceCoverage: {
+              coverageState: 'partial',
+              missingCoverageTypes: ['practice', 'validated-citation'],
+              resourceNodeIds: ['resource:feedback-loop-card'],
+              citationRefs: ['chunk-feedback-loop'],
+              versionRefs: ['graph-center-resource-coverage.v1'],
+            },
+          }, {
+            graphNodeId: 'kn:autocontrol:closed-loop-error',
+            learningGoalId: 'control-correction',
+            overlayState: 'stale',
+            overlayConfidence: 'low',
+            resourceCoverage: {
+              coverageState: 'missing',
+              missingCoverageTypes: ['simulation'],
+              resourceNodeIds: [],
+              citationRefs: ['chunk-closed-loop-error'],
+              versionRefs: ['graph-center-overlay.v1'],
+            },
+          }],
+        },
+      },
       teacherReport: {
         classInfo: { id: 'class-1', name: '自动控制 1 班', studentCount: 32 },
         metrics: {
@@ -262,7 +291,24 @@ describe('role-based learning diagnosis materialization', () => {
           { userId: 'student-1', name: '学生一', evidenceState: 'ready', path: { pathId: 'path-1' } },
         ],
       },
-    });
+    } as RoleBasedLearningDiagnosisInput & {
+      graphContext: {
+        nodesByDimension: Record<string, Array<{
+          graphNodeId: string;
+          learningGoalId: string;
+          overlayState: string;
+          overlayConfidence: string;
+          resourceCoverage: {
+            coverageState: string;
+            missingCoverageTypes: string[];
+            resourceNodeIds: string[];
+            citationRefs: string[];
+            versionRefs: string[];
+          };
+        }>>;
+      };
+    };
+    const diagnosis = materializeRoleBasedLearningDiagnosis(graphAwareInput);
 
     expect(diagnosis.view).toBe('teacher-class');
     expect(diagnosis.claims[0].studentExplanation).toBeUndefined();
@@ -271,6 +317,36 @@ describe('role-based learning diagnosis materialization', () => {
       affectedPopulation: 18,
       denominator: 32,
       interventionPriority: 'high',
+      graphContext: {
+        learningGoalIds: ['control-correction'],
+        graphNodeIds: ['kn:autocontrol:feedback-loop', 'kn:autocontrol:closed-loop-error'],
+        overlay: {
+          state: 'stale',
+          confidence: 'low',
+        },
+        resourceCoverage: {
+          coverageState: 'missing',
+          missingCoverageTypes: ['practice', 'validated-citation', 'simulation'],
+          resourceNodeIds: ['resource:feedback-loop-card'],
+          citationRefs: ['chunk-feedback-loop', 'chunk-closed-loop-error'],
+          versionRefs: ['graph-center-resource-coverage.v1', 'graph-center-overlay.v1'],
+        },
+        resourceCoverageByNode: [{
+          graphNodeId: 'kn:autocontrol:feedback-loop',
+          coverageState: 'partial',
+          missingCoverageTypes: ['practice', 'validated-citation'],
+          resourceNodeIds: ['resource:feedback-loop-card'],
+          citationRefs: ['chunk-feedback-loop'],
+          versionRefs: ['graph-center-resource-coverage.v1'],
+        }, {
+          graphNodeId: 'kn:autocontrol:closed-loop-error',
+          coverageState: 'missing',
+          missingCoverageTypes: ['simulation'],
+          resourceNodeIds: [],
+          citationRefs: ['chunk-closed-loop-error'],
+          versionRefs: ['graph-center-overlay.v1'],
+        }],
+      },
     });
     expect(diagnosis.drilldownRefs).toEqual([
       { kind: 'student-consultation', userId: 'student-1', href: '/teacher/classes/class-1/students/student-1' },

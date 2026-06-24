@@ -1,7 +1,5 @@
-## Purpose
+## MODIFIED Requirements
 
-Provide a stable, governed diagnosis layer that materializes student, teacher, and service-facing learning diagnosis views from privacy-safe evidence. The layer standardizes judgments, root causes, confidence limits, next actions, and evidence references for future student profile, teacher consultation, prep-pack, grading, and Konling surfaces.
-## Requirements
 ### Requirement: Diagnosis views are role-specific
 The system SHALL materialize role-specific learning diagnosis views for students, teachers, and service consumers, including graph-aware class diagnosis when K/A/Q context is available.
 
@@ -28,18 +26,6 @@ The system SHALL materialize role-specific learning diagnosis views for students
 - **THEN** the diagnosis SHALL include target LearningGoal or graph node scope, overlay distribution, affected population, denominator, confidence, resource coverage gaps, evidence refs, citation refs, version refs, and intervention priority
 - **AND** any student drilldown SHALL remain scoped to students in the teacher's class.
 
-### Requirement: Diagnosis claims are evidence-backed
-Diagnosis output SHALL not present a personalized claim without evidence and confidence metadata.
-
-#### Scenario: Evidence-backed claim is emitted
-- **WHEN** a diagnosis claim is materialized
-- **THEN** it SHALL identify governed evidence references, evidence window, source coverage, confidence state, materialization version, and privacy class.
-
-#### Scenario: Evidence is insufficient
-- **WHEN** evidence is missing, stale, partial, preview-only, or low confidence
-- **THEN** the diagnosis SHALL expose the limitation
-- **AND** it SHALL NOT present the claim as a complete or precise diagnosis.
-
 ### Requirement: Diagnosis surfaces are role-projected
 Role-based diagnosis surfaces SHALL expose different summaries from the same governed snapshot without leaking private evidence.
 
@@ -58,33 +44,3 @@ Role-based diagnosis surfaces SHALL expose different summaries from the same gov
 - **WHEN** a teacher opens diagnosis for K/A/Q graph weak points
 - **THEN** the surface SHALL show weak graph nodes, resource gap status, prep-pack entry state, source coverage, confidence, evidence drilldown, and limitation states
 - **AND** it SHALL not expose raw private dialogue, hidden Arena internals, raw submissions, or reversible low-denominator distributions.
-
-### Requirement: Evidence drilldowns preserve privacy
-Evidence drilldowns SHALL be inspectable and privacy-safe.
-
-#### Scenario: Evidence drawer is opened
-- **WHEN** a user opens evidence for a diagnosis dimension
-- **THEN** the drawer SHALL show source family, source title, observation time window, confidence, limitation state, and citation payload where available
-- **AND** fields that are not permitted for the viewer's role SHALL be redacted rather than omitted silently.
-
-#### Scenario: Student opens evidence drawer
-- **WHEN** a student opens evidence behind a diagnosis claim
-- **THEN** the drawer SHALL show only that student's visible evidence summaries, source capsule, confidence, freshness, and allowed citation links
-- **AND** raw answer bodies, private Konling memory, hidden Arena internals, and teacher-only notes SHALL remain hidden.
-
-#### Scenario: Teacher opens student drilldown
-- **WHEN** a teacher opens a student-specific diagnosis drilldown
-- **THEN** the drawer SHALL show class-authorized evidence summaries, path execution state, grading anchors, and intervention resources
-- **AND** it SHALL not include raw private dialogue unless a future spec explicitly permits it.
-
-### Requirement: Diagnosis surfaces expose degraded states
-Diagnosis UI SHALL make missing, stale, partial, low-confidence, and cold-start states visible.
-
-#### Scenario: No current snapshot exists
-- **WHEN** a role-specific diagnosis surface lacks a current report snapshot
-- **THEN** it SHALL show a degraded state with retry or adjacent actions
-- **AND** it SHALL NOT render placeholder scores as real diagnosis.
-
-#### Scenario: Cohort percentile is unavailable
-- **WHEN** percentile or growth percentile cannot be computed due to sample size, missing history, or authorization limits
-- **THEN** the surface SHALL display the limitation rather than hiding the metric or substituting a fabricated value.

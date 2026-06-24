@@ -680,7 +680,8 @@ function buildTeacherGraphCenterActions(input: {
     ? 'available'
     : 'degraded';
   const resourceGapKnowledgeRef = input.resourceCoverage.filterKnowledgeRefs[0] ?? input.node.id;
-  const prepPackStatus: GraphCenterActionStatus = classId ? 'degraded' : classOverlayUnauthorized ? 'disabled' : 'degraded';
+  const learningGoalId = input.objectives[0]?.id ?? input.node.objectiveIds[0] ?? null;
+  const prepPackStatus: GraphCenterActionStatus = hasClassContext ? 'available' : classOverlayUnauthorized ? 'disabled' : 'degraded';
 
   return [
     classRouteId
@@ -747,17 +748,20 @@ function buildTeacherGraphCenterActions(input: {
       id: 'teacher:open-prep-pack',
       role: 'teacher',
       label: '生成备课包',
-      description: '进入当前班级备课包入口。',
+      description: '进入当前班级备课包入口，并保留图谱节点与资源缺口上下文。',
       status: prepPackStatus,
-      reasonCode: classId ? 'missing-route-context' : missingClassReasonCode,
-      reason: classId
-        ? '备课包入口当前只支持班级上下文，尚未消费图谱节点或学习目标。'
+      reasonCode: prepPackStatus === 'available' ? undefined : missingClassReasonCode,
+      reason: prepPackStatus === 'available'
+        ? undefined
         : classOverlayUnauthorized
           ? missingClassReason
           : '缺少班级上下文，备课包只能进入通用复核入口。',
-      target: classId
+      target: hasClassContext
         ? buildGraphCenterActionTarget('/teacher/prep-packs', {
             classId,
+            graphNodeId: input.node.id,
+            ...(learningGoalId ? { learningGoalId } : {}),
+            resourceGapStatus: input.resourceCoverage.coverageState,
           })
         : undefined,
     },
