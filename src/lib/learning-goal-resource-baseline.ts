@@ -453,7 +453,10 @@ function categoriesForRow(
   if (row.resourceType === 'knowledge_card' || row.resourceType === 'textbook_section' || row.resourceType === 'lesson_step' || row.resourceType === 'handout' || row.resourceType === 'slides' || row.family === 'knowledge-infograph') {
     categories.push('concept');
   }
-  if (row.resourceType === 'quiz' || row.resourceType === 'adaptive_quiz') categories.push('diagnostic');
+  if (row.resourceType === 'quiz' || row.resourceType === 'adaptive_quiz') {
+    categories.push('diagnostic');
+    categories.push('practice');
+  }
   if (row.resourceType === 'simulation' || row.resourceType === 'control_workbench' || row.resourceType === 'arena_task' || row.resourceType === 'external_resource' || row.resourceType === 'project') {
     categories.push('practice');
   }

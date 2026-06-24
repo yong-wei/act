@@ -1945,6 +1945,7 @@ async function buildAdaptivePathToolOutput(
     });
   }
   const pathOptions = hasPersistablePath ? buildStudentSafePathOptions(plan) : [];
+  const fallbackReasons = plan.explanations.fallbackReasons;
   return {
     operation,
     scope: toolScope,
@@ -1969,15 +1970,28 @@ async function buildAdaptivePathToolOutput(
       optionCount: pathOptions.length,
       message: hasPersistablePath
         ? '已根据你的学习证据生成可比较的路径方案。'
-        : '当前目标缺少已审核的基线资源，暂不能生成可执行学习路径。',
+        : buildBlockedAdaptivePathGenerationMessage(fallbackReasons),
     },
-    limitations: plan.explanations.fallbackReasons,
+    limitations: fallbackReasons,
     studentSafeRationale: [
       '路径会依据你的当前目标、学习证据和可用时间生成。',
       '证据不足时会先给出可开始的基础路径，并提示需要补充的学习记录。',
       ...(timeBudget.adjusted ? ['当前目标需要包含终端验证，系统已按最小可行学习时长生成路径。'] : []),
     ],
   };
+}
+
+function buildBlockedAdaptivePathGenerationMessage(fallbackReasons: readonly string[]): string {
+  if (fallbackReasons.includes('learning-goal-baseline-incomplete')) {
+    return '当前目标缺少已审核的基线资源，暂不能生成可执行学习路径。';
+  }
+  if (fallbackReasons.includes('time-budget-insufficient')) {
+    return '当前时间预算不足以生成可执行学习路径，请增加学习时长或减少限制条件。';
+  }
+  if (fallbackReasons.includes('resource-mapping-insufficient') || fallbackReasons.includes('feasible-goal-path-missing')) {
+    return '当前目标缺少可用的路径资源映射，暂不能生成可执行学习路径。';
+  }
+  return '当前限制条件下暂不能生成可执行学习路径，请调整目标、时间或资源偏好后重试。';
 }
 
 function buildAdaptivePathPlannerGraphContext(

@@ -5800,6 +5800,83 @@ describe('konling agent runtime', () => {
     ]);
   });
 
+  it('uses non-baseline blocked copy when path constraints exclude all candidates', async () => {
+    const createdRun = {
+      id: 'tool-run-path-excluded-resources',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-excluded-resources',
+      correlationId: 'corr-path-excluded-resources',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['generate_learning_path'],
+      }),
+    });
+
+    const result = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-excluded-resources',
+      goalId: 'control-correction',
+      excludedNodeIds: [
+        'registry:lesson09-correction-precheck',
+        'knowledge-card:control-correction-time-domain-targets',
+        'knowledge-card:lesson09-summary-card',
+        'registry:lesson09-summary-card',
+        'simulation:control-correction-step-response-lab',
+        'arena-task:task-second-order-lead-pid',
+        'registry:arena-challenge-workbench',
+        'reflection:control-correction-design-reflection',
+        'ai_intervention:control-correction-path-coach',
+      ],
+    }) as {
+      generationStatus: string;
+      pathOptions: Array<Record<string, unknown>>;
+      comparison: { message: string };
+      limitations: string[];
+    };
+
+    expect(result.generationStatus).toBe('blocked');
+    expect(result.pathOptions).toEqual([]);
+    expect(result.limitations).not.toContain('learning-goal-baseline-incomplete');
+    expect(result.comparison.message).not.toContain('基线资源');
+    expect(result.comparison.message).toBe('当前限制条件下暂不能生成可执行学习路径，请调整目标、时间或资源偏好后重试。');
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
   it('does not reuse runtime graph context across adaptive path goals', async () => {
     const createdRun = {
       id: 'tool-run-path-cross-graph',

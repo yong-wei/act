@@ -576,7 +576,7 @@ describe('resource field completion audit', () => {
 
     expect(row.categories.concept.pathEligible).toBe(1);
     expect(row.categories.diagnostic.pathEligible).toBe(1);
-    expect(row.categories.practice.pathEligible).toBe(1);
+    expect(row.categories.practice.pathEligible).toBe(2);
     expect(row.categories.checkpoint.pathEligible).toBe(1);
     expect(row.categories.remediation.pathEligible).toBe(1);
     expect(row.missingBaselineCategories).toEqual(['concept']);
@@ -621,6 +621,39 @@ describe('resource field completion audit', () => {
     );
     expect(row.selectedReviewedBindingIds.some((bindingId) => bindingId.includes(':terminal-validation:'))).toBe(false);
     expect(row.missingBaselineCategories).toEqual(expect.arrayContaining(['terminal-validation']));
+  });
+
+  it('counts reviewed quizzes as both diagnostic and practice baseline coverage', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('quiz:frequency-response-practice', 'quiz'),
+        reviewStatus: 'human-confirmed',
+        graphNodeRefs: {
+          knowledge: ['kn:autocontrol:frequency-response'],
+          capability: [],
+          quality: [],
+        },
+        reviewAudit: {
+          ...baselineAuditRow('quiz:frequency-response-practice', 'quiz').reviewAudit,
+          reviewerId: 'curriculum-reviewer',
+          reviewerRole: 'teacher',
+          reviewedAt: '2026-06-24T00:00:00.000Z',
+          reviewBatchId: 'test-baseline',
+          reviewedSourceHash: 'sha256:quiz:frequency-response-practice',
+          reviewedVersionRef: 'resource-node-registry.v1',
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.diagnostic.pathEligible).toBe(1);
+    expect(row.categories.practice.pathEligible).toBe(1);
+    expect(row.selectedReviewedBindingIds).toEqual(expect.arrayContaining([
+      'frequency-response-foundations:diagnostic:quiz:frequency-response-practice',
+      'frequency-response-foundations:practice:quiz:frequency-response-practice',
+    ]));
   });
 
   it('surfaces missing field codes in graph resource coverage diagnostics', () => {
