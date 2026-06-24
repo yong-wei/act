@@ -26,6 +26,8 @@ export interface CrossDomainQuestion {
     generationTime: number;
     validatedBy: string[];
     learningGoalIds?: string[];
+    ownerUserId?: string;
+    sessionId?: string;
   };
 }
 
@@ -129,6 +131,8 @@ export function buildGeneratedQuestion(
   knowledgeTags: string[],
   generatedMetadata?: {
     learningGoalIds?: string[];
+    ownerUserId?: string;
+    sessionId?: string;
   },
 ): CrossDomainQuestion {
   return {
@@ -150,6 +154,8 @@ export function buildGeneratedQuestion(
       ...(generatedMetadata?.learningGoalIds?.length ? {
         learningGoalIds: generatedMetadata.learningGoalIds,
       } : {}),
+      ...(generatedMetadata?.ownerUserId ? { ownerUserId: generatedMetadata.ownerUserId } : {}),
+      ...(generatedMetadata?.sessionId ? { sessionId: generatedMetadata.sessionId } : {}),
     },
   };
 }

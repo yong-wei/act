@@ -2300,6 +2300,7 @@ export default function AdaptivePracticePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          sessionId,
           targetKnowledgeTags: diagnostic.weakAreas,
           difficultyTarget: 0.6,
           domains: ['time', 'frequency', 'complex'],

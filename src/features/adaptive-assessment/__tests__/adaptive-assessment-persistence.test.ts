@@ -251,6 +251,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
       targetKnowledgeTags: ['controller-tuning', 'robustness'],
       difficultyTarget: 0.7,
       domains: ['complex', 'frequency'],
+      ownerUserId: 'student-generated',
+      sessionId: 'session-generated',
     });
     const selectedOption = generated.options.find((option) => option.text === '先识别主导约束，再按跨域因果逐步调参')?.text
       ?? generated.options[0]?.text;
@@ -275,5 +277,32 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(itemRefCreate.metadata.kaq.review.generationModel).toBe('rule-based-generator');
     expect(db.adaptiveMasteryUpdate.createMany).not.toHaveBeenCalled();
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects generated question submissions outside the owner session', async () => {
+    const db = createMockDb();
+    const generated = generateQuestion({
+      targetKnowledgeTags: ['controller-tuning', 'robustness'],
+      difficultyTarget: 0.7,
+      domains: ['complex', 'frequency'],
+      ownerUserId: 'student-generated',
+      sessionId: 'session-generated',
+    });
+
+    await expect(submitAnswerDurably({
+      userId: 'student-generated',
+      sessionId: 'session-other',
+      questionId: generated.id,
+      selectedOption: '先识别主导约束，再按跨域因果逐步调参',
+      timeSpent: 28,
+    }, db)).rejects.toThrow('题目不存在');
+
+    await expect(submitAnswerDurably({
+      userId: 'student-other',
+      sessionId: 'session-generated',
+      questionId: generated.id,
+      selectedOption: '先识别主导约束，再按跨域因果逐步调参',
+      timeSpent: 28,
+    }, db)).rejects.toThrow('题目不存在');
   });
 });

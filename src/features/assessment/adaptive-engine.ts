@@ -131,6 +131,12 @@ export function getAdaptiveQuestionById(questionId: string): CrossDomainQuestion
   return store.generatedQuestions.get(questionId) ?? null;
 }
 
+function getQuestionForSession(questionId: string, params: { userId: string; sessionId: string }): CrossDomainQuestion | null {
+  const question = getAdaptiveQuestionById(questionId);
+  if (!question || !question.generatedMetadata) return question;
+  return isGeneratedQuestionVisible(question, params) ? question : null;
+}
+
 function getSession(sessionId: string, userId: string): SessionState {
   const store = createStore();
   const safeSessionId = sessionId || `session-${userId}-default`;
@@ -291,9 +297,17 @@ export function pickAdaptiveRecommendedFocus(weakAreas: string[]): string[] {
   return weakAreas.slice(0, 3).map((tag) => mapping[tag] ?? `围绕 ${tag} 继续练习跨域题目`);
 }
 
-function allQuestions(): CrossDomainQuestion[] {
+function allQuestions(params?: { userId?: string; sessionId?: string }): CrossDomainQuestion[] {
   const store = createStore();
-  return [...PRESET_QUESTIONS, ...Array.from(store.generatedQuestions.values())];
+  const generatedQuestions = Array.from(store.generatedQuestions.values())
+    .filter((question) => isGeneratedQuestionVisible(question, params));
+  return [...PRESET_QUESTIONS, ...generatedQuestions];
+}
+
+function isGeneratedQuestionVisible(question: CrossDomainQuestion, params?: { userId?: string; sessionId?: string }): boolean {
+  if (!question.generatedMetadata) return true;
+  return question.generatedMetadata.ownerUserId === params?.userId &&
+    question.generatedMetadata.sessionId === params?.sessionId;
 }
 
 export function getDiagnostic(userId: string): DiagnosticResult {
@@ -357,7 +371,7 @@ export function selectNextQuestionFromAnswers(
     ? params.goalId.trim()
     : null;
   const questionScope = params.questionScope ?? 'practice';
-  const candidates = filterQuestionsByGoal(allQuestions(), targetGoalId, questionScope);
+  const candidates = filterQuestionsByGoal(allQuestions(params), targetGoalId, questionScope);
   const answeredQuestionIds = new Set(
     answers
       .filter((answer) => answer.sessionId === params.sessionId)
@@ -439,6 +453,8 @@ export function generateQuestion(params: {
   difficultyTarget: number;
   domains: QuestionDomain[];
   learningGoalIds?: string[];
+  ownerUserId?: string;
+  sessionId?: string;
 }) {
   const tags = params.targetKnowledgeTags.length > 0 ? params.targetKnowledgeTags : ['controller-tuning', 'robustness'];
   const domains: QuestionDomain[] = params.domains.length > 0 ? params.domains : ['time', 'frequency'];
@@ -450,7 +466,11 @@ export function generateQuestion(params: {
   const learningGoalIds = (params.learningGoalIds ?? [])
     .map((goalId) => goalId.trim())
     .filter((goalId) => goalId.length > 0);
-  const question = buildGeneratedQuestion(id, stem, difficulty, domains, tags, { learningGoalIds });
+  const question = buildGeneratedQuestion(id, stem, difficulty, domains, tags, {
+    learningGoalIds,
+    ownerUserId: params.ownerUserId,
+    sessionId: params.sessionId,
+  });
   const store = createStore();
   store.generatedQuestions.set(question.id, question);
 
@@ -484,7 +504,7 @@ function findCorrectOption(question: CrossDomainQuestion) {
 }
 
 export function submitAnswerWithDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
-  const question = getAdaptiveQuestionById(params.questionId);
+  const question = getQuestionForSession(params.questionId, params);
   if (!question) {
     throw new Error('题目不存在');
   }
@@ -551,7 +571,7 @@ export function buildSubmitAnswerResult(
 }
 
 export function createSubmitAnswerDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
-  const question = getAdaptiveQuestionById(params.questionId);
+  const question = getQuestionForSession(params.questionId, params);
   if (!question) {
     throw new Error('题目不存在');
   }

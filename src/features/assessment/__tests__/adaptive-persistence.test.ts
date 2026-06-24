@@ -381,12 +381,16 @@ describe('submitAnswerDurably', () => {
       difficultyTarget: 0.5,
       domains: ['time', 'frequency'],
       learningGoalIds: ['control-correction'],
+      ownerUserId: 'student-next',
+      sessionId: 'practice-session-1',
     });
     const otherGoalGenerated = generateQuestion({
       targetKnowledgeTags: ['phase-margin'],
       difficultyTarget: 0.5,
       domains: ['frequency'],
       learningGoalIds: ['frequency-response-foundations'],
+      ownerUserId: 'student-next',
+      sessionId: 'practice-session-1',
     });
     db.adaptiveAssessmentSession.upsert.mockResolvedValue({
       id: 'durable-session-1',
@@ -418,6 +422,8 @@ describe('submitAnswerDurably', () => {
       targetKnowledgeTags: ['controller-tuning'],
       difficultyTarget: 0.5,
       domains: ['time', 'frequency'],
+      ownerUserId: 'student-next',
+      sessionId: 'practice-session-unscoped',
     });
     const generatedFallbackGoal = buildKaqQuizQuestionMetadata(generated).learningGoalIds[0];
     expect(generatedFallbackGoal).toBeTruthy();
@@ -469,6 +475,66 @@ describe('submitAnswerDurably', () => {
     expect(metadata.learningGoalIds).toContain('control-correction');
     expect(metadata.review.state).toBe('reviewed');
     expect(metadata.purpose).not.toBe('readiness-gate');
+  });
+
+  it('does not expose generated questions to the same user in a different session', async () => {
+    globalThis.__adaptiveAssessmentStore = undefined;
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const generated = generateQuestion({
+      targetKnowledgeTags: ['controller-tuning'],
+      difficultyTarget: 0.5,
+      domains: ['time', 'frequency'],
+      learningGoalIds: ['control-correction'],
+      ownerUserId: 'student-owner',
+      sessionId: 'practice-owner',
+    });
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'practice-other-session',
+      selectedQuestionIds: PRESET_QUESTIONS.map((question) => question.id),
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-owner',
+      sessionId: 'practice-other-session',
+      goalId: 'control-correction',
+      questionScope: 'practice',
+    }, db);
+
+    expect(next.question.id).not.toBe(generated.id);
+  });
+
+  it('does not expose generated questions to another user in the same session key', async () => {
+    globalThis.__adaptiveAssessmentStore = undefined;
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const generated = generateQuestion({
+      targetKnowledgeTags: ['controller-tuning'],
+      difficultyTarget: 0.5,
+      domains: ['time', 'frequency'],
+      learningGoalIds: ['control-correction'],
+      ownerUserId: 'student-owner',
+      sessionId: 'practice-owner',
+    });
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'practice-owner',
+      selectedQuestionIds: PRESET_QUESTIONS.map((question) => question.id),
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-other',
+      sessionId: 'practice-owner',
+      goalId: 'control-correction',
+      questionScope: 'practice',
+    }, db);
+
+    expect(next.question.id).not.toBe(generated.id);
   });
 
   it('fails path next-question selection for unknown learning goals', async () => {

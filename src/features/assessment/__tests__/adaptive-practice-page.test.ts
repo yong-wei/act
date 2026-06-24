@@ -124,4 +124,15 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("completedNodeIds: ['demo-foundation-card'],");
     expect(source).not.toContain("completedNodeIds: ['demo-foundation-card', 'demo-current-quiz', 'demo-simulation']");
   });
+
+  it('sends the current assessment session when generating practice questions', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const generateBlock = source.slice(
+      source.indexOf('const generateQuestion = async () => {'),
+      source.indexOf('if (!response.ok)', source.indexOf("fetch('/api/assessment/generate-question'")),
+    );
+
+    expect(generateBlock).toContain("fetch('/api/assessment/generate-question'");
+    expect(generateBlock).toContain('sessionId,');
+  });
 });
