@@ -1,18 +1,7 @@
 # Repository Guidelines
 
 <Skill-use>
-以下技能为本项目专用技能，统一以 `.agents/skills/` 为项目内唯一真源；`.claude/skills` 仅保留软链接入口以适配 Claude 发现机制。使用时需要直接读取技能文件，并按需读取参考文件或调用脚本。
-- homework：制作课后作业
-- interactive-design：互动课程设计
-- interactive-lesson：互动课程实现
-- lesson：课程资料制作
-- lesson-content-review：课程内容审核
-- refine：讲义润色
-- server-ops：服务器操作
-- syllabus-refactor：大纲重构
-- agent-evolver：子代理自进化
-- infograph：为知识点生成信息图
-- imagen：使用最新GPT生图模型制图
+优先读取 .agents/skills/README.md 或 .agents/skills/manifest.json 获取本项目专属完整项目技能清单，技能统一以 `.agents/skills/` 为项目内唯一真源；`.claude/skills` 仅保留软链接入口以适配 Claude 发现机制。使用时需要直接读取技能文件，并按需读取参考文件或调用脚本。
 </Skill-use>
 
 <Skill-evolve>

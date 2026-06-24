@@ -8,6 +8,9 @@ import numpy as np
 from PIL import Image
 
 
+# Deprecated source kept for history only. The maintained Figure 2 source is
+# T3-2-root-locus-reading-corrected.m, which uses true root-locus data from
+# s^3 + 8s^2 + 12s + K_r = 0 and data-attached Octave arrow helpers.
 OUT = Path(__file__).with_name('T3-2-root-locus-reading.png')
 
 

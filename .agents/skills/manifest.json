@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "status": "active",
+  "lastUpdated": "2026-06-23",
+  "root": ".agents/skills",
+  "purpose": "Machine-readable index for project-local skills that may not be automatically exposed by devspace or global skill discovery.",
+  "usage": {
+    "entrypoint": "README.md",
+    "rule": "When a task matches a project-local skill, read that skill's SKILL.md before executing.",
+    "note": "This manifest is an index only; each SKILL.md remains the source of truth."
+  },
+  "skills": [
+    {
+      "name": "agent-evolver",
+      "path": "agent-evolver/SKILL.md",
+      "category": "agents",
+      "description": "Audit, tune, extend, or quality-track project-local Codex custom agents under .codex/agents/*.toml."
+    },
+    {
+      "name": "brandkit",
+      "path": "brandkit/SKILL.md",
+      "category": "visual-design",
+      "description": "Create high-end brand-guidelines boards, logo systems, identity decks, and visual-world presentations."
+    },
+    {
+      "name": "debug-issue",
+      "path": "debug-issue/SKILL.md",
+      "category": "code",
+      "description": "Diagnose bugs, regressions, failing tests, startup failures, runtime exceptions, or suspicious behavior."
+    },
+    {
+      "name": "design-taste-frontend",
+      "path": "design-taste-frontend/SKILL.md",
+      "category": "frontend-design",
+      "description": "Create anti-generic frontend interfaces for landing pages, portfolios, and redesigns."
+    },
+    {
+      "name": "explore-codebase",
+      "path": "explore-codebase/SKILL.md",
+      "category": "code",
+      "description": "Orient inside the repository with code-review-graph before targeted file inspection."
+    },
+    {
+      "name": "full-output-enforcement",
+      "path": "full-output-enforcement/SKILL.md",
+      "category": "output-control",
+      "description": "Enforce complete, unabridged output and avoid placeholder patterns."
+    },
+    {
+      "name": "gpt-taste",
+      "path": "gpt-taste/SKILL.md",
+      "category": "frontend-design",
+      "description": "High-end UX/UI and GSAP motion engineering for advanced page design."
+    },
+    {
+      "name": "high-end-visual-design",
+      "path": "high-end-visual-design/SKILL.md",
+      "category": "frontend-design",
+      "description": "Apply agency-grade visual standards for premium website design."
+    },
+    {
+      "name": "homework",
+      "path": "homework/SKILL.md",
+      "category": "course-content",
+      "description": "Generate, inspect, update, or compile homework and exam questions by T-series problem identifiers."
+    },
+    {
+      "name": "image-to-code",
+      "path": "image-to-code/SKILL.md",
+      "category": "frontend-design",
+      "description": "Generate visual design references first, then implement a website to match them closely."
+    },
+    {
+      "name": "imagegen-frontend-mobile",
+      "path": "imagegen-frontend-mobile/SKILL.md",
+      "category": "image-generation",
+      "description": "Generate premium mobile app screen concepts and flows."
+    },
+    {
+      "name": "imagegen-frontend-web",
+      "path": "imagegen-frontend-web/SKILL.md",
+      "category": "image-generation",
+      "description": "Generate premium, conversion-aware website section reference images."
+    },
+    {
+      "name": "imagen",
+      "path": "imagen/SKILL.md",
+      "category": "image-generation",
+      "description": "Create high-quality images, graphics, illustrations, posters, diagrams, prompts, or GPT Image generations."
+    },
+    {
+      "name": "industrial-brutalist-ui",
+      "path": "industrial-brutalist-ui/SKILL.md",
+      "category": "frontend-design",
+      "description": "Design raw mechanical, Swiss-print, military-terminal, blueprint-like interfaces."
+    },
+    {
+      "name": "infograph",
+      "path": "infograph/SKILL.md",
+      "category": "course-content",
+      "description": "Generate, review, register, export, and mount per-knowledge-node infographics."
+    },
+    {
+      "name": "interactive-design",
+      "path": "interactive-design/SKILL.md",
+      "category": "course-content",
+      "description": "Author or revise interactive-page.md and interactive-contract.yaml for lessons."
+    },
+    {
+      "name": "interactive-lesson",
+      "path": "interactive-lesson/SKILL.md",
+      "category": "course-implementation",
+      "description": "Implement or optimize interactive lesson pages from authoring lesson design documents."
+    },
+    {
+      "name": "lesson",
+      "path": "lesson/SKILL.md",
+      "category": "course-content",
+      "description": "Create automatic-control course handouts, knowledge graph nodes, BOPPPS lessons, and multimodal resources."
+    },
+    {
+      "name": "lesson-content-review",
+      "path": "lesson-content-review/SKILL.md",
+      "category": "course-content",
+      "description": "Review and repair lesson authoring content, contracts, formulas, media, knowledge cards, and runtime exports."
+    },
+    {
+      "name": "minimalist-ui",
+      "path": "minimalist-ui/SKILL.md",
+      "category": "frontend-design",
+      "description": "Design clean editorial-style interfaces with warm monochrome palettes and muted visual language."
+    },
+    {
+      "name": "openspec-apply-change",
+      "path": "openspec-apply-change/SKILL.md",
+      "category": "openspec",
+      "description": "Implement tasks from an existing OpenSpec change."
+    },
+    {
+      "name": "openspec-archive-change",
+      "path": "openspec-archive-change/SKILL.md",
+      "category": "openspec",
+      "description": "Archive a completed OpenSpec change after implementation is complete."
+    },
+    {
+      "name": "openspec-buddy",
+      "path": "openspec-buddy/SKILL.md",
+      "category": "openspec",
+      "description": "Run explicitly invoked OpenSpec buddy claim, propose, apply, or achieve workflows coordinated through GitHub Issues."
+    },
+    {
+      "name": "openspec-buddy-auto",
+      "path": "openspec-buddy-auto/SKILL.md",
+      "category": "openspec",
+      "description": "Automatically process GitHub Issue-backed or local-only OpenSpec changes end to end."
+    },
+    {
+      "name": "openspec-explore",
+      "path": "openspec-explore/SKILL.md",
+      "category": "openspec",
+      "description": "Enter explore mode to clarify ideas, investigate problems, and refine requirements."
+    },
+    {
+      "name": "openspec-propose",
+      "path": "openspec-propose/SKILL.md",
+      "category": "openspec",
+      "description": "Generate a complete OpenSpec change proposal with design, specs, and tasks."
+    },
+    {
+      "name": "redesign-existing-projects",
+      "path": "redesign-existing-projects/SKILL.md",
+      "category": "frontend-design",
+      "description": "Upgrade existing websites and apps to premium visual quality without breaking functionality."
+    },
+    {
+      "name": "refactor-safely",
+      "path": "refactor-safely/SKILL.md",
+      "category": "code",
+      "description": "Plan and execute graph-assisted safe refactors with impact estimation and validation."
+    },
+    {
+      "name": "refine",
+      "path": "refine/SKILL.md",
+      "category": "course-content",
+      "description": "Polish automatic-control lesson handouts for student-facing Chinese professional expression."
+    },
+    {
+      "name": "review-changes",
+      "path": "review-changes/SKILL.md",
+      "category": "code-review",
+      "description": "Perform graph-assisted, risk-first code review based on actual changed files and snippets."
+    },
+    {
+      "name": "server-ops",
+      "path": "server-ops/SKILL.md",
+      "category": "operations",
+      "description": "Investigate server-side operations, production faults, remote deployment, runtime environment, or database sync."
+    },
+    {
+      "name": "stitch-design-taste",
+      "path": "stitch-design-taste/SKILL.md",
+      "category": "frontend-design",
+      "description": "Generate agent-friendly DESIGN.md files for Google Stitch with premium UI standards."
+    },
+    {
+      "name": "syllabus-refactor",
+      "path": "syllabus-refactor/SKILL.md",
+      "category": "course-design",
+      "description": "Restructure engineering courses, units, lessons, homework architecture, and assessment boundaries."
+    }
+  ]
+}

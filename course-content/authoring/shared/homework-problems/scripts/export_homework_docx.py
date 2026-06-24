@@ -177,6 +177,8 @@ def format_table(table) -> None:
 def apply_homework_docx_format(output_path: Path) -> None:
     doc = Document(str(output_path))
     for section in doc.sections:
+        section.page_width = Cm(21)
+        section.page_height = Cm(29.7)
         section.top_margin = Cm(1.27)
         section.bottom_margin = Cm(1.27)
         section.left_margin = Cm(1.27)
