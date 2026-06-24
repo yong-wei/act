@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
 
 import { PRESET_QUESTIONS } from '../adaptive-question-bank';
+import { generateQuestion } from '../adaptive-engine';
 import {
   getAbilityReportWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback,
@@ -362,12 +363,112 @@ describe('submitAnswerDurably', () => {
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
+      questionScope: 'readiness',
     }, db);
 
     const metadata = buildKaqQuizQuestionMetadata(next.question);
     expect(metadata.learningGoalIds).toContain('control-correction');
     expect(metadata.purpose).toBe('readiness-gate');
     expect(metadata.review.state).toBe('reviewed');
+  });
+
+  it('allows generated low-stakes questions during goal practice selection', async () => {
+    globalThis.__adaptiveAssessmentStore = undefined;
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const generated = generateQuestion({
+      targetKnowledgeTags: ['controller-tuning'],
+      difficultyTarget: 0.5,
+      domains: ['time', 'frequency'],
+      learningGoalIds: ['control-correction'],
+    });
+    const otherGoalGenerated = generateQuestion({
+      targetKnowledgeTags: ['phase-margin'],
+      difficultyTarget: 0.5,
+      domains: ['frequency'],
+      learningGoalIds: ['frequency-response-foundations'],
+    });
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'practice-session-1',
+      selectedQuestionIds: PRESET_QUESTIONS.map((question) => question.id),
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'practice-session-1',
+      goalId: 'control-correction',
+      questionScope: 'practice',
+    }, db);
+
+    expect(next.question.id).toBe(generated.id);
+    expect(next.question.id).not.toBe(otherGoalGenerated.id);
+    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    expect(metadata.learningGoalIds).toContain('control-correction');
+    expect(metadata.review.state).toBe('provisional');
+  });
+
+  it('excludes unscoped generated questions from goal practice selection', async () => {
+    globalThis.__adaptiveAssessmentStore = undefined;
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const generated = generateQuestion({
+      targetKnowledgeTags: ['controller-tuning'],
+      difficultyTarget: 0.5,
+      domains: ['time', 'frequency'],
+    });
+    const generatedFallbackGoal = buildKaqQuizQuestionMetadata(generated).learningGoalIds[0];
+    expect(generatedFallbackGoal).toBeTruthy();
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'practice-session-unscoped',
+      selectedQuestionIds: PRESET_QUESTIONS.map((question) => question.id),
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'practice-session-unscoped',
+      goalId: generatedFallbackGoal,
+      questionScope: 'practice',
+    }, db);
+
+    expect(next.question.id).not.toBe(generated.id);
+  });
+
+  it('uses same-goal non-readiness reviewed questions for goal practice selection', async () => {
+    globalThis.__adaptiveAssessmentStore = undefined;
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const controlCorrectionReadinessQuestionIds = PRESET_QUESTIONS
+      .filter((question) => {
+        const metadata = buildKaqQuizQuestionMetadata(question);
+        return metadata.learningGoalIds.includes('control-correction') &&
+          metadata.purpose === 'readiness-gate';
+      })
+      .map((question) => question.id);
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'practice-session-2',
+      selectedQuestionIds: controlCorrectionReadinessQuestionIds,
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'practice-session-2',
+      goalId: 'control-correction',
+      questionScope: 'practice',
+    }, db);
+
+    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    expect(metadata.learningGoalIds).toContain('control-correction');
+    expect(metadata.review.state).toBe('reviewed');
+    expect(metadata.purpose).not.toBe('readiness-gate');
   });
 
   it('fails path next-question selection for unknown learning goals', async () => {
@@ -378,6 +479,7 @@ describe('submitAnswerDurably', () => {
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'unknown-goal',
+      questionScope: 'readiness',
     }, db)).rejects.toThrow('未找到学习目标 unknown-goal 的已审核 readiness 题目');
   });
 
@@ -404,6 +506,7 @@ describe('submitAnswerDurably', () => {
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
+      questionScope: 'readiness',
     }, db);
 
     expect(controlCorrectionReadinessQuestionIds).toContain(next.question.id);
@@ -451,6 +554,7 @@ describe('submitAnswerDurably', () => {
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
+      questionScope: 'readiness',
     }, db)).rejects.toThrow('学习目标 control-correction 的已审核 readiness 题目已完成');
   });
 

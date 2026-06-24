@@ -77,6 +77,8 @@ export interface PublicQuestion extends Omit<CrossDomainQuestion, 'options'> {
   options: Array<{ label: string; text: string; explanation: string }>;
 }
 
+export type AdaptiveQuestionScope = 'practice' | 'readiness';
+
 export interface AbilityReport {
   userId: string;
   estimatedAbility: number;
@@ -315,6 +317,7 @@ export function selectNextQuestion(params: {
   userId: string;
   sessionId: string;
   goalId?: string | null;
+  questionScope?: AdaptiveQuestionScope;
 }): {
   question: PublicQuestion;
   estimatedAbility: number;
@@ -332,6 +335,7 @@ export function selectNextQuestionFromAnswers(
     userId: string;
     sessionId: string;
     goalId?: string | null;
+    questionScope?: AdaptiveQuestionScope;
   },
   answers: AdaptiveAnswerRecord[],
   askedQuestionIds = new Set(
@@ -352,14 +356,15 @@ export function selectNextQuestionFromAnswers(
   const targetGoalId = typeof params.goalId === 'string' && params.goalId.trim().length > 0
     ? params.goalId.trim()
     : null;
-  const candidates = filterQuestionsByGoal(allQuestions(), targetGoalId);
+  const questionScope = params.questionScope ?? 'practice';
+  const candidates = filterQuestionsByGoal(allQuestions(), targetGoalId, questionScope);
   const answeredQuestionIds = new Set(
     answers
       .filter((answer) => answer.sessionId === params.sessionId)
       .map((answer) => answer.questionId),
   );
   const unaskedCandidates = candidates.filter((question) => !askedQuestionIds.has(question.id));
-  if (targetGoalId && unaskedCandidates.length === 0) {
+  if (targetGoalId && questionScope === 'readiness' && unaskedCandidates.length === 0) {
     const selectedUnansweredCandidate = candidates.find((question) => (
       askedQuestionIds.has(question.id) && !answeredQuestionIds.has(question.id)
     ));
@@ -394,24 +399,46 @@ export function selectNextQuestionFromAnswers(
   };
 }
 
-function filterQuestionsByGoal(questions: CrossDomainQuestion[], targetGoalId?: string | null): CrossDomainQuestion[] {
+function filterQuestionsByGoal(
+  questions: CrossDomainQuestion[],
+  targetGoalId?: string | null,
+  questionScope: AdaptiveQuestionScope = 'practice',
+): CrossDomainQuestion[] {
   if (!targetGoalId) return questions;
   const scopedQuestions = questions.filter((question) => {
     const metadata = buildKaqQuizQuestionMetadata(question);
+    if (questionScope === 'readiness') {
+      return metadata.learningGoalIds.includes(targetGoalId) &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'readiness-gate';
+    }
+
+    if (metadata.review.state === 'provisional') {
+      return explicitGeneratedLearningGoalIds(question).includes(targetGoalId);
+    }
     return metadata.learningGoalIds.includes(targetGoalId) &&
       metadata.review.state === 'reviewed' &&
-      metadata.purpose === 'readiness-gate';
+      metadata.purpose !== 'readiness-gate';
   });
   if (scopedQuestions.length === 0) {
-    throw new Error(`未找到学习目标 ${targetGoalId} 的已审核 readiness 题目`);
+    throw new Error(questionScope === 'readiness'
+      ? `未找到学习目标 ${targetGoalId} 的已审核 readiness 题目`
+      : `未找到学习目标 ${targetGoalId} 的低风险练习题目`);
   }
   return scopedQuestions;
+}
+
+function explicitGeneratedLearningGoalIds(question: CrossDomainQuestion): string[] {
+  return (question.generatedMetadata?.learningGoalIds ?? [])
+    .map((goalId) => goalId.trim())
+    .filter((goalId) => goalId.length > 0);
 }
 
 export function generateQuestion(params: {
   targetKnowledgeTags: string[];
   difficultyTarget: number;
   domains: QuestionDomain[];
+  learningGoalIds?: string[];
 }) {
   const tags = params.targetKnowledgeTags.length > 0 ? params.targetKnowledgeTags : ['controller-tuning', 'robustness'];
   const domains: QuestionDomain[] = params.domains.length > 0 ? params.domains : ['time', 'frequency'];
@@ -420,7 +447,10 @@ export function generateQuestion(params: {
   const id = `generated-q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const stem = `请完成一道跨域控制设计题：已知系统在 ${domains.join(' / ')} 域表现不一致，请针对知识点 ${tags.join('、')} 设计可执行调参策略，并说明约束。`;
 
-  const question = buildGeneratedQuestion(id, stem, difficulty, domains, tags);
+  const learningGoalIds = (params.learningGoalIds ?? [])
+    .map((goalId) => goalId.trim())
+    .filter((goalId) => goalId.length > 0);
+  const question = buildGeneratedQuestion(id, stem, difficulty, domains, tags, { learningGoalIds });
   const store = createStore();
   store.generatedQuestions.set(question.id, question);
 

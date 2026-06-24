@@ -25,6 +25,7 @@ export interface CrossDomainQuestion {
     model: string;
     generationTime: number;
     validatedBy: string[];
+    learningGoalIds?: string[];
   };
 }
 
@@ -125,7 +126,10 @@ export function buildGeneratedQuestion(
   stem: string,
   difficulty: number,
   domains: QuestionDomain[],
-  knowledgeTags: string[]
+  knowledgeTags: string[],
+  generatedMetadata?: {
+    learningGoalIds?: string[];
+  },
 ): CrossDomainQuestion {
   return {
     id,
@@ -143,6 +147,9 @@ export function buildGeneratedQuestion(
       model: 'rule-based-generator',
       generationTime: Date.now(),
       validatedBy: ['system-auto-check'],
+      ...(generatedMetadata?.learningGoalIds?.length ? {
+        learningGoalIds: generatedMetadata.learningGoalIds,
+      } : {}),
     },
   };
 }

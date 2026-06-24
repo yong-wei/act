@@ -6,6 +6,7 @@ interface GenerateQuestionRequest {
   targetKnowledgeTags?: string[];
   difficultyTarget?: number;
   domains?: QuestionDomain[];
+  goalId?: string | null;
 }
 
 export async function POST(request: Request) {
@@ -16,6 +17,9 @@ export async function POST(request: Request) {
       targetKnowledgeTags: body.targetKnowledgeTags ?? [],
       difficultyTarget: body.difficultyTarget ?? 0.5,
       domains: body.domains ?? [],
+      learningGoalIds: typeof body.goalId === 'string' && body.goalId.trim().length > 0
+        ? [body.goalId.trim()]
+        : [],
     });
 
     return NextResponse.json({

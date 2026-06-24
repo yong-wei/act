@@ -326,6 +326,7 @@ describe('assessment API auth boundaries', () => {
       userId: 'student-1',
       sessionId: 'session-1',
       goalId: 'control-correction',
+      questionScope: 'practice',
     });
   });
 
@@ -367,6 +368,7 @@ describe('assessment API auth boundaries', () => {
       userId: 'student-1',
       sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
       goalId: 'control-correction',
+      questionScope: 'readiness',
     });
   });
 
@@ -394,6 +396,7 @@ describe('assessment API auth boundaries', () => {
       userId: 'student-1',
       sessionId: 'adaptive-path:path-1:checkpoint:control-correction-review',
       goalId: 'control-correction',
+      questionScope: 'readiness',
     });
   });
 
@@ -459,6 +462,7 @@ describe('assessment API auth boundaries', () => {
       userId: 'student-1',
       sessionId: 'practice-1',
       goalId: 'control-correction',
+      questionScope: 'practice',
     });
   });
 

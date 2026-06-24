@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { AdaptiveQuestionScope } from '@/features/assessment/adaptive-engine';
 import { selectNextQuestionWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -29,10 +30,11 @@ export async function POST(request: Request) {
 
     const userId = session.user.id;
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
-    const goalId = await readVerifiedPathGoalId(body, userId, sessionId)
-      ?? readStandaloneGoalId(body);
+    const verifiedPathGoalId = await readVerifiedPathGoalId(body, userId, sessionId);
+    const goalId = verifiedPathGoalId ?? readStandaloneGoalId(body);
+    const questionScope: AdaptiveQuestionScope = verifiedPathGoalId ? 'readiness' : 'practice';
 
-    const result = await selectNextQuestionWithPersistenceFallback({ userId, sessionId, goalId });
+    const result = await selectNextQuestionWithPersistenceFallback({ userId, sessionId, goalId, questionScope });
     return NextResponse.json(result);
   } catch (error) {
     rethrowIfNextDynamicError(error);

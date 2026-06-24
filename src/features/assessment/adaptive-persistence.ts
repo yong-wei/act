@@ -22,6 +22,7 @@ import {
   submitAnswer,
   type AbilityReport,
   type AdaptiveAnswerRecord,
+  type AdaptiveQuestionScope,
   type DiagnosticResult,
   type PublicQuestion,
   type SubmitAnswerParams,
@@ -767,7 +768,7 @@ export async function getDiagnosticWithPersistenceFallback(
 }
 
 export async function selectNextQuestionWithPersistenceFallback(
-  params: { userId: string; sessionId: string; goalId?: string | null },
+  params: { userId: string; sessionId: string; goalId?: string | null; questionScope?: AdaptiveQuestionScope },
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<{

@@ -293,6 +293,9 @@ export function buildKaqQuizQuestionMetadata(
   const reviewState: KaqQuizReviewState = isGeneratedQuestion(question) ? 'provisional' : 'reviewed';
   const ordinal = questionOrdinal(question.id);
   const purpose = PURPOSES[ordinal % PURPOSES.length];
+  const learningGoalIds = compactStrings(question.generatedMetadata?.learningGoalIds).length
+    ? compactStrings(question.generatedMetadata?.learningGoalIds)
+    : [row.learningGoalId];
   const knowledgeObjectiveIds = fallbackKnowledgeObjective(row);
   const capabilityTargetIds = fallbackCapabilityObjective(row);
   const qualityTargetIds = fallbackQualityObjective(row);
@@ -303,7 +306,7 @@ export function buildKaqQuizQuestionMetadata(
       ...capabilityTargetIds.map((id) => id.replace(/^capability:/, 'cap:')),
       ...qualityTargetIds.map((id) => id.replace(/^quality:/, 'qual:')),
     ];
-  const outcomeRefs = [`quiz-outcome:${row.learningGoalId}:${purpose}:${question.id}`];
+  const outcomeRefs = learningGoalIds.map((learningGoalId) => `quiz-outcome:${learningGoalId}:${purpose}:${question.id}`);
   const refs = versionRefs({
     baselineMatrixVersion: input.baselineMatrixVersion,
     refs: input.versionRefs,
@@ -311,7 +314,7 @@ export function buildKaqQuizQuestionMetadata(
 
   return {
     questionType: question.type,
-    learningGoalIds: [row.learningGoalId],
+    learningGoalIds,
     kaqObjectiveIds: [...knowledgeObjectiveIds, ...capabilityTargetIds, ...qualityTargetIds],
     knowledgeObjectiveIds,
     applicationObjectiveIds: capabilityTargetIds,
