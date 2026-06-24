@@ -943,7 +943,7 @@ function getEstimatedMinutes(node: Record<string, unknown>): number {
 }
 
 function isComplexOutcomeNode(type: string): boolean {
-  return type === 'adaptive_quiz' ||
+  return isPathAssessmentResultNode(type) ||
     type === 'control_workbench' ||
     type === 'simulation' ||
     type === 'arena_task';

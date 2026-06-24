@@ -381,7 +381,7 @@ describe('submitAnswerDurably', () => {
     }, db)).rejects.toThrow('未找到学习目标 unknown-goal 的已审核 readiness 题目');
   });
 
-  it('does not fall back to non-readiness questions when path readiness questions are exhausted', async () => {
+  it('reissues a selected path readiness question before the answer is submitted', async () => {
     const db = createMockDb();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
     const controlCorrectionReadinessQuestionIds = PRESET_QUESTIONS
@@ -392,6 +392,54 @@ describe('submitAnswerDurably', () => {
           metadata.review.state === 'reviewed';
       })
       .map((question) => question.id);
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'session-1',
+      selectedQuestionIds: controlCorrectionReadinessQuestionIds,
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+    }, db);
+
+    expect(controlCorrectionReadinessQuestionIds).toContain(next.question.id);
+  });
+
+  it('does not fall back to non-readiness questions when answered path readiness questions are exhausted', async () => {
+    const db = createMockDb();
+    const controlCorrectionReadinessQuestionIds = PRESET_QUESTIONS
+      .filter((question) => {
+        const metadata = buildKaqQuizQuestionMetadata(question);
+        return metadata.learningGoalIds.includes('control-correction') &&
+          metadata.purpose === 'readiness-gate' &&
+          metadata.review.state === 'reviewed';
+      })
+      .map((question) => question.id);
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue(controlCorrectionReadinessQuestionIds.map((questionId) => ({
+      id: `answer-${questionId}`,
+      userId: 'student-next',
+      session: { sessionKey: 'session-next' },
+      questionId,
+      selectedOptionKey: 'A',
+      isCorrect: false,
+      responseTimeSeconds: 42,
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+      questionRef: {
+        difficulty: 0.5,
+        questionType: 'multi-criteria',
+        domains: ['complex', 'time'],
+        knowledgeTags: ['controller-tuning'],
+        metadata: {
+          kaq: {
+            review: { state: 'reviewed' },
+          },
+        },
+      },
+    })));
     db.adaptiveAssessmentSession.upsert.mockResolvedValue({
       id: 'durable-session-1',
       userId: 'student-1',

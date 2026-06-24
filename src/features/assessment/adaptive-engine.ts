@@ -353,8 +353,23 @@ export function selectNextQuestionFromAnswers(
     ? params.goalId.trim()
     : null;
   const candidates = filterQuestionsByGoal(allQuestions(), targetGoalId);
+  const answeredQuestionIds = new Set(
+    answers
+      .filter((answer) => answer.sessionId === params.sessionId)
+      .map((answer) => answer.questionId),
+  );
   const unaskedCandidates = candidates.filter((question) => !askedQuestionIds.has(question.id));
   if (targetGoalId && unaskedCandidates.length === 0) {
+    const selectedUnansweredCandidate = candidates.find((question) => (
+      askedQuestionIds.has(question.id) && !answeredQuestionIds.has(question.id)
+    ));
+    if (selectedUnansweredCandidate) {
+      return {
+        question: toPublicQuestion(selectedUnansweredCandidate),
+        estimatedAbility: theta,
+        confidenceInterval,
+      };
+    }
     throw new Error(`学习目标 ${targetGoalId} 的已审核 readiness 题目已完成`);
   }
   const selectionPool = unaskedCandidates.length > 0 ? unaskedCandidates : candidates;

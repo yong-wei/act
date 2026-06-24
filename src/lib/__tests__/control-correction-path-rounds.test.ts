@@ -2943,6 +2943,24 @@ describe('control-correction path rounds', () => {
           },
         },
         {
+          id: 'exec-checkpoint',
+          nodeId: 'checkpoint:control-correction-review',
+          resourceType: 'checkpoint',
+          status: 'completed',
+          liftMetadata: {
+            adaptiveAssessmentRef: {
+              kind: 'AdaptiveAssessmentAnswer',
+              id: 'answer-checkpoint-1',
+              provenance: 'official',
+              reviewState: 'reviewed',
+              readinessGateEligible: true,
+              isCorrect: true,
+              score: 100,
+              privatePayload: 'hidden',
+            },
+          },
+        },
+        {
           id: 'exec-workbench',
           nodeId: 'control-workbench:lead-design',
           resourceType: 'control_workbench',
@@ -2994,6 +3012,15 @@ describe('control-correction path rounds', () => {
     expect(view?.executions).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'exec-adaptive',
+        resultSummary: expect.objectContaining({
+          state: 'available',
+          label: '自适应练习结果',
+          evidenceSource: 'AdaptiveAssessmentAnswer',
+          primaryMetric: '得分 100',
+        }),
+      }),
+      expect.objectContaining({
+        id: 'exec-checkpoint',
         resultSummary: expect.objectContaining({
           state: 'available',
           label: '自适应练习结果',

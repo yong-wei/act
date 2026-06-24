@@ -65,6 +65,7 @@ describe('adaptive practice page entry states', () => {
     );
 
     expect(source).toContain("return type === 'adaptive_quiz' || type === 'checkpoint';");
+    expect(source).toContain('return isPathAssessmentResultNode(type) ||');
     expect(syncBlock).toContain('isPathAssessmentResultNode(targetNode.type)');
     expect(syncBlock).toContain('adaptiveAssessmentRef');
     expect(syncBlock).not.toContain("targetNode.type !== 'adaptive_quiz'");

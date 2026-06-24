@@ -1257,7 +1257,7 @@ function buildExecutionResultSummary(execution: any): PathExecutionResultSummary
   if (execution?.status !== 'completed') return null;
   const resourceType = typeof execution.resourceType === 'string' ? execution.resourceType : '';
   const metadata = toRecord(execution.liftMetadata);
-  if (resourceType === 'adaptive_quiz') {
+  if (isAdaptiveAssessmentCompletionResourceType(resourceType)) {
     const ref = toRecord(metadata.adaptiveAssessmentRef);
     if (!isTrustedAdaptiveAssessmentOutcomeRef(ref)) return pendingResultSummary('adaptive-assessment', '自适应练习结果');
     return compactObject({
