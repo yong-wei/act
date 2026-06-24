@@ -1,11 +1,11 @@
 {
   "artifactVersion": "textbook-media-grounding.v1",
-  "generatedAt": "2026-06-24T06:30:38.661Z",
+  "generatedAt": "2026-06-24T07:11:11.728Z",
   "sourcePackageId": "hu-shousong-exercise-analysis-3rd",
   "denominator": {
-    "textbookDocuments": 15,
+    "textbookDocuments": 964,
     "mediaProjectionRows": 920,
-    "reviewedTextbookCandidates": 15,
+    "reviewedTextbookCandidates": 964,
     "reviewedMediaProjections": 0
   },
   "sourceWindow": {
@@ -18,7 +18,7 @@
     ]
   },
   "reviewStatus": {
-    "textbookHumanConfirmed": 15,
+    "textbookHumanConfirmed": 964,
     "textbookProvisional": 0,
     "mediaHumanConfirmed": 0,
     "mediaProvisional": 920,
