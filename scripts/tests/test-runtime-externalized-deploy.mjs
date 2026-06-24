@@ -55,6 +55,16 @@ assert.equal(
 );
 
 assert.equal(
+  deployScript.includes('run_detached_container()') &&
+    deployScript.includes('podman start "$name"') &&
+    deployScript.includes('WARNING: 容器 ${name} 当前状态为 ${state}，尝试重新启动') &&
+    deployScript.includes('run_detached_container "$APP_CONTAINER" podman run -d') &&
+    deployScript.includes('run_detached_container "$WORKER_CONTAINER" podman run -d'),
+  true,
+  'Podman 部署脚本应对 app/worker 创建后停留在 created/exited 的瞬时 runc 启动失败做有限重试',
+);
+
+assert.equal(
   remoteDeployScript.includes('rsync -az --delete') &&
     remoteDeployScript.includes('course-content/runtime') &&
     (remoteDeployScript.includes('${REMOTE_PROJECT_DIR}/course-content/runtime') ||

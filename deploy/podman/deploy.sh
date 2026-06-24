@@ -199,6 +199,59 @@ remove_if_exists() {
   fi
 }
 
+run_detached_container() {
+  local name="$1"
+  shift
+  local run_output=''
+  local run_status=0
+  local start_output=''
+  local start_status=0
+  local state=''
+  local attempt
+
+  set +e
+  run_output="$("$@" 2>&1)"
+  run_status=$?
+  set -e
+
+  if [ "$run_status" -ne 0 ] && [ -n "$run_output" ]; then
+    echo "$run_output" >&2
+  fi
+
+  for attempt in $(seq 1 3); do
+    state="$(podman inspect "$name" --format '{{.State.Status}}' 2>/dev/null || true)"
+    if [ "$state" = "running" ]; then
+      return 0
+    fi
+
+    if [ "$state" = "created" ] || [ "$state" = "exited" ]; then
+      echo "WARNING: 容器 ${name} 当前状态为 ${state}，尝试重新启动 (${attempt}/3)" >&2
+      set +e
+      start_output="$(podman start "$name" 2>&1)"
+      start_status=$?
+      set -e
+      if [ -n "$start_output" ]; then
+        echo "$start_output" >&2
+      fi
+      if [ "$start_status" -eq 0 ]; then
+        state="$(podman inspect "$name" --format '{{.State.Status}}' 2>/dev/null || true)"
+        if [ "$state" = "running" ]; then
+          return 0
+        fi
+      fi
+    elif [ "$run_status" -ne 0 ]; then
+      break
+    fi
+
+    sleep 2
+  done
+
+  echo "ERROR: 容器启动失败: ${name}" >&2
+  podman inspect "$name" --format '{{json .State}}' >&2 2>/dev/null || true
+  podman logs --tail 120 "$name" >&2 2>/dev/null || true
+  return 1
+}
+
 wait_for_db() {
   local max_wait=120
   local elapsed=0
@@ -552,7 +605,7 @@ if [ -n "${LLM_SERVICE_URL:-}" ]; then
 fi
 
 echo "- 启动应用容器: $APP_CONTAINER"
-podman run -d \
+run_detached_container "$APP_CONTAINER" podman run -d \
   --name "$APP_CONTAINER" \
   --restart unless-stopped \
   --network "$NETWORK_NAME" \
@@ -564,7 +617,7 @@ podman run -d \
   "${REDIS_HOST_ARGS[@]}" \
   "${APP_ENV_ARGS[@]}" \
   "$APP_IMAGE" \
-  /app-container-start-wrapper.sh app >/dev/null
+  /app-container-start-wrapper.sh app
 
 WORKER_ENV_ARGS=(
   "${SHARED_ENV_ARGS[@]}"
@@ -573,7 +626,7 @@ WORKER_ENV_ARGS=(
 )
 
 echo "- 启动数据治理 worker 容器: $WORKER_CONTAINER"
-podman run -d \
+run_detached_container "$WORKER_CONTAINER" podman run -d \
   --name "$WORKER_CONTAINER" \
   --restart unless-stopped \
   --network "$NETWORK_NAME" \
@@ -583,7 +636,7 @@ podman run -d \
   "${REDIS_HOST_ARGS[@]}" \
   "${WORKER_ENV_ARGS[@]}" \
   "$APP_IMAGE" \
-  /app-container-start-wrapper.sh worker >/dev/null
+  /app-container-start-wrapper.sh worker
 
 run_scheduler_once
 
