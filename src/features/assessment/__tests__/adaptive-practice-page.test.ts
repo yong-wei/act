@@ -57,6 +57,19 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("await syncAdaptiveAssessmentPathResult(data)");
   });
 
+  it('syncs submitted checkpoint assessment outcomes back to the learning path', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const syncBlock = source.slice(
+      source.indexOf('const syncAdaptiveAssessmentPathResult = useCallback'),
+      source.indexOf('const skipPathNode = useCallback', source.indexOf('const syncAdaptiveAssessmentPathResult = useCallback')),
+    );
+
+    expect(source).toContain("return type === 'adaptive_quiz' || type === 'checkpoint';");
+    expect(syncBlock).toContain('isPathAssessmentResultNode(targetNode.type)');
+    expect(syncBlock).toContain('adaptiveAssessmentRef');
+    expect(syncBlock).not.toContain("targetNode.type !== 'adaptive_quiz'");
+  });
+
   it('isolates adaptive path workspaces by route intent', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 

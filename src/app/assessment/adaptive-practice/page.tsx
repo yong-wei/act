@@ -949,6 +949,10 @@ function isComplexOutcomeNode(type: string): boolean {
     type === 'arena_task';
 }
 
+function isPathAssessmentResultNode(type: string): boolean {
+  return type === 'adaptive_quiz' || type === 'checkpoint';
+}
+
 function readPathNodeResultSummary(record: Record<string, unknown>, type: string): PathNodeResultCardView | null {
   const summary = getRecord(record.resultSummary);
   const state = summary.state === 'available' ? 'available' : summary.state === 'pending' ? 'pending' : null;
@@ -2130,7 +2134,7 @@ export default function AdaptivePracticePage() {
   const syncAdaptiveAssessmentPathResult = useCallback(async (result: SubmitAnswerResponse) => {
     if (!activePathId || !activeNodeId || !result.durableAnswerId) return;
     const targetNode = pathExecutionNodes.find((node) => node.nodeId === activeNodeId);
-    if (!targetNode || targetNode.type !== 'adaptive_quiz') return;
+    if (!targetNode || !isPathAssessmentResultNode(targetNode.type)) return;
     await writePathNodeActivity(targetNode, 'initial-completion', 'completed', {
       adaptiveAssessmentRef: {
         id: result.durableAnswerId,
