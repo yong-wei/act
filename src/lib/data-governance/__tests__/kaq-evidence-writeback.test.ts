@@ -2563,6 +2563,7 @@ describe('K/A/Q evidence writeback governance', () => {
     expect(selectedInput.contributions).toEqual([]);
     expect(result.status).toBe('blocked');
     expect(result.overlayUpdates).toEqual([]);
+    expect(result.audit.limitationCodes).toContain('missing-target-binding');
   });
 
   it('normalizes teacher-approved grading targets before inferring contribution domain', () => {

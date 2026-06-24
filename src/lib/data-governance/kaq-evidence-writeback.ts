@@ -289,6 +289,7 @@ export function materializeKaqEvidenceWriteback(input: KaqEvidenceWritebackInput
       ))
       .filter((update): update is KaqEvidenceOverlayUpdate => Boolean(update));
   const limitationCodes = uniqueSorted([
+    ...(input.contributions.length === 0 ? ['missing-target-binding' as const] : []),
     ...versionLimitations,
     ...writebackLimitations,
     ...materializedAtLimitations,
