@@ -45,33 +45,39 @@ export default async function ResourcesPage() {
   });
 
   return (
-    <TeacherResourceManager
-      resources={resources.map((r) => ({
-        id: r.id,
-        title: r.title,
-        displayName: r.displayName,
-        description: r.description,
-        type: r.type,
-        registryId: r.registryId,
-        category: r.category,
-        teacherOnly: r.teacherOnly,
-        displayOrder: r.displayOrder,
-      }))}
-      knowledgeNodes={knowledgeNodes.map((n) => ({
-        id: n.id,
-        name: n.name,
-        description: n.description,
-        nodeType: n.nodeType,
-        metadata: n.metadata as any,
-        sourceLinks: n.sourceLinks.map((l) => ({
-          relation: l.relation,
-          targetNode: l.targetNode,
-        })),
-        targetLinks: n.targetLinks.map((l) => ({
-          relation: l.relation,
-          sourceNode: l.sourceNode,
-        })),
-      }))}
-    />
+    <div
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics="path-eligible"
+    >
+      <TeacherResourceManager
+        resources={resources.map((r) => ({
+          id: r.id,
+          title: r.title,
+          displayName: r.displayName,
+          description: r.description,
+          type: r.type,
+          registryId: r.registryId,
+          category: r.category,
+          teacherOnly: r.teacherOnly,
+          displayOrder: r.displayOrder,
+        }))}
+        knowledgeNodes={knowledgeNodes.map((n) => ({
+          id: n.id,
+          name: n.name,
+          description: n.description,
+          nodeType: n.nodeType,
+          metadata: n.metadata as any,
+          sourceLinks: n.sourceLinks.map((l) => ({
+            relation: l.relation,
+            targetNode: l.targetNode,
+          })),
+          targetLinks: n.targetLinks.map((l) => ({
+            relation: l.relation,
+            sourceNode: l.sourceNode,
+          })),
+        }))}
+      />
+    </div>
   );
 }

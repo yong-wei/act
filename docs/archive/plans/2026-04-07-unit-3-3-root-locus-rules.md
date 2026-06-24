@@ -160,7 +160,7 @@ Expected: PASS
 
 **Step 2: 跑实现侧契约对齐脚本**
 
-Run: `python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --contract course-content/authoring/lessons/3-3/design/interactive-contract.yaml --implementation src/lib/unit-3-3-course.ts --page-contract-const UNIT_3_3_PAGE_CONTRACTS --step-const UNIT_3_3_LESSON_STEPS`
+Run: `python3 .agents/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --contract course-content/authoring/lessons/3-3/design/interactive-contract.yaml --implementation src/lib/unit-3-3-course.ts --page-contract-const UNIT_3_3_PAGE_CONTRACTS --step-const UNIT_3_3_LESSON_STEPS`
 Expected: PASS
 
 **Step 3: 跑本地 lint / targeted test**

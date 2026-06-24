@@ -1,0 +1,316 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "1-2",
+  "status": "accepted",
+  "accepted_at": "2026-06-18T17:45:00+08:00",
+  "updated_at": "2026-06-18T17:55:00+08:00",
+  "review_mode": "implementation+targeted-tests+student-teacher-browser-audit+subagent-recheck",
+  "implementation_contract_source": "src/lib/unit-1-2-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/1-2/review/review-report.md",
+    "course-content/runtime/lessons/1-2/review/interactive-page-check.json",
+    "course-content/runtime/lessons/1-2/review/interactive-manifest-audit.json",
+    "course-content/runtime/lessons/1-2/interactive-manifest.json"
+  ],
+  "course": {
+    "title": "1-2：建模——从真实对象到可分析的系统",
+    "route_segment": "unit-1-2-modeling-from-object-to-system",
+    "preset_key": "unit-1-2-modeling-from-object-to-system-v1",
+    "resource_key": "unit-1-2-modeling-from-object-to-system",
+    "step_count": 14,
+    "response_producing_steps": [
+      "step-03",
+      "step-06",
+      "step-07",
+      "step-08",
+      "step-10",
+      "step-11",
+      "step-12",
+      "step-13"
+    ]
+  },
+  "runtime_source": {
+    "manifest": "course-content/runtime/lessons/1-2/interactive-manifest.json",
+    "runtime_media_dir": "course-content/runtime/lessons/1-2/media",
+    "surface_data": "course-content/runtime/lessons/1-2/media/generated-data/pole-magnitude-surface.json"
+  },
+  "implementation_sources": [
+    "course-content/authoring/lessons/1-2/design/1-2-interactive-contract.yaml",
+    "course-content/authoring/lessons/1-2/media/raw/generated-data/pole-magnitude-surface.json",
+    "src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx",
+    "src/features/interactive/__tests__/unit-1-2-course.test.ts",
+    "src/features/interactive/shared/manifest-runtime/content-renderers.tsx",
+    "src/features/interactive/shared/manifest-runtime/layout-renderer.tsx",
+    "src/features/interactive/shared/manifest-runtime/static-surface-3d-webgl.tsx",
+    "src/features/interactive/unit-1-2-modeling-from-object-to-system/entry-page.tsx",
+    "src/features/interactive/unit-1-2-modeling-from-object-to-system/step-panels.tsx",
+    "src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx",
+    "src/features/interactive/unit-1-2-modeling-from-object-to-system/teacher-page.tsx",
+    "src/features/teacher/preset-lessons/presets/unit-1-2-modeling-from-object-to-system.ts",
+    "src/lib/unit-1-2-ai-contexts.ts",
+    "src/lib/unit-1-2-course.ts",
+    ".agents/skills/interactive-design/scripts/audit_interactive_manifest.py",
+    ".agents/skills/interactive-lesson/SKILL.md",
+    ".agents/skills/interactive-lesson/notes/1-2.md"
+  ],
+  "expected_visual_sources": [
+    "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+    "course-content/authoring/lessons/1-2/design/1-2-interactive-contract.yaml",
+    "course-content/authoring/lessons/1-2/design/1-2-interactive-design-acceptance.json"
+  ],
+  "current_screenshot_locations": {
+    "directory": "artifacts/interactive-learning/unit-1-2-page-fixes-2026-06-17/",
+    "expected_files": [
+      "student-final-step-09.png",
+      "student-final-step-12.png",
+      "student-final-dom-audit.json",
+      "teacher-final-step-09.png",
+      "teacher-final-dom-audit.json",
+      "student-dom-audit.json",
+      "teacher-dom-audit.json"
+    ],
+    "status": "captured",
+    "previous_full_classroom_evidence_directory": "artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/"
+  },
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-09",
+        "step-10",
+        "step-14"
+      ],
+      "evidence": [
+        "src/lib/unit-1-2-ai-contexts.ts registers page goals and quick questions for the global assistant surface.",
+        "src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx updates the shared global AI context through getUnit12StepAIContext.",
+        "The 1-2 page implementation does not add visible engineering AI panels or module-missing diagnostics."
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-14"
+      ],
+      "evidence": [
+        "course-content/runtime/lessons/1-2/interactive-manifest.json is the composition source for all 14 steps.",
+        "src/features/interactive/unit-1-2-modeling-from-object-to-system/step-panels.tsx delegates content, student activity and teacher activity rendering to shared manifest registries.",
+        "src/lib/unit-1-2-course.ts aligns route segment, preset key, step order, interaction kinds, teacher sync state and evidence identity with the runtime manifest, including teacher_reveal_only and structured_compare."
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [
+        "step-04",
+        "step-05",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12",
+        "step-14"
+      ],
+      "evidence": [
+        "step-04 renders visual.stage for the two modeling paths instead of the old rigid bar figure.",
+        "step-05 and step-12 render visual.derivationStage with LaTeX-preserved derivation blocks instead of card-stack or image-only derivations.",
+        "step-07 renders visual.blockDiagram from structured nodes and edges and now produces a structured_compare response.",
+        "step-08 renders visual.signalFlowGraph from structured nodes, branches, path sets and Mason terms.",
+        "step-09 renders the shared static-surface-3d panel and only uses 1-2-fig-08-magnitude-surface.png as fallback.",
+        "step-10 renders compute.panel with capabilityRef control-root-locus-design-map and shared control workbench panels.",
+        "step-11 renders compute.panel with capabilityRef control-linked-comparison plus visual.annotatedMedia hotspots."
+      ]
+    },
+    "runtime_manifest_audit": {
+      "status": "pass",
+      "command": "rtk python3 .agents/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson 1-2",
+      "evidence": "manifest audit pass: 14 steps, 43 modules, 0 issues"
+    },
+    "runtime_export": {
+      "status": "pass",
+      "command": "rtk python3 course-content/scripts/export_runtime.py 1-2",
+      "evidence": "exported runtime for 1-2"
+    },
+    "module_registry_gates": {
+      "status": "pass",
+      "command": "rtk npm run test:unit -- src/features/interactive/__tests__/interactive-module-taxonomy.test.ts src/features/interactive/__tests__/interactive-module-registry-gate.test.ts",
+      "evidence": "Covered through the targeted course test run; module taxonomy and registry gate tests passed."
+    },
+    "targeted_course_tests": {
+      "status": "pass",
+      "command": "rtk npm run test:unit -- src/features/interactive/__tests__/unit-1-2-course.test.ts src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx src/features/interactive/__tests__/interactive-module-taxonomy.test.ts src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/control-workbench-evidence.test.ts",
+      "evidence": "5 files, 149 tests passed; includes visual stage payload completeness, derivation stage reveal completeness, block diagram structured_compare release policy, signal-flow Mason terms, shared control workbench real submission payloads, annotated media hotspots, and engineering-language render gate."
+    },
+    "course_data_quality_gates": {
+      "status": "pass",
+      "command": "rtk npm run test:course-data-quality-gates",
+      "evidence": "4 files, 88 tests passed"
+    },
+    "session_data_quality": {
+      "status": "pass",
+      "command": "rtk npm run db:session-data-quality -- --session-id=cmqhiqwqg001cz7yfugvac2f8",
+      "evidence": "qualityStatus green; requiredEvidenceCoverage=1; closure captured/materialized/summarized/cached all true; sync severity none"
+    },
+    "static_surface_3d": {
+      "status": "pass",
+      "step_id": "step-09",
+      "dom_contract": "data-static-surface-3d-panel=\"magnitude-surface\"",
+      "runtime_data_contract": "49x49 regular grid, x=[-4,2], y=[-3,3], dx=dy=0.125, markers s=0 and s=-B/J at z=2.15",
+      "fallback_image": "/course-runtime/lessons/1-2/media/1-2-fig-08-magnitude-surface.png"
+    },
+    "retired_legacy_1_2": {
+      "status": "pass",
+      "evidence": "unit-1-2-block-diagram-simplification-v1 remains absent from preset, premium catalog and session route resolution."
+    },
+    "strict_implementation_contract": {
+      "status": "pass",
+      "command": "rtk python3 course-content/scripts/review_lesson_content.py --lesson 1-2 --skip-export --strict-implementation-contract",
+      "evidence": "passed after regenerating current review artifacts from the accepted authoring contract"
+    },
+    "page_fix_contract": {
+      "status": "pass",
+      "step_ids": [
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12",
+        "step-13",
+        "step-14"
+      ],
+      "evidence": [
+        "Activity runtime modules are no longer rendered as static content title blocks.",
+        "Step-04 modeling path figure is replaced by a shared visual.stage contract for the two modeling paths.",
+        "Image frame titles are Chinese where requested and internal module keys do not appear as visible titles or alt text.",
+        "Step-06 transform table formulas render through KaTeX; step-05 and step-12 derivations render through visual.derivationStage.",
+        "Step-07 and step-08 use structured visual.blockDiagram and visual.signalFlowGraph components instead of static figures.",
+        "Step-09 static-surface-3d uses 49x49 sampled data, MATLAB-like jet colormap, wireframe, floor grid and axes frame; markers use s=0 and s=-B/J=-2.",
+        "Step-10 and step-11 use shared control workbench capabilities; step-11 also includes annotated response hotspots.",
+        "Step-14 uses visual.stage summary and analytics summary rather than a blank module."
+      ]
+    },
+    "visual_components": {
+      "status": "pass_browser_pending_reviewer_recheck",
+      "step_ids": [
+        "step-04",
+        "step-05",
+        "step-07",
+        "step-08",
+        "step-11",
+        "step-12",
+        "step-14"
+      ],
+      "dom_contracts": [
+        "data-visual-stage-id=\"modeling-paths\"",
+        "data-derivation-stage-id=\"ship-equation-derivation\"",
+        "data-structure-diagram-id=\"closed-loop-block-diagram\"",
+        "data-structure-diagram-id=\"closed-loop-signal-flow\"",
+        "data-derivation-stage-id=\"characteristic-equation-worked-example\"",
+        "data-visual-stage-id=\"modeling-summary-map\"",
+        "data-annotated-media-id=\"three-ships-response-evidence\""
+      ],
+      "evidence": "Browser audit passed student steps 04/05/07/08/09/10/11/12/14 and teacher steps 04/07/09/10/11/12 with no blocking logs."
+    },
+    "shared_control_workbench": {
+      "status": "pass_browser_pending_reviewer_recheck",
+      "step_ids": [
+        "step-10",
+        "step-11"
+      ],
+      "dom_contracts": [
+        "data-control-workbench-capability=\"control-root-locus-design-map\"",
+        "data-control-workbench-capability=\"control-linked-comparison\""
+      ],
+      "evidence": "Shared compute.panel now renders declared submission fields and buildSharedControlWorkbenchEvidenceDraft records sigma, omega, pole_mode, observation_text or selected_ship, time_scale, simulation_interaction_count rather than only manifest default gain.k."
+    },
+    "legacy_contract_alignment_script": {
+      "status": "not_applicable",
+      "command": "rtk python3 .agents/skills/interactive-lesson/scripts/check_contract_alignment.py --lesson 1-2",
+      "evidence": "script lacks a 1-2 preset and validates legacy local UNIT_*_PAGE_CONTRACTS constants; current 1-2 is manifest-first, so alignment is gated by export, manifest audit, registry gate, unit tests, and strict review_lesson_content."
+    }
+  },
+  "browser_acceptance": {
+    "status": "pass",
+    "checked_at": "2026-06-18T17:39:19+08:00",
+    "current_page_fix_report": {
+      "status": "pass",
+      "student_dom_audit": "artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/reports/browser-visual-contract-audit.json",
+      "teacher_dom_audit": "artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/reports/browser-visual-contract-audit.json",
+      "student_screenshots": [
+        "artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-04-visual-stage.png",
+        "artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-09-static-surface-3d.png",
+        "artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-11-control-and-hotspots.png"
+      ],
+      "teacher_screenshots": [
+        "artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/teacher-step-09-static-surface-3d.png",
+        "artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/teacher-step-10-control-workbench.png"
+      ],
+      "evidence": [
+        "Student audit covered steps 04/05/07/08/09/10/11/12/14 and verified new visual/component DOM contracts, visible teaching labels, and no forbidden internal naming leakage.",
+        "Teacher audit covered steps 04/07/09/10/11/12 and verified visual stage, block diagram, static 3D, shared control workbench, linked comparison and derivation stage contracts.",
+        "No blocking browser console/page/request issues were recorded."
+      ]
+    },
+    "previous_full_classroom_acceptance": {
+      "status": "pass",
+      "report": "artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/reports/browser-acceptance-report.json",
+      "session_id": "cmqhiqwqg001cz7yfugvac2f8",
+      "join_code": "782960",
+      "ended": true,
+      "note": "This earlier full classroom run validates release/submission/aggregation/end-session closure; current p3-p14 visual/page-fix acceptance is recorded separately above for the 46-module manifest."
+    },
+    "blocking_log_issues": [],
+    "benign_log_issues": []
+  },
+  "subagent_reviews": [
+    {
+      "agent": "course-pedagogy-reviewer",
+      "status": "pass",
+      "evidence": [
+        "Teaching review passed the 14-step modeling mainline after the visual component refresh."
+      ]
+    },
+    {
+      "agent": "ui-flow-reviewer",
+      "status": "pass_after_recheck",
+      "evidence": [
+        "Recheck passed after fixing step-07 release/result-policy conflict, adding visual_state_contract/fallback UI, and refreshing student/teacher browser evidence."
+      ]
+    },
+    {
+      "agent": "data-governance-reviewer",
+      "status": "pass_after_recheck",
+      "evidence": [
+        "Recheck passed: step-07 is submission_required with release_contract; step-10/11 shared compute.panel payloads now produce course fields instead of default gain.k; observation_text remains redacted."
+      ]
+    },
+    {
+      "agent": "test-engineer",
+      "status": "pass_after_recheck",
+      "evidence": [
+        "Recheck passed after expanding unit-1-2-course.test.ts to hard gates for visual payloads, control workbench evidence, response-producing policies, and rendered engineering-language leakage."
+      ]
+    },
+    {
+      "agent": "critical-reviewer",
+      "status": "pass_after_final_recheck",
+      "evidence": [
+        "Final critical review passed with no blockers after manifest audit, targeted unit tests, course data quality gates, strict implementation contract, browser visual audit, and git diff check."
+      ]
+    }
+  ],
+  "issues": [],
+  "known_residuals": [
+    "Static 1-2-handout.pdf is still not generated in this scope; entry/runtime must continue avoiding broken static PDF links until the file is produced.",
+    "A future hardening item remains for explicit WebGL geometry/texture disposal under repeated static-surface-3d reset/top-view stress; current browser acceptance verified render correctness, not GPU memory pressure."
+  ]
+}

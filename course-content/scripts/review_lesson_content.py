@@ -7,17 +7,20 @@ import os
 import re
 import subprocess
 import sys
-import yaml
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    import yaml
+except ModuleNotFoundError:  # pragma: no cover - exercised in lean local Python environments.
+    yaml = None
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COURSE_ROOT = REPO_ROOT / 'course-content'
 AUTHORING_ROOT = COURSE_ROOT / 'authoring'
 RUNTIME_ROOT = COURSE_ROOT / 'runtime'
-MANIFEST_AUDIT_SCRIPT = REPO_ROOT / '.codex' / 'skills' / 'interactive-design' / 'scripts' / 'audit_interactive_manifest.py'
+MANIFEST_AUDIT_SCRIPT = REPO_ROOT / '.agents' / 'skills' / 'interactive-design' / 'scripts' / 'audit_interactive_manifest.py'
 
 ACCEPTANCE_PASS_STATUSES = {'accepted', 'pass', 'passed'}
 ACCEPTANCE_FAIL_STATUSES = {'blocked', 'fail', 'failed', 'needs_revision', 'rejected'}
@@ -412,6 +415,13 @@ INTERACTIVE_CONTRACT_REQUIRED_STEP_FIELDS = [
 ]
 
 IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
+    '1-2': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-1-2-course.ts',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '1-2' / 'interactive-manifest.json',
+        'lesson_steps_from_runtime_manifest': True,
+        'lesson_steps_const': 'UNIT_1_2_LESSON_STEPS',
+        'source_path': 'src/lib/unit-1-2-course.ts',
+    },
     '3-2': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-3-2-course.ts',
         'page_contracts_const': 'UNIT_3_2_PAGE_CONTRACTS',
@@ -582,6 +592,8 @@ process.stdout.write(JSON.stringify(result));
 def load_interactive_contract(contract_path: Path) -> tuple[dict[str, Any] | None, list[str]]:
     if not contract_path.exists():
         return None, []
+    if yaml is None:
+        return None, ['interactive-contract.yaml 解析需要 PyYAML，请安装 PyYAML 后重试']
 
     try:
         payload = yaml.safe_load(contract_path.read_text(encoding='utf-8'))
@@ -2071,6 +2083,185 @@ def check_knowledge_cards(lesson_id: str) -> dict[str, Any]:
     }
 
 
+def check_knowledge_graph(lesson_id: str) -> dict[str, Any]:
+    canonical_index = load_canonical_index()
+    lesson_dir = get_authoring_lesson_dir(lesson_id)
+    graph_dir = lesson_dir / 'graph'
+    nodes_path = graph_dir / 'nodes.jsonl'
+    relations_path = graph_dir / 'relations.jsonl'
+    manifest_path = lesson_dir / 'manifest.json'
+    sequence_path = get_authoring_cards_dir(lesson_id) / 'sequence.json'
+
+    missing_files = [
+        format_repo_path(path)
+        for path in (nodes_path, relations_path, manifest_path, sequence_path)
+        if not path.exists()
+    ]
+    invalid_json: list[dict[str, Any]] = []
+
+    def read_jsonl_records(path: Path) -> list[dict[str, Any]]:
+        if not path.exists():
+            return []
+        records: list[dict[str, Any]] = []
+        for line_number, line in enumerate(path.read_text(encoding='utf-8').splitlines(), start=1):
+            if not line.strip():
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as exc:
+                invalid_json.append({
+                    'path': format_repo_path(path),
+                    'line': line_number,
+                    'error': str(exc),
+                })
+                continue
+            if not isinstance(record, dict):
+                invalid_json.append({
+                    'path': format_repo_path(path),
+                    'line': line_number,
+                    'error': 'JSONL record must be an object',
+                })
+                continue
+            records.append(record)
+        return records
+
+    nodes = read_jsonl_records(nodes_path)
+    relations = read_jsonl_records(relations_path)
+    manifest = read_json(manifest_path) if manifest_path.exists() else {}
+    sequence = canonical_index.canonicalize_sequence(read_json(sequence_path)) if sequence_path.exists() else {}
+
+    node_ids: list[str] = []
+    node_name_by_id: dict[str, str] = {}
+    duplicate_node_ids: list[str] = []
+    seen_node_ids: set[str] = set()
+    node_field_issues: dict[str, list[str]] = {}
+    required_fields = ('id', 'name', 'category', 'knowledge_type', 'bloom_level', 'chapter', 'definition')
+
+    for index, node in enumerate(nodes, start=1):
+        raw_id = node.get('id')
+        node_id = str(raw_id or f'line-{index}')
+        issues: list[str] = []
+        if 'node_id' in node:
+            issues.append('graph nodes must use id, not node_id')
+        for key in required_fields:
+            value = node.get(key)
+            if value is None or (isinstance(value, str) and not value.strip()):
+                issues.append(f'missing or empty {key}')
+        if raw_id:
+            node_name_by_id[str(raw_id)] = str(node.get('name') or '')
+            if str(raw_id) in seen_node_ids:
+                duplicate_node_ids.append(str(raw_id))
+            seen_node_ids.add(str(raw_id))
+            node_ids.append(str(raw_id))
+        chapter = node.get('chapter')
+        if not isinstance(chapter, int) and not (isinstance(chapter, str) and chapter.strip().isdigit()):
+            issues.append('chapter must be an integer or digit string')
+        for numeric_key in ('difficulty', 'importance'):
+            value = node.get(numeric_key)
+            if value is not None and (not isinstance(value, int) or value < 1 or value > 5):
+                issues.append(f'{numeric_key} must be an integer from 1 to 5')
+        if issues:
+            node_field_issues[node_id] = issues
+
+    base_graph_path = AUTHORING_ROOT / 'knowledge' / 'base' / 'knowledge_graph.json'
+    base_node_ids: set[str] = set()
+    if base_graph_path.exists():
+        base_graph = read_json(base_graph_path)
+        base_nodes = base_graph.get('nodes', {})
+        if isinstance(base_nodes, dict):
+            base_node_ids.update(str(node_id) for node_id in base_nodes)
+            base_node_ids.update(str(node.get('id')) for node in base_nodes.values() if isinstance(node, dict) and node.get('id'))
+        elif isinstance(base_nodes, list):
+            base_node_ids.update(str(node.get('id')) for node in base_nodes if isinstance(node, dict) and node.get('id'))
+    card_node_ids = {
+        path.stem
+        for path in (AUTHORING_ROOT / 'knowledge' / 'cards' / 'nodes').glob('*.md')
+    }
+    known_node_ids = set(node_ids) | base_node_ids | card_node_ids
+
+    expected_ids = list(dict.fromkeys(
+        list(manifest.get('focus_node_ids', []))
+        + list(manifest.get('reuse_node_ids', []))
+        + list(manifest.get('entry_nodes', []))
+        + list(manifest.get('summary_nodes', []))
+        + list(manifest.get('card_order', []))
+        + [node_id for group in sequence.get('groups', []) for node_id in group.get('node_ids', [])]
+        + list(sequence.get('card_order', []))
+    ))
+    missing_referenced_nodes = [
+        str(node_id)
+        for node_id in expected_ids
+        if canonical_index.canonicalize(str(node_id)) not in known_node_ids and str(node_id) not in known_node_ids
+    ]
+
+    relation_issues: list[dict[str, Any]] = []
+    relation_keys: set[str] = set()
+    for index, relation in enumerate(relations, start=1):
+        issues: list[str] = []
+        source_id = str(relation.get('source_id') or '')
+        target_id = str(relation.get('target_id') or '')
+        relation_type = str(relation.get('relation_type') or '')
+        if not source_id:
+            issues.append('missing source_id')
+        if not target_id:
+            issues.append('missing target_id')
+        if not str(relation.get('source') or '').strip():
+            issues.append('missing readable source name')
+        if not str(relation.get('target') or '').strip():
+            issues.append('missing readable target name')
+        if source_id in node_name_by_id and str(relation.get('source') or '') != node_name_by_id[source_id]:
+            issues.append(f'source name does not match {source_id}')
+        if target_id in node_name_by_id and str(relation.get('target') or '') != node_name_by_id[target_id]:
+            issues.append(f'target name does not match {target_id}')
+        if not relation_type:
+            issues.append('missing relation_type')
+        if source_id and target_id and source_id == target_id:
+            issues.append('self relation is not allowed')
+        for endpoint_key, endpoint_id in (('source_id', source_id), ('target_id', target_id)):
+            if endpoint_id and canonical_index.canonicalize(endpoint_id) not in known_node_ids and endpoint_id not in known_node_ids:
+                issues.append(f'unknown {endpoint_key}: {endpoint_id}')
+        key = f'{source_id}::{target_id}::{relation_type}'
+        if source_id and target_id and relation_type:
+            if key in relation_keys:
+                issues.append('duplicate relation endpoint/type')
+            relation_keys.add(key)
+        if issues:
+            relation_issues.append({
+                'line': index,
+                'relation': relation,
+                'issues': issues,
+            })
+
+    blocking_issues = []
+    if missing_files:
+        blocking_issues.append('missing graph or manifest files')
+    if invalid_json:
+        blocking_issues.append('invalid graph JSONL records')
+    if duplicate_node_ids:
+        blocking_issues.append('duplicate node ids')
+    if node_field_issues:
+        blocking_issues.append('node format or reasonability issues')
+    if missing_referenced_nodes:
+        blocking_issues.append('manifest or sequence references unknown nodes')
+    if relation_issues:
+        blocking_issues.append('relation format or endpoint issues')
+
+    return {
+        'lesson_id': lesson_id,
+        'nodes_path': format_repo_path(nodes_path),
+        'relations_path': format_repo_path(relations_path),
+        'node_count': len(nodes),
+        'relation_count': len(relations),
+        'missing_files': missing_files,
+        'invalid_json': invalid_json,
+        'duplicate_node_ids': duplicate_node_ids,
+        'node_field_issues': node_field_issues,
+        'missing_referenced_nodes': missing_referenced_nodes,
+        'relation_issues': relation_issues,
+        'blocking_issues': blocking_issues,
+    }
+
+
 def check_infographs(lesson_id: str) -> dict[str, Any]:
     canonical_index = load_canonical_index()
     sequence_path = get_authoring_cards_dir(lesson_id) / 'sequence.json'
@@ -2163,6 +2354,7 @@ def build_review_report(
     infograph_check: dict[str, Any],
     multimedia_check: dict[str, Any] | None = None,
     interactive_page_check: dict[str, Any] | None = None,
+    knowledge_graph_check: dict[str, Any] | None = None,
 ) -> str:
     if interactive_page_check is None:
         interactive_page_check = multimedia_check or {}
@@ -2187,11 +2379,26 @@ def build_review_report(
         issue_lines.append('- 未发现阻塞导出的公式配对问题。')
 
     missing_cards = knowledge_check['missing_cards']
+    knowledge_graph_check = knowledge_graph_check or {
+        'node_count': 0,
+        'relation_count': 0,
+        'blocking_issues': [],
+    }
     knowledge_summary = (
         '- 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。'
         if not missing_cards and not knowledge_check['missing_frontmatter_keys'] and not knowledge_check['missing_sections']
         else '- 仍存在知识卡片缺失或结构异常，请先修复后再继续制作。'
     )
+    knowledge_graph_summary = (
+        f"- 知识图谱节点与关系格式通过：{knowledge_graph_check['node_count']} 个节点，"
+        f"{knowledge_graph_check['relation_count']} 条关系。"
+        if not knowledge_graph_check['blocking_issues']
+        else '- 知识图谱格式或合理性验证未通过：'
+    )
+    if knowledge_graph_check['blocking_issues']:
+        knowledge_graph_summary += '\n' + '\n'.join(
+            f"- {issue}" for issue in knowledge_graph_check['blocking_issues']
+        )
     infograph_summary = (
         f"- 已接受 {len(infograph_check['accepted_infographs'])} 张知识点信息图。"
         if infograph_check['accepted_infographs']
@@ -2246,6 +2453,9 @@ def build_review_report(
         '',
         '## knowledge-card-check',
         knowledge_summary,
+        '',
+        '## knowledge-graph-check',
+        knowledge_graph_summary,
         '',
         '## infograph-check',
         infograph_summary,
@@ -2317,12 +2527,14 @@ def main() -> None:
         if item.get('formula_mode', 'none') != 'none' or item.get('page_formula_sources')
     ]
     knowledge_check = check_knowledge_cards(lesson_id)
+    knowledge_graph_check = check_knowledge_graph(lesson_id)
     infograph_check = check_infographs(lesson_id)
     text_review = build_text_review(lesson_id, primary_sources, boppps_path)
     interactive_page_check = build_interactive_page_check(lesson_id, primary_sources)
 
     review_dir = ensure_runtime_review_dir(lesson_id)
     write_json(review_dir / 'knowledge-card-check.json', knowledge_check)
+    write_json(review_dir / 'knowledge-graph-check.json', knowledge_graph_check)
     write_json(review_dir / 'infograph-check.json', infograph_check)
     write_json(review_dir / 'multimedia-check.json', multimedia_check)
     write_json(review_dir / 'interactive-page-check.json', interactive_page_check)
@@ -2343,6 +2555,7 @@ def main() -> None:
             infograph_check,
             multimedia_check,
             interactive_page_check,
+            knowledge_graph_check,
         ),
     )
 
@@ -2350,6 +2563,12 @@ def main() -> None:
         raise SystemExit(
             'interactive implementation contract gate failed:\n- '
             + '\n- '.join(interactive_page_check['blocking_issues'])
+        )
+
+    if knowledge_graph_check.get('blocking_issues'):
+        raise SystemExit(
+            'knowledge graph gate failed:\n- '
+            + '\n- '.join(knowledge_graph_check['blocking_issues'])
         )
 
     if not args.skip_export:

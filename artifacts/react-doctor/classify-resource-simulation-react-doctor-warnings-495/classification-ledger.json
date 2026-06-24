@@ -1,0 +1,722 @@
+{
+  "schemaVersion": 1,
+  "change": "classify-resource-simulation-react-doctor-warnings",
+  "issue": 495,
+  "generatedAt": "2026-06-14T22:03:23.610Z",
+  "sources": {
+    "ownedWarnings": {
+      "path": "artifacts/react-doctor/classify-resource-simulation-react-doctor-warnings-495/owned-warnings.json",
+      "sha256": "b37bad113820fced918a851450080a80b730790f818d6984a9fd21ec6e9c835d",
+      "command": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --json ."
+    },
+    "baseline491": {
+      "path": "artifacts/react-doctor/govern-react-doctor-warning-baseline-491/baseline-summary.json",
+      "sha256": "6dc29c425c79068394bb3859d0f2a14226f120f3c6e1ee665fcd1ec6aa5f4230",
+      "totals": null
+    },
+    "visualManifest": {
+      "path": "artifacts/commercial-ui/simulation-experience-visual-qa/manifest.json",
+      "sha256": "84e0655987e2f1314a3c0bf6adcba8daf980766bdd7143171f2c6c23beaf6684"
+    },
+    "reactDoctorOwnedErrors": {
+      "path": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+      "sha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+      "totals": {
+        "rawDiagnostics": 0,
+        "ownedDiagnostics": 0,
+        "selectedDiagnostics": 0,
+        "fixtureNoiseDiagnostics": 0
+      }
+    }
+  },
+  "totals": {
+    "current": {
+      "rawDiagnostics": 2641,
+      "ownedDiagnostics": 2641,
+      "selectedDiagnostics": 2641,
+      "fixtureNoiseDiagnostics": 0
+    },
+    "baseline491": null,
+    "currentByOwnedSurface": {
+      "app": 386,
+      "components": 143,
+      "features": 1119,
+      "hooks": 8,
+      "lib": 106,
+      "package.json": 2,
+      "resources": 872,
+      "scripts": 1,
+      "types": 4
+    },
+    "baselineResourceDiagnostics": null,
+    "advisoryBuckets": {
+      "product-risk": {
+        "total": 260,
+        "rules": {
+          "nextjs-no-use-search-params-without-suspense": 32,
+          "no-pass-data-to-parent": 228
+        }
+      },
+      "mechanical-cleanup": {
+        "total": 707,
+        "rules": {
+          "nextjs-missing-metadata": 177,
+          "only-export-components": 78,
+          "unused-file": 68,
+          "unused-export": 384
+        }
+      },
+      "tool-noise": {
+        "total": 186,
+        "rules": {
+          "no-unknown-property": 186
+        }
+      },
+      "deferred": {
+        "total": 1488,
+        "rules": {
+          "server-sequential-independent-await": 64,
+          "no-giant-component": 70,
+          "nextjs-no-client-side-redirect": 5,
+          "jsx-no-jsx-as-prop": 11,
+          "prefer-module-scope-static-value": 64,
+          "nextjs-no-redirect-in-try-catch": 3,
+          "no-array-index-as-key": 54,
+          "no-inline-bounce-easing": 9,
+          "prefer-useReducer": 76,
+          "no-chain-state-updates": 20,
+          "no-autofocus": 2,
+          "async-parallel": 8,
+          "rerender-state-only-in-handlers": 62,
+          "async-await-in-loop": 1,
+          "no-cascading-set-state": 14,
+          "js-combine-iterations": 73,
+          "prefer-dynamic-import": 7,
+          "rendering-hydration-mismatch-time": 11,
+          "no-usememo-simple-expression": 8,
+          "rerender-lazy-state-init": 9,
+          "nextjs-no-client-fetch-for-server-data": 4,
+          "no-fetch-in-effect": 23,
+          "no-gray-on-colored-background": 8,
+          "js-hoist-intl": 4,
+          "no-derived-state": 67,
+          "no-event-handler": 136,
+          "no-initialize-state": 21,
+          "nextjs-no-native-script": 1,
+          "no-render-in-render": 179,
+          "prefer-tag-over-role": 20,
+          "nextjs-no-img-element": 6,
+          "exhaustive-deps": 10,
+          "async-defer-await": 4,
+          "no-multi-comp": 24,
+          "no-react19-deprecated-apis": 23,
+          "heading-has-content": 1,
+          "prefer-use-effect-event": 17,
+          "rendering-hydration-no-flicker": 11,
+          "no-effect-chain": 5,
+          "rerender-memo-with-default-value": 24,
+          "no-prop-callback-in-effect": 61,
+          "rerender-memo-before-early-return": 1,
+          "no-derived-useState": 6,
+          "js-min-max-loop": 3,
+          "no-reset-all-state-on-prop-change": 7,
+          "prefer-html-dialog": 2,
+          "prefer-module-scope-pure-function": 31,
+          "advanced-event-handler-refs": 2,
+          "js-flatmap-filter": 77,
+          "client-passive-event-listeners": 3,
+          "no-derived-state-effect": 16,
+          "nextjs-image-missing-sizes": 6,
+          "js-set-map-lookups": 2,
+          "no-polymorphic-children": 1,
+          "rerender-lazy-ref-init": 35,
+          "no-effect-event-handler": 2,
+          "js-length-check-first": 1,
+          "no-pass-live-state-to-parent": 60,
+          "no-mirror-prop-effect": 1,
+          "rerender-functional-setstate": 2,
+          "no-noninteractive-element-interactions": 1,
+          "js-cache-property-access": 1,
+          "rendering-usetransition-loading": 1,
+          "no-many-boolean-props": 1,
+          "no-inline-exhaustive-style": 1,
+          "unused-dependency": 2,
+          "circular-dependency": 3
+        }
+      }
+    }
+  },
+  "remediatedFindings": [
+    {
+      "rule": "no-gray-on-colored-background",
+      "filePath": "src/resources/interactive-learning/lesson-02-legacy/phases/pretest-phase.tsx",
+      "change": "Use black text on amber button background and raise disabled button text contrast."
+    },
+    {
+      "rule": "no-gray-on-colored-background",
+      "filePath": "src/resources/interactive-learning/physics-modeling/teaching-phases/intro-phase.tsx",
+      "change": "Use black text on amber button background."
+    }
+  ],
+  "resourceDiagnostics": {
+    "total": 872,
+    "topRules": [
+      {
+        "rule": "unused-export",
+        "count": 189
+      },
+      {
+        "rule": "no-unknown-property",
+        "count": 186
+      },
+      {
+        "rule": "no-prop-callback-in-effect",
+        "count": 54
+      },
+      {
+        "rule": "no-pass-live-state-to-parent",
+        "count": 53
+      },
+      {
+        "rule": "no-event-handler",
+        "count": 44
+      },
+      {
+        "rule": "no-pass-data-to-parent",
+        "count": 40
+      },
+      {
+        "rule": "rerender-state-only-in-handlers",
+        "count": 38
+      },
+      {
+        "rule": "rerender-lazy-ref-init",
+        "count": 28
+      },
+      {
+        "rule": "unused-file",
+        "count": 27
+      },
+      {
+        "rule": "prefer-module-scope-static-value",
+        "count": 22
+      },
+      {
+        "rule": "only-export-components",
+        "count": 20
+      },
+      {
+        "rule": "no-giant-component",
+        "count": 19
+      },
+      {
+        "rule": "prefer-useReducer",
+        "count": 19
+      },
+      {
+        "rule": "no-array-index-as-key",
+        "count": 16
+      },
+      {
+        "rule": "no-derived-state",
+        "count": 15
+      },
+      {
+        "rule": "js-combine-iterations",
+        "count": 13
+      },
+      {
+        "rule": "prefer-module-scope-pure-function",
+        "count": 13
+      },
+      {
+        "rule": "prefer-use-effect-event",
+        "count": 11
+      },
+      {
+        "rule": "no-chain-state-updates",
+        "count": 8
+      },
+      {
+        "rule": "no-usememo-simple-expression",
+        "count": 7
+      }
+    ],
+    "accessibilityWarnings": 6,
+    "stateEffectWarnings": 163,
+    "productRiskWarnings": 40,
+    "productRiskRules": [
+      {
+        "rule": "no-pass-data-to-parent",
+        "count": 40
+      }
+    ]
+  },
+  "simulationDiagnostics": {
+    "total": 431,
+    "topRules": [
+      {
+        "rule": "no-unknown-property",
+        "count": 186
+      },
+      {
+        "rule": "unused-export",
+        "count": 142
+      },
+      {
+        "rule": "rerender-lazy-ref-init",
+        "count": 23
+      },
+      {
+        "rule": "prefer-useReducer",
+        "count": 9
+      },
+      {
+        "rule": "only-export-components",
+        "count": 8
+      },
+      {
+        "rule": "no-giant-component",
+        "count": 7
+      },
+      {
+        "rule": "no-array-index-as-key",
+        "count": 6
+      },
+      {
+        "rule": "no-derived-state",
+        "count": 6
+      },
+      {
+        "rule": "no-event-handler",
+        "count": 6
+      },
+      {
+        "rule": "prefer-module-scope-static-value",
+        "count": 6
+      },
+      {
+        "rule": "unused-file",
+        "count": 6
+      },
+      {
+        "rule": "rerender-state-only-in-handlers",
+        "count": 4
+      },
+      {
+        "rule": "prefer-use-effect-event",
+        "count": 3
+      },
+      {
+        "rule": "exhaustive-deps",
+        "count": 2
+      },
+      {
+        "rule": "no-chain-state-updates",
+        "count": 2
+      },
+      {
+        "rule": "no-derived-state-effect",
+        "count": 2
+      },
+      {
+        "rule": "no-effect-chain",
+        "count": 2
+      },
+      {
+        "rule": "no-multi-comp",
+        "count": 2
+      },
+      {
+        "rule": "prefer-dynamic-import",
+        "count": 2
+      },
+      {
+        "rule": "prefer-module-scope-pure-function",
+        "count": 2
+      }
+    ]
+  },
+  "classifications": [
+    {
+      "id": "r3f-three-no-unknown-property",
+      "rule": "no-unknown-property",
+      "count": 186,
+      "classification": "scanner-noise-candidate",
+      "owner": "#495 react-doctor-warning-remediation",
+      "removalCondition": "Remove or reclassify when React Doctor distinguishes R3F intrinsics from DOM unknown-property, when any candidate file moves outside src/resources/simulations/**, or when representative route evidence shows a console/runtime/nonblank failure.",
+      "rationale": "All current no-unknown-property diagnostics are in R3F/Three simulation files, while the DOM risk list is empty. Rewriting valid R3F JSX would risk scene semantics without removing a runtime defect.",
+      "candidateFiles": [
+        {
+          "filePath": "src/resources/simulations/components/model-loading-placeholder.tsx",
+          "count": 5,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/destroyer-simulation.tsx",
+          "count": 27,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/environment/procedural-clouds.tsx",
+          "count": 4,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/environment/sky-dome.tsx",
+          "count": 3,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/environment/wave-water.tsx",
+          "count": 8,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/ship-model-preview.tsx",
+          "count": 7,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/simulations/container-simulation.tsx",
+          "count": 11,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/simulations/cruise-simulation.tsx",
+          "count": 11,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/simulations/destroyer-simulation.tsx",
+          "count": 21,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/simulations/dredger-simulation.tsx",
+          "count": 24,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/simulations/drilling-simulation.tsx",
+          "count": 36,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/simulations/icebreaker-simulation.tsx",
+          "count": 18,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        },
+        {
+          "filePath": "src/resources/simulations/simulations/lng-simulation.tsx",
+          "count": 11,
+          "examples": [
+            "Unknown DOM property"
+          ]
+        }
+      ],
+      "domRiskFiles": [],
+      "evidence": {
+        "visualManifest": "artifacts/commercial-ui/simulation-experience-visual-qa/manifest.json",
+        "reactDoctorOwnedErrors": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+        "representativeRoutes": [
+          {
+            "href": "/simulations",
+            "routeFile": "src/app/simulations/page.tsx",
+            "archetype": "catalog",
+            "passedViewports": 6,
+            "representativeScreenshots": [
+              "artifacts/product-design-audits/virtual-simulation-2026-06-13/screenshots/02-simulations-index-light-1440.png",
+              "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/simulations-light-1440.png",
+              "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-320.png"
+            ],
+            "reactDoctorErrorCheck": {
+              "localOnly": true,
+              "ciRequired": false,
+              "command": "rtk npm run test:react-doctor:owned-errors",
+              "status": "passed",
+              "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+              "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+              "ownedDiagnostics": 0,
+              "selectedDiagnostics": 0
+            }
+          },
+          {
+            "href": "/virtual-lab",
+            "routeFile": "src/app/virtual-lab/page.tsx",
+            "archetype": "legacy-redirect",
+            "passedViewports": 6,
+            "representativeScreenshots": [
+              "artifacts/product-design-audits/virtual-simulation-2026-06-13/screenshots/18-virtual-lab-light-1440.png",
+              "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/simulations-light-1440.png",
+              "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-320.png"
+            ],
+            "reactDoctorErrorCheck": {
+              "localOnly": true,
+              "ciRequired": false,
+              "command": "rtk npm run test:react-doctor:owned-errors",
+              "status": "passed",
+              "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+              "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+              "ownedDiagnostics": 0,
+              "selectedDiagnostics": 0
+            }
+          },
+          {
+            "href": "/simulations/destroyer",
+            "routeFile": "src/app/simulations/destroyer/page.tsx",
+            "archetype": "heading-control",
+            "passedViewports": 24,
+            "representativeScreenshots": [
+              "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-collapsed-collapsed.png",
+              "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-collapsed-expanded.png",
+              "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-expanded-collapsed.png"
+            ],
+            "reactDoctorErrorCheck": {
+              "localOnly": true,
+              "ciRequired": false,
+              "command": "rtk npm run test:react-doctor:owned-errors",
+              "status": "passed",
+              "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+              "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+              "ownedDiagnostics": 0,
+              "selectedDiagnostics": 0
+            }
+          },
+          {
+            "href": "/simulations/drilling",
+            "routeFile": "src/app/simulations/drilling/page.tsx",
+            "archetype": "dp-positioning",
+            "passedViewports": 24,
+            "representativeScreenshots": [
+              "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-collapsed-collapsed.png",
+              "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-collapsed-expanded.png",
+              "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-expanded-collapsed.png"
+            ],
+            "reactDoctorErrorCheck": {
+              "localOnly": true,
+              "ciRequired": false,
+              "command": "rtk npm run test:react-doctor:owned-errors",
+              "status": "passed",
+              "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+              "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+              "ownedDiagnostics": 0,
+              "selectedDiagnostics": 0
+            }
+          },
+          {
+            "href": "/simulations/cruise",
+            "routeFile": "src/app/simulations/cruise/page.tsx",
+            "archetype": "cruise-roll",
+            "passedViewports": 24,
+            "representativeScreenshots": [
+              "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-collapsed-collapsed.png",
+              "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-collapsed-expanded.png",
+              "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-expanded-collapsed.png"
+            ],
+            "reactDoctorErrorCheck": {
+              "localOnly": true,
+              "ciRequired": false,
+              "command": "rtk npm run test:react-doctor:owned-errors",
+              "status": "passed",
+              "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+              "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+              "ownedDiagnostics": 0,
+              "selectedDiagnostics": 0
+            }
+          },
+          {
+            "href": "/interactive-learning/control-workbench",
+            "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+            "archetype": "control-workbench-regression",
+            "passedViewports": 6,
+            "representativeScreenshots": [
+              "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-desktop-expanded.png",
+              "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-desktop-collapsed.png",
+              "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-mobile.png"
+            ],
+            "reactDoctorErrorCheck": {
+              "localOnly": true,
+              "ciRequired": false,
+              "command": "rtk npm run test:react-doctor:owned-errors",
+              "status": "passed",
+              "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+              "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+              "ownedDiagnostics": 0,
+              "selectedDiagnostics": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "resource-product-risk-follow-up",
+      "classification": "real-remediation-follow-up",
+      "count": 40,
+      "owner": "react-doctor-warning-remediation follow-up issues",
+      "removalCondition": "Remove this follow-up classification only after resource widgets replace parent-data-passing effects with event-driven or external-store contracts and React Doctor evidence confirms the selected diagnostics dropped.",
+      "rationale": "Resource product-risk warnings in this run are no-pass-data-to-parent findings outside the R3F scanner-noise batch. They require widget-specific behavior review and are not safe to fold into the R3F classification change.",
+      "rules": [
+        {
+          "rule": "no-pass-data-to-parent",
+          "count": 40
+        }
+      ],
+      "files": [
+        {
+          "filePath": "src/resources/interactive-learning/lesson-02-legacy/standalone-resources.tsx",
+          "count": 2
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-06/judge-bench-sim/index.tsx",
+          "count": 2
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-06/metric-handbook/index.tsx",
+          "count": 2
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-09/correction-strategy/index.tsx",
+          "count": 2
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-09/time-domain-synthesis/index.tsx",
+          "count": 2
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-10/root-locus-workshop/index.tsx",
+          "count": 2
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-13/iso2631-mapping/index.tsx",
+          "count": 2
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-16/harmonic-linearization-guide/index.tsx",
+          "count": 2
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-17/negative-inverse-workshop/index.tsx",
+          "count": 2
+        },
+        {
+          "filePath": "src/resources/interactive-learning/argument-principle/complex-plane-canvas.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-01/feedback-knowledge-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-02/laplace-knowledge-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-03/diff-knowledge-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-04/transfer-knowledge-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-05/structure-knowledge-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-07/theory-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-08/routh-guide/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-08/steady-error-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-11/graphical-thinking-workshop/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-11/parameter-root-locus-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-13/cruise-bridge-video/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-13/cruise-typhoon-sim/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-13/phase-knowledge-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-13/physics-builder-simple/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-14/margin-knowledge-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-14/margin-tradeoff-lab/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-14/three-band-studio/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-15/series-knowledge-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-16/nonlinear-knowledge-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/lesson-17/df-knowledge-deck/index.tsx",
+          "count": 1
+        },
+        {
+          "filePath": "src/resources/interactive-learning/physics-modeling/physics-builder/physics-builder-canvas.tsx",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "validationPlan": {
+    "noSimulationCodeTouched": true,
+    "numericalRegressionRequired": false,
+    "reasonNumericalRegressionNotRequired": "This change adds classification evidence and only fixes resource button contrast; model, metric, clock, scenario, controller, and physics code are untouched."
+  }
+}

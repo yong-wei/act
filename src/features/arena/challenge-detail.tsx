@@ -10,6 +10,7 @@ import { ArenaChallengeTelemetry, ArenaWorkspaceLink } from './arena-telemetry-c
 import { ArenaPageShell } from './arena-page-shell';
 import { ChallengeKnowledgePreview } from './challenge-knowledge-preview';
 import { ChallengeLeaderboardBrowser } from './challenge-leaderboard-browser';
+import { ARENA_VISUAL_ASSETS } from '@/components/platform/visual-world-assets';
 import { getChallengeLeaderboardBrowserData } from './leaderboards/leaderboard-service';
 import { buildArenaLeaderboardHonors, buildArenaShowcaseSummaries } from './leaderboards/honors-showcase';
 import {
@@ -56,7 +57,8 @@ export function ChallengeDetail({
     submissionCount: 0,
     topScore: null,
   };
-  const workspaceHref = getArenaWorkspaceHref(task, object, publicationId ? { publicationId } : undefined);
+  const workspaceContext = publicationId ? { publicationId, classId, seasonId } : undefined;
+  const workspaceHref = getArenaWorkspaceHref(task, object, workspaceContext);
   const leaderboardBrowser = getChallengeLeaderboardBrowserData({
     taskId: task.id,
     submissions,
@@ -72,10 +74,11 @@ export function ChallengeDetail({
   const prerequisiteLabels = task.training.prerequisiteCapabilityTags.map((item) =>
     ARENA_TRAINING_CAPABILITY_LABELS[item],
   );
+  const launchProvenance = publicationId ? 'official-evaluation' : 'arena-preview';
 
   return (
     <ArenaPageShell
-      activePath="/arena"
+      activePath={`/arena/challenges/${task.id}`}
       breadcrumbs={[
         { label: '首页', href: '/' },
         { label: '竞技场首页', href: '/arena' },
@@ -83,22 +86,46 @@ export function ChallengeDetail({
       ]}
     >
       <ArenaChallengeTelemetry task={task} object={object} hasLeaderboard={submissions.length > 0} />
-      <section className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-5 xl:grid-cols-[1fr_430px]">
-          <div className="space-y-6">
-            <div className="surface-card rounded-lg p-6 shadow-sm">
-              <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-primary">
-                <Trophy className="h-5 w-5" />
-                自动控制竞技场
-                <span className="rounded-full bg-primary/10 px-2 py-1 text-xs">{task.difficulty}</span>
-              </div>
-              <h1 className="mt-4 text-3xl font-semibold text-foreground md:text-4xl">{task.title}</h1>
-              <p className="mt-3 max-w-3xl text-base leading-7 text-subtle">{task.goal}</p>
-              <div className="mt-5 grid gap-3 md:grid-cols-4">
-                <DetailItem label="对象来源" value={arenaSourceLabels[object.source]} />
-                <DetailItem label="公开程度" value={arenaVisibilityLabels[object.visibility]} />
-                <DetailItem label="工作台" value={arenaWorkspaceLabels[task.workspaceMode]} />
-                <DetailItem label="榜单规则" value={leaderboardPolicy.name} />
+      <section
+        className="w-full px-4 pb-32 pt-8 sm:px-6 lg:px-8"
+        data-commercial-workspace="arena-challenge-detail"
+        data-task-workspace-archetype="challenge-task"
+        data-launch-provenance={launchProvenance}
+        data-return-target="/arena"
+        data-evidence-flow-target="/profile/evidence"
+      >
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_430px]">
+          <div className="min-w-0 space-y-6" data-commercial-workspace-zone="instrument-area">
+            <div className="surface-card relative min-w-0 overflow-hidden rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="context-strip">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-px bg-cover bg-center opacity-24 mix-blend-luminosity dark:opacity-20"
+                style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['control-bench'].src})` }}
+              />
+              <div className="relative z-10 max-w-5xl">
+                <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-primary">
+                  <Trophy className="h-5 w-5" />
+                  自动控制竞技场
+                  <span className="rounded-full bg-primary/10 px-2 py-1 text-xs">{task.difficulty}</span>
+                </div>
+                <h1 className="mt-4 break-words text-3xl font-semibold text-foreground md:text-4xl">{task.title}</h1>
+                <p className="mt-3 max-w-3xl text-base leading-7 text-subtle">{task.goal}</p>
+                <ArenaWorkspaceLink
+                  href={workspaceHref}
+                  task={task}
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 xl:hidden"
+                  data-primary-instrument-entry="arena-workbench-launch"
+                  data-mobile-first-workspace-entry="true"
+                >
+                  进入控制工作台
+                  <ArrowUpRight className="h-4 w-4" />
+                </ArenaWorkspaceLink>
+                <div className="mt-5 grid gap-3 md:grid-cols-4">
+                  <DetailItem label="对象来源" value={arenaSourceLabels[object.source]} />
+                  <DetailItem label="公开程度" value={arenaVisibilityLabels[object.visibility]} />
+                  <DetailItem label="工作台" value={arenaWorkspaceLabels[task.workspaceMode]} />
+                  <DetailItem label="榜单规则" value={leaderboardPolicy.name} />
+                </div>
               </div>
             </div>
 
@@ -228,7 +255,7 @@ export function ChallengeDetail({
           </div>
 
           <aside className="space-y-4">
-            <div className="surface-card rounded-lg p-6 shadow-sm">
+            <div className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="command-bar">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
                 <Rocket className="h-5 w-5 text-primary" />
                 进入控制工作台
@@ -244,33 +271,50 @@ export function ChallengeDetail({
                 ))}
               </div>
               <div className="mt-5 rounded-lg bg-primary/10 p-3 text-sm text-primary">
-                提交后通过真实指标验证的数据会自动进入已开放的榜单视图。
+                官方提交通过硬约束且得分大于 0 时，按个人最佳有效尝试进入已开放榜单；最新提交和全部尝试保留在提交记录，迟交、零分和无效提交只作为复盘证据，不标记为优秀方案。
               </div>
               <ArenaWorkspaceLink
                 href={workspaceHref}
                 task={task}
                 className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                data-primary-instrument-entry="arena-workbench-launch"
               >
                 进入控制工作台
                 <ArrowUpRight className="h-4 w-4" />
               </ArenaWorkspaceLink>
             </div>
 
-            <div className="surface-card rounded-lg p-6 shadow-sm">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">榜单摘要</h2>
+            <div className="surface-card relative overflow-hidden rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="evidence-rail">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-px bg-cover bg-center opacity-18 mix-blend-luminosity dark:opacity-14"
+                style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['score-field'].src})` }}
+              />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">榜单摘要</h2>
+                </div>
+                <div className="mt-4 grid gap-3 text-sm">
+                  <DetailItem label="当前最高分" value={stats.topScore === null ? '暂无提交' : stats.topScore.toFixed(1)} />
+                  <DetailItem label="参与人数" value={`${stats.participantCount} 人`} />
+                  <DetailItem label="提交次数" value={`${stats.submissionCount} 次`} />
+                  <DetailItem label="榜单类型" value={studentLeaderboardTypes.map(formatArenaLeaderboardType).join(' / ')} />
+                  <DetailItem label="同分决胜" value={leaderboardPolicy.tieBreakers.map(formatArenaTieBreaker).join(' / ')} />
+                  <DetailItem label="荣誉记录" value={honors.length === 0 ? '暂无荣誉' : `${honors.length} 项`} />
+                </div>
+                <ChallengeLeaderboardBrowser browser={leaderboardBrowser} />
+                <ArenaShowcaseList showcase={showcase} />
               </div>
-              <div className="mt-4 grid gap-3 text-sm">
-                <DetailItem label="当前最高分" value={stats.topScore === null ? '暂无提交' : stats.topScore.toFixed(1)} />
-                <DetailItem label="参与人数" value={`${stats.participantCount} 人`} />
-                <DetailItem label="提交次数" value={`${stats.submissionCount} 次`} />
-                <DetailItem label="榜单类型" value={studentLeaderboardTypes.map(formatArenaLeaderboardType).join(' / ')} />
-                <DetailItem label="同分决胜" value={leaderboardPolicy.tieBreakers.map(formatArenaTieBreaker).join(' / ')} />
-                <DetailItem label="荣誉记录" value={honors.length === 0 ? '暂无荣誉' : `${honors.length} 项`} />
-              </div>
-              <ChallengeLeaderboardBrowser browser={leaderboardBrowser} />
-              <ArenaShowcaseList showcase={showcase} />
+            </div>
+            <section className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="support-drawer">
+              <h2 className="text-lg font-semibold text-foreground">支持与说明</h2>
+              <p className="mt-2 text-sm leading-6 text-subtle">
+                任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的专业工作区层级。
+              </p>
+            </section>
+            <div className="sr-only" data-task-workspace-zone="floating-dock-safe-area">
+              Arena 挑战入口避让全局浮动控件、榜单筛选和主工作台 CTA。
             </div>
           </aside>
         </div>

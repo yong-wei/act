@@ -4,15 +4,15 @@
 
 **Goal:** 为 `.codex/memory` 记忆维护体系补一个参考模板文件，并新增一个 `memory-maintenance` skill 专用 Python 校验脚本，帮助持续维护头部字段和目录索引完整性。
 
-**Architecture:** 模板文件放在 `.codex/skills/memory-maintenance/references/`，仅承担“如何写”的静态参考；校验脚本放在 `.codex/skills/memory-maintenance/scripts/validate_memory.py`，只做结构约束检查，不做复杂状态管理。测试采用 Python 标准库 + 临时目录，避免引入额外依赖。
+**Architecture:** 模板文件放在 `.agents/skills/memory-maintenance/references/`，仅承担“如何写”的静态参考；校验脚本放在 `.agents/skills/memory-maintenance/scripts/validate_memory.py`，只做结构约束检查，不做复杂状态管理。测试采用 Python 标准库 + 临时目录，避免引入额外依赖。
 
 **Tech Stack:** Markdown、Python 3、标准库 `pathlib`/`tempfile`/`subprocess`
 
 ### Task 1: 补参考模板
 
 **Files:**
-- Create: `.codex/skills/memory-maintenance/references/memory-file-template.md`
-- Modify: `.codex/skills/memory-maintenance/SKILL.md`
+- Create: `.agents/skills/memory-maintenance/references/memory-file-template.md`
+- Modify: `.agents/skills/memory-maintenance/SKILL.md`
 
 **Step 1: 提供通用模板**
 
@@ -47,7 +47,7 @@ Expected: 因脚本尚不存在或行为未实现而失败。
 ### Task 3: 实现最小校验脚本
 
 **Files:**
-- Create: `.codex/skills/memory-maintenance/scripts/validate_memory.py`
+- Create: `.agents/skills/memory-maintenance/scripts/validate_memory.py`
 
 **Step 1: 实现校验范围**
 
@@ -77,7 +77,7 @@ Expected: 因脚本尚不存在或行为未实现而失败。
 说明维护后可运行：
 
 ```bash
-python3 .codex/skills/memory-maintenance/scripts/validate_memory.py
+python3 .agents/skills/memory-maintenance/scripts/validate_memory.py
 ```
 
 **Step 2: 运行验证**

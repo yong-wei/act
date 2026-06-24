@@ -1,0 +1,23 @@
+{
+  "status": "pass",
+  "commands": [
+    "rtk npm run test:unit -- src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/structure-diagram-evidence.test.ts",
+    "rtk npm run test:unit -- src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/structure-diagram-evidence.test.ts src/features/interactive/__tests__/visual-stage-evidence.test.ts src/features/interactive/__tests__/derivation-stage-evidence.test.ts",
+    "rtk npx tsc --noEmit --pretty false",
+    "rtk node artifacts/interactive-learning/structure-diagram-runtime-563/browser-acceptance.mjs"
+  ],
+  "unitTests": {
+    "files": 4,
+    "tests": 82,
+    "passed": 82
+  },
+  "typecheck": {
+    "passed": true
+  },
+  "browserAcceptance": {
+    "passed": true,
+    "captures": 44,
+    "coreMatrixCaptures": "42/42",
+    "auditPath": "artifacts/interactive-learning/structure-diagram-runtime-563/browser-audit.json"
+  }
+}

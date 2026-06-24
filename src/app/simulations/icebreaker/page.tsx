@@ -1,28 +1,16 @@
-import dynamic from 'next/dynamic';
-import { FeaturePageNav } from '@/components/shared/feature-page-nav';
-
-const IcebreakerSimulation = dynamic(
-  () => import('@/resources/simulations/simulations/icebreaker-simulation'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-cyan-500 border-t-transparent" />
-          <p className="text-lg text-slate-400">正在加载雪龙2号破冰船仿真...</p>
-          <p className="mt-2 text-sm text-slate-500">Azipod 3-DOF 模型 + 冰阻力模型初始化中</p>
-        </div>
-      </div>
-    ),
-  }
-);
+import { SimulationShell } from '../_components/simulation-shell';
+import { IcebreakerSimulation } from '../_components/simulation-loaders';
 
 export default function IcebreakerSimulationPage() {
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
-      <FeaturePageNav title="雪龙2号破冰船仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
+    <SimulationShell
+      title="雪龙2号破冰船仿真"
+      subtitle="Azipod 推进与冰阻力 · 参数摄动与鲁棒控制"
+      activeHref="/simulations/icebreaker"
+      localToolTemplate="ice-propulsion"
+    >
       <IcebreakerSimulation />
-    </div>
+    </SimulationShell>
   );
 }
 

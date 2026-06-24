@@ -44,15 +44,12 @@ import {
 import {
   UnifiedCameraController,
   RightClickFreeModeBridge,
-  CameraViewSwitcher,
-  SimulationTopBar,
-  SimulationDock,
-  SimulationAssessmentPanel,
-  ModelLoadingPlaceholder,
-  simulationUi,
   type CameraMode,
-} from '../components';
-import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
+} from '../components/camera-controller';
+import { CameraViewSwitcher } from '../components/camera-view-switcher';
+import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
+import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
   SIMULATION_MAX_SUB_STEPS,
@@ -262,8 +259,8 @@ const getCrossTrackError = (position: THREE.Vector3, guidePath: THREE.Vector3[])
 const WaterShaderMaterial = shaderMaterial(
   {
     uTime: 0,
-    uColor: new THREE.Color('#124060'),
-    uFoamColor: new THREE.Color('#ffffff'),
+    uColor: new THREE.Color(simulationScenePalette.destroyerWater),
+    uFoamColor: new THREE.Color(simulationScenePalette.white),
     uSunPosition: new THREE.Vector3(200, 150, 200),
   },
   // Vertex Shader
@@ -386,7 +383,7 @@ function seededRandom(seed: number) {
   };
 }
 
-function SkyDome() {
+function SkyDome({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
   const geometry = useMemo(() => {
     const geo = new THREE.SphereGeometry(10000, 64, 64);
     const colors: number[] = [];
@@ -396,8 +393,8 @@ function SkyDome() {
       const y = positions.getY(i);
       const normalizedY = (y / 10000 + 1) / 2;
 
-      const horizonColor = new THREE.Color('#d4e8f7');
-      const zenithColor = new THREE.Color('#4a7ba7');
+      const horizonColor = new THREE.Color(sceneTheme.skyHorizonColor);
+      const zenithColor = new THREE.Color(sceneTheme.skyZenithColor);
       const blendFactor = Math.pow(Math.max(0, normalizedY - 0.5) * 2, 0.6);
       const color = horizonColor.clone().lerp(zenithColor, blendFactor);
 
@@ -406,7 +403,7 @@ function SkyDome() {
 
     geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     return geo;
-  }, []);
+  }, [sceneTheme.skyHorizonColor, sceneTheme.skyZenithColor]);
 
   return (
     <mesh geometry={geometry}>
@@ -463,12 +460,18 @@ function ProceduralClouds() {
   return (
     <instancedMesh ref={cloudsRef} args={[undefined, undefined, 50]}>
       <sphereGeometry args={[1, 8, 8]} />
-      <meshBasicMaterial color="#ffffff" transparent opacity={0.8} side={THREE.DoubleSide} />
+      <meshBasicMaterial color={simulationScenePalette.white} transparent opacity={0.8} side={THREE.DoubleSide} />
     </instancedMesh>
   );
 }
 
-function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
+function WaveWater({
+  simRef,
+  sceneTheme,
+}: {
+  simRef: React.MutableRefObject<SimulationState>;
+  sceneTheme: SimulationSceneTheme;
+}) {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -484,6 +487,8 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
 
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = time;
+      materialRef.current.uniforms.uColor.value.set(sceneTheme.waterColor);
+      materialRef.current.uniforms.uFoamColor.value.set(sceneTheme.foamColor);
     }
   });
 
@@ -494,7 +499,13 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
   );
 }
 
-function GridHelper({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
+function GridHelper({
+  simRef,
+  sceneTheme,
+}: {
+  simRef: React.MutableRefObject<SimulationState>;
+  sceneTheme: SimulationSceneTheme;
+}) {
   const gridRef = useRef<THREE.Group>(null);
   const gridSize = 100;
   const gridExtent = 50;
@@ -534,7 +545,7 @@ function GridHelper({ simRef }: { simRef: React.MutableRefObject<SimulationState
   return (
     <group ref={gridRef}>
       {lines.map((points, i) => (
-        <Line key={i} points={points} color="#88ccff" lineWidth={1.0} transparent opacity={0.35} />
+        <Line key={i} points={points} color={sceneTheme.gridCellColor} lineWidth={1.0} transparent opacity={sceneTheme.gridOpacity} />
       ))}
     </group>
   );
@@ -542,7 +553,7 @@ function GridHelper({ simRef }: { simRef: React.MutableRefObject<SimulationState
 
 function GuideRoute({ points }: { points: THREE.Vector3[] }) {
   if (!points || points.length < 2) return null;
-  return <Line points={points} color="#ef4444" lineWidth={3} dashed={false} />;
+  return <Line points={points} color={simulationScenePalette.danger} lineWidth={3} dashed={false} />;
 }
 
 function ShipTrail({
@@ -552,13 +563,16 @@ function ShipTrail({
   simRef: React.MutableRefObject<SimulationState>;
   resetToken: number;
 }) {
+  return <ShipTrailContent key={resetToken} simRef={simRef} />;
+}
+
+function ShipTrailContent({
+  simRef,
+}: {
+  simRef: React.MutableRefObject<SimulationState>;
+}) {
   const [points, setPoints] = useState<THREE.Vector3[]>([]);
   const lastRecordRef = useRef(0);
-
-  useEffect(() => {
-    setPoints([]);
-    lastRecordRef.current = 0;
-  }, [resetToken]);
 
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
@@ -573,7 +587,7 @@ function ShipTrail({
 
   if (points.length < 2) return null;
 
-  return <Line points={points} color="#22c55e" lineWidth={2} />;
+  return <Line points={points} color={simulationScenePalette.success} lineWidth={2} />;
 }
 
 function ShipWake({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
@@ -926,26 +940,26 @@ function HUD({
       <Card className={`${simulationUi.panel} w-56`}>
         <CardHeader className="py-2 px-3">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Compass className="w-4 h-4 text-cyan-400" />
+            <Compass className="w-4 h-4 text-platform-action-primary" />
             导航状态
           </CardTitle>
         </CardHeader>
         <CardContent className="py-2 px-3 space-y-1 text-xs">
           <div className="flex justify-between">
-            <span className="text-slate-400">航向</span>
-            <span className="text-cyan-300 font-mono">{state.heading.toFixed(1)}°</span>
+            <span className="text-platform-fg-muted">航向</span>
+            <span className="text-platform-action-primary font-mono">{state.heading.toFixed(1)}°</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">转艏速率</span>
-            <span className="text-cyan-300 font-mono">{state.yawRate.toFixed(2)}°/s</span>
+            <span className="text-platform-fg-muted">转艏速率</span>
+            <span className="text-platform-action-primary font-mono">{state.yawRate.toFixed(2)}°/s</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">舵角</span>
-            <span className="text-cyan-300 font-mono">{state.rudder.toFixed(1)}°</span>
+            <span className="text-platform-fg-muted">舵角</span>
+            <span className="text-platform-action-primary font-mono">{state.rudder.toFixed(1)}°</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">航速</span>
-            <span className="text-cyan-300 font-mono">{state.speed.toFixed(1)} m/s</span>
+            <span className="text-platform-fg-muted">航速</span>
+            <span className="text-platform-action-primary font-mono">{state.speed.toFixed(1)} m/s</span>
           </div>
         </CardContent>
       </Card>
@@ -953,31 +967,31 @@ function HUD({
       <Card className={`${simulationUi.panel} w-56`}>
         <CardHeader className="py-2 px-3">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Target className="w-4 h-4 text-green-400" />
+            <Target className="w-4 h-4 text-[hsl(var(--platform-brand-success))]" />
             航迹误差
           </CardTitle>
         </CardHeader>
         <CardContent className="py-2 px-3 space-y-1 text-xs">
           <div className="flex justify-between">
-            <span className="text-slate-400">当前误差</span>
-            <span className="text-green-300 font-mono">{state.currentError.toFixed(1)} m</span>
+            <span className="text-platform-fg-muted">当前误差</span>
+            <span className="text-[hsl(var(--platform-brand-success))] font-mono">{state.currentError.toFixed(1)} m</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">平均误差</span>
-            <span className="text-green-300 font-mono">{state.avgError.toFixed(1)} m</span>
+            <span className="text-platform-fg-muted">平均误差</span>
+            <span className="text-[hsl(var(--platform-brand-success))] font-mono">{state.avgError.toFixed(1)} m</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">仿真时间</span>
-            <span className="text-green-300 font-mono">{state.time.toFixed(1)} s</span>
+            <span className="text-platform-fg-muted">仿真时间</span>
+            <span className="text-[hsl(var(--platform-brand-success))] font-mono">{state.time.toFixed(1)} s</span>
           </div>
         </CardContent>
       </Card>
 
       <div className="flex items-center gap-2 text-xs">
-        <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} />
-        <span className="text-slate-400">{isRunning ? '运行中' : '已暂停'}</span>
-        <span className="text-slate-500">|</span>
-        <span className="text-cyan-400 uppercase">{controlMode}</span>
+        <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-[hsl(var(--platform-brand-success))] animate-pulse' : 'bg-platform-canvas-muted'}`} />
+        <span className="text-platform-fg-muted">{isRunning ? '运行中' : '已暂停'}</span>
+        <span className="text-platform-fg-muted">|</span>
+        <span className="text-platform-action-primary uppercase">{controlMode}</span>
       </div>
     </div>
   );
@@ -1021,7 +1035,7 @@ function ControlPanel({
         <CardContent className="py-3 px-4 space-y-4">
           {/* 任务选择 */}
           <div className="space-y-2">
-            <Label className="text-xs text-slate-400">任务选择</Label>
+            <Label className="text-xs text-platform-fg-muted">任务选择</Label>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -1033,7 +1047,7 @@ function ControlPanel({
               </Button>
               <div className="flex-1 text-center">
                 <p className="text-sm font-medium">{tasks[selectedTask].title}</p>
-                <p className="text-xs text-slate-400">{tasks[selectedTask].description}</p>
+                <p className="text-xs text-platform-fg-muted">{tasks[selectedTask].description}</p>
               </div>
               <Button
                 variant="outline"
@@ -1048,7 +1062,7 @@ function ControlPanel({
 
           {/* 控制模式 */}
           <div className="space-y-2">
-            <Label className="text-xs text-slate-400">控制模式</Label>
+            <Label className="text-xs text-platform-fg-muted">控制模式</Label>
             <div className="grid grid-cols-4 gap-1">
               {(['manual', 'p', 'pd', 'pid'] as ControlMode[]).map((mode) => (
                 <Button
@@ -1069,10 +1083,10 @@ function ControlPanel({
           {/* PID 增益 */}
           {controlMode !== 'manual' && (
             <div className="space-y-3">
-              <Label className="text-xs text-slate-400">PID 增益</Label>
+              <Label className="text-xs text-platform-fg-muted">PID 增益</Label>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-8 text-xs text-cyan-400">Kp</span>
+                  <span className="w-8 text-xs text-platform-action-primary">Kp</span>
                   <Slider
                     value={[pidGains.kp]}
                     min={0}
@@ -1085,7 +1099,7 @@ function ControlPanel({
                 </div>
                 {(controlMode === 'pid' || controlMode === 'pd') && (
                   <div className="flex items-center gap-2">
-                    <span className="w-8 text-xs text-cyan-400">Kd</span>
+                    <span className="w-8 text-xs text-platform-action-primary">Kd</span>
                     <Slider
                       value={[pidGains.kd]}
                       min={0}
@@ -1099,7 +1113,7 @@ function ControlPanel({
                 )}
                 {controlMode === 'pid' && (
                   <div className="flex items-center gap-2">
-                    <span className="w-8 text-xs text-cyan-400">Ki</span>
+                    <span className="w-8 text-xs text-platform-action-primary">Ki</span>
                     <Slider
                       value={[pidGains.ki]}
                       min={0}
@@ -1160,8 +1174,8 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
           {
             label: '期望航向',
             data: data.desiredHeading,
-            borderColor: '#ef4444',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderColor: simulationScenePalette.danger,
+            backgroundColor: simulationScenePalette.dangerSurface,
             yAxisID: 'y-heading',
             fill: false,
             borderWidth: 2,
@@ -1170,8 +1184,8 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
           {
             label: '实际航向',
             data: data.actualHeading,
-            borderColor: '#22c55e',
-            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            borderColor: simulationScenePalette.success,
+            backgroundColor: simulationScenePalette.successSurface,
             yAxisID: 'y-heading',
             fill: false,
             borderWidth: 2,
@@ -1180,8 +1194,8 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
           {
             label: '航速',
             data: data.speed,
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderColor: simulationScenePalette.headingPrimary,
+            backgroundColor: simulationScenePalette.headingSurface,
             yAxisID: 'y-speed',
             fill: false,
             borderWidth: 2,
@@ -1190,8 +1204,8 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
           {
             label: '舵角',
             data: data.rudder,
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            borderColor: simulationScenePalette.dredgerPrimary,
+            backgroundColor: simulationScenePalette.warningSurface,
             yAxisID: 'y-rudder',
             fill: false,
             borderWidth: 2,
@@ -1210,46 +1224,46 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
         plugins: {
           legend: {
             position: 'top',
-            labels: { color: '#e2e8f0' },
+            labels: { color: simulationScenePalette.chartTitle },
           },
           tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            titleColor: '#e2e8f0',
-            bodyColor: '#cbd5e1',
-            borderColor: '#475569',
+            backgroundColor: simulationScenePalette.chartSurface,
+            titleColor: simulationScenePalette.chartTitle,
+            bodyColor: simulationScenePalette.chartText,
+            borderColor: simulationScenePalette.chartBorder,
             borderWidth: 1,
           },
         },
         scales: {
           x: {
-            title: { display: true, text: '时间 (秒)', color: '#cbd5e1' },
-            ticks: { color: '#94a3b8', maxTicksLimit: 15 },
-            grid: { color: 'rgba(148, 163, 184, 0.1)' },
+            title: { display: true, text: '时间 (秒)', color: simulationScenePalette.chartText },
+            ticks: { color: simulationScenePalette.chartTick, maxTicksLimit: 15 },
+            grid: { color: simulationScenePalette.chartGridFaint },
           },
           'y-heading': {
             type: 'linear',
             position: 'left',
-            title: { display: true, text: '航向角 (°)', color: '#cbd5e1' },
+            title: { display: true, text: '航向角 (°)', color: simulationScenePalette.chartText },
             min: -180,
             max: 180,
-            ticks: { color: '#94a3b8', stepSize: 45 },
-            grid: { color: 'rgba(148, 163, 184, 0.2)' },
+            ticks: { color: simulationScenePalette.chartTick, stepSize: 45 },
+            grid: { color: simulationScenePalette.chartGrid },
           },
           'y-speed': {
             type: 'linear',
             position: 'right',
-            title: { display: true, text: '航速 (m/s)', color: '#cbd5e1' },
-            ticks: { color: '#94a3b8' },
+            title: { display: true, text: '航速 (m/s)', color: simulationScenePalette.chartText },
+            ticks: { color: simulationScenePalette.chartTick },
             grid: { drawOnChartArea: false },
           },
           'y-rudder': {
             type: 'linear',
             position: 'right',
             offset: true,
-            title: { display: true, text: '舵角 (°)', color: '#cbd5e1' },
+            title: { display: true, text: '舵角 (°)', color: simulationScenePalette.chartText },
             min: -nomotoParams.maxRudderDeg,
             max: nomotoParams.maxRudderDeg,
-            ticks: { color: '#94a3b8', stepSize: 10 },
+            ticks: { color: simulationScenePalette.chartTick, stepSize: 10 },
             grid: { drawOnChartArea: false },
           },
         },
@@ -1265,14 +1279,14 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
   }, [data]);
 
   return (
-    <div className="flex h-full w-full flex-col bg-slate-950 p-6">
+    <div className="flex h-full w-full flex-col bg-platform-canvas p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-slate-100">仿真曲线</h2>
+        <h2 className="text-2xl font-semibold text-platform-fg-primary">仿真曲线</h2>
         <Button onClick={onBack} variant="default" size="lg">
           返回场景
         </Button>
       </div>
-      <div className="flex-1 rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+      <div className="flex-1 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-4">
         <canvas ref={chartRef} />
       </div>
     </div>
@@ -1289,6 +1303,7 @@ export default function DestroyerSimulation() {
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
+  const sceneTheme = useSimulationSceneTheme();
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [selectedTask, setSelectedTask] = useState(0);
   const [resetToken, setResetToken] = useState(0);
@@ -1402,16 +1417,17 @@ export default function DestroyerSimulation() {
 
   return (
     <div className={simulationUi.root} data-sim-ui>
-      <Canvas shadows>
+      <Canvas shadows={{ type: THREE.PCFShadowMap }}>
         <PerspectiveCamera makeDefault position={[0, 200, 500]} fov={60} near={1} far={50000} />
 
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
+        <ambientLight intensity={sceneTheme.ambientLightIntensity} />
+        <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
 
-        <SkyDome />
+        <fog attach="fog" args={[sceneTheme.fogColor, 4500, 18000]} />
+        <SkyDome sceneTheme={sceneTheme} />
         <ProceduralClouds />
-        <WaveWater simRef={simRef} />
-        {showGrid ? <GridHelper simRef={simRef} /> : null}
+        <WaveWater simRef={simRef} sceneTheme={sceneTheme} />
+        {showGrid ? <GridHelper simRef={simRef} sceneTheme={sceneTheme} /> : null}
         <GuideRoute points={guidePath} />
         <ShipTrail simRef={simRef} resetToken={resetToken} />
         <ShipWake simRef={simRef} />
@@ -1507,11 +1523,6 @@ export default function DestroyerSimulation() {
                 ]}
               />
             ),
-          },
-          {
-            id: 'ai',
-            label: 'AI伴学',
-            content: <AICompanionPanel title="驱逐舰航向控制" sessionId="destroyer-simulation-session" />,
           },
         ]}
       />

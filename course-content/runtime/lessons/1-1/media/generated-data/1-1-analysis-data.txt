@@ -1,0 +1,5 @@
+overshoot_kp2_percent=4.3137
+overshoot_kp5_percent=20.7445
+open_loop_stable=0
+closed_loop_poles_kp2=[-1+1i;-1-1i]
+closed_loop_poles_kp5=[-1+2i;-1-2i]

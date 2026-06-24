@@ -1,0 +1,105 @@
+[
+  {
+    "name": "student-control-workbench-parameter-drawer-desktop",
+    "file": "37-function-state-flows-batch2/student-control-workbench-parameter-drawer-desktop.png",
+    "url": "http://localhost:3100/interactive-learning/control-workbench",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "capturedAt": "2026-06-20T03:44:04.652Z",
+    "visibleTextSample": "展开导航\n首页\n/\n控制工作台\n学生\n控制工作台\n\n综合仿真工作台\n\n返回跨域探索\n\n自由探索模式 · 自由探索\n\n综合仿真工作台\n\n对象：二阶欠阻尼对象\n\n独立探索 · 该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。\n\n返回跨域探索\n\n当前目标\n\n确认对象可见性、模型来源、评价指标和可用视图。\n\n任务链\n\n对象分析\n\n下一行动\n\n确认对象、指标和允许方法，再进入控制器设计。\n\n证据状态\n\n自由探索模式不进入官方评价和榜单。\n\n自由探索模式可用于本地建模和参数试验，但结果不进入官方评价和竞技场榜单。\n\nK=1.000 | 极点 2 | 零点 0 | 阶跃响应\nMp\n50.52%\ntr\n0.20 s\nts\n3.03 s\ness\n0.50\nPM\n50.29°\nGM\n--\nN\n0\nP\n0\nZ\n0\nωc\n5.12 rad/s\nωg\n--\n闭环稳定性\n稳定\n时域响应\n时域信号\n参考输入\n未校正输出\n输出\n独立面板\n时域响应\n参考输入 / 未校正输出 / 输出\nBode 图\nBode 曲线\n未校正开环\n校正后开环\n校正装置\n独立面板\n组合 Bode 图\n未校正开环 / 校正后开环\n根轨迹\n根轨迹来源\n未校正根轨迹\n校正后根轨迹\n独立面板\n根轨迹全览\n当前开环增益：K=1.000 | p1=-1.20-j5.53 | p2=-1.20+j5.53\nNyquist 图\nNyquist 来源\n未校正开环\n校正后开环\n独立面板\nNyquist 图\nPM 50.29° | GM -- | ωc 5.12 rad/s | ωg -- | N/P/Z 0/0/0 · Z = P + N\n联动已更新：四个表征共用同一组开环零极点与统一分析结果。\n打开参数抽屉\n设计流程与边界\n\n自由探索模式 · 本地探索 · 白箱对象\n\n设计流程\n当前步骤\n对象分析\n下一行动\n确认对象、指标和允许方法，再进入控制器设计。\n对象边界\n二阶欠阻尼对象\n方法边界\n串联校正、PID\n1. 当前\n对象分析\n确认对象可见性、模型来源、评价指标和可用视图。\n2. 可进入\n控制器设计\n在允许的方法边界内调整控制器结构和参数。\n3. 可进入\n性能对照\n对照未校正、名义模型和当前方案的响应差异。\n4. 可进入\n约束检查\n检查硬约束、控制量、隐藏场景或官方指标风险。\n5. 待解锁\n官方提交\n通过竞技场官方评价和榜单入口提交方案。\n6. 待解锁\n结果复盘\n复查官方结果，定位下一轮设计应改进的位置。\n对象选择\n面板布置与添加面板\n会话状态与证据流\n允许方法\n串联校正、PID\n指标\n本地观察指标\n提交状态\n自由探索模式不进入官方评价和榜单。\n支持与说明\n全局浮动控件避让主仪表、提交按钮和本地工具。\n控灵\n\n当前: 互动学习\n\n你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。\n\n你可以问我:\n\n按",
+    "role": "student",
+    "flow": "control-workbench",
+    "action": "open parameter drawer"
+  },
+  {
+    "name": "student-control-workbench-object-selector-desktop",
+    "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /对象选择/ })\u001b[22m\n\n    at [stdin]:69:54\n    at async runStep ([stdin]:47:5)\n    at async [stdin]:65:3",
+    "capturedAt": "2026-06-20T03:44:36.784Z"
+  },
+  {
+    "name": "teacher-empty-lesson-start-desktop",
+    "file": "37-function-state-flows-batch2/teacher-empty-lesson-start-desktop.png",
+    "url": "http://localhost:3100/classroom/teacher/cmqltdhz50004vmyf76d2txz3",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "capturedAt": "2026-06-20T03:44:40.765Z",
+    "visibleTextSample": "审计功能流教案 381469\n673906\n0 在线\n结束\nWaiting for content...\n上一页\n1 / 0\n下一页\n数据大屏\n控灵\n\n当前: cmqltdhz50004vm...\n\n你好，我是控灵。今天我们将探索「cmqltdhz50004vmyf76d2txz3」，有任何问题随时问我。\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板\n\n控灵",
+    "role": "teacher",
+    "flow": "lesson-plan",
+    "action": "start empty lesson fixture"
+  },
+  {
+    "name": "teacher-class-search-empty-desktop",
+    "file": "37-function-state-flows-batch2/teacher-class-search-empty-desktop.png",
+    "url": "http://localhost:3100/teacher/classes",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "capturedAt": "2026-06-20T03:44:43.763Z",
+    "visibleTextSample": "返回首页\n教师工作台\n\n课程编排、班级管理、证据审核与课堂报告\n\n张\n\n张永韡\n\n个人中心\n\n教师总览\n班级\n教案\n资源\n课前包\n课堂历史\n班级分析\n返回教师工作台\n我的班级\n\n管理您的所有班级\n\n新建班级\n没有找到匹配的班级\n\n请尝试其他搜索词\n\n控灵\n\n当前: classes\n\n你好，我是控灵。今天我们将探索「classes」，有任何问题随时问我。\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板\n\n控灵",
+    "role": "teacher",
+    "flow": "classes",
+    "action": "search unmatched class"
+  },
+  {
+    "name": "admin-users-detail-panel-desktop",
+    "file": "37-function-state-flows-batch2/admin-users-detail-panel-desktop.png",
+    "url": "http://localhost:3100/admin/users",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "capturedAt": "2026-06-20T03:44:46.936Z",
+    "visibleTextSample": "返回管理后台\n账号体系\n用户管理\n\n账号资产、角色权限、密码重置和批量导入统一放在这里处理。页面颜色由全局后台样式控制，浅色模式不再回退到深色填充。\n\n当前登录：admin\n2026年6月20日 11:44\n刷新数据\nA\n\nadmin\n\nadmin\n\n管理员后台\n用户管理\n系统使用量统计\n数据治理\n系统配置\n用户资产总览\n\n294\n\n学生 289 · 教师 4\n\n活跃会话\n\n0\n\n近7天新增 0\n\n伦理风险\n\n0\n\n7日违规 0\n\n操作区\n新建账号\n下载模板\n批量导入\n打开系统配置\n\n模板前三列必填：账号、姓名、角色。其余字段按角色选填。\n\n当前页面\n用户管理\n其他后台入口已收口至管理后台首页，避免在业务页里分散入口。\n账号视图\n账号列表\n\n按角色、姓名、账号或学号筛选，并在右侧查看详情与执行敏感操作。\n\n全部角色\n管理员\n教师\n学生\n新建账号\n账号信息\t学号/工号\t角色\t创建时间\t操作\n\n夏闻楷\n241110302123\n\t241110302123\t学生\t2026年5月13日 15:24\t\n查看\n改密\n删除\n\n\n朱明旸\n241110303101\n\t241110303101\t学生\t2026年5月13日 15:21\t\n查看\n改密\n删除\n\n\n唐伟涵\n242210307105\n\t242210307105\t学生\t2026年5月11日 22:33\t\n查看\n改密\n删除\n\n\ntest_teacher\ntest_teacher@example.com\n\ttest_teacher\t教师\t2026年3月18日 13:33\t\n查看\n改密\n删除\n\n\n成士佳\n251110302101\n\t251110302101\t学生\t2026年3月17日 08:28\t\n查看\n改密\n删除\n\n\n刘展旭\n232241821223\n\t232241821223\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n张宇轩\n232241821134\n\t232241821134\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n何梓伊\n232241816204\n\t232241816204\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n许真瑞\n232241808228\n\t232241808228\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n孙威祥\n232241806625\n\t232241806625\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n李龙杰\n232241806220\n\t232241806220\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n林凯瑞\n232241806122\n\t232241806122\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n共 294 条 · 第 1 / 25 页\n上一页\n下一页\n风险",
+    "role": "admin",
+    "flow": "users",
+    "action": "open first user detail"
+  },
+  {
+    "name": "admin-users-create-modal-mobile",
+    "file": "37-function-state-flows-batch2/admin-users-create-modal-mobile.png",
+    "url": "http://localhost:3100/admin/users",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "capturedAt": "2026-06-20T03:44:50.005Z",
+    "visibleTextSample": "返回管理后台\n账号体系\n用户管理\n\n账号资产、角色权限、密码重置和批量导入统一放在这里处理。页面颜色由全局后台样式控制，浅色模式不再回退到深色填充。\n\n当前登录：admin\n2026年6月20日 11:44\n刷新数据\nA\n\nadmin\n\nadmin\n\n管理员后台\n用户管理\n系统使用量统计\n数据治理\n系统配置\n用户资产总览\n\n294\n\n学生 289 · 教师 4\n\n活跃会话\n\n0\n\n近7天新增 0\n\n伦理风险\n\n0\n\n7日违规 0\n\n操作区\n新建账号\n下载模板\n批量导入\n打开系统配置\n\n模板前三列必填：账号、姓名、角色。其余字段按角色选填。\n\n当前页面\n用户管理\n其他后台入口已收口至管理后台首页，避免在业务页里分散入口。\n账号视图\n账号列表\n\n按角色、姓名、账号或学号筛选，并在右侧查看详情与执行敏感操作。\n\n全部角色\n管理员\n教师\n学生\n新建账号\n账号信息\t学号/工号\t角色\t创建时间\t操作\n\n夏闻楷\n241110302123\n\t241110302123\t学生\t2026年5月13日 15:24\t\n查看\n改密\n删除\n\n\n朱明旸\n241110303101\n\t241110303101\t学生\t2026年5月13日 15:21\t\n查看\n改密\n删除\n\n\n唐伟涵\n242210307105\n\t242210307105\t学生\t2026年5月11日 22:33\t\n查看\n改密\n删除\n\n\ntest_teacher\ntest_teacher@example.com\n\ttest_teacher\t教师\t2026年3月18日 13:33\t\n查看\n改密\n删除\n\n\n成士佳\n251110302101\n\t251110302101\t学生\t2026年3月17日 08:28\t\n查看\n改密\n删除\n\n\n刘展旭\n232241821223\n\t232241821223\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n张宇轩\n232241821134\n\t232241821134\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n何梓伊\n232241816204\n\t232241816204\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n许真瑞\n232241808228\n\t232241808228\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n孙威祥\n232241806625\n\t232241806625\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n李龙杰\n232241806220\n\t232241806220\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n\n\n林凯瑞\n232241806122\n\t232241806122\t学生\t2026年3月3日 14:07\t\n查看\n改密\n删除\n共 294 条 · 第 1 / 25 页\n上一页\n下一页\n风险",
+    "role": "admin",
+    "flow": "users",
+    "action": "open create user modal mobile"
+  },
+  {
+    "name": "admin-config-add-provider-empty-desktop",
+    "file": "37-function-state-flows-batch2/admin-config-add-provider-empty-desktop.png",
+    "url": "http://localhost:3100/admin/config",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "capturedAt": "2026-06-20T03:44:53.126Z",
+    "visibleTextSample": "返回管理后台\n平台参数\n系统配置\n\n管理平台基础参数、AI 供应商、模型目录与响应测试。\n\n当前登录：admin\n角色：管理员\n重置为默认\n保存配置\nA\n\nadmin\n\nadmin\n\n管理员后台\n用户管理\n系统使用量统计\n数据治理\n系统配置\n基础设置\n平台名称\n默认密码\n\n批量创建账号时使用的默认密码\n\n每班最大学生数\n\n维护模式\n\n开启后仅管理员可访问\n\n首页动态模型渲染\n\n关闭后首页仅显示静态图片，仿真页保持不变\n\n数据中心演示来源标签\n\n仅控制普通数据中心可见标签，治理审计来源保持可用\n\nAI 供应商与模型\n\n保存后，业务 AI route 会按当前选择调用\n\n当前供应商\nSiliconFlow\nprovider-2\n当前模型\n供应商名称\nAPI 端点\n供应商类型\nOpenAI Compatible\nAnthropic Compatible\n密钥引用\n启用\n优先级\n健康状态\nunknown\nhealthy\ndegraded\nunavailable\n工具\n流式\n引用归一\nJSON Schema\n推理\n视觉\n添加模型\n\n供应商目录\n\n删除当前供应商\nOpenAI Compatible\nAnthropic Compatible\n添加供应商\n\nAPI Key 仍从环境变量读取。当前只有 SiliconFlow 具备运行时适配；新增供应商会先进入目录，待适配器实现后可启用调用。\n\n通知设置\n\n启用通知\n\n系统消息和预警通知\n\n伦理监测\n预警阈值\n\n当学生违规次数达到此值时触发预警\n\n控灵\n\n当前: config\n\n你好，我是控灵。今天我们将探索「config」，有任何问题随时问我。\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板\n\n控灵",
+    "role": "admin",
+    "flow": "config",
+    "action": "submit empty provider form"
+  },
+  {
+    "name": "admin-config-save-unchanged-desktop",
+    "file": "37-function-state-flows-batch2/admin-config-save-unchanged-desktop.png",
+    "url": "http://localhost:3100/admin/config",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "capturedAt": "2026-06-20T03:44:56.611Z",
+    "visibleTextSample": "返回管理后台\n平台参数\n系统配置\n\n管理平台基础参数、AI 供应商、模型目录与响应测试。\n\n当前登录：admin\n角色：管理员\n重置为默认\n保存配置\nA\n\nadmin\n\nadmin\n\n管理员后台\n用户管理\n系统使用量统计\n数据治理\n系统配置\n配置已保存\n基础设置\n平台名称\n默认密码\n\n批量创建账号时使用的默认密码\n\n每班最大学生数\n\n维护模式\n\n开启后仅管理员可访问\n\n首页动态模型渲染\n\n关闭后首页仅显示静态图片，仿真页保持不变\n\n数据中心演示来源标签\n\n仅控制普通数据中心可见标签，治理审计来源保持可用\n\nAI 供应商与模型\n\n保存后，业务 AI route 会按当前选择调用\n\n当前供应商\nSiliconFlow\n当前模型\nQwen3.6 35B A3B\nDeepSeek V4 Flash\nMiniMax M2.5\n供应商名称\nAPI 端点\n供应商类型\nOpenAI Compatible\nAnthropic Compatible\n密钥引用\n启用\n优先级\n健康状态\nunknown\nhealthy\ndegraded\nunavailable\n工具\n流式\n引用归一\nJSON Schema\n推理\n视觉\n\nQwen3.6 35B A3B\n\nQwen/Qwen3.6-35B-A3B\n\n当前主力语言模型，默认关闭推理输出以提升课堂问答可用性。\n\n选用\n测试\n\nDeepSeek V4 Flash\n\ndeepseek-ai/DeepSeek-V4-Flash\n\n保留为可选模型，当前响应速度可能较慢。\n\n选用\n测试\n\nMiniMax M2.5\n\nMiniMaxAI/MiniMax-M2.5\n\nSiliconFlow 可选语言模型。\n\n选用\n测试\n添加模型\n\n供应商目录\n\nOpenAI Compatible\nAnthropic Compatible\n添加供应商\n\nAPI Key 仍从环境变量读取。当前只有 SiliconFlow 具备运行时适配；新增供应商会先进入目录，待适配器实现后可启用调用。\n\n通知设置\n\n启用通知\n\n系统消息和预警通知\n\n伦理监测\n预警阈值\n\n当学生违规次数达到此值时触发预警\n\n控灵\n\n当前: config\n\n你好，我是控灵。今天我们将探索「config」，有任何问题随时问我。\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板\n\n控灵",
+    "role": "admin",
+    "flow": "config",
+    "action": "save unchanged current config"
+  }
+]

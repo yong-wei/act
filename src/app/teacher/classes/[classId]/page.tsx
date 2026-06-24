@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useId, useRef, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { AddStudentsModal } from '@/components/teacher/add-students-modal';
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
+import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import {
   buildTeacherClassInsightsHref,
   buildTeacherStudentInsightsHref,
@@ -78,10 +79,19 @@ interface LessonPlan {
   description: string | null;
 }
 
+const START_DIALOG_FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function getStartDialogFocusableElements(dialog: HTMLElement) {
+  return Array.from(dialog.querySelectorAll<HTMLElement>(START_DIALOG_FOCUSABLE_SELECTOR))
+    .filter((item) => !item.hasAttribute('disabled') && item.offsetParent !== null);
+}
+
 export default function ClassDetailPage() {
   const params = useParams();
   const router = useRouter();
   const classId = params?.classId as string;
+  const startDialogRef = useRef<HTMLDivElement>(null);
+  const startDialogOpenerRef = useRef<HTMLElement | null>(null);
 
   const [classData, setClassData] = useState<ClassDetail | null>(null);
   const [sessions, setSessions] = useState<ClassSession[]>([]);
@@ -89,10 +99,14 @@ export default function ClassDetailPage() {
   const [insights, setInsights] = useState<TeacherClassInsightsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [announcement, setAnnouncement] = useState('班级详情正在加载。');
 
   // 开始上课相关
   const [showStartModal, setShowStartModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
+  const lessonPlanSelectId = useId();
+  const startDialogErrorId = useId();
+  const [startDialogError, setStartDialogError] = useState('');
   const [starting, setStarting] = useState(false);
   const [regeneratingJoinCode, setRegeneratingJoinCode] = useState(false);
   const [endingSessionId, setEndingSessionId] = useState<string | null>(null);
@@ -181,18 +195,83 @@ export default function ClassDetailPage() {
     }
   }, [statusFilter, searchTerm, classId, fetchSessions, loading]);
 
+  const openStartDialog = useCallback(() => {
+    const activeElement = document.activeElement;
+    startDialogOpenerRef.current = activeElement instanceof HTMLElement ? activeElement : null;
+    setStartDialogError('');
+    setShowStartModal(true);
+  }, []);
+
+  const closeStartDialog = useCallback(() => {
+    setStartDialogError('');
+    setShowStartModal(false);
+    window.requestAnimationFrame(() => {
+      const opener = startDialogOpenerRef.current;
+      if (opener?.isConnected && opener.offsetParent !== null) {
+        opener.focus();
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showStartModal) return;
+    const dialog = startDialogRef.current;
+    if (!dialog) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeStartDialog();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = getStartDialogFocusableElements(dialog);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!dialog.contains(document.activeElement) || document.activeElement === dialog) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+        return;
+      }
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.requestAnimationFrame(() => {
+      getStartDialogFocusableElements(dialog)[0]?.focus() ?? dialog.focus();
+    });
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => dialog.removeEventListener('keydown', handleKeyDown);
+  }, [closeStartDialog, showStartModal]);
+
   const copyCode = async () => {
     if (classData) {
       await navigator.clipboard.writeText(classData.code);
       setCopied(true);
+      setAnnouncement('班级加入码已复制。');
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   // 开始上课
   const handleStartClass = async () => {
+    setStartDialogError('');
     if (!selectedPlanId) {
-      alert('请选择教案');
+      const message = '请选择教案后再开始上课。';
+      setStartDialogError(message);
+      setAnnouncement(message);
       return;
     }
 
@@ -217,10 +296,13 @@ export default function ClassDetailPage() {
       }
 
       const session = await res.json();
+      setAnnouncement('课堂已创建，正在进入教师课堂。');
       router.push(`/classroom/teacher/${session.id}`);
     } catch (error) {
       console.error('开始课堂失败:', error);
-      alert(error instanceof Error ? error.message : '开始课堂失败');
+      const message = error instanceof Error ? error.message : '开始课堂失败';
+      setStartDialogError(message);
+      setAnnouncement(message);
     } finally {
       setStarting(false);
     }
@@ -238,13 +320,14 @@ export default function ClassDetailPage() {
 
       if (res.ok) {
         await Promise.all([fetchClass(), fetchInsights()]);
+        setAnnouncement(`${studentName} 已从班级移除。`);
       } else {
         const data = await res.json();
-        alert(data.error || '移除失败');
+        setAnnouncement(data.error || '移除失败');
       }
     } catch (error) {
       console.error('Remove student error:', error);
-      alert('移除失败');
+      setAnnouncement('移除失败');
     } finally {
       setRemovingStudent(null);
     }
@@ -276,9 +359,10 @@ export default function ClassDetailPage() {
       }
 
       await fetchSessions();
+      setAnnouncement('课堂已停止，课堂历史已刷新。');
     } catch (error) {
       console.error('Finish session error:', error);
-      alert(error instanceof Error ? error.message : '停止课堂失败');
+      setAnnouncement(error instanceof Error ? error.message : '停止课堂失败');
     } finally {
       setEndingSessionId(null);
     }
@@ -291,6 +375,7 @@ export default function ClassDetailPage() {
   const evidenceCoverage = governance?.evidenceCoverage;
   const recentSessionQuality = governance?.recentSessionQuality;
   const studentInsightMap = new Map(insights?.students.map((student) => [student.id, student]) || []);
+  const classDetailStatus = `${announcement} 当前显示 ${displayedSessions.length} 条课堂历史，${classData?.students.length ?? 0} 名学生。`;
 
   const handleRegenerateJoinCode = async () => {
     if (!activeSession) return;
@@ -324,9 +409,10 @@ export default function ClassDetailPage() {
             : session
         )
       );
+      setAnnouncement('课堂码已重新生成。');
     } catch (error) {
       console.error('Regenerate join code error:', error);
-      alert(error instanceof Error ? error.message : '重置课堂码失败');
+      setAnnouncement(error instanceof Error ? error.message : '重置课堂码失败');
     } finally {
       setRegeneratingJoinCode(false);
     }
@@ -334,7 +420,11 @@ export default function ClassDetailPage() {
 
   if (loading) {
     return (
-      <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+      <main
+        className="surface-page px-6 py-8"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+      >
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-64 rounded bg-accent" />
           <div className="h-32 rounded-xl bg-accent" />
@@ -345,7 +435,11 @@ export default function ClassDetailPage() {
 
   if (!classData) {
     return (
-      <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+      <main
+        className="surface-page px-6 py-8"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+      >
         <div className="text-center">
           <p className="text-xl text-subtle">班级不存在</p>
           <Link
@@ -360,7 +454,19 @@ export default function ClassDetailPage() {
   }
 
   return (
-    <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+    <main
+      className="surface-page px-6 py-8"
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+    >
+      <div className="sr-only" role="status" aria-live="polite" data-teacher-class-detail-status>
+        {classDetailStatus}
+      </div>
+      {announcement !== '班级详情正在加载。' && (
+        <div className="surface-card mb-6 border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-foreground" role="status" aria-live="polite" data-teacher-class-visible-status>
+          {announcement}
+        </div>
+      )}
       {/* 返回链接 */}
       <Link
         href="/teacher/classes"
@@ -439,18 +545,20 @@ export default function ClassDetailPage() {
                 <span className="font-mono text-2xl font-bold tracking-wider text-sky-500 dark:text-sky-300">
                   {classData.code}
                 </span>
-                <button
+                <button type="button"
                   onClick={copyCode}
                   className="rounded-lg border border-sky-500/30 p-2 text-sky-500 transition hover:bg-sky-500/10 dark:text-sky-300"
+                  aria-label="复制班级加入码"
                 >
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            <button
-              onClick={() => setShowStartModal(true)}
+            <button type="button"
+              onClick={openStartDialog}
               className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-4 font-medium text-white transition hover:from-emerald-500 hover:to-green-500"
+              aria-label="打开开始上课对话框"
             >
               <Play className="h-5 w-5" />
               开始上课
@@ -549,6 +657,17 @@ export default function ClassDetailPage() {
         </section>
       )}
 
+      {insights && (
+        <div className="mb-8">
+          <DiagnosisSurfacePanel
+            diagnosis={insights.diagnosis}
+            mode="teacher-class"
+            title="控制校正班级诊断"
+            description="聚合班级诊断快照、弱点聚类、证据覆盖与备课入口状态。"
+          />
+        </div>
+      )}
+
       {/* 进行中的课堂 */}
       {activeSession && (
         <div className="surface-card mb-8 border-emerald-500/30 bg-emerald-500/10 p-6">
@@ -577,7 +696,7 @@ export default function ClassDetailPage() {
                 <QrCode className="h-5 w-5 text-emerald-400" />
                 <span className="font-mono text-lg font-bold text-foreground">{activeSession.joinCode}</span>
               </div>
-              <button
+              <button type="button"
                 onClick={handleRegenerateJoinCode}
                 disabled={regeneratingJoinCode}
                 className="flex items-center gap-2 rounded-lg border border-emerald-500/40 px-3 py-2 text-sm text-emerald-200 transition hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
@@ -591,7 +710,7 @@ export default function ClassDetailPage() {
               >
                 进入课堂
               </Link>
-              <button
+              <button type="button"
                 onClick={() => void handleFinishSession(activeSession.id)}
                 disabled={endingSessionId === activeSession.id}
                 className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 px-4 py-2 text-sm font-medium text-rose-300 transition hover:border-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
@@ -616,6 +735,7 @@ export default function ClassDetailPage() {
           <div className="flex flex-wrap items-center gap-3">
             {/* 状态筛选 */}
             <select
+              aria-label="按课堂状态筛选课堂历史"
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
               className="btn-ghost-themed rounded-lg px-3 py-2 text-sm focus:border-primary focus:outline-none"
@@ -628,7 +748,7 @@ export default function ClassDetailPage() {
             {/* 搜索 */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-              <input
+              <input aria-label="搜索教案..."
                 type="text"
                 placeholder="搜索教案..."
                 value={searchTerm}
@@ -677,10 +797,11 @@ export default function ClassDetailPage() {
                       >
                         进入课堂
                       </Link>
-                      <button
+                      <button type="button"
                         onClick={() => void handleFinishSession(session.id)}
                         disabled={endingSessionId === session.id}
                         className="rounded-lg border border-rose-500/40 px-3 py-1.5 text-sm text-rose-300 transition hover:border-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label={`停止课堂 ${session.plan.title}`}
                       >
                         {endingSessionId === session.id ? '停止中...' : '停止课堂'}
                       </button>
@@ -712,9 +833,10 @@ export default function ClassDetailPage() {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-400">{classData.students.length} 人</span>
-            <button
+            <button type="button"
               onClick={() => setShowAddStudentsModal(true)}
               className="flex items-center gap-1.5 rounded-lg border border-sky-500/50 px-3 py-1.5 text-sm text-sky-400 transition hover:bg-sky-500/10"
+              aria-label="打开添加学生对话框"
             >
               <UserPlus className="h-4 w-4" />
               添加学生
@@ -732,7 +854,7 @@ export default function ClassDetailPage() {
           </div>
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-border/60">
-            <table className="min-w-full border-collapse text-sm">
+            <table className="min-w-full border-collapse text-sm" data-teacher-mobile-cards="true" aria-label="班级学生清单">
               <thead className="sticky top-0 z-10 bg-card/95 backdrop-blur">
                 <tr className="border-b border-border/60 text-left text-xs uppercase tracking-[0.16em] text-subtle">
                   <th className="px-4 py-3 font-medium">学生</th>
@@ -753,7 +875,7 @@ export default function ClassDetailPage() {
                       key={student.id}
                       className="border-b border-border/50 bg-card/45 transition hover:bg-accent/45"
                     >
-                      <td className="px-4 py-4 align-top">
+                      <td className="px-4 py-4 align-top" data-label="学生">
                         <Link
                           href={buildTeacherStudentInsightsHref(classId, student.user.id)}
                           className="flex min-w-[220px] items-center gap-3"
@@ -773,10 +895,10 @@ export default function ClassDetailPage() {
                           </div>
                         </Link>
                       </td>
-                      <td className="px-4 py-4 align-top text-foreground">
+                      <td className="px-4 py-4 align-top text-foreground" data-label="画像等级">
                         {insight ? insight.overallLevel : '待生成'}
                       </td>
-                      <td className="px-4 py-4 align-top">
+                      <td className="px-4 py-4 align-top" data-label="综合指数">
                         {insight ? (
                           <span className="font-semibold text-sky-600 dark:text-sky-300">
                             {insight.overallScore}
@@ -785,7 +907,7 @@ export default function ClassDetailPage() {
                           <span className="text-subtle">-</span>
                         )}
                       </td>
-                      <td className="px-4 py-4 align-top">
+                      <td className="px-4 py-4 align-top" data-label="证据状态">
                         {insight ? (
                           <div className="min-w-[150px]">
                             <span className={getTeacherEvidenceStateChipClass(insight.evidenceStatus)}>
@@ -800,7 +922,7 @@ export default function ClassDetailPage() {
                           <span className="teacher-insight-chip teacher-insight-chip-pending">待生成</span>
                         )}
                       </td>
-                      <td className="px-4 py-4 align-top">
+                      <td className="px-4 py-4 align-top" data-label="风险状态">
                         {insight ? (
                           <span className={`teacher-insight-chip teacher-insight-risk-${insight.riskLevel}`}>
                             {insight.riskLabel}
@@ -809,28 +931,30 @@ export default function ClassDetailPage() {
                           <span className="teacher-insight-chip teacher-insight-chip-pending">待生成</span>
                         )}
                       </td>
-                      <td className="px-4 py-4 align-top text-foreground">
+                      <td className="px-4 py-4 align-top text-foreground" data-label="近期趋势">
                         {insight ? insight.recentTrend : '治理结果待生成'}
                       </td>
-                      <td className="px-4 py-4 align-top">
+                      <td className="px-4 py-4 align-top" data-label="成长档案">
                         {insight ? (
                           <span className="font-semibold text-foreground">{insight.growthRecordCount}</span>
                         ) : (
                           <span className="text-subtle">-</span>
                         )}
                       </td>
-                      <td className="px-4 py-4 align-top">
+                      <td className="px-4 py-4 align-top" data-label="操作">
                         <div className="flex items-center gap-2">
                           <Link
                             href={buildTeacherStudentInsightsHref(classId, student.user.id)}
                             className="btn-ghost-themed rounded-lg px-3 py-1.5 text-sm"
+                            aria-label={`查看学生 ${student.user.name || student.user.id} 详情`}
                           >
                             详情
                           </Link>
-                          <button
+                          <button type="button"
                             onClick={() => handleRemoveStudent(student.user.id, student.user.name || '该学生')}
                             disabled={removingStudent === student.user.id}
                             className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 px-3 py-1.5 text-sm text-rose-600 transition hover:bg-rose-500/10 dark:text-rose-300 disabled:opacity-50"
+                            aria-label={`从班级移除学生 ${student.user.name || student.user.id}`}
                           >
                             {removingStudent === student.user.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -853,19 +977,20 @@ export default function ClassDetailPage() {
       {/* 开始上课模态框 */}
       {showStartModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="surface-card mx-4 w-full max-w-md p-6 shadow-2xl">
+          <div ref={startDialogRef} className="surface-card mx-4 w-full max-w-md p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="teacher-start-class-title" aria-describedby={startDialogError ? startDialogErrorId : undefined} tabIndex={-1}>
             <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-foreground">开始上课</h3>
-              <button
-                onClick={() => setShowStartModal(false)}
+              <h3 id="teacher-start-class-title" className="text-xl font-bold text-foreground">开始上课</h3>
+              <button type="button"
+                onClick={closeStartDialog}
                 className="btn-ghost-themed rounded-lg p-1 transition"
+                aria-label="关闭开始上课对话框"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="mb-6">
-              <label className="mb-2 block text-sm font-medium text-slate-300">
+              <label htmlFor={lessonPlanSelectId} className="mb-2 block text-sm font-medium text-slate-300">
                 选择教案
               </label>
               {lessonPlans.length === 0 ? (
@@ -873,7 +998,7 @@ export default function ClassDetailPage() {
                   <BookOpen className="mx-auto h-8 w-8 text-slate-500" />
                   <p className="mt-2 text-sm text-slate-400">暂无可用教案</p>
                   <Link
-                    href="/teacher/lesson-plans/new"
+                    href={`/teacher/lesson-plans/new?returnTo=${encodeURIComponent(`/teacher/classes/${classId}`)}`}
                     className="mt-2 inline-block text-sm text-sky-400 hover:text-sky-300"
                   >
                     创建教案
@@ -881,8 +1006,12 @@ export default function ClassDetailPage() {
                 </div>
               ) : (
                 <select
+                  id={lessonPlanSelectId}
                   value={selectedPlanId}
-                  onChange={e => setSelectedPlanId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedPlanId(e.target.value);
+                    setStartDialogError('');
+                  }}
                   className="w-full rounded-lg border border-border/70 bg-background/70 px-4 py-3 text-foreground focus:border-primary focus:outline-none"
                 >
                   <option value="">请选择教案...</option>
@@ -895,14 +1024,20 @@ export default function ClassDetailPage() {
               )}
             </div>
 
+            {startDialogError && (
+              <p id={startDialogErrorId} role="alert" className="mb-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">
+                {startDialogError}
+              </p>
+            )}
+
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowStartModal(false)}
+              <button type="button"
+                onClick={closeStartDialog}
                 className="btn-ghost-themed flex-1 rounded-lg py-3 font-medium transition"
               >
                 取消
               </button>
-              <button
+              <button type="button"
                 onClick={handleStartClass}
                 disabled={!selectedPlanId || starting}
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"

@@ -90,7 +90,8 @@ describe('unit 3-7 interactive course', () => {
     expect(stepPanelsSource).toContain('重置步骤');
     expect(stepPanelsSource).toContain('点击当前步骤可继续显影下一层');
     expect(stepPanelsSource).not.toContain('第 1 步：');
-    expect(stepPanelsSource).toContain("useEffect(() => {\n    setRevealedCount(0);\n  }, [stepId]);");
+    expect(stepPanelsSource).toContain('<ProgressiveRevealPanelContent key={stepId} stepId={stepId} title={title} />');
+    expect(stepPanelsSource).toContain('const [revealedCount, setRevealedCount] = useState(0);');
     expect(stepPanelsSource).toContain('useControlEngine');
     expect(stepPanelsSource).toContain('BodePanel');
     expect(stepPanelsSource).not.toContain('LOW_FREQUENCY_CURVES');
@@ -278,8 +279,8 @@ describe('unit 3-7 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('PremiumLessonEntryPage');
-    expect(entrySource).toContain('<PremiumLessonEntryPage');
+    expect(entrySource).toContain('CourseEntryShell');
+    expect(entrySource).toContain('<CourseEntryShell');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
     expect(entrySource).toContain('mediaCourseLabel');
   });

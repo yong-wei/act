@@ -4,7 +4,7 @@ import {
   buildThemeInitScript,
   isTheme,
   resolveInitialTheme,
-} from '../src/lib/theme-config';
+} from '../../src/lib/theme-config';
 
 assert.equal(THEME_STORAGE_KEY, 'ai-obe-theme', 'storage key should stay stable');
 

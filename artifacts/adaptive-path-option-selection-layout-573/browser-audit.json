@@ -1,0 +1,106 @@
+{
+  "generatedAt": "2026-06-18T10:27:45.191Z",
+  "baseUrl": "http://localhost:3063",
+  "designSources": [
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png",
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-16-current-audit/audit-notes.md"
+  ],
+  "results": [
+    {
+      "name": "path-selection-desktop-light",
+      "url": "http://localhost:3063/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1100
+      },
+      "screenshotPath": "artifacts/adaptive-path-option-selection-layout-573/path-selection-desktop-light.png",
+      "screenshotSha256": "023b20235d42a6da2fb151642cf969c29f762bfeca1115e6e3b6a0fe92587147",
+      "layout": "route-modules",
+      "routeModuleCount": 3,
+      "attachedActionGroupCount": 3,
+      "detachedActionStripCount": 0,
+      "routeModulesAttached": true,
+      "optionTitles": [
+        "基础补弱路径",
+        "实践冲刺路径",
+        "课程同步路径"
+      ],
+      "buttonLabelsByModule": [
+        [
+          "选择基础补弱路径",
+          "请控灵调整基础补弱路径",
+          "解释基础补弱路径差异",
+          "暂不采用基础补弱路径",
+          "标记基础补弱路径有帮助"
+        ],
+        [
+          "选择实践冲刺路径",
+          "请控灵调整实践冲刺路径",
+          "解释实践冲刺路径差异",
+          "暂不采用实践冲刺路径",
+          "标记实践冲刺路径有帮助"
+        ],
+        [
+          "选择课程同步路径",
+          "请控灵调整课程同步路径",
+          "解释课程同步路径差异",
+          "暂不采用课程同步路径",
+          "标记课程同步路径有帮助"
+        ]
+      ],
+      "keyboardOrderContainedByModule": true,
+      "forbiddenEngineeringText": [],
+      "passed": true
+    },
+    {
+      "name": "path-selection-mobile-dark",
+      "url": "http://localhost:3063/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection",
+      "theme": "dark",
+      "viewport": {
+        "width": 320,
+        "height": 1100
+      },
+      "screenshotPath": "artifacts/adaptive-path-option-selection-layout-573/path-selection-mobile-dark.png",
+      "screenshotSha256": "6e4dca3c0581354aa1a65d15212917cbed65d5abe4f39ec7fecdcfe89466dcf8",
+      "layout": "route-modules",
+      "routeModuleCount": 3,
+      "attachedActionGroupCount": 3,
+      "detachedActionStripCount": 0,
+      "routeModulesAttached": true,
+      "optionTitles": [
+        "基础补弱路径",
+        "实践冲刺路径",
+        "课程同步路径"
+      ],
+      "buttonLabelsByModule": [
+        [
+          "选择基础补弱路径",
+          "请控灵调整基础补弱路径",
+          "解释基础补弱路径差异",
+          "暂不采用基础补弱路径",
+          "标记基础补弱路径有帮助"
+        ],
+        [
+          "选择实践冲刺路径",
+          "请控灵调整实践冲刺路径",
+          "解释实践冲刺路径差异",
+          "暂不采用实践冲刺路径",
+          "标记实践冲刺路径有帮助"
+        ],
+        [
+          "选择课程同步路径",
+          "请控灵调整课程同步路径",
+          "解释课程同步路径差异",
+          "暂不采用课程同步路径",
+          "标记课程同步路径有帮助"
+        ]
+      ],
+      "keyboardOrderContainedByModule": true,
+      "forbiddenEngineeringText": [],
+      "passed": true
+    }
+  ],
+  "passed": true
+}

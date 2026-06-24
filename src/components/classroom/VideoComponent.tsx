@@ -10,7 +10,7 @@
  * - 编辑模式下的配置表单
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import {
   Play,
   Pause,
@@ -30,6 +30,10 @@ import type {
 
 type VideoComponentProps = BaseClassroomComponentProps<VideoComponentConfig>;
 
+// Temporary accessibility exception: legacy classroom video configs predate caption metadata.
+// Owner: classroom components. Remove this placeholder after all video configs provide captionSrc.
+const TEMPORARY_CAPTION_TRACK_SRC = 'data:text/vtt;charset=utf-8,WEBVTT%0A%0A00:00:00.000%20--%3E%2000:00:05.000%0A%E5%AD%97%E5%B9%95%E8%B5%84%E6%BA%90%E5%BE%85%E9%85%8D%E7%BD%AE%E3%80%82';
+
 // ========== 编辑模式组件 ==========
 
 function VideoEditor({
@@ -39,6 +43,18 @@ function VideoEditor({
   config: VideoComponentConfig;
   onConfigChange?: (config: VideoComponentConfig) => void;
 }) {
+  const idPrefix = useId();
+  const titleId = `${idPrefix}-video-title`;
+  const sourceTypeId = `${idPrefix}-video-source-type`;
+  const primarySourceId = `${idPrefix}-video-primary-source`;
+  const captionSourceId = `${idPrefix}-video-caption-source`;
+  const captionLanguageId = `${idPrefix}-video-caption-language`;
+  const captionLabelId = `${idPrefix}-video-caption-label`;
+  const splitModeId = `${idPrefix}-video-split-mode`;
+  const secondarySourceId = `${idPrefix}-video-secondary-source`;
+  const descriptionId = `${idPrefix}-video-description`;
+  const narrationId = `${idPrefix}-video-narration`;
+
   const updateConfig = (updates: Partial<VideoComponentConfig>) => {
     onConfigChange?.({ ...config, ...updates });
   };
@@ -52,8 +68,8 @@ function VideoEditor({
 
       {/* 标题 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">视频标题</label>
-        <input
+        <label htmlFor={titleId} className="block text-sm text-slate-400 mb-1">视频标题</label>
+        <input id={titleId}
           type="text"
           value={config.title}
           onChange={(e) => updateConfig({ title: e.target.value })}
@@ -64,8 +80,8 @@ function VideoEditor({
 
       {/* 来源类型 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">来源类型</label>
-        <select
+        <label htmlFor={sourceTypeId} className="block text-sm text-slate-400 mb-1">来源类型</label>
+        <select id={sourceTypeId}
           value={config.sourceType}
           onChange={(e) =>
             updateConfig({ sourceType: e.target.value as 'url' | 'placeholder' })
@@ -79,10 +95,10 @@ function VideoEditor({
 
       {/* 主视频/占位符 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">
+        <label htmlFor={primarySourceId} className="block text-sm text-slate-400 mb-1">
           {config.sourceType === 'url' ? '主视频URL' : '占位符图片URL'}
         </label>
-        <input
+        <input id={primarySourceId}
           type="text"
           value={config.primarySource}
           onChange={(e) => updateConfig({ primarySource: e.target.value })}
@@ -91,10 +107,48 @@ function VideoEditor({
         />
       </div>
 
+      <div className="grid gap-3 rounded-lg border p-3">
+        <div>
+          <label htmlFor={captionSourceId} className="mb-1 block text-sm text-muted-foreground">字幕轨道 URL</label>
+          <input
+            id={captionSourceId}
+            type="url"
+            value={config.captionSrc || ''}
+            onChange={(e) => updateConfig({ captionSrc: e.target.value })}
+            className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none"
+            placeholder="https://example.com/captions.zh.vtt"
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label htmlFor={captionLanguageId} className="mb-1 block text-sm text-muted-foreground">字幕语言</label>
+            <input
+              id={captionLanguageId}
+              type="text"
+              value={config.captionLanguage || ''}
+              onChange={(e) => updateConfig({ captionLanguage: e.target.value })}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none"
+              placeholder="zh-CN"
+            />
+          </div>
+          <div>
+            <label htmlFor={captionLabelId} className="mb-1 block text-sm text-muted-foreground">字幕标签</label>
+            <input
+              id={captionLabelId}
+              type="text"
+              value={config.captionLabel || ''}
+              onChange={(e) => updateConfig({ captionLabel: e.target.value })}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none"
+              placeholder="中文字幕"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* 分屏模式 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">分屏模式</label>
-        <select
+        <label htmlFor={splitModeId} className="block text-sm text-slate-400 mb-1">分屏模式</label>
+        <select id={splitModeId}
           value={config.splitMode}
           onChange={(e) => updateConfig({ splitMode: e.target.value as SplitMode })}
           className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-white text-sm focus:border-blue-500 focus:outline-none"
@@ -108,10 +162,10 @@ function VideoEditor({
       {/* 副视频（分屏模式） */}
       {config.splitMode !== 'none' && (
         <div>
-          <label className="block text-sm text-slate-400 mb-1">
+          <label htmlFor={secondarySourceId} className="block text-sm text-slate-400 mb-1">
             {config.sourceType === 'url' ? '副视频URL' : '副占位符图片URL'}
           </label>
-          <input
+          <input id={secondarySourceId}
             type="text"
             value={config.secondarySource || ''}
             onChange={(e) => updateConfig({ secondarySource: e.target.value })}
@@ -124,8 +178,8 @@ function VideoEditor({
       {/* 描述（占位符模式） */}
       {config.sourceType === 'placeholder' && (
         <div>
-          <label className="block text-sm text-slate-400 mb-1">视频描述</label>
-          <textarea
+          <label htmlFor={descriptionId} className="block text-sm text-slate-400 mb-1">视频描述</label>
+          <textarea id={descriptionId}
             value={config.description || ''}
             onChange={(e) => updateConfig({ description: e.target.value })}
             className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-white text-sm focus:border-blue-500 focus:outline-none resize-none"
@@ -137,8 +191,8 @@ function VideoEditor({
 
       {/* AI旁白 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">AI旁白文本</label>
-        <textarea
+        <label htmlFor={narrationId} className="block text-sm text-slate-400 mb-1">AI旁白文本</label>
+        <textarea id={narrationId}
           value={config.narration || ''}
           onChange={(e) => updateConfig({ narration: e.target.value })}
           className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-white text-sm focus:border-blue-500 focus:outline-none resize-none"
@@ -179,16 +233,23 @@ function VideoPanel({
   sourceType,
   description,
   label,
+  captionSrc,
+  captionLanguage,
+  captionLabel,
 }: {
   source: string;
   sourceType: 'url' | 'placeholder';
   description?: string;
   label?: string;
+  captionSrc?: string;
+  captionLanguage?: string;
+  captionLabel?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const normalizedCaptionSrc = captionSrc?.trim();
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -251,6 +312,9 @@ function VideoPanel({
     );
   }
 
+  const effectiveCaptionSrc = normalizedCaptionSrc || TEMPORARY_CAPTION_TRACK_SRC;
+  const effectiveCaptionLabel = normalizedCaptionSrc ? captionLabel || '中文字幕' : '字幕待配置';
+
   // 视频URL模式
   return (
     <div className="relative h-full bg-black rounded-lg overflow-hidden group">
@@ -261,16 +325,24 @@ function VideoPanel({
       )}
 
       <video
+        aria-label={label || '课堂视频'}
         ref={videoRef}
         src={source}
         className="w-full h-full object-cover"
         onEnded={() => setIsPlaying(false)}
-      />
+      >
+        <track
+          kind="captions"
+          srcLang={captionLanguage || 'zh-CN'}
+          label={effectiveCaptionLabel}
+          src={effectiveCaptionSrc}
+        />
+      </video>
 
       {/* 控制栏 */}
       <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
         <div className="flex items-center gap-3">
-          <button
+          <button type="button"
             onClick={togglePlay}
             className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
           >
@@ -280,7 +352,7 @@ function VideoPanel({
               <Play className="h-4 w-4 text-white" />
             )}
           </button>
-          <button
+          <button type="button"
             onClick={toggleMute}
             className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
           >
@@ -291,7 +363,7 @@ function VideoPanel({
             )}
           </button>
           <div className="flex-1" />
-          <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+          <button type="button" className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
             <Maximize className="h-4 w-4 text-white" />
           </button>
         </div>
@@ -312,6 +384,9 @@ function VideoPlayer({ config }: { config: VideoComponentConfig }) {
           source={config.primarySource}
           sourceType={config.sourceType}
           description={config.description}
+          captionSrc={config.captionSrc}
+          captionLanguage={config.captionLanguage}
+          captionLabel={config.captionLabel}
         />
       );
     }
@@ -328,12 +403,18 @@ function VideoPlayer({ config }: { config: VideoComponentConfig }) {
           source={config.primarySource}
           sourceType={config.sourceType}
           description={config.description}
+          captionSrc={config.captionSrc}
+          captionLanguage={config.captionLanguage}
+          captionLabel={config.captionLabel}
           label="对比A"
         />
         <VideoPanel
           source={config.secondarySource || ''}
           sourceType={config.sourceType}
           description={config.description}
+          captionSrc={config.captionSrc}
+          captionLanguage={config.captionLanguage}
+          captionLabel={config.captionLabel}
           label="对比B"
         />
       </div>
@@ -351,7 +432,7 @@ function VideoPlayer({ config }: { config: VideoComponentConfig }) {
           <h3 className="font-medium text-white">{config.title}</h3>
         </div>
         {config.narration && (
-          <button
+          <button type="button"
             onClick={() => setShowNarration(!showNarration)}
             className={`p-1.5 rounded-md transition-colors ${
               showNarration

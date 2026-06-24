@@ -1,4 +1,5 @@
-import { PrismaClient, SessionStatus } from '@prisma/client';
+import { createPrismaClient } from '../../src/lib/prisma-client';
+import { SessionStatus } from '@prisma/client';
 
 import {
   resolveSessionClassContext,
@@ -6,7 +7,7 @@ import {
   type SessionClassInfo,
 } from '@/lib/data-governance/class-session-attribution';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 function getArgValue(name: string): string | null {
   const prefix = `${name}=`;

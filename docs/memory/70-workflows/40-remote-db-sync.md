@@ -9,7 +9,7 @@
 相关:
 - [../30-operations/30-database-and-migrations.md](../30-operations/30-database-and-migrations.md)
 - [../../scripts/db/sync-remote-db-to-local.sh](../../../scripts/db/sync-remote-db-to-local.sh)
-- [../../.codex/skills/server-ops/references/database-sync.md](../../../.codex/skills/server-ops/references/database-sync.md)
+- [../../.agents/skills/server-ops/references/database-sync.md](../../../.agents/skills/server-ops/references/database-sync.md)
 
 ## 结论
 

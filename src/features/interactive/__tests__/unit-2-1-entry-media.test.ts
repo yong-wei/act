@@ -8,9 +8,15 @@ vi.mock('server-only', () => ({}));
 const repoRoot = process.cwd();
 let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
 let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
+let loadAllLessonRuntimeResourceCatalogEntries:
+  typeof import('@/lib/course-runtime').loadAllLessonRuntimeResourceCatalogEntries;
 
 beforeAll(async () => {
-  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-runtime'));
+  ({
+    loadAllLessonRuntimeResourceCatalogEntries,
+    parseRuntimeLessonMediaDocument,
+    parseRuntimeLessonMediaIndex,
+  } = await import('@/lib/course-runtime'));
 });
 
 describe('unit 2-1 entry media runtime', () => {
@@ -45,7 +51,7 @@ describe('unit 2-1 entry media runtime', () => {
       url: 'https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=e79ae1ee62f81b213a8fa0d291748503&v=1775441168379&puid=26652392&enc=b4b169b719e768ffc75eba66f266d50e&wps=c5d9d56b07c2b278227a6249c6130b34d70d687fb84ea7b5',
     });
     expect(resources[2]).toMatchObject({
-      kind: 'pdf',
+      kind: 'slides',
       accessMode: 'new_tab',
       embedMode: 'none',
       status: 'ready',
@@ -65,6 +71,21 @@ describe('unit 2-1 entry media runtime', () => {
     expect(document.handoutSummary).toContain('梅森增益公式');
   });
 
+  it('discovers runtime lesson catalog entries from lesson directories', async () => {
+    const entries = await loadAllLessonRuntimeResourceCatalogEntries();
+    const lessonIds = entries.map((entry) => entry.lesson.lesson_id);
+    const unit21 = entries.find((entry) => entry.lesson.lesson_id === '2-1');
+
+    expect(entries.length).toBeGreaterThanOrEqual(29);
+    expect(lessonIds).toEqual(expect.arrayContaining(['1-1', '1-2', '2-1', '4-7']));
+    expect(unit21?.mediaResources).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        filename: '2-1-slides.pdf',
+        kind: 'slides',
+      }),
+    ]));
+  });
+
   it('keeps blank media slots as pending resources instead of dropping them', () => {
     const resources = parseRuntimeLessonMediaIndex(
       ['# demo-intro-video.mp4', '', '', '# demo-slides.pdf', '- 演示课件', '', 'https://example.com/slides'].join('\n'),
@@ -78,6 +99,7 @@ describe('unit 2-1 entry media runtime', () => {
     });
     expect(resources[1]).toMatchObject({
       filename: 'demo-slides.pdf',
+      kind: 'slides',
       title: '演示课件',
       url: 'https://example.com/slides',
       status: 'ready',
@@ -97,8 +119,8 @@ describe('unit 2-1 entry media runtime', () => {
       join(repoRoot, 'src/features/interactive/shared/lesson-entry-handout-panel.tsx'),
       'utf8',
     );
-    const entryPageSource = readFileSync(
-      join(repoRoot, 'src/features/interactive/shared/premium-lesson-entry-page.tsx'),
+    const courseEntryShellSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/course-entry-shell.tsx'),
       'utf8',
     );
     const runtimeSectionsSource = readFileSync(
@@ -110,7 +132,7 @@ describe('unit 2-1 entry media runtime', () => {
       'utf8',
     );
 
-    expect(source).toContain('PremiumLessonEntryPage');
+    expect(source).toContain('CourseEntryShell');
     expect(sharedSource).toContain('课前预习台');
     expect(sharedSource).toContain('预习导入视频');
     expect(sharedSource).toContain('完整课程视频');
@@ -145,9 +167,9 @@ describe('unit 2-1 entry media runtime', () => {
     expect(sharedSource).not.toContain('待补充');
     expect(sharedSource).not.toContain('链接待补充');
     expect(source).not.toContain('href={lessonRuntime.handoutPath}');
-    expect(source).toContain('<PremiumLessonEntryPage');
+    expect(source).toContain('<CourseEntryShell');
     expect(source).toContain('mediaCourseLabel');
-    expect(entryPageSource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(courseEntryShellSource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
     expect(sharedSource).toContain('lessonRuntime.handoutPdfPath');
     expect(sharedSource).toContain('lessonId: lessonRuntime.lesson.lesson_id');
     expect(handoutPanelSource).toContain('下载 PDF 讲义');
@@ -161,7 +183,8 @@ describe('unit 2-1 entry media runtime', () => {
     expect(sharedSource).toContain('overflow-hidden rounded-[24px]');
     expect(sharedSource).toContain('block h-full w-full border-0');
     expect(sharedSource).toContain("isAudio ? 'lg:col-span-2' : ''");
-    expect(sharedSource).toContain('key={`${resource.id}-${embedVersion}`}');
+    expect(sharedSource).toContain('key={resource.id}');
+    expect(sharedSource).not.toContain('embedVersion');
     expect(sharedSource).not.toContain('解析实验版');
     expect(sharedSource).toContain('/api/course-runtime/audio-preview-source');
     expect(sharedSource).toContain('resource.title');
@@ -182,7 +205,7 @@ describe('unit 2-1 entry media runtime', () => {
     expect(runtimeSectionsSource).toContain('trackKnowledgeNodeFocus');
     expect(runtimeSectionsSource).toContain('trackResourceOpen');
     expect(runtimeSectionsSource).toContain('trackResourceDownload');
-    expect(unit22Source).toContain('PremiumLessonEntryPage');
-    expect(entryPageSource).toContain('hideHandoutEntry');
+    expect(unit22Source).toContain('CourseEntryShell');
+    expect(courseEntryShellSource).toContain('hideHandoutEntry');
   });
 });

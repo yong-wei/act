@@ -26,10 +26,14 @@ course-content/runtime
 scripts/
 !scripts/
 scripts/*
+!scripts/build-next-with-trace-check.mjs
+!scripts/prune-next-trace-boundary.mjs
 !scripts/wasm/
 !scripts/wasm/**
 !scripts/db/
 !scripts/db/**
+!scripts/lib/
+!scripts/lib/**
 !scripts/workers/
 !scripts/workers/**
 *.tsbuildinfo

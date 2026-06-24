@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Search, BookOpen, Boxes, GitBranch, Presentation } from 'lucide-react';
+import { ArrowLeft, Search, BookOpen, Boxes, GitBranch, Presentation, X, type LucideIcon } from 'lucide-react';
 import { InteractiveResourceList } from './resources/interactive-resource-list';
 import { ClassroomComponentList } from './resources/classroom-component-list';
 import { KnowledgeNodeManager } from './resources/knowledge-node-manager';
@@ -42,7 +42,7 @@ interface TeacherResourceManagerProps {
 
 type TabType = 'interactive' | 'classroom' | 'knowledge';
 
-const TABS: { id: TabType; label: string; icon: React.ElementType }[] = [
+const TABS: { id: TabType; label: string; icon: LucideIcon }[] = [
   { id: 'interactive', label: '互动组件', icon: Boxes },
   { id: 'classroom', label: '课堂组件', icon: Presentation },
   { id: 'knowledge', label: '知识图谱', icon: BookOpen },
@@ -62,9 +62,23 @@ export function TeacherResourceManager({
   const classroomResources = resources.filter(
     (r) => r.category === 'CLASSROOM' || ['STATIC_TEXT', 'STATIC_MEDIA'].includes(r.type)
   );
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const searchableResources = activeTab === 'interactive' ? interactiveResources : activeTab === 'classroom' ? classroomResources : [];
+  const matchingResourceCount = activeTab === 'knowledge'
+    ? knowledgeNodes.filter((node) =>
+      node.name.toLowerCase().includes(normalizedSearch) ||
+      node.description.toLowerCase().includes(normalizedSearch)
+    ).length
+    : searchableResources.filter((resource) => {
+      const displayText = resource.displayName || resource.title;
+      return !normalizedSearch ||
+        displayText.toLowerCase().includes(normalizedSearch) ||
+        (resource.description?.toLowerCase().includes(normalizedSearch) ?? false);
+    }).length;
+  const totalVisibleDomainCount = activeTab === 'knowledge' ? knowledgeNodes.length : searchableResources.length;
 
   return (
-    <main className="mx-auto max-w-[1600px] px-6 py-8">
+    <main className="px-6 py-8">
       {/* 页面标题 */}
       <div className="mb-8">
         <Link
@@ -91,16 +105,36 @@ export function TeacherResourceManager({
 
       {/* 搜索栏 */}
       <div className="mb-6">
-        <div className="relative max-w-md">
+        <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <input
+          <input aria-label="搜索资源..."
             type="text"
             placeholder="搜索资源..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-10 pr-4 text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+            className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-10 pr-10 text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
           />
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-200"
+              aria-label="清除资源搜索"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
         </div>
+        <span className="text-sm text-slate-400" aria-live="polite">
+          显示 {matchingResourceCount} / {totalVisibleDomainCount} 项
+        </span>
+        </div>
+        {searchQuery && matchingResourceCount === 0 ? (
+          <div className="mt-3 rounded-lg border border-dashed border-slate-700 bg-slate-900/40 px-4 py-3 text-sm text-slate-400">
+            未找到匹配“{searchQuery}”的资源。可以清除搜索、切换资源类型，或进入 ResourceNode 管理查看被阻断资源。
+          </div>
+        ) : null}
       </div>
 
       {/* Tabs */}
@@ -109,7 +143,7 @@ export function TeacherResourceManager({
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
-            <button
+            <button type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${

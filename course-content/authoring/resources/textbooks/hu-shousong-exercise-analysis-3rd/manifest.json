@@ -1,0 +1,154 @@
+{
+  "bookId": "hu-shousong-exercise-analysis-3rd",
+  "title": "自动控制原理习题解析",
+  "authors": [
+    "胡寿松"
+  ],
+  "edition": "第三版",
+  "formatVersion": 1,
+  "updatedAt": "2026-06-21T06:45:12+00:00",
+  "storageLayout": {
+    "root": "course-content/authoring/resources/textbooks/hu-shousong-exercise-analysis-3rd/",
+    "bookIndex": "textbook.md",
+    "chapterPattern": "chapter-XX/textbook.md",
+    "chapterAssetPattern": "chapter-XX/assets/<asset-file>"
+  },
+  "source": {
+    "workspace": "DocProcess",
+    "basePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd",
+    "note": "Chapters 1-10 exported from the MathpixPlus pipeline after per-chapter QA passed.",
+    "qaSummary": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/full-book-qa-summary.json"
+  },
+  "chapters": [
+    {
+      "id": "chapter-01",
+      "number": 1,
+      "title": "自动控制的一般概念",
+      "pipeline": "mathpixplus",
+      "textbookPath": "chapter-01/textbook.md",
+      "manifestPath": "chapter-01/manifest.json",
+      "assetsPath": "chapter-01/assets/",
+      "sourcePageCount": 7,
+      "imageCount": 15,
+      "figureDescriptionCount": 15,
+      "markdownSha256": "8ec43b23f2f780f34e8d62494ae7c760ab4650f3c7e35c7b5be72d49520818fa"
+    },
+    {
+      "id": "chapter-02",
+      "number": 2,
+      "title": "控制系统的数学模型",
+      "pipeline": "mathpixplus",
+      "textbookPath": "chapter-02/textbook.md",
+      "manifestPath": "chapter-02/manifest.json",
+      "assetsPath": "chapter-02/assets/",
+      "sourcePageCount": 30,
+      "imageCount": 66,
+      "figureDescriptionCount": 66,
+      "markdownSha256": "701ecc350b5734213c2fb1ca9827e5c22330d8eba2a439ce071f3f197de72b56"
+    },
+    {
+      "id": "chapter-03",
+      "number": 3,
+      "title": "线性系统的时域分析法",
+      "pipeline": "mathpixplus",
+      "textbookPath": "chapter-03/textbook.md",
+      "manifestPath": "chapter-03/manifest.json",
+      "assetsPath": "chapter-03/assets/",
+      "sourcePageCount": 45,
+      "imageCount": 58,
+      "figureDescriptionCount": 57,
+      "markdownSha256": "979d806ddb1df23a795409c0ff0c34d9efb90c2f2af824ec8f39499246d85482"
+    },
+    {
+      "id": "chapter-04",
+      "number": 4,
+      "title": "线性系统的根轨迹法",
+      "pipeline": "mathpixplus",
+      "textbookPath": "chapter-04/textbook.md",
+      "manifestPath": "chapter-04/manifest.json",
+      "assetsPath": "chapter-04/assets/",
+      "sourcePageCount": 51,
+      "imageCount": 97,
+      "figureDescriptionCount": 95,
+      "markdownSha256": "00aa4e4ea3335b88c8f3cd8fe32f3629bcc20ed5219cb1cd37221e214aabb103"
+    },
+    {
+      "id": "chapter-05",
+      "number": 5,
+      "title": "线性系统的频域分析法",
+      "pipeline": "mathpixplus",
+      "textbookPath": "chapter-05/textbook.md",
+      "manifestPath": "chapter-05/manifest.json",
+      "assetsPath": "chapter-05/assets/",
+      "sourcePageCount": 43,
+      "imageCount": 53,
+      "figureDescriptionCount": 52,
+      "markdownSha256": "8c869510f2fc86ac22022c3ef1315c154404c464fd090adead0475767281e2a3"
+    },
+    {
+      "id": "chapter-06",
+      "number": 6,
+      "title": "线性系统的校正方法",
+      "pipeline": "mathpixplus",
+      "textbookPath": "chapter-06/textbook.md",
+      "manifestPath": "chapter-06/manifest.json",
+      "assetsPath": "chapter-06/assets/",
+      "sourcePageCount": 42,
+      "imageCount": 71,
+      "figureDescriptionCount": 70,
+      "markdownSha256": "1e2682782a842515b50f58743f8030477f827f274f2289107591da32515867cf"
+    },
+    {
+      "id": "chapter-07",
+      "number": 7,
+      "title": "线性离散系统的分析与校正",
+      "pipeline": "mathpixplus",
+      "textbookPath": "chapter-07/textbook.md",
+      "manifestPath": "chapter-07/manifest.json",
+      "assetsPath": "chapter-07/assets/",
+      "sourcePageCount": 36,
+      "imageCount": 36,
+      "figureDescriptionCount": 36,
+      "markdownSha256": "f5fe322d93ad47312005d9655def253f07f123753c4e96eff369a3c213e92b44"
+    },
+    {
+      "id": "chapter-08",
+      "number": 8,
+      "title": "非线性控制系统分析",
+      "pipeline": "mathpixplus",
+      "textbookPath": "chapter-08/textbook.md",
+      "manifestPath": "chapter-08/manifest.json",
+      "assetsPath": "chapter-08/assets/",
+      "sourcePageCount": 43,
+      "imageCount": 82,
+      "figureDescriptionCount": 81,
+      "markdownSha256": "575cbe766c540c04412a35b0bf11dc9f13959854679dc63c9642dc98c480a037"
+    },
+    {
+      "id": "chapter-09",
+      "number": 9,
+      "title": "线性系统的状态空间分析与综合",
+      "pipeline": "mathpixplus",
+      "textbookPath": "chapter-09/textbook.md",
+      "manifestPath": "chapter-09/manifest.json",
+      "assetsPath": "chapter-09/assets/",
+      "sourcePageCount": 58,
+      "imageCount": 30,
+      "figureDescriptionCount": 30,
+      "markdownSha256": "6f9160c310f16080c3fdbbbcee4f2469c368b1e4865c51a93f955875057998db"
+    },
+    {
+      "id": "chapter-10",
+      "number": 10,
+      "title": "动态系统的最优控制方法",
+      "pipeline": "mathpixplus",
+      "textbookPath": "chapter-10/textbook.md",
+      "manifestPath": "chapter-10/manifest.json",
+      "assetsPath": "chapter-10/assets/",
+      "sourcePageCount": 35,
+      "imageCount": 27,
+      "figureDescriptionCount": 27,
+      "markdownSha256": "7da9cca7bf85bd047fb1ab733890ceae900a233999d86f69902e065c088b3da9"
+    }
+  ]
+}

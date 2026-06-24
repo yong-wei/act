@@ -2,21 +2,21 @@
 
 状态: active
 最后更新: 2026-04-16
-摘要: 记录作者态互动课程设计从 `lesson` 技能中独立拆分后的稳定边界，明确 `lesson / interactive-design / interactive-lesson-implementation` 三者的职责划分与切换时机，避免后续再次把互动设计规则、实现规则和课程正文规则混写在同一个技能里。
+摘要: 记录作者态互动课程设计从 `lesson` 技能中独立拆分后的稳定边界，明确 `lesson / interactive-design / interactive-lesson` 三者的职责划分与切换时机，避免后续再次把互动设计规则、实现规则和课程正文规则混写在同一个技能里。
 上游:
 - [00-index.md](00-index.md)
 下游: []
 相关:
-- [../../.codex/skills/lesson/SKILL.md](../../../.codex/skills/lesson/SKILL.md)
-- [../../.codex/skills/interactive-design/SKILL.md](../../../.codex/skills/interactive-design/SKILL.md)
-- [../../.codex/skills/interactive-lesson-implementation/SKILL.md](../../../.codex/skills/interactive-lesson-implementation/SKILL.md)
+- [../../.agents/skills/lesson/SKILL.md](../../../.agents/skills/lesson/SKILL.md)
+- [../../.agents/skills/interactive-design/SKILL.md](../../../.agents/skills/interactive-design/SKILL.md)
+- [../../.agents/skills/interactive-lesson/SKILL.md](../../../.agents/skills/interactive-lesson/SKILL.md)
 - [../../AGENTS.md](../../../AGENTS.md)
 
 ## 结论
 
 - `lesson` 只负责讲义、知识图谱/知识卡片、BOPPPS 与多媒体。
 - `interactive-design` 只负责作者态双轨互动设计：`interactive-page.md` 与 `interactive-contract.yaml`。
-- `interactive-lesson-implementation` 只负责把双轨设计落成课堂代码与 runtime 行为。
+- `interactive-lesson` 只负责把双轨设计落成课堂代码与 runtime 行为。
 
 ## 为什么要拆
 
@@ -61,7 +61,7 @@
 - `curve-interaction-panels.md`
 - `page-sequence-and-activity-controls.md`
 
-### `interactive-lesson-implementation`
+### `interactive-lesson`
 
 适用：
 
@@ -82,10 +82,10 @@
 
 - 用户要写讲义、教案、知识图谱或多媒体：进入 `lesson`
 - 用户要写 `interactive-page.md` / `interactive-contract.yaml`：进入 `interactive-design`
-- 用户要把设计稿实现成前端课堂：进入 `interactive-lesson-implementation`
+- 用户要把设计稿实现成前端课堂：进入 `interactive-lesson`
 - 若实现阶段发现缺的是例题显影节奏、作答卡粒度、浏览权限或图文顺序，先退回 `interactive-design`，不要在实现阶段自行发明默认规则
 
 ## 兼容处理
 
-- `/.codex/skills/lesson/references/step6-interactive-page.md` 已改为迁移提示页，用于兼容历史链接。
-- `AGENTS.md` 已把项目专用技能清单更新为 `interactive-design + interactive-lesson-implementation + lesson` 的三层结构。
+- `/.agents/skills/lesson/references/step6-interactive-page.md` 已改为迁移提示页，用于兼容历史链接。
+- `AGENTS.md` 已把项目专用技能清单更新为 `interactive-design + interactive-lesson + lesson` 的三层结构。

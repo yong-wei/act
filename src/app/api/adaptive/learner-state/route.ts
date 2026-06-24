@@ -30,6 +30,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const requestedUserId = url.searchParams.get('userId') || session.user.id;
     const classId = url.searchParams.get('classId');
+    const goal = normalizeGoal(url.searchParams.get('goal'));
     const role = normalizeRole(session.user.role);
 
     if (role === 'student' && requestedUserId !== session.user.id) {
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
       userId: requestedUserId,
       role,
       classId,
+      goal,
     });
 
     return NextResponse.json(learnerState);
@@ -65,6 +67,10 @@ function normalizeRole(role: string | undefined): AdaptiveLearnerStateRole {
   if (role === 'ADMIN') return 'admin';
   if (role === 'TEACHER') return 'teacher';
   return 'student';
+}
+
+function normalizeGoal(goal: string | null): string | null {
+  return typeof goal === 'string' && goal.trim().length > 0 ? goal.trim() : null;
 }
 
 async function verifyTeacherStudentScope(input: {

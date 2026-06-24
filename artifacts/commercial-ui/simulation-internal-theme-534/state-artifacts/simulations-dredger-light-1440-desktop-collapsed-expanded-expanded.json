@@ -1,0 +1,18 @@
+{
+  "route": "/simulations/dredger",
+  "theme": "light",
+  "width": 1440,
+  "navigationState": "desktop-collapsed",
+  "dockState": "expanded",
+  "localToolState": "expanded",
+  "primarySceneNonblank": true,
+  "instrumentAreaNonblank": true,
+  "collisionEvidence": {
+    "dockAndLocalToolsObservedTogether": true,
+    "dockObservedExpanded": true,
+    "localToolsObservedExpanded": true,
+    "localControlCollisionFree": true
+  },
+  "screenshot": "artifacts/commercial-ui/simulation-internal-theme-534/simulations-dredger-light-1440-desktop-collapsed-expanded-expanded.png",
+  "result": "passed"
+}

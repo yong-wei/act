@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import type { ReactElement } from 'react';
 import { CheckCircle2, XCircle, RotateCcw, ChevronRight } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -79,7 +80,7 @@ const QUIZ_ITEMS: QuizItem[] = [
   },
 ];
 
-const CHARTS: Record<string, JSX.Element> = {
+const CHARTS: Record<string, ReactElement> = {
   lowpass: (
     <svg viewBox="0 0 320 160" className="h-32 w-full">
       <rect width="320" height="160" rx="12" fill="#0f172a" />
@@ -230,7 +231,7 @@ export default function BodePlotRecognition({ onComplete, onStateChange }: BodeP
             const isCorrect = checked && option.id === current.answerId;
             const isWrong = checked && isSelected && option.id !== current.answerId;
             return (
-              <button
+              <button type="button"
                 key={option.id}
                 onClick={() => !checked && setSelected(option.id)}
                 className={`flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-colors ${
@@ -257,7 +258,7 @@ export default function BodePlotRecognition({ onComplete, onStateChange }: BodeP
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button
+          <button type="button"
             onClick={handleReset}
             className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-xs text-slate-500 hover:text-slate-700"
           >
@@ -266,13 +267,13 @@ export default function BodePlotRecognition({ onComplete, onStateChange }: BodeP
           </button>
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-500">当前得分 {score}/{QUIZ_ITEMS.length}</span>
-            <button
+            <button type="button"
               onClick={handleCheck}
               className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs text-white"
             >
               检查
             </button>
-            <button
+            <button type="button"
               onClick={handleNext}
               className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${
                 checked && !isLast

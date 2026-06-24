@@ -12,16 +12,16 @@ function exists(relativePath) {
   return fs.existsSync(path.join(root, relativePath));
 }
 
-const skillPath = '.codex/skills/interactive-lesson-implementation/SKILL.md';
-const designSkillPath = '.codex/skills/interactive-design/SKILL.md';
+const skillPath = '.agents/skills/interactive-lesson/SKILL.md';
+const designSkillPath = '.agents/skills/interactive-design/SKILL.md';
 const teacherSpecPath =
-  '.codex/skills/interactive-lesson-implementation/references/browser-validation-teacher-subagent.md';
+  '.agents/skills/interactive-lesson/references/browser-validation-teacher-subagent.md';
 const studentSpecPath =
-  '.codex/skills/interactive-lesson-implementation/references/browser-validation-student-subagent.md';
+  '.agents/skills/interactive-lesson/references/browser-validation-student-subagent.md';
 const entryPatternPath =
-  '.codex/skills/interactive-lesson-implementation/references/runtime-entry-page-pattern.md';
+  '.agents/skills/interactive-lesson/references/runtime-entry-page-pattern.md';
 const mediaIndexContractPath =
-  '.codex/skills/interactive-lesson-implementation/references/runtime-media-index-contract.md';
+  '.agents/skills/interactive-lesson/references/runtime-media-index-contract.md';
 
 const skill = read(skillPath);
 const designSkill = read(designSkillPath);
@@ -120,7 +120,7 @@ assert.equal(
     skill.includes('标题模块文案中注明考察内容') &&
     skill.includes('标题模块后直接进入教师控制、作答题组或其他真实互动模块'),
   true,
-  'interactive-lesson-implementation 技能应明确前测页不设置单独范围模块',
+  'interactive-lesson 技能应明确前测页不设置单独范围模块',
 );
 
 console.log('interactive lesson skill rules test passed');

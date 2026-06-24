@@ -35,7 +35,7 @@ export function CaseLibrary({ cases }: CaseLibraryProps) {
           历史深渊案例库
         </h3>
         <div className="flex items-center gap-2">
-          <button
+          <button type="button"
             onClick={handlePrev}
             className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-700 hover:text-slate-200"
           >
@@ -44,7 +44,7 @@ export function CaseLibrary({ cases }: CaseLibraryProps) {
           <span className="text-xs text-slate-500">
             {currentIndex + 1} / {cases.length}
           </span>
-          <button
+          <button type="button"
             onClick={handleNext}
             className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-700 hover:text-slate-200"
           >
@@ -91,7 +91,8 @@ export function CaseLibrary({ cases }: CaseLibraryProps) {
       {/* 指示器 */}
       <div className="mt-3 flex justify-center gap-1.5">
         {cases.map((_, index) => (
-          <button
+          <button type="button"
+            aria-label={`查看案例 ${index + 1}`}
             key={index}
             onClick={() => setCurrentIndex(index)}
             className={`h-1.5 rounded-full transition-all ${

@@ -12,9 +12,14 @@ import {
   type ArenaResolvedSubmissionContext,
 } from '@/features/arena/teacher/publication-store';
 import { getServerAuthSession } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
+
+async function getPrismaClient() {
+  const { prisma } = await import('@/lib/prisma');
+  return prisma;
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -41,6 +46,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Only students can view Arena publication submissions' }, { status: 403 });
     }
     try {
+      const prisma = await getPrismaClient();
       publicationContext = await resolveAccessibleArenaPublicationForStudent(prisma as any, {
         publicationId,
         studentId: session.user.id,
@@ -49,6 +55,7 @@ export async function GET(request: Request) {
         allowAfterDeadline: true,
       });
     } catch (error) {
+      rethrowIfNextDynamicError(error);
       if (error instanceof ArenaPublicationAccessError) {
         return NextResponse.json({ error: error.message }, { status: 403 });
       }
@@ -70,8 +77,11 @@ export async function GET(request: Request) {
           .filter((id): id is string => typeof id === 'string'),
       ),
     );
+  const prisma = submissionPublicationIds.length > 0
+    ? await getPrismaClient()
+    : null;
   const publicationRows = submissionPublicationIds.length > 0
-    ? await prisma.arenaChallengePublication.findMany({
+    ? await prisma!.arenaChallengePublication.findMany({
       where: { id: { in: submissionPublicationIds } },
       select: { id: true, deadline: true, gradingPolicy: true },
     })

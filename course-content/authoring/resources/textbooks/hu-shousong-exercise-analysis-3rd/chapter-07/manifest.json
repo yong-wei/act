@@ -1,0 +1,380 @@
+{
+  "id": "chapter-07",
+  "number": 7,
+  "title": "线性离散系统的分析与校正",
+  "pipeline": "mathpixplus",
+  "textbookPath": "textbook.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/chapter-07.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/chapter-07.qa.json",
+  "sourcePageStart": 224,
+  "sourcePageEnd": 259,
+  "sourcePageCount": 36,
+  "imageCount": 36,
+  "figureDescriptionCount": 36,
+  "markdownSha256": "f5fe322d93ad47312005d9655def253f07f123753c4e96eff369a3c213e92b44",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/chapter-07.local.md.images.json",
+  "sourceImageManifestCount": 36,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0231-01-300dpi.png",
+      "exportPath": "assets/fig-07-61.png",
+      "originalRelativePath": "assets/mathpix-source-page-0231-01-300dpi.png",
+      "caption": "图 7－61 开环离散系统结构图",
+      "sourcePdfPage": 231,
+      "sha256": "d8b8c9a4c12084d5da0f24fcf54a7edeac4a51698d6751fdc54ce7a066baa12c",
+      "bytes": 63282
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0232-01-300dpi.png",
+      "exportPath": "assets/fig-07-62.png",
+      "originalRelativePath": "assets/mathpix-source-page-0232-01-300dpi.png",
+      "caption": "图7－62 闭环离散系统结构图",
+      "sourcePdfPage": 232,
+      "sha256": "57eb8977a6fc6d2fe3927f3a8df6b532df72c3fa901f46f20fb9be3b9a5fd61d",
+      "bytes": 234006
+    },
+    {
+      "index": 3,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0233-01-300dpi.png",
+      "exportPath": "assets/fig-07-12-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0233-01-300dpi.png",
+      "caption": "> Image description: A block diagram of a discrete-time control system is shown in Figure 7-12-1 (图 7－12－1 离散系统结构图). The signal flow begins with an input variable $r(t)$ entering a summing junction. A feedback loop returns the output signal $c(t)$ to this junction, where it is subtracted from the input. Following the summing junction, the error signal passes through a sampler denoted by a switch symbol and the label $T$, representing the sampling period. The sampled signal then enters a transfer function block defined as $\\frac{1}{s^2(s+5)}$. The output of this block is the system output $c(t)$, which is both the final output of the process and the source for the unity feedback loop. Arrows indicate the unidirectional flow of signals from left to right, with one return path completing the closed-loop architecture. 图 7－12－1 离散系统结构图 离散系统的结构图如图 7－12－1 所示。",
+      "sourcePdfPage": 233,
+      "sha256": "991b7b11143524cbd2d181dd8f046bf283f32460074984b23b656ded710520c4",
+      "bytes": 29737
+    },
+    {
+      "index": 4,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0234-01-300dpi.png",
+      "exportPath": "assets/fig-07-12-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0234-01-300dpi.png",
+      "caption": "图 7－12－2 闭环离散系统时间响应（ $T=1 \\mathrm{~s}$ ，MATLAB）",
+      "sourcePdfPage": 234,
+      "sha256": "27fd4b48d5272041645ed4eae23273ffe8ca7b99f2146991d83a80dee2ca1112",
+      "bytes": 242182
+    },
+    {
+      "index": 5,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0236-01-300dpi.png",
+      "exportPath": "assets/fig-07-13-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0236-01-300dpi.png",
+      "caption": "图 7－13－1 离散系统（3）单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 236,
+      "sha256": "cd2f87b53d427cfbc00c6999f81bf6443d7443d3659cebc3815775f59db12341",
+      "bytes": 207123
+    },
+    {
+      "index": 6,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0236-02-300dpi.png",
+      "exportPath": "assets/fig-07-63.png",
+      "originalRelativePath": "assets/mathpix-source-page-0236-02-300dpi.png",
+      "caption": "图 7－63 离散系统结构图",
+      "sourcePdfPage": 236,
+      "sha256": "4b9ba476a99fe651483659ca0d81cceacfeee43f9e48e3d88187ea94d9326a1c",
+      "bytes": 49770
+    },
+    {
+      "index": 7,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0237-01-300dpi.png",
+      "exportPath": "assets/fig-07-14-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0237-01-300dpi.png",
+      "caption": "图 7－14－1 离散系统时间响应（ $K=5$ ．MATLAB）",
+      "sourcePdfPage": 237,
+      "sha256": "68cb470e21d2a899b913983054057792adb2e6b6989a5bb7590884c01c2198fc",
+      "bytes": 182820
+    },
+    {
+      "index": 8,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0237-02-300dpi.png",
+      "exportPath": "assets/fig-07-14-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0237-02-300dpi.png",
+      "caption": "> Image description: The image displays a plot of the time response for a discrete system, as indicated by the caption \"图 7-14-1 离散系统时间响应 ($K=5$, MATLAB)\". The graph features a horizontal x-axis labeled \"Time/sec\" ranging from 0 to 10 seconds and a vertical y-axis labeled \"$c^*(t)$\" with values ranging from 0 to 1.4. The plotted signal is a piecewise constant function, appearing as a series of steps (a staircase waveform). The value remains at 0 until $t=1$ second, where it jumps to approximately 1.2. It then fluctuates between roughly 0.9 and 1.25 in discrete intervals before stabilizing near a value of 1.0 from $t=7$ seconds onward. This representation typically illustrates the set-point or desired reference signal for a control system over time, showing how the target variable changes in discrete steps. 图 7－14－2 离散系统时间响应（ $K=1.5$ ．MATLAB）",
+      "sourcePdfPage": 237,
+      "sha256": "524f3b92e5d29805ce17e54dc9d15e4cac44d789e7a4be3a800a089c1a87c816",
+      "bytes": 183186
+    },
+    {
+      "index": 9,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0238-01-300dpi.png",
+      "exportPath": "assets/fig-07-64.png",
+      "originalRelativePath": "assets/mathpix-source-page-0238-01-300dpi.png",
+      "caption": "图 7－64 闭环离散系统结构图 将系统简化为如图 7－15－1 所示结构。",
+      "sourcePdfPage": 238,
+      "sha256": "c71b57ddf4eceb4cdd7494719ba6b0dba703ef670cc82f096c42876b09bcd4a6",
+      "bytes": 62129
+    },
+    {
+      "index": 10,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0238-02-300dpi.png",
+      "exportPath": "assets/fig-07-15-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0238-02-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled \"图 7-15-1 系统简化结构图.\" The diagram illustrates a closed-loop feedback system using standard engineering notation. The process begins with an input signal $r(t)$ entering a summing junction (represented by a circle). This junction subtracts a feedback signal from the input to produce an error signal $e(t)$. A symbol indicating a switch or discontinuity follows, leading to a modified error signal $e^*(t)$. This signal enters a forward-path block labeled $G(s)$, which outputs the controlled variable $c(t)$. The output $c(t)$ is then fed back through a feedback-path block labeled $H(s)$, returning to the summing junction with a negative sign. Arrows indicate the unidirectional flow of signals throughout the loop, representing the relationship between the reference input, system dynamics, and feedback mechanism in the Laplace domain ($s$). 图 7－15－1 系统简化结构图",
+      "sourcePdfPage": 238,
+      "sha256": "4a70e5470aaee7652d21ea55f36497bdce23c470f3304b8bb4f410dfa65c52d8",
+      "bytes": 40375
+    },
+    {
+      "index": 11,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0239-01-300dpi.png",
+      "exportPath": "assets/fig-07-65.png",
+      "originalRelativePath": "assets/mathpix-source-page-0239-01-300dpi.png",
+      "caption": "> Image description: This image is a block diagram of a closed-loop discrete system, captioned as \"图7－65 闭环离散系统结构图\". The signal flow begins with an input variable $r(t)$ entering a summing junction. The output of this junction, the error signal $e(t)$, passes through a sampler with period $T$, resulting in the sampled signal $e^*(t)$. This signal enters a block defined by the transfer function $\\frac{1-e^{-sT}}{s}$, which is then followed by a second block with the transfer function $\\frac{K}{s(s+1)}$. The final output of the system is labeled as $c(t)$. A feedback loop connects the output $c(t)$ back to the summing junction, where it is subtracted from the input $r(t)$, indicated by a minus sign. Arrows indicate a unidirectional flow from left to right through the forward path and from right to left via the unity feedback path. 图7－65 闭环离散系统结构图",
+      "sourcePdfPage": 239,
+      "sha256": "dffe7e278e333e67f362153c3fe6a723eebf530c550898283366150aaac2a29c",
+      "bytes": 44053
+    },
+    {
+      "index": 12,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0239-02-300dpi.png",
+      "exportPath": "assets/fig-07-16-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0239-02-300dpi.png",
+      "caption": "图 7－16－1 离散系统单位斜坡响应（MATLAB）",
+      "sourcePdfPage": 239,
+      "sha256": "9e5a2f716d4e612e8ae818dd5751592730f7584b43987a21151462ee336d9809",
+      "bytes": 258481
+    },
+    {
+      "index": 13,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0240-01-300dpi.png",
+      "exportPath": "assets/fig-07-66.png",
+      "originalRelativePath": "assets/mathpix-source-page-0240-01-300dpi.png",
+      "caption": "图7－66 闭环离散系统结构图",
+      "sourcePdfPage": 240,
+      "sha256": "bd544a12638f33f9b91299abc26723f1a926e083838b57a98cf82064f0464dc7",
+      "bytes": 43297
+    },
+    {
+      "index": 14,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0241-01-300dpi.png",
+      "exportPath": "assets/fig-07-17-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0241-01-300dpi.png",
+      "caption": "图 7－17－2 离散系统误差输出响应（ $K=2.4$ ，MATLAB）",
+      "sourcePdfPage": 241,
+      "sha256": "62b184b57fa41e829111e0196f0c80a1d1922856acf1c4eef826bb4c9b18d6cf",
+      "bytes": 201304
+    },
+    {
+      "index": 15,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0241-02-300dpi.png",
+      "exportPath": "assets/fig-07-17-02-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0241-02-300dpi.png",
+      "caption": "> Image description: The image shows a plot of the error output response for a discrete system, as indicated by the caption \"图 7-17-2 离散系统误差输出响应 ($K=2.4$, MATLAB)\". The graph features a vertical y-axis labeled $e(t)$ and a horizontal x-axis labeled $t$. The plot displays a damped oscillatory signal starting at approximately $t=0$ with an initial amplitude peaking around 2.2 and dipping to -1.3. As time $t$ increases from 0 toward 140, the oscillations decrease in magnitude, gradually converging toward a steady-state value of approximately 0.4. The grid lines help quantify the decay over time. In engineering terms, this represents the transient response of a system's error signal, showing how it oscillates and eventually stabilizes as it approaches a final value under the specific gain parameter $K=2.4$.",
+      "sourcePdfPage": 241,
+      "sha256": "a3ee1c35d3ce109588c1926dadd178c4bfba1652499d7437dc680f31982680b4",
+      "bytes": 208176
+    },
+    {
+      "index": 16,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0242-01-300dpi.png",
+      "exportPath": "assets/fig-07-18-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0242-01-300dpi.png",
+      "caption": "图7－18－1 图7－64 系统的单位阶跃响应（MATLAB） \\％图 7－64",
+      "sourcePdfPage": 242,
+      "sha256": "951d52c6352ee56f21bf6d98fbca4f63d7e04113b40a8f82f44df19d0a563392",
+      "bytes": 203480
+    },
+    {
+      "index": 17,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0243-01-300dpi.png",
+      "exportPath": "assets/fig-07-18-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0243-01-300dpi.png",
+      "caption": "图7－18－2 图7－65系统的单位阶跃响应（MATLAB） \\％图 7－65",
+      "sourcePdfPage": 243,
+      "sha256": "3f039ac6cfdbfee94d41ef3c6c4efea9d8cce750555cc55e5e72b16bf556bdaf",
+      "bytes": 251227
+    },
+    {
+      "index": 18,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0244-01-300dpi.png",
+      "exportPath": "assets/fig-07-67.png",
+      "originalRelativePath": "assets/mathpix-source-page-0244-01-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled \"图 7-67 离散系统结构图,\" representing a discrete-time control system structure. The signal flow begins with an input variable $r(t)$ entering a summing junction. A feedback loop returns the output signal $c(t)$ to this junction, where it is subtracted from $r(t)$. The resulting error signal passes through a sampler (indicated by a switch symbol and the period $T$) to become the discrete-time signal $E_1(z)$. This signal enters a controller block labeled $D(z)$. The output of this block then passes through another sampler with period $T$, converting it into the discrete-time signal $E_2(z)$. Finally, $E_2(z)$ enters a plant or process block represented by the continuous-time transfer function $G_0(s)$, which produces the final system output $c(t)$. The diagram illustrates the interaction between discrete controllers and continuous plants. 图 7－67 离散系统结构图",
+      "sourcePdfPage": 244,
+      "sha256": "3487507bcc24fda2681c5340b2b86a155fb563696771ae4d9b4a6022b5e9ea45",
+      "bytes": 44787
+    },
+    {
+      "index": 19,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0244-02-300dpi.png",
+      "exportPath": "assets/fig-07-19-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0244-02-300dpi.png",
+      "caption": "图 7－19－1 一拍系统单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 244,
+      "sha256": "061ce4bb09e1e1b3689135d6e6ed0fbb0016bab6e73e3cbb55e17469abdbaf21",
+      "bytes": 192657
+    },
+    {
+      "index": 20,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0244-03-300dpi.png",
+      "exportPath": "assets/fig-07-68.png",
+      "originalRelativePath": "assets/mathpix-source-page-0244-03-300dpi.png",
+      "caption": "图 7－68 离散系统结构图",
+      "sourcePdfPage": 244,
+      "sha256": "67e80e3e4aa14714076afd15dca4cd77b95fa7cc8b197bc6102d30921615dd27",
+      "bytes": 49439
+    },
+    {
+      "index": 21,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0245-01-300dpi.png",
+      "exportPath": "assets/fig-07-20-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0245-01-300dpi.png",
+      "caption": "图 7－20－1 $r(t)=1(t)+t$ 时二拍系统的时间响应（MATLAB）",
+      "sourcePdfPage": 245,
+      "sha256": "57fe41b7b3896a478d5c165281c40c8d615da702b4f3efcaf80275d151847257",
+      "bytes": 208392
+    },
+    {
+      "index": 22,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0247-01-300dpi.png",
+      "exportPath": "assets/fig-07-69.png",
+      "originalRelativePath": "assets/mathpix-source-page-0247-01-300dpi.png",
+      "caption": "> Image description: The provided image is a technical schematic titled \"图 7-69 足球场上的移动摄像机示意图\" (Figure 7-69 Schematic of a mobile camera on a football field). The diagram illustrates an engineering setup for a cable-driven camera system. A central camera, labeled as \"摄像机,\" is suspended beneath a network of cables. These cables extend outward and are anchored to four vertical support posts positioned at the corners of a rectangular base. At the base of each post, there are components identified by a label and leader lines as \"电机和滑轮\" (motors and pulleys). The engineering meaning of this setup is a cable-robot system where synchronized motors and pulleys manipulate the tension and length of the cables to move the camera precisely across a two-dimensional plane above the field. The relationship between the motors at the perimeter and the central camera allows for controlled, multi-directional movement. 图 7－69 足球场上的移动摄像机示意图",
+      "sourcePdfPage": 247,
+      "sha256": "a2b64f50544755106da1436b105776b5f3141af88c0d2bd647287c7b755cc7eb",
+      "bytes": 151284
+    },
+    {
+      "index": 23,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0247-02-300dpi.png",
+      "exportPath": "assets/fig-07-70.png",
+      "originalRelativePath": "assets/mathpix-source-page-0247-02-300dpi.png",
+      "caption": "> Image description: This figure is a control system block diagram representing the structure of a motor control system on a pulley (as indicated by the caption \"图7-70 滑轮上的电机控制系统结构图\"). The signal flow begins with an input variable $r(t)$ entering a summing junction. The output of this junction passes through a sampler with period $T$ into a digital controller block labeled $D(z)$. The signal then exits the digital block, passes through another sampler with period $T$, and enters a continuous-time plant consisting of two sequential blocks: $G_h(s)$ followed by $G_0(s)$. The final output variable is $c(t)$. A feedback loop connects the output $c(t)$ back to the summing junction with a negative sign, indicating a closed-loop negative feedback system. The diagram illustrates a mixed-signal control architecture where a digital controller $D(z)$ manages a continuous-time process defined by transfer functions in the s-domain. 图7－70 滑轮上的电机控制系统结构图",
+      "sourcePdfPage": 247,
+      "sha256": "d4df932d4052ad842600ad4f32cfd1411992cb752c57afcce6ab767f7dc2a019",
+      "bytes": 46042
+    },
+    {
+      "index": 24,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0248-01-300dpi.png",
+      "exportPath": "assets/fig-07-22-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0248-01-300dpi.png",
+      "caption": "> Image description: This image presents a Bode diagram of a continuous open-loop system generated in MATLAB, as indicated by the caption \"图7－22－1 连续系统开环 Bode 图（MATLAB）\". The figure consists of two vertically stacked plots sharing a common logarithmic horizontal axis representing angular frequency $\\omega$ in radians per second ($\\text{rad/s}$), ranging from $10^{-1}$ to $10^3$. The top plot is the magnitude plot, with the vertical axis labeled $20\\lg G/\\text{dB}$. The curve starts above $0\\text{ dB}$ at low frequencies and slopes downward linearly as frequency increases, crossing $0\\text{ dB}$ near $\\omega = 1\\text{ rad/s}$ and reaching approximately $-150\\text{ dB}$ at $10^3\\text{ rad/s}$. The bottom plot is the phase plot, with the vertical axis labeled $\\varphi/\\text{deg}$. The phase starts at $-90^\\circ$, decreases steadily through $-180^\\circ$ around $\\omega = 7\\text{--}8\\text{ rad/s}$, and asymptotically approaches $-270^\\circ$ at high frequencies. 图7－22－1 连续系统开环 Bode 图（MATLAB）",
+      "sourcePdfPage": 248,
+      "sha256": "ff7cb2db8b71018198c3b6a2b339f926804223afb130e34ad142e79299b2ec2a",
+      "bytes": 423720
+    },
+    {
+      "index": 25,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0248-02-300dpi.png",
+      "exportPath": "assets/fig-07-22-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0248-02-300dpi.png",
+      "caption": "图7－22－2 已校正离散系统时间响应 （ $T=0.001$ ，MATLAB） 图 7－22－2 给出了已校正离散系统单位阶跃响应，测得系统时域性能 $\\sigma \\%=0, t_{s}=7.61 \\mathrm{~s}$ （ $\\Delta=2 \\%$ ）。",
+      "sourcePdfPage": 248,
+      "sha256": "a0338f893d0169ddc987815fe1225dbf9843c46330c81357e811e5576f1adc2a",
+      "bytes": 183770
+    },
+    {
+      "index": 26,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0248-03-300dpi.png",
+      "exportPath": "assets/fig-07-71.png",
+      "originalRelativePath": "assets/mathpix-source-page-0248-03-300dpi.png",
+      "caption": "> Image description: This figure is a block diagram of a digital control system, labeled as \"图 7-71 数字控制系统结构图.\" The signal flow begins with an input variable $r(t)$ entering a summing junction. A feedback loop connects the output $c(t)$ back to this junction, where it is subtracted from the input. The resulting error signal passes through a sampler (indicated by a switch and the period $T$) before entering a digital controller block denoted as $D(z)$. The output of $D(z)$ then passes through another sampler with period $T$ before entering a plant or process block denoted as $G(z)$. The final output of the system is $c(t)$. Arrows indicate the unidirectional flow of signals from left to right, with a return path for feedback. In engineering terms, this represents a closed-loop discrete-time control system where digital processing occurs between two sampling stages. 图 7－71 数字控制系统结构图",
+      "sourcePdfPage": 248,
+      "sha256": "922a874dc99db1f41c21cdcd2fbdcc5b1b5ff6d4ca2533e1780c1aa38fa938a6",
+      "bytes": 34036
+    },
+    {
+      "index": 27,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0250-01-300dpi.png",
+      "exportPath": "assets/fig-07-23-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0250-01-300dpi.png",
+      "caption": "图7－23－1 数字控制系统的单位阶跃响应（ $K=75, T=0.1$ ，MATLAB）",
+      "sourcePdfPage": 250,
+      "sha256": "71ee8ea5c5117356047ec9ce1fa0525119ed27a882fa2a8a0dcb82178b9f08a5",
+      "bytes": 129115
+    },
+    {
+      "index": 28,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0250-02-300dpi.png",
+      "exportPath": "assets/fig-07-23-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0250-02-300dpi.png",
+      "caption": "图7－23－2 数字控制系统的单位阶跃响应（ $K=119.5, T=0.1$ ，MATLAB） 7－24设连续的、未经采样的控制系统如图 7－72 所示，其中被控对象为",
+      "sourcePdfPage": 250,
+      "sha256": "af376d3cf4a5af1af45f392814d68281b09ad2de810ea4edde8dc1e182eecd81",
+      "bytes": 137532
+    },
+    {
+      "index": 29,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0251-01-300dpi.png",
+      "exportPath": "assets/fig-07-72.png",
+      "originalRelativePath": "assets/mathpix-source-page-0251-01-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled as \"图7-72 控制系统结构图.\" The diagram illustrates a closed-loop feedback system. On the left, an input signal $r(t)$ enters a summing junction (represented by a circle). A negative feedback loop returns from the output $c(t)$ to this junction. The resulting error signal, labeled $e(t)$, serves as the input to the first functional block, $G_c(s)$. The signal then flows through a series of two blocks: the controller $G_c(s)$ followed by the plant or process $G_0(s)$. Arrows indicate the unidirectional flow of signals from left to right. The final output of the system is denoted as $c(t)$. In engineering terms, this represents a standard unity feedback control architecture where the difference between the reference input and the actual output is processed by a compensator and a plant to regulate the system's behavior. 图7－72 控制系统结构图",
+      "sourcePdfPage": 251,
+      "sha256": "dc8a06e9ae5697425bbe0ff2d8940a37d5b0cc6f328b157eadad4e24a26bfa57",
+      "bytes": 30040
+    },
+    {
+      "index": 30,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0253-01-300dpi.png",
+      "exportPath": "assets/fig-07-24-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0253-01-300dpi.png",
+      "caption": "图7－24－1 系统单位阶跃响应曲线",
+      "sourcePdfPage": 253,
+      "sha256": "6ef54daa05b983d4767e934e0c81eb8f3ce01836e357c29523198d4b2d8967bf",
+      "bytes": 245724
+    },
+    {
+      "index": 31,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0253-02-300dpi.png",
+      "exportPath": "assets/fig-07-24-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0253-02-300dpi.png",
+      "caption": "图7－24－2 系统单位阶跃响应曲线 （ $T=0.01$ ．MATLAB）",
+      "sourcePdfPage": 253,
+      "sha256": "be63daf3a1652078866105eaee19a02c652dc4578ddd9f880fc548790bfb80a4",
+      "bytes": 235489
+    },
+    {
+      "index": 32,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0255-01-300dpi.png",
+      "exportPath": "assets/fig-07-24-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0255-01-300dpi.png",
+      "caption": "图7－24－3 系统单位斜坡响应曲线（MATLAB） 连续系统和离散系统的单位斜坡响应如图 7－24－3 所示。图中，虚线代表斜坡输人。由图可见，离散系统的斜坡输出有纹波。",
+      "sourcePdfPage": 255,
+      "sha256": "40f51f5380a7e5c54c87c5c94a866b45646310f01e0ce1187299b74bf9bd6d04",
+      "bytes": 260561
+    },
+    {
+      "index": 33,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0255-02-300dpi.png",
+      "exportPath": "assets/fig-07-73.png",
+      "originalRelativePath": "assets/mathpix-source-page-0255-02-300dpi.png",
+      "caption": "> Image description: A block diagram of a closed-loop discrete system is shown in Figure 7-73 (图7－73 闭环离散系统结构图). The signal flow begins with an input variable $r(t)$ entering a summing junction. The error signal $e(t)$ emerges from the junction and passes through a sampler denoted by a switch labeled $T$, resulting in the sampled signal $e^*(t)$. This signal enters a sequence of two blocks: first, a zero-order hold block with the transfer function $\\frac{1 - e^{-sT}}{s}$, followed by a plant block with the transfer function $\\frac{1}{s(s+1)}$. The output of this system is $c(t)$. A feedback loop connects the output $c(t)$ back to the summing junction, completing the closed-loop architecture. Arrows indicate the unidirectional flow of signals from left to right through the forward path and from right to left via the feedback path. 图7－73 闭环离散系统结构图",
+      "sourcePdfPage": 255,
+      "sha256": "63a1be8fce8d319f23b3bd269c9398460526262d4acb5b8486c0adb130307dac",
+      "bytes": 46579
+    },
+    {
+      "index": 34,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0257-01-300dpi.png",
+      "exportPath": "assets/fig-07-74.png",
+      "originalRelativePath": "assets/mathpix-source-page-0257-01-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled \"图 7-74 闭环离散系统结构图,\" representing a closed-loop discrete system. The signal flow begins with an input variable $r(t)$ entering a summing junction, where it is compared with a feedback loop to produce the error signal $e(t)$. The forward path consists of two main blocks connected by arrows. First, the signal passes through a sampler with period $T$, followed by a block $G_h(s) = \\frac{1 - e^{-sT}}{s}$, which represents a zero-order hold. This is then connected to a plant block $G_0(s) = \\frac{10}{s - 2}$. The final output of the system is denoted as $c(t)$. A feedback line connects the output $c(t)$ back to the summing junction with a negative sign, completing the closed-loop architecture. The diagram illustrates the interaction between continuous-time components and discrete-time sampling in an engineering control loop. 图 7－74 闭环离散系统结构图 7－26 设具有采样器、保持器的闭环离散系统如图 7－74 所示，当采样周期 $T=$ 0.1 s ，输人信号为单位阶跃信号时，试计算系统输出 $C(z)$ 。",
+      "sourcePdfPage": 257,
+      "sha256": "473c4778d32e493f18168bbd2909e5e4f79af0454f2f2a4da843461e3df36c04",
+      "bytes": 46072
+    },
+    {
+      "index": 35,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0258-01-300dpi.png",
+      "exportPath": "assets/fig-07-26-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0258-01-300dpi.png",
+      "caption": "图 7－26－1 离散系统单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 258,
+      "sha256": "898dc4f8061620a273a6dd43c1c04472ce4c252b0f91112bf29860bed2e4cefd",
+      "bytes": 407965
+    },
+    {
+      "index": 36,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-07-mathpix/assets/mathpix-source-page-0259-01-300dpi.png",
+      "exportPath": "assets/fig-07-26-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0259-01-300dpi.png",
+      "caption": "> Image description: This image is a technical plot showing the unit step response curve of a discrete system, as indicated by the caption \"图 7－26－2 离散系统的单位阶跃响应曲线 ($T=0.1$, MATLAB)\". The graph features a horizontal x-axis labeled \"Time/sec\" ranging from $0$ to $1$ and a vertical y-axis labeled \"Amplitude\" ranging from $0$ to $1.4$. The plot displays a discrete-time step response characterized by a staircase-like waveform. The signal remains at zero until $t = 0.1\\text{s}$, where it jumps to an amplitude of approximately $1.1$. It then increases in discrete steps at intervals of $T=0.1$ seconds, specifically at $0.2\\text{s}$ and $0.3\\text{s}$, before asymptotically leveling off at a steady-state value of approximately $1.25$. The grid lines facilitate the reading of these specific time and amplitude coordinates, illustrating the system's transient behavior toward stability. 图 7－26－2 离散系统的单位阶跃响应曲线（ $T=0.1$ ，MATLAB）",
+      "sourcePdfPage": 259,
+      "sha256": "a630ead8ce2ad4ceff31a4b8be0863af526478d5c88c3ff0f02cd6e25eee0243",
+      "bytes": 218902
+    }
+  ]
+}

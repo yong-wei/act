@@ -103,8 +103,8 @@ describe('unit 2-4 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('PremiumLessonEntryPage');
-    expect(entrySource).toContain('<PremiumLessonEntryPage');
+    expect(entrySource).toContain('CourseEntryShell');
+    expect(entrySource).toContain('<CourseEntryShell');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
     expect(entrySource).toContain('mediaCourseLabel');
   });
@@ -137,7 +137,7 @@ describe('unit 2-4 interactive course', () => {
       title: '伯德图与奈奎斯特图的物理直觉',
     });
     expect(resources[2]).toMatchObject({
-      kind: 'pdf',
+      kind: 'slides',
       accessMode: 'new_tab',
       embedMode: 'none',
       status: 'ready',

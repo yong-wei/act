@@ -1,8 +1,8 @@
 # 项目长期记忆索引
 
 状态: active
-最后更新: 2026-03-19
-摘要: 这是 `docs/memory` 的总入口，回答“项目目前有什么长期记忆、应该从哪里开始读，以及最近发生了什么”；`CHATGPT_CONTEXT.md` 会把 ChatGPT 引导到这里。
+最后更新: 2026-06-12
+摘要: 这是 `docs/memory` 的总入口，回答“项目目前有什么长期记忆、应该从哪里开始读，以及最近发生了什么”；当前最近摘要已更新到统一平台壳层、1-1 标准互动课、React Doctor、UI 治理和智能助教实现阶段。
 上游:
 - [README.md](README.md)
 - [CHATGPT_CONTEXT.md](CHATGPT_CONTEXT.md)

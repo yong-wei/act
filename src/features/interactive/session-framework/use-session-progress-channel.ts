@@ -361,6 +361,15 @@ export function useSessionProgressChannel({
       const previousIndex = activeIndex;
       const nextStepId = stableStepIds[nextIndex];
 
+      if (isDemo) {
+        setActiveIndex(nextIndex);
+        setTeacherIndex(nextIndex);
+        pendingStepIdRef.current = nextStepId ?? null;
+        setError(null);
+        setErrorTelemetry(null);
+        return;
+      }
+
       // 设置PATCH进行中标志，暂停轮询
       isPatchingRef.current = true;
 
@@ -431,10 +440,22 @@ export function useSessionProgressChannel({
         isPatchingRef.current = false;
       }
     },
-    [activeIndex, getTimestampFromSession, pollIntervalMs, sessionId, stableStepIds],
+    [activeIndex, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, stableStepIds],
   );
 
   const finishSession = useCallback(async () => {
+    if (isDemo) {
+      setSessionInfo((current) => ({
+        id: sessionId,
+        joinCode: current?.joinCode ?? undefined,
+        status: 'FINISHED',
+        currentItemId: current?.currentItemId ?? stableStepIds[activeIndex] ?? null,
+        currentStage: current?.currentStage,
+        updatedAt: new Date(),
+      }));
+      return;
+    }
+
     try {
       const data = await patchSession({ status: 'FINISHED' });
       setSessionInfo(data as SessionInfo);
@@ -443,7 +464,7 @@ export function useSessionProgressChannel({
       setErrorTelemetry(getFetchFailureTelemetry(requestError));
       throw requestError;
     }
-  }, [patchSession]);
+  }, [activeIndex, isDemo, patchSession, sessionId, stableStepIds]);
 
   useEffect(() => {
     if (!isDemo) {

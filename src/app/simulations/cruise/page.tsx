@@ -1,5 +1,3 @@
-import dynamicImport from 'next/dynamic';
-import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 import {
   filterArenaSubmissionsForHiddenPublicationPolicy,
   toArenaStatsPublicationContext,
@@ -12,36 +10,36 @@ import {
   type ArenaResolvedSubmissionContext,
 } from '@/features/arena/teacher/publication-store';
 import { resolveArenaWorkbenchContext } from '@/features/arena/workbench/context';
+import { describeExperienceLaunch } from '@/features/simulation-arena-workbench/experience-shell-contracts';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { CruiseSimulation } from '../_components/simulation-loaders';
+import { SimulationShell } from '../_components/simulation-shell';
 
 export const dynamic = 'force-dynamic';
 
-const CruiseSimulation = dynamicImport(
-  () => import('@/resources/simulations/simulations/cruise-simulation'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[560px] items-center justify-center text-slate-300">
-        正在加载爱达·魔都号邮轮仿真场景...
-      </div>
-    ),
-  },
-);
-
 type CruiseSimulationPageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     arenaTask?: string | string[];
     mode?: string | string[];
     publicationId?: string | string[];
-  };
+  }>;
 };
 
 function getSingleSearchParam(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-export default async function CruiseSimulationPage({ searchParams }: CruiseSimulationPageProps) {
+function buildArenaReturnHref(baseHref: string, publicationId?: string) {
+  if (!publicationId) return baseHref;
+  const [basePath, query = ''] = baseHref.split('?');
+  const params = new URLSearchParams(query);
+  params.set('publicationId', publicationId);
+  return `${basePath}?${params.toString()}`;
+}
+
+export default async function CruiseSimulationPage(props: CruiseSimulationPageProps) {
+  const searchParams = await props.searchParams;
   const arenaTaskId = getSingleSearchParam(searchParams?.arenaTask);
   const requestedPublicationId = getSingleSearchParam(searchParams?.publicationId)?.trim() || undefined;
   const arenaContext = arenaTaskId ? resolveArenaWorkbenchContext(arenaTaskId) : null;
@@ -66,6 +64,18 @@ export default async function CruiseSimulationPage({ searchParams }: CruiseSimul
     }
   }
   const canRenderBlackBoxPanel = Boolean(blackBoxTask) && (!requestedPublicationId || Boolean(publicationContext));
+  const launchKind = blackBoxTask ? (publicationContext ? 'official-evaluation' : 'arena-preview') : 'standalone';
+  const launchDescription = describeExperienceLaunch({
+    kind: launchKind,
+    arena: blackBoxTask
+      ? {
+        taskId: blackBoxTask.id,
+        publicationId: publicationContext?.id,
+        classId: publicationContext?.classId,
+        seasonId: publicationContext?.seasonId,
+      }
+      : undefined,
+  });
   const blackBoxSubmissions = blackBoxTask && canRenderBlackBoxPanel
     ? await prismaArenaSubmissionStore.listSubmissions({
       taskId: blackBoxTask.id,
@@ -102,12 +112,43 @@ export default async function CruiseSimulationPage({ searchParams }: CruiseSimul
       ? taskVisibleBlackBoxSubmissions.filter((submission) => submission.userId === session.user.id)
       : taskVisibleBlackBoxSubmissions;
 
+  const returnHref = blackBoxTask && arenaContext
+    ? buildArenaReturnHref(arenaContext.returnHref, publicationContext?.id)
+    : '/simulations';
+
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
-      <FeaturePageNav title="邮轮仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
-      <CruiseSimulation />
-      {blackBoxTask && canRenderBlackBoxPanel ? (
-        <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+    <SimulationShell
+      title="邮轮仿真"
+      subtitle="舒适性导向控制 · 减摇稳定与黑箱识别任务"
+      activeHref="/simulations/cruise"
+      returnHref={returnHref}
+      returnLabel={blackBoxTask ? '竞技场' : '虚拟仿真'}
+      launchProvenance={launchKind}
+      localToolTemplate="comfort-frequency"
+      contextStrip={(
+        <div className="text-xs leading-5 text-platform-fg-secondary" data-commercial-workspace-zone="context-strip">
+          <div className="font-semibold text-platform-fg-primary">{launchDescription.label}</div>
+          <div className="mt-1">{launchDescription.summary}</div>
+        </div>
+      )}
+      commandBar={(
+        <div
+          className="text-xs leading-5 text-platform-fg-secondary"
+          data-commercial-workspace-zone="command-bar"
+        >
+          场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。
+        </div>
+      )}
+      supportDrawer={(
+        <details className="text-xs leading-5 text-platform-fg-secondary" data-commercial-workspace-zone="support-drawer">
+          <summary className="cursor-pointer font-semibold text-platform-fg-primary">支持与证据状态</summary>
+          <p className="mt-2">
+            仿真模型、回放、Arena 预览和官方评价边界由场景与 Arena 域提供；当前无可回放记录时以预览或不可用状态呈现。
+          </p>
+        </details>
+      )}
+      evidenceRail={blackBoxTask && canRenderBlackBoxPanel ? (
+        <div data-commercial-workspace-zone="evidence-rail">
           <ArenaBlackBoxSubmissionPanel
             task={blackBoxTask}
             initialSubmissions={visibleBlackBoxSubmissions}
@@ -116,6 +157,14 @@ export default async function CruiseSimulationPage({ searchParams }: CruiseSimul
           />
         </div>
       ) : null}
-    </div>
+    >
+      <CruiseSimulation />
+      <section className="sr-only" data-simulation-local-note="scene-controls">
+        相机、视角和场景工具为任务局部控制。
+      </section>
+      <section className="sr-only" data-task-workspace-zone="floating-dock-safe-area">
+        移动端底部说明条不固定覆盖场景；桌面浮层避让全局 dock 和场景局部工具。
+      </section>
+    </SimulationShell>
   );
 }

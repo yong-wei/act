@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertTriangle } from 'lucide-react';
 
 interface ResourceEditDialogProps {
   open: boolean;
@@ -54,8 +55,8 @@ export function ResourceEditDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">显示名称</label>
-            <input
+            <label htmlFor="resource-edit-dialog-control-1" className="text-sm font-medium text-slate-300">显示名称</label>
+            <input id="resource-edit-dialog-control-1" aria-label="输入显示名称"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -66,9 +67,16 @@ export function ResourceEditDialog({
               原始标题: {resource?.title}
             </p>
           </div>
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs leading-5 text-amber-100">
+            <div className="mb-1 flex items-center gap-2 font-medium">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              使用影响
+            </div>
+            保存后会影响引用该资源的教案编排、课堂资源展示和后续证据回放中的资源名称与描述。若资源已经用于正在进行的课堂，请先在教案或 ResourceNode 管理中复核引用关系。
+          </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">描述</label>
-            <textarea
+            <label htmlFor="resource-edit-dialog-control-2" className="text-sm font-medium text-slate-300">描述</label>
+            <textarea id="resource-edit-dialog-control-2" aria-label="输入资源描述"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full h-24 bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-white text-sm resize-none focus:border-cyan-500 outline-none"
@@ -77,14 +85,14 @@ export function ResourceEditDialog({
           </div>
         </div>
         <div className="flex justify-end gap-3">
-          <button
+          <button type="button"
             onClick={() => onOpenChange(false)}
             disabled={isSaving}
             className="px-4 py-2 text-slate-400 hover:text-white transition disabled:opacity-50"
           >
             取消
           </button>
-          <button
+          <button type="button"
             onClick={handleSave}
             disabled={isSaving}
             className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-md transition disabled:opacity-50"

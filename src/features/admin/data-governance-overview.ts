@@ -8,6 +8,19 @@ export type GovernanceQueueStats = {
 export type GovernanceStatusPayload = {
   status: string;
   timestamp: string;
+  authoringContext?: {
+    surface: 'authoring';
+    lessonPlanId: string | null;
+    lessonPlanMissing: boolean;
+    requestedTab: string | null;
+    reportHref: string;
+    recoveryHref: string;
+  } | null;
+  graphCenterAudit?: {
+    graphNodeId: string;
+    audit: string | null;
+    preferredTab: 'sources' | 'cache' | 'overview';
+  } | null;
   freshness: {
     lastSnapshotMinutes: number | null;
     status: string;
@@ -100,6 +113,16 @@ export type GovernanceStatusPayload = {
     triggeredAt: string;
     isResolved: boolean;
   }>;
+  targetRiskFlag?: {
+    id: string;
+    userId: string;
+    userName: string;
+    flagType: string;
+    severity: string;
+    description: string;
+    triggeredAt: string;
+    isResolved: boolean;
+  } | null;
   recentSnapshots: Array<{
     userId: string;
     userName: string;

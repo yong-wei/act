@@ -8,7 +8,10 @@ import type {
   PlatformStatusDomain,
   PlatformStatusPayload,
 } from '@/components/platform/platform-ui-contracts';
-import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import type {
+  AdaptiveLearningPathDeficit,
+  AdaptiveLearningPathPlan,
+} from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 
 export type AdaptiveLearningCenterRegion =
@@ -31,6 +34,43 @@ export type AdaptiveLearningCompatibilityIntent =
   | 'profile-adaptive-cards';
 
 export type AdaptiveLearningCompatibilityMigrationMode = 'legacy-surface' | 'center-alias';
+export type ControlCorrectionCenterRouteIntent =
+  | 'practice'
+  | 'learner-state-review'
+  | 'path-selection'
+  | 'path-execution'
+  | 'evidence-review'
+  | 'contextual-recommendation';
+export type ControlCorrectionCenterEntrySource =
+  | 'homepage'
+  | 'student-cockpit'
+  | 'profile'
+  | 'adaptive-practice'
+  | 'contextual-recommendation';
+export const ADAPTIVE_PATH_LAUNCH_SOURCE = 'adaptive-path-center';
+export const ADAPTIVE_PATH_EXECUTION_RETURN_PATH = '/assessment/adaptive-practice';
+export type ControlCorrectionCenterStateKind =
+  | 'path-ready'
+  | 'loading'
+  | 'low-evidence'
+  | 'no-path'
+  | 'no-question'
+  | 'feature-flag-disabled'
+  | 'network-error';
+export type LearnerDataShellSemantic =
+  | 'ability-profile'
+  | 'current-path'
+  | 'evidence-timeline'
+  | 'recommendations'
+  | 'practice'
+  | 'next-action';
+export type LearnerDataRouteIdentity =
+  | 'student-cockpit'
+  | 'profile-overview'
+  | 'growth-center'
+  | 'evidence-browser'
+  | 'adaptive-practice';
+export type RecommendedPathNodeState = 'current' | 'completed' | 'blocked' | 'next' | 'optional' | 'locked';
 
 export interface AdaptiveLearningCenterStateInput {
   featureFlags: readonly string[];
@@ -52,6 +92,29 @@ export interface AdaptiveLearningCompatibilityRoute {
   migrationMode: AdaptiveLearningCompatibilityMigrationMode;
 }
 
+export interface LearnerDataSurfaceRoute {
+  href: '/dashboard' | '/profile' | '/profile/growth' | '/profile/evidence' | '/assessment/adaptive-practice';
+  routeFile: string;
+  routeIdentity: LearnerDataRouteIdentity;
+  primaryRegion: AdaptiveLearningCenterRegion;
+}
+
+export interface LearnerDataRouteShell {
+  routeFamily: 'learner-data-pathway';
+  routeIdentity: LearnerDataRouteIdentity;
+  owningChange: 'redesign-learner-data-and-report-surfaces';
+  archetype: 'learner-record-pathway';
+  mobileBehavior: 'path-evidence-next-action-stack';
+  dockBehavior: 'learner-action-dock' | 'contextual-review-dock';
+  visualEvidence: {
+    requiredThemes: readonly ['light', 'dark'];
+    requiredWidths: readonly [1440, 320];
+  };
+  semantics: readonly LearnerDataShellSemantic[];
+  statusVocabulary: readonly string[];
+  nextActions: readonly string[];
+}
+
 export interface AdaptiveLearningCenterPanel {
   id: string;
   region: AdaptiveLearningCenterRegion;
@@ -62,6 +125,11 @@ export interface AdaptiveLearningCenterPanel {
 
 export interface AdaptiveLearningCenterKonlingPayload {
   contextSource: 'none' | 'learner-state' | 'path' | 'learner-state-and-path';
+  teachingAssistantModes: {
+    diagnosisExplainer: 'diagnosis-explainer';
+    pathAdvisor: 'path-advisor';
+    resourceCoach: 'resource-coach';
+  };
   interventionBasis: string | null;
   cooldown: {
     active: boolean;
@@ -85,6 +153,187 @@ export interface AdaptiveLearningCenterView extends AdaptiveLearningCenterState 
   role: PlatformRole;
   panels: AdaptiveLearningCenterPanel[];
   excludedPolicyFamilies: string[];
+}
+
+export interface ControlCorrectionCenterEntryRoute {
+  href: '/' | '/assessment/adaptive-practice' | '/dashboard' | '/profile' | '/profile/growth' | '/profile/evidence';
+  source: ControlCorrectionCenterEntrySource;
+  routeIntent: ControlCorrectionCenterRouteIntent;
+  preservedQuery: {
+    goal: 'control-correction';
+    intent: ControlCorrectionCenterRouteIntent;
+  };
+}
+
+export interface ControlCorrectionCenterRecoveryAction {
+  href: string;
+  label: string;
+}
+
+export interface ControlCorrectionCenterFallbackState {
+  state: ControlCorrectionCenterStateKind;
+  title: string;
+  status: PlatformStatusPayload;
+  actions: readonly ControlCorrectionCenterRecoveryAction[];
+}
+
+export interface ControlCorrectionCenterNextAction {
+  nodeId: string | null;
+  title: string;
+  href: string;
+  method: 'GET' | 'POST';
+  body?: Record<string, unknown>;
+  redirectHref?: string;
+  completionAction?: {
+    href: string;
+    label: string;
+    method: 'POST';
+    body: Record<string, unknown>;
+  };
+  confidence: PlatformConfidenceStatus;
+  evidenceLimitation: PlatformSourceCoverageStatus;
+}
+
+export interface ControlCorrectionCenterReadinessGate {
+  ready: boolean;
+  status: PlatformStatusPayload;
+  missing: readonly string[];
+}
+
+export interface ControlCorrectionCenterLaunchContext {
+  source: typeof ADAPTIVE_PATH_LAUNCH_SOURCE;
+  goalId: string;
+  pathId: string;
+  nodeId: string;
+  routeIntent: ControlCorrectionCenterRouteIntent;
+  returnHref: string;
+  resourceType: string;
+}
+
+export interface ControlCorrectionLearningCenterView extends AdaptiveLearningCenterView {
+  goalId: string;
+  entry: {
+    source: ControlCorrectionCenterEntrySource;
+    routeIntent: ControlCorrectionCenterRouteIntent;
+  };
+  competencyHero: AdaptiveLearningCenterPanel;
+  nextAction: ControlCorrectionCenterNextAction;
+  readinessGate: ControlCorrectionCenterReadinessGate;
+  citationAccess: AdaptiveLearningCenterPanel;
+  konlingDock: AdaptiveLearningCenterPanel;
+  fallbackStates: readonly ControlCorrectionCenterFallbackState[];
+  launchContexts: readonly ControlCorrectionCenterLaunchContext[];
+}
+
+export interface ControlCorrectionLearningCenterInput extends AdaptiveLearningCenterViewInput {
+  goalId?: string;
+  goalLabel?: string;
+  entrySource?: ControlCorrectionCenterEntrySource;
+  routeIntent?: ControlCorrectionCenterRouteIntent;
+  networkError?: boolean;
+  questionAvailable?: boolean;
+}
+
+export interface RecommendedPathNodeView {
+  stage: string;
+  nodeId: string;
+  title: string;
+  priority: number;
+  confidence: PlatformConfidenceStatus;
+  evidenceLimitation: PlatformSourceCoverageStatus;
+  expectedEffort: string;
+  sourceContext: string;
+  statusLabel?: string;
+  unlockMessage?: string;
+  action?: {
+    href: string;
+    label: string;
+    method: 'GET' | 'POST';
+    body?: Record<string, unknown>;
+    redirectHref?: string;
+    completionAction?: {
+      href: string;
+      label: string;
+      method: 'POST';
+      body: Record<string, unknown>;
+    };
+  };
+  state: RecommendedPathNodeState;
+}
+
+export interface RecommendedPathNodeViewModel {
+  pathId: string;
+  nodes: RecommendedPathNodeView[];
+}
+
+export interface RecommendedPathLaunchContext {
+  goalId: string;
+  pathId: string;
+  routeIntent: ControlCorrectionCenterRouteIntent;
+}
+
+export interface AdaptivePathLaunchContextInput {
+  goalId: string;
+  pathId: string;
+  nodeId: string;
+  routeIntent: ControlCorrectionCenterRouteIntent;
+  resourceType: string;
+}
+
+export interface AdaptivePathLaunchContext extends AdaptivePathLaunchContextInput {
+  source: typeof ADAPTIVE_PATH_LAUNCH_SOURCE;
+  returnHref: string;
+}
+
+export interface AdaptivePathCompletionRequestInput {
+  launchContext: AdaptivePathLaunchContext;
+  completedAt: string;
+  evidenceRefs?: readonly Record<string, unknown>[];
+  completionResult?: Record<string, unknown>;
+}
+
+export interface AdaptivePathCompletionRequest {
+  href: string;
+  method: 'POST';
+  body: {
+    nodeId: string;
+    resourceType: string;
+    status: 'completed';
+    completedAt: string;
+    idempotencyKey: string;
+    evidenceRefs?: readonly Record<string, unknown>[];
+    liftMetadata: Record<string, unknown>;
+  };
+}
+
+export interface PracticeEntryRouteNodeInput {
+  recommendedFocus: readonly string[];
+  weakAreas: readonly string[];
+  estimatedAbility?: number | null;
+  confidenceInterval?: readonly [number, number] | null;
+  actionHref: string;
+}
+
+export interface PracticeEntryRouteNode {
+  nodeId: string;
+  title: string;
+  state: RecommendedPathNodeState;
+  confidence: PlatformConfidenceStatus;
+  evidenceLimitation: PlatformSourceCoverageStatus;
+  missingEvidence: readonly string[];
+  action: {
+    href: string;
+    label: string;
+    method: 'GET' | 'POST';
+    body?: Record<string, unknown>;
+    redirectHref?: string;
+    completionAction?: {
+      href: string;
+      label: string;
+      method: 'POST';
+      body: Record<string, unknown>;
+    };
+  };
 }
 
 export interface AdaptiveClaimStatusInput {
@@ -114,7 +363,63 @@ export const ADAPTIVE_LEARNING_CENTER_REGIONS: AdaptiveLearningCenterRegion[] = 
   'konling',
 ];
 
+export const LEARNER_DATA_SHELL_SEMANTICS: LearnerDataShellSemantic[] = [
+  'ability-profile',
+  'current-path',
+  'evidence-timeline',
+  'recommendations',
+  'practice',
+  'next-action',
+];
+
+const LEARNER_DATA_STATUS_VOCABULARY = [
+  'confidence',
+  'sourceCoverage',
+  'readiness',
+  'fallback',
+] as const;
+
+const LEARNER_DATA_NEXT_ACTIONS = [
+  'start-practice',
+  'review-evidence',
+  'open-interactive-learning',
+  'enter-simulation-or-arena',
+] as const;
+
 const LEGACY_COMPATIBLE_REGIONS: AdaptiveLearningCenterRegion[] = ['overview', 'practice', 'konling'];
+
+const LEARNER_DATA_SURFACE_ROUTES: LearnerDataSurfaceRoute[] = [
+  {
+    href: '/dashboard',
+    routeFile: 'src/app/(main)/dashboard/page.tsx',
+    routeIdentity: 'student-cockpit',
+    primaryRegion: 'overview',
+  },
+  {
+    href: '/profile',
+    routeFile: 'src/app/(main)/profile/page.tsx',
+    routeIdentity: 'profile-overview',
+    primaryRegion: 'learner-state',
+  },
+  {
+    href: '/profile/growth',
+    routeFile: 'src/app/(main)/profile/growth/page.tsx',
+    routeIdentity: 'growth-center',
+    primaryRegion: 'mastery',
+  },
+  {
+    href: '/profile/evidence',
+    routeFile: 'src/app/(main)/profile/evidence/page.tsx',
+    routeIdentity: 'evidence-browser',
+    primaryRegion: 'evidence',
+  },
+  {
+    href: '/assessment/adaptive-practice',
+    routeFile: 'src/app/assessment/adaptive-practice/page.tsx',
+    routeIdentity: 'adaptive-practice',
+    primaryRegion: 'practice',
+  },
+] as const;
 
 const ADAPTIVE_LEARNING_CENTER_ROUTES: AdaptiveLearningCompatibilityRoute[] = [
   {
@@ -147,8 +452,364 @@ const ADAPTIVE_LEARNING_CENTER_ROUTES: AdaptiveLearningCompatibilityRoute[] = [
   },
 ];
 
+const CONTROL_CORRECTION_CENTER_ENTRY_ROUTES: ControlCorrectionCenterEntryRoute[] = [
+  {
+    href: '/',
+    source: 'homepage',
+    routeIntent: 'practice',
+    preservedQuery: { goal: 'control-correction', intent: 'practice' },
+  },
+  {
+    href: '/dashboard',
+    source: 'student-cockpit',
+    routeIntent: 'learner-state-review',
+    preservedQuery: { goal: 'control-correction', intent: 'learner-state-review' },
+  },
+  {
+    href: '/profile',
+    source: 'profile',
+    routeIntent: 'learner-state-review',
+    preservedQuery: { goal: 'control-correction', intent: 'learner-state-review' },
+  },
+  {
+    href: '/profile/growth',
+    source: 'profile',
+    routeIntent: 'evidence-review',
+    preservedQuery: { goal: 'control-correction', intent: 'evidence-review' },
+  },
+  {
+    href: '/profile/evidence',
+    source: 'profile',
+    routeIntent: 'evidence-review',
+    preservedQuery: { goal: 'control-correction', intent: 'evidence-review' },
+  },
+  {
+    href: '/profile/growth',
+    source: 'contextual-recommendation',
+    routeIntent: 'contextual-recommendation',
+    preservedQuery: { goal: 'control-correction', intent: 'contextual-recommendation' },
+  },
+  {
+    href: '/assessment/adaptive-practice',
+    source: 'adaptive-practice',
+    routeIntent: 'practice',
+    preservedQuery: { goal: 'control-correction', intent: 'practice' },
+  },
+];
+
 export function getAdaptiveLearningCenterCompatibilityRoutes(): AdaptiveLearningCompatibilityRoute[] {
   return ADAPTIVE_LEARNING_CENTER_ROUTES.map((route) => ({ ...route }));
+}
+
+export function getLearnerDataSurfaceRoutes(): LearnerDataSurfaceRoute[] {
+  return LEARNER_DATA_SURFACE_ROUTES.map((route) => ({ ...route }));
+}
+
+export function getControlCorrectionCenterEntryRoutes(): ControlCorrectionCenterEntryRoute[] {
+  return CONTROL_CORRECTION_CENTER_ENTRY_ROUTES.map((route) => ({
+    ...route,
+    preservedQuery: { ...route.preservedQuery },
+  }));
+}
+
+export function buildLearnerDataRouteShell(href: LearnerDataSurfaceRoute['href']): LearnerDataRouteShell {
+  const route = LEARNER_DATA_SURFACE_ROUTES.find((entry) => entry.href === href);
+  if (!route) {
+    throw new Error(`Unsupported learner data route: ${href}`);
+  }
+
+  return {
+    routeFamily: 'learner-data-pathway',
+    routeIdentity: route.routeIdentity,
+    owningChange: 'redesign-learner-data-and-report-surfaces',
+    archetype: 'learner-record-pathway',
+    mobileBehavior: 'path-evidence-next-action-stack',
+    dockBehavior: route.href === '/dashboard' ? 'learner-action-dock' : 'contextual-review-dock',
+    visualEvidence: {
+      requiredThemes: ['light', 'dark'],
+      requiredWidths: [1440, 320],
+    },
+    semantics: LEARNER_DATA_SHELL_SEMANTICS,
+    statusVocabulary: LEARNER_DATA_STATUS_VOCABULARY,
+    nextActions: LEARNER_DATA_NEXT_ACTIONS,
+  };
+}
+
+export function buildAdaptivePathLaunchContext(input: AdaptivePathLaunchContextInput): AdaptivePathLaunchContext {
+  const returnQuery = new URLSearchParams({
+    goal: input.goalId,
+    intent: input.routeIntent,
+    pathId: input.pathId,
+    nodeId: input.nodeId,
+  });
+  return {
+    source: ADAPTIVE_PATH_LAUNCH_SOURCE,
+    goalId: input.goalId,
+    pathId: input.pathId,
+    nodeId: input.nodeId,
+    routeIntent: input.routeIntent,
+    returnHref: `${ADAPTIVE_PATH_EXECUTION_RETURN_PATH}?${returnQuery.toString()}`,
+    resourceType: input.resourceType,
+  };
+}
+
+export function buildAdaptivePathLaunchHref(
+  targetHref: string,
+  input: AdaptivePathLaunchContextInput,
+): string {
+  const context = buildAdaptivePathLaunchContext(input);
+  const hashIndex = targetHref.indexOf('#');
+  const hrefWithoutHash = hashIndex >= 0 ? targetHref.slice(0, hashIndex) : targetHref;
+  const hash = hashIndex >= 0 ? targetHref.slice(hashIndex) : '';
+  const queryIndex = hrefWithoutHash.indexOf('?');
+  const targetPath = queryIndex >= 0 ? hrefWithoutHash.slice(0, queryIndex) : hrefWithoutHash;
+  const params = new URLSearchParams(queryIndex >= 0 ? hrefWithoutHash.slice(queryIndex + 1) : '');
+  for (const key of ['source', 'goal', 'goalId', 'pathId', 'nodeId', 'intent', 'returnHref', 'resourceType']) {
+    params.delete(key);
+  }
+  params.set('source', context.source);
+  params.set('goal', context.goalId);
+  params.set('goalId', context.goalId);
+  params.set('pathId', context.pathId);
+  params.set('nodeId', context.nodeId);
+  params.set('intent', context.routeIntent);
+  params.set('returnHref', context.returnHref);
+  params.set('resourceType', context.resourceType);
+
+  return `${targetPath}?${params.toString()}${hash}`;
+}
+
+export function resolveAdaptivePathLaunchReturnContext(
+  searchParams: Pick<URLSearchParams, 'get'>,
+): AdaptivePathLaunchContext | null {
+  const source = searchParams.get('source');
+  const goalId = searchParams.get('goalId') ?? searchParams.get('goal');
+  const pathId = searchParams.get('pathId');
+  const nodeId = searchParams.get('nodeId');
+  const routeIntent = searchParams.get('intent');
+  const returnHref = searchParams.get('returnHref');
+  const resourceType = searchParams.get('resourceType');
+
+  if (source !== ADAPTIVE_PATH_LAUNCH_SOURCE) return null;
+  if (!goalId || !pathId || !nodeId || !returnHref || !resourceType) return null;
+  if (routeIntent !== 'path-execution') return null;
+
+  const normalizedReturnHref = normalizeAdaptivePathReturnHref(returnHref, {
+    goalId,
+    pathId,
+    nodeId,
+    routeIntent,
+  });
+  if (!normalizedReturnHref) return null;
+
+  return {
+    source: ADAPTIVE_PATH_LAUNCH_SOURCE,
+    goalId,
+    pathId,
+    nodeId,
+    routeIntent,
+    returnHref: normalizedReturnHref,
+    resourceType,
+  };
+}
+
+export function isSimpleAdaptivePathCompletionResource(resourceType: string): boolean {
+  return [
+    'lesson_step',
+    'knowledge_node',
+    'knowledge_card',
+    'video',
+    'audio',
+    'slides',
+    'handout',
+    'quiz',
+    'reflection',
+    'project',
+  ].includes(resourceType);
+}
+
+export function buildAdaptivePathCompletionRequest(
+  input: AdaptivePathCompletionRequestInput,
+): AdaptivePathCompletionRequest | null {
+  const { launchContext } = input;
+  if (!isSimpleAdaptivePathCompletionResource(launchContext.resourceType)) return null;
+
+  return {
+    href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute`,
+    method: 'POST',
+    body: {
+      nodeId: launchContext.nodeId,
+      resourceType: launchContext.resourceType,
+      status: 'completed',
+      completedAt: input.completedAt,
+      idempotencyKey: `path-resource-completion:${launchContext.pathId}:${launchContext.nodeId}:${launchContext.resourceType}`,
+      ...(input.evidenceRefs?.length ? { evidenceRefs: input.evidenceRefs } : {}),
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionSource: 'interactive-resource',
+        ...(input.completionResult ? { completionResult: input.completionResult } : {}),
+      },
+    },
+  };
+}
+
+export function buildRecommendedPathNodeView(
+  pathPlan: AdaptiveLearningPathPlan,
+  launchContext?: RecommendedPathLaunchContext,
+): RecommendedPathNodeViewModel {
+  return {
+    pathId: pathPlan.id,
+    nodes: pathPlan.mainPath.map((node, index) => {
+      const state = recommendedNodeState(node.status, node.readiness?.state);
+      return {
+        stage: pathPlan.stage,
+        nodeId: node.nodeId,
+        title: node.title,
+        priority: index + 1,
+        confidence: pathPlan.confidence.level,
+        evidenceLimitation: pathPlan.confidence.sourceCoverage <= 0
+          ? 'missing'
+          : pathPlan.confidence.sourceCoverage >= 0.75
+            ? 'complete'
+            : 'partial',
+        expectedEffort: `${node.estimatedTimeMinutes} 分钟`,
+        sourceContext: `${node.sourceKind}:${node.sourceRef}`,
+        statusLabel: state === 'locked' ? '稍后解锁' : undefined,
+        unlockMessage: node.readiness?.unlockMessage ?? undefined,
+        action: state === 'locked'
+          ? undefined
+          : {
+              ...pathNodeLaunchAction(node.target, node.nodeId, node.type, launchContext),
+              label: pathPlan.currentNodeId === node.nodeId ? '继续当前节点' : '打开路径节点',
+            },
+        state,
+      };
+    }),
+  };
+}
+
+export function buildControlCorrectionLearningCenterView(
+  input: ControlCorrectionLearningCenterInput,
+): ControlCorrectionLearningCenterView {
+  const pathPlan = input.pathPlan ?? null;
+  const goalId = pathPlan?.goal.id ?? input.goalId ?? 'control-correction';
+  const goalLabel = pathPlan?.goal.title ?? input.goalLabel ?? formatAdaptivePathGoalLabel(goalId);
+  const baseView = buildAdaptiveLearningCenterView({ ...input, pathPlan });
+  const routeIntent = input.routeIntent ?? 'practice';
+  const entrySource = input.entrySource ?? 'adaptive-practice';
+  const learnerState = isServerOwnedLearnerState(input.learnerState) ? input.learnerState : null;
+  const pathNodes = pathPlan
+    ? buildRecommendedPathNodeView(pathPlan, {
+        goalId,
+        pathId: pathPlan.id,
+        routeIntent: 'path-execution',
+      }).nodes
+    : [];
+  const nextNode = selectNextRecommendedPathActionNode(pathNodes);
+  const evidencePanel = baseView.panels.find((panel) => panel.region === 'evidence') ?? fallbackPanel('evidence');
+  const konlingDock = baseView.panels.find((panel) => panel.region === 'konling') ?? konlingPanel(input.konling ?? null);
+  const currentPath = baseView.panels.find((panel) => panel.region === 'current-path') ?? currentPathPanel(pathPlan);
+  const fallbackStates = buildControlCorrectionFallbackStates({
+    featureEnabled: baseView.mode === 'adaptive-learning-center',
+    learnerState,
+    pathPlan,
+    networkError: input.networkError ?? false,
+    questionAvailable: input.questionAvailable ?? true,
+    goalId,
+    goalLabel,
+  });
+  const blockingStates = fallbackStates.filter((state) => state.state !== 'path-ready');
+
+  return {
+    ...baseView,
+    goalId,
+    entry: {
+      source: entrySource,
+      routeIntent,
+    },
+    competencyHero: {
+      id: 'control-correction-competency-hero',
+      region: 'mastery',
+      title: '控制校正能力状态',
+      status: learnerStateStatus(learnerState),
+      payload: {
+        goalId,
+        competencies: learnerState?.primaryCompetencies ?? null,
+        knowledgeMastery: learnerState?.knowledgeMastery ?? null,
+      },
+    },
+    nextAction: {
+      nodeId: nextNode?.nodeId ?? null,
+      title: nextNode?.title ?? `生成${goalLabel}学习路径`,
+      href: nextNode?.action?.href ?? `/assessment/adaptive-practice?goal=${encodeURIComponent(goalId)}&intent=${routeIntent}`,
+      method: nextNode?.action?.method ?? 'GET',
+      body: nextNode?.action?.body,
+      redirectHref: nextNode?.action?.redirectHref,
+      completionAction: nextNode?.action?.completionAction,
+      confidence: nextNode?.confidence ?? 'unknown',
+      evidenceLimitation: nextNode?.evidenceLimitation ?? 'missing',
+    },
+    readinessGate: {
+      ready: blockingStates.length === 0,
+      status: currentPath.status,
+      missing: blockingStates.map((state) => state.state),
+    },
+    citationAccess: {
+      ...evidencePanel,
+      id: 'control-correction-citation-drawer',
+      title: '证据与引用',
+    },
+    konlingDock: {
+      ...konlingDock,
+      id: 'control-correction-konling-dock',
+      title: 'Konling 校正支持',
+    },
+    fallbackStates,
+    launchContexts: pathPlan
+      ? pathPlan.mainPath.map((node) => buildAdaptivePathLaunchContext({
+          goalId,
+          pathId: pathPlan.id,
+          nodeId: node.nodeId,
+          routeIntent: 'path-execution',
+          resourceType: node.type,
+        }))
+      : [],
+  };
+}
+
+function selectNextRecommendedPathActionNode(
+  nodes: RecommendedPathNodeView[],
+): RecommendedPathNodeView | null {
+  for (const node of nodes) {
+    if (node.state === 'completed') continue;
+    if (node.state === 'locked' || node.state === 'blocked') return null;
+    if (node.action) return node;
+  }
+  return null;
+}
+
+function formatAdaptivePathGoalLabel(goalId: string): string {
+  if (goalId === 'frequency-response-foundations') return '频率响应基础';
+  return '控制校正';
+}
+
+export function buildPracticeEntryRouteNodes(input: PracticeEntryRouteNodeInput): PracticeEntryRouteNode[] {
+  const confidence = practiceConfidence(input.estimatedAbility, input.confidenceInterval);
+  const evidenceLimitation: PlatformSourceCoverageStatus = input.weakAreas.length > 0 ? 'partial' : 'complete';
+
+  return input.recommendedFocus.map((title, index) => ({
+    nodeId: `practice-focus-${index + 1}`,
+    title,
+    state: index === 0 ? 'current' : 'optional',
+    confidence,
+    evidenceLimitation,
+    missingEvidence: [...input.weakAreas],
+    action: {
+      href: practiceRouteNodeHref(input.actionHref, index + 1),
+      label: index === 0 ? '开始当前训练' : '查看训练节点',
+      method: 'GET',
+    },
+  }));
 }
 
 export function buildAdaptiveClaimStatus(input: AdaptiveClaimStatusInput): PlatformStatusPayload {
@@ -265,6 +926,243 @@ function adaptiveStatusSummary(input: AdaptiveClaimStatusInput): string {
   ].filter(Boolean);
 
   return limits.length > 0 ? limits.join('；') : '自适应声明证据完整且可展示。';
+}
+
+function recommendedNodeState(
+  status: AdaptiveLearningPathPlan['mainPath'][number]['status'],
+  readinessState?: string,
+): RecommendedPathNodeState {
+  if (status === 'completed' || status === 'blocked' || status === 'locked') {
+    return status;
+  }
+  if (readinessState && readinessState !== 'ready') return 'locked';
+  if (status === 'current' || status === 'next') return status;
+  return 'optional';
+}
+
+function practiceConfidence(
+  estimatedAbility?: number | null,
+  confidenceInterval?: readonly [number, number] | null
+): PlatformConfidenceStatus {
+  if (typeof estimatedAbility !== 'number' || !confidenceInterval) return 'low';
+  const intervalWidth = Math.abs(confidenceInterval[1] - confidenceInterval[0]);
+  if (intervalWidth <= 0.3) return 'high';
+  if (intervalWidth <= 0.6) return 'medium';
+  return 'low';
+}
+
+function practiceRouteNodeHref(actionHref: string, priority: number): string {
+  const separator = actionHref.includes('?') ? '&' : '?';
+  return `${actionHref}${separator}focus=practice-focus-${priority}`;
+}
+
+function pathNodeLaunchAction(
+  target: string,
+  nodeId: string,
+  resourceType: string,
+  launchContext?: RecommendedPathLaunchContext,
+): Omit<NonNullable<RecommendedPathNodeView['action']>, 'label'> {
+  const href = normalizePathNodeTarget(target);
+  if (!launchContext) return { href, method: 'GET' };
+  if (resourceType === 'external_resource') {
+    return {
+      href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute`,
+      method: 'POST',
+      redirectHref: href,
+      body: {
+        nodeId,
+        resourceType: 'external_resource',
+        status: 'started',
+        idempotencyKey: `external-resource-access:${launchContext.pathId}:${nodeId}`,
+        liftMetadata: {
+          launchIntent: launchContext.routeIntent,
+        },
+      },
+      completionAction: {
+        href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute`,
+        label: '已学习该资料，继续路径',
+        method: 'POST',
+        body: {
+          nodeId,
+          resourceType: 'external_resource',
+          status: 'completed',
+          idempotencyKey: `external-resource-completion:${launchContext.pathId}:${nodeId}`,
+          liftMetadata: {
+            launchIntent: launchContext.routeIntent,
+            completionIntent: 'learner-confirmed-external-resource',
+          },
+        },
+      },
+    };
+  }
+
+  return {
+    href: buildAdaptivePathLaunchHref(href, {
+      goalId: launchContext.goalId,
+      pathId: launchContext.pathId,
+      nodeId,
+      routeIntent: launchContext.routeIntent,
+      resourceType,
+    }),
+    method: 'GET',
+  };
+}
+
+function normalizeAdaptivePathReturnHref(
+  returnHref: string,
+  expected: Pick<AdaptivePathLaunchContext, 'goalId' | 'pathId' | 'nodeId' | 'routeIntent'>,
+): string | null {
+  if (!returnHref.startsWith('/') || returnHref.startsWith('//')) return null;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(returnHref, 'https://act.local');
+  } catch {
+    return null;
+  }
+
+  if (parsed.pathname !== ADAPTIVE_PATH_EXECUTION_RETURN_PATH) return null;
+  const goal = parsed.searchParams.get('goal') ?? parsed.searchParams.get('goalId');
+  if (goal !== expected.goalId) return null;
+  if (parsed.searchParams.get('pathId') !== expected.pathId) return null;
+  if (parsed.searchParams.get('nodeId') !== expected.nodeId) return null;
+  if (parsed.searchParams.get('intent') !== expected.routeIntent) return null;
+
+  return `${parsed.pathname}${parsed.search}`;
+}
+
+function normalizePathNodeTarget(target: string): string {
+  if (target.startsWith('course-content/runtime/knowledge/')) {
+    return target.replace('course-content/runtime/knowledge/', '/course-runtime/knowledge/');
+  }
+  return target;
+}
+
+function buildControlCorrectionFallbackStates(input: {
+  featureEnabled: boolean;
+  learnerState: AdaptiveLearnerState | null;
+  pathPlan: AdaptiveLearningPathPlan | null;
+  networkError: boolean;
+  questionAvailable: boolean;
+  goalId: string;
+  goalLabel: string;
+}): ControlCorrectionCenterFallbackState[] {
+  const goalQuery = encodeURIComponent(input.goalId);
+  const evidenceHref = `/profile/evidence?goal=${goalQuery}`;
+  return [
+    !input.featureEnabled
+      ? controlCorrectionFallbackState(
+          'feature-flag-disabled',
+          `${input.goalLabel}中心暂未启用`,
+          'adaptive-learning-center-flag-disabled',
+          'not-ready',
+          `/assessment/adaptive-practice?goal=${goalQuery}`,
+          '进入兼容练习',
+          evidenceHref,
+        )
+      : null,
+    input.networkError
+      ? controlCorrectionFallbackState(
+          'network-error',
+          `${input.goalLabel}数据暂时无法加载`,
+          'network-error',
+          'degraded',
+          `/assessment/adaptive-practice?goal=${goalQuery}`,
+          '重试加载',
+          evidenceHref,
+        )
+      : null,
+    input.learnerState && input.learnerState.evidence.readState === 'stale'
+      ? controlCorrectionFallbackState(
+          'loading',
+          '正在刷新学习证据',
+          'stale-learner-state',
+          'degraded',
+          `/profile/evidence?goal=${goalQuery}`,
+          '查看证据',
+          evidenceHref,
+        )
+      : null,
+    !input.learnerState || input.learnerState.missingEvidence.length > 0
+      ? controlCorrectionFallbackState(
+          'low-evidence',
+          `${input.goalLabel}证据不足`,
+          `missing-${input.goalId}-evidence`,
+          'degraded',
+          `/assessment/adaptive-practice?goal=${goalQuery}`,
+          '先完成诊断练习',
+          evidenceHref,
+        )
+      : null,
+    !input.pathPlan
+      ? controlCorrectionFallbackState(
+          'no-path',
+          `尚未生成${input.goalLabel}路径`,
+          `missing-${input.goalId}-path`,
+          'not-ready',
+          `/profile/growth?goal=${goalQuery}`,
+          '查看成长状态',
+          evidenceHref,
+        )
+      : null,
+    input.pathPlan && !input.questionAvailable && !input.pathPlan.currentNodeId
+      ? controlCorrectionFallbackState(
+          'no-question',
+          '当前路径暂无可用题目',
+          `missing-${input.goalId}-question`,
+          'degraded',
+          `/interactive-learning?goal=${goalQuery}`,
+          '打开互动学习',
+          evidenceHref,
+        )
+      : null,
+    input.pathPlan && input.pathPlan.status === 'ready'
+      ? controlCorrectionFallbackState(
+          'path-ready',
+          `${input.goalLabel}路径已就绪`,
+          null,
+          'ready',
+          `/assessment/adaptive-practice?goal=${goalQuery}`,
+          '继续当前节点',
+          evidenceHref,
+        )
+      : null,
+  ].filter((state): state is ControlCorrectionCenterFallbackState => Boolean(state));
+}
+
+function controlCorrectionFallbackState(
+  state: ControlCorrectionCenterStateKind,
+  title: string,
+  fallbackReason: string | null,
+  readiness: PlatformReadinessStatus,
+  href: string,
+  label: string,
+  evidenceHref: string,
+): ControlCorrectionCenterFallbackState {
+  return {
+    state,
+    title,
+    status: buildAdaptiveClaimStatus({
+      id: `control-correction-center-${state}`,
+      label: title,
+      domain: 'path',
+      confidence: state === 'path-ready' ? 'medium' : 'unknown',
+      sourceCoverage: state === 'path-ready' ? 'partial' : 'missing',
+      privacy: 'classroom',
+      readiness,
+      fallbackReason,
+    }),
+    actions: [
+      {
+        href,
+        label,
+      },
+      {
+        href: evidenceHref,
+        label: '查看证据来源',
+      },
+    ],
+  };
 }
 
 function isServerOwnedLearnerState(value: AdaptiveLearnerState | null | undefined): value is AdaptiveLearnerState {
@@ -393,13 +1291,133 @@ function currentPathPanel(pathPlan: AdaptiveLearningPathPlan | null): AdaptiveLe
     payload: pathPlan
       ? {
           id: pathPlan.id,
-          stage: pathPlan.stage,
-          policyFamily: pathPlan.policyFamily,
           currentNodeId: pathPlan.currentNodeId,
-          mainPath: pathPlan.mainPath,
-          alternatives: pathPlan.alternatives,
+          mainPath: pathPlan.mainPath.map(toStudentPathNode),
+          alternatives: pathPlan.alternatives.map(toStudentPathAlternative),
+          pathOptions: buildPathOptionSummaries(pathPlan),
+          pathOptionFallback: buildPathOptionFallback(pathPlan),
+          selectionHistory: buildPathSelectionHistory(pathPlan),
         }
       : null,
+  };
+}
+
+function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
+  const actionablePaths = pathPlan.policyBundle?.paths
+    .map((path, index) => ({ path, index }))
+    .filter(({ path }) => path.nodeIds.length > 0) ?? [];
+  if (!actionablePaths.length) {
+    return [];
+  }
+  return actionablePaths.map(({ path, index }) => ({
+    optionId: `path-option-${index + 1}`,
+    label: path.label,
+    nodeIds: path.nodeIds,
+    nodeSummaries: path.nodeSummaries,
+    lockedNodeIds: path.lockedNodeIds,
+    readinessSummary: path.readinessSummary,
+    targetDeficits: path.targetDeficits.map(toStudentDeficit),
+    evidenceBasis: path.evidenceBasis.map(toStudentPathReason),
+    resourceMix: path.resourceMix,
+    overlap: path.overlap,
+    effort: path.effort,
+    expectedTargetLift: path.expectedTargetLift,
+    terminalValidationNodeIds: path.terminalValidationNodeIds,
+    terminalValidationStrategy: path.terminalValidationStrategy,
+    limitations: path.limitations.map(toStudentPathReason),
+  })) ?? [];
+}
+
+function buildPathOptionFallback(pathPlan: AdaptiveLearningPathPlan) {
+  if (!pathPlan.policyBundle || pathPlan.policyBundle.status === 'ready') {
+    return null;
+  }
+  return {
+    status: pathPlan.policyBundle.status,
+    fallbackReasons: pathPlan.policyBundle.fallbackReasons.map(toStudentPathReason),
+    diversity: {
+      resourceOverlap: pathPlan.policyBundle.diversity.maxResourceOverlap,
+      modalityDistance: pathPlan.policyBundle.diversity.minModalityDistance,
+      effortDifference: pathPlan.policyBundle.diversity.minEstimatedEffortDifference,
+      terminalValidationDifference: pathPlan.policyBundle.diversity.terminalValidationDifference,
+    },
+  };
+}
+
+function buildPathSelectionHistory(pathPlan: AdaptiveLearningPathPlan) {
+  const optionLabels = buildPathOptionLabelMap(pathPlan);
+  return pathPlan.feedbackEvents
+    .filter((event) => event.type === 'selection' || event.type === 'rejection' || event.type === 'switch' || event.type === 'helpfulness')
+    .map((event) => {
+      const context = event.context && typeof event.context === 'object' && !Array.isArray(event.context)
+        ? event.context as Record<string, unknown>
+        : {};
+      return {
+        type: event.type,
+        nodeId: event.nodeId,
+        createdAt: event.createdAt,
+        selectedOptionLabel: typeof context.selectedStyleId === 'string'
+          ? optionLabels.get(context.selectedStyleId) ?? '已选路径'
+          : null,
+        previousOptionLabel: typeof context.previousStyleId === 'string'
+          ? optionLabels.get(context.previousStyleId) ?? '上一条路径'
+          : null,
+        rejectedOptionLabels: Array.isArray(context.rejectedStyleIds)
+          ? context.rejectedStyleIds
+              .filter((item): item is string => typeof item === 'string')
+              .map((item) => optionLabels.get(item) ?? '未采用路径')
+          : [],
+        helpful: typeof context.helpful === 'boolean'
+          ? context.helpful
+          : typeof event.helpful === 'boolean' ? event.helpful : null,
+      };
+    });
+}
+
+function buildPathOptionLabelMap(pathPlan: AdaptiveLearningPathPlan): Map<string, string> {
+  return new Map(pathPlan.policyBundle?.paths.map((path) => [path.styleId, path.label]) ?? []);
+}
+
+function toStudentPathNode(node: AdaptiveLearningPathPlan['mainPath'][number]) {
+  return {
+    nodeId: node.nodeId,
+    title: node.title,
+    type: node.type,
+    pathNodeType: node.pathNodeType,
+    displayName: node.displayName,
+    iconKey: node.iconKey,
+    shapeHint: node.shapeHint,
+    evidenceBehavior: node.evidenceBehavior,
+    evidenceStatus: node.evidenceStatus,
+    externalResource: node.externalResource,
+    checkpointContract: node.checkpoint,
+    target: node.target,
+    estimatedTimeMinutes: node.estimatedTimeMinutes,
+    prerequisiteNodeIds: node.prerequisiteNodeIds,
+    knowledgeCoverage: node.knowledgeCoverage,
+    status: node.status,
+    score: node.score,
+    checkpoint: node.terminalConstraints.length > 0,
+  };
+}
+
+function toStudentPathAlternative(alternative: AdaptiveLearningPathPlan['alternatives'][number]) {
+  return {
+    nodeId: alternative.nodeId,
+    nodeIds: alternative.nodeIds,
+    title: alternative.title,
+    score: alternative.score,
+    blocked: alternative.blocked,
+  };
+}
+
+function toStudentDeficit(deficit: AdaptiveLearningPathDeficit) {
+  return {
+    targetId: deficit.targetId,
+    kind: deficit.kind,
+    value: deficit.value,
+    confidence: deficit.confidence,
+    evidenceCount: deficit.evidenceCount,
   };
 }
 
@@ -464,20 +1482,38 @@ function pathStatus(pathPlan: AdaptiveLearningPathPlan | null): PlatformStatusPa
         : 'partial',
     privacy: 'classroom',
     readiness: pathPlan.status === 'ready' ? 'ready' : 'degraded',
-    fallbackReason: pathPlan.explanations.fallbackReasons[0] ?? null,
-    details: [
-      {
-        label: '策略族',
-        value: pathPlan.policyFamily,
-        roleScope: 'student-visible',
-      },
-      {
-        label: '优化阶段',
-        value: pathPlan.stage,
-        roleScope: 'student-visible',
-      },
-    ],
+    fallbackReason: pathPlan.explanations.fallbackReasons[0]
+      ? toStudentPathReason(pathPlan.explanations.fallbackReasons[0])
+      : null,
   });
+}
+
+function toStudentPathReason(reason: string): string {
+  const reasons: Record<string, string> = {
+    'adaptive-learner-state': '学习证据',
+    LearningFact: '练习记录',
+    SimulationRun: '仿真记录',
+    ArenaSubmission: '挑战记录',
+    'low-confidence-learner-state': '证据较少',
+    'learner-state-missing': '学习证据待补充',
+    'learner-evidence-low-confidence': '当前证据较少',
+    'resource-mapping-insufficient': '可用学习资源不足',
+    'feasible-goal-path-missing': '暂未形成完整路径',
+    'time-budget-insufficient': '当前时间预算不足',
+    'risk-intervention-resource-missing': '需要补充支持资源',
+    'teacher-assignment-resource-missing': '教师指定资源待补充',
+    'terminal-validation-resource-missing': '终点检验资源待补充',
+    'path-diversity-insufficient': '路径差异不足',
+    'path-modality-diversity-insufficient': '资源形式差异不足',
+    'path-effort-diversity-insufficient': '学习时长差异不足',
+    'terminal-validation-diversity-insufficient': '终点检验差异不足',
+    'policy-path-resource-missing': '路径资源不足',
+    'policy-paths-identical': '路径选项过于接近',
+    'terminal-validation-missing': '需要完成终点检验',
+    'some-targets-have-no-direct-evidence': '部分目标还缺少直接证据',
+    'low-learner-state-confidence': '当前证据较少',
+  };
+  return reasons[reason] ?? '路径状态待确认';
 }
 
 function practicePanel(learnerState: AdaptiveLearnerState | null): AdaptiveLearningCenterPanel {
@@ -530,6 +1566,15 @@ function konlingPanel(konling: AdaptiveLearningCenterKonlingPayload | null): Ada
           roleScope: 'student-visible',
         },
         {
+          label: '助理模式',
+          value: [
+            konling?.teachingAssistantModes.diagnosisExplainer ?? 'diagnosis-explainer',
+            konling?.teachingAssistantModes.pathAdvisor ?? 'path-advisor',
+            konling?.teachingAssistantModes.resourceCoach ?? 'resource-coach',
+          ].join(', '),
+          roleScope: 'student-visible',
+        },
+        {
           label: '干预依据',
           value: konling?.interventionBasis ?? 'unavailable',
           roleScope: 'student-visible',
@@ -548,6 +1593,11 @@ function konlingPanel(konling: AdaptiveLearningCenterKonlingPayload | null): Ada
     }),
     payload: konling ?? {
       contextSource: 'none',
+      teachingAssistantModes: {
+        diagnosisExplainer: 'diagnosis-explainer',
+        pathAdvisor: 'path-advisor',
+        resourceCoach: 'resource-coach',
+      },
       interventionBasis: null,
       cooldown: { active: false, until: null },
       feedback: { state: 'unavailable' },

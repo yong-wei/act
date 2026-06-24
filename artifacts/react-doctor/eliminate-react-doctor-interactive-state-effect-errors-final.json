@@ -1,0 +1,42 @@
+{
+  "changeId": "eliminate-react-doctor-interactive-state-effect-errors",
+  "issue": 408,
+  "reactDoctor": {
+    "command": "npm run test:react-doctor:ui-errors",
+    "version": "0.5.1",
+    "scope": "src/features/interactive/",
+    "targetRules": [
+      "effect-needs-cleanup",
+      "no-adjust-state-on-prop-change",
+      "no-mutable-in-deps"
+    ],
+    "totalDiagnostics": 62,
+    "interactiveDiagnostics": 0,
+    "interactiveTargetDiagnostics": 0,
+    "byRule": {}
+  },
+  "classification": {
+    "diagnostics": [],
+    "courseIdentityBoundaries": [],
+    "touchedUnits": [],
+    "reason": "React Doctor 0.5.1 reported no diagnostics under src/features/interactive/ for the target state/effect rules, so no code edits or unit-specific migrations were required."
+  },
+  "validation": [
+    {
+      "command": "npm run test:unit -- src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/module5-submission-migration.test.ts src/features/interactive/__tests__/runtime-media.test.ts src/features/interactive/__tests__/use-teacher-lesson-session.test.tsx src/features/interactive/__tests__/use-session-progress-channel.test.tsx",
+      "result": "passed",
+      "testFiles": 6,
+      "tests": 108
+    },
+    {
+      "command": "npm run test:course-data-quality-gates",
+      "result": "passed",
+      "testFiles": 4,
+      "tests": 63
+    },
+    {
+      "command": "openspec validate eliminate-react-doctor-interactive-state-effect-errors --type change --strict",
+      "result": "passed"
+    }
+  ]
+}

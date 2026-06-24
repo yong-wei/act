@@ -1,35 +1,91 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Database,
+  Download,
+  FileText,
   RefreshCw,
   ShieldAlert,
   Workflow,
 } from 'lucide-react';
 
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
 import {
   buildGovernanceOverview,
   type GovernanceStatusPayload,
 } from '@/features/admin/data-governance-overview';
+import {
+  buildGovernanceActionContract,
+  type GovernanceActionQuery,
+  type GovernanceActionAuditRecord,
+} from '@/features/admin/admin-governance-action-contract';
 import { AdminConsoleHeader } from './admin-console-header';
 import type { AdminConsoleUser } from './admin-console-config';
 
 type DataGovernanceDashboardProps = {
   currentUser: AdminConsoleUser;
+  initialActionQuery?: GovernanceActionQuery | null;
 };
 
-export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboardProps) {
+type GraphCenterAuditContext = 'resource-binding' | 'citation-readiness' | 'overlay-limitations' | 'custom';
+
+export function normalizeGraphCenterAuditContext(audit: string | null | undefined): GraphCenterAuditContext | null {
+  const trimmed = audit?.trim();
+  if (!trimmed) return null;
+  if (
+    trimmed === 'resource-binding' ||
+    trimmed === 'citation-readiness' ||
+    trimmed === 'overlay-limitations'
+  ) {
+    return trimmed;
+  }
+  return 'custom';
+}
+
+export function graphCenterAuditInitialTab(audit: GraphCenterAuditContext | null): 'overview' | 'sessions' | 'sources' | 'cache' {
+  if (audit === 'resource-binding' || audit === 'citation-readiness') return 'sources';
+  if (audit === 'overlay-limitations') return 'cache';
+  return 'overview';
+}
+
+export function DataGovernanceDashboard({ currentUser, initialActionQuery }: DataGovernanceDashboardProps) {
   const [status, setStatus] = useState<GovernanceStatusPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'sources' | 'cache'>('overview');
+  const initialGraphCenterAuditContext = normalizeGraphCenterAuditContext(initialActionQuery?.audit);
+  const initialTab = initialActionQuery?.surface === 'authoring' && initialActionQuery?.tab === 'reports'
+    ? 'sessions'
+    : graphCenterAuditInitialTab(initialGraphCenterAuditContext);
+  const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'sources' | 'cache'>(initialTab);
+  const [executedActionState, setExecutedActionState] = useState<AuditedActionState | null>(null);
+  const [executedAuditRecord, setExecutedAuditRecord] = useState<GovernanceActionAuditRecord | null>(null);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/data-governance/status', {
+      const params = new URLSearchParams();
+      if (initialActionQuery?.riskId?.trim()) {
+        params.set('riskId', initialActionQuery.riskId.trim());
+      }
+      if (initialActionQuery?.surface === 'authoring') {
+        params.set('surface', 'authoring');
+      }
+      if (initialActionQuery?.tab?.trim()) {
+        params.set('tab', initialActionQuery.tab.trim());
+      }
+      if (initialActionQuery?.lessonPlanId?.trim()) {
+        params.set('lessonPlanId', initialActionQuery.lessonPlanId.trim());
+      }
+      if (initialActionQuery?.graphNodeId?.trim()) {
+        params.set('graphNodeId', initialActionQuery.graphNodeId.trim());
+      }
+      if (initialActionQuery?.audit?.trim()) {
+        params.set('audit', initialActionQuery.audit.trim());
+      }
+      const response = await fetch(`/api/admin/data-governance/status${params.size ? `?${params}` : ''}`, {
         cache: 'no-store',
       });
       if (!response.ok) {
@@ -43,13 +99,20 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    initialActionQuery?.audit,
+    initialActionQuery?.graphNodeId,
+    initialActionQuery?.lessonPlanId,
+    initialActionQuery?.riskId,
+    initialActionQuery?.surface,
+    initialActionQuery?.tab,
+  ]);
 
   useEffect(() => {
     fetchStatus();
     const interval = setInterval(fetchStatus, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchStatus]);
 
   const overview = useMemo(() => {
     if (!status) {
@@ -58,9 +121,125 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
     return buildGovernanceOverview(status);
   }, [status]);
 
+  const actionContract = useMemo(() => {
+    if (!status) return { state: null, auditRecord: null };
+    const actionRisks = status.targetRiskFlag
+      ? [status.targetRiskFlag, ...status.recentRiskFlags.filter((risk) => risk.id !== status.targetRiskFlag?.id)]
+      : status.recentRiskFlags;
+    return buildGovernanceActionContract({
+      query: initialActionQuery,
+      risks: actionRisks,
+      actorId: currentUser.id,
+      now: new Date(status.timestamp),
+    });
+  }, [currentUser.id, initialActionQuery, status]);
+
+  const visibleActionState = executedActionState ?? actionContract.state;
+  const visibleAuditRecord = executedAuditRecord ?? actionContract.auditRecord;
+  const routeRiskAction = initialActionQuery?.action === 'resolve' || initialActionQuery?.action === 'assign'
+    ? initialActionQuery.action
+    : null;
+  const routeRiskActionTarget = routeRiskAction
+    && visibleActionState?.status === 'pending'
+    && status
+    ? resolveGovernanceRouteRiskActionTarget(status, initialActionQuery?.riskId)
+    : null;
+  const exportFormat = initialActionQuery?.format === 'csv' || initialActionQuery?.format === 'xlsx'
+    ? initialActionQuery.format
+    : 'json';
+  const riskExportHref = visibleActionState?.downloadFilename
+    ? `/api/admin/data-governance/export?format=${encodeURIComponent(exportFormat)}`
+    : null;
+  const governanceStatusAnnouncement = useMemo(() => {
+    if (loading) return '正在刷新数据治理看板。';
+    if (error) return `数据治理看板出现错误：${error}`;
+    if (!status || !overview) return '数据治理看板暂无可展示数据。';
+    return `数据治理看板已更新，当前状态为 ${status.status}，当前标签为 ${overview.tabs.find((tab) => tab.id === activeTab)?.label ?? '概览'}。`;
+  }, [activeTab, error, loading, overview, status]);
+  const authoringSurfaceActive = initialActionQuery?.surface === 'authoring';
+  const authoringLessonPlanId = initialActionQuery?.lessonPlanId?.trim() || null;
+  const authoringLessonPlanMissing = Boolean(status?.authoringContext?.lessonPlanMissing);
+  const graphCenterNodeId = status?.graphCenterAudit?.graphNodeId ?? initialActionQuery?.graphNodeId?.trim() ?? null;
+  const graphCenterAuditContext = normalizeGraphCenterAuditContext(status?.graphCenterAudit?.audit ?? initialActionQuery?.audit);
+
+  const executeGovernanceAction = async (input: {
+    action: 'resolve' | 'assign';
+    riskId: string;
+    assignee?: string | null;
+  }) => {
+    setExecutedActionState(createAuditedActionState({
+      identity: {
+        id: `admin-governance-${input.action}:${input.riskId}`,
+        category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
+        label: input.action === 'assign' ? '治理分派' : '治理处置',
+        sourceRoute: '/admin/data-governance',
+        targetId: input.riskId,
+        requestedAction: input.action,
+      },
+      status: 'pending',
+      message: '治理动作正在提交。',
+    }));
+    try {
+      const response = await fetch(`/api/admin/data-governance/risks/${encodeURIComponent(input.riskId)}/actions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: input.action,
+          assignee: input.assignee ?? null,
+        }),
+      });
+      const payload = await response.json().catch(() => null) as {
+        auditRecord?: GovernanceActionAuditRecord;
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error || '治理动作失败');
+      }
+      setExecutedAuditRecord(payload?.auditRecord ?? null);
+      setExecutedActionState(createAuditedActionState({
+        identity: {
+          id: `admin-governance-${input.action}:${input.riskId}`,
+          category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
+          label: input.action === 'assign' ? '治理分派' : '治理处置',
+          sourceRoute: '/admin/data-governance',
+          targetId: input.riskId,
+          requestedAction: input.action,
+        },
+        status: 'succeeded',
+        message: input.action === 'assign' ? '治理风险已保存分派审计记录。' : '治理风险已标记处理并保存审计记录。',
+        nextAction: '刷新治理列表并复核风险状态',
+      }));
+      fetchStatus();
+    } catch (err) {
+      setExecutedActionState(createAuditedActionState({
+        identity: {
+          id: `admin-governance-${input.action}:${input.riskId}`,
+          category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
+          label: input.action === 'assign' ? '治理分派' : '治理处置',
+          sourceRoute: '/admin/data-governance',
+          targetId: input.riskId,
+          requestedAction: input.action,
+        },
+        status: 'failed',
+        message: err instanceof Error ? err.message : '治理动作失败',
+        recoveryAction: '刷新治理列表后重试',
+        httpStatus: 500,
+      }));
+    }
+  };
+
   if (loading && !status) {
     return (
-      <div className="admin-console-shell">
+      <div
+        className="admin-console-shell"
+        data-commercial-operations-workspace="admin-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="loading"
+        data-report-ledger-surface="governance-data-quality-snapshot"
+        data-report-ledger-watermark="low-contrast-brand"
+        data-report-ledger-privacy-scope="admin-governance"
+        data-report-ledger-export="deferred"
+      >
         <AdminConsoleHeader
           currentUser={currentUser}
           currentHref="/admin/data-governance"
@@ -81,7 +260,16 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
 
   if (error && !status) {
     return (
-      <div className="admin-console-shell">
+      <div
+        className="admin-console-shell"
+        data-commercial-operations-workspace="admin-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="blocked"
+        data-report-ledger-surface="governance-data-quality-snapshot"
+        data-report-ledger-watermark="low-contrast-brand"
+        data-report-ledger-privacy-scope="admin-governance"
+        data-report-ledger-export="deferred"
+      >
         <AdminConsoleHeader
           currentUser={currentUser}
           currentHref="/admin/data-governance"
@@ -91,7 +279,7 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
           description="这里不只展示总量，而是直接展开风险、事实与快照的下层内容，帮助管理员判断治理链路到底卡在队列、快照还是风险处置。"
         />
         <main className="admin-console-container py-8">
-          <div className="admin-console-notice admin-console-notice-danger flex items-start gap-3">
+          <div className="admin-console-notice admin-console-notice-danger flex items-start gap-3" role="alert">
             <AlertTriangle className="mt-0.5 h-5 w-5" />
             <div>
               <p className="font-medium">数据治理看板加载失败</p>
@@ -108,7 +296,20 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
   }
 
   return (
-    <div className="admin-console-shell">
+    <div
+      className="admin-console-shell"
+      data-commercial-operations-workspace="admin-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={status.status === 'healthy' ? 'ready' : status.status === 'error' ? 'blocked' : 'partial'}
+      data-report-ledger-surface="governance-data-quality-snapshot"
+      data-report-ledger-watermark="low-contrast-brand"
+      data-report-ledger-privacy-scope="admin-governance"
+      data-report-ledger-export="deferred"
+      data-graph-center-governance-context={graphCenterNodeId ? 'true' : undefined}
+      data-graph-center-node-id={graphCenterNodeId ?? undefined}
+      data-graph-center-audit={graphCenterNodeId && graphCenterAuditContext ? graphCenterAuditContext : undefined}
+      data-graph-center-preferred-tab={status.graphCenterAudit?.preferredTab}
+    >
       <AdminConsoleHeader
         currentUser={currentUser}
         currentHref="/admin/data-governance"
@@ -122,10 +323,11 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
           </span>
         }
         actions={
-          <button
+          <button type="button"
             onClick={fetchStatus}
             className="admin-console-button-primary"
             disabled={loading}
+            aria-label="刷新数据治理状态"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             刷新状态
@@ -135,10 +337,111 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
 
       <main className="admin-console-container space-y-6 py-8">
         {error && (
-          <div className="admin-console-notice admin-console-notice-danger">
+          <div className="admin-console-notice admin-console-notice-danger" role="alert">
             {error}
           </div>
         )}
+        {graphCenterNodeId ? (
+          <section
+            className="admin-console-notice"
+            data-graph-center-governance-audit-context="true"
+            data-graph-center-node-id={graphCenterNodeId}
+            data-graph-center-audit={graphCenterAuditContext ?? 'unspecified'}
+            data-graph-center-preferred-tab={status.graphCenterAudit?.preferredTab ?? graphCenterAuditInitialTab(graphCenterAuditContext)}
+          >
+            <div className="font-semibold text-foreground">图谱治理上下文</div>
+            <div className="mt-1 text-sm">
+              当前审计已定位到图谱节点 <span className="font-mono text-xs">{graphCenterNodeId}</span>
+              {graphCenterAuditContext ? `，审计类型：${graphCenterAuditContext}` : '。'}
+            </div>
+          </section>
+        ) : null}
+        <div
+          className="sr-only"
+          role="status"
+          aria-live="polite"
+          data-admin-governance-status
+        >
+          {governanceStatusAnnouncement}
+        </div>
+
+        {visibleActionState ? (
+          <ActionStatusPanel
+            state={visibleActionState}
+            action={riskExportHref ? (
+              <a
+                href={riskExportHref}
+                download={visibleActionState.downloadFilename}
+                className="admin-console-button px-3 py-1.5"
+                aria-label="下载数据治理风险文件"
+              >
+                <Download className="h-4 w-4" />
+                下载风险文件
+              </a>
+            ) : routeRiskAction && routeRiskActionTarget ? (
+              <button
+                type="button"
+                onClick={() => executeGovernanceAction({
+                  action: routeRiskAction,
+                  riskId: routeRiskActionTarget.id,
+                  assignee: routeRiskAction === 'assign' ? initialActionQuery?.assignee?.trim() || currentUser.id : null,
+                })}
+                className="admin-console-button px-3 py-1.5"
+                aria-label={routeRiskAction === 'assign' ? '提交治理风险分派' : '提交治理风险处置'}
+              >
+                {routeRiskAction === 'assign' ? '提交分派' : '提交处置'}
+              </button>
+            ) : null}
+          />
+        ) : null}
+
+        {visibleAuditRecord ? (
+          <section className="admin-console-surface-soft text-sm">
+            <span className="admin-console-kicker">动作审计</span>
+            <div className="mt-3 grid gap-2 md:grid-cols-3">
+              <div>操作者：{visibleAuditRecord.actorId}</div>
+              <div>动作：{visibleAuditRecord.action}</div>
+              <div>结果：{visibleAuditRecord.outcome}</div>
+              <div>风险：{visibleAuditRecord.riskId ?? '-'}</div>
+              <div>负责人：{visibleAuditRecord.assignee ?? '-'}</div>
+              <div>回滚可用：{visibleAuditRecord.undoAvailable ? '是' : '否'}</div>
+            </div>
+          </section>
+        ) : null}
+
+        {authoringSurfaceActive ? (
+          <section
+            className="admin-console-surface-soft flex flex-wrap items-start justify-between gap-4 text-sm"
+            data-admin-governance-authoring-surface="quality-reports"
+          >
+            <div className="flex items-start gap-3">
+              <FileText className="mt-0.5 h-5 w-5 text-cyan-300" />
+              <div>
+                <h2 className="admin-console-title font-semibold">作者态质量报告</h2>
+                <p className="admin-console-muted mt-1">
+                  当前入口来自作者态治理链接，已切换到课堂质量报告视图。
+                  {authoringLessonPlanMissing
+                    ? `目标教案 ${authoringLessonPlanId} 当前不存在，请返回教案管理重新选择。`
+                    : authoringLessonPlanId
+                    ? `目标教案：${authoringLessonPlanId}`
+                    : '当前链接缺少 lessonPlanId，请从具体教案或资源治理项重新进入。'}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('sessions')}
+                className="admin-console-button px-3 py-1.5"
+              >
+                查看质量报告
+              </button>
+              <a href="/admin/lesson-plans" className="admin-console-button px-3 py-1.5">
+                返回教案管理
+              </a>
+            </div>
+          </section>
+        ) : null}
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {overview.summaryCards.map((card) => (
@@ -165,12 +468,14 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
           ))}
         </section>
 
-        <nav className="admin-console-surface flex flex-wrap gap-2 p-2">
+        <nav className="admin-console-surface flex flex-wrap gap-2 p-2" aria-label="数据治理视图">
           {overview.tabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
+              aria-pressed={activeTab === tab.id}
+              aria-current={activeTab === tab.id ? 'page' : undefined}
               className={`rounded-md px-4 py-2 text-sm font-medium transition ${
                 activeTab === tab.id
                   ? 'bg-cyan-500 text-slate-950'
@@ -331,7 +636,7 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
               </div>
             )}
             <div className="admin-console-table-shell p-0">
-              <table className="admin-console-table">
+              <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="数据源治理目录">
                 <thead>
                   <tr>
                     <th className="px-4 py-3">来源</th>
@@ -346,15 +651,15 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
                 <tbody>
                   {overview.sourceCatalogPanel.sources.map((source) => (
                     <tr key={source.id}>
-                      <td className="px-4 py-3 admin-console-title font-medium">{source.id}</td>
-                      <td className="px-4 py-3">{source.learningScope}</td>
-                      <td className="px-4 py-3">{source.valueLevel}</td>
-                      <td className="px-4 py-3">{source.eligibility}</td>
-                      <td className="px-4 py-3">{source.materializationReadiness}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 admin-console-title font-medium" data-label="来源">{source.id}</td>
+                      <td className="px-4 py-3" data-label="范围">{source.learningScope}</td>
+                      <td className="px-4 py-3" data-label="价值">{source.valueLevel}</td>
+                      <td className="px-4 py-3" data-label="资格">{source.eligibility}</td>
+                      <td className="px-4 py-3" data-label="物化">{source.materializationReadiness}</td>
+                      <td className="px-4 py-3" data-label="行数">
                         {(source.totalRows ?? 0).toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 admin-console-table-subtle">
+                      <td className="px-4 py-3 admin-console-table-subtle" data-label="排除原因">
                         {source.exclusionReasons && source.exclusionReasons.length > 0
                           ? source.exclusionReasons.join(' / ')
                           : '-'}
@@ -414,7 +719,7 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
               ))}
             </div>
             <div className="admin-console-table-shell p-0">
-              <table className="admin-console-table">
+              <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="课堂质量报告">
                 <thead>
                   <tr>
                     <th className="px-4 py-3">课堂</th>
@@ -433,17 +738,17 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
                   ) : (
                     overview.sessionQualityPanel.rows.map((report) => (
                       <tr key={report.sessionId}>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="课堂">
                           <div className="admin-console-title font-medium">{report.lessonKey ?? report.sessionId}</div>
                           <div className="admin-console-table-subtle text-xs">{report.summary ?? report.sessionId}</div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="质量">
                           <span className="admin-console-chip">{report.qualityStatus}</span>
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="原因">
                           {report.qualityReasons.length > 0 ? report.qualityReasons.join(' / ') : '-'}
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="更新时间">
                           {new Date(report.updatedAt).toLocaleString('zh-CN')}
                         </td>
                       </tr>
@@ -509,7 +814,7 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
         )}
 
         {activeTab === 'overview' && (
-        <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+          <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
           <div className="admin-console-surface space-y-4">
             <div className="flex items-center gap-3">
               <span className="admin-console-icon-badge">
@@ -523,7 +828,7 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
               </div>
             </div>
             <div className="admin-console-table-shell p-0">
-              <table className="admin-console-table">
+              <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="未解决治理风险">
                 <thead>
                   <tr>
                     <th className="px-4 py-3">学生</th>
@@ -531,30 +836,51 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
                     <th className="px-4 py-3">级别</th>
                     <th className="px-4 py-3">触发时间</th>
                     <th className="px-4 py-3">说明</th>
+                    <th className="px-4 py-3 text-right">操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   {overview.riskPanel.rows.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
+                      <td colSpan={6} className="px-4 py-8 text-center admin-console-table-subtle">
                         当前没有未解决风险。
                       </td>
                     </tr>
                   ) : (
                     overview.riskPanel.rows.map((risk) => (
                       <tr key={risk.id}>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="学生">
                           <div className="admin-console-title font-medium">{risk.userName}</div>
                           <div className="admin-console-table-subtle text-xs">{risk.userId}</div>
                         </td>
-                        <td className="px-4 py-3">{risk.flagLabel}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="风险类型">{risk.flagLabel}</td>
+                        <td className="px-4 py-3" data-label="级别">
                           <span className="admin-console-chip">{risk.severityLabel}</span>
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="触发时间">
                           {new Date(risk.triggeredAt).toLocaleString('zh-CN')}
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">{risk.description}</td>
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="说明">{risk.description}</td>
+                        <td className="px-4 py-3" data-label="操作">
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => executeGovernanceAction({ action: 'resolve', riskId: risk.id })}
+                              className="admin-console-button px-3 py-1.5 text-xs"
+                              aria-label={`处置治理风险 ${risk.flagLabel} ${risk.userName}`}
+                            >
+                              处置
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => executeGovernanceAction({ action: 'assign', riskId: risk.id, assignee: currentUser.id })}
+                              className="admin-console-button px-3 py-1.5 text-xs"
+                              aria-label={`分派治理风险 ${risk.flagLabel} ${risk.userName}`}
+                            >
+                              分派
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -631,4 +957,16 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
       </main>
     </div>
   );
+}
+
+export function resolveGovernanceRouteRiskActionTarget(
+  status: Pick<GovernanceStatusPayload, 'recentRiskFlags' | 'targetRiskFlag'>,
+  riskId: string | null | undefined,
+) {
+  const targetId = riskId?.trim();
+  if (!targetId) return null;
+  if (status.targetRiskFlag?.id === targetId) {
+    return status.targetRiskFlag;
+  }
+  return status.recentRiskFlags.find((risk) => risk.id === targetId) ?? null;
 }

@@ -1,6 +1,6 @@
+import { createPrismaClient } from '../../src/lib/prisma-client';
 import fs from 'node:fs';
 import path from 'node:path';
-import { PrismaClient } from '@prisma/client';
 
 import {
   applyInteractiveEvidenceScoringRecomputePlan,
@@ -115,7 +115,7 @@ function printTextReport(
 
 async function main() {
   const options = parseInteractiveEvidenceScoringRecomputeOptions(process.argv);
-  const prisma = new PrismaClient();
+  const prisma = createPrismaClient();
   const manifestsByLessonKey = loadRuntimeManifests();
   try {
     const plan = await collectInteractiveEvidenceScoringRecomputePlan(prisma, {

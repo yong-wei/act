@@ -6,7 +6,7 @@
  * 集成到仿真界面的 AI 助手聊天组件
  */
 
-import { useChat, type Message } from 'ai/react';
+import { useChat, type Message } from '@/hooks/useLegacyChat';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { type SimulationState, type SimulationMetrics } from '@/resources/simulations/types';
@@ -104,7 +104,7 @@ export function CopilotPanel({
 
   if (!isExpanded) {
     return (
-      <button
+      <button type="button"
         onClick={() => {
           setIsExpanded(true);
           onToggleCollapse?.();
@@ -128,7 +128,8 @@ export function CopilotPanel({
             <p className="text-xs text-amber-300">{KONLING_BRAND.subtitle}</p>
           </div>
         </div>
-        <button
+        <button type="button"
+          aria-label="收起控灵面板"
           onClick={() => {
             setIsExpanded(false);
             onToggleCollapse?.();
@@ -161,7 +162,7 @@ export function CopilotPanel({
               <p className="text-xs text-slate-500">快捷问题：</p>
               <div className="flex flex-wrap gap-2">
                 {quickQuestions.map((q, i) => (
-                  <button
+                  <button type="button"
                     key={i}
                     onClick={() => handleQuickQuestion(q)}
                     className="rounded-full bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700"
@@ -201,7 +202,7 @@ export function CopilotPanel({
       {/* 输入区 */}
       <form onSubmit={handleSubmit} className="border-t border-slate-700 p-4">
         <div className="flex gap-2">
-          <input
+          <input aria-label="请输入您的问题..."
             type="text"
             value={input}
             onChange={handleInputChange}
@@ -244,7 +245,7 @@ function MessageBubble({ message }: { message: Message }) {
         {/* 普通文本消息 */}
         {message.content && (
           <div className="text-sm leading-relaxed">
-            <AIMessageContent content={message.content} />
+            <AIMessageContent content={message.content} sanitizeContent={!isUser} />
           </div>
         )}
       </div>

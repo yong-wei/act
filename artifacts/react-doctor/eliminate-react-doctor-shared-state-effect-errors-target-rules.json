@@ -1,0 +1,27 @@
+{
+  "command": "npm run test:react-doctor:ui-errors",
+  "reactDoctorVersion": "0.5.1",
+  "scope": [
+    "src/components/",
+    "src/hooks/",
+    "src/features/arena/",
+    "src/features/control-workbench/",
+    "src/features/knowledge/",
+    "src/features/admin/",
+    "src/features/lesson-engine/"
+  ],
+  "targetRules": [
+    "effect-needs-cleanup",
+    "no-adjust-state-on-prop-change",
+    "no-mutable-in-deps"
+  ],
+  "scopeStateEffectCount": 0,
+  "scopeDiagnostics": [],
+  "totalDiagnostics": 62,
+  "totalByRule": {
+    "no-adjust-state-on-prop-change": 60,
+    "no-mutable-in-deps": 1,
+    "effect-needs-cleanup": 1
+  },
+  "note": "Command exits 1 because sibling React Doctor changes still own remaining diagnostics; this artifact filters the #407 shared state/effect scope."
+}

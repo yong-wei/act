@@ -6,21 +6,36 @@
  * 支持控灵上下文感知系统提示词
  */
 
-import { streamText, convertToCoreMessages, type Message } from 'ai';
+import { consumeStream, createUIMessageStreamResponse, streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
+import { toLegacyMessage, toModelMessages, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
+  buildStreamingCitationFallbackNotice,
+  insertStreamingCitationFallbackNotice,
+} from '@/lib/konling-streaming-citation-fallback';
+import {
+  resolveKonlingTeachingAssistantScopeOverride,
+  resolveKonlingTeachingAssistantServerModeContext,
+} from '@/lib/konling-teaching-assistant-server-context';
+import {
+  buildKonlingCitationGuard,
+  buildKonlingStreamingCitationGuard,
   buildKonlingRuntimeContext,
+  buildKonlingTeachingAssistantRuntimeContract,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
   getOrCreateKonlingAgentSession,
   KonlingRuntimeScopeError,
+  normalizeKonlingKnowledgeWorkspaceHint,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
+import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
+import { redactProviderError, type ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 
 export const runtime = 'nodejs';
@@ -28,11 +43,13 @@ export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
 function sanitizeAIErrorMessage(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.replace(/Bearer\s+\S+/g, 'Bearer ***').slice(0, 500);
+  return redactProviderError(error);
 }
 
 function isExternalAIProviderError(error: unknown) {
+  if (error instanceof AIProviderCapabilityUnavailableError) {
+    return true;
+  }
   if (!(error instanceof Error)) {
     return false;
   }
@@ -76,7 +93,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const {
-      messages,
+      messages: rawMessages,
       simulationState,
       lessonContext,
       pageContext,
@@ -87,8 +104,11 @@ export async function POST(request: Request) {
       resourceId,
       pathNodeId,
       agentSessionId,
+      teachingAssistantModeId,
+      modeClientContextHints,
+      knowledgeWorkspaceHint,
     } = body as {
-      messages: Message[];
+      messages: IncomingMessage[];
       simulationState?: Record<string, unknown>;
       lessonContext?: LessonContext;
       pageContext?: PageContext;
@@ -99,6 +119,9 @@ export async function POST(request: Request) {
       resourceId?: string;
       pathNodeId?: string;
       agentSessionId?: string;
+      teachingAssistantModeId?: string;
+      modeClientContextHints?: Record<string, unknown>;
+      knowledgeWorkspaceHint?: Record<string, unknown>;
     };
 
     // 验证用户身份
@@ -113,11 +136,55 @@ export async function POST(request: Request) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+    if (teachingAssistantModeId && !session?.user?.id) {
+      return new Response(JSON.stringify({
+        error: 'KONLING_MODE_UNAVAILABLE',
+        mode: teachingAssistantModeId,
+        status: 'unavailable',
+        unavailableReasons: ['missing-authenticated-runtime-scope'],
+        degradedReasons: [],
+        clientHintsRejected: Object.keys(modeClientContextHints ?? {}),
+      }), {
+        status: 401,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Konling-Assistant-Mode': teachingAssistantModeId,
+          'X-Konling-Assistant-Mode-Status': 'unavailable',
+        },
+      });
+    }
+
+    if (!Array.isArray(rawMessages)) {
+      return new Response(JSON.stringify({ error: 'Missing messages' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const uiMessages = rawMessages.map(toUIMessage);
+    const messages = uiMessages.map(toLegacyMessage);
 
     const hasRuntimeContext = Boolean(
       (courseId || pageContext?.courseId) &&
       (pageId || pageContext?.stepId),
     );
+    if (teachingAssistantModeId && !hasRuntimeContext) {
+      return new Response(JSON.stringify({
+        error: 'KONLING_MODE_UNAVAILABLE',
+        mode: teachingAssistantModeId,
+        status: 'unavailable',
+        unavailableReasons: ['missing-runtime-context'],
+        degradedReasons: [],
+        clientHintsRejected: Object.keys(modeClientContextHints ?? {}),
+      }), {
+        status: 409,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Konling-Assistant-Mode': teachingAssistantModeId,
+          'X-Konling-Assistant-Mode-Status': 'unavailable',
+        },
+      });
+    }
 
     // 旧 AI 工具仍使用全局仿真状态；Konling runtime 使用当前请求的 scoped state。
     if (simulationState && !hasRuntimeContext) {
@@ -129,13 +196,27 @@ export async function POST(request: Request) {
     // 构建系统提示词
     let systemPrompt: string;
     let agentSessionResponseHeaders: HeadersInit | undefined;
+    let citationGuardMetadata: ReturnType<typeof buildKonlingCitationGuard> | null = null;
+    let modelRequirements: ModelProviderCapabilityRequirements = {
+      tools: true,
+      streaming: true,
+    };
 
     if (session?.user?.id && hasRuntimeContext) {
+      const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride({
+        db: prisma,
+        modeId: teachingAssistantModeId,
+        authenticatedUserId: session.user.id,
+        role: session.user.role,
+        clientContextHints: modeClientContextHints,
+      });
+      const runtimeTargetUserId = modeScopeOverride.targetUserId ?? session.user.id;
+      const runtimeClassId = modeScopeOverride.classId ?? classId;
       const scope = await verifyKonlingRuntimeScope(prisma, {
         authenticatedUserId: session.user.id,
         role: session.user.role,
-        targetUserId: session.user.id,
-        classId,
+        targetUserId: runtimeTargetUserId,
+        classId: runtimeClassId,
         courseId: courseId || pageContext?.courseId,
         pageId: pageId || pageContext?.stepId,
         resourceId,
@@ -152,14 +233,51 @@ export async function POST(request: Request) {
         authenticatedUserId: session.user.id,
         authenticatedUserName: session.user.name,
         role: session.user.role,
-        targetUserId: session.user.id,
-        classId,
+        targetUserId: runtimeTargetUserId,
+        classId: runtimeClassId,
         courseId: scope.scope.courseId,
         pageId: scope.scope.pageId,
         resourceId,
         pathNodeId,
         pageContextHint: pageContext,
+        knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
+        trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId),
       });
+      const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+        modeId: teachingAssistantModeId,
+        runtimeContext,
+        scope: scope.scope,
+        serverModeContext: await resolveKonlingTeachingAssistantServerModeContext({
+          db: prisma,
+          modeId: teachingAssistantModeId,
+          runtimeContext,
+          scope: scope.scope,
+          clientContextHints: modeClientContextHints,
+        }),
+        clientContextHints: modeClientContextHints,
+      });
+      if (modeContract.status === 'unavailable') {
+        return new Response(JSON.stringify({
+          error: 'KONLING_MODE_UNAVAILABLE',
+          mode: modeContract.mode.id,
+          status: modeContract.status,
+          unavailableReasons: modeContract.unavailableReasons,
+          degradedReasons: modeContract.degradedReasons,
+          clientHintsRejected: modeContract.clientHintsRejected,
+        }), {
+          status: 409,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Konling-Assistant-Mode': modeContract.mode.id,
+            'X-Konling-Assistant-Mode-Status': modeContract.status,
+          },
+        });
+      }
+      const modeRuntimeContext = {
+        ...runtimeContext,
+        knowledgeCapabilityContext: modeContract.groundingContext,
+        teachingAssistantMode: modeContract,
+      };
       const aiContext: AIContext = {
         page: runtimeContext.pageContext,
         user: runtimeContext.userProfile,
@@ -167,27 +285,50 @@ export async function POST(request: Request) {
       };
       systemPrompt = buildKonlingSystemPrompt({
         ...aiContext,
-        adaptiveRuntime: runtimeContext,
+        adaptiveRuntime: modeRuntimeContext,
       });
+      citationGuardMetadata = buildKonlingStreamingCitationGuard(modeRuntimeContext);
+      modelRequirements = {
+        ...modelRequirements,
+        tools: true,
+        streaming: true,
+        citationNormalization: true,
+      };
+      if (!(await isConfiguredAIServiceAvailable(modelRequirements))) {
+        return new Response(
+          JSON.stringify({
+            error: 'AI 服务未配置',
+            message: '请在环境变量中配置 AI_API_KEY',
+          }),
+          {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
       const agentSession = await getOrCreateKonlingAgentSession(prisma, {
         scope: scope.scope,
         agentSessionId,
         phase: 'ai-chat-tool-runtime',
         status: 'running',
-        state: { route: '/api/ai/chat' },
-        permittedTools: runtimeContext.permittedTools,
+        state: { route: '/api/ai/chat', teachingAssistantMode: modeContract.mode.id, modeStatus: modeContract.status },
+        permittedTools: modeContract.permittedTools,
+      });
+      const toolRuntime = buildKonlingToolRuntime({
+        db: prisma,
+        scope: scope.scope,
+        context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools },
+        agentSessionId: agentSession.id,
+        permittedTools: modeContract.permittedTools,
+        scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
       });
       agentSessionResponseHeaders = {
         'X-Konling-Agent-Session-Id': agentSession.id,
+        'X-Konling-Citation-Guard': citationGuardMetadata.status,
+        'X-Konling-Assistant-Mode': modeContract.mode.id,
+        'X-Konling-Assistant-Mode-Status': modeContract.status,
       };
-      tools = buildScopedKonlingAiTools(buildKonlingToolRuntime({
-        db: prisma,
-        scope: scope.scope,
-        context: runtimeContext,
-        agentSessionId: agentSession.id,
-        permittedTools: agentSession.permittedTools,
-        scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
-      }));
+      tools = buildScopedKonlingAiTools(toolRuntime);
     } else if (pageContext && userProfile) {
       const aiContext: AIContext = {
         page: pageContext,
@@ -201,7 +342,7 @@ export async function POST(request: Request) {
     }
 
     // 检查 API Key 配置
-    if (!(await isConfiguredAIServiceAvailable())) {
+    if (!(await isConfiguredAIServiceAvailable(modelRequirements))) {
       return new Response(
         JSON.stringify({
           error: 'AI 服务未配置',
@@ -216,20 +357,48 @@ export async function POST(request: Request) {
 
     // 使用 Vercel AI SDK 生成流式响应
     const result = await streamText({
-      model: await getConfiguredAIModel(),
+      model: await getConfiguredAIModel(undefined, modelRequirements),
       system: systemPrompt,
-      messages: convertToCoreMessages(messages),
+      messages: await toModelMessages(uiMessages),
       tools,
-      maxSteps: 5, // 允许最多5轮工具调用
+      stopWhen: stepCountIs(5), // 允许最多5轮工具调用
       toolChoice: 'auto',
       temperature: 0.7,
-      maxTokens: 2000,
+      maxOutputTokens: 2000,
     });
 
+    const uiMessageStream = result.toUIMessageStream({
+      originalMessages: uiMessages,
+      generateMessageId: () => crypto.randomUUID(),
+      messageMetadata: ({ part }) => {
+        if (!citationGuardMetadata || (part.type !== 'start' && part.type !== 'finish')) return undefined;
+        return {
+          konlingCitationGuard: {
+            status: citationGuardMetadata.status,
+            missingCitationClasses: citationGuardMetadata.missingCitationClasses,
+            lowConfidenceReasons: citationGuardMetadata.lowConfidenceReasons,
+            citations: citationGuardMetadata.citations.map((citation) => ({
+              sourceType: citation.sourceType,
+              displayTitle: citation.displayTitle,
+              href: citation.href,
+              confidence: citation.confidence,
+              evidenceBasis: citation.evidenceBasis,
+            })),
+          },
+        };
+      },
+      onError: getAIStreamErrorMessage,
+    });
+    const guardedUiMessageStream = insertStreamingCitationFallbackNotice(
+      uiMessageStream,
+      buildStreamingCitationFallbackNotice(citationGuardMetadata),
+    );
+
     // 返回流式响应
-    return result.toDataStreamResponse({
-      init: agentSessionResponseHeaders ? { headers: agentSessionResponseHeaders } : undefined,
-      getErrorMessage: getAIStreamErrorMessage,
+    return createUIMessageStreamResponse({
+      headers: agentSessionResponseHeaders,
+      stream: guardedUiMessageStream,
+      consumeSseStream: consumeStream,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);

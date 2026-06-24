@@ -1,0 +1,18 @@
+{
+  "route": "/simulations/drilling",
+  "theme": "dark",
+  "width": 1440,
+  "navigationState": "desktop-collapsed",
+  "dockState": "collapsed",
+  "localToolState": "expanded",
+  "primarySceneNonblank": true,
+  "instrumentAreaNonblank": true,
+  "collisionEvidence": {
+    "dockAndLocalToolsObservedTogether": false,
+    "dockObservedExpanded": false,
+    "localToolsObservedExpanded": true,
+    "localControlCollisionFree": true
+  },
+  "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-collapsed-collapsed-expanded.png",
+  "result": "passed"
+}

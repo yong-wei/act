@@ -1,0 +1,19 @@
+{
+  "route": "/graph-center",
+  "change": "add-learner-class-graph-overlays",
+  "capturedAt": "2026-06-21T12:18:00+08:00",
+  "verification": {
+    "command": "PLAYWRIGHT_PORT=3311 npx playwright test tests/graph-center.spec.ts",
+    "result": "passed",
+    "assertions": [
+      "graph center surface is visible",
+      "domain switching updates the active graph domain",
+      "objective and portrait filters keep node detail readable",
+      "node detail exposes resource bindings and validation status"
+    ]
+  },
+  "notes": [
+    "This artifact records structured acceptance evidence for commercial UI governance after wiring production overlay sources.",
+    "No visual layout change was introduced beyond route query parameter support and server-side overlay data inputs."
+  ]
+}

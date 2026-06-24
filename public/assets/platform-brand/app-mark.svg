@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Instrument Atlas app mark">
+  <rect fill="#07111f" x="8" y="8" width="80" height="80" rx="18"/>
+  <path d="M24 62 42 34l14 16 16-26" fill="none" stroke="#38bdf8" stroke-width="4"/>
+  <circle fill="#22c55e" cx="42" cy="34" r="5"/>
+  <circle fill="#f59e0b" cx="72" cy="24" r="5"/>
+  <path d="M24 72h48M24 22h22" fill="none" stroke="#94a3b8" stroke-width="2"/>
+</svg>

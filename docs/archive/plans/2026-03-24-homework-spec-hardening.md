@@ -16,7 +16,7 @@
 
 **Step 1: Re-read the current framework and extraction script**
 
-Run: `sed -n '1,260p' course-content/syllabus-refactor/homework-framework.md && sed -n '1,240p' .codex/skills/homework-problem-authoring/scripts/extract_homework_question.py`
+Run: `sed -n '1,260p' course-content/syllabus-refactor/homework-framework.md && sed -n '1,240p' .agents/skills/homework-problem-authoring/scripts/extract_homework_question.py`
 Expected: Current framework is too coarse and script only extracts a minimal thin payload.
 
 **Step 2: Define the target field set**
@@ -93,8 +93,8 @@ Implementation:
 ### Task 4: Upgrade extraction and skill references
 
 **Files:**
-- Modify: `.codex/skills/homework-problem-authoring/scripts/extract_homework_question.py`
-- Modify: `.codex/skills/homework-problem-authoring/SKILL.md`
+- Modify: `.agents/skills/homework-problem-authoring/scripts/extract_homework_question.py`
+- Modify: `.agents/skills/homework-problem-authoring/SKILL.md`
 - Modify: `scripts/tests/test_extract_homework_question.py`
 - Modify: `scripts/tests/test-homework-problem-authoring-skill.ts`
 - Modify: `docs/ProjectDescription.md`
@@ -114,8 +114,8 @@ Implementation:
 
 **Files:**
 - Modify: `course-content/syllabus-refactor/homework-framework.md`
-- Modify: `.codex/skills/homework-problem-authoring/scripts/extract_homework_question.py`
-- Modify: `.codex/skills/homework-problem-authoring/SKILL.md`
+- Modify: `.agents/skills/homework-problem-authoring/scripts/extract_homework_question.py`
+- Modify: `.agents/skills/homework-problem-authoring/SKILL.md`
 - Modify: `scripts/tests/test_extract_homework_question.py`
 - Modify: `scripts/tests/test-homework-problem-authoring-skill.ts`
 - Modify: `docs/ProjectDescription.md`
@@ -132,5 +132,5 @@ Expected: PASS and confirm the skill references the new truth source and extract
 
 **Step 3: Run formatting check**
 
-Run: `git diff --check -- course-content/syllabus-refactor/homework-framework.md .codex/skills/homework-problem-authoring/scripts/extract_homework_question.py .codex/skills/homework-problem-authoring/SKILL.md scripts/tests/test_extract_homework_question.py scripts/tests/test-homework-problem-authoring-skill.ts docs/ProjectDescription.md docs/plans/2026-03-24-homework-spec-hardening.md`
+Run: `git diff --check -- course-content/syllabus-refactor/homework-framework.md .agents/skills/homework-problem-authoring/scripts/extract_homework_question.py .agents/skills/homework-problem-authoring/SKILL.md scripts/tests/test_extract_homework_question.py scripts/tests/test-homework-problem-authoring-skill.ts docs/ProjectDescription.md docs/plans/2026-03-24-homework-spec-hardening.md`
 Expected: No whitespace or conflict-marker errors.

@@ -1,0 +1,14 @@
+{
+  "lesson_id": "5-3",
+  "nodes_path": "course-content/authoring/lessons/5-3/graph/nodes.jsonl",
+  "relations_path": "course-content/authoring/lessons/5-3/graph/relations.jsonl",
+  "node_count": 8,
+  "relation_count": 15,
+  "missing_files": [],
+  "invalid_json": [],
+  "duplicate_node_ids": [],
+  "node_field_issues": {},
+  "missing_referenced_nodes": [],
+  "relation_issues": [],
+  "blocking_issues": []
+}

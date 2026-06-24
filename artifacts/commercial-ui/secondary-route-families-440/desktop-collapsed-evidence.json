@@ -1,0 +1,19 @@
+{
+  "changeId": "migrate-secondary-route-families-to-unified-shell",
+  "state": "desktop-collapsed",
+  "routes": [
+    "/teacher/classes/new",
+    "/teacher/lesson-plans",
+    "/teacher/lesson-plans/new",
+    "/teacher/lesson-plans/[id]/edit",
+    "/admin/lesson-plans",
+    "/admin/lesson-plans/new",
+    "/admin/lesson-plans/[id]/edit"
+  ],
+  "evidence": [
+    "navigationState=desktop-collapsed",
+    "sidebarWidth=72",
+    "contentWidth=1368",
+    "source-aware-return-targets"
+  ]
+}

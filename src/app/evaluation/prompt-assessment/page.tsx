@@ -1,8 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import { buildAiAuditTaskState, getAiAuditTaskContract } from '@/lib/ai-task-boundary-contracts';
 
 interface AssessResponse {
   overallScore: number;
@@ -66,6 +68,8 @@ interface AbilityReportResponse {
   };
 }
 
+type PromptAction = 'assessment' | 'consistency' | 'demo';
+
 const DEMO_USER_ID = 'demo-user';
 const DEMO_SESSION_ID = 'report-demo-session';
 const DEMO_AUTOFILL_STRUCTURED = {
@@ -106,14 +110,63 @@ function mean(values: number[]): number {
   return Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1));
 }
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === 'AbortError';
+}
+
+function buildDemoAssessment(index: number, prompt: string): AssessResponse {
+  return {
+    overallScore: 78 + index * 6,
+    dimensionScores: {
+      completeness: 76 + index * 6,
+      precision: 74 + index * 7,
+      structurization: 80 + index * 5,
+      executability: 77 + index * 6,
+    },
+    suggestions: index >= 2
+      ? []
+      : [
+        {
+          dimension: '结构化',
+          issue: '约束与输出格式仍可拆分',
+          suggestion: '把控制对象、性能目标、约束和验证指标分别写成可检查条目。',
+          example: prompt.split('\n')[0],
+        },
+      ],
+    metaPromptAnalysis: {
+      detectedIntent: 'controller-design',
+      missingElements: index >= 2 ? [] : ['验证指标', '输出格式'],
+      improvementPotential: Math.max(8, 24 - index * 7),
+    },
+  };
+}
+
+function buildDemoConsistency(index: number): ConsistencyResponse {
+  return {
+    consistencyScore: 73 + index * 7,
+    alignmentAnalysis: {
+      statedGoals: ['超调约束', '稳定裕度', '舒适性'],
+      actualOptimization: ['PID 参数迭代', '稳定裕度校验', '结果复核'],
+      mismatches: index >= 2 ? [] : ['缺少最终验证步骤说明'],
+    },
+    processQuality: {
+      iterationCount: 3 + index,
+      convergencePattern: index >= 2 ? 'steady' : 'oscillating',
+      explorationBreadth: 2 + index,
+    },
+  };
+}
+
 export default function PromptAssessmentPage() {
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus } = useSession();
   const autoDemo = searchParams.get('autodemo') === '1';
+  const mode = searchParams.get('mode') ?? (autoDemo ? 'autodemo' : 'editor');
   const [autoSeeded, setAutoSeeded] = useState(false);
   const currentUserId = session?.user?.id;
-  const activeUserId = currentUserId ?? DEMO_USER_ID;
-  const activeSessionId = currentUserId ? `report-${currentUserId}` : DEMO_SESSION_ID;
+  const activeUserId = autoDemo ? DEMO_USER_ID : currentUserId ?? DEMO_USER_ID;
+  const activeSessionId = autoDemo ? DEMO_SESSION_ID : currentUserId ? `report-${currentUserId}` : DEMO_SESSION_ID;
+  const requestAbortRef = useRef<AbortController | null>(null);
 
   const [structured, setStructured] = useState<Record<string, string>>({
     'control-object': '',
@@ -129,6 +182,28 @@ export default function PromptAssessmentPage() {
   const [loading, setLoading] = useState(false);
   const [trendLoading, setTrendLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastPromptAction, setLastPromptAction] = useState<PromptAction | null>(null);
+  const promptTaskContract = getAiAuditTaskContract('prompt-evaluation');
+  const promptTaskState = buildAiAuditTaskState({
+    taskType: 'prompt-evaluation',
+    status: error ? 'failed' : loading || trendLoading ? 'pending' : assessment || consistency ? 'succeeded' : 'idle',
+    message: error
+      ? `Prompt 评价失败：${error}`
+      : loading
+        ? 'Prompt 评价正在执行。'
+        : trendLoading
+          ? 'Prompt 历史和趋势正在同步。'
+          : assessment || consistency
+            ? `Prompt 评价已完成，当前模式为 ${mode}。`
+            : `Prompt 评价工作台已就绪，当前模式为 ${mode}。`,
+    nextAction: loading
+      ? '可中止当前请求'
+      : error
+        ? '检查输入后重试或清空'
+        : assessment || consistency
+          ? '保存或刷新历史记录'
+          : '填写页面主提示词表单后执行评价',
+  });
 
   const compiledPrompt = useMemo(() => {
     const sections = [
@@ -149,6 +224,10 @@ export default function PromptAssessmentPage() {
 
   const loadTrendData = useCallback(async () => {
     if (sessionStatus === 'loading') {
+      return;
+    }
+    if (autoDemo) {
+      setAbilityReport(null);
       return;
     }
 
@@ -178,18 +257,43 @@ export default function PromptAssessmentPage() {
     } finally {
       setTrendLoading(false);
     }
-  }, [activeUserId, currentUserId, sessionStatus]);
+  }, [activeUserId, autoDemo, currentUserId, sessionStatus]);
 
   useEffect(() => {
     void loadTrendData();
   }, [loadTrendData]);
 
   const doAssessment = async () => {
+    if (autoDemo) {
+      setLastPromptAction('assessment');
+      setError(null);
+      const version = historyRecords.length + 1;
+      const demoAssessment = buildDemoAssessment(Math.min(version - 1, 2), compiledPrompt);
+      setAssessment(demoAssessment);
+      setHistoryRecords((prev) => [
+        ...prev,
+        {
+          userId: DEMO_USER_ID,
+          sessionId: DEMO_SESSION_ID,
+          promptContent: compiledPrompt,
+          assessment: demoAssessment,
+          consistency: consistency ?? undefined,
+          version,
+          createdAt: Date.now(),
+        },
+      ].slice(-6));
+      return;
+    }
+
+    const controller = new AbortController();
+    requestAbortRef.current = controller;
+    setLastPromptAction('assessment');
     setLoading(true);
     setError(null);
     try {
       const response = await fetch('/api/evaluation/assess-prompt', {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: activeUserId,
@@ -211,19 +315,49 @@ export default function PromptAssessmentPage() {
       setAssessment(data);
       await loadTrendData();
     } catch (evaluateError) {
-      setError(evaluateError instanceof Error ? evaluateError.message : '评价失败');
+      setError(isAbortError(evaluateError) ? '操作已中止' : evaluateError instanceof Error ? evaluateError.message : '评价失败');
     } finally {
+      if (requestAbortRef.current === controller) {
+        requestAbortRef.current = null;
+      }
       setLoading(false);
     }
   };
 
   const doConsistencyCheck = async () => {
+    if (autoDemo) {
+      setLastPromptAction('consistency');
+      setError(null);
+      const version = historyRecords.length + 1;
+      const demoAssessment = assessment ?? buildDemoAssessment(Math.min(version - 1, 2), compiledPrompt);
+      const demoConsistency = buildDemoConsistency(Math.min(version - 1, 2));
+      setAssessment(demoAssessment);
+      setConsistency(demoConsistency);
+      setHistoryRecords((prev) => [
+        ...prev,
+        {
+          userId: DEMO_USER_ID,
+          sessionId: DEMO_SESSION_ID,
+          promptContent: compiledPrompt,
+          assessment: demoAssessment,
+          consistency: demoConsistency,
+          version,
+          createdAt: Date.now(),
+        },
+      ].slice(-6));
+      return;
+    }
+
+    const controller = new AbortController();
+    requestAbortRef.current = controller;
+    setLastPromptAction('consistency');
     setLoading(true);
     setError(null);
 
     try {
       const response = await fetch('/api/evaluation/track-consistency', {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: activeUserId,
@@ -253,13 +387,27 @@ export default function PromptAssessmentPage() {
       setConsistency(data);
       await loadTrendData();
     } catch (consistencyError) {
-      setError(consistencyError instanceof Error ? consistencyError.message : '一致性校验失败');
+      setError(isAbortError(consistencyError) ? '操作已中止' : consistencyError instanceof Error ? consistencyError.message : '一致性校验失败');
     } finally {
+      if (requestAbortRef.current === controller) {
+        requestAbortRef.current = null;
+      }
       setLoading(false);
     }
   };
 
-  const seedDemoHistory = useCallback(async () => {
+  const clearPromptResults = () => {
+    setAssessment(null);
+    setConsistency(null);
+    setError(null);
+  };
+
+  const stopPromptAction = () => {
+    requestAbortRef.current?.abort();
+  };
+
+  const seedDemoHistory = useCallback(() => {
+    setLastPromptAction('demo');
     setLoading(true);
     setError(null);
 
@@ -294,8 +442,7 @@ export default function PromptAssessmentPage() {
     ];
 
     try {
-      let lastAssessment: AssessResponse | null = null;
-      let lastConsistency: ConsistencyResponse | null = null;
+      const demoHistory: PromptHistoryEntry[] = [];
 
       for (let index = 0; index < demoCases.length; index += 1) {
         const item = demoCases[index];
@@ -307,63 +454,40 @@ export default function PromptAssessmentPage() {
           `补充说明：${item.freeText}`,
         ].join('\n');
 
-        const assessResponse = await fetch('/api/evaluation/assess-prompt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: activeUserId,
-            sessionId: activeSessionId,
-            prompt,
-            structuredData: item.structuredData,
-            context: { taskType: 'controller-design', difficulty: 'intermediate' },
-          }),
+        demoHistory.push({
+          userId: DEMO_USER_ID,
+          sessionId: DEMO_SESSION_ID,
+          promptContent: prompt,
+          assessment: buildDemoAssessment(index, prompt),
+          consistency: buildDemoConsistency(index),
+          version: index + 1,
+          createdAt: Date.now() - (demoCases.length - index) * 60000,
         });
-
-        if (!assessResponse.ok) {
-          throw new Error(`演示评价失败（样本 ${index + 1}）`);
-        }
-        lastAssessment = (await assessResponse.json()) as AssessResponse;
-
-        const trackResponse = await fetch('/api/evaluation/track-consistency', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: activeUserId,
-            designSessionId: activeSessionId,
-            promptVersion: index + 1,
-            promptContent: prompt,
-            designActions: [
-              { timestamp: Date.now() - 40000, action: 'adjust_kp', params: { kp: 1.3 + index * 0.1, kd: 0.2 } },
-              { timestamp: Date.now() - 25000, action: 'adjust_kd', params: { kp: 1.15, kd: 0.45 + index * 0.08 } },
-              { timestamp: Date.now() - 10000, action: 'adjust_ki', params: { kp: 1.05, ki: 0.15 + index * 0.05, kd: 0.52 } },
-            ],
-            finalResult: {
-              overshoot: 19 - index * 3,
-              settlingTime: 24 - index * 2,
-              stabilityMargin: 31 + index * 2,
-              comfortIndex: 1.8 - index * 0.15,
-            },
-          }),
-        });
-
-        if (!trackResponse.ok) {
-          throw new Error(`演示一致性失败（样本 ${index + 1}）`);
-        }
-        lastConsistency = (await trackResponse.json()) as ConsistencyResponse;
       }
 
       const finalCase = demoCases[demoCases.length - 1];
       setStructured(finalCase.structuredData);
       setFreeText(finalCase.freeText);
-      setAssessment(lastAssessment);
-      setConsistency(lastConsistency);
-      await loadTrendData();
+      setHistoryRecords(demoHistory);
+      setAbilityReport(null);
+      setAssessment(demoHistory[demoHistory.length - 1]?.assessment ?? null);
+      setConsistency(demoHistory[demoHistory.length - 1]?.consistency ?? null);
     } catch (seedError) {
       setError(seedError instanceof Error ? seedError.message : '生成演示轨迹失败');
     } finally {
       setLoading(false);
     }
-  }, [activeSessionId, activeUserId, loadTrendData]);
+  }, []);
+
+  const retryPromptAction = () => {
+    if (lastPromptAction === 'assessment') {
+      void doAssessment();
+    } else if (lastPromptAction === 'consistency') {
+      void doConsistencyCheck();
+    } else if (lastPromptAction === 'demo') {
+      void seedDemoHistory();
+    }
+  };
 
   useEffect(() => {
     if (!autoDemo || autoSeeded) {
@@ -385,6 +509,12 @@ export default function PromptAssessmentPage() {
           <p className="mt-2 text-sm text-slate-400">
             先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。
           </p>
+          <div className="mt-4">
+            <ActionStatusPanel state={promptTaskState} />
+          </div>
+          <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-slate-400">
+            模式：{mode} · 输出：{promptTaskContract.outputTarget} · 写回：{promptTaskContract.writebackBehavior}
+          </div>
         </header>
 
         <section className="grid gap-4 lg:grid-cols-[380px_1fr]">
@@ -400,6 +530,9 @@ export default function PromptAssessmentPage() {
               <label key={field.key} className="block text-xs text-slate-400">
                 {field.label} {field.required ? <span className="text-rose-300">*</span> : null}
                 <textarea
+                  name={`prompt-${field.key}`}
+                  aria-label={`Prompt 评价主输入：${field.label}`}
+                  data-primary-task-input={field.key === 'control-object' ? 'prompt-assessment' : undefined}
                   value={structured[field.key] ?? ''}
                   onChange={(event) => setStructured((prev) => ({ ...prev, [field.key]: event.target.value }))}
                   rows={2}
@@ -411,6 +544,8 @@ export default function PromptAssessmentPage() {
             <label className="block text-xs text-slate-400">
               额外说明
               <textarea
+                name="prompt-free-text"
+                aria-label="Prompt 评价主输入：额外说明"
                 value={freeText}
                 onChange={(event) => setFreeText(event.target.value)}
                 rows={4}
@@ -442,6 +577,32 @@ export default function PromptAssessmentPage() {
                 className="w-full rounded bg-violet-600 px-3 py-2 text-sm font-medium hover:bg-violet-500 disabled:opacity-60"
               >
                 生成常态化演示轨迹
+              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={stopPromptAction}
+                  disabled={!loading}
+                  className="rounded border border-rose-300/70 px-3 py-2 text-sm font-medium text-rose-200 hover:border-rose-200 disabled:opacity-60"
+                >
+                  停止当前请求
+                </button>
+                <button
+                  type="button"
+                  onClick={retryPromptAction}
+                  disabled={loading || !error || !lastPromptAction}
+                  className="rounded border border-cyan-300/70 px-3 py-2 text-sm font-medium text-cyan-200 hover:border-cyan-200 disabled:opacity-60"
+                >
+                  重试上次动作
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={clearPromptResults}
+                disabled={loading}
+                className="w-full rounded border border-border px-3 py-2 text-sm font-medium text-slate-300 hover:border-amber-400 disabled:opacity-60"
+              >
+                清空本次结果
               </button>
             </div>
           </aside>
@@ -630,6 +791,7 @@ export default function PromptAssessmentPage() {
             </section>
 
             <div className="surface-card-soft rounded-lg px-4 py-3 text-sm text-slate-400">
+              <span className="sr-only" role="status" aria-live="polite">{promptTaskState.announcement}</span>
               {loading
                 ? '正在计算评价结果...'
                 : trendLoading

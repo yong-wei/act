@@ -58,6 +58,6 @@ Expected: 不出现新的公式或资源缺失阻塞项。
 
 **Step 2: PDF 导出**
 
-Run: `python3 .codex/skills/lesson/scripts/export_handout_pdf.py --lesson 3-4 --kind student`
+Run: `python3 .agents/skills/lesson/scripts/export_handout_pdf.py --lesson 3-4 --kind student`
 
 Expected: 生成学生版 `handout.pdf`，供抽样复核。

@@ -119,14 +119,14 @@ export function DataDashboard({ sessionId, onClose }: DataDashboardProps) {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button
+            <button type="button"
               onClick={fetchStates}
               className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 transition-colors"
               title="刷新数据"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
-            <button
+            <button type="button"
               onClick={onClose}
               className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 transition-colors"
             >

@@ -8,9 +8,17 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { UserMenu } from '@/components/shared/user-menu';
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { buildAiAuditTaskState, buildPortfolioReflectionDraft } from '@/lib/ai-task-boundary-contracts';
+import {
+  buildFeedbackTaskContext,
+  buildPortfolioFeedbackDraft,
+  type PortfolioFeedbackDraft,
+} from '@/lib/student-feedback-task-contract';
 
 interface PortfolioData {
   // Representative works from classroom sessions
@@ -57,6 +65,7 @@ interface PortfolioData {
 
 export default function PortfolioPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const sessionData = useSession();
   const session = sessionData?.data;
   const status = sessionData?.status ?? 'loading';
@@ -65,6 +74,23 @@ export default function PortfolioPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'works' | 'prompts' | 'simulations' | 'ethics' | 'reflections'>('works');
+  const reflectionIntent = searchParams.get('category') === 'reflection' ? searchParams.get('intent') : null;
+  const reflectionDraft = reflectionIntent === 'create'
+    ? buildPortfolioReflectionDraft(searchParams.get('source') ?? 'portfolio')
+    : null;
+  const feedbackContext = buildFeedbackTaskContext({
+    assignment: searchParams.get('assignment'),
+    criterion: searchParams.get('criterion'),
+    source: searchParams.get('source'),
+    feedbackSource: searchParams.get('feedbackSource'),
+    status: searchParams.get('status'),
+    action: searchParams.get('action'),
+    returnTo: searchParams.get('returnTo'),
+    intent: searchParams.get('intent'),
+  });
+  const feedbackPortfolioDraft = searchParams.get('intent') === 'collect' && feedbackContext
+    ? buildPortfolioFeedbackDraft(feedbackContext)
+    : null;
 
   const fetchPortfolio = useCallback(async () => {
     try {
@@ -128,9 +154,15 @@ export default function PortfolioPage() {
     }
   }, [status, session, router, fetchPortfolio]);
 
+  useEffect(() => {
+    if (searchParams.get('category') === 'reflection' || feedbackPortfolioDraft) {
+      setActiveTab('reflections');
+    }
+  }, [feedbackPortfolioDraft, searchParams]);
+
   if (status === 'loading' || loading) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
           <p className="text-subtle">加载档案数据...</p>
@@ -141,7 +173,7 @@ export default function PortfolioPage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">
         <div className="text-center">
           <p className="text-xl text-subtle">请先登录</p>
           <Link href="/login" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
@@ -154,10 +186,10 @@ export default function PortfolioPage() {
 
   if (error) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">
         <div className="text-center">
           <p className="text-xl text-red-500">{error}</p>
-          <button onClick={fetchPortfolio} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+          <button type="button" onClick={fetchPortfolio} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
         </div>
@@ -174,10 +206,10 @@ export default function PortfolioPage() {
   ] as const;
 
   return (
-    <div className="surface-page">
+    <div className="surface-page" data-commercial-workspace="learner-record">
       {/* Header */}
       <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
+        <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/profile" className="text-subtle transition hover:text-foreground">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,7 +222,8 @@ export default function PortfolioPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      <main className="px-6 py-8">
+        <StudentFeedbackTaskPanel context={feedbackContext} surface="portfolio" className="mb-6" />
         {/* Introduction Card */}
         <div className="surface-card mb-8 bg-gradient-to-br from-card via-card to-violet-500/10 p-6">
           <div className="flex items-center gap-4">
@@ -211,7 +244,7 @@ export default function PortfolioPage() {
         {/* Tabs */}
         <div className="mb-6 flex flex-wrap gap-2">
           {tabs.map((tab) => (
-            <button
+            <button type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition ${
@@ -232,7 +265,13 @@ export default function PortfolioPage() {
           {activeTab === 'prompts' && <PromptDesignsTab designs={portfolio?.promptDesigns || []} />}
           {activeTab === 'simulations' && <SimulationDesignsTab designs={portfolio?.simulationDesigns || []} />}
           {activeTab === 'ethics' && <EthicsCasesTab cases={portfolio?.ethicsCases || []} />}
-          {activeTab === 'reflections' && <ReflectionsTab reflections={portfolio?.reflections || []} />}
+          {activeTab === 'reflections' && (
+            <ReflectionsTab
+              reflections={portfolio?.reflections || []}
+              draft={reflectionDraft}
+              feedbackDraft={feedbackPortfolioDraft}
+            />
+          )}
         </div>
       </main>
     </div>
@@ -417,14 +456,86 @@ function EthicsCasesTab({ cases }: { cases: PortfolioData['ethicsCases'] }) {
   );
 }
 
-function ReflectionsTab({ reflections }: { reflections: PortfolioData['reflections'] }) {
+function ReflectionsTab({
+  reflections,
+  draft,
+  feedbackDraft,
+}: {
+  reflections: PortfolioData['reflections'];
+  draft?: ReturnType<typeof buildPortfolioReflectionDraft> | null;
+  feedbackDraft?: PortfolioFeedbackDraft | null;
+}) {
+  if (feedbackDraft) {
+    const state = buildAiAuditTaskState({
+      taskType: 'portfolio-reflection',
+      status: 'pending',
+      message: '报告反馈收录候选已创建，本页尚未保存到学习档案。',
+      nextAction: '确认候选内容后再保存到学习档案',
+      targetId: feedbackDraft.id,
+    });
+    return (
+      <div className="space-y-4">
+        <ActionStatusPanel state={state} />
+        <div className="surface-card-soft p-5" data-student-feedback-task-surface="portfolio-candidate">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
+              {feedbackDraft.status}
+            </span>
+            <span className="text-xs text-subtle">来源：{feedbackDraft.source ?? '报告反馈'}</span>
+          </div>
+          <h3 className="mt-3 font-medium text-foreground">{feedbackDraft.title}</h3>
+          <p className="mt-2 text-sm text-subtle">{feedbackDraft.detail}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href={feedbackDraft.returnHref} className="btn-ghost-themed rounded px-4 py-2 text-sm">
+              返回报告反馈
+            </Link>
+            <Link href="/profile/portfolio?category=reflection" className="btn-ghost-themed rounded px-4 py-2 text-sm">
+              查看反思页
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (draft) {
+    const state = buildAiAuditTaskState({
+      taskType: 'portfolio-reflection',
+      status: 'pending',
+      message: '作品集反思草稿候选已创建，本页尚未保存到学习档案。',
+      nextAction: '返回反思页继续整理或丢弃候选',
+      targetId: draft.id,
+    });
+    return (
+      <div className="space-y-4">
+        <ActionStatusPanel state={state} />
+        <div className="surface-card-soft p-5" data-ai-task-boundary="portfolio-reflection-draft">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
+              {draft.status}
+            </span>
+            <span className="text-xs text-subtle">来源：{draft.source}</span>
+          </div>
+          <h3 className="mt-3 font-medium text-foreground">{draft.title}</h3>
+          <p className="mt-2 text-sm text-subtle">{draft.detail}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href="/profile/portfolio?category=reflection" className="btn-ghost-themed rounded px-4 py-2 text-sm">
+              返回反思页
+            </Link>
+            <Link href="/ai/copilot?context=portfolio-reflection&source=portfolio" className="btn-ghost-themed rounded px-4 py-2 text-sm">
+              重新生成候选
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (reflections.length === 0) {
     return (
       <EmptyState
         icon="🤔"
         title="暂无AI协作反思"
         description="记录你与AI助手的协作反思，持续优化使用策略"
-        action={{ label: '开始反思', href: '/ai/copilot' }}
+        action={{ label: '开始反思', href: '/ai/copilot?context=portfolio-reflection&source=portfolio' }}
       />
     );
   }
@@ -434,7 +545,7 @@ function ReflectionsTab({ reflections }: { reflections: PortfolioData['reflectio
       {reflections.map((reflection) => (
         <div key={reflection.id} className="surface-card-soft p-5">
           <div className="flex items-center justify-between">
-            <span className="rounded bg-violet-500/20 px-2 py-0.5 text-xs text-violet-500">
+            <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
               {reflection.category}
             </span>
             <span className="text-xs text-subtle">

@@ -33,6 +33,13 @@ const figureEntries: FigureEntry[] = [
   },
 ];
 
+// Sandbox rationale: review previews need client scripts, form controls,
+// same-origin access for first-party Next chunks/API calls, popup links,
+// and presentation/fullscreen affordances. This page only embeds same-app
+// report-preview routes listed in figureEntries.
+const ADAPTIVE_ASSESSMENT_REVIEW_IFRAME_SANDBOX =
+  'allow-scripts allow-same-origin allow-forms allow-popups allow-presentation';
+
 export default function AdaptiveAssessmentFiguresPage() {
   return (
     <main className="surface-page">
@@ -78,6 +85,7 @@ export default function AdaptiveAssessmentFiguresPage() {
                   className="h-[420px] w-full"
                   title={entry.title}
                   loading="lazy"
+                  sandbox={ADAPTIVE_ASSESSMENT_REVIEW_IFRAME_SANDBOX}
                 />
               </div>
             </article>

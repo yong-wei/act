@@ -90,6 +90,82 @@ run_database_script() {
   fi
 }
 
+detect_postgres_brew_formula() {
+  if [ -n "${POSTGRES_BREW_FORMULA:-}" ]; then
+    echo "$POSTGRES_BREW_FORMULA"
+    return 0
+  fi
+
+  if ! command -v brew &> /dev/null; then
+    return 1
+  fi
+
+  local formula
+  for formula in postgresql@18 postgresql@17 postgresql@16 postgresql@15 postgresql@14 postgresql; do
+    if brew list --formula "$formula" &> /dev/null; then
+      echo "$formula"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+detect_postgres_tool() {
+  local formula=$1
+  local tool=$2
+
+  if [ -n "$formula" ] && command -v brew &> /dev/null; then
+    local formula_tool
+    formula_tool="$(brew --prefix "$formula" 2>/dev/null)/bin/$tool"
+    if [ -x "$formula_tool" ]; then
+      echo "$formula_tool"
+      return 0
+    fi
+  fi
+
+  command -v "$tool" 2>/dev/null
+}
+
+screen_pid_for() {
+  local session_name=$1
+  screen -ls 2>/dev/null | awk -v name="$session_name" '
+    $1 ~ "\\." name "$" {
+      split($1, parts, ".")
+      print parts[1]
+      exit
+    }
+  '
+}
+
+stop_screen_session() {
+  local session_name=$1
+  if command -v screen &> /dev/null && screen -ls 2>/dev/null | grep -q "[.]${session_name}[[:space:]]"; then
+    screen -S "$session_name" -X quit 2>/dev/null || true
+    sleep 1
+  fi
+}
+
+start_detached_shell() {
+  local session_name=$1
+  local log_file=$2
+  local error_file=$3
+  local command_text=$4
+
+  stop_screen_session "$session_name"
+
+  if command -v screen &> /dev/null; then
+    screen -dmS "$session_name" bash -lc "cd \"$PROJECT_DIR\" && exec $command_text > \"$log_file\" 2>> \"$error_file\""
+    sleep 0.2
+    screen_pid_for "$session_name"
+  else
+    nohup bash -lc "cd \"$PROJECT_DIR\" && exec $command_text" > "$log_file" 2>> "$error_file" &
+    local started_pid=$!
+    disown "$started_pid" 2>/dev/null || true
+    echo "$started_pid"
+  fi
+}
+
 ###############################################################################
 # 步骤 1: 清理日志文件内容
 ###############################################################################
@@ -109,6 +185,7 @@ LOG_FILES=(
   "$LOGS_DIR/scheduler.log"
   "$LOGS_DIR/console.log"
   "$LOGS_DIR/error.log"
+  "$LOGS_DIR/frontend-error.log"
 )
 
 for log_file in "${LOG_FILES[@]}"; do
@@ -128,30 +205,52 @@ echo ""
 ###############################################################################
 echo -e "${YELLOW}[2/10] 检查 PostgreSQL 数据库...${NC}"
 
-if command -v pg_isready &> /dev/null; then
-  if pg_isready -h localhost -p 5432 &> /dev/null; then
-    echo -e "  ${GREEN}✓${NC} PostgreSQL 已运行"
-  else
-    echo -e "  ${RED}✗${NC} PostgreSQL 未运行"
-    echo -e "  ${YELLOW}尝试启动 PostgreSQL...${NC}"
+POSTGRES_FORMULA="$(detect_postgres_brew_formula || true)"
+POSTGRES_PG_ISREADY="$(detect_postgres_tool "$POSTGRES_FORMULA" pg_isready || true)"
 
-    # 尝试使用 brew services 启动（macOS）
-    if command -v brew &> /dev/null; then
-      brew services start postgresql@14 2>&1 | tee -a "$LOGS_DIR/database.log" || true
-      sleep 2
-      if pg_isready -h localhost -p 5432 &> /dev/null; then
-        echo -e "  ${GREEN}✓${NC} PostgreSQL 启动成功"
-      else
-        echo -e "  ${RED}✗${NC} PostgreSQL 启动失败，请手动启动"
-        exit 1
-      fi
-    else
-      echo -e "  ${RED}✗${NC} 请手动启动 PostgreSQL"
+if [ -n "$POSTGRES_PG_ISREADY" ]; then
+  echo -e "  ${BLUE}使用 PostgreSQL 检查工具: ${POSTGRES_PG_ISREADY}${NC}"
+fi
+
+if [ -z "$POSTGRES_PG_ISREADY" ] && [ -z "$POSTGRES_FORMULA" ]; then
+  echo -e "  ${YELLOW}!${NC} 未找到 pg_isready，跳过 PostgreSQL 检查"
+elif [ -n "$POSTGRES_PG_ISREADY" ] && "$POSTGRES_PG_ISREADY" -h localhost -p 5432 &> /dev/null; then
+  echo -e "  ${GREEN}✓${NC} PostgreSQL 已运行"
+else
+  echo -e "  ${RED}✗${NC} PostgreSQL 未运行"
+  echo -e "  ${YELLOW}尝试启动 PostgreSQL...${NC}"
+
+  # 尝试使用 brew services 启动（macOS）
+  if command -v brew &> /dev/null; then
+    if [ -z "$POSTGRES_FORMULA" ]; then
+      echo -e "  ${RED}✗${NC} 未找到已安装的 Homebrew PostgreSQL formula"
+      echo -e "  ${YELLOW}请安装 postgresql@18，或通过 POSTGRES_BREW_FORMULA 指定本机 formula${NC}"
       exit 1
     fi
+
+    echo -e "  ${BLUE}使用 Homebrew formula: ${POSTGRES_FORMULA}${NC}"
+    POSTGRES_DATA_DIR="$(brew --prefix)/var/${POSTGRES_FORMULA}"
+    POSTGRES_PG_CTL="$(detect_postgres_tool "$POSTGRES_FORMULA" pg_ctl || true)"
+    if [ -n "$POSTGRES_PG_ISREADY" ] && ! "$POSTGRES_PG_ISREADY" -h localhost -p 5432 &> /dev/null && [ -x "$POSTGRES_PG_CTL" ]; then
+      if [ -d "$POSTGRES_DATA_DIR" ]; then
+        "$POSTGRES_PG_CTL" -D "$POSTGRES_DATA_DIR" -l "$LOGS_DIR/database.log" start >> "$LOGS_DIR/database.log" 2>&1 || true
+      fi
+    fi
+    if [ -z "$POSTGRES_PG_ISREADY" ] || ! "$POSTGRES_PG_ISREADY" -h localhost -p 5432 &> /dev/null; then
+      brew services start "$POSTGRES_FORMULA" 2>&1 | tee -a "$LOGS_DIR/database.log" || true
+      POSTGRES_PG_ISREADY="$(detect_postgres_tool "$POSTGRES_FORMULA" pg_isready || true)"
+    fi
+    sleep 2
+    if [ -n "$POSTGRES_PG_ISREADY" ] && "$POSTGRES_PG_ISREADY" -h localhost -p 5432 &> /dev/null; then
+      echo -e "  ${GREEN}✓${NC} PostgreSQL 启动成功"
+    else
+      echo -e "  ${RED}✗${NC} PostgreSQL 启动失败，请手动启动"
+      exit 1
+    fi
+  else
+    echo -e "  ${RED}✗${NC} 请手动启动 PostgreSQL"
+    exit 1
   fi
-else
-  echo -e "  ${YELLOW}!${NC} 未找到 pg_isready，跳过 PostgreSQL 检查"
 fi
 
 echo ""
@@ -176,7 +275,7 @@ else
       rm -f "$PIDS_DIR/redis.pid"
     fi
 
-    nohup redis-server --port 6379 --save "" --appendonly no --pidfile "$PIDS_DIR/redis.pid" > "$LOGS_DIR/redis.log" 2>&1 &
+    redis-server --port 6379 --save "" --appendonly no --daemonize yes --pidfile "$PIDS_DIR/redis.pid" --logfile "$LOGS_DIR/redis.log" >> "$LOGS_DIR/redis.log" 2>&1
     sleep 1
   elif command -v podman-compose &> /dev/null && [ -f "$PROJECT_DIR/podman-compose.yml" ]; then
     podman-compose -f "$PROJECT_DIR/podman-compose.yml" up -d redis >> "$LOGS_DIR/redis.log" 2>&1 || true
@@ -285,8 +384,7 @@ if [ -f "$PIDS_DIR/scheduler.pid" ]; then
 fi
 
 echo -e "  ${BLUE}启动命令: npm run worker:scheduler${NC}"
-nohup npm run worker:scheduler > "$LOGS_DIR/scheduler.log" 2>> "$LOGS_DIR/error.log" &
-SCHEDULER_PID=$!
+SCHEDULER_PID="$(start_detached_shell "act-scheduler" "$LOGS_DIR/scheduler.log" "$LOGS_DIR/error.log" "npm run worker:scheduler")"
 echo "$SCHEDULER_PID" > "$PIDS_DIR/scheduler.pid"
 echo -e "  ${GREEN}✓${NC} scheduler 已触发 (PID: $SCHEDULER_PID)"
 
@@ -311,8 +409,7 @@ if [ -f "$PIDS_DIR/worker.pid" ]; then
 fi
 
 echo -e "  ${BLUE}启动命令: npm run worker:dev${NC}"
-nohup npm run worker:dev > "$LOGS_DIR/worker.log" 2>> "$LOGS_DIR/error.log" &
-WORKER_PID=$!
+WORKER_PID="$(start_detached_shell "act-worker" "$LOGS_DIR/worker.log" "$LOGS_DIR/error.log" "npm run worker:dev")"
 echo "$WORKER_PID" > "$PIDS_DIR/worker.pid"
 sleep 1
 
@@ -346,8 +443,7 @@ free_frontend_port "$FRONTEND_PORT"
 
 # 启动开发服务器（后台运行）
 echo -e "  ${BLUE}启动命令: npm run dev -- --hostname 127.0.0.1 --port ${FRONTEND_PORT}${NC}"
-nohup npm run dev -- --hostname 127.0.0.1 --port "$FRONTEND_PORT" < /dev/null > "$LOGS_DIR/frontend.log" 2> "$LOGS_DIR/error.log" &
-FRONTEND_PID=$!
+FRONTEND_PID="$(start_detached_shell "act-frontend" "$LOGS_DIR/frontend.log" "$LOGS_DIR/frontend-error.log" "npm run dev -- --hostname 127.0.0.1 --port \"$FRONTEND_PORT\"")"
 echo "$FRONTEND_PID" > "$PIDS_DIR/frontend.pid"
 
 echo -e "  ${GREEN}✓${NC} Next.js 开发服务器已启动 (PID: $FRONTEND_PID)"
@@ -362,7 +458,7 @@ if ps -p "$FRONTEND_PID" > /dev/null 2>&1; then
   echo -e "  ${GREEN}✓${NC} 服务器正在运行"
 else
   echo -e "  ${RED}✗${NC} 服务器启动失败"
-  echo -e "  ${YELLOW}查看错误日志: tail -f $LOGS_DIR/error.log${NC}"
+  echo -e "  ${YELLOW}查看前端错误日志: tail -f $LOGS_DIR/frontend-error.log${NC}"
   exit 1
 fi
 
@@ -379,7 +475,7 @@ wait_for_page() {
   for ((i=1; i<=attempts; i++)); do
     if ! ps -p "$FRONTEND_PID" > /dev/null 2>&1; then
       echo -e "  ${RED}✗${NC} Next.js 进程提前退出"
-      echo -e "  ${YELLOW}查看错误日志: tail -f $LOGS_DIR/error.log${NC}"
+      echo -e "  ${YELLOW}查看前端错误日志: tail -f $LOGS_DIR/frontend-error.log${NC}"
       exit 1
     fi
 
@@ -394,7 +490,7 @@ wait_for_page() {
   echo -e "  ${RED}✗${NC} $label 页面未在预期时间内就绪"
   echo -e "  ${YELLOW}目标地址: $url${NC}"
   echo -e "  ${YELLOW}目标标记: $marker${NC}"
-  echo -e "  ${YELLOW}查看错误日志: tail -f $LOGS_DIR/error.log${NC}"
+  echo -e "  ${YELLOW}查看前端错误日志: tail -f $LOGS_DIR/frontend-error.log${NC}"
   exit 1
 }
 
@@ -423,7 +519,8 @@ echo -e "    • 前端日志: ${YELLOW}$LOGS_DIR/frontend.log${NC}"
 echo -e "    • Redis 日志: ${YELLOW}$LOGS_DIR/redis.log${NC}"
 echo -e "    • Worker 日志: ${YELLOW}$LOGS_DIR/worker.log${NC}"
 echo -e "    • Scheduler 日志: ${YELLOW}$LOGS_DIR/scheduler.log${NC}"
-echo -e "    • 错误日志: ${YELLOW}$LOGS_DIR/error.log${NC}"
+echo -e "    • 前端错误日志: ${YELLOW}$LOGS_DIR/frontend-error.log${NC}"
+echo -e "    • 后台错误日志: ${YELLOW}$LOGS_DIR/error.log${NC}"
 echo ""
 echo -e "  ${BLUE}查看日志:${NC}"
 echo -e "    ${YELLOW}tail -f $LOGS_DIR/frontend.log${NC}"

@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const skillPath = path.join(
   process.cwd(),
-  '.codex/skills/interactive-lesson-implementation/SKILL.md',
+  '.agents/skills/interactive-lesson/SKILL.md',
 );
 const skill = fs.readFileSync(skillPath, 'utf8');
 
@@ -60,10 +60,13 @@ assert.equal(
 );
 
 assert.equal(
-  skill.includes('L-2c') &&
-    skill.includes('唯一正确结构'),
+  skill.includes('当前默认基线不再是单一 `L-2c`') &&
+    skill.includes('1-1') &&
+    skill.includes('1-2') &&
+    skill.includes('1-3') &&
+    skill.includes('4-1'),
   true,
-  '互动课程技能应明确 L-2c 结构是当前唯一正确结构',
+  '互动课程技能应明确当前基线不再是单一 L-2c，并列出已落地课程能力',
 );
 
 assert.equal(

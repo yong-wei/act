@@ -11,8 +11,12 @@ import {
   buildResourceNodeWorkspaceState,
   getResourceNodeWorkspaceMigrationContracts,
 } from '@/features/knowledge/resource-node-workspace-contracts';
+import { resolveKnowledgeResourceLaunch } from '@/features/knowledge/resource-panel/resource-panel';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
-import type { ResourceNode } from '@/lib/resource-node-registry';
+import {
+  getPathNodeSemanticsForResourceType,
+  type ResourceNode,
+} from '@/lib/resource-node-registry';
 
 const repoRoot = process.cwd();
 
@@ -35,6 +39,9 @@ function resourceNode(overrides: Partial<ResourceNode> = {}): ResourceNode {
     ],
     renderTarget: null,
     launchTarget: '/simulations/cruise',
+    pathSemantics: getPathNodeSemanticsForResourceType('simulation'),
+    externalResource: null,
+    checkpoint: null,
     planningMetadata: {
       prerequisites: ['knowledge-node:kn-bode'],
       estimatedTimeMinutes: 25,
@@ -47,6 +54,7 @@ function resourceNode(overrides: Partial<ResourceNode> = {}): ResourceNode {
       privacyLevel: 'student-visible',
       terminalConstraints: [],
       evidenceInstrumentation: ['simulation-run'],
+      readiness: null,
     },
     sourceOfRecord: {
       content: 'simulation',
@@ -113,6 +121,35 @@ describe('resource node knowledge workspace UI contracts', () => {
       href: '/simulations/cruise',
       owner: 'simulation',
     });
+  });
+
+  it('blocks ResourceNode workspace planning status for audit-only capability gaps', () => {
+    const node = resourceNode({
+      planningMetadata: {
+        ...resourceNode().planningMetadata,
+        abilityImpact: {},
+      },
+      eligibility: {
+        pathEligible: true,
+        reasons: [],
+        auditIssues: [],
+      },
+    });
+
+    const detail = buildResourceNodeDetailView(node, 'student');
+    const pathEligibility = detail.fields.find((field) => field.id === 'path-eligibility');
+
+    expect(pathEligibility?.value).toContain('暂不可纳入路径');
+    expect(detail.status.summary).toContain('暂不可进入学习路径规划');
+    expect(detail.status.categories.readiness).toBe('blocked');
+    expect(detail.status.categories.sourceCoverage).toBe('partial');
+    expect(detail.warnings).toEqual([
+      expect.objectContaining({
+        code: 'missing-capability-mapping',
+        roleScope: 'student-visible',
+        severity: 'blocking',
+      }),
+    ]);
   });
 
   it('represents partial coverage and role-scoped audit warnings without hiding student actions', () => {
@@ -254,5 +291,116 @@ describe('resource node knowledge workspace UI contracts', () => {
         }),
       ]),
     );
+  });
+
+  it('keeps the /knowledge workspace canvas-first and rejects 320px squeeze-down panels', () => {
+    const source = readRepoFile('src/features/knowledge/knowledge-graph-system.tsx');
+
+    expect(source).toContain('data-knowledge-workspace="canvas-first"');
+    expect(source).toContain('data-knowledge-canvas-primary="true"');
+    expect(source).toContain('data-knowledge-squeeze-down-rejected="permanent-panels-hidden-at-320"');
+    expect(source).toContain('data-knowledge-mobile-drawer="chapter-directory"');
+    expect(source).toContain('data-knowledge-mobile-drawer="relation-filters"');
+    expect(source).toContain('data-knowledge-mobile-drawer="legend"');
+    expect(source).toContain('lg:block');
+    expect(source).not.toContain('w-[360px]');
+  });
+
+  it('connects selected knowledge nodes to launch, return, and evidence review actions', () => {
+    const source = readRepoFile('src/features/knowledge/resource-panel/resource-panel.tsx');
+    const graphSource = readRepoFile('src/features/knowledge/knowledge-graph-system.tsx');
+
+    expect(source).toContain('data-resource-node-launch-contract="launch-return-evidence"');
+    expect(source).toContain('data-resource-node-action="launch"');
+    expect(source).toContain('data-resource-node-action="return-to-learning-path"');
+    expect(source).toContain('data-resource-node-action="review-evidence"');
+    expect(source).toContain('resolveKnowledgeResourceLaunch');
+    expect(source).toContain('evidenceHref = launchAction.lessonId');
+    expect(source).toContain('/profile/evidence');
+    expect(graphSource).toContain('initialSelectedNodeId');
+    expect(graphSource).toContain('new URLSearchParams(window.location.search).get(\'node\')');
+  });
+
+  it('derives ResourcePanel launch targets without turning knowledge card files into raw markdown routes', () => {
+    const cardOnlyLaunch = resolveKnowledgeResourceLaunch({
+      id: 'transfer-function',
+      name: '传递函数',
+      nodeType: 'THEORY',
+      description: '知识卡片',
+      positionX: 0,
+      positionY: 0,
+      positionZ: 0,
+      resources: ['course-content/runtime/knowledge/cards/nodes/传递函数_1_5b0faf8b.md'],
+      metadata: {},
+    });
+
+    const lessonLaunch = resolveKnowledgeResourceLaunch({
+      id: 'lesson-node',
+      name: '课程节点',
+      nodeType: 'THEORY',
+      description: '课程入口',
+      positionX: 0,
+      positionY: 0,
+      positionZ: 0,
+      resources: [],
+      metadata: { lessonId: 'unit-4-1-design-task-expression' },
+    });
+    const resourceObjectLessonLaunch = resolveKnowledgeResourceLaunch({
+      id: 'infograph-node',
+      name: '信息图节点',
+      nodeType: 'THEORY',
+      description: '信息图入口',
+      positionX: 0,
+      positionY: 0,
+      positionZ: 0,
+      resources: [{ type: 'infograph', lessonId: '3-9' }],
+      metadata: {},
+    });
+
+    const directLaunch = resolveKnowledgeResourceLaunch({
+      id: 'simulation-node',
+      name: '仿真节点',
+      nodeType: 'SCENARIO',
+      description: '仿真入口',
+      positionX: 0,
+      positionY: 0,
+      positionZ: 0,
+      resources: [],
+      metadata: { launchTarget: '/simulations/cruise' },
+    });
+    const metadataCardLaunch = resolveKnowledgeResourceLaunch({
+      id: 'metadata-card-node',
+      name: '元数据卡片节点',
+      nodeType: 'THEORY',
+      description: '元数据卡片',
+      positionX: 0,
+      positionY: 0,
+      positionZ: 0,
+      resources: [],
+      metadata: { renderTarget: 'course-content/runtime/knowledge/cards/nodes/传递函数_1_5b0faf8b.md' },
+    });
+
+    expect(cardOnlyLaunch).toMatchObject({
+      href: null,
+      hasKnowledgeCard: true,
+      lessonId: null,
+    });
+    expect(cardOnlyLaunch.reason).toContain('知识卡片');
+    expect(lessonLaunch).toMatchObject({
+      href: '/interactive-learning/courses/unit-4-1-design-task-expression',
+      lessonId: 'unit-4-1-design-task-expression',
+    });
+    expect(resourceObjectLessonLaunch).toMatchObject({
+      href: '/interactive-learning/courses/3-9',
+      lessonId: '3-9',
+    });
+    expect(directLaunch).toMatchObject({
+      href: '/simulations/cruise',
+      label: '启动关联资源',
+    });
+    expect(metadataCardLaunch).toMatchObject({
+      href: null,
+      hasKnowledgeCard: true,
+    });
   });
 });

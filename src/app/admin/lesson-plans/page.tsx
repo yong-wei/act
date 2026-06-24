@@ -1,5 +1,6 @@
 
 import Link from 'next/link';
+import { UserRole } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { Plus, BookOpen } from 'lucide-react';
 import { getServerAuthSession } from '@/lib/auth';
@@ -9,6 +10,7 @@ import { LessonPlanList } from '@/features/lesson-engine/lesson-plan-list';
 export default async function LessonPlansIndexPage() {
   const session = await getServerAuthSession();
   if (!session) redirect('/login');
+  if (session.user.role !== UserRole.ADMIN) redirect('/');
 
   const plans = await prisma.lessonPlan.findMany({
     orderBy: { updatedAt: 'desc' },
@@ -33,8 +35,8 @@ export default async function LessonPlansIndexPage() {
               管理所有的 BOPPPS 教学编排方案
             </p>
           </div>
-          <Link href="/admin/lesson-plans/new">
-            <button className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-cyan-900/20">
+          <Link href="/admin/lesson-plans/new?returnTo=%2Fadmin%2Flesson-plans">
+            <button type="button" className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-cyan-900/20">
               <Plus className="h-5 w-5" />
               新建教案
             </button>
@@ -42,7 +44,7 @@ export default async function LessonPlansIndexPage() {
         </div>
 
         {/* List Grid */}
-        <LessonPlanList plans={plans} />
+        <LessonPlanList plans={plans} returnTo="/admin/lesson-plans" />
         
         {plans.length === 0 && (
             <div className="py-20 text-center border-2 border-dashed border-slate-800 rounded-xl bg-slate-900/20">
@@ -51,8 +53,8 @@ export default async function LessonPlansIndexPage() {
               </div>
               <h3 className="text-lg font-medium text-slate-300">暂无教案</h3>
               <p className="text-slate-500 mt-1 mb-6">创建一个新的 BOPPPS 教案开始教学设计</p>
-              <Link href="/admin/lesson-plans/new">
-                <button className="text-cyan-400 hover:text-cyan-300 font-medium">
+              <Link href="/admin/lesson-plans/new?returnTo=%2Fadmin%2Flesson-plans">
+                <button type="button" className="text-cyan-400 hover:text-cyan-300 font-medium">
                    立即创建 &rarr;
                 </button>
               </Link>

@@ -1,0 +1,18 @@
+{
+  "changeId": "add-interactive-visual-stage-runtime",
+  "status": "verified",
+  "commands": [
+    "rtk npm run test:unit -- src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/visual-stage-evidence.test.ts",
+    "rtk npm run test:unit -- src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/visual-stage-evidence.test.ts src/lib/__tests__/commercial-ui-governance.test.ts",
+    "rtk npx tsc --noEmit --pretty false",
+    "rtk npm run lint",
+    "rtk openspec validate add-interactive-visual-stage-runtime --strict",
+    "rtk node artifacts/interactive-learning/visual-stage-runtime-561/browser-acceptance.mjs"
+  ],
+  "latestFocusedUnitResult": "3 files passed, 187 tests passed",
+  "latestBrowserAcceptanceResult": "pass, 7 captures",
+  "knownUnrelatedFailures": [
+    "rtk npm run test:commercial-ui-governance still reports pre-existing /knowledge evidence mismatch.",
+    "rtk npm run test:commercial-ui-governance still reports pre-existing interactive-learning product QA handoff sourceCommit debt."
+  ]
+}

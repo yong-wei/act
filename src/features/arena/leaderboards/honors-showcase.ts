@@ -1,5 +1,6 @@
 import type { ControllerArtifact, ControllerMethod, MetricDefinition } from '../types';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
+import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
 import { getArenaChallengeTask, getArenaMetricProfile } from '../data/seed-challenges';
 import { arenaMethodLabels, formatArenaMetric } from '../display-labels';
 import { buildArenaLeaderboard } from './leaderboard';
@@ -47,7 +48,7 @@ function isOfficialValidSubmission(
   submission: OfficialArenaSubmission,
   taskId: string,
 ): boolean {
-  return submission.taskId === taskId && submission.official !== false && submission.evaluation.valid;
+  return submission.taskId === taskId && submission.official !== false && isArenaSubmissionEffectiveForRanking(submission);
 }
 
 function participantKey(submission: ArenaSubmissionRecord): string {

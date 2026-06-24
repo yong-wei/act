@@ -20,7 +20,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 COURSE_ROOT = REPO_ROOT / 'course-content'
 AUTHORING_ROOT = COURSE_ROOT / 'authoring'
 RUNTIME_ROOT = COURSE_ROOT / 'runtime'
-CONTENT_CONCEPTS_ROOT = REPO_ROOT / 'content' / 'concepts'
 
 sys.path.insert(0, str(COURSE_ROOT / 'scripts'))
 from lesson_id_map import (  # noqa: E402
@@ -147,16 +146,20 @@ def build_name_maps(nodes_by_id: dict[str, dict[str, Any]]) -> tuple[dict[str, s
 def resolve_node_id(
     record: dict[str, Any],
     endpoint: str,
+    nodes_by_id: dict[str, dict[str, Any]],
     by_name_chapter: dict[str, str],
     by_name: dict[str, list[str]],
 ) -> str | None:
     node_id = record.get(f'{endpoint}_id')
-    if node_id:
+    if node_id and str(node_id) in nodes_by_id:
         return str(node_id)
 
     name = record.get(endpoint) or record.get(f'{endpoint}_name')
     if not name:
-        return None
+        return str(node_id) if node_id else None
+
+    if str(name) in nodes_by_id:
+        return str(name)
 
     chapter_value = record.get(f'{endpoint}_chapter')
     if isinstance(chapter_value, int):
@@ -181,8 +184,8 @@ def normalize_relation_record(
     by_name_chapter: dict[str, str],
     by_name: dict[str, list[str]],
 ) -> tuple[str, dict[str, Any]] | None:
-    source_id = resolve_node_id(record, 'source', by_name_chapter, by_name)
-    target_id = resolve_node_id(record, 'target', by_name_chapter, by_name)
+    source_id = resolve_node_id(record, 'source', nodes_by_id, by_name_chapter, by_name)
+    target_id = resolve_node_id(record, 'target', nodes_by_id, by_name_chapter, by_name)
     if not source_id or not target_id or source_id == target_id:
         return None
 
@@ -245,7 +248,6 @@ def build_runtime_relations(nodes_by_id: dict[str, dict[str, Any]], relation_rec
 
 def build_runtime_nodes(
     nodes_by_id: dict[str, dict[str, Any]],
-    concept_resource_by_node_id: dict[str, str],
     infograph_resource_by_node_id: dict[str, dict[str, str]],
 ) -> list[dict[str, Any]]:
     card_dir = RUNTIME_ROOT / 'knowledge' / 'cards' / 'nodes'
@@ -269,8 +271,6 @@ def build_runtime_nodes(
         node_card_path = card_dir / f'{node_id}.md'
         if node_card_path.exists():
             resources.append(str(node_card_path.relative_to(REPO_ROOT)).replace('\\', '/'))
-        elif node_id in concept_resource_by_node_id:
-            resources.append(concept_resource_by_node_id[node_id])
         infograph_resource = infograph_resource_by_node_id.get(node_id)
         if infograph_resource:
             resources.append(infograph_resource)
@@ -291,6 +291,7 @@ def build_runtime_nodes(
                 'chapter': chapter,
                 'chapterName': chapter_name,
                 'category': node.get('category'),
+                'knowledge_type': node.get('knowledge_type'),
                 'bloom_level': node.get('bloom_level'),
                 'definition': node.get('definition'),
                 'examples': node.get('examples') or [],
@@ -322,7 +323,14 @@ def copy_tree_contents(source: Path, target: Path, patterns: tuple[str, ...]) ->
         if item.name.endswith(patterns):
             destination = target / item.name
             destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(item, destination)
+            copy_text_data_file(item, destination)
+
+
+def copy_text_data_file(source: Path, destination: Path) -> None:
+    content = source.read_text(encoding='utf-8').replace('\r\n', '\n').replace('\r', '\n')
+    if destination.exists() and destination.read_text(encoding='utf-8') == content:
+        return
+    destination.write_text(content, encoding='utf-8', newline='\n')
 
 
 def reset_directory(target: Path) -> None:
@@ -422,7 +430,7 @@ def copy_generated_media_data(lesson_dir: Path, destination_dir: Path) -> None:
         return
     target_dir.mkdir(parents=True, exist_ok=True)
     for asset in data_assets:
-        shutil.copy2(asset, target_dir / asset.name)
+        copy_text_data_file(asset, target_dir / asset.name)
 
 
 def generate_runtime_media(lesson_id: str) -> None:
@@ -964,50 +972,6 @@ def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dic
     return nodes_by_id, relation_records
 
 
-def extract_primary_heading(markdown: str) -> str | None:
-    match = re.search(r'^\s*#\s+(.+?)\s*$', markdown, re.MULTILINE)
-    if not match:
-        return None
-    heading = re.sub(r'\s+', ' ', match.group(1)).strip()
-    return heading or None
-
-
-def copy_concepts_cards(nodes_by_id: dict[str, dict[str, Any]]) -> dict[str, str]:
-    runtime_cards_concepts = RUNTIME_ROOT / 'knowledge' / 'cards' / 'concepts'
-    concept_resource_by_node_id: dict[str, str] = {}
-    names_to_node_ids: dict[str, list[dict[str, Any]]] = {}
-
-    for node_id, node in nodes_by_id.items():
-        names_to_node_ids.setdefault(str(node['name']), []).append({
-            'id': node_id,
-            'chapter': node.get('chapter'),
-        })
-
-    for concept_file in sorted(CONTENT_CONCEPTS_ROOT.glob('*.mdx')):
-        content = concept_file.read_text(encoding='utf-8')
-        heading = extract_primary_heading(content)
-        matched_candidates = names_to_node_ids.get(heading or '', [])
-
-        if matched_candidates:
-            chosen = sorted(
-                matched_candidates,
-                key=lambda item: (
-                    int(item['chapter']) if isinstance(item.get('chapter'), int) else 999,
-                    str(item['id']),
-                ),
-            )[0]
-            node_id = str(chosen['id'])
-            destination = runtime_cards_concepts / f'{node_id}.mdx'
-            destination.write_text(content, encoding='utf-8')
-            concept_resource_by_node_id[node_id] = str(destination.relative_to(REPO_ROOT)).replace('\\', '/')
-            continue
-
-        destination = runtime_cards_concepts / concept_file.name
-        destination.write_text(content, encoding='utf-8')
-
-    return concept_resource_by_node_id
-
-
 def copy_canonical_node_cards(nodes_by_id: dict[str, dict[str, Any]]) -> None:
     canonical_index = load_canonical_index()
     source_root = AUTHORING_ROOT / 'knowledge' / 'cards' / 'nodes'
@@ -1129,12 +1093,12 @@ def export_global_knowledge() -> tuple[list[dict[str, Any]], list[dict[str, Any]
     runtime_cards_concepts = RUNTIME_ROOT / 'knowledge' / 'cards' / 'concepts'
 
     reset_directory(runtime_cards_nodes)
-    reset_directory(runtime_cards_concepts)
+    if runtime_cards_concepts.exists():
+        shutil.rmtree(runtime_cards_concepts)
     copy_canonical_node_cards(nodes_by_id)
-    concept_resource_by_node_id = copy_concepts_cards(nodes_by_id)
     infograph_resource_by_node_id = copy_reviewed_infographs()
     runtime_relations = build_runtime_relations(nodes_by_id, relation_records)
-    runtime_nodes = build_runtime_nodes(nodes_by_id, concept_resource_by_node_id, infograph_resource_by_node_id)
+    runtime_nodes = build_runtime_nodes(nodes_by_id, infograph_resource_by_node_id)
 
     write_json(RUNTIME_ROOT / 'knowledge' / 'graph' / 'nodes.json', runtime_nodes)
     write_jsonl(RUNTIME_ROOT / 'knowledge' / 'graph' / 'relations.jsonl', runtime_relations)
@@ -1146,6 +1110,8 @@ def resolve_lessons(args: argparse.Namespace) -> list[str]:
     if args.export_all:
         lessons: list[str] = []
         for entry in load_lesson_id_map().get('entries', []):
+            if entry.get('status') != 'mainline':
+                continue
             request_ids = entry.get('request_ids', [])
             if not request_ids:
                 continue

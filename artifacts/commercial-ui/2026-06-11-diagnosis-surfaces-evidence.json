@@ -1,0 +1,82 @@
+{
+  "id": "diagnosis-surfaces-2026-06-11",
+  "capturedAt": "2026-06-11T11:30:00.000Z",
+  "server": {
+    "origin": "http://localhost:3001",
+    "worktree": "/Users/YW/.codex/worktrees/auto-379/act.just.edu.cn",
+    "health": {
+      "app": true,
+      "db": true,
+      "redis": true
+    }
+  },
+  "database": {
+    "migrationApplied": "20260611155000_add_diagnosis_report_snapshots",
+    "tableProbe": "DiagnosisReportSnapshot exists after prisma migrate deploy",
+    "missingTableFallback": "API returns role-based missing-snapshot diagnosis instead of 500 before migration"
+  },
+  "accounts": {
+    "student": "demo",
+    "teacher": "201300000012"
+  },
+  "routes": [
+    {
+      "href": "/profile/growth",
+      "requestedRoute": "/profile/growth",
+      "finalUrl": "http://localhost:3001/profile/growth",
+      "role": "student",
+      "authState": "authenticated",
+      "status": "passed",
+      "evidence": [
+        "student login succeeded with studentNumber demo",
+        "diagnosis surface count=1",
+        "data-diagnosis-state=degraded",
+        "student competency snapshot API returned 200",
+        "growth records API returned 200",
+        "console errors=0"
+      ]
+    },
+    {
+      "href": "/teacher/classes",
+      "requestedRoute": "/teacher/classes",
+      "finalUrl": "http://localhost:3001/teacher/classes",
+      "role": "teacher",
+      "authState": "authenticated",
+      "status": "passed",
+      "evidence": [
+        "teacher operations shell marker present",
+        "navigation and class list remain reachable"
+      ]
+    },
+    {
+      "href": "/teacher/classes/[classId]",
+      "requestedRoute": "/teacher/classes/[classId]",
+      "finalUrl": "http://localhost:3001/teacher/classes/cmjth78rq00012zmj1cwnxrc1",
+      "role": "teacher",
+      "authState": "authenticated",
+      "status": "passed",
+      "evidence": [
+        "teacher login succeeded with employeeNumber 201300000012",
+        "diagnosis surface count=1",
+        "data-diagnosis-state=degraded",
+        "class detail API returned 200",
+        "class insights API returned 200",
+        "console errors=0"
+      ]
+    },
+    {
+      "href": "/teacher/classes/[classId]/students/[studentId]",
+      "requestedRoute": "/teacher/classes/[classId]/students/[studentId]",
+      "finalUrl": "http://localhost:3001/teacher/classes/cmjth78rq00012zmj1cwnxrc1/students/cmm77n46f0008w9h881wag95m",
+      "role": "teacher",
+      "authState": "authenticated",
+      "status": "passed",
+      "evidence": [
+        "teacher student diagnosis surface count=1",
+        "data-diagnosis-state=degraded",
+        "student insights API returned 200",
+        "console errors=0"
+      ]
+    }
+  ]
+}

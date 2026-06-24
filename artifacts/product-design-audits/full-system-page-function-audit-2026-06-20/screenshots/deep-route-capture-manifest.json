@@ -1,0 +1,380 @@
+[
+  {
+    "group": "20-auth-student-profile",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/profile",
+    "finalUrl": "/profile",
+    "status": 200,
+    "file": "desktop-profile.png"
+  },
+  {
+    "group": "20-auth-student-profile",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/profile/evidence",
+    "finalUrl": "/profile/evidence",
+    "status": 200,
+    "file": "desktop-profile-evidence.png"
+  },
+  {
+    "group": "20-auth-student-profile",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/profile/growth",
+    "finalUrl": "/profile/growth",
+    "status": 200,
+    "file": "desktop-profile-growth.png"
+  },
+  {
+    "group": "20-auth-student-profile",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/profile/portfolio",
+    "finalUrl": "/profile/portfolio",
+    "status": 200,
+    "file": "desktop-profile-portfolio.png"
+  },
+  {
+    "group": "20-auth-student-profile",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/profile",
+    "finalUrl": "/profile",
+    "status": 200,
+    "file": "mobile-profile.png"
+  },
+  {
+    "group": "20-auth-student-profile",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/profile/evidence",
+    "finalUrl": "/profile/evidence",
+    "status": 200,
+    "file": "mobile-profile-evidence.png"
+  },
+  {
+    "group": "20-auth-student-profile",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/profile/growth",
+    "finalUrl": "/profile/growth",
+    "status": 200,
+    "file": "mobile-profile-growth.png"
+  },
+  {
+    "group": "20-auth-student-profile",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/profile/portfolio",
+    "finalUrl": "/profile/portfolio",
+    "status": 200,
+    "file": "mobile-profile-portfolio.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "desktop",
+    "route": "/review",
+    "finalUrl": "/review",
+    "status": 200,
+    "file": "desktop-review.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "desktop",
+    "route": "/review/adaptive-assessment-figures",
+    "finalUrl": "/review/adaptive-assessment-figures",
+    "status": 200,
+    "file": "desktop-review-adaptive-assessment-figures.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "desktop",
+    "route": "/review/annotated-media-activity-564",
+    "finalUrl": "/review/annotated-media-activity-564",
+    "status": 200,
+    "file": "desktop-review-annotated-media-activity-564.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "desktop",
+    "route": "/review/control-workbench-reuse-560",
+    "finalUrl": "/review/control-workbench-reuse-560",
+    "status": 200,
+    "file": "desktop-review-control-workbench-reuse-560.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "desktop",
+    "route": "/review/derivation-stage-runtime-562",
+    "finalUrl": "/review/derivation-stage-runtime-562",
+    "status": 200,
+    "file": "desktop-review-derivation-stage-runtime-562.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "desktop",
+    "route": "/review/extracurricular-showcase",
+    "finalUrl": "/review/extracurricular-showcase",
+    "status": 200,
+    "file": "desktop-review-extracurricular-showcase.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "desktop",
+    "route": "/review/structure-diagram-runtime-563",
+    "finalUrl": "/review/structure-diagram-runtime-563",
+    "status": 200,
+    "file": "desktop-review-structure-diagram-runtime-563.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "desktop",
+    "route": "/review/unit-5-2-arrow-markers",
+    "finalUrl": "/review/unit-5-2-arrow-markers",
+    "status": 200,
+    "file": "desktop-review-unit-5-2-arrow-markers.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "desktop",
+    "route": "/review/visual-stage-runtime-561",
+    "finalUrl": "/review/visual-stage-runtime-561",
+    "status": 200,
+    "file": "desktop-review-visual-stage-runtime-561.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "mobile",
+    "route": "/review",
+    "finalUrl": "/review",
+    "status": 200,
+    "file": "mobile-review.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "mobile",
+    "route": "/review/adaptive-assessment-figures",
+    "finalUrl": "/review/adaptive-assessment-figures",
+    "status": 200,
+    "file": "mobile-review-adaptive-assessment-figures.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "mobile",
+    "route": "/review/annotated-media-activity-564",
+    "finalUrl": "/review/annotated-media-activity-564",
+    "status": 200,
+    "file": "mobile-review-annotated-media-activity-564.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "mobile",
+    "route": "/review/control-workbench-reuse-560",
+    "finalUrl": "/review/control-workbench-reuse-560",
+    "status": 200,
+    "file": "mobile-review-control-workbench-reuse-560.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "mobile",
+    "route": "/review/derivation-stage-runtime-562",
+    "finalUrl": "/review/derivation-stage-runtime-562",
+    "status": 200,
+    "file": "mobile-review-derivation-stage-runtime-562.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "mobile",
+    "route": "/review/extracurricular-showcase",
+    "finalUrl": "/review/extracurricular-showcase",
+    "status": 200,
+    "file": "mobile-review-extracurricular-showcase.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "mobile",
+    "route": "/review/structure-diagram-runtime-563",
+    "finalUrl": "/review/structure-diagram-runtime-563",
+    "status": 200,
+    "file": "mobile-review-structure-diagram-runtime-563.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "mobile",
+    "route": "/review/unit-5-2-arrow-markers",
+    "finalUrl": "/review/unit-5-2-arrow-markers",
+    "status": 200,
+    "file": "mobile-review-unit-5-2-arrow-markers.png"
+  },
+  {
+    "group": "21-review-pages",
+    "role": "public-internal-review",
+    "viewport": "mobile",
+    "route": "/review/visual-stage-runtime-561",
+    "finalUrl": "/review/visual-stage-runtime-561",
+    "status": 200,
+    "file": "mobile-review-visual-stage-runtime-561.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "desktop",
+    "route": "/simulations/container",
+    "finalUrl": "/simulations/container",
+    "status": 200,
+    "file": "desktop-simulations-container.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "desktop",
+    "route": "/simulations/destroyer",
+    "finalUrl": "/simulations/destroyer",
+    "status": 200,
+    "file": "desktop-simulations-destroyer.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "desktop",
+    "route": "/simulations/dredger",
+    "finalUrl": "/simulations/dredger",
+    "status": 200,
+    "file": "desktop-simulations-dredger.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "desktop",
+    "route": "/simulations/drilling",
+    "finalUrl": "/simulations/drilling",
+    "status": 200,
+    "file": "desktop-simulations-drilling.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "desktop",
+    "route": "/simulations/icebreaker",
+    "finalUrl": "/simulations/icebreaker",
+    "status": 200,
+    "file": "desktop-simulations-icebreaker.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "desktop",
+    "route": "/simulations/lng",
+    "finalUrl": "/simulations/lng",
+    "status": 200,
+    "file": "desktop-simulations-lng.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "desktop",
+    "route": "/simulations/cruise",
+    "finalUrl": "/simulations/cruise",
+    "status": 200,
+    "file": "desktop-simulations-cruise.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "desktop",
+    "route": "/virtual-lab",
+    "finalUrl": "/simulations",
+    "status": 200,
+    "file": "desktop-virtual-lab.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "mobile",
+    "route": "/simulations/container",
+    "finalUrl": "/simulations/container",
+    "status": 200,
+    "file": "mobile-simulations-container.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "mobile",
+    "route": "/simulations/destroyer",
+    "finalUrl": "/simulations/destroyer",
+    "status": 200,
+    "file": "mobile-simulations-destroyer.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "mobile",
+    "route": "/simulations/dredger",
+    "finalUrl": "/simulations/dredger",
+    "status": 200,
+    "file": "mobile-simulations-dredger.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "mobile",
+    "route": "/simulations/drilling",
+    "finalUrl": "/simulations/drilling",
+    "status": 200,
+    "file": "mobile-simulations-drilling.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "mobile",
+    "route": "/simulations/icebreaker",
+    "finalUrl": "/simulations/icebreaker",
+    "status": 200,
+    "file": "mobile-simulations-icebreaker.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "mobile",
+    "route": "/simulations/lng",
+    "finalUrl": "/simulations/lng",
+    "status": 200,
+    "file": "mobile-simulations-lng.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "mobile",
+    "route": "/simulations/cruise",
+    "finalUrl": "/simulations/cruise",
+    "status": 200,
+    "file": "mobile-simulations-cruise.png"
+  },
+  {
+    "group": "22-simulation-details",
+    "role": "public",
+    "viewport": "mobile",
+    "route": "/virtual-lab",
+    "finalUrl": "/simulations",
+    "status": 200,
+    "file": "mobile-virtual-lab.png"
+  }
+]

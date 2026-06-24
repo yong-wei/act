@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
   KonlingRuntimeScopeError,
@@ -8,6 +9,8 @@ import {
   verifyKonlingRuntimeScope,
   type KonlingInterventionFeedback,
 } from '@/lib/konling-agent-runtime';
+
+export const dynamic = 'force-dynamic';
 
 interface FeedbackRequest {
   userId?: string;
@@ -51,13 +54,14 @@ export async function POST(request: Request) {
     const result = await recordKonlingInterventionFeedback(prisma, {
       scope: scope.scope,
       interventionId: body.interventionId,
-      feedback: body.feedback ?? (body.wasHelpful === false ? 'dismissed' : 'rated'),
+      feedback: body.feedback ?? (body.wasHelpful === false ? 'rejected' : 'rated'),
       helpful: body.wasHelpful,
       studentResponse: body.studentResponse,
     });
 
     return NextResponse.json(result);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     if (error instanceof KonlingRuntimeScopeError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }

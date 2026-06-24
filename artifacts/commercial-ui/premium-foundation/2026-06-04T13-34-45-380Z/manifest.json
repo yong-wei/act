@@ -1,0 +1,295 @@
+{
+  "runId": "2026-06-04T13-34-45-380Z",
+  "baseUrl": "http://127.0.0.1:3001",
+  "capturedAt": "2026-06-04T13:35:18.295Z",
+  "captures": [
+    {
+      "route": "/",
+      "finalUrl": "http://127.0.0.1:3001/",
+      "theme": "light",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/home-light-1440.png"
+    },
+    {
+      "route": "/",
+      "finalUrl": "http://127.0.0.1:3001/",
+      "theme": "light",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/home-light-320.png"
+    },
+    {
+      "route": "/",
+      "finalUrl": "http://127.0.0.1:3001/",
+      "theme": "dark",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/home-dark-1440.png"
+    },
+    {
+      "route": "/",
+      "finalUrl": "http://127.0.0.1:3001/",
+      "theme": "dark",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/home-dark-320.png"
+    },
+    {
+      "route": "/login",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "light",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/login-light-1440.png"
+    },
+    {
+      "route": "/login",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "light",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/login-light-320.png"
+    },
+    {
+      "route": "/login",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "dark",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/login-dark-1440.png"
+    },
+    {
+      "route": "/login",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "dark",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/login-dark-320.png"
+    },
+    {
+      "route": "/interactive-learning",
+      "finalUrl": "http://127.0.0.1:3001/interactive-learning",
+      "theme": "light",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/interactive-learning-light-1440.png"
+    },
+    {
+      "route": "/interactive-learning",
+      "finalUrl": "http://127.0.0.1:3001/interactive-learning",
+      "theme": "light",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/interactive-learning-light-320.png"
+    },
+    {
+      "route": "/interactive-learning",
+      "finalUrl": "http://127.0.0.1:3001/interactive-learning",
+      "theme": "dark",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/interactive-learning-dark-1440.png"
+    },
+    {
+      "route": "/interactive-learning",
+      "finalUrl": "http://127.0.0.1:3001/interactive-learning",
+      "theme": "dark",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/interactive-learning-dark-320.png"
+    },
+    {
+      "route": "/simulations",
+      "finalUrl": "http://127.0.0.1:3001/simulations",
+      "theme": "light",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-1440.png"
+    },
+    {
+      "route": "/simulations",
+      "finalUrl": "http://127.0.0.1:3001/simulations",
+      "theme": "light",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-320.png"
+    },
+    {
+      "route": "/simulations",
+      "finalUrl": "http://127.0.0.1:3001/simulations",
+      "theme": "dark",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-1440.png"
+    },
+    {
+      "route": "/simulations",
+      "finalUrl": "http://127.0.0.1:3001/simulations",
+      "theme": "dark",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-320.png"
+    },
+    {
+      "route": "/interactive-learning/control-workbench",
+      "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
+      "theme": "light",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/interactive-learning-control-workbench-light-1440.png"
+    },
+    {
+      "route": "/interactive-learning/control-workbench",
+      "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
+      "theme": "light",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/interactive-learning-control-workbench-light-320.png"
+    },
+    {
+      "route": "/interactive-learning/control-workbench",
+      "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
+      "theme": "dark",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/interactive-learning-control-workbench-dark-1440.png"
+    },
+    {
+      "route": "/interactive-learning/control-workbench",
+      "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
+      "theme": "dark",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/interactive-learning-control-workbench-dark-320.png"
+    },
+    {
+      "route": "/dashboard",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "light",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/dashboard-light-1440.png"
+    },
+    {
+      "route": "/dashboard",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "light",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/dashboard-light-320.png"
+    },
+    {
+      "route": "/dashboard",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "dark",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/dashboard-dark-1440.png"
+    },
+    {
+      "route": "/dashboard",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "dark",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/dashboard-dark-320.png"
+    },
+    {
+      "route": "/teacher",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "light",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/teacher-light-1440.png"
+    },
+    {
+      "route": "/teacher",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "light",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/teacher-light-320.png"
+    },
+    {
+      "route": "/teacher",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "dark",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/teacher-dark-1440.png"
+    },
+    {
+      "route": "/teacher",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "dark",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/teacher-dark-320.png"
+    },
+    {
+      "route": "/admin",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "light",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/admin-light-1440.png"
+    },
+    {
+      "route": "/admin",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "light",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/admin-light-320.png"
+    },
+    {
+      "route": "/admin",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "dark",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/admin-dark-1440.png"
+    },
+    {
+      "route": "/admin",
+      "finalUrl": "http://127.0.0.1:3001/login",
+      "theme": "dark",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/admin-dark-320.png"
+    },
+    {
+      "route": "/knowledge",
+      "finalUrl": "http://127.0.0.1:3001/knowledge",
+      "theme": "light",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/knowledge-light-1440.png"
+    },
+    {
+      "route": "/knowledge",
+      "finalUrl": "http://127.0.0.1:3001/knowledge",
+      "theme": "light",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/knowledge-light-320.png"
+    },
+    {
+      "route": "/knowledge",
+      "finalUrl": "http://127.0.0.1:3001/knowledge",
+      "theme": "dark",
+      "width": 1440,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/knowledge-dark-1440.png"
+    },
+    {
+      "route": "/knowledge",
+      "finalUrl": "http://127.0.0.1:3001/knowledge",
+      "theme": "dark",
+      "width": 320,
+      "status": 200,
+      "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/knowledge-dark-320.png"
+    }
+  ]
+}

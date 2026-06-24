@@ -187,8 +187,8 @@ describe('unit 4-1 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('PremiumLessonEntryPage');
-    expect(entrySource).toContain('<PremiumLessonEntryPage');
+    expect(entrySource).toContain('CourseEntryShell');
+    expect(entrySource).toContain('<CourseEntryShell');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
     expect(entrySource).toContain('mediaCourseLabel');
   });
@@ -256,7 +256,7 @@ describe('unit 4-1 interactive course', () => {
         manifest,
         revealProgress: 0,
         allowInlineReveal: true,
-        role: 'student',
+        viewerRole: 'student',
       }),
     );
     const step11Html = renderToStaticMarkup(
@@ -265,7 +265,7 @@ describe('unit 4-1 interactive course', () => {
         manifest,
         revealProgress: 0,
         allowInlineReveal: true,
-        role: 'student',
+        viewerRole: 'student',
       }),
     );
     const summaryHtml = renderToStaticMarkup(
@@ -274,7 +274,7 @@ describe('unit 4-1 interactive course', () => {
         manifest,
         revealProgress: 0,
         allowInlineReveal: true,
-        role: 'student',
+        viewerRole: 'student',
         submittedCount: 2,
         viewedCount: 13,
         postTestCompletion: 1,
@@ -367,7 +367,7 @@ describe('unit 4-1 interactive course', () => {
       title: '别再盲目修改K值了',
     });
     expect(resources[2]).toMatchObject({
-      kind: 'pdf',
+      kind: 'slides',
       accessMode: 'new_tab',
       embedMode: 'none',
       status: 'ready',
@@ -396,7 +396,7 @@ describe('unit 4-1 interactive course', () => {
 
   it('tightens the interactive lesson implementation skill for dynamic figures and native diagram redraw', () => {
     const skillSource = readFileSync(
-      join(repoRoot, '.codex/skills/interactive-lesson-implementation/SKILL.md'),
+      join(repoRoot, '.agents/skills/interactive-lesson/SKILL.md'),
       'utf8',
     );
 

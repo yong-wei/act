@@ -1,0 +1,142 @@
+{
+  "capturedAt": "2026-06-16T02:22:22.540Z",
+  "baseUrl": "http://localhost:3002",
+  "routes": [
+    "/simulations/destroyer",
+    "/simulations/lng",
+    "/simulations/container",
+    "/simulations/drilling",
+    "/simulations/cruise",
+    "/simulations/icebreaker",
+    "/simulations/dredger"
+  ],
+  "results": [
+    {
+      "route": "/simulations/destroyer",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-destroyer-dark-1440.png",
+      "screenshotSha256": "f08e85a4e9a4009b6cc5c0b6a5508b9062534140d3cf7fba7436835ffc4e4766",
+      "pageErrors": [],
+      "trackedConsoleWarnings": [],
+      "themeState": {
+        "className": "dark",
+        "colorScheme": "dark",
+        "storedTheme": "dark"
+      }
+    },
+    {
+      "route": "/simulations/lng",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-lng-dark-1440.png",
+      "screenshotSha256": "ab9015d2945ea1b8a4249d6338771d156572c0bc7492932c21fb1eae65668e6a",
+      "pageErrors": [],
+      "trackedConsoleWarnings": [],
+      "themeState": {
+        "className": "dark",
+        "colorScheme": "dark",
+        "storedTheme": "dark"
+      }
+    },
+    {
+      "route": "/simulations/container",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-container-dark-1440.png",
+      "screenshotSha256": "f1137353fe8b5aa1816dc2a631bde6a0108286896453ee36caca1c41a11e5112",
+      "pageErrors": [],
+      "trackedConsoleWarnings": [],
+      "themeState": {
+        "className": "dark",
+        "colorScheme": "dark",
+        "storedTheme": "dark"
+      }
+    },
+    {
+      "route": "/simulations/drilling",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-drilling-dark-1440.png",
+      "screenshotSha256": "e221bf6150d9b9dfd3e9683c0281f3b90b14a1fb3ad95c04195286b4857cd80e",
+      "pageErrors": [],
+      "trackedConsoleWarnings": [],
+      "themeState": {
+        "className": "dark",
+        "colorScheme": "dark",
+        "storedTheme": "dark"
+      }
+    },
+    {
+      "route": "/simulations/cruise",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-cruise-dark-1440.png",
+      "screenshotSha256": "1c570ba08c2878466dd7665a616a6583a96924d36cb7c3c1c66dfd00043f7739",
+      "pageErrors": [],
+      "trackedConsoleWarnings": [],
+      "themeState": {
+        "className": "dark",
+        "colorScheme": "dark",
+        "storedTheme": "dark"
+      }
+    },
+    {
+      "route": "/simulations/icebreaker",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-icebreaker-dark-1440.png",
+      "screenshotSha256": "43dca628a66e20672bab60678fba8a8dcc797d24e7c740408f64fccbd88c3d53",
+      "pageErrors": [],
+      "trackedConsoleWarnings": [],
+      "themeState": {
+        "className": "dark",
+        "colorScheme": "dark",
+        "storedTheme": "dark"
+      }
+    },
+    {
+      "route": "/simulations/dredger",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-dredger-dark-1440.png",
+      "screenshotSha256": "75301fe73b36ef15cd6efa0055948ad3a8aa6201e46619d2ab99ca8f3a2c4eea",
+      "pageErrors": [],
+      "trackedConsoleWarnings": [],
+      "themeState": {
+        "className": "dark",
+        "colorScheme": "dark",
+        "storedTheme": "dark"
+      }
+    }
+  ],
+  "summary": {
+    "routesChecked": 7,
+    "pageErrorCount": 0,
+    "trackedConsoleWarningCount": 0,
+    "pageErrors": [],
+    "trackedConsoleWarnings": [],
+    "passed": true
+  }
+}

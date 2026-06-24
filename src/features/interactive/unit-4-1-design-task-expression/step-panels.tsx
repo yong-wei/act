@@ -751,7 +751,7 @@ function ParameterMirrorPanel({
             <div className="premium-lesson-title text-sm font-medium">
               <InlineMath math={config.key} /> 共享增益滑块
             </div>
-            <input
+            <input aria-label="设计任务参数"
               type="range"
               min={config.min}
               max={config.max}
@@ -1173,7 +1173,7 @@ export function UNIT_4_1StepContentPanel({
   manifest,
   revealProgress,
   allowInlineReveal,
-  role,
+  viewerRole,
   submittedCount = 0,
   viewedCount = 0,
   studentCount = 0,
@@ -1188,7 +1188,7 @@ export function UNIT_4_1StepContentPanel({
   manifest?: InteractiveRuntimeManifest | null;
   revealProgress: number;
   allowInlineReveal: boolean;
-  role: 'student' | 'teacher';
+  viewerRole: 'student' | 'teacher';
   submittedCount?: number;
   viewedCount?: number;
   studentCount?: number;
@@ -1199,6 +1199,7 @@ export function UNIT_4_1StepContentPanel({
   onAdvanceReveal?: () => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  const role = viewerRole;
   const activeManifest = requireUnit41Manifest(manifest);
   const stepManifest = getUNIT_4_1ManifestStepFromManifest(activeManifest, step.id);
   const baseRegistry = createManifestContentModuleRegistry({
@@ -1266,7 +1267,7 @@ export function UNIT_4_1StepContentPanel({
     return baseRegistry['native-figure']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
   };
   const renderStatPanel = () => {
-    if (role === 'student') {
+    if (viewerRole === 'student') {
       return (
         <UNIT_4_1StudentSummaryPanel
           submittedCount={submittedCount}
@@ -1355,6 +1356,7 @@ export function UNIT_4_1StudentActivityForm({
   browseEnabled,
   answerVisible,
   revealProgress,
+  readOnly,
   onSubmit,
 }: {
   step: UNIT_4_1StepDefinition;
@@ -1364,6 +1366,7 @@ export function UNIT_4_1StudentActivityForm({
   browseEnabled: boolean;
   answerVisible: boolean;
   revealProgress: number;
+  readOnly?: boolean;
   onSubmit: (response: ManifestStepResponse) => void;
 }) {
   const activeManifest = requireUnit41Manifest(manifest);
@@ -1379,6 +1382,7 @@ export function UNIT_4_1StudentActivityForm({
         browseEnabled,
         answerVisible,
         revealProgress,
+        readOnly,
         onSubmit,
       })}
     </>

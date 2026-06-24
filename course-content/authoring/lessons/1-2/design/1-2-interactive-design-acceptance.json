@@ -1,0 +1,51 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "1-2",
+  "status": "accepted",
+  "accepted_at": "2026-06-16T12:06:37+08:00",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/1-2/design/1-2-interactive-contract.yaml",
+    "handout": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
+    "sequence": "course-content/authoring/knowledge/cards/lessons/1-2/sequence.json"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass",
+    "sequence_finalized": "pass",
+    "standard_module_contract": "pass",
+    "runtime_audit": "pass",
+    "knowledge_graph": "pass"
+  },
+  "sequence_source": "interactive_design_finalized",
+  "subagent_reviews": [
+    {
+      "agent_id": "019ece8e-2fa0-7c40-b77d-aeeb6acafc7f",
+      "scope": "pedagogy, BOPPPS, page mapping, student-facing sequence",
+      "status": "block_then_fixed",
+      "note": "指出 BOPPPS 前测提前考传递函数、互动页缺少脚本认可的映射结构；已修复。"
+    },
+    {
+      "agent_id": "019ece8e-70cb-72a3-afaf-dab0e66c47c9",
+      "scope": "machine-readable contract, runtime manifest, registry gate",
+      "status": "pass",
+      "note": "机读契约、runtime manifest 与标准模块 gate 通过。"
+    },
+    {
+      "agent_id": "019ece96-e406-7592-ae30-eff164492024",
+      "scope": "second-pass pedagogy and page acceptance",
+      "status": "pass",
+      "note": "BOPPPS 前测边界、互动页映射与课堂活动一致性通过。"
+    },
+    {
+      "agent_id": "019ece97-0fff-7d01-b7c2-52f4bff6be46",
+      "scope": "second-pass contract, knowledge graph and runtime gates",
+      "status": "pass",
+      "note": "知识图谱关系、运行态导出和机读契约复审通过。"
+    }
+  ],
+  "issues": []
+}

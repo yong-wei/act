@@ -67,3 +67,55 @@ Profile and recommendation services SHALL use only evidence belonging to the req
 #### Scenario: Student profile is read
 - **WHEN** a student profile or recommendation is generated
 - **THEN** simulation records, Arena preview records, and Konling memory/evidence from other users SHALL NOT contribute to that student's personalized claims.
+
+### Requirement: Personalization can cite governed path execution features
+Profile, recommendation, and learner-state personalization SHALL be able to use governed control-correction path features as rationale without scanning raw execution payloads.
+
+#### Scenario: Recommendation uses path evidence
+- **WHEN** a recommendation references path completion, deviation, fallback, terminal validation, or intervention outcome
+- **THEN** it SHALL identify the supporting governed feature group, evidence window, source count, confidence, and privacy-safe source references
+- **AND** it SHALL NOT present unreviewed model-authored intervention text as a high-confidence competency fact.
+
+#### Scenario: Path evidence is weak
+- **WHEN** path evidence is missing, stale, partial, preview-only, or low-confidence
+- **THEN** personalization output SHALL expose the limiting evidence state
+- **AND** it SHALL NOT present the recommendation as a complete precise diagnosis.
+
+### Requirement: Personalized explanations expose citation coverage
+Personalized recommendations and profile explanations SHALL expose citation coverage when they are generated for the control-correction path.
+
+#### Scenario: Recommendation is explained
+- **WHEN** a control-correction recommendation or coaching rationale is shown to a student
+- **THEN** it SHALL expose content, learner-state, path-execution, simulation, Arena, or intervention citations that support the claim
+- **AND** it SHALL identify missing citation classes or low-confidence evidence as limitations.
+
+#### Scenario: Citation support is insufficient
+- **WHEN** required citations cannot be retrieved or normalized
+- **THEN** personalization output SHALL return a fallback or low-confidence explanation
+- **AND** it SHALL NOT present the claim as fully verified.
+
+### Requirement: Personalization distinguishes targets from observed mastery
+Profile, diagnosis, and recommendation outputs SHALL distinguish desired capability targets from observed learner evidence.
+
+#### Scenario: Capability target is shown
+- **WHEN** a personalized explanation references a target on a knowledge node
+- **THEN** it SHALL identify the target capability level and the evidence state separately
+- **AND** it SHALL NOT present a teacher-defined target as proof that the learner has mastered that target.
+
+#### Scenario: Evidence is missing for target
+- **WHEN** a learner has no governed evidence for a capability target
+- **THEN** personalization SHALL expose missing or low-confidence evidence
+- **AND** it SHALL prefer starter or evidence-gathering recommendations over high-confidence mastery claims.
+
+### Requirement: Personalization consumes knowledge capability evidence writeback
+Profile, diagnosis, path planning, and recommendation personalization SHALL consume knowledge, capability, and quality evidence only after it has been materialized from governed sources.
+
+#### Scenario: Evidence updates graph overlay state
+- **WHEN** path execution, exercise, teacher-approved grading, simulation, Arena, interactive lesson, or approved Konling tool outcome is materialized through K/A/Q evidence writeback
+- **THEN** personalization MAY use it as rationale according to its target refs, confidence, authority, freshness, source coverage, privacy-safe references, and limitation metadata
+- **AND** raw source payloads or unreviewed model narrative SHALL NOT bypass the writeback governance layer.
+
+#### Scenario: Writeback is degraded
+- **WHEN** evidence is missing required graph/resource/version/citation context or is preview-only
+- **THEN** personalization SHALL expose the limiting evidence state
+- **AND** it SHALL NOT present the recommendation, profile claim, or diagnosis as a complete precise mastery judgment.

@@ -54,7 +54,9 @@ export function evaluateMetricProfile(input: MetricProfileEvaluationInput): Aren
     hardConstraintResults,
     penalties,
     explanation: [
-      '硬约束全部通过，提交进入正式排名。',
+      score > 0
+        ? '硬约束全部通过，提交进入正式排名。'
+        : '硬约束全部通过，但排名分为 0，提交保留为诊断证据，未进入正式排名。',
       `基础分 ${baseScore.toFixed(1)}，惩罚 ${penaltyValue.toFixed(1)}，最终分 ${score.toFixed(1)}。`,
     ],
   };

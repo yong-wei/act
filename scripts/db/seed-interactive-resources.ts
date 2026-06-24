@@ -1,10 +1,10 @@
+import { createPrismaClient } from '../../src/lib/prisma-client';
 /**
  * 种子脚本：注册所有互动学习组件到数据库
  *
  * 运行命令：npx ts-node scripts/db/seed-interactive-resources.ts
  */
 
-import { PrismaClient } from '@prisma/client';
 
 const ResourceType: Record<string, string> = new Proxy(
   {},
@@ -20,7 +20,7 @@ const InteractiveCategory: Record<string, string> = new Proxy(
   }
 );
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 // 互动学习组件数据
 const INTERACTIVE_RESOURCES = [

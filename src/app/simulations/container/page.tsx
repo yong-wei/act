@@ -1,25 +1,17 @@
-import dynamicImport from 'next/dynamic';
-import { FeaturePageNav } from '@/components/shared/feature-page-nav';
+import { SimulationShell } from '../_components/simulation-shell';
+import { ContainerSimulation } from '../_components/simulation-loaders';
 
 export const dynamic = 'force-dynamic';
 
-const ContainerSimulation = dynamicImport(
-  () => import('@/resources/simulations/simulations/container-simulation'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[560px] items-center justify-center text-slate-300">
-        正在加载集装箱船仿真场景...
-      </div>
-    ),
-  },
-);
-
 export default function ContainerSimulationPage() {
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
-      <FeaturePageNav title="集装箱船仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
+    <SimulationShell
+      title="集装箱船仿真"
+      subtitle="变质量 Nomoto · 风载荷与增益调度"
+      activeHref="/simulations/container"
+      localToolTemplate="heading-control"
+    >
       <ContainerSimulation />
-    </div>
+    </SimulationShell>
   );
 }

@@ -7,7 +7,7 @@
  * Supports both standalone and embedded (BOPPPS) modes.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Link2, CheckCircle2, Lightbulb, Bot, Sparkles } from 'lucide-react';
 import { useLessonContext } from '@/features/lesson-engine/ContextInjector';
 import { useLessonAI } from '@/hooks/useLessonAI';
@@ -64,7 +64,7 @@ function MappingCard({
               <CheckCircle2 className="h-5 w-5 text-green-500" />
             </div>
           ) : (
-            <button
+            <button type="button"
               onClick={onConnect}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-amber-500 transition-all hover:scale-110 hover:bg-amber-500/30"
             >
@@ -128,7 +128,6 @@ export default function AnalogyMapperWidget({
 
   // Local state
   const [completedMappings, setCompletedMappings] = useState<string[]>(initialCompleted);
-  const [aiHint, setAiHint] = useState<string | null>(null);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
 
@@ -168,20 +167,19 @@ export default function AnalogyMapperWidget({
     [completedMappings, required, onStateChange, onComplete]
   );
 
-  // Generate contextual AI hints
-  useEffect(() => {
-    if (!embedded) return;
-
+  const aiHint = (() => {
+    if (!embedded) return null;
     if (completedMappings.length === 0) {
-      setAiHint('点击连接按钮，将左侧机械量与右侧电气量配对。思考：为什么质量对应电感？');
-    } else if (completedMappings.length < 3) {
-      setAiHint('继续探索更多映射关系。注意观察单位的对应规律。');
-    } else if (!allCompleted) {
-      setAiHint('还差一点！完成所有映射以理解机电系统的统一性。');
-    } else {
-      setAiHint(null);
+      return '点击连接按钮，将左侧机械量与右侧电气量配对。思考：为什么质量对应电感？';
     }
-  }, [completedMappings.length, allCompleted, embedded]);
+    if (completedMappings.length < 3) {
+      return '继续探索更多映射关系。注意观察单位的对应规律。';
+    }
+    if (!allCompleted) {
+      return '还差一点！完成所有映射以理解机电系统的统一性。';
+    }
+    return null;
+  })();
 
   // Ask AI for explanation
   const askAI = async (mappingId?: string) => {
@@ -293,7 +291,7 @@ export default function AnalogyMapperWidget({
 
       {/* AI Assistant Button */}
       {embedded && (
-        <button
+        <button type="button"
           onClick={() => askAI()}
           disabled={aiLoading}
           className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full border border-violet-500/50 bg-violet-500/10 px-4 py-2 text-sm text-violet-300 shadow-lg transition hover:bg-violet-500/20 disabled:opacity-50"
@@ -308,7 +306,7 @@ export default function AnalogyMapperWidget({
         <div className="absolute bottom-16 right-4 z-20 w-80 max-h-60 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900/95 p-4 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-violet-400">AI 助手</span>
-            <button
+            <button type="button"
               onClick={() => setShowAIPanel(false)}
               className="text-slate-500 hover:text-slate-300"
             >

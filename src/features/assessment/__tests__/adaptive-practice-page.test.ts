@@ -20,11 +20,94 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('/login?callbackUrl=');
   });
 
-  it('shows a retryable question loading failure instead of only the pending placeholder', () => {
+  it('shows a retryable question loading fallback instead of only the pending placeholder', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
-    expect(source).toContain('题目加载失败');
+    expect(source).toContain('练习加载未完成');
     expect(source).toContain('重新加载');
     expect(source).toContain('void bootstrapPractice()');
+  });
+
+  it('keeps an explicit pathId stable after Konling path updates', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    const refreshBlock = source.slice(
+      source.indexOf('const refreshLatestLearningPathAfterKonling = useCallback'),
+      source.indexOf('useEffect(() => {', source.indexOf('const refreshLatestLearningPathAfterKonling = useCallback')),
+    );
+
+    expect(refreshBlock).toContain('if (activePathId)');
+    expect(refreshBlock).toContain('fetchLearningPathRound(activePathId, activeGoal)');
+    expect(refreshBlock).toContain('Keep the explicit URL path stable instead of switching to latest.');
+    expect(refreshBlock.indexOf('if (activePathId)')).toBeLessThan(refreshBlock.indexOf('fetchLatestLearningPathRound(activeGoal)'));
+    expect(refreshBlock.indexOf('fetchLearningPathRound(activePathId, activeGoal)')).toBeLessThan(refreshBlock.indexOf('fetchLatestLearningPathRound(activeGoal)'));
+    expect(refreshBlock).toContain('}, [activeGoal, activePathId, authStatus, isDemoMode]);');
+  });
+
+  it('binds adaptive quiz outcomes into path result cards', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain('PathNodeResultCardView');
+    expect(source).toContain('readPathNodeResultSummary');
+    expect(source).toContain('data-adaptive-path-result-card');
+    expect(source).toContain('结果待同步');
+    expect(source).toContain('syncAdaptiveAssessmentPathResult');
+    expect(source).toContain('adaptiveAssessmentRef');
+    expect(source).toContain('durableAnswerId');
+    expect(source).toContain("await syncAdaptiveAssessmentPathResult(data)");
+  });
+
+  it('isolates adaptive path workspaces by route intent', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("intentParam === 'path-selection'");
+    expect(source).toContain("const requestedIntent = searchParams.get('intent')");
+    expect(source).toContain("const workspaceIntent = routeIntent === 'contextual-recommendation'");
+    expect(source).toContain("requestedIntent !== null && requestedIntent.trim().length > 0 && routeIntent === 'practice'");
+    expect(source).toContain("data-adaptive-path-workspace-intent={workspaceIntent}");
+    expect(source).toContain("const showPracticeWorkspace = workspaceIntent === 'practice'");
+    expect(source).toContain("const showPresetGoalCards = false");
+    expect(source).toContain("showSelectionWorkspace ? (");
+    expect(source).toContain("(showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
+    expect(source).toContain("showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace");
+    expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (");
+    expect(source).toContain("showSelectionWorkspace || showEvidenceWorkspace ? (");
+    expect(source).toContain("pathChoiceMessage && (showGenerationWorkspace || showSelectionWorkspace)");
+    expect(source).toContain("showEvidenceWorkspace ? (");
+    expect(source).toContain("intent: 'path-selection'");
+    expect(source).toContain('const generatedPathId = typeof payload.result?.pathId ===');
+    expect(source).toContain("if (generatedPathId) selectionQuery.set('pathId', generatedPathId)");
+    expect(source).toContain("intent: 'path-execution'");
+    expect(source).toContain("optionId: option.optionId");
+    expect(source).toContain("const activeOptionId = searchParams.get('optionId')");
+    expect(source).toContain("const selectedExecutionOption = useMemo");
+    expect(source).toContain("option.optionId === activeOptionId");
+    expect(source).toContain("getPathExecutionNodes(controlCorrectionPathPlan, controlCorrectionPathRound, selectedExecutionOption)");
+    expect(source).toContain("const pathUpdate = getRecord(payload.pathUpdate)");
+    expect(source).toContain("typeof pathUpdate.currentNodeId === 'string'");
+    expect(source).toContain("option.activeNodeIds?.[0] ?? option.nodeIds?.[0]");
+  });
+
+  it('keeps demo path state available for execution and visual QA routes', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    const learnerStateEffectStart = source.indexOf("if (!activeGoal) {\n      setControlCorrectionLearnerState(null);");
+    const learnerStateEffect = source.slice(
+      learnerStateEffectStart,
+      source.indexOf("if (authStatus === 'loading')", learnerStateEffectStart),
+    );
+
+    expect(learnerStateEffectStart).toBeGreaterThan(-1);
+    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setControlCorrectionLearnerState(null);\n      return;\n    }');
+    expect(source).not.toContain('if (!activeGoal || isDemoMode) {\n      setControlCorrectionLearnerState(null);');
+    expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setControlCorrectionPathPlan(null);');
+    expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setControlCorrectionPathRound(null);');
+  });
+
+  it('keeps demo execution fixture with an actionable current node for visual QA', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("completedNodeIds: ['demo-foundation-card'],");
+    expect(source).not.toContain("completedNodeIds: ['demo-foundation-card', 'demo-current-quiz', 'demo-simulation']");
   });
 });

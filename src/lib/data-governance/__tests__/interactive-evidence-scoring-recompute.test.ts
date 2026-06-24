@@ -6,6 +6,9 @@ import {
   applyInteractiveEvidenceScoringRecomputePlan,
   buildInteractiveEvidenceScoringRecomputePlan,
   collectInteractiveEvidenceScoringRecomputePlan,
+  type InteractiveEvidenceScoringInteractionLogRow,
+  type InteractiveEvidenceScoringLearningFactRow,
+  type InteractiveEvidenceScoringResponseRow,
 } from '../interactive-evidence-scoring-recompute';
 import { parseInteractiveEvidenceScoringRecomputeOptions } from '../../../../scripts/db/recompute-interactive-evidence-scoring-options';
 
@@ -72,7 +75,9 @@ const lesson53Manifest: InteractiveRuntimeManifest = {
 
 const submittedAt = new Date('2026-05-20T02:00:00.000Z');
 
-function staleResponseData() {
+type TestResponseData = Record<string, unknown>;
+
+function staleResponseData(): TestResponseData {
   return {
     schemaVersion: 'manifest-submission-v2',
     stepId: 'step-08',
@@ -102,7 +107,11 @@ function staleResponseData() {
   };
 }
 
-function buildRows(responseData = staleResponseData()) {
+function buildRows(responseData: TestResponseData = staleResponseData()): {
+  studentStepResponses: InteractiveEvidenceScoringResponseRow[];
+  interactionLogs: InteractiveEvidenceScoringInteractionLogRow[];
+  learningFacts: InteractiveEvidenceScoringLearningFactRow[];
+} {
   return {
     studentStepResponses: [
       {
@@ -247,7 +256,9 @@ describe('interactive evidence scoring recompute', () => {
         }),
       ],
     });
-    expect(plan.responseActions[0].nextResponseData?.answers).toBe(rows.studentStepResponses[0].responseData.answers);
+    expect(plan.responseActions[0].nextResponseData?.answers).toBe(
+      (rows.studentStepResponses[0].responseData as TestResponseData).answers,
+    );
     expect(plan.factActions[0]).toMatchObject({
       action: 'update-derived-context',
       factId: 'fact-53',
@@ -558,11 +569,16 @@ describe('interactive evidence scoring recompute', () => {
       },
       ...seedRows,
     });
-    const currentResponseData = {
-      ...seedPlan.responseActions[0].nextResponseData,
+    const nextResponseData = seedPlan.responseActions[0]?.nextResponseData;
+    if (!nextResponseData) throw new Error('expected recomputed response data');
+    const questionSummaries = Array.isArray(nextResponseData.questionSummaries)
+      ? nextResponseData.questionSummaries
+      : [];
+    const currentResponseData: TestResponseData = {
+      ...nextResponseData,
       questionSummaries: [
         {
-          ...(seedPlan.responseActions[0].nextResponseData?.questionSummaries as Record<string, unknown>[])[0],
+          ...(questionSummaries[0] as Record<string, unknown> | undefined),
           studentAnswer: undefined,
         },
       ],
@@ -624,7 +640,7 @@ describe('interactive evidence scoring recompute', () => {
       ...secondRows.learningFacts[0],
       score: plan.factActions[0].newScore,
       outcome: plan.factActions[0].newOutcome,
-      sourceLogId: plan.factActions[0].nextSourceLogId,
+      sourceLogId: plan.factActions[0].nextSourceLogId ?? null,
       contextJson: plan.factActions[0].nextContextJson,
     };
     const secondPlan = buildInteractiveEvidenceScoringRecomputePlan({

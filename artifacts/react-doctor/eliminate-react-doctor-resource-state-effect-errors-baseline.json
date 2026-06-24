@@ -1,0 +1,39 @@
+{
+  "changeId": "eliminate-react-doctor-resource-state-effect-errors",
+  "issue": 409,
+  "reactDoctor": {
+    "command": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .",
+    "version": "0.5.1",
+    "scopes": [
+      "src/resources/interactive-learning/",
+      "src/resources/widgets/",
+      "src/resources/simulations/",
+      "src/resources/control-system/"
+    ],
+    "targetRules": [
+      "effect-needs-cleanup",
+      "no-adjust-state-on-prop-change",
+      "no-mutable-in-deps"
+    ],
+    "totalDiagnostics": 62,
+    "scopedDiagnostics": 0,
+    "scopedTargetDiagnostics": 0,
+    "byRule": {},
+    "byFile": {},
+    "diagnostics": []
+  },
+  "classification": {
+    "diagnostics": [],
+    "touchedFiles": [],
+    "touchedResourceKinds": [],
+    "reason": "React Doctor 0.5.1 reported no diagnostics in the resource, widget, simulation, or control-system scopes for the target state/effect rules, so no code edits or resource-specific migrations were required."
+  },
+  "validation": [
+    {
+      "command": "npm run test:unit -- src/resources/simulations/__tests__/course-resource-config.test.ts src/resources/simulations/__tests__/cruise-telemetry-bridge.test.ts src/resources/simulations/__tests__/protocol-types.test.ts src/resources/simulations/__tests__/seeded-runtime-context.test.ts src/resources/simulations/__tests__/simulation-replay-determinism.test.ts src/resources/simulations/__tests__/simulation-run-contract.test.ts",
+      "result": "passed",
+      "testFiles": 6,
+      "tests": 35
+    }
+  ]
+}

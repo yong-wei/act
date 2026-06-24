@@ -12,12 +12,43 @@ import { UNIT_3_1_PURE_POLE_STABILITY_AND_DYNAMICS_PRESET } from '@/features/tea
 const repoRoot = process.cwd();
 
 describe('INTERACTIVE_COURSE_MODULES', () => {
-  it('keeps only cruise comfort in the premium section', () => {
-    expect(PREMIUM_LESSONS.map((lesson) => lesson.id)).toEqual(['cruise-comfort-boppps']);
+  it('keeps the current module 1 mainline and cruise comfort in the premium section', () => {
+    expect(PREMIUM_LESSONS.map((lesson) => lesson.id)).toEqual([
+      'unit-1-1-see-the-full-picture',
+      'unit-1-2-modeling-from-object-to-system',
+      'cruise-comfort-boppps',
+    ]);
   });
 
-  it('exposes module 2 through module 5 on the interactive course hub', () => {
-    expect(INTERACTIVE_COURSE_MODULES.map((module) => module.id)).toEqual(['module-2', 'module-3', 'module-4', 'module-5']);
+  it('exposes module 1 through module 5 on the interactive course hub', () => {
+    expect(INTERACTIVE_COURSE_MODULES.map((module) => module.id)).toEqual([
+      'module-1',
+      'module-2',
+      'module-3',
+      'module-4',
+      'module-5',
+    ]);
+  });
+
+  it('exposes the current unit 1 mainline in module 1', () => {
+    const module1 = INTERACTIVE_COURSE_MODULES.find((module) => module.id === 'module-1');
+
+    expect(module1?.lessons.map((lesson) => ({
+      id: lesson.id,
+      unitLabel: lesson.unitLabel,
+      legacySourceLabel: lesson.legacySourceLabel ?? null,
+    }))).toEqual([
+      {
+        id: 'unit-1-1-see-the-full-picture',
+        unitLabel: '1-1',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-1-2-modeling-from-object-to-system',
+        unitLabel: '1-2',
+        legacySourceLabel: null,
+      },
+    ]);
   });
 
   it('does not surface retired module 1 lessons anywhere on the hub', () => {
@@ -54,7 +85,9 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
   });
 
   it('exposes unit 2-1, unit 2-2, unit 2-3, and unit 2-4 in module 2', () => {
-    expect(INTERACTIVE_COURSE_MODULES[0]?.lessons.map((lesson) => ({
+    const module2 = INTERACTIVE_COURSE_MODULES.find((module) => module.id === 'module-2');
+
+    expect(module2?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
       legacySourceLabel: lesson.legacySourceLabel ?? null,
@@ -83,7 +116,9 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
   });
 
   it('exposes the full current module 3 mainline on the interactive course hub', () => {
-    expect(INTERACTIVE_COURSE_MODULES[1]?.lessons.map((lesson) => ({
+    const module3 = INTERACTIVE_COURSE_MODULES.find((module) => module.id === 'module-3');
+
+    expect(module3?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
       legacySourceLabel: lesson.legacySourceLabel ?? null,
@@ -137,11 +172,15 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
   });
 
   it('does not use legacy source labels on the current mainline units', () => {
-    expect(INTERACTIVE_COURSE_MODULES[0]?.lessons.every((lesson) => lesson.legacySourceLabel == null)).toBe(true);
+    expect(
+      INTERACTIVE_COURSE_MODULES.flatMap((module) => module.lessons).every((lesson) => lesson.legacySourceLabel == null)
+    ).toBe(true);
   });
 
   it('exposes unit 4-1 through unit 4-7 in module 4', () => {
-    expect(INTERACTIVE_COURSE_MODULES[2]?.lessons.map((lesson) => ({
+    const module4 = INTERACTIVE_COURSE_MODULES.find((module) => module.id === 'module-4');
+
+    expect(module4?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
       legacySourceLabel: lesson.legacySourceLabel ?? null,
@@ -185,7 +224,9 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
   });
 
   it('exposes units 5-1 through 5-6 in module 5', () => {
-    expect(INTERACTIVE_COURSE_MODULES[3]?.lessons.map((lesson) => ({
+    const module5 = INTERACTIVE_COURSE_MODULES.find((module) => module.id === 'module-5');
+
+    expect(module5?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
       legacySourceLabel: lesson.legacySourceLabel ?? null,
@@ -224,8 +265,10 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
   });
 
   it('uses 90-minute durations for 2-2, 2-3, 2-4, and 3-1 in module cards and presets', () => {
-    const module2Lessons = new Map(INTERACTIVE_COURSE_MODULES[0]?.lessons.map((lesson) => [lesson.id, lesson.duration]));
-    const module3Lessons = new Map(INTERACTIVE_COURSE_MODULES[1]?.lessons.map((lesson) => [lesson.id, lesson.duration]));
+    const module2 = INTERACTIVE_COURSE_MODULES.find((module) => module.id === 'module-2');
+    const module3 = INTERACTIVE_COURSE_MODULES.find((module) => module.id === 'module-3');
+    const module2Lessons = new Map(module2?.lessons.map((lesson) => [lesson.id, lesson.runtimeCardMetadata.durationLabel]));
+    const module3Lessons = new Map(module3?.lessons.map((lesson) => [lesson.id, lesson.runtimeCardMetadata.durationLabel]));
 
     expect(module2Lessons.get('unit-2-2-time-domain-response')).toBe('90 分钟');
     expect(module2Lessons.get('unit-2-3-frequency-response-bode-intro')).toBe('90 分钟');

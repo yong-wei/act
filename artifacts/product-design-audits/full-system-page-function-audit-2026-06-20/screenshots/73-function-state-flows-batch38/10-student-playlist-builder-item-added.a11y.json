@@ -1,0 +1,278 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/playlists/new",
+    "h1": [
+      "创建新课程流"
+    ],
+    "h2": [
+      "知识库",
+      "课程编排",
+      "控灵"
+    ],
+    "activeElement": {
+      "tag": "button",
+      "type": "button",
+      "role": "",
+      "name": ""
+    },
+    "controls": [
+      {
+        "tag": "input",
+        "role": "",
+        "name": "搜索知识点...",
+        "type": "text",
+        "href": "",
+        "ariaLabel": "搜索知识点...",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "课程标题",
+        "type": "text",
+        "href": "",
+        "ariaLabel": "课程标题",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "name": "课程描述",
+        "type": "",
+        "href": "",
+        "ariaLabel": "课程描述",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "select",
+        "role": "",
+        "name": "讲授 测验 讨论",
+        "type": "",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "选择知识节点",
+        "type": "number",
+        "href": "",
+        "ariaLabel": "选择知识节点",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": true,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": true,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "保存课程流",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "关闭 (ESC)",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "全局 AI 问题输入框",
+        "type": "text",
+        "href": "",
+        "ariaLabel": "全局 AI 问题输入框",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "submit",
+        "href": "",
+        "ariaLabel": "",
+        "disabled": true,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "打开控灵与页面工具菜单",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "打开控灵与页面工具菜单",
+        "disabled": false,
+        "hidden": false
+      }
+    ],
+    "alerts": [],
+    "unnamedControls": 16,
+    "graphicsCount": 21,
+    "unnamedGraphics": 0,
+    "bodyText": "创建新课程流 知识库 策略监督层调度 策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。 结构工具箱最小语义 把 `P/PI/PD/PID/超前/滞后/前馈/复合校正` 重新组织为“建立基本闭环、补低频能力、改中频动态品质、隔离给定/扰动通道”四类最小结构语义。 经典 PI/PID 冷链基线 经典 PI/PID 冷链基线用测得空气温度误差、积分抗饱和、微分抑制和压缩机限幅形成可解释主闭环，是冷链方法比较中的基准和安全退路。 控制器频域特性矩阵 把 `PI/PD/PID/超前/滞后/超前-滞后` 放在同一 Bode 坐标中比较，说明每类结构首先改变低频增益、中频相位、截止频率还是高频增益。 临界比例 PID 整定 通过比例控制下的等幅振荡试验获得临界增益 \\(K_u\\) 和临界周期 \\(P_u\\)，再按 Ziegler-Nichols 等表格给出 `P/PI/PID` 参数初值。 热负荷预测补偿 热负荷预测补偿保留 PI/PID 主闭环，只预测未来一小时热负荷等级，并把该预测用于预冷设定点和受限压缩机前馈。 四路线策略评价 四路线策略评价把 PID、直接控舵 RL、安全外壳 RL 和 RL 调度 PID 放入同一边缘场景中，比较响应误差、超调、调节时间、舵角使用、舵速和安全退化。 PID控制器 由比例、积分、微分单元组合而成的控制器，能实现复杂的控制规律，广泛应用于工业自动化。 PID控制器 由比例、积分、微分环节组合而成的经典控制器，用于改善系统动态和稳态性能。 PID控制器 比例-积分-微分控制器，通过调整参数Kp、Ki、Kd来改善系统动态和稳态性能。 PID数字控制器 将模拟PID控制器的比例、积分、微分作用离散化后得到的数字控制器。 RL调度PID RL 调度 PID 让策略学习选择 PID 参数档位或修正量，实际控舵仍由带限幅和舵速约束的 PID 完成，是比直接控舵更稳妥的工程入口。 课程编排 1 策略监督层调度 讲授 测验 讨论 分钟 保存课程流 控灵 当前: new 你好，我是控灵。今天我们将探索「new」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+  }
+}

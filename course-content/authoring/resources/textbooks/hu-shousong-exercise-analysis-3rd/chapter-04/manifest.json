@@ -1,0 +1,990 @@
+{
+  "id": "chapter-04",
+  "number": 4,
+  "title": "线性系统的根轨迹法",
+  "pipeline": "mathpixplus",
+  "textbookPath": "textbook.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/chapter-04.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/chapter-04.qa.json",
+  "sourcePageStart": 88,
+  "sourcePageEnd": 138,
+  "sourcePageCount": 51,
+  "imageCount": 97,
+  "figureDescriptionCount": 95,
+  "markdownSha256": "00aa4e4ea3335b88c8f3cd8fe32f3629bcc20ed5219cb1cd37221e214aabb103",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/chapter-04.local.md.images.json",
+  "sourceImageManifestCount": 96,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0089-01-300dpi.png",
+      "exportPath": "assets/fig-04-38.png",
+      "originalRelativePath": "assets/mathpix-source-page-0089-01-300dpi.png",
+      "caption": "4－2 已知开环零、极点分布如图 4－38 所示，试概略绘出相应的闭环根轨迹图。",
+      "sourcePdfPage": 89,
+      "sha256": "e86d0e7179bf111ee69cd5fd56d266533ca70c4c98e69c7b52993a64fa68d1aa",
+      "bytes": 219049
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0089-02-300dpi.png",
+      "exportPath": "assets/fig-04-38-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0089-02-300dpi.png",
+      "caption": "图 4－38 开环零、极点分布图 解 本题考查根据根轨迹绘制法则，结合开环零、极点的分布，绘制系统的概略根轨迹图的技巧。所有的闭环概略根轨迹如图 4－2－1 所示。",
+      "sourcePdfPage": 89,
+      "sha256": "f3d2a032637e181f92f2df13900c7f19bf8f6ef8a4a176d3472a6a0ae548ffdb",
+      "bytes": 110644
+    },
+    {
+      "index": 3,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0089-03-300dpi.png",
+      "exportPath": "assets/fig-04-02-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0089-03-300dpi.png",
+      "caption": "图 4－2－1 闭环概略根轨迹",
+      "sourcePdfPage": 89,
+      "sha256": "640b8c45f5161e58db215c3e8775b96c3bc244e22c00bc31f8b9e45f92257c86",
+      "bytes": 80286
+    },
+    {
+      "index": 4,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0090-01-300dpi.png",
+      "exportPath": "assets/fig-04-02-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0090-01-300dpi.png",
+      "caption": "图 4－2－1 闭环概略根轨迹（续）",
+      "sourcePdfPage": 90,
+      "sha256": "85fdc998b0422e4ff3c1dc68ded46a66b9fed64ccdb59931dc4f7e2303d8047c",
+      "bytes": 113274
+    },
+    {
+      "index": 5,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0091-01-300dpi.png",
+      "exportPath": "assets/fig-04-03-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0091-01-300dpi.png",
+      "caption": "图 4－3－1 $\\quad 1+\\frac{K}{s(0.2 s+1)(0.5 s+1)}=0$",
+      "sourcePdfPage": 91,
+      "sha256": "f8719cc9063fdafa6d268837df24634cd1f1764da211499f19205afe075ce59d",
+      "bytes": 68528
+    },
+    {
+      "index": 6,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0091-02-300dpi.png",
+      "exportPath": "assets/fig-04-03-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0091-02-300dpi.png",
+      "caption": "图 4－3－2 $1+\\frac{K(s+1)}{s(2 s+1)}=0$",
+      "sourcePdfPage": 91,
+      "sha256": "5225fb2829bc0127811da762f8a97104bcb7723c7fc11a380734e640bb3931f4",
+      "bytes": 78855
+    },
+    {
+      "index": 7,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0092-01-300dpi.png",
+      "exportPath": "assets/fig-04-03-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0092-01-300dpi.png",
+      "caption": "图 4－3－3 $1+\\frac{K^{*}(s+5)}{s(s+2)(s+3)}=0$",
+      "sourcePdfPage": 92,
+      "sha256": "7fb439e400a3ccb4a1950f78a70550c981877ee18416801674b131ed3f0c3d8d",
+      "bytes": 72470
+    },
+    {
+      "index": 8,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0092-02-300dpi.png",
+      "exportPath": "assets/fig-04-03-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0092-02-300dpi.png",
+      "caption": "图 4－3－5 $1+\\frac{K(s+1)}{s(2 s+1)}=0$ 根轨迹图",
+      "sourcePdfPage": 92,
+      "sha256": "7591f0ed4590c5d810e30b4d79143d1375cbc0345256dade44ae09bfb9d75b10",
+      "bytes": 157767
+    },
+    {
+      "index": 9,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0092-03-300dpi.png",
+      "exportPath": "assets/fig-04-03-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0092-03-300dpi.png",
+      "caption": "图 4－3－4 $\\quad 1+\\frac{K}{s(0.2 s+1)(0.5 s+1)}=0$",
+      "sourcePdfPage": 92,
+      "sha256": "42bffb59aa6148197f4e4a97cafd5e41fe5eb005decc82259d3b20a0a20547b0",
+      "bytes": 114779
+    },
+    {
+      "index": 10,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0092-04-300dpi.png",
+      "exportPath": "assets/fig-04-03-06.png",
+      "originalRelativePath": "assets/mathpix-source-page-0092-04-300dpi.png",
+      "caption": "图 4－3－6 $1+\\frac{K^{*}(s+5)}{s(s+2)(s+3)}=0$ 根轨迹图",
+      "sourcePdfPage": 92,
+      "sha256": "c8505c98be3779f3fba60dd36b8ae48e7a8454f42fe7d5bbdcfb729d633136f7",
+      "bytes": 118248
+    },
+    {
+      "index": 11,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0093-01-300dpi.png",
+      "exportPath": "assets/fig-04-04-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0093-01-300dpi.png",
+      "caption": "图 4－4－1 $1+\\frac{K^{*}(s+2)}{(s+1+\\mathrm{j} 2)(s+1-\\mathrm{j} 2)}=0$",
+      "sourcePdfPage": 93,
+      "sha256": "15e3eb661a3315f36eb9fe5e767ff496a0f8cbe04b1ba7d1139867be2af5eef9",
+      "bytes": 60543
+    },
+    {
+      "index": 12,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0093-02-300dpi.png",
+      "exportPath": "assets/fig-04-04-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0093-02-300dpi.png",
+      "caption": "图 4－4－2 $\\quad 1+\\frac{K^{*}(s+20)}{s(s+10+\\mathrm{j} 10)(s+10-\\mathrm{j} 10)}=0$",
+      "sourcePdfPage": 93,
+      "sha256": "a239b68ddb14dc0b6ded06dcd18153014cfd815376d0f95a105d9a2f6336a8e8",
+      "bytes": 68061
+    },
+    {
+      "index": 13,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0094-01-300dpi.png",
+      "exportPath": "assets/fig-04-04-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0094-01-300dpi.png",
+      "caption": "图 4－4－3 $1+\\frac{K^{*}(s+2)}{(s+1+\\mathrm{j} 2)(s+1-\\mathrm{j} 2)}=0$",
+      "sourcePdfPage": 94,
+      "sha256": "40e1d59f334776ae1108db2177d3b0491b311aa3a77bbdf226f22a2f3433ccf0",
+      "bytes": 123825
+    },
+    {
+      "index": 14,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0094-02-300dpi.png",
+      "exportPath": "assets/fig-04-04-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0094-02-300dpi.png",
+      "caption": "图 4－4－4 $1+\\frac{K^{*}(s+20)}{s(s+10+\\mathrm{j} 10)(s+10-\\mathrm{j} 10)}=0$",
+      "sourcePdfPage": 94,
+      "sha256": "831c6ddde3b9a67afff1b2ba3c6c7cf793b61e2d7a4516167162f42375b28d59",
+      "bytes": 124935
+    },
+    {
+      "index": 15,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0096-01-300dpi.png",
+      "exportPath": "assets/fig-04-05-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0096-01-300dpi.png",
+      "caption": "图 4－5－1 $1+\\frac{K^{*}}{s(s+1)(s+3.5)(s+3+\\mathrm{j} 2)(s+3-\\mathrm{j} 2)}=0$概略根轨迹图",
+      "sourcePdfPage": 96,
+      "sha256": "afde73e106608c15468e2572bf106258f2eefead03d56332f4c50803c8ca2c6a",
+      "bytes": 148474
+    },
+    {
+      "index": 16,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0096-02-300dpi.png",
+      "exportPath": "assets/fig-04-05-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0096-02-300dpi.png",
+      "caption": "图 4－5－2 $1+\\frac{K^{*}}{s(s+1)(s+3.5)(s+3+\\mathrm{j} 2)(s+3-\\mathrm{j} 2)}=0$",
+      "sourcePdfPage": 96,
+      "sha256": "192549700113d9dd710ca2cc82f6cd1f377dc817d25ed21b0e8270218857dcc0",
+      "bytes": 134068
+    },
+    {
+      "index": 17,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0097-01-300dpi.png",
+      "exportPath": "assets/img-chapter-04-017.png",
+      "originalRelativePath": "assets/mathpix-source-page-0097-01-300dpi.png",
+      "caption": null,
+      "sourcePdfPage": 97,
+      "sha256": "c7d61d891d11984891176f406db9a655e1014f16c3c136e7d1971e2173d75135",
+      "bytes": 144961
+    },
+    {
+      "index": 18,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0098-01-300dpi.png",
+      "exportPath": "assets/fig-04-07-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0098-01-300dpi.png",
+      "caption": "图 4－7－1 $1+\\frac{K^{*}}{s(s+4)\\left(s^{2}+4 s+20\\right)}=0$",
+      "sourcePdfPage": 98,
+      "sha256": "8629e82b12260d7b16daf7e17c152099610b3ca7516358d20154848459507423",
+      "bytes": 142708
+    },
+    {
+      "index": 19,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0098-02-300dpi.png",
+      "exportPath": "assets/fig-04-07-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0098-02-300dpi.png",
+      "caption": "图 4－7－2 $\\quad 1+\\frac{K^{*}}{s(s+4)\\left(s^{2}+4 s+20\\right)}=0$",
+      "sourcePdfPage": 98,
+      "sha256": "1b2ea3f443833d323dbecb9d906c24e2283a660823778b95e4c7fd8d9b9cf077",
+      "bytes": 142965
+    },
+    {
+      "index": 20,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0099-01-300dpi.png",
+      "exportPath": "assets/fig-04-08-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0099-01-300dpi.png",
+      "caption": "图 4－8－1 $1+\\frac{K^{*}(s+2)}{\\left(s^{2}+4 s+9\\right)^{2}}=0$ 概略根轨迹图",
+      "sourcePdfPage": 99,
+      "sha256": "ce020247f787e53b2e4577f68d76bf3de2025ac04b7332d4a0a926934688213a",
+      "bytes": 103276
+    },
+    {
+      "index": 21,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0099-02-300dpi.png",
+      "exportPath": "assets/fig-04-08-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0099-02-300dpi.png",
+      "caption": "图 4－8－2 $1+\\frac{K^{*}(s+2)}{\\left(s^{2}+4 s+9\\right)^{2}}=0$ 根轨迹图（MATLAB）",
+      "sourcePdfPage": 99,
+      "sha256": "d44a77498c113e583942e2ba9d2a3117a6b2f3dba21a832f452bfa74f72239ce",
+      "bytes": 128386
+    },
+    {
+      "index": 22,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0100-01-300dpi.png",
+      "exportPath": "assets/fig-04-09-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0100-01-300dpi.png",
+      "caption": "图 4－9－1 $1+\\frac{K^{*}\\left(s^{2}+6 s+25\\right)}{s\\left(s^{2}+8 s+25\\right)}=0$ 概略根轨迹图 图 4－9－2 $1+\\frac{K^{*}\\left(s^{2}+6 s+25\\right)}{s\\left(s^{2}+8 s+25\\right)}=0$ 根轨迹图（MATLAB）",
+      "sourcePdfPage": 100,
+      "sha256": "e191bc54f07cc52ff378eebccb18f53b2b69a07cf1099159d17d0a4567487ae8",
+      "bytes": 92717
+    },
+    {
+      "index": 23,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0102-01-300dpi.png",
+      "exportPath": "assets/fig-04-10-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0102-01-300dpi.png",
+      "caption": "图 4－10－1 $1+\\frac{K^{*}}{s^{2}(s+2)(s+5)}=0$ 概略根轨迹图",
+      "sourcePdfPage": 102,
+      "sha256": "883b35be2bc9096b8f3dc0b610d91f3ef9098ccbb67db16547ad57da8e1bcb0d",
+      "bytes": 101180
+    },
+    {
+      "index": 24,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0102-02-300dpi.png",
+      "exportPath": "assets/fig-04-10-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0102-02-300dpi.png",
+      "caption": "图 4－10－2 $\\quad 1+\\frac{K^{*}}{s^{2}(s+2)(s+5)}=0$",
+      "sourcePdfPage": 102,
+      "sha256": "0db2d27e01e57c4454c0f667789c0a742902bd1c032a3cf6ea75c78b14fb7a93",
+      "bytes": 127949
+    },
+    {
+      "index": 25,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0103-01-300dpi.png",
+      "exportPath": "assets/fig-04-10-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0103-01-300dpi.png",
+      "caption": "图 4－10－3 $1+\\frac{2 K^{*}(s+0.5)}{s^{2}(s+2)(s+5)}=0$ 概略根轨迹图",
+      "sourcePdfPage": 103,
+      "sha256": "a6d4c389611f060b92dc81365ae26dcb3ee56a06b0bf4ee534bfef074e8e3f2d",
+      "bytes": 104232
+    },
+    {
+      "index": 26,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0103-02-300dpi.png",
+      "exportPath": "assets/fig-04-10-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0103-02-300dpi.png",
+      "caption": "图 4－10－3 $1+\\frac{2 K^{*}(s+0.5)}{s^{2}(s+2)(s+5)}=0$ 概略根轨迹图",
+      "sourcePdfPage": 103,
+      "sha256": "c890ccfee222080c3f8f97af51f118779f27a044cadd9c09d9794c0e24dca516",
+      "bytes": 108484
+    },
+    {
+      "index": 27,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0103-03-300dpi.png",
+      "exportPath": "assets/fig-04-10-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0103-03-300dpi.png",
+      "caption": "图 4－10－4 $1+\\frac{2 K^{*}(s+0.5)}{s^{2}(s+2)(s+5)}=0$",
+      "sourcePdfPage": 103,
+      "sha256": "842fb0afa51132814d7d252842f9a4d23d746012ff360bdc56b3aa367dddbfe5",
+      "bytes": 157
+    },
+    {
+      "index": 28,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0104-01-300dpi.png",
+      "exportPath": "assets/fig-04-11-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0104-01-300dpi.png",
+      "caption": "图 4－11－1 $s^{3}+2 s^{2}+3 s+K s+2 K=0$",
+      "sourcePdfPage": 104,
+      "sha256": "b6e46c6d10023bbdb6002e677a46d1c84355554cf0c6dfc2637d5feed32d8137",
+      "bytes": 60214
+    },
+    {
+      "index": 29,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0104-02-300dpi.png",
+      "exportPath": "assets/fig-04-11-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0104-02-300dpi.png",
+      "caption": "图 4－11－2 $s^{3}+2 s^{2}+3 s+K s+2 K=0$",
+      "sourcePdfPage": 104,
+      "sha256": "7ca99511e64a94aa5079b554a4ae26bbdfa7d636af1200bc8a59e337f6bf6e67",
+      "bytes": 113581
+    },
+    {
+      "index": 30,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0105-01-300dpi.png",
+      "exportPath": "assets/fig-04-11-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0105-01-300dpi.png",
+      "caption": "图 4－11－3 $s^{3}+3 s^{2}+(K+2) s+10 K=0$",
+      "sourcePdfPage": 105,
+      "sha256": "4c323075ced12441a6d728a272029f49da66f95c39e5b0bcf2f7beae89464b15",
+      "bytes": 93491
+    },
+    {
+      "index": 31,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0105-02-300dpi.png",
+      "exportPath": "assets/fig-04-11-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0105-02-300dpi.png",
+      "caption": "> Image description: A root locus plot for the characteristic equation $s^3 + 3s^2 + (K+2)s + 10K = 0$, as indicated by the caption \"图 4－11－3\". The graph features a horizontal Real Axis and a vertical Imaginary Axis, with values ranging from -10 to 4 on the real axis and -15 to 15 on the imaginary axis. Three open poles are marked with 'x' symbols on the negative real axis at approximately $s = -2$, $s = -1$, and $s = 0$. A single zero is indicated by a circle 'o' at $s = -10$. The root locus consists of paths starting from the poles as $K$ increases. One branch moves leftward along the real axis toward the zero at -10. Two other branches move toward each other, meet on the real axis near the origin, and then diverge symmetrically into the right-half plane, curving upward and downward with arrows indicating their trajectory toward infinity. 图 4－11－4 $s^{3}+3 s^{2}+(K+2) s+10 K=0$",
+      "sourcePdfPage": 105,
+      "sha256": "a043acfb54d1ca9228db42391a274199d29c5e4cfadcf20bce5bc15869cfb33e",
+      "bytes": 108760
+    },
+    {
+      "index": 32,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0107-01-300dpi.png",
+      "exportPath": "assets/fig-04-12-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0107-01-300dpi.png",
+      "caption": "图 4－12－1 $1+\\frac{b(s+4)}{(s+2+\\mathrm{j} 4)(s+2-\\mathrm{j} 4)}=0$概略参数根轨迹图",
+      "sourcePdfPage": 107,
+      "sha256": "4ab8815c46133cce58e2b892b5174ad58eef1f0cd2917903b6536e40684f2fc0",
+      "bytes": 79091
+    },
+    {
+      "index": 33,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0107-02-300dpi.png",
+      "exportPath": "assets/fig-04-12-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0107-02-300dpi.png",
+      "caption": "图 4－12－2 $1+\\frac{b(s+4)}{(s+2+\\mathrm{j} 4)(s+2-\\mathrm{j} 4)}=0$",
+      "sourcePdfPage": 107,
+      "sha256": "6f22b74e4b2e3ba48d3bd77a24fd0a49241e6fc1ca53242db78ea82dd4bf629b",
+      "bytes": 114862
+    },
+    {
+      "index": 34,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0107-03-300dpi.png",
+      "exportPath": "assets/fig-04-12-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0107-03-300dpi.png",
+      "caption": "图 4－12－3 $1+\\frac{30 b}{s(s+40)}=0$",
+      "sourcePdfPage": 107,
+      "sha256": "edc026d53d1e1d10ffcb912a3f96d5a10c0ca68bb9928ac5961a400dd58f8c1f",
+      "bytes": 54089
+    },
+    {
+      "index": 35,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0107-04-300dpi.png",
+      "exportPath": "assets/fig-04-12-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0107-04-300dpi.png",
+      "caption": "图 4－12－4 $\\quad 1+\\frac{30 b}{s(s+40)}=0$",
+      "sourcePdfPage": 107,
+      "sha256": "158b30637b730c7a4e9b101fb03e182632095e8d9dcba86db7bd88326a2db739",
+      "bytes": 107354
+    },
+    {
+      "index": 36,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0108-01-300dpi.png",
+      "exportPath": "assets/fig-04-39.png",
+      "originalRelativePath": "assets/mathpix-source-page-0108-01-300dpi.png",
+      "caption": "图 4－39 控制系统结构图 解 本题考查零度根轨迹的绘制。由图 4－39 可知，该系统是一个正反馈控制系统，其根轨迹为零度根轨迹。",
+      "sourcePdfPage": 108,
+      "sha256": "210ccb1fefe0302d975610cfac7e40b8c4b92f5c73a0bde3d953e945f415c0c6",
+      "bytes": 40858
+    },
+    {
+      "index": 37,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0108-02-300dpi.png",
+      "exportPath": "assets/fig-04-13-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0108-02-300dpi.png",
+      "caption": "图 4－13－1 $1+\\frac{K^{*}(s+1)^{2}}{(s+2)^{2}}=0$ 概略零度根轨迹图",
+      "sourcePdfPage": 108,
+      "sha256": "e64f261a64ee5f6e609c1cc26873c29d3db91b64d63dd2efd8bb15370b4db3fd",
+      "bytes": 29233
+    },
+    {
+      "index": 38,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0108-03-300dpi.png",
+      "exportPath": "assets/fig-04-13-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0108-03-300dpi.png",
+      "caption": "图 4－13－2 $1+\\frac{K^{*}(s+1)^{2}}{(s+2)^{2}}=0$ 零度根轨迹图（MATLAB）",
+      "sourcePdfPage": 108,
+      "sha256": "edb3dc94c4cfa2c579316374dc07e80e6f91a1c6224bf6e1281a6d2d4bcabd6c",
+      "bytes": 105585
+    },
+    {
+      "index": 39,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0110-01-300dpi.png",
+      "exportPath": "assets/fig-04-14-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0110-01-300dpi.png",
+      "caption": "图 4－14－1 $1+\\frac{K^{*}(1-s)}{s(s+2)}=0$ 零度根轨迹图",
+      "sourcePdfPage": 110,
+      "sha256": "132f4c132e821f200a1950acf2283d4d332f30ed1b31f052720d4b1ca56bbc7a",
+      "bytes": 78815
+    },
+    {
+      "index": 40,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0110-02-300dpi.png",
+      "exportPath": "assets/fig-04-14-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0110-02-300dpi.png",
+      "caption": "图 4－14－2 $1+\\frac{K^{*}(1-s)}{s(s+2)}=0$ 零度根轨迹图（MATLAB）",
+      "sourcePdfPage": 110,
+      "sha256": "c7b07efd348a32d5c8e7d49d8635b29ce0ef7c9f224d8f7ead312c6fcf1f7f8a",
+      "bytes": 129586
+    },
+    {
+      "index": 41,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0110-03-300dpi.png",
+      "exportPath": "assets/fig-04-40.png",
+      "originalRelativePath": "assets/mathpix-source-page-0110-03-300dpi.png",
+      "caption": "> Image description: This image shows a control system block diagram labeled as \"图 4－40 控制系统结构图\". The system is represented as a closed-loop feedback loop. On the left, an input signal $R(s)$ enters a summing junction (indicated by a circle). From this junction, the signal flows forward into a primary transfer function block containing the expression $\\frac{K}{s(s+1)}$. The output of this block is the system output variable $C(s)$. A feedback path branches off from the output $C(s)$ and passes through a second block containing the expression $1 + K_rs$. This feedback signal returns to the summing junction with a negative sign ($-$), indicating a negative feedback configuration. Arrows indicate the unidirectional flow of signals throughout the loop, moving from input to output and back through the feedback path. 图 4－40 控制系统结构图",
+      "sourcePdfPage": 110,
+      "sha256": "a1a84e3a6a9099c926e53165354f2ed1832f9596661e9e20c493ecf1d962e966",
+      "bytes": 40540
+    },
+    {
+      "index": 42,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0110-04-300dpi.png",
+      "exportPath": "assets/fig-04-15-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0110-04-300dpi.png",
+      "caption": "> Image description: A technical diagram illustrating the root locus of a control system characteristic equation, captioned as \"图 4－15－1 $1+\\frac{K}{s(s+1)}=0$\". The figure features a complex plane with a horizontal real axis and a vertical imaginary axis labeled \"$j$\". Two poles are marked on the real axis with \"x\" symbols: one at the origin (labeled \"0\") and another at $-1$. Small arrows point inward from these two points toward each other, indicating the direction of the root locus branches along the real axis. The axes are represented by lines with arrowheads pointing in both positive and negative directions. This figure represents a standard engineering plot used to analyze system stability based on the gain $K$ for a second-order system with poles at $s=0$ and $s=-1$. 图 4－15－1 $\\quad 1+\\frac{K}{s(s+1)}=0$",
+      "sourcePdfPage": 110,
+      "sha256": "f59485517ebf4eeabfbd6ce142c8868029c91dd64f3be0742a08a75a78597692",
+      "bytes": 25895
+    },
+    {
+      "index": 43,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0111-01-300dpi.png",
+      "exportPath": "assets/fig-04-15-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0111-01-300dpi.png",
+      "caption": "图 4－15－2 $\\quad K_{i}=0$ 时 $1+\\frac{K\\left(1+K_{t} s\\right)}{s(s+1)}=0$",
+      "sourcePdfPage": 111,
+      "sha256": "a5a2b92dcdb2ac9e376111f2997e2abcf5bd904432d2750166a8dfc8eceb8d47",
+      "bytes": 105692
+    },
+    {
+      "index": 44,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0111-02-300dpi.png",
+      "exportPath": "assets/fig-04-15-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0111-02-300dpi.png",
+      "caption": "图 4－15－3 $1+\\frac{K\\left(1+K_{t} s\\right)}{s(s+1)}=0$",
+      "sourcePdfPage": 111,
+      "sha256": "0a13a9cc76caa59d5d50f81115b5d56bf23b9417caba6d04dfd15fb71d43c8bc",
+      "bytes": 55457
+    },
+    {
+      "index": 45,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0111-03-300dpi.png",
+      "exportPath": "assets/fig-04-15-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0111-03-300dpi.png",
+      "caption": "图 4－15－4 $\\quad K_{t}=0.5$ 时 $1+\\frac{K\\left(1+K_{t} s\\right)}{s(s+1)}=0$",
+      "sourcePdfPage": 111,
+      "sha256": "bcb30eb0ed83a7713b760075948734c761aa06ff16babe6336b9363b9f27f6eb",
+      "bytes": 135173
+    },
+    {
+      "index": 46,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0112-01-300dpi.png",
+      "exportPath": "assets/fig-04-15-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0112-01-300dpi.png",
+      "caption": "图 4－15－5 $1+\\frac{K\\left(1+K_{t} s\\right)}{s(s+1)}=0$",
+      "sourcePdfPage": 112,
+      "sha256": "81ef38d30f0a37814f99681ee2ea5681e6a480250a3b3cc2b22cf70e726fe07c",
+      "bytes": 27564
+    },
+    {
+      "index": 47,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0112-02-300dpi.png",
+      "exportPath": "assets/fig-04-15-06.png",
+      "originalRelativePath": "assets/mathpix-source-page-0112-02-300dpi.png",
+      "caption": "图 4－15－6 $K_{t}=2$ 时 $1+\\frac{K\\left(1+K_{t} s\\right)}{s(s+1)}=0$",
+      "sourcePdfPage": 112,
+      "sha256": "a5b66aaed5f3a654d78b4e230a3f23490ef7474b706dceba0592fcc4e8bb0207",
+      "bytes": 91144
+    },
+    {
+      "index": 48,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0113-01-300dpi.png",
+      "exportPath": "assets/fig-04-15-07.png",
+      "originalRelativePath": "assets/mathpix-source-page-0113-01-300dpi.png",
+      "caption": "图 4－15－7 $\\Phi(s)=\\frac{10}{s^{2}+6 s+10}$ 系统单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 113,
+      "sha256": "0b94f776cb7782e339b8729332628ba8e443c0df19ced2bbb3e1310e73550a0f",
+      "bytes": 215738
+    },
+    {
+      "index": 49,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0114-01-300dpi.png",
+      "exportPath": "assets/fig-04-16-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0114-01-300dpi.png",
+      "caption": "图 4－16－1 $1+\\frac{K^{*}(s+1)}{s^{2}(s+2)(s+4)}=0$ 图 4－16－1 $1+\\frac{K^{*}(s+1)}{s^{2}(s+2)(s+4)}=0$ 略根轨迹图所示。其仿真图如图 4－16－2 所示，局部如图 4－16－3 所示。",
+      "sourcePdfPage": 114,
+      "sha256": "780c24baa07329ec97cfec858f9e113e559c163287c9faa5f6e0286e5b19c698",
+      "bytes": 78763
+    },
+    {
+      "index": 50,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0114-02-300dpi.png",
+      "exportPath": "assets/fig-04-16-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0114-02-300dpi.png",
+      "caption": "图 4－16－2 $1+\\frac{K^{*}(s+1)}{s^{2}(s+2)(s+4)}=0$",
+      "sourcePdfPage": 114,
+      "sha256": "b03e76f6484bf6e418ed3ce994df30019dfb9311f2eee3d20ea4b3a0c393dab0",
+      "bytes": 112857
+    },
+    {
+      "index": 51,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0114-03-300dpi.png",
+      "exportPath": "assets/fig-04-16-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0114-03-300dpi.png",
+      "caption": "图 4－16－3 常规根轨迹中间的放大部分",
+      "sourcePdfPage": 114,
+      "sha256": "b74f5481b2f8ea47335f2f886b336e95003adfa00731bd2afe7db4ab9485ceaf",
+      "bytes": 100089
+    },
+    {
+      "index": 52,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0115-01-300dpi.png",
+      "exportPath": "assets/fig-04-16-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0115-01-300dpi.png",
+      "caption": "图 4－16－4 $\\quad 1+\\frac{K^{*}(s+1)}{s^{2}(s+2)(s+4)}=0$",
+      "sourcePdfPage": 115,
+      "sha256": "193aba43ab5062c3e2ece44749cc72fef782c1979194562afe94ca9cfb89c18e",
+      "bytes": 75737
+    },
+    {
+      "index": 53,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0115-02-300dpi.png",
+      "exportPath": "assets/fig-04-16-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0115-02-300dpi.png",
+      "caption": "图 4－16－5 $1+\\frac{K^{*}(s+1)}{s^{2}(s+2)(s+4)}=0$",
+      "sourcePdfPage": 115,
+      "sha256": "62a83364d07a2487e6add68737336443a0bf4a85b1e7058cf5e1cc8704d5f8ab",
+      "bytes": 122013
+    },
+    {
+      "index": 54,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0115-03-300dpi.png",
+      "exportPath": "assets/fig-04-41.png",
+      "originalRelativePath": "assets/mathpix-source-page-0115-03-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled \"图 4-41 控制系统结构图.\" The system consists of two feedback loops. The forward path begins with an input signal $R(s)$ entering a summing junction. This leads to a transfer function block $\\frac{100}{s+20}$, which then feeds into a second summing junction. From there, the signal passes through another block $\\frac{10}{s(s+10)}$ to produce the output variable $C(s)$. There are two negative feedback paths. The inner loop takes the output $C(s)$, passes it through a controller block $G_c(s)$, and feeds it back into the second summing junction. The outer loop feeds the output $C(s)$ directly back to the first summing junction. Arrows indicate the unidirectional flow of signals throughout the system, representing a standard closed-loop control architecture used in engineering to maintain stability and accuracy. 图 4－41 控制系统结构图 4－17 设控制系统如图 4－41 所示，其中 $G_{c}(s)$ 是为改善性能而加入的校正装置。若 $G_{c}(s)$ 可从 $K_{t} s, K_{a} s^{2}$ 和 $K_{a} s^{2} /(s+20)$ 三种传递函数中任选一种，你选择哪一种？为什么？",
+      "sourcePdfPage": 115,
+      "sha256": "171ae866accb16d40fdad82a6e54bc786ea98e0a874f81502349d324aed84b70",
+      "bytes": 57581
+    },
+    {
+      "index": 55,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0116-01-300dpi.png",
+      "exportPath": "assets/fig-04-17-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0116-01-300dpi.png",
+      "caption": "在这种情况下，可以在 $0<K_{t}<0.79$ 范围内，通过改变 $K_{t}$ 的值使系统的主导极点具有 $\\zeta=0.707$ 的最佳阻尼比，如图 4－17－2 所示。",
+      "sourcePdfPage": 116,
+      "sha256": "e239ed37d9a902fbac26685e17e33e2ba0c69dddcfbe18e91b204f522e7fb497",
+      "bytes": 58761
+    },
+    {
+      "index": 56,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0116-02-300dpi.png",
+      "exportPath": "assets/fig-04-17-02-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0116-02-300dpi.png",
+      "caption": "图 4－17－2 $1+\\frac{10 K_{t} s(s+20)}{s^{3}+30 s^{2}+200 s+1000}=0$",
+      "sourcePdfPage": 116,
+      "sha256": "e2e2c61be67ed3f11d8eda7bfd55f0c91e1dd1a47954fa0df98302e903ac8ec1",
+      "bytes": 140765
+    },
+    {
+      "index": 57,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0117-01-300dpi.png",
+      "exportPath": "assets/fig-04-17-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0117-01-300dpi.png",
+      "caption": "图 4－17－3 $1+\\frac{10 K_{a} s^{2}(s+20)}{s^{3}+30 s^{2}+200 s+1000}=0$",
+      "sourcePdfPage": 117,
+      "sha256": "ef2bf668b14b7655092681a57633020ba95ac1fa763e924a0a44bc473625f087",
+      "bytes": 43066
+    },
+    {
+      "index": 58,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0117-02-300dpi.png",
+      "exportPath": "assets/fig-04-17-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0117-02-300dpi.png",
+      "caption": "图 4－17－5 $1+\\frac{10 K_{a} s^{2}}{s^{3}+30 s^{2}+200 s+1000}=0$",
+      "sourcePdfPage": 117,
+      "sha256": "48bf2690b56e2edc27659452ba3799295b343b8229f5d5bc89f77fd62b09bfb7",
+      "bytes": 41174
+    },
+    {
+      "index": 59,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0117-03-300dpi.png",
+      "exportPath": "assets/fig-04-17-06.png",
+      "originalRelativePath": "assets/mathpix-source-page-0117-03-300dpi.png",
+      "caption": "图 4－17－6 $1+\\frac{10 K_{a} s^{2}}{s^{3}+30 s^{2}+200 s+1000}=0$",
+      "sourcePdfPage": 117,
+      "sha256": "6df4b01b5a39125d6bf6ba6e962584e34d97ec6be3064adf54a769849ac09f28",
+      "bytes": 116223
+    },
+    {
+      "index": 60,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0118-01-300dpi.png",
+      "exportPath": "assets/fig-04-17-07.png",
+      "originalRelativePath": "assets/mathpix-source-page-0118-01-300dpi.png",
+      "caption": "图 4－17－7 采用 $G_{c}(s)=K_{t} s$ 时系统的时间响应（ $K_{t}=0.302$ ，MATLAB）",
+      "sourcePdfPage": 118,
+      "sha256": "c4fecf64d03e3ee58c8b5ed5c2d87f143dca3b0c09255c0b4a85c0d14556715b",
+      "bytes": 270928
+    },
+    {
+      "index": 61,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0119-01-300dpi.png",
+      "exportPath": "assets/fig-04-42.png",
+      "originalRelativePath": "assets/mathpix-source-page-0119-01-300dpi.png",
+      "caption": "图4－42 控制系统结构图",
+      "sourcePdfPage": 119,
+      "sha256": "cdb5842f78e16972dc7b40cf1a9c1102eda3c7bc17a3b06b7702f14404a39447",
+      "bytes": 44923
+    },
+    {
+      "index": 62,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0120-01-300dpi.png",
+      "exportPath": "assets/fig-04-18-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0120-01-300dpi.png",
+      "caption": "图 4－18－1 $1+\\frac{K(s+1+\\mathrm{j})(s+1-\\mathrm{j})}{s^{3}}=0$",
+      "sourcePdfPage": 120,
+      "sha256": "fbd8777aaad5d042db226feba3a07caa3a353492264a6151d22c9c3bd82f1c05",
+      "bytes": 81009
+    },
+    {
+      "index": 63,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0120-02-300dpi.png",
+      "exportPath": "assets/fig-04-18-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0120-02-300dpi.png",
+      "caption": "图 4－18－2 $1+\\frac{K(s+1+\\mathrm{j})(s+1-\\mathrm{j})}{s^{3}}=0$ 分别设 $K=2$ 和 $K=20$ ，应用 MATLAB 软件包可得系统单位阶跃扰动响应曲线如图 4－18－3、图 4－18－4 所示，其动态性能如下：",
+      "sourcePdfPage": 120,
+      "sha256": "cdc4214489d9c20c6ada17f396c2545d86286d847cb26b908800d42127da0d5c",
+      "bytes": 148230
+    },
+    {
+      "index": 64,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0120-03-300dpi.png",
+      "exportPath": "assets/fig-04-18-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0120-03-300dpi.png",
+      "caption": "图 4－18－3 $K=2$ 时系统单位阶跃扰动响应 （MATLAB）",
+      "sourcePdfPage": 120,
+      "sha256": "198edd2253bfe1f8a508a602f6dfe6bcca39e610dd99f1be69d8478a86dbb786",
+      "bytes": 229223
+    },
+    {
+      "index": 65,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0120-04-300dpi.png",
+      "exportPath": "assets/fig-04-18-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0120-04-300dpi.png",
+      "caption": "图 4－18－4 $K=20$ 时系统单位阶跃扰动响应 （MATLAB）",
+      "sourcePdfPage": 120,
+      "sha256": "ea9f5cbe64414d630f18f4639f12bbd9b1fd2a0d7b325b32edd5e7f15be49f64",
+      "bytes": 238175
+    },
+    {
+      "index": 66,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0121-01-300dpi.png",
+      "exportPath": "assets/fig-04-43.png",
+      "originalRelativePath": "assets/mathpix-source-page-0121-01-300dpi.png",
+      "caption": "> Image description: This image shows a control system block diagram labeled as \"图 4－43 激光操作控制器结构图\" (Figure 4-43 Structure Diagram of Laser Operation Controller). The system is a closed-loop feedback architecture. The process begins with an input signal $R(s)$ entering a summing junction, where it is compared against a feedback signal indicated by a minus sign. The resulting error signal flows into the first block, labeled \"放大器\" (Amplifier) with a gain of $K$. From there, the signal enters a second block titled \"电机和控制器 $G_1$\" (Motor and Controller $G_1$), which contains the transfer function $\\frac{1}{s(T_1s+1)(T_2s+1)}$. The output of this block is the controlled variable $C(s)$. A feedback loop connects the output $C(s)$ back to the summing junction. Arrows indicate a unidirectional flow from left to right through the forward path and from right to left via the feedback path. 图 4－43 激光操作控制器结构图",
+      "sourcePdfPage": 121,
+      "sha256": "8dfdcef586a05e076319d1c43af3185777cd675363f015ef1e0f0b676d4fc3af",
+      "bytes": 66554
+    },
+    {
+      "index": 67,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0122-01-300dpi.png",
+      "exportPath": "assets/fig-04-19-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0122-01-300dpi.png",
+      "caption": "图4－19－1 激光控制系统的概略根轨迹图",
+      "sourcePdfPage": 122,
+      "sha256": "ef07669b776945cbbc36dad9b41701bfee01f507e37e1200785e753d77c3e9ca",
+      "bytes": 109036
+    },
+    {
+      "index": 68,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0122-02-300dpi.png",
+      "exportPath": "assets/fig-04-19-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0122-02-300dpi.png",
+      "caption": "> Image description: This image shows a Root Locus plot for a laser control system (as indicated by the caption \"图4-19-1 激光控制系统的概略根轨迹图\"). The graph features a horizontal x-axis labeled \"Real Axis\" ranging from -25 to 5, and a vertical y-axis labeled \"Imaginary Axis\" ranging from -20 to 20. Three open-loop poles are marked with 'x' symbols on the real axis at approximately 0, -5, and -10. The root locus consists of solid lines starting from these poles. One branch moves leftward along the real axis toward negative infinity. Two other branches originate near the origin, curve away from each other, and move into the right-half plane (positive real values), with arrows indicating their direction toward increasing imaginary values. This trajectory suggests that as system gain increases, the system may transition from stability to instability. 图4－19－2 激光控制系统的根轨迹图（MATLAB）",
+      "sourcePdfPage": 122,
+      "sha256": "85bfb6d94448fb0bc0fbaa0f6e34d1b0eecf4993ca4e672e39c7ad8d2b892929",
+      "bytes": 126390
+    },
+    {
+      "index": 69,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0123-01-300dpi.png",
+      "exportPath": "assets/fig-04-19-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0123-01-300dpi.png",
+      "caption": "> Image description: This image shows a MATLAB-generated plot titled \"Step Response,\" depicting the unit step response of an original system (as indicated by the caption \"图 4－19－3 原系统的单位阶跃响应\"). The graph features two axes: the horizontal x-axis is labeled \"Time/sec\" with a scale from 0 to 15, and the vertical y-axis is labeled \"Amplitude,\" ranging from 0 to 1.8. The plot displays an underdamped oscillatory response that begins at the origin (0,0). The signal exhibits several peaks and troughs of decreasing magnitude over time. The first peak reaches approximately 1.7 units before oscillating around a steady-state value of 1.0. As time progresses toward 15 seconds, the oscillations decay, and the amplitude converges to the final value of 1. In engineering terms, this represents a system with overshoot and settling time characteristics typical of a second-order underdamped control system. 图 4－19－3 原系统的单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 123,
+      "sha256": "c155fffca7180f55699735deced1d1db10840459ddab1b54893626f9fad5dc4e",
+      "bytes": 215235
+    },
+    {
+      "index": 70,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0123-02-300dpi.png",
+      "exportPath": "assets/fig-04-19-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0123-02-300dpi.png",
+      "caption": "> Image description: This image shows a MATLAB-generated plot titled \"Step Response,\" illustrating the unit step response of an original system (as indicated by the caption \"图 4－19－3 原系统的单位阶跃响应\"). The graph features two axes: the vertical y-axis is labeled \"Amplitude\" with a scale from 0 to 1.8, and the horizontal x-axis is labeled \"Time/sec\" ranging from 0 to 15 seconds. The plot displays a damped sinusoidal waveform that begins at the origin (0,0). It exhibits an initial overshoot reaching approximately 1.8 before oscillating with decreasing amplitude around a steady-state value of 1.0. As time progresses toward 15 seconds, the oscillations decay, and the signal converges to the final value of 1. In engineering terms, this represents an underdamped second-order system response characterized by overshoot and settling time. 图 4－19－5 近似系统的单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 123,
+      "sha256": "1a5a4ffe5a57f123299ea2078f7be980931792eefb5fc4d164892d3b0e9912c6",
+      "bytes": 216312
+    },
+    {
+      "index": 71,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0123-03-300dpi.png",
+      "exportPath": "assets/fig-04-19-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0123-03-300dpi.png",
+      "caption": "> Image description: A line graph titled \"Linear Simulation Results\" displays the unit step response of an approximate system, as indicated by the Chinese caption \"图 4－19－5 近似系统的单位阶跃响应（MATLAB）\". The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 5 seconds. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 5. The plot contains two curves: a dashed straight line representing the ideal reference response and a solid, slightly oscillating curve representing the simulated system's output. Both lines originate at (0,0) and trend upward toward the point (5,5). The solid line exhibits small fluctuations around the dashed line, particularly between 0 and 2 seconds, before converging more closely with the reference as time increases. This visualization compares the actual performance of a linear approximate system against its theoretical ideal response over a five-second interval. 图 4－19－4 原系统的单位斜坡响应（MATLAB）",
+      "sourcePdfPage": 123,
+      "sha256": "b1ac38b63425c4e48836606ed367153440d828c6062cde9413498946f42bb39a",
+      "bytes": 291321
+    },
+    {
+      "index": 72,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0123-04-300dpi.png",
+      "exportPath": "assets/fig-04-19-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0123-04-300dpi.png",
+      "caption": "> Image description: A line graph titled \"Linear Simulation Results\" displays the unit ramp response of a system, as indicated by the Chinese caption \"图 4-19-4 原系统的单位斜坡响应 (MATLAB)\". The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 5 seconds. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 5. The figure contains two plotted lines: a dashed straight line representing the ideal input ramp and a solid curved line representing the system's actual response. Both start at the origin (0,0) and converge toward the point (5,5). The solid line exhibits an initial transient period with slight oscillations and a lag behind the dashed line between 0 and approximately 2 seconds. After this period, the solid line closely tracks the linear trajectory of the dashed line, indicating that the system is following the ramp input with minimal steady-state error. 图 4－19－6 近似系统的单位斜坡响应（MATLAB）",
+      "sourcePdfPage": 123,
+      "sha256": "b3b45054efc14ef095369054a6226925d9c0c82c8f0c15c3185bf87e53896812",
+      "bytes": 285633
+    },
+    {
+      "index": 73,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0124-01-300dpi.png",
+      "exportPath": "assets/fig-04-44.png",
+      "originalRelativePath": "assets/mathpix-source-page-0124-01-300dpi.png",
+      "caption": "> Image description: This textbook figure, captioned \"图4－44 空间站示意图\" (Figure 4-44 Schematic Diagram of a Space Station), illustrates the components of a space station and its associated spacecraft. The diagram uses labels in Chinese with leader lines pointing to specific engineering elements. The main structure consists of two large cylindrical modules connected by a central bridge. Atop this assembly are \"太阳能电池板\" (solar panels) for power generation. One end features a large parabolic dish labeled \"雷达天线\" (radar antenna). Small propulsion units, labeled as \"火箭\" (rockets), are positioned on the exterior for station-keeping. On the opposite side, \"调姿火箭\" (attitude control rockets) are indicated to manage orientation. Below the station is a shuttle-like vehicle labeled \"航天飞机\" (space plane/shuttle) with \"United States\" written on its fuselage, shown docked or approaching the station via a connecting arm. The figure depicts the functional relationship between power, communication, propulsion, and transport modules. 图4－44 空间站示意图",
+      "sourcePdfPage": 124,
+      "sha256": "66067a12369772cd99bba910bd2bd8634c017e4e56c7ba7393bbf276b4579e26",
+      "bytes": 291960
+    },
+    {
+      "index": 74,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0125-01-300dpi.png",
+      "exportPath": "assets/fig-04-20-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0125-01-300dpi.png",
+      "caption": "图4－20－1 空间站方位控制系统概略根轨迹图",
+      "sourcePdfPage": 125,
+      "sha256": "aed7c92c4748f722c1fa3a28397497c79ae071d53894ee8780b38eabdc04b79c",
+      "bytes": 82222
+    },
+    {
+      "index": 75,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0125-02-300dpi.png",
+      "exportPath": "assets/fig-04-20-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0125-02-300dpi.png",
+      "caption": "图 4－20－3 $K^{*}=10$ 时空间站系统单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 125,
+      "sha256": "0fa53c1540a4a606df067e62fe91fac76bf7c37008ea91c1dd681255b135230f",
+      "bytes": 224465
+    },
+    {
+      "index": 76,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0125-03-300dpi.png",
+      "exportPath": "assets/fig-04-20-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0125-03-300dpi.png",
+      "caption": "图4－20－2 空间站控制系统根轨迹图（MATLAB）",
+      "sourcePdfPage": 125,
+      "sha256": "55514a86f8fce4919887ffda3ffaaa9c305dcd3a69317861e5702fe5cb42ef8d",
+      "bytes": 127502
+    },
+    {
+      "index": 77,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0126-01-300dpi.png",
+      "exportPath": "assets/fig-04-45.png",
+      "originalRelativePath": "assets/mathpix-source-page-0126-01-300dpi.png",
+      "caption": "图 4－45 飞机纵向控制系统结构图",
+      "sourcePdfPage": 126,
+      "sha256": "ce31e0dc0284891d6ed39259cd4667a207f98c1216d6e692ce18fa0fb3696dc3",
+      "bytes": 322357
+    },
+    {
+      "index": 78,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0126-02-300dpi.png",
+      "exportPath": "assets/fig-04-21-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0126-02-300dpi.png",
+      "caption": "图 4－21－1 $1+\\frac{K_{1} K_{2}(s+2)^{2}}{(s+10)(s+100)\\left(s^{2}+1.5 s+6.25\\right)}=0$ 概略根轨迹图",
+      "sourcePdfPage": 126,
+      "sha256": "024b859e0fbaf1d00259e36684e546404c3e63b96f77b9e455f95cb8dea8a78f",
+      "bytes": 87464
+    },
+    {
+      "index": 79,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0127-01-300dpi.png",
+      "exportPath": "assets/fig-04-21-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0127-01-300dpi.png",
+      "caption": "图 4－21－2 中重量巡航时，确定使 $\\zeta_{0}=0.707$ 的增益值（MATLAB）",
+      "sourcePdfPage": 127,
+      "sha256": "c094d7a18dbe49f0c74a3ae9ab732d4ed82a616cfb10e34f9ce0f7bb76afcf13",
+      "bytes": 170068
+    },
+    {
+      "index": 80,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0127-02-300dpi.png",
+      "exportPath": "assets/fig-04-21-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0127-02-300dpi.png",
+      "caption": "图 4－21－4 系统根轨迹图（MATLAB）",
+      "sourcePdfPage": 127,
+      "sha256": "136d69becc29901c94cb6291f670623e2ff05836965a7727876d7c19f74c0bdd",
+      "bytes": 117617
+    },
+    {
+      "index": 81,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0127-03-300dpi.png",
+      "exportPath": "assets/fig-04-21-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0127-03-300dpi.png",
+      "caption": "图4－21－3 轻重量降落时，确定闭环系统阻尼比（MATLAB） 运行以下 MATLAB 程序，可以得到系统根轨迹图，如图 4－21－4 所示。当 $K_{1}=0.02$ ，中重量巡航时，确定使 $\\zeta_{0}=0.707$ 的 $K_{2}$ 值，可参见图4－21－2；当 $K_{1}=0.2, K_{2}=71500$ ，轻重量降落时，确定闭环系统阻尼比 $\\zeta_{0}$ ，可参见图4－21－3；还可以得到中重量巡航时的时间响应曲线，如图4－21－5所示，以及轻重量降落时的时间响应曲线，如图 4－21－6 所示。",
+      "sourcePdfPage": 127,
+      "sha256": "558f5a82a165b48dbddacb5dc24d481c36c49e80c0316b8c02eee6c5b0845488",
+      "bytes": 195388
+    },
+    {
+      "index": 82,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0128-01-300dpi.png",
+      "exportPath": "assets/fig-04-21-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0128-01-300dpi.png",
+      "caption": "图 4－21－5 中重量巡航时系统的",
+      "sourcePdfPage": 128,
+      "sha256": "d59b5d5429a59a348d74e3285c4537c3aa744d70643ba65505dbdfccb8bf5ef6",
+      "bytes": 212668
+    },
+    {
+      "index": 83,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0128-02-300dpi.png",
+      "exportPath": "assets/fig-04-21-05-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0128-02-300dpi.png",
+      "caption": "> Image description: This image shows a MATLAB-generated \"Step Response\" plot representing the time response curve of a system during weight cruise, as indicated by the caption (图 4－21－5). The graph features a vertical y-axis labeled \"Amplitude,\" ranging from 0 to 1.4 in increments of 0.2. The horizontal x-axis is labeled \"Time/sec,\" spanning from 0 to 3 seconds with major grid markings every 0.5 seconds. A dashed grid overlays the plot area for precise reading. The plotted curve begins at the origin (0,0) and rises sharply, exhibiting a significant initial overshoot that peaks slightly above 1.1 around 0.1 seconds. It then drops quickly to approximately 0.9 before stabilizing into a slow, gradual decay. By 3 seconds, the amplitude settles near 0.85. In engineering terms, this illustrates the system's transient response and steady-state behavior following a step input. 图 4－21－6 轻重量降落时系统的",
+      "sourcePdfPage": 128,
+      "sha256": "9d720f5f410e320e0c7e5899b991711a814aa1741c57a579bbc65cf9e771b187",
+      "bytes": 194488
+    },
+    {
+      "index": 84,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0129-01-300dpi.png",
+      "exportPath": "assets/fig-04-46.png",
+      "originalRelativePath": "assets/mathpix-source-page-0129-01-300dpi.png",
+      "caption": "图 4－46 轧钢机控制系统",
+      "sourcePdfPage": 129,
+      "sha256": "03b45fb5064f0bd3ef995c597b7acc71eaa57f20877861bb146422f3b4ff8d6c",
+      "bytes": 284756
+    },
+    {
+      "index": 85,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0130-01-300dpi.png",
+      "exportPath": "assets/fig-04-22-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0130-01-300dpi.png",
+      "caption": "图 4－22－1 $1+\\frac{0.5 K_{a}}{s(s+1)^{2}(s+0.5)}=0$ $\\zeta=0.707$ 时，系统主导极点及增益和根轨迹分离点处系统增益如图4－22－2所示；系统根轨迹如图 4－22－3 所示。分别令 $K_{a}$ 为 $0.05,0.11,0.4$ 和 0.8 ，系统的单位阶跃响应如图 4－22－4 所示。",
+      "sourcePdfPage": 130,
+      "sha256": "7c1ff2fffe1cf91c25ff82be939d405e866277c62cf7cd6dc63d2cfbb60057bc",
+      "bytes": 169561
+    },
+    {
+      "index": 86,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0130-02-300dpi.png",
+      "exportPath": "assets/fig-04-22-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0130-02-300dpi.png",
+      "caption": "图 4－22－2 确定 $\\zeta=0.707$ 以及分离点处的 $K_{a}$（MATLAB）",
+      "sourcePdfPage": 130,
+      "sha256": "cedace1cc80b9a236f8e659b0f85d38e5d24bada588c4e6134dfc71d4f712464",
+      "bytes": 210509
+    },
+    {
+      "index": 87,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0130-03-300dpi.png",
+      "exportPath": "assets/fig-04-22-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0130-03-300dpi.png",
+      "caption": "图 4－22－3 轧钢机系统根轨迹图 （MATLAB）",
+      "sourcePdfPage": 130,
+      "sha256": "249204b909a21e10465b5f1845197b71de8633c1bd8252c70baeef0c92f8758b",
+      "bytes": 148105
+    },
+    {
+      "index": 88,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0131-01-300dpi.png",
+      "exportPath": "assets/fig-04-22-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0131-01-300dpi.png",
+      "caption": "图 4－22－4 轧钢机系统时间响应（MATLAB）",
+      "sourcePdfPage": 131,
+      "sha256": "78da12da2b20fa6a8786248d17b22fe6f1eb5b4821c27268ddae0861dfac64c8",
+      "bytes": 916412
+    },
+    {
+      "index": 89,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0132-01-300dpi.png",
+      "exportPath": "assets/fig-04-47.png",
+      "originalRelativePath": "assets/mathpix-source-page-0132-01-300dpi.png",
+      "caption": "> Image description: This figure, captioned \"图 4－47 V－22 旋翼机的高度控制系统,\" illustrates the height control system of a V-22 Osprey tiltrotor aircraft. It consists of two parts: (a) a photograph of the V-22 aircraft and (b) a block diagram of its control system. The block diagram represents a closed-loop feedback system. The input is the reference signal $R(s)$, which enters a summing junction. This is followed by a controller block labeled \"控制器\" with the transfer function $\\frac{K_1(s^2+1.5s+0.5)}{s}$. The output of the controller is summed with an external disturbance signal $N(s)$ before entering the aircraft dynamics model block, labeled \"飞机动力学模型,\" which has a transfer function of $\\frac{1}{(20s+1)(10s+1)(0.5s+1)}$. The final system output is $H(s)$, representing height (高度). A feedback loop connects the output $H(s)$ back to the initial summing junction with a negative sign, completing the control loop. 图 4－47 V－22 旋翼机的高度控制系统 （1）绘制系统的根轨迹图。由图4－47（b）知，系统开环传递函数",
+      "sourcePdfPage": 132,
+      "sha256": "66520b30444d08e77a0d0d0be7ac6c10941730fc2007e0787225e094d7042a1c",
+      "bytes": 245084
+    },
+    {
+      "index": 90,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0133-01-300dpi.png",
+      "exportPath": "assets/fig-04-23-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0133-01-300dpi.png",
+      "caption": "图4－23－1 $1+K_{1} \\frac{s^{2}+1.5 s+0.5}{s(20 s+1)(10 s+1)(0.5 s+1)}=0$",
+      "sourcePdfPage": 133,
+      "sha256": "cc01af8848a7efda62ed2ea2b80b14ebd99ac95526ae7419273e4cf8d0dd6dbb",
+      "bytes": 105698
+    },
+    {
+      "index": 91,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0133-02-300dpi.png",
+      "exportPath": "assets/fig-04-23-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0133-02-300dpi.png",
+      "caption": "图 4－23－2 $1+K_{1} \\frac{s^{2}+1.5 s+0.5}{s(20 s+1)(10 s+1)(0.5 s+1)}=0$ （2）当 $K_{1}=280$ 时，确定系统单位阶跃输人响应。应用 MATLAB 软件包，得到单位阶跃输人时系统的输出响应曲线，如图 4－23－3 中（a）中虚线所示。由图可得",
+      "sourcePdfPage": 133,
+      "sha256": "4184a51fa91ff93b124195bb147184d7b08a3c3c10276d34ba10d394d875639d",
+      "bytes": 209635
+    },
+    {
+      "index": 92,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0134-01-300dpi.png",
+      "exportPath": "assets/fig-04-23-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0134-01-300dpi.png",
+      "caption": "图 4－23－3 V－22 旋翼机的高度时间响应（MATLAB）",
+      "sourcePdfPage": 134,
+      "sha256": "1f2ddf878e9c7cbd3d4e1d47f42825722b72ada205a4943e23a91a5aac9b1651",
+      "bytes": 599950
+    },
+    {
+      "index": 93,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0135-01-300dpi.png",
+      "exportPath": "assets/fig-04-48.png",
+      "originalRelativePath": "assets/mathpix-source-page-0135-01-300dpi.png",
+      "caption": "图 4－48 智能汽车一高速公路系统 （1）稳定性要求。由图4－48（b）知，速度反馈内回路传递函数",
+      "sourcePdfPage": 135,
+      "sha256": "5d28b2fb184be3d3ee12a9e705e039498957def5e8a17d543acdedd55bc5e816",
+      "bytes": 354592
+    },
+    {
+      "index": 94,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0137-01-300dpi.png",
+      "exportPath": "assets/fig-04-24-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0137-01-300dpi.png",
+      "caption": "图 4－24－1 $1+0.25 K_{u} \\frac{s+4}{s(s+3)(s+7)}=0$",
+      "sourcePdfPage": 137,
+      "sha256": "e0e03a387ce8f8e32dd3fcc666645737ed2edbdb31114077f30738c185194494",
+      "bytes": 101097
+    },
+    {
+      "index": 95,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0137-02-300dpi.png",
+      "exportPath": "assets/fig-04-24-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0137-02-300dpi.png",
+      "caption": "图 4－24－2 确定 $\\zeta=0.6$ 处的 $K_{a}$（MATLAB）",
+      "sourcePdfPage": 137,
+      "sha256": "989ec56aa36cc9df462165509bc8bc439bc09aa07af099543f9ae3d6ac133eb2",
+      "bytes": 171689
+    },
+    {
+      "index": 96,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0138-01-300dpi.png",
+      "exportPath": "assets/fig-04-24-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0138-01-300dpi.png",
+      "caption": "> Image description: This image is a Root Locus plot generated by MATLAB, as indicated by the caption \"图 4－24－3 控制系统根轨迹图（MATLAB)\". The graph features a horizontal x-axis labeled \"Real Axis\" ranging from -8 to 0 and a vertical y-axis labeled \"Imaginary Axis\" ranging from -8 to 8. The plot displays several markers: 'x' symbols representing open-loop poles located at $s = 0$, $s = -3$, and $s = -7$; an 'o' symbol representing an open-loop zero at $s = -4$; and triangle symbols indicating specific points along the locus. The root locus consists of solid lines with arrows showing the trajectory of closed-loop poles as gain increases. One branch moves from the pole at 0 toward the pole at -3, while another pair of branches emerges from the poles at 0 and -3, curves into the complex plane, and eventually trends vertically near the real value of -3. 图 4－24－3 控制系统根轨迹图（MATLAB）",
+      "sourcePdfPage": 138,
+      "sha256": "20fcfba45598a62e645b1b45e7f1bd02c854630e33524be1d830b65b9936853e",
+      "bytes": 124022
+    },
+    {
+      "index": 97,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-04-mathpix/assets/mathpix-source-page-0138-02-300dpi.png",
+      "exportPath": "assets/fig-04-24-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0138-02-300dpi.png",
+      "caption": "图 4－24－4 控制系统的单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 138,
+      "sha256": "7ad98ba7d941d66802e0ad8f2a8951b09b3796b6f7dcf9f299763de599b915a6",
+      "bytes": 240051
+    }
+  ]
+}

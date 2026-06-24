@@ -1,0 +1,579 @@
+{
+  "capturedAt": "2026-06-14T22:11:04.308Z",
+  "session": {
+    "planId": "cmqeakmuy0024cnyf1z2ttquo",
+    "sessionId": "cmqeakmvc002icnyfrnbjsgro",
+    "joinCode": "437393"
+  },
+  "studentJoin": {
+    "status": 405,
+    "ok": false,
+    "body": ""
+  },
+  "entries": [
+    {
+      "role": "guest-runtime",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/guest-runtime-1440x960-light.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-04",
+        "role": "guest-runtime",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 1440,
+        "viewportHeight": 960,
+        "themeClass": "light",
+        "storedTheme": "light",
+        "hasRuntimeShell": true,
+        "runtimeMode": "guest",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": true,
+        "hasTeacherProjectionMarker": false,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": true,
+        "bottomNavBox": {
+          "top": 3716.46875,
+          "bottom": 3770.46875,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 219,
+          "bottom": 3684.46875,
+          "height": 3465.46875
+        },
+        "navOverlapsContent": false,
+        "textSample": "展开导航\n学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n访客演示\n学生\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n访客演示\n主场景 A：客船航向控制先保什么\n围绕对象框图、四联图和任务卡，把客船场景压实成“平顺与储备优先，再谈提速”。\nP2 · 参与式学习\n4 / 13\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 04 页\n主场景 A：客船航向控制先保什么\n\n把主场景 A 的入口排序压实为平顺与储备优先。\n\n客船四联图镜像\n图像模块保持 2×2 阅读语义；控件栏默认折叠在图像下方。\n顺序固定为：对象框图 -> 开环传函 -> 动态四联图。\n时域响应\nMp 32.01% | tr 10.39 s | ts 83.41 s | tp 25.53 s\n根轨迹\n当前开环增益：K=2.250 | p1=-2.15+j0.00 | p2=-0.05-j0.13 | p3=-0.05+j0.13\n幅频特性\nPM 37.44° | GM 21.91 dB | ωc 0.12 rad/s | ωg 0.46 rad/s\n相频特性\nPM 37.44° | GM 21.91 dB | ωc 0.12 rad/s | ωg 0.46 rad/s\n控件栏\n时域：平顺与速度折中\n根轨迹：位于可接受区入口\n幅频：工作带宽适中\n相频：储备仍需重点关注\n\n互动任务\n\n页面知识卡片、课堂同步和步骤提示由课程运行态提供。\n演示模式会展示作答流程，但不会写入学习证据。\n作答1：当前主要矛盾：客船航向控制当前最紧的矛盾是什么？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n作答2：必守边界：客船任务书中哪些边界必须先守住？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n作答3：证据来源：哪些图上证据支持“平顺与储备优先，再谈提速”？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n提交状态\n演示模式会展示作答流程，但不会写入课堂汇总。\n本页工具\n默认折叠\n上一页\nP2 · 参与式学习\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 主场景 A：客船航向控制先保什...\n\n你好，我是控灵。让我协助你完成「主场景 A：客船航向控制先保什么」，遇到困难可以向我求助。\n\n学习目标:\n\n把对象框图与四联图读成任务排序\n识别“平顺与储备优先，再谈提速”\n\n你可以问我:\n\n为什么先保平顺\n证据从哪来\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "guest-runtime",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/guest-runtime-390x844-light.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-04",
+        "role": "guest-runtime",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 390,
+        "viewportHeight": 844,
+        "themeClass": "light",
+        "storedTheme": "light",
+        "hasRuntimeShell": true,
+        "runtimeMode": "guest",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": true,
+        "hasTeacherProjectionMarker": false,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": true,
+        "bottomNavBox": {
+          "top": 5510,
+          "bottom": 5564,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 462,
+          "bottom": 5416,
+          "height": 4954
+        },
+        "navOverlapsContent": false,
+        "textSample": "学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n访客演示\n学生\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n访客演示\n主场景 A：客船航向控制先保什么\n围绕对象框图、四联图和任务卡，把客船场景压实成“平顺与储备优先，再谈提速”。\nP2 · 参与式学习\n4 / 13\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 04 页\n主场景 A：客船航向控制先保什么\n\n把主场景 A 的入口排序压实为平顺与储备优先。\n\n客船四联图镜像\n图像模块保持 2×2 阅读语义；控件栏默认折叠在图像下方。\n顺序固定为：对象框图 -> 开环传函 -> 动态四联图。\n时域响应\nMp 32.01% | tr 10.39 s | ts 83.41 s | tp 25.53 s\n根轨迹\n当前开环增益：K=2.250 | p1=-2.15+j0.00 | p2=-0.05-j0.13 | p3=-0.05+j0.13\n幅频特性\nPM 37.44° | GM 21.91 dB | ωc 0.12 rad/s | ωg 0.46 rad/s\n相频特性\nPM 37.44° | GM 21.91 dB | ωc 0.12 rad/s | ωg 0.46 rad/s\n控件栏\n时域：平顺与速度折中\n根轨迹：位于可接受区入口\n幅频：工作带宽适中\n相频：储备仍需重点关注\n\n互动任务\n\n页面知识卡片、课堂同步和步骤提示由课程运行态提供。\n演示模式会展示作答流程，但不会写入学习证据。\n作答1：当前主要矛盾：客船航向控制当前最紧的矛盾是什么？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n作答2：必守边界：客船任务书中哪些边界必须先守住？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n作答3：证据来源：哪些图上证据支持“平顺与储备优先，再谈提速”？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n提交状态\n演示模式会展示作答流程，但不会写入课堂汇总。\n本页工具\n默认折叠\n上一页\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 主场景 A：客船航向控制先保什...\n\n你好，我是控灵。让我协助你完成「主场景 A：客船航向控制先保什么」，遇到困难可以向我求助。\n\n学习目标:\n\n把对象框图与四联图读成任务排序\n识别“平顺与储备优先，再谈提速”\n\n你可以问我:\n\n为什么先保平顺\n证据从哪来\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "guest-runtime",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/guest-runtime-1440x960-dark.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-04",
+        "role": "guest-runtime",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 1440,
+        "viewportHeight": 960,
+        "themeClass": "dark",
+        "storedTheme": "dark",
+        "hasRuntimeShell": true,
+        "runtimeMode": "guest",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": true,
+        "hasTeacherProjectionMarker": false,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": true,
+        "bottomNavBox": {
+          "top": 3716.46875,
+          "bottom": 3770.46875,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 219,
+          "bottom": 3684.46875,
+          "height": 3465.46875
+        },
+        "navOverlapsContent": false,
+        "textSample": "展开导航\n学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n访客演示\n学生\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n访客演示\n主场景 A：客船航向控制先保什么\n围绕对象框图、四联图和任务卡，把客船场景压实成“平顺与储备优先，再谈提速”。\nP2 · 参与式学习\n4 / 13\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 04 页\n主场景 A：客船航向控制先保什么\n\n把主场景 A 的入口排序压实为平顺与储备优先。\n\n客船四联图镜像\n图像模块保持 2×2 阅读语义；控件栏默认折叠在图像下方。\n顺序固定为：对象框图 -> 开环传函 -> 动态四联图。\n时域响应\nMp 32.01% | tr 10.39 s | ts 83.41 s | tp 25.53 s\n根轨迹\n当前开环增益：K=2.250 | p1=-2.15+j0.00 | p2=-0.05-j0.13 | p3=-0.05+j0.13\n幅频特性\nPM 37.44° | GM 21.91 dB | ωc 0.12 rad/s | ωg 0.46 rad/s\n相频特性\nPM 37.44° | GM 21.91 dB | ωc 0.12 rad/s | ωg 0.46 rad/s\n控件栏\n时域：平顺与速度折中\n根轨迹：位于可接受区入口\n幅频：工作带宽适中\n相频：储备仍需重点关注\n\n互动任务\n\n页面知识卡片、课堂同步和步骤提示由课程运行态提供。\n演示模式会展示作答流程，但不会写入学习证据。\n作答1：当前主要矛盾：客船航向控制当前最紧的矛盾是什么？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n作答2：必守边界：客船任务书中哪些边界必须先守住？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n作答3：证据来源：哪些图上证据支持“平顺与储备优先，再谈提速”？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n提交状态\n演示模式会展示作答流程，但不会写入课堂汇总。\n本页工具\n默认折叠\n上一页\nP2 · 参与式学习\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 主场景 A：客船航向控制先保什...\n\n你好，我是控灵。让我协助你完成「主场景 A：客船航向控制先保什么」，遇到困难可以向我求助。\n\n学习目标:\n\n把对象框图与四联图读成任务排序\n识别“平顺与储备优先，再谈提速”\n\n你可以问我:\n\n为什么先保平顺\n证据从哪来\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "guest-runtime",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/guest-runtime-390x844-dark.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-04",
+        "role": "guest-runtime",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 390,
+        "viewportHeight": 844,
+        "themeClass": "dark",
+        "storedTheme": "dark",
+        "hasRuntimeShell": true,
+        "runtimeMode": "guest",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": true,
+        "hasTeacherProjectionMarker": false,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": true,
+        "bottomNavBox": {
+          "top": 5510,
+          "bottom": 5564,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 462,
+          "bottom": 5416,
+          "height": 4954
+        },
+        "navOverlapsContent": false,
+        "textSample": "学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n访客演示\n学生\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n访客演示\n主场景 A：客船航向控制先保什么\n围绕对象框图、四联图和任务卡，把客船场景压实成“平顺与储备优先，再谈提速”。\nP2 · 参与式学习\n4 / 13\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 04 页\n主场景 A：客船航向控制先保什么\n\n把主场景 A 的入口排序压实为平顺与储备优先。\n\n客船四联图镜像\n图像模块保持 2×2 阅读语义；控件栏默认折叠在图像下方。\n顺序固定为：对象框图 -> 开环传函 -> 动态四联图。\n时域响应\nMp 32.01% | tr 10.39 s | ts 83.41 s | tp 25.53 s\n根轨迹\n当前开环增益：K=2.250 | p1=-2.15+j0.00 | p2=-0.05-j0.13 | p3=-0.05+j0.13\n幅频特性\nPM 37.44° | GM 21.91 dB | ωc 0.12 rad/s | ωg 0.46 rad/s\n相频特性\nPM 37.44° | GM 21.91 dB | ωc 0.12 rad/s | ωg 0.46 rad/s\n控件栏\n时域：平顺与速度折中\n根轨迹：位于可接受区入口\n幅频：工作带宽适中\n相频：储备仍需重点关注\n\n互动任务\n\n页面知识卡片、课堂同步和步骤提示由课程运行态提供。\n演示模式会展示作答流程，但不会写入学习证据。\n作答1：当前主要矛盾：客船航向控制当前最紧的矛盾是什么？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n作答2：必守边界：客船任务书中哪些边界必须先守住？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n作答3：证据来源：哪些图上证据支持“平顺与储备优先，再谈提速”？\n提交答案\n独立提交本卡。\n演示模式仅本机预览，不会同步到教师端汇总。\n提交状态\n演示模式会展示作答流程，但不会写入课堂汇总。\n本页工具\n默认折叠\n上一页\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 主场景 A：客船航向控制先保什...\n\n你好，我是控灵。让我协助你完成「主场景 A：客船航向控制先保什么」，遇到困难可以向我求助。\n\n学习目标:\n\n把对象框图与四联图读成任务排序\n识别“平顺与储备优先，再谈提速”\n\n你可以问我:\n\n为什么先保平顺\n证据从哪来\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "student-runtime",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/student-runtime-1440x960-light.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/student/cmqeakmvc002icnyfrnbjsgro?step=step-04",
+        "role": "student-runtime",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 1440,
+        "viewportHeight": 960,
+        "themeClass": "light",
+        "storedTheme": "light",
+        "hasRuntimeShell": true,
+        "runtimeMode": "student",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": true,
+        "hasTeacherProjectionMarker": false,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": false,
+        "bottomNavBox": {
+          "top": 2212.171875,
+          "bottom": 2266.171875,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 219,
+          "bottom": 2164.171875,
+          "height": 1945.171875
+        },
+        "navOverlapsContent": false,
+        "textSample": "展开导航\n学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n学生课堂\n学生\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n学生课堂\n任务表达入口：从跨域证据写出设计任务\n用封面情境图、课程信息图和导入问题进入任务表达。\nB · 导入\n1 / 13\n学生课堂台\n已加入课堂 cmqeakmvc002icnyfrnbjsgro\n学生端会随课堂同步步骤，并把个人作答持久化到课堂状态。\n第 01 页\n任务表达入口：从跨域证据写出设计任务\n\n用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。\n\n客船航向与稳定平台情境\n同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。\n任务表达课程信息图\n从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。\n导入问题\n面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？\n把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？\n页面知识卡片、课堂同步和步骤提示由课程运行态提供。\n提交后将先写入本课堂学习记录；可纳入画像的证据会在学习档案中呈现。\n本页工具\n默认折叠\n上一页\nB · 导入\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 任务表达入口：从跨域证据写出设...\n\n你好，我是控灵。今天我们将探索「任务表达入口：从跨域证据写出设计任务」，有任何问题随时问我。\n\n学习目标:\n\n读取封面情境图与课程信息图\n提出客船航向控制与稳定平台的导入问题\n\n你可以问我:\n\n导入问题\n证据入口\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "student-runtime",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/student-runtime-390x844-light.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/student/cmqeakmvc002icnyfrnbjsgro?step=step-04",
+        "role": "student-runtime",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 390,
+        "viewportHeight": 844,
+        "themeClass": "light",
+        "storedTheme": "light",
+        "hasRuntimeShell": true,
+        "runtimeMode": "student",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": true,
+        "hasTeacherProjectionMarker": false,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": false,
+        "bottomNavBox": {
+          "top": 2116.640625,
+          "bottom": 2170.640625,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 442,
+          "bottom": 2006.640625,
+          "height": 1564.640625
+        },
+        "navOverlapsContent": false,
+        "textSample": "学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n学生课堂\n学生\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n学生课堂\n任务表达入口：从跨域证据写出设计任务\n用封面情境图、课程信息图和导入问题进入任务表达。\nB · 导入\n1 / 13\n学生课堂台\n已加入课堂 cmqeakmvc002icnyfrnbjsgro\n学生端会随课堂同步步骤，并把个人作答持久化到课堂状态。\n第 01 页\n任务表达入口：从跨域证据写出设计任务\n\n用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。\n\n客船航向与稳定平台情境\n同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。\n任务表达课程信息图\n从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。\n导入问题\n面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？\n把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？\n页面知识卡片、课堂同步和步骤提示由课程运行态提供。\n提交后将先写入本课堂学习记录；可纳入画像的证据会在学习档案中呈现。\n本页工具\n默认折叠\n上一页\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 任务表达入口：从跨域证据写出设...\n\n你好，我是控灵。今天我们将探索「任务表达入口：从跨域证据写出设计任务」，有任何问题随时问我。\n\n学习目标:\n\n读取封面情境图与课程信息图\n提出客船航向控制与稳定平台的导入问题\n\n你可以问我:\n\n导入问题\n证据入口\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "student-runtime",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/student-runtime-1440x960-dark.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/student/cmqeakmvc002icnyfrnbjsgro?step=step-04",
+        "role": "student-runtime",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 1440,
+        "viewportHeight": 960,
+        "themeClass": "dark",
+        "storedTheme": "dark",
+        "hasRuntimeShell": true,
+        "runtimeMode": "student",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": true,
+        "hasTeacherProjectionMarker": false,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": false,
+        "bottomNavBox": {
+          "top": 2212.171875,
+          "bottom": 2266.171875,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 219,
+          "bottom": 2164.171875,
+          "height": 1945.171875
+        },
+        "navOverlapsContent": false,
+        "textSample": "展开导航\n学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n学生课堂\n学生\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n学生课堂\n任务表达入口：从跨域证据写出设计任务\n用封面情境图、课程信息图和导入问题进入任务表达。\nB · 导入\n1 / 13\n学生课堂台\n已加入课堂 cmqeakmvc002icnyfrnbjsgro\n学生端会随课堂同步步骤，并把个人作答持久化到课堂状态。\n第 01 页\n任务表达入口：从跨域证据写出设计任务\n\n用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。\n\n客船航向与稳定平台情境\n同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。\n任务表达课程信息图\n从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。\n导入问题\n面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？\n把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？\n页面知识卡片、课堂同步和步骤提示由课程运行态提供。\n提交后将先写入本课堂学习记录；可纳入画像的证据会在学习档案中呈现。\n本页工具\n默认折叠\n上一页\nB · 导入\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 任务表达入口：从跨域证据写出设...\n\n你好，我是控灵。今天我们将探索「任务表达入口：从跨域证据写出设计任务」，有任何问题随时问我。\n\n学习目标:\n\n读取封面情境图与课程信息图\n提出客船航向控制与稳定平台的导入问题\n\n你可以问我:\n\n导入问题\n证据入口\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "student-runtime",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/student-runtime-390x844-dark.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/student/cmqeakmvc002icnyfrnbjsgro?step=step-04",
+        "role": "student-runtime",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 390,
+        "viewportHeight": 844,
+        "themeClass": "dark",
+        "storedTheme": "dark",
+        "hasRuntimeShell": true,
+        "runtimeMode": "student",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": true,
+        "hasTeacherProjectionMarker": false,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": false,
+        "bottomNavBox": {
+          "top": 2116.640625,
+          "bottom": 2170.640625,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 442,
+          "bottom": 2006.640625,
+          "height": 1564.640625
+        },
+        "navOverlapsContent": false,
+        "textSample": "学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n学生课堂\n学生\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n学生课堂\n任务表达入口：从跨域证据写出设计任务\n用封面情境图、课程信息图和导入问题进入任务表达。\nB · 导入\n1 / 13\n学生课堂台\n已加入课堂 cmqeakmvc002icnyfrnbjsgro\n学生端会随课堂同步步骤，并把个人作答持久化到课堂状态。\n第 01 页\n任务表达入口：从跨域证据写出设计任务\n\n用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。\n\n客船航向与稳定平台情境\n同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。\n任务表达课程信息图\n从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。\n导入问题\n面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？\n把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？\n页面知识卡片、课堂同步和步骤提示由课程运行态提供。\n提交后将先写入本课堂学习记录；可纳入画像的证据会在学习档案中呈现。\n本页工具\n默认折叠\n上一页\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 任务表达入口：从跨域证据写出设...\n\n你好，我是控灵。今天我们将探索「任务表达入口：从跨域证据写出设计任务」，有任何问题随时问我。\n\n学习目标:\n\n读取封面情境图与课程信息图\n提出客船航向控制与稳定平台的导入问题\n\n你可以问我:\n\n导入问题\n证据入口\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "teacher-projection",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/teacher-projection-1440x960-light.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqeakmvc002icnyfrnbjsgro?step=step-04",
+        "role": "teacher-projection",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 1440,
+        "viewportHeight": 960,
+        "themeClass": "light",
+        "storedTheme": "light",
+        "hasRuntimeShell": true,
+        "runtimeMode": "teacher",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": false,
+        "hasTeacherProjectionMarker": true,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": false,
+        "bottomNavBox": {
+          "top": 2000.171875,
+          "bottom": 2054.171875,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 219,
+          "bottom": 1952.171875,
+          "height": 1733.171875
+        },
+        "navOverlapsContent": false,
+        "textSample": "展开导航\n学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n教师投影\n教师\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n教师投影\n任务表达入口：从跨域证据写出设计任务\n课堂码 437393 · 用封面情境图、课程信息图和导入问题进入任务表达。\nB · 导入\n1 / 13\n第 01 页\n任务表达入口：从跨域证据写出设计任务\n\n用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。\n\n客船航向与稳定平台情境\n同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。\n任务表达课程信息图\n从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。\n导入问题\n面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？\n把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？\n本页工具\n默认折叠\n上一页\nB · 导入\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 互动学习\n\n你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "teacher-projection",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/teacher-projection-390x844-light.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqeakmvc002icnyfrnbjsgro?step=step-04",
+        "role": "teacher-projection",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 390,
+        "viewportHeight": 844,
+        "themeClass": "light",
+        "storedTheme": "light",
+        "hasRuntimeShell": true,
+        "runtimeMode": "teacher",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": false,
+        "hasTeacherProjectionMarker": true,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": false,
+        "bottomNavBox": {
+          "top": 1788.640625,
+          "bottom": 1842.640625,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 418,
+          "bottom": 1678.640625,
+          "height": 1260.640625
+        },
+        "navOverlapsContent": false,
+        "textSample": "学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n教师投影\n教师\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n教师投影\n任务表达入口：从跨域证据写出设计任务\n课堂码 437393 · 用封面情境图、课程信息图和导入问题进入任务表达。\nB · 导入\n1 / 13\n第 01 页\n任务表达入口：从跨域证据写出设计任务\n\n用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。\n\n客船航向与稳定平台情境\n同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。\n任务表达课程信息图\n从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。\n导入问题\n面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？\n把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？\n本页工具\n默认折叠\n上一页\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 互动学习\n\n你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "teacher-projection",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/teacher-projection-1440x960-dark.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqeakmvc002icnyfrnbjsgro?step=step-04",
+        "role": "teacher-projection",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 1440,
+        "viewportHeight": 960,
+        "themeClass": "dark",
+        "storedTheme": "dark",
+        "hasRuntimeShell": true,
+        "runtimeMode": "teacher",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": false,
+        "hasTeacherProjectionMarker": true,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": false,
+        "bottomNavBox": {
+          "top": 2000.171875,
+          "bottom": 2054.171875,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 219,
+          "bottom": 1952.171875,
+          "height": 1733.171875
+        },
+        "navOverlapsContent": false,
+        "textSample": "展开导航\n学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n教师投影\n教师\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n教师投影\n任务表达入口：从跨域证据写出设计任务\n课堂码 437393 · 用封面情境图、课程信息图和导入问题进入任务表达。\nB · 导入\n1 / 13\n第 01 页\n任务表达入口：从跨域证据写出设计任务\n\n用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。\n\n客船航向与稳定平台情境\n同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。\n任务表达课程信息图\n从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。\n导入问题\n面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？\n把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？\n本页工具\n默认折叠\n上一页\nB · 导入\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 互动学习\n\n你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    },
+    {
+      "role": "teacher-projection",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "filePath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/screenshots/teacher-projection-390x844-dark.png",
+      "diagnostics": {
+        "url": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqeakmvc002icnyfrnbjsgro?step=step-04",
+        "role": "teacher-projection",
+        "title": "AI-OBE船舶控制平台",
+        "viewportWidth": 390,
+        "viewportHeight": 844,
+        "themeClass": "dark",
+        "storedTheme": "dark",
+        "hasRuntimeShell": true,
+        "runtimeMode": "teacher",
+        "hasBottomNavigation": true,
+        "hasPageJump": true,
+        "localTools": "collapsed",
+        "floatingDock": "collapsed",
+        "hasNotFound": false,
+        "hasInvalidSession": false,
+        "hasRuntimeManifestTruth": true,
+        "hasActivitySubmissionContract": false,
+        "hasTeacherProjectionMarker": true,
+        "hasStudentAnswerInputInTeacherView": false,
+        "hasTeacherOnlySummaryInStudentView": false,
+        "hasTopDuplicateNext": false,
+        "hasGuestTeacherSyncClaim": false,
+        "hasGuestPreviewCopy": false,
+        "bottomNavBox": {
+          "top": 1788.640625,
+          "bottom": 1842.640625,
+          "height": 54
+        },
+        "contentBox": {
+          "top": 418,
+          "bottom": 1678.640625,
+          "height": 1260.640625
+        },
+        "navOverlapsContent": false,
+        "textSample": "学习\n/\n互动学习\n/\n互动课程\n/\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n/\n教师投影\n教师\n4-1：设计起点：性能指标体系、工程约束与可行域表达\n\nDesign Task Expression\n\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n教师投影\n任务表达入口：从跨域证据写出设计任务\n课堂码 437393 · 用封面情境图、课程信息图和导入问题进入任务表达。\nB · 导入\n1 / 13\n第 01 页\n任务表达入口：从跨域证据写出设计任务\n\n用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。\n\n客船航向与稳定平台情境\n同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。\n任务表达课程信息图\n从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。\n导入问题\n面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？\n把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？\n本页工具\n默认折叠\n上一页\n第 01 页 · 任务表达入口：从跨域证据写出设计任务\n第 02 页 · 本次课程目标\n第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书\n第 04 页 · 主场景 A：客船航向控制先保什么\n第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前\n第 06 页 · 双案例对照：排序变化来自哪里\n第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么\n第 08 页 · 任务分类：硬约束、软目标、观察指标\n第 09 页 · 任务表达卡工作区：把后续设计输入写全\n第 10 页 · 区域分层：可行域、满意域、最优域不是一步\n第 11 页 · 误判检查：稳定不等于完成，可行不等于最优\n第 12 页 · 后测：先写任务，再谈方法\n第 13 页 · 总结：任务表达卡成为后续设计输入\n下一页\n控灵\n\n当前: 互动学习\n\n你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板"
+      },
+      "failures": []
+    }
+  ]
+}

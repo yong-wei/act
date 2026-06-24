@@ -171,7 +171,7 @@ export default function MarginTradeoffLab({ onComplete, onStateChange }: MarginT
             {SCENARIOS.map((scenario) => {
               const isCompleted = completedIds.includes(scenario.id);
               return (
-                <button
+                <button type="button"
                   key={scenario.id}
                   onClick={() => setActiveId(scenario.id)}
                   className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${
@@ -249,7 +249,7 @@ export default function MarginTradeoffLab({ onComplete, onStateChange }: MarginT
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <button
+            <button type="button"
               onClick={handleCheck}
               className="rounded-lg bg-slate-900 px-4 py-2 text-xs text-white"
             >

@@ -10,6 +10,7 @@ function read(relativePath: string) {
 
 const knowledgeSource = read('src/lib/knowledge-graph-source.ts');
 const mdxRoute = read('src/app/api/content/mdx/route.ts');
+const runtimeContentPath = read('src/lib/runtime-content-path.ts');
 const knowledgeCard = read('src/features/knowledge/knowledge-card.tsx');
 
 assert.equal(
@@ -33,21 +34,23 @@ assert.equal(
 );
 
 assert.equal(
-  mdxRoute.includes("process.cwd(), 'course-content', 'runtime'"),
+  mdxRoute.includes('resolveReadableContentPath') &&
+    runtimeContentPath.includes("const RUNTIME_PREFIX = 'course-content/runtime/'") &&
+    runtimeContentPath.includes("path.join(PROJECT_ROOT, 'course-content', 'runtime')"),
   true,
   'mdx route 应支持读取 course-content/runtime 下的 Markdown 资源',
 );
 
 assert.equal(
-  mdxRoute.includes(".endsWith('.md')") || mdxRoute.includes(".endsWith('.mdx')"),
+  mdxRoute.includes(".endsWith('.md')") && !mdxRoute.includes(".endsWith('.mdx')"),
   true,
-  'mdx route 应支持 .md/.mdx 文件',
+  'mdx route 应只支持 runtime Markdown 文件',
 );
 
 assert.equal(
-  knowledgeCard.includes("path.endsWith('.md')") || knowledgeCard.includes("path.endsWith('.mdx')"),
+  knowledgeCard.includes("path.endsWith('.md')") && !knowledgeCard.includes("path.endsWith('.mdx')"),
   true,
-  '知识卡片组件应同时支持 .md 与 .mdx 资源',
+  '知识卡片组件应只把 Markdown 节点卡片作为卡片资源',
 );
 
 console.log('runtime knowledge source test passed');

@@ -17,20 +17,17 @@ import {
 } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { MaritimeEnvironment } from '../environment';
+import { MaritimeEnvironment } from '../environment/maritime-environment';
 import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   RightClickFreeModeBridge,
-  CameraViewSwitcher,
-  SimulationTopBar,
-  SimulationDock,
-  SimulationAssessmentPanel,
-  ModelLoadingPlaceholder,
-  simulationUi,
   type CameraMode,
-} from '../components';
-import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
+} from '../components/camera-controller';
+import { CameraViewSwitcher } from '../components/camera-view-switcher';
+import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
+import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 
 import type {
   ControlMode,
@@ -78,7 +75,7 @@ interface ContainerSimulationState {
 
 // ============ 海面组件 ============
 
-function Ocean() {
+function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
@@ -91,8 +88,8 @@ function Ocean() {
     return new THREE.ShaderMaterial({
       uniforms: {
         time: { value: 0 },
-        waterColor: { value: new THREE.Color('#0a5c8f') },
-        foamColor: { value: new THREE.Color('#ffffff') },
+        waterColor: { value: new THREE.Color(sceneTheme.waterColor) },
+        foamColor: { value: new THREE.Color(simulationScenePalette.white) },
       },
       vertexShader: `
         uniform float time;
@@ -125,7 +122,7 @@ function Ocean() {
       transparent: true,
       side: THREE.DoubleSide,
     });
-  }, []);
+  }, [sceneTheme.waterColor]);
 
   return (
     <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} material={shaderMaterial}>
@@ -205,7 +202,7 @@ function ContainerShipModel({
       {/* 船艏标记 */}
       <mesh position={[0, modelHeight * 0.6, 0]}>
         <sphereGeometry args={[8, 16, 16]} />
-        <meshBasicMaterial color="#f97316" />
+        <meshBasicMaterial color={simulationScenePalette.containerPrimary} />
       </mesh>
     </group>
   );
@@ -226,7 +223,7 @@ function TrajectoryLine({ points }: { points: Vector2[] }) {
   return (
     <Line
       points={linePoints}
-      color="#f97316"
+      color={simulationScenePalette.containerPrimary}
       lineWidth={2}
       dashed={false}
     />
@@ -255,7 +252,7 @@ function WindIndicator({
   return (
     <Line
       points={[[position.x, 100, position.z], end]}
-      color="#60a5fa"
+      color={simulationScenePalette.headingSecondary}
       lineWidth={3}
       dashed
       dashScale={50}
@@ -308,21 +305,21 @@ function HeadingIndicator({
       {/* 目标航向 - 橙色虚线箭头 */}
       <Line
         points={[[position.x, 2, position.z], targetEnd]}
-        color="#fb923c"
+        color={simulationScenePalette.containerTarget}
         lineWidth={2}
         dashed
         dashScale={30}
       />
-      <Line points={[targetWings.left, targetEnd]} color="#fb923c" lineWidth={2} />
-      <Line points={[targetWings.right, targetEnd]} color="#fb923c" lineWidth={2} />
+      <Line points={[targetWings.left, targetEnd]} color={simulationScenePalette.containerTarget} lineWidth={2} />
+      <Line points={[targetWings.right, targetEnd]} color={simulationScenePalette.containerTarget} lineWidth={2} />
       {/* 当前航向 - 深橙色实线箭头 */}
       <Line
         points={[[position.x, 2, position.z], currentEnd]}
-        color="#f97316"
+        color={simulationScenePalette.containerPrimary}
         lineWidth={3}
       />
-      <Line points={[currentWings.left, currentEnd]} color="#f97316" lineWidth={3} />
-      <Line points={[currentWings.right, currentEnd]} color="#f97316" lineWidth={3} />
+      <Line points={[currentWings.left, currentEnd]} color={simulationScenePalette.containerPrimary} lineWidth={3} />
+      <Line points={[currentWings.right, currentEnd]} color={simulationScenePalette.containerPrimary} lineWidth={3} />
     </>
   );
 }
@@ -361,21 +358,21 @@ function ControlPanel({
       {/* 仿真控制 */}
       <div className="mb-4 flex gap-2">
         {!state.isRunning ? (
-          <button
+          <button type="button"
             onClick={onStart}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
           >
             开始仿真
           </button>
         ) : (
-          <button
+          <button type="button"
             onClick={onPause}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonSecondary}`}
           >
             {state.isPaused ? '继续' : '暂停'}
           </button>
         )}
-        <button
+        <button type="button"
           onClick={onReset}
           className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonOutline}`}
         >
@@ -386,7 +383,7 @@ function ControlPanel({
       {/* 目标航向 */}
       <div className="mb-3">
         <label className={`mb-1 block ${simulationUi.mutedText}`}>目标航向: {state.targetHeading.toFixed(0)}°</label>
-        <input
+        <input aria-label="集装箱船仿真参数一"
           type="range"
           min="-180"
           max="180"
@@ -400,11 +397,11 @@ function ControlPanel({
       <div className="mb-3">
         <label className={`mb-1 block ${simulationUi.mutedText}`}>
           装载率: {(state.loadRatio * 100).toFixed(0)}%
-          <span className="ml-2 text-slate-700">
+          <span className="ml-2 text-platform-fg-secondary">
             ({state.loadRatio < 0.3 ? '空载' : state.loadRatio < 0.7 ? '半载' : '满载'})
           </span>
         </label>
-        <input
+        <input aria-label="集装箱船仿真参数二"
           type="range"
           min="0"
           max="100"
@@ -412,7 +409,7 @@ function ControlPanel({
           onChange={(e) => onLoadRatioChange(Number(e.target.value) / 100)}
           className={simulationUi.nativeRange}
         />
-        <div className="mt-1 flex justify-between text-xs text-slate-700">
+        <div className="mt-1 flex justify-between text-xs text-platform-fg-secondary">
           <span>K={state.currentK.toFixed(3)}</span>
           <span>T={state.currentT.toFixed(0)}s</span>
         </div>
@@ -421,7 +418,7 @@ function ControlPanel({
       {/* 风速 */}
       <div className="mb-3">
         <label className={`mb-1 block ${simulationUi.mutedText}`}>风速: {state.windSpeed.toFixed(1)} m/s</label>
-        <input
+        <input aria-label="集装箱船仿真参数三"
           type="range"
           min="0"
           max="25"
@@ -435,7 +432,7 @@ function ControlPanel({
       {/* 风向 */}
       <div className="mb-3">
         <label className={`mb-1 block ${simulationUi.mutedText}`}>风向: {state.windDirection.toFixed(0)}°</label>
-        <input
+        <input aria-label="集装箱船仿真参数四"
           type="range"
           min="0"
           max="360"
@@ -447,10 +444,10 @@ function ControlPanel({
 
       {/* 控制模式 */}
       <div className="mb-3">
-        <label className={`mb-1 block ${simulationUi.mutedText}`}>控制模式</label>
+        <p className={`mb-1 block ${simulationUi.mutedText}`}>控制模式</p>
         <div className="flex flex-wrap gap-1">
           {(['manual', 'p', 'pd', 'pid', 'pid_scheduled'] as ControlMode[]).map((mode) => (
-            <button
+            <button type="button"
               key={mode}
               onClick={() => onControlModeChange(mode)}
               className={`rounded border px-2 py-1 text-xs ${
@@ -472,7 +469,7 @@ function ControlPanel({
           id="gainScheduling"
           checked={state.gainSchedulingEnabled}
           onChange={onGainSchedulingToggle}
-          className="accent-sky-700"
+          className="accent-[hsl(var(--platform-action-primary))]"
         />
         <label htmlFor="gainScheduling" className={simulationUi.mutedText}>
           启用增益调度 (自动调整 PID)
@@ -492,43 +489,43 @@ function HUD({ state }: { state: ContainerSimulationState }) {
     <div className="space-y-3 p-1 text-sm">
 
       {/* 时间 */}
-      <div className="mb-2 flex justify-between border-b border-slate-300 pb-2">
-        <span className="text-slate-700">仿真时间</span>
-        <span className="font-mono text-slate-900">{state.time.toFixed(1)}s</span>
+      <div className="mb-2 flex justify-between border-b border-platform-border pb-2">
+        <span className="text-platform-fg-secondary">仿真时间</span>
+        <span className="font-mono text-platform-fg-primary">{state.time.toFixed(1)}s</span>
       </div>
 
       {/* 航向信息 */}
       <div className="mb-3 grid grid-cols-2 gap-2">
         <div>
-          <div className="text-xs text-slate-700">当前航向</div>
-          <div className="font-mono text-lg text-slate-900">{state.heading.toFixed(1)}°</div>
+          <div className="text-xs text-platform-fg-secondary">当前航向</div>
+          <div className="font-mono text-lg text-platform-fg-primary">{state.heading.toFixed(1)}°</div>
         </div>
         <div>
-          <div className="text-xs text-slate-700">航向误差</div>
-          <div className={`font-mono text-lg ${Math.abs(normalizedError) > 5 ? 'text-red-600' : 'text-green-700'}`}>
+          <div className="text-xs text-platform-fg-secondary">航向误差</div>
+          <div className={`font-mono text-lg ${Math.abs(normalizedError) > 5 ? 'text-[hsl(var(--platform-brand-danger))]' : 'text-[hsl(var(--platform-brand-success))]'}`}>
             {normalizedError.toFixed(1)}°
           </div>
         </div>
         <div>
-          <div className="text-xs text-slate-700">转艏角速度</div>
-          <div className="font-mono text-slate-900">{state.yawRate.toFixed(2)}°/s</div>
+          <div className="text-xs text-platform-fg-secondary">转艏角速度</div>
+          <div className="font-mono text-platform-fg-primary">{state.yawRate.toFixed(2)}°/s</div>
         </div>
         <div>
-          <div className="text-xs text-slate-700">舵角</div>
-          <div className="font-mono text-slate-900">{state.rudder.toFixed(1)}°</div>
+          <div className="text-xs text-platform-fg-secondary">舵角</div>
+          <div className="font-mono text-platform-fg-primary">{state.rudder.toFixed(1)}°</div>
         </div>
       </div>
 
       {/* 横摇警告 */}
       {Math.abs(toDegrees(state.rollAngle)) > 8 && (
-        <div className="mb-3 rounded bg-red-900/50 p-2 text-center text-red-300">
+        <div className="mb-3 rounded bg-[hsl(var(--platform-brand-danger)/0.18)] p-2 text-center text-[hsl(var(--platform-brand-danger))]">
           ⚠️ 横摇角过大: {toDegrees(state.rollAngle).toFixed(1)}° - 落箱风险!
         </div>
       )}
 
       {/* 系统参数 */}
-      <div className="mb-3 rounded border border-slate-200 bg-white/90 p-2">
-        <div className="mb-1 text-xs font-semibold text-slate-700">当前系统参数</div>
+      <div className="mb-3 rounded border border-platform-border bg-platform-surface-overlay/86 p-2">
+        <div className="mb-1 text-xs font-semibold text-platform-fg-secondary">当前系统参数</div>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>K = {state.currentK.toFixed(3)}</div>
           <div>T = {state.currentT.toFixed(0)}s</div>
@@ -538,13 +535,13 @@ function HUD({ state }: { state: ContainerSimulationState }) {
       </div>
 
       {/* 风载荷 */}
-      <div className="rounded border border-slate-200 bg-white/90 p-2">
-        <div className="mb-1 text-xs font-semibold text-slate-700">风载荷</div>
+      <div className="rounded border border-platform-border bg-platform-surface-overlay/86 p-2">
+        <div className="mb-1 text-xs font-semibold text-platform-fg-secondary">风载荷</div>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>风速 = {state.windSpeed.toFixed(1)} m/s</div>
           <div>风向 = {state.windDirection.toFixed(0)}°</div>
           <div>横摇 = {toDegrees(state.rollAngle).toFixed(1)}°</div>
-          <div className={state.windSpeed > 15 ? 'text-amber-700' : ''}>
+          <div className={state.windSpeed > 15 ? 'text-[hsl(var(--platform-brand-evidence))]' : ''}>
             {state.windSpeed > 20 ? '⚠️ 风速超限' : state.windSpeed > 15 ? '注意大风' : '正常'}
           </div>
         </div>
@@ -559,6 +556,7 @@ function Scene({
   state,
   trajectory,
   showGrid,
+  sceneTheme,
   cameraMode,
   onCameraModeChange,
   controlsRef,
@@ -566,20 +564,21 @@ function Scene({
   state: ContainerSimulationState;
   trajectory: Vector2[];
   showGrid: boolean;
+  sceneTheme: SimulationSceneTheme;
   cameraMode: CameraMode;
   onCameraModeChange: (mode: CameraMode) => void;
-  controlsRef: React.RefObject<OrbitControlsImpl>;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
 }) {
   return (
     <>
       <PerspectiveCamera makeDefault position={[-500, 200, 500]} fov={60} near={1} far={50000} />
 
       {/* 环境 */}
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
+      <ambientLight intensity={sceneTheme.ambientLightIntensity} />
+      <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
 
       {/* 天空+云层+海面 */}
-      <MaritimeEnvironment shipPosition={state.position} seaState={3} />
+      <MaritimeEnvironment shipPosition={state.position} seaState={3} sceneTheme={sceneTheme} />
 
       {/* 参考网格 */}
       {showGrid ? (
@@ -587,10 +586,10 @@ function Scene({
           args={[20000, 20000]}
           cellSize={100}
           cellThickness={0.5}
-          cellColor="#1e3a5f"
+          cellColor={sceneTheme.gridCellColor}
           sectionSize={500}
           sectionThickness={1}
-          sectionColor="#2563eb"
+          sectionColor={sceneTheme.gridSectionColor}
           fadeDistance={9000}
           fadeStrength={1}
           position={[0, 0.35, 0]}
@@ -671,6 +670,7 @@ export default function ContainerSimulation() {
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
+  const sceneTheme = useSimulationSceneTheme();
 
   // 轨迹记录
   const [trajectory, setTrajectory] = useState<Vector2[]>([]);
@@ -876,11 +876,12 @@ export default function ContainerSimulation() {
 
   return (
     <div className={simulationUi.root} data-sim-ui>
-      <Canvas shadows gl={{ antialias: true }}>
+      <Canvas shadows={{ type: THREE.PCFShadowMap }} gl={{ antialias: true }}>
         <Scene
           state={simState}
           trajectory={trajectory}
           showGrid={showGrid}
+          sceneTheme={sceneTheme}
           cameraMode={cameraMode}
           onCameraModeChange={setCameraMode}
           controlsRef={controlsRef}
@@ -935,11 +936,6 @@ export default function ContainerSimulation() {
                 ]}
               />
             ),
-          },
-          {
-            id: 'ai',
-            label: 'AI伴学',
-            content: <AICompanionPanel title="集装箱船航线控制" sessionId="container-simulation-session" />,
           },
         ]}
       />

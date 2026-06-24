@@ -105,7 +105,8 @@ async function generateSessionSummaryReportsSafely(sessionId: string) {
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { sessionId: string } }) {
+export async function PATCH(request: Request, props: { params: Promise<{ sessionId: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -237,67 +238,68 @@ export async function PATCH(request: Request, { params }: { params: { sessionId:
   }
 }
 
-export async function GET(request: Request, { params }: { params: { sessionId: string } }) {
-    try {
-        const { sessionId } = params;
+export async function GET(request: Request, props: { params: Promise<{ sessionId: string }> }) {
+  const params = await props.params;
+  try {
+      const { sessionId } = params;
 
-        // 优先从 Redis 读取会话状态（高性能缓存）
-        if (redisClient.isReady()) {
-            const cachedState = await redisClient.getSessionState(sessionId);
-            if (cachedState) {
-                return NextResponse.json({
-                    id: sessionId,
-                    joinCode: typeof cachedState.joinCode === 'string' ? cachedState.joinCode : '',
-                    classId: typeof cachedState.classId === 'string' ? cachedState.classId : null,
-                    currentItemId: cachedState.currentItemId ?? null,
-                    currentStage: cachedState.currentStage ?? null,
-                    status: cachedState.status ?? 'ACTIVE',
-                    updatedAt: cachedState.updatedAt ?? Date.now(),
-                    planTitle: typeof cachedState.planTitle === 'string' ? cachedState.planTitle : '',
-                });
-            }
-        }
+      // 优先从 Redis 读取会话状态（高性能缓存）
+      if (redisClient.isReady()) {
+          const cachedState = await redisClient.getSessionState(sessionId);
+          if (cachedState) {
+              return NextResponse.json({
+                  id: sessionId,
+                  joinCode: typeof cachedState.joinCode === 'string' ? cachedState.joinCode : '',
+                  classId: typeof cachedState.classId === 'string' ? cachedState.classId : null,
+                  currentItemId: cachedState.currentItemId ?? null,
+                  currentStage: cachedState.currentStage ?? null,
+                  status: cachedState.status ?? 'ACTIVE',
+                  updatedAt: cachedState.updatedAt ?? Date.now(),
+                  planTitle: typeof cachedState.planTitle === 'string' ? cachedState.planTitle : '',
+              });
+          }
+      }
 
-        // 回退到数据库查询
-        const session = await prisma.classSession.findUnique({
-            where: { id: sessionId },
-            select: {
-                id: true,
-                joinCode: true,
-                status: true,
-                classId: true,
-                currentItemId: true,
-                currentStage: true,
-                updatedAt: true, // 添加updatedAt用于前端版本控制
-                // Include minimal plan info for student check
-                plan: {
-                    select: { title: true }
-                }
-            }
-        });
+      // 回退到数据库查询
+      const session = await prisma.classSession.findUnique({
+          where: { id: sessionId },
+          select: {
+              id: true,
+              joinCode: true,
+              status: true,
+              classId: true,
+              currentItemId: true,
+              currentStage: true,
+              updatedAt: true, // 添加updatedAt用于前端版本控制
+              // Include minimal plan info for student check
+              plan: {
+                  select: { title: true }
+              }
+          }
+      });
 
-        if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-        // 写入 Redis 缓存以便后续快速读取
-        if (redisClient.isReady()) {
-            await redisClient.setSessionState(sessionId, {
-                joinCode: session.joinCode,
-                classId: session.classId,
-                currentItemId: session.currentItemId,
-                currentStage: session.currentStage,
-                status: session.status,
-                planTitle: session.plan.title,
-                updatedAt: session.updatedAt?.getTime() || Date.now(),
-            });
-        }
+      // 写入 Redis 缓存以便后续快速读取
+      if (redisClient.isReady()) {
+          await redisClient.setSessionState(sessionId, {
+              joinCode: session.joinCode,
+              classId: session.classId,
+              currentItemId: session.currentItemId,
+              currentStage: session.currentStage,
+              status: session.status,
+              planTitle: session.plan.title,
+              updatedAt: session.updatedAt?.getTime() || Date.now(),
+          });
+      }
 
-        return NextResponse.json({
-            ...session,
-            planTitle: session.plan.title,
-        });
-    } catch (error) {
-        rethrowIfNextDynamicError(error);
-        console.error('[Session GET] Error:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-    }
+      return NextResponse.json({
+          ...session,
+          planTitle: session.plan.title,
+      });
+  } catch (error) {
+      rethrowIfNextDynamicError(error);
+      console.error('[Session GET] Error:', error);
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }

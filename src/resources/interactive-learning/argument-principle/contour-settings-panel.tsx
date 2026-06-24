@@ -28,8 +28,8 @@ export function ContourSettingsPanel({
 
       {/* 轮廓类型 */}
       <div className="mb-4">
-        <label className="mb-2 block text-xs text-slate-400">包围曲线类型</label>
-        <select
+        <label htmlFor="contour-settings-panel-control-1" className="mb-2 block text-xs text-slate-400">包围曲线类型</label>
+        <select id="contour-settings-panel-control-1"
           value={contourParams.type}
           onChange={(e) => onParamsChange({ type: e.target.value as ContourType })}
           className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
@@ -49,7 +49,7 @@ export function ContourSettingsPanel({
             <span>半径</span>
             <span className="text-white">{contourParams.radius.toFixed(1)}</span>
           </label>
-          <input
+          <input aria-label="轮廓半径"
             type="range"
             min="0.5"
             max="5"
@@ -69,7 +69,7 @@ export function ContourSettingsPanel({
               <span>宽度</span>
               <span className="text-white">{contourParams.width.toFixed(1)}</span>
             </label>
-            <input
+            <input aria-label="轮廓中心实部"
               type="range"
               min="0.5"
               max="5"
@@ -84,7 +84,7 @@ export function ContourSettingsPanel({
               <span>高度</span>
               <span className="text-white">{contourParams.height.toFixed(1)}</span>
             </label>
-            <input
+            <input aria-label="轮廓中心虚部"
               type="range"
               min="0.5"
               max="5"
@@ -108,13 +108,13 @@ export function ContourSettingsPanel({
 
       {/* 操作按钮 */}
       <div className="flex gap-2">
-        <button
+        <button type="button"
           onClick={onDraw}
           className="flex-1 rounded-lg bg-blue-500/20 px-4 py-2 text-sm font-medium text-blue-400 transition-colors hover:bg-blue-500/30"
         >
           绘制
         </button>
-        <button
+        <button type="button"
           onClick={onClear}
           className="flex-1 rounded-lg bg-slate-700/50 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700"
         >

@@ -11,7 +11,7 @@ import {
 export const dynamic = 'force-dynamic';
 
 interface ArenaPublicationReportPageProps {
-  params: { publicationId: string };
+  params: Promise<{ publicationId: string }>;
 }
 
 function formatPercent(value: number): string {
@@ -29,7 +29,15 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
-export default async function ArenaPublicationReportPage({ params }: ArenaPublicationReportPageProps) {
+function formatAttemptStatus(value: 'effective' | 'late' | 'zero-score' | 'invalid'): string {
+  if (value === 'effective') return '有效尝试';
+  if (value === 'late') return '迟交';
+  if (value === 'zero-score') return '零分';
+  return '无效';
+}
+
+export default async function ArenaPublicationReportPage(props: ArenaPublicationReportPageProps) {
+  const params = await props.params;
   const session = await getServerAuthSession();
   if (!session?.user?.id || !['TEACHER', 'ADMIN'].includes(session.user.role ?? '')) {
     notFound();
@@ -72,11 +80,11 @@ export default async function ArenaPublicationReportPage({ params }: ArenaPublic
               icon={<ClipboardList className="h-4 w-4" />}
               label="提交次数"
               value={`${report.submissions.submissionCount}`}
-              detail={`有效提交率 ${formatPercent(report.submissions.validSubmissionRate)}`}
+              detail={`有效尝试 ${report.attemptPolicy.effectiveSubmissionCount} 次 / 迟交 ${report.attemptPolicy.lateSubmissionCount} 次`}
             />
             <MetricPanel
               icon={<BarChart3 className="h-4 w-4" />}
-              label="平均分"
+              label="有效尝试平均分"
               value={formatScore(report.scores.average)}
               detail={`中位数 ${formatScore(report.scores.median)} / 最高 ${formatScore(report.scores.highest)}`}
             />
@@ -84,9 +92,33 @@ export default async function ArenaPublicationReportPage({ params }: ArenaPublic
               icon={<Trophy className="h-4 w-4" />}
               label="优秀方案"
               value={`${report.excellentSolutions.length}`}
-              detail="按有效提交分数排序"
+              detail={`零分 ${report.attemptPolicy.zeroScoreSubmissionCount} 次不标记优秀`}
             />
           </div>
+
+          <section className="surface-card mt-6 p-5" data-arena-attempt-policy="visible">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">提交口径</h2>
+                <p className="mt-2 text-sm leading-6 text-subtle">{report.attemptPolicy.effectiveRule}</p>
+              </div>
+              <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-xs font-medium text-subtle">
+                {report.attemptPolicy.officialSubmissionLabel} · 个人最佳有效尝试
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-5">
+              <SignalRow label="有效尝试" value={`${report.attemptPolicy.effectiveSubmissionCount} 次`} />
+              <SignalRow label="迟交尝试" value={`${report.attemptPolicy.lateSubmissionCount} 次`} />
+              <SignalRow label="零分尝试" value={`${report.attemptPolicy.zeroScoreSubmissionCount} 次`} />
+              <SignalRow label="无效尝试" value={`${report.attemptPolicy.invalidSubmissionCount} 次`} />
+              <SignalRow label="多次提交学生" value={`${report.attemptPolicy.multipleSubmitterCount} 人`} />
+            </div>
+            <div className="mt-4 grid gap-2 text-sm text-subtle lg:grid-cols-3">
+              <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2">{report.attemptPolicy.lateRule}</div>
+              <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2">{report.attemptPolicy.zeroScoreRule}</div>
+              <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2">{report.attemptPolicy.displayRule}</div>
+            </div>
+          </section>
 
           <div className="mt-6 grid gap-5 lg:grid-cols-2">
             <section className="surface-card p-5">
@@ -116,7 +148,7 @@ export default async function ArenaPublicationReportPage({ params }: ArenaPublic
             </section>
 
             <section className="surface-card p-5">
-              <h2 className="text-lg font-semibold text-foreground">方法分布</h2>
+              <h2 className="text-lg font-semibold text-foreground">全部尝试方法分布</h2>
               <div className="mt-4 grid gap-2">
                 {report.methodDistribution.length === 0 ? (
                   <EmptyLine text="暂无提交方法数据" />
@@ -140,16 +172,16 @@ export default async function ArenaPublicationReportPage({ params }: ArenaPublic
 
           <div className="mt-6 grid gap-5 lg:grid-cols-2">
             <section className="surface-card p-5">
-              <h2 className="text-lg font-semibold text-foreground">个人最佳</h2>
+              <h2 className="text-lg font-semibold text-foreground">个人最佳尝试</h2>
               <div className="mt-4 grid gap-3">
                 {report.personalBests.length === 0 ? (
-                  <EmptyLine text="暂无个人最佳记录" />
+                    <EmptyLine text="暂无个人尝试记录" />
                 ) : report.personalBests.map((best) => (
                   <ResultRow
                     key={best.userId}
                     label={best.studentLabel}
                     score={best.score}
-                    detail={`${best.method} · ${best.valid ? '有效' : '无效'} · ${formatDate(best.submittedAt)}`}
+                    detail={`${best.method} · ${formatAttemptStatus(best.attemptStatus)} · ${best.rankingExplanation} · ${formatDate(best.submittedAt)}`}
                   />
                 ))}
               </div>

@@ -173,7 +173,7 @@ export default function TransferElementWorkshop({ onComplete, onStateChange }: T
                 const isCorrect = checked && option.id === current.answerId;
                 const isWrong = checked && isSelected && option.id !== current.answerId;
                 return (
-                  <button
+                  <button type="button"
                     key={option.id}
                     onClick={() => !checked && setSelected(option.id)}
                     className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
@@ -202,7 +202,7 @@ export default function TransferElementWorkshop({ onComplete, onStateChange }: T
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button
+          <button type="button"
             onClick={handleReset}
             className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-xs text-slate-500 hover:text-slate-700"
           >
@@ -211,13 +211,13 @@ export default function TransferElementWorkshop({ onComplete, onStateChange }: T
           </button>
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-500">当前得分 {score}/{CASES.length}</span>
-            <button
+            <button type="button"
               onClick={handleCheck}
               className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs text-white"
             >
               检查
             </button>
-            <button
+            <button type="button"
               onClick={handleNext}
               className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${
                 checked && !isLast

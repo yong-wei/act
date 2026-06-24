@@ -7,7 +7,7 @@
  * Supports both standalone and embedded (BOPPPS) modes.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Lightbulb, Bot } from 'lucide-react';
 import { useLessonContext } from '@/features/lesson-engine/ContextInjector';
@@ -56,7 +56,6 @@ export default function PhysicsBuilderWidget({
   const [nodeCount, setNodeCount] = useState(0);
   const [equation, setEquation] = useState('');
   const [isComplete, setIsComplete] = useState(false);
-  const [aiHint, setAiHint] = useState<string | null>(null);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
 
@@ -99,24 +98,17 @@ export default function PhysicsBuilderWidget({
     [mode, onComplete]
   );
 
-  // Generate contextual AI hints
-  useEffect(() => {
-    if (!enableAIHints || !embedded) return;
-
+  const aiHint = (() => {
+    if (!enableAIHints || !embedded) return null;
     if (nodeCount === 0) {
-      setAiHint(
-        mode === 'mechanical'
-          ? '从左侧拖入元件开始构建。质量块代表惯性，弹簧代表弹性，阻尼器代表阻尼。'
-          : '从左侧拖入元件开始构建。电感代表惯性，电容代表能量存储，电阻代表耗散。'
-      );
-    } else if (nodeCount < 3) {
-      setAiHint('继续添加元件以构建完整的动态系统。');
-    } else if (!isComplete) {
-      setAiHint('检查连接是否正确，确保系统方程完整。');
-    } else {
-      setAiHint(null);
+      return mode === 'mechanical'
+        ? '从左侧拖入元件开始构建。质量块代表惯性，弹簧代表弹性，阻尼器代表阻尼。'
+        : '从左侧拖入元件开始构建。电感代表惯性，电容代表能量存储，电阻代表耗散。';
     }
-  }, [nodeCount, isComplete, mode, enableAIHints, embedded]);
+    if (nodeCount < 3) return '继续添加元件以构建完整的动态系统。';
+    if (!isComplete) return '检查连接是否正确，确保系统方程完整。';
+    return null;
+  })();
 
   // Ask AI for help
   const askAI = async () => {
@@ -162,7 +154,7 @@ export default function PhysicsBuilderWidget({
 
       {/* AI Assistant Button (embedded mode) */}
       {embedded && enableAIHints && (
-        <button
+        <button type="button"
           onClick={askAI}
           disabled={aiLoading}
           className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full border border-cyan-500/50 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 shadow-lg transition hover:bg-cyan-500/20 disabled:opacity-50"
@@ -177,7 +169,7 @@ export default function PhysicsBuilderWidget({
         <div className="absolute bottom-16 right-4 z-20 w-80 max-h-60 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900/95 p-4 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-cyan-400">AI 助手</span>
-            <button
+            <button type="button"
               onClick={() => setShowAIPanel(false)}
               className="text-slate-500 hover:text-slate-300"
             >

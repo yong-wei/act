@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-06-07T09:21:19.883269Z",
+  "lesson_id": "1-1",
+  "node_id": "课程总图_1_1",
+  "requested_node_id": "课程总图_1_1",
+  "node_name": "课程总图",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查通过：课程主线、五个模块和船舶航向控制起点表达准确；文字略多但适合作为课程总图信息图。"
+}

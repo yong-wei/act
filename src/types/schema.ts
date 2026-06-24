@@ -35,12 +35,12 @@ export interface ResourceBase {
 }
 
 /**
- * 静态概念卡片 (MDX)
+ * 静态概念卡片 (Markdown)
  */
 export interface ConceptResource extends ResourceBase {
   type: 'concept';
 
-  /** MDX 内容文件路径，指向 content/concepts/xxx.mdx */
+  /** Markdown 内容文件路径，指向 course-content/runtime/knowledge/cards/nodes/xxx.md */
   contentPath: string;
 
   /** 预计阅读时间（分钟，可选） */

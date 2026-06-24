@@ -3,6 +3,15 @@
   "items": [
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/Bode图_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/Bode图_1_1.png",
+      "title": "Bode图 信息图",
+      "lessonId": "1-1",
+      "nodeId": "Bode图_1_1",
+      "sourceNodeId": "Bode图_1_1"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/IMC_SIMC与模型匹配整定_4_42013.png",
       "url": "/course-runtime/knowledge/infographs/nodes/IMC_SIMC与模型匹配整定_4_42013.png",
       "title": "IMC/SIMC 与模型匹配整定 信息图",
@@ -192,6 +201,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/传递函数_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/传递函数_1_1.png",
+      "title": "传递函数 信息图",
+      "lessonId": "1-1",
+      "nodeId": "传递函数_1_1",
+      "sourceNodeId": "传递函数_1_1"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
       "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
       "title": "低频补偿稳态改善路径 信息图",
@@ -288,6 +306,15 @@
       "lessonId": "4-3",
       "nodeId": "参考前馈与给定滤波分工_4_43008",
       "sourceNodeId": "参考前馈与给定滤波分工_4_43008"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/反馈_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/反馈_1_1.png",
+      "title": "反馈 信息图",
+      "lessonId": "1-1",
+      "nodeId": "反馈_1_1",
+      "sourceNodeId": "反馈_1_1"
     },
     {
       "type": "infograph",
@@ -498,6 +525,24 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/开环控制_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/开环控制_1_1.png",
+      "title": "开环控制 信息图",
+      "lessonId": "1-1",
+      "nodeId": "开环控制_1_1",
+      "sourceNodeId": "开环控制_1_1"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/性能指标_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/性能指标_1_1.png",
+      "title": "性能指标 信息图",
+      "lessonId": "1-1",
+      "nodeId": "性能指标_1_1",
+      "sourceNodeId": "性能指标_1_1"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/截止频率_5_c7d09ff7.png",
       "url": "/course-runtime/knowledge/infographs/nodes/截止频率_5_c7d09ff7.png",
       "title": "截止频率 信息图",
@@ -576,6 +621,15 @@
       "lessonId": "4-2",
       "nodeId": "按输入补偿前馈的无差度提升_4_42006",
       "sourceNodeId": "按输入补偿前馈的无差度提升_4_42006"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/控制器_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/控制器_1_1.png",
+      "title": "控制器 信息图",
+      "lessonId": "1-1",
+      "nodeId": "控制器_1_1",
+      "sourceNodeId": "控制器_1_1"
     },
     {
       "type": "infograph",
@@ -669,6 +723,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/时域响应_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/时域响应_1_1.png",
+      "title": "时域响应 信息图",
+      "lessonId": "1-1",
+      "nodeId": "时域响应_1_1",
+      "sourceNodeId": "时域响应_1_1"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/时域指标到目标极点区域_3_36001.png",
       "url": "/course-runtime/knowledge/infographs/nodes/时域指标到目标极点区域_3_36001.png",
       "title": "时域指标到目标极点区域 信息图",
@@ -684,6 +747,33 @@
       "lessonId": "4-5",
       "nodeId": "权重偏好与无约束候选解_4_44005",
       "sourceNodeId": "权重偏好与无约束候选解_4_44005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/极点_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/极点_1_1.png",
+      "title": "极点 信息图",
+      "lessonId": "1-1",
+      "nodeId": "极点_1_1",
+      "sourceNodeId": "极点_1_1"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/校正_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/校正_1_1.png",
+      "title": "校正设计 信息图",
+      "lessonId": "1-1",
+      "nodeId": "校正_1_1",
+      "sourceNodeId": "校正_1_1"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/根轨迹_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/根轨迹_1_1.png",
+      "title": "根轨迹 信息图",
+      "lessonId": "1-1",
+      "nodeId": "根轨迹_1_1",
+      "sourceNodeId": "根轨迹_1_1"
     },
     {
       "type": "infograph",
@@ -729,6 +819,15 @@
       "lessonId": "3-7",
       "nodeId": "比例-积分控制器_3_2d540516",
       "sourceNodeId": "比例-积分控制器_3_2d540516"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/比例控制_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/比例控制_1_1.png",
+      "title": "比例控制 信息图",
+      "lessonId": "1-1",
+      "nodeId": "比例控制_1_1",
+      "sourceNodeId": "比例控制_1_1"
     },
     {
       "type": "infograph",
@@ -840,6 +939,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/稳定性_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/稳定性_1_1.png",
+      "title": "稳定性 信息图",
+      "lessonId": "1-1",
+      "nodeId": "稳定性_1_1",
+      "sourceNodeId": "稳定性_1_1"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/稳态误差双路径判断_3_37002.png",
       "url": "/course-runtime/knowledge/infographs/nodes/稳态误差双路径判断_3_37002.png",
       "title": "稳态误差双路径判断 信息图",
@@ -873,6 +981,15 @@
       "lessonId": "3-7",
       "nodeId": "系统型别_3_5573c2c3",
       "sourceNodeId": "系统型别_3_5573c2c3"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/系统观念_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/系统观念_1_1.png",
+      "title": "系统观念 信息图",
+      "lessonId": "1-1",
+      "nodeId": "系统观念_1_1",
+      "sourceNodeId": "系统观念_1_1"
     },
     {
       "type": "infograph",
@@ -1074,12 +1191,30 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/误差_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/误差_1_1.png",
+      "title": "误差信号 信息图",
+      "lessonId": "1-1",
+      "nodeId": "误差_1_1",
+      "sourceNodeId": "误差_1_1"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/误差传递函数_2_1d55824d.png",
       "url": "/course-runtime/knowledge/infographs/nodes/误差传递函数_2_1d55824d.png",
       "title": "误差传递函数 信息图",
       "lessonId": "3-7",
       "nodeId": "误差传递函数_2_1d55824d",
       "sourceNodeId": "误差传递函数_2_1d55824d"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/课程总图_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/课程总图_1_1.png",
+      "title": "课程总图 信息图",
+      "lessonId": "1-1",
+      "nodeId": "课程总图_1_1",
+      "sourceNodeId": "课程总图_1_1"
     },
     {
       "type": "infograph",
@@ -1173,6 +1308,15 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/闭环控制_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/闭环控制_1_1.png",
+      "title": "闭环控制 信息图",
+      "lessonId": "1-1",
+      "nodeId": "闭环控制_1_1",
+      "sourceNodeId": "闭环控制_1_1"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/问题清单移交表_4_43005.png",
       "url": "/course-runtime/knowledge/infographs/nodes/问题清单移交表_4_43005.png",
       "title": "问题清单移交表 信息图",
@@ -1251,6 +1395,15 @@
       "lessonId": "4-2",
       "nodeId": "频域PI与滞后整定_4_42010",
       "sourceNodeId": "频域PI与滞后整定_4_42010"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/频域响应_1_1.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/频域响应_1_1.png",
+      "title": "频域响应 信息图",
+      "lessonId": "1-1",
+      "nodeId": "频域响应_1_1",
+      "sourceNodeId": "频域响应_1_1"
     },
     {
       "type": "infograph",

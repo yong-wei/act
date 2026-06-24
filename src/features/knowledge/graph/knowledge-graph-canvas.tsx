@@ -15,14 +15,25 @@ import {
   getNodeColor,
   getGlowColor,
   getRelationStyle,
+  getRelationThreeDimensionalEncoding,
   getNodeTypeConfig,
+  getKnowledgeNodeScale,
+  getKnowledgeSemanticRegionStyle,
+  getKnowledgeGraphEffectiveEdgeWidth,
+  hexToRgba,
+  KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT,
 } from './visual-config';
 import { CHAPTER_DISPLAY_ORDER } from '@/lib/knowledge-labels';
-import { CHAPTER_NODE_PREFIX } from './filter-utils';
+import { CHAPTER_NODE_PREFIX, getRelationFocusState } from './filter-utils';
 import {
   shouldRenderKnowledgeNodeLabel,
   type KnowledgeGraphLabelMode,
 } from './label-policy';
+import {
+  markKnowledgeGraphAutomaticNodeAnchors,
+  syncKnowledgeGraphMutableNodePositions,
+  type KnowledgeGraphLayoutState,
+} from './layout-state';
 
 interface KnowledgeGraphCanvasProps {
   nodes: KnowledgeNodeData[];
@@ -31,7 +42,11 @@ interface KnowledgeGraphCanvasProps {
   hoveredNode: KnowledgeNodeData | null;
   onNodeClick: (node: KnowledgeNodeData) => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
+  onNodeDragEnd: (node: KnowledgeNodeData) => void;
   labelMode: KnowledgeGraphLabelMode;
+  layoutState: KnowledgeGraphLayoutState;
+  fitViewVersion: number;
+  relayoutVersion: number;
 }
 
 // ========== 几何体创建函数 ==========
@@ -108,9 +123,13 @@ export function KnowledgeGraphCanvas({
   hoveredNode,
   onNodeClick,
   onNodeHover,
+  onNodeDragEnd,
   labelMode,
+  layoutState,
+  fitViewVersion,
+  relayoutVersion,
 }: KnowledgeGraphCanvasProps) {
-  const fgRef = useRef<any>();
+  const fgRef = useRef<any>(null);
   const [isLightTheme, setIsLightTheme] = useState(false);
 
   useEffect(() => {
@@ -129,8 +148,17 @@ export function KnowledgeGraphCanvas({
 
   // 1. 处理数据并转换 links 格式
   const graphData = useMemo(() => {
-    const clonedNodes = nodes.map((n) => ({ ...n } as any));
+    const degreeById = new Map<string, number>();
+    links.forEach((link) => {
+      degreeById.set(link.sourceId, (degreeById.get(link.sourceId) ?? 0) + 1);
+      degreeById.set(link.targetId, (degreeById.get(link.targetId) ?? 0) + 1);
+    });
+    const clonedNodes = nodes.map((n) => ({
+      ...n,
+      graphDegree: n.graphDegree ?? degreeById.get(n.id) ?? 0,
+    } as any));
     const nodeById = new Map(clonedNodes.map((node) => [node.id, node]));
+    const relayoutRadiusOffset = relayoutVersion * 0;
 
     const chapterNodes = clonedNodes.filter((node) => node.id.startsWith(CHAPTER_NODE_PREFIX));
     if (chapterNodes.length > 0) {
@@ -143,7 +171,7 @@ export function KnowledgeGraphCanvas({
         if (typeof orderB === 'number') return 1;
         return a.name.localeCompare(b.name, 'zh-Hans-CN');
       });
-      const chapterRadius = Math.max(180, orderedChapterNodes.length * 32);
+      const chapterRadius = Math.max(180 + relayoutRadiusOffset, orderedChapterNodes.length * 32);
       orderedChapterNodes.forEach((node, index) => {
         const angle = -Math.PI / 2 + (index / orderedChapterNodes.length) * Math.PI * 2;
         node.x = chapterRadius * Math.cos(angle);
@@ -188,11 +216,13 @@ export function KnowledgeGraphCanvas({
       target: l.targetId,
     }));
 
+    markKnowledgeGraphAutomaticNodeAnchors(clonedNodes);
+
     return {
       nodes: clonedNodes,
       links: transformedLinks
     };
-  }, [nodes, links]);
+  }, [nodes, links, relayoutVersion]);
 
   // 2. 创建自定义节点 3D 对象
   const createNodeObject = useCallback((node: any) => {
@@ -204,14 +234,42 @@ export function KnowledgeGraphCanvas({
     const isSelected = selectedNode?.id === node.id;
     const isHovered = hoveredNode?.id === node.id;
     const isActive = isSelected || isHovered;
+    const nodeScale = getKnowledgeNodeScale({
+      metadata: node.metadata,
+      degree: node.graphDegree,
+      focused: isActive,
+    });
+    const semanticRegionStyle = getKnowledgeSemanticRegionStyle(node, isLightTheme);
+
+    if (semanticRegionStyle.enabled) {
+      const regionRadius = Math.min(
+        semanticRegionStyle.maxRadius,
+        nodeScale.radius * semanticRegionStyle.radiusMultiplier
+      );
+      const territoryGeometry = new THREE.RingGeometry(
+        regionRadius * 0.82,
+        regionRadius,
+        64
+      );
+      const territoryMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(hexToRgba(semanticRegionStyle.strokeColor, 1)),
+        transparent: true,
+        opacity: semanticRegionStyle.strokeOpacity,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      const territory = new THREE.Mesh(territoryGeometry, territoryMaterial);
+      territory.rotation.x = Math.PI / 2;
+      group.add(territory);
+    }
 
     // 1. 创建节点几何体
     const geometry = createGeometryByType(node.nodeType);
 
     // 2. 创建材质（带发光效果）
     const material = new THREE.MeshPhongMaterial({
-      color: new THREE.Color(fillColor),
-      emissive: glowColor ? new THREE.Color(glowColor) : new THREE.Color(fillColor),
+      color: new THREE.Color(hexToRgba(fillColor, 1)),
+      emissive: glowColor ? new THREE.Color(hexToRgba(glowColor, 1)) : new THREE.Color(hexToRgba(fillColor, 1)),
       emissiveIntensity: glowColor ? (isActive ? 0.8 : 0.5) : (isActive ? 0.4 : 0.2),
       transparent: true,
       opacity: isActive ? 1 : 0.9,
@@ -219,13 +277,14 @@ export function KnowledgeGraphCanvas({
     });
 
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.scale.setScalar(nodeScale.radius / 5);
     group.add(mesh);
 
     // 3. 创建辉光层（如果有 bloomLevel）
     if (glowColor) {
-      const glowGeometry = new THREE.SphereGeometry(7, 16, 16);
+      const glowGeometry = new THREE.SphereGeometry(nodeScale.glowRadius / 1.7, 16, 16);
       const glowMaterial = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(glowColor),
+        color: new THREE.Color(hexToRgba(glowColor, 1)),
         transparent: true,
         opacity: isActive ? 0.3 : 0.15,
       });
@@ -235,7 +294,9 @@ export function KnowledgeGraphCanvas({
 
     // 4. 创建选中环
     if (isSelected) {
-      const ringGeometry = new THREE.RingGeometry(6, 7, 32);
+      const ringInnerRadius = nodeScale.radius + 0.6;
+      const ringOuterRadius = ringInnerRadius + Math.max(0.8, nodeScale.radius * 0.12);
+      const ringGeometry = new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 32);
       const ringMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
@@ -263,23 +324,53 @@ export function KnowledgeGraphCanvas({
 
   // 3. 获取连线颜色
   const getLinkColor = useCallback((link: any) => {
-    const style = getRelationStyle(link.relation);
+    const style = getRelationStyle(link.relationType || link.relation);
     const strength = typeof link.strength === 'number'
       ? Math.min(1, Math.max(0, link.strength))
       : 1;
-    const color = new THREE.Color(style.color);
-    const gain = 0.55 + strength * 0.45;
+    const color = new THREE.Color(hexToRgba(isLightTheme ? style.lightColor : style.darkColor, 1));
+    const sourceId = typeof link.source === 'object' ? link.source.id : link.sourceId;
+    const targetId = typeof link.target === 'object' ? link.target.id : link.targetId;
+    const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
+    const focusState = getRelationFocusState(sourceId, targetId, focusNodeId);
+    const focusGain = focusState === 'dimmed'
+      ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity
+      : focusState === 'active'
+        ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeNeighborhoodWidthGain
+        : 0.9;
+    const semanticGain = 0.4 + style.opacity * 0.6;
+    const gain = (0.55 + strength * 0.45) * focusGain * semanticGain;
     color.multiplyScalar(gain);
     return color.getStyle();
-  }, []);
+  }, [hoveredNode?.id, isLightTheme, selectedNode?.id]);
 
   // 4. 获取连线宽度
   const getLinkWidth = useCallback((link: any) => {
-    const style = getRelationStyle(link.relation);
+    const style = getRelationStyle(link.relationType || link.relation);
     const strength = typeof link.strength === 'number'
       ? Math.min(1, Math.max(0, link.strength))
       : 1;
-    return style.width * (0.7 + strength) * 1.1;
+    const sourceId = typeof link.source === 'object' ? link.source.id : link.sourceId;
+    const targetId = typeof link.target === 'object' ? link.target.id : link.targetId;
+    const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
+    const focusState = getRelationFocusState(sourceId, targetId, focusNodeId);
+    return getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '3d');
+  }, [hoveredNode?.id, selectedNode?.id]);
+
+  const getLinkArrowLength = useCallback((link: any) => {
+    return getRelationThreeDimensionalEncoding(link.relationType || link.relation).arrowLength;
+  }, []);
+
+  const getLinkDirectionalParticles = useCallback((link: any) => {
+    return getRelationThreeDimensionalEncoding(link.relationType || link.relation).directionalParticles;
+  }, []);
+
+  const getLinkDirectionalParticleWidth = useCallback((link: any) => {
+    return getRelationThreeDimensionalEncoding(link.relationType || link.relation).particleWidth;
+  }, []);
+
+  const getLinkDirectionalParticleSpeed = useCallback((link: any) => {
+    return getRelationThreeDimensionalEncoding(link.relationType || link.relation).particleSpeed;
   }, []);
 
   // 5. 配置物理引擎
@@ -295,6 +386,21 @@ export function KnowledgeGraphCanvas({
     }
   }, []);
 
+  useEffect(() => {
+    if (fitViewVersion === 0 || !fgRef.current?.zoomToFit) return;
+    window.setTimeout(() => {
+      fgRef.current?.zoomToFit?.(420, 56);
+    }, 0);
+  }, [fitViewVersion]);
+
+  useEffect(() => {
+    const currentNodes = fgRef.current?.graphData?.()?.nodes as
+      | Array<KnowledgeNodeData & { x?: number; y?: number; z?: number; fx?: number; fy?: number; fz?: number }>
+      | undefined;
+    syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);
+    fgRef.current?.refresh?.();
+  }, [graphData, layoutState]);
+
   // 6. 节点点击处理
   const handleNodeClick = useCallback((node: any) => {
     onNodeClick(node as KnowledgeNodeData);
@@ -304,6 +410,10 @@ export function KnowledgeGraphCanvas({
   const handleNodeHover = useCallback((node: any) => {
     onNodeHover(node as KnowledgeNodeData | null);
   }, [onNodeHover]);
+
+  const handleNodeDragEnd = useCallback((node: any) => {
+    onNodeDragEnd(node as KnowledgeNodeData);
+  }, [onNodeDragEnd]);
 
   return (
     <div className="relative h-full w-full">
@@ -319,10 +429,16 @@ export function KnowledgeGraphCanvas({
         linkColor={getLinkColor}
         linkWidth={getLinkWidth}
         linkOpacity={0.62}
+        linkDirectionalArrowLength={getLinkArrowLength}
+        linkDirectionalArrowRelPos={1}
+        linkDirectionalParticles={getLinkDirectionalParticles}
+        linkDirectionalParticleWidth={getLinkDirectionalParticleWidth}
+        linkDirectionalParticleSpeed={getLinkDirectionalParticleSpeed}
 
         // 交互
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
+        onNodeDragEnd={handleNodeDragEnd}
         enableNodeDrag={true}
 
         // 物理引擎

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { BookOpen, Layers, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -9,7 +9,7 @@ import type { LessonKnowledgeCard } from '@/resources/interactive-learning/share
 
 const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
   {
-    id: 'node-describing-function-assumptions',
+    id: '描述函数适用条件_5_52003',
     name: '描述函数法的基本假设',
     nodeType: 'METHOD',
     description: '单一非线性 + 线性部分 + 低通滤波特性。',
@@ -21,7 +21,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['适用性判断', '模型简化'],
   },
   {
-    id: 'node-negative-inverse-describing',
+    id: '负倒描述函数_8_159ff256',
     name: '负倒描述函数',
     nodeType: 'METHOD',
     description: '将 -1/N(A) 绘制在复平面上，与 G(jω) 比较。',
@@ -34,7 +34,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['交点判别', '自振分析'],
   },
   {
-    id: 'node-nonlinear-stability-criterion',
+    id: '非线性系统稳定性判据_描述函数法__8_2d9b3f16',
     name: '非线性系统稳定性判据',
     nodeType: 'THEORY',
     description: 'G(jω) 不包围 -1/N(A) 时闭环稳定。',
@@ -46,7 +46,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['判稳', '稳定裕度评估'],
   },
   {
-    id: 'node-limit-cycle-condition',
+    id: '自振_8_3ed83301',
     name: '自振存在条件',
     nodeType: 'THEORY',
     description: 'G(jω) 与 -1/N(A) 相交时可能出现自振。',
@@ -59,7 +59,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['极限环判断'],
   },
   {
-    id: 'node-limit-cycle-stability',
+    id: '稳定的极限环_8_0a23bf90',
     name: '自振稳定性判别',
     nodeType: 'METHOD',
     description: '用微小扰动分析判断振幅是否收敛回交点。',
@@ -71,7 +71,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['极限环稳定性分析'],
   },
   {
-    id: 'node-negative-inverse-plot',
+    id: '负倒描述函数_8_159ff256',
     name: '负倒描述函数绘制',
     nodeType: 'METHOD',
     description: '典型非线性往往在负实轴或第三象限形成轨迹。',
@@ -83,7 +83,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['快速作图', '交点求解'],
   },
   {
-    id: 'node-limit-cycle-solving',
+    id: '自振_8_3ed83301',
     name: '自振参数求解',
     nodeType: 'METHOD',
     description: '由 N(A)G(jω)=-1 同时解出振幅与频率。',
@@ -100,22 +100,32 @@ interface DfKnowledgeDeckProps extends BaseWidgetProps {}
 
 export default function DfKnowledgeDeck({ onComplete, onStateChange }: DfKnowledgeDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(KNOWLEDGE_CARDS[0]?.id ?? 'node-describing-function-assumptions');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? '描述函数适用条件_5_52003';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeCard = useMemo(
     () => KNOWLEDGE_CARDS.find((card) => card.id === activeId) ?? KNOWLEDGE_CARDS[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / KNOWLEDGE_CARDS.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { cardId: activeId, visitedCount: nextVisited.length },
+      data: { cardId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -131,7 +141,7 @@ export default function DfKnowledgeDeck({ onComplete, onStateChange }: DfKnowled
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -148,9 +158,9 @@ export default function DfKnowledgeDeck({ onComplete, onStateChange }: DfKnowled
           </div>
           <div className="mt-4 space-y-2">
             {KNOWLEDGE_CARDS.map((card, index) => (
-              <button
+              <button type="button"
                 key={card.id}
-                onClick={() => setActiveId(card.id)}
+                onClick={() => recordVisit(card.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === card.id
                     ? 'bg-slate-900 text-white'

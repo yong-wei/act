@@ -245,7 +245,7 @@ export function UNIT_5_1StudentPage({
         }
       />
 
-      <main className="premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-6">
+      <main className="premium-lesson-main py-4 sm:py-6">
         {isOutOfSync ? (
           <div className="premium-lesson-tone-block premium-tone-amber mb-4 flex flex-wrap items-center justify-between gap-3">
             <span>当前页面与教师不同步，点击可跳转到教师所在环节。</span>
@@ -272,7 +272,7 @@ export function UNIT_5_1StudentPage({
           manifest={runtimeManifest}
           revealProgress={revealProgress}
           allowInlineReveal={allowInlineReveal}
-          role="student"
+          viewerRole="student"
           submittedCount={submittedCount}
           viewedCount={viewedStepIds.length}
           parameterSubmissionCount={parameterSubmissionCount}

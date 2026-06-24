@@ -22,9 +22,16 @@ interface InferenceRule {
   pageType: PageType;
   getStepId?: (pathname: string) => string | undefined;
   getTopic?: (pathname: string) => string;
+  getContextExtras?: (pathname: string) => Partial<PageContext>;
   learningObjectives?: string[];
   knowledgeType?: KnowledgeType;
   tools?: string[];
+}
+
+function simulationIdFromPath(pathname: string): string {
+  const [pathOnly] = pathname.split(/[?#]/, 1);
+  const [, simulationId] = pathOnly.split('/').filter(Boolean);
+  return simulationId || 'catalog';
 }
 
 /**
@@ -45,11 +52,17 @@ const INFERENCE_RULES: InferenceRule[] = [
     tools: ['get_lesson_content', 'analyze_concept'],
   },
   {
-    pattern: /\/simulations\//,
+    pattern: /^\/simulations(?:\/|$)/,
     courseId: 'simulation',
     courseTitle: '船舶控制仿真',
     pageType: 'workspace',
+    getStepId: simulationIdFromPath,
     getTopic: () => '船舶控制仿真',
+    getContextExtras: (pathname) => ({
+      simulationId: simulationIdFromPath(pathname),
+      routeProvenance: 'simulation-route',
+      runSummaryAvailability: 'unavailable-until-runtime-run',
+    }),
     learningObjectives: ['掌握PID控制器调参', '理解船舶运动模型'],
     tools: ['get_simulation_status', 'set_simulation_params', 'analyze_result'],
   },
@@ -113,6 +126,7 @@ function inferPageContextFromPath(pathname: string): Partial<PageContext> | null
         learningObjectives: rule.learningObjectives || [],
         knowledgeType: rule.knowledgeType || 'C',
         url: pathname,
+        ...rule.getContextExtras?.(pathname),
       };
     }
   }

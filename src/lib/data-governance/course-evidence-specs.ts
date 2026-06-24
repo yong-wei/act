@@ -75,6 +75,13 @@ export interface ResolveCourseEvidenceSpecInput {
 type CourseEvidenceSemanticOverride = Omit<CourseEvidenceSpecOverride, 'lessonId' | 'lessonKey' | 'routeSegment'>;
 
 const COURSE_EVIDENCE_SEMANTIC_OVERRIDES: Record<string, CourseEvidenceSemanticOverride> = {
+  '1-2': {
+    studentStateKind: 'unit12_student_state',
+    teacherSyncKind: 'teacher_sync_unit12',
+    preAssessmentStepId: 'step-03',
+    postAssessmentStepId: 'step-13',
+    summaryStepId: 'step-14',
+  },
   '5-3': {
     studentStateKind: 'unit53_student_state',
     teacherSyncKind: 'teacher_sync_unit53',

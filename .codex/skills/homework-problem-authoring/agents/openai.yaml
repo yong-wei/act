@@ -1,4 +1,0 @@
-interface:
-  display_name: "作业题目生成"
-  short_description: "按题号从作业框架生成完整习题，并通过多智能体裁判与作答复核稳定性"
-  default_prompt: "使用 $homework-problem-authoring 按题号生成题面、标准答案、评分标准和参考作答。"

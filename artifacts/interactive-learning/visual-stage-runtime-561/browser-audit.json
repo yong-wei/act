@@ -1,0 +1,208 @@
+{
+  "status": "pass",
+  "capturedAt": "2026-06-18T00:06:39.978Z",
+  "route": "/review/visual-stage-runtime-561",
+  "roles": [
+    "student",
+    "teacher",
+    "guest"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "viewports": [
+    "mobile",
+    "desktop",
+    "projection"
+  ],
+  "states": [
+    "student-unreleased",
+    "student-released",
+    "student-submitted",
+    "teacher-reveal",
+    "teacher-answer-reveal",
+    "teacher-diagnostics",
+    "guest-unavailable"
+  ],
+  "noHorizontalOverflow": true,
+  "teacherControlsClearPrimaryStage": true,
+  "freeformStageVerified": true,
+  "results": [
+    {
+      "name": "student-unreleased-desktop-light",
+      "role": "student",
+      "state": "student-unreleased",
+      "theme": "light",
+      "viewport": "desktop",
+      "size": {
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "browser-evidence/student-unreleased-desktop-light.png",
+      "route": "/review/visual-stage-runtime-561",
+      "url": "http://localhost:3001/review/visual-stage-runtime-561?role=student&state=student-unreleased&theme=light",
+      "screenshot": "artifacts/interactive-learning/visual-stage-runtime-561/browser-evidence/student-unreleased-desktop-light.png",
+      "sha256": "5acf84b0e2521cd751f3dfce803337c6bf8c041155890c7de655fa8164f534c4",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "layerCount": 0,
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "student-released-desktop-dark",
+      "role": "student",
+      "state": "student-released",
+      "theme": "dark",
+      "viewport": "desktop",
+      "size": {
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "browser-evidence/student-released-desktop-dark.png",
+      "route": "/review/visual-stage-runtime-561",
+      "url": "http://localhost:3001/review/visual-stage-runtime-561?role=student&state=student-released&theme=dark",
+      "screenshot": "artifacts/interactive-learning/visual-stage-runtime-561/browser-evidence/student-released-desktop-dark.png",
+      "sha256": "c294e65b25a60d4ab414a09dfaeb18ff49e691e5f6dc10c995f5f00a4ed662e5",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "layerCount": 2,
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "student-submitted-mobile-light",
+      "role": "student",
+      "state": "student-submitted",
+      "theme": "light",
+      "viewport": "mobile",
+      "size": {
+        "width": 390,
+        "height": 1000
+      },
+      "path": "browser-evidence/student-submitted-mobile-light.png",
+      "route": "/review/visual-stage-runtime-561",
+      "url": "http://localhost:3001/review/visual-stage-runtime-561?role=student&state=student-submitted&theme=light",
+      "screenshot": "artifacts/interactive-learning/visual-stage-runtime-561/browser-evidence/student-submitted-mobile-light.png",
+      "sha256": "72ef2374a9034e11f52a8cd27a73c9219fd280b82837c410940738285cfd558b",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "layerCount": 2,
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "teacher-reveal-projection-dark",
+      "role": "teacher",
+      "state": "teacher-reveal",
+      "theme": "dark",
+      "viewport": "projection",
+      "size": {
+        "width": 1920,
+        "height": 1080
+      },
+      "path": "browser-evidence/teacher-reveal-projection-dark.png",
+      "route": "/review/visual-stage-runtime-561",
+      "url": "http://localhost:3001/review/visual-stage-runtime-561?role=teacher&state=teacher-reveal&theme=dark",
+      "screenshot": "artifacts/interactive-learning/visual-stage-runtime-561/browser-evidence/teacher-reveal-projection-dark.png",
+      "sha256": "b11440186f66bfdcec3dcd9fb7907d7cc7aacf5b33bd24ec806b6de82e8bb270",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "layerCount": 2,
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "teacher-answer-reveal-desktop-light",
+      "role": "teacher",
+      "state": "teacher-answer-reveal",
+      "theme": "light",
+      "viewport": "desktop",
+      "size": {
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "browser-evidence/teacher-answer-reveal-desktop-light.png",
+      "route": "/review/visual-stage-runtime-561",
+      "url": "http://localhost:3001/review/visual-stage-runtime-561?role=teacher&state=teacher-answer-reveal&theme=light",
+      "screenshot": "artifacts/interactive-learning/visual-stage-runtime-561/browser-evidence/teacher-answer-reveal-desktop-light.png",
+      "sha256": "a37502dfc25918b60df44f5fd4087e9c963c358054163eb634d45657a00d01fe",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "layerCount": 2,
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "teacher-diagnostics-desktop-dark",
+      "role": "teacher",
+      "state": "teacher-diagnostics",
+      "theme": "dark",
+      "viewport": "desktop",
+      "size": {
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "browser-evidence/teacher-diagnostics-desktop-dark.png",
+      "route": "/review/visual-stage-runtime-561",
+      "url": "http://localhost:3001/review/visual-stage-runtime-561?role=teacher&state=teacher-diagnostics&theme=dark",
+      "screenshot": "artifacts/interactive-learning/visual-stage-runtime-561/browser-evidence/teacher-diagnostics-desktop-dark.png",
+      "sha256": "192e219a431289b01322ff455cfa756541d6aa4098f53553a7dc6ffa3eaff253",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "layerCount": 2,
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "guest-unavailable-mobile-light",
+      "role": "guest",
+      "state": "guest-unavailable",
+      "theme": "light",
+      "viewport": "mobile",
+      "size": {
+        "width": 390,
+        "height": 1000
+      },
+      "path": "browser-evidence/guest-unavailable-mobile-light.png",
+      "route": "/review/visual-stage-runtime-561",
+      "url": "http://localhost:3001/review/visual-stage-runtime-561?role=guest&state=guest-unavailable&theme=light",
+      "screenshot": "artifacts/interactive-learning/visual-stage-runtime-561/browser-evidence/guest-unavailable-mobile-light.png",
+      "sha256": "605a92f2aa47822bb8298fde6398978d89907f2f4645d3bcb0f5738043727141",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "layerCount": 0,
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    }
+  ]
+}

@@ -4,8 +4,14 @@ import { getServerSession, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 import { sessionProfileCache, sessionRequestDeduplicator } from '@/lib/lru-cache';
-import { prisma } from '@/lib/prisma';
 import { isDatabaseConnectivityError } from '@/lib/service-availability';
+
+type PrismaModule = typeof import('@/lib/prisma');
+
+async function getPrismaClient(): Promise<PrismaModule['prisma']> {
+  const { prisma } = await import('@/lib/prisma');
+  return prisma;
+}
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -29,6 +35,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        const prisma = await getPrismaClient();
         const user = await prisma.user.findFirst({
           where: {
             OR: [
@@ -88,6 +95,7 @@ export const authOptions: NextAuthOptions = {
         if (!profile) {
           try {
             const fetchedProfile = await sessionRequestDeduplicator.execute(userId, async () => {
+              const prisma = await getPrismaClient();
               const fetchedProfile = await prisma.studentProfile.findUnique({
                 where: { userId },
                 select: {

@@ -8,10 +8,10 @@
 - [30-content-update-flow.md](30-content-update-flow.md)
 下游: []
 相关:
-- [/.codex/skills/lesson/SKILL.md](../../../.codex/skills/lesson/SKILL.md)
-- [/.codex/skills/lesson/references/step3-handout.md](../../../.codex/skills/lesson/references/step3-handout.md)
-- [/.codex/skills/lesson/references/step7-multimedia.md](../../../.codex/skills/lesson/references/step7-multimedia.md)
-- [/.codex/skills/lesson/scripts/export_handout_pdf.py](../../../.codex/skills/lesson/scripts/export_handout_pdf.py)
+- [/.agents/skills/lesson/SKILL.md](../../../.agents/skills/lesson/SKILL.md)
+- [/.agents/skills/lesson/references/step3-handout.md](../../../.agents/skills/lesson/references/step3-handout.md)
+- [/.agents/skills/lesson/references/step7-multimedia.md](../../../.agents/skills/lesson/references/step7-multimedia.md)
+- [/.agents/skills/lesson/scripts/export_handout_pdf.py](../../../.agents/skills/lesson/scripts/export_handout_pdf.py)
 
 ## 结论
 
@@ -27,7 +27,7 @@
 2. 若封面漫画和信息图尚未完成，但需要先导出一版 PDF 给 NotebookLM 或后续提示词制作，执行：
 
 ```bash
-python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
+python3 .agents/skills/lesson/scripts/export_handout_pdf.py \
   --draft-mode \
   course-content/authoring/lessons/<unit>/design/handout.md
 ```

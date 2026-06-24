@@ -69,7 +69,7 @@ export default function FeedbackObjectiveCard({ onComplete, onStateChange }: Fee
             <Target className="h-4 w-4" />
             目标确认后进入前测。
           </div>
-          <button
+          <button type="button"
             onClick={handleConfirm}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${
               confirmed ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-600 text-white'

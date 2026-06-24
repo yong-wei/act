@@ -6,11 +6,12 @@ import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_3_8StudentPage } from '@/features/interactive/unit-3-8-frequency-domain-translation-judgment/student-page';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
-export default async function UNIT_3_8StudentRoute({
-  params,
-}: {
-  params: { sessionId: string };
-}) {
+export default async function UNIT_3_8StudentRoute(
+  props: {
+    params: Promise<{ sessionId: string }>;
+  }
+) {
+  const params = await props.params;
   await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment');
 
   const session = await getServerSession(authOptions);

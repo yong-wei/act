@@ -161,7 +161,7 @@ Expected:
 Run if available:
 
 ```bash
-python3 .codex/skills/memory-maintenance/scripts/validate_memory.py
+python3 .agents/skills/memory-maintenance/scripts/validate_memory.py
 ```
 
 Expected:

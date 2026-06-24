@@ -1,0 +1,959 @@
+{
+  "id": "app-shell-392-canonical-route-evidence",
+  "createdAt": "2026-06-12T06:08:38.691Z",
+  "change": "upgrade-platform-app-shell-to-archetype-shell",
+  "purpose": "Documents current AppShell route-ledger metadata convergence and shell-owned dock registration after canonical archetype migration.",
+  "evidenceKind": "structured-app-shell-contract-review",
+  "reviewedFiles": [
+    "src/components/platform/app-shell.tsx",
+    "src/components/shared/page-floating-controls.tsx",
+    "src/lib/platform-role-navigation.ts"
+  ],
+  "verification": [
+    "rtk npm run test:unit -- src/lib/__tests__/platform-ui-contracts.test.ts src/lib/__tests__/platform-role-navigation.test.ts src/lib/__tests__/commercial-ui-governance.test.ts",
+    "rtk npm run test:commercial-ui-governance",
+    "rtk npx tsc --noEmit --pretty false"
+  ],
+  "routeMetadataUpdates": [
+    {
+      "href": "/login?callbackUrl=%2Fprofile",
+      "requestedRoute": "/login?callbackUrl=%2Fprofile",
+      "width": 1440,
+      "previousRouteArchetype": "auth-entry",
+      "routeArchetype": "public-entry",
+      "routeFile": "src/app/(auth)/login/page.tsx",
+      "floatingDock": "hidden"
+    },
+    {
+      "href": "/login?callbackUrl=%2Fprofile",
+      "requestedRoute": "/login?callbackUrl=%2Fprofile",
+      "width": 320,
+      "previousRouteArchetype": "auth-entry",
+      "routeArchetype": "public-entry",
+      "routeFile": "src/app/(auth)/login/page.tsx",
+      "floatingDock": "hidden"
+    },
+    {
+      "href": "/dashboard",
+      "requestedRoute": "/dashboard",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/(main)/dashboard/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/dashboard",
+      "requestedRoute": "/dashboard",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/(main)/dashboard/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/dashboard",
+      "requestedRoute": "/dashboard",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/(main)/dashboard/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/dashboard",
+      "requestedRoute": "/dashboard",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/(main)/dashboard/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/dashboard",
+      "requestedRoute": "/dashboard",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/(main)/dashboard/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/dashboard",
+      "requestedRoute": "/dashboard",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/(main)/dashboard/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/dashboard",
+      "requestedRoute": "/dashboard",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/(main)/dashboard/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/dashboard",
+      "requestedRoute": "/dashboard",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/(main)/dashboard/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/interactive-learning",
+      "requestedRoute": "/interactive-learning",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning",
+      "requestedRoute": "/interactive-learning",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning",
+      "requestedRoute": "/interactive-learning",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning",
+      "requestedRoute": "/interactive-learning",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/arena",
+      "requestedRoute": "/arena",
+      "width": 1440,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/arena/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/arena",
+      "requestedRoute": "/arena",
+      "width": 320,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/arena/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/assessment/adaptive-practice",
+      "requestedRoute": "/assessment/adaptive-practice",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/assessment/adaptive-practice/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/assessment/adaptive-practice",
+      "requestedRoute": "/assessment/adaptive-practice",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/assessment/adaptive-practice/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/assessment/adaptive-practice",
+      "requestedRoute": "/assessment/adaptive-practice",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/assessment/adaptive-practice/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/assessment/adaptive-practice",
+      "requestedRoute": "/assessment/adaptive-practice",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/assessment/adaptive-practice/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/profile",
+      "requestedRoute": "/profile",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "report-ledger",
+      "routeFile": "src/app/(main)/profile/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/profile",
+      "requestedRoute": "/profile",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "report-ledger",
+      "routeFile": "src/app/(main)/profile/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/profile",
+      "requestedRoute": "/profile",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "report-ledger",
+      "routeFile": "src/app/(main)/profile/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/profile",
+      "requestedRoute": "/profile",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "report-ledger",
+      "routeFile": "src/app/(main)/profile/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/interactive-learning/control-workbench",
+      "requestedRoute": "/interactive-learning/control-workbench",
+      "width": 320,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/interactive-learning/control-workbench",
+      "requestedRoute": "/interactive-learning/control-workbench",
+      "width": 1440,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/interactive-learning/control-workbench",
+      "requestedRoute": "/interactive-learning/control-workbench",
+      "width": 320,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/interactive-learning/control-workbench",
+      "requestedRoute": "/interactive-learning/control-workbench",
+      "width": 1440,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/teacher/classes/[classId]/analytics-v2",
+      "requestedRoute": "/teacher/classes/[classId]/analytics-v2",
+      "width": 1440,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/classes/[classId]/analytics-v2/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher/classes/[classId]/analytics-v2",
+      "requestedRoute": "/teacher/classes/[classId]/analytics-v2",
+      "width": 1440,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/classes/[classId]/analytics-v2/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher/classes/[classId]/analytics-v2",
+      "requestedRoute": "/teacher/classes/[classId]/analytics-v2",
+      "width": 320,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/classes/[classId]/analytics-v2/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher/classes/[classId]/analytics-v2",
+      "requestedRoute": "/teacher/classes/[classId]/analytics-v2",
+      "width": 320,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/classes/[classId]/analytics-v2/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin/data-governance",
+      "requestedRoute": "/admin/data-governance",
+      "width": 320,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/data-governance/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin/data-governance",
+      "requestedRoute": "/admin/data-governance",
+      "width": 1440,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/data-governance/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin/data-governance",
+      "requestedRoute": "/admin/data-governance",
+      "width": 320,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/data-governance/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin/data-governance",
+      "requestedRoute": "/admin/data-governance",
+      "width": 1440,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/data-governance/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/data-center",
+      "requestedRoute": "/data-center",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "knowledge-data-map",
+      "routeFile": "src/app/data-center/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/data-center",
+      "requestedRoute": "/data-center",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "knowledge-data-map",
+      "routeFile": "src/app/data-center/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/data-center",
+      "requestedRoute": "/data-center",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "knowledge-data-map",
+      "routeFile": "src/app/data-center/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/data-center",
+      "requestedRoute": "/data-center",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "knowledge-data-map",
+      "routeFile": "src/app/data-center/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/login",
+      "requestedRoute": "/login",
+      "width": 320,
+      "previousRouteArchetype": "auth-entry",
+      "routeArchetype": "public-entry",
+      "routeFile": "src/app/(auth)/login/page.tsx",
+      "floatingDock": "hidden"
+    },
+    {
+      "href": "/login",
+      "requestedRoute": "/login",
+      "width": 1440,
+      "previousRouteArchetype": "auth-entry",
+      "routeArchetype": "public-entry",
+      "routeFile": "src/app/(auth)/login/page.tsx",
+      "floatingDock": "hidden"
+    },
+    {
+      "href": "/login",
+      "requestedRoute": "/login",
+      "width": 320,
+      "previousRouteArchetype": "auth-entry",
+      "routeArchetype": "public-entry",
+      "routeFile": "src/app/(auth)/login/page.tsx",
+      "floatingDock": "hidden"
+    },
+    {
+      "href": "/login",
+      "requestedRoute": "/login",
+      "width": 1440,
+      "previousRouteArchetype": "auth-entry",
+      "routeArchetype": "public-entry",
+      "routeFile": "src/app/(auth)/login/page.tsx",
+      "floatingDock": "hidden"
+    },
+    {
+      "href": "/simulations",
+      "requestedRoute": "/simulations",
+      "width": 320,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/simulations/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/simulations",
+      "requestedRoute": "/simulations",
+      "width": 1440,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/simulations/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/simulations",
+      "requestedRoute": "/simulations",
+      "width": 320,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/simulations/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/simulations",
+      "requestedRoute": "/simulations",
+      "width": 1440,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/simulations/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/teacher",
+      "requestedRoute": "/teacher",
+      "width": 320,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher",
+      "requestedRoute": "/teacher",
+      "width": 1440,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher",
+      "requestedRoute": "/teacher",
+      "width": 320,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher",
+      "requestedRoute": "/teacher",
+      "width": 1440,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher",
+      "requestedRoute": "/teacher",
+      "width": 320,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher",
+      "requestedRoute": "/teacher",
+      "width": 1440,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher",
+      "requestedRoute": "/teacher",
+      "width": 320,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher",
+      "requestedRoute": "/teacher",
+      "width": 1440,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin",
+      "requestedRoute": "/admin",
+      "width": 320,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin",
+      "requestedRoute": "/admin",
+      "width": 1440,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin",
+      "requestedRoute": "/admin",
+      "width": 320,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin",
+      "requestedRoute": "/admin",
+      "width": 1440,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin",
+      "requestedRoute": "/admin",
+      "width": 320,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin",
+      "requestedRoute": "/admin",
+      "width": 1440,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin",
+      "requestedRoute": "/admin",
+      "width": 320,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/admin",
+      "requestedRoute": "/admin",
+      "width": 1440,
+      "previousRouteArchetype": "admin-governance",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/admin/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/knowledge",
+      "requestedRoute": "/knowledge",
+      "width": 320,
+      "previousRouteArchetype": "knowledge-graph",
+      "routeArchetype": "knowledge-data-map",
+      "routeFile": "src/app/knowledge/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/knowledge",
+      "requestedRoute": "/knowledge",
+      "width": 1440,
+      "previousRouteArchetype": "knowledge-graph",
+      "routeArchetype": "knowledge-data-map",
+      "routeFile": "src/app/knowledge/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/knowledge",
+      "requestedRoute": "/knowledge",
+      "width": 320,
+      "previousRouteArchetype": "knowledge-graph",
+      "routeArchetype": "knowledge-data-map",
+      "routeFile": "src/app/knowledge/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/knowledge",
+      "requestedRoute": "/knowledge",
+      "width": 1440,
+      "previousRouteArchetype": "knowledge-graph",
+      "routeArchetype": "knowledge-data-map",
+      "routeFile": "src/app/knowledge/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses",
+      "requestedRoute": "/interactive-learning/courses",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses",
+      "requestedRoute": "/interactive-learning/courses",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses",
+      "requestedRoute": "/interactive-learning/courses",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses",
+      "requestedRoute": "/interactive-learning/courses",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "requestedRoute": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "requestedRoute": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "requestedRoute": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "requestedRoute": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "requestedRoute": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "requestedRoute": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]",
+      "requestedRoute": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]",
+      "requestedRoute": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]",
+      "requestedRoute": "/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]",
+      "width": 1440,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]",
+      "requestedRoute": "/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]",
+      "width": 320,
+      "previousRouteArchetype": "learning-map",
+      "routeArchetype": "learning-atlas",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/interactive-learning/courses/[course]/student/[sessionId]",
+      "requestedRoute": "/interactive-learning/courses/[course]/student/[sessionId]",
+      "width": 1440,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]/page.tsx",
+      "floatingDock": "hidden"
+    },
+    {
+      "href": "/interactive-learning/courses/[course]/student/[sessionId]",
+      "requestedRoute": "/interactive-learning/courses/[course]/student/[sessionId]",
+      "width": 320,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]/page.tsx",
+      "floatingDock": "hidden"
+    },
+    {
+      "href": "/arena/challenges/[taskId]",
+      "requestedRoute": "/arena/challenges/[taskId]",
+      "width": 1440,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/arena/challenges/[taskId]",
+      "requestedRoute": "/arena/challenges/[taskId]",
+      "width": 320,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/arena/challenges/[taskId]",
+      "requestedRoute": "/arena/challenges/[taskId]",
+      "width": 1440,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/arena/challenges/[taskId]",
+      "requestedRoute": "/arena/challenges/[taskId]",
+      "width": 320,
+      "previousRouteArchetype": "immersive-task-workspace",
+      "routeArchetype": "mission-workspace",
+      "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
+      "floatingDock": "collapsed"
+    },
+    {
+      "href": "/profile/growth",
+      "requestedRoute": "/profile/growth",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "report-ledger",
+      "routeFile": "src/app/(main)/profile/growth/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/profile/growth",
+      "requestedRoute": "/profile/growth",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "report-ledger",
+      "routeFile": "src/app/(main)/profile/growth/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/profile/evidence",
+      "requestedRoute": "/profile/evidence",
+      "width": 1440,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "report-ledger",
+      "routeFile": "src/app/(main)/profile/evidence/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/profile/evidence",
+      "requestedRoute": "/profile/evidence",
+      "width": 320,
+      "previousRouteArchetype": "learner-data",
+      "routeArchetype": "report-ledger",
+      "routeFile": "src/app/(main)/profile/evidence/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher/classes",
+      "requestedRoute": "/teacher/classes",
+      "width": 1440,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/classes/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher/classes",
+      "requestedRoute": "/teacher/classes",
+      "width": 320,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/classes/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher/classes/[classId]",
+      "requestedRoute": "/teacher/classes/[classId]",
+      "width": 1440,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/classes/[classId]/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher/classes/[classId]",
+      "requestedRoute": "/teacher/classes/[classId]",
+      "width": 320,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/classes/[classId]/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher/classes/[classId]/students/[studentId]",
+      "requestedRoute": "/teacher/classes/[classId]/students/[studentId]",
+      "width": 1440,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/classes/[classId]/students/[studentId]/page.tsx",
+      "floatingDock": "enabled"
+    },
+    {
+      "href": "/teacher/classes/[classId]/students/[studentId]",
+      "requestedRoute": "/teacher/classes/[classId]/students/[studentId]",
+      "width": 320,
+      "previousRouteArchetype": "teacher-operations",
+      "routeArchetype": "operations-console",
+      "routeFile": "src/app/teacher/classes/[classId]/students/[studentId]/page.tsx",
+      "floatingDock": "enabled"
+    }
+  ],
+  "generatedBy": "OpenSpec Buddy #392 AppShell contract verification",
+  "generatedFromHead": "3b40a409d5ef6b2618e7224db7b2b20ec48c6091",
+  "inputManifest": "artifacts/commercial-ui/evidence.json",
+  "note": "Generated before commit from the working tree state for upgrade-platform-app-shell-to-archetype-shell; final commit hash is intentionally not self-referenced."
+}

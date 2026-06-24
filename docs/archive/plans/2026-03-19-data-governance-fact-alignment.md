@@ -75,8 +75,8 @@ Run:
 ### Task 4: 收口本地 server-ops skill 与项目文档
 
 **Files:**
-- Modify: `.codex/skills/server-ops/SKILL.md`
-- Modify: `.codex/skills/server-ops/references/database-sync.md`
+- Modify: `.agents/skills/server-ops/SKILL.md`
+- Modify: `.agents/skills/server-ops/references/database-sync.md`
 - Modify: `docs/ProjectDescription.md`
 
 **Step 1: 基于本次经验调整 skill 入口与 reference**

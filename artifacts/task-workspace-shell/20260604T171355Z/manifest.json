@@ -1,0 +1,2074 @@
+{
+  "generatedAt": "2026-06-04T17:14:57.709Z",
+  "baseUrl": "http://127.0.0.1:3001",
+  "total": 20,
+  "non200": 0,
+  "missingArchetype": 0,
+  "missingReturnTarget": 0,
+  "titleModuleHasArchetype": 0,
+  "rightPaddingUnexpected": 0,
+  "rightPaddingPolicy": "Mobile task workspace root padding-right above 20px is considered unexpected; regular content gutters such as Arena px-4 are allowed.",
+  "bottomPaddingTooSmall": 0,
+  "pageErrors": 0,
+  "consoleIssues": 34,
+  "results": [
+    {
+      "route": "cruise",
+      "url": "/simulations/cruise",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "cruise-desktop-light.png",
+      "expectedArchetype": "immersive-scene",
+      "expectedReturnTarget": "/simulations",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "light",
+        "archetype": "immersive-scene",
+        "launchProvenance": "standalone",
+        "returnTarget": "/simulations",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 1440,
+          "height": 1128,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回仿真入口邮轮仿真独立探索该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。主视角主俯瞰俯战术战#网格开网1.0x状态监控仿真时间0.0s剩余时长300.0s当前航向0.0°航向误差0.0°转艏角速度0.00°/s舵角0.0"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 374,
+            "height": 66,
+            "x": 24,
+            "y": 96,
+            "visible": true,
+            "text": "独立探索该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1440,
+            "height": 1000,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "主视角主俯瞰俯战术战#网格开网1.0x状态监控仿真时间0.0s剩余时长300.0s当前航向0.0°航向误差0.0°转艏角速度0.00°/s舵角0.0°横摇角0.00°舒适度评估优秀MSI: 0.0%横摇RMS0.00°横摇峰值0.00°控制"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": "bottom-tools",
+            "tag": "section",
+            "width": 480,
+            "height": 58,
+            "x": 24,
+            "y": 922,
+            "visible": true,
+            "text": "场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1,
+            "height": 1,
+            "x": -1,
+            "y": 999,
+            "visible": false,
+            "text": "仿真模型、回放、Arena 预览和官方评价边界由场景与 Arena 域提供。"
+          },
+          {
+            "commercialZone": "bottom-tools",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1,
+            "height": 1,
+            "x": -1,
+            "y": 999,
+            "visible": false,
+            "text": "相机、视角和场景工具为任务局部控制。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11c004dfc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11c004dfc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11c004dfc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11c004dfc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "cruise",
+      "url": "/simulations/cruise",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "cruise-desktop-dark.png",
+      "expectedArchetype": "immersive-scene",
+      "expectedReturnTarget": "/simulations",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "dark",
+        "archetype": "immersive-scene",
+        "launchProvenance": "standalone",
+        "returnTarget": "/simulations",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 1440,
+          "height": 1128,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回仿真入口邮轮仿真独立探索该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。主视角主俯瞰俯战术战#网格开网1.0x状态监控仿真时间0.0s剩余时长300.0s当前航向0.0°航向误差0.0°转艏角速度0.00°/s舵角0.0"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 374,
+            "height": 66,
+            "x": 24,
+            "y": 96,
+            "visible": true,
+            "text": "独立探索该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1440,
+            "height": 1000,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "主视角主俯瞰俯战术战#网格开网1.0x状态监控仿真时间0.0s剩余时长300.0s当前航向0.0°航向误差0.0°转艏角速度0.00°/s舵角0.0°横摇角0.00°舒适度评估优秀MSI: 0.0%横摇RMS0.00°横摇峰值0.00°控制"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": "bottom-tools",
+            "tag": "section",
+            "width": 480,
+            "height": 58,
+            "x": 24,
+            "y": 922,
+            "visible": true,
+            "text": "场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1,
+            "height": 1,
+            "x": -1,
+            "y": 999,
+            "visible": false,
+            "text": "仿真模型、回放、Arena 预览和官方评价边界由场景与 Arena 域提供。"
+          },
+          {
+            "commercialZone": "bottom-tools",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1,
+            "height": 1,
+            "x": -1,
+            "y": 999,
+            "visible": false,
+            "text": "相机、视角和场景工具为任务局部控制。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "cruise",
+      "url": "/simulations/cruise",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "cruise-mobile-light.png",
+      "expectedArchetype": "immersive-scene",
+      "expectedReturnTarget": "/simulations",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "light",
+        "archetype": "immersive-scene",
+        "launchProvenance": "standalone",
+        "returnTarget": "/simulations",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 390,
+          "height": 972,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回仿真入口邮轮仿真独立探索该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。主视角主俯瞰俯战术战#网格开网1.0x状态监控仿真时间0.0s剩余时长300.0s当前航向0.0°航向误差0.0°转艏角速度0.00°/s舵角0.0"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 358,
+            "height": 86,
+            "x": 16,
+            "y": 80,
+            "visible": true,
+            "text": "独立探索该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "section",
+            "width": 390,
+            "height": 844,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "主视角主俯瞰俯战术战#网格开网1.0x状态监控仿真时间0.0s剩余时长300.0s当前航向0.0°航向误差0.0°转艏角速度0.00°/s舵角0.0°横摇角0.00°舒适度评估优秀MSI: 0.0%横摇RMS0.00°横摇峰值0.00°控制"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": "bottom-tools",
+            "tag": "section",
+            "width": 358,
+            "height": 58,
+            "x": 16,
+            "y": 766,
+            "visible": true,
+            "text": "场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1,
+            "height": 1,
+            "x": -1,
+            "y": 843,
+            "visible": false,
+            "text": "仿真模型、回放、Arena 预览和官方评价边界由场景与 Arena 域提供。"
+          },
+          {
+            "commercialZone": "bottom-tools",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1,
+            "height": 1,
+            "x": -1,
+            "y": 843,
+            "visible": false,
+            "text": "相机、视角和场景工具为任务局部控制。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "cruise",
+      "url": "/simulations/cruise",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "cruise-mobile-dark.png",
+      "expectedArchetype": "immersive-scene",
+      "expectedReturnTarget": "/simulations",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "dark",
+        "archetype": "immersive-scene",
+        "launchProvenance": "standalone",
+        "returnTarget": "/simulations",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 390,
+          "height": 972,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回仿真入口邮轮仿真独立探索该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。主视角主俯瞰俯战术战#网格开网1.0x状态监控仿真时间0.0s剩余时长300.0s当前航向0.0°航向误差0.0°转艏角速度0.00°/s舵角0.0"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 358,
+            "height": 86,
+            "x": 16,
+            "y": 80,
+            "visible": true,
+            "text": "独立探索该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "section",
+            "width": 390,
+            "height": 844,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "主视角主俯瞰俯战术战#网格开网1.0x状态监控仿真时间0.0s剩余时长300.0s当前航向0.0°航向误差0.0°转艏角速度0.00°/s舵角0.0°横摇角0.00°舒适度评估优秀MSI: 0.0%横摇RMS0.00°横摇峰值0.00°控制"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": "bottom-tools",
+            "tag": "section",
+            "width": 358,
+            "height": 58,
+            "x": 16,
+            "y": 766,
+            "visible": true,
+            "text": "场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1,
+            "height": 1,
+            "x": -1,
+            "y": 843,
+            "visible": false,
+            "text": "仿真模型、回放、Arena 预览和官方评价边界由场景与 Arena 域提供。"
+          },
+          {
+            "commercialZone": "bottom-tools",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1,
+            "height": 1,
+            "x": -1,
+            "y": 843,
+            "visible": false,
+            "text": "相机、视角和场景工具为任务局部控制。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "workbench",
+      "url": "/interactive-learning/control-workbench",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "workbench-desktop-light.png",
+      "expectedArchetype": "engineering-analysis",
+      "expectedReturnTarget": "/interactive-learning/cross-domain-exploration",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "light",
+        "archetype": "engineering-analysis",
+        "launchProvenance": "standalone",
+        "returnTarget": "/interactive-learning/cross-domain-exploration",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "main",
+          "width": 1440,
+          "height": 3164,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "自由探索模式 · 自由探索综合仿真工作台对象：二阶欠阻尼对象独立探索 · 该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。返回跨域探索自由探索模式 · 本地探索 · 白箱对象设计流程当前步骤对象分析下一行动确认对象、指标和允"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1440,
+            "height": 157,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "自由探索模式 · 自由探索综合仿真工作台对象：二阶欠阻尼对象独立探索 · 该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。返回跨域探索"
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1376,
+            "height": 114,
+            "x": 32,
+            "y": 461,
+            "visible": true,
+            "text": "会话状态允许方法串联校正、PID指标本地观察指标提交状态自由探索模式不进入官方评价和榜单。"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1376,
+            "height": 377,
+            "x": 32,
+            "y": 743,
+            "visible": true,
+            "text": "面板布置与添加面板可以添加允许的面板；每个面板的配置在对应面板标题区调整。添加时域响应添加Bode 图添加根轨迹添加Nyquist 图重置默认时域响应时域响应每个面板的配置在对应面板标题区调整。设计证据说明时域响应证据对照参考输入、未校正输"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1376,
+            "height": 1774,
+            "x": 32,
+            "y": 1136,
+            "visible": true,
+            "text": "自由探索模式可用于本地建模和参数试验，但结果不进入官方评价和竞技场榜单。K=1.000 | 极点 2 | 零点 0 | 阶跃响应Mp50.52%tr0.20 sts3.03 sess0.50PM50.29°GM--N0P0Z0ωc5.12 "
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1376,
+            "height": 90,
+            "x": 32,
+            "y": 2926,
+            "visible": true,
+            "text": "支持与说明面板可用性、官方评价、回放与缺失上下文由工作台会话和 Arena 域数据提供；商业工作区只负责呈现层级与稳定区域。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "[ECharts] Component graphic is used but not imported.\nimport { GraphicComponent } from 'echarts/components';\necharts.use([GraphicComponent]);"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "workbench",
+      "url": "/interactive-learning/control-workbench",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "workbench-desktop-dark.png",
+      "expectedArchetype": "engineering-analysis",
+      "expectedReturnTarget": "/interactive-learning/cross-domain-exploration",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "dark",
+        "archetype": "engineering-analysis",
+        "launchProvenance": "standalone",
+        "returnTarget": "/interactive-learning/cross-domain-exploration",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "main",
+          "width": 1440,
+          "height": 3164,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "自由探索模式 · 自由探索综合仿真工作台对象：二阶欠阻尼对象独立探索 · 该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。返回跨域探索自由探索模式 · 本地探索 · 白箱对象设计流程当前步骤对象分析下一行动确认对象、指标和允"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1440,
+            "height": 157,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "自由探索模式 · 自由探索综合仿真工作台对象：二阶欠阻尼对象独立探索 · 该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。返回跨域探索"
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1376,
+            "height": 114,
+            "x": 32,
+            "y": 461,
+            "visible": true,
+            "text": "会话状态允许方法串联校正、PID指标本地观察指标提交状态自由探索模式不进入官方评价和榜单。"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1376,
+            "height": 377,
+            "x": 32,
+            "y": 743,
+            "visible": true,
+            "text": "面板布置与添加面板可以添加允许的面板；每个面板的配置在对应面板标题区调整。添加时域响应添加Bode 图添加根轨迹添加Nyquist 图重置默认时域响应时域响应每个面板的配置在对应面板标题区调整。设计证据说明时域响应证据对照参考输入、未校正输"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1376,
+            "height": 1774,
+            "x": 32,
+            "y": 1136,
+            "visible": true,
+            "text": "自由探索模式可用于本地建模和参数试验，但结果不进入官方评价和竞技场榜单。K=1.000 | 极点 2 | 零点 0 | 阶跃响应Mp50.52%tr0.20 sts3.03 sess0.50PM50.29°GM--N0P0Z0ωc5.12 "
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1376,
+            "height": 90,
+            "x": 32,
+            "y": 2926,
+            "visible": true,
+            "text": "支持与说明面板可用性、官方评价、回放与缺失上下文由工作台会话和 Arena 域数据提供；商业工作区只负责呈现层级与稳定区域。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "[ECharts] Component graphic is used but not imported.\nimport { GraphicComponent } from 'echarts/components';\necharts.use([GraphicComponent]);"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "workbench",
+      "url": "/interactive-learning/control-workbench",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "workbench-mobile-light.png",
+      "expectedArchetype": "engineering-analysis",
+      "expectedReturnTarget": "/interactive-learning/cross-domain-exploration",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "light",
+        "archetype": "engineering-analysis",
+        "launchProvenance": "standalone",
+        "returnTarget": "/interactive-learning/cross-domain-exploration",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "main",
+          "width": 390,
+          "height": 7675,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "自由探索模式 · 自由探索综合仿真工作台对象：二阶欠阻尼对象独立探索 · 该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。返回跨域探索自由探索模式 · 本地探索 · 白箱对象设计流程当前步骤对象分析下一行动确认对象、指标和允"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 390,
+            "height": 229,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "自由探索模式 · 自由探索综合仿真工作台对象：二阶欠阻尼对象独立探索 · 该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。返回跨域探索"
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": null,
+            "tag": "section",
+            "width": 358,
+            "height": 226,
+            "x": 16,
+            "y": 1219,
+            "visible": true,
+            "text": "会话状态允许方法串联校正、PID指标本地观察指标提交状态自由探索模式不进入官方评价和榜单。"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "section",
+            "width": 358,
+            "height": 1392,
+            "x": 16,
+            "y": 1613,
+            "visible": true,
+            "text": "面板布置与添加面板可以添加允许的面板；每个面板的配置在对应面板标题区调整。添加时域响应添加Bode 图添加根轨迹添加Nyquist 图重置默认时域响应时域响应每个面板的配置在对应面板标题区调整。设计证据说明时域响应证据对照参考输入、未校正输"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 358,
+            "height": 4352,
+            "x": 16,
+            "y": 3021,
+            "visible": true,
+            "text": "自由探索模式可用于本地建模和参数试验，但结果不进入官方评价和竞技场榜单。K=1.000 | 极点 2 | 零点 0 | 阶跃响应Mp50.52%tr0.20 sts3.03 sess0.50PM50.29°GM--N0P0Z0ωc5.12 "
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 358,
+            "height": 138,
+            "x": 16,
+            "y": 7389,
+            "visible": true,
+            "text": "支持与说明面板可用性、官方评价、回放与缺失上下文由工作台会话和 Arena 域数据提供；商业工作区只负责呈现层级与稳定区域。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "[ECharts] Component graphic is used but not imported.\nimport { GraphicComponent } from 'echarts/components';\necharts.use([GraphicComponent]);"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "workbench",
+      "url": "/interactive-learning/control-workbench",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "workbench-mobile-dark.png",
+      "expectedArchetype": "engineering-analysis",
+      "expectedReturnTarget": "/interactive-learning/cross-domain-exploration",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "dark",
+        "archetype": "engineering-analysis",
+        "launchProvenance": "standalone",
+        "returnTarget": "/interactive-learning/cross-domain-exploration",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "main",
+          "width": 390,
+          "height": 7675,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "自由探索模式 · 自由探索综合仿真工作台对象：二阶欠阻尼对象独立探索 · 该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。返回跨域探索自由探索模式 · 本地探索 · 白箱对象设计流程当前步骤对象分析下一行动确认对象、指标和允"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 390,
+            "height": 229,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "自由探索模式 · 自由探索综合仿真工作台对象：二阶欠阻尼对象独立探索 · 该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。返回跨域探索"
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": null,
+            "tag": "section",
+            "width": 358,
+            "height": 226,
+            "x": 16,
+            "y": 1219,
+            "visible": true,
+            "text": "会话状态允许方法串联校正、PID指标本地观察指标提交状态自由探索模式不进入官方评价和榜单。"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "section",
+            "width": 358,
+            "height": 1392,
+            "x": 16,
+            "y": 1613,
+            "visible": true,
+            "text": "面板布置与添加面板可以添加允许的面板；每个面板的配置在对应面板标题区调整。添加时域响应添加Bode 图添加根轨迹添加Nyquist 图重置默认时域响应时域响应每个面板的配置在对应面板标题区调整。设计证据说明时域响应证据对照参考输入、未校正输"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 358,
+            "height": 4352,
+            "x": 16,
+            "y": 3021,
+            "visible": true,
+            "text": "自由探索模式可用于本地建模和参数试验，但结果不进入官方评价和竞技场榜单。K=1.000 | 极点 2 | 零点 0 | 阶跃响应Mp50.52%tr0.20 sts3.03 sess0.50PM50.29°GM--N0P0Z0ωc5.12 "
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 358,
+            "height": 138,
+            "x": 16,
+            "y": 7389,
+            "visible": true,
+            "text": "支持与说明面板可用性、官方评价、回放与缺失上下文由工作台会话和 Arena 域数据提供；商业工作区只负责呈现层级与稳定区域。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "[ECharts] Component graphic is used but not imported.\nimport { GraphicComponent } from 'echarts/components';\necharts.use([GraphicComponent]);"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "arena",
+      "url": "/arena/challenges/task-second-order-lead-pid",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "arena-desktop-light.png",
+      "expectedArchetype": "challenge-task",
+      "expectedReturnTarget": "/arena",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "light",
+        "archetype": "challenge-task",
+        "launchProvenance": "arena-preview",
+        "returnTarget": "/arena",
+        "paddingRight": "32px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "section",
+          "width": 1200,
+          "height": 2054,
+          "x": 240,
+          "y": 71,
+          "visible": true,
+          "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单对象说明被控对象二阶欠阻尼对象章节关联模块 2 / 模块 3任务属性可作为作业挑战模型表达"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 686,
+            "height": 1894,
+            "x": 272,
+            "y": 103,
+            "visible": true,
+            "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单对象说明被控对象二阶欠阻尼对象章节关联模块 2 / 模块 3任务属性可作为作业挑战模型表达"
+          },
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "div",
+            "width": 686,
+            "height": 230,
+            "x": 272,
+            "y": 103,
+            "visible": true,
+            "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "div",
+            "width": 430,
+            "height": 324,
+            "x": 978,
+            "y": 103,
+            "visible": true,
+            "text": "进入控制工作台推荐预设：综合仿真工作台。仿真调试与方案提交均在控制工作台内完成。串联校正PID提交后通过真实指标验证的数据会自动进入已开放的榜单视图。进入控制工作台"
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": null,
+            "tag": "div",
+            "width": 430,
+            "height": 835,
+            "x": 978,
+            "y": 443,
+            "visible": true,
+            "text": "榜单摘要当前最高分0.0参与人数1 人提交次数1 次榜单类型主榜 / 方法榜 / 指标榜同分决胜硬约束通过 / 得分 / 控制能量 / 提交时间荣誉记录3 项当前榜单1 条记录主榜方法榜指标榜排名姓名 / 学号方法得分具体指标提交时间#1周"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 430,
+            "height": 134,
+            "x": 978,
+            "y": 1294,
+            "visible": true,
+            "text": "支持与说明任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的商业工作区层级。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "arena",
+      "url": "/arena/challenges/task-second-order-lead-pid",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "arena-desktop-dark.png",
+      "expectedArchetype": "challenge-task",
+      "expectedReturnTarget": "/arena",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "dark",
+        "archetype": "challenge-task",
+        "launchProvenance": "arena-preview",
+        "returnTarget": "/arena",
+        "paddingRight": "32px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "section",
+          "width": 1200,
+          "height": 2054,
+          "x": 240,
+          "y": 71,
+          "visible": true,
+          "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单对象说明被控对象二阶欠阻尼对象章节关联模块 2 / 模块 3任务属性可作为作业挑战模型表达"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 686,
+            "height": 1894,
+            "x": 272,
+            "y": 103,
+            "visible": true,
+            "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单对象说明被控对象二阶欠阻尼对象章节关联模块 2 / 模块 3任务属性可作为作业挑战模型表达"
+          },
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "div",
+            "width": 686,
+            "height": 230,
+            "x": 272,
+            "y": 103,
+            "visible": true,
+            "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "div",
+            "width": 430,
+            "height": 324,
+            "x": 978,
+            "y": 103,
+            "visible": true,
+            "text": "进入控制工作台推荐预设：综合仿真工作台。仿真调试与方案提交均在控制工作台内完成。串联校正PID提交后通过真实指标验证的数据会自动进入已开放的榜单视图。进入控制工作台"
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": null,
+            "tag": "div",
+            "width": 430,
+            "height": 835,
+            "x": 978,
+            "y": 443,
+            "visible": true,
+            "text": "榜单摘要当前最高分0.0参与人数1 人提交次数1 次榜单类型主榜 / 方法榜 / 指标榜同分决胜硬约束通过 / 得分 / 控制能量 / 提交时间荣誉记录3 项当前榜单1 条记录主榜方法榜指标榜排名姓名 / 学号方法得分具体指标提交时间#1周"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 430,
+            "height": 134,
+            "x": 978,
+            "y": 1294,
+            "visible": true,
+            "text": "支持与说明任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的商业工作区层级。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "arena",
+      "url": "/arena/challenges/task-second-order-lead-pid",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "arena-mobile-light.png",
+      "expectedArchetype": "challenge-task",
+      "expectedReturnTarget": "/arena",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "light",
+        "archetype": "challenge-task",
+        "launchProvenance": "arena-preview",
+        "returnTarget": "/arena",
+        "paddingRight": "16px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "section",
+          "width": 390,
+          "height": 4047,
+          "x": 0,
+          "y": 71,
+          "visible": true,
+          "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单对象说明被控对象二阶欠阻尼对象章节关联模块 2 / 模块 3任务属性可作为作业挑战模型表达"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 812,
+            "height": 2564,
+            "x": 16,
+            "y": 103,
+            "visible": true,
+            "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单对象说明被控对象二阶欠阻尼对象章节关联模块 2 / 模块 3任务属性可作为作业挑战模型表达"
+          },
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "div",
+            "width": 812,
+            "height": 382,
+            "x": 16,
+            "y": 103,
+            "visible": true,
+            "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "div",
+            "width": 812,
+            "height": 280,
+            "x": 16,
+            "y": 2687,
+            "visible": true,
+            "text": "进入控制工作台推荐预设：综合仿真工作台。仿真调试与方案提交均在控制工作台内完成。串联校正PID提交后通过真实指标验证的数据会自动进入已开放的榜单视图。进入控制工作台"
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": null,
+            "tag": "div",
+            "width": 812,
+            "height": 881,
+            "x": 16,
+            "y": 2983,
+            "visible": true,
+            "text": "榜单摘要当前最高分0.0参与人数1 人提交次数1 次榜单类型主榜 / 方法榜 / 指标榜同分决胜硬约束通过 / 得分 / 控制能量 / 提交时间荣誉记录3 项当前榜单1 条记录主榜方法榜指标榜排名姓名 / 学号方法得分具体指标提交时间#1周"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 812,
+            "height": 110,
+            "x": 16,
+            "y": 3880,
+            "visible": true,
+            "text": "支持与说明任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的商业工作区层级。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "arena",
+      "url": "/arena/challenges/task-second-order-lead-pid",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "arena-mobile-dark.png",
+      "expectedArchetype": "challenge-task",
+      "expectedReturnTarget": "/arena",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "dark",
+        "archetype": "challenge-task",
+        "launchProvenance": "arena-preview",
+        "returnTarget": "/arena",
+        "paddingRight": "16px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "section",
+          "width": 390,
+          "height": 4047,
+          "x": 0,
+          "y": 71,
+          "visible": true,
+          "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单对象说明被控对象二阶欠阻尼对象章节关联模块 2 / 模块 3任务属性可作为作业挑战模型表达"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 812,
+            "height": 2564,
+            "x": 16,
+            "y": 103,
+            "visible": true,
+            "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单对象说明被控对象二阶欠阻尼对象章节关联模块 2 / 模块 3任务属性可作为作业挑战模型表达"
+          },
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "div",
+            "width": 812,
+            "height": 382,
+            "x": 16,
+            "y": 103,
+            "visible": true,
+            "text": "自动控制竞技场基础二阶对象快速稳定挑战缩短调节时间，同时限制超调量和稳态误差。对象来源典型对象公开程度白箱模型工作台综合仿真工作台榜单规则白箱默认榜单"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "div",
+            "width": 812,
+            "height": 280,
+            "x": 16,
+            "y": 2687,
+            "visible": true,
+            "text": "进入控制工作台推荐预设：综合仿真工作台。仿真调试与方案提交均在控制工作台内完成。串联校正PID提交后通过真实指标验证的数据会自动进入已开放的榜单视图。进入控制工作台"
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": null,
+            "tag": "div",
+            "width": 812,
+            "height": 881,
+            "x": 16,
+            "y": 2983,
+            "visible": true,
+            "text": "榜单摘要当前最高分0.0参与人数1 人提交次数1 次榜单类型主榜 / 方法榜 / 指标榜同分决胜硬约束通过 / 得分 / 控制能量 / 提交时间荣誉记录3 项当前榜单1 条记录主榜方法榜指标榜排名姓名 / 学号方法得分具体指标提交时间#1周"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 812,
+            "height": 110,
+            "x": 16,
+            "y": 3880,
+            "visible": true,
+            "text": "支持与说明任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的商业工作区层级。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "lesson-entry",
+      "url": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "lesson-entry-desktop-light.png",
+      "expectedArchetype": "lesson-runtime",
+      "expectedReturnTarget": "/interactive-learning/courses",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "light",
+        "archetype": "lesson-runtime",
+        "launchProvenance": "course-launched",
+        "returnTarget": "/interactive-learning/courses",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 1440,
+          "height": 4945,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回课程总览Premium Classroom4-1：设计起点：性能指标体系、工程约束与可行域表达教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "header",
+            "width": 1440,
+            "height": 74,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "返回课程总览Premium Classroom4-1：设计起点：性能指标体系、工程约束与可行域表达"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1132,
+            "height": 250,
+            "x": 154,
+            "y": 122,
+            "visible": true,
+            "text": "教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。进入演示模式学生入口输入课堂码加入课堂课堂码加入课堂"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1132,
+            "height": 224,
+            "x": 154,
+            "y": 388,
+            "visible": true,
+            "text": "4-1 · Course Entry4-1：设计起点：性能指标体系、工程约束与可行域表达围绕性能指标角色、硬约束/软目标/观察指标、可行域分层和双案例联读，把模块 3 的分析证据收束成可交给 4-2/4-3 的任务表达卡。稳定可行域可行域-"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1132,
+            "height": 2217,
+            "x": 154,
+            "y": 628,
+            "visible": true,
+            "text": "4-1 · Pre-study课前预习台建议先浏览课前讲义，再结合已开放的视频、音频或课件回看关键图表与公式。课前导入预习导入视频用导入情境聚焦“在同一间自动控制实验教室里，客船航向控制沙盘和船载稳定平台姿态演示架同时运行”。可播放完整预习"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "Image with src \"/course-runtime/knowledge/infographs/nodes/指标角色重组_4_41002.png\" was detected as the Largest Contentful Paint (LCP). Please add the `loading=\"eager\"` property if this image is above the fold.\nRead more: https://nextjs.org/docs/app/api-reference/components/image#loading"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "lesson-entry",
+      "url": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "lesson-entry-desktop-dark.png",
+      "expectedArchetype": "lesson-runtime",
+      "expectedReturnTarget": "/interactive-learning/courses",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "dark",
+        "archetype": "lesson-runtime",
+        "launchProvenance": "course-launched",
+        "returnTarget": "/interactive-learning/courses",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 1440,
+          "height": 4945,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回课程总览Premium Classroom4-1：设计起点：性能指标体系、工程约束与可行域表达教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "header",
+            "width": 1440,
+            "height": 74,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "返回课程总览Premium Classroom4-1：设计起点：性能指标体系、工程约束与可行域表达"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1132,
+            "height": 250,
+            "x": 154,
+            "y": 122,
+            "visible": true,
+            "text": "教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。进入演示模式学生入口输入课堂码加入课堂课堂码加入课堂"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1132,
+            "height": 224,
+            "x": 154,
+            "y": 388,
+            "visible": true,
+            "text": "4-1 · Course Entry4-1：设计起点：性能指标体系、工程约束与可行域表达围绕性能指标角色、硬约束/软目标/观察指标、可行域分层和双案例联读，把模块 3 的分析证据收束成可交给 4-2/4-3 的任务表达卡。稳定可行域可行域-"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1132,
+            "height": 2217,
+            "x": 154,
+            "y": 628,
+            "visible": true,
+            "text": "4-1 · Pre-study课前预习台建议先浏览课前讲义，再结合已开放的视频、音频或课件回看关键图表与公式。课前导入预习导入视频用导入情境聚焦“在同一间自动控制实验教室里，客船航向控制沙盘和船载稳定平台姿态演示架同时运行”。可播放完整预习"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "Image with src \"/course-runtime/knowledge/infographs/nodes/指标角色重组_4_41002.png\" was detected as the Largest Contentful Paint (LCP). Please add the `loading=\"eager\"` property if this image is above the fold.\nRead more: https://nextjs.org/docs/app/api-reference/components/image#loading"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "lesson-entry",
+      "url": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "lesson-entry-mobile-light.png",
+      "expectedArchetype": "lesson-runtime",
+      "expectedReturnTarget": "/interactive-learning/courses",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "light",
+        "archetype": "lesson-runtime",
+        "launchProvenance": "course-launched",
+        "returnTarget": "/interactive-learning/courses",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 390,
+          "height": 7845,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回课程总览Premium Classroom4-1：设计起点：性能指标体系、工程约束与可行域表达教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "header",
+            "width": 390,
+            "height": 94,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "返回课程总览Premium Classroom4-1：设计起点：性能指标体系、工程约束与可行域表达"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "div",
+            "width": 366,
+            "height": 720,
+            "x": 12,
+            "y": 126,
+            "visible": true,
+            "text": "教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。进入演示模式学生入口输入课堂码加入课堂课堂码加入课堂"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "section",
+            "width": 366,
+            "height": 424,
+            "x": 12,
+            "y": 862,
+            "visible": true,
+            "text": "4-1 · Course Entry4-1：设计起点：性能指标体系、工程约束与可行域表达围绕性能指标角色、硬约束/软目标/观察指标、可行域分层和双案例联读，把模块 3 的分析证据收束成可交给 4-2/4-3 的任务表达卡。稳定可行域可行域-"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 366,
+            "height": 2298,
+            "x": 12,
+            "y": 1302,
+            "visible": true,
+            "text": "4-1 · Pre-study课前预习台建议先浏览课前讲义，再结合已开放的视频、音频或课件回看关键图表与公式。课前导入预习导入视频用导入情境聚焦“在同一间自动控制实验教室里，客船航向控制沙盘和船载稳定平台姿态演示架同时运行”。可播放完整预习"
+          }
+        ]
+      },
+      "consoleMessages": [],
+      "pageErrors": []
+    },
+    {
+      "route": "lesson-entry",
+      "url": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "lesson-entry-mobile-dark.png",
+      "expectedArchetype": "lesson-runtime",
+      "expectedReturnTarget": "/interactive-learning/courses",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "dark",
+        "archetype": "lesson-runtime",
+        "launchProvenance": "course-launched",
+        "returnTarget": "/interactive-learning/courses",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 390,
+          "height": 7845,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回课程总览Premium Classroom4-1：设计起点：性能指标体系、工程约束与可行域表达教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": null,
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "header",
+            "width": 390,
+            "height": 94,
+            "x": 0,
+            "y": 0,
+            "visible": true,
+            "text": "返回课程总览Premium Classroom4-1：设计起点：性能指标体系、工程约束与可行域表达"
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": null,
+            "tag": "div",
+            "width": 366,
+            "height": 720,
+            "x": 12,
+            "y": 126,
+            "visible": true,
+            "text": "教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。进入演示模式学生入口输入课堂码加入课堂课堂码加入课堂"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "section",
+            "width": 366,
+            "height": 424,
+            "x": 12,
+            "y": 862,
+            "visible": true,
+            "text": "4-1 · Course Entry4-1：设计起点：性能指标体系、工程约束与可行域表达围绕性能指标角色、硬约束/软目标/观察指标、可行域分层和双案例联读，把模块 3 的分析证据收束成可交给 4-2/4-3 的任务表达卡。稳定可行域可行域-"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "section",
+            "width": 366,
+            "height": 2298,
+            "x": 12,
+            "y": 1302,
+            "visible": true,
+            "text": "4-1 · Pre-study课前预习台建议先浏览课前讲义，再结合已开放的视频、音频或课件回看关键图表与公式。课前导入预习导入视频用导入情境聚焦“在同一间自动控制实验教室里，客船航向控制沙盘和船载稳定平台姿态演示架同时运行”。可播放完整预习"
+          }
+        ]
+      },
+      "consoleMessages": [],
+      "pageErrors": []
+    },
+    {
+      "route": "lesson-runtime-demo",
+      "url": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "lesson-runtime-demo-desktop-light.png",
+      "expectedArchetype": "lesson-runtime",
+      "expectedReturnTarget": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "light",
+        "archetype": "lesson-runtime",
+        "launchProvenance": "course-launched",
+        "returnTarget": "/interactive-learning/courses/unit-4-1-design-task-expression",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 1440,
+          "height": 2223,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回Design Task Expression4-1：设计起点：性能指标体系、工程约束与可行域表达B · 导入⏱ 4 min用封面情境图、课程信息图和导入问题进入任务表达。环节第 01 页 · 任务表达入口：从跨域证据写出设计任务第 02"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": "20px",
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1132,
+            "height": 122,
+            "x": 154,
+            "y": 114,
+            "visible": true,
+            "text": "学生课堂台演示模式已开启演示模式不会写入课堂状态。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1132,
+            "height": 1803,
+            "x": 154,
+            "y": 252,
+            "visible": true,
+            "text": "第 01 页任务表达入口：从跨域证据写出设计任务用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。客船航向与稳定平台情境同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。任务表达课程信息图从对象证据、"
+          },
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1132,
+            "height": 134,
+            "x": 154,
+            "y": 252,
+            "visible": true,
+            "text": "第 01 页任务表达入口：从跨域证据写出设计任务用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 1132,
+            "height": 722,
+            "x": 154,
+            "y": 402,
+            "visible": true,
+            "text": "客船航向与稳定平台情境同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 1132,
+            "height": 735,
+            "x": 154,
+            "y": 1140,
+            "visible": true,
+            "text": "任务表达课程信息图从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 1132,
+            "height": 164,
+            "x": 154,
+            "y": 1891,
+            "visible": true,
+            "text": "导入问题面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1,
+            "height": 1,
+            "x": 153,
+            "y": 2070,
+            "visible": false,
+            "text": "页面知识卡片、课堂同步和步骤提示由课程运行态提供。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "Image with src \"/course-runtime/lessons/4-1/media/4-1-cover-comic.png\" was detected as the Largest Contentful Paint (LCP). Please add the `loading=\"eager\"` property if this image is above the fold.\nRead more: https://nextjs.org/docs/app/api-reference/components/image#loading"
+        },
+        {
+          "type": "warning",
+          "text": "Image with src \"/course-runtime/lessons/4-1/media/4-1-info.png\" was detected as the Largest Contentful Paint (LCP). Please add the `loading=\"eager\"` property if this image is above the fold.\nRead more: https://nextjs.org/docs/app/api-reference/components/image#loading"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "lesson-runtime-demo",
+      "url": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "lesson-runtime-demo-desktop-dark.png",
+      "expectedArchetype": "lesson-runtime",
+      "expectedReturnTarget": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "dark",
+        "archetype": "lesson-runtime",
+        "launchProvenance": "course-launched",
+        "returnTarget": "/interactive-learning/courses/unit-4-1-design-task-expression",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 1440,
+          "height": 2223,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回Design Task Expression4-1：设计起点：性能指标体系、工程约束与可行域表达B · 导入⏱ 4 min用封面情境图、课程信息图和导入问题进入任务表达。环节第 01 页 · 任务表达入口：从跨域证据写出设计任务第 02"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": "20px",
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1132,
+            "height": 122,
+            "x": 154,
+            "y": 114,
+            "visible": true,
+            "text": "学生课堂台演示模式已开启演示模式不会写入课堂状态。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1132,
+            "height": 1803,
+            "x": 154,
+            "y": 252,
+            "visible": true,
+            "text": "第 01 页任务表达入口：从跨域证据写出设计任务用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。客船航向与稳定平台情境同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。任务表达课程信息图从对象证据、"
+          },
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 1132,
+            "height": 134,
+            "x": 154,
+            "y": 252,
+            "visible": true,
+            "text": "第 01 页任务表达入口：从跨域证据写出设计任务用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 1132,
+            "height": 722,
+            "x": 154,
+            "y": 402,
+            "visible": true,
+            "text": "客船航向与稳定平台情境同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 1132,
+            "height": 735,
+            "x": 154,
+            "y": 1140,
+            "visible": true,
+            "text": "任务表达课程信息图从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 1132,
+            "height": 164,
+            "x": 154,
+            "y": 1891,
+            "visible": true,
+            "text": "导入问题面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1,
+            "height": 1,
+            "x": 153,
+            "y": 2070,
+            "visible": false,
+            "text": "页面知识卡片、课堂同步和步骤提示由课程运行态提供。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "Image with src \"/course-runtime/lessons/4-1/media/4-1-cover-comic.png\" was detected as the Largest Contentful Paint (LCP). Please add the `loading=\"eager\"` property if this image is above the fold.\nRead more: https://nextjs.org/docs/app/api-reference/components/image#loading"
+        },
+        {
+          "type": "warning",
+          "text": "Image with src \"/course-runtime/lessons/4-1/media/4-1-info.png\" was detected as the Largest Contentful Paint (LCP). Please add the `loading=\"eager\"` property if this image is above the fold.\nRead more: https://nextjs.org/docs/app/api-reference/components/image#loading"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "lesson-runtime-demo",
+      "url": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "lesson-runtime-demo-mobile-light.png",
+      "expectedArchetype": "lesson-runtime",
+      "expectedReturnTarget": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "light",
+        "archetype": "lesson-runtime",
+        "launchProvenance": "course-launched",
+        "returnTarget": "/interactive-learning/courses/unit-4-1-design-task-expression",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 390,
+          "height": 1608,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回Design Task Expression4-1：设计起点：性能指标体系、工程约束与可行域表达B · 导入⏱ 4 min用封面情境图、课程信息图和导入问题进入任务表达。环节第 01 页 · 任务表达入口：从跨域证据写出设计任务第 02"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": "16px",
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "div",
+            "width": 366,
+            "height": 122,
+            "x": 12,
+            "y": 102,
+            "visible": true,
+            "text": "学生课堂台演示模式已开启演示模式不会写入课堂状态。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 366,
+            "height": 1208,
+            "x": 12,
+            "y": 240,
+            "visible": true,
+            "text": "第 01 页任务表达入口：从跨域证据写出设计任务用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。客船航向与稳定平台情境同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。任务表达课程信息图从对象证据、"
+          },
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 366,
+            "height": 186,
+            "x": 12,
+            "y": 240,
+            "visible": true,
+            "text": "第 01 页任务表达入口：从跨域证据写出设计任务用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 366,
+            "height": 332,
+            "x": 12,
+            "y": 442,
+            "visible": true,
+            "text": "客船航向与稳定平台情境同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 366,
+            "height": 336,
+            "x": 12,
+            "y": 790,
+            "visible": true,
+            "text": "任务表达课程信息图从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 366,
+            "height": 306,
+            "x": 12,
+            "y": 1142,
+            "visible": true,
+            "text": "导入问题面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1,
+            "height": 1,
+            "x": 11,
+            "y": 1459,
+            "visible": false,
+            "text": "页面知识卡片、课堂同步和步骤提示由课程运行态提供。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "Image with src \"/course-runtime/lessons/4-1/media/4-1-cover-comic.png\" was detected as the Largest Contentful Paint (LCP). Please add the `loading=\"eager\"` property if this image is above the fold.\nRead more: https://nextjs.org/docs/app/api-reference/components/image#loading"
+        },
+        {
+          "type": "warning",
+          "text": "Image with src \"/course-runtime/lessons/4-1/media/4-1-info.png\" was detected as the Largest Contentful Paint (LCP). Please add the `loading=\"eager\"` property if this image is above the fold.\nRead more: https://nextjs.org/docs/app/api-reference/components/image#loading"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "route": "lesson-runtime-demo",
+      "url": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "lesson-runtime-demo-mobile-dark.png",
+      "expectedArchetype": "lesson-runtime",
+      "expectedReturnTarget": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "missingArchetype": false,
+      "missingReturnTarget": false,
+      "titleModuleHasArchetype": false,
+      "rightPaddingUnexpected": false,
+      "bottomPaddingTooSmall": false,
+      "dom": {
+        "htmlClass": "dark",
+        "archetype": "lesson-runtime",
+        "launchProvenance": "course-launched",
+        "returnTarget": "/interactive-learning/courses/unit-4-1-design-task-expression",
+        "paddingRight": "0px",
+        "paddingBottom": "128px",
+        "rootRect": {
+          "tag": "div",
+          "width": 390,
+          "height": 1608,
+          "x": 0,
+          "y": 0,
+          "visible": true,
+          "text": "返回Design Task Expression4-1：设计起点：性能指标体系、工程约束与可行域表达B · 导入⏱ 4 min用封面情境图、课程信息图和导入问题进入任务表达。环节第 01 页 · 任务表达入口：从跨域证据写出设计任务第 02"
+        },
+        "titleModuleArchetype": null,
+        "titleModulePaddingBottom": "16px",
+        "zones": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "div",
+            "width": 366,
+            "height": 122,
+            "x": 12,
+            "y": 102,
+            "visible": true,
+            "text": "学生课堂台演示模式已开启演示模式不会写入课堂状态。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": null,
+            "tag": "div",
+            "width": 366,
+            "height": 1208,
+            "x": 12,
+            "y": 240,
+            "visible": true,
+            "text": "第 01 页任务表达入口：从跨域证据写出设计任务用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。客船航向与稳定平台情境同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。任务表达课程信息图从对象证据、"
+          },
+          {
+            "commercialZone": "context-strip",
+            "taskZone": null,
+            "tag": "section",
+            "width": 366,
+            "height": 186,
+            "x": 12,
+            "y": 240,
+            "visible": true,
+            "text": "第 01 页任务表达入口：从跨域证据写出设计任务用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 366,
+            "height": 332,
+            "x": 12,
+            "y": 442,
+            "visible": true,
+            "text": "客船航向与稳定平台情境同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 366,
+            "height": 336,
+            "x": 12,
+            "y": 790,
+            "visible": true,
+            "text": "任务表达课程信息图从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。"
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "instrument-area",
+            "tag": "section",
+            "width": 366,
+            "height": 306,
+            "x": 12,
+            "y": 1142,
+            "visible": true,
+            "text": "导入问题面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？"
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": null,
+            "tag": "div",
+            "width": 1,
+            "height": 1,
+            "x": 11,
+            "y": 1459,
+            "visible": false,
+            "text": "页面知识卡片、课堂同步和步骤提示由课程运行态提供。"
+          }
+        ]
+      },
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "Image with src \"/course-runtime/lessons/4-1/media/4-1-cover-comic.png\" was detected as the Largest Contentful Paint (LCP). Please add the `loading=\"eager\"` property if this image is above the fold.\nRead more: https://nextjs.org/docs/app/api-reference/components/image#loading"
+        },
+        {
+          "type": "warning",
+          "text": "Image with src \"/course-runtime/lessons/4-1/media/4-1-info.png\" was detected as the Largest Contentful Paint (LCP). Please add the `loading=\"eager\"` property if this image is above the fold.\nRead more: https://nextjs.org/docs/app/api-reference/components/image#loading"
+        }
+      ],
+      "pageErrors": []
+    }
+  ]
+}

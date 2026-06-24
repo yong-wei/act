@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { Info, Target, Gauge, Clock, TrendingUp } from 'lucide-react';
 import { PERFORMANCE_METRIC_DEFINITIONS } from '../types';
 import { useOptionalInteractiveContext } from '@/features/interactive';
@@ -91,20 +91,30 @@ interface MetricHandbookCardProps extends BaseWidgetProps {}
 
 export default function MetricHandbookCard({ onComplete, onStateChange }: MetricHandbookCardProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(PERFORMANCE_METRIC_DEFINITIONS[0]?.id ?? 'rise-time');
-  const [visitedIds, setVisitedIds] = useState<string[]>([]);
+  const initialActiveId = PERFORMANCE_METRIC_DEFINITIONS[0]?.id ?? 'rise-time';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visitedIds, setVisitedIds] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
   const activeMetric = PERFORMANCE_METRIC_DEFINITIONS.find((item) => item.id === activeId);
   const Icon = metricIcons[activeId as keyof typeof metricIcons] ?? Info;
   const totalMetrics = PERFORMANCE_METRIC_DEFINITIONS.length;
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisitedIds((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visitedIds.includes(activeId)) return;
-    const nextVisited = [...visitedIds, activeId];
-    setVisitedIds(nextVisited);
+    if (publishedVisitedCountRef.current >= visitedIds.length) return;
+    publishedVisitedCountRef.current = visitedIds.length;
+    const nextVisited = visitedIds;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / totalMetrics) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { metricId: activeId, visitedCount: nextVisited.length },
+      data: { metricId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -120,7 +130,7 @@ export default function MetricHandbookCard({ onComplete, onStateChange }: Metric
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visitedIds, totalMetrics, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visitedIds, totalMetrics, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -142,9 +152,9 @@ export default function MetricHandbookCard({ onComplete, onStateChange }: Metric
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap gap-2">
             {PERFORMANCE_METRIC_DEFINITIONS.map((item) => (
-              <button
+              <button type="button"
                 key={item.id}
-                onClick={() => setActiveId(item.id)}
+                onClick={() => recordVisit(item.id)}
                 className={`rounded-full px-4 py-1.5 text-sm transition-colors ${
                   activeId === item.id
                     ? 'bg-slate-900 text-white'

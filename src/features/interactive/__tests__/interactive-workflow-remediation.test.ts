@@ -11,7 +11,7 @@ function readRepoFile(relativePath: string) {
 
 describe('interactive workflow remediation guards', () => {
   it('requires subagent-driven page design with review, rework and acceptance records', () => {
-    const designSkill = readRepoFile('.codex/skills/interactive-design/SKILL.md');
+    const designSkill = readRepoFile('.agents/skills/interactive-design/SKILL.md');
 
     expect(designSkill).toContain('主代理首先基于讲义的核心思路和主要内容模块');
     expect(designSkill).toContain('设计子代理');
@@ -22,7 +22,7 @@ describe('interactive workflow remediation guards', () => {
   });
 
   it('requires subagent-driven implementation review loops and page-level acceptance files', () => {
-    const implementationSkill = readRepoFile('.codex/skills/interactive-lesson-implementation/SKILL.md');
+    const implementationSkill = readRepoFile('.agents/skills/interactive-lesson/SKILL.md');
 
     expect(implementationSkill).toContain('逐个页面发放实现任务');
     expect(implementationSkill).toContain('实现子代理');
@@ -32,7 +32,7 @@ describe('interactive workflow remediation guards', () => {
   });
 
   it('requires Rust-driven panel titles to be disciplinary and rejects engineering-form labels', () => {
-    const implementationSkill = readRepoFile('.codex/skills/interactive-lesson-implementation/SKILL.md');
+    const implementationSkill = readRepoFile('.agents/skills/interactive-lesson/SKILL.md');
 
     expect(implementationSkill).toContain('Rust 驱动面板的标题必须使用与页面内容相关、含义明确的学科标题');
     expect(implementationSkill).toContain('不得使用“Rust 面板”“三标签面板”“对照面板”');
@@ -40,7 +40,7 @@ describe('interactive workflow remediation guards', () => {
   });
 
   it('teaches review and audit tools to reject stale review state, visible inline AI, insufficient content sources and static-image downgrades', () => {
-    const reviewSkill = readRepoFile('.codex/skills/lesson-content-review/SKILL.md');
+    const reviewSkill = readRepoFile('.agents/skills/lesson-content-review/SKILL.md');
     const reviewScript = readRepoFile('course-content/scripts/review_lesson_content.py');
 
     expect(reviewSkill).toContain('作者态同步');

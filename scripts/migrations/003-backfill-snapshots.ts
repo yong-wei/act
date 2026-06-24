@@ -1,15 +1,16 @@
+import { createPrismaClient } from '../../src/lib/prisma-client';
 /**
  * Backfill Snapshots
  *
  * Generates initial competency snapshots for all students.
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { calculateCompetencyVector, generateEvidenceSummary, identifyStrengths, identifyWeaknesses } from '@/lib/data-governance/competency-engine';
 import { detectRisks, getRiskLevelDescription, getRecommendedScaffolding } from '@/lib/data-governance/risk-detector';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 async function backfillSnapshots() {
   console.log('[Migration] Starting snapshot backfill...');

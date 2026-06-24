@@ -66,6 +66,10 @@ const viewModes: Array<{
   },
 ];
 
+const commandButtonInactiveClass =
+  'text-platform-fg-secondary hover:bg-platform-action-hover hover:text-platform-fg-primary';
+const commandValueClass = 'text-platform-fg-primary';
+
 /**
  * 相机视角切换器
  * 显示三个预设视角按钮，当处于自由视角时显示状态标签
@@ -116,9 +120,14 @@ export function CameraViewSwitcher({
   };
 
   return (
-    <div className={cn('flex items-center gap-1', className)}>
+    <div className={cn('flex items-center gap-1 max-[360px]:gap-0', className)} data-simulation-local-bottom-tool-strip="camera-controls">
       {/* 视角按钮组 */}
-      <div className="flex rounded-xl border border-slate-200/90 bg-slate-50/92 p-1 shadow-lg shadow-slate-950/20 backdrop-blur-sm">
+      <div
+        className="simulation-command-restore-handle flex shrink-0 p-1"
+        data-simulation-local-bottom-toolbar
+        data-simulation-local-bottom-tool-segment="view-switcher"
+        data-command-deck-bottom-tools="edge-adjacent"
+      >
         {viewModes.map((mode) => {
           const Icon = mode.icon;
           const isActive = currentMode === mode.id;
@@ -132,14 +141,14 @@ export function CameraViewSwitcher({
               className={cn(
                 'transition-all',
                 isActive
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
+                  ? 'bg-platform-fg-primary text-platform-fg-inverse'
+                  : commandButtonInactiveClass
               )}
               title={`${mode.label} - ${mode.description}`}
             >
-              <Icon className="h-4 w-4 mr-1" />
+              <Icon className="h-4 w-4 mr-1 max-[360px]:mr-0" />
               <span className="hidden sm:inline">{mode.label}</span>
-              <span className="sm:hidden">{mode.shortLabel}</span>
+              <span className="sm:hidden max-[360px]:hidden">{mode.shortLabel}</span>
             </Button>
           );
         })}
@@ -149,7 +158,7 @@ export function CameraViewSwitcher({
       {showFreeLabel && currentMode === 'free' && (
         <Badge
           variant="outline"
-          className="border-sky-300 bg-sky-50 text-sky-700 backdrop-blur-sm"
+          className="border-platform-action-primary bg-platform-action-subtle text-platform-action-primary backdrop-blur-sm"
         >
           <Move3d className="h-3 w-3 mr-1" />
           自由视角
@@ -162,13 +171,14 @@ export function CameraViewSwitcher({
           size={size}
           onClick={onToggleGrid}
           className={cn(
-            'rounded-xl border border-slate-200/90 bg-slate-50/92 shadow-lg shadow-slate-950/20 backdrop-blur-sm transition-all',
+            'shrink-0 rounded-xl border border-platform-border-strong bg-platform-surface-overlay/86 shadow-lg backdrop-blur-sm transition-all max-[360px]:px-2',
             gridEnabled
-              ? 'bg-slate-900 text-white hover:bg-slate-800'
-              : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
+              ? 'bg-platform-fg-primary text-platform-fg-inverse'
+              : commandButtonInactiveClass
           )}
           title={gridEnabled ? '关闭网格' : '开启网格'}
           aria-label={gridEnabled ? '关闭网格' : '开启网格'}
+          data-simulation-local-bottom-tool-segment="grid-toggle"
         >
           <span className="mr-1 text-xs">#</span>
           <span className="hidden sm:inline">{gridEnabled ? '网格开' : '网格关'}</span>
@@ -177,23 +187,26 @@ export function CameraViewSwitcher({
       ) : null}
 
       {onSpeedChange ? (
-        <div className="flex items-center gap-1 rounded-xl border border-slate-200/90 bg-slate-50/92 p-1 shadow-lg shadow-slate-950/20 backdrop-blur-sm">
+        <div
+          className="simulation-command-restore-handle flex shrink-0 items-center gap-1 p-1 max-[360px]:gap-0 max-[360px]:p-0"
+          data-simulation-local-bottom-tool-segment="speed-controls"
+        >
           <Button
             variant="ghost"
             size={size}
             onClick={handleDecrease}
-            className="text-slate-700 hover:bg-slate-200 hover:text-slate-900"
+            className={commandButtonInactiveClass}
             title="减速"
             aria-label="减速"
           >
             <Minus className="h-4 w-4" />
           </Button>
-          <span className="min-w-11 text-center text-xs font-semibold text-slate-800">{speedScale.toFixed(1)}x</span>
+          <span className={cn('min-w-11 text-center text-xs font-semibold max-[360px]:min-w-8', commandValueClass)}>{speedScale.toFixed(1)}x</span>
           <Button
             variant="ghost"
             size={size}
             onClick={handleIncrease}
-            className="text-slate-700 hover:bg-slate-200 hover:text-slate-900"
+            className={commandButtonInactiveClass}
             title="加速"
             aria-label="加速"
           >
@@ -214,20 +227,20 @@ export function CameraViewSwitcherCompact({
   className,
 }: Omit<CameraViewSwitcherProps, 'showFreeLabel' | 'size'>) {
   return (
-    <div className={cn('flex rounded-lg border border-slate-200 bg-slate-50/92 p-0.5 backdrop-blur-sm', className)}>
+    <div className={cn('flex rounded-lg border border-platform-border-strong bg-platform-surface-overlay/86 p-0.5 backdrop-blur-sm', className)}>
       {viewModes.map((mode) => {
         const Icon = mode.icon;
         const isActive = currentMode === mode.id;
 
         return (
-          <button
+          <button type="button"
             key={mode.id}
             onClick={() => onModeChange(mode.id)}
             className={cn(
               'p-1.5 rounded transition-all',
               isActive
-                ? 'bg-slate-900 text-white'
-                : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
+                ? 'bg-platform-fg-primary text-platform-fg-inverse'
+                : commandButtonInactiveClass
             )}
             title={mode.label}
           >
@@ -236,7 +249,7 @@ export function CameraViewSwitcherCompact({
         );
       })}
       {currentMode === 'free' && (
-        <div className="p-1.5 text-sky-700" title="自由视角">
+        <div className="p-1.5 text-platform-action-primary" title="自由视角">
           <Move3d className="h-4 w-4" />
         </div>
       )}

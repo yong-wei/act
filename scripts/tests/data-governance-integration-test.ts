@@ -1,3 +1,4 @@
+import { createPrismaClient } from '../../src/lib/prisma-client';
 /**
  * Data Governance Integration Tests
  *
@@ -8,14 +9,13 @@
  * 4. API response times
  */
 
-import { PrismaClient } from '@prisma/client';
 import { calculateCompetencyVector } from '@/lib/data-governance/competency-engine';
 import { detectRisks } from '@/lib/data-governance/risk-detector';
 import { routeEvent } from '@/lib/data-governance/event-buffer';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import { redisClient } from '@/lib/redis-client';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 const TEST_USER_ID = 'test-user-integration';
 
 async function waitForRedisReady(timeoutMs = 5000) {

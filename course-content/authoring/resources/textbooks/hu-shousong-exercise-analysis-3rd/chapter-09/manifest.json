@@ -1,0 +1,320 @@
+{
+  "id": "chapter-09",
+  "number": 9,
+  "title": "线性系统的状态空间分析与综合",
+  "pipeline": "mathpixplus",
+  "textbookPath": "textbook.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/chapter-09.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/chapter-09.qa.json",
+  "sourcePageStart": 303,
+  "sourcePageEnd": 360,
+  "sourcePageCount": 58,
+  "imageCount": 30,
+  "figureDescriptionCount": 30,
+  "markdownSha256": "6f9160c310f16080c3fdbbbcee4f2469c368b1e4865c51a93f955875057998db",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/chapter-09.local.md.images.json",
+  "sourceImageManifestCount": 30,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0307-01-300dpi.png",
+      "exportPath": "assets/fig-09-03-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0307-01-300dpi.png",
+      "caption": "> Image description: A technical diagram representing a state-variable system in controllable canonical form (as indicated by the Chinese caption \"图 9－3－1 题 9－3 系统可控标准型状态变量图\"). The signal flow starts from an input $u$ entering a summing junction. The forward path consists of three sequential integrator blocks ($\\frac{1}{s}$), defining state variables $x_3$, $x_2$, and $x_1$. The output $y$ is derived by multiplying $x_1$ by a gain block of 6. A feedback loop returns signals to the initial summing junction. This loop consists of three parallel paths: $x_1$ is multiplied by 6, $x_2$ is multiplied by 11, and $x_3$ is multiplied by 6. These weighted state variables are summed together before being subtracted from the input $u$. Arrows indicate the unidirectional flow of signals through the integrators and feedback paths. 图 9－3－1 题 9－3 系统可控标准型状态变量图",
+      "sourcePdfPage": 307,
+      "sha256": "0642c594f85e6fbb13ebcc931524605c576535fd80a2033bb6c2b9651f0033f3",
+      "bytes": 61647
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0307-02-300dpi.png",
+      "exportPath": "assets/fig-09-03-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0307-02-300dpi.png",
+      "caption": "> Image description: A technical block diagram representing a system in observable canonical form (as indicated by the caption \"图 9－3－2 题 9－3 系统可观测标准型状态变量图\"). The signal flow starts from an input variable $u$ on the left, passing through a gain block of $6$. This output enters a summing junction. The system consists of three integrators ($\\frac{1}{s}$) in series, with state variables labeled as $x_1$, $x_2$, and the final output $y = x_3$. Feedback loops return from the output $y$ back to three separate summing junctions. These feedback paths pass through gain blocks with values of $6$, $11$, and $6$ respectively, each entering their respective summing junction with a negative sign (indicated by \"$-$\"). Arrows indicate a unidirectional flow from left to right for the forward path and right to left for the feedback loops. 图 9－3－2 题 9－3 系统可观测标准型状态变量图 状态变量图如图 9－3－2 所示。",
+      "sourcePdfPage": 307,
+      "sha256": "043cb11b7334e93d94a38062cd1d94e43ee493b72b12ca73be868d707dbf9ee9",
+      "bytes": 61660
+    },
+    {
+      "index": 3,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0307-03-300dpi.png",
+      "exportPath": "assets/fig-09-46.png",
+      "originalRelativePath": "assets/mathpix-source-page-0307-03-300dpi.png",
+      "caption": "> Image description: A control system block diagram is shown in Figure 9-46 (labeled \"图9－46 题 9－4 系统结构图\"). The signal flow begins with an input variable $U(s)$ entering a summing junction. This junction subtracts a feedback signal from the output $Y(s)$, which is routed back through a long return path. The resulting signal enters a first transfer function block $\\frac{2}{s+3}$, producing the intermediate variable $X_2(s)$. This signal then reaches a second summing junction, where it is combined with a feedback loop containing an integrator block $s$. The output of this junction is labeled $X_3(s)$, which enters a final transfer function block $\\frac{2}{s(s+1)}$. The output of this last block is defined as $X_1(s) = Y(s)$. Arrows indicate the unidirectional flow of signals through these blocks and feedback loops, representing a linear time-invariant system in the Laplace domain. 图9－46 题 9－4 系统结构图",
+      "sourcePdfPage": 307,
+      "sha256": "3264c57cf4f88a3706c81def603be7b3470e9e68e706290f48262ae6d918ce9b",
+      "bytes": 59053
+    },
+    {
+      "index": 4,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0308-01-300dpi.png",
+      "exportPath": "assets/fig-09-04-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0308-01-300dpi.png",
+      "caption": "图 9－4－1 题 9－4 系统状态变量图",
+      "sourcePdfPage": 308,
+      "sha256": "ef273c77a8ef8a26bfa667aacfd2ab6bb1691a866652e8575bde74da619b37a2",
+      "bytes": 66228
+    },
+    {
+      "index": 5,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0308-02-300dpi.png",
+      "exportPath": "assets/fig-09-05-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0308-02-300dpi.png",
+      "caption": "图 9－5－1 题 9－5 系统状态变量图",
+      "sourcePdfPage": 308,
+      "sha256": "da1b1ffc534bf58fdf2aaea2bf306d2c6a2416154d9ff7cfad5daeb782b87bc0",
+      "bytes": 125684
+    },
+    {
+      "index": 6,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0315-01-300dpi.png",
+      "exportPath": "assets/fig-09-11-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0315-01-300dpi.png",
+      "caption": "图 9－11－1 单位阶跃作用下的系统状态响应（MATLAB）",
+      "sourcePdfPage": 315,
+      "sha256": "e23890a2fe2b66a8c713dd6d722f30fcef68122699315545eec650065512f831",
+      "bytes": 162729
+    },
+    {
+      "index": 7,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0319-01-300dpi.png",
+      "exportPath": "assets/fig-09-15-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0319-01-300dpi.png",
+      "caption": "> Image description: This image is a technical plot showing the output time response of a system, as indicated by the caption \"图 9－15－1 习题 9－15 在 $u(k)=1$ 作用下的输出时间响应（MATLAB）\". The graph features a Cartesian coordinate system with two axes. The horizontal axis is labeled \"$k$\", representing discrete time steps, ranging from 0 to 4. The vertical axis is labeled \"$y(k)$\", representing the output response, with values ranging from -4 to 10. The plot displays a piecewise linear sequence of connected data points: starting at $(0, 0)$, it rises linearly to $(2, 2)$, drops sharply to $(3, -3)$, and then increases steeply to end at $(4, 10)$. A grid of dashed lines is overlaid on the plot for easier value retrieval. The figure illustrates how the system output $y(k)$ evolves over time when subjected to a constant input $u(k)=1$. 图 9－15－1 习题 9－15 在 $u(k)=1$ 作用下的输出时间响应（MATLAB）",
+      "sourcePdfPage": 319,
+      "sha256": "28f3097b6a46fb4a48bd5ed434ac4c9f76eb62ead5f85c728d37ed8e41524456",
+      "bytes": 150702
+    },
+    {
+      "index": 8,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0336-01-300dpi.png",
+      "exportPath": "assets/fig-09-29-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0336-01-300dpi.png",
+      "caption": "图 9－29－1 题 9－29 状态反馈系统结构框图",
+      "sourcePdfPage": 336,
+      "sha256": "c9a054daf801e6a64fc6bb97d2f63b998d73cc175805f786686cdd8f9648ce27",
+      "bytes": 97417
+    },
+    {
+      "index": 9,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0337-01-300dpi.png",
+      "exportPath": "assets/fig-09-30-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0337-01-300dpi.png",
+      "caption": "> Image description: This image is a technical block diagram of a state observer system, labeled as \"图 9-30-1 题 9-30 状态观测器系统状态变量图.\" The diagram consists of two parallel paths: an upper plant process and a lower observer process. The top path shows the input signal $u$ passing through two sequential integrator blocks ($\\frac{1}{s}$), producing state variables $x_2$ and then $x_1$, which results in the output $y$. The bottom path represents the observer. It starts with a summation point receiving $u$ and a feedback loop from $y$ via a block labeled $2r^2$. This feeds into an integrator producing $\\hat{x}_2$. A second summation point subtracts a signal (derived from $y$ through a block labeled $3r$) before passing through another integrator to produce the estimated output $\\hat{x}_1 = \\hat{y}$. Finally, a subtraction node compares the actual output $y$ with the estimate $\\hat{y}$, closing the feedback loop. 图 9－30－1 题 9－30 状态观测器系统状态变量图",
+      "sourcePdfPage": 337,
+      "sha256": "91689f45d7ffdb8a98f6da4b5a074d8eb35d590564d097678151729c4f8dbef3",
+      "bytes": 74900
+    },
+    {
+      "index": 10,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0338-01-300dpi.png",
+      "exportPath": "assets/fig-09-31-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0338-01-300dpi.png",
+      "caption": "图 9－31－1 题 9－31 状态反馈系统的状态变量图",
+      "sourcePdfPage": 338,
+      "sha256": "6c5948a010690d5fffd3ca64b2fc86335a5b48356abbf75e1e81eac85d1d907e",
+      "bytes": 125233
+    },
+    {
+      "index": 11,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0343-01-300dpi.png",
+      "exportPath": "assets/fig-09-47.png",
+      "originalRelativePath": "assets/mathpix-source-page-0343-01-300dpi.png",
+      "caption": "图 9－47 工业机器人示意图",
+      "sourcePdfPage": 343,
+      "sha256": "fe207cf668057c692e931f6141ac7662efb7091c89d3d47646e2f46e1250dac9",
+      "bytes": 67654
+    },
+    {
+      "index": 12,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0344-01-300dpi.png",
+      "exportPath": "assets/fig-09-48.png",
+      "originalRelativePath": "assets/mathpix-source-page-0344-01-300dpi.png",
+      "caption": "图 9－48 遥操作系统",
+      "sourcePdfPage": 344,
+      "sha256": "7ff41f05ae93e7304479619f674039028bb94d1e695147f73051f6b294b7480c",
+      "bytes": 247043
+    },
+    {
+      "index": 13,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0345-01-300dpi.png",
+      "exportPath": "assets/fig-09-49.png",
+      "originalRelativePath": "assets/mathpix-source-page-0345-01-300dpi.png",
+      "caption": "图9－49 磁悬浮系统",
+      "sourcePdfPage": 345,
+      "sha256": "361f3da98367f3085f57d0b246eabf5957ba1ad6f30729a9e00a91a318a0a745",
+      "bytes": 141809
+    },
+    {
+      "index": 14,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0347-01-300dpi.png",
+      "exportPath": "assets/fig-09-50.png",
+      "originalRelativePath": "assets/mathpix-source-page-0347-01-300dpi.png",
+      "caption": "> Image description: A technical schematic titled \"图9－50 弹簧－质量－阻尼器系统原理图\" illustrates a spring-mass-damper system within a vertical guide. The diagram features a central mass block labeled $m$ positioned at the bottom of a rectangular enclosure. Above the mass is a zig-zag line representing a spring with stiffness coefficient $k$. The interior walls of the enclosure are marked with the symbol $f$, denoting the friction coefficient between the mass and the guide. Two downward-pointing arrows originate from the base of the system: one labeled $y(t)$, representing the output displacement or response over time, and another labeled $u(t)$, representing the input force or excitation. The arrangement depicts a classic second-order mechanical system where an external input $u(t)$ acts upon a mass $m$ constrained by a spring $k$ and damping/friction $f$, resulting in a dynamic output $y(t)$. 图9－50 弹簧－质量－阻尼器系统原理图 9－38 在大功率高性能的摩托车中，常采用图9－50所示的弹簧－质量－阻尼器系统作为减震器。若已知减震器的基本参数为质量 $m=1 \\mathrm{~kg}$ ，摩擦系数 $f=9 \\mathrm{~kg} \\cdot \\mathrm{~m} \\cdot \\mathrm{~s}$ ，弹簧系数 $k=20 \\mathrm{~kg} / \\mathrm{m}, u(t)$ 为力输入，$y(t)$ 为位移输出。要求完成：",
+      "sourcePdfPage": 347,
+      "sha256": "b08004a2d6d6c18d8864bd528dce00e8a2aa2c9860f105245067a58d4054413b",
+      "bytes": 92891
+    },
+    {
+      "index": 15,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0348-01-300dpi.png",
+      "exportPath": "assets/fig-09-38-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0348-01-300dpi.png",
+      "caption": "图 9－38－1 系统的零输入响应（MATLAB）",
+      "sourcePdfPage": 348,
+      "sha256": "5289e07a3508203982188c24c2190e5ed89395aea2ec0caff1a41ce1c14c85e6",
+      "bytes": 113683
+    },
+    {
+      "index": 16,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0348-02-300dpi.png",
+      "exportPath": "assets/fig-09-38-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0348-02-300dpi.png",
+      "caption": "图9－38－2 临界阻尼时系统的零输人响应（MATLAB）",
+      "sourcePdfPage": 348,
+      "sha256": "2a4a06ff3154c6022a6f2253753e6b5d2c9c4dba2e4b90f40a27e9090eff71e4",
+      "bytes": 111488
+    },
+    {
+      "index": 17,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0349-01-300dpi.png",
+      "exportPath": "assets/fig-09-51.png",
+      "originalRelativePath": "assets/mathpix-source-page-0349-01-300dpi.png",
+      "caption": "图9－51 汽车悬架系统结构图",
+      "sourcePdfPage": 349,
+      "sha256": "c2d15c3fa85f2baf71979c62e6d7f5e9c61191e6c876995e0154778914b4afb2",
+      "bytes": 90077
+    },
+    {
+      "index": 18,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0350-01-300dpi.png",
+      "exportPath": "assets/fig-09-39-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0350-01-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot titled \"图9－39－1 汽车悬架系统时间响应,\" representing the time response of a vehicle suspension system. The graph features a Cartesian coordinate system with two axes: the vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1, while the horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 3 seconds. The plot displays a single smooth, S-shaped curve starting at the origin (0,0). The amplitude increases gradually at first, then rises steeply between 0.25 and 1 second, before asymptotically leveling off as it approaches a steady-state value of approximately 1 around 2 seconds. This characteristic represents a typical overdamped or critically damped step response in an engineering system, where the output reaches its final value without oscillation. Grid lines are present to facilitate precise reading of values across both axes. 图9－39－1 汽车悬架系统时间响应（MATLAB） 9－40 在图9－52（a）所示的新型游船上，采用了浮桥和稳定器来减少波浪对游船摇摆的影响，游船摇摆控制系统如图 9－52（b）所示。图中，$X_{1} 、 X_{2}$ 和 $X_{3}$ 为状态变量，$K_{2}$ 和 $K_{3}$ 为状态反馈增益。试确定 $K_{2}$ 和 $K_{3}$ 的合适取值，使闭环特征根为 $s_{1,2}=-2 \\pm \\mathrm{j} 2, s_{3}=-15$ ，并画出系统在单位阶跃扰动作用下的响应曲线。",
+      "sourcePdfPage": 350,
+      "sha256": "bf9beee3989b27b78e0273f6066f7e229f8c1c3e1c6d59f9c7be00af8f45a1cf",
+      "bytes": 185229
+    },
+    {
+      "index": 19,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0350-02-300dpi.png",
+      "exportPath": "assets/fig-09-52.png",
+      "originalRelativePath": "assets/mathpix-source-page-0350-02-300dpi.png",
+      "caption": "图 9－52 游船摇摆控制系统",
+      "sourcePdfPage": 350,
+      "sha256": "22569bcf14e600e36e0be2db0b60f069e3c50a865fd567ffcca8b5d712efdc63",
+      "bytes": 434789
+    },
+    {
+      "index": 20,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0351-01-300dpi.png",
+      "exportPath": "assets/fig-09-40-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0351-01-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot representing the roll angle response of a cruise ship to a unit step disturbance, as indicated by the Chinese caption \"图9－40－1 游船单位阶跃扰动横滚角响应（MATLAB）\". The graph features a two-dimensional coordinate system. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 4 seconds with increments of 0.5. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 0.35 with increments of 0.05. A dashed grid overlays the plot area for precise reading. The plotted curve starts at the origin (0,0), rises steeply in a smooth concave-down arc, reaches a peak amplitude of approximately 0.3 around 1.5 seconds, and then exhibits a slight damped oscillation before stabilizing at a steady-state value of roughly 0.28 after 2.5 seconds. This represents the dynamic time-domain response of the system to a step input. 图9－40－1 游船单位阶跃扰动横滚角响应（MATLAB） 应用 MATLAB 软件包，运行 M 文件 exe940．m，作游船的单位阶跃扰动横滚角响应曲线，如图 9－40－1 所示。",
+      "sourcePdfPage": 351,
+      "sha256": "633e97b49b383c2baeefa9d23a83b0bb43814c45703b8c831ed98c6c4e39a554",
+      "bytes": 184009
+    },
+    {
+      "index": 21,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0352-01-300dpi.png",
+      "exportPath": "assets/fig-09-53.png",
+      "originalRelativePath": "assets/mathpix-source-page-0352-01-300dpi.png",
+      "caption": "图9－53 内模控制系统结构图",
+      "sourcePdfPage": 352,
+      "sha256": "d02037c106d106d1a136c42973be237aba1c49c8de9e01053d5876066e5bb634",
+      "bytes": 79068
+    },
+    {
+      "index": 22,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0353-01-300dpi.png",
+      "exportPath": "assets/fig-09-41-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0353-01-300dpi.png",
+      "caption": "图9－41－1 单位阶跃内模控制系统结构图",
+      "sourcePdfPage": 353,
+      "sha256": "386951d17ec7b23ce5b1ab378ffde19803e9c4298ab4e1136ea9acc6954156ad",
+      "bytes": 67372
+    },
+    {
+      "index": 23,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0353-02-300dpi.png",
+      "exportPath": "assets/fig-09-41-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0353-02-300dpi.png",
+      "caption": "图9－41－2 内模控制系统的单位阶跃响应（MATLAB） 9－42 设单位斜坡内模控制系统如图9－54所示，其中被控对象",
+      "sourcePdfPage": 353,
+      "sha256": "cc167917fd657b9ab51367c3e6f9936f6d18f562288bf7a53a89ba1052bd9a94",
+      "bytes": 202059
+    },
+    {
+      "index": 24,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0354-01-300dpi.png",
+      "exportPath": "assets/fig-09-54.png",
+      "originalRelativePath": "assets/mathpix-source-page-0354-01-300dpi.png",
+      "caption": "> Image description: This figure is a control system block diagram titled \"图9－54 单位斜坡内模控制系统结构图\" (Unit Ramp Internal Model Control System Structure Diagram). The system processes an input signal $r(t)$ through a feedback loop to produce an output $y(t)$, where $x_1(t) = y(t)$. The controller, enclosed in a dashed box labeled $G_c(s)$, consists of gain blocks $k_1$ and $k_2$ and two integrators ($1/s$). The error signal $e(t)$ enters this block. Following the controller, the control signal $u(t)$ is fed into a plant consisting of two first-order transfer functions: $1/(s+1)$ and $1/(s+2)$. The system incorporates multiple feedback paths: an inner loop with gain $k_4$ from state variable $x_2(t)$, a middle loop with gain $k_3$ from the output $y(t)$, and a primary outer unity feedback loop returning $y(t)$ to the initial summing junction. Arrows indicate the unidirectional flow of signals between these components. 图9－54 单位斜坡内模控制系统结构图",
+      "sourcePdfPage": 354,
+      "sha256": "c65c023288ba8294a1e53b3f737ca0a9ba1790cffd6a0b79d787774930fc45ed",
+      "bytes": 106088
+    },
+    {
+      "index": 25,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0355-01-300dpi.png",
+      "exportPath": "assets/fig-09-42-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0355-01-300dpi.png",
+      "caption": "图 9－42－1 内模控制系统的单位斜坡响应（MATLAB）可得内模控制系统的单位斜坡响应如图9－42－1所示。",
+      "sourcePdfPage": 355,
+      "sha256": "558505661bbb4e56e16b1da4597f7d43ac2068f0e9c20fe6cd199bc3b968da3f",
+      "bytes": 169198
+    },
+    {
+      "index": 26,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0357-01-300dpi.png",
+      "exportPath": "assets/fig-09-43-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0357-01-300dpi.png",
+      "caption": "图9－43－1 单位斜坡内模控制系统结构图 应用 MATLAB 软件包，并根据图 9－43－1 在 Simulink 环境下搭建内模控制系统，运行可得内模控制系统的单位斜坡误差响应，如图 9－43－2 所示。",
+      "sourcePdfPage": 357,
+      "sha256": "004a1f8c697cfa6c74ec5c36288ac477976282851610dd30800466f4dc3e2fbc",
+      "bytes": 111797
+    },
+    {
+      "index": 27,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0357-02-300dpi.png",
+      "exportPath": "assets/fig-09-43-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0357-02-300dpi.png",
+      "caption": "图9－43－2 系统单位斜坡跟踪误差响应曲线（Simulink）",
+      "sourcePdfPage": 357,
+      "sha256": "875936e1ecac4ac0eecc94722cc4755fd9e58644fa638278fe893cf752f73ef2",
+      "bytes": 185173
+    },
+    {
+      "index": 28,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0360-01-300dpi.png",
+      "exportPath": "assets/fig-09-45-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0360-01-300dpi.png",
+      "caption": "图9－45－1 Simulink 仿真图 令 $n(t)=3 t^{2}$ ，运行上述 Simulink 仿真图，可得系统在带扰动的内模控制器作用下对应的跟踪误差曲线图和跟踪曲线图，如图 9－45－2、图 9－45－3 所示。",
+      "sourcePdfPage": 360,
+      "sha256": "d9fdee6322aedf4113f0a8f0b71dca3a83a2a880457482dc785568960c741878",
+      "bytes": 293913
+    },
+    {
+      "index": 29,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0360-02-300dpi.png",
+      "exportPath": "assets/fig-09-45-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0360-02-300dpi.png",
+      "caption": "> Image description: The figure is a MATLAB-generated plot showing the tracking error response of a system under acceleration disturbance, as indicated by the caption \"图9－45－2 加速度扰动作用下系统跟踪误差响应（MATLAB）\". The graph features a horizontal x-axis labeled \"Time/sec\" ranging from 0 to 10 seconds and a vertical y-axis representing the tracking error $e(t)$, with values ranging from -1.2 to 0.2. The plotted curve starts at zero, briefly rises above zero, then drops sharply to a minimum peak of approximately -1.1 around 1.5 seconds. It subsequently recovers, crossing the zero line near 4 seconds and exhibiting a small overshoot before stabilizing toward zero as time progresses beyond 6 seconds. This waveform illustrates the system's transient response and its ability to converge back to a state of zero tracking error following a disturbance. 图9－45－2 加速度扰动作用下系统跟踪误差响应（MATLAB）",
+      "sourcePdfPage": 360,
+      "sha256": "1517f6852ce049a3f09fa51edc0035c0519cf2206e4f56dfa9ffe460bf04a57f",
+      "bytes": 188003
+    },
+    {
+      "index": 30,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-09-mathpix/assets/mathpix-source-page-0360-03-300dpi.png",
+      "exportPath": "assets/fig-09-45-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0360-03-300dpi.png",
+      "caption": "图 9－45－3 加速度扰动作用下系统输出跟踪响应（MATLAB）",
+      "sourcePdfPage": 360,
+      "sha256": "f563d630068818c5fda2274d06c064e957becfd39763d76ca63edfded274da42",
+      "bytes": 215336
+    }
+  ]
+}

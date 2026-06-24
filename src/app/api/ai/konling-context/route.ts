@@ -14,7 +14,7 @@ import {
   isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
 } from '@/lib/data-governance/adaptive-learner-state-service';
-import { buildKonlingRuntimeContext } from '@/lib/konling-agent-runtime';
+import { buildKonlingRuntimeContext, type KonlingKnowledgeWorkspaceHint } from '@/lib/konling-agent-runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     const pageId = searchParams.get('pageId');
     const resourceId = searchParams.get('resourceId');
     const pathNodeId = searchParams.get('pathNodeId');
+    const knowledgeWorkspaceHint = buildKnowledgeWorkspaceHint(searchParams);
 
     // Only allow viewing own data unless teacher/admin
     const isTeacherOrAdmin = session.user.role === 'TEACHER' || session.user.role === 'ADMIN';
@@ -75,6 +76,7 @@ export async function GET(request: NextRequest) {
       pageId,
       resourceId,
       pathNodeId,
+      knowledgeWorkspaceHint,
     }).catch((error) => {
       console.error('[KonlingContext] Runtime context read failed:', error);
       return null;
@@ -109,6 +111,7 @@ export async function GET(request: NextRequest) {
         competency_vector: null,
         learner_state_context: learnerState,
         plan_context: runtimeContext?.planContext ?? null,
+        knowledge_workspace_context: runtimeContext?.knowledgeWorkspace ?? null,
         scoped_memory: runtimeContext?.memory ?? [],
         permitted_tools: runtimeContext?.permittedTools ?? [],
         missing_context: runtimeContext?.missingContext ?? [],
@@ -143,6 +146,7 @@ export async function GET(request: NextRequest) {
       competency_vector: snapshot?.competencyVector || null,
       learner_state_context: learnerState,
       plan_context: runtimeContext?.planContext ?? null,
+      knowledge_workspace_context: runtimeContext?.knowledgeWorkspace ?? null,
       scoped_memory: runtimeContext?.memory ?? [],
       permitted_tools: runtimeContext?.permittedTools ?? [],
       missing_context: runtimeContext?.missingContext ?? [],
@@ -157,6 +161,64 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function buildKnowledgeWorkspaceHint(searchParams: URLSearchParams): KonlingKnowledgeWorkspaceHint | null {
+  const selectedNodeId = searchParams.get('selectedNodeId');
+  const requestedNodeId = searchParams.get('requestedNodeId');
+  const hoveredNodeId = searchParams.get('hoveredNodeId');
+  const status = parseKnowledgeWorkspaceStatus(searchParams.get('status'));
+  const activeFilters = [
+    ...searchParams.getAll('activeFilters'),
+    ...splitDelimitedParam(searchParams.get('activeFilterSummary')),
+  ].flatMap(splitDelimitedParam);
+  const hint: KonlingKnowledgeWorkspaceHint = {
+    selectedNodeId,
+    requestedNodeId,
+    status,
+    activeFilters,
+    densityMode: searchParams.get('densityMode'),
+    viewMode: searchParams.get('viewMode'),
+    visibleRelationCount: parseCount(searchParams.get('visibleRelationCount')),
+    selectedNodeRelationCount:
+      parseCount(searchParams.get('selectedNodeRelationCount'))
+      ?? parseCount(searchParams.get('selectedRelationCount')),
+  };
+
+  if (
+    selectedNodeId
+    || requestedNodeId
+    || hoveredNodeId
+    || status
+    || activeFilters.length > 0
+    || hint.densityMode
+    || hint.viewMode
+    || hint.visibleRelationCount
+    || hint.selectedNodeRelationCount
+  ) {
+    return hint;
+  }
+
+  return null;
+}
+
+function parseKnowledgeWorkspaceStatus(value: string | null): KonlingKnowledgeWorkspaceHint['status'] {
+  if (value === 'selected-node' || value === 'no-selection' || value === 'degraded') return value;
+  return null;
+}
+
+function splitDelimitedParam(value: string | null): string[] {
+  if (!value) return [];
+  return value
+    .split(/[|,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseCount(value: string | null): number | null {
+  if (!value) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
 
 async function verifyTeacherStudentScope(input: {

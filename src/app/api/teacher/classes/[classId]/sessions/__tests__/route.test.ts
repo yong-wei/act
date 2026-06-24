@@ -76,7 +76,7 @@ describe('GET /api/teacher/classes/[classId]/sessions', () => {
 
     const response = await GET(
       new Request('http://localhost/api/teacher/classes/class-1/sessions'),
-      { params: { classId: 'class-1' } },
+      { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const payload = await response.json();
 

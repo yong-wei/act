@@ -1,0 +1,333 @@
+{
+  "audit": {
+    "label": "student mobile profile evidence filter state",
+    "path": "/profile/evidence",
+    "title": "AI-OBE船舶控制平台",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "学习证据"
+      },
+      {
+        "tag": "h2",
+        "text": "筛选"
+      },
+      {
+        "tag": "h3",
+        "text": "控灵"
+      }
+    ],
+    "controls": [
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "切换到深色模式",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/dashboard",
+        "name": "学生驾驶舱",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/profile",
+        "name": "个人中心",
+        "disabled": false
+      },
+      {
+        "tag": "select",
+        "role": "",
+        "type": "",
+        "href": "",
+        "name": "全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展",
+        "disabled": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "",
+        "href": "",
+        "name": "unit-5-2...",
+        "disabled": false
+      },
+      {
+        "tag": "select",
+        "role": "",
+        "type": "",
+        "href": "",
+        "name": "全部类型 课堂作答 仿真 AI 交互 工程伦理",
+        "disabled": false
+      },
+      {
+        "tag": "select",
+        "role": "",
+        "type": "",
+        "href": "",
+        "name": "全部结果 成功 部分 失败 中止",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "重置筛选条件",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "重置筛选条件",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/profile/growth",
+        "name": "返回成长中心",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "关闭 (ESC)",
+        "disabled": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "href": "",
+        "name": "全局 AI 问题输入框",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "href": "",
+        "name": "",
+        "disabled": true
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "打开控灵与页面工具菜单",
+        "disabled": false
+      }
+    ],
+    "ctaTexts": [
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/profile",
+        "name": "个人中心",
+        "disabled": false
+      },
+      {
+        "tag": "select",
+        "role": "",
+        "type": "",
+        "href": "",
+        "name": "全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展",
+        "disabled": false
+      },
+      {
+        "tag": "select",
+        "role": "",
+        "type": "",
+        "href": "",
+        "name": "全部类型 课堂作答 仿真 AI 交互 工程伦理",
+        "disabled": false
+      }
+    ],
+    "controlsWithoutNames": [
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "href": "",
+        "name": "",
+        "disabled": true
+      }
+    ],
+    "svgCanvasCount": 8,
+    "unlabeledSvgCanvas": [
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      }
+    ],
+    "liveRegions": [],
+    "errors": [
+      {
+        "tag": "main",
+        "text": "学生 学习证据 来源质量、时间线与隐私范围 学生驾驶舱 个人中心 筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 当前筛选下暂无证据。 重置筛选条件 返回成长中心"
+      },
+      {
+        "tag": "div",
+        "text": "学生 学习证据 来源质量、时间线与隐私范围 学生驾驶舱 个人中心 筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 当前筛选下暂无证据。 重置筛选条件 返回成长中心"
+      },
+      {
+        "tag": "div",
+        "text": "学生 学习证据 来源质量、时间线与隐私范围 学生驾驶舱 个人中心 筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 当前筛选下暂无证据。 重置筛选条件 返回成长中心"
+      },
+      {
+        "tag": "div",
+        "text": "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 当前筛选下暂无证据。 重置筛选条件 返回成长中心"
+      },
+      {
+        "tag": "section",
+        "text": "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 当前筛选下暂无证据。 重置筛选条件 返回成长中心"
+      },
+      {
+        "tag": "div",
+        "text": "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 当前筛选下暂无证据。 重置筛选条件 返回成长中心"
+      },
+      {
+        "tag": "main",
+        "text": "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 当前筛选下暂无证据。 重置筛选条件 返回成长中心"
+      },
+      {
+        "tag": "aside",
+        "text": "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件"
+      },
+      {
+        "tag": "div",
+        "text": "能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件"
+      },
+      {
+        "tag": "label",
+        "text": "结果 全部结果 成功 部分 失败 中止"
+      },
+      {
+        "tag": "select",
+        "text": "全部结果 成功 部分 失败 中止"
+      },
+      {
+        "tag": "section",
+        "text": "当前筛选下暂无证据。 重置筛选条件 返回成长中心"
+      },
+      {
+        "tag": "div",
+        "text": "当前筛选下暂无证据。 重置筛选条件 返回成长中心"
+      },
+      {
+        "tag": "p",
+        "text": "当前筛选下暂无证据。"
+      }
+    ],
+    "fixedOrSticky": [
+      {
+        "tag": "div",
+        "className": "\n          fixed right-0 top-0 z-50 flex flex-col\n          h-screen w-screen\n          sm:w-[380px]\n          lg:w-[420px]\n          bg-white border-slate-200\n          transition",
+        "text": "控灵 当前: evidence 你好，我是控灵。今天我们将探索「evidence」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板",
+        "rect": {
+          "x": 390,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        }
+      },
+      {
+        "tag": "div",
+        "className": "no-print fixed bottom-4 right-6 z-[120] flex flex-col items-end",
+        "text": "控灵",
+        "rect": {
+          "x": 276,
+          "y": 788,
+          "w": 90,
+          "h": 40
+        }
+      }
+    ],
+    "profileLinks": [
+      {
+        "href": "/dashboard",
+        "text": "学生驾驶舱"
+      },
+      {
+        "href": "/profile",
+        "text": "个人中心"
+      },
+      {
+        "href": "/profile/growth",
+        "text": "返回成长中心"
+      }
+    ],
+    "viewportTextHead": "学生 学习证据 来源质量、时间线与隐私范围 学生驾驶舱 个人中心 筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 当前筛选下暂无证据。 重置筛选条件 返回成长中心 控灵 当前: evidence 你好，我是控灵。今天我们将探索「evidence」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+    "extra": {
+      "actions": [
+        "clicked button /筛选|过滤|分类|全部|证据|最近|更多|展开/i",
+        "{\"filled\":true,\"index\":0,\"value\":\"Arena\"}"
+      ],
+      "screenshot": "screenshots/48-function-state-flows-batch13/08-profile-evidence-mobile-filter.png",
+      "requestedUrl": "/profile/evidence"
+    }
+  },
+  "accessibilitySnapshotUnavailable": "Playwright page.accessibility.snapshot unavailable in this runtime"
+}

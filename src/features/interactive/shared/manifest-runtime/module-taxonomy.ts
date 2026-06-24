@@ -7,10 +7,17 @@ export const INTERACTIVE_MODULE_CANONICAL_CLASSES = [
   'content.rich',
   'content.cardSet',
   'content.formula',
+  'content.code',
   'content.table',
   'content.figure',
   'content.reveal',
   'content.stageMap',
+  'visual.stage',
+  'visual.derivationStage',
+  'visual.blockDiagram',
+  'visual.signalFlowGraph',
+  'visual.annotatedMedia',
+  'visual.embedded-activity',
   'activity.panel',
   'activity.workspace',
   'compute.panel',
@@ -129,6 +136,17 @@ export interface InteractiveModuleComputeCapabilityDefinition {
   description: string;
 }
 
+export const CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS = [
+  'control-workbench',
+  'control-linked-comparison',
+  'control-root-locus-design-map',
+  'control-frequency-reading-workbench',
+  'nonlinear-analysis-workbench',
+  'training-workbench',
+] as const;
+
+export type ControlWorkbenchComputeCapabilityRef = typeof CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS[number];
+
 export const INTERACTIVE_MODULE_DEFINITIONS: Record<InteractiveModuleCanonicalClass, InteractiveModuleDefinition> = {
   'content.rich': {
     canonicalClass: 'content.rich',
@@ -148,6 +166,13 @@ export const INTERACTIVE_MODULE_DEFINITIONS: Record<InteractiveModuleCanonicalCl
     canonicalClass: 'content.formula',
     renderBehavior: 'renderer',
     configShape: 'formula payload',
+    producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'content.code': {
+    canonicalClass: 'content.code',
+    renderBehavior: 'renderer',
+    configShape: 'code payload with language and source',
     producesEvidence: false,
     allowedInNewAuthoring: true,
   },
@@ -178,6 +203,49 @@ export const INTERACTIVE_MODULE_DEFINITIONS: Record<InteractiveModuleCanonicalCl
     configShape: 'stage map payload',
     producesEvidence: false,
     allowedInNewAuthoring: true,
+  },
+  'visual.stage': {
+    canonicalClass: 'visual.stage',
+    renderBehavior: 'renderer',
+    configShape: 'normalized 2D stage payload with layers, regions, reveal state, and evidence anchors',
+    producesEvidence: true,
+    allowedInNewAuthoring: true,
+  },
+  'visual.derivationStage': {
+    canonicalClass: 'visual.derivationStage',
+    renderBehavior: 'renderer',
+    configShape: 'normalized 2D derivation stage with LaTeX formulas, reveal steps, regions, and teaching-load limits',
+    producesEvidence: true,
+    allowedInNewAuthoring: true,
+  },
+  'visual.blockDiagram': {
+    canonicalClass: 'visual.blockDiagram',
+    renderBehavior: 'renderer',
+    configShape: 'control block diagram payload with structured nodes, edges, interaction modes, and reveal metadata',
+    producesEvidence: true,
+    allowedInNewAuthoring: true,
+  },
+  'visual.signalFlowGraph': {
+    canonicalClass: 'visual.signalFlowGraph',
+    renderBehavior: 'renderer',
+    configShape: 'signal flow graph payload with nodes, branches, path sets, loops, Mason formula terms, and reveal plans',
+    producesEvidence: true,
+    allowedInNewAuthoring: true,
+  },
+  'visual.annotatedMedia': {
+    canonicalClass: 'visual.annotatedMedia',
+    renderBehavior: 'renderer',
+    configShape: 'annotated media payload with media source, alt text, normalized hotspots, evidence roles, reveal metadata, and selectable annotations',
+    producesEvidence: true,
+    allowedInNewAuthoring: true,
+  },
+  'visual.embedded-activity': {
+    canonicalClass: 'visual.embedded-activity',
+    renderBehavior: 'renderer',
+    configShape: 'embedded visual activity payload with anchor geometry, canonical response contract, and visual module context',
+    producesEvidence: true,
+    allowedInNewAuthoring: true,
+    requiresResponseContract: true,
   },
   'activity.panel': {
     canonicalClass: 'activity.panel',
@@ -247,6 +315,10 @@ export const INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS: Record<string, I
     capabilityRef: 'interactive-figure',
     description: 'Runtime interactive figure backed by a shared renderer.',
   },
+  'static-surface-3d': {
+    capabilityRef: 'static-surface-3d',
+    description: 'Precomputed static 3D surface panel with shared rotate and zoom controls.',
+  },
   'rust-analysis': {
     capabilityRef: 'rust-analysis',
     description: 'Rust or WASM-backed analysis panel.',
@@ -263,7 +335,38 @@ export const INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS: Record<string, I
     capabilityRef: 'parametric-risk',
     description: 'Parametric risk visualization panel.',
   },
+  'control-workbench': {
+    capabilityRef: 'control-workbench',
+    description: 'Shared control workbench embedded in an interactive course.',
+  },
+  'control-linked-comparison': {
+    capabilityRef: 'control-linked-comparison',
+    description: 'Shared linked comparison workbench for baseline and parameter variants.',
+  },
+  'control-root-locus-design-map': {
+    capabilityRef: 'control-root-locus-design-map',
+    description: 'Shared root locus design map and handle-based design surface.',
+  },
+  'control-frequency-reading-workbench': {
+    capabilityRef: 'control-frequency-reading-workbench',
+    description: 'Shared Bode and Nyquist reading workbench.',
+  },
+  'nonlinear-analysis-workbench': {
+    capabilityRef: 'nonlinear-analysis-workbench',
+    description: 'Shared nonlinear phase plane and describing-function workbench.',
+  },
+  'training-workbench': {
+    capabilityRef: 'training-workbench',
+    description: 'Shared training and policy-learning workbench.',
+  },
 };
+
+export function isControlWorkbenchComputeCapabilityRef(
+  capabilityRef: string | null | undefined,
+): capabilityRef is ControlWorkbenchComputeCapabilityRef {
+  return typeof capabilityRef === 'string'
+    && (CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS as readonly string[]).includes(capabilityRef);
+}
 
 export interface LegacyInteractiveModuleKindAlias {
   canonicalClass: InteractiveModuleCanonicalClass;

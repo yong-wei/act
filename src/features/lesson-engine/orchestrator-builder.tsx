@@ -6,14 +6,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical, Eye,
-  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Presentation, Filter, Pencil
+  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Presentation, Filter, Pencil, type LucideIcon
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TeachingResource, LessonItemType, InteractiveCategory } from '@prisma/client';
 
 // 组件分类配置
-const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+const CATEGORY_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string }> = {
   SYSTEM_MODELING: { label: '系统建模', icon: Boxes, color: 'text-blue-400' },
   TIME_DOMAIN: { label: '时域分析', icon: Activity, color: 'text-emerald-400' },
   ROOT_LOCUS: { label: '根轨迹分析', icon: GitBranch, color: 'text-violet-400' },
@@ -35,6 +35,7 @@ import { KnowledgeCardDialog } from '@/features/knowledge/knowledge-card';
 import type { KnowledgeNodeData } from '@/features/knowledge/knowledge-graph-system';
 import { ResourceRenderer } from './resource-renderer';
 import { LessonItemEditDialog, LessonItemOverrideConfig } from './lesson-item-edit-dialog';
+import { EMPTY_LESSON_PLAN_MESSAGE, hasLaunchableLessonItems } from '@/lib/lesson-plan-readiness';
 
 // @dnd-kit imports
 import {
@@ -93,6 +94,56 @@ interface OrchestratorBuilderProps {
   };
   returnPath?: string; // 保存后跳转路径，默认根据当前路径判断
   workbenchReturnUrl?: string;
+  workbenchReturnLabel?: string;
+  missingTemplateId?: string | null;
+  templateRecoveryHref?: string;
+}
+
+function createEmptyPlanState(): Record<StageId, LessonItemDraft[]> {
+  return {
+    BRIDGE_IN: [],
+    OBJECTIVE: [],
+    PRE_ASSESSMENT: [],
+    PARTICIPATORY: [],
+    POST_ASSESSMENT: [],
+    SUMMARY: [],
+  };
+}
+
+function createPlanStateFromInitialData(
+  initialData: OrchestratorBuilderProps['initialData'],
+): Record<StageId, LessonItemDraft[]> {
+  const nextState = createEmptyPlanState();
+  if (!initialData?.items) return nextState;
+
+  initialData.items.forEach((item) => {
+    if (!item.stage) return;
+
+    const stage = item.stage as StageId;
+    if (!nextState[stage]) return;
+
+    const inferredType = item.knowledgeNodeId ? LessonItemType.KNOWLEDGE_NODE : LessonItemType.RESOURCE;
+    const itemType = (item.itemType as LessonItemType | undefined) ?? inferredType;
+    const resourceTitle = itemType === LessonItemType.KNOWLEDGE_NODE
+      ? item.knowledgeNode?.name || 'Unknown Knowledge'
+      : item.resource?.title || 'Unknown Resource';
+
+    nextState[stage].push({
+      tempId: item.id,
+      itemType,
+      resourceId: itemType === LessonItemType.RESOURCE ? item.resourceId : null,
+      resourceTitle,
+      resourceType: itemType === LessonItemType.RESOURCE ? item.resource?.type || 'UNKNOWN' : null,
+      knowledgeNodeId: itemType === LessonItemType.KNOWLEDGE_NODE ? item.knowledgeNodeId : null,
+      knowledgeNodeType: itemType === LessonItemType.KNOWLEDGE_NODE
+        ? item.knowledgeNode?.nodeType || 'UNKNOWN'
+        : null,
+      duration: item.duration || 10,
+      overrideConfig: item.overrideConfig || {},
+    });
+  });
+
+  return nextState;
 }
 
 // SortableItem component for drag-and-drop reordering
@@ -150,10 +201,10 @@ function SortableItem({ item, idx, onRemove, onDurationChange, onEdit }: Sortabl
             )}
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={onEdit} className="text-slate-500 hover:text-cyan-400" title="编辑">
+            <button type="button" onClick={onEdit} className="text-slate-500 hover:text-cyan-400" title="编辑">
               <Pencil className="h-4 w-4" />
             </button>
-            <button onClick={onRemove} className="text-slate-500 hover:text-red-400" title="删除">
+            <button type="button" onClick={onRemove} className="text-slate-500 hover:text-red-400" title="删除">
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
@@ -166,7 +217,7 @@ function SortableItem({ item, idx, onRemove, onDurationChange, onEdit }: Sortabl
           </span>
           <div className="flex items-center gap-1">
             <span>时长:</span>
-            <input
+            <input aria-label="编排资源搜索"
               type="number"
               className="w-12 bg-slate-900 border border-slate-700 rounded px-1 text-center focus:border-cyan-500 outline-none"
               value={item.duration}
@@ -190,6 +241,30 @@ export function OrchestratorBuilder({
   initialData,
   returnPath,
   workbenchReturnUrl,
+  workbenchReturnLabel,
+  missingTemplateId,
+  templateRecoveryHref,
+}: OrchestratorBuilderProps) {
+  return (
+    <OrchestratorBuilderContent
+      key={initialData?.id ?? 'new'}
+      initialData={initialData}
+      returnPath={returnPath}
+      workbenchReturnUrl={workbenchReturnUrl}
+      workbenchReturnLabel={workbenchReturnLabel}
+      missingTemplateId={missingTemplateId}
+      templateRecoveryHref={templateRecoveryHref}
+    />
+  );
+}
+
+function OrchestratorBuilderContent({
+  initialData,
+  returnPath,
+  workbenchReturnUrl,
+  workbenchReturnLabel,
+  missingTemplateId,
+  templateRecoveryHref = '/teacher/preset-lessons',
 }: OrchestratorBuilderProps) {
   const router = useRouter();
   const [resources, setResources] = useState<ExtendedTeachingResource[]>([]);
@@ -197,14 +272,9 @@ export function OrchestratorBuilder({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
-  const [planState, setPlanState] = useState<Record<StageId, LessonItemDraft[]>>({
-    BRIDGE_IN: [],
-    OBJECTIVE: [],
-    PRE_ASSESSMENT: [],
-    PARTICIPATORY: [],
-    POST_ASSESSMENT: [],
-    SUMMARY: []
-  });
+  const [planState, setPlanState] = useState<Record<StageId, LessonItemDraft[]>>(
+    () => createPlanStateFromInitialData(initialData),
+  );
   
   const [title, setTitle] = useState(initialData?.title || '');
   const [isSaving, setIsSaving] = useState(false);
@@ -241,67 +311,48 @@ export function OrchestratorBuilder({
     }
   }, []);
 
-  // Initialize state from initialData
-  useEffect(() => {
-      if (initialData?.items) {
-          const newState = {
-            BRIDGE_IN: [],
-            OBJECTIVE: [],
-            PRE_ASSESSMENT: [],
-            PARTICIPATORY: [],
-            POST_ASSESSMENT: [],
-            SUMMARY: []
-          } as any;
-
-          // Group items by stage
-          initialData.items.forEach(item => {
-              if (item.stage) {
-                  if (!newState[item.stage]) newState[item.stage] = [];
-                  const inferredType = item.knowledgeNodeId ? LessonItemType.KNOWLEDGE_NODE : LessonItemType.RESOURCE;
-                  const itemType = (item.itemType as LessonItemType | undefined) ?? inferredType;
-                  const resourceTitle = itemType === LessonItemType.KNOWLEDGE_NODE
-                    ? item.knowledgeNode?.name || 'Unknown Knowledge'
-                    : item.resource?.title || 'Unknown Resource';
-
-                  newState[item.stage].push({
-                      tempId: item.id, // Use real ID
-                      itemType,
-                      resourceId: itemType === LessonItemType.RESOURCE ? item.resourceId : null,
-                      resourceTitle,
-                      resourceType: itemType === LessonItemType.RESOURCE ? item.resource?.type || 'UNKNOWN' : null,
-                      knowledgeNodeId: itemType === LessonItemType.KNOWLEDGE_NODE ? item.knowledgeNodeId : null,
-                      knowledgeNodeType: itemType === LessonItemType.KNOWLEDGE_NODE
-                        ? item.knowledgeNode?.nodeType || 'UNKNOWN'
-                        : null,
-                      duration: item.duration || 10,
-                      overrideConfig: item.overrideConfig || {}
-                  });
-              }
-          });
-          setPlanState(newState);
-      }
-  }, [initialData]);
-
   // Fetch Resources (include teacher-only for orchestrator)
   useEffect(() => {
+    const controller = new AbortController();
     const fetchResources = async () => {
-       const res = await fetch('/api/resources?includeTeacherOnly=true');
-       if (res.ok) {
-           setResources(await res.json());
-       }
+      try {
+        const res = await fetch('/api/resources?includeTeacherOnly=true', { signal: controller.signal });
+        if (res.ok) {
+          const data = await res.json();
+          if (!controller.signal.aborted) {
+            setResources(data);
+          }
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Failed to fetch lesson resources:', error);
+        }
+      }
     };
     fetchResources();
+    return () => controller.abort();
   }, []);
 
   // Fetch Knowledge Nodes
   useEffect(() => {
+    const controller = new AbortController();
     const fetchKnowledgeNodes = async () => {
-      const res = await fetch('/api/knowledge/nodes');
-      if (res.ok) {
-        setKnowledgeNodes(await res.json());
+      try {
+        const res = await fetch('/api/knowledge/nodes', { signal: controller.signal });
+        if (res.ok) {
+          const data = await res.json();
+          if (!controller.signal.aborted) {
+            setKnowledgeNodes(data);
+          }
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Failed to fetch knowledge nodes:', error);
+        }
       }
     };
     fetchKnowledgeNodes();
+    return () => controller.abort();
   }, []);
 
   const handleResourceDragStart = (e: React.DragEvent, resource: TeachingResource) => {
@@ -412,6 +463,11 @@ export function OrchestratorBuilder({
               });
           });
       }
+      if (!hasLaunchableLessonItems(itemsToSave)) {
+        alert(EMPTY_LESSON_PLAN_MESSAGE);
+        setIsSaving(false);
+        return;
+      }
 
       try {
         const url = initialData ? `/api/lesson-plans/${initialData.id}` : '/api/lesson-plans';
@@ -504,16 +560,25 @@ export function OrchestratorBuilder({
                     className="inline-flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-cyan-400"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    返回教师工作台
+                    {workbenchReturnLabel ?? '返回教师工作台'}
                   </Link>
                 )}
                 <h2 className="font-bold flex items-center gap-2">
                     <BookOpen className="h-5 w-5 text-cyan-400" />
                     资源库
                 </h2>
+                {!initialData && missingTemplateId && (
+                  <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs leading-5 text-amber-100">
+                    模板 {missingTemplateId} 当前不可用。已改为空白教案，你可以继续手动编排，或
+                    <Link href={templateRecoveryHref} className="ml-1 underline underline-offset-2 hover:text-amber-50">
+                      重新选择模板
+                    </Link>
+                    。
+                  </div>
+                )}
                 <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500" />
-                    <input
+                    <input aria-label="搜索资源或知识卡片..."
                         type="text"
                         placeholder="搜索资源或知识卡片..."
                         className="w-full bg-slate-950 border border-slate-700 rounded pl-8 pr-2 py-2 text-sm focus:border-cyan-500 outline-none"
@@ -523,7 +588,7 @@ export function OrchestratorBuilder({
                 </div>
                 {/* Category Filter */}
                 <div className="flex flex-wrap gap-1">
-                    <button
+                    <button type="button"
                         onClick={() => setSelectedCategory(null)}
                         className={`px-2 py-1 text-xs rounded transition-colors ${
                             !selectedCategory
@@ -537,7 +602,7 @@ export function OrchestratorBuilder({
                         const config = CATEGORY_CONFIG[cat];
                         if (!config) return null;
                         return (
-                            <button
+                            <button type="button"
                                 key={cat}
                                 onClick={() => setSelectedCategory(cat)}
                                 className={`px-2 py-1 text-xs rounded transition-colors ${
@@ -570,7 +635,7 @@ export function OrchestratorBuilder({
                                         <div className="text-sm font-medium truncate">{res.displayName || res.title}</div>
                                         <div className="text-[10px] text-slate-500 truncate">{res.type}</div>
                                     </div>
-                                    <button
+                                    <button type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setPreviewResource(res);
@@ -621,7 +686,7 @@ export function OrchestratorBuilder({
                                                 <span className="text-[10px] text-purple-400">教师专用</span>
                                             )}
                                         </div>
-                                        <button
+                                        <button type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setPreviewResource(res);
@@ -659,7 +724,7 @@ export function OrchestratorBuilder({
                                         <div className="text-sm font-medium truncate">{node.name}</div>
                                         <div className="text-[10px] text-slate-500 truncate">{node.nodeType}</div>
                                     </div>
-                                    <button
+                                    <button type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setPreviewKnowledge(node);
@@ -683,7 +748,7 @@ export function OrchestratorBuilder({
              <div className="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900 z-10">
                 <div className="flex items-center gap-4 flex-1 max-w-xl">
                     <Layout className="h-5 w-5 text-cyan-400 flex-shrink-0" />
-                    <input
+                    <input aria-label="输入教案标题..."
                         type="text"
                         placeholder="输入教案标题..."
                         className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:outline-none text-lg font-bold w-full text-white placeholder:text-slate-500 px-3 py-1.5 rounded"
@@ -691,7 +756,7 @@ export function OrchestratorBuilder({
                         onChange={e => setTitle(e.target.value)}
                     />
                 </div>
-                <button
+                <button type="button"
                     onClick={savePlan}
                     disabled={isSaving}
                     className="ml-4 flex-shrink-0 flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-md font-medium transition-colors disabled:opacity-50"

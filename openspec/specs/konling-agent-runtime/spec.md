@@ -3,20 +3,20 @@
 Define the state-aware Konling runtime that loads server-owned adaptive context, exposes scoped learning tools, persists governed memory, and records corrective or remedial intervention outcomes.
 ## Requirements
 ### Requirement: Konling reads server-owned adaptive context
-Konling SHALL build runtime context from server-owned page context, learner state, plan context, and scoped memory rather than default or client-provided profile values.
+Konling SHALL build runtime context from server-owned page context, learner state, plan context, graph context, and scoped memory rather than default or client-provided profile values.
 
-#### Scenario: Konling context is loaded
-- **WHEN** Konling starts or receives a message on a supported page
-- **THEN** it SHALL load page context, learner state, current plan context, recent evidence, relevant memory summaries, and permitted tools
-- **AND** missing or low-confidence context SHALL be visible to prompt construction and response rationale.
+#### Scenario: Graph-aware Konling context is loaded
+- **WHEN** Konling starts or receives a message on a graph-aware path, graph-center, diagnosis, or prep-pack surface
+- **THEN** it SHALL load the available Konling graph context in addition to page context, learner state, current plan context, recent evidence, memory summaries, and permitted tools
+- **AND** missing graph context classes SHALL be visible to prompt construction, tool input preparation, and response rationale.
 
 ### Requirement: Konling exposes adaptive-learning tools
-Konling SHALL expose tools for page, learner, plan, memory, knowledge graph, next action, simulation status, intervention, and attempt analysis.
+Konling SHALL expose tools for page, learner, plan, memory, knowledge graph, next action, simulation status, intervention, attempt analysis, and adaptive path generation.
 
 #### Scenario: Default tools are available
-- **WHEN** Konling handles a learning-support conversation
-- **THEN** it SHALL be able to call `get_page_context`, `get_learner_state`, `get_plan_context`, `search_learning_memory`, `search_knowledge_graph`, `recommend_next_action`, `get_simulation_status`, `record_intervention_result`, and `analyze_attempt`
-- **AND** each tool SHALL enforce user, class, resource, path, and privacy scope.
+- **WHEN** Konling handles a learning-support conversation on the adaptive path center
+- **THEN** it SHALL be able to call the governed adaptive path tools permitted by the authenticated role and route context
+- **AND** each tool SHALL enforce user, class, resource, path, goal, and privacy scope.
 
 ### Requirement: Konling memory is staged and scoped
 Konling SHALL persist Stage 1 memory at working-summary, session-summary, episodic, and intervention-outcome levels.
@@ -67,6 +67,12 @@ Konling SHALL register tools through a server-owned registry that declares permi
 #### Scenario: State-changing tool is requested
 - **WHEN** a write or publish tier tool is requested
 - **THEN** the tool call SHALL enter an approval-required state unless a future spec defines a narrower approved exception.
+
+#### Scenario: Student-owned adaptive path tool is requested
+- **WHEN** a student requests an adaptive path generation, revision, selection, rejection, or adjustment-outcome tool from the adaptive path center
+- **THEN** Konling MAY mark the tool run approval state as not-required
+- **AND** the tool SHALL remain bound to the authenticated or target student, registered path goal, class scope where available, course-scoped AgentSession and ToolRun context, privacy scope, AgentSession permitted tools, idempotency key, and redacted input summary
+- **AND** path-bound selection, rejection, revision, explanation, or adjustment tools SHALL verify the requested path belongs to the scoped student, registered goal, and class scope where available before side effects.
 
 ### Requirement: Konling persists auditable tool runs
 Konling SHALL persist every tool call as an auditable tool-run record before executing side effects.
@@ -135,3 +141,172 @@ Konling SHALL separate controller patch proposal from controller patch applicati
 - **WHEN** Konling calls `apply_controller_patch`
 - **THEN** the tool SHALL create an approval-required AgentToolRun
 - **AND** it SHALL apply the patch only after approval and only within the owner user's scoped controller draft.
+
+### Requirement: Konling coaching is path-aware and citation-enforced
+Konling SHALL provide graph-aware path coaching from server-owned path and graph context, consume path comparison, selection history, terminal validation context, and graph grounding, and attach required citations to coaching claims.
+
+#### Scenario: Personalized graph path explanation is generated
+- **WHEN** a student asks why a graph-driven path or node was recommended
+- **THEN** Konling SHALL ground the answer in LearningGoal metadata, ExpandedGoalSubgraph, authorized learner or class overlay, ResourceCoverage, path option context, selection history, and verified citations where available
+- **AND** it SHALL disclose missing or low-confidence goal, graph, resource, overlay, path, version, or citation context as a limitation.
+
+### Requirement: Konling corrects failed validation from governed evidence
+Konling SHALL use governed simulation and Arena validation summaries when coaching a student after failed control-correction terminal validation.
+
+#### Scenario: Validation failure triggers coaching
+- **WHEN** a control-correction path records failed or low-confidence terminal validation
+- **THEN** Konling SHALL be able to analyze the failure from authorized validation summaries, learner-state slice, path context, and instructional citations
+- **AND** it SHALL propose a fallback or correction step without exposing hidden Arena internals, raw traces, or private memory.
+
+#### Scenario: Evidence is insufficient for diagnosis
+- **WHEN** validation evidence is missing, stale, preview-only, or low-confidence
+- **THEN** Konling SHALL present the diagnosis as tentative
+- **AND** it SHALL recommend evidence-gathering or fallback actions instead of claiming verified causality.
+
+### Requirement: Konling supports teaching-assistant modes
+Teaching-assistant modes SHALL expose route-level readiness for the competition assistant workflow, and prep coauthor mode SHALL remain advisory during prep-pack review.
+
+#### Scenario: Assistant mode readiness is requested
+- **WHEN** diagnosis explainer, path advisor, grading assistant, feedback explainer, class summarizer, or prep coauthor mode is mounted on a supported route
+- **THEN** the runtime SHALL return `ready`, `degraded`, or `unavailable`
+- **AND** unavailable states SHALL include missing required context, unsupported role, missing citation class, or unknown mode reasons.
+
+#### Scenario: Diagnosis explainer mode starts
+- **WHEN** Konling opens from a learning diagnosis surface
+- **THEN** it SHALL load the server-owned diagnosis view, learner-state summary, relevant evidence citations, permitted tools, and missing-context state.
+
+#### Scenario: Required context is present
+- **WHEN** a mode has its required server-owned context and citation classes
+- **THEN** the mode SHALL expose permitted tools and safe scope metadata
+- **AND** client-supplied hints SHALL NOT override server-verifiable permissions or target identity.
+
+#### Scenario: Grading assistant prepares write-capable output
+- **WHEN** the grading assistant prepares feedback, score changes, or diagnosis-affecting output
+- **THEN** generated output SHALL remain a draft until the grading workflow records an explicit approval action
+- **AND** the runtime SHALL NOT approve grading, write back profiles, or mutate governed evidence from assistant context alone.
+
+#### Scenario: Grading assistant mode starts
+- **WHEN** Konling opens from a teacher grading workbench
+- **THEN** it SHALL load rubric, converted document references, draft grading state, teacher review state, citation requirements, and role-scoped permissions
+- **AND** it SHALL NOT approve grading or write back profiles without the grading workflow approval action.
+
+#### Scenario: Prep coauthor proposes lesson material
+- **WHEN** the prep coauthor generates insertion candidates, replacement text, or prep-pack updates
+- **THEN** generated suggestions SHALL remain drafts until the authorized teacher approves them
+- **AND** the runtime SHALL NOT insert, publish, or replace prep-pack material from client hints or assistant output alone.
+
+#### Scenario: Prep coauthor mode starts
+- **WHEN** a teacher opens prep coauthor mode from a prep-pack review surface
+- **THEN** Konling SHALL receive prep-pack, diagnosis, citation, and teacher-review context
+- **AND** generated suggestions SHALL remain drafts until teacher approval
+- **AND** it SHALL be forbidden from publishing prep items or inserting lesson items directly.
+
+### Requirement: Mode fallback is explicit
+Mode fallback SHALL be user-visible and testable.
+
+#### Scenario: Required mode context is unavailable
+- **WHEN** a teaching-assistant mode lacks required context or citations
+- **THEN** the mode SHALL be unavailable or degraded with a clear reason
+- **AND** mode dependencies including diagnosis, path, grading, prep-pack, or citation context SHALL be represented in that unavailable or degraded state
+- **AND** it SHALL NOT generate authoritative recommendations from generic chat context alone.
+
+### Requirement: Konling receives simulation page context from server-owned sources
+Konling SHALL load simulation page context from server-owned route, run, task, learner, and permission sources.
+
+#### Scenario: Konling opens on simulation detail page
+- **WHEN** Konling starts on a `/simulations/*` route
+- **THEN** it SHALL resolve simulation id, route provenance, available run summary, task context, learner scope, and permitted tools from server-owned context
+- **AND** client-provided page hints SHALL NOT expand user, class, resource, path, simulation, or privacy scope.
+
+### Requirement: Simulation assistant fallback is explicit
+Konling SHALL expose degraded or unavailable state when simulation context required for coaching is missing.
+
+#### Scenario: Simulation context is incomplete
+- **WHEN** Konling lacks required simulation run, task, or learner context
+- **THEN** it SHALL present a degraded or unavailable state with a clear reason
+- **AND** it SHALL NOT claim authoritative diagnosis from generic chat context alone.
+
+### Requirement: Konling exposes governed adaptive path tools
+Konling SHALL expose scoped tools for adaptive learning path generation, revision, selection, rejection, explanation, and outcome recording.
+
+#### Scenario: Konling invokes graph-driven path generation
+- **WHEN** a student asks Konling to generate or revise a graph-driven learning path
+- **THEN** Konling SHALL call the governed planner tool with server-owned LearningGoal, graph subgoal, learner, class, resource, path, and privacy context
+- **AND** it SHALL preserve AgentToolRun audit, idempotency, and permission constraints.
+
+### Requirement: Path tools are auditable and idempotent
+Konling path-generation tools SHALL use the shared AgentToolRun audit and idempotency contract.
+
+#### Scenario: Tool call starts
+- **WHEN** Konling accepts a path-generation, revision, selection, or rejection tool call
+- **THEN** the system SHALL persist tool name, agent session, actor user, target user, goal, permission tier, approval state, correlation id, idempotency key, and redacted input summary before executing side effects.
+
+#### Scenario: Idempotent request repeats
+- **WHEN** the same owner user repeats the same path-generation request with the same idempotency key
+- **THEN** the system SHALL reuse or return the existing tool run according to registry policy
+- **AND** it SHALL NOT create duplicate active path rounds.
+
+### Requirement: Konling path outputs use student-safe language
+Konling path generation SHALL return student-facing explanations without leaking internal readiness codes.
+
+#### Scenario: Planner has low evidence
+- **WHEN** a generated path uses low-confidence or starter-path logic
+- **THEN** Konling SHALL explain the limitation in student language
+- **AND** raw values such as `missing-*`, `low-evidence`, `no-path`, `stage`, or `policyFamily` SHALL NOT appear in student-visible text.
+
+### Requirement: Konling receives knowledge workspace context from governed sources
+Konling SHALL resolve knowledge graph context from server-owned user, route, resource, evidence, and permission sources, supplemented by scoped client selection hints.
+
+#### Scenario: Konling opens with a selected knowledge node
+- **WHEN** Konling starts on `/knowledge` and a graph node is selected
+- **THEN** it SHALL receive the knowledge route, selected node id, selected node name, node type, chapter context, relation summary, active filters, density mode, view mode, and available learning actions where permitted
+- **AND** learner identity, evidence access, resource access, and tool permissions SHALL remain server-owned.
+
+#### Scenario: Client hints are broader than permission scope
+- **WHEN** a client graph hint references a resource, evidence item, class, path, or selected node outside the user's permitted scope
+- **THEN** Konling SHALL ignore or degrade that context
+- **AND** it SHALL NOT expand the user's accessible evidence, resources, tools, or privacy scope.
+
+### Requirement: Knowledge assistant fallback is explicit
+Konling SHALL expose route-level or degraded guidance when selected-node or learner context is missing.
+
+#### Scenario: No knowledge node is selected
+- **WHEN** Konling opens on `/knowledge` without a selected node
+- **THEN** it SHALL provide route-level graph exploration guidance
+- **AND** it SHALL NOT claim selected-node diagnosis or evidence analysis.
+
+#### Scenario: Selected-node context is incomplete
+- **WHEN** Konling cannot resolve required selected-node, resource, or evidence context
+- **THEN** it SHALL present a degraded or unavailable state with a clear reason
+- **AND** it SHALL NOT infer authoritative learning advice from generic chat context alone.
+
+### Requirement: Konling path generation uses panel parameters
+Konling path-advisor tools SHALL consume the generation panel's structured parameters when assisting path generation or revision.
+
+#### Scenario: Student asks Konling to adjust a path
+- **WHEN** the student uses `请控灵调整` from the generation panel or option comparison view
+- **THEN** Konling SHALL call the governed path tool with the current form parameters and sanitized natural-language intent
+- **AND** it SHALL NOT replace the panel with a generic chat-only workflow.
+
+#### Scenario: Textarea input is provided
+- **WHEN** the student types natural-language intent in the panel textarea
+- **THEN** the content SHALL be included as a redacted intent summary for the path tool
+- **AND** the textarea SHALL be editable in the UI.
+
+### Requirement: Konling grounds answers in knowledge and capability context
+Konling SHALL ground supported teaching-assistant answers in server-owned knowledge node, capability target, resource, learner, path, and citation context where available.
+
+#### Scenario: Concept explanation is requested
+- **WHEN** a student asks for a factual course concept explanation
+- **THEN** Konling SHALL identify relevant knowledge nodes or resource context where available
+- **AND** the answer SHALL prioritize verified teaching knowledge citations over learner evidence unless it makes a personalized claim.
+
+#### Scenario: Personalized path advice is requested
+- **WHEN** a student asks why a path, node, or resource is recommended
+- **THEN** Konling SHALL ground the answer in capability targets, ResourceNode or PlanningUnit rationale, selected path context, and authorized learner evidence where available
+- **AND** missing citation classes or low-confidence evidence SHALL be disclosed as limitations.
+
+#### Scenario: Grading or mastery-impacting advice is generated
+- **WHEN** Konling generates grading explanation, mastery advice, or diagnosis-affecting output
+- **THEN** generated text SHALL remain explanatory unless a governed tool run, approved grading workflow, or materialized evidence summary records the outcome
+- **AND** raw assistant narrative SHALL NOT directly update learner mastery.

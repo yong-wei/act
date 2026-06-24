@@ -40,8 +40,10 @@ import {
   type ArenaTaskStats,
   type WorkspaceMode,
 } from './types';
-import { selectArenaHallPublicationForTask } from './arena-publication-selection';
+import { selectArenaHallCurrentPublication, selectArenaHallPublicationForTask } from './arena-publication-selection';
 import type { ArenaPublicationRecord } from './teacher/publication-store';
+import { ARENA_VISUAL_ASSETS } from '@/components/platform/visual-world-assets';
+import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 const sourceOptions: Array<{ value: ChallengeObjectSource | 'all'; label: string }> = [
   { value: 'all', label: '全部来源' },
@@ -136,6 +138,8 @@ export function ArenaHall({
   );
   const stageGroups = useMemo(() => getArenaTrainingStageGroups(filteredTasks), [filteredTasks]);
   const capabilityGroups = useMemo(() => getArenaTrainingCapabilityGroups(filteredTasks), [filteredTasks]);
+  const entryIntents = getCommercialStudentEntryIntentGroups();
+  const activePublication = selectArenaHallCurrentPublication(studentPublications);
 
   return (
     <ArenaPageShell
@@ -145,46 +149,81 @@ export function ArenaHall({
         { label: '竞技场首页', href: '/arena' },
       ]}
     >
-      <section className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+      <section
+        className="w-full px-4 py-6 sm:px-6 lg:px-8"
+        data-commercial-student-entry-route="/arena"
+        data-commercial-entry-intent="challenge"
+      >
         <div className="grid items-stretch gap-4 lg:grid-cols-2">
-          <div className="surface-card flex min-h-[260px] flex-col justify-between rounded-lg p-5">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs text-subtle">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                能力训练地图
+          <div
+            className="surface-card relative flex min-h-[260px] overflow-hidden rounded-lg p-5"
+            data-entry-current-work-priority="active-arena-publication"
+          >
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-px bg-cover bg-center opacity-24 mix-blend-luminosity dark:opacity-20"
+              style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['challenge-map'].src})` }}
+            />
+            <div className="relative z-10 flex min-h-full w-full flex-col justify-between">
+              <div>
+                <div className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">挑战任务</div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs text-subtle">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  能力训练地图
+                </div>
+                <h1 className="mt-4 text-3xl font-semibold tracking-normal text-foreground md:text-4xl">竞技场大厅</h1>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-subtle">
+                  从训练阶段进入控制设计：每个任务标明训练能力、前置能力、预计用时和官方隐藏评测边界。
+                </p>
               </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-normal text-foreground md:text-4xl">竞技场大厅</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-subtle">
-                从训练阶段进入控制设计：每个任务标明训练能力、前置能力、预计用时和官方隐藏评测边界。
-              </p>
-            </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {phaseItems.map((item) => (
-                <div key={item.label} className="rounded-lg border border-border/60 bg-background/55 p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                      <item.icon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-foreground">{item.label}</div>
-                      <div className="mt-1 text-xs text-subtle">{item.value}</div>
+              {activePublication ? (
+                <Link
+                  href={`/arena/challenges/${activePublication.taskId}?publicationId=${activePublication.id}`}
+                  className="mt-5 inline-flex w-fit rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+                  data-entry-primary-action="active-arena-publication"
+                >
+                  继续当前挑战
+                </Link>
+              ) : null}
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {entryIntents.filter((intent) => intent.intent === 'challenge' || intent.intent === 'experiment').map((intent) => (
+                  <Link key={intent.intent} href={intent.hrefs[0] ?? '/arena'} className="rounded-lg border border-border/60 bg-background/68 p-3 transition hover:border-primary/40">
+                    <div className="text-sm font-semibold text-foreground">{intent.label}</div>
+                    <div className="mt-1 text-xs text-subtle">{intent.summary}</div>
+                  </Link>
+                ))}
+                {phaseItems.map((item) => (
+                  <div key={item.label} className="hidden rounded-lg border border-border/60 bg-background/68 p-3 sm:block">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                        <item.icon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-foreground">{item.label}</div>
+                        <div className="mt-1 text-xs text-subtle">{item.value}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="surface-card flex min-h-[260px] flex-col rounded-lg p-5">
-            <div className="flex items-start justify-between gap-4">
+          <div className="surface-card relative flex min-h-[260px] flex-col overflow-hidden rounded-lg p-5">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-px bg-cover bg-center opacity-18 mix-blend-luminosity dark:opacity-16"
+              style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['score-field'].src})` }}
+            />
+            <div className="relative z-10 flex items-start justify-between gap-4">
               <div>
                 <div className="text-sm font-semibold text-foreground">筛选挑战任务</div>
                 <div className="mt-1 text-xs text-subtle">任务优先，不按技术入口分流</div>
               </div>
               <Search className="h-5 w-5 text-primary" />
             </div>
-            <div className="mt-4 grid flex-1 content-start gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <input
+            <div className="relative z-10 mt-4 grid flex-1 content-start gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <input aria-label="搜索对象、目标或知识点"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="搜索对象、目标或知识点"
@@ -233,9 +272,9 @@ export function ArenaHall({
             <div className="space-y-5">
               {stageGroups.map((group) => (
                 <section key={group.stage} className="space-y-3">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                     <h2 className="text-base font-semibold text-foreground">{group.label}</h2>
-                    <span className="rounded-full border border-border/70 px-2 py-1 text-xs text-subtle">{group.tasks.length} 个任务</span>
+                    <span className="text-xs text-subtle">本阶段 {group.tasks.length} 个挑战</span>
                   </div>
                   <div className="grid gap-4 lg:grid-cols-2">
                     {group.tasks.map((challenge) => {
@@ -327,7 +366,12 @@ export function ArenaHall({
               </div>
             </aside>
             {filteredTasks.length === 0 ? (
-              <div className="surface-card p-8 text-center">
+              <div className="surface-card p-8 text-center xl:col-span-2">
+                <div
+                  aria-hidden="true"
+                  className="mx-auto mb-4 h-32 w-full max-w-sm bg-contain bg-center bg-no-repeat opacity-70"
+                  style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['empty-state'].src})` }}
+                />
                 <div className="text-sm font-semibold text-foreground">暂无匹配的挑战任务</div>
                 <div className="mt-2 text-sm text-subtle">请减少筛选条件，或先查看全部白箱对象挑战。</div>
               </div>

@@ -20,6 +20,9 @@
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。
 
+## knowledge-graph-check
+- 知识图谱节点与关系格式通过：8 个节点，15 条关系。
+
 ## infograph-check
 - 已接受 8 张知识点信息图。
 

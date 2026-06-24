@@ -1,0 +1,3911 @@
+{
+  "generatedAt": "2026-06-20T12:40:46.476Z",
+  "baseUrl": "http://localhost:3100",
+  "batch": "function-state-flows-batch35",
+  "scope": "AI workshop, standalone Copilot, prompt assessment quality/consistency/demo history, portfolio prompt/reflection handoffs, and mobile AI input states",
+  "routeResponses": [
+    {
+      "route": "/ai",
+      "status": 200,
+      "requestedUrl": "http://localhost:3100/ai",
+      "finalUrl": "http://localhost:3100/ai",
+      "responseUrl": "http://localhost:3100/ai"
+    },
+    {
+      "route": "/ai/copilot",
+      "status": 200,
+      "requestedUrl": "http://localhost:3100/ai/copilot",
+      "finalUrl": "http://localhost:3100/ai/copilot",
+      "responseUrl": "http://localhost:3100/ai/copilot"
+    },
+    {
+      "route": "/evaluation/prompt-assessment",
+      "status": 200,
+      "requestedUrl": "http://localhost:3100/evaluation/prompt-assessment",
+      "finalUrl": "http://localhost:3100/evaluation/prompt-assessment",
+      "responseUrl": "http://localhost:3100/evaluation/prompt-assessment"
+    },
+    {
+      "route": "/profile/portfolio",
+      "status": 200,
+      "requestedUrl": "http://localhost:3100/profile/portfolio",
+      "finalUrl": "http://localhost:3100/profile/portfolio",
+      "responseUrl": "http://localhost:3100/profile/portfolio"
+    },
+    {
+      "route": "/profile/portfolio",
+      "status": 200,
+      "requestedUrl": "http://localhost:3100/profile/portfolio",
+      "finalUrl": "http://localhost:3100/profile/portfolio",
+      "responseUrl": "http://localhost:3100/profile/portfolio"
+    },
+    {
+      "route": "/evaluation/prompt-assessment?autodemo=1",
+      "status": 200,
+      "requestedUrl": "http://localhost:3100/evaluation/prompt-assessment?autodemo=1",
+      "finalUrl": "http://localhost:3100/evaluation/prompt-assessment?autodemo=1",
+      "responseUrl": "http://localhost:3100/evaluation/prompt-assessment?autodemo=1"
+    },
+    {
+      "route": "/ai/copilot",
+      "status": 200,
+      "requestedUrl": "http://localhost:3100/ai/copilot",
+      "finalUrl": "http://localhost:3100/ai/copilot",
+      "responseUrl": "http://localhost:3100/ai/copilot"
+    }
+  ],
+  "results": [
+    {
+      "step": 1,
+      "label": "AI workshop desktop",
+      "route": "/ai",
+      "screenshot": "screenshots/70-function-state-flows-batch35/01-ai-workshop-desktop.png",
+      "screenshotBytes": 206177,
+      "a11y": "screenshots/70-function-state-flows-batch35/01-ai-workshop-desktop.a11y.json",
+      "notes": {
+        "expected": "AI workshop should orient the student, expose task states, and provide clear next actions back to learning work",
+        "focusTrail": [
+          {
+            "index": 1,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "href": ""
+          },
+          {
+            "index": 2,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "href": ""
+          },
+          {
+            "index": 3,
+            "tag": "body",
+            "type": "",
+            "role": "",
+            "name": "返回首页 AI工坊 智 智航学员 智航舰队 L3 学习风格：视觉型 今日学习 120 分钟 实验时长 45 分钟 伦理学习 30 分钟 AI 推荐指数 85% 船舶解锁 12/36 学海罗盘 成长航线进度追踪 航线进度 40% 已完成 2 / 5 个里程碑 入门航标 完成基础控制理论学习 理论航线 掌握 PID 控制器原理 实践海域 当前 完成 5 次仿真实验 伦理灯塔 通过伦理决策考核 远航舰长 获得全部能力认证 学习提醒 距离下一个里程碑还需完成 2 个仿真任务，建议今日完成「船舶航向控制」实验。 成就徽章 ⚡ 快速响应 🌊 波浪征服者 🎯 精准舵手 待解锁 待解锁 待解锁 学习任务 PID 参数整定基础 入门 · 30分钟 船舶航向控制仿真 进阶 · 45分钟 北极航道伦理决策 挑战 · 60分钟 开始学习 动力定位系统设计 专家 · 90分钟 思政学习日志 1 / 3 北极航道伦理决策反思 伦理决策 评级：A 在紧急情况下，如何平衡安全与效率... 2026年6月20日 查看详情 实验档案 近期实验记录 3 实验总数 85 平均分 PID 调参 85 驱逐舰航向控制 #1 6月20日 20:39 kp: 1.2 ki: 0.1 kd: 0.5 伦理沙盘 78 北极冰区避障决策 6月20日 20:39 PID 调参 92 高海况稳定性测试 6月20日 20:39 kp: 1.5 ki: 0.08 kd: 0.6 查看完整档案 控灵 当前: ai 你好，我是控灵。今天我们将探索「ai」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+            "href": ""
+          },
+          {
+            "index": 4,
+            "tag": "a",
+            "type": "",
+            "role": "",
+            "name": "返回首页",
+            "href": "/"
+          },
+          {
+            "index": 5,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "PID 参数整定基础 入门 · 30分钟",
+            "href": ""
+          },
+          {
+            "index": 6,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "船舶航向控制仿真 进阶 · 45分钟",
+            "href": ""
+          },
+          {
+            "index": 7,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "北极航道伦理决策 挑战 · 60分钟 开始学习",
+            "href": ""
+          },
+          {
+            "index": 8,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 9,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 10,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "查看详情",
+            "href": ""
+          },
+          {
+            "index": 11,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "查看日志 1",
+            "href": ""
+          },
+          {
+            "index": 12,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "查看日志 2",
+            "href": ""
+          }
+        ]
+      },
+      "auditSummary": {
+        "h1": [
+          "AI工坊"
+        ],
+        "h2": [
+          "学海罗盘",
+          "成就徽章",
+          "学习任务",
+          "思政学习日志",
+          "实验档案",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/ai",
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "role": "",
+          "name": "查看日志 2"
+        },
+        "firstControls": [
+          {
+            "tag": "a",
+            "role": "",
+            "name": "返回首页",
+            "type": "",
+            "href": "/",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "PID 参数整定基础 入门 · 30分钟",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "船舶航向控制仿真 进阶 · 45分钟",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "北极航道伦理决策 挑战 · 60分钟 开始学习",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看详情",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看详情",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看详情",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看日志 1",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "查看日志 1",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看日志 2",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "查看日志 2",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看日志 3",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "查看日志 3",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看完整档案",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 3,
+        "graphicsCount": 40,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": true,
+          "taskSelected": true,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": false,
+          "promptResult": false,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": true
+        }
+      }
+    },
+    {
+      "step": 2,
+      "label": "AI workshop selected task desktop",
+      "route": "/ai",
+      "screenshot": "screenshots/70-function-state-flows-batch35/02-ai-workshop-task-selected-desktop.png",
+      "screenshotBytes": 209680,
+      "a11y": "screenshots/70-function-state-flows-batch35/02-ai-workshop-task-selected-desktop.a11y.json",
+      "notes": {
+        "expected": "selecting a learning task should reveal task details, start action, and return-to-course context",
+        "focusTrail": [
+          {
+            "index": 1,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "北极航道伦理决策 挑战 · 60分钟 开始学习",
+            "href": ""
+          },
+          {
+            "index": 2,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 3,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 4,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "查看详情",
+            "href": ""
+          },
+          {
+            "index": 5,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "查看日志 1",
+            "href": ""
+          },
+          {
+            "index": 6,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "查看日志 2",
+            "href": ""
+          },
+          {
+            "index": 7,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "查看日志 3",
+            "href": ""
+          },
+          {
+            "index": 8,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "查看完整档案",
+            "href": ""
+          }
+        ]
+      },
+      "auditSummary": {
+        "h1": [
+          "AI工坊"
+        ],
+        "h2": [
+          "学海罗盘",
+          "成就徽章",
+          "学习任务",
+          "思政学习日志",
+          "实验档案",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/ai",
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "role": "",
+          "name": "查看完整档案"
+        },
+        "firstControls": [
+          {
+            "tag": "a",
+            "role": "",
+            "name": "返回首页",
+            "type": "",
+            "href": "/",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "PID 参数整定基础 入门 · 30分钟",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "船舶航向控制仿真 进阶 · 45分钟",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "北极航道伦理决策 挑战 · 60分钟 开始学习",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看详情",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看详情",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看详情",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看日志 1",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "查看日志 1",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看日志 2",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "查看日志 2",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看日志 3",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "查看日志 3",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "查看完整档案",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 3,
+        "graphicsCount": 40,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": true,
+          "taskSelected": true,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": false,
+          "promptResult": false,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": true
+        }
+      }
+    },
+    {
+      "step": 3,
+      "label": "copilot empty desktop",
+      "route": "/ai/copilot",
+      "screenshot": "screenshots/70-function-state-flows-batch35/03-copilot-empty-desktop.png",
+      "screenshotBytes": 174627,
+      "a11y": "screenshots/70-function-state-flows-batch35/03-copilot-empty-desktop.a11y.json",
+      "notes": {
+        "expected": "standalone Copilot should expose prompt, quick questions, return context, and keyboard-friendly input order",
+        "focusTrail": [
+          {
+            "index": 1,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "href": ""
+          },
+          {
+            "index": 2,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "href": ""
+          },
+          {
+            "index": 3,
+            "tag": "body",
+            "type": "",
+            "role": "",
+            "name": "返回AI工坊 控灵 控灵 AI-OBE 智能学习伴侣 欢迎使用 控灵 我是你的AI学习伴侣控灵，专门负责自动控制原理的教学与答疑工作。 我可以帮助您： 查看和分析仿真器状态 指导 PID 参数调整 解释船舶控制原理 根据 CCS 规范审核您的设计 快捷问题 仿真状态 PID原理 诺莫托模型 调参建议 安全规范 海况影响 发送 控灵 当前: AI助手工作区 你好，我是控灵。我正在AI助手工作区页面，有什么可以帮助你的吗？ 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+            "href": ""
+          },
+          {
+            "index": 4,
+            "tag": "a",
+            "type": "",
+            "role": "",
+            "name": "返回AI工坊",
+            "href": "/ai"
+          },
+          {
+            "index": 5,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "仿真状态",
+            "href": ""
+          },
+          {
+            "index": 6,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "PID原理",
+            "href": ""
+          },
+          {
+            "index": 7,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "诺莫托模型",
+            "href": ""
+          },
+          {
+            "index": 8,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "调参建议",
+            "href": ""
+          },
+          {
+            "index": 9,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "安全规范",
+            "href": ""
+          },
+          {
+            "index": 10,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "海况影响",
+            "href": ""
+          },
+          {
+            "index": 11,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "请输入您的问题，例如：如何减少航迹误差？",
+            "href": ""
+          },
+          {
+            "index": 12,
+            "tag": "nextjs-portal",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          }
+        ]
+      },
+      "auditSummary": {
+        "h1": [
+          "控灵",
+          "控灵"
+        ],
+        "h2": [
+          "欢迎使用 控灵",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/ai/copilot",
+        "activeElement": {
+          "tag": "nextjs-portal",
+          "type": "",
+          "role": "",
+          "name": ""
+        },
+        "firstControls": [
+          {
+            "tag": "a",
+            "role": "",
+            "name": "返回AI工坊",
+            "type": "",
+            "href": "/ai",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "仿真状态",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "PID原理",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "诺莫托模型",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "调参建议",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "安全规范",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "海况影响",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "请输入您的问题，例如：如何减少航迹误差？",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "请输入您的问题，例如：如何减少航迹误差？",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "placeholder": "请输入您的问题，例如：如何减少航迹误差？",
+            "ariaLabel": "请输入您的问题，例如：如何减少航迹误差？",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 1,
+        "graphicsCount": 4,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": true,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": false,
+          "promptResult": false,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": true
+        }
+      }
+    },
+    {
+      "step": 4,
+      "label": "copilot after quick question desktop",
+      "route": "/ai/copilot",
+      "screenshot": "screenshots/70-function-state-flows-batch35/04-copilot-after-quick-question-desktop.png",
+      "screenshotBytes": 151648,
+      "a11y": "screenshots/70-function-state-flows-batch35/04-copilot-after-quick-question-desktop.a11y.json",
+      "notes": {
+        "expected": "quick question should produce clear sending/loading/result/error state and keep controls reachable",
+        "focusTrail": [
+          {
+            "index": 1,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "请输入您的问题，例如：如何减少航迹误差？",
+            "href": ""
+          },
+          {
+            "index": 2,
+            "tag": "nextjs-portal",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 3,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "href": ""
+          },
+          {
+            "index": 4,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "href": ""
+          },
+          {
+            "index": 5,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "href": ""
+          },
+          {
+            "index": 6,
+            "tag": "body",
+            "type": "",
+            "role": "",
+            "name": "返回AI工坊 控灵 控灵 AI-OBE 智能学习伴侣 请解释PID控制器的工作原理 【控灵证据提示】本次流式回答尚未完成最终引用核验。缺少证据类型：content、learner-state、path-execution、evidence。低置信原因：missing-content；missing-learner-state；missing-path-execution；missing-evidence；missing-grounding:knowledge-or-resource；assistant-required-citation-owner-missing:answer；answer-intent-content-citation-missing:fact-explanation；assistant-citations-unverified-stream。 你好！我是「控灵」AI 助手。PID 控制器是自动化控制的核心，通过比例 (P)、积分 (I) 和微分 (D) 三个环节的组合来调节系统： 比例 (P)：根据当前误差进行调节，反应快但可能有静差。 积分 (I)：根据误差的累积进行调节，用于消除稳态误差。 微分 (D)：根据误差的变化率进行调节，具有预见性，能抑制超调。 综合公式为： 𝑢 ( 𝑡 ) = 𝐾 𝑝 𝑒 ( 𝑡 ) + 𝐾 𝑖 ∫ 0 𝑡 𝑒 ( 𝜏 ) 𝑑 𝜏 + 𝐾 𝑑 𝑑 𝑒 ( 𝑡 ) 𝑑 𝑡 u(t)=K p ​ e(t)+K i ​ ∫ 0 t ​ e(τ)dτ+K d ​ dt de(t) ​ 你可以尝试在仿真中调整 𝐾 𝑝 , 𝐾 𝑖 , 𝐾 𝑑 K p ​ ,K i ​ ,K d ​ 的值，观察它们如何影响船舶的航迹跟踪效果。你想先了解哪一个环节的具体作用？ 🚢 发送 控灵 当前: AI助手工作区 你好，我是控灵。我正在AI助手工作区页面，有什么可以帮助你的吗？ 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+            "href": ""
+          },
+          {
+            "index": 7,
+            "tag": "a",
+            "type": "",
+            "role": "",
+            "name": "返回AI工坊",
+            "href": "/ai"
+          },
+          {
+            "index": 8,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "请输入您的问题，例如：如何减少航迹误差？",
+            "href": ""
+          },
+          {
+            "index": 9,
+            "tag": "nextjs-portal",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 10,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "href": ""
+          }
+        ]
+      },
+      "auditSummary": {
+        "h1": [
+          "控灵",
+          "控灵"
+        ],
+        "h2": [
+          "控灵"
+        ],
+        "url": "http://localhost:3100/ai/copilot",
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "role": "",
+          "name": "关闭 (ESC)"
+        },
+        "firstControls": [
+          {
+            "tag": "a",
+            "role": "",
+            "name": "返回AI工坊",
+            "type": "",
+            "href": "/ai",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "请输入您的问题，例如：如何减少航迹误差？",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "请输入您的问题，例如：如何减少航迹误差？",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "placeholder": "请输入您的问题，例如：如何减少航迹误差？",
+            "ariaLabel": "请输入您的问题，例如：如何减少航迹误差？",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 1,
+        "graphicsCount": 4,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": true,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": false,
+          "promptResult": false,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": true
+        }
+      }
+    },
+    {
+      "step": 5,
+      "label": "prompt assessment empty desktop",
+      "route": "/evaluation/prompt-assessment",
+      "screenshot": "screenshots/70-function-state-flows-batch35/05-prompt-assessment-empty-desktop.png",
+      "screenshotBytes": 170549,
+      "a11y": "screenshots/70-function-state-flows-batch35/05-prompt-assessment-empty-desktop.a11y.json",
+      "notes": {
+        "expected": "prompt assessment should explain required fields, history source, and how it connects to current learning goals",
+        "focusTrail": [
+          {
+            "index": 1,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "href": ""
+          },
+          {
+            "index": 2,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "href": ""
+          },
+          {
+            "index": 3,
+            "tag": "body",
+            "type": "",
+            "role": "",
+            "name": "STRUCTURE EVALUATED 元提示词评价与过程一致性 先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。 结构化提示词编辑器 控制对象 * 性能目标 * 约束条件 * 设计背景 额外说明 评价提示词质量过程一致性校验生成常态化演示轨迹 提示词预览 控制对象：未填写 性能目标：未填写 约束条件：未填写 设计背景：未填写 提示词质量仪表盘 尚未执行评价。 一致性报告 尚未执行一致性校验。 常态化训练量化追踪 刷新趋势数据 提示词版本数 0 最近提示词得分 - 一致性均值 - 能力值 θ -1.70 提示词质量版本轨迹 暂无历史记录，点击“生成常态化演示轨迹”。 跨域能力成长轨迹 06/20 14:04 θ -1.7 准确率：0% 计算 θ 0.18 跨域 θ -1.8 设计 θ -1.8 提示：建议每次修改提示词后再次评价，形成版本迭代轨迹。 控灵 当前: prompt assessme... 你好，我是控灵。今天我们将探索「prompt assessment」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+            "href": ""
+          },
+          {
+            "index": 4,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 5,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 6,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 7,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 8,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 9,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "评价提示词质量",
+            "href": ""
+          },
+          {
+            "index": 10,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "过程一致性校验",
+            "href": ""
+          },
+          {
+            "index": 11,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "生成常态化演示轨迹",
+            "href": ""
+          },
+          {
+            "index": 12,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "刷新趋势数据",
+            "href": ""
+          }
+        ]
+      },
+      "auditSummary": {
+        "h1": [
+          "元提示词评价与过程一致性"
+        ],
+        "h2": [
+          "结构化提示词编辑器",
+          "提示词预览",
+          "提示词质量仪表盘",
+          "一致性报告",
+          "常态化训练量化追踪",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/evaluation/prompt-assessment",
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "role": "",
+          "name": "刷新趋势数据"
+        },
+        "firstControls": [
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "评价提示词质量",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "过程一致性校验",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "生成常态化演示轨迹",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "刷新趋势数据",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "控制对象 *",
+            "value": "",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "性能目标 *",
+            "value": "",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "约束条件 *",
+            "value": "",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "设计背景",
+            "value": "",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "额外说明",
+            "value": "",
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 1,
+        "graphicsCount": 3,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": false,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": true,
+          "promptResult": true,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": false
+        }
+      }
+    },
+    {
+      "step": 6,
+      "label": "prompt assessment quality result desktop",
+      "route": "/evaluation/prompt-assessment",
+      "screenshot": "screenshots/70-function-state-flows-batch35/06-prompt-assessment-quality-result-desktop.png",
+      "screenshotBytes": 234349,
+      "a11y": "screenshots/70-function-state-flows-batch35/06-prompt-assessment-quality-result-desktop.a11y.json",
+      "notes": {
+        "expected": "quality assessment should show scored result, improvement guidance, persistence state, and accessible completion announcement",
+        "focusTrail": [
+          {
+            "index": 1,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "过程一致性校验",
+            "href": ""
+          },
+          {
+            "index": 2,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "生成常态化演示轨迹",
+            "href": ""
+          },
+          {
+            "index": 3,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "刷新趋势数据",
+            "href": ""
+          },
+          {
+            "index": 4,
+            "tag": "nextjs-portal",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 5,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "href": ""
+          },
+          {
+            "index": 6,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "href": ""
+          },
+          {
+            "index": 7,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "href": ""
+          },
+          {
+            "index": 8,
+            "tag": "body",
+            "type": "",
+            "role": "",
+            "name": "STRUCTURE EVALUATED 元提示词评价与过程一致性 先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。 结构化提示词编辑器 控制对象 * 性能目标 * 约束条件 * 设计背景 额外说明 评价提示词质量过程一致性校验生成常态化演示轨迹 提示词预览 控制对象：邮轮航向控制系统 性能目标：超调 < 15%，调节时间 < 20s，稳态误差 < 2% 约束条件：稳定裕度 > 30°，满足舒适度约束 设计背景：风浪扰动 + 参数不确定条件 补充说明：按约束优先、跨域映射和参数迭代顺序输出调参方案。 提示词质量仪表盘 综合得分：94 完整性 100 精确性 100 结构化 90 可执行性 80 改进建议 当前提示词质量较高。 一致性报告 尚未执行一致性校验。 常态化训练量化追踪 刷新趋势数据 提示词版本数 1 最近提示词得分 94 一致性均值 - 能力值 θ -1.70 提示词质量版本轨迹 V1 06/20 20:39 综合评分：94 一致性：未评估 跨域能力成长轨迹 06/20 14:04 θ -1.7 准确率：0% 计算 θ 0.18 跨域 θ -1.8 设计 θ -1.8 提示：建议每次修改提示词后再次评价，形成版本迭代轨迹。 控灵 当前: prompt assessme... 你好，我是控灵。今天我们将探索「prompt assessment」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+            "href": ""
+          },
+          {
+            "index": 9,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "邮轮航向控制系统",
+            "href": ""
+          },
+          {
+            "index": 10,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "超调 < 15%，调节时间 < 20s，稳态误差 < 2%",
+            "href": ""
+          },
+          {
+            "index": 11,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "稳定裕度 > 30°，满足舒适度约束",
+            "href": ""
+          },
+          {
+            "index": 12,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "风浪扰动 + 参数不确定条件",
+            "href": ""
+          }
+        ]
+      },
+      "auditSummary": {
+        "h1": [
+          "元提示词评价与过程一致性"
+        ],
+        "h2": [
+          "结构化提示词编辑器",
+          "提示词预览",
+          "提示词质量仪表盘",
+          "一致性报告",
+          "常态化训练量化追踪",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/evaluation/prompt-assessment",
+        "activeElement": {
+          "tag": "textarea",
+          "type": "",
+          "role": "",
+          "name": "风浪扰动 + 参数不确定条件"
+        },
+        "firstControls": [
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "邮轮航向控制系统",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "超调 < 15%，调节时间 < 20s，稳态误差 < 2%",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "稳定裕度 > 30°，满足舒适度约束",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "风浪扰动 + 参数不确定条件",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "按约束优先、跨域映射和参数迭代顺序输出调参方案。",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "评价提示词质量",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "过程一致性校验",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "生成常态化演示轨迹",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "刷新趋势数据",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "控制对象 *",
+            "value": "邮轮航向控制系统",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "性能目标 *",
+            "value": "超调 < 15%，调节时间 < 20s，稳态误差 < 2%",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "约束条件 *",
+            "value": "稳定裕度 > 30°，满足舒适度约束",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "设计背景",
+            "value": "风浪扰动 + 参数不确定条件",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "额外说明",
+            "value": "按约束优先、跨域映射和参数迭代顺序输出调参方案。",
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 1,
+        "graphicsCount": 3,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": false,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": true,
+          "promptResult": true,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": false
+        }
+      }
+    },
+    {
+      "step": 7,
+      "label": "prompt assessment consistency result desktop",
+      "route": "/evaluation/prompt-assessment",
+      "screenshot": "screenshots/70-function-state-flows-batch35/07-prompt-assessment-consistency-result-desktop.png",
+      "screenshotBytes": 260021,
+      "a11y": "screenshots/70-function-state-flows-batch35/07-prompt-assessment-consistency-result-desktop.a11y.json",
+      "notes": {
+        "expected": "consistency check should explain design-action trace, mismatches, and whether the result is saved to portfolio"
+      },
+      "auditSummary": {
+        "h1": [
+          "元提示词评价与过程一致性"
+        ],
+        "h2": [
+          "结构化提示词编辑器",
+          "提示词预览",
+          "提示词质量仪表盘",
+          "一致性报告",
+          "常态化训练量化追踪",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/evaluation/prompt-assessment",
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "role": "",
+          "name": "STRUCTURE EVALUATED 元提示词评价与过程一致性 先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。 结构化提示词编辑器 控制对象 * 性能目标 * 约束条件 * 设计背景 额外说明 评价提示词质量过程一致性校验生成常态化演示轨迹 提示词预览 控制对象：邮轮航向控制系统 性能目标：超调 < 15%，调节时间 < 20s，稳态误差 < 2% 约束条件：稳定裕度 > 30°，满足舒适度约束 设计背景：风浪扰动 + 参数不确定条件 补充说明：按约束优先、跨域映射和参数迭代顺序输出调参方案。 提示词质量仪表盘 综合得分：94 完整性 100 精确性 100 结构化 90 可执行性 80 改进建议 当前提示词质量较高。 一致性报告 一致性得分：85 声明目标 控制超调 缩短调节时间 降低稳态误差 提升舒适度 提升稳定裕度 实际优化方向 提高响应速度 抑制超调与振荡 减小稳态误差 不一致项 未发现明显不一致。 迭代次数：4； 收敛形态：oscillating； 探索广度：1 常态化训练量化追踪 刷新趋势数据 提示词版本数 1 最近提示词得分 94 一致性均值 85 能力值 θ -1.70 提示词质量版本轨迹 V1 06/20 20:39 综合评分：94 一致性：85 跨域能力成长轨迹 06/20 14:04 θ -1.7 准确率：0% 计算 θ 0.18 跨域 θ -1.8 设计 θ -1.8 提示：建议每次修改提示词后再次评价，形成版本迭代轨迹。 控灵 当前: prompt assessme... 你好，我是控灵。今天我们将探索「prompt assessment」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+        },
+        "firstControls": [
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "邮轮航向控制系统",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "超调 < 15%，调节时间 < 20s，稳态误差 < 2%",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "稳定裕度 > 30°，满足舒适度约束",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "风浪扰动 + 参数不确定条件",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "按约束优先、跨域映射和参数迭代顺序输出调参方案。",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "评价提示词质量",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "过程一致性校验",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "生成常态化演示轨迹",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "刷新趋势数据",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "控制对象 *",
+            "value": "邮轮航向控制系统",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "性能目标 *",
+            "value": "超调 < 15%，调节时间 < 20s，稳态误差 < 2%",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "约束条件 *",
+            "value": "稳定裕度 > 30°，满足舒适度约束",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "设计背景",
+            "value": "风浪扰动 + 参数不确定条件",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "额外说明",
+            "value": "按约束优先、跨域映射和参数迭代顺序输出调参方案。",
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 1,
+        "graphicsCount": 3,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": false,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": true,
+          "promptResult": true,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": false
+        }
+      }
+    },
+    {
+      "step": 8,
+      "label": "prompt assessment demo history desktop",
+      "route": "/evaluation/prompt-assessment",
+      "screenshot": "screenshots/70-function-state-flows-batch35/08-prompt-assessment-demo-history-desktop.png",
+      "screenshotBytes": 258992,
+      "a11y": "screenshots/70-function-state-flows-batch35/08-prompt-assessment-demo-history-desktop.a11y.json",
+      "notes": {
+        "expected": "demo history should distinguish generated demo records from real learner records and expose refresh/completion status"
+      },
+      "auditSummary": {
+        "h1": [
+          "元提示词评价与过程一致性"
+        ],
+        "h2": [
+          "结构化提示词编辑器",
+          "提示词预览",
+          "提示词质量仪表盘",
+          "一致性报告",
+          "常态化训练量化追踪",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/evaluation/prompt-assessment",
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "role": "",
+          "name": "STRUCTURE EVALUATED 元提示词评价与过程一致性 先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。 结构化提示词编辑器 控制对象 * 性能目标 * 约束条件 * 设计背景 额外说明 评价提示词质量过程一致性校验生成常态化演示轨迹 提示词预览 控制对象：动力定位侧推系统 性能目标：定位偏差 < 0.4m，响应平稳 约束条件：扰动峰值不超过阈值，控制能耗受限 设计背景：风浪流耦合环境 补充说明：给出多目标权衡策略，明确输入、步骤和输出。 提示词质量仪表盘 综合得分：90 完整性 100 精确性 85 结构化 90 可执行性 80 改进建议 当前提示词质量较高。 一致性报告 一致性得分：46 声明目标 实际优化方向 提高响应速度 抑制超调与振荡 减小稳态误差 不一致项 未发现明显不一致。 迭代次数：3； 收敛形态：steady； 探索广度：1 常态化训练量化追踪 刷新趋势数据 提示词版本数 4 最近提示词得分 90 一致性均值 73.3 能力值 θ -1.70 提示词质量版本轨迹 V1 06/20 20:39 综合评分：94 一致性：85 V2 06/20 20:40 综合评分：92 一致性：81 V3 06/20 20:40 综合评分：98 一致性：81 V4 06/20 20:40 综合评分：90 一致性：46 跨域能力成长轨迹 06/20 14:04 θ -1.7 准确率：0% 计算 θ 0.18 跨域 θ -1.8 设计 θ -1.8 提示：建议每次修改提示词后再次评价，形成版本迭代轨迹。 控灵 当前: prompt assessme... 你好，我是控灵。今天我们将探索「prompt assessment」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+        },
+        "firstControls": [
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "动力定位侧推系统",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "定位偏差 < 0.4m，响应平稳",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "扰动峰值不超过阈值，控制能耗受限",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "风浪流耦合环境",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "给出多目标权衡策略，明确输入、步骤和输出。",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "评价提示词质量",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "过程一致性校验",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "生成常态化演示轨迹",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "刷新趋势数据",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "控制对象 *",
+            "value": "动力定位侧推系统",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "性能目标 *",
+            "value": "定位偏差 < 0.4m，响应平稳",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "约束条件 *",
+            "value": "扰动峰值不超过阈值，控制能耗受限",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "设计背景",
+            "value": "风浪流耦合环境",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "额外说明",
+            "value": "给出多目标权衡策略，明确输入、步骤和输出。",
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 1,
+        "graphicsCount": 3,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": false,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": true,
+          "promptResult": true,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": false
+        }
+      }
+    },
+    {
+      "step": 9,
+      "label": "portfolio prompt designs tab desktop",
+      "route": "/profile/portfolio",
+      "screenshot": "screenshots/70-function-state-flows-batch35/09-portfolio-prompt-designs-tab-desktop.png",
+      "screenshotBytes": 108732,
+      "a11y": "screenshots/70-function-state-flows-batch35/09-portfolio-prompt-designs-tab-desktop.a11y.json",
+      "notes": {
+        "expected": "portfolio prompt tab should show saved prompt results or route the student to the correct prompt-assessment page",
+        "focusTrail": [
+          {
+            "index": 1,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "🚢 仿真设计",
+            "href": ""
+          },
+          {
+            "index": 2,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "⚖️ 伦理整改",
+            "href": ""
+          },
+          {
+            "index": 3,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "🤔 学习反思",
+            "href": ""
+          },
+          {
+            "index": 4,
+            "tag": "a",
+            "type": "",
+            "role": "",
+            "name": "练习提示词设计",
+            "href": "/evaluation"
+          },
+          {
+            "index": 5,
+            "tag": "nextjs-portal",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 6,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "href": ""
+          },
+          {
+            "index": 7,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "href": ""
+          },
+          {
+            "index": 8,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "href": ""
+          },
+          {
+            "index": 9,
+            "tag": "body",
+            "type": "",
+            "role": "",
+            "name": "我的学习档案 D demo demo@example.com 学习成长档案 记录你的学习历程，展示优秀作品，见证成长轨迹 📝 课堂作品 💬 提示词设计 🚢 仿真设计 ⚖️ 伦理整改 🤔 学习反思 💬 暂无高质量提示词 在提示词结构评估中获得70分以上，即可收录到你的档案 练习提示词设计 控灵 当前: portfolio 你好，我是控灵。今天我们将探索「portfolio」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+            "href": ""
+          },
+          {
+            "index": 10,
+            "tag": "a",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": "/profile"
+          }
+        ]
+      },
+      "auditSummary": {
+        "h1": [
+          "我的学习档案"
+        ],
+        "h2": [
+          "学习成长档案",
+          "暂无高质量提示词",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/profile/portfolio",
+        "activeElement": {
+          "tag": "a",
+          "type": "",
+          "role": "",
+          "name": ""
+        },
+        "firstControls": [
+          {
+            "tag": "a",
+            "role": "",
+            "name": "",
+            "type": "",
+            "href": "/profile",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "D demo demo@example.com",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "📝 课堂作品",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "💬 提示词设计",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "🚢 仿真设计",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "⚖️ 伦理整改",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "🤔 学习反思",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "a",
+            "role": "",
+            "name": "练习提示词设计",
+            "type": "",
+            "href": "/evaluation",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 2,
+        "graphicsCount": 6,
+        "unnamedGraphics": 2,
+        "hits": {
+          "aiWorkshop": false,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": false,
+          "promptResult": false,
+          "portfolio": true,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": false
+        }
+      }
+    },
+    {
+      "step": 10,
+      "label": "portfolio prompt practice action target desktop",
+      "route": "/evaluation",
+      "screenshot": "screenshots/70-function-state-flows-batch35/10-portfolio-prompt-practice-action-target-desktop.png",
+      "screenshotBytes": 19908,
+      "a11y": "screenshots/70-function-state-flows-batch35/10-portfolio-prompt-practice-action-target-desktop.a11y.json",
+      "notes": {
+        "expected": "portfolio prompt practice action should land on the active prompt-assessment route, not a missing or generic page"
+      },
+      "auditSummary": {
+        "h1": [
+          "404"
+        ],
+        "h2": [
+          "This page could not be found.",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/evaluation",
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "role": "",
+          "name": "404 This page could not be found. 控灵 当前: evaluation 你好，我是控灵。今天我们将探索「evaluation」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+        },
+        "firstControls": [
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 1,
+        "graphicsCount": 3,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": false,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": false,
+          "promptResult": false,
+          "portfolio": false,
+          "missingRoute": true,
+          "liveRegion": false,
+          "contextReturn": false
+        }
+      }
+    },
+    {
+      "step": 11,
+      "label": "portfolio reflections tab desktop",
+      "route": "/profile/portfolio",
+      "screenshot": "screenshots/70-function-state-flows-batch35/11-portfolio-reflections-tab-desktop.png",
+      "screenshotBytes": 108520,
+      "a11y": "screenshots/70-function-state-flows-batch35/11-portfolio-reflections-tab-desktop.a11y.json",
+      "notes": {
+        "expected": "portfolio reflection empty state should explain what will be saved and route to Copilot with reflection context",
+        "focusTrail": [
+          {
+            "index": 1,
+            "tag": "a",
+            "type": "",
+            "role": "",
+            "name": "开始反思",
+            "href": "/ai/copilot"
+          },
+          {
+            "index": 2,
+            "tag": "nextjs-portal",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": ""
+          },
+          {
+            "index": 3,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "href": ""
+          },
+          {
+            "index": 4,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "href": ""
+          },
+          {
+            "index": 5,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "href": ""
+          },
+          {
+            "index": 6,
+            "tag": "body",
+            "type": "",
+            "role": "",
+            "name": "我的学习档案 D demo demo@example.com 学习成长档案 记录你的学习历程，展示优秀作品，见证成长轨迹 📝 课堂作品 💬 提示词设计 🚢 仿真设计 ⚖️ 伦理整改 🤔 学习反思 🤔 暂无AI协作反思 记录你与AI助手的协作反思，持续优化使用策略 开始反思 控灵 当前: portfolio 你好，我是控灵。今天我们将探索「portfolio」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+            "href": ""
+          },
+          {
+            "index": 7,
+            "tag": "a",
+            "type": "",
+            "role": "",
+            "name": "",
+            "href": "/profile"
+          },
+          {
+            "index": 8,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "D demo demo@example.com",
+            "href": ""
+          },
+          {
+            "index": 9,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "📝 课堂作品",
+            "href": ""
+          },
+          {
+            "index": 10,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "💬 提示词设计",
+            "href": ""
+          }
+        ]
+      },
+      "auditSummary": {
+        "h1": [
+          "我的学习档案"
+        ],
+        "h2": [
+          "学习成长档案",
+          "暂无AI协作反思",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/profile/portfolio",
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "role": "",
+          "name": "💬 提示词设计"
+        },
+        "firstControls": [
+          {
+            "tag": "a",
+            "role": "",
+            "name": "",
+            "type": "",
+            "href": "/profile",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "D demo demo@example.com",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "📝 课堂作品",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "💬 提示词设计",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "🚢 仿真设计",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "⚖️ 伦理整改",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "🤔 学习反思",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "a",
+            "role": "",
+            "name": "开始反思",
+            "type": "",
+            "href": "/ai/copilot",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 2,
+        "graphicsCount": 6,
+        "unnamedGraphics": 2,
+        "hits": {
+          "aiWorkshop": false,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": false,
+          "promptResult": false,
+          "portfolio": true,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": false
+        }
+      }
+    },
+    {
+      "step": 12,
+      "label": "portfolio reflection action Copilot target desktop",
+      "route": "/ai/copilot",
+      "screenshot": "screenshots/70-function-state-flows-batch35/12-portfolio-reflection-action-copilot-target-desktop.png",
+      "screenshotBytes": 173605,
+      "a11y": "screenshots/70-function-state-flows-batch35/12-portfolio-reflection-action-copilot-target-desktop.a11y.json",
+      "notes": {
+        "expected": "reflection action should open Copilot with reflection intent or task context preserved"
+      },
+      "auditSummary": {
+        "h1": [
+          "控灵",
+          "控灵"
+        ],
+        "h2": [
+          "欢迎使用 控灵",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/ai/copilot",
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "role": "",
+          "name": "返回AI工坊 控灵 控灵 AI-OBE 智能学习伴侣 欢迎使用 控灵 我是你的AI学习伴侣控灵，专门负责自动控制原理的教学与答疑工作。 我可以帮助您： 查看和分析仿真器状态 指导 PID 参数调整 解释船舶控制原理 根据 CCS 规范审核您的设计 快捷问题 仿真状态 PID原理 诺莫托模型 调参建议 安全规范 海况影响 发送 控灵 当前: AI助手工作区 你好，我是控灵。我正在AI助手工作区页面，有什么可以帮助你的吗？ 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+        },
+        "firstControls": [
+          {
+            "tag": "a",
+            "role": "",
+            "name": "返回AI工坊",
+            "type": "",
+            "href": "/ai",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "仿真状态",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "PID原理",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "诺莫托模型",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "调参建议",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "安全规范",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "海况影响",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "请输入您的问题，例如：如何减少航迹误差？",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "请输入您的问题，例如：如何减少航迹误差？",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "placeholder": "请输入您的问题，例如：如何减少航迹误差？",
+            "ariaLabel": "请输入您的问题，例如：如何减少航迹误差？",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 1,
+        "graphicsCount": 4,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": true,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": false,
+          "promptResult": false,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": true
+        }
+      }
+    },
+    {
+      "step": 13,
+      "label": "prompt assessment autodemo mobile",
+      "route": "/evaluation/prompt-assessment?autodemo=1",
+      "screenshot": "screenshots/70-function-state-flows-batch35/13-prompt-assessment-autodemo-mobile.png",
+      "screenshotBytes": 235960,
+      "a11y": "screenshots/70-function-state-flows-batch35/13-prompt-assessment-autodemo-mobile.a11y.json",
+      "notes": {
+        "expected": "mobile prompt assessment should keep editor, results, history, and completion state usable without global overlays covering controls",
+        "focusTrail": [
+          {
+            "index": 1,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "href": ""
+          },
+          {
+            "index": 2,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "href": ""
+          },
+          {
+            "index": 3,
+            "tag": "body",
+            "type": "",
+            "role": "",
+            "name": "STRUCTURE EVALUATED 元提示词评价与过程一致性 先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。 结构化提示词编辑器 控制对象 * 性能目标 * 约束条件 * 设计背景 额外说明 评价提示词质量过程一致性校验生成常态化演示轨迹 提示词预览 控制对象：动力定位侧推系统 性能目标：定位偏差 < 0.4m，响应平稳 约束条件：扰动峰值不超过阈值，控制能耗受限 设计背景：风浪流耦合环境 补充说明：给出多目标权衡策略，明确输入、步骤和输出。 提示词质量仪表盘 综合得分：90 完整性 100 精确性 85 结构化 90 可执行性 80 改进建议 当前提示词质量较高。 一致性报告 一致性得分：46 声明目标 实际优化方向 提高响应速度 抑制超调与振荡 减小稳态误差 不一致项 未发现明显不一致。 迭代次数：3； 收敛形态：steady； 探索广度：1 常态化训练量化追踪 刷新趋势数据 提示词版本数 7 最近提示词得分 90 一致性均值 69.3 能力值 θ -1.70 提示词质量版本轨迹 V2 06/20 20:40 综合评分：92 一致性：81 V3 06/20 20:40 综合评分：98 一致性：81 V4 06/20 20:40 综合评分：90 一致性：46 V5 06/20 20:40 综合评分：92 一致性：81 V6 06/20 20:40 综合评分：98 一致性：81 V7 06/20 20:40 综合评分：90 一致性：46 跨域能力成长轨迹 06/20 14:04 θ -1.7 准确率：0% 计算 θ 0.18 跨域 θ -1.8 设计 θ -1.8 提示：建议每次修改提示词后再次评价，形成版本迭代轨迹。 控灵 当前: prompt assessme... 你好，我是控灵。今天我们将探索「prompt assessment」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+            "href": ""
+          },
+          {
+            "index": 4,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "动力定位侧推系统",
+            "href": ""
+          },
+          {
+            "index": 5,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "定位偏差 < 0.4m，响应平稳",
+            "href": ""
+          },
+          {
+            "index": 6,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "扰动峰值不超过阈值，控制能耗受限",
+            "href": ""
+          },
+          {
+            "index": 7,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "风浪流耦合环境",
+            "href": ""
+          },
+          {
+            "index": 8,
+            "tag": "textarea",
+            "type": "",
+            "role": "",
+            "name": "给出多目标权衡策略，明确输入、步骤和输出。",
+            "href": ""
+          },
+          {
+            "index": 9,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "评价提示词质量",
+            "href": ""
+          },
+          {
+            "index": 10,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "过程一致性校验",
+            "href": ""
+          }
+        ]
+      },
+      "auditSummary": {
+        "h1": [
+          "元提示词评价与过程一致性"
+        ],
+        "h2": [
+          "结构化提示词编辑器",
+          "提示词预览",
+          "提示词质量仪表盘",
+          "一致性报告",
+          "常态化训练量化追踪",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/evaluation/prompt-assessment?autodemo=1",
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "role": "",
+          "name": "过程一致性校验"
+        },
+        "firstControls": [
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "动力定位侧推系统",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "定位偏差 < 0.4m，响应平稳",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "扰动峰值不超过阈值，控制能耗受限",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "风浪流耦合环境",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "role": "",
+            "name": "给出多目标权衡策略，明确输入、步骤和输出。",
+            "type": "",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "评价提示词质量",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "过程一致性校验",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "生成常态化演示轨迹",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "刷新趋势数据",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "控制对象 *",
+            "value": "动力定位侧推系统",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "性能目标 *",
+            "value": "定位偏差 < 0.4m，响应平稳",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "约束条件 *",
+            "value": "扰动峰值不超过阈值，控制能耗受限",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "设计背景",
+            "value": "风浪流耦合环境",
+            "hidden": false
+          },
+          {
+            "tag": "textarea",
+            "type": "",
+            "name": "",
+            "placeholder": "",
+            "ariaLabel": "",
+            "labelText": "额外说明",
+            "value": "给出多目标权衡策略，明确输入、步骤和输出。",
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 1,
+        "graphicsCount": 3,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": false,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": true,
+          "promptResult": true,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": false
+        }
+      }
+    },
+    {
+      "step": 14,
+      "label": "copilot mobile empty",
+      "route": "/ai/copilot",
+      "screenshot": "screenshots/70-function-state-flows-batch35/14-copilot-mobile-empty.png",
+      "screenshotBytes": 117182,
+      "a11y": "screenshots/70-function-state-flows-batch35/14-copilot-mobile-empty.a11y.json",
+      "notes": {
+        "expected": "mobile Copilot should keep input, quick questions, and return navigation visible and not compete with global floating controls",
+        "focusTrail": [
+          {
+            "index": 1,
+            "tag": "input",
+            "type": "text",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "href": ""
+          },
+          {
+            "index": 2,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "href": ""
+          },
+          {
+            "index": 3,
+            "tag": "body",
+            "type": "",
+            "role": "",
+            "name": "返回AI工坊 控灵 控灵 AI-OBE 智能学习伴侣 欢迎使用 控灵 我是你的AI学习伴侣控灵，专门负责自动控制原理的教学与答疑工作。 我可以帮助您： 查看和分析仿真器状态 指导 PID 参数调整 解释船舶控制原理 根据 CCS 规范审核您的设计 快捷问题 仿真状态 PID原理 诺莫托模型 调参建议 安全规范 海况影响 发送 控灵 当前: AI助手工作区 你好，我是控灵。我正在AI助手工作区页面，有什么可以帮助你的吗？ 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+            "href": ""
+          },
+          {
+            "index": 4,
+            "tag": "a",
+            "type": "",
+            "role": "",
+            "name": "返回AI工坊",
+            "href": "/ai"
+          },
+          {
+            "index": 5,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "仿真状态",
+            "href": ""
+          },
+          {
+            "index": 6,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "PID原理",
+            "href": ""
+          },
+          {
+            "index": 7,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "诺莫托模型",
+            "href": ""
+          },
+          {
+            "index": 8,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "调参建议",
+            "href": ""
+          },
+          {
+            "index": 9,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "安全规范",
+            "href": ""
+          },
+          {
+            "index": 10,
+            "tag": "button",
+            "type": "button",
+            "role": "",
+            "name": "海况影响",
+            "href": ""
+          }
+        ]
+      },
+      "auditSummary": {
+        "h1": [
+          "控灵",
+          "控灵"
+        ],
+        "h2": [
+          "欢迎使用 控灵",
+          "控灵"
+        ],
+        "url": "http://localhost:3100/ai/copilot",
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "role": "",
+          "name": "海况影响"
+        },
+        "firstControls": [
+          {
+            "tag": "a",
+            "role": "",
+            "name": "返回AI工坊",
+            "type": "",
+            "href": "/ai",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "仿真状态",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "PID原理",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "诺莫托模型",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "调参建议",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "安全规范",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "海况影响",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "请输入您的问题，例如：如何减少航迹误差？",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "请输入您的问题，例如：如何减少航迹误差？",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "关闭 (ESC)",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "role": "",
+            "name": "全局 AI 问题输入框",
+            "type": "text",
+            "href": "",
+            "ariaLabel": "全局 AI 问题输入框",
+            "ariaExpanded": "",
+            "disabled": false,
+            "hidden": false
+          },
+          {
+            "tag": "button",
+            "role": "",
+            "name": "打开控灵与页面工具菜单",
+            "type": "button",
+            "href": "",
+            "ariaLabel": "打开控灵与页面工具菜单",
+            "ariaExpanded": "false",
+            "disabled": false,
+            "hidden": false
+          }
+        ],
+        "inputs": [
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "",
+            "placeholder": "请输入您的问题，例如：如何减少航迹误差？",
+            "ariaLabel": "请输入您的问题，例如：如何减少航迹误差？",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          },
+          {
+            "tag": "input",
+            "type": "text",
+            "name": "global-ai-sidebar-input",
+            "placeholder": "请输入你的问题...",
+            "ariaLabel": "全局 AI 问题输入框",
+            "labelText": "",
+            "value": "",
+            "hidden": false
+          }
+        ],
+        "alerts": [],
+        "dialogs": [],
+        "tableCount": 0,
+        "unnamedControls": 1,
+        "graphicsCount": 4,
+        "unnamedGraphics": 0,
+        "hits": {
+          "aiWorkshop": true,
+          "taskSelected": false,
+          "copilot": true,
+          "aiLoading": false,
+          "promptAssessment": false,
+          "promptResult": false,
+          "portfolio": false,
+          "missingRoute": false,
+          "liveRegion": false,
+          "contextReturn": true
+        }
+      }
+    }
+  ],
+  "apiChecks": [
+    {
+      "label": "student auth session for batch35",
+      "route": "/api/auth/session",
+      "status": 200,
+      "ok": true,
+      "accepted": true,
+      "contentType": "application/json",
+      "summary": {
+        "keys": [
+          "user",
+          "expires"
+        ],
+        "userId": "cmjm5lkjk0000t69bqiupz5am",
+        "role": "STUDENT",
+        "sampleText": "{\"user\":{\"name\":\"demo\",\"email\":\"demo@example.com\",\"id\":\"cmjm5lkjk0000t69bqiupz5am\",\"role\":\"STUDENT\",\"profile\":{\"studentNumber\":\"demo\",\"classId\":null,\"techScore\":76,\"ethicsScore\":94,\"major\":\"自动化\",\"className\":null}},\"expires\":\"2026-07-20T12:39:20.198Z\"}"
+      }
+    },
+    {
+      "label": "student auth session after prompt assessment",
+      "route": "/api/auth/session",
+      "status": 200,
+      "ok": true,
+      "accepted": true,
+      "contentType": "application/json",
+      "summary": {
+        "keys": [
+          "user",
+          "expires"
+        ],
+        "userId": "cmjm5lkjk0000t69bqiupz5am",
+        "role": "STUDENT",
+        "sampleText": "{\"user\":{\"name\":\"demo\",\"email\":\"demo@example.com\",\"id\":\"cmjm5lkjk0000t69bqiupz5am\",\"role\":\"STUDENT\",\"profile\":{\"studentNumber\":\"demo\",\"classId\":null,\"techScore\":76,\"ethicsScore\":94,\"major\":\"自动化\",\"className\":null}},\"expires\":\"2026-07-20T12:40:08.321Z\"}"
+      }
+    },
+    {
+      "label": "student prompt history after assessment",
+      "route": "/api/evaluation/prompt-history/cmjm5lkjk0000t69bqiupz5am",
+      "status": 200,
+      "ok": true,
+      "accepted": true,
+      "contentType": "application/json",
+      "summary": {
+        "keys": [
+          "history",
+          "total"
+        ],
+        "userId": "",
+        "role": "",
+        "count": 4,
+        "sampleText": "{\"history\":[{\"userId\":\"cmjm5lkjk0000t69bqiupz5am\",\"sessionId\":\"report-cmjm5lkjk0000t69bqiupz5am\",\"promptContent\":\"控制对象：邮轮航向控制系统\\n性能目标：超调 < 15%，调节时间 < 20s，稳态误差 < 2%\\n约束条件：稳定裕度 > 30°，满足舒适度约束\\n设计背景：风浪扰动 + 参数不确定条件\\n补充说明：按约束优先、跨域映射和参数迭代顺序输出调参方案。\",\"assessment\":{\"overallScore\":94,\"dimensionScores\":{\"completeness\":100,\"precision\":100,\"structurization\":90,\"executability\":80},\"suggestions\":[],\"metaPromptAnalysis\":{\"detectedIntent\":\"pid-tuning\",\"missingElements\":[],\"improvementPotential\":6}},\"version\":1,\"createdAt\":1781959195352,\"consistency\":{\"consistencyScore\":85,\"alignmentAnalysis\":{\"statedGoals\":[\"控制超调\",\"缩短调节时间\",\"降低稳态误差\",\"提升舒适度\",\"提升稳定裕度\"],\"actualOptimization\":[\"提高响应速度\",\"抑制超调与振荡\",\"减小稳态误差\"],\"mismatches\":[]},\"processQuality\":{\"iterationCount\":4,\"convergencePattern\":\"oscillating\",\"explorationBreadth\":1}}},{\"userId\":\"cmjm5lkjk0000t69bqiupz5am\",\"sessionId\":\"report-cmjm5lkjk0000t69bqiupz5am\",\"promptContent\":\"控制对象：邮轮航向控制系统\\n性能目标：超调 < 18%，调节时间 < 25s\\n约束条件：相位裕度 > 30°，MSI 风险受限\\n设计背景：横浪工况 + 参数摄动 20%\\n补充说明：先建立极点-频域-时域映射，再给出 PID 与带宽协同调参步骤。\",\"assessment\":{\"overallScore\":92,\"dimensionScores\":{\"completeness\":100,\"precision\":100,\"structurization\":100,\"executability\":60},\"suggestions\":[{\"dimension\":\"executa"
+      }
+    }
+  ],
+  "optionalActions": [
+    {
+      "action": "select AI workshop in-progress task",
+      "status": "attempted",
+      "url": "http://localhost:3100/ai"
+    },
+    {
+      "action": "ask copilot quick PID question",
+      "status": "attempted",
+      "url": "http://localhost:3100/ai/copilot"
+    },
+    {
+      "action": "fill control object",
+      "status": "attempted",
+      "url": "http://localhost:3100/evaluation/prompt-assessment"
+    },
+    {
+      "action": "fill performance goals",
+      "status": "attempted",
+      "url": "http://localhost:3100/evaluation/prompt-assessment"
+    },
+    {
+      "action": "fill constraints",
+      "status": "attempted",
+      "url": "http://localhost:3100/evaluation/prompt-assessment"
+    },
+    {
+      "action": "fill design context",
+      "status": "attempted",
+      "url": "http://localhost:3100/evaluation/prompt-assessment"
+    },
+    {
+      "action": "fill extra prompt note",
+      "status": "attempted",
+      "url": "http://localhost:3100/evaluation/prompt-assessment"
+    },
+    {
+      "action": "run prompt quality assessment",
+      "status": "attempted",
+      "url": "http://localhost:3100/evaluation/prompt-assessment"
+    },
+    {
+      "action": "run prompt consistency check",
+      "status": "attempted",
+      "url": "http://localhost:3100/evaluation/prompt-assessment"
+    },
+    {
+      "action": "seed prompt demo history",
+      "status": "attempted",
+      "url": "http://localhost:3100/evaluation/prompt-assessment"
+    },
+    {
+      "action": "open portfolio prompt designs tab",
+      "status": "attempted",
+      "url": "http://localhost:3100/profile/portfolio"
+    },
+    {
+      "action": "follow portfolio prompt practice action",
+      "status": "attempted",
+      "url": "http://localhost:3100/profile/portfolio"
+    },
+    {
+      "action": "open portfolio reflections tab",
+      "status": "attempted",
+      "url": "http://localhost:3100/profile/portfolio"
+    },
+    {
+      "action": "follow portfolio reflection action",
+      "status": "attempted",
+      "url": "http://localhost:3100/profile/portfolio"
+    }
+  ],
+  "errors": [],
+  "ignoredErrors": [],
+  "pngCount": 14,
+  "jsonCount": 14
+}

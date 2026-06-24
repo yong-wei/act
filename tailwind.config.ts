@@ -1,7 +1,5 @@
-import type { Config } from 'tailwindcss'
-
-const config: Config = {
-  darkMode: ['class'],
+const config = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -49,6 +47,24 @@ const config: Config = {
         'platform-evaluation-official': "hsl(var(--platform-evaluation-official))",
         'platform-evaluation-preview': "hsl(var(--platform-evaluation-preview))",
         'platform-evaluation-hidden': "hsl(var(--platform-evaluation-hidden))",
+        'platform-chart-1': "hsl(var(--platform-chart-1))",
+        'platform-chart-2': "hsl(var(--platform-chart-2))",
+        'platform-chart-3': "hsl(var(--platform-chart-3))",
+        'platform-chart-4': "hsl(var(--platform-chart-4))",
+        'platform-chart-5': "hsl(var(--platform-chart-5))",
+        'platform-chart-6': "hsl(var(--platform-chart-6))",
+        'platform-brand-canvas': "hsl(var(--platform-brand-canvas))",
+        'platform-brand-surface-1': "hsl(var(--platform-brand-surface-1))",
+        'platform-brand-surface-2': "hsl(var(--platform-brand-surface-2))",
+        'platform-brand-elevated': "hsl(var(--platform-brand-elevated))",
+        'platform-brand-hairline': "hsl(var(--platform-brand-hairline))",
+        'platform-brand-trace-accent': "hsl(var(--platform-brand-trace-accent))",
+        'platform-brand-muted-accent': "hsl(var(--platform-brand-muted-accent))",
+        'platform-brand-danger': "hsl(var(--platform-brand-danger))",
+        'platform-brand-success': "hsl(var(--platform-brand-success))",
+        'platform-brand-focus-ring': "hsl(var(--platform-brand-focus-ring))",
+        'platform-brand-evidence': "hsl(var(--platform-brand-evidence))",
+        'platform-brand-report-output': "hsl(var(--platform-brand-report-output))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -111,4 +127,5 @@ const config: Config = {
   },
   plugins: [require("tailwindcss-animate")],
 }
-export default config
+
+module.exports = config

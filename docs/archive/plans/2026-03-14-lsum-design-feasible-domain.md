@@ -157,7 +157,7 @@ Expected: PASS
 ### Task 4: 浏览器闭环与文档更新
 
 **Files:**
-- Modify: `.codex/skills/interactive-lesson-implementation/notes/L-sum.md`
+- Modify: `.agents/skills/interactive-lesson-implementation/notes/L-sum.md`
 - Modify: `docs/ProjectDescription.md`
 
 **Step 1: Verification**
@@ -185,6 +185,6 @@ Run:
 **Step 3: Commit**
 
 ```bash
-git add course-content src scripts/tests docs .codex/skills/interactive-lesson-implementation/notes/L-sum.md
+git add course-content src scripts/tests docs .agents/skills/interactive-lesson-implementation/notes/L-sum.md
 git commit -m "feat: add L-sum design feasible domain runtime baseline"
 ```

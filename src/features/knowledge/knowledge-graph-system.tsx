@@ -6,8 +6,10 @@
  * 重构自 knowledge0316.html，使用 React Three Fiber
  */
 
-import { Suspense, useState, useCallback, useEffect, useRef, useMemo, type Dispatch, type SetStateAction } from 'react';
+import { Suspense, useState, useCallback, useEffect, useRef, useMemo, type CSSProperties, type Dispatch, type KeyboardEvent, type SetStateAction } from 'react';
 import dynamic from 'next/dynamic';
+import { BookOpen, Filter, LocateFixed, Network, SlidersHorizontal, X } from 'lucide-react';
+import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { KnowledgeSidebar } from './sidebar/knowledge-sidebar';
 import { ResourcePanel } from './resource-panel/resource-panel';
 import {
@@ -19,12 +21,34 @@ import {
   resolveChapterName,
 } from '@/lib/knowledge-labels';
 import {
+  buildFocusNeighborhood,
+  buildGraphStatistics,
   buildDefaultSelectedRelationTypes,
   buildRelationTypeStats,
+  calculateGraphClarityMetrics,
   injectChapterNodes,
+  isNodeVisibleInFocusedGraph,
+  limitStructureRelationDensity,
   matchesNodeFilters,
+  relationPassesActiveFilters,
+  relationPassesFocusNeighborhoodSeedFilters,
+  type RelationDensityMode,
 } from './graph/filter-utils';
 import type { KnowledgeGraphLabelMode } from './graph/label-policy';
+import {
+  getGraphFilterLabel,
+  getRelationLegendItems,
+  type RelationLegendItem,
+} from './graph/visual-config';
+import {
+  clearKnowledgeGraphLayoutPins,
+  getEmptyKnowledgeGraphLayoutState,
+  getKnowledgeGraphRuntimeNodePosition,
+  isKnowledgeGraphNodePinned,
+  removeKnowledgeGraphNodePin,
+  storeKnowledgeGraphNodePosition,
+} from './graph/layout-state';
+import { applyRadialLayout } from './graph/layout-engine';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
 
 // 动态导入 3D 图谱组件（客户端专用）
@@ -41,6 +65,23 @@ const KnowledgeGraph2D = dynamic(
 
 // 知识节点类型
 export type NodeType = 'THEORY' | 'SCENARIO' | 'ETHICS';
+type KnowledgeMobileTool = 'chapter-directory' | 'relation-filters' | 'legend' | 'view-layout';
+type KnowledgeDesktopTool = KnowledgeMobileTool;
+const DESKTOP_TOOL_PANEL_ID_PREFIX = 'knowledge-desktop-tool-panel';
+const KNOWLEDGE_WORKSPACE_STYLE = {
+  '--knowledge-workspace-inset': '1rem',
+  '--knowledge-local-tool-panel-width': 'min(28rem, calc(100vw - 38rem))',
+  '--knowledge-inspector-width': 'clamp(22.5rem,30vw,28.75rem)',
+} as CSSProperties;
+const KNOWLEDGE_LOCAL_TOOL_PANEL_CLASS = 'mt-2 max-h-[min(36rem,calc(100dvh-9rem))] w-[var(--knowledge-local-tool-panel-width)] min-w-[22rem] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur-md';
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 // 知识节点接口 (Aligned with Prisma Model)
 export interface KnowledgeNodeData {
@@ -60,6 +101,8 @@ export interface KnowledgeNodeData {
   chapter?: number;
   chapterName?: string;
   ethicsContent?: Record<string, unknown>;
+  graphDegree?: number;
+  graphImportanceScore?: number;
 }
 
 // 知识连接接口
@@ -76,6 +119,7 @@ interface KnowledgeGraphSystemProps {
   // Props can still be passed for initial state or override, but we default to fetching
   initialNodes?: KnowledgeNodeData[];
   initialLinks?: KnowledgeLinkData[];
+  initialSelectedNodeId?: string | null;
 }
 
 interface GraphApiResponse {
@@ -84,17 +128,80 @@ interface GraphApiResponse {
   source?: 'file' | 'database';
 }
 
+function RelationLegendSample({ item, isLightTheme }: { item: RelationLegendItem; isLightTheme: boolean }) {
+  const dashArray = item.sampleStyle.dash.length > 0 ? item.sampleStyle.dash.join(' ') : undefined;
+  const markerId = `knowledge-relation-legend-${item.type}`;
+  const sampleColor = isLightTheme ? item.sampleStyle.lightColor : item.sampleStyle.darkColor;
+
+  return (
+    <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2 rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5">
+      <svg
+        viewBox="0 0 72 22"
+        role="img"
+        aria-label={`${item.label}关系线样式`}
+        className="h-6 w-16 overflow-visible"
+        data-knowledge-relation-legend-sample={item.type}
+      >
+        {item.sampleStyle.hasArrow && (
+          <defs>
+            <marker
+              id={markerId}
+              markerWidth="5"
+              markerHeight="5"
+              refX="4"
+              refY="2.5"
+              orient="auto"
+            >
+              <path d="M0,0 L5,2.5 L0,5 Z" fill={sampleColor} />
+            </marker>
+          </defs>
+        )}
+        <path
+          d={`M6 11 C 24 ${11 - item.sampleStyle.curvature * 55}, 48 ${11 + item.sampleStyle.curvature * 55}, 66 11`}
+          fill="none"
+          stroke={sampleColor}
+          strokeDasharray={dashArray}
+          strokeLinecap="round"
+          strokeWidth={item.sampleStyle.width}
+          markerEnd={item.sampleStyle.hasArrow ? `url(#${markerId})` : undefined}
+          opacity={item.sampleStyle.opacity}
+        />
+        {item.sampleStyle.endpoint === 'dot' && (
+          <circle cx="66" cy="11" r="2.2" fill={sampleColor} opacity={item.sampleStyle.opacity} />
+        )}
+        {item.sampleStyle.endpoint === 'bar' && (
+          <path d="M63 6 L69 16" stroke={sampleColor} strokeWidth="1.4" strokeLinecap="round" opacity={item.sampleStyle.opacity} />
+        )}
+        {item.sampleStyle.endpoint === 'diamond' && (
+          <path d="M66 6 L70 11 L66 16 L62 11 Z" fill={sampleColor} opacity={item.sampleStyle.opacity} />
+        )}
+      </svg>
+      <div className="min-w-0">
+        <div className="text-[11px] font-medium text-platform-fg-primary">{item.label}</div>
+        <div className="line-clamp-2 text-[10px] text-platform-fg-muted">{item.legendExplanation}</div>
+      </div>
+    </div>
+  );
+}
+
 export function KnowledgeGraphSystem({
   initialNodes = [],
   initialLinks = [],
+  initialSelectedNodeId = null,
 }: KnowledgeGraphSystemProps) {
+  const { updatePageContext, isOpen: aiSidebarOpen } = useGlobalAI();
+  const initialRequestedNodeId = initialSelectedNodeId;
+  const initialSelectedNode = initialRequestedNodeId
+    ? initialNodes.find((node) => node.id === initialRequestedNodeId) ?? null
+    : null;
   const [nodes, setNodes] = useState<KnowledgeNodeData[]>(initialNodes);
   const [links, setLinks] = useState<KnowledgeLinkData[]>(initialLinks);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(null);
+  const [requestedNodeId, setRequestedNodeId] = useState<string | null>(initialRequestedNodeId);
+  const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(initialSelectedNode);
   const [hoveredNode, setHoveredNode] = useState<KnowledgeNodeData | null>(null);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(Boolean(initialSelectedNode));
   const [searchQuery, setSearchQuery] = useState('');
   const [dataSource, setDataSource] = useState<'file' | 'database'>('database');
   const [minRelationStrength, setMinRelationStrength] = useState(0.8);
@@ -104,7 +211,23 @@ export function KnowledgeGraphSystem({
   const [selectedBloomLevels, setSelectedBloomLevels] = useState<string[]>([]);
   const [showOnlyConnectedNodes, setShowOnlyConnectedNodes] = useState(true);
   const [labelMode, setLabelMode] = useState<KnowledgeGraphLabelMode>('focus');
+  const [relationDensityMode, setRelationDensityMode] = useState<RelationDensityMode>('structure');
+  const [desktopActiveTool, setDesktopActiveTool] = useState<KnowledgeDesktopTool | null>(null);
+  const [mobileActiveTool, setMobileActiveTool] = useState<KnowledgeMobileTool>('chapter-directory');
+  const [mobileToolPanelOpen, setMobileToolPanelOpen] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
+  const [layoutState, setLayoutState] = useState(getEmptyKnowledgeGraphLayoutState);
+  const [fitViewVersion, setFitViewVersion] = useState(0);
+  const [relayoutVersion, setRelayoutVersion] = useState(0);
+  const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);
+  const hoverAnimationFrameRef = useRef<number | null>(null);
+  const pendingHoveredNodeRef = useRef<KnowledgeNodeData | null>(null);
+  const hoveredNodeIdRef = useRef<string | null>(null);
+  const desktopToolPanelRef = useRef<HTMLDivElement | null>(null);
+  const desktopToolTriggerRefs = useRef<Partial<Record<KnowledgeDesktopTool, HTMLButtonElement | null>>>({});
+  const previousDesktopToolRef = useRef<KnowledgeDesktopTool | null>(null);
+  const mobileToolPanelRef = useRef<HTMLDivElement | null>(null);
+  const mobileToolToggleRef = useRef<HTMLButtonElement | null>(null);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -112,25 +235,44 @@ export function KnowledgeGraphSystem({
   // 容器尺寸测量
   const containerRef = useRef<HTMLDivElement>(null);
   const relationTypesInitialized = useRef(false);
+  const initialRequestedNodeIdRef = useRef(initialRequestedNodeId);
+  const initialSelectedNodeResolvedRef = useRef(Boolean(initialSelectedNode));
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nodeId = params.get('node') ?? params.get('nodeId');
+    initialRequestedNodeIdRef.current = nodeId;
+    setRequestedNodeId(nodeId);
+  }, []);
 
   // 监听容器大小变化
   useEffect(() => {
+    const container = containerRef.current;
     const updateSize = () => {
-      if (containerRef.current) {
+      if (container) {
         setDimensions({
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight
+          width: container.offsetWidth,
+          height: container.offsetHeight
         });
       }
     };
-    
+
     // 初始化
     updateSize();
-    
-    // 监听窗口缩放
+
+    const observer = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(updateSize)
+      : null;
+    if (container) {
+      observer?.observe(container);
+    }
+
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
 
   useEffect(() => {
@@ -140,34 +282,50 @@ export function KnowledgeGraphSystem({
 
     updateTheme();
     const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
 
   // Fetch data from API on mount
   useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
     const fetchGraphData = async () => {
       try {
-        const response = await fetch('/api/knowledge/graph');
+        const response = await fetch('/api/knowledge/graph', { signal: controller.signal });
         if (response.ok) {
           const data = (await response.json()) as GraphApiResponse;
-          setNodes(Array.isArray(data.nodes) ? data.nodes : []);
+          if (cancelled || controller.signal.aborted) return;
+          const fetchedNodes = Array.isArray(data.nodes) ? data.nodes : [];
+          setNodes(fetchedNodes);
           setLinks(Array.isArray(data.links) ? data.links : []);
           setDataSource(data.source === 'file' ? 'file' : 'database');
+          const requestedNodeId = initialRequestedNodeIdRef.current;
+          if (!initialSelectedNodeResolvedRef.current && requestedNodeId) {
+            const requestedNode = fetchedNodes.find((item) => item.id === requestedNodeId);
+            if (requestedNode) {
+              setSelectedNode(requestedNode);
+              setIsPanelOpen(true);
+            }
+          }
         } else {
           console.error('Failed to fetch knowledge graph data');
         }
       } catch (error) {
+        if ((error as Error).name === 'AbortError') return;
         console.error('Error fetching knowledge graph data:', error);
       } finally {
-        setIsLoading(false);
+        if (!cancelled && !controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchGraphData();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
   // 节点点击处理
@@ -187,7 +345,32 @@ export function KnowledgeGraphSystem({
 
   // 节点悬停处理
   const handleNodeHover = useCallback((node: KnowledgeNodeData | null) => {
-    setHoveredNode(node);
+    pendingHoveredNodeRef.current = node;
+    if (hoverAnimationFrameRef.current !== null) return;
+    hoverAnimationFrameRef.current = window.requestAnimationFrame(() => {
+      hoverAnimationFrameRef.current = null;
+      const nextNode = pendingHoveredNodeRef.current;
+      const nextNodeId = nextNode?.id ?? null;
+      if (hoveredNodeIdRef.current === nextNodeId) return;
+      hoveredNodeIdRef.current = nextNodeId;
+      setHoveredNode(nextNode);
+    });
+  }, []);
+
+  useEffect(() => () => {
+    if (hoverAnimationFrameRef.current !== null) {
+      window.cancelAnimationFrame(hoverAnimationFrameRef.current);
+    }
+  }, []);
+
+  const handleNodeDragEnd = useCallback((node: KnowledgeNodeData) => {
+    const runtimePosition = getKnowledgeGraphRuntimeNodePosition(
+      node as KnowledgeNodeData & { x?: number; y?: number; z?: number }
+    );
+    if (!runtimePosition) return;
+    setLayoutState((current) =>
+      storeKnowledgeGraphNodePosition(current, runtimePosition)
+    );
   }, []);
 
   // 关闭资源面板
@@ -256,6 +439,32 @@ export function KnowledgeGraphSystem({
     () => buildRelationTypeStats(links, nodeFilterIdSet),
     [links, nodeFilterIdSet]
   );
+  const eligibleLinks = useMemo(
+    () => links.filter((link) => nodeFilterIdSet.has(link.sourceId) && nodeFilterIdSet.has(link.targetId)),
+    [links, nodeFilterIdSet]
+  );
+  const graphStatistics = useMemo(
+    () => buildGraphStatistics(nodeFilteredByMeta, eligibleLinks),
+    [eligibleLinks, nodeFilteredByMeta]
+  );
+  const graphFilterFocusNodeId = explicitFocusNodeId && nodeFilterIdSet.has(explicitFocusNodeId)
+    ? explicitFocusNodeId
+    : null;
+  const focusNeighborhoodSeedLinks = useMemo(
+    () => eligibleLinks.filter((link) =>
+      relationPassesFocusNeighborhoodSeedFilters(link, {
+        densityMode: relationDensityMode,
+        selectedRelationTypes,
+        minRelationStrength,
+        focusNodeId: graphFilterFocusNodeId,
+      })
+    ),
+    [eligibleLinks, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]
+  );
+  const focusNeighborhood = useMemo(
+    () => buildFocusNeighborhood(focusNeighborhoodSeedLinks, graphFilterFocusNodeId, nodeFilterIdSet),
+    [focusNeighborhoodSeedLinks, graphFilterFocusNodeId, nodeFilterIdSet]
+  );
 
   useEffect(() => {
     const types = relationTypeStats.map((item) => item.type);
@@ -271,16 +480,26 @@ export function KnowledgeGraphSystem({
   }, [relationTypeStats]);
 
   const filteredLinksByRelation = useMemo(() => {
-    if (selectedRelationTypes.length === 0) return [] as KnowledgeLinkData[];
-    return links.filter((link) => {
-      const relationType = link.relationType || link.relation || 'related';
-      const strength = typeof link.strength === 'number' ? link.strength : 1;
-      if (!selectedRelationTypes.includes(relationType)) return false;
-      if (strength < minRelationStrength) return false;
-      if (!nodeFilterIdSet.has(link.sourceId) || !nodeFilterIdSet.has(link.targetId)) return false;
-      return true;
-    });
-  }, [links, minRelationStrength, nodeFilterIdSet, selectedRelationTypes]);
+    return eligibleLinks.filter((link) =>
+      relationPassesActiveFilters(link, {
+        densityMode: relationDensityMode,
+        selectedRelationTypes,
+        minRelationStrength,
+        focusNodeId: graphFilterFocusNodeId,
+        focusNeighborhood,
+      })
+    );
+  }, [eligibleLinks, focusNeighborhood, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
+
+  const densityFilteredLinks = useMemo(
+    () =>
+      relationDensityMode === 'structure'
+        ? limitStructureRelationDensity(filteredLinksByRelation, {
+            focusNodeId: graphFilterFocusNodeId,
+          })
+        : filteredLinksByRelation,
+    [filteredLinksByRelation, graphFilterFocusNodeId, relationDensityMode]
+  );
 
   const filteredNodes = useMemo(() => {
     if (!showOnlyConnectedNodes) return nodeFilteredByMeta;
@@ -295,35 +514,102 @@ export function KnowledgeGraphSystem({
       }
     });
 
-    filteredLinksByRelation.forEach((link) => {
+    densityFilteredLinks.forEach((link) => {
       connectedByVisibleLinks.add(link.sourceId);
       connectedByVisibleLinks.add(link.targetId);
     });
 
     return nodeFilteredByMeta.filter((node) => {
-      if (node.id === selectedNode?.id) return true;
+      if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId) {
+        return isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks);
+      }
       if (!connectedInSearch.has(node.id)) return true;
       return connectedByVisibleLinks.has(node.id);
     });
-  }, [filteredLinksByRelation, links, nodeFilterIdSet, nodeFilteredByMeta, selectedNode?.id, showOnlyConnectedNodes]);
+  }, [densityFilteredLinks, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
 
   const filteredNodeIdSet = useMemo(() => new Set(filteredNodes.map((item) => item.id)), [filteredNodes]);
 
-  const filteredLinks = useMemo(
-    () =>
-      filteredLinksByRelation.filter(
-        (link) => filteredNodeIdSet.has(link.sourceId) && filteredNodeIdSet.has(link.targetId)
-      ),
-    [filteredLinksByRelation, filteredNodeIdSet]
-  );
+  const filteredLinks = useMemo(() => {
+    const visibleLinks = densityFilteredLinks.filter(
+      (link) => filteredNodeIdSet.has(link.sourceId) && filteredNodeIdSet.has(link.targetId)
+    );
+    return visibleLinks;
+  }, [densityFilteredLinks, filteredNodeIdSet]);
 
   const graphWithChapterNodes = useMemo(
-    () => injectChapterNodes(filteredNodes, filteredLinks),
-    [filteredNodes, filteredLinks]
+    () => injectChapterNodes(
+      filteredNodes.map((node) => ({
+        ...node,
+        graphDegree: graphStatistics.degreeByNodeId.get(node.id) ?? 0,
+        graphImportanceScore: graphStatistics.importanceScoreByNodeId.get(node.id) ?? 0,
+      })),
+      filteredLinks
+    ),
+    [filteredNodes, filteredLinks, graphStatistics]
   );
 
   const displayNodes = graphWithChapterNodes.nodes;
   const displayLinks = graphWithChapterNodes.links;
+  const displaySelectedNode = selectedNode
+    ? displayNodes.find((node) => node.id === selectedNode.id) ?? null
+    : null;
+  const visibleSelectedNode = useMemo(
+    () => selectedNode && displaySelectedNode
+      ? { ...displaySelectedNode, ...selectedNode }
+      : null,
+    [displaySelectedNode, selectedNode]
+  );
+  const visiblePanelOpen = isPanelOpen && Boolean(visibleSelectedNode);
+  const konlingContextStatus = visibleSelectedNode
+    ? 'selected-node'
+    : requestedNodeId
+      ? 'degraded'
+      : 'no-selection';
+  const pinnedNodeCount = Object.keys(layoutState.positionsByNodeId).length;
+  const pinnedLayoutSignature = Object.entries(layoutState.positionsByNodeId)
+    .map(([nodeId, position]) =>
+      `${nodeId}:${position.x.toFixed(1)},${position.y.toFixed(1)},${(position.z ?? 0).toFixed(1)}`
+    )
+    .sort()
+    .join('|');
+  const selectedNodePinned = isKnowledgeGraphNodePinned(layoutState, visibleSelectedNode?.id);
+  const selectedNodeFallbackLayoutPosition = useMemo(() => {
+    if (!visibleSelectedNode) return null;
+    const positionedNode = applyRadialLayout(displayNodes, displayLinks, undefined, 180)
+      .find((node) => node.id === visibleSelectedNode.id);
+    return getKnowledgeGraphRuntimeNodePosition(
+      positionedNode as (KnowledgeNodeData & { x?: number; y?: number; z?: number }) | null | undefined
+    );
+  }, [displayLinks, displayNodes, visibleSelectedNode]);
+  const selectedNodeRuntimePosition = getKnowledgeGraphRuntimeNodePosition(
+    visibleSelectedNode as (KnowledgeNodeData & { x?: number; y?: number; z?: number }) | null
+  ) ?? selectedNodeFallbackLayoutPosition;
+  const selectedNodePinUnavailable = Boolean(visibleSelectedNode && !selectedNodePinned && !selectedNodeRuntimePosition);
+  const selectedNodeFocused = Boolean(visibleSelectedNode && graphFilterFocusNodeId === visibleSelectedNode.id);
+  const selectedNodeRelationCount = visibleSelectedNode
+    ? displayLinks.filter((link) => link.sourceId === visibleSelectedNode.id || link.targetId === visibleSelectedNode.id).length
+    : 0;
+  const activeFilterSummary = [
+    searchQuery ? `搜索：${searchQuery}` : '',
+    selectedChapters.length > 0 ? `章节 ${selectedChapters.length}` : '',
+    selectedCategories.length > 0 ? `分类 ${selectedCategories.length}` : '',
+    selectedBloomLevels.length > 0 ? `层级 ${selectedBloomLevels.length}` : '',
+    selectedRelationTypes.length !== relationTypeStats.length ? `关系 ${selectedRelationTypes.length}/${relationTypeStats.length}` : '',
+    graphFilterFocusNodeId ? '焦点邻域' : '',
+    minRelationStrength > 0 ? `强度 >= ${minRelationStrength.toFixed(1)}` : '',
+    showOnlyConnectedNodes ? '仅连通节点' : '',
+  ].filter(Boolean).join(' · ') || '未启用额外筛选';
+  const knowledgeWorkspaceFilterSummary = [
+    searchQuery.trim() ? '搜索词已启用' : '',
+    selectedChapters.length > 0 ? `章节 ${selectedChapters.length}` : '',
+    selectedCategories.length > 0 ? `分类 ${selectedCategories.length}` : '',
+    selectedBloomLevels.length > 0 ? `层级 ${selectedBloomLevels.length}` : '',
+    selectedRelationTypes.length !== relationTypeStats.length ? `关系 ${selectedRelationTypes.length}/${relationTypeStats.length}` : '',
+    graphFilterFocusNodeId ? '焦点邻域' : '',
+    minRelationStrength > 0 ? `强度 >= ${minRelationStrength.toFixed(1)}` : '',
+    showOnlyConnectedNodes ? '仅连通节点' : '',
+  ].filter(Boolean).join(' · ') || '未启用额外筛选';
 
   const toggleRelationType = useCallback((type: string) => {
     setSelectedRelationTypes((prev) =>
@@ -338,13 +624,84 @@ export function KnowledgeGraphSystem({
     []
   );
 
-  useEffect(() => {
-    if (!selectedNode) return;
-    if (!displayNodes.some((node) => node.id === selectedNode.id)) {
-      setSelectedNode(null);
-      setIsPanelOpen(false);
+  const handleFitView = useCallback(() => {
+    setFitViewVersion((current) => current + 1);
+  }, []);
+
+  const handleRelayout = useCallback(() => {
+    setLayoutState((current) => ({
+      version: current.version + 1,
+      positionsByNodeId: {},
+    }));
+    setRelayoutVersion((current) => current + 1);
+    setFitViewVersion((current) => current + 1);
+  }, []);
+
+  const handleToggleSelectedNodePin = useCallback(() => {
+    if (!visibleSelectedNode) return;
+    if (isKnowledgeGraphNodePinned(layoutState, visibleSelectedNode.id)) {
+      setLayoutState((current) => removeKnowledgeGraphNodePin(current, visibleSelectedNode.id));
+      return;
     }
-  }, [displayNodes, selectedNode]);
+    if (!selectedNodeRuntimePosition) return;
+    setLayoutState((current) =>
+      storeKnowledgeGraphNodePosition(current, selectedNodeRuntimePosition)
+    );
+  }, [layoutState, selectedNodeRuntimePosition, visibleSelectedNode]);
+
+  const handleClearLayoutPins = useCallback(() => {
+    setLayoutState((current) => clearKnowledgeGraphLayoutPins(current));
+  }, []);
+
+  const handleToggleSelectedFocus = useCallback(() => {
+    if (!visibleSelectedNode) return;
+    setExplicitFocusNodeId((current) => current === visibleSelectedNode.id ? null : visibleSelectedNode.id);
+  }, [visibleSelectedNode]);
+
+  useEffect(() => {
+    if (desktopActiveTool) {
+      previousDesktopToolRef.current = desktopActiveTool;
+      window.requestAnimationFrame(() => {
+        const panel = desktopToolPanelRef.current;
+        const focusTarget = panel?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ?? panel;
+        focusTarget?.focus();
+      });
+      return;
+    }
+
+    const previousTool = previousDesktopToolRef.current;
+    if (!previousTool) return;
+    previousDesktopToolRef.current = null;
+    window.requestAnimationFrame(() => {
+      desktopToolTriggerRefs.current[previousTool]?.focus();
+    });
+  }, [desktopActiveTool]);
+
+  const closeDesktopTool = useCallback(() => {
+    setDesktopActiveTool(null);
+  }, []);
+
+  const handleDesktopToolPanelKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Escape') return;
+    event.stopPropagation();
+    closeDesktopTool();
+  }, [closeDesktopTool]);
+
+  useEffect(() => {
+    if (!mobileToolPanelOpen) return;
+    window.requestAnimationFrame(() => {
+      mobileToolPanelRef.current?.focus();
+    });
+  }, [mobileActiveTool, mobileToolPanelOpen]);
+
+  const handleMobileToolPanelKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Escape') return;
+    event.stopPropagation();
+    setMobileToolPanelOpen(false);
+    window.requestAnimationFrame(() => {
+      mobileToolToggleRef.current?.focus();
+    });
+  }, []);
 
   const hoveredBloomLabel = hoveredNode?.bloomLevel ? getBloomLabel(hoveredNode.bloomLevel) : '';
   const hoveredKnowledgeDimLabel = hoveredNode?.knowledgeDim
@@ -353,272 +710,834 @@ export function KnowledgeGraphSystem({
   const hoveredChapterName = hoveredNode
     ? resolveChapterName(hoveredNode.chapter, hoveredNode.chapterName)
     : '';
+  const relationLegendItems = getRelationLegendItems();
+  const clarityMetrics = useMemo(
+    () => calculateGraphClarityMetrics(displayNodes, displayLinks, focusNeighborhood),
+    [displayLinks, displayNodes, focusNeighborhood]
+  );
+  const claritySummary = [
+    `${clarityMetrics.visibleEdgeCount} 条可见关系`,
+    `${clarityMetrics.edgeToNodeRatio.toFixed(2)} 边/点`,
+    relationDensityMode === 'focused'
+      ? `邻域 ${(clarityMetrics.selectedNeighborhoodEdgeRatio * 100).toFixed(0)}%`
+      : `弱关系 ${(clarityMetrics.weakEdgeRatio * 100).toFixed(0)}%`,
+  ].join(' · ');
+  const desktopToolItems = [
+    {
+      id: 'chapter-directory',
+      label: '目录',
+      icon: BookOpen,
+      summary: `${filteredNodes.length} 个节点`,
+    },
+    {
+      id: 'relation-filters',
+      label: '筛选',
+      icon: Filter,
+      summary: `${selectedRelationTypes.length}/${relationTypeStats.length} 类关系`,
+    },
+    {
+      id: 'legend',
+      label: '图例',
+      icon: Network,
+      summary: `${relationLegendItems.length} 种语义`,
+    },
+    {
+      id: 'view-layout',
+      label: '视图',
+      icon: SlidersHorizontal,
+      summary: `${viewMode} · ${pinnedNodeCount} 固定`,
+    },
+  ] satisfies Array<{
+    id: KnowledgeDesktopTool;
+    label: string;
+    icon: typeof BookOpen;
+    summary: string;
+  }>;
+  const desktopActiveToolLabel = desktopToolItems.find((item) => item.id === desktopActiveTool)?.label ?? '';
+
+  useEffect(() => {
+    updatePageContext({
+      courseId: 'knowledge',
+      courseTitle: '知识资源',
+      stepId: '/knowledge',
+      topic: visibleSelectedNode ? visibleSelectedNode.name : '知识图谱',
+      pageType: 'workspace',
+      learningObjectives: ['结合知识图谱关系定位当前概念、资源和后续学习动作。'],
+      knowledgeType: 'C',
+      tools: ['search_knowledge_graph', 'recommend_next_action'],
+      systemPromptExtension: visibleSelectedNode
+        ? `当前知识图谱选中节点：${visibleSelectedNode.name}`
+        : '当前知识图谱尚未选中节点。',
+      knowledgeWorkspaceHint: {
+        selectedNodeId: visibleSelectedNode?.id ?? null,
+        requestedNodeId,
+        status: konlingContextStatus,
+        activeFilters: [knowledgeWorkspaceFilterSummary],
+        densityMode: relationDensityMode,
+        viewMode,
+        visibleRelationCount: displayLinks.length,
+        selectedNodeRelationCount,
+      },
+    });
+  }, [
+    displayLinks.length,
+    knowledgeWorkspaceFilterSummary,
+    relationDensityMode,
+    requestedNodeId,
+    selectedNodeRelationCount,
+    updatePageContext,
+    viewMode,
+    visibleSelectedNode,
+    konlingContextStatus,
+  ]);
 
   return (
-    <div className="flex h-screen w-full bg-[#020721] text-slate-200">
-      {/* 左侧导航侧边栏 */}
-      <KnowledgeSidebar
-        nodes={nodeFilteredByMeta}
-        selectedNodeId={selectedNode?.id}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onNodeSelect={handleNodeClick}
-      />
-
+    <div
+      className="relative flex h-full min-h-0 w-full overflow-hidden bg-platform-page text-platform-fg-primary"
+      style={KNOWLEDGE_WORKSPACE_STYLE}
+      data-knowledge-workspace="canvas-first"
+      data-knowledge-route-scroll-policy="workspace-contained"
+      data-knowledge-squeeze-down-rejected="permanent-panels-hidden-at-320"
+      data-knowledge-konling-context-source="server-owned"
+      data-knowledge-konling-context-status={konlingContextStatus}
+      data-knowledge-shared-dock-collision-policy="avoid-local-tools-and-inspector"
+    >
       {/* 中央图谱区域 */}
-      <div ref={containerRef} className="relative flex-1 h-full overflow-hidden">
-        {/* 筛选控制区 */}
+      <div
+        ref={containerRef}
+        className="relative h-full min-w-0 flex-1 overflow-hidden"
+        tabIndex={-1}
+        aria-label="知识图谱画布"
+        data-knowledge-canvas-primary="true"
+        data-knowledge-layout-version={layoutState.version}
+        data-knowledge-visible-node-count={displayNodes.length}
+        data-knowledge-visible-link-count={displayLinks.length}
+        data-knowledge-pinned-node-count={pinnedNodeCount}
+        data-knowledge-pinned-layout-signature={pinnedLayoutSignature}
+        data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}
+        data-knowledge-konling-selected-node-id={visibleSelectedNode?.id ?? ''}
+        data-knowledge-konling-relation-summary={activeFilterSummary}
+        data-knowledge-konling-density-mode={relationDensityMode}
+        data-knowledge-konling-view-mode={viewMode}
+      >
         <div
-          className={`absolute left-4 top-4 z-20 w-[360px] rounded-xl p-3 backdrop-blur-md ${
-            isLightTheme
-              ? 'border border-slate-300/90 bg-white/95 text-slate-800 shadow-[0_12px_28px_rgba(15,23,42,0.12)]'
-              : 'border border-amber-300/20 bg-[#0b183f]/90 text-slate-200 shadow-[0_8px_30px_rgba(2,8,30,0.45)]'
-          }`}
+          className="absolute left-[var(--knowledge-workspace-inset)] top-[var(--knowledge-workspace-inset)] z-30 hidden max-w-[min(45rem,calc(100vw-36rem))] lg:block"
+          data-knowledge-desktop-command-system="compact"
+          data-knowledge-local-tool-shell="desktop"
+          data-knowledge-local-tool={desktopActiveTool ?? 'closed'}
+          data-state={desktopActiveTool ? 'open' : 'closed'}
+          data-knowledge-active-filter-summary={activeFilterSummary}
+          data-knowledge-command-summary={`${claritySummary} · ${desktopActiveTool ? `打开：${desktopActiveToolLabel}` : '局部工具已收起'}`}
         >
-          <div className="mb-2 flex items-center justify-between">
-            <div className={`text-xs font-semibold tracking-wide ${isLightTheme ? 'text-slate-700' : 'text-amber-200'}`}>
-              关系筛选
-            </div>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[10px] ${
-                dataSource === 'file'
-                  ? (isLightTheme ? 'border border-emerald-300 bg-emerald-100 text-emerald-700' : 'bg-emerald-500/20 text-emerald-300')
-                  : (isLightTheme ? 'border border-sky-300 bg-sky-100 text-sky-700' : 'bg-cyan-500/20 text-cyan-300')
-              }`}
-            >
-              {dataSource === 'file' ? '文件图谱' : '数据库图谱'}
-            </span>
-          </div>
-
-          <div className={`mb-3 flex items-center justify-between text-[11px] ${isLightTheme ? 'text-slate-600' : 'text-slate-400'}`}>
-            <span>当前显示关系 {filteredLinks.length} 条</span>
-            <span>节点 {filteredNodes.length} / {nodes.length}</span>
-          </div>
-
-          <div className={`mb-3 flex items-center justify-between gap-3 rounded-lg border px-2 py-1.5 ${
-            isLightTheme ? 'border-slate-300/80 bg-slate-50' : 'border-slate-700/50 bg-slate-900/35'
-          }`}>
-            <span className={`text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>标签显示</span>
-            <div className="flex rounded-md border border-slate-400/30 p-0.5">
-              {([
-                ['focus', '重点标签'],
-                ['all', '全部标签'],
-              ] as const).map(([mode, label]) => (
-                <button
-                  key={mode}
-                  type="button"
-                  aria-pressed={labelMode === mode}
-                  onClick={() => setLabelMode(mode)}
-                  className={`rounded px-2 py-1 text-[10px] transition-colors ${
-                    labelMode === mode
-                      ? (isLightTheme ? 'bg-sky-600 text-white' : 'bg-cyan-500/25 text-cyan-100')
-                      : (isLightTheme ? 'text-slate-600 hover:bg-white' : 'text-slate-400 hover:bg-slate-800/70')
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-3">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="关键词搜索（名称 / 标签 / 公式 / 示例）"
-              className={`w-full rounded-lg border px-2.5 py-2 text-xs outline-none ${
-                isLightTheme
-                  ? 'border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:border-sky-500'
-                  : 'border-blue-500/30 bg-[#0c1d4f]/45 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400'
-              }`}
-            />
-          </div>
-
-          <div className="mb-3 space-y-2">
-            <details className={`rounded-lg border px-2 py-1.5 ${isLightTheme ? 'border-slate-300/80 bg-slate-50' : 'border-slate-700/50 bg-slate-900/35'}`}>
-              <summary className={`cursor-pointer text-[11px] font-medium ${isLightTheme ? 'text-slate-700' : 'text-slate-200'}`}>
-                章节筛选（多选）{selectedChapters.length > 0 ? ` · ${selectedChapters.length}` : ''}
-              </summary>
-              <div className="mt-2 max-h-28 space-y-1 overflow-y-auto pr-1">
-                {chapterOptions.map((chapterName) => (
-                  <label key={chapterName} className={`flex cursor-pointer items-center gap-2 text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
-                    <input
-                      type="checkbox"
-                      checked={selectedChapters.includes(chapterName)}
-                      onChange={() => toggleMultiSelectValue(chapterName, setSelectedChapters)}
-                      className={isLightTheme ? 'accent-sky-600' : 'accent-cyan-400'}
-                    />
-                    <span>{chapterName}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
-
-            <details className={`rounded-lg border px-2 py-1.5 ${isLightTheme ? 'border-slate-300/80 bg-slate-50' : 'border-slate-700/50 bg-slate-900/35'}`}>
-              <summary className={`cursor-pointer text-[11px] font-medium ${isLightTheme ? 'text-slate-700' : 'text-slate-200'}`}>
-                category 筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}
-              </summary>
-              <div className="mt-2 max-h-24 space-y-1 overflow-y-auto pr-1">
-                {categoryOptions.map((category) => (
-                  <label key={category} className={`flex cursor-pointer items-center gap-2 text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(category)}
-                      onChange={() => toggleMultiSelectValue(category, setSelectedCategories)}
-                      className={isLightTheme ? 'accent-sky-600' : 'accent-cyan-400'}
-                    />
-                    <span>{category}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
-
-            <details className={`rounded-lg border px-2 py-1.5 ${isLightTheme ? 'border-slate-300/80 bg-slate-50' : 'border-slate-700/50 bg-slate-900/35'}`}>
-              <summary className={`cursor-pointer text-[11px] font-medium ${isLightTheme ? 'text-slate-700' : 'text-slate-200'}`}>
-                bloom_level 筛选{selectedBloomLevels.length > 0 ? ` · ${selectedBloomLevels.length}` : ''}
-              </summary>
-              <div className="mt-2 max-h-24 space-y-1 overflow-y-auto pr-1">
-                {bloomOptions.map((bloom) => (
-                  <label key={bloom} className={`flex cursor-pointer items-center gap-2 text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
-                    <input
-                      type="checkbox"
-                      checked={selectedBloomLevels.includes(bloom)}
-                      onChange={() => toggleMultiSelectValue(bloom, setSelectedBloomLevels)}
-                      className={isLightTheme ? 'accent-sky-600' : 'accent-cyan-400'}
-                    />
-                    <span>{getBloomLabel(bloom)}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
-          </div>
-
-          <div className="mb-3">
-            <div className={`mb-1.5 flex items-center justify-between text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
-              <span>关系类型</span>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  className={`text-[10px] ${isLightTheme ? 'text-slate-600 hover:text-slate-800' : 'text-slate-400 hover:text-slate-200'}`}
-                  onClick={() => setSelectedRelationTypes(relationTypeStats.map((item) => item.type))}
-                >
-                  全选
-                </button>
-                <button
-                  type="button"
-                  className={`text-[10px] ${isLightTheme ? 'text-slate-600 hover:text-slate-800' : 'text-slate-400 hover:text-slate-200'}`}
-                  onClick={() => setSelectedRelationTypes([])}
-                >
-                  清空
-                </button>
-              </div>
-            </div>
-            <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
-              {relationTypeStats.map((item) => {
-                const selected = selectedRelationTypes.includes(item.type);
+          <div className="rounded-xl border border-platform-border bg-platform-surface/90 p-2 shadow-lg backdrop-blur-md">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {desktopToolItems.map((item) => {
+                const Icon = item.icon;
+                const active = desktopActiveTool === item.id;
                 return (
                   <button
+                    key={item.id}
+                    ref={(element) => {
+                      desktopToolTriggerRefs.current[item.id] = element;
+                    }}
                     type="button"
-                    key={item.type}
-                    onClick={() => toggleRelationType(item.type)}
-                    className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
-                      selected
-                        ? (isLightTheme
-                            ? 'border-sky-300 bg-sky-100 text-sky-700'
-                            : 'border-amber-300/40 bg-amber-400/15 text-amber-200')
-                        : (isLightTheme
-                            ? 'border-slate-300 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-800'
-                            : 'border-slate-600/40 bg-slate-700/30 text-slate-400 hover:border-slate-500/50 hover:text-slate-200')
+                    aria-controls={`${DESKTOP_TOOL_PANEL_ID_PREFIX}-${item.id}`}
+                    aria-expanded={active}
+                    aria-pressed={active}
+                    onClick={() => setDesktopActiveTool((current) => current === item.id ? null : item.id)}
+                    className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-medium transition ${
+                      active
+                        ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
+                        : 'border-platform-border bg-platform-surface/80 text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
                     }`}
+                    data-knowledge-command-trigger={item.id}
                   >
-                    {getRelationLabel(item.type)} · {item.count}
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{item.label}</span>
+                    <span className="hidden max-w-24 truncate text-[10px] font-normal text-platform-fg-muted xl:inline">
+                      {item.summary}
+                    </span>
                   </button>
                 );
               })}
+              {desktopActiveTool && (
+                <button
+                  type="button"
+                  aria-label="收起知识图谱局部工具"
+                  onClick={closeDesktopTool}
+                  className="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-platform-border bg-platform-surface/80 text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                  data-knowledge-command-close="true"
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              )}
             </div>
-          </div>
-
-          <div className="mb-3">
-            <div className={`mb-1.5 flex items-center justify-between text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
-              <span>关系强度阈值</span>
-              <span className={isLightTheme ? 'text-sky-700' : 'text-amber-200'}>{minRelationStrength.toFixed(1)}</span>
+            <div
+              className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-platform-fg-secondary"
+              data-knowledge-local-tool-summary="desktop"
+            >
+              <span className="rounded-full border border-platform-border bg-platform-canvas-muted px-2 py-0.5">
+                {displayNodes.length} 节点
+              </span>
+              <span className="rounded-full border border-platform-border bg-platform-canvas-muted px-2 py-0.5">
+                {displayLinks.length} 关系
+              </span>
+              <span className="rounded-full border border-platform-border bg-platform-canvas-muted px-2 py-0.5">
+                {relationDensityMode === 'structure' ? '结构优先' : relationDensityMode === 'focused' ? '焦点邻域' : '全部关系'}
+              </span>
+              <span className="min-w-0 max-w-[26rem] truncate rounded-full border border-platform-border bg-platform-canvas-muted px-2 py-0.5">
+                {activeFilterSummary}
+              </span>
             </div>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.1}
-              value={minRelationStrength}
-              onChange={(e) => setMinRelationStrength(Number(e.target.value))}
-              className={`w-full ${isLightTheme ? 'accent-sky-600' : 'accent-amber-400'}`}
-            />
+
+            {desktopActiveTool && (
+              <div
+                id={`${DESKTOP_TOOL_PANEL_ID_PREFIX}-${desktopActiveTool}`}
+                ref={desktopToolPanelRef}
+                role="region"
+                tabIndex={-1}
+                aria-label={`${desktopActiveToolLabel}工具`}
+                onKeyDown={handleDesktopToolPanelKeyDown}
+                className={KNOWLEDGE_LOCAL_TOOL_PANEL_CLASS}
+                data-knowledge-desktop-tool-panel={desktopActiveTool}
+                data-knowledge-local-tool-panel={desktopActiveTool}
+                data-knowledge-local-tool={desktopActiveTool}
+                data-state="open"
+              >
+                {desktopActiveTool === 'chapter-directory' && (
+                  <KnowledgeSidebar
+                    nodes={nodeFilteredByMeta}
+                    selectedNodeId={visibleSelectedNode?.id}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onNodeSelect={handleNodeClick}
+                    onNodeHover={handleNodeHover}
+                  />
+                )}
+
+                {desktopActiveTool === 'relation-filters' && (
+                  <div className="space-y-3" data-knowledge-local-panel="relation-filters">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="font-semibold text-platform-fg-primary">关系筛选</div>
+                        <div className="text-[11px] text-platform-fg-muted">
+                          当前显示关系 {displayLinks.length} 条，节点 {filteredNodes.length} / {nodes.length}
+                        </div>
+                      </div>
+                      <span className="rounded-full border border-platform-border bg-platform-action-subtle px-2 py-0.5 text-[10px] text-platform-fg-secondary">
+                        {dataSource === 'file' ? '文件图谱' : '数据库图谱'}
+                      </span>
+                    </div>
+
+                    <div
+                      className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-[11px] text-platform-fg-secondary"
+                      data-knowledge-clarity-summary="desktop"
+                    >
+                      {claritySummary}
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5">
+                      <span className="text-[11px] text-platform-fg-secondary">标签显示</span>
+                      <div className="flex rounded-md border border-platform-border p-0.5">
+                        {([
+                          ['focus', '重点标签'],
+                          ['all', '全部标签'],
+                        ] as const).map(([mode, label]) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            aria-pressed={labelMode === mode}
+                            onClick={() => setLabelMode(mode)}
+                            className={`rounded px-2 py-1 text-[10px] transition-colors ${
+                              labelMode === mode
+                                ? 'bg-platform-action-primary text-platform-fg-inverse'
+                                : 'text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <input
+                      aria-label="关键词搜索（名称 / 标签 / 公式 / 示例）"
+                      type="text"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder="关键词搜索（名称 / 标签 / 公式 / 示例）"
+                      className="w-full rounded-lg border border-platform-border bg-platform-surface px-2.5 py-2 text-xs text-platform-fg-primary outline-none placeholder:text-platform-fg-muted focus:border-platform-border-strong"
+                    />
+
+                    <div className="space-y-2">
+                      <details className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5">
+                        <summary className="cursor-pointer text-[11px] font-medium text-platform-fg-primary">
+                          章节筛选（多选）{selectedChapters.length > 0 ? ` · ${selectedChapters.length}` : ''}
+                        </summary>
+                        <div className="mt-2 max-h-28 space-y-1 overflow-y-auto pr-1">
+                          {chapterOptions.map((chapterName) => (
+                            <label key={chapterName} className="flex cursor-pointer items-center gap-2 text-[11px] text-platform-fg-secondary">
+                              <input
+                                type="checkbox"
+                                checked={selectedChapters.includes(chapterName)}
+                                onChange={() => toggleMultiSelectValue(chapterName, setSelectedChapters)}
+                                className="accent-[hsl(var(--platform-action-primary))]"
+                              />
+                              <span>{chapterName}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </details>
+
+                      <details className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5">
+                        <summary className="cursor-pointer text-[11px] font-medium text-platform-fg-primary">
+                          {getGraphFilterLabel('category')}筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}
+                        </summary>
+                        <div className="mt-2 max-h-24 space-y-1 overflow-y-auto pr-1">
+                          {categoryOptions.map((category) => (
+                            <label key={category} className="flex cursor-pointer items-center gap-2 text-[11px] text-platform-fg-secondary">
+                              <input
+                                type="checkbox"
+                                checked={selectedCategories.includes(category)}
+                                onChange={() => toggleMultiSelectValue(category, setSelectedCategories)}
+                                className="accent-[hsl(var(--platform-action-primary))]"
+                              />
+                              <span>{category}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </details>
+
+                      <details className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5">
+                        <summary className="cursor-pointer text-[11px] font-medium text-platform-fg-primary">
+                          {getGraphFilterLabel('bloom_level')}筛选{selectedBloomLevels.length > 0 ? ` · ${selectedBloomLevels.length}` : ''}
+                        </summary>
+                        <div className="mt-2 max-h-24 space-y-1 overflow-y-auto pr-1">
+                          {bloomOptions.map((bloom) => (
+                            <label key={bloom} className="flex cursor-pointer items-center gap-2 text-[11px] text-platform-fg-secondary">
+                              <input
+                                type="checkbox"
+                                checked={selectedBloomLevels.includes(bloom)}
+                                onChange={() => toggleMultiSelectValue(bloom, setSelectedBloomLevels)}
+                                className="accent-[hsl(var(--platform-action-primary))]"
+                              />
+                              <span>{getBloomLabel(bloom)}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </details>
+                    </div>
+
+                    <div>
+                      <div className="mb-1.5 text-[11px] text-platform-fg-secondary">关系密度</div>
+                      <div className="mb-3 grid grid-cols-3 gap-1 rounded-lg border border-platform-border p-0.5">
+                        {([
+                          ['structure', '结构优先'],
+                          ['focused', '焦点邻域'],
+                          ['all', '全部关系'],
+                        ] as const).map(([mode, label]) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            aria-pressed={relationDensityMode === mode}
+                            onClick={() => setRelationDensityMode(mode)}
+                            className={`rounded px-2 py-1 text-[10px] transition-colors ${
+                              relationDensityMode === mode
+                                ? 'bg-platform-action-primary text-platform-fg-inverse'
+                                : 'text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="mb-1.5 flex items-center justify-between text-[11px] text-platform-fg-secondary">
+                        <span>关系类型</span>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            className="text-[10px] text-platform-fg-muted hover:text-platform-fg-primary"
+                            onClick={() => setSelectedRelationTypes(relationTypeStats.map((item) => item.type))}
+                          >
+                            全选
+                          </button>
+                          <button
+                            type="button"
+                            className="text-[10px] text-platform-fg-muted hover:text-platform-fg-primary"
+                            onClick={() => setSelectedRelationTypes([])}
+                          >
+                            清空
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
+                        {relationTypeStats.map((item) => {
+                          const selected = selectedRelationTypes.includes(item.type);
+                          return (
+                            <button
+                              type="button"
+                              key={item.type}
+                              onClick={() => toggleRelationType(item.type)}
+                              className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
+                                selected
+                                  ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
+                                  : 'border-platform-border bg-platform-surface text-platform-fg-secondary hover:border-platform-border-strong hover:text-platform-fg-primary'
+                              }`}
+                            >
+                              {getRelationLabel(item.type)} · {item.count}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="rounded-lg border border-platform-surface bg-platform-surface px-2.5 py-2 text-[11px] text-platform-fg-secondary">
+                      <div className="mb-1 font-medium text-platform-fg-primary">关系图例</div>
+                      <div className="grid max-h-48 grid-cols-2 gap-1.5 overflow-y-auto pr-1">
+                        {relationLegendItems.map((item) => (
+                          <RelationLegendSample key={`desktop-filter-legend-${item.type}`} item={item} isLightTheme={isLightTheme} />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="mb-1.5 flex items-center justify-between text-[11px] text-platform-fg-secondary">
+                        <span>关系强度阈值</span>
+                        <span className="text-platform-action-primary">{minRelationStrength.toFixed(1)}</span>
+                      </div>
+                      <input
+                        aria-label="关系强度阈值"
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.1}
+                        value={minRelationStrength}
+                        onChange={(e) => setMinRelationStrength(Number(e.target.value))}
+                        className="w-full accent-[hsl(var(--platform-action-primary))]"
+                      />
+                      {relationDensityMode === 'focused' && (
+                        <p className="mt-1 text-[10px] text-platform-fg-muted">
+                          焦点邻域会保留直连弱关系，关系类型筛选仍然生效。
+                        </p>
+                      )}
+                    </div>
+
+                    <label className="flex cursor-pointer items-center gap-2 text-[11px] text-platform-fg-secondary">
+                      <input
+                        type="checkbox"
+                        checked={showOnlyConnectedNodes}
+                        onChange={(e) => setShowOnlyConnectedNodes(e.target.checked)}
+                        className="h-3.5 w-3.5 accent-[hsl(var(--platform-action-primary))]"
+                      />
+                      <span>仅显示存在可见关系的节点</span>
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedChapters([]);
+                        setSelectedCategories([]);
+                        setSelectedBloomLevels([]);
+                        setSearchQuery('');
+                      }}
+                      className="w-full rounded-md border border-platform-border bg-platform-surface px-2 py-1 text-[11px] text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                    >
+                      清空节点筛选条件
+                    </button>
+                  </div>
+                )}
+
+                {desktopActiveTool === 'legend' && (
+                  <div className="grid gap-2" data-knowledge-local-panel="relation-legend">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="font-semibold text-platform-fg-primary">关系图例</div>
+                        <div className="text-[11px] text-platform-fg-muted">细线、虚线和端点标记解释关系语义。</div>
+                      </div>
+                      <Network className="h-4 w-4 text-platform-action-primary" aria-hidden="true" />
+                    </div>
+                    <div className="grid gap-1.5">
+                      {relationLegendItems.map((item) => (
+                        <RelationLegendSample key={`desktop-command-legend-${item.type}`} item={item} isLightTheme={isLightTheme} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {desktopActiveTool === 'view-layout' && (
+                  <div className="space-y-3" data-knowledge-local-panel="view-layout-controls">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-platform-fg-primary">视图与布局</div>
+                        <div className="text-[11px] text-platform-fg-muted">布局命令只响应显式操作，不跟随选择或悬停重排。</div>
+                      </div>
+                      <LocateFixed className="h-4 w-4 text-platform-action-primary" aria-hidden="true" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 rounded-lg border border-platform-border p-1">
+                      {([
+                        ['2D', '2D 视图'],
+                        ['3D', '3D 视图'],
+                      ] as const).map(([mode, label]) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setViewMode(mode)}
+                          className={`rounded-md px-3 py-2 text-xs font-medium transition-all ${
+                            viewMode === mode
+                              ? 'bg-platform-action-primary text-platform-fg-inverse shadow-sm'
+                              : 'text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={handleFitView}
+                        className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                        data-knowledge-layout-control="fit-view"
+                      >
+                        适配视图
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRelayout}
+                        className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                        data-knowledge-layout-control="relayout"
+                      >
+                        重新布局
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleToggleSelectedNodePin}
+                        disabled={!visibleSelectedNode || selectedNodePinUnavailable}
+                        className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
+                        data-knowledge-layout-control={selectedNodePinned ? 'unpin-selected' : 'pin-selected'}
+                        title={selectedNodePinUnavailable ? '需要先在图谱中点击或拖拽节点，才能固定当前画布坐标' : undefined}
+                      >
+                        {selectedNodePinned ? '取消固定' : '固定节点'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleToggleSelectedFocus}
+                        disabled={!visibleSelectedNode}
+                        className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
+                        data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}
+                      >
+                        {selectedNodeFocused ? '取消焦点' : '设为焦点'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleClearLayoutPins}
+                        className="col-span-2 rounded-md border border-platform-border bg-platform-surface px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                        data-knowledge-layout-control="clear-pins"
+                      >
+                        清除固定节点
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-
-          <label className={`mb-2 flex cursor-pointer items-center gap-2 text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
-            <input
-              type="checkbox"
-              checked={showOnlyConnectedNodes}
-              onChange={(e) => setShowOnlyConnectedNodes(e.target.checked)}
-              className={`h-3.5 w-3.5 ${isLightTheme ? 'accent-sky-600' : 'accent-amber-400'}`}
-            />
-            <span>仅显示存在可见关系的节点</span>
-          </label>
-
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedChapters([]);
-              setSelectedCategories([]);
-              setSelectedBloomLevels([]);
-              setSearchQuery('');
-            }}
-            className={`w-full rounded-md border px-2 py-1 text-[11px] ${
-              isLightTheme
-                ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                : 'border-slate-600/60 bg-slate-800/40 text-slate-300 hover:bg-slate-700/40'
-            }`}
-          >
-            清空节点筛选条件
-          </button>
         </div>
 
-        {/* 视图切换按钮 */}
-        <div
-          className={`absolute top-4 right-4 z-10 flex rounded-lg border p-1 backdrop-blur-sm shadow-lg ${
-            isLightTheme
-              ? 'border-slate-300 bg-white/95'
-              : 'border-blue-500/30 bg-[#091540]/90'
-          }`}
-        >
-          <button 
-            onClick={() => setViewMode('2D')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-              viewMode === '2D' 
-                ? (isLightTheme ? 'bg-sky-600 text-white shadow-sm' : 'bg-blue-600 text-white shadow-sm')
-                : (isLightTheme ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
+        {!aiSidebarOpen && (
+          <div
+            className="absolute left-3 right-3 top-3 z-30 grid gap-2 lg:hidden"
+            data-knowledge-mobile-command-surface="single-tool-panel"
+            data-knowledge-local-tool={mobileActiveTool}
+            data-state={mobileToolPanelOpen ? 'open' : 'closed'}
           >
-            2D 视图
-          </button>
-          <button 
-            onClick={() => setViewMode('3D')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-              viewMode === '3D' 
-                ? (isLightTheme ? 'bg-sky-600 text-white shadow-sm' : 'bg-blue-600 text-white shadow-sm')
-                : (isLightTheme ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            3D 视图
-          </button>
-        </div>
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-platform-border bg-platform-surface/95 p-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur">
+            {([
+              ['chapter-directory', '目录'],
+              ['relation-filters', '筛选'],
+              ['legend', '图例'],
+              ['view-layout', '视图'],
+            ] as const).map(([tool, label]) => (
+              <button
+                key={tool}
+                type="button"
+                aria-pressed={mobileActiveTool === tool}
+                aria-expanded={mobileActiveTool === tool && mobileToolPanelOpen}
+                onClick={() => {
+                  setMobileActiveTool(tool);
+                  setMobileToolPanelOpen(true);
+                }}
+                className={`rounded-lg border px-2.5 py-1.5 transition ${
+                  mobileActiveTool === tool
+                    ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
+                    : 'border-platform-border text-platform-fg-secondary'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+            <span className="min-w-0 flex-1 truncate text-[11px] text-platform-fg-secondary">
+              {activeFilterSummary}
+            </span>
+            <button
+              ref={mobileToolToggleRef}
+              type="button"
+              aria-expanded={mobileToolPanelOpen}
+              onClick={() => setMobileToolPanelOpen((open) => !open)}
+              className="rounded-lg border border-platform-border px-2.5 py-1.5 text-[11px] text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+              data-knowledge-mobile-panel-toggle="true"
+            >
+              {mobileToolPanelOpen ? '收起' : '展开'}
+            </button>
+          </div>
+
+          {mobileToolPanelOpen && (
+            <div
+              ref={mobileToolPanelRef}
+              tabIndex={-1}
+              onKeyDown={handleMobileToolPanelKeyDown}
+              className="max-h-[min(28rem,calc(100vh-7rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur"
+              data-knowledge-mobile-tool-panel={mobileActiveTool}
+              data-state="open"
+            >
+            {mobileActiveTool === 'chapter-directory' && (
+              <div data-knowledge-mobile-drawer="chapter-directory" data-knowledge-local-tool="chapter-directory" data-state="open">
+                <KnowledgeSidebar
+                  nodes={nodeFilteredByMeta}
+                  selectedNodeId={visibleSelectedNode?.id}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onNodeSelect={handleNodeClick}
+                  onNodeHover={handleNodeHover}
+                />
+              </div>
+            )}
+
+            {mobileActiveTool === 'relation-filters' && (
+              <div className="space-y-2" data-knowledge-mobile-drawer="relation-filters" data-knowledge-local-tool="relation-filters" data-state="open">
+                <p className="text-platform-fg-secondary">关系 {displayLinks.length} 条 · 节点 {filteredNodes.length} / {nodes.length}</p>
+                <p className="text-[11px] text-platform-fg-muted" data-knowledge-clarity-summary="mobile">
+                  {claritySummary}
+                </p>
+                <input aria-label="关键词搜索"
+                  type="text"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="关键词搜索"
+                  className="w-full rounded-md border border-platform-border bg-platform-surface px-2 py-1.5 text-xs text-platform-fg-primary outline-none"
+                />
+                <div className="grid grid-cols-3 gap-1 rounded-lg border border-platform-border p-0.5">
+                  {([
+                    ['structure', '结构优先'],
+                    ['focused', '焦点邻域'],
+                    ['all', '全部关系'],
+                  ] as const).map(([mode, label]) => (
+                    <button
+                      key={`mobile-density-${mode}`}
+                      type="button"
+                      aria-pressed={relationDensityMode === mode}
+                      onClick={() => setRelationDensityMode(mode)}
+                      className={`rounded px-2 py-1 text-[10px] transition-colors ${
+                        relationDensityMode === mode
+                          ? 'bg-platform-action-primary text-platform-fg-inverse'
+                          : 'text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {relationTypeStats.map((item) => {
+                    const selected = selectedRelationTypes.includes(item.type);
+                    return (
+                      <button
+                        type="button"
+                        key={`mobile-relation-${item.type}`}
+                        aria-pressed={selected}
+                        onClick={() => toggleRelationType(item.type)}
+                        className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
+                          selected
+                            ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
+                            : 'border-platform-border text-platform-fg-secondary'
+                        }`}
+                      >
+                        {getRelationLabel(item.type)} · {item.count}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="grid gap-2">
+                  <details className="rounded-md border border-platform-border px-2 py-1.5">
+                    <summary className="cursor-pointer text-[11px] font-medium">{getGraphFilterLabel('category')}筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}</summary>
+                    <div className="mt-2 grid gap-1">
+                      {categoryOptions.map((category) => (
+                        <label key={`mobile-category-${category}`} className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
+                          <input
+                            type="checkbox"
+                            checked={selectedCategories.includes(category)}
+                            onChange={() => toggleMultiSelectValue(category, setSelectedCategories)}
+                            className="accent-[hsl(var(--platform-action-primary))]"
+                          />
+                          <span>{category}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+                  <details className="rounded-md border border-platform-border px-2 py-1.5">
+                    <summary className="cursor-pointer text-[11px] font-medium">{getGraphFilterLabel('bloom_level')}筛选{selectedBloomLevels.length > 0 ? ` · ${selectedBloomLevels.length}` : ''}</summary>
+                    <div className="mt-2 grid gap-1">
+                      {bloomOptions.map((bloom) => (
+                        <label key={`mobile-bloom-${bloom}`} className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
+                          <input
+                            type="checkbox"
+                            checked={selectedBloomLevels.includes(bloom)}
+                            onChange={() => toggleMultiSelectValue(bloom, setSelectedBloomLevels)}
+                            className="accent-[hsl(var(--platform-action-primary))]"
+                          />
+                          <span>{getBloomLabel(bloom)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+                </div>
+                <label className="grid gap-1 text-[11px] text-platform-fg-secondary">
+                  <span>关系强度阈值：{minRelationStrength.toFixed(1)}</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    value={minRelationStrength}
+                    onChange={(event) => setMinRelationStrength(Number(event.target.value))}
+                    className="w-full accent-[hsl(var(--platform-action-primary))]"
+                  />
+                </label>
+                <label className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
+                  <input
+                    type="checkbox"
+                    checked={showOnlyConnectedNodes}
+                    onChange={(event) => setShowOnlyConnectedNodes(event.target.checked)}
+                    className="accent-[hsl(var(--platform-action-primary))]"
+                  />
+                  <span>仅显示存在可见关系的节点</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedChapters([]);
+                    setSelectedCategories([]);
+                    setSelectedBloomLevels([]);
+                    setSearchQuery('');
+                  }}
+                  className="w-full rounded-md border border-platform-border px-2 py-1.5 text-[11px] text-platform-fg-secondary"
+                >
+                  清空节点筛选条件
+                </button>
+              </div>
+            )}
+
+            {mobileActiveTool === 'legend' && (
+              <div className="grid gap-1.5 text-[11px] text-platform-fg-secondary" data-knowledge-mobile-drawer="legend" data-knowledge-local-tool="legend" data-state="open">
+                {relationLegendItems.map((item) => (
+                  <RelationLegendSample key={`mobile-legend-${item.type}`} item={item} isLightTheme={isLightTheme} />
+                ))}
+              </div>
+            )}
+
+            {mobileActiveTool === 'view-layout' && (
+              <div
+                className="space-y-3"
+                data-knowledge-mobile-drawer="view-layout"
+                data-knowledge-local-tool="view-layout"
+                data-knowledge-local-panel="view-layout-controls"
+                data-state="open"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-platform-fg-primary">视图与布局</div>
+                    <div className="text-[11px] text-platform-fg-muted">移动端保留同一组显式布局命令。</div>
+                  </div>
+                  <LocateFixed className="h-4 w-4 text-platform-action-primary" aria-hidden="true" />
+                </div>
+                <div className="grid grid-cols-2 gap-1 rounded-lg border border-platform-border p-1">
+                  {([
+                    ['2D', '2D 视图'],
+                    ['3D', '3D 视图'],
+                  ] as const).map(([mode, label]) => (
+                    <button
+                      key={`mobile-view-${mode}`}
+                      type="button"
+                      onClick={() => setViewMode(mode)}
+                      className={`rounded-md px-3 py-2 text-xs font-medium transition-all ${
+                        viewMode === mode
+                          ? 'bg-platform-action-primary text-platform-fg-inverse shadow-sm'
+                          : 'text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleFitView}
+                    className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                    data-knowledge-layout-control="fit-view"
+                  >
+                    适配视图
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRelayout}
+                    className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                    data-knowledge-layout-control="relayout"
+                  >
+                    重新布局
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleToggleSelectedNodePin}
+                    disabled={!visibleSelectedNode || selectedNodePinUnavailable}
+                    className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
+                    data-knowledge-layout-control={selectedNodePinned ? 'unpin-selected' : 'pin-selected'}
+                    title={selectedNodePinUnavailable ? '需要先在图谱中点击或拖拽节点，才能固定当前画布坐标' : undefined}
+                  >
+                    {selectedNodePinned ? '取消固定' : '固定节点'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleToggleSelectedFocus}
+                    disabled={!visibleSelectedNode}
+                    className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
+                    data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}
+                  >
+                    {selectedNodeFocused ? '取消焦点' : '设为焦点'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearLayoutPins}
+                    className="col-span-2 rounded-md border border-platform-border bg-platform-surface px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                    data-knowledge-layout-control="clear-pins"
+                  >
+                    清除固定节点
+                  </button>
+                </div>
+              </div>
+            )}
+            </div>
+          )}
+          </div>
+        )}
 
         {isLoading ? (
             <div className="flex h-full w-full items-center justify-center">
               <div className="text-center">
-                <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-blue-500/30 border-t-blue-500" />
-                <div className="text-blue-400">正在从知识库加载数据...</div>
-                <div className="mt-2 text-sm text-slate-500">同步 {nodes.length} 个节点...</div>
+                <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-platform-border border-t-platform-action-primary" />
+                <div className="text-platform-action-primary">正在从知识库加载数据...</div>
+                <div className="mt-2 text-sm text-platform-fg-muted">同步 {nodes.length} 个节点...</div>
               </div>
             </div>
         ) : (
@@ -626,7 +1545,7 @@ export function KnowledgeGraphSystem({
             fallback={
                 <div className="flex h-full w-full items-center justify-center">
                 <div className="text-center">
-                    <div className="text-blue-400">渲染视图...</div>
+                    <div className="text-platform-action-primary">渲染视图...</div>
                 </div>
                 </div>
             }
@@ -635,23 +1554,31 @@ export function KnowledgeGraphSystem({
               <KnowledgeGraph2D
                 nodes={displayNodes}
                 links={displayLinks}
-                selectedNode={selectedNode}
+                selectedNode={visibleSelectedNode}
                 hoveredNode={hoveredNode}
                 onNodeClick={handleNodeClick}
                 onNodeHover={handleNodeHover}
+                onNodeDragEnd={handleNodeDragEnd}
                 width={dimensions.width}
                 height={dimensions.height}
                 labelMode={labelMode}
+                layoutState={layoutState}
+                fitViewVersion={fitViewVersion}
+                relayoutVersion={relayoutVersion}
               />
             ) : (
               <KnowledgeGraphCanvas
                 nodes={displayNodes}
                 links={displayLinks}
-                selectedNode={selectedNode}
+                selectedNode={visibleSelectedNode}
                 hoveredNode={hoveredNode}
                 onNodeClick={handleNodeClick}
                 onNodeHover={handleNodeHover}
+                onNodeDragEnd={handleNodeDragEnd}
                 labelMode={labelMode}
+                layoutState={layoutState}
+                fitViewVersion={fitViewVersion}
+                relayoutVersion={relayoutVersion}
               />
             )}
             </Suspense>
@@ -660,21 +1587,19 @@ export function KnowledgeGraphSystem({
         {/* 悬停提示 */}
         {hoveredNode && (
           <div
-            className={`pointer-events-none absolute left-1/2 top-4 z-50 -translate-x-1/2 transform rounded-lg p-4 shadow-lg backdrop-blur-md ${
-              isLightTheme
-                ? 'border border-slate-300 bg-white/95'
-                : 'border border-blue-500/50 bg-[#091540]/95'
-            }`}
+            className="surface-card pointer-events-none absolute left-1/2 top-4 z-50 -translate-x-1/2 transform p-4 shadow-lg backdrop-blur-md"
+            data-knowledge-local-panel="node-hover-preview"
+            data-knowledge-hover-context-policy="preview-only-not-durable-context"
           >
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`font-medium ${isLightTheme ? 'text-slate-900' : 'text-slate-100'}`}>{hoveredNode.name}</span>
+              <span className="font-medium text-platform-fg-primary">{hoveredNode.name}</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-xs ${
                   hoveredNode.nodeType === 'THEORY'
-                    ? (isLightTheme ? 'bg-sky-100 text-sky-700' : 'bg-blue-500/20 text-blue-400')
+                    ? 'border border-platform-border bg-platform-action-subtle text-platform-fg-secondary'
                     : hoveredNode.nodeType === 'SCENARIO'
-                      ? (isLightTheme ? 'bg-red-100 text-red-700' : 'bg-red-500/20 text-red-400')
-                      : (isLightTheme ? 'bg-emerald-100 text-emerald-700' : 'bg-green-500/20 text-green-400')
+                      ? 'border border-platform-evaluation-preview bg-platform-action-subtle text-platform-fg-secondary'
+                      : 'border border-platform-replay-ready bg-platform-action-subtle text-platform-fg-secondary'
                 }`}
               >
                 {hoveredNode.nodeType === 'THEORY'
@@ -684,30 +1609,30 @@ export function KnowledgeGraphSystem({
                     : '伦理决策'}
               </span>
               {hoveredBloomLabel && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'}`}>
+                <span className="rounded-full border border-platform-replay-ready bg-platform-action-subtle px-2 py-0.5 text-xs text-platform-fg-secondary">
                   Bloom：{hoveredBloomLabel}
                 </span>
               )}
               {hoveredKnowledgeDimLabel && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-cyan-300 bg-cyan-50 text-cyan-700' : 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300'}`}>
+                <span className="rounded-full border border-platform-border bg-platform-action-subtle px-2 py-0.5 text-xs text-platform-fg-secondary">
                   维度：{hoveredKnowledgeDimLabel}
                 </span>
               )}
               {hoveredChapterName && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-slate-500/40 bg-slate-700/30 text-slate-300'}`}>
+                <span className="rounded-full border border-platform-border bg-platform-action-subtle px-2 py-0.5 text-xs text-platform-fg-secondary">
                   章节：{hoveredChapterName}
                 </span>
               )}
             </div>
-            <p className={`mt-2 text-sm ${isLightTheme ? 'text-slate-700' : 'text-slate-400'}`}>{hoveredNode.description}</p>
+            <p className="mt-2 text-sm text-platform-fg-secondary">{hoveredNode.description}</p>
           </div>
         )}
       </div>
 
       {/* 右侧资源面板 */}
       <ResourcePanel
-        isOpen={isPanelOpen}
-        selectedNode={selectedNode}
+        isOpen={visiblePanelOpen}
+        selectedNode={visibleSelectedNode}
         onClose={handleClosePanel}
         onNodeClick={handleNodeSelectById}
       />

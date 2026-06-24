@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import {
-  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Pencil,
+  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Pencil, type LucideIcon,
 } from 'lucide-react';
 import { ResourceEditDialog } from './resource-edit-dialog';
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,7 @@ interface InteractiveResourceListProps {
   searchQuery: string;
 }
 
-const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string; bgColor: string }> = {
+const CATEGORY_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string; bgColor: string }> = {
   SYSTEM_MODELING: { label: '系统建模', icon: Boxes, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
   TIME_DOMAIN: { label: '时域分析', icon: Activity, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
   ROOT_LOCUS: { label: '根轨迹分析', icon: GitBranch, color: 'text-violet-400', bgColor: 'bg-violet-500/10' },
@@ -81,7 +81,7 @@ export function InteractiveResourceList({
     <div className="space-y-6">
       {/* 分类筛选 */}
       <div className="flex flex-wrap gap-2">
-        <button
+        <button type="button"
           onClick={() => setSelectedCategory(null)}
           className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
             !selectedCategory
@@ -96,7 +96,7 @@ export function InteractiveResourceList({
           if (!config) return null;
           const Icon = config.icon;
           return (
-            <button
+            <button type="button"
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
@@ -156,7 +156,7 @@ export function InteractiveResourceList({
                         )}
                       </div>
                     </div>
-                    <button
+                    <button type="button"
                       onClick={() => setEditingResource(resource)}
                       className="ml-2 p-1.5 text-slate-500 hover:text-cyan-400 hover:bg-slate-700 rounded transition-colors"
                       title="编辑"

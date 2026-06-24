@@ -43,8 +43,8 @@ describe('interactive runtime manifest', () => {
     expect(runtime.interactiveManifest?.lessonId).toBe('4-3');
     expect(runtime.interactiveManifest?.steps).toHaveLength(19);
     expect(runtime.interactiveManifest?.steps[0]?.modules.map((module) => module.kind)).toEqual([
-      'image-panel',
-      'summary-card',
+      'content.figure',
+      'content.cardSet',
     ]);
   });
 
@@ -117,6 +117,252 @@ describe('interactive runtime manifest', () => {
       'max_delta_deg',
       'safety_constraint_satisfied',
     ]);
+  });
+
+  it('renders static 3D surface compute panels through the shared content registry', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'fixture-lesson',
+      steps: {
+        'step-01': {
+          title: '静态曲面测试',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'static-surface',
+              region: 'main',
+              kind: 'compute.panel',
+              must_be_visible: true,
+              payload: {
+                capabilityRef: 'static-surface-3d',
+                title: '极点幅值曲面',
+                caption: '拖拽旋转，滚轮缩放。',
+                data: { url: '/course-runtime/lessons/1-2/media/generated-data/pole-magnitude-surface.json' },
+                axes: {
+                  x: { label: '实部 σ' },
+                  y: { label: '虚部 jω' },
+                  z: { label: '20log10|G(s)|' },
+                },
+                colorScale: { label: '幅值 dB', min: -20, max: 60 },
+                defaultCamera: { position: [3, 3, 2], target: [0, 0, 0], zoom: 1 },
+                fallback: {
+                  image: '/course-runtime/lessons/1-2/media/1-2-fig-08-magnitude-surface.png',
+                  alt: '船舶传递函数极点幅值曲面的静态图',
+                },
+              },
+            },
+          ],
+          content_blocks: {},
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: false,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: false,
+        },
+      }),
+    );
+
+    expect(html).toContain('data-static-surface-3d-panel="static-surface"');
+    expect(html).toContain('极点幅值曲面');
+    expect(html).toContain('拖拽旋转，滚轮缩放。');
+    expect(html).toContain('重置视角');
+    expect(html).toContain('1-2-fig-08-magnitude-surface.png');
+    expect(html).toContain('data-static-surface-viewport="matlab-figure"');
+    expect(html).toContain('data-static-surface-view-action="auto-rotate"');
+    expect(html).toContain('自动旋转');
+  });
+
+  it('passes inline regular-grid surface data through the shared static 3D renderer', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'fixture-lesson',
+      steps: {
+        'step-01': {
+          title: '内联曲面测试',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'inline-static-surface',
+              region: 'main',
+              kind: 'compute.panel',
+              must_be_visible: true,
+              payload: {
+                capabilityRef: 'static-surface-3d',
+                title: '内联幅值曲面',
+                data: {
+                  regularGrid: {
+                    x: [-2, 0, 2],
+                    y: [-1, 1],
+                    values: [
+                      [8, 18, 8],
+                      [6, 12, 6],
+                    ],
+                  },
+                },
+                axes: {
+                  x: { label: '实部 σ' },
+                  y: { label: '虚部 jω' },
+                  z: { label: '20log10|G(s)|' },
+                },
+                colorScale: { label: '幅值 dB', min: 0, max: 20 },
+                defaultCamera: { position: [3, 3, 2], target: [0, 0, 0], zoom: 1 },
+                fallback: {
+                  image: '/course-runtime/lessons/1-2/media/1-2-fig-08-magnitude-surface.png',
+                  alt: '内联曲面的静态图',
+                },
+              },
+            },
+          ],
+          content_blocks: {},
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: false,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: false,
+        },
+      }),
+    );
+
+    expect(html).toContain('data-static-surface-3d-panel="inline-static-surface"');
+    expect(html).toContain('内联幅值曲面');
+    expect(html).toContain('内联曲面的静态图');
+  });
+
+  it('routes static 3D compute panels that use the canonical capability payload field', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'fixture-lesson',
+      steps: {
+        'step-01': {
+          title: '能力字段测试',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'canonical-capability-surface',
+              region: 'main',
+              kind: 'compute.panel',
+              must_be_visible: true,
+              payload: {
+                capability: 'static-surface-3d',
+                title: 'canonical capability surface',
+                data: { url: '/course-runtime/lessons/1-2/media/generated-data/pole-magnitude-surface.json' },
+                axes: {
+                  x: { label: '实部 σ' },
+                  y: { label: '虚部 jω' },
+                  z: { label: '20log10|G(s)|' },
+                },
+                colorScale: { label: '幅值 dB', min: -20, max: 60 },
+                defaultCamera: { position: [3, 3, 2], target: [0, 0, 0], zoom: 1 },
+                fallback: {
+                  image: '/course-runtime/lessons/1-2/media/1-2-fig-08-magnitude-surface.png',
+                  alt: 'canonical capability surface fallback',
+                },
+              },
+            },
+          ],
+          content_blocks: {},
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: false,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: false,
+        },
+      }),
+    );
+
+    expect(html).toContain('data-static-surface-3d-panel="canonical-capability-surface"');
+    expect(html).toContain('canonical capability surface fallback');
+  });
+
+  it('routes Unit 1-2 pole magnitude surface to the static 3D compute capability with fallback media', async () => {
+    const runtime = await loadLessonRuntimeEntry('1-2');
+    const manifest = runtime.interactiveManifest!;
+    const surfaceModule = manifest.steps
+      .flatMap((step) => step.modules)
+      .find((module) => module.id === 'magnitude-surface');
+
+    expect(surfaceModule).toBeDefined();
+    expect(surfaceModule).toMatchObject({
+      kind: 'compute.panel',
+      payload: expect.objectContaining({
+        capabilityRef: 'static-surface-3d',
+        spec_key: 'pole_magnitude_3d',
+        defaultCamera: expect.objectContaining({
+          position: expect.any(Array),
+          target: expect.any(Array),
+          zoom: expect.any(Number),
+        }),
+        fallback: expect.objectContaining({
+          image: expect.stringContaining('1-2-fig-08-magnitude-surface.png'),
+        }),
+      }),
+    });
+  });
+
+  it('keeps static 3D surface controls z-up, Matlab-like, and readable', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/static-surface-3d-panel.tsx'),
+      'utf8',
+    );
+    const webglSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/static-surface-3d-webgl.tsx'),
+      'utf8',
+    );
+
+    expect(panelSource).toContain("data-static-surface-viewport=\"matlab-figure\"");
+    expect(panelSource).toContain("data-static-surface-view-action=\"auto-rotate\"");
+    expect(webglSource).toContain('camera.up.set(0, 0, 1)');
+    expect(webglSource).toContain('data-static-surface-drag-behavior="z-up-orbit"');
+    expect(webglSource).toContain('autoRotate={autoRotate}');
+    expect(webglSource).toContain('autoRotateSpeed={0.65}');
+    expect(webglSource).toContain('const AXIS_LABEL_OUTSET = 0.94');
+    expect(webglSource).toContain('const AXIS_TICK_LABEL_OUTSET = 0.46');
+    expect(webglSource).toContain("const fontSize = variant === 'axis' ? 58 : variant === 'marker' ? 46 : 64");
+    expect(webglSource).toContain('scale={[1.18, 0.38, 1]} variant="axis"');
+    expect(webglSource).toContain('scale={[1.0, 0.31, 1]} variant="marker"');
+    expect(webglSource).toContain('<AxisTicks bounds={bounds} />');
+    expect(webglSource).toContain('function AxisTicks');
+    expect(webglSource).toContain('variant="tick"');
+    expect(webglSource).toContain('const [centerX, centerY] = boundsCenter(bounds)');
+    expect(webglSource).toContain('bounds.y[0] - AXIS_LABEL_OUTSET');
+    expect(webglSource).toContain('bounds.x[0] - 1.6');
+    expect(webglSource).toContain('(bounds.z[0] + bounds.z[1]) / 2');
+    expect(webglSource).toContain('bounds.y[0] - AXIS_TICK_LABEL_OUTSET');
+    expect(webglSource).toContain('bounds.x[0] - AXIS_TICK_LABEL_OUTSET');
+    expect(webglSource).toContain('function niceTickValues');
   });
 
   it('renders formula-card and native-table payload descriptions from the shared content registry', () => {
@@ -197,15 +443,15 @@ describe('interactive runtime manifest', () => {
     const runtime = await loadLessonRuntimeEntry('4-6');
     const manifest = runtime.interactiveManifest!;
     const moduleRegistry = {
-      'formula-card': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+      'content.formula': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
         createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
-      'summary-card': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+      'content.cardSet': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
         createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
-      'native-table': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+      'content.table': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
         createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
-      'image-panel': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+      'content.figure': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
         createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
-      'step-reveal': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+      'content.reveal': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
         createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
     };
 
@@ -517,6 +763,123 @@ describe('interactive runtime manifest', () => {
     expect(html).not.toContain('data-manifest-render-error');
   });
 
+  it('renders content.stageMap object-array items from module payload', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-stage-map': {
+          title: '阶段图测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'stage-map',
+              region: 'main',
+              kind: 'content.stageMap',
+              must_be_visible: true,
+              payload: {
+                title: '模块路线',
+                text: '当前从总览出发。',
+                items: [
+                  { id: '1-1', title: '看见整门课', status: 'current' },
+                  { id: '1-2', title: '模型与极点', status: 'upcoming' },
+                ],
+              },
+            },
+          ],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'display',
+            activity_cards: [],
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        registry['content.stageMap']?.({
+          manifest: manifest!,
+          step,
+          module: step.modules[0]!,
+          extra: {
+            revealProgress: 0,
+            allowInlineReveal: false,
+          },
+        }),
+      ),
+    );
+
+    expect(html).toContain('看见整门课');
+    expect(html).toContain('模型与极点');
+    expect(html).toContain('当前');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('renders content.stageMap object-array stages from module payload', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-stage-map': {
+          title: '阶段图测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'stage-map',
+              region: 'main',
+              kind: 'content.stageMap',
+              must_be_visible: true,
+              payload: {
+                title: '模块路线',
+                stages: [
+                  { id: 'diagnosis', label: '开环诊断', status: 'current' },
+                  { id: 'correction', label: '反馈校正', status: 'upcoming' },
+                ],
+              },
+            },
+          ],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'display',
+            activity_cards: [],
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        registry['content.stageMap']?.({
+          manifest: manifest!,
+          step,
+          module: step.modules[0]!,
+          extra: {
+            revealProgress: 0,
+            allowInlineReveal: false,
+          },
+        }),
+      ),
+    );
+
+    expect(html).toContain('开环诊断');
+    expect(html).toContain('反馈校正');
+    expect(html).toContain('当前');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
   it('renders 5-4 step-08 case text inline formulas through KaTeX', async () => {
     const runtime = await loadLessonRuntimeEntry('5-4');
     const manifest = runtime.interactiveManifest!;
@@ -545,7 +908,7 @@ describe('interactive runtime manifest', () => {
     expect(html).not.toContain('$|\\delta|\\le 12^\\circ$');
   });
 
-  it('renders required activity runtime module slots without duplicating activity prompts in static content', () => {
+  it('keeps activity runtime modules out of static content', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
       steps: {
@@ -602,8 +965,8 @@ describe('interactive runtime manifest', () => {
     );
 
     expect(html).toContain('正文只保留静态内容。');
-    expect(html).toContain('data-manifest-activity-module="activity-a"');
-    expect(html).toContain('data-manifest-activity-kind="activity-card"');
+    expect(html).not.toContain('data-manifest-activity-module="activity-a"');
+    expect(html).not.toContain('data-manifest-activity-kind="activity-card"');
     expect(html).not.toContain('本页作答');
     expect(html).not.toContain('这个题面只能出现在活动作答区。');
     expect(html).not.toContain('data-manifest-render-error');
@@ -662,6 +1025,146 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('第二层结论');
     expect(html).not.toContain('第 1 层');
     expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('renders reveal layer objects that store visible text in a content field', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-reveal-content-field': {
+          title: '显影对象测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'example-reveal',
+              title: '求解过程',
+              region: 'main',
+              kind: 'content.reveal',
+              must_be_visible: true,
+              payload: { block_key: 'example-reveal' },
+            },
+          ],
+          content_blocks: {
+            'example-reveal': {
+              type: 'reveal_chain',
+              layers: [
+                { label: '特征方程', content: '$s^2+2s+5=0$' },
+                { label: '行为描述', content: '边摆动边收敛。' },
+              ],
+            },
+          },
+          interaction_spec: { interaction_kind: 'display', activity_cards: [] },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 1,
+          allowInlineReveal: true,
+        }),
+        extra: {
+          revealProgress: 1,
+          allowInlineReveal: true,
+        },
+      }),
+    );
+
+    expect(html).toContain('求解过程');
+    expect(html).toContain('特征方程');
+    expect(html).toContain('s^2+2s+5=0');
+    expect(html).toContain('行为描述');
+    expect(html).toContain('边摆动边收敛');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('falls back from internal figure keys to content block titles while preserving valid English titles', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-figures': {
+          title: '标题过滤测试页',
+          layout: {
+            template: 'stacked_regions',
+            regions: [
+              { id: 'main', width: 'full', order: 1 },
+            ],
+          },
+          modules: [
+            {
+              id: 'internal-figure',
+              region: 'main',
+              kind: 'content.figure',
+              must_be_visible: true,
+              payload: {
+                block_key: 'internal-figure',
+                title: 'internal-figure',
+              },
+            },
+            {
+              id: 'english-figure',
+              region: 'main',
+              kind: 'content.figure',
+              must_be_visible: true,
+              payload: {
+                block_key: 'english-figure',
+                title: 'Root-Locus',
+              },
+            },
+          ],
+          content_blocks: {
+            'internal-figure': {
+              title: '中文图题',
+              body: '内部标题应回退到内容块标题。',
+            },
+            'english-figure': {
+              body: '合法英文标题应保留。',
+            },
+          },
+          interaction_spec: { interaction_kind: 'display', activity_cards: [] },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: true,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: true,
+        },
+      }),
+    );
+
+    expect(html).toContain('中文图题');
+    expect(html).toContain('Root-Locus');
+    expect(html).not.toContain('>internal-figure<');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('keys progressive reveal state by step module and teacher progress instead of syncing through an effect', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+    const revealStart = source.indexOf('function StepReveal');
+    const registryStart = source.indexOf('export function createManifestContentModuleRegistry');
+    const revealSource = source.slice(revealStart, registryStart);
+
+    expect(revealSource).not.toContain('setLocalVisibleCount(teacherVisibleCount)');
+    expect(source).toContain('stepRevealIdentityKey(step, module, renderExtra.revealProgress)');
   });
 
   it('renders objective lists from content block items', () => {
@@ -973,7 +1476,7 @@ describe('interactive runtime manifest', () => {
       ),
     );
 
-    expect(html).toContain('border-cyan-300/60');
+    expect(html).toContain('border-platform-action-primary/60');
     expect(html).toContain('饱和');
     expect(html).toContain('拖入对应备选项');
     expect(html).toContain('border-border/60');
@@ -1105,7 +1608,7 @@ describe('interactive runtime manifest', () => {
     const manifest = runtime.interactiveManifest!;
     const step = manifest.steps.find((item) => item.id === 'step-03');
     expect(step).toBeDefined();
-    const formulaModules = step!.modules.filter((module) => module.kind === 'formula-card');
+    const formulaModules = step!.modules.filter((module) => module.kind === 'content.formula');
     const formulaAt = (moduleId: string) => {
       const index = formulaModules.findIndex((module) => module.id === moduleId);
       const formulas = step!.contentBlocks.key_formulas;
@@ -1117,11 +1620,11 @@ describe('interactive runtime manifest', () => {
         manifest,
         step: step!,
         moduleRegistry: {
-          'native-table': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.route_task_table)),
-          'formula-card': ({ module }) => createElement('div', null, module.id, formulaAt(module.id)),
-          'summary-card': ({ step: currentStep }) => createElement('div', null, String(currentStep.contentBlocks.conclusion ?? '')),
-          'image-panel': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.media), String(currentStep.contentBlocks.figure_explanation ?? '')),
-          'step-reveal': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.reveal_layers)),
+          'content.table': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.route_task_table)),
+          'content.formula': ({ module }) => createElement('div', null, module.id, formulaAt(module.id)),
+          'content.cardSet': ({ step: currentStep }) => createElement('div', null, String(currentStep.contentBlocks.conclusion ?? '')),
+          'content.figure': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.media), String(currentStep.contentBlocks.figure_explanation ?? '')),
+          'content.reveal': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.reveal_layers)),
         },
         extra: undefined,
       }),
@@ -1726,7 +2229,8 @@ describe('interactive runtime manifest', () => {
     expect(source).toContain('onInlineReveal?.()');
     expect(source).toContain('const visibleCount = onInlineReveal');
     expect(source).toMatch(/onInlineReveal\s*\?\s*teacherVisibleCount/);
-    expect(source).toContain('setLocalVisibleCount(teacherVisibleCount)');
+    expect(source).toContain('setLocalVisibleCount((prev) => Math.min(items.length, prev + 1))');
+    expect(source).not.toContain('setLocalVisibleCount(teacherVisibleCount)');
   });
 
   it('keeps drag-match draft answers controlled by parent runtime state', () => {
@@ -1938,7 +2442,7 @@ describe('interactive runtime manifest', () => {
   it('drives 4-6 shared content modules through manifest payload instead of course-specific module ids', async () => {
     const runtime = await loadLessonRuntimeEntry('4-6');
     const manifest = runtime.interactiveManifest!;
-    const contentKinds = new Set(['formula-card', 'summary-card', 'native-table', 'image-panel', 'step-reveal']);
+    const contentKinds = new Set(['content.formula', 'content.cardSet', 'content.table', 'content.figure', 'content.reveal']);
 
     const contentModules = manifest.steps.flatMap((step) =>
       step.modules
@@ -1973,7 +2477,7 @@ describe('interactive runtime manifest', () => {
       ?.interactionSpec.activityCards ?? [];
 
     expect(gapChoice?.responseKind).toBe('choice.single');
-    expect(gapChoice?.legacyResponseKind).toBe('single_choice');
+    expect(gapChoice?.legacyResponseKind).toBeUndefined();
     expect(gapChoice?.options.map((option) => option.label)).toEqual([
       '滞后',
       '超前或超前-滞后',
@@ -1983,7 +2487,7 @@ describe('interactive runtime manifest', () => {
 
     expect(postQuizCards).toHaveLength(3);
     expect(postQuizCards.map((card) => card.responseKind)).toEqual(['choice.single', 'choice.multi', 'text.short']);
-    expect(postQuizCards.map((card) => card.legacyResponseKind)).toEqual(['single_choice', 'multi_choice', 'fill_text']);
+    expect(postQuizCards.map((card) => card.legacyResponseKind)).toEqual([undefined, undefined, undefined]);
     expect(postQuizCards.map((card) => card.referenceAnswer)).toEqual([
       '提前补偿可测扰动。',
       '四项都可能被漏掉。',
@@ -2003,15 +2507,14 @@ describe('interactive runtime manifest', () => {
     const runtime = await loadLessonRuntimeEntry('4-3');
     const moduleKinds = new Set(runtime.interactiveManifest!.steps.flatMap((step) => step.modules.map((module) => module.kind)));
     const sharedKinds = [
-      'formula-card',
-      'goal-card-row',
-      'image-panel',
-      'interactive-figure-panel',
-      'native-table',
-      'step-reveal-chain',
-      'summary-card',
+      'compute.panel',
+      'content.cardSet',
+      'content.figure',
+      'content.formula',
+      'content.reveal',
+      'content.table',
     ];
-    const activityModuleKinds = ['activity-card', 'card-sort', 'quiz-group'];
+    const activityModuleKinds = ['activity.panel'];
 
     for (const kind of sharedKinds) {
       expect(moduleKinds.has(kind), kind).toBe(true);
@@ -2039,20 +2542,16 @@ describe('interactive runtime manifest', () => {
     const manifest = runtime.interactiveManifest!;
     const moduleKinds = new Set(manifest.steps.flatMap((step) => step.modules.map((module) => module.kind)));
     const sharedKinds = [
-      'bullet-list-card',
-      'equation-card-row',
-      'formula-card',
-      'goal-card-row',
-      'image-panel',
-      'native-figure',
-      'native-table',
-      'problem-statement',
-      'stage-map',
-      'stat-panel',
-      'step-reveal',
-      'summary-card',
+      'analytics.summary',
+      'content.cardSet',
+      'content.figure',
+      'content.formula',
+      'content.reveal',
+      'content.rich',
+      'content.stageMap',
+      'content.table',
     ];
-    const activityModuleKinds = ['quiz-group', 'single-choice-card', 'activity-card', 'activity-card-set'];
+    const activityModuleKinds = ['activity.panel'];
 
     expect(runtime.lesson.interactive_manifest_path).toBe('/course-runtime/lessons/4-4/interactive-manifest.json');
     for (const kind of sharedKinds) {
@@ -2063,7 +2562,7 @@ describe('interactive runtime manifest', () => {
     }
 
     const moduleRegistry = Object.fromEntries(
-      sharedKinds.map((kind) => [
+      [...sharedKinds, ...activityModuleKinds].map((kind) => [
         kind,
         ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string; kind: string } }) =>
           createElement('div', null, module.kind, module.id, JSON.stringify(step.contentBlocks)),

@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-07T10:22:41.054046Z",
+  "lesson": {
+    "lesson_id": "1-1",
+    "title": "看见整门课：从反馈思想到控制全景",
+    "groups": [
+      "模型与三域诊断"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "极点_1_1",
+    "name": "极点",
+    "name_en": null,
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "理解",
+    "definition": "极点是传递函数分母的根，是决定系统自然演化方式的关键坐标。",
+    "examples": [],
+    "formulas": [
+      "\\sigma",
+      "\\omega"
+    ],
+    "keywords": [
+      "极点",
+      "稳定性"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/极点_1_1.md",
+  "card_frontmatter": {
+    "node_id": "极点_1_1",
+    "name": "极点",
+    "lesson_units": [
+      "1-1"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "1",
+    "tags": [
+      "极点",
+      "稳定性",
+      "1-1"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/1-1/design/1-1-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 极点\n\n**一句话定义**：极点是传递函数分母的根，是决定系统自然演化方式的关键坐标。\n\n**核心直觉**：极点的实部 $\\sigma$ 关联衰减或发散，虚部 $\\omega$ 关联振荡。\n\n---",
+  "card_detail": "极点把系统行为映射到复平面上。左半平面的极点对应衰减模态，右半平面的极点对应发散模态；共轭复极点则会带来振荡成分。",
+  "card_plain_excerpt": "## 首页\n\n# 极点\n\n**一句话定义**：极点是传递函数分母的根，是决定系统自然演化方式的关键坐标。\n\n**核心直觉**：极点的实部 $\\sigma$ 关联衰减或发散，虚部 $\\omega$ 关联振荡。\n\n---\n\n## 详情\n\n极点把系统行为映射到复平面上。左半平面的极点对应衰减模态，右半平面的极点对应发散模态；共轭复极点则会带来振荡成分。",
+  "core_intuition": "极点的实部 $\\sigma$ 关联衰减或发散，虚部 $\\omega$ 关联振荡。",
+  "relations": [
+    {
+      "source_id": "传递函数_1_1",
+      "source": "传递函数",
+      "target_id": "极点_1_1",
+      "target": "极点",
+      "relation": "derives",
+      "strength": null,
+      "description": "极点是传递函数分母的根",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "极点_1_1",
+      "source": "极点",
+      "target_id": "时域响应_1_1",
+      "target": "时域响应",
+      "relation": "determines",
+      "strength": null,
+      "description": "极点在复平面上的位置决定了时域响应的模态形态",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "极点_1_1",
+      "source": "极点",
+      "target_id": "稳定性_1_1",
+      "target": "稳定性",
+      "relation": "determines",
+      "strength": null,
+      "description": "极点全部在左半平面则系统稳定",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "根轨迹_1_1",
+      "source": "根轨迹",
+      "target_id": "极点_1_1",
+      "target": "极点",
+      "relation": "describes_migration_of",
+      "strength": null,
+      "description": "根轨迹描述参数变化时极点的迁移路径",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "s_plane_mechanism_board",
+      "name": "s 平面机理板",
+      "description": "以 s 平面主图为核心，辅以响应曲线或阻尼区域小窗解释动态机理。"
+    },
+    "layout_contract": "16:9 横版；左侧 55%-65% 为 s 平面或根轨迹主图；右侧上方为响应曲线小窗；右侧下方为判断边界或公式；极点/零点标签贴近图形。",
+    "text_contract": {
+      "allowed_labels": [
+        "极点",
+        "极点",
+        "稳定性"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "\\sigma",
+        "\\omega"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

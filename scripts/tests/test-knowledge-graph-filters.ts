@@ -5,7 +5,7 @@ import {
   buildDefaultSelectedRelationTypes,
   buildRelationTypeStats,
   resolveChapterName,
-} from '../src/features/knowledge/graph/filter-utils';
+} from '../../src/features/knowledge/graph/filter-utils';
 
 assert.equal(CHAPTER_DISPLAY_ORDER.length, 9, 'chapter order should contain 9 sections');
 assert.equal(resolveChapterName(1), '基本概念', 'chapter 1 should map to 基本概念');
@@ -19,8 +19,8 @@ const defaultRelationSelection = buildDefaultSelectedRelationTypes([
 ]);
 assert.deepEqual(
   defaultRelationSelection.sort(),
-  ['prerequisite', 'provides_foundation'].sort(),
-  'default relation selection should prioritize prerequisite relations'
+  ['prerequisite', 'provides_foundation', 'follows'].sort(),
+  'default relation selection should prioritize high-signal structural relations'
 );
 
 const relationStats = buildRelationTypeStats(

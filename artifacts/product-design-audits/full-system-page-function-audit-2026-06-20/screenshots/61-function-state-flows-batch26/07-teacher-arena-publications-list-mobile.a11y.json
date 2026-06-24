@@ -1,0 +1,413 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/teacher/arena",
+    "h1": [
+      "教师工作台",
+      "竞技场挑战配置"
+    ],
+    "activeElement": {
+      "tag": "body",
+      "type": "",
+      "name": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回教师工作台 竞技场教师配置 竞技场挑战配置 教师从已有挑战任务中选择对象、班级范围、截止时间和榜单策略。作业评价不等同排行榜名次，名次只作为比较反馈。 配置模板 串联校正基础模板 PID 调参模板 复合校正模板 黑箱辨识控制模板 虚拟仿真闭环挑战模板 MPC 约束控制模板 挑战任务 二阶对象快速稳定挑战 · 基础起步 · 时域整形/稳态精度 · 二阶欠阻尼对象 低频误差与速度均衡挑战 · 分析整合 · 稳态精度/控制能量取舍 · 含积分环节对象 横摇舒适度白箱挑战 · 鲁棒进阶 · 频域舒适度/控制能量取舍 · 船舶横摇白箱模型 作业裕度校正挑战 · 分析整合 · 稳定裕度/稳态精度 · 作业裕度对象 奥德赛 Level 1 成长挑战 · 基础起步 · 时域整形/根轨迹判断 · 控制奥德赛 Level 1 对象 邮轮黑箱辨识与闭环控制挑战 · 黑箱项目 · 黑箱辨识/隐藏场景鲁棒性 · 邮轮横摇黑箱对象 时滞近似对象多目标挑战 · 鲁棒进阶 · 鲁棒取舍/控制能量取舍 · 时滞近似对象 不稳定一阶对象镇定挑战 · 结构化设计 · 稳定裕度/根轨迹判断 · 不稳定一阶对象 三阶对象结构化补偿挑战 · 结构化设计 · 结构化补偿/根轨迹判断 · 三阶纯极点对象 横摇对象 MPC 隐藏场景挑战 · 鲁棒进阶 · MPC 模板设计/约束优化 · 船舶横摇白箱模型 横摇对象优化调参鲁棒挑战 · 鲁棒进阶 · 约束优化/隐藏场景鲁棒性 · 船舶横摇白箱模型 横摇对象鲁棒扰动挑战 · 鲁棒进阶 · 隐藏场景鲁棒性/鲁棒取舍 · 船舶横摇白箱模型 训练阶段：分析整合 能力：稳态精度、控制能量取舍、时域整形 方法：pid、serial-compensator class-2026-control 班级挑战，可追踪未提交、有效提交率和课堂复盘证据。 适配证据：对象：含积分环节对象 适配证据：阶段：分析整合 适配证据：能力：稳态精度、控制能量取舍、时域整形 适配证据：方法：pid、serial-compensator 适配证据：评测：无隐藏评测 适配证据：适合作业成绩构成中的达标与掌握度证据 班级范围 可见性 班级 课程 公开 截止时间 榜单策略 白箱默认榜单 班级作业挑战榜 多目标 Pareto 探索榜 奥德赛赛季榜 绑定为作业挑战 目标信号 扰动 初始条件 埋点级别 L0 L1 L2 L3 允许控制器类型 pid serial-compensator 硬约束 评分指标权重 启用 Pareto 榜 启用隐藏测试 公开榜单 生成发布预览 正式发布挑战 尚未发送预览请求 发布预览 班级 class-2026-control 任务 task-integrator-low-frequency-balance 可见性 class 截止时间 2026-06-01T07:00:00.000Z 作业绑定 是 目标信号 单位阶跃参考输入 扰动设置 低频负载扰动 初始条件 零初始状态 控制器类型 pid 硬约束 closed_loop_stable, finite_response, controller_causal 指标权重 steadyStateError:0.35 / settlingTime:0.25 / overshoot:0.2 / itae:0.2 Pareto 榜 关闭 隐藏测试 关闭 公开榜单 关闭 埋点级别 L0 模板说明 面向作业或课堂练习，限制为 PID 参数调节并保留班级榜。 作业评价边界 作业评价由达标提交、指标掌握和诊断表现构成；排行榜第 1 名只用于比较，不直接换算为成绩。 达标提交 30 指标掌握 52 诊断表现 8 名次贡献 0 已发布挑战 task-second-order-lead-pid cmma7g0590004g9q2nl2jyzdf · active 查看报告 暂停 重开 归档 task-second-order-lead-pid cmma7g0590004g9q2nl2jyzdf · active 查看报告 暂停 重开 归档 task-second-order-lead-pid cmma7g0590004g9q2nl2jyzdf · active 查看报告 暂停 重开 归档 控灵 当前: arena 你好，我是控灵。今天我们将探索「arena」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+      "placeholder": ""
+    },
+    "alerts": [],
+    "buttons": [
+      {
+        "tag": "a",
+        "name": "返回首页",
+        "href": "/",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "张 张永韡 个人中心",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教师总览",
+        "href": "/teacher",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教案",
+        "href": "/teacher/lesson-plans",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "资源",
+        "href": "/teacher/resources",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课前包",
+        "href": "/teacher/prep-packs",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂历史",
+        "href": "/teacher/history",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级分析",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "返回教师工作台",
+        "href": "/teacher",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "生成发布预览",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "正式发布挑战",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "查看报告",
+        "href": "/teacher/arena/publications/audit-publication-expired-full-system-2026-06-20",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "暂停",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "重开",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "归档",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "查看报告",
+        "href": "/teacher/arena/publications/cmqluwvqo0001pmyf34og34jy",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "暂停",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "重开",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "归档",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "查看报告",
+        "href": "/teacher/arena/publications/audit-publication-full-system-2026-06-20",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "暂停",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "重开",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "归档",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "关闭 (ESC)",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "",
+        "href": "",
+        "disabled": true,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "打开控灵与页面工具菜单",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "template-pid-tuning",
+        "hidden": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "task-integrator-low-frequency-balance",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "class-2026-control",
+        "hidden": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "class",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "datetime-local",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "2026-06-01T15:00",
+        "hidden": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "leaderboard-class-homework",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "checkbox",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "on",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "单位阶跃参考输入",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "低频负载扰动",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "零初始状态",
+        "hidden": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "L0",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "checkbox",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "on",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "checkbox",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "on",
+        "hidden": false
+      },
+      {
+        "tag": "textarea",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "closed_loop_stable, finite_response, controller_causal",
+        "hidden": false
+      },
+      {
+        "tag": "textarea",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "steadyStateError:0.35 / settlingTime:0.25 / overshoot:0.2 / itae:0.2",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "checkbox",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "on",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "checkbox",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "on",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "checkbox",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "on",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "value": "",
+        "hidden": false
+      }
+    ],
+    "unnamedButtons": 1,
+    "graphicsCount": 10,
+    "unnamedGraphics": 0,
+    "bodyText": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回教师工作台 竞技场教师配置 竞技场挑战配置 教师从已有挑战任务中选择对象、班级范围、截止时间和榜单策略。作业评价不等同排行榜名次，名次只作为比较反馈。 配置模板 串联校正基础模板 PID 调参模板 复合校正模板 黑箱辨识控制模板 虚拟仿真闭环挑战模板 MPC 约束控制模板 挑战任务 二阶对象快速稳定挑战 · 基础起步 · 时域整形/稳态精度 · 二阶欠阻尼对象 低频误差与速度均衡挑战 · 分析整合 · 稳态精度/控制能量取舍 · 含积分环节对象 横摇舒适度白箱挑战 · 鲁棒进阶 · 频域舒适度/控制能量取舍 · 船舶横摇白箱模型 作业裕度校正挑战 · 分析整合 · 稳定裕度/稳态精度 · 作业裕度对象 奥德赛 Level 1 成长挑战 · 基础起步 · 时域整形/根轨迹判断 · 控制奥德赛 Level 1 对象 邮轮黑箱辨识与闭环控制挑战 · 黑箱项目 · 黑箱辨识/隐藏场景鲁棒性 · 邮轮横摇黑箱对象 时滞近似对象多目标挑战 · 鲁棒进阶 · 鲁棒取舍/控制能量取舍 · 时滞近似对象 不稳定一阶对象镇定挑战 · 结构化设计 · 稳定裕度/根轨迹判断 · 不稳定一阶对象 三阶对象结构化补偿挑战 · 结构化设计 · 结构化补偿/根轨迹判断 · 三阶纯极点对象 横摇对象 MPC 隐藏场景挑战 · 鲁棒进阶 · MPC 模板设计/约束优化 · 船舶横摇白箱模型 横摇对象优化调参鲁棒挑战 · 鲁棒进阶 · 约束优化/隐藏场景鲁棒性 · 船舶横摇白箱模型 横摇对象鲁棒扰动挑战 · 鲁棒进阶 · 隐藏场景鲁棒性/鲁棒取舍 · 船舶横摇白箱模型 训练阶段：分析整合 能力：稳态精度、控制能量取舍、时域整形 方法：pid、serial-compensator class-2026-control 班级挑战，可追踪未提交、有效提交率和课堂复盘证据。 适配证据：对象：含积分环节对象 适配证据：阶段：分析整合 适配证据：能力：稳态精度、控制能量取舍、时域整形 适配证据：方法：pid、serial-compensator 适配证据：评测：无隐藏评测 适配证据：适合作业成绩构成中的达标与掌握度证据 班级范围 可见性 班级 课程 公开 截止时间 榜单策略 白箱默认榜单 班级作业挑战榜 多目标 Pareto 探索榜 奥德赛赛季榜 绑定为作业挑战 目标信号 扰动 初始条件 埋点级别 L0 L1 L2 L3 允许控制器类型 pid serial-compensator 硬约束 评分指标权重 启用 Pareto 榜 启用隐藏测试 公开榜单 生成发布预览 正式发布挑战 尚未发送预览请求 发布预览 班级 class-2026-control 任务 task-integrator-low-frequency-balance 可见性 class 截止时间 2026-06-01T07:00:00.000Z 作业绑定 是 目标信号 单位阶跃参考输入 扰动设置 低频负载扰动 初始条件 零初始状态 控制器类型 pid 硬约束 closed_loop_stable, finite_response, controller_causal 指标权重 steadyStateError:0.35 / settlingTime:0.25 / overshoot:0.2 / itae:0.2 Pareto 榜 关闭 隐藏测试 关闭 公开榜单 关闭 埋点级别 L0 模板说明 面向作业或课堂练习，限制为 PID 参数调节并保留班级榜。 作业评价边界 作业评价由达标提交、指标掌握和诊断表现构成；排行榜第 1 名只用于比较，不直接换算为成绩。 达标提交 30 指标掌握 52 诊断表现 8 名次贡献 0 已发布挑战 task-second-order-lead-pid cmma7g0590004g9q2nl2jyzdf · active 查看报告 暂停 重开 归档 task-second-order-lead-pid cmma7g0590004g9q2nl2jyzdf · active 查看报告 暂停 重开 归档 task-second-order-lead-pid cmma7g0590004g9q2nl2jyzdf · active 查看报告 暂停 重开 归档 控灵 当前: arena 你好，我是控灵。今天我们将探索「arena」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+  }
+}

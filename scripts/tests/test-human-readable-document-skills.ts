@@ -8,12 +8,12 @@ function read(relativePath: string) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
-const lessonSkill = read('.codex/skills/lesson/SKILL.md');
-const lessonHandoutStep = read('.codex/skills/lesson/references/step3-handout.md');
-const refineSkill = read('.codex/skills/refine/SKILL.md');
-const interactiveDesignSkill = read('.codex/skills/interactive-design/SKILL.md');
-const reviewSkill = read('.codex/skills/lesson-content-review/SKILL.md');
-const syllabusSkill = read('.codex/skills/syllabus-refactor/SKILL.md');
+const lessonSkill = read('.agents/skills/lesson/SKILL.md');
+const lessonHandoutStep = read('.agents/skills/lesson/references/step3-handout.md');
+const refineSkill = read('.agents/skills/refine/SKILL.md');
+const interactiveDesignSkill = read('.agents/skills/interactive-design/SKILL.md');
+const reviewSkill = read('.agents/skills/lesson-content-review/SKILL.md');
+const syllabusSkill = read('.agents/skills/syllabus-refactor/SKILL.md');
 
 const courseOverridePath = path.join(root, 'course-content/AGENTS.override.md');
 const lessonsOverridePath = path.join(root, 'course-content/authoring/lessons/AGENTS.override.md');

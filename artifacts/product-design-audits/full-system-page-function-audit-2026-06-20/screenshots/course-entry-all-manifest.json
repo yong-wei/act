@@ -1,0 +1,582 @@
+[
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/cruise-comfort-boppps",
+    "finalUrl": "/interactive-learning/courses/cruise-comfort-boppps",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-cruise-comfort-boppps.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 柔性之海：豪华邮轮舒适度控制 学生 柔性之海：豪华邮轮舒适度控制 围绕豪华邮轮航向-舒适度耦合对象，把舒适度约束、PID 参数整定、AI 诊断与工程取舍组织为一条可提交、可汇总、可复盘的互动课堂链。 课程总览 CRUISE COMFORT · STANDARD COURSE 柔性之海：豪华邮轮舒适度控制 围绕豪华邮轮航向-舒适度耦合对象，把舒适度约束、PID 参数整定、AI 诊断与工程取舍组织为一条可提交、可汇总、可复盘的"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+    "finalUrl": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-1-1-see-the-full-picture.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 看见整门课：从反馈思想到控制全景 学生 看见整门课：从反馈思想到控制全景 用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建模、时域、稳定性、根轨迹、频域到反馈与校正，走通诊断-校正-验证的完整闭环。 课程总览 1-1 · COURSE ENTRY 看见整门课：从反馈思想到控制全景 用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建模、时域、稳定性、根轨迹、频域到反馈与校正，走通诊断-校"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+    "finalUrl": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-1-2-modeling-from-object-to-system.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 1-2：建模——从真实对象到可分析的系统 学生 1-2：建模——从真实对象到可分析的系统 围绕机理建模、微分方程、传递函数、结构图、信号流图与极点行为地图，建立从真实对象到可分析系统的第一条建模链路。 课程总览 1-2 · 建模主线课程 1-2：建模——从真实对象到可分析的系统 围绕机理建模、微分方程、传递函数、结构图、信号流图与极点行为地图，建立从真实对象到可分析系统的第一条建模链路。 传递函数 信号流图 反馈 复平面"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-2-1-modeling-language",
+    "finalUrl": "/interactive-learning/courses/unit-2-1-modeling-language",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-2-1-modeling-language.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 2-1：建模与变换语言——从真实对象到统一分析对象 学生 2-1：建模与变换语言——从真实对象到统一分析对象 围绕微分方程、拉氏变换、零初值传递函数、典型环节、结构图、信号流图与梅森公式，建立模块 2 的统一对象语言。 课程总览 2-1 · COURSE ENTRY 2-1：建模与变换语言——从真实对象到统一分析对象 围绕微分方程、拉氏变换、零初值传递函数、典型环节、结构图、信号流图与梅森公式，建立模块 2 的统一对象语言"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-2-2-time-domain-response",
+    "finalUrl": "/interactive-learning/courses/unit-2-2-time-domain-response",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-2-2-time-domain-response.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 2-2：时域响应基础——从响应曲线到动态性能指标 学生 2-2：时域响应基础——从响应曲线到动态性能指标 围绕单位阶跃响应、一阶与二阶系统标准型、上升时间、峰值时间、超调量与调节时间，建立从闭环传递函数到动态性能语言的第一套分析框架。 课程总览 2-2 · COURSE ENTRY 2-2：时域响应基础——从响应曲线到动态性能指标 围绕单位阶跃响应、一阶与二阶系统标准型、上升时间、峰值时间、超调量与调节时间，建立从闭环传递"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro",
+    "finalUrl": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-2-3-frequency-response-bode-intro.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口 学生 2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口 围绕频率分量思想、正弦稳态响应、G(jω)、幅频/相频语言与 Bode 首轮骨架，完成从时域现象到频域图形对象的第一轮切换。 课程总览 2-3 · COURSE ENTRY 2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口 围绕频率分量思想、正弦稳态响应、G("
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry",
+    "finalUrl": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-2-4-nyquist-margin-entry.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别 学生 2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别 围绕同一个 G(jω) 的双图表达、纯极点系统 Nyquist 读图、频域指标入口、手工绘图入口与最小反向识别，完成模块 2 的图形对象收束。 课程总览 2-4 · COURSE ENTRY 2-4：Nyquist 图与频域指标入口——把 Bod"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics",
+    "finalUrl": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-1-pure-pole-stability-and-dynamics.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解 学生 3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解 围绕稳定底线、极点到模态、主导极点近似、Bode 证据与卷积收束，建立模块 3 的第一堂结构机理精品互动课。 课程总览 3-1 · COURSE ENTRY 3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解 围绕稳定底线、极点到模"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-2-routh-stability-boundary",
+    "finalUrl": "/interactive-learning/courses/unit-3-2-routh-stability-boundary",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-2-routh-stability-boundary.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 3-2：劳斯判据——从高阶系统稳定判定到参数可行域 学生 3-2：劳斯判据——从高阶系统稳定判定到参数可行域 围绕普通劳斯判稳、带参数区间、两类特殊情况、三域翻译与变量平移，把高阶系统的稳定底线推进到参数可行域语言。 课程总览 3-2 · COURSE ENTRY 3-2：劳斯判据——从高阶系统稳定判定到参数可行域 围绕普通劳斯判稳、带参数区间、两类特殊情况、三域翻译与变量平移，把高阶系统的稳定底线推进到参数可行域语言。 "
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-3-root-locus-rules",
+    "finalUrl": "/interactive-learning/courses/unit-3-3-root-locus-rules",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-3-root-locus-rules.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移 学生 3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移 围绕根轨迹定义、两大条件、九项法则、三组例题、读图顺序与对象影响，建立模块 3 的迁移机制主线。 课程总览 3-3 · COURSE ENTRY 3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移 围绕根轨迹定义、两大条件、九项法则、三组例题、读图顺序与对象影响，建立模块 "
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation",
+    "finalUrl": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-4-root-locus-reading-validation.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上 学生 3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上 围绕关键节点读图、参数窗口判断、根轨迹增益换算、对象化三域验证与广义根轨迹改写，把 3-3 的根轨迹法则压成真正可执行的工程判断动作链。 课程总览 3-4 · COURSE ENTRY 3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上 围绕关"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement",
+    "finalUrl": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-5-zero-dynamic-improvement.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变 学生 3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变 围绕“只调增益为什么不够 -> 零点怎样重排根轨迹 -> PD/测速反馈与超前怎样改变三域表现 -> 非最小相边界为何需要保守带宽”这条链，把零点从概念讲成判断语言。 课程总览 3-5 · COURSE ENTRY 3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变 "
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-6-zero-design-workshop",
+    "finalUrl": "/interactive-learning/courses/unit-3-6-zero-design-workshop",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-6-zero-design-workshop.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 3-6：零点作用与动态改善实验——从性能目标到校正设计 学生 3-6：零点作用与动态改善实验——从性能目标到校正设计 围绕“目标分类 -> 指标翻译 -> 时域 PD / 测速反馈设计 -> 频域超前 / PD 对照 -> 非最小相边界选择”这条链，把零点相关结构正式推进到目标驱动设计。 课程总览 3-6 · COURSE ENTRY 3-6：零点作用与动态改善实验——从性能目标到校正设计 围绕“目标分类 -> 指标翻译 "
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation",
+    "finalUrl": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-7-steady-error-low-frequency-compensation.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理 学生 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理 围绕给定/扰动双通道、终值定理与型别快判、PI/滞后低频补偿比较，把“为什么更准”推进成一条可执行的稳态误差分析与补偿路径。 课程总览 3-7 · COURSE ENTRY 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理 围绕给定/扰动双通道、终值定理与型别快判、"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment",
+    "finalUrl": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-8-frequency-domain-translation-judgment.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 3-8：频域判别与跨域综合语言 学生 3-8：频域判别与跨域综合语言 围绕结构变化的频域指纹、Nyquist 与 Bode 统一判稳链、三频段分工和双工程案例读回，把模块 3 的动态线与稳态线收成同一张频域判断地图。 课程总览 3-8 · COURSE ENTRY 3-8：频域判别与跨域综合语言 围绕结构变化的频域指纹、Nyquist 与 Bode 统一判稳链、三频段分工和双工程案例读回，把模块 3 的动态线与稳态线收成同"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab",
+    "finalUrl": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-9-cross-domain-mapping-lab.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 3-9：稳定—动态—稳态综合映射实验 学生 3-9：稳定—动态—稳态综合映射实验 围绕同一航向控制对象，把基准、超前、积分与滞后校正放进同一套四联图与综合映射表，形成进入后续设计的任务表达。 课程总览 3-9 · COURSE ENTRY 3-9：稳定—动态—稳态综合映射实验 围绕同一航向控制对象，把基准、超前、积分与滞后校正放进同一套四联图与综合映射表，形成进入后续设计的任务表达。 积分环节 三频段闭环性能回读 主导极"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-1-design-task-expression",
+    "finalUrl": "/interactive-learning/courses/unit-4-1-design-task-expression",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-1-design-task-expression.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 学生 4-1：设计起点：性能指标体系、工程约束与可行域表达 围绕性能指标角色、硬约束/软目标/观察指标、可行域分层和双案例联读，把模块 3 的分析证据收束成可交给 4-2/4-3 的任务表达卡。 课程总览 4-1 · COURSE ENTRY 4-1：设计起点：性能指标体系、工程约束与可行域表达 围绕性能指标角色、硬约束/软目标/观察指标、可行域分层和双案例联读，把模块"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-2-controller-selection-first-start",
+    "finalUrl": "/interactive-learning/courses/unit-4-2-controller-selection-first-start",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-2-controller-selection-first-start.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 4-2：控制器选型原理：不同控制结构为何适合不同任务 学生 4-2：控制器选型原理：不同控制结构为何适合不同任务 围绕结构工具箱、双案例首轮起步与前馈补偿边界，把 4-1 的任务表达卡推进成“单结构首轮起步卡”。 课程总览 4-2 · COURSE ENTRY 4-2：控制器选型原理：不同控制结构为何适合不同任务 围绕结构工具箱、双案例首轮起步与前馈补偿边界，把 4-1 的任务表达卡推进成“单结构首轮起步卡”。 三频段闭"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation",
+    "finalUrl": "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-3-initial-scheme-practice-first-validation.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行方案 学生 4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行方案 围绕单结构候选缺口、经典复合控制边界、前馈与反馈分工、实现层保护和客船首轮记录，把已有反馈主结构推进为工程可运行的初始方案。 课程总览 4-3 · COURSE ENTRY 4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行方案 围绕单结构候选缺口、经典复合控制边界、前馈与反馈"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling",
+    "finalUrl": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-4-fixed-structure-optimization-modeling.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 4-4：多目标权衡与控制器优化设计 学生 4-4：多目标权衡与控制器优化设计 围绕固定结构下的多目标拉扯、自由目标表达、无约束候选族与 Pareto 最小取舍，把 4-3 的首轮证据推进成 4-5 可复核的候选族。 课程总览 4-4 · COURSE ENTRY 4-4：多目标权衡与控制器优化设计 围绕固定结构下的多目标拉扯、自由目标表达、无约束候选族与 Pareto 最小取舍，把 4-3 的首轮证据推进成 4-5 可复核"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization",
+    "finalUrl": "/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-5-constraint-aware-parameter-optimization.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化 学生 4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化 围绕无约束候选越界、课程目标、硬约束翻译、罚函数、求解链、权重重排、结构分化与总结信息图，把 4-4 的候选族推进成固定结构下可交付的可接受解。 课程总览 4-5 · COURSE ENTRY 4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化 围绕无约束候选越界、课程目标、硬约束翻译、罚函"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding",
+    "finalUrl": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-6-fixed-structure-boundary-structural-encoding.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 学生 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 围绕驱逐舰任务迁移、固定结构失配、专用代价函数、统一结构编码、四类方案比较和专项验证，把固定结构优化边界推进到结构编码入口。 课程总览 4-6 · COURSE ENTRY 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 围绕驱逐舰任务迁移、固定结构失配、专用代价函数、统一结构编码、四类"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure",
+    "finalUrl": "/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-7-destroyer-hifi-design-closure.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 4-7：高保真辨识、设计验证与扰动边界 学生 4-7：高保真辨识、设计验证与扰动边界 围绕高保真航向任务、分段辨识、传统设计、优化解码、跨模型验证、扰动噪声边界和前沿方法入口，完成固定低阶结构的工程设计闭环。 课程总览 4-7 · COURSE ENTRY 4-7：高保真辨识、设计验证与扰动边界 围绕高保真航向任务、分段辨识、传统设计、优化解码、跨模型验证、扰动噪声边界和前沿方法入口，完成固定低阶结构的工程设计闭环。 传"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-1-linear-backbone-boundaries",
+    "finalUrl": "/interactive-learning/courses/unit-5-1-linear-backbone-boundaries",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-1-linear-backbone-boundaries.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 学生 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 围绕线性主干的默认条件、典型非线性环节、局部线性化边界和预测失真证据，建立进入非线性方法前的边界识别能力。 课程总览 5-1 · COURSE ENTRY 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 围绕线性主干的默认条件、典型非线性环节、局部线性化边界和预测失真证据，建立进入非线性方法前"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-2-nonlinear-analysis-entry",
+    "finalUrl": "/interactive-learning/courses/unit-5-2-nonlinear-analysis-entry",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-2-nonlinear-analysis-entry.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 5-2：非线性系统的最小分析入口 学生 5-2：非线性系统的最小分析入口 围绕局部线性化、相平面、描述函数、负倒曲线、微小扰动法和舵机执行器自振风险，建立非线性系统分析的最小入口。 课程总览 5-2 · COURSE ENTRY 5-2：非线性系统的最小分析入口 围绕局部线性化、相平面、描述函数、负倒曲线、微小扰动法和舵机执行器自振风险，建立非线性系统分析的最小入口。 非线性控制系统 非线性微分方程的线性化 局部线性化工"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-3-mass-coordination-chain",
+    "finalUrl": "/interactive-learning/courses/unit-5-3-mass-coordination-chain",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-3-mass-coordination-chain.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 5-3：从单回路控制到复杂自主系统链路 学生 5-3：从单回路控制到复杂自主系统链路 围绕 MASS 的感知、估计、规划、控制、执行和监督链路，训练从单回路控制证据推进到复杂自主系统责任诊断。 课程总览 5-3 · COURSE ENTRY 5-3：从单回路控制到复杂自主系统链路 围绕 MASS 的感知、估计、规划、控制、执行和监督链路，训练从单回路控制证据推进到复杂自主系统责任诊断。 船舶航向控制对象 传统控制结构局限"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+    "finalUrl": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-4-data-driven-mpc-transition.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 5-4：从模型驱动到数据驱动 学生 5-4：从模型驱动到数据驱动 围绕模型预测偏差、MPC 约束优化、在线辨识与三路线比较，训练模型、数据、优化和安全保护的证据责任分配。 课程总览 5-4 · COURSE ENTRY 5-4：从模型驱动到数据驱动 围绕模型预测偏差、MPC 约束优化、在线辨识与三路线比较，训练模型、数据、优化和安全保护的证据责任分配。 船舶航向控制对象 传统控制结构局限 模型预测控制 MASS协同链路 "
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk",
+    "finalUrl": "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-5-policy-learning-entry-risk.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 5-5：从显式控制器到策略学习 学生 5-5：从显式控制器到策略学习 围绕显式控制律、策略学习入口、强化学习闭环和航向控制三路线评价，训练策略学习进入控制系统时的收益、代价与工程责任判断。 课程总览 5-5 · COURSE ENTRY 5-5：从显式控制器到策略学习 围绕显式控制律、策略学习入口、强化学习闭环和航向控制三路线评价，训练策略学习进入控制系统时的收益、代价与工程责任判断。 船舶航向控制对象 设计任务表达卡 "
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain",
+    "finalUrl": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-6-method-comparison-cold-chain.png",
+    "textHead": "展开导航 首页 / 互动学习 / 互动课程 / 5-6：方法迁移与前沿比较 学生 5-6：方法迁移与前沿比较 围绕同一冷链温控任务，比较经典 PI/PID、数据驱动预测补偿和策略学习监督层的收益、风险与验证责任。 课程总览 5-6 · COURSE ENTRY 5-6：方法迁移与前沿比较 围绕同一冷链温控任务，比较经典 PI/PID、数据驱动预测补偿和策略学习监督层的收益、风险与验证责任。 三场景同题比较 二状态冷链热模型 冷链温控同题任务 数据覆盖与泛化边界 数据驱"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/cruise-comfort-boppps",
+    "finalUrl": "/interactive-learning/courses/cruise-comfort-boppps",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-cruise-comfort-boppps.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 柔性之海：豪华邮轮舒适度控制 学生 柔性之海：豪华邮轮舒适度控制 围绕豪华邮轮航向-舒适度耦合对象，把舒适度约束、PID 参数整定、AI 诊断与工程取舍组织为一条可提交、可汇总、可复盘的互动课堂链。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 CRUISE COMFORT · STANDARD COURSE 柔性之海：豪华邮轮舒适度控制 围绕豪华邮轮航向-舒适度耦合对象，把舒适度约束、PID 参数整定"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+    "finalUrl": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-1-1-see-the-full-picture.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 看见整门课：从反馈思想到控制全景 学生 看见整门课：从反馈思想到控制全景 用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建模、时域、稳定性、根轨迹、频域到反馈与校正，走通诊断-校正-验证的完整闭环。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 1-1 · COURSE ENTRY 看见整门课：从反馈思想到控制全景 用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+    "finalUrl": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-1-2-modeling-from-object-to-system.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 1-2：建模——从真实对象到可分析的系统 学生 1-2：建模——从真实对象到可分析的系统 围绕机理建模、微分方程、传递函数、结构图、信号流图与极点行为地图，建立从真实对象到可分析系统的第一条建模链路。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 1-2 · 建模主线课程 1-2：建模——从真实对象到可分析的系统 围绕机理建模、微分方程、传递函数、结构图、信号流图与极点行为地图，建立从真实对象到可分析系"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-2-1-modeling-language",
+    "finalUrl": "/interactive-learning/courses/unit-2-1-modeling-language",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-2-1-modeling-language.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 2-1：建模与变换语言——从真实对象到统一分析对象 学生 2-1：建模与变换语言——从真实对象到统一分析对象 围绕微分方程、拉氏变换、零初值传递函数、典型环节、结构图、信号流图与梅森公式，建立模块 2 的统一对象语言。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 2-1 · COURSE ENTRY 2-1：建模与变换语言——从真实对象到统一分析对象 围绕微分方程、拉氏变换、零初值传递函数、典型环节、"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-2-2-time-domain-response",
+    "finalUrl": "/interactive-learning/courses/unit-2-2-time-domain-response",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-2-2-time-domain-response.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 2-2：时域响应基础——从响应曲线到动态性能指标 学生 2-2：时域响应基础——从响应曲线到动态性能指标 围绕单位阶跃响应、一阶与二阶系统标准型、上升时间、峰值时间、超调量与调节时间，建立从闭环传递函数到动态性能语言的第一套分析框架。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 2-2 · COURSE ENTRY 2-2：时域响应基础——从响应曲线到动态性能指标 围绕单位阶跃响应、一阶与二阶系统标准"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro",
+    "finalUrl": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-2-3-frequency-response-bode-intro.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口 学生 2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口 围绕频率分量思想、正弦稳态响应、G(jω)、幅频/相频语言与 Bode 首轮骨架，完成从时域现象到频域图形对象的第一轮切换。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 2-3 · COURSE ENTRY 2-3：频率响应基础与 Bode 图初步——从时域现"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry",
+    "finalUrl": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-2-4-nyquist-margin-entry.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别 学生 2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别 围绕同一个 G(jω) 的双图表达、纯极点系统 Nyquist 读图、频域指标入口、手工绘图入口与最小反向识别，完成模块 2 的图形对象收束。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 2-4 · COURSE ENTRY"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics",
+    "finalUrl": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-1-pure-pole-stability-and-dynamics.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解 学生 3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解 围绕稳定底线、极点到模态、主导极点近似、Bode 证据与卷积收束，建立模块 3 的第一堂结构机理精品互动课。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 3-1 · COURSE ENTRY 3-1：纯极点视角下的稳定、模态与双域近似——为"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-2-routh-stability-boundary",
+    "finalUrl": "/interactive-learning/courses/unit-3-2-routh-stability-boundary",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-2-routh-stability-boundary.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 3-2：劳斯判据——从高阶系统稳定判定到参数可行域 学生 3-2：劳斯判据——从高阶系统稳定判定到参数可行域 围绕普通劳斯判稳、带参数区间、两类特殊情况、三域翻译与变量平移，把高阶系统的稳定底线推进到参数可行域语言。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 3-2 · COURSE ENTRY 3-2：劳斯判据——从高阶系统稳定判定到参数可行域 围绕普通劳斯判稳、带参数区间、两类特殊情况、三域翻译"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-3-root-locus-rules",
+    "finalUrl": "/interactive-learning/courses/unit-3-3-root-locus-rules",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-3-root-locus-rules.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移 学生 3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移 围绕根轨迹定义、两大条件、九项法则、三组例题、读图顺序与对象影响，建立模块 3 的迁移机制主线。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 3-3 · COURSE ENTRY 3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移 围绕根轨迹定义、两大"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation",
+    "finalUrl": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-4-root-locus-reading-validation.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上 学生 3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上 围绕关键节点读图、参数窗口判断、根轨迹增益换算、对象化三域验证与广义根轨迹改写，把 3-3 的根轨迹法则压成真正可执行的工程判断动作链。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 3-4 · COURSE ENTRY 3-4：根轨迹读图与对象化验"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement",
+    "finalUrl": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-5-zero-dynamic-improvement.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变 学生 3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变 围绕“只调增益为什么不够 -> 零点怎样重排根轨迹 -> PD/测速反馈与超前怎样改变三域表现 -> 非最小相边界为何需要保守带宽”这条链，把零点从概念讲成判断语言。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 3-5 · COURSE ENTRY 3-5：零点引"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-6-zero-design-workshop",
+    "finalUrl": "/interactive-learning/courses/unit-3-6-zero-design-workshop",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-6-zero-design-workshop.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 3-6：零点作用与动态改善实验——从性能目标到校正设计 学生 3-6：零点作用与动态改善实验——从性能目标到校正设计 围绕“目标分类 -> 指标翻译 -> 时域 PD / 测速反馈设计 -> 频域超前 / PD 对照 -> 非最小相边界选择”这条链，把零点相关结构正式推进到目标驱动设计。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 3-6 · COURSE ENTRY 3-6：零点作用与动态改善实验——"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation",
+    "finalUrl": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-7-steady-error-low-frequency-compensation.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理 学生 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理 围绕给定/扰动双通道、终值定理与型别快判、PI/滞后低频补偿比较，把“为什么更准”推进成一条可执行的稳态误差分析与补偿路径。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 3-7 · COURSE ENTRY 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment",
+    "finalUrl": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-8-frequency-domain-translation-judgment.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 3-8：频域判别与跨域综合语言 学生 3-8：频域判别与跨域综合语言 围绕结构变化的频域指纹、Nyquist 与 Bode 统一判稳链、三频段分工和双工程案例读回，把模块 3 的动态线与稳态线收成同一张频域判断地图。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 3-8 · COURSE ENTRY 3-8：频域判别与跨域综合语言 围绕结构变化的频域指纹、Nyquist 与 Bode 统一判稳链、三频段"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab",
+    "finalUrl": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-9-cross-domain-mapping-lab.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 3-9：稳定—动态—稳态综合映射实验 学生 3-9：稳定—动态—稳态综合映射实验 围绕同一航向控制对象，把基准、超前、积分与滞后校正放进同一套四联图与综合映射表，形成进入后续设计的任务表达。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 3-9 · COURSE ENTRY 3-9：稳定—动态—稳态综合映射实验 围绕同一航向控制对象，把基准、超前、积分与滞后校正放进同一套四联图与综合映射表，形成进入后续"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-1-design-task-expression",
+    "finalUrl": "/interactive-learning/courses/unit-4-1-design-task-expression",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-1-design-task-expression.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 学生 4-1：设计起点：性能指标体系、工程约束与可行域表达 围绕性能指标角色、硬约束/软目标/观察指标、可行域分层和双案例联读，把模块 3 的分析证据收束成可交给 4-2/4-3 的任务表达卡。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 4-1 · COURSE ENTRY 4-1：设计起点：性能指标体系、工程约束与可行域表达 围绕性能指标角色、"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-2-controller-selection-first-start",
+    "finalUrl": "/interactive-learning/courses/unit-4-2-controller-selection-first-start",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-2-controller-selection-first-start.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 4-2：控制器选型原理：不同控制结构为何适合不同任务 学生 4-2：控制器选型原理：不同控制结构为何适合不同任务 围绕结构工具箱、双案例首轮起步与前馈补偿边界，把 4-1 的任务表达卡推进成“单结构首轮起步卡”。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 4-2 · COURSE ENTRY 4-2：控制器选型原理：不同控制结构为何适合不同任务 围绕结构工具箱、双案例首轮起步与前馈补偿边界，把 4-"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation",
+    "finalUrl": "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-3-initial-scheme-practice-first-validation.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行方案 学生 4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行方案 围绕单结构候选缺口、经典复合控制边界、前馈与反馈分工、实现层保护和客船首轮记录，把已有反馈主结构推进为工程可运行的初始方案。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 4-3 · COURSE ENTRY 4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling",
+    "finalUrl": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-4-fixed-structure-optimization-modeling.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 4-4：多目标权衡与控制器优化设计 学生 4-4：多目标权衡与控制器优化设计 围绕固定结构下的多目标拉扯、自由目标表达、无约束候选族与 Pareto 最小取舍，把 4-3 的首轮证据推进成 4-5 可复核的候选族。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 4-4 · COURSE ENTRY 4-4：多目标权衡与控制器优化设计 围绕固定结构下的多目标拉扯、自由目标表达、无约束候选族与 Pareto"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization",
+    "finalUrl": "/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-5-constraint-aware-parameter-optimization.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化 学生 4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化 围绕无约束候选越界、课程目标、硬约束翻译、罚函数、求解链、权重重排、结构分化与总结信息图，把 4-4 的候选族推进成固定结构下可交付的可接受解。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 4-5 · COURSE ENTRY 4-5：约束下的优化设计实践：参数约束翻译与带约束参"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding",
+    "finalUrl": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-6-fixed-structure-boundary-structural-encoding.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 学生 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 围绕驱逐舰任务迁移、固定结构失配、专用代价函数、统一结构编码、四类方案比较和专项验证，把固定结构优化边界推进到结构编码入口。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 4-6 · COURSE ENTRY 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 围绕驱逐舰"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure",
+    "finalUrl": "/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-7-destroyer-hifi-design-closure.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 4-7：高保真辨识、设计验证与扰动边界 学生 4-7：高保真辨识、设计验证与扰动边界 围绕高保真航向任务、分段辨识、传统设计、优化解码、跨模型验证、扰动噪声边界和前沿方法入口，完成固定低阶结构的工程设计闭环。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 4-7 · COURSE ENTRY 4-7：高保真辨识、设计验证与扰动边界 围绕高保真航向任务、分段辨识、传统设计、优化解码、跨模型验证、扰动噪声边"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-1-linear-backbone-boundaries",
+    "finalUrl": "/interactive-learning/courses/unit-5-1-linear-backbone-boundaries",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-1-linear-backbone-boundaries.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 学生 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 围绕线性主干的默认条件、典型非线性环节、局部线性化边界和预测失真证据，建立进入非线性方法前的边界识别能力。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 5-1 · COURSE ENTRY 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 围绕线性主干的默认条件、典型非线性"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-2-nonlinear-analysis-entry",
+    "finalUrl": "/interactive-learning/courses/unit-5-2-nonlinear-analysis-entry",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-2-nonlinear-analysis-entry.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 5-2：非线性系统的最小分析入口 学生 5-2：非线性系统的最小分析入口 围绕局部线性化、相平面、描述函数、负倒曲线、微小扰动法和舵机执行器自振风险，建立非线性系统分析的最小入口。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 5-2 · COURSE ENTRY 5-2：非线性系统的最小分析入口 围绕局部线性化、相平面、描述函数、负倒曲线、微小扰动法和舵机执行器自振风险，建立非线性系统分析的最小入口。"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-3-mass-coordination-chain",
+    "finalUrl": "/interactive-learning/courses/unit-5-3-mass-coordination-chain",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-3-mass-coordination-chain.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 5-3：从单回路控制到复杂自主系统链路 学生 5-3：从单回路控制到复杂自主系统链路 围绕 MASS 的感知、估计、规划、控制、执行和监督链路，训练从单回路控制证据推进到复杂自主系统责任诊断。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 5-3 · COURSE ENTRY 5-3：从单回路控制到复杂自主系统链路 围绕 MASS 的感知、估计、规划、控制、执行和监督链路，训练从单回路控制证据推进到复杂"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+    "finalUrl": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-4-data-driven-mpc-transition.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 5-4：从模型驱动到数据驱动 学生 5-4：从模型驱动到数据驱动 围绕模型预测偏差、MPC 约束优化、在线辨识与三路线比较，训练模型、数据、优化和安全保护的证据责任分配。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 5-4 · COURSE ENTRY 5-4：从模型驱动到数据驱动 围绕模型预测偏差、MPC 约束优化、在线辨识与三路线比较，训练模型、数据、优化和安全保护的证据责任分配。 船舶航向控制"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk",
+    "finalUrl": "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-5-policy-learning-entry-risk.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 5-5：从显式控制器到策略学习 学生 5-5：从显式控制器到策略学习 围绕显式控制律、策略学习入口、强化学习闭环和航向控制三路线评价，训练策略学习进入控制系统时的收益、代价与工程责任判断。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 5-5 · COURSE ENTRY 5-5：从显式控制器到策略学习 围绕显式控制律、策略学习入口、强化学习闭环和航向控制三路线评价，训练策略学习进入控制系统时的收益、代"
+  },
+  {
+    "group": "23-course-entry-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain",
+    "finalUrl": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-6-method-comparison-cold-chain.png",
+    "textHead": "首页 / 互动学习 / 互动课程 / 5-6：方法迁移与前沿比较 学生 5-6：方法迁移与前沿比较 围绕同一冷链温控任务，比较经典 PI/PID、数据驱动预测补偿和策略学习监督层的收益、风险与验证责任。 课程总览 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 5-6 · COURSE ENTRY 5-6：方法迁移与前沿比较 围绕同一冷链温控任务，比较经典 PI/PID、数据驱动预测补偿和策略学习监督层的收益、风险与验证责任。 三场景同题比较 二状态"
+  }
+]

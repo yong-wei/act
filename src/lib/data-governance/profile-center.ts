@@ -196,7 +196,7 @@ export function buildAdaptivePracticeSummary(input: {
     weakAreas: input.weakAreas ?? [],
     recommendedFocus: input.recommendedFocus ?? [],
     questionCount: input.timeline?.length ?? 0,
-    actionUrl: '/assessment/adaptive-practice',
+    actionUrl: '/assessment/adaptive-practice?intent=practice',
   };
 }
 

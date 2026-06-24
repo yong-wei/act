@@ -18,12 +18,15 @@ export type PageFloatingControlRegistration = {
   onSelect: () => void;
 };
 
+export type PageFloatingDockBehavior = 'enabled' | 'collapsed' | 'hidden';
+
 type PageFloatingControlMenuItem = Omit<PageFloatingControlRegistration, 'onSelect'> & {
   onSelect?: () => void;
 };
 
 type PageFloatingControlsContextValue = {
   registerControl: (control: PageFloatingControlRegistration) => () => void;
+  setRouteDockBehavior: (behavior: PageFloatingDockBehavior) => () => void;
 };
 
 const PageFloatingControlsContext = createContext<PageFloatingControlsContextValue | null>(null);
@@ -47,6 +50,7 @@ export function buildFloatingControlMenu(
 
 export function PageFloatingControlsProvider({ children }: { children: ReactNode }) {
   const [controls, setControls] = useState<Record<string, PageFloatingControlRegistration>>({});
+  const [routeDockBehavior, setRouteDockBehaviorState] = useState<PageFloatingDockBehavior>('enabled');
 
   const registerControl = useCallback((control: PageFloatingControlRegistration) => {
     setControls((prev) => ({ ...prev, [control.id]: control }));
@@ -59,12 +63,17 @@ export function PageFloatingControlsProvider({ children }: { children: ReactNode
     };
   }, []);
 
-  const value = useMemo(() => ({ registerControl }), [registerControl]);
+  const setRouteDockBehavior = useCallback((behavior: PageFloatingDockBehavior) => {
+    setRouteDockBehaviorState(behavior);
+    return () => setRouteDockBehaviorState('enabled');
+  }, []);
+
+  const value = useMemo(() => ({ registerControl, setRouteDockBehavior }), [registerControl, setRouteDockBehavior]);
 
   return (
     <PageFloatingControlsContext.Provider value={value}>
       {children}
-      <PageFloatingControls registrations={Object.values(controls)} />
+      <PageFloatingControls registrations={Object.values(controls)} behavior={routeDockBehavior} />
     </PageFloatingControlsContext.Provider>
   );
 }
@@ -77,15 +86,54 @@ export function usePageFloatingControls() {
   return context;
 }
 
-function PageFloatingControls({ registrations }: { registrations: PageFloatingControlRegistration[] }) {
+export function useOptionalPageFloatingControls() {
+  return useContext(PageFloatingControlsContext);
+}
+
+function PageFloatingControls({
+  registrations,
+  behavior,
+}: {
+  registrations: PageFloatingControlRegistration[];
+  behavior: PageFloatingDockBehavior;
+}) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const { mounted, theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [announcement, setAnnouncement] = useState('页面工具菜单已就绪。');
   const menu = buildFloatingControlMenu(registrations);
   const isDark = theme === 'dark';
+  const primaryControl = menu.find((item) => item.id !== 'theme');
+  const triggerLabel = primaryControl?.label.includes('控灵') ? '控灵' : primaryControl ? '工具' : '工具';
+  const panelId = 'page-floating-controls-panel';
+  const panelTitleId = 'page-floating-controls-title';
+  const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
+
+  useEffect(() => {
+    const syncKnowledgeInspectorAvoidance = () => {
+      setKnowledgeInspectorAvoidanceActive(
+        window.matchMedia('(min-width: 1024px)').matches
+        && Boolean(document.querySelector('[data-knowledge-inspector="floating-right-edge"]')),
+      );
+    };
+    syncKnowledgeInspectorAvoidance();
+    const observer = new MutationObserver(syncKnowledgeInspectorAvoidance);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', syncKnowledgeInspectorAvoidance);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', syncKnowledgeInspectorAvoidance);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isMenuOpen) return;
+    setAnnouncement('页面工具菜单已打开。');
+    window.requestAnimationFrame(() => {
+      panelRef.current?.querySelector<HTMLButtonElement>('button:not([disabled])')?.focus();
+    });
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (!menuRef.current?.contains(event.target as Node)) {
@@ -95,6 +143,10 @@ function PageFloatingControls({ registrations }: { registrations: PageFloatingCo
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsMenuOpen(false);
+        setAnnouncement('页面工具菜单已关闭。');
+        window.requestAnimationFrame(() => {
+          triggerRef.current?.focus();
+        });
       }
     };
 
@@ -106,7 +158,7 @@ function PageFloatingControls({ registrations }: { registrations: PageFloatingCo
     };
   }, [isMenuOpen]);
 
-  if (!mounted) {
+  if (!mounted || behavior === 'hidden') {
     return null;
   }
 
@@ -123,21 +175,39 @@ function PageFloatingControls({ registrations }: { registrations: PageFloatingCo
     if (item.id === 'theme') {
       toggleTheme();
       setIsMenuOpen(false);
+      setAnnouncement(`主题已切换为${isDark ? '浅色' : '深色'}模式。`);
       return;
     }
 
     item.onSelect?.();
     setIsMenuOpen(false);
+    setAnnouncement(`${item.label}已打开。`);
   };
 
   return (
     <div
       ref={menuRef}
       className="no-print fixed bottom-4 right-6 z-[120] flex flex-col items-end"
+      style={knowledgeInspectorAvoidanceActive ? {
+        right: 'calc(1.5rem + var(--knowledge-inspector-width, clamp(22.5rem, 30vw, 28.75rem)))',
+      } : undefined}
       data-page-floating-controls="true"
+      data-platform-floating-dock={behavior === 'collapsed' ? 'collapsed' : 'enabled'}
+      data-platform-floating-dock-safe-area="bottom-right"
+      data-platform-floating-dock-inspector-avoidance={knowledgeInspectorAvoidanceActive ? 'active' : undefined}
     >
       {isMenuOpen ? (
-        <div className="mb-3 w-56 rounded-2xl border border-border/70 bg-background/95 p-2 text-sm text-foreground shadow-2xl backdrop-blur">
+        <div
+          ref={panelRef}
+          id={panelId}
+          className="mb-3 max-h-[min(70vh,28rem)] w-56 overflow-y-auto rounded-2xl border border-border/70 bg-background/95 p-2 text-sm text-foreground shadow-2xl backdrop-blur"
+          data-platform-floating-dock-expanded-panel
+          role="region"
+          aria-labelledby={panelTitleId}
+        >
+          <div id={panelTitleId} className="sr-only">
+            页面工具菜单
+          </div>
           {menu.map((item) => (
             <button
               key={item.id}
@@ -160,15 +230,22 @@ function PageFloatingControls({ registrations }: { registrations: PageFloatingCo
       ) : null}
 
       <Button
+        ref={triggerRef}
         type="button"
         variant="ghost"
         onClick={() => setIsMenuOpen((prev) => !prev)}
         aria-expanded={isMenuOpen}
-        aria-label="打开页面工具菜单"
-        className="btn-ghost-themed h-10 w-10 rounded-full border p-0 shadow-lg"
+        aria-controls={isMenuOpen ? panelId : undefined}
+        aria-label={`打开${triggerLabel}与页面工具菜单`}
+        className="btn-ghost-themed h-10 w-auto gap-2 rounded-full border px-3 text-xs font-semibold shadow-lg"
+        data-platform-floating-dock-trigger-label={triggerLabel}
       >
-        <Settings className="h-4 w-4" />
+        {primaryControl ? renderItemIcon(primaryControl) : <Settings className="h-4 w-4" />}
+        <span>{triggerLabel}</span>
       </Button>
+      <span className="sr-only" role="status" aria-live="polite" data-platform-floating-dock-status>
+        {announcement}
+      </span>
     </div>
   );
 }

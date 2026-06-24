@@ -1,0 +1,599 @@
+{
+  "generatedAt": "2026-06-20T06:32:13.815Z",
+  "baseUrl": "http://localhost:3100",
+  "batch": 17,
+  "sessionId": "cmqea1d3n001euwyfoi7b6pru",
+  "joinCode": "129051",
+  "courseSlug": "unit-4-1-design-task-expression",
+  "screenshotCount": 20,
+  "downloads": [
+    {
+      "suggestedFilename": "users-template.xlsx",
+      "url": "http://localhost:3100/admin/users"
+    },
+    {
+      "suggestedFilename": "users-template.xlsx",
+      "url": "http://localhost:3100/admin/users",
+      "source": "awaited-download"
+    }
+  ],
+  "dialogs": [],
+  "errors": [
+    {
+      "action": "pageerror",
+      "message": "Failed to set the 'domain' property on 'Document': Assignment is forbidden for sandboxed iframes.",
+      "url": "http://localhost:3100/interactive-learning/courses/unit-4-1-design-task-expression"
+    },
+    {
+      "action": "pageerror",
+      "message": "Failed to set the 'domain' property on 'Document': Assignment is forbidden for sandboxed iframes.",
+      "url": "http://localhost:3100/interactive-learning/courses/unit-4-1-design-task-expression"
+    }
+  ],
+  "results": [
+    {
+      "step": 1,
+      "label": "student classroom join prefilled mobile",
+      "route": "/classroom/join?code=129051",
+      "screenshot": "screenshots/52-function-state-flows-batch17/01-student-classroom-join-prefilled-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/01-student-classroom-join-prefilled-mobile.a11y.json",
+      "notes": {
+        "expected": "QR/scanned join page should prefill or expose the active class code and next action",
+        "joinCode": "129051"
+      },
+      "auditSummary": {
+        "h1": [
+          "加入课堂 / 班级"
+        ],
+        "activeElement": {
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "placeholder": "输入6位数字"
+        },
+        "alerts": [],
+        "inputCount": 2,
+        "buttonCount": 6,
+        "unnamedButtons": 1,
+        "graphicsCount": 5,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 2,
+      "label": "student classroom join result mobile",
+      "route": "/classroom/join?code=129051",
+      "screenshot": "screenshots/52-function-state-flows-batch17/02-student-classroom-join-result-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/02-student-classroom-join-result-mobile.a11y.json",
+      "notes": {
+        "action": "button:/加入|进入|查询|提交/",
+        "expected": "successful classroom join should route to the student runtime or show actionable error",
+        "joinCode": "129051"
+      },
+      "auditSummary": {
+        "h1": [
+          "加入课堂 / 班级"
+        ],
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "name": "加入课堂",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 2,
+        "buttonCount": 6,
+        "unnamedButtons": 1,
+        "graphicsCount": 4,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 3,
+      "label": "student course entry valid code filled mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "screenshot": "screenshots/52-function-state-flows-batch17/03-student-course-entry-valid-code-filled-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/03-student-course-entry-valid-code-filled-mobile.a11y.json",
+      "notes": {
+        "joinCode": "129051"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "activeElement": {
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "placeholder": "输入 6 位课堂码"
+        },
+        "alerts": [],
+        "inputCount": 3,
+        "buttonCount": 56,
+        "unnamedButtons": 1,
+        "graphicsCount": 34,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 4,
+      "label": "student course entry valid code result mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/student/cmqea1d3n001euwyfoi7b6pru",
+      "screenshot": "screenshots/52-function-state-flows-batch17/04-student-course-entry-valid-code-result-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/04-student-course-entry-valid-code-result-mobile.a11y.json",
+      "notes": {
+        "action": "button:/加入课堂/",
+        "expected": "course entry valid code should land in active student runtime",
+        "sessionId": "cmqea1d3n001euwyfoi7b6pru"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "name": "学习 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 / 学生课堂 学生 4-1：设计起点：性能指标体系、工程约束与可行域表达 Design Task Expression 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 学生课堂 任务表达入口：从跨域证据写出设计任务 用封面情境图、课程信息图和导入问题进入任务表达。 B · 导入 1 / 13 学生课堂台 已加入课堂 cmqea1d3n001euwyfoi7b6pru 学生端会随课堂同步步骤，并把个人作答持久化到课堂状态。 第 01 页 任务表达入口：从跨域证据写出设计任务 用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。 客船航向与稳定平台情境 同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。 任务表达课程信息图 从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。 导入问题 面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？ 把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？ 页面知识卡片、课堂同步和步骤提示由课程运行态提供。 提交后将先写入本课堂学习记录；可纳入画像的证据会在学习档案中呈现。 本页工具 默认折叠 上一页 第 01 页 · 任务表达入口：从跨域证据写出设计任务 第 02 页 · 本次课程目标 第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书 第 04 页 · 主场景 A：客船航向控制先保什么 第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前 第 06 页 · 双案例对照：排序变化来自哪里 第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么 第 08 页 · 任务分类：硬约束、软目标、观察指标 第 09 页 · 任务表达卡工作区：把后续设计输入写全 第 10 页 · 区域分层：可行域、满意域、最优域不是一步 第 11 页 · 误判检查：稳定不等于完成，可行不等于最优 第 12 页 · 后测：先写任务，再谈方法 第 13 页 · 总结：任务表达卡成为后续设计输入 下一页 控灵 当前: 任务表达入口：从跨域证据写出设... 你好，我是控灵。今天我们将探索「任务表达入口：从跨域证据写出设计任务」，有任何问题随时问我。 学习目标: 读取封面情境图与课程信息图 提出客船航向控制与稳定平台的导入问题 你可以问我: 导入问题 证据入口 按 Enter 发送，ESC 关闭面板 控灵",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 2,
+        "buttonCount": 28,
+        "unnamedButtons": 1,
+        "graphicsCount": 19,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 5,
+      "label": "teacher waiting real session mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqea1d3n001euwyfoi7b6pru/waiting",
+      "screenshot": "screenshots/52-function-state-flows-batch17/05-teacher-waiting-real-session-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/05-teacher-waiting-real-session-mobile.a11y.json",
+      "notes": {
+        "sessionId": "cmqea1d3n001euwyfoi7b6pru",
+        "joinCode": "129051"
+      },
+      "auditSummary": {
+        "h1": [
+          "课堂等待页"
+        ],
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "name": "首页 / 互动学习 / 互动课程 / 课程入口 / 课堂等待页 教师 课堂等待页 确认学生扫码加入后，再进入教师投影运行态。 返回课程 首页 虚拟仿真 知识资源 竞技场 控制工作台 CLASSROOM WAITING 扫码加入课堂 课堂码 129051 复制课堂码 复制加入链接 加入状态 已加入学生 1 课堂状态 等待开始 4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 已创建。等待学生完成扫码或输入课堂码后，点击开始上课进入教师投影运行态。 开始上课 开课流程 1 生成课堂码与二维码 2 学生扫码或输入课堂码加入 3 教师点击开始上课进入投影运行态 控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 1,
+        "buttonCount": 23,
+        "unnamedButtons": 1,
+        "graphicsCount": 18,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 6,
+      "label": "teacher waiting copy code feedback mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqea1d3n001euwyfoi7b6pru/waiting",
+      "screenshot": "screenshots/52-function-state-flows-batch17/06-teacher-waiting-copy-code-feedback-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/06-teacher-waiting-copy-code-feedback-mobile.a11y.json",
+      "notes": {
+        "action": "button:/复制课堂码/",
+        "expected": "copy code should show visible and announced feedback"
+      },
+      "auditSummary": {
+        "h1": [
+          "课堂等待页"
+        ],
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "name": "复制课堂码",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 1,
+        "buttonCount": 23,
+        "unnamedButtons": 1,
+        "graphicsCount": 18,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 7,
+      "label": "teacher waiting copy link feedback mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqea1d3n001euwyfoi7b6pru/waiting",
+      "screenshot": "screenshots/52-function-state-flows-batch17/07-teacher-waiting-copy-link-feedback-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/07-teacher-waiting-copy-link-feedback-mobile.a11y.json",
+      "notes": {
+        "action": "button:/复制加入链接/",
+        "expected": "copy link should show visible and announced feedback"
+      },
+      "auditSummary": {
+        "h1": [
+          "课堂等待页"
+        ],
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "name": "复制加入链接",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 1,
+        "buttonCount": 23,
+        "unnamedButtons": 1,
+        "graphicsCount": 18,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 8,
+      "label": "teacher waiting start class result mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqea1d3n001euwyfoi7b6pru",
+      "screenshot": "screenshots/52-function-state-flows-batch17/08-teacher-waiting-start-class-result-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/08-teacher-waiting-start-class-result-mobile.a11y.json",
+      "notes": {
+        "action": "not-found",
+        "expected": "start class should route to teacher projection runtime"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "name": "学习 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 / 教师投影 教师 4-1：设计起点：性能指标体系、工程约束与可行域表达 Design Task Expression 首页 虚拟仿真 知识资源 竞技场 控制工作台 教师投影 任务表达入口：从跨域证据写出设计任务 课堂码 129051 · 用封面情境图、课程信息图和导入问题进入任务表达。 B · 导入 1 / 13 第 01 页 任务表达入口：从跨域证据写出设计任务 用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。 客船航向与稳定平台情境 同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。 任务表达课程信息图 从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。 导入问题 面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？ 把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？ 本页工具 默认折叠 上一页 第 01 页 · 任务表达入口：从跨域证据写出设计任务 第 02 页 · 本次课程目标 第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书 第 04 页 · 主场景 A：客船航向控制先保什么 第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前 第 06 页 · 双案例对照：排序变化来自哪里 第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么 第 08 页 · 任务分类：硬约束、软目标、观察指标 第 09 页 · 任务表达卡工作区：把后续设计输入写全 第 10 页 · 区域分层：可行域、满意域、最优域不是一步 第 11 页 · 误判检查：稳定不等于完成，可行不等于最优 第 12 页 · 后测：先写任务，再谈方法 第 13 页 · 总结：任务表达卡成为后续设计输入 下一页 控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 2,
+        "buttonCount": 25,
+        "unnamedButtons": 1,
+        "graphicsCount": 18,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 9,
+      "label": "teacher runtime QR dialog mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqea1d3n001euwyfoi7b6pru",
+      "screenshot": "screenshots/52-function-state-flows-batch17/09-teacher-runtime-qr-dialog-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/09-teacher-runtime-qr-dialog-mobile.a11y.json",
+      "notes": {
+        "action": "not-found",
+        "expected": "runtime QR dialog should expose code/link copy without blocking projection context"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "name": "学习 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 / 教师投影 教师 4-1：设计起点：性能指标体系、工程约束与可行域表达 Design Task Expression 首页 虚拟仿真 知识资源 竞技场 控制工作台 教师投影 任务表达入口：从跨域证据写出设计任务 课堂码 129051 · 用封面情境图、课程信息图和导入问题进入任务表达。 B · 导入 1 / 13 第 01 页 任务表达入口：从跨域证据写出设计任务 用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。 客船航向与稳定平台情境 同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。 任务表达课程信息图 从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。 导入问题 面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？ 把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？ 本页工具 默认折叠 上一页 第 01 页 · 任务表达入口：从跨域证据写出设计任务 第 02 页 · 本次课程目标 第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书 第 04 页 · 主场景 A：客船航向控制先保什么 第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前 第 06 页 · 双案例对照：排序变化来自哪里 第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么 第 08 页 · 任务分类：硬约束、软目标、观察指标 第 09 页 · 任务表达卡工作区：把后续设计输入写全 第 10 页 · 区域分层：可行域、满意域、最优域不是一步 第 11 页 · 误判检查：稳定不等于完成，可行不等于最优 第 12 页 · 后测：先写任务，再谈方法 第 13 页 · 总结：任务表达卡成为后续设计输入 下一页 控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 2,
+        "buttonCount": 25,
+        "unnamedButtons": 1,
+        "graphicsCount": 18,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 10,
+      "label": "teacher runtime QR copy feedback mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqea1d3n001euwyfoi7b6pru",
+      "screenshot": "screenshots/52-function-state-flows-batch17/10-teacher-runtime-qr-dialog-copy-feedback-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/10-teacher-runtime-qr-dialog-copy-feedback-mobile.a11y.json",
+      "notes": {
+        "action": "not-found",
+        "expected": "dialog copy should show status feedback"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "name": "学习 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 / 教师投影 教师 4-1：设计起点：性能指标体系、工程约束与可行域表达 Design Task Expression 首页 虚拟仿真 知识资源 竞技场 控制工作台 教师投影 任务表达入口：从跨域证据写出设计任务 课堂码 129051 · 用封面情境图、课程信息图和导入问题进入任务表达。 B · 导入 1 / 13 第 01 页 任务表达入口：从跨域证据写出设计任务 用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。 客船航向与稳定平台情境 同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。 任务表达课程信息图 从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。 导入问题 面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？ 把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？ 本页工具 默认折叠 上一页 第 01 页 · 任务表达入口：从跨域证据写出设计任务 第 02 页 · 本次课程目标 第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书 第 04 页 · 主场景 A：客船航向控制先保什么 第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前 第 06 页 · 双案例对照：排序变化来自哪里 第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么 第 08 页 · 任务分类：硬约束、软目标、观察指标 第 09 页 · 任务表达卡工作区：把后续设计输入写全 第 10 页 · 区域分层：可行域、满意域、最优域不是一步 第 11 页 · 误判检查：稳定不等于完成，可行不等于最优 第 12 页 · 后测：先写任务，再谈方法 第 13 页 · 总结：任务表达卡成为后续设计输入 下一页 控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 2,
+        "buttonCount": 25,
+        "unnamedButtons": 1,
+        "graphicsCount": 18,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 11,
+      "label": "teacher runtime next page mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqea1d3n001euwyfoi7b6pru",
+      "screenshot": "screenshots/52-function-state-flows-batch17/11-teacher-runtime-next-page-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/11-teacher-runtime-next-page-mobile.a11y.json",
+      "notes": {
+        "action": "button:/下一页/",
+        "expected": "next page should visibly update page number and content"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "name": "下一页",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 2,
+        "buttonCount": 25,
+        "unnamedButtons": 1,
+        "graphicsCount": 18,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 12,
+      "label": "admin users template download mobile",
+      "route": "/admin/users",
+      "screenshot": "screenshots/52-function-state-flows-batch17/12-admin-users-template-download-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/12-admin-users-template-download-mobile.a11y.json",
+      "notes": {
+        "action": "button:/下载模板/",
+        "downloadObserved": true,
+        "downloads": [
+          {
+            "suggestedFilename": "users-template.xlsx",
+            "url": "http://localhost:3100/admin/users"
+          },
+          {
+            "suggestedFilename": "users-template.xlsx",
+            "url": "http://localhost:3100/admin/users",
+            "source": "awaited-download"
+          }
+        ],
+        "expected": "template download should provide visible success/failure status, not only browser download"
+      },
+      "auditSummary": {
+        "h1": [
+          "用户管理"
+        ],
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "name": "下载模板",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 4,
+        "buttonCount": 54,
+        "unnamedButtons": 1,
+        "graphicsCount": 15,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 13,
+      "label": "admin data governance class quality tab mobile",
+      "route": "/admin/data-governance",
+      "screenshot": "screenshots/52-function-state-flows-batch17/13-admin-data-governance-class-quality-tab-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/13-admin-data-governance-class-quality-tab-mobile.a11y.json",
+      "notes": {
+        "action": "text:课堂质量"
+      },
+      "auditSummary": {
+        "h1": [
+          "数据治理"
+        ],
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "name": "返回管理后台 治理看板 数据治理 这里不只展示总量，而是直接展开风险、事实与快照的下层内容，帮助管理员判断治理链路到底卡在队列、快照还是风险处置。 最近更新：2026/6/20 14:29:40 刷新状态 A admin admin 管理员后台 用户管理 系统使用量统计 数据治理 系统配置 系统状态 正常 运行正常 状态上报时间 2026/6/20 14:29:40 数据新鲜度 告警 2763 分钟前 快照链路需要关注 学习事实总量 概览 4,992 缓冲事件 0 条 待处理风险 告警 170 学生快照 1,524 · 班级快照 73 课堂质量 告警 3/12 黄 1 · 红 2 · 未识别 6 总览 课堂质量 证据源 缓存健康 队列健康度 直接查看三个核心队列的等待、执行、完成与失败情况。 事件入池队列 等待 0 执行中 0 已完成 0 失败 0 学生快照队列 等待 0 执行中 0 已完成 0 失败 0 班级快照队列 等待 0 执行中 0 已完成 0 失败 0 事实类型分布 事实分布能反向验证当前数据治理是否真的覆盖学习过程，而不是只累计了少量快照。 习题作答 占学习事实总量 7.8% 391 control_correction_path.selection_recorded 占学习事实总量 0.1% 6 仿真实验 占学习事实总量 0.1% 3 最新风险清单 最近触发的未解决风险按严重级别展开，方便直接查看“谁、何时、为什么被标记”。 学生 风险类型 级别 触发时间 说明 蔡丽雯 cmm77n46f0008w9h881wag95m 跨域迁移薄弱 高 2026/6/18 16:26:18 单点知识掌握较好但跨域迁移能力薄弱 测试教师 cmjwdrb93000113hpll8iga0p 参与度不足 高 2026/6/17 12:15:00 近一周学习活跃度极低，可能已停止学习 张永韡 cmjtgw3ov00008f1njzx4bg7l 参与度不足 高 2026/6/14 12:15:00 近一周学习活跃度极低，可能已停止学习 张永韡 cmjtgw3ov00008f1njzx4bg7l 能力停滞 中 2026/6/14 12:15:00 能力值出现下滑趋势 万宇航 cmma7hge60071g9q22zo2vqws 参与度不足 高 2026/5/26 09:15:05 近一周学习活跃度极低，可能已停止学习 刘中天 cmma7hi9600alg9q2cnlecxco 参与度不足 中 2026/5/26 09:15:05 近一周学习活跃度较低 高恒茂 cmma7hf97004xg9q2zlhkbvmy 参与度不足 高 2026/5/26 09:15:03 近一周学习活跃度极低，可能已停止学习 胡梦凡 cmma7hcwc000pg9q252g9nazf 参与度不足 中 2026/5/26 09:15:02 近一周学习活跃度较低 最新快照明细 按最近生成时间查看快照，并识别当前事实量最高的学生。 蔡丽雯 cmm77n46f0008w9h881wag95m 14 事实数 快照时间：2026/6/18 16:26:18 测试教师 cmjwdrb93000113hpll8iga0p 1 事实数 快照时间：2026/6/17 12:15:00 demo cmjm5lkjk0000t69bqiupz5am 8 事实数 快照时间：2026/6/17 11:36:08 demo cmjm5lkjk0000t69bqiupz5am 4 事实数 快照时间：2026/6/17 11:27:13 demo cmjm5lkjk0000t69bqiupz5am 2 事实数 快照时间：2026/6/17 11:18:23 快照高值关注 这些学生当前快照内的事实覆盖较多，适合进一步核对是否存在风险和成长信号。 陈家骥 2026/5/26 10:04:21 140 吴学文 2026/5/26 10:04:20 134 朱成锦 2026/5/26 10:04:20 132 王浩宇 2026/5/26 10:04:21 127 刘庆 2026/5/26 10:04:19 113 控灵 当前: data governance 你好，我是控灵。今天我们将探索「data governance」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 1,
+        "buttonCount": 15,
+        "unnamedButtons": 1,
+        "graphicsCount": 10,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 14,
+      "label": "admin data governance sources tab mobile",
+      "route": "/admin/data-governance",
+      "screenshot": "screenshots/52-function-state-flows-batch17/14-admin-data-governance-sources-tab-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/14-admin-data-governance-sources-tab-mobile.a11y.json",
+      "notes": {
+        "action": "text:证据源"
+      },
+      "auditSummary": {
+        "h1": [
+          "数据治理"
+        ],
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "name": "证据源",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 1,
+        "buttonCount": 15,
+        "unnamedButtons": 1,
+        "graphicsCount": 7,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 15,
+      "label": "admin data governance cache tab mobile",
+      "route": "/admin/data-governance",
+      "screenshot": "screenshots/52-function-state-flows-batch17/15-admin-data-governance-cache-tab-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/15-admin-data-governance-cache-tab-mobile.a11y.json",
+      "notes": {
+        "action": "text:缓存健康"
+      },
+      "auditSummary": {
+        "h1": [
+          "数据治理"
+        ],
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "name": "缓存健康",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 1,
+        "buttonCount": 15,
+        "unnamedButtons": 1,
+        "graphicsCount": 7,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 16,
+      "label": "admin data governance overview desktop",
+      "route": "/admin/data-governance",
+      "screenshot": "screenshots/52-function-state-flows-batch17/16-admin-data-governance-overview-desktop.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/16-admin-data-governance-overview-desktop.a11y.json",
+      "notes": {
+        "expected": "desktop governance overview should preserve table readability and action hierarchy"
+      },
+      "auditSummary": {
+        "h1": [
+          "数据治理"
+        ],
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "name": "返回管理后台 治理看板 数据治理 这里不只展示总量，而是直接展开风险、事实与快照的下层内容，帮助管理员判断治理链路到底卡在队列、快照还是风险处置。 最近更新：2026/6/20 14:30:04 刷新状态 A admin admin 管理员后台 用户管理 系统使用量统计 数据治理 系统配置 系统状态 正常 运行正常 状态上报时间 2026/6/20 14:30:04 数据新鲜度 告警 2764 分钟前 快照链路需要关注 学习事实总量 概览 4,992 缓冲事件 0 条 待处理风险 告警 170 学生快照 1,524 · 班级快照 73 课堂质量 告警 3/12 黄 1 · 红 2 · 未识别 6 总览 课堂质量 证据源 缓存健康 队列健康度 直接查看三个核心队列的等待、执行、完成与失败情况。 事件入池队列 等待 0 执行中 0 已完成 0 失败 0 学生快照队列 等待 0 执行中 0 已完成 0 失败 0 班级快照队列 等待 0 执行中 0 已完成 0 失败 0 事实类型分布 事实分布能反向验证当前数据治理是否真的覆盖学习过程，而不是只累计了少量快照。 习题作答 占学习事实总量 7.8% 391 control_correction_path.selection_recorded 占学习事实总量 0.1% 6 仿真实验 占学习事实总量 0.1% 3 最新风险清单 最近触发的未解决风险按严重级别展开，方便直接查看“谁、何时、为什么被标记”。 学生 风险类型 级别 触发时间 说明 蔡丽雯 cmm77n46f0008w9h881wag95m 跨域迁移薄弱 高 2026/6/18 16:26:18 单点知识掌握较好但跨域迁移能力薄弱 测试教师 cmjwdrb93000113hpll8iga0p 参与度不足 高 2026/6/17 12:15:00 近一周学习活跃度极低，可能已停止学习 张永韡 cmjtgw3ov00008f1njzx4bg7l 参与度不足 高 2026/6/14 12:15:00 近一周学习活跃度极低，可能已停止学习 张永韡 cmjtgw3ov00008f1njzx4bg7l 能力停滞 中 2026/6/14 12:15:00 能力值出现下滑趋势 万宇航 cmma7hge60071g9q22zo2vqws 参与度不足 高 2026/5/26 09:15:05 近一周学习活跃度极低，可能已停止学习 刘中天 cmma7hi9600alg9q2cnlecxco 参与度不足 中 2026/5/26 09:15:05 近一周学习活跃度较低 高恒茂 cmma7hf97004xg9q2zlhkbvmy 参与度不足 高 2026/5/26 09:15:03 近一周学习活跃度极低，可能已停止学习 胡梦凡 cmma7hcwc000pg9q252g9nazf 参与度不足 中 2026/5/26 09:15:02 近一周学习活跃度较低 最新快照明细 按最近生成时间查看快照，并识别当前事实量最高的学生。 蔡丽雯 cmm77n46f0008w9h881wag95m 14 事实数 快照时间：2026/6/18 16:26:18 测试教师 cmjwdrb93000113hpll8iga0p 1 事实数 快照时间：2026/6/17 12:15:00 demo cmjm5lkjk0000t69bqiupz5am 8 事实数 快照时间：2026/6/17 11:36:08 demo cmjm5lkjk0000t69bqiupz5am 4 事实数 快照时间：2026/6/17 11:27:13 demo cmjm5lkjk0000t69bqiupz5am 2 事实数 快照时间：2026/6/17 11:18:23 快照高值关注 这些学生当前快照内的事实覆盖较多，适合进一步核对是否存在风险和成长信号。 陈家骥 2026/5/26 10:04:21 140 吴学文 2026/5/26 10:04:20 134 朱成锦 2026/5/26 10:04:20 132 王浩宇 2026/5/26 10:04:21 127 刘庆 2026/5/26 10:04:19 113 控灵 当前: data governance 你好，我是控灵。今天我们将探索「data governance」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+          "placeholder": ""
+        },
+        "alerts": [],
+        "inputCount": 1,
+        "buttonCount": 15,
+        "unnamedButtons": 1,
+        "graphicsCount": 10,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 17,
+      "label": "student classroom join second-step result mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/student/cmqea1d3n001euwyfoi7b6pru",
+      "screenshot": "screenshots/52-function-state-flows-batch17/17-student-classroom-join-second-step-result-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/17-student-classroom-join-second-step-result-mobile.a11y.json",
+      "notes": {
+        "action": "last button:/加入课堂/",
+        "expected": "second step after QR lookup should route into active student runtime",
+        "joinCode": "129051",
+        "sessionId": "cmqea1d3n001euwyfoi7b6pru"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "activeElement": {
+          "tag": "body",
+          "type": "",
+          "name": "学习 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 / 学生课堂 学生 4-1：设计起点：性能指标体系、工程约束与可行域表达 Design Task Expression 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 学生课堂 本次课程目标 列出四项布鲁姆动词驱动的课程目标。 O · 目标 2 / 13 学生课堂台 已加入课堂 cmqea1d3n001euwyfoi7b6pru 学生端会随课堂同步步骤，并把个人作答持久化到课堂状态。 第 02 页 本次课程目标 本次课程目标 解释同一套跨域证据在不同工程场景中导出不同任务排序的原因。 区分时域、频域与积分误差指标分别回答的问题。 判别指标在任务书中承担硬约束、软目标或观察指标的角色。 撰写包含对象、目标、约束、优先级与证据来源的任务表达卡。 页面知识卡片、课堂同步和步骤提示由课程运行态提供。 提交后将先写入本课堂学习记录；可纳入画像的证据会在学习档案中呈现。 本页工具 默认折叠 上一页 第 01 页 · 任务表达入口：从跨域证据写出设计任务 第 02 页 · 本次课程目标 第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书 第 04 页 · 主场景 A：客船航向控制先保什么 第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前 第 06 页 · 双案例对照：排序变化来自哪里 第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么 第 08 页 · 任务分类：硬约束、软目标、观察指标 第 09 页 · 任务表达卡工作区：把后续设计输入写全 第 10 页 · 区域分层：可行域、满意域、最优域不是一步 第 11 页 · 误判检查：稳定不等于完成，可行不等于最优 第 12 页 · 后测：先写任务，再谈方法 第 13 页 · 总结：任务表达卡成为后续设计输入 下一页 控灵 当前: 本次课程目标 你好，我是控灵。今天我们将探索「本次课程目标」，有任何问题随时问我。 学习目标: 解释同一套跨域证据在不同工程场景中导出不同任务排序的原因 区分时域、频域与积分误差指标分别回答的问题 你可以问我: 解释 区分 按 Enter 发送，ESC 关闭面板 控灵"
+        },
+        "alerts": [],
+        "buttonCount": 28,
+        "unnamedButtons": 1,
+        "graphicsCount": 19,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 18,
+      "label": "teacher runtime local tools expanded mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqea1d3n001euwyfoi7b6pru",
+      "screenshot": "screenshots/52-function-state-flows-batch17/18-teacher-runtime-local-tools-expanded-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/18-teacher-runtime-local-tools-expanded-mobile.a11y.json",
+      "notes": {
+        "action": "expand local tools",
+        "expected": "local tools should reveal classroom code, QR entry, and end-session action"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "activeElement": {
+          "tag": "summary",
+          "type": "",
+          "name": "本页工具 默认折叠"
+        },
+        "alerts": [],
+        "buttonCount": 25,
+        "unnamedButtons": 1,
+        "graphicsCount": 18,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 19,
+      "label": "teacher runtime local tools QR dialog mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqea1d3n001euwyfoi7b6pru",
+      "screenshot": "screenshots/52-function-state-flows-batch17/19-teacher-runtime-local-tools-qr-dialog-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/19-teacher-runtime-local-tools-qr-dialog-mobile.a11y.json",
+      "notes": {
+        "action": "button:/二维码/",
+        "expected": "QR dialog should expose code, QR image, copy code, and copy link"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "name": "复制课堂码"
+        },
+        "alerts": [],
+        "buttonCount": 28,
+        "unnamedButtons": 1,
+        "graphicsCount": 21,
+        "unnamedGraphics": 0
+      }
+    },
+    {
+      "step": 20,
+      "label": "teacher runtime local tools copy feedback mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqea1d3n001euwyfoi7b6pru",
+      "screenshot": "screenshots/52-function-state-flows-batch17/20-teacher-runtime-local-tools-copy-feedback-mobile.png",
+      "a11y": "screenshots/52-function-state-flows-batch17/20-teacher-runtime-local-tools-copy-feedback-mobile.a11y.json",
+      "notes": {
+        "action": "button:/复制课堂码/",
+        "expected": "copy action should show visible status feedback"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "activeElement": {
+          "tag": "button",
+          "type": "button",
+          "name": "复制课堂码"
+        },
+        "alerts": [],
+        "buttonCount": 28,
+        "unnamedButtons": 1,
+        "graphicsCount": 21,
+        "unnamedGraphics": 0
+      }
+    }
+  ],
+  "supplemented": true
+}

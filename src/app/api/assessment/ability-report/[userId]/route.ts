@@ -6,9 +6,9 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 export const dynamic = 'force-dynamic';
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     userId: string;
-  };
+  }>;
 }
 
 export async function GET(_: Request, context: RouteContext) {
@@ -21,7 +21,7 @@ export async function GET(_: Request, context: RouteContext) {
       );
     }
 
-    const canReadReport = session.user.id === context.params.userId || session.user.role === 'ADMIN';
+    const canReadReport = session.user.id === (await context.params).userId || session.user.role === 'ADMIN';
     if (!canReadReport) {
       return NextResponse.json(
         { error: '无权查看该用户的能力报告' },
@@ -29,7 +29,7 @@ export async function GET(_: Request, context: RouteContext) {
       );
     }
 
-    const report = await getAbilityReportWithPersistenceFallback(context.params.userId);
+    const report = await getAbilityReportWithPersistenceFallback((await context.params).userId);
     return NextResponse.json(report);
   } catch (error) {
     rethrowIfNextDynamicError(error);

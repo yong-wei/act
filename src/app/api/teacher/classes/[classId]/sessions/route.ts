@@ -19,10 +19,8 @@ export const dynamic = 'force-dynamic';
  * - endDate: 结束日期
  * - search: 搜索教案标题
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { classId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ classId: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {

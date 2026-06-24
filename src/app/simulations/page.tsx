@@ -3,12 +3,26 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Ship, Anchor, Compass, Snowflake, Fuel, Container, Waves, Play, BookOpen } from 'lucide-react';
+import {
+  Anchor,
+  BookOpen,
+  Compass,
+  Container,
+  Filter,
+  Fuel,
+  Grid3X3,
+  ListChecks,
+  Play,
+  Search,
+  Ship,
+  Snowflake,
+  Waves,
+  type LucideIcon,
+} from 'lucide-react';
+import { AppShell } from '@/components/platform/app-shell';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 
 // ============ 仿真数据定义 ============
 
@@ -18,7 +32,7 @@ interface SimulationInfo {
   subtitle: string;
   description: string;
   href: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   previewImage: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   tags: string[];
@@ -216,9 +230,9 @@ const simulations: SimulationInfo[] = [
 ];
 
 const difficultyColors = {
-  beginner: 'bg-green-500/20 text-green-400 border-green-500/30',
-  intermediate: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  advanced: 'bg-red-500/20 text-red-400 border-red-500/30',
+  beginner: 'bg-platform-evidence-eligible/15 text-platform-evidence-eligible border-platform-evidence-eligible/40',
+  intermediate: 'bg-platform-evidence-context/15 text-platform-evidence-context border-platform-evidence-context/40',
+  advanced: 'bg-platform-evidence-unsupported/15 text-platform-evidence-unsupported border-platform-evidence-unsupported/40',
 };
 
 const difficultyLabels = {
@@ -227,191 +241,423 @@ const difficultyLabels = {
   advanced: '挑战',
 };
 
+const catalogModes = [
+  { id: 'all', label: '全部仿真' },
+  { id: 'course', label: '课程任务' },
+  { id: 'explore', label: '自由探索' },
+] as const;
+
+type CatalogMode = typeof catalogModes[number]['id'];
+type CatalogViewMode = 'list' | 'cards';
+
+function simulationMatchesMode(simulation: SimulationInfo, mode: CatalogMode) {
+  if (mode === 'all') return true;
+  if (mode === 'course') return simulation.difficulty !== 'advanced';
+  return simulation.difficulty === 'advanced' || simulation.tags.includes('参数摄动');
+}
+
+function simulationTaskFit(simulation: SimulationInfo) {
+  if (simulation.difficulty === 'beginner') return '基础课程任务';
+  if (simulation.difficulty === 'intermediate') return '课程任务 / 自由探索';
+  return '综合挑战任务';
+}
+
 // ============ 页面组件 ============
 
 export default function SimulationsPage() {
   const [selectedSimulation, setSelectedSimulation] = useState<SimulationInfo | null>(null);
+  const [query, setQuery] = useState('');
+  const [difficultyFilter, setDifficultyFilter] = useState<'all' | SimulationInfo['difficulty']>('all');
+  const [mode, setMode] = useState<CatalogMode>('all');
+  const [viewMode, setViewMode] = useState<CatalogViewMode>('list');
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredSimulations = simulations.filter((simulation) => {
+    const searchableText = [
+      simulation.title,
+      simulation.subtitle,
+      simulation.description,
+      ...simulation.tags,
+      ...simulation.controlFocus,
+    ].join(' ').toLowerCase();
+    const queryMatch = !normalizedQuery || searchableText.includes(normalizedQuery);
+    const difficultyMatch = difficultyFilter === 'all' || simulation.difficulty === difficultyFilter;
+    return queryMatch && difficultyMatch && simulationMatchesMode(simulation, mode);
+  });
 
   return (
-    <div className="surface-page">
-      <FeaturePageNav
-        title="虚拟仿真实验室"
-        backHref="/"
-        backLabel="返回首页"
-        rightSlot={(
-          <Badge variant="outline" className="border-primary/50 text-primary">
-            7 个仿真场景
-          </Badge>
-        )}
-      />
-
-      {/* 简介 */}
-      <div className="mx-auto max-w-7xl px-6 py-8">
-        <div className="surface-card p-6">
-          <h2 className="mb-2 text-lg font-medium text-foreground">船舶控制理论实践平台</h2>
-          <p className="text-sm leading-relaxed text-subtle">
-            通过7种典型船舶的3D仿真，深入理解自动控制原理在海洋工程中的应用。
-            从经典PID到多自由度解耦控制，从单一工况到自适应控制，循序渐进掌握控制系统设计方法。
-          </p>
-        </div>
-      </div>
-
-      {/* 仿真卡片网格 */}
-      <div className="mx-auto max-w-7xl px-6 pb-12">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {simulations.map((sim) => (
-            <SimulationCard
-              key={sim.id}
-              simulation={sim}
-              onLearnMore={() => setSelectedSimulation(sim)}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* 课程设计模态框 */}
-      <Dialog open={!!selectedSimulation} onOpenChange={() => setSelectedSimulation(null)}>
-        <DialogContent className="max-w-2xl border-border bg-card text-card-foreground">
-          {selectedSimulation && (
-            <>
-              <DialogHeader>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-                    <selectedSimulation.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <DialogTitle className="text-xl text-foreground">{selectedSimulation.title}</DialogTitle>
-                    <DialogDescription className="text-subtle">{selectedSimulation.subtitle}</DialogDescription>
-                  </div>
-                </div>
-              </DialogHeader>
-
-              <div className="space-y-6 pt-4">
-                {/* 概述 */}
-                <div>
-                  <h4 className="mb-2 text-sm font-medium text-foreground/90">课程概述</h4>
-                  <p className="text-sm leading-relaxed text-subtle">
-                    {selectedSimulation.courseDesign.overview}
-                  </p>
-                </div>
-
-                {/* 学习目标 */}
-                <div>
-                  <h4 className="mb-2 text-sm font-medium text-foreground/90">学习目标</h4>
-                  <ul className="space-y-2">
-                    {selectedSimulation.courseDesign.objectives.map((obj, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-subtle">
-                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                        {obj}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* 要点提示 */}
-                <div>
-                  <h4 className="mb-2 text-sm font-medium text-foreground/90">要点提示</h4>
-                  <div className="space-y-2 rounded-lg bg-accent/45 p-4">
-                    {selectedSimulation.courseDesign.keyPoints.map((point, i) => (
-                      <p key={i} className="text-sm text-subtle">
-                        <span className="mr-2 text-primary">#{i + 1}</span>
-                        {point}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 控制重点 */}
-                <div className="flex flex-wrap gap-2">
-                  {selectedSimulation.controlFocus.map((focus) => (
-                    <Badge key={focus} variant="outline" className="border-border text-subtle">
-                      {focus}
-                    </Badge>
-                  ))}
-                </div>
-
-                {/* 开始按钮 */}
-                <div className="border-t border-border pt-4">
-                  <Link href={selectedSimulation.href} prefetch={false}>
-                    <Button className="cta-primary w-full">
-                      <Play className="mr-2 h-4 w-4" />
-                      开始仿真实验
-                    </Button>
-                  </Link>
-                </div>
+    <AppShell
+      viewerRole="student"
+      activeHref="/simulations"
+      sidebarMode="collapsible"
+      title="虚拟仿真"
+      subtitle="课程任务、自由探索与仿真对象目录"
+      breadcrumbs={[
+        { label: '首页', href: '/' },
+        { label: '虚拟仿真' },
+      ]}
+      actions={(
+        <Button asChild variant="outline" size="sm" data-simulation-user-center-action>
+          <Link href="/profile">个人中心</Link>
+        </Button>
+      )}
+    >
+      <main
+        className="space-y-5"
+        data-commercial-workspace="simulations"
+        data-commercial-student-entry-route="/simulations"
+        data-commercial-entry-intent="experiment"
+        data-product-design-handoff-source="artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md"
+        data-product-design-concept-reference="concept-1-platform-continuity"
+        data-virtual-lab-compatibility-role="redirect-to-simulations"
+        data-simulation-theme-template="catalog"
+        data-simulation-visual-world="instrument-atlas"
+        data-simulation-entry-map="scenario-fleet"
+        data-simulation-catalog-source="canonical"
+      >
+        <section className="surface-card rounded-lg p-5" data-entry-current-context="simulation-hub">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div className="max-w-3xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="border-platform-action-primary/45 text-platform-action-primary">
+                  统一仿真目录
+                </Badge>
+                <span className="text-xs text-subtle">{simulations.length} 个仿真对象 · 课程任务与自由探索共用入口</span>
               </div>
-            </>
+              <h2 className="mt-4 text-2xl font-semibold text-foreground">从任务、对象和控制主题进入仿真</h2>
+              <p className="mt-2 text-sm leading-6 text-subtle">
+                目录只呈现学生需要的学习任务、控制主题、难度和继续行动；模型库与部署状态不作为开放状态真源。
+              </p>
+            </div>
+            <Link
+              href="/simulations/drilling"
+              prefetch={false}
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+              data-entry-primary-action="recommended-experiment"
+              data-simulation-state-role="official"
+            >
+              <Play className="mr-2 h-4 w-4" />
+              继续动力定位实验
+            </Link>
+          </div>
+        </section>
+
+        <section className="surface-card rounded-lg p-4" aria-label="筛选仿真目录">
+          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_220px_160px]">
+            <label className="relative block">
+              <span className="sr-only">搜索仿真</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                className="h-11 w-full rounded-md border border-border bg-background/70 pl-9 pr-3 text-sm text-foreground outline-none transition placeholder:text-subtle focus:border-primary focus:ring-2 focus:ring-primary/20"
+                placeholder="搜索仿真名称、船舶或控制主题"
+                data-simulation-catalog-search
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 flex items-center gap-1 text-xs font-medium text-subtle">
+                <Filter className="h-3.5 w-3.5" />
+                难度
+              </span>
+              <select
+                value={difficultyFilter}
+                onChange={(event) => setDifficultyFilter(event.target.value as typeof difficultyFilter)}
+                className="h-11 w-full rounded-md border border-border bg-background/70 px-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="all">全部难度</option>
+                <option value="beginner">入门</option>
+                <option value="intermediate">进阶</option>
+                <option value="advanced">挑战</option>
+              </select>
+            </label>
+            <div>
+              <span className="mb-1 block text-xs font-medium text-subtle">目录视图</span>
+              <div className="grid h-11 grid-cols-2 rounded-md border border-border bg-background/70 p-1" role="group" aria-label="目录视图">
+                <button
+                  type="button"
+                  className={`inline-flex items-center justify-center gap-1.5 rounded text-sm ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-subtle hover:text-foreground'}`}
+                  onClick={() => setViewMode('list')}
+                  aria-pressed={viewMode === 'list'}
+                >
+                  <ListChecks className="h-4 w-4" />
+                  列表
+                </button>
+                <button
+                  type="button"
+                  className={`inline-flex items-center justify-center gap-1.5 rounded text-sm ${viewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'text-subtle hover:text-foreground'}`}
+                  onClick={() => setViewMode('cards')}
+                  aria-pressed={viewMode === 'cards'}
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                  卡片
+                </button>
+              </div>
+            </div>
+            <div className="rounded-md border border-border bg-background/70 px-3 py-2 text-sm">
+              <span className="block text-xs text-subtle">当前结果</span>
+              <span className="font-semibold text-foreground">{filteredSimulations.length} 个仿真</span>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="仿真目录分组">
+            {catalogModes.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`rounded-md border px-3 py-2 text-sm transition ${mode === item.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background/65 text-subtle hover:border-primary/45 hover:text-foreground'}`}
+                onClick={() => setMode(item.id)}
+                role="tab"
+                aria-selected={mode === item.id}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section data-scenario-fleet="ship-scenarios">
+          {viewMode === 'list' ? (
+            <div className="overflow-hidden rounded-lg border border-border bg-card/70" data-simulation-catalog-view="list">
+              <div className="hidden grid-cols-[minmax(24rem,1.7fr)_minmax(12rem,0.9fr)_8rem_minmax(12rem,0.9fr)_10rem] border-b border-border bg-muted/35 px-4 py-3 text-xs font-medium text-subtle xl:grid">
+                <span>仿真对象</span>
+                <span>控制主题</span>
+                <span>难度</span>
+                <span>任务适配</span>
+                <span>操作</span>
+              </div>
+              <div className="divide-y divide-border">
+                {filteredSimulations.map((sim) => (
+                  <SimulationListItem
+                    key={sim.id}
+                    simulation={sim}
+                    onLearnMore={() => setSelectedSimulation(sim)}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-simulation-catalog-view="cards">
+              {filteredSimulations.map((sim) => (
+                <SimulationCatalogCard
+                  key={sim.id}
+                  simulation={sim}
+                  onLearnMore={() => setSelectedSimulation(sim)}
+                />
+              ))}
+            </div>
           )}
-        </DialogContent>
-      </Dialog>
+          {filteredSimulations.length === 0 ? (
+            <div className="surface-card mt-4 rounded-lg p-6 text-sm text-subtle">
+              没有匹配的仿真对象。请调整搜索词或筛选条件。
+            </div>
+          ) : null}
+        </section>
+
+        {/* 课程设计模态框 */}
+        <Dialog open={!!selectedSimulation} onOpenChange={() => setSelectedSimulation(null)}>
+          <DialogContent className="max-w-2xl border-border bg-card text-card-foreground">
+            {selectedSimulation && (() => {
+              const SelectedIcon = selectedSimulation.icon;
+              return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
+                      <SelectedIcon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-xl text-foreground">{selectedSimulation.title}</DialogTitle>
+                      <DialogDescription className="text-subtle">{selectedSimulation.subtitle}</DialogDescription>
+                    </div>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-6 pt-4">
+                  {/* 概述 */}
+                  <div>
+                    <h4 className="mb-2 text-sm font-medium text-foreground/90">课程概述</h4>
+                    <p className="text-sm leading-relaxed text-subtle">
+                      {selectedSimulation.courseDesign.overview}
+                    </p>
+                  </div>
+
+                  {/* 学习目标 */}
+                  <div>
+                    <h4 className="mb-2 text-sm font-medium text-foreground/90">学习目标</h4>
+                    <ul className="space-y-2">
+                      {selectedSimulation.courseDesign.objectives.map((obj, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-subtle">
+                          <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                          {obj}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* 要点提示 */}
+                  <div>
+                    <h4 className="mb-2 text-sm font-medium text-foreground/90">要点提示</h4>
+                    <div className="space-y-2 rounded-lg bg-accent/45 p-4">
+                      {selectedSimulation.courseDesign.keyPoints.map((point, i) => (
+                        <p key={i} className="text-sm text-subtle">
+                          <span className="mr-2 text-primary">#{i + 1}</span>
+                          {point}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 控制重点 */}
+                  <div className="flex flex-wrap gap-2">
+                    {selectedSimulation.controlFocus.map((focus) => (
+                      <Badge key={focus} variant="outline" className="border-border text-subtle">
+                        {focus}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  {/* 开始按钮 */}
+                  <div className="border-t border-border pt-4">
+                    <Link href={selectedSimulation.href} prefetch={false}>
+                      <Button className="cta-primary w-full">
+                        <Play className="mr-2 h-4 w-4" />
+                        开始仿真实验
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+      </main>
+    </AppShell>
+  );
+}
+
+// ============ 仿真目录组件 ============
+
+function SimulationPreview({
+  simulation,
+  className,
+}: {
+  simulation: SimulationInfo;
+  className?: string;
+}) {
+  const Icon = simulation.icon;
+
+  return (
+    <div className={`relative overflow-hidden rounded-md border border-border bg-secondary/35 ${className ?? ''}`} data-simulation-state-role="preview">
+      <Image
+        src={simulation.previewImage}
+        alt={`${simulation.title} 仿真预览`}
+        fill
+        className="object-cover"
+        sizes="(min-width: 1280px) 180px, (min-width: 768px) 33vw, 100vw"
+        priority={simulation.id === 'destroyer'}
+      />
+      <div className="absolute inset-0 bg-platform-canvas/20" />
+      <div className="absolute left-2 bottom-2 inline-flex items-center gap-1 rounded-md border border-border/70 bg-background/80 px-2 py-1 text-[11px] font-medium text-foreground backdrop-blur">
+        <Icon className="h-3.5 w-3.5 text-primary" />
+        场景预览
+      </div>
     </div>
   );
 }
 
-// ============ 仿真卡片组件 ============
-
-function SimulationCard({
+function SimulationListItem({
   simulation,
   onLearnMore,
 }: {
   simulation: SimulationInfo;
   onLearnMore: () => void;
 }) {
-  const Icon = simulation.icon;
-
   return (
-    <Card className="surface-card group transition-all hover:border-primary/45 hover:bg-card/90">
-      {/* 预览图区域 */}
-      <div className="relative h-40 overflow-hidden bg-secondary/35">
-        <Image
-          src={simulation.previewImage}
-          alt={`${simulation.title} 3D模型预览`}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-          priority={simulation.id === 'destroyer'}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-        <div className="absolute top-3 right-3">
+    <article
+      className="grid gap-4 px-4 py-4 transition hover:bg-accent/35 xl:grid-cols-[minmax(24rem,1.7fr)_minmax(12rem,0.9fr)_8rem_minmax(12rem,0.9fr)_10rem] xl:items-center"
+      data-simulation-scenario-row={simulation.id}
+    >
+      <div className="flex min-w-0 gap-3">
+        <SimulationPreview simulation={simulation} className="h-24 w-36 shrink-0" />
+        <div className="min-w-0">
+          <h3 className="truncate text-base font-semibold text-foreground">{simulation.title}</h3>
+          <p className="mt-1 text-sm text-subtle">{simulation.subtitle}</p>
+          <p className="mt-2 line-clamp-2 text-sm leading-6 text-subtle">{simulation.description}</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {simulation.tags.slice(0, 3).map((tag) => (
+              <Badge key={tag} variant="secondary" className="bg-accent text-xs text-subtle">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="text-sm text-foreground">
+        <span className="block font-medium">{simulation.controlFocus[0]}</span>
+        <span className="mt-1 block text-xs text-subtle">{simulation.controlFocus.slice(1).join(' / ')}</span>
+      </div>
+      <div>
+        <Badge className={`${difficultyColors[simulation.difficulty]} border`}>
+          {difficultyLabels[simulation.difficulty]}
+        </Badge>
+      </div>
+      <div className="text-sm text-foreground" data-simulation-scenario-fit={simulation.id}>
+        <span className="block">{simulationTaskFit(simulation)}</span>
+        <span className="mt-1 block text-xs text-subtle">按课程任务、控制主题与难度筛选</span>
+      </div>
+      <div className="flex flex-wrap gap-2 xl:justify-end">
+        <Link href={simulation.href} prefetch={false} data-simulation-canonical-launch={simulation.id}>
+          <Button className="cta-primary" size="sm">
+            <Play className="mr-1.5 h-3.5 w-3.5" />
+            打开仿真
+          </Button>
+        </Link>
+        <Button variant="outline" size="sm" className="btn-ghost-themed border" onClick={onLearnMore}>
+          <BookOpen className="mr-1.5 h-3.5 w-3.5" />
+          课程设计
+        </Button>
+      </div>
+    </article>
+  );
+}
+
+function SimulationCatalogCard({
+  simulation,
+  onLearnMore,
+}: {
+  simulation: SimulationInfo;
+  onLearnMore: () => void;
+}) {
+  return (
+    <article className="surface-card group rounded-lg transition hover:border-primary/45 hover:bg-card/90" data-simulation-scenario-card={simulation.id}>
+      <SimulationPreview simulation={simulation} className="h-40 w-full rounded-b-none border-x-0 border-t-0" />
+      <div className="space-y-4 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">{simulation.title}</h3>
+            <p className="text-sm text-subtle">{simulation.subtitle}</p>
+          </div>
           <Badge className={`${difficultyColors[simulation.difficulty]} border`}>
             {difficultyLabels[simulation.difficulty]}
           </Badge>
         </div>
-        <div className="absolute bottom-3 left-3 rounded-md border border-border/50 bg-background/80 px-2 py-1 backdrop-blur-sm">
-          <div className="flex items-center gap-1.5 text-[11px] text-foreground/90">
-            <Icon className="h-3 w-3 text-primary" />
-            <span>3D 模型静态预览</span>
+        <p className="line-clamp-2 text-sm leading-6 text-subtle">{simulation.description}</p>
+        <dl className="grid gap-2 text-xs text-subtle sm:grid-cols-2" data-simulation-scenario-fit={simulation.id}>
+          <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+            <dt className="font-medium text-foreground">控制主题</dt>
+            <dd className="mt-1">{simulation.controlFocus.slice(0, 2).join(' / ')}</dd>
           </div>
-        </div>
-      </div>
-
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-lg text-foreground">{simulation.title}</CardTitle>
-            <CardDescription className="text-subtle">{simulation.subtitle}</CardDescription>
+          <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+            <dt className="font-medium text-foreground">任务适配</dt>
+            <dd className="mt-1">{simulationTaskFit(simulation)}</dd>
           </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <p className="line-clamp-2 text-sm text-subtle">{simulation.description}</p>
-
-        {/* 标签 */}
-        <div className="flex flex-wrap gap-1.5">
-          {simulation.tags.slice(0, 3).map((tag) => (
-            <Badge key={tag} variant="secondary" className="bg-accent text-subtle text-xs">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-
-        {/* 操作按钮 */}
+        </dl>
         <div className="flex gap-2 pt-2">
-          <Link href={simulation.href} prefetch={false} className="flex-1">
+          <Link href={simulation.href} prefetch={false} className="flex-1" data-simulation-canonical-launch={simulation.id}>
             <Button className="cta-primary w-full" size="sm">
               <Play className="mr-1.5 h-3.5 w-3.5" />
-              开启任务链
+              进入仿真
             </Button>
           </Link>
           <Button
@@ -424,7 +670,7 @@ function SimulationCard({
             课程设计
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </article>
   );
 }

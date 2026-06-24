@@ -13,9 +13,10 @@ export async function GET(request: Request) {
     const type = searchParams.get('type');
     const search = searchParams.get('search');
     const bloom = searchParams.get('bloom');
+    const source = searchParams.get('source');
 
-    const graph = await loadKnowledgeGraphData();
-    if (graph.source === 'file') {
+    const graph = source === 'db' ? null : await loadKnowledgeGraphData();
+    if (graph?.source === 'file') {
       const nodes = filterKnowledgeNodes(graph.nodes, { type, bloom, search });
       return NextResponse.json(nodes);
     }

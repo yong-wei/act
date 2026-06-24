@@ -64,6 +64,9 @@ describe('arena black-box experiment interface', () => {
     });
 
     expect(first.samples).toEqual(second.samples);
+    if (!first.replay || !second.replay) {
+      throw new Error('Expected deterministic experiments to include replay metadata.');
+    }
     expect(first.replay.checksum).toBe(second.replay.checksum);
   });
 
@@ -217,7 +220,7 @@ describe('arena black-box experiment interface', () => {
           summary: { trackingError: 0, controlEnergy: 0 },
         },
       },
-    };
+    } as unknown as typeof baseArtifact;
 
     const baseResult = await evaluateArenaSubmission({ taskId: dataset.taskId, artifact: baseArtifact });
     const previewPollutedResult = await evaluateArenaSubmission({
@@ -265,7 +268,7 @@ describe('arena black-box experiment interface', () => {
           summary: { trackingError: 0, controlEnergy: 0 },
         },
       },
-    };
+    } as unknown as typeof baseArtifact;
     const storedArtifacts: unknown[] = [];
     const submissionStore = {
       findEvaluationByHash: vi.fn(async () => null),

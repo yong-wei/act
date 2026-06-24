@@ -1,0 +1,257 @@
+{
+  "status": "pass",
+  "capturedAt": "2026-06-18T00:47:08.051Z",
+  "route": "/review/derivation-stage-runtime-562",
+  "roles": [
+    "student",
+    "teacher"
+  ],
+  "rolesWithGuest": [
+    "student",
+    "teacher",
+    "guest"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "viewports": [
+    "mobile",
+    "desktop",
+    "projection"
+  ],
+  "states": [
+    "student-unreleased",
+    "student-released",
+    "student-submitted",
+    "teacher-reveal",
+    "teacher-answer-reveal",
+    "teacher-diagnostics",
+    "guest-unavailable"
+  ],
+  "noHorizontalOverflow": true,
+  "teacherControlsClearPrimaryStage": true,
+  "freeformStageVerified": true,
+  "katexRendered": true,
+  "formulaBlockRolesVerified": true,
+  "connectorEndpointsVerified": true,
+  "results": [
+    {
+      "name": "student-unreleased-desktop-light",
+      "role": "student",
+      "state": "student-unreleased",
+      "theme": "light",
+      "viewport": "desktop",
+      "size": {
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "browser-evidence/student-unreleased-desktop-light.png",
+      "route": "/review/derivation-stage-runtime-562",
+      "url": "http://localhost:3001/review/derivation-stage-runtime-562?role=student&state=student-unreleased&theme=light",
+      "screenshot": "artifacts/interactive-learning/derivation-stage-runtime-562/browser-evidence/student-unreleased-desktop-light.png",
+      "sha256": "dbd8c328364456fb9680ed4ecef5829e66713c2bef0f300e4383da1ad55f1cc9",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "katexRendered": false,
+        "formulaBlockCount": 0,
+        "hasSemanticColorRoles": false,
+        "revealStepCount": 0,
+        "connectorCount": 0,
+        "connectorEndpointsBoundToTargets": false,
+        "releaseState": "unreleased",
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "student-released-desktop-dark",
+      "role": "student",
+      "state": "student-released",
+      "theme": "dark",
+      "viewport": "desktop",
+      "size": {
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "browser-evidence/student-released-desktop-dark.png",
+      "route": "/review/derivation-stage-runtime-562",
+      "url": "http://localhost:3001/review/derivation-stage-runtime-562?role=student&state=student-released&theme=dark",
+      "screenshot": "artifacts/interactive-learning/derivation-stage-runtime-562/browser-evidence/student-released-desktop-dark.png",
+      "sha256": "699e8ff7e3c2eb584abd3d3acd6ddb7b49d21b18b7d102c605d0dc4347c11af0",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "katexRendered": true,
+        "formulaBlockCount": 1,
+        "hasSemanticColorRoles": false,
+        "revealStepCount": 3,
+        "connectorCount": 0,
+        "connectorEndpointsBoundToTargets": false,
+        "releaseState": "released",
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "student-submitted-mobile-light",
+      "role": "student",
+      "state": "student-submitted",
+      "theme": "light",
+      "viewport": "mobile",
+      "size": {
+        "width": 390,
+        "height": 1000
+      },
+      "path": "browser-evidence/student-submitted-mobile-light.png",
+      "route": "/review/derivation-stage-runtime-562",
+      "url": "http://localhost:3001/review/derivation-stage-runtime-562?role=student&state=student-submitted&theme=light",
+      "screenshot": "artifacts/interactive-learning/derivation-stage-runtime-562/browser-evidence/student-submitted-mobile-light.png",
+      "sha256": "98abf5c61a28340db3815320a745c0ddf0886bf58fadb034117ad37dd811ef4e",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "katexRendered": true,
+        "formulaBlockCount": 1,
+        "hasSemanticColorRoles": false,
+        "revealStepCount": 3,
+        "connectorCount": 0,
+        "connectorEndpointsBoundToTargets": false,
+        "releaseState": "released",
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "teacher-reveal-projection-dark",
+      "role": "teacher",
+      "state": "teacher-reveal",
+      "theme": "dark",
+      "viewport": "projection",
+      "size": {
+        "width": 1920,
+        "height": 1080
+      },
+      "path": "browser-evidence/teacher-reveal-projection-dark.png",
+      "route": "/review/derivation-stage-runtime-562",
+      "url": "http://localhost:3001/review/derivation-stage-runtime-562?role=teacher&state=teacher-reveal&theme=dark",
+      "screenshot": "artifacts/interactive-learning/derivation-stage-runtime-562/browser-evidence/teacher-reveal-projection-dark.png",
+      "sha256": "f19499a66b69d91fec2df8d1f4568dc5ab7b6875ec9574a0b053e45fa171b471",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "katexRendered": true,
+        "formulaBlockCount": 3,
+        "hasSemanticColorRoles": true,
+        "revealStepCount": 3,
+        "connectorCount": 1,
+        "connectorEndpointsBoundToTargets": true,
+        "releaseState": "revealed",
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "teacher-answer-reveal-desktop-light",
+      "role": "teacher",
+      "state": "teacher-answer-reveal",
+      "theme": "light",
+      "viewport": "desktop",
+      "size": {
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "browser-evidence/teacher-answer-reveal-desktop-light.png",
+      "route": "/review/derivation-stage-runtime-562",
+      "url": "http://localhost:3001/review/derivation-stage-runtime-562?role=teacher&state=teacher-answer-reveal&theme=light",
+      "screenshot": "artifacts/interactive-learning/derivation-stage-runtime-562/browser-evidence/teacher-answer-reveal-desktop-light.png",
+      "sha256": "f833c0a032e8ac2b33c397cf0d68a7453596b274931194eecda7a90faa459c3e",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "katexRendered": true,
+        "formulaBlockCount": 3,
+        "hasSemanticColorRoles": true,
+        "revealStepCount": 3,
+        "connectorCount": 1,
+        "connectorEndpointsBoundToTargets": true,
+        "releaseState": "revealed",
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "teacher-diagnostics-desktop-dark",
+      "role": "teacher",
+      "state": "teacher-diagnostics",
+      "theme": "dark",
+      "viewport": "desktop",
+      "size": {
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "browser-evidence/teacher-diagnostics-desktop-dark.png",
+      "route": "/review/derivation-stage-runtime-562",
+      "url": "http://localhost:3001/review/derivation-stage-runtime-562?role=teacher&state=teacher-diagnostics&theme=dark",
+      "screenshot": "artifacts/interactive-learning/derivation-stage-runtime-562/browser-evidence/teacher-diagnostics-desktop-dark.png",
+      "sha256": "8e22422456d3885b8a4fa5e921c64a097b748897338a95e7d90712bf1d7c293f",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "katexRendered": true,
+        "formulaBlockCount": 3,
+        "hasSemanticColorRoles": true,
+        "revealStepCount": 3,
+        "connectorCount": 1,
+        "connectorEndpointsBoundToTargets": true,
+        "releaseState": "revealed",
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    },
+    {
+      "name": "guest-unavailable-mobile-light",
+      "role": "guest",
+      "state": "guest-unavailable",
+      "theme": "light",
+      "viewport": "mobile",
+      "size": {
+        "width": 390,
+        "height": 1000
+      },
+      "path": "browser-evidence/guest-unavailable-mobile-light.png",
+      "route": "/review/derivation-stage-runtime-562",
+      "url": "http://localhost:3001/review/derivation-stage-runtime-562?role=guest&state=guest-unavailable&theme=light",
+      "screenshot": "artifacts/interactive-learning/derivation-stage-runtime-562/browser-evidence/guest-unavailable-mobile-light.png",
+      "sha256": "3dd8f25a7764c0015b46bc7a3214f379eba7b506a6fe635155822511d4a65b5e",
+      "checks": {
+        "freeform": true,
+        "noVerticalListClass": true,
+        "noHorizontalOverflow": true,
+        "katexRendered": false,
+        "formulaBlockCount": 0,
+        "hasSemanticColorRoles": false,
+        "revealStepCount": 0,
+        "connectorCount": 0,
+        "connectorEndpointsBoundToTargets": false,
+        "releaseState": "unavailable",
+        "teacherControlsClearPrimaryStage": true,
+        "keyboardReachable": true,
+        "visibleFocus": true
+      }
+    }
+  ]
+}

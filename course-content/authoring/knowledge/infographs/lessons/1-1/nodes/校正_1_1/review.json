@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-06-07T09:15:50.820587Z",
+  "lesson_id": "1-1",
+  "node_id": "校正_1_1",
+  "requested_node_id": "校正_1_1",
+  "node_name": "校正设计",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查通过：诊断、加控制器、重新诊断、比较、调整循环与三域证据表达完整。"
+}

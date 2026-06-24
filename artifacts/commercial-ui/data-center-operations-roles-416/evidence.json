@@ -1,0 +1,41 @@
+{
+  "baseUrl": "http://localhost:3001",
+  "generatedAt": "2026-06-12T21:50:21.887Z",
+  "checks": {
+    "studentDataCenterRedirect": {
+      "finalUrl": "http://localhost:3001/profile/evidence",
+      "dataCenterWorkspaceVisible": 0,
+      "studentDataCenterNavLinks": 0
+    },
+    "teacherDemoLabelsDisabled": {
+      "url": "http://localhost:3001/data-center",
+      "workspaceVisible": 1,
+      "hiddenDemoPolicyMarkers": 9,
+      "visibleDemoMarkers": 0,
+      "sourceQualityMarkers": 9,
+      "dataCenterNavLinks": 2,
+      "reportSnapshot": 1
+    },
+    "teacherDemoLabelsEnabled": {
+      "url": "http://localhost:3001/data-center",
+      "workspaceVisible": 1,
+      "hiddenDemoPolicyMarkers": 0,
+      "visibleDemoMarkers": 9,
+      "sourceQualityMarkers": 0,
+      "dataCenterNavLinks": 2,
+      "reportSnapshot": 1
+    },
+    "adminAuditProvenanceVisible": {
+      "finalUrl": "http://localhost:3001/admin/states",
+      "adminOperationsVisible": 1,
+      "visibleDemoMarkers": 7,
+      "hiddenDemoPolicyMarkers": 0
+    }
+  },
+  "screenshots": {
+    "studentDataCenterRedirect": "artifacts/commercial-ui/data-center-operations-roles-416/student-data-center-redirect-profile-evidence.png",
+    "teacherDemoLabelsDisabled": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-disabled.png",
+    "teacherDemoLabelsEnabled": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-enabled.png",
+    "adminAuditProvenanceVisible": "artifacts/commercial-ui/data-center-operations-roles-416/admin-states-audit-demo-provenance-visible.png"
+  }
+}

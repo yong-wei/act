@@ -128,7 +128,7 @@ export default function LimitCycleLab({ onComplete, onStateChange }: LimitCycleL
                   const showCorrect = selected && option.id === scenario.answerId;
                   const showWrong = selectedOption && option.id !== scenario.answerId;
                   return (
-                    <button
+                    <button type="button"
                       key={option.id}
                       onClick={() => handleSelect(scenario.id, option.id)}
                       className={`flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-colors ${

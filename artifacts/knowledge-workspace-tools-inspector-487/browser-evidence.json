@@ -1,0 +1,233 @@
+{
+  "change": "redesign-knowledge-workspace-tools-and-inspector",
+  "issue": 487,
+  "refreshedBy": "standardize-knowledge-graph-floating-panels",
+  "capturedAt": "2026-06-23T13:06:16.303Z",
+  "baseUrl": "http://127.0.0.1:3001",
+  "selectedNodeId": "积分环节_2_11005",
+  "designSourceOfTruth": {
+    "handoff": "artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md",
+    "concepts": [
+      "artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/layered-research-atlas.png",
+      "artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/night-bridge-semantic-map.png",
+      "artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/daylight-engineering-atlas.png"
+    ]
+  },
+  "keyboardVerification": {
+    "desktopToolPaths": [
+      {
+        "tool": "chapter-directory",
+        "openedFocusWithinPanel": true,
+        "escapeClosed": true,
+        "focusReturnedToTrigger": true
+      },
+      {
+        "tool": "relation-filters",
+        "openedFocusWithinPanel": true,
+        "escapeClosed": true,
+        "focusReturnedToTrigger": true
+      },
+      {
+        "tool": "legend",
+        "openedFocusWithinPanel": true,
+        "escapeClosed": true,
+        "focusReturnedToTrigger": true
+      },
+      {
+        "tool": "view-layout",
+        "openedFocusWithinPanel": true,
+        "escapeClosed": true,
+        "focusReturnedToTrigger": true
+      }
+    ],
+    "mobileInspector": {
+      "focusTrapped": true,
+      "escapeClosed": true,
+      "focusReturnedToCanvas": true,
+      "dockSafeArea": "bottom-padding"
+    },
+    "mobileToolPaths": [
+      {
+        "tool": "view-layout",
+        "opened": true,
+        "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-view-layout-dark.png",
+        "layoutControls": [
+          "fit-view",
+          "relayout",
+          "pin-selected",
+          "set-focus-node",
+          "clear-pins"
+        ]
+      }
+    ]
+  },
+  "results": [
+    {
+      "name": "desktop-default-compact-dark",
+      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-default-compact-dark.png",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
+      "state": "desktop default compact tools",
+      "theme": "dark",
+      "viewport": "1440x960",
+      "handoff": "design-handoff.md#Knowledge Workspace Floating Panels",
+      "concept": "knowledge graph floating panel standardization",
+      "markers": {
+        "commandSystemState": "closed",
+        "activeDesktopTool": "closed",
+        "activeMobileTool": "chapter-directory",
+        "desktopToolPanel": null,
+        "inspectorMode": null,
+        "inspectorResponsive": null,
+        "inspectorFocusContract": null,
+        "inspectorDockSafeArea": null,
+        "inspectorSections": [],
+        "mobileToolState": "closed",
+        "mobileLayoutControls": [],
+        "selectedNodeId": "",
+        "visibleNodeCount": "596",
+        "visibleLinkCount": "1290",
+        "width": 1440,
+        "height": 960,
+        "htmlClass": "dark"
+      }
+    },
+    {
+      "name": "desktop-open-filters-dark",
+      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-open-filters-dark.png",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
+      "state": "desktop opened relation filters",
+      "theme": "dark",
+      "viewport": "1440x960",
+      "handoff": "design-handoff.md#Knowledge Workspace Floating Panels",
+      "concept": "knowledge graph floating panel standardization",
+      "markers": {
+        "commandSystemState": "open",
+        "activeDesktopTool": "relation-filters",
+        "activeMobileTool": "chapter-directory",
+        "desktopToolPanel": "relation-filters",
+        "inspectorMode": null,
+        "inspectorResponsive": null,
+        "inspectorFocusContract": null,
+        "inspectorDockSafeArea": null,
+        "inspectorSections": [],
+        "mobileToolState": "closed",
+        "mobileLayoutControls": [],
+        "selectedNodeId": "",
+        "visibleNodeCount": "596",
+        "visibleLinkCount": "1290",
+        "width": 1440,
+        "height": 960,
+        "htmlClass": "dark"
+      }
+    },
+    {
+      "name": "desktop-selected-inspector-light",
+      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-selected-inspector-light.png",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A7%AF%E5%88%86%E7%8E%AF%E8%8A%82_2_11005&qa=knowledge-product",
+      "state": "desktop selected node inspector with infograph preview",
+      "theme": "light",
+      "viewport": "1440x960",
+      "handoff": "design-handoff.md#Knowledge Workspace Floating Panels",
+      "concept": "knowledge graph floating panel standardization",
+      "markers": {
+        "commandSystemState": "closed",
+        "activeDesktopTool": "closed",
+        "activeMobileTool": "chapter-directory",
+        "desktopToolPanel": null,
+        "inspectorMode": "floating-right-edge",
+        "inspectorResponsive": "desktop-floating-mobile-sheet",
+        "inspectorFocusContract": "mobile-trap-escape-return",
+        "inspectorDockSafeArea": "bottom-padding",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "infograph-preview",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "mobileToolState": "closed",
+        "mobileLayoutControls": [],
+        "selectedNodeId": "积分环节_2_11005",
+        "visibleNodeCount": "596",
+        "visibleLinkCount": "1290",
+        "width": 1440,
+        "height": 960,
+        "htmlClass": "light"
+      }
+    },
+    {
+      "name": "mobile-320-selected-sheet-dark",
+      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-selected-sheet-dark.png",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A7%AF%E5%88%86%E7%8E%AF%E8%8A%82_2_11005&qa=knowledge-product",
+      "state": "mobile selected node sheet with graph reachable above collapsed tools",
+      "theme": "dark",
+      "viewport": "320x800",
+      "handoff": "design-handoff.md#Knowledge Workspace Floating Panels",
+      "concept": "knowledge graph floating panel standardization",
+      "markers": {
+        "commandSystemState": "closed",
+        "activeDesktopTool": "closed",
+        "activeMobileTool": "chapter-directory",
+        "desktopToolPanel": null,
+        "inspectorMode": "floating-right-edge",
+        "inspectorResponsive": "desktop-floating-mobile-sheet",
+        "inspectorFocusContract": "mobile-trap-escape-return",
+        "inspectorDockSafeArea": "bottom-padding",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "infograph-preview",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "mobileToolState": "closed",
+        "mobileLayoutControls": [],
+        "selectedNodeId": "积分环节_2_11005",
+        "visibleNodeCount": "596",
+        "visibleLinkCount": "1290",
+        "width": 320,
+        "height": 800,
+        "htmlClass": "dark"
+      }
+    },
+    {
+      "name": "mobile-320-view-layout-dark",
+      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-view-layout-dark.png",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-product",
+      "state": "mobile view and layout tool opened with graph controls available",
+      "theme": "dark",
+      "viewport": "320x800",
+      "handoff": "design-handoff.md#Knowledge Workspace Floating Panels",
+      "concept": "knowledge graph floating panel standardization",
+      "markers": {
+        "commandSystemState": "closed",
+        "activeDesktopTool": "closed",
+        "activeMobileTool": "view-layout",
+        "desktopToolPanel": null,
+        "inspectorMode": null,
+        "inspectorResponsive": null,
+        "inspectorFocusContract": null,
+        "inspectorDockSafeArea": null,
+        "inspectorSections": [],
+        "mobileToolState": "open",
+        "mobileLayoutControls": [
+          "fit-view",
+          "relayout",
+          "pin-selected",
+          "set-focus-node",
+          "clear-pins"
+        ],
+        "selectedNodeId": "",
+        "visibleNodeCount": "596",
+        "visibleLinkCount": "1290",
+        "width": 320,
+        "height": 800,
+        "htmlClass": "dark"
+      }
+    }
+  ]
+}

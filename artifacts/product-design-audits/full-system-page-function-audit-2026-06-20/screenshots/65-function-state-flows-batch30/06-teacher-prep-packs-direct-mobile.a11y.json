@@ -1,0 +1,49 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "",
+    "url": "http://localhost:3100/teacher/prep-packs",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "scrollY": 0
+    },
+    "h1": [
+      "This page couldn’t load"
+    ],
+    "alerts": [],
+    "buttons": [
+      {
+        "tag": "button",
+        "name": "Reload",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 61,
+          "y": 471,
+          "width": 69,
+          "height": 32,
+          "bottom": 503,
+          "right": 130,
+          "visible": true
+        }
+      }
+    ],
+    "unnamedButtons": 0,
+    "reportLedgerElements": [],
+    "bodyText": "This page couldn’t load A server error occurred. Reload to try again. Reload ERROR 3162691632",
+    "hits": {
+      "teacherDashboard": false,
+      "prepPackEntry": false,
+      "prepPackReviewSurface": false,
+      "blocker500": false,
+      "reportLedgerSurface": false,
+      "liveStatus": false
+    },
+    "tableSignals": {
+      "courseEnhancementPackText": false,
+      "prismaMissingTable": false,
+      "nextError": false
+    }
+  }
+}

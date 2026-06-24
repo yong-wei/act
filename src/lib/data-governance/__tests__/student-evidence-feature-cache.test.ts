@@ -33,6 +33,399 @@ function fact(overrides: Partial<LearningFact> = {}): LearningFact {
 }
 
 describe('buildStudentEvidenceFeaturePayload', () => {
+  it('derives governed path execution features without raw execution payloads', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-06-04T12:00:00.000Z'),
+      facts: [fact()],
+      pathEvidence: {
+        executions: [
+          {
+            id: 'exec-start',
+            pathId: 'path-1',
+            userId: 'student-1',
+            nodeId: 'node-1',
+            resourceType: 'simulation',
+            status: 'started',
+            startedAt: new Date('2026-06-04T10:00:00.000Z'),
+            completedAt: null,
+            failedAt: null,
+            evidenceRefs: [{ kind: 'LearningFact', id: 'fact-1', raw: 'hidden' }],
+            liftMetadata: { rawTracePayload: [{ t: 0, y: 1 }] },
+            simulationRef: { traceReference: 'SimulationTrace:path-run-1' },
+            arenaRef: null,
+            idempotencyKey: 'exec-start',
+            createdAt: new Date('2026-06-04T10:00:01.000Z'),
+            path: { goalId: 'control-correction', terminalValidation: { nodeId: 'terminal-node' } },
+          },
+          {
+            id: 'exec-complete',
+            pathId: 'path-1',
+            userId: 'student-1',
+            nodeId: 'terminal-node',
+            resourceType: 'arena_task',
+            status: 'completed',
+            startedAt: new Date('2026-06-04T10:10:00.000Z'),
+            completedAt: new Date('2026-06-04T10:20:00.000Z'),
+            failedAt: null,
+            evidenceRefs: [{ kind: 'ArenaEvaluationRun', id: 'arena-run-1' }],
+            liftMetadata: {},
+            simulationRef: null,
+            arenaRef: { traceReference: 'ArenaEvaluationRun:path-arena-1', valid: true },
+            idempotencyKey: 'exec-terminal',
+            createdAt: new Date('2026-06-04T10:20:01.000Z'),
+            path: { goalId: 'control-correction', terminalValidation: { nodeId: 'terminal-node' } },
+          },
+        ],
+        deviations: [
+          {
+            id: 'dev-1',
+            pathId: 'path-1',
+            userId: 'student-1',
+            deviationType: 'resource-failure',
+            priorNodeId: 'node-1',
+            targetNodeId: 'fallback-node',
+            context: { rawReasoning: 'hidden' },
+            evidenceConfidence: 'low',
+            idempotencyKey: 'dev-key',
+            createdAt: new Date('2026-06-04T10:05:00.000Z'),
+          },
+        ],
+        interventions: [
+          {
+            id: 'int-1',
+            pathId: 'path-1',
+            userId: 'student-1',
+            interventionKind: 'fallback-path',
+            citedEvidence: [
+              { kind: 'LearningPathDeviation', id: 'dev-1' },
+              { kind: 'learning-path-node', ref: 'node-1' },
+            ],
+            suggestedAction: 'raw model instruction should stay out',
+            studentOutcome: 'accepted',
+            privacySafeSummary: '改走补救路径。',
+            idempotencyKey: 'int-key',
+            createdAt: new Date('2026-06-04T10:06:00.000Z'),
+          },
+        ],
+      },
+    } as any);
+
+    const pathExecution = (payload.features as any).pathExecution;
+
+    expect(pathExecution.allTime).toMatchObject({
+      evidenceCount: 4,
+      adoptionCount: 1,
+      completionCount: 1,
+      deviationCount: 1,
+      fallbackCount: 1,
+      terminalValidationCount: 1,
+      interventionOutcome: {
+        acceptedCount: 1,
+        completedCount: 0,
+        lowConfidenceCount: 1,
+      },
+      sourceCoverage: {
+        adoption: 'available',
+        completion: 'available',
+        deviation: 'available',
+        fallback: 'available',
+        terminalValidation: 'available',
+        interventionOutcome: 'available',
+      },
+      confidence: {
+        level: 'medium',
+      },
+    });
+    expect(pathExecution.allTime.sourceReferences).toEqual([
+      expect.objectContaining({
+        sourceType: 'LearningPathExecution',
+        sourceId: 'exec-start',
+        pathId: 'path-1',
+        goalId: 'control-correction',
+        nodeId: 'node-1',
+        privacyLevel: 'student-visible',
+      }),
+      expect.objectContaining({
+        sourceType: 'LearningPathDeviation',
+        sourceId: 'dev-1',
+        confidence: 'low',
+      }),
+      expect.objectContaining({
+        sourceType: 'LearningPathIntervention',
+        sourceId: 'int-1',
+        nodeId: 'node-1',
+        studentOutcome: 'accepted',
+      }),
+      expect.objectContaining({
+        sourceType: 'LearningPathExecution',
+        sourceId: 'exec-complete',
+        goalId: 'control-correction',
+        nodeId: 'terminal-node',
+      }),
+    ]);
+    expect(payload.features.adaptiveLearnerState.sourceCoverage.pathContext).toBe('available');
+    expect(JSON.stringify(pathExecution)).not.toContain('rawTracePayload');
+    expect(JSON.stringify(pathExecution)).not.toContain('raw model instruction');
+  });
+
+  it('dedupes repeated path evidence by idempotency keys and stable source ids', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-06-04T12:00:00.000Z'),
+      facts: [],
+      pathEvidence: {
+        executions: [
+          {
+            id: 'exec-1',
+            pathId: 'path-1',
+            userId: 'student-1',
+            nodeId: 'node-1',
+            resourceType: 'simulation',
+            status: 'completed',
+            completedAt: new Date('2026-06-04T10:05:00.000Z'),
+            idempotencyKey: 'same-exec',
+            createdAt: new Date('2026-06-04T10:05:01.000Z'),
+          },
+          {
+            id: 'exec-duplicate',
+            pathId: 'path-1',
+            userId: 'student-1',
+            nodeId: 'node-1',
+            resourceType: 'simulation',
+            status: 'completed',
+            completedAt: new Date('2026-06-04T10:06:00.000Z'),
+            idempotencyKey: 'same-exec',
+            createdAt: new Date('2026-06-04T10:06:01.000Z'),
+          },
+        ],
+        deviations: [],
+        interventions: [
+          {
+            id: 'int-1',
+            pathId: 'path-1',
+            userId: 'student-1',
+            interventionKind: 'hint',
+            citedEvidence: [{ kind: 'learning-path-node', ref: 'node-1' }],
+            studentOutcome: 'accepted',
+            privacySafeSummary: '采用提示。',
+            idempotencyKey: 'same-int',
+            createdAt: new Date('2026-06-04T10:07:00.000Z'),
+          },
+          {
+            id: 'int-duplicate',
+            pathId: 'path-1',
+            userId: 'student-1',
+            interventionKind: 'hint',
+            studentOutcome: 'accepted',
+            privacySafeSummary: '采用提示。',
+            idempotencyKey: 'same-int',
+            createdAt: new Date('2026-06-04T10:08:00.000Z'),
+          },
+        ],
+      },
+    } as any);
+
+    expect((payload.features as any).pathExecution.allTime).toMatchObject({
+      evidenceCount: 2,
+      completionCount: 1,
+      interventionOutcome: {
+        acceptedCount: 1,
+      },
+    });
+  });
+
+  it('does not count path activity records as completions even if legacy rows are completed', () => {
+    const activityKinds = [
+      'continued-interaction',
+      'review',
+      'return-to-skipped',
+      'external-resource-reference',
+      'konling-support',
+    ];
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-06-04T12:00:00.000Z'),
+      facts: [],
+      pathEvidence: {
+        executions: activityKinds.map((activityKind, index) => ({
+          id: `exec-activity-${index}`,
+          pathId: 'path-1',
+          userId: 'student-1',
+          nodeId: `node-${index}`,
+          resourceType: 'simulation',
+          status: 'completed',
+          completedAt: new Date(`2026-06-04T10:0${index}:00.000Z`),
+          idempotencyKey: `activity-${index}`,
+          liftMetadata: { pathActivityKind: activityKind },
+          createdAt: new Date(`2026-06-04T10:0${index}:01.000Z`),
+        })),
+        deviations: [],
+        interventions: [],
+      },
+    } as any);
+
+    expect((payload.features as any).pathExecution.allTime).toMatchObject({
+      evidenceCount: activityKinds.length,
+      completionCount: 0,
+      sourceCoverage: {
+        completion: 'missing',
+      },
+    });
+  });
+
+  it('summarizes failed terminal validation executions', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-06-04T12:00:00.000Z'),
+      facts: [],
+      pathEvidence: {
+        executions: [
+          {
+            id: 'exec-terminal-failed',
+            pathId: 'path-1',
+            userId: 'student-1',
+            nodeId: 'simulation:control-correction-step-response-lab',
+            resourceType: 'simulation',
+            status: 'failed',
+            startedAt: new Date('2026-06-04T10:00:00.000Z'),
+            completedAt: null,
+            failedAt: new Date('2026-06-04T10:03:00.000Z'),
+            idempotencyKey: 'terminal-failed',
+            createdAt: new Date('2026-06-04T10:03:01.000Z'),
+            path: {
+              goalId: 'control-correction',
+              terminalValidation: {
+                nodeId: 'simulation:control-correction-step-response-lab',
+                state: 'failed',
+                fallbackRequired: true,
+                failureReasons: ['simulation-failed'],
+                lowConfidenceMarkers: [],
+              },
+            },
+          },
+        ],
+        deviations: [],
+        interventions: [],
+      },
+    } as any);
+
+    const allTime = (payload.features as any).pathExecution.allTime;
+    expect(allTime).toMatchObject({
+      evidenceCount: 1,
+      fallbackCount: 1,
+      terminalValidationCount: 1,
+      terminalValidation: {
+        latestState: 'failed',
+        failedCount: 1,
+        fallbackRequiredCount: 1,
+        failureReasons: ['simulation-failed'],
+      },
+    });
+    expect(allTime.sourceReferences).toEqual([
+      expect.objectContaining({
+        sourceId: 'exec-terminal-failed',
+        terminalValidationState: 'failed',
+        failureReasons: ['simulation-failed'],
+      }),
+    ]);
+  });
+
+  it('counts cited Konling path intervention outcomes beyond legacy dismissed', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-06-04T12:00:00.000Z'),
+      facts: [],
+      pathEvidence: {
+        executions: [],
+        deviations: [],
+        interventions: [
+          {
+            id: 'int-ignored',
+            pathId: 'path-1',
+            userId: 'student-1',
+            interventionKind: 'hint',
+            studentOutcome: 'ignored',
+            privacySafeSummary: '学生暂时忽略提示。',
+            idempotencyKey: 'ignored',
+            createdAt: new Date('2026-06-04T10:01:00.000Z'),
+          },
+          {
+            id: 'int-rejected',
+            pathId: 'path-1',
+            userId: 'student-1',
+            interventionKind: 'diagnosis',
+            studentOutcome: 'rejected',
+            privacySafeSummary: '学生拒绝本轮诊断。',
+            idempotencyKey: 'rejected',
+            createdAt: new Date('2026-06-04T10:02:00.000Z'),
+          },
+          {
+            id: 'int-partial',
+            pathId: 'path-1',
+            userId: 'student-1',
+            interventionKind: 'reflection-prompt',
+            studentOutcome: 'partially-accepted',
+            privacySafeSummary: '学生只采纳部分反思建议。',
+            idempotencyKey: 'partial',
+            createdAt: new Date('2026-06-04T10:03:00.000Z'),
+          },
+        ],
+      },
+    } as any);
+
+    expect((payload.features as any).pathExecution.allTime).toMatchObject({
+      evidenceCount: 3,
+      sourceCoverage: {
+        interventionOutcome: 'available',
+      },
+      interventionOutcome: {
+        ignoredCount: 1,
+        rejectedCount: 1,
+        partiallyAcceptedCount: 1,
+      },
+    });
+    expect((payload.features as any).pathExecution.allTime.sourceReferences).toEqual([
+      expect.objectContaining({ sourceId: 'int-ignored', studentOutcome: 'ignored' }),
+      expect.objectContaining({ sourceId: 'int-rejected', studentOutcome: 'rejected' }),
+      expect.objectContaining({ sourceId: 'int-partial', studentOutcome: 'partially-accepted' }),
+    ]);
+  });
+
+  it('does not count non-terminal simulation completion as terminal validation', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-06-04T12:00:00.000Z'),
+      facts: [],
+      pathEvidence: {
+        executions: [
+          {
+            id: 'exec-mid-sim',
+            pathId: 'path-1',
+            userId: 'student-1',
+            nodeId: 'mid-simulation',
+            resourceType: 'simulation',
+            status: 'completed',
+            completedAt: new Date('2026-06-04T10:05:00.000Z'),
+            idempotencyKey: 'exec-mid-sim',
+            createdAt: new Date('2026-06-04T10:05:01.000Z'),
+            path: { goalId: 'control-correction', terminalValidation: { nodeId: 'terminal-node' } },
+          },
+        ],
+        deviations: [],
+        interventions: [],
+      },
+    } as any);
+
+    expect((payload.features as any).pathExecution.allTime).toMatchObject({
+      completionCount: 1,
+      terminalValidationCount: 0,
+      sourceCoverage: {
+        terminalValidation: 'missing',
+      },
+    });
+  });
+
   it('derives compact simulation and Arena features from governed summaries and trace references', () => {
     const payload = buildStudentEvidenceFeaturePayload({
       userId: 'student-1',
@@ -460,6 +853,29 @@ describe('student evidence feature cache service', () => {
           fact({ userId: 'student-1', sourceEventId: 'event-a' }),
         ]),
       },
+      learningPathExecution: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'exec-1',
+            pathId: 'path-1',
+            userId: 'student-1',
+            nodeId: 'terminal-node',
+            resourceType: 'arena_task',
+            status: 'completed',
+            completedAt: new Date('2026-06-04T10:20:00.000Z'),
+            idempotencyKey: 'exec-key',
+            liftMetadata: { pathActivityKind: 'continued-interaction' },
+            createdAt: new Date('2026-06-04T10:20:01.000Z'),
+            path: { goalId: 'control-correction', terminalValidation: { nodeId: 'terminal-node' } },
+          },
+        ]),
+      },
+      learningPathDeviation: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathIntervention: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
       studentCompetencySnapshot: {
         findFirst: vi.fn().mockResolvedValue(null),
       },
@@ -481,6 +897,26 @@ describe('student evidence feature cache service', () => {
         where: { userId: 'student-1' },
       })
     );
+    expect(db.learningPathExecution.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        userId: 'student-1',
+        path: {
+          goalId: {
+            in: expect.arrayContaining(['control-correction', 'frequency-response-foundations']),
+          },
+        },
+      },
+      select: expect.not.objectContaining({
+        evidenceRefs: true,
+      }),
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    }));
+    expect(db.learningPathExecution.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({
+        liftMetadata: true,
+      }),
+    }));
+    expect((entry.features as any).pathExecution.allTime.completionCount).toBe(0);
     expect(db.studentCompetencySnapshot.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
         orderBy: [
@@ -500,11 +936,277 @@ describe('student evidence feature cache service', () => {
               activityAll: expect.any(Object),
               competencyContributions30d: expect.any(Object),
               competencyContributionsAll: expect.any(Object),
+              pathExecution30d: expect.any(Object),
+              pathExecutionAll: expect.any(Object),
+            }),
+          }),
+          features: expect.objectContaining({
+            pathExecution: expect.objectContaining({
+              allTime: expect.objectContaining({
+                completionCount: 0,
+              }),
             }),
           }),
         }),
       })
     );
+  });
+
+  it('keeps path-only evidence fresh after rebuild', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathExecution: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'exec-path-only',
+            pathId: 'path-only',
+            userId: 'student-path',
+            nodeId: 'terminal-node',
+            resourceType: 'simulation',
+            status: 'completed',
+            completedAt: new Date('2026-06-04T10:20:00.000Z'),
+            idempotencyKey: 'exec-path-only',
+            createdAt: new Date('2026-06-04T10:20:01.000Z'),
+            path: { goalId: 'control-correction', terminalValidation: { nodeId: 'terminal-node' } },
+          },
+        ]),
+      },
+      learningPathDeviation: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathIntervention: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      studentCompetencySnapshot: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      studentProfileSummary: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+      studentEvidenceFeatureCache: {
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+
+    const entry = await refreshStudentEvidenceFeatureCache(db, 'student-path', {
+      now: new Date('2026-06-04T11:00:00.000Z'),
+    });
+
+    expect(entry).toMatchObject({
+      evidenceWindow: {
+        firstStartedAt: '2026-06-04T10:20:00.000Z',
+        lastStartedAt: '2026-06-04T10:20:00.000Z',
+      },
+      freshness: {
+        sourceLastUpdatedAt: '2026-06-04T10:20:00.000Z',
+        sourceWindows: expect.objectContaining({
+          activityAll: expect.objectContaining({
+            firstStartedAt: null,
+            lastStartedAt: null,
+          }),
+          pathExecutionAll: expect.objectContaining({
+            firstStartedAt: '2026-06-04T10:20:00.000Z',
+            lastStartedAt: '2026-06-04T10:20:00.000Z',
+          }),
+        }),
+      },
+      statusMarkers: expect.not.arrayContaining(['stale']),
+      confidenceMarkers: expect.objectContaining({
+        level: 'low',
+        evidenceCount: 1,
+      }),
+      lastSourceFactAt: null,
+    });
+  });
+
+  it('includes registered non-control path executions in feature cache refresh', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathExecution: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'exec-bode-quiz',
+            pathId: 'path-frequency',
+            userId: 'student-frequency',
+            nodeId: 'registry:bode-quiz',
+            resourceType: 'quiz',
+            status: 'completed',
+            completedAt: new Date('2026-06-04T10:20:00.000Z'),
+            idempotencyKey: 'exec-bode-quiz',
+            createdAt: new Date('2026-06-04T10:20:01.000Z'),
+            path: { goalId: 'frequency-response-foundations', terminalValidation: { nodeId: null } },
+          },
+        ]),
+      },
+      learningPathDeviation: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathIntervention: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      studentCompetencySnapshot: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      studentProfileSummary: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+      studentEvidenceFeatureCache: {
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+
+    const entry = await refreshStudentEvidenceFeatureCache(db, 'student-frequency', {
+      now: new Date('2026-06-04T11:00:00.000Z'),
+    });
+
+    expect((entry.features as any).pathExecution.allTime).toMatchObject({
+      evidenceCount: 1,
+      completionCount: 1,
+      sourceReferences: [
+        expect.objectContaining({
+          sourceType: 'LearningPathExecution',
+          sourceId: 'exec-bode-quiz',
+          pathId: 'path-frequency',
+          nodeId: 'registry:bode-quiz',
+        }),
+      ],
+    });
+  });
+
+  it('summarizes failed terminal validation without leaking hidden Arena internals', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathExecution: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'exec-terminal-low-confidence',
+            pathId: 'path-terminal',
+            userId: 'student-path',
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            resourceType: 'arena_task',
+            status: 'completed',
+            completedAt: new Date('2026-06-04T10:20:00.000Z'),
+            idempotencyKey: 'exec-terminal-low-confidence',
+            createdAt: new Date('2026-06-04T10:20:01.000Z'),
+            path: {
+              goalId: 'control-correction',
+              terminalValidation: {
+                nodeId: 'arena-task:task-second-order-lead-pid',
+                state: 'low-confidence',
+                fallbackRequired: true,
+                lowConfidenceMarkers: ['arena-preview-only', 'arena-replay-confidence-missing'],
+                failureReasons: [],
+                evidence: {
+                  arena: {
+                    id: 'preview-run-1',
+                    provenance: 'preview',
+                    hiddenTrace: [{ t: 0, y: 1 }],
+                    hiddenScenarioOrder: ['private-scenario'],
+                  },
+                },
+              },
+            },
+          },
+        ]),
+      },
+      learningPathDeviation: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathIntervention: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      studentCompetencySnapshot: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      studentProfileSummary: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+      studentEvidenceFeatureCache: {
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+
+    const entry = await refreshStudentEvidenceFeatureCache(db, 'student-path', {
+      now: new Date('2026-06-04T11:00:00.000Z'),
+    });
+
+    expect((entry.features as any).pathExecution.allTime).toMatchObject({
+      terminalValidationCount: 1,
+      fallbackCount: 1,
+      confidence: expect.objectContaining({
+        level: 'low',
+        lowConfidenceCount: 1,
+      }),
+      terminalValidation: expect.objectContaining({
+        latestState: 'low-confidence',
+        lowConfidenceCount: 1,
+        fallbackRequiredCount: 1,
+        lowConfidenceMarkers: ['arena-preview-only', 'arena-replay-confidence-missing'],
+      }),
+      sourceReferences: [
+        expect.objectContaining({
+          sourceType: 'LearningPathExecution',
+          terminalValidationState: 'low-confidence',
+          lowConfidenceMarkers: ['arena-preview-only', 'arena-replay-confidence-missing'],
+        }),
+      ],
+    });
+    const serialized = JSON.stringify(entry);
+    expect(serialized).not.toContain('hiddenTrace');
+    expect(serialized).not.toContain('hiddenScenarioOrder');
+    expect(serialized).not.toContain('private-scenario');
+  });
+
+  it('ignores path rows that are not scoped to control-correction paths', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathExecution: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'exec-legacy',
+            pathId: 'legacy-path',
+            userId: 'student-1',
+            nodeId: 'node-legacy',
+            resourceType: 'simulation',
+            status: 'completed',
+            completedAt: new Date('2026-06-04T10:20:00.000Z'),
+            idempotencyKey: 'legacy-exec',
+            createdAt: new Date('2026-06-04T10:20:01.000Z'),
+            path: { goalId: 'legacy-goal', terminalValidation: { nodeId: 'node-legacy' } },
+          },
+        ]),
+      },
+      learningPathDeviation: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathIntervention: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      studentCompetencySnapshot: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      studentProfileSummary: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+      studentEvidenceFeatureCache: {
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+
+    const entry = await refreshStudentEvidenceFeatureCache(db, 'student-1', {
+      now: new Date('2026-06-04T11:00:00.000Z'),
+    });
+
+    expect((entry.features as any).pathExecution.allTime.evidenceCount).toBe(0);
+    expect(entry.statusMarkers).toEqual(expect.arrayContaining(['stale']));
   });
 
   it('full rebuild derives users from governed facts and keeps payloads stable', async () => {
@@ -519,6 +1221,18 @@ describe('student evidence feature cache service', () => {
           ])
           .mockResolvedValueOnce([fact({ userId: 'student-1', sourceEventId: 'event-a' })])
           .mockResolvedValueOnce([fact({ userId: 'student-2', sourceEventId: 'event-b' })]),
+      },
+      learningPathExecution: {
+        findMany: vi.fn()
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([]),
+      },
+      learningPathDeviation: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathIntervention: {
+        findMany: vi.fn().mockResolvedValue([]),
       },
       studentCompetencySnapshot: {
         findFirst: vi.fn().mockResolvedValue(null),
@@ -551,10 +1265,36 @@ describe('student evidence feature cache service', () => {
       learningFact: {
         findMany: vi
           .fn()
+          .mockResolvedValue([])
           .mockResolvedValueOnce([{ userId: 'student-fact' }])
           .mockResolvedValueOnce([])
           .mockResolvedValueOnce([fact({ userId: 'student-fact', sourceEventId: 'event-a' })])
           .mockResolvedValueOnce([]),
+      },
+      learningPathExecution: {
+        findMany: vi.fn().mockResolvedValue([])
+          .mockResolvedValueOnce([{ userId: 'student-path' }])
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([
+            {
+              id: 'exec-path-only',
+              pathId: 'path-only',
+              userId: 'student-path',
+              nodeId: 'node-1',
+              resourceType: 'simulation',
+              status: 'started',
+              startedAt: new Date('2026-06-04T10:00:00.000Z'),
+              idempotencyKey: 'exec-path-only',
+              createdAt: new Date('2026-06-04T10:00:01.000Z'),
+            },
+          ]),
+      },
+      learningPathDeviation: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathIntervention: {
+        findMany: vi.fn().mockResolvedValue([]),
       },
       studentCompetencySnapshot: {
         findMany: vi.fn().mockResolvedValue([{ userId: 'student-aggregate' }]),
@@ -573,10 +1313,21 @@ describe('student evidence feature cache service', () => {
       now: new Date('2026-05-19T00:00:00.000Z'),
     });
 
-    expect(result.processedStudents).toBe(3);
+    expect(result.processedStudents).toBe(4);
+    expect(db.learningPathExecution.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: {
+        path: {
+          goalId: {
+            in: expect.arrayContaining(['control-correction', 'frequency-response-foundations']),
+          },
+        },
+      },
+      select: { userId: true },
+    }));
     expect(db.studentEvidenceFeatureCache.upsert.mock.calls.map(([args]) => args.where.userId)).toEqual([
       'student-aggregate',
       'student-fact',
+      'student-path',
       'student-profile',
     ]);
   });
@@ -612,6 +1363,39 @@ describe('student evidence feature cache service', () => {
       state: 'stale',
       cache: {
         userId: 'student-1',
+      },
+    });
+  });
+
+  it('keeps current v4 path execution caches readable when terminal validation summary is absent', async () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-19T00:00:00.000Z'),
+      facts: [fact()],
+    });
+    delete (payload.features as any).pathExecution.recent30d.terminalValidation;
+    delete (payload.features as any).pathExecution.allTime.terminalValidation;
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+          refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
+          statusMarkers: [],
+          features: payload.features,
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-19T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({
+      state: 'ready',
+      cache: {
+        userId: 'student-1',
+        payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
       },
     });
   });

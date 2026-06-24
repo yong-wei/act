@@ -1,0 +1,719 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/teacher/resources",
+    "h1": [
+      "教师工作台",
+      "教学资源管理"
+    ],
+    "activeElement": {
+      "tag": "input",
+      "type": "text",
+      "name": "输入显示名称",
+      "placeholder": "输入显示名称"
+    },
+    "alerts": [],
+    "buttons": [
+      {
+        "tag": "a",
+        "name": "返回首页",
+        "href": "/",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "张 张永韡 个人中心",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教师总览",
+        "href": "/teacher",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教案",
+        "href": "/teacher/lesson-plans",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "资源",
+        "href": "/teacher/resources",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课前包",
+        "href": "/teacher/prep-packs",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂历史",
+        "href": "/teacher/history",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级分析",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "返回教师工作台",
+        "href": "/teacher",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "ResourceNode 管理",
+        "href": "/teacher/resources/resource-nodes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "互动组件",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "课堂组件",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "知识图谱",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "全部",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "系统建模",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "时域分析",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "根轨迹分析",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "频域分析",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "系统校正",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "非线性",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "趣味探索",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "关闭 (ESC)",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "",
+        "href": "",
+        "disabled": true,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "打开控灵与页面工具菜单",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "取消",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "保存",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "Close",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "placeholder": "搜索资源...",
+        "ariaLabel": "搜索资源...",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "placeholder": "输入显示名称",
+        "ariaLabel": "输入显示名称",
+        "value": "机械系统建模",
+        "hidden": false
+      },
+      {
+        "tag": "textarea",
+        "type": "",
+        "name": "",
+        "placeholder": "输入资源描述",
+        "ariaLabel": "输入资源描述",
+        "value": "通过拖拽构建弹簧-质量-阻尼系统，理解机械系统动力学建模",
+        "hidden": false
+      }
+    ],
+    "tables": [],
+    "unnamedButtons": 1,
+    "graphicsCount": 81,
+    "unnamedGraphics": 0,
+    "bodyText": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回教师工作台 教学资源管理 管理互动组件、课堂组件和知识卡片 ResourceNode 管理 互动组件 课堂组件 知识图谱 全部 系统建模 时域分析 根轨迹分析 频域分析 系统校正 非线性 趣味探索 系统建模 (16) 机械系统建模 通过拖拽构建弹簧-质量-阻尼系统，理解机械系统动力学建模 widget-physics-mech 电气系统建模 构建RLC电路，理解电气系统与机械系统的类比关系 widget-physics-elec 机电类比映射 探索机械系统与电气系统之间的对偶关系 widget-analogy-mapper 物理建模导论 理解为什么需要数学建模，以及建模的基本方法 physics-modeling-intro-v1 课程导入：驱逐舰转向 Lesson-02 导入阶段，通过驱逐舰转向场景引入机理建模 lesson02-bridge-v1 学习目标展示 Lesson-02 目标阶段，展示机理建模学习目标 lesson02-objective-v1 前测：建模基础 Lesson-02 前测阶段，检验机理建模先验知识 lesson02-pretest-v1 机械系统机理建模 Lesson-02 机械系统建模交互学习 lesson02-mechanical-v1 电气系统机理建模 Lesson-02 电气系统建模交互学习 lesson02-electrical-v1 机电系统类比 Lesson-02 机电类比映射交互学习 lesson02-analogy-v1 后测：建模验证 Lesson-02 后测阶段，验证机理建模学习成果 lesson02-posttest-v1 课程总结 Lesson-02 总结阶段，回顾机理建模核心概念 lesson02-summary-v1 机械系统物理建模 深入学习机械系统的物理建模方法 physics-modeling-mechanical-v1 电气系统物理建模 深入学习电气系统的物理建模方法 physics-modeling-electrical-v1 机电类比物理建模 理解机电系统类比的物理本质 physics-modeling-analogy-v1 物理建模实践 综合运用物理建模方法解决实际问题 physics-modeling-practice-v1 时域分析 (18) 阻尼调节实验 通过弹簧-阻尼-质量系统理解阻尼比对系统响应的影响 lesson13-physics-builder-simple ISO 2631 舒适度映射 理解控制指标与乘客舒适度之间的映射关系 lesson13-iso2631-mapping 欠阻尼速判 通过快速测验确认二阶系统标准型与欠阻尼判据 lesson07-damping-quick-check 二阶系统标准型知识卡 系统梳理标准型、极点关系与性能指标公式 lesson07-second-order-theory 极点操纵者 拖拽极点与零点，观察阶跃响应如何变化 lesson07-pole-manipulator 衰减振荡实验室 拖动阻尼比与自然频率观察阶跃响应变化 lesson07-response-explorer 参数匹配挑战 根据目标超调与调节时间完成参数匹配挑战 lesson07-parameter-challenge 课程总结 复盘欠阻尼二阶系统的关键指标与课后思考 lesson07-summary-card 稳定与误差前测 检测稳定性判据与稳态误差基础概念掌握情况 lesson08-stability-precheck 劳斯判据速览 梳理劳斯判据与劳斯表构造流程 lesson08-routh-guide 劳斯判据练习 通过典型例题判断系统稳定性 lesson08-routh-practice 稳态误差知识卡 掌握终值定理、静态误差系数与系统型别关系 lesson08-steady-error-deck 稳定与误差后测 综合检验稳定性与稳态误差分析能力 lesson08-post-quiz 课程总结 总结稳定判据与稳态误差的关键结论 lesson08-summary-card 指标速判 时域指标快速识别 lesson06-metric-quick-check 指标裁判手册 时域指标说明与判读 lesson06-metric-handbook 裁判席计分器 调参判分仿真 lesson06-judge-bench 邮轮舒适度导入视频 邮轮舒适度导入场景 lesson13-cruise-bridge 根轨迹分析 (5) 论证原理可视化 在复平面上探索闭环极点与系统稳定性的关系 widget-argument-principle 根轨迹规则工作坊 通过规则速判与细节修正练习掌握根轨迹绘制要点 lesson10-root-locus-workshop 参数根轨迹知识卡 掌握参数根轨迹广义定义、等效开环与稳定范围判断 lesson11-parameter-root-locus-deck 图形化思考工作坊 通过案例训练参数根轨迹的图形化分析流程 lesson11-graphical-thinking-workshop 课程总结 复盘参数根轨迹的关键结论与课后思考 lesson11-summary-card 频域分析 (6) 频率响应速判 快速检测频率响应与对数坐标基础概念 lesson12-frequency-precheck 伯德图绘制步骤 梳理伯德图绘制流程与顺序 lesson12-bode-step-sorter 斜率叠加拼图 拖拽斜率卡片完成转折频率分段叠加 lesson12-bode-slope-puzzle 伯德图识别练习 根据幅频曲线识别典型环节与共振峰 lesson12-bode-plot-recognition 伯德图后测 复盘绘图步骤与斜率叠加关键点 lesson12-bode-post-quiz 课程总结 总结频率响应与伯德图核心结论 lesson12-summary-card 系统校正 (6) PID参数整定仿真 实时调节PID参数，观察船舶航向控制响应 sim-pid-v1 香槟塔保卫战 在台风避障场景中完成30°紧急转向，保护香槟塔不倒 lesson13-cruise-typhoon-sim 校正前测 快速检验 PD、输出反馈与补偿基础概念 lesson09-correction-precheck 校正手段速览 对比串联校正、输出反馈、前馈与扰动补偿 lesson09-correction-strategy 时域综合流程 梳理稳定范围、误差与扰动响应的分析步骤 lesson09-time-domain-synthesis 课程总结 复盘校正与时域综合的关键结论 lesson09-summary-card 非线性 (1) 北极航行伦理决策 在北极冰区航行场景中做出控制系统伦理决策 ethics-arctic-v1 趣味探索 (2) Control Odyssey: 穿越误差带 通过游戏化方式体验比例控制、系统惯性与误差带限制，穿越控制系统的\"奥德赛\"之旅。 control-odyssey-v1 十滴水益智游戏 经典的逻辑消除游戏，培养多步预测与连锁反应思维。 ten-drops-game-v1 控灵 当前: resources 你好，我是控灵。今天我们将探索「resources」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵 编辑资源 显示名称 原始标题: 机械系统建模 描述 取消 保存 Close"
+  }
+}

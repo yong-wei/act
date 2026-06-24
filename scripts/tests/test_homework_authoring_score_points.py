@@ -4,8 +4,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SKILL = ROOT / '.codex' / 'skills' / 'homework-problem-authoring' / 'SKILL.md'
-CONTRACT = ROOT / '.codex' / 'skills' / 'homework-problem-authoring' / 'references' / 'output-contract.md'
+SKILL = ROOT / '.agents' / 'skills' / 'homework' / 'SKILL.md'
+CONTRACT = ROOT / '.agents' / 'skills' / 'homework' / 'references' / 'output-contract.md'
 
 
 def main() -> None:
@@ -16,6 +16,9 @@ def main() -> None:
     assert 'inline_score_points' in contract_text
     assert 'rubric' in skill_text
     assert 'rubric' in contract_text
+    assert 'question_score' in skill_text
+    assert 'assignment_score_policy' in skill_text
+    assert 'question_score' in contract_text
     assert '并存' in skill_text or '与 `rubric` 并存' in skill_text
 
     print('homework authoring score points test passed')

@@ -1,0 +1,550 @@
+{
+  "id": "chapter-05",
+  "number": 5,
+  "title": "线性系统的频域分析法",
+  "pipeline": "mathpixplus",
+  "textbookPath": "textbook.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/chapter-05.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/chapter-05.qa.json",
+  "sourcePageStart": 139,
+  "sourcePageEnd": 181,
+  "sourcePageCount": 43,
+  "imageCount": 53,
+  "figureDescriptionCount": 52,
+  "markdownSha256": "8c869510f2fc86ac22022c3ef1315c154404c464fd090adead0475767281e2a3",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/chapter-05.local.md.images.json",
+  "sourceImageManifestCount": 53,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0140-01-300dpi.png",
+      "exportPath": "assets/fig-05-61.png",
+      "originalRelativePath": "assets/mathpix-source-page-0140-01-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled as \"图5-61 控制系统结构图.\" The diagram illustrates a closed-loop feedback system. On the left, an input signal $R(s)$ enters a summing junction (represented by a circle). The output of this junction is the error signal $E(s)$, which serves as the input to a forward transfer function block. The central rectangular block contains the mathematical expression $\\frac{1}{(s+1)}$, representing the system's plant or controller. The output from this block is labeled as $C(s)$. A feedback loop consists of a line originating from the output $C(s)$ and returning to the summing junction. This feedback path is marked with a minus sign ($-$), indicating negative feedback, where the output is subtracted from the reference input $R(s)$ to determine the error signal $E(s)$. Arrows indicate the unidirectional flow of signals throughout the system. 图5－61 控制系统结构图",
+      "sourcePdfPage": 140,
+      "sha256": "d73154bc084526d8022dc3073ba15b53e6ffb448fe7d9f1443487bada3094dba",
+      "bytes": 25796
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0142-01-300dpi.png",
+      "exportPath": "assets/fig-05-05-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0142-01-300dpi.png",
+      "caption": "> Image description: This image is a technical plot from a textbook, captioned as \"图 5-5-1 $\\tau > T$ 时开环幅相特性曲线,\" which refers to the open-loop frequency response characteristics when $\\tau > T$. The figure features a Cartesian coordinate system where the vertical axis is labeled $j$ and the horizontal axis represents frequency $\\omega$. The origin is marked with \"0\". A curved line starts from the horizontal axis at the point labeled $\\omega = 0^+$, moves upward and to the right, and terminates at the origin. Below this path, a dashed semicircular arc extends from $\\omega = 0^+$ down and back up toward the vertical axis, indicated by an arrow showing a counter-clockwise direction of travel. The inequality $\\tau > T$ is centered in the upper half of the plot. In engineering terms, this represents a trajectory in the complex plane used for stability analysis or system response. 图 5－5－1 $\\tau>T$ 时开环幅相特性曲线",
+      "sourcePdfPage": 142,
+      "sha256": "e3f1827031660fd270d63baf62ac215db0ee3bbc9875867b471abcbab48d653d",
+      "bytes": 29848
+    },
+    {
+      "index": 3,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0142-02-300dpi.png",
+      "exportPath": "assets/fig-05-05-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0142-02-300dpi.png",
+      "caption": "> Image description: A technical diagram illustrating a frequency response curve in the complex plane, likely representing an open-loop Bode plot or Nyquist plot for a control system. The image features a vertical axis labeled $j$ and a horizontal axis with a center point marked as $0$. A solid black line originates from the left on the real axis at a point labeled $\\omega=0^+$, curves upward, and terminates at the origin $(0,0)$. A dashed semicircular arc connects the starting point of the curve to the bottom of the vertical axis, with an arrow indicating a clockwise direction. The region enclosed by these paths is labeled with the variable condition $\\tau < T$. The Chinese caption \"图 5－5－1 $\\tau > T$ 时开环幅相特性曲线\" indicates this is Figure 5-5-1, showing the open-loop amplitude-phase characteristic curve when $\\tau > T$, though the label within the plot specifically denotes $\\tau < T$. 图5－5－2 $\\tau<T$ 时开环幅相特性曲线",
+      "sourcePdfPage": 142,
+      "sha256": "9d9a32ae86edf932b159b73c944d49aef95c99c8dfbb4b64408e2794372450b5",
+      "bytes": 30628
+    },
+    {
+      "index": 4,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0142-03-300dpi.png",
+      "exportPath": "assets/fig-05-05-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0142-03-300dpi.png",
+      "caption": "> Image description: A technical plot showing an open-loop frequency response curve in the complex plane. The horizontal axis is labeled \"Real Axis\" with a scale from -10 to 0, and the vertical axis is labeled \"Imaginary Axis\" with a scale from -3 to 3. A dashed horizontal line marks the zero value on the imaginary axis. A solid black curve originates at approximately (-10, -2.8) and trends upward and to the right, terminating at the origin (0, 0). An arrow on the curve indicates the direction of movement toward the origin. According to the Chinese caption \"图5－5－2 $\\tau < T$ 时开环幅相特性曲线,\" this figure represents the open-loop amplitude-phase characteristic curve under the condition where the time constant $\\tau$ is less than $T$. In control engineering, such a plot typically illustrates the stability and frequency response of a system. 图 5－5－3 $K=1, T=1, \\tau=2$ 时开环幅相特性曲线（MATLAB）",
+      "sourcePdfPage": 142,
+      "sha256": "c2e88f069c7b28db386b0aa5b9993de52f9ffd377c63590f96e7ff87ca87be64",
+      "bytes": 97015
+    },
+    {
+      "index": 5,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0142-04-300dpi.png",
+      "exportPath": "assets/fig-05-05-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0142-04-300dpi.png",
+      "caption": "图 5－5－4 $K=1, T=2, \\tau=1$ 时开环幅相特性曲线（MATLAB）",
+      "sourcePdfPage": 142,
+      "sha256": "31066526e63b003a79b0b0897167d3129484fa9a3e49c5ed00078d9ed16e7a10",
+      "bytes": 101115
+    },
+    {
+      "index": 6,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0144-01-300dpi.png",
+      "exportPath": "assets/fig-05-06-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0144-01-300dpi.png",
+      "caption": "图 5－6－1 $v=1 、 2 、 3 、 4$ 时，$G(\\mathrm{j} \\omega) H(\\mathrm{j} \\omega)=\\frac{1}{(\\mathrm{j} \\omega)^{\\nu}(1+\\mathrm{j} \\omega)(2+\\mathrm{j} \\omega)}$ 幅相特性曲线（MATLAB）",
+      "sourcePdfPage": 144,
+      "sha256": "572333310ade9c17691d7286e7f07ad5fe1805d41d2d9513fef649118c0bf6bc",
+      "bytes": 167135
+    },
+    {
+      "index": 7,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0145-01-300dpi.png",
+      "exportPath": "assets/fig-05-07-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0145-01-300dpi.png",
+      "caption": "图 5－7－1 $G(\\mathrm{j} \\omega)=\\frac{10(1-\\mathrm{j} 0.05 \\omega)}{\\mathrm{j} \\omega(1+\\mathrm{j} 20 \\omega)}$",
+      "sourcePdfPage": 145,
+      "sha256": "8f9e9b48cf6ccc31bb9277d4b11af920d582766a0c31c24a042a9d321e525dee",
+      "bytes": 102832
+    },
+    {
+      "index": 8,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0146-01-300dpi.png",
+      "exportPath": "assets/fig-05-08-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0146-01-300dpi.png",
+      "caption": "图 5－8－1 $\\quad G(\\mathrm{j} \\omega)=\\frac{10}{\\mathrm{j} \\omega(1+\\mathrm{j} 2 \\omega)\\left(1-\\omega^{2}+\\mathrm{j} 0.5 \\omega\\right)}$ 幅相特性曲线（MATLAB）",
+      "sourcePdfPage": 146,
+      "sha256": "568f8b48f5ef1686b08f716c1400f187244659399fa8ddd219f5327ee704a219",
+      "bytes": 123101
+    },
+    {
+      "index": 9,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0147-01-300dpi.png",
+      "exportPath": "assets/fig-05-09-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0147-01-300dpi.png",
+      "caption": "图 5－9－1 $\\quad G(\\mathrm{j} \\omega) H(\\mathrm{j} \\omega)=\\frac{10}{\\mathrm{j} \\omega(1+\\mathrm{j} \\omega)\\left(1-\\omega^{2} / 4\\right)}$",
+      "sourcePdfPage": 147,
+      "sha256": "0aa1d55a3e2d8af269a10c1de197e2908a39fe16e7c2985e942f4f4c1b3b519f",
+      "bytes": 95667
+    },
+    {
+      "index": 10,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0147-02-300dpi.png",
+      "exportPath": "assets/fig-05-09-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0147-02-300dpi.png",
+      "caption": "图 5－9－2 $\\quad G(\\mathrm{j} \\omega) H(\\mathrm{j} \\omega)=\\frac{10}{\\mathrm{j} \\omega(1+\\mathrm{j} \\omega)\\left(1-\\omega^{2} / 4\\right)}$",
+      "sourcePdfPage": 147,
+      "sha256": "71977969b48083414651299895e137ab78da2378de22fff77dbe8c0a81f2480d",
+      "bytes": 120868
+    },
+    {
+      "index": 11,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0148-01-300dpi.png",
+      "exportPath": "assets/fig-05-10-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0148-01-300dpi.png",
+      "caption": "> Image description: This image displays a Bode plot representing the open-loop frequency response of a system, as indicated by the caption \"图 5－10－1\". The figure consists of two vertically aligned graphs sharing a common logarithmic horizontal axis for angular frequency $\\omega$ in radians per second ($\\text{rad/s}$), ranging from $10^{-1}$ to $10^2$. The upper graph plots magnitude, labeled as $20\\lg|G|/\\text{dB}$, on the vertical axis. The curve starts at approximately $20\\text{ dB}$ at low frequencies and slopes downward, showing a change in gradient around $\\omega = 1$ and another steeper decline after $\\omega \\approx 3$, eventually reaching $-100\\text{ dB}$. The lower graph plots phase angle, labeled as $\\phi/(^\\circ)$, on the vertical axis. The phase begins at $-90^\\circ$, remains relatively constant until $\\omega = 1$, then drops sharply through $-180^\\circ$ and asymptotically approaches $-270^\\circ$ at higher frequencies. Together, these plots characterize the system's stability and frequency response. 图 5－10－1 $G(\\mathrm{j} \\omega)=\\frac{1+\\mathrm{j} \\omega}{\\mathrm{j} \\omega(1+\\mathrm{j} 0.5 \\omega)\\left[\\left(1-\\frac{\\omega^{2}}{9}\\right)+\\mathrm{j} \\frac{\\omega}{3}\\right]}$ 的对数频率特性（MATLAB）",
+      "sourcePdfPage": 148,
+      "sha256": "ec8908a2a6f5ec3bba82a241143755a9290deb3f44a33d050f8096eefa6303a7",
+      "bytes": 468193
+    },
+    {
+      "index": 12,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0150-01-300dpi.png",
+      "exportPath": "assets/fig-05-11-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0150-01-300dpi.png",
+      "caption": "图 5－11－1 $\\quad G(s)=\\frac{2}{(2 s+1)(8 s+1)}$",
+      "sourcePdfPage": 150,
+      "sha256": "116acca02a404a218c2029e9a5659bdd564342c79946aad8ca9013524ad775c6",
+      "bytes": 348179
+    },
+    {
+      "index": 13,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0150-02-300dpi.png",
+      "exportPath": "assets/fig-05-11-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0150-02-300dpi.png",
+      "caption": "图 5－11－2 $\\quad G(s)=\\frac{200}{s^{2}(s+1)(10 s+1)}$",
+      "sourcePdfPage": 150,
+      "sha256": "f19e4799bc5f565022120cfc1d7b3eca385d467d2252ec67bde4c8624ea1c686",
+      "bytes": 321177
+    },
+    {
+      "index": 14,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0151-01-300dpi.png",
+      "exportPath": "assets/fig-05-11-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0151-01-300dpi.png",
+      "caption": "> Image description: This image shows a Bode magnitude plot representing the open-loop logarithmic amplitude-frequency asymptotic characteristics of a system, as indicated by the caption \"系统开环对数幅频渐近特性曲线如图 5－11－4 所示。\" The graph features a logarithmic scale on the horizontal axis ($\\omega$ in rad/s) ranging from $10^{-2}$ to $10^1$, and a linear scale on the vertical axis ($L(\\omega)$ in dB) ranging from -20 to 60. The plot consists of three distinct linear segments: 1. A descending slope of $-20\\text{dB/dec}$ starting at $\\omega = 10^{-2}$. 2. A flat horizontal segment (constant gain) between approximately $10^{-1}$ and $10^0$ rad/s, maintaining a value near 38 dB. 3. A steep descent beginning at $10^0$ rad/s, initially sloping at $-40\\text{dB/dec}$ before transitioning to a steeper slope of $-60\\text{dB/dec}$. The figure illustrates how the system's gain decreases as frequency increases across different decades. 图 5－11－3 $G(s)=\\frac{8\\left(\\frac{s}{0.1}+1\\right)}{s\\left(s^{2}+s+1\\right)\\left(\\frac{s}{2}+1\\right)}$",
+      "sourcePdfPage": 151,
+      "sha256": "710d81cbd9928b09ab93a82f3bb418a41dbfe4a8a9aeaefee9412e68e92eb7d9",
+      "bytes": 320199
+    },
+    {
+      "index": 15,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0151-02-300dpi.png",
+      "exportPath": "assets/fig-05-11-04-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0151-02-300dpi.png",
+      "caption": "图 5－11－4 $G(s)=\\frac{10\\left(\\frac{s^{2}}{400}+\\frac{s}{10}+1\\right)}{s(s+1)\\left(\\frac{s}{0.1}+1\\right)}$",
+      "sourcePdfPage": 151,
+      "sha256": "6a9f68c5c5eafb09bebdb5db17f5eaf29d3efddadfff8a7e9383a9c84474edc8",
+      "bytes": 363425
+    },
+    {
+      "index": 16,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0153-01-300dpi.png",
+      "exportPath": "assets/fig-05-62.png",
+      "originalRelativePath": "assets/mathpix-source-page-0153-01-300dpi.png",
+      "caption": "图5－62 系统开环对数幅频渐近特性 （1）图5－62（a）系统。",
+      "sourcePdfPage": 153,
+      "sha256": "6f41a97188dc45151aa73538b585df9c4b107d33a1140389413ca8b74cf83022",
+      "bytes": 130404
+    },
+    {
+      "index": 17,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0153-02-300dpi.png",
+      "exportPath": "assets/fig-05-12-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0153-02-300dpi.png",
+      "caption": "图 5－12－1 $G(s)=\\frac{100\\left(1+\\frac{s}{10}\\right)}{\\left(1+\\frac{s}{0.01}\\right)\\left(1+\\frac{s}{100}\\right)}$对数幅频渐近特性（MATLAB）",
+      "sourcePdfPage": 153,
+      "sha256": "e8b94cd3fedc18dddc8b4d09a66560d84c418f66860334e03776dbc97732237b",
+      "bytes": 138992
+    },
+    {
+      "index": 18,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0154-01-300dpi.png",
+      "exportPath": "assets/fig-05-62-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0154-01-300dpi.png",
+      "caption": "> Image description: This image is a Bode magnitude plot representing the frequency response of a system, labeled as \"（3）图5－62（c）系统\". The horizontal axis represents angular frequency $\\omega$ in radians per second ($\\text{rad/s}$) on a logarithmic scale, ranging from $10^{-1}$ to $10^4$. The vertical axis represents the loop gain $L(\\omega)$ measured in decibels ($\\text{dB}$), ranging from $-80$ to $80$. The plot consists of three distinct linear segments with different slopes: 1. An initial descent starting at $80\\text{ dB}$ with a slope of $-40\\text{ dB/dec}$. 2. A middle section transitioning to a shallower slope of $-20\\text{ dB/dec}$, occurring between approximately $2$ and $300\\text{ rad/s}$. 3. A final descent returning to a steeper slope of $-40\\text{ dB/dec}$ for frequencies above roughly $300\\text{ rad/s}$. A dashed line is also visible near the first transition point, indicating an asymptotic approximation of the system's magnitude response. 图 5－12－2 $G(s)=\\frac{100\\left(1+\\frac{s}{3.16}\\right)}{s^{2}\\left(1+\\frac{s}{316}\\right)}$",
+      "sourcePdfPage": 154,
+      "sha256": "13f9d3c78915db83a5d93ede249df2a57dc0bbbc4a4d5214813f097b42a01954",
+      "bytes": 385728
+    },
+    {
+      "index": 19,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0155-01-300dpi.png",
+      "exportPath": "assets/fig-05-12-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0155-01-300dpi.png",
+      "caption": "图 5－12－3 $G(s)=\\frac{10 s^{2}}{\\left(s^{2}+0.1 s+1\\right)\\left(1+\\frac{s}{10}\\right)}$ 对数幅频渐近特性（MATLAB）",
+      "sourcePdfPage": 155,
+      "sha256": "ecbead7264180e01fc2a158b84c7189a810a9c18f93045d3b8eaadd6ccedad42",
+      "bytes": 390304
+    },
+    {
+      "index": 20,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0156-01-300dpi.png",
+      "exportPath": "assets/fig-05-13-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0156-01-300dpi.png",
+      "caption": "图 5－13－1 题 5－5 中 $\\tau>T$ 时概略开环幅相特性曲线",
+      "sourcePdfPage": 156,
+      "sha256": "56bb378eb9b7c35134f6aa79b59cb11183c0ee6d6606f2f1ac59781f60eddabf",
+      "bytes": 28318
+    },
+    {
+      "index": 21,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0156-02-300dpi.png",
+      "exportPath": "assets/fig-05-13-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0156-02-300dpi.png",
+      "caption": "图 5－13－2 题 5－5 中 $\\tau<T$ 时概略开环幅相特性曲线 （2）对于题 5－6 中的系统。其概略开环幅相特性曲线如图 5－13－3 所示。",
+      "sourcePdfPage": 156,
+      "sha256": "a917d130b6834256903dea1b472795de25df4a6c223ba1713fd27350a879e912",
+      "bytes": 31107
+    },
+    {
+      "index": 22,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0156-03-300dpi.png",
+      "exportPath": "assets/fig-05-13-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0156-03-300dpi.png",
+      "caption": "图5－13－3 题5－6中概略开环幅相特性曲线",
+      "sourcePdfPage": 156,
+      "sha256": "1f905aff2b1c7e92409801ec534f22ac6ff8e3300a9cc3b32b4a86cbc37ca725",
+      "bytes": 150782
+    },
+    {
+      "index": 23,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0158-01-300dpi.png",
+      "exportPath": "assets/fig-05-63.png",
+      "originalRelativePath": "assets/mathpix-source-page-0158-01-300dpi.png",
+      "caption": "图 5－63 题 5－14 系统开环幅相特性曲线",
+      "sourcePdfPage": 158,
+      "sha256": "a08334c6b4ca54a5c8c45e416992f8036f612a07f45ed4b00b5b44fadc8b232a",
+      "bytes": 156368
+    },
+    {
+      "index": 24,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0161-01-300dpi.png",
+      "exportPath": "assets/fig-05-15-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0161-01-300dpi.png",
+      "caption": "图 5－15－1 $\\quad G(\\mathrm{j} \\omega) H(\\mathrm{j} \\omega)=\\frac{10}{\\mathrm{j} \\omega(1+\\mathrm{j} \\omega)\\left(1-\\omega^{2} / 4\\right)}$",
+      "sourcePdfPage": 161,
+      "sha256": "2cae6cf6b816c9975ec4c2ce3d0d6da0e5cd800df018e2dc4d4056dece9030f2",
+      "bytes": 94612
+    },
+    {
+      "index": 25,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0161-02-300dpi.png",
+      "exportPath": "assets/fig-05-15-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0161-02-300dpi.png",
+      "caption": "图 5－15－2 题 5－9 系统的单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 161,
+      "sha256": "db8cca728bf61ac211f9c5a4c02d841892390d103236be07c1069c68079cac8c",
+      "bytes": 201755
+    },
+    {
+      "index": 26,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0163-01-300dpi.png",
+      "exportPath": "assets/fig-05-16-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0163-01-300dpi.png",
+      "caption": "图 5－16－1 $\\quad G(\\mathrm{j} \\omega)=\\frac{K}{\\mathrm{j} \\omega(1+\\mathrm{j} T \\omega)(1+\\mathrm{j} \\omega)}$",
+      "sourcePdfPage": 163,
+      "sha256": "cdca3481970da7121938df102be46c8806a4e27757adb09e3ab8bb9689fae661",
+      "bytes": 44498
+    },
+    {
+      "index": 27,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0163-02-300dpi.png",
+      "exportPath": "assets/fig-05-16-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0163-02-300dpi.png",
+      "caption": "图 5－16－2 $K=1, T=2$ 时系统时间",
+      "sourcePdfPage": 163,
+      "sha256": "7b69fe6856e09ac6c7cfeae4d92e3960539cd1d437343cc4c2dcb29e94fa2bf8",
+      "bytes": 216625
+    },
+    {
+      "index": 28,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0163-03-300dpi.png",
+      "exportPath": "assets/fig-05-16-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0163-03-300dpi.png",
+      "caption": "图 5－16－3 $K=2, T=0.5$ 时系统时间",
+      "sourcePdfPage": 163,
+      "sha256": "2bca726528b390c3f0236adff2176bb03900f05dc0fff35c09a688fe7fe75050",
+      "bytes": 229578
+    },
+    {
+      "index": 29,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0163-04-300dpi.png",
+      "exportPath": "assets/fig-05-16-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0163-04-300dpi.png",
+      "caption": "图 5－16－4 $K=10, T=0.1$ 时系统时间",
+      "sourcePdfPage": 163,
+      "sha256": "d3fa4bebc3807e256df4c75d69caf17f082a2ea4de4bfe8fe82b22ad8711868a",
+      "bytes": 215651
+    },
+    {
+      "index": 30,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0164-01-300dpi.png",
+      "exportPath": "assets/fig-05-17-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0164-01-300dpi.png",
+      "caption": "> Image description: This image shows a Bode plot representing the open-loop frequency response of a system, as indicated by the caption \"图 5－17－1 题 5－10 的开环对数频率特性（MATLAB）\". The figure consists of two vertically aligned graphs sharing a common logarithmic horizontal axis for angular frequency $\\omega$ in radians per second ($\\text{rad/s}$), ranging from $10^{-1}$ to $10^2$. The top graph displays the magnitude plot, with the vertical axis labeled as $20\\lg|G|/\\text{dB}$, showing a gain that decreases from approximately $20\\text{ dB}$ at low frequencies to $-100\\text{ dB}$ at $\\omega = 10^2$. The bottom graph displays the phase plot, with the vertical axis labeled as $\\varphi/(^\\circ)$, showing the phase shifting from $-90^\\circ$ down to approximately $-270^\\circ$ as frequency increases. Together, these plots characterize the system's stability and frequency response characteristics. 图 5－17－1 题 5－10 的开环对数频率特性（MATLAB）",
+      "sourcePdfPage": 164,
+      "sha256": "e5a10b488687c1503c19d08910cfe2ce1ccc6377ccfea2b6e509383dcbb7c0c3",
+      "bytes": 438574
+    },
+    {
+      "index": 31,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0164-02-300dpi.png",
+      "exportPath": "assets/fig-05-17-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0164-02-300dpi.png",
+      "caption": "> Image description: The image shows a plot of the unit step response of a system, generated via MATLAB, as indicated by the caption \"图 5－17－2 题 5－10 系统的单位阶跃响应 （MATLAB）\". The graph features two axes: the horizontal x-axis is labeled \"Time/sec\" with numerical markings from 0 to 9 in increments of 1. The vertical y-axis is labeled \"Amplitude\" with numerical values ranging from 0 to 1.2 in increments of 0.2. A dashed grid overlays the plot area. The plotted curve starts at the origin (0,0) and rises steeply, exhibiting an underdamped behavior. It reaches its first peak slightly above 1.0 at approximately 1.4 seconds, followed by decaying oscillations around a steady-state value of 1.0. The amplitude of these oscillations decreases over time, with the signal eventually stabilizing as it approaches 9 seconds. 图 5－17－2 题 5－10 系统的单位阶跃响应 （MATLAB）",
+      "sourcePdfPage": 164,
+      "sha256": "97fdc7813fed0c9e06a75f93217c011818ad50283af8a43e96b3cdb0f4fbbab6",
+      "bytes": 203785
+    },
+    {
+      "index": 32,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0165-01-300dpi.png",
+      "exportPath": "assets/fig-05-64.png",
+      "originalRelativePath": "assets/mathpix-source-page-0165-01-300dpi.png",
+      "caption": "图 5－64 题 5－18 开环对数相频特性曲线 （1）图5－64（a）。由图可见 $\\varphi\\left(\\omega_{1}\\right)=\\varphi\\left(\\omega_{2}\\right)=-180^{\\circ}\\left(\\omega_{1}<\\omega_{2}\\right)$ ，其中 $\\omega_{1}$ 和 $\\omega_{2}$ 为 $\\varphi(\\omega)$ 与 $-180^{\\circ}$ 线的交点频率。因为在 $\\omega<\\omega_{c}$ 的 $L(\\omega)>0$ 的频段内，其对数相频曲线没有穿越 $(2 k+$ 1）$\\times 180^{\\circ}$ 线，故 $N_{-}=0, N_{+}=0$ ，则 $N=N_{+}-N_{-}=0$ 。而系统为最小相位系统，故 $P=0$ ，于是闭环极点位于 $s$ 右半平面的个数为 $Z=P-2 N=0$ ，所以系统闭环稳定。",
+      "sourcePdfPage": 165,
+      "sha256": "c12bbf8c28c2c4e4470323e66221e695bb09c4017578f5c60650b60a51240244",
+      "bytes": 191481
+    },
+    {
+      "index": 33,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0166-01-300dpi.png",
+      "exportPath": "assets/fig-05-19-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0166-01-300dpi.png",
+      "caption": "图 5－19－1 $G(\\mathrm{j} \\omega)=\\frac{K \\mathrm{e}^{-\\mathrm{j} 0.8 \\omega}}{1+\\mathrm{j} \\omega}$ 幅相特性（MATLAB）",
+      "sourcePdfPage": 166,
+      "sha256": "a05f8cedb20ece51f88d0c6b5b2fe1e01794113280e38e93310c3192895f4adf",
+      "bytes": 140971
+    },
+    {
+      "index": 34,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0167-01-300dpi.png",
+      "exportPath": "assets/fig-05-20-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0167-01-300dpi.png",
+      "caption": "> Image description: A textbook figure, labeled as 图 5-20-1, displays a Nyquist plot of the frequency response function $G(\\mathrm{j}\\omega) = \\frac{-5\\omega^2 e^{-\\mathrm{j}\\omega}}{(1+\\mathrm{j}\\omega)^4}$. The graph is plotted on a complex plane with a horizontal \"Real Axis\" and a vertical \"Imaginary Axis,\" both ranging from -1.5 to 1.5. The plot features a spiral trajectory that starts at the origin $(0,0)$ for $\\omega=0$ and expands outward as frequency increases, eventually looping back toward the origin as $\\omega \\to \\infty$. The curve extends into all four quadrants, reaching a maximum real value slightly above 1.0 and a minimum imaginary value near -1.2. Dotted lines mark the zero axes of the complex plane. In control engineering, this figure represents the stability and phase margin analysis of a system with a time delay and high-order poles. 图 5－20－1 $\\quad G(\\mathrm{j} \\omega)=\\frac{-5 \\omega^{2} \\mathrm{e}^{-\\mathrm{j} \\omega}}{(1+\\mathrm{j} \\omega)^{4}}$",
+      "sourcePdfPage": 167,
+      "sha256": "05c12406233f5c4eb06dc7e4ae6f0033891c0cf95b8355cd1c21f0624511fdfb",
+      "bytes": 124264
+    },
+    {
+      "index": 35,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0168-01-300dpi.png",
+      "exportPath": "assets/fig-05-21-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0168-01-300dpi.png",
+      "caption": "图 5－21－1 $\\quad G(\\mathrm{j} \\omega)=\\frac{1+\\mathrm{j} a \\omega}{-\\omega^{2}}$ 在 $a=0.841$ 时的开环对数频率特性（MATLAB）",
+      "sourcePdfPage": 168,
+      "sha256": "09da97ffa5964952e3613bd6ac0cbc859ef0459023257e46d3376f5c8b1a16f8",
+      "bytes": 410957
+    },
+    {
+      "index": 36,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0169-01-300dpi.png",
+      "exportPath": "assets/fig-05-22-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0169-01-300dpi.png",
+      "caption": "图 5－22－1 $\\quad G(\\mathrm{j} \\omega)=\\frac{9}{\\mathrm{j} \\omega(4.2+\\mathrm{j} \\omega)}$ 的开坏对数频率特性（MATLAB）",
+      "sourcePdfPage": 169,
+      "sha256": "87152745dd582aa1fa382010ca09cb9fdf2319e416acfbe1ec9cd98afb464de9",
+      "bytes": 391375
+    },
+    {
+      "index": 37,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0170-01-300dpi.png",
+      "exportPath": "assets/fig-05-23-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0170-01-300dpi.png",
+      "caption": "利用 MATLAB 软件包，针对 $G(\\mathrm{j} \\omega)=\\frac{8.049}{\\mathrm{j} \\omega(2.933+\\mathrm{j} \\omega)}$ 作开环对数频率特性，如图 5－23－1 所示。由图5－23－1得 $\\omega_{c}=2.2 \\mathrm{rad} / \\mathrm{s}, \\gamma=53.2^{\\circ}$ 。 针对 $\\Phi(s)=\\frac{8.049}{s^{2}+2.933 s+8.049}$ 作单位阶跃响应，如图5－23－2所示。由图5－23－2得 $\\sigma \\%=15 \\%, t_{s}=2.8 \\mathrm{~s}(\\Delta=2 \\%)$ 。",
+      "sourcePdfPage": 170,
+      "sha256": "79ac1429afe9fa3e5ea95d371144712e3d6191403d0004107ce1d5ade457d8b6",
+      "bytes": 757981
+    },
+    {
+      "index": 38,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0171-01-300dpi.png",
+      "exportPath": "assets/fig-05-24-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0171-01-300dpi.png",
+      "caption": "图 5－24－1 $\\quad G(s)=\\frac{2}{(2 s+1)(8 s+1)}$ 的开环对数频率特性（MATLAB）",
+      "sourcePdfPage": 171,
+      "sha256": "9627b8bd488cc9ae7cf4572147c752141646687485542f33ebc2bdd414e2f4c7",
+      "bytes": 401303
+    },
+    {
+      "index": 39,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0171-02-300dpi.png",
+      "exportPath": "assets/fig-05-24-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0171-02-300dpi.png",
+      "caption": "图 5－24－2 $G(s)=\\frac{200}{s^{2}(s+1)(10 s+1)}$ 的开环对数频率特性（MATLAB） 由图5－11－2对数幅频渐近特性曲线，并根据其几何性质，可以得",
+      "sourcePdfPage": 171,
+      "sha256": "0b7f83c546bb82455152c220a31e650a86997a95bdb5ab74b83e308639f59168",
+      "bytes": 406832
+    },
+    {
+      "index": 40,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0172-01-300dpi.png",
+      "exportPath": "assets/fig-05-24-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0172-01-300dpi.png",
+      "caption": "图 5－24－3 $G(s)=\\frac{8\\left(\\frac{s}{0.1}+1\\right)}{s\\left(s^{2}+s+1\\right)\\left(\\frac{s}{2}+1\\right)}$ 的开环",
+      "sourcePdfPage": 172,
+      "sha256": "8a1a7006ca7d95c3fda2c9d928b61965b5c02c43869c230695d3057ea7b685de",
+      "bytes": 412159
+    },
+    {
+      "index": 41,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0172-02-300dpi.png",
+      "exportPath": "assets/fig-05-24-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0172-02-300dpi.png",
+      "caption": "图 5－24－4 $G(s)=\\frac{10\\left(\\frac{s^{2}}{400}+\\frac{s}{10}+1\\right)}{s(s+1)\\left(\\frac{s}{0.1}+1\\right)}$ 的开环 由图5－11－4对数幅频渐近特性曲线可知 $\\omega_{c}=1 \\mathrm{rad} / \\mathrm{s}$ ，再由",
+      "sourcePdfPage": 172,
+      "sha256": "cf2ebdbd76dcebaaf115e9ec0959a0b6f2e29dfd95976dd4441e6cb207552ed9",
+      "bytes": 449331
+    },
+    {
+      "index": 42,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0173-01-300dpi.png",
+      "exportPath": "assets/fig-05-65.png",
+      "originalRelativePath": "assets/mathpix-source-page-0173-01-300dpi.png",
+      "caption": "> Image description: This image shows a Bode plot representing the open-loop logarithmic frequency characteristics of an oil tanker's heading control system (as indicated by the Chinese caption \"图5－65 油船航向控制系统的开环对数频率特性\"). The figure consists of two vertically aligned graphs sharing a common logarithmic horizontal axis for angular frequency $\\omega$ in radians per second ($\\text{rad/s}$), ranging from $10^{-3}$ to $10^0$. The top graph plots the open-loop gain magnitude $L(\\omega)$ in decibels ($\\text{dB}$) on the vertical axis. The curve starts at approximately $130\\text{ dB}$ at $\\omega = 10^{-3}\\text{ rad/s}$ and decreases linearly with a negative slope, crossing $0\\text{ dB}$ near $\\omega = 5 \\times 10^{-1}\\text{ rad/s}$. The bottom graph plots the phase angle $\\varphi$ in degrees ($^\\circ$) on the vertical axis. The phase starts near $0^\\circ$, rises to a peak of approximately $75^\\circ$ around $\\omega = 8 \\times 10^{-2}\\text{ rad/s}$, and then declines toward $20^\\circ$ at $\\omega = 10^0\\text{ rad/s}$. 图5－65 油船航向控制系统的开环对数频率特性",
+      "sourcePdfPage": 173,
+      "sha256": "34d8aeb5131a0793f12a36b0b2b41ab07a0d1b58186f2317f99c6245222ba714",
+      "bytes": 449137
+    },
+    {
+      "index": 43,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0175-01-300dpi.png",
+      "exportPath": "assets/fig-05-25-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0175-01-300dpi.png",
+      "caption": "> Image description: This image displays a Bode plot representing the open-loop logarithmic frequency characteristics of an oil tanker heading control system, as indicated by the Chinese caption \"图5－25－1 油船航向控制系统开环对数频率特性（MATLAB）\". The figure consists of two vertically aligned graphs sharing a common logarithmic horizontal axis for angular frequency $\\omega$ in radians per second ($\\text{rad/s}$), ranging from $10^{-4}$ to $10^1$. The top graph is the magnitude plot, with the vertical axis labeled $20\\lg|G|/\\text{dB}$, showing a linear decrease in gain from approximately $170\\text{ dB}$ at $\\omega = 10^{-4}$ down to roughly $-60\\text{ dB}$ at $\\omega = 10^1$. The bottom graph is the phase plot, with the vertical axis labeled $\\varphi/(^\\circ)$, showing a bell-shaped curve. The phase starts near $0^\\circ$, peaks at approximately $72^\\circ$ around $\\omega = 6 \\times 10^{-2}\\text{ rad/s}$, and returns toward $0^\\circ$ as frequency increases. 图5－25－1 油船航向控制系统开环对数频率特性（MATLAB） 应用 MATLAB 软件包，可得开环对数频率特性，如图 5－25－1 所示。",
+      "sourcePdfPage": 175,
+      "sha256": "dc9b8bd8ab85c2ff661f7be3071f7627b08532c122bf379f6a45fcb24ae375b0",
+      "bytes": 477127
+    },
+    {
+      "index": 44,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0175-02-300dpi.png",
+      "exportPath": "assets/fig-05-66.png",
+      "originalRelativePath": "assets/mathpix-source-page-0175-02-300dpi.png",
+      "caption": "图5－66 航天飞机机械臂控制系统",
+      "sourcePdfPage": 175,
+      "sha256": "589bcc74e8c1eb116ad3a7ce9224d6b962d5cdf1cc89c02ed05cdd02a511645f",
+      "bytes": 227133
+    },
+    {
+      "index": 45,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0177-01-300dpi.png",
+      "exportPath": "assets/fig-05-26-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0177-01-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot illustrating the unit step disturbance response of a Space Shuttle robotic arm system (as indicated by the Chinese caption \"图 5－26－1 航天飞机机械臂系统单位阶跃扰动响应\"). The graph features two axes: the horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 2.5 seconds, while the vertical y-axis is labeled \"Amplitude\" and ranges from 0 down to -0.12. A single smooth curve begins at the origin (0,0) and descends in a concave manner before leveling off. The response reaches a steady-state value of approximately -0.1 around 1.5 seconds. The plot includes a dashed grid for precise reading of values. Engineering-wise, this represents the system's transient and steady-state behavior when subjected to a unit step disturbance, showing how the amplitude deviates and eventually stabilizes over time. 图 5－26－1 航天飞机机械臂系统单位阶跃扰动响应（MATLAB）",
+      "sourcePdfPage": 177,
+      "sha256": "448815130d1953d7449e8dee680a12b39e10750f64b40950db0b6e901683941c",
+      "bytes": 161246
+    },
+    {
+      "index": 46,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0177-02-300dpi.png",
+      "exportPath": "assets/fig-05-26-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0177-02-300dpi.png",
+      "caption": "图 5－26－2 航天飞机机械臂系统闭环对数频率特性（MATLAB） 5－27 试验中的旋翼飞机装有一个可以旋转的机翼，如图 5－67 所示。当飞机速度较低时，机翼将处在正常位置；而在飞机速度较高时，机翼将旋转到一个其他的合适位置，以便改善飞机的超音速飞行品质。假定飞机控制系统的 $H(s)=1$ ，且",
+      "sourcePdfPage": 177,
+      "sha256": "ba819f9dea96552422390d2b08727fb3fcded844b7efb99033177624e40b8617",
+      "bytes": 397558
+    },
+    {
+      "index": 47,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0177-03-300dpi.png",
+      "exportPath": "assets/fig-05-67.png",
+      "originalRelativePath": "assets/mathpix-source-page-0177-03-300dpi.png",
+      "caption": "> Image description: The image contains two schematic diagrams of a rotating-wing aircraft, captioned as \"图5－67 旋转翼飞机示意图\" (Figure 5-67 Schematic Diagram of Rotating-Wing Aircraft). The left diagram shows a top-down view of the aircraft. A large wing is positioned perpendicularly to the fuselage. A dashed elliptical line indicates the rotational path of the wing around the center of the fuselage. Text in Chinese, \"机翼最大扭转位置\" (Maximum Wing Twist Position), labels the vertical orientation of the wing. The right diagram provides a side profile view of the aircraft. The fuselage is streamlined with a tail fin and rudder. A dashed horizontal line indicates the axis of rotation for the wings, showing how they pivot relative to the main body of the plane. Together, these figures illustrate the mechanical configuration and range of motion for an aircraft featuring a rotating wing system. 图5－67 旋转翼飞机示意图",
+      "sourcePdfPage": 177,
+      "sha256": "8a5d2ffe189265534cce6a968443450dcaa109c5a56876d73691e8a1c24569e5",
+      "bytes": 176995
+    },
+    {
+      "index": 48,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0178-01-300dpi.png",
+      "exportPath": "assets/fig-05-27-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0178-01-300dpi.png",
+      "caption": "图 5－27－1 $G(s)=\\frac{4(0.5 s+1)}{s(2 s+1)\\left(s^{2} / 64+s / 20+1\\right)}$ 的开环对数频率特性曲线（MATLAB） （2）截止频率与穿越频率。由已绘出的开环准确 Bode 图 5－27－1 可得：截止频率 $\\omega_{c}= 1.6 \\mathrm{rad} / \\mathrm{s}$ ，穿越频率 $\\omega_{x}=7.7 \\mathrm{rad} / \\mathrm{s}$ 。",
+      "sourcePdfPage": 178,
+      "sha256": "8e1cc00561f15a30d76894ca69c1a374a473e94548837786457ffec8de493717",
+      "bytes": 410249
+    },
+    {
+      "index": 49,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0178-02-300dpi.png",
+      "exportPath": "assets/fig-05-68.png",
+      "originalRelativePath": "assets/mathpix-source-page-0178-02-300dpi.png",
+      "caption": "图5－68 步行机器人",
+      "sourcePdfPage": 178,
+      "sha256": "7a0a724a015c3f5270645d707073e8eef409cdca4cdc7cf8149b546099dce5a1",
+      "bytes": 291185
+    },
+    {
+      "index": 50,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0179-01-300dpi.png",
+      "exportPath": "assets/fig-05-28-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0179-01-300dpi.png",
+      "caption": "图 5－28－1 单足机器人控制系统闭环 Bode 图（ $K=20$ ．MATLAB）",
+      "sourcePdfPage": 179,
+      "sha256": "cfcee83fc381ead768e3cb2d1bd3f527b8180118e6ee5bf2f6d7ac39a4e643f7",
+      "bytes": 357431
+    },
+    {
+      "index": 51,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0179-02-300dpi.png",
+      "exportPath": "assets/fig-05-28-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0179-02-300dpi.png",
+      "caption": "图 5－28－2 单足机器人控制系统闭环 Bode 图（ $K=40$ ．MATLAB）",
+      "sourcePdfPage": 179,
+      "sha256": "d1f1dac1b4e4e306eb9643ec8da035c61718378f56ba56059e7cc88fc7bdd898",
+      "bytes": 401580
+    },
+    {
+      "index": 52,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0180-01-300dpi.png",
+      "exportPath": "assets/fig-05-69.png",
+      "originalRelativePath": "assets/mathpix-source-page-0180-01-300dpi.png",
+      "caption": "图5－69 麻醉控制系统结构图",
+      "sourcePdfPage": 180,
+      "sha256": "30654aeb0a7242c2edb7eb2d0b9df6623450bc906b9903d8a9d234948d3d482e",
+      "bytes": 85377
+    },
+    {
+      "index": 53,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-05-mathpix/assets/mathpix-source-page-0181-01-300dpi.png",
+      "exportPath": "assets/fig-05-29-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0181-01-300dpi.png",
+      "caption": "> Image description: This image shows a closed-loop Bode plot of an anesthesia control system generated by MATLAB, as indicated by the caption \"图 5－29－1 麻醉控制系统闭环 Bode 图（MATLAB）\". The figure consists of two vertically stacked graphs sharing a common logarithmic horizontal axis representing angular frequency $\\omega$ in radians per second ($\\text{rad/s}$), ranging from $10^0$ to $10^3$. The top graph displays the magnitude response, labeled as $20\\lg|\\Phi|/\\text{dB}$, with values ranging from $-80$ to $20\\text{ dB}$. The curve remains flat near $0\\text{ dB}$ until approximately $10\\text{ rad/s}$, after which it slopes downward. The bottom graph displays the phase response, labeled as $\\alpha/(^\\circ)$, with values ranging from $0^\\circ$ to $-180^\\circ$. The phase starts at $0^\\circ$, drops sharply around $10\\text{ rad/s}$, and asymptotically approaches $-180^\\circ$ at higher frequencies. Together, these plots characterize the frequency response of the closed-loop system. 图 5－29－1 麻醉控制系统闭环 Bode 图（MATLAB）",
+      "sourcePdfPage": 181,
+      "sha256": "c132a671722cd62219193289fc8ee38216b928a6006b31437aa48124f74d10bc",
+      "bytes": 373314
+    }
+  ]
+}

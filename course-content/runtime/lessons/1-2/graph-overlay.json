@@ -1,0 +1,1398 @@
+{
+  "lesson_id": "1-2",
+  "title": "建模：从真实对象到可分析的系统",
+  "focus_node_ids": [
+    "建模_1_2",
+    "机理建模_1_2",
+    "数据驱动建模_1_2",
+    "微分方程_1_2",
+    "拉氏变换_1_2",
+    "传递函数_1_2",
+    "方框图_1_2",
+    "信号流图_1_2",
+    "特征方程_1_2",
+    "特征根_1_2",
+    "极点_1_2",
+    "复平面_1_2",
+    "模型结构相似性_1_2",
+    "稳定边界_1_2",
+    "稳定区_1_2"
+  ],
+  "reuse_node_ids": [
+    "反馈_1_1",
+    "闭环控制_1_1",
+    "控制器_1_1",
+    "课程总图_1_1"
+  ],
+  "entry_nodes": [
+    "建模_1_2"
+  ],
+  "summary_nodes": [
+    "建模_1_2",
+    "极点_1_2",
+    "复平面_1_2"
+  ],
+  "card_order": [
+    "建模_1_2",
+    "机理建模_1_2",
+    "数据驱动建模_1_2",
+    "微分方程_1_2",
+    "拉氏变换_1_2",
+    "传递函数_1_2",
+    "方框图_1_2",
+    "信号流图_1_2",
+    "特征方程_1_2",
+    "特征根_1_2",
+    "极点_1_2",
+    "复平面_1_2",
+    "稳定区_1_2",
+    "稳定边界_1_2",
+    "模型结构相似性_1_2"
+  ],
+  "groups": [
+    {
+      "group_name": "导入与课程目标",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03"
+      ],
+      "node_ids": [
+        "建模_1_2"
+      ]
+    },
+    {
+      "group_name": "建模路径与微分方程",
+      "step_ids": [
+        "step-04",
+        "step-05"
+      ],
+      "node_ids": [
+        "建模_1_2",
+        "机理建模_1_2",
+        "数据驱动建模_1_2",
+        "微分方程_1_2"
+      ]
+    },
+    {
+      "group_name": "传递函数与结构表达",
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08"
+      ],
+      "node_ids": [
+        "拉氏变换_1_2",
+        "传递函数_1_2",
+        "方框图_1_2",
+        "信号流图_1_2"
+      ]
+    },
+    {
+      "group_name": "极点、复平面与行为地图",
+      "step_ids": [
+        "step-09",
+        "step-10"
+      ],
+      "node_ids": [
+        "极点_1_2",
+        "复平面_1_2",
+        "稳定区_1_2",
+        "稳定边界_1_2"
+      ]
+    },
+    {
+      "group_name": "案例、例题与检测",
+      "step_ids": [
+        "step-11",
+        "step-12",
+        "step-13"
+      ],
+      "node_ids": [
+        "特征方程_1_2",
+        "特征根_1_2"
+      ]
+    },
+    {
+      "group_name": "总结回看",
+      "step_ids": [
+        "step-14"
+      ],
+      "node_ids": [
+        "模型结构相似性_1_2",
+        "建模_1_2",
+        "极点_1_2",
+        "复平面_1_2"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "传递函数_1_2",
+      "name": "传递函数",
+      "nodeType": "THEORY",
+      "description": "线性定常系统在零初值条件下输出拉氏变换与输入拉氏变换之比G(s)=Y(s)/U(s)，将系统提炼为紧凑的代数对象，描述同一工作点近似下系统本身的输入输出关系",
+      "positionX": 3.6,
+      "positionY": 13.5,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "线性定常系统在零初值条件下输出拉氏变换与输入拉氏变换之比G(s)=Y(s)/U(s)，将系统提炼为紧凑的代数对象，描述同一工作点近似下系统本身的输入输出关系",
+        "examples": [
+          "船舶：G(s)=K/(Js²+Bs)=(K/J)/[s(s+B/J)]，分母结构暴露积分效应和阻尼衰减因素"
+        ],
+        "formulas": [
+          "G(s)=Θ(s)/U(s)=K/(Js²+Bs)"
+        ],
+        "prerequisites": [
+          "拉氏变换_1_2",
+          "微分方程_1_2"
+        ],
+        "relatedConcepts": [
+          "方框图_1_2",
+          "极点_1_2",
+          "特征方程_1_2"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "传递函数",
+          "G(s)",
+          "输入输出关系",
+          "代数对象"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/传递函数_1_2.md"
+      ],
+      "tags": [
+        "传递函数",
+        "G(s)",
+        "输入输出关系",
+        "代数对象",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "信号流图_1_2",
+      "name": "信号流图",
+      "nodeType": "THEORY",
+      "description": "用节点表示变量、支路表示传递关系的系统拓扑图。与方框图描述同一系统，但以变量间的决定关系组织信息",
+      "positionX": 0.0,
+      "positionY": 14.0,
+      "positionZ": 1,
+      "bloomLevel": "了解",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "了解",
+        "definition": "用节点表示变量、支路表示传递关系的系统拓扑图。与方框图描述同一系统，但以变量间的决定关系组织信息",
+        "examples": [
+          "同一控制系统的方框图与信号流图对照"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "方框图_1_2"
+        ],
+        "relatedConcepts": [
+          "方框图_1_2"
+        ],
+        "difficulty": 3,
+        "importance": 3,
+        "keywords": [
+          "信号流图",
+          "节点",
+          "支路",
+          "前向通路",
+          "回路"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/信号流图_1_2.md"
+      ],
+      "tags": [
+        "信号流图",
+        "节点",
+        "支路",
+        "前向通路",
+        "回路",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "反馈_1_1",
+      "name": "反馈",
+      "nodeType": "THEORY",
+      "description": "把输出信息送回比较与决策环节的机制，是闭环控制的核心思想",
+      "positionX": -12.1,
+      "positionY": 7.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "课程全景",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "课程全景",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "把输出信息送回比较与决策环节的机制，是闭环控制的核心思想",
+        "examples": [],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "反馈",
+          "闭环控制"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/反馈_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/反馈_1_1.png",
+          "title": "反馈 信息图",
+          "lessonId": "1-1",
+          "nodeId": "反馈_1_1",
+          "sourceNodeId": "反馈_1_1"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/反馈_1_1.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/反馈_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/反馈_1_1.png",
+          "title": "反馈 信息图",
+          "lessonId": "1-1",
+          "nodeId": "反馈_1_1",
+          "sourceNodeId": "反馈_1_1"
+        }
+      ],
+      "tags": [
+        "反馈",
+        "闭环控制",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "复平面_1_2",
+      "name": "复平面",
+      "nodeType": "THEORY",
+      "description": "以实部σ为横轴、虚部jω为纵轴的平面（s平面），用于标注极点位置并读取系统行为特征：横向看衰减或放大，离实轴远近看振荡密度",
+      "positionX": -7.0,
+      "positionY": -12.1,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "以实部σ为横轴、虚部jω为纵轴的平面（s平面），用于标注极点位置并读取系统行为特征：横向看衰减或放大，离实轴远近看振荡密度",
+        "examples": [
+          "左半平面=稳定区，右半平面=不稳定区",
+          "虚轴=稳定边界",
+          "实轴附近=单调走廊",
+          "远离实轴=振荡走廊"
+        ],
+        "formulas": [
+          "s=σ+jω"
+        ],
+        "prerequisites": [
+          "极点_1_2"
+        ],
+        "relatedConcepts": [
+          "稳定区_1_2",
+          "稳定边界_1_2",
+          "模型结构相似性_1_2"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "复平面",
+          "s平面",
+          "行为地图",
+          "σ",
+          "jω"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/复平面_1_2.md"
+      ],
+      "tags": [
+        "复平面",
+        "s平面",
+        "行为地图",
+        "σ",
+        "jω",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "建模_1_2",
+      "name": "建模",
+      "nodeType": "THEORY",
+      "description": "将真实工程对象转化为可分析、可比较、可迁移的数学描述的过程，是控制系统分析与设计的入口",
+      "positionX": -3.6,
+      "positionY": -13.5,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "将真实工程对象转化为可分析、可比较、可迁移的数学描述的过程，是控制系统分析与设计的入口",
+        "examples": [
+          "船舶航向动力学建模",
+          "RC电路建模",
+          "热水箱温度建模"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "反馈_1_1",
+          "课程总图_1_1"
+        ],
+        "relatedConcepts": [
+          "机理建模_1_2",
+          "数据驱动建模_1_2"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "建模",
+          "模型",
+          "系统描述"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/建模_1_2.md"
+      ],
+      "tags": [
+        "建模",
+        "模型",
+        "系统描述",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "微分方程_1_2",
+      "name": "微分方程建模",
+      "nodeType": "THEORY",
+      "description": "建模的起点——从物理定律直接写出描述系统输入输出动态关系的微分方程，方程中每一项对应一个物理效应",
+      "positionX": 7.0,
+      "positionY": -12.1,
+      "positionZ": 1,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "应用",
+        "definition": "建模的起点——从物理定律直接写出描述系统输入输出动态关系的微分方程，方程中每一项对应一个物理效应",
+        "examples": [
+          "船舶航向：Jθ̈+Bθ̇=Ku，J为惯量项，B为阻尼项，K为控制效率"
+        ],
+        "formulas": [
+          "Jθ̈(t)+Bθ̇(t)=Ku(t)"
+        ],
+        "prerequisites": [
+          "机理建模_1_2"
+        ],
+        "relatedConcepts": [
+          "传递函数_1_2",
+          "拉氏变换_1_2"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "微分方程",
+          "动力学方程",
+          "建模起点"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/微分方程_1_2.md"
+      ],
+      "tags": [
+        "微分方程",
+        "动力学方程",
+        "建模起点",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "拉氏变换_1_2",
+      "name": "拉氏变换",
+      "nodeType": "THEORY",
+      "description": "将时域函数f(t)变换为复变量s的函数F(s)的积分变换。核心效果：对时间求导变为乘以s，将微分方程化为代数方程",
+      "positionX": 17.3,
+      "positionY": 10.0,
+      "positionZ": 1,
+      "bloomLevel": "了解",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "了解",
+        "definition": "将时域函数f(t)变换为复变量s的函数F(s)的积分变换。核心效果：对时间求导变为乘以s，将微分方程化为代数方程",
+        "examples": [
+          "L{ḟ(t)}=sF(s)-f(0)",
+          "L{f̈(t)}=s²F(s)-sf(0)-ḟ(0)",
+          "L{1(t)}=1/s"
+        ],
+        "formulas": [
+          "L{ḟ(t)}=sF(s)-f(0)",
+          "L{f̈(t)}=s²F(s)-sf(0)-ḟ(0)"
+        ],
+        "prerequisites": [
+          "微分方程_1_2"
+        ],
+        "relatedConcepts": [
+          "传递函数_1_2"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "拉氏变换",
+          "拉普拉斯变换",
+          "s域",
+          "变换域"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/拉氏变换_1_2.md"
+      ],
+      "tags": [
+        "拉氏变换",
+        "拉普拉斯变换",
+        "s域",
+        "变换域",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "控制器_1_1",
+      "name": "控制器",
+      "nodeType": "THEORY",
+      "description": "根据目标与测量结果作出决策、产生控制信号的环节",
+      "positionX": 10.0,
+      "positionY": 17.3,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "课程全景",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "课程全景",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "根据目标与测量结果作出决策、产生控制信号的环节",
+        "examples": [],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "控制器"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/控制器_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/控制器_1_1.png",
+          "title": "控制器 信息图",
+          "lessonId": "1-1",
+          "nodeId": "控制器_1_1",
+          "sourceNodeId": "控制器_1_1"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/控制器_1_1.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/控制器_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/控制器_1_1.png",
+          "title": "控制器 信息图",
+          "lessonId": "1-1",
+          "nodeId": "控制器_1_1",
+          "sourceNodeId": "控制器_1_1"
+        }
+      ],
+      "tags": [
+        "控制器",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "数据驱动建模_1_2",
+      "name": "数据驱动建模",
+      "nodeType": "THEORY",
+      "description": "不依赖物理机理，通过给对象施加输入、记录输出，从数据中学习输入输出映射关系的建模方式",
+      "positionX": -5.2,
+      "positionY": 19.3,
+      "positionZ": 1,
+      "bloomLevel": "了解",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "了解",
+        "definition": "不依赖物理机理，通过给对象施加输入、记录输出，从数据中学习输入输出映射关系的建模方式",
+        "examples": [
+          "神经网络拟合系统响应",
+          "系统辨识"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "建模_1_2"
+        ],
+        "relatedConcepts": [
+          "机理建模_1_2"
+        ],
+        "difficulty": 2,
+        "importance": 3,
+        "keywords": [
+          "数据驱动",
+          "黑箱建模",
+          "系统辨识"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/数据驱动建模_1_2.md"
+      ],
+      "tags": [
+        "数据驱动",
+        "黑箱建模",
+        "系统辨识",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "方框图_1_2",
+      "name": "方框图",
+      "nodeType": "THEORY",
+      "description": "用方块表示环节、箭头表示信息流向的系统结构图。基本连接包括串联（乘积）、并联（求和）和反馈（核心结构）",
+      "positionX": -17.3,
+      "positionY": 10.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "用方块表示环节、箭头表示信息流向的系统结构图。基本连接包括串联（乘积）、并联（求和）和反馈（核心结构）",
+        "examples": [
+          "闭环控制系统方框图：参考输入→比较点→控制器→执行器→被控对象→输出，传感器构成反馈通路"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "传递函数_1_2"
+        ],
+        "relatedConcepts": [
+          "信号流图_1_2",
+          "闭环控制_1_1"
+        ],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "方框图",
+          "结构图",
+          "串联",
+          "并联",
+          "反馈"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/方框图_1_2.md"
+      ],
+      "tags": [
+        "方框图",
+        "结构图",
+        "串联",
+        "并联",
+        "反馈",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "机理建模_1_2",
+      "name": "机理建模",
+      "nodeType": "THEORY",
+      "description": "从物理定律（牛顿力学、基尔霍夫定律、热力学等）出发，写出描述对象动态行为的微分方程，进而得到传递函数",
+      "positionX": -19.3,
+      "positionY": -5.2,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "从物理定律（牛顿力学、基尔霍夫定律、热力学等）出发，写出描述对象动态行为的微分方程，进而得到传递函数",
+        "examples": [
+          "船舶航向：转动惯量+阻尼→二阶微分方程"
+        ],
+        "formulas": [
+          "Jθ̈+Bθ̇=Ku"
+        ],
+        "prerequisites": [
+          "建模_1_2"
+        ],
+        "relatedConcepts": [
+          "数据驱动建模_1_2",
+          "微分方程_1_2"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "机理建模",
+          "白箱建模",
+          "物理定律",
+          "微分方程"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/机理建模_1_2.md"
+      ],
+      "tags": [
+        "机理建模",
+        "白箱建模",
+        "物理定律",
+        "微分方程",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "极点_1_2",
+      "name": "极点",
+      "nodeType": "THEORY",
+      "description": "传递函数分母的根（=特征根），在s平面上标记为×。名称来自复变函数几何直观——|G(s)|在极点处趋向无穷，三维幅值曲面上形成极柱。极点s=σ+jω的坐标可记为(σ,ω)：σ管衰减/发散，ω管振荡密度",
+      "positionX": -14.1,
+      "positionY": -14.1,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "传递函数分母的根（=特征根），在s平面上标记为×。名称来自复变函数几何直观——|G(s)|在极点处趋向无穷，三维幅值曲面上形成极柱。极点s=σ+jω的坐标可记为(σ,ω)：σ管衰减/发散，ω管振荡密度",
+        "examples": [
+          "G(s)=(K/J)/[s(s+B/J)]有两个极点：s=0和s=-B/J",
+          "三维可视化：在s=0和s=-B/J处|G(s)|→∞"
+        ],
+        "formulas": [
+          "e^(σt)sin(ωt)——极点σ±jω对应的时域模态"
+        ],
+        "prerequisites": [
+          "特征根_1_2",
+          "传递函数_1_2"
+        ],
+        "relatedConcepts": [
+          "复平面_1_2",
+          "稳定区_1_2",
+          "特征方程_1_2"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "极点",
+          "特征根",
+          "复变函数",
+          "极柱",
+          "行为决定因素"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/极点_1_2.md"
+      ],
+      "tags": [
+        "极点",
+        "特征根",
+        "复变函数",
+        "极柱",
+        "行为决定因素",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "模型结构相似性_1_2",
+      "name": "模型结构相似性",
+      "nodeType": "THEORY",
+      "description": "物理上完全不同的对象，一旦写成传递函数，可能共用一个结构形式（如G(s)=K/(τs+1)），因此控制结论可以跨领域迁移；1-2先用极点位置做第一轮动态品质判断，完整模型还要检查增益、零点、工作区间和被省略效应",
+      "positionX": 5.2,
+      "positionY": -19.3,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "物理上完全不同的对象，一旦写成传递函数，可能共用一个结构形式（如G(s)=K/(τs+1)），因此控制结论可以跨领域迁移；1-2先用极点位置做第一轮动态品质判断，完整模型还要检查增益、零点、工作区间和被省略效应",
+        "examples": [
+          "RC低通滤波电路和热水箱温度响应共用一阶惯性结构",
+          "船舶、电机、温控系统的控制结论可以互相借鉴"
+        ],
+        "formulas": [
+          "G(s)=K/(τs+1)——跨对象通用的一阶惯性结构"
+        ],
+        "prerequisites": [
+          "传递函数_1_2"
+        ],
+        "relatedConcepts": [
+          "传递函数_1_2",
+          "机理建模_1_2"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "模型迁移",
+          "结构相似",
+          "标准对象库"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/模型结构相似性_1_2.md"
+      ],
+      "tags": [
+        "模型迁移",
+        "结构相似",
+        "标准对象库",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "特征方程_1_2",
+      "name": "特征方程",
+      "nodeType": "THEORY",
+      "description": "令既约传递函数分母等于零得到的代数方程，其根即为该传递函数对应的极点；讨论闭环稳定性时应看闭环传递函数Φ(s)的特征方程",
+      "positionX": 18.4,
+      "positionY": 18.4,
+      "positionZ": 1,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "应用",
+        "definition": "令既约传递函数分母等于零得到的代数方程，其根即为该传递函数对应的极点；讨论闭环稳定性时应看闭环传递函数Φ(s)的特征方程",
+        "examples": [
+          "s²+2s+5=0，根为s=-1±2j"
+        ],
+        "formulas": [
+          "分母多项式=0"
+        ],
+        "prerequisites": [
+          "传递函数_1_2"
+        ],
+        "relatedConcepts": [
+          "特征根_1_2",
+          "极点_1_2"
+        ],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "特征方程",
+          "分母多项式"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/特征方程_1_2.md"
+      ],
+      "tags": [
+        "特征方程",
+        "分母多项式",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "特征根_1_2",
+      "name": "特征根",
+      "nodeType": "THEORY",
+      "description": "特征方程的解，即传递函数分母的根，等价于极点。每个特征根对应系统的一种基本运动模态",
+      "positionX": 13.0,
+      "positionY": 22.5,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "特征方程的解，即传递函数分母的根，等价于极点。每个特征根对应系统的一种基本运动模态",
+        "examples": [
+          "s=-1±2j对应衰减振荡模态e^(-t)sin(2t)"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "特征方程_1_2"
+        ],
+        "relatedConcepts": [
+          "极点_1_2"
+        ],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "特征根",
+          "特征值"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/特征根_1_2.md"
+      ],
+      "tags": [
+        "特征根",
+        "特征值",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "稳定区_1_2",
+      "name": "稳定区",
+      "nodeType": "THEORY",
+      "description": "复平面的左半平面（σ<0）。所有相关极点落在此区域时，自由响应或初始偏差模态会衰减；是否零稳态误差和性能可接受还要另行判断",
+      "positionX": -22.5,
+      "positionY": 13.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "复平面的左半平面（σ<0）。所有相关极点落在此区域时，自由响应或初始偏差模态会衰减；是否零稳态误差和性能可接受还要另行判断",
+        "examples": [
+          "s=-1±2j落在稳定区→边摆边收"
+        ],
+        "formulas": [
+          "σ<0"
+        ],
+        "prerequisites": [
+          "复平面_1_2"
+        ],
+        "relatedConcepts": [
+          "稳定边界_1_2",
+          "极点_1_2"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "稳定区",
+          "左半平面"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳定区_1_2.md"
+      ],
+      "tags": [
+        "稳定区",
+        "左半平面",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "稳定边界_1_2",
+      "name": "稳定边界",
+      "nodeType": "THEORY",
+      "description": "复平面的虚轴（σ=0），是稳定区与不稳定区的分界线。简单纯虚共轭极点可对应等幅振荡；原点极点和虚轴重根必须结合重数、输入与系统类型判断",
+      "positionX": -25.1,
+      "positionY": -6.7,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "复平面的虚轴（σ=0），是稳定区与不稳定区的分界线。简单纯虚共轭极点可对应等幅振荡；原点极点和虚轴重根必须结合重数、输入与系统类型判断",
+        "examples": [
+          "s=±2j的简单共轭极点可对应等幅振荡",
+          "s=0常对应积分或保持边界，需要结合输入与重数判断"
+        ],
+        "formulas": [
+          "σ=0"
+        ],
+        "prerequisites": [
+          "复平面_1_2",
+          "稳定区_1_2"
+        ],
+        "relatedConcepts": [
+          "极点_1_2"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "稳定边界",
+          "虚轴",
+          "临界稳定",
+          "等幅振荡"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳定边界_1_2.md"
+      ],
+      "tags": [
+        "稳定边界",
+        "虚轴",
+        "临界稳定",
+        "等幅振荡",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "课程总图_1_1",
+      "name": "课程总图",
+      "nodeType": "THEORY",
+      "description": "整门课程的知识结构地图——五个模块对应五个连续追问",
+      "positionX": -22.6,
+      "positionY": 22.6,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "课程全景",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "课程全景",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "分析",
+        "definition": "整门课程的知识结构地图——五个模块对应五个连续追问",
+        "examples": [],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "课程总图",
+          "模块1"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/课程总图_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/课程总图_1_1.png",
+          "title": "课程总图 信息图",
+          "lessonId": "1-1",
+          "nodeId": "课程总图_1_1",
+          "sourceNodeId": "课程总图_1_1"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/课程总图_1_1.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/课程总图_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/课程总图_1_1.png",
+          "title": "课程总图 信息图",
+          "lessonId": "1-1",
+          "nodeId": "课程总图_1_1",
+          "sourceNodeId": "课程总图_1_1"
+        }
+      ],
+      "tags": [
+        "课程总图",
+        "模块1",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "闭环控制_1_1",
+      "name": "闭环控制",
+      "nodeType": "THEORY",
+      "description": "利用输出信息持续修正控制动作的方式——系统持续测量、比较、修正",
+      "positionX": -27.7,
+      "positionY": -16.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "课程全景",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "课程全景",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "利用输出信息持续修正控制动作的方式——系统持续测量、比较、修正",
+        "examples": [],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "闭环控制",
+          "反馈"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/闭环控制_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/闭环控制_1_1.png",
+          "title": "闭环控制 信息图",
+          "lessonId": "1-1",
+          "nodeId": "闭环控制_1_1",
+          "sourceNodeId": "闭环控制_1_1"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环控制_1_1.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/闭环控制_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/闭环控制_1_1.png",
+          "title": "闭环控制 信息图",
+          "lessonId": "1-1",
+          "nodeId": "闭环控制_1_1",
+          "sourceNodeId": "闭环控制_1_1"
+        }
+      ],
+      "tags": [
+        "闭环控制",
+        "反馈",
+        "chapter-1"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-34d21ec0f867815b",
+      "sourceId": "反馈_1_1",
+      "targetId": "闭环控制_1_1",
+      "relation": "enables",
+      "relationType": "enables",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-1fd446ee53607744",
+      "sourceId": "建模_1_2",
+      "targetId": "机理建模_1_2",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-03690d65e4dfba5d",
+      "sourceId": "建模_1_2",
+      "targetId": "数据驱动建模_1_2",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-912fa9ce51a0189e",
+      "sourceId": "机理建模_1_2",
+      "targetId": "数据驱动建模_1_2",
+      "relation": "contrasts_with",
+      "relationType": "contrasts_with",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-cb3570886d273b95",
+      "sourceId": "机理建模_1_2",
+      "targetId": "微分方程_1_2",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-2c5f6e4837689de8",
+      "sourceId": "微分方程_1_2",
+      "targetId": "拉氏变换_1_2",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-17a912b87dbc89f4",
+      "sourceId": "拉氏变换_1_2",
+      "targetId": "传递函数_1_2",
+      "relation": "enables",
+      "relationType": "enables",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-ed23b756d73a0201",
+      "sourceId": "微分方程_1_2",
+      "targetId": "传递函数_1_2",
+      "relation": "derives",
+      "relationType": "derives",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-9cd715ee34b27ccd",
+      "sourceId": "传递函数_1_2",
+      "targetId": "方框图_1_2",
+      "relation": "complements",
+      "relationType": "complements",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-29ba078276efee70",
+      "sourceId": "方框图_1_2",
+      "targetId": "信号流图_1_2",
+      "relation": "complements",
+      "relationType": "complements",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-53476581303be9d6",
+      "sourceId": "传递函数_1_2",
+      "targetId": "特征方程_1_2",
+      "relation": "derives",
+      "relationType": "derives",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-39c1fa58f6d1d1e1",
+      "sourceId": "特征方程_1_2",
+      "targetId": "特征根_1_2",
+      "relation": "derives",
+      "relationType": "derives",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-bd74af059ba1b6a7",
+      "sourceId": "特征根_1_2",
+      "targetId": "极点_1_2",
+      "relation": "instance_of",
+      "relationType": "instance_of",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-94283a1b58563c0b",
+      "sourceId": "极点_1_2",
+      "targetId": "复平面_1_2",
+      "relation": "visualized_by",
+      "relationType": "visualized_by",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-6402718cc30e74b5",
+      "sourceId": "复平面_1_2",
+      "targetId": "稳定区_1_2",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-a5846e7d650a958c",
+      "sourceId": "复平面_1_2",
+      "targetId": "稳定边界_1_2",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-aa56698ed83d04c4",
+      "sourceId": "稳定区_1_2",
+      "targetId": "稳定边界_1_2",
+      "relation": "contrasts_with",
+      "relationType": "contrasts_with",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-d860778a9d97f777",
+      "sourceId": "传递函数_1_2",
+      "targetId": "模型结构相似性_1_2",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-f025d3a2cf0be823",
+      "sourceId": "极点_1_2",
+      "targetId": "模型结构相似性_1_2",
+      "relation": "supports",
+      "relationType": "supports",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-d88b2f9cac1f9203",
+      "sourceId": "闭环控制_1_1",
+      "targetId": "方框图_1_2",
+      "relation": "visualized_by",
+      "relationType": "visualized_by",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-5238cff17d3dc15c",
+      "sourceId": "反馈_1_1",
+      "targetId": "方框图_1_2",
+      "relation": "visualized_by",
+      "relationType": "visualized_by",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-7e1ba46b0dea54f1",
+      "sourceId": "课程总图_1_1",
+      "targetId": "建模_1_2",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    }
+  ]
+}

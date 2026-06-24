@@ -30,5 +30,18 @@ export * from './submission-evidence-quality';
 // Course evidence specifications
 export * from './course-evidence-specs';
 
+// Learning evidence RAG corpus
+export * from './learning-evidence-rag-corpus';
+
+// K/A/Q graph catalogs
+export * from './autocontrol-kaq-graph-catalog';
+export * from './graph-center';
+export * from './kaq-evidence-writeback';
+
+// Role-based learning diagnosis
+export * from './control-correction-diagnosis-profile';
+export * from './role-based-learning-diagnosis';
+export * from './teacher-prep-pack-generation';
+
 // Interactive session finalization
 export * from './interactive-session-finalization';

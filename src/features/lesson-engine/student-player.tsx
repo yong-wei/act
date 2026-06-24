@@ -96,18 +96,30 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
 
   // 课堂已结束
   if (sessionStatus === 'FINISHED') {
+    const evidenceHref = `/profile/evidence?sessionId=${encodeURIComponent(initialSession.id)}`;
+
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
+        <div className="max-w-lg px-6 text-center" data-classroom-student-state="finished-review">
           <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">课堂已结束</h2>
-          <p className="text-slate-400 mb-6">感谢您的参与！</p>
-          <button
-            onClick={() => router.push('/classroom/join')}
-            className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors"
-          >
-            加入其他课堂
-          </button>
+          <p className="text-slate-400">本次课堂作答会进入课堂复盘和个人证据页；重复提交会按课堂、步骤和提交身份合并。</p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <button
+              type="button"
+              onClick={() => router.push(evidenceHref)}
+              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors"
+            >
+              查看课堂证据
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/classroom/join')}
+              className="px-6 py-3 border border-slate-700 text-slate-200 hover:bg-slate-900 rounded-lg transition-colors"
+            >
+              加入其他课堂
+            </button>
+          </div>
         </div>
       </div>
     );

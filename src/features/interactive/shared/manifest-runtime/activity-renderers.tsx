@@ -5,8 +5,10 @@ import { InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
 import {
+  buildStepActivityIdentity,
   buildPerCardSubmissionAnswers,
-  mergeSavedAnswersIntoDraft,
+  resolveStudentCardDraftEnvelope,
+  type StudentCardDraftEnvelope,
 } from '@/features/interactive/shared/per-card-response-utils';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type {
@@ -32,6 +34,7 @@ export type StudentInteractiveActivityRendererProps<TStep, TResponse> = {
   answerVisible: boolean;
   revealProgress: number;
   workspaceParameters?: Record<string, string | number | boolean>;
+  readOnly?: boolean;
   onSubmit: (response: TResponse) => void;
 };
 
@@ -50,6 +53,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
   answerVisible,
   revealProgress,
   workspaceParameters,
+  readOnly,
   onSubmit,
 }: {
   registry: StudentInteractiveActivityRegistry<TStep, TResponse>;
@@ -61,6 +65,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
   answerVisible: boolean;
   revealProgress: number;
   workspaceParameters?: Record<string, string | number | boolean>;
+  readOnly?: boolean;
   onSubmit: (response: TResponse) => void;
 }) {
   const Renderer = registry[stepManifest.interactionSpec.interactionKind];
@@ -76,6 +81,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
     answerVisible,
     revealProgress,
     workspaceParameters,
+    readOnly,
     onSubmit,
   });
 }
@@ -288,7 +294,11 @@ function CardTitleWithPrompt({ card, index }: { card: InteractiveRuntimeActivity
 }
 
 function ManifestSectionTitle({ children }: { children: ReactNode }) {
-  return <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">{children}</div>;
+  return <h2 className="interactive-courseware-title-level-2">{children}</h2>;
+}
+
+function ManifestActivitySubsectionTitle({ children }: { children: ReactNode }) {
+  return <h3 className="interactive-courseware-title-level-3">{children}</h3>;
 }
 
 function ReferenceAnswer({
@@ -319,7 +329,7 @@ function CardPrompt({ card }: { card: InteractiveRuntimeActivityCardManifest }) 
 
   return (
     <div
-      className="premium-lesson-tone-block premium-tone-amber mt-2 text-sm leading-7"
+      className="premium-lesson-tone-block premium-tone-amber mt-2 interactive-courseware-body"
       data-manifest-missing-field={`${card.id}:prompt`}
     >
       manifest 未提供本卡题面，请在 activity_cards[].prompt 中补齐。
@@ -400,7 +410,7 @@ function TeacherCardOptions({ card }: { card: InteractiveRuntimeActivityCardMani
   return (
     <div className="mt-3 grid gap-2 md:grid-cols-2">
       {card.options.map((option) => (
-        <div key={option.value} className="rounded-2xl border border-border/50 bg-background/60 px-3 py-2 text-sm leading-6">
+        <div key={option.value} className="rounded-2xl border border-border/50 bg-background/60 px-3 py-2 interactive-courseware-body">
           {renderActivityInlineContent(option.label)}
         </div>
       ))}
@@ -451,18 +461,18 @@ function TeacherCardAnswerSummary({
       <CardPrompt card={card} />
       <TeacherCardOptions card={card} />
       {answerVisible ? (
-        <div className="premium-lesson-tone-block premium-tone-cyan mt-3 text-sm leading-7">
+        <div className="premium-lesson-tone-block premium-tone-cyan mt-3 interactive-courseware-body">
           <ReferenceAnswer card={card} />
         </div>
       ) : null}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="premium-lesson-muted text-xs">已提交 {cardResponses.length} 人</div>
+        <div className="interactive-courseware-caption">已提交 {cardResponses.length} 人</div>
         {cardResponses.length ? (
           <button
             type="button"
             onClick={() => setDetailsVisible((value) => !value)}
             aria-expanded={detailsVisible}
-            className="premium-lesson-action-tone premium-tone-slate text-xs"
+            className="premium-lesson-action-tone interactive-courseware-control premium-tone-slate"
           >
             {detailsVisible ? '收起细节' : '查看细节'}
           </button>
@@ -472,26 +482,26 @@ function TeacherCardAnswerSummary({
         {aggregateRows.length ? (
           aggregateRows.map((row) => (
             <div key={`${card.id}-${row.answer}`} className="rounded-2xl border border-border/50 bg-background/60 px-3 py-2">
-              <div className="flex items-start justify-between gap-3 text-sm leading-6">
+              <div className="flex items-start justify-between gap-3 interactive-courseware-body">
                 <span className="premium-lesson-title">{renderActivityInlineContent(row.answer)}</span>
-                <span className="premium-lesson-caption shrink-0 text-xs">
+                <span className="interactive-courseware-caption shrink-0">
                   {row.count} 人 · {Math.round(row.ratio * 100)}%
                 </span>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border/60">
-                <div className="h-full rounded-full bg-cyan-500" style={{ width: `${Math.round(row.ratio * 100)}%` }} />
+                <div className="h-full rounded-full bg-platform-action-primary" style={{ width: `${Math.round(row.ratio * 100)}%` }} />
               </div>
             </div>
           ))
         ) : (
-          <div className="premium-lesson-muted rounded-2xl border border-dashed border-border/60 px-3 py-2 text-sm">
+          <div className="premium-lesson-muted rounded-2xl border border-dashed border-border/60 px-3 py-2 interactive-courseware-body">
             暂无提交，答案统计将在学生提交后显示。
           </div>
         )}
       </div>
       {detailsVisible ? (
-        <div className="premium-lesson-tone-block premium-tone-slate mt-3 text-sm leading-7">
-          <ManifestSectionTitle>提交细节</ManifestSectionTitle>
+        <div className="premium-lesson-tone-block premium-tone-slate mt-3 interactive-courseware-body">
+          <ManifestActivitySubsectionTitle>提交细节</ManifestActivitySubsectionTitle>
           <div className="mt-2 space-y-2">
             {cardResponses.map((item) => (
               <p key={`${card.id}-${item.studentName}-${item.response.submittedAt}`} className="premium-lesson-muted leading-6">
@@ -579,25 +589,25 @@ function DragMatchPreview({ card }: { card: InteractiveRuntimeActivityCardManife
   return (
     <div className="mt-3 grid gap-3 lg:grid-cols-[2fr_1fr]">
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2">
-        <ManifestSectionTitle>待配对项</ManifestSectionTitle>
-        <ManifestSectionTitle>配对空槽</ManifestSectionTitle>
+        <ManifestActivitySubsectionTitle>待配对项</ManifestActivitySubsectionTitle>
+        <ManifestActivitySubsectionTitle>配对空槽</ManifestActivitySubsectionTitle>
         {items.map((item) => (
           <Fragment key={item.value}>
-            <div className="premium-lesson-surface-elevated flex min-h-[64px] items-center px-4 py-3 text-sm leading-6">
+            <div className="premium-lesson-surface-elevated flex min-h-[64px] items-center px-4 py-3 interactive-courseware-body">
               {renderActivityInlineContent(explicitPairs ? item.label : splitMatchLabel(item.label).source)}
             </div>
-            <div className="premium-lesson-muted flex min-h-[64px] items-center rounded-2xl border border-dashed border-border/60 bg-background/40 px-4 py-3 text-sm leading-6">
+            <div className="premium-lesson-muted flex min-h-[64px] items-center rounded-2xl border border-dashed border-border/60 bg-background/40 px-4 py-3 interactive-courseware-body">
               待学生拖入
             </div>
           </Fragment>
         ))}
       </div>
       <div className="space-y-2">
-        <ManifestSectionTitle>备选项</ManifestSectionTitle>
+        <ManifestActivitySubsectionTitle>备选项</ManifestActivitySubsectionTitle>
         {shuffledOptions.map((option) => (
           <div
             key={option.value}
-            className="premium-lesson-surface-elevated flex min-h-[64px] w-full items-center px-4 py-3 text-left text-sm leading-6"
+            className="premium-lesson-surface-elevated flex min-h-[64px] w-full items-center px-4 py-3 text-left interactive-courseware-body"
           >
             {renderActivityInlineContent(explicitPairs ? option.label : splitMatchLabel(option.label).target)}
           </div>
@@ -648,7 +658,7 @@ function DragMatchAnswerInput({
   if (!items.length || !options.length) {
     return (
       <div
-        className="premium-lesson-tone-block premium-tone-amber mt-3 text-sm leading-7"
+        className="premium-lesson-tone-block premium-tone-amber mt-3 interactive-courseware-body"
         data-manifest-missing-field={`${card.id}:matchItemsOrOptions`}
       >
         manifest 未提供本配对题的左侧现象或右侧类别，请在 activity_cards[].match_items / match_options 中补齐。
@@ -659,13 +669,13 @@ function DragMatchAnswerInput({
   return (
     <div className="mt-3 grid gap-3 lg:grid-cols-[2fr_1fr]">
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2">
-        <ManifestSectionTitle>待配对项</ManifestSectionTitle>
-        <ManifestSectionTitle>配对空槽</ManifestSectionTitle>
+        <ManifestActivitySubsectionTitle>待配对项</ManifestActivitySubsectionTitle>
+        <ManifestActivitySubsectionTitle>配对空槽</ManifestActivitySubsectionTitle>
         {items.map((item, index) => {
           const assigned = assignments[index];
           return (
             <Fragment key={item.value}>
-              <div className="premium-lesson-surface-elevated flex min-h-[64px] items-center px-4 py-3 text-sm leading-6">
+              <div className="premium-lesson-surface-elevated flex min-h-[64px] items-center px-4 py-3 interactive-courseware-body">
                 {renderActivityInlineContent(sourceLabelFor(item.label))}
               </div>
               <button
@@ -687,7 +697,7 @@ function DragMatchAnswerInput({
                   commitAssignments(next);
                 }}
                 className={`flex min-h-[64px] w-full items-center rounded-2xl border px-4 py-3 text-left text-sm leading-6 ${
-                  assigned ? 'border-cyan-300/60 bg-cyan-500/10' : 'premium-lesson-muted border-dashed border-border/60 bg-background/40'
+                  assigned ? 'border-platform-action-primary/60 bg-platform-action-primary/10' : 'premium-lesson-muted border-dashed border-border/60 bg-background/40'
                 }`}
                 aria-label={`${sourceLabelFor(item.label)} 的配对空槽`}
               >
@@ -698,7 +708,7 @@ function DragMatchAnswerInput({
         })}
       </div>
       <div className="space-y-2">
-        <ManifestSectionTitle>备选项</ManifestSectionTitle>
+        <ManifestActivitySubsectionTitle>备选项</ManifestActivitySubsectionTitle>
         {availableOptions.map((option) => (
           <button
             key={option.value}
@@ -725,13 +735,13 @@ function DragMatchAnswerInput({
               next[firstEmptyIndex] = option.value;
               commitAssignments(next);
             }}
-            className="premium-lesson-surface-elevated flex min-h-[64px] w-full cursor-grab items-center px-4 py-3 text-left text-sm leading-6 active:cursor-grabbing"
+            className="premium-lesson-surface-elevated flex min-h-[64px] w-full cursor-grab items-center px-4 py-3 text-left interactive-courseware-body active:cursor-grabbing"
           >
             {renderActivityInlineContent(explicitPairs ? option.label : splitMatchLabel(option.label).target)}
           </button>
         ))}
         {!availableOptions.length ? (
-          <div className="premium-lesson-muted rounded-2xl border border-dashed border-border/60 px-4 py-3 text-sm">
+          <div className="premium-lesson-muted rounded-2xl border border-dashed border-border/60 px-4 py-3 interactive-courseware-body">
             所有备选项已放入空槽，点击空槽可撤回。
           </div>
         ) : null}
@@ -765,7 +775,7 @@ function DragSortAnswerInput({
   if (!card.options.length) {
     return (
       <div
-        className="premium-lesson-tone-block premium-tone-amber mt-3 text-sm leading-7"
+        className="premium-lesson-tone-block premium-tone-amber mt-3 interactive-courseware-body"
         data-manifest-missing-field={`${card.id}:options`}
       >
         manifest 未提供本排序题选项，请在 activity_cards[].options 中补齐。
@@ -799,16 +809,16 @@ function DragSortAnswerInput({
             next.splice(nextIndex, 0, moved);
             commitOrder(next);
           }}
-          className="premium-lesson-surface-elevated flex w-full cursor-grab items-start gap-3 px-4 py-3 text-left text-sm leading-6 active:cursor-grabbing"
+          className="premium-lesson-surface-elevated flex w-full cursor-grab items-start gap-3 px-4 py-3 text-left interactive-courseware-body active:cursor-grabbing"
           aria-label={`排序项 ${index + 1}，可拖拽或用方向键调整`}
         >
-          <span className="premium-lesson-caption min-w-8 rounded-full bg-background/80 px-2 py-0.5 text-center text-xs">
+          <span className="interactive-courseware-caption min-w-8 rounded-full bg-background/80 px-2 py-0.5 text-center">
             {index + 1}
           </span>
           <span>{renderActivityInlineContent(labelFor(optionValue))}</span>
         </button>
       ))}
-      <p className="premium-lesson-muted text-xs">拖动卡片调整顺序，也可以聚焦后使用上下方向键移动。</p>
+      <p className="interactive-courseware-caption">拖动卡片调整顺序，也可以聚焦后使用上下方向键移动。</p>
     </div>
   );
 }
@@ -831,9 +841,9 @@ function ParameterSetAnswerInput({
   return (
     <div className="mt-3 grid gap-3 md:grid-cols-2">
       {fields.map((field) => (
-        <label key={field.key} className="premium-lesson-surface-elevated block px-4 py-3 text-sm leading-6">
+        <label key={field.key} className="premium-lesson-surface-elevated block px-4 py-3 interactive-courseware-body">
           <span className="premium-lesson-title block font-medium">{field.label}</span>
-          <span className="premium-lesson-muted mt-1 block text-xs">{field.unit ? `单位：${field.unit}` : '记录当前参数值'}</span>
+          <span className="interactive-courseware-caption mt-1 block">{field.unit ? `单位：${field.unit}` : '记录当前参数值'}</span>
           <input
             type="text"
             value={parsed[field.key] ?? ''}
@@ -884,7 +894,7 @@ function StudentCardAnswerInput({
     if (!card.options.length) {
       return (
         <div
-          className="premium-lesson-tone-block premium-tone-amber mt-3 text-sm leading-7"
+          className="premium-lesson-tone-block premium-tone-amber mt-3 interactive-courseware-body"
           data-manifest-missing-field={`${card.id}:options`}
         >
           manifest 未提供本多选题选项，请在 activity_cards[].options 中补齐。
@@ -901,7 +911,7 @@ function StudentCardAnswerInput({
           return (
             <label
               key={option.value}
-              className="premium-lesson-surface-elevated flex cursor-pointer items-start gap-3 px-4 py-3 text-sm leading-6"
+              className="premium-lesson-surface-elevated flex cursor-pointer items-start gap-3 px-4 py-3 interactive-courseware-body"
             >
               <input
                 type="checkbox"
@@ -930,7 +940,7 @@ function StudentCardAnswerInput({
     if (!card.options.length) {
       return (
         <div
-          className="premium-lesson-tone-block premium-tone-amber mt-3 text-sm leading-7"
+          className="premium-lesson-tone-block premium-tone-amber mt-3 interactive-courseware-body"
           data-manifest-missing-field={`${card.id}:options`}
         >
           manifest 未提供本选择题选项，请在 activity_cards[].options 中补齐。
@@ -944,7 +954,7 @@ function StudentCardAnswerInput({
         {card.options.map((option) => (
           <label
             key={option.value}
-            className="premium-lesson-surface-elevated flex cursor-pointer items-start gap-3 px-4 py-3 text-sm leading-6"
+            className="premium-lesson-surface-elevated flex cursor-pointer items-start gap-3 px-4 py-3 interactive-courseware-body"
           >
             <input
               type="radio"
@@ -962,7 +972,7 @@ function StudentCardAnswerInput({
   }
 
   return (
-    <textarea
+    <textarea aria-label="写出判断依据。"
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder="写出判断依据。"
@@ -978,6 +988,7 @@ function StudentCards({
   browseEnabled,
   answerVisible,
   workspaceParameters,
+  readOnly = false,
   onSubmit,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
@@ -986,41 +997,38 @@ function StudentCards({
   browseEnabled: boolean;
   answerVisible: boolean;
   workspaceParameters?: Record<string, string | number | boolean>;
+  readOnly?: boolean;
   onSubmit: (response: ManifestStepResponse) => void;
 }) {
   const cards = useMemo(() => cardsFor(stepManifest), [stepManifest]);
   const cardKeys = useMemo(() => cards.map((card) => card.id), [cards]);
-  const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
-  const [localSubmittedKeys, setLocalSubmittedKeys] = useState<Set<string>>(() => new Set());
-  const [touchedKeys, setTouchedKeys] = useState<Set<string>>(() => new Set());
-
-  useEffect(() => {
-    setDraftAnswers((currentDraft) =>
-      Object.fromEntries(
-        Object.entries(
-          mergeSavedAnswersIntoDraft({
-            savedAnswers: savedResponse?.answers,
-            currentDraft,
-            keys: cardKeys,
-          }),
-        ).map(([key, value]) => [
-          key,
-          touchedKeys.has(key) ? currentDraft[key] ?? value : value,
-        ]),
-      ),
-    );
-  }, [cardKeys, savedResponse, touchedKeys]);
-
-  useEffect(() => {
-    setLocalSubmittedKeys(new Set());
-    setTouchedKeys(new Set());
-  }, [stepManifest.id]);
+  const stepActivityIdentity = buildStepActivityIdentity(stepManifest.id, cardKeys);
+  const [draftEnvelope, setDraftEnvelope] = useState<StudentCardDraftEnvelope>(() => ({
+    identity: stepActivityIdentity,
+    draftAnswers: savedResponse?.answers ?? {},
+    touchedKeys: new Set(),
+    localSubmittedKeys: new Set(),
+  }));
+  const {
+    identityChanged,
+    nextEnvelope,
+    mergedDraftAnswers,
+  } = resolveStudentCardDraftEnvelope({
+    identity: stepActivityIdentity,
+    savedAnswers: savedResponse?.answers,
+    cardKeys,
+    envelope: draftEnvelope,
+  });
+  if (identityChanged) {
+    setDraftEnvelope(nextEnvelope);
+  }
+  const effectiveLocalSubmittedKeys = nextEnvelope.localSubmittedKeys;
 
   if (!cards.length) return null;
 
   if (!released) {
     return (
-        <div className="premium-lesson-panel">
+        <div className="premium-lesson-panel interactive-courseware-panel">
         <ManifestSectionTitle>本页作答</ManifestSectionTitle>
         <div className="premium-lesson-tone-block premium-tone-amber mt-3">教师尚未发放本页作答卡，请先阅读上方证据。</div>
       </div>
@@ -1029,25 +1037,25 @@ function StudentCards({
 
   if (!browseEnabled && stepManifest.interactionSpec.interactionKind === 'quiz_group') {
     return (
-        <div className="premium-lesson-panel">
+        <div className="premium-lesson-panel interactive-courseware-panel">
         <ManifestSectionTitle>本页作答</ManifestSectionTitle>
         <div className="premium-lesson-tone-block premium-tone-amber mt-3">教师尚未开放浏览，请等待课堂推进。</div>
       </div>
     );
   }
 
-  const submittedKeys = new Set([...Object.keys(savedResponse?.answers ?? {}), ...Array.from(localSubmittedKeys)]);
+  const submittedKeys = new Set([...Object.keys(savedResponse?.answers ?? {}), ...Array.from(effectiveLocalSubmittedKeys)]);
   const draftValueForCard = (card: InteractiveRuntimeActivityCardManifest) => {
     const currentParameterValue = parameterSetDraftValue(card, workspaceParameters);
     if (currentParameterValue) return currentParameterValue;
-    return draftAnswers[card.id] ?? '';
+    return mergedDraftAnswers[card.id] ?? '';
   };
 
   return (
-    <div className="space-y-4">
+    <div className="interactive-courseware-stack">
       <div className={`grid gap-4 ${cards.every((card) => card.layoutSpan === 'half') ? 'md:grid-cols-2' : ''}`}>
         {cards.map((card, index) => (
-          <div key={card.id} className="premium-lesson-panel">
+          <div key={card.id} className="premium-lesson-panel interactive-courseware-panel">
             <ManifestSectionTitle>
               <CardTitleWithPrompt card={card} index={index} />
             </ManifestSectionTitle>
@@ -1055,9 +1063,12 @@ function StudentCards({
             <StudentCardAnswerInput
               card={card}
               value={draftValueForCard(card)}
-              onChange={(value) => {
-                setTouchedKeys((prev) => new Set(prev).add(card.id));
-                setDraftAnswers((prev) => ({ ...prev, [card.id]: value }));
+                onChange={(value) => {
+                setDraftEnvelope((previous) => ({
+                  ...previous,
+                  draftAnswers: { ...previous.draftAnswers, [card.id]: value },
+                  touchedKeys: new Set(previous.touchedKeys).add(card.id),
+                }));
               }}
             />
             <div className="mt-3 flex items-center justify-between gap-3">
@@ -1065,14 +1076,17 @@ function StudentCards({
                 type="button"
                 onClick={() => {
                   const currentDraft = {
-                    ...draftAnswers,
+                    ...mergedDraftAnswers,
                     [card.id]: draftValueForCard(card),
                   };
-                  setLocalSubmittedKeys((previous) => new Set(previous).add(card.id));
-                  setTouchedKeys((previous) => {
-                    const next = new Set(previous);
-                    next.delete(card.id);
-                    return next;
+                  setDraftEnvelope((previous) => {
+                    const nextTouchedKeys = new Set(previous.touchedKeys);
+                    nextTouchedKeys.delete(card.id);
+                    return {
+                      ...previous,
+                      localSubmittedKeys: new Set(previous.localSubmittedKeys).add(card.id),
+                      touchedKeys: nextTouchedKeys,
+                    };
                   });
                   onSubmit({
                     stepId: stepManifest.id,
@@ -1085,34 +1099,34 @@ function StudentCards({
                   });
                 }}
                 disabled={!draftValueForCard(card).trim()}
-                className="premium-lesson-action-primary disabled:opacity-40"
+                className="premium-lesson-action-primary interactive-courseware-control disabled:opacity-40"
               >
                 提交答案
               </button>
-              <span className="premium-lesson-caption text-xs">
+              <span className="interactive-courseware-caption">
                 {submittedKeys.has(card.id) ? '已提交，可修改后重提。' : '独立提交本卡。'}
               </span>
             </div>
             <SubmissionStatus
               submitted={submittedKeys.has(card.id)}
               submittedText="本卡已提交，修改后可以再次提交。"
-              idleText="提交后会同步到教师端汇总。"
+              idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : '提交后会同步到教师端汇总。'}
               showLock={false}
             />
             {answerVisible ? (
-              <div className="premium-lesson-tone-block premium-tone-cyan mt-4 text-sm leading-7">
+              <div className="premium-lesson-tone-block premium-tone-cyan mt-4 interactive-courseware-body">
                 <ReferenceAnswer card={card} />
               </div>
             ) : null}
           </div>
         ))}
       </div>
-      <div className="premium-lesson-panel">
+      <div className="premium-lesson-panel interactive-courseware-panel">
         <ManifestSectionTitle>提交状态</ManifestSectionTitle>
         <SubmissionStatus
           submitted={cards.every((card) => submittedKeys.has(card.id))}
           submittedText="本页作答卡已至少提交一次，可继续修改并逐卡重提。"
-          idleText="各作答卡独立提交，教师端会按卡汇总。"
+          idleText={readOnly ? '演示模式会展示作答流程，但不会写入课堂汇总。' : '各作答卡独立提交，教师端会按卡汇总。'}
           showLock={false}
         />
       </div>
@@ -1191,14 +1205,14 @@ export function ManifestTeacherControls({
   const normalizedRevealProgress = layerCount ? Math.min(revealProgress, maxRevealProgress) : revealProgress;
   const canAdvanceReveal = !layerCount || revealProgress < maxRevealProgress;
   return (
-    <div className="premium-lesson-panel">
+    <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestSectionTitle>教师控制</ManifestSectionTitle>
       <div className="mt-3 flex flex-wrap gap-2">
         {controls.releaseActivity !== 'not_applicable' ? (
           <button
             type="button"
             onClick={onToggleRelease}
-            className={`premium-lesson-action-tone ${released ? 'premium-tone-emerald' : 'premium-tone-slate'}`}
+            className={`premium-lesson-action-tone interactive-courseware-control ${released ? 'premium-tone-emerald' : 'premium-tone-slate'}`}
           >
             {released ? '已发放作答' : '发放作答'}
           </button>
@@ -1207,7 +1221,7 @@ export function ManifestTeacherControls({
           <button
             type="button"
             onClick={onToggleBrowse}
-            className={`premium-lesson-action-tone ${browseEnabled ? 'premium-tone-cyan' : 'premium-tone-slate'}`}
+            className={`premium-lesson-action-tone interactive-courseware-control ${browseEnabled ? 'premium-tone-cyan' : 'premium-tone-slate'}`}
           >
             {browseEnabled ? '已开放浏览' : '开放浏览'}
           </button>
@@ -1216,7 +1230,7 @@ export function ManifestTeacherControls({
           <button
             type="button"
             onClick={onToggleAnswerVisible}
-            className={`premium-lesson-action-tone ${answerVisible ? 'premium-tone-amber' : 'premium-tone-slate'}`}
+            className={`premium-lesson-action-tone interactive-courseware-control ${answerVisible ? 'premium-tone-amber' : 'premium-tone-slate'}`}
           >
             {answerVisible ? '隐藏参考答案' : '显示参考答案'}
           </button>
@@ -1227,18 +1241,18 @@ export function ManifestTeacherControls({
               type="button"
               onClick={onAdvanceReveal}
               disabled={!canAdvanceReveal}
-              className="premium-lesson-action-tone premium-tone-cyan disabled:cursor-not-allowed disabled:opacity-40"
+              className="premium-lesson-action-tone interactive-courseware-control premium-tone-cyan disabled:cursor-not-allowed disabled:opacity-40"
             >
               推进显影
             </button>
-            <button type="button" onClick={onResetReveal} className="premium-lesson-action-tone premium-tone-slate">
+            <button type="button" onClick={onResetReveal} className="premium-lesson-action-tone interactive-courseware-control premium-tone-slate">
               重置显影
             </button>
           </>
         ) : null}
       </div>
       {hasTeacherRevealControl(stepManifest) ? (
-        <p className="premium-lesson-muted mt-3 text-sm">
+        <p className="interactive-courseware-body">
           当前教师显影层级：{normalizedRevealProgress + 1}{layerCount ? ` / ${layerCount}` : ''}
         </p>
       ) : null}
@@ -1273,7 +1287,7 @@ function TeacherSummary({
 }) {
   const cards = cardsFor(stepManifest);
   return (
-    <div className="space-y-4">
+    <div className="interactive-courseware-stack">
       <ManifestTeacherControls
         stepManifest={stepManifest}
         released={released}
@@ -1287,7 +1301,7 @@ function TeacherSummary({
         onResetReveal={onResetReveal}
       />
       {cards.length ? (
-        <div className="premium-lesson-panel">
+        <div className="premium-lesson-panel interactive-courseware-panel">
           <ManifestSectionTitle>学生提交汇总</ManifestSectionTitle>
           <div className="mt-3 space-y-3">
             {cards.map((card, index) => (

@@ -1,0 +1,561 @@
+{
+  "change": "unify-interactive-learning-atlas-shell",
+  "finalResult": "passed",
+  "sourceVisuals": [
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/design-handoff.md",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/01-course-catalog-theory-practice.png"
+  ],
+  "implementationEvidence": [
+    {
+      "key": "01-landing-desktop-light",
+      "route": "/interactive-learning",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "marker": "landing",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/01-landing-desktop-light.png",
+      "metrics": {
+        "breadcrumbText": "学习/互动学习",
+        "courseKinds": [],
+        "fixedWidthShellCount": 0,
+        "floatingDockText": "",
+        "floatingDockVisible": true,
+        "hasHorizontalOverflow": false,
+        "navigationPreference": "collapsed",
+        "navigationState": "collapsed",
+        "themeClass": "light",
+        "url": "/interactive-learning",
+        "viewport": {
+          "height": 900,
+          "width": 1440
+        },
+        "workspace": "landing",
+        "floatingDockHasKonling": true,
+        "fixedWidthShellClasses": []
+      }
+    },
+    {
+      "key": "02-courses-desktop-light",
+      "route": "/interactive-learning/courses",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "marker": "course-catalog",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/02-courses-desktop-light.png",
+      "metrics": {
+        "breadcrumbText": "学习/互动学习/互动课程",
+        "courseKinds": [
+          "理论课",
+          "实践课"
+        ],
+        "fixedWidthShellCount": 0,
+        "floatingDockText": "",
+        "floatingDockVisible": true,
+        "hasHorizontalOverflow": false,
+        "navigationPreference": "collapsed",
+        "navigationState": "collapsed",
+        "themeClass": "light",
+        "url": "/interactive-learning/courses",
+        "viewport": {
+          "height": 900,
+          "width": 1440
+        },
+        "workspace": "course-catalog",
+        "floatingDockHasKonling": true,
+        "fixedWidthShellClasses": []
+      }
+    },
+    {
+      "key": "03-chapter-components-desktop-light",
+      "route": "/interactive-learning/chapter-components",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "marker": "chapter-components",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/03-chapter-components-desktop-light.png",
+      "metrics": {
+        "breadcrumbText": "学习/互动学习/章节组件",
+        "courseKinds": [],
+        "fixedWidthShellCount": 0,
+        "floatingDockText": "",
+        "floatingDockVisible": true,
+        "hasHorizontalOverflow": false,
+        "navigationPreference": "collapsed",
+        "navigationState": "collapsed",
+        "themeClass": "light",
+        "url": "/interactive-learning/chapter-components",
+        "viewport": {
+          "height": 900,
+          "width": 1440
+        },
+        "workspace": "chapter-components",
+        "floatingDockHasKonling": true,
+        "fixedWidthShellClasses": []
+      }
+    },
+    {
+      "key": "04-cross-domain-desktop-light",
+      "route": "/interactive-learning/cross-domain-exploration",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "marker": "cross-domain-exploration",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/04-cross-domain-desktop-light.png",
+      "metrics": {
+        "breadcrumbText": "学习/互动学习/跨域探索",
+        "courseKinds": [],
+        "fixedWidthShellCount": 0,
+        "floatingDockText": "",
+        "floatingDockVisible": true,
+        "hasHorizontalOverflow": false,
+        "navigationPreference": "collapsed",
+        "navigationState": "collapsed",
+        "themeClass": "light",
+        "url": "/interactive-learning/cross-domain-exploration",
+        "viewport": {
+          "height": 900,
+          "width": 1440
+        },
+        "workspace": "cross-domain-exploration",
+        "floatingDockHasKonling": true,
+        "fixedWidthShellClasses": []
+      }
+    },
+    {
+      "key": "05-courses-desktop-dark",
+      "route": "/interactive-learning/courses",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "marker": "course-catalog",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/05-courses-desktop-dark.png",
+      "metrics": {
+        "breadcrumbText": "学习/互动学习/互动课程",
+        "courseKinds": [
+          "理论课",
+          "实践课"
+        ],
+        "fixedWidthShellCount": 0,
+        "floatingDockText": "",
+        "floatingDockVisible": true,
+        "hasHorizontalOverflow": false,
+        "navigationPreference": "collapsed",
+        "navigationState": "collapsed",
+        "themeClass": "dark",
+        "url": "/interactive-learning/courses",
+        "viewport": {
+          "height": 900,
+          "width": 1440
+        },
+        "workspace": "course-catalog",
+        "floatingDockHasKonling": true,
+        "fixedWidthShellClasses": []
+      }
+    },
+    {
+      "key": "06-courses-mobile-light",
+      "route": "/interactive-learning/courses",
+      "width": 320,
+      "height": 760,
+      "theme": "light",
+      "marker": "course-catalog",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/06-courses-mobile-light.png",
+      "metrics": {
+        "breadcrumbText": "学习/互动学习/互动课程",
+        "courseKinds": [
+          "理论课",
+          "实践课"
+        ],
+        "fixedWidthShellCount": 0,
+        "floatingDockText": "",
+        "floatingDockVisible": true,
+        "hasHorizontalOverflow": false,
+        "navigationPreference": "collapsed",
+        "navigationState": "collapsed",
+        "themeClass": "light",
+        "url": "/interactive-learning/courses",
+        "viewport": {
+          "height": 760,
+          "width": 320
+        },
+        "workspace": "course-catalog",
+        "floatingDockHasKonling": true,
+        "fixedWidthShellClasses": []
+      }
+    },
+    {
+      "key": "07-cross-domain-mobile-dark",
+      "route": "/interactive-learning/cross-domain-exploration",
+      "width": 320,
+      "height": 760,
+      "theme": "dark",
+      "marker": "cross-domain-exploration",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/07-cross-domain-mobile-dark.png",
+      "metrics": {
+        "breadcrumbText": "学习/互动学习/跨域探索",
+        "courseKinds": [],
+        "fixedWidthShellCount": 0,
+        "floatingDockText": "",
+        "floatingDockVisible": true,
+        "hasHorizontalOverflow": false,
+        "navigationPreference": "collapsed",
+        "navigationState": "collapsed",
+        "themeClass": "dark",
+        "url": "/interactive-learning/cross-domain-exploration",
+        "viewport": {
+          "height": 760,
+          "width": 320
+        },
+        "workspace": "cross-domain-exploration",
+        "floatingDockHasKonling": true,
+        "fixedWidthShellClasses": []
+      }
+    },
+    {
+      "key": "08-courses-dock-expanded-light",
+      "route": "/interactive-learning/courses",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "state": "dock-expanded",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/08-courses-dock-expanded-light.png",
+      "metrics": {
+        "navigationState": "collapsed",
+        "floatingDockVisible": true,
+        "floatingDockMenuVisible": true,
+        "floatingDockHasKonling": true,
+        "hasHorizontalOverflow": false,
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": []
+      }
+    },
+    {
+      "key": "09-landing-mobile-light",
+      "route": "/interactive-learning",
+      "width": 320,
+      "height": 760,
+      "theme": "light",
+      "marker": "landing",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/09-landing-mobile-light.png",
+      "metrics": {
+        "url": "/interactive-learning",
+        "workspace": "landing",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习///互动学习",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 320,
+          "height": 760
+        },
+        "themeClass": "light",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [],
+        "runtimeStatuses": []
+      }
+    },
+    {
+      "key": "10-landing-mobile-dark",
+      "route": "/interactive-learning",
+      "width": 320,
+      "height": 760,
+      "theme": "dark",
+      "marker": "landing",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/10-landing-mobile-dark.png",
+      "metrics": {
+        "url": "/interactive-learning",
+        "workspace": "landing",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习///互动学习",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 320,
+          "height": 760
+        },
+        "themeClass": "dark",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [],
+        "runtimeStatuses": []
+      }
+    },
+    {
+      "key": "11-courses-mobile-light",
+      "route": "/interactive-learning/courses",
+      "width": 320,
+      "height": 760,
+      "theme": "light",
+      "marker": "courses",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/11-courses-mobile-light.png",
+      "metrics": {
+        "url": "/interactive-learning/courses",
+        "workspace": "course-catalog",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习////互动课程///互动课程",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 320,
+          "height": 760
+        },
+        "themeClass": "light",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [
+          "理论课",
+          "实践课"
+        ],
+        "runtimeStatuses": [
+          "精品课程"
+        ]
+      }
+    },
+    {
+      "key": "12-courses-mobile-dark",
+      "route": "/interactive-learning/courses",
+      "width": 320,
+      "height": 760,
+      "theme": "dark",
+      "marker": "courses",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/12-courses-mobile-dark.png",
+      "metrics": {
+        "url": "/interactive-learning/courses",
+        "workspace": "course-catalog",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习////互动课程///互动课程",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 320,
+          "height": 760
+        },
+        "themeClass": "dark",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [
+          "理论课",
+          "实践课"
+        ],
+        "runtimeStatuses": [
+          "精品课程"
+        ]
+      }
+    },
+    {
+      "key": "13-chapter-components-mobile-light",
+      "route": "/interactive-learning/chapter-components",
+      "width": 320,
+      "height": 760,
+      "theme": "light",
+      "marker": "chapter-components",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/13-chapter-components-mobile-light.png",
+      "metrics": {
+        "url": "/interactive-learning/chapter-components",
+        "workspace": "chapter-components",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习////章节组件///章节组件",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 320,
+          "height": 760
+        },
+        "themeClass": "light",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [],
+        "runtimeStatuses": []
+      }
+    },
+    {
+      "key": "14-chapter-components-mobile-dark",
+      "route": "/interactive-learning/chapter-components",
+      "width": 320,
+      "height": 760,
+      "theme": "dark",
+      "marker": "chapter-components",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/14-chapter-components-mobile-dark.png",
+      "metrics": {
+        "url": "/interactive-learning/chapter-components",
+        "workspace": "chapter-components",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习////章节组件///章节组件",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 320,
+          "height": 760
+        },
+        "themeClass": "dark",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [],
+        "runtimeStatuses": []
+      }
+    },
+    {
+      "key": "15-cross-domain-mobile-light",
+      "route": "/interactive-learning/cross-domain-exploration",
+      "width": 320,
+      "height": 760,
+      "theme": "light",
+      "marker": "cross-domain",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/15-cross-domain-mobile-light.png",
+      "metrics": {
+        "url": "/interactive-learning/cross-domain-exploration",
+        "workspace": "cross-domain-exploration",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习////跨域探索///跨域探索",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 320,
+          "height": 760
+        },
+        "themeClass": "light",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [],
+        "runtimeStatuses": []
+      }
+    },
+    {
+      "key": "16-cross-domain-mobile-dark",
+      "route": "/interactive-learning/cross-domain-exploration",
+      "width": 320,
+      "height": 760,
+      "theme": "dark",
+      "marker": "cross-domain",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/16-cross-domain-mobile-dark.png",
+      "metrics": {
+        "url": "/interactive-learning/cross-domain-exploration",
+        "workspace": "cross-domain-exploration",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习////跨域探索///跨域探索",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 320,
+          "height": 760
+        },
+        "themeClass": "dark",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [],
+        "runtimeStatuses": []
+      }
+    },
+    {
+      "key": "17-landing-desktop-dark",
+      "route": "/interactive-learning",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "marker": "landing",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/17-landing-desktop-dark.png",
+      "metrics": {
+        "url": "/interactive-learning",
+        "workspace": "landing",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习///互动学习",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "themeClass": "dark",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [],
+        "runtimeStatuses": []
+      }
+    },
+    {
+      "key": "18-chapter-components-desktop-dark",
+      "route": "/interactive-learning/chapter-components",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "marker": "chapter-components",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/18-chapter-components-desktop-dark.png",
+      "metrics": {
+        "url": "/interactive-learning/chapter-components",
+        "workspace": "chapter-components",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习////章节组件///章节组件",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "themeClass": "dark",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [],
+        "runtimeStatuses": []
+      }
+    },
+    {
+      "key": "19-cross-domain-desktop-dark",
+      "route": "/interactive-learning/cross-domain-exploration",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "marker": "cross-domain",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/interactive-learning-atlas-shell-502/screenshots/19-cross-domain-desktop-dark.png",
+      "metrics": {
+        "url": "/interactive-learning/cross-domain-exploration",
+        "workspace": "cross-domain-exploration",
+        "navigationState": "collapsed",
+        "navigationPreference": "collapsed",
+        "breadcrumbText": "学习//互动学习////跨域探索///跨域探索",
+        "fixedWidthShellCount": 0,
+        "fixedWidthShellClasses": [],
+        "hasHorizontalOverflow": false,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "themeClass": "dark",
+        "floatingDockVisible": true,
+        "floatingDockHasPageTools": false,
+        "courseKinds": [],
+        "runtimeStatuses": []
+      }
+    }
+  ],
+  "focusedComparisonNotes": [
+    "Atlas first-hop routes use AppShell breadcrumbs and collapsed navigation state instead of local global navigation.",
+    "Outer route containers are fluid workspace surfaces and no longer use full-page 1200/1280px centered shells.",
+    "Course catalog exposes only 理论课 and 实践课 course-kind chips while duration remains sourced from lesson runtime card metadata.",
+    "Repeated learning entries remain card-like; page sections are unframed bands to avoid card nesting.",
+    "Shared platform floating dock includes one global 控灵 entry and remains at the safe-area bottom-right dock surface."
+  ],
+  "blockingFindings": [],
+  "qaRunner": "equivalent per-change design QA report; Product Design design-qa tool was not callable in this Codex session"
+}

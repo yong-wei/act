@@ -17,19 +17,17 @@ import {
 import { useSearchParams } from 'next/navigation';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { MaritimeEnvironment } from '../environment';
+import { MaritimeEnvironment } from '../environment/maritime-environment';
 import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   RightClickFreeModeBridge,
-  CameraViewSwitcher,
-  SimulationTopBar,
-  SimulationDock,
-  ModelLoadingPlaceholder,
-  simulationUi,
   type CameraMode,
-} from '../components';
-import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
+} from '../components/camera-controller';
+import { CameraViewSwitcher } from '../components/camera-view-switcher';
+import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
+import { SimulationTopBar, SimulationDock, simulationUi } from '../components/simulation-ui';
+import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 
 import type {
   ControlMode,
@@ -131,8 +129,8 @@ const CRUISE_ROUTE_START: Vector2 = { x: -3000, z: 0 };
 const CRUISE_ROUTE_STRAIGHT_DISTANCE = 800;
 const CRUISE_ROUTE_TURN_HEADING = 30;
 const CRUISE_ROUTE_EXTENSION = 5200;
-const CRUISE_HEADING_PRIMARY = '#0ea5e9';
-const CRUISE_HEADING_SECONDARY = '#38bdf8';
+const CRUISE_HEADING_PRIMARY = simulationScenePalette.cruiseHeadingPrimary;
+const CRUISE_HEADING_SECONDARY = simulationScenePalette.cruiseHeadingSecondary;
 const CRUISE_HULL_SINK_OFFSET = 2.5;
 const CRUISE_EVALUATION_DURATION_SEC = 300;
 
@@ -214,7 +212,7 @@ function DirectionArrow({
 
 // ============ 海面组件 ============
 
-function Ocean({ seaState }: { seaState: number }) {
+function Ocean({ seaState, sceneTheme }: { seaState: number; sceneTheme: SimulationSceneTheme }) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
@@ -229,8 +227,8 @@ function Ocean({ seaState }: { seaState: number }) {
     return new THREE.ShaderMaterial({
       uniforms: {
         time: { value: 0 },
-        waterColor: { value: new THREE.Color('#0a5c8f') },
-        foamColor: { value: new THREE.Color('#ffffff') },
+        waterColor: { value: new THREE.Color(sceneTheme.waterColor) },
+        foamColor: { value: new THREE.Color(simulationScenePalette.white) },
         waveAmplitude: { value: waveAmplitude },
       },
       vertexShader: `
@@ -266,7 +264,7 @@ function Ocean({ seaState }: { seaState: number }) {
       transparent: true,
       side: THREE.DoubleSide,
     });
-  }, [waveAmplitude]);
+  }, [sceneTheme.waterColor, waveAmplitude]);
 
   return (
     <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} material={shaderMaterial}>
@@ -350,7 +348,7 @@ function CruiseShipModel({
       {/* 船艏标记 */}
       <mesh position={[0, modelHeight * 0.6, 0]}>
         <sphereGeometry args={[6, 16, 16]} />
-        <meshBasicMaterial color="#8b5cf6" />
+        <meshBasicMaterial color={simulationScenePalette.cruisePrimary} />
       </mesh>
     </group>
   );
@@ -455,11 +453,11 @@ function HeadingIndicator({
 function ComfortGauge({ comfort }: { comfort: ComfortMetrics }) {
   const getColor = () => {
     switch (comfort.comfortRating) {
-      case 'excellent': return '#22c55e';
-      case 'good': return '#84cc16';
-      case 'moderate': return '#eab308';
-      case 'poor': return '#f97316';
-      case 'unacceptable': return '#ef4444';
+      case 'excellent': return simulationScenePalette.success;
+      case 'good': return simulationScenePalette.successSoft;
+      case 'moderate': return simulationScenePalette.warning;
+      case 'poor': return simulationScenePalette.containerPrimary;
+      case 'unacceptable': return simulationScenePalette.danger;
     }
   };
 
@@ -476,8 +474,8 @@ function ComfortGauge({ comfort }: { comfort: ComfortMetrics }) {
   const angle = Math.min(comfort.msi / 50, 1) * 180;
 
   return (
-    <div className="rounded-lg bg-slate-800 p-3">
-      <div className="mb-2 text-xs font-semibold text-slate-400">舒适度评估</div>
+    <div className="rounded-lg bg-platform-canvas-muted p-3">
+      <div className="mb-2 text-xs font-semibold text-platform-fg-muted">舒适度评估</div>
       <div className="relative mx-auto h-24 w-40">
         {/* 仪表背景 */}
         <svg viewBox="0 0 100 60" className="h-full w-full">
@@ -485,15 +483,15 @@ function ComfortGauge({ comfort }: { comfort: ComfortMetrics }) {
           <path
             d="M 10 50 A 40 40 0 0 1 90 50"
             fill="none"
-            stroke="#334155"
+            stroke={simulationScenePalette.neutralStroke}
             strokeWidth="8"
             strokeLinecap="round"
           />
           {/* 分区颜色 */}
-          <path d="M 10 50 A 40 40 0 0 1 26 22" fill="none" stroke="#22c55e" strokeWidth="8" strokeLinecap="round" />
-          <path d="M 26 22 A 40 40 0 0 1 50 10" fill="none" stroke="#84cc16" strokeWidth="8" strokeLinecap="round" />
-          <path d="M 50 10 A 40 40 0 0 1 74 22" fill="none" stroke="#eab308" strokeWidth="8" strokeLinecap="round" />
-          <path d="M 74 22 A 40 40 0 0 1 90 50" fill="none" stroke="#ef4444" strokeWidth="8" strokeLinecap="round" />
+          <path d="M 10 50 A 40 40 0 0 1 26 22" fill="none" stroke={simulationScenePalette.success} strokeWidth="8" strokeLinecap="round" />
+          <path d="M 26 22 A 40 40 0 0 1 50 10" fill="none" stroke={simulationScenePalette.successSoft} strokeWidth="8" strokeLinecap="round" />
+          <path d="M 50 10 A 40 40 0 0 1 74 22" fill="none" stroke={simulationScenePalette.warning} strokeWidth="8" strokeLinecap="round" />
+          <path d="M 74 22 A 40 40 0 0 1 90 50" fill="none" stroke={simulationScenePalette.danger} strokeWidth="8" strokeLinecap="round" />
           {/* 指针 */}
           <line
             x1="50"
@@ -509,16 +507,16 @@ function ComfortGauge({ comfort }: { comfort: ComfortMetrics }) {
       </div>
       <div className="mt-1 text-center">
         <span className="text-xl font-bold" style={{ color: getColor() }}>{getLabel()}</span>
-        <div className="text-xs text-slate-400">MSI: {comfort.msi.toFixed(1)}%</div>
+        <div className="text-xs text-platform-fg-muted">MSI: {comfort.msi.toFixed(1)}%</div>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
         <div>
-          <span className="text-slate-500">横摇RMS</span>
-          <span className="ml-1 text-white">{comfort.rollRms.toFixed(2)}°</span>
+          <span className="text-platform-fg-muted">横摇RMS</span>
+          <span className="ml-1 text-platform-fg-inverse">{comfort.rollRms.toFixed(2)}°</span>
         </div>
         <div>
-          <span className="text-slate-500">横摇峰值</span>
-          <span className="ml-1 text-white">{comfort.rollPeak.toFixed(2)}°</span>
+          <span className="text-platform-fg-muted">横摇峰值</span>
+          <span className="ml-1 text-platform-fg-inverse">{comfort.rollPeak.toFixed(2)}°</span>
         </div>
       </div>
     </div>
@@ -541,13 +539,13 @@ function FinStabilizerPanel({
   onToggle: () => void;
 }) {
   return (
-    <div className="rounded-lg bg-slate-800 p-3">
+    <div className="rounded-lg bg-platform-canvas-muted p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold text-slate-400">减摇鳍</span>
-        <button
+        <span className="text-xs font-semibold text-platform-fg-muted">减摇鳍</span>
+        <button type="button"
           onClick={onToggle}
           className={`rounded px-2 py-0.5 text-xs ${
-            enabled ? 'bg-green-600' : 'bg-slate-600'
+            enabled ? 'bg-[hsl(var(--platform-brand-success))]' : 'bg-platform-canvas-muted'
           }`}
         >
           {enabled ? '已启用' : '已禁用'}
@@ -556,37 +554,37 @@ function FinStabilizerPanel({
       <div className="grid grid-cols-2 gap-3">
         {/* 左舷鳍 */}
         <div className="text-center">
-          <div className="relative mx-auto h-12 w-4 rounded bg-slate-700">
+          <div className="relative mx-auto h-12 w-4 rounded bg-platform-canvas-muted">
             <div
-              className="absolute bottom-1/2 left-0 h-0.5 w-full origin-left bg-purple-400"
+              className="absolute bottom-1/2 left-0 h-0.5 w-full origin-left bg-[hsl(var(--platform-chart-5))]"
               style={{ transform: `rotate(${-portAngle}deg)` }}
             />
           </div>
-          <div className="mt-1 text-xs text-slate-400">左舷</div>
-          <div className="text-xs text-white">{portAngle.toFixed(1)}°</div>
+          <div className="mt-1 text-xs text-platform-fg-muted">左舷</div>
+          <div className="text-xs text-platform-fg-inverse">{portAngle.toFixed(1)}°</div>
         </div>
         {/* 右舷鳍 */}
         <div className="text-center">
-          <div className="relative mx-auto h-12 w-4 rounded bg-slate-700">
+          <div className="relative mx-auto h-12 w-4 rounded bg-platform-canvas-muted">
             <div
-              className="absolute bottom-1/2 left-0 h-0.5 w-full origin-left bg-purple-400"
+              className="absolute bottom-1/2 left-0 h-0.5 w-full origin-left bg-[hsl(var(--platform-chart-5))]"
               style={{ transform: `rotate(${-starboardAngle}deg)` }}
             />
           </div>
-          <div className="mt-1 text-xs text-slate-400">右舷</div>
-          <div className="text-xs text-white">{starboardAngle.toFixed(1)}°</div>
+          <div className="mt-1 text-xs text-platform-fg-muted">右舷</div>
+          <div className="text-xs text-platform-fg-inverse">{starboardAngle.toFixed(1)}°</div>
         </div>
       </div>
       <div className="mt-2">
         <div className="flex justify-between text-xs">
-          <span className="text-slate-500">功率</span>
-          <span className={power > 400 ? 'text-yellow-400' : 'text-white'}>
+          <span className="text-platform-fg-muted">功率</span>
+          <span className={power > 400 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-platform-fg-inverse'}>
             {power.toFixed(0)} kW
           </span>
         </div>
-        <div className="mt-1 h-1.5 rounded-full bg-slate-700">
+        <div className="mt-1 h-1.5 rounded-full bg-platform-canvas-muted">
           <div
-            className={`h-full rounded-full ${power > 400 ? 'bg-yellow-400' : 'bg-purple-400'}`}
+            className={`h-full rounded-full ${power > 400 ? 'bg-[hsl(var(--platform-brand-evidence))]' : 'bg-[hsl(var(--platform-chart-5))]'}`}
             style={{ width: `${Math.min((power / 500) * 100, 100)}%` }}
           />
         </div>
@@ -605,28 +603,28 @@ function NotchFilterPanel({
   onToggle: () => void;
 }) {
   return (
-    <div className="rounded-lg bg-slate-800 p-3">
+    <div className="rounded-lg bg-platform-canvas-muted p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold text-slate-400">陷波滤波器</span>
-        <button
+        <span className="text-xs font-semibold text-platform-fg-muted">陷波滤波器</span>
+        <button type="button"
           onClick={onToggle}
           className={`rounded px-2 py-0.5 text-xs ${
-            enabled ? 'bg-green-600' : 'bg-slate-600'
+            enabled ? 'bg-[hsl(var(--platform-brand-success))]' : 'bg-platform-canvas-muted'
           }`}
         >
           {enabled ? '已启用' : '已禁用'}
         </button>
       </div>
-      <div className="text-xs text-slate-400">
+      <div className="text-xs text-platform-fg-muted">
         <div className="mb-1">中心频率: 0.16 Hz</div>
         <div className="mb-1">带宽: 0.15 Hz</div>
         <div>陷波深度: -30 dB</div>
       </div>
       {/* 简化 Bode 图 */}
-      <div className="mt-2 h-12 rounded bg-slate-700 p-1">
+      <div className="mt-2 h-12 rounded bg-platform-canvas-muted p-1">
         <svg viewBox="0 0 100 30" className="h-full w-full">
           {/* 频率轴 */}
-          <line x1="10" y1="25" x2="95" y2="25" stroke="#64748b" strokeWidth="0.5" />
+          <line x1="10" y1="25" x2="95" y2="25" stroke={simulationScenePalette.mutedStroke} strokeWidth="0.5" />
           {/* 幅频响应 */}
           <path
             d={enabled
@@ -634,12 +632,12 @@ function NotchFilterPanel({
               : "M 10 15 L 90 15"
             }
             fill="none"
-            stroke="#8b5cf6"
+            stroke={simulationScenePalette.cruisePrimary}
             strokeWidth="1.5"
           />
           {/* 致晕频段标记 */}
-          <rect x="35" y="5" width="30" height="20" fill="#ef444420" />
-          <text x="50" y="3" fontSize="3" fill="#ef4444" textAnchor="middle">0.1-0.3Hz</text>
+          <rect x="35" y="5" width="30" height="20" fill="hsl(var(--platform-brand-danger) / 0.14)" />
+          <text x="50" y="3" fontSize="3" fill={simulationScenePalette.danger} textAnchor="middle">0.1-0.3Hz</text>
         </svg>
       </div>
     </div>
@@ -695,9 +693,9 @@ function ControllerPanel({
   return (
     <div className="space-y-3 p-1 text-sm">
       {isCourseMode ? (
-        <div className="space-y-2 rounded-lg border border-slate-300 bg-white p-2.5 text-xs">
+        <div className="space-y-2 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2.5 text-xs">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-slate-900">虚拟仿真观察</span>
+            <span className="font-semibold text-platform-fg-primary">虚拟仿真观察</span>
             <button
               type="button"
               onClick={onVirtualModeToggle}
@@ -706,7 +704,7 @@ function ControllerPanel({
               {virtualModeEnabled ? '已开启' : '已关闭'}
             </button>
           </div>
-          <p className="text-slate-700">
+          <p className="text-platform-fg-secondary">
             开启后采用真实扰动模型；关闭时使用理想化环境。请对比两者结果差异，并可结合加速仿真节约时间。
           </p>
         </div>
@@ -715,21 +713,21 @@ function ControllerPanel({
       {/* 仿真控制 */}
       <div className="flex gap-2">
         {!state.isRunning ? (
-          <button
+          <button type="button"
             onClick={onStart}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
           >
             开始仿真
           </button>
         ) : (
-          <button
+          <button type="button"
             onClick={onPause}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonSecondary}`}
           >
             {state.isPaused ? '继续' : '暂停'}
           </button>
         )}
-        <button
+        <button type="button"
           onClick={onReset}
           className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonOutline}`}
         >
@@ -737,27 +735,27 @@ function ControllerPanel({
         </button>
       </div>
 
-      <div className="rounded border border-slate-300 bg-white/80 px-2 py-1 text-xs text-slate-700">
+      <div className="rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1 text-xs text-platform-fg-secondary">
         单次校验时长: {state.runDurationSec}s（到时自动结束并生成评估数据）
       </div>
 
       {/* 任务航向 */}
       <div>
-        <label className="mb-1 block text-xs text-slate-400">任务目标航向: {state.targetHeading.toFixed(0)}°</label>
-        <div className="rounded border border-slate-300 bg-white/80 px-2 py-1 text-xs text-slate-700">
+        <label className="mb-1 block text-xs text-platform-fg-muted">任务目标航向: {state.targetHeading.toFixed(0)}°</label>
+        <div className="rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1 text-xs text-platform-fg-secondary">
           航线规则：先直航 {CRUISE_ROUTE_STRAIGHT_DISTANCE}m，再右转 {CRUISE_ROUTE_TURN_HEADING}° 并保持航向。
         </div>
       </div>
 
       {/* 海况等级 */}
       <div>
-        <label className="mb-1 block text-xs text-slate-400">
+        <label className="mb-1 block text-xs text-platform-fg-muted">
           海况等级: {state.seaState}级
-          <span className="ml-2 text-purple-400">
+          <span className="ml-2 text-[hsl(var(--platform-chart-5))]">
             ({state.seaState <= 2 ? '轻浪' : state.seaState <= 4 ? '中浪' : '大浪'})
           </span>
         </label>
-        <input
+        <input aria-label="巡航舒适性参数一"
           type="range"
           min="1"
           max="7"
@@ -769,13 +767,13 @@ function ControllerPanel({
 
       {/* 波向 */}
       <div>
-        <label className="mb-1 block text-xs text-slate-400">
+        <label className="mb-1 block text-xs text-platform-fg-muted">
           相对波向: {state.waveDirection}°
-          <span className="ml-2 text-purple-400">
+          <span className="ml-2 text-[hsl(var(--platform-chart-5))]">
             ({state.waveDirection === 90 || state.waveDirection === 270 ? '横浪' : state.waveDirection === 0 || state.waveDirection === 180 ? '纵浪' : '斜浪'})
           </span>
         </label>
-        <input
+        <input aria-label="巡航舒适性参数二"
           type="range"
           min="0"
           max="360"
@@ -787,10 +785,10 @@ function ControllerPanel({
 
       {/* 控制模式 */}
       <div>
-        <label className="mb-1 block text-xs text-slate-400">控制模式</label>
+        <p className="mb-1 block text-xs text-platform-fg-muted">控制模式</p>
         <div className="flex flex-wrap gap-1">
           {(['manual', 'p', 'pd', 'pid'] as ControlMode[]).map((mode) => (
-            <button
+            <button type="button"
               key={mode}
               onClick={() => onControlModeChange(mode)}
               className={`rounded border px-2 py-1 text-xs ${
@@ -807,10 +805,10 @@ function ControllerPanel({
 
       {state.controlMode === 'manual' ? (
         <div>
-          <label className="mb-1 block text-xs text-slate-400">
+          <label className="mb-1 block text-xs text-platform-fg-muted">
             手动舵角: {state.manualRudder.toFixed(0)}°
           </label>
-          <input
+          <input aria-label="巡航舒适性参数三"
             type="range"
             min={-CRUISE_ADORA_PARAMS.MAX_RUDDER_ANGLE}
             max={CRUISE_ADORA_PARAMS.MAX_RUDDER_ANGLE}
@@ -822,10 +820,10 @@ function ControllerPanel({
       ) : null}
 
       {isCourseMode ? (
-        <div className="space-y-2 rounded-lg border border-slate-300 bg-white p-2.5">
-          <div className="text-xs font-semibold text-slate-900">控制器参数</div>
+        <div className="space-y-2 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2.5">
+          <div className="text-xs font-semibold text-platform-fg-primary">控制器参数</div>
           <div className="grid grid-cols-3 gap-2">
-            <label className="text-[11px] text-slate-700">
+            <label className="text-[11px] text-platform-fg-secondary">
               Kp
               <input
                 type="number"
@@ -836,12 +834,12 @@ function ControllerPanel({
                 onChange={(event) => onPidGainsChange('kp', Number(event.target.value))}
                 className={`mt-1 w-full rounded border px-2 py-1 text-xs ${
                   kpEditable
-                    ? 'border-slate-300 bg-white text-slate-900'
-                    : 'cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400'
+                    ? 'border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary'
+                    : 'cursor-not-allowed border-platform-border bg-platform-canvas-muted text-platform-fg-muted'
                 }`}
               />
             </label>
-            <label className="text-[11px] text-slate-700">
+            <label className="text-[11px] text-platform-fg-secondary">
               Ki
               <input
                 type="number"
@@ -852,12 +850,12 @@ function ControllerPanel({
                 onChange={(event) => onPidGainsChange('ki', Number(event.target.value))}
                 className={`mt-1 w-full rounded border px-2 py-1 text-xs ${
                   kiEditable
-                    ? 'border-slate-300 bg-white text-slate-900'
-                    : 'cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400'
+                    ? 'border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary'
+                    : 'cursor-not-allowed border-platform-border bg-platform-canvas-muted text-platform-fg-muted'
                 }`}
               />
             </label>
-            <label className="text-[11px] text-slate-700">
+            <label className="text-[11px] text-platform-fg-secondary">
               Kd
               <input
                 type="number"
@@ -868,13 +866,13 @@ function ControllerPanel({
                 onChange={(event) => onPidGainsChange('kd', Number(event.target.value))}
                 className={`mt-1 w-full rounded border px-2 py-1 text-xs ${
                   kdEditable
-                    ? 'border-slate-300 bg-white text-slate-900'
-                    : 'cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400'
+                    ? 'border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary'
+                    : 'cursor-not-allowed border-platform-border bg-platform-canvas-muted text-platform-fg-muted'
                 }`}
               />
             </label>
           </div>
-          <div className="text-[11px] text-slate-600">{modeHint}</div>
+          <div className="text-[11px] text-platform-fg-secondary">{modeHint}</div>
         </div>
       ) : null}
 
@@ -908,13 +906,13 @@ function HUD({ state }: { state: CruiseSimulationState }) {
     <div className="space-y-3 p-1 text-sm">
 
       {/* 时间 */}
-      <div className="flex justify-between border-b border-slate-700 pb-2">
-        <span className="text-slate-400">仿真时间</span>
-        <span className="font-mono text-purple-400">{state.time.toFixed(1)}s</span>
+      <div className="flex justify-between border-b border-platform-border pb-2">
+        <span className="text-platform-fg-muted">仿真时间</span>
+        <span className="font-mono text-[hsl(var(--platform-chart-5))]">{state.time.toFixed(1)}s</span>
       </div>
-      <div className="flex justify-between border-b border-slate-700 pb-2">
-        <span className="text-slate-400">剩余时长</span>
-        <span className={`font-mono ${remaining <= 15 ? 'text-amber-300' : 'text-slate-100'}`}>
+      <div className="flex justify-between border-b border-platform-border pb-2">
+        <span className="text-platform-fg-muted">剩余时长</span>
+        <span className={`font-mono ${remaining <= 15 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-platform-fg-primary'}`}>
           {remaining.toFixed(1)}s
         </span>
       </div>
@@ -922,37 +920,37 @@ function HUD({ state }: { state: CruiseSimulationState }) {
       {/* 航向信息 */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <div className="text-xs text-slate-500">当前航向</div>
-          <div className="font-mono text-lg text-white">{state.heading.toFixed(1)}°</div>
+          <div className="text-xs text-platform-fg-muted">当前航向</div>
+          <div className="font-mono text-lg text-platform-fg-inverse">{state.heading.toFixed(1)}°</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">航向误差</div>
-          <div className={`font-mono text-lg ${Math.abs(normalizedError) > 3 ? 'text-red-400' : 'text-green-400'}`}>
+          <div className="text-xs text-platform-fg-muted">航向误差</div>
+          <div className={`font-mono text-lg ${Math.abs(normalizedError) > 3 ? 'text-[hsl(var(--platform-brand-danger))]' : 'text-[hsl(var(--platform-brand-success))]'}`}>
             {normalizedError.toFixed(1)}°
           </div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">转艏角速度</div>
-          <div className="font-mono text-white">{state.yawRate.toFixed(2)}°/s</div>
+          <div className="text-xs text-platform-fg-muted">转艏角速度</div>
+          <div className="font-mono text-platform-fg-inverse">{state.yawRate.toFixed(2)}°/s</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">舵角</div>
-          <div className="font-mono text-white">{state.rudder.toFixed(1)}°</div>
+          <div className="text-xs text-platform-fg-muted">舵角</div>
+          <div className="font-mono text-platform-fg-inverse">{state.rudder.toFixed(1)}°</div>
         </div>
       </div>
 
       {/* 横摇信息 */}
-      <div className="rounded bg-slate-800 p-2">
+      <div className="rounded bg-platform-canvas-muted p-2">
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-xs text-slate-500">横摇角</span>
-          <span className={`font-mono ${Math.abs(rollDeg) > 4 ? 'text-red-400' : Math.abs(rollDeg) > 2 ? 'text-yellow-400' : 'text-green-400'}`}>
+          <span className="text-xs text-platform-fg-muted">横摇角</span>
+          <span className={`font-mono ${Math.abs(rollDeg) > 4 ? 'text-[hsl(var(--platform-brand-danger))]' : Math.abs(rollDeg) > 2 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-[hsl(var(--platform-brand-success))]'}`}>
             {rollDeg.toFixed(2)}°
           </span>
         </div>
-        <div className="h-1.5 rounded-full bg-slate-700">
+        <div className="h-1.5 rounded-full bg-platform-canvas-muted">
           <div
             className={`h-full rounded-full transition-all ${
-              Math.abs(rollDeg) > 4 ? 'bg-red-400' : Math.abs(rollDeg) > 2 ? 'bg-yellow-400' : 'bg-green-400'
+              Math.abs(rollDeg) > 4 ? 'bg-[hsl(var(--platform-brand-danger))]' : Math.abs(rollDeg) > 2 ? 'bg-[hsl(var(--platform-brand-evidence))]' : 'bg-[hsl(var(--platform-brand-success))]'
             }`}
             style={{ width: `${Math.min(Math.abs(rollDeg) / 6 * 100, 100)}%` }}
           />
@@ -964,7 +962,7 @@ function HUD({ state }: { state: CruiseSimulationState }) {
 
       {/* 横摇警告 */}
       {Math.abs(rollDeg) > CRUISE_COMFORT_THRESHOLDS.MODERATE_ROLL && (
-        <div className="rounded bg-red-900/50 p-2 text-center text-xs text-red-300">
+        <div className="rounded bg-[hsl(var(--platform-brand-danger)/0.18)] p-2 text-center text-xs text-[hsl(var(--platform-brand-danger))]">
           ⚠️ 横摇角过大，乘客可能不适
         </div>
       )}
@@ -1038,8 +1036,8 @@ function CruiseTradeoffPanel({
   return (
     <div className="space-y-3 text-sm">
       {isCourseMode ? (
-        <div className="space-y-2 rounded-lg border border-slate-300 bg-white p-2 text-xs text-slate-700">
-          <div className="font-semibold text-slate-900">性能指标约束</div>
+        <div className="space-y-2 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2 text-xs text-platform-fg-secondary">
+          <div className="font-semibold text-platform-fg-primary">性能指标约束</div>
           <div className="grid grid-cols-2 gap-2">
             <label>
               目标超调(%)
@@ -1061,7 +1059,7 @@ function CruiseTradeoffPanel({
                     onTargetFormChange('overshoot', value);
                   }
                 }}
-                className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+                className="mt-1 w-full rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1"
               />
             </label>
             <label>
@@ -1084,7 +1082,7 @@ function CruiseTradeoffPanel({
                     onTargetFormChange('settlingTime', value);
                   }
                 }}
-                className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+                className="mt-1 w-full rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1"
               />
             </label>
             <label>
@@ -1107,7 +1105,7 @@ function CruiseTradeoffPanel({
                     onTargetFormChange('steadyError', value);
                   }
                 }}
-                className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+                className="mt-1 w-full rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1"
               />
             </label>
             <label>
@@ -1130,7 +1128,7 @@ function CruiseTradeoffPanel({
                     onTargetFormChange('maxLateralAccel', value);
                   }
                 }}
-                className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+                className="mt-1 w-full rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1"
               />
             </label>
           </div>
@@ -1143,7 +1141,7 @@ function CruiseTradeoffPanel({
           ['性能权重', 'performanceWeight'],
           ['能耗权重', 'energyWeight'],
         ].map(([label, key]) => (
-          <label key={key} className="text-xs text-slate-700">
+          <label key={key} className="text-xs text-platform-fg-secondary">
             {label}
             <input
               type="number"
@@ -1157,13 +1155,13 @@ function CruiseTradeoffPanel({
                   [key]: Number(event.target.value),
                 }))
               }
-              className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+              className="mt-1 w-full rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1"
             />
           </label>
         ))}
       </div>
 
-      <div className="rounded-lg border border-slate-300 bg-white p-2 text-xs text-slate-700">
+      <div className="rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2 text-xs text-platform-fg-secondary">
         <div>MSI: {derivedMetrics.msi}%</div>
         <div>调节时间: {derivedMetrics.settlingTime}s</div>
         <div>舵角幅值: {derivedMetrics.overshoot}°</div>
@@ -1180,18 +1178,18 @@ function CruiseTradeoffPanel({
       </button>
 
       {analysis ? (
-        <div className="space-y-2 rounded-lg border border-slate-300 bg-white p-2 text-xs">
-          <div className="text-slate-700">
-            综合评分：<span className="font-semibold text-slate-900">{analysis.blendedScore.toFixed(2)}</span>
+        <div className="space-y-2 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2 text-xs">
+          <div className="text-platform-fg-secondary">
+            综合评分：<span className="font-semibold text-platform-fg-primary">{analysis.blendedScore.toFixed(2)}</span>
           </div>
-          <div className="grid grid-cols-3 gap-1 text-slate-700">
+          <div className="grid grid-cols-3 gap-1 text-platform-fg-secondary">
             <div>舒适 {analysis.objectiveScores.comfort.toFixed(1)}</div>
             <div>性能 {analysis.objectiveScores.performance.toFixed(1)}</div>
             <div>能耗 {analysis.objectiveScores.energy.toFixed(1)}</div>
           </div>
-          <ul className="space-y-1 text-slate-700">
+          <ul className="space-y-1 text-platform-fg-secondary">
             {analysis.advice.map((item) => (
-              <li key={item} className="rounded border border-slate-200 bg-slate-50 px-2 py-1">
+              <li key={item} className="rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1">
                 {item}
               </li>
             ))}
@@ -1200,9 +1198,9 @@ function CruiseTradeoffPanel({
       ) : null}
 
       {isCourseMode ? (
-        <div className="space-y-2 rounded-lg border border-slate-300 bg-white p-2 text-xs text-slate-700">
+        <div className="space-y-2 rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2 text-xs text-platform-fg-secondary">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-slate-900">一致性校验</span>
+            <span className="font-semibold text-platform-fg-primary">一致性校验</span>
             <button
               type="button"
               onClick={onGenerateConsistencyComment}
@@ -1213,21 +1211,21 @@ function CruiseTradeoffPanel({
             </button>
           </div>
           {!hasRuntimeData || !performance || !consistencyScore ? (
-            <div className="rounded border border-amber-300 bg-amber-50 px-2 py-2 text-amber-800">
+            <div className="rounded border border-[hsl(var(--platform-brand-evidence)/0.42)] bg-[hsl(var(--platform-brand-evidence)/0.14)] px-2 py-2 text-[hsl(var(--platform-brand-evidence))]">
               {runtimeHint}
             </div>
           ) : (
             <>
-              <div>一致性得分：<span className="font-semibold text-slate-900">{consistencyScore.score}%</span></div>
+              <div>一致性得分：<span className="font-semibold text-platform-fg-primary">{consistencyScore.score}%</span></div>
               <div>超调：{performance.overshoot}% / 目标≤{state.targetForm.overshoot}%</div>
               <div>调节时间：{performance.settlingTime}s / 目标≤{state.targetForm.settlingTime}s</div>
               <div>侧向加速度：{performance.accel}g / 目标≤{state.targetForm.maxLateralAccel}g</div>
               {!performance.settled ? (
-                <div className="text-amber-700">当前仍在收敛中，调节时间按未收敛处理。</div>
+                <div className="text-[hsl(var(--platform-brand-evidence))]">当前仍在收敛中，调节时间按未收敛处理。</div>
               ) : null}
             </>
           )}
-          <div className="rounded border border-slate-200 bg-slate-50 px-2 py-1">
+          <div className="rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1">
             {consistencyComment}
           </div>
         </div>
@@ -1254,9 +1252,9 @@ function CruiseAIPanel({
   return (
     <div className="space-y-3">
       {isCourseMode ? (
-        <div className="rounded-lg border border-slate-300 bg-white p-2 text-xs text-slate-700">
+        <div className="rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2 text-xs text-platform-fg-secondary">
           <div className="mb-2 flex items-center justify-between">
-            <span className="font-semibold text-slate-900">结构化提示词</span>
+            <span className="font-semibold text-platform-fg-primary">结构化提示词</span>
             <button
               type="button"
               onClick={() => setExpanded((prev) => !prev)}
@@ -1273,7 +1271,7 @@ function CruiseAIPanel({
                   value={state.prompt.controlObject}
                   onChange={(event) => onPromptChange('controlObject', event.target.value)}
                   rows={2}
-                  className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+                  className="mt-1 w-full rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1"
                 />
               </label>
               <label className="block">
@@ -1282,7 +1280,7 @@ function CruiseAIPanel({
                   value={state.prompt.performanceGoal}
                   onChange={(event) => onPromptChange('performanceGoal', event.target.value)}
                   rows={2}
-                  className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+                  className="mt-1 w-full rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1"
                 />
               </label>
               <label className="block">
@@ -1291,7 +1289,7 @@ function CruiseAIPanel({
                   value={state.prompt.constraints}
                   onChange={(event) => onPromptChange('constraints', event.target.value)}
                   rows={2}
-                  className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+                  className="mt-1 w-full rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1"
                 />
               </label>
               <label className="block">
@@ -1300,7 +1298,7 @@ function CruiseAIPanel({
                   value={state.prompt.strategy}
                   onChange={(event) => onPromptChange('strategy', event.target.value)}
                   rows={2}
-                  className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+                  className="mt-1 w-full rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1"
                 />
               </label>
               <button
@@ -1310,7 +1308,7 @@ function CruiseAIPanel({
               >
                 发送结构化提示词
               </button>
-              <div className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] text-slate-700">
+              <div className="rounded border border-platform-border bg-platform-surface-overlay/86 px-2 py-1 text-[11px] text-platform-fg-secondary">
                 {feedback}
               </div>
             </div>
@@ -1318,7 +1316,6 @@ function CruiseAIPanel({
         </div>
       ) : null}
 
-      <AICompanionPanel title="邮轮舒适度控制" sessionId="cruise-comfort-session" />
     </div>
   );
 }
@@ -1335,6 +1332,7 @@ function VisualizationLayer({
   state,
   virtualModeEnabled,
   showGrid,
+  sceneTheme,
   desiredRoutePoints,
   trajectoryPoints,
   cameraMode,
@@ -1344,26 +1342,31 @@ function VisualizationLayer({
   state: CruiseSimulationState;
   virtualModeEnabled: boolean;
   showGrid: boolean;
+  sceneTheme: SimulationSceneTheme;
   desiredRoutePoints: Vector2[];
   trajectoryPoints: Vector2[];
   cameraMode: CameraMode;
-  controlsRef: React.RefObject<OrbitControlsImpl>;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
   onRequestFreeMode: () => void;
 }) {
   return (
-    <Canvas shadows camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
-      <MaritimeEnvironment shipPosition={state.position} seaState={virtualModeEnabled ? state.seaState : 1} />
+    <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
+      <ambientLight intensity={sceneTheme.ambientLightIntensity} />
+      <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
+      <MaritimeEnvironment
+        shipPosition={state.position}
+        seaState={virtualModeEnabled ? state.seaState : 1}
+        sceneTheme={sceneTheme}
+      />
       {showGrid ? (
         <Grid
           args={[20000, 20000]}
           cellSize={100}
           cellThickness={0.5}
-          cellColor="#1e3a5f"
+          cellColor={sceneTheme.gridCellColor}
           sectionSize={500}
           sectionThickness={1}
-          sectionColor="#2563eb"
+          sectionColor={sceneTheme.gridSectionColor}
           fadeDistance={9000}
           fadeStrength={1}
           position={[0, 0.35, 0]}
@@ -1519,6 +1522,7 @@ export default function CruiseSimulation() {
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
   const [virtualModeEnabled, setVirtualModeEnabled] = useState(true);
+  const sceneTheme = useSimulationSceneTheme();
 
   const [state, setState] = useState<CruiseSimulationState>({
     isRunning: false,
@@ -2072,6 +2076,7 @@ export default function CruiseSimulation() {
         state={state}
         virtualModeEnabled={virtualModeEnabled}
         showGrid={showGrid}
+        sceneTheme={sceneTheme}
         desiredRoutePoints={desiredRoutePoints}
         trajectoryPoints={trajectoryRef.current}
         cameraMode={cameraMode}
@@ -2175,7 +2180,7 @@ export default function CruiseSimulation() {
         <div className="mt-1">
           浅蓝箭头：期望航线 | 深蓝箭头与轨迹：实际航向与航迹
         </div>
-        <div className="mt-1 text-slate-700">
+        <div className="mt-1 text-platform-fg-secondary">
           知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)
         </div>
       </div>

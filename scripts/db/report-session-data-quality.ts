@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { createPrismaClient } from '../../src/lib/prisma-client';
 
 import { collectSessionDataQualityReport } from '@/lib/data-governance/session-data-quality-report';
 import { parseSessionDataQualityReportOptions } from './session-data-quality-report-options';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 function printTextReport(report: Awaited<ReturnType<typeof collectSessionDataQualityReport>>) {
   console.log(`Session data-quality report (${report.generatedAt})`);

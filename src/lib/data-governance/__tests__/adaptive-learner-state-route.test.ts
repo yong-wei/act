@@ -145,4 +145,40 @@ describe('adaptive learner-state API', () => {
       }),
     );
   });
+
+  it('passes the requested control-correction goal slice to the learner-state service', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await request('http://localhost/api/adaptive/learner-state?goal=control-correction');
+
+    expect(response.status).toBe(200);
+    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        userId: 'student-1',
+        role: 'student',
+        goal: 'control-correction',
+      }),
+    );
+  });
+
+  it('forwards unsupported learner-state goal values so the service can return explicit unavailable state', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await request('http://localhost/api/adaptive/learner-state?goal=unknown-goal');
+
+    expect(response.status).toBe(200);
+    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        userId: 'student-1',
+        role: 'student',
+        goal: 'unknown-goal',
+      }),
+    );
+  });
 });

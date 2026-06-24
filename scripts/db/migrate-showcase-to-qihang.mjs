@@ -1,8 +1,8 @@
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 import fs from 'node:fs'
 import path from 'node:path'
-import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient()
+const prisma = createPrismaClient()
 
 const TARGET_CLASS_NAME = '2023自动化启航班'
 const SHOWCASE_CLASS_NAME = '2023自动化课外展示班'

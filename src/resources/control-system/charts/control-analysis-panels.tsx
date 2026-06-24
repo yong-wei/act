@@ -2137,10 +2137,6 @@ export function RootLocusPanel({
     };
   }, [option]);
 
-  useEffect(() => {
-    setOverlayVersion((version) => version + 1);
-  }, [result.rootLocus.currentPoles]);
-
   const startClosedLoopPoleDrag = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
     const chart = chartRef.current;
     if (!chart || !onClosedLoopGainCommit) {

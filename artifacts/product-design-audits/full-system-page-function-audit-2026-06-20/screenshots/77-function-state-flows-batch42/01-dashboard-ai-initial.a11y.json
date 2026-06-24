@@ -1,0 +1,305 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/dashboard",
+    "h1": [
+      "学习者驾驶舱"
+    ],
+    "h2": [
+      "当前路径与下一步",
+      "欢迎回来，demo！",
+      "学习入口地图",
+      "快速开始",
+      "控灵"
+    ],
+    "activeElement": {
+      "tag": "button",
+      "role": "",
+      "type": "button",
+      "name": "D demo demo@example.com",
+      "inAiSidebar": false,
+      "inFloating": false
+    },
+    "controls": [
+      {
+        "tag": "a",
+        "role": "",
+        "name": "学生驾驶舱",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "个人中心",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "切换到深色模式",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "D demo demo@example.com",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "学生驾驶舱",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "个人中心",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "继续自适应练习",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "查看证据时间线",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "加入课堂 / 班级 输入课堂码或班级加入码",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "资源地图 学习 · 知识资源 课程、知识图谱与互动学习入口。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "互动课程 学习 · 互动学习 课程、知识图谱与互动学习入口。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "个性化 练习 · 学习路径 自适应学习路径、诊断与补强建议。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "官方评测 挑战 · 竞技场 竞技场挑战、榜单与正式评价。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "实时仿真 实验 · 虚拟仿真 仿真对象、控制工作台与参数探索。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "控制实验 实验 · 控制工作台 仿真对象、控制工作台与参数探索。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "能力画像 复盘 · 个人中心 个人证据、成长轨迹与学习报告。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "能力画像 账号与画像 · 个人中心 登录、账号、个人中心与回调目标。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "开始仿真 进入船舶与海工对象仿真任务，观察控制响应和指标变化。",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "进入挑战 进入挑战详情、公开实验、正式提交和榜单比较。",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "打开路径中心 生成、比较并执行个性化学习路径。",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "div",
+        "role": "button",
+        "name": "关闭 AI 侧栏",
+        "type": "",
+        "disabled": false,
+        "hidden": true,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "关闭 (ESC)",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "全局 AI 问题输入框",
+        "type": "text",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "submit",
+        "disabled": true,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "打开工具与页面工具菜单",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": true
+      }
+    ],
+    "alerts": [],
+    "ai": {
+      "state": "open",
+      "role": "",
+      "surface": "global-sidebar",
+      "avoidance": "inactive",
+      "knowledgePolicy": "",
+      "text": "控灵 当前: dashboard 你好，我是控灵。今天我们将探索「dashboard」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板",
+      "hasWelcome": true,
+      "hasKnowledgeContext": false,
+      "knowledgeContextState": "",
+      "hasError": false,
+      "hasRetry": false,
+      "hasLoading": false,
+      "messageCount": 0,
+      "messages": [],
+      "quickQuestions": [],
+      "sendButtonName": "",
+      "sendButtonDisabled": true,
+      "stopButtonName": "",
+      "clearButtonName": "",
+      "inputDisabled": false
+    },
+    "routeMarkers": {
+      "routeFrame": "learning-atlas",
+      "floatingBehavior": "enabled",
+      "mobileNavigation": "role-route-tabs"
+    }
+  }
+}

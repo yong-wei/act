@@ -112,12 +112,15 @@ export async function GET(
       },
       orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
     });
-    const previousSnapshotMap = previousSnapshots.reduce((accumulator, snapshot) => {
-      if (!accumulator.has(snapshot.userId)) {
-        accumulator.set(snapshot.userId, snapshot);
-      }
-      return accumulator;
-    }, new Map<string, (typeof previousSnapshots)[number]>());
+    const previousSnapshotByUserId = previousSnapshots.reduce<Record<string, (typeof previousSnapshots)[number]>>(
+      (accumulator, snapshot) => {
+        if (!accumulator[snapshot.userId]) {
+          accumulator[snapshot.userId] = snapshot;
+        }
+        return accumulator;
+      },
+      {},
+    );
 
     // Get active risk flags for all students
     const riskFlags = await prisma.studentRiskFlag.findMany({
@@ -136,7 +139,7 @@ export async function GET(
 
     for (const snapshot of latestSnapshots) {
       const vector = snapshot.competencyVector as Record<string, { score: number }>;
-      const prevSnapshot = previousSnapshotMap.get(snapshot.userId);
+      const prevSnapshot = previousSnapshotByUserId[snapshot.userId];
       const prevVector = prevSnapshot
         ? (prevSnapshot.competencyVector as Record<string, { score: number }>)
         : null;

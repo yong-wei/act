@@ -1,0 +1,1843 @@
+{
+  "generatedAt": "2026-06-20T11:09:36.889Z",
+  "baseUrl": "http://localhost:3100",
+  "batch": 30,
+  "scope": "teacher prep-pack review route blocker and source entry discoverability",
+  "classId": "cmma7g0590004g9q2nl2jyzdf",
+  "routeResponses": [
+    {
+      "route": "/teacher",
+      "status": 200,
+      "accepted": true,
+      "expectedStatuses": [
+        200
+      ],
+      "url": "http://localhost:3100/teacher"
+    },
+    {
+      "route": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2",
+      "status": 200,
+      "accepted": true,
+      "expectedStatuses": [
+        200
+      ],
+      "url": "http://localhost:3100/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2"
+    },
+    {
+      "route": "/teacher/prep-packs",
+      "status": 500,
+      "accepted": true,
+      "expectedStatuses": [
+        200,
+        500
+      ],
+      "url": "http://localhost:3100/teacher/prep-packs"
+    },
+    {
+      "route": "/teacher/prep-packs?cluster=cluster-1",
+      "status": 500,
+      "accepted": true,
+      "expectedStatuses": [
+        200,
+        500
+      ],
+      "url": "http://localhost:3100/teacher/prep-packs?cluster=cluster-1"
+    },
+    {
+      "route": "/teacher",
+      "status": 200,
+      "accepted": true,
+      "expectedStatuses": [
+        200
+      ],
+      "url": "http://localhost:3100/teacher"
+    },
+    {
+      "route": "/teacher/prep-packs",
+      "status": 500,
+      "accepted": true,
+      "expectedStatuses": [
+        200,
+        500
+      ],
+      "url": "http://localhost:3100/teacher/prep-packs"
+    }
+  ],
+  "results": [
+    {
+      "step": 1,
+      "label": "teacher dashboard prep-pack entry desktop",
+      "route": "/teacher",
+      "screenshot": "screenshots/65-function-state-flows-batch30/01-teacher-dashboard-prep-pack-entry-desktop.png",
+      "screenshotBytes": 535932,
+      "a11y": "screenshots/65-function-state-flows-batch30/01-teacher-dashboard-prep-pack-entry-desktop.a11y.json",
+      "notes": {
+        "expected": "teacher dashboard should expose prep-pack/reports entry without requiring internal route knowledge"
+      },
+      "auditSummary": {
+        "h1": [
+          "教师工作台"
+        ],
+        "alerts": [],
+        "unnamedButtons": 1,
+        "hits": {
+          "teacherDashboard": true,
+          "prepPackEntry": true,
+          "prepPackReviewSurface": false,
+          "blocker500": false,
+          "reportLedgerSurface": true,
+          "liveStatus": false
+        },
+        "tableSignals": {
+          "courseEnhancementPackText": false,
+          "prismaMissingTable": false,
+          "nextError": false
+        },
+        "reportLedgerElements": [
+          {
+            "surface": "teacher-prep-pack-review-slot",
+            "exportMode": "deferred",
+            "unavailableSlot": "",
+            "rect": {
+              "x": 24,
+              "y": 960,
+              "width": 1392,
+              "height": 344,
+              "bottom": 1304,
+              "right": 1416,
+              "visible": true
+            },
+            "text": "学习分析槽位 分析能力未启用时仅展示状态与可执行入口，不生成占位指标。 feature-flagged 班级学习分析 当前为显式未开放状态，可继续使用下方相邻操作。 feature-flagged 查看班级 查看学生证据 学生学习分析 当前为显式未开放状态，可继续使用下方相邻操作。 feature-flagged 查看班级 查看学生证据 预览 复核 激活 归档 回滚 不修改基础 manifest 进入课前包复核"
+          },
+          {
+            "surface": "",
+            "exportMode": "",
+            "unavailableSlot": "class-learning-analytics",
+            "rect": {
+              "x": 49,
+              "y": 1053,
+              "width": 665,
+              "height": 132,
+              "bottom": 1185,
+              "right": 714,
+              "visible": true
+            },
+            "text": "班级学习分析 当前为显式未开放状态，可继续使用下方相邻操作。 feature-flagged 查看班级 查看学生证据"
+          },
+          {
+            "surface": "",
+            "exportMode": "",
+            "unavailableSlot": "student-learning-analytics",
+            "rect": {
+              "x": 726,
+              "y": 1053,
+              "width": 665,
+              "height": 132,
+              "bottom": 1185,
+              "right": 1391,
+              "visible": true
+            },
+            "text": "学生学习分析 当前为显式未开放状态，可继续使用下方相邻操作。 feature-flagged 查看班级 查看学生证据"
+          },
+          {
+            "surface": "assistant-effect-report-export",
+            "exportMode": "available",
+            "unavailableSlot": "assistant-effect-report",
+            "rect": {
+              "x": 24,
+              "y": 1336,
+              "width": 1392,
+              "height": 138,
+              "bottom": 1474,
+              "right": 1416,
+              "visible": false
+            },
+            "text": "助手效果报告槽位 等待确定性种子、重置和效果指标接入 这里只声明报告账本位置、隐私边界和导出语义；未接入真实闭环数据前不展示节省时间、提分或命中率等效果指标。 来源质量：待接入 状态图例：feature-flagged 导出：仅确定性报告"
+          }
+        ],
+        "primaryControls": [
+          {
+            "tag": "a",
+            "name": "返回首页",
+            "href": "/",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 35,
+              "width": 88,
+              "height": 20,
+              "bottom": 55,
+              "right": 112,
+              "visible": true
+            }
+          },
+          {
+            "tag": "button",
+            "name": "张 张永韡 个人中心",
+            "href": "",
+            "disabled": false,
+            "rect": {
+              "x": 1254,
+              "y": 16,
+              "width": 162,
+              "height": 58,
+              "bottom": 74,
+              "right": 1416,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "教师总览",
+            "href": "/teacher",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 90,
+              "width": 82,
+              "height": 38,
+              "bottom": 128,
+              "right": 106,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "班级",
+            "href": "/teacher/classes",
+            "disabled": false,
+            "rect": {
+              "x": 114,
+              "y": 90,
+              "width": 54,
+              "height": 38,
+              "bottom": 128,
+              "right": 168,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "教案",
+            "href": "/teacher/lesson-plans",
+            "disabled": false,
+            "rect": {
+              "x": 176,
+              "y": 90,
+              "width": 54,
+              "height": 38,
+              "bottom": 128,
+              "right": 230,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "资源",
+            "href": "/teacher/resources",
+            "disabled": false,
+            "rect": {
+              "x": 238,
+              "y": 90,
+              "width": 54,
+              "height": 38,
+              "bottom": 128,
+              "right": 292,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "课前包",
+            "href": "/teacher/prep-packs",
+            "disabled": false,
+            "rect": {
+              "x": 300,
+              "y": 90,
+              "width": 68,
+              "height": 38,
+              "bottom": 128,
+              "right": 368,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "课堂历史",
+            "href": "/teacher/history",
+            "disabled": false,
+            "rect": {
+              "x": 376,
+              "y": 90,
+              "width": 82,
+              "height": 38,
+              "bottom": 128,
+              "right": 458,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "班级分析",
+            "href": "/teacher/classes",
+            "disabled": false,
+            "rect": {
+              "x": 466,
+              "y": 90,
+              "width": 82,
+              "height": 38,
+              "bottom": 128,
+              "right": 548,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "班级",
+            "href": "/teacher/classes",
+            "disabled": false,
+            "rect": {
+              "x": 1219,
+              "y": 266,
+              "width": 52,
+              "height": 36,
+              "bottom": 302,
+              "right": 1271,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "教案",
+            "href": "/teacher/lesson-plans",
+            "disabled": false,
+            "rect": {
+              "x": 1279,
+              "y": 266,
+              "width": 52,
+              "height": 36,
+              "bottom": 302,
+              "right": 1331,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "资源",
+            "href": "/teacher/resources",
+            "disabled": false,
+            "rect": {
+              "x": 1339,
+              "y": 266,
+              "width": 52,
+              "height": 36,
+              "bottom": 302,
+              "right": 1391,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "当前课堂 8 个进行中 4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 继续课堂",
+            "href": "/classroom/teacher/cmqea1es6001uuwyfkjc2qzq7",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 322,
+              "width": 259,
+              "height": 179,
+              "bottom": 501,
+              "right": 308,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "备课动作 5 个近期教案 审计功能流教案 381469 编辑教案",
+            "href": "/teacher/lesson-plans/cmqlsyjrb0003vmyfz0ju3lqh/edit?returnTo=%2Fteacher",
+            "disabled": false,
+            "rect": {
+              "x": 320,
+              "y": 322,
+              "width": 259,
+              "height": 179,
+              "bottom": 501,
+              "right": 579,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "证据与学生 287 名学生 从班级进入学生证据、课堂表现与后续报告。 查看证据入口",
+            "href": "/teacher/classes/cmqlsyhhr0002vmyfdtov6ixx",
+            "disabled": false,
+            "rect": {
+              "x": 591,
+              "y": 322,
+              "width": 259,
+              "height": 179,
+              "bottom": 501,
+              "right": 849,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "历史与报告 67 节已结束 课堂历史保留回放、归档和报告入口。 查看历史",
+            "href": "/teacher/history",
+            "disabled": false,
+            "rect": {
+              "x": 861,
+              "y": 322,
+              "width": 259,
+              "height": 179,
+              "bottom": 501,
+              "right": 1120,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "分析状态 可从班级进入 分析未启用时显示明确状态，不生成占位指标。 查看分析状态",
+            "href": "/teacher/classes/cmqlsyhhr0002vmyfdtov6ixx/analytics-v2",
+            "disabled": false,
+            "rect": {
+              "x": 1132,
+              "y": 322,
+              "width": 259,
+              "height": 179,
+              "bottom": 501,
+              "right": 1391,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "我的班级 5",
+            "href": "/teacher/classes",
+            "disabled": false,
+            "rect": {
+              "x": 57,
+              "y": 679,
+              "width": 252,
+              "height": 82,
+              "bottom": 761,
+              "right": 309,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "上课历史 67",
+            "href": "/teacher/history",
+            "disabled": false,
+            "rect": {
+              "x": 1131,
+              "y": 679,
+              "width": 252,
+              "height": 82,
+              "bottom": 761,
+              "right": 1383,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "新建班级 创建班级并生成加入码",
+            "href": "/teacher/classes/new?returnTo=%2Fteacher",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 826,
+              "width": 266,
+              "height": 102,
+              "bottom": 928,
+              "right": 290,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "新建教案 创建 BOPPPS 教学设计",
+            "href": "/teacher/lesson-plans/new?returnTo=%2Fteacher",
+            "disabled": false,
+            "rect": {
+              "x": 306,
+              "y": 826,
+              "width": 266,
+              "height": 102,
+              "bottom": 928,
+              "right": 571,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "预置教案 浏览系统预置的教学模板",
+            "href": "/teacher/preset-lessons",
+            "disabled": false,
+            "rect": {
+              "x": 587,
+              "y": 826,
+              "width": 266,
+              "height": 102,
+              "bottom": 928,
+              "right": 853,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "教学资源管理 管理互动组件与知识卡片",
+            "href": "/teacher/resources",
+            "disabled": false,
+            "rect": {
+              "x": 869,
+              "y": 826,
+              "width": 266,
+              "height": 102,
+              "bottom": 928,
+              "right": 1134,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "上课历史 查看全部已结束课堂并归档到班级",
+            "href": "/teacher/history",
+            "disabled": false,
+            "rect": {
+              "x": 1150,
+              "y": 826,
+              "width": 266,
+              "height": 102,
+              "bottom": 928,
+              "right": 1416,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "进入课前包复核",
+            "href": "/teacher/prep-packs",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 1243,
+              "width": 146,
+              "height": 36,
+              "bottom": 1279,
+              "right": 195,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 加入码: 863249 · 1 人在线",
+            "href": "/classroom/teacher/cmqea1es6001uuwyfkjc2qzq7",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 1575,
+              "width": 663,
+              "height": 82,
+              "bottom": 1657,
+              "right": 712,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 加入码: 818746 · 1 人在线",
+            "href": "/classroom/teacher/cmqea1gb7002auwyffc17i2hu",
+            "disabled": false,
+            "rect": {
+              "x": 728,
+              "y": 1575,
+              "width": 663,
+              "height": 82,
+              "bottom": 1657,
+              "right": 1391,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 加入码: 852054 · 1 人在线",
+            "href": "/classroom/teacher/cmqea1hyw002quwyf7cdn2voj",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 1673,
+              "width": 663,
+              "height": 82,
+              "bottom": 1755,
+              "right": 712,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 加入码: 355795 · 2 人在线",
+            "href": "/classroom/teacher/cmqeagovc0018cnyf97hphnbs",
+            "disabled": false,
+            "rect": {
+              "x": 728,
+              "y": 1673,
+              "width": 663,
+              "height": 82,
+              "bottom": 1755,
+              "right": 1391,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 加入码: 176699 · 2 人在线",
+            "href": "/classroom/teacher/cmqeais3h001vcnyf2tda6iyr",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 1771,
+              "width": 663,
+              "height": 82,
+              "bottom": 1853,
+              "right": 712,
+              "visible": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "step": 2,
+      "label": "teacher class analytics prep-pack source desktop",
+      "route": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2",
+      "screenshot": "screenshots/65-function-state-flows-batch30/02-teacher-class-analytics-prep-pack-source-desktop.png",
+      "screenshotBytes": 1626143,
+      "a11y": "screenshots/65-function-state-flows-batch30/02-teacher-class-analytics-prep-pack-source-desktop.a11y.json",
+      "notes": {
+        "expected": "class analytics should be a source surface for prep-pack review when diagnosis clusters are available",
+        "classId": "cmma7g0590004g9q2nl2jyzdf"
+      },
+      "auditSummary": {
+        "h1": [
+          "教师工作台",
+          "班级学情总览"
+        ],
+        "alerts": [],
+        "unnamedButtons": 2,
+        "hits": {
+          "teacherDashboard": true,
+          "prepPackEntry": true,
+          "prepPackReviewSurface": false,
+          "blocker500": false,
+          "reportLedgerSurface": true,
+          "liveStatus": false
+        },
+        "tableSignals": {
+          "courseEnhancementPackText": false,
+          "prismaMissingTable": false,
+          "nextError": false
+        },
+        "reportLedgerElements": [
+          {
+            "surface": "teacher-class-analytics-report",
+            "exportMode": "restricted",
+            "unavailableSlot": "",
+            "rect": {
+              "x": 0,
+              "y": 149,
+              "width": 1440,
+              "height": 13043,
+              "bottom": 13192,
+              "right": 1440,
+              "visible": true
+            },
+            "text": "班级学情总览 治理结果部分可用 2024自动化 · 143 名学生 · 25 天前更新 刷新数据 从治理结果回看班级学情 这里不再展示孤立的技术分和伦理分，而是围绕能力矩阵、风险分层、治理覆盖度和重点学生，为教师提供可行动的班级判断依据。 治理覆盖进度 当前仅覆盖 135/143 名学生，需结合课堂记录综合判断。 135/143 已生成画像 班级总体指数 31.1 最新班级快照与学生画像聚合值 重点关注学生 135 中高风险或整体表现偏弱 高风险学生 0 建议优先一对一跟进 能力维度概览 六维能力均值与波动，可快速判断本班共性短板。 控制建模与分析 均值 40.4 / 波动 5.6 参数设计与调优 均值 30.1 / 波动 33.1 跨域迁移与联动 均值 25.5 / 波动 23.9 工程决策与约束 均值 38.3 / 波动 39.6 探究反思与提示词 均值 20.2 / 波动 28.4 自主学习进展 均值 32.2 / 波动 4 画像等级分布 基于当前治理结果的班级层级结构。 优秀 0 人 良好 0 人 中等 8 人 需提升 33 人 需关注 60 人 能力矩阵 按学生逐项查看能力分、变化趋势或风险等级，让教师先看到“谁需要关注”，再决定看哪一门能力。 能力分 近阶段变化 风险等级 学生 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 陈范洋 242210301105 41 0 0 0 0 34 陈凤荣 242210301106 45 0 0 0 0 36 韦俊宇 242210301324 50 0 0 0 0 30 魏延玺 242210301325 43 0 0 0 0 37 吴晓风 242210301326 36 60 0 70 0 31 肖毅 242210301327 36 63 47 74 60 31 徐慧聪 242210301328 44 0 40 50 0 35 薛鸣涛 242210301329 38 70 60 90 0 31 杨伊凡 242210301330 37 0 0 0 0 30 杨逸凡 24221"
+          }
+        ],
+        "primaryControls": [
+          {
+            "tag": "a",
+            "name": "返回首页",
+            "href": "/",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 35,
+              "width": 88,
+              "height": 20,
+              "bottom": 55,
+              "right": 112,
+              "visible": true
+            }
+          },
+          {
+            "tag": "button",
+            "name": "张 张永韡 个人中心",
+            "href": "",
+            "disabled": false,
+            "rect": {
+              "x": 1254,
+              "y": 16,
+              "width": 162,
+              "height": 58,
+              "bottom": 74,
+              "right": 1416,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "教师总览",
+            "href": "/teacher",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 90,
+              "width": 82,
+              "height": 38,
+              "bottom": 128,
+              "right": 106,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "班级",
+            "href": "/teacher/classes",
+            "disabled": false,
+            "rect": {
+              "x": 114,
+              "y": 90,
+              "width": 54,
+              "height": 38,
+              "bottom": 128,
+              "right": 168,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "教案",
+            "href": "/teacher/lesson-plans",
+            "disabled": false,
+            "rect": {
+              "x": 176,
+              "y": 90,
+              "width": 54,
+              "height": 38,
+              "bottom": 128,
+              "right": 230,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "资源",
+            "href": "/teacher/resources",
+            "disabled": false,
+            "rect": {
+              "x": 238,
+              "y": 90,
+              "width": 54,
+              "height": 38,
+              "bottom": 128,
+              "right": 292,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "课前包",
+            "href": "/teacher/prep-packs",
+            "disabled": false,
+            "rect": {
+              "x": 300,
+              "y": 90,
+              "width": 68,
+              "height": 38,
+              "bottom": 128,
+              "right": 368,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "课堂历史",
+            "href": "/teacher/history",
+            "disabled": false,
+            "rect": {
+              "x": 376,
+              "y": 90,
+              "width": 82,
+              "height": 38,
+              "bottom": 128,
+              "right": 458,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "班级分析",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2",
+            "disabled": false,
+            "rect": {
+              "x": 466,
+              "y": 90,
+              "width": 82,
+              "height": 38,
+              "bottom": 128,
+              "right": 548,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 177,
+              "width": 24,
+              "height": 24,
+              "bottom": 201,
+              "right": 48,
+              "visible": true
+            }
+          },
+          {
+            "tag": "button",
+            "name": "刷新数据",
+            "href": "",
+            "disabled": false,
+            "rect": {
+              "x": 1304,
+              "y": 171,
+              "width": 112,
+              "height": 36,
+              "bottom": 207,
+              "right": 1416,
+              "visible": true
+            }
+          },
+          {
+            "tag": "button",
+            "name": "能力分",
+            "href": "",
+            "disabled": false,
+            "rect": {
+              "x": 1107,
+              "y": 1898,
+              "width": 74,
+              "height": 38,
+              "bottom": 1936,
+              "right": 1181,
+              "visible": false
+            }
+          },
+          {
+            "tag": "button",
+            "name": "近阶段变化",
+            "href": "",
+            "disabled": false,
+            "rect": {
+              "x": 1189,
+              "y": 1898,
+              "width": 104,
+              "height": 38,
+              "bottom": 1936,
+              "right": 1293,
+              "visible": false
+            }
+          },
+          {
+            "tag": "button",
+            "name": "风险等级",
+            "href": "",
+            "disabled": false,
+            "rect": {
+              "x": 1301,
+              "y": 1898,
+              "width": 90,
+              "height": 38,
+              "bottom": 1936,
+              "right": 1391,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "陈范洋 242210301105",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hd560011g9q2cmuhs9oa",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2017,
+              "width": 220,
+              "height": 62,
+              "bottom": 2079,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "陈凤荣 242210301106",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hd780015g9q29m7cqqnm",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2091,
+              "width": 220,
+              "height": 62,
+              "bottom": 2153,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "韦俊宇 242210301324",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hihe00b1g9q25736uklw",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2165,
+              "width": 220,
+              "height": 62,
+              "bottom": 2227,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "魏延玺 242210301325",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiji00b5g9q29rp690gp",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2239,
+              "width": 220,
+              "height": 62,
+              "bottom": 2301,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "吴晓风 242210301326",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hilk00b9g9q2pclb1oj6",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2313,
+              "width": 220,
+              "height": 62,
+              "bottom": 2375,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "肖毅 242210301327",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hinn00bdg9q2citenosq",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2387,
+              "width": 220,
+              "height": 62,
+              "bottom": 2449,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "徐慧聪 242210301328",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hipp00bhg9q21uj9l15i",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2461,
+              "width": 220,
+              "height": 62,
+              "bottom": 2523,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "薛鸣涛 242210301329",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hirv00blg9q2mkvhjc77",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2535,
+              "width": 220,
+              "height": 62,
+              "bottom": 2597,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "杨伊凡 242210301330",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hitx00bpg9q2xrln6xgl",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2609,
+              "width": 220,
+              "height": 62,
+              "bottom": 2671,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "杨逸凡 242210301331",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiw600btg9q2gty5p21e",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2683,
+              "width": 220,
+              "height": 62,
+              "bottom": 2745,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "袁泽安 242210301333",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj0n00c1g9q265jsunf7",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2757,
+              "width": 220,
+              "height": 62,
+              "bottom": 2819,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "张池铖 242210301334",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj2q00c5g9q2p3hv7q5r",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2831,
+              "width": 220,
+              "height": 62,
+              "bottom": 2893,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "张迅 242210301335",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj4s00c9g9q2skrua7yu",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2905,
+              "width": 220,
+              "height": 62,
+              "bottom": 2967,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "智栋 242210301336",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj6u00cdg9q2ndp6zm9h",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 2979,
+              "width": 220,
+              "height": 62,
+              "bottom": 3041,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "朱成锦 242210301337",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj8w00chg9q23sc5o8jr",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 3053,
+              "width": 220,
+              "height": 62,
+              "bottom": 3115,
+              "right": 269,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "丁至翰 242210301338",
+            "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjb000clg9q2knpo75tf",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 3127,
+              "width": 220,
+              "height": 62,
+              "bottom": 3189,
+              "right": 269,
+              "visible": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "step": 3,
+      "label": "teacher prep-packs direct desktop",
+      "route": "/teacher/prep-packs",
+      "screenshot": "screenshots/65-function-state-flows-batch30/03-teacher-prep-packs-direct-desktop.png",
+      "screenshotBytes": 81576,
+      "a11y": "screenshots/65-function-state-flows-batch30/03-teacher-prep-packs-direct-desktop.a11y.json",
+      "notes": {
+        "expected": "prep-pack review page should render review-ready or empty state; 500 is accepted as blocker evidence"
+      },
+      "auditSummary": {
+        "h1": [
+          "This page couldn’t load"
+        ],
+        "alerts": [],
+        "unnamedButtons": 0,
+        "hits": {
+          "teacherDashboard": false,
+          "prepPackEntry": false,
+          "prepPackReviewSurface": false,
+          "blocker500": false,
+          "reportLedgerSurface": false,
+          "liveStatus": false
+        },
+        "tableSignals": {
+          "courseEnhancementPackText": false,
+          "prismaMissingTable": false,
+          "nextError": false
+        },
+        "reportLedgerElements": [],
+        "primaryControls": [
+          {
+            "tag": "button",
+            "name": "Reload",
+            "href": "",
+            "disabled": false,
+            "rect": {
+              "x": 586,
+              "y": 599,
+              "width": 69,
+              "height": 32,
+              "bottom": 631,
+              "right": 655,
+              "visible": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "step": 4,
+      "label": "teacher prep-packs cluster deeplink desktop",
+      "route": "/teacher/prep-packs?cluster=cluster-1",
+      "screenshot": "screenshots/65-function-state-flows-batch30/04-teacher-prep-packs-cluster-deeplink-desktop.png",
+      "screenshotBytes": 81627,
+      "a11y": "screenshots/65-function-state-flows-batch30/04-teacher-prep-packs-cluster-deeplink-desktop.a11y.json",
+      "notes": {
+        "expected": "cluster deeplink should either load targeted review context or graceful empty state"
+      },
+      "auditSummary": {
+        "h1": [
+          "This page couldn’t load"
+        ],
+        "alerts": [],
+        "unnamedButtons": 0,
+        "hits": {
+          "teacherDashboard": false,
+          "prepPackEntry": false,
+          "prepPackReviewSurface": false,
+          "blocker500": false,
+          "reportLedgerSurface": false,
+          "liveStatus": false
+        },
+        "tableSignals": {
+          "courseEnhancementPackText": false,
+          "prismaMissingTable": false,
+          "nextError": false
+        },
+        "reportLedgerElements": [],
+        "primaryControls": [
+          {
+            "tag": "button",
+            "name": "Reload",
+            "href": "",
+            "disabled": false,
+            "rect": {
+              "x": 586,
+              "y": 599,
+              "width": 69,
+              "height": 32,
+              "bottom": 631,
+              "right": 655,
+              "visible": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "step": 5,
+      "label": "teacher dashboard prep-pack entry mobile",
+      "route": "/teacher",
+      "screenshot": "screenshots/65-function-state-flows-batch30/05-teacher-dashboard-prep-pack-entry-mobile.png",
+      "screenshotBytes": 559262,
+      "a11y": "screenshots/65-function-state-flows-batch30/05-teacher-dashboard-prep-pack-entry-mobile.a11y.json",
+      "notes": {
+        "expected": "mobile teacher dashboard should keep prep-pack/report entry discoverable"
+      },
+      "auditSummary": {
+        "h1": [
+          "教师工作台"
+        ],
+        "alerts": [],
+        "unnamedButtons": 1,
+        "hits": {
+          "teacherDashboard": true,
+          "prepPackEntry": true,
+          "prepPackReviewSurface": false,
+          "blocker500": false,
+          "reportLedgerSurface": true,
+          "liveStatus": false
+        },
+        "tableSignals": {
+          "courseEnhancementPackText": false,
+          "prismaMissingTable": false,
+          "nextError": false
+        },
+        "reportLedgerElements": [
+          {
+            "surface": "teacher-prep-pack-review-slot",
+            "exportMode": "deferred",
+            "unavailableSlot": "",
+            "rect": {
+              "x": 24,
+              "y": 2712,
+              "width": 342,
+              "height": 624,
+              "bottom": 3336,
+              "right": 366,
+              "visible": false
+            },
+            "text": "学习分析槽位 分析能力未启用时仅展示状态与可执行入口，不生成占位指标。 feature-flagged 班级学习分析 当前为显式未开放状态，可继续使用下方相邻操作。 feature-flagged 查看班级 查看学生证据 学生学习分析 当前为显式未开放状态，可继续使用下方相邻操作。 feature-flagged 查看班级 查看学生证据 预览 复核 激活 归档 回滚 不修改基础 manifest 进入课前包复核"
+          },
+          {
+            "surface": "",
+            "exportMode": "",
+            "unavailableSlot": "class-learning-analytics",
+            "rect": {
+              "x": 49,
+              "y": 2859,
+              "width": 292,
+              "height": 156,
+              "bottom": 3015,
+              "right": 341,
+              "visible": false
+            },
+            "text": "班级学习分析 当前为显式未开放状态，可继续使用下方相邻操作。 feature-flagged 查看班级 查看学生证据"
+          },
+          {
+            "surface": "",
+            "exportMode": "",
+            "unavailableSlot": "student-learning-analytics",
+            "rect": {
+              "x": 49,
+              "y": 3027,
+              "width": 292,
+              "height": 156,
+              "bottom": 3183,
+              "right": 341,
+              "visible": false
+            },
+            "text": "学生学习分析 当前为显式未开放状态，可继续使用下方相邻操作。 feature-flagged 查看班级 查看学生证据"
+          },
+          {
+            "surface": "assistant-effect-report-export",
+            "exportMode": "available",
+            "unavailableSlot": "assistant-effect-report",
+            "rect": {
+              "x": 24,
+              "y": 3368,
+              "width": 342,
+              "height": 286,
+              "bottom": 3654,
+              "right": 366,
+              "visible": false
+            },
+            "text": "助手效果报告槽位 等待确定性种子、重置和效果指标接入 这里只声明报告账本位置、隐私边界和导出语义；未接入真实闭环数据前不展示节省时间、提分或命中率等效果指标。 来源质量：待接入 状态图例：feature-flagged 导出：仅确定性报告"
+          }
+        ],
+        "primaryControls": [
+          {
+            "tag": "a",
+            "name": "返回首页",
+            "href": "/",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 16,
+              "width": 88,
+              "height": 20,
+              "bottom": 36,
+              "right": 112,
+              "visible": true
+            }
+          },
+          {
+            "tag": "button",
+            "name": "张 张永韡 个人中心",
+            "href": "",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 116,
+              "width": 162,
+              "height": 58,
+              "bottom": 174,
+              "right": 186,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "教师总览",
+            "href": "/teacher",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 190,
+              "width": 82,
+              "height": 38,
+              "bottom": 228,
+              "right": 106,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "班级",
+            "href": "/teacher/classes",
+            "disabled": false,
+            "rect": {
+              "x": 114,
+              "y": 190,
+              "width": 54,
+              "height": 38,
+              "bottom": 228,
+              "right": 168,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "教案",
+            "href": "/teacher/lesson-plans",
+            "disabled": false,
+            "rect": {
+              "x": 176,
+              "y": 190,
+              "width": 54,
+              "height": 38,
+              "bottom": 228,
+              "right": 230,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "资源",
+            "href": "/teacher/resources",
+            "disabled": false,
+            "rect": {
+              "x": 238,
+              "y": 190,
+              "width": 54,
+              "height": 38,
+              "bottom": 228,
+              "right": 292,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "课前包",
+            "href": "/teacher/prep-packs",
+            "disabled": false,
+            "rect": {
+              "x": 300,
+              "y": 190,
+              "width": 68,
+              "height": 38,
+              "bottom": 228,
+              "right": 368,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "课堂历史",
+            "href": "/teacher/history",
+            "disabled": false,
+            "rect": {
+              "x": 376,
+              "y": 190,
+              "width": 82,
+              "height": 38,
+              "bottom": 228,
+              "right": 458,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "班级分析",
+            "href": "/teacher/classes",
+            "disabled": false,
+            "rect": {
+              "x": 466,
+              "y": 190,
+              "width": 82,
+              "height": 38,
+              "bottom": 228,
+              "right": 548,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "班级",
+            "href": "/teacher/classes",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 466,
+              "width": 52,
+              "height": 36,
+              "bottom": 502,
+              "right": 101,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "教案",
+            "href": "/teacher/lesson-plans",
+            "disabled": false,
+            "rect": {
+              "x": 109,
+              "y": 466,
+              "width": 52,
+              "height": 36,
+              "bottom": 502,
+              "right": 161,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "资源",
+            "href": "/teacher/resources",
+            "disabled": false,
+            "rect": {
+              "x": 169,
+              "y": 466,
+              "width": 52,
+              "height": 36,
+              "bottom": 502,
+              "right": 221,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "当前课堂 8 个进行中 4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 继续课堂",
+            "href": "/classroom/teacher/cmqea1es6001uuwyfkjc2qzq7",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 522,
+              "width": 292,
+              "height": 179,
+              "bottom": 701,
+              "right": 341,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "备课动作 5 个近期教案 审计功能流教案 381469 编辑教案",
+            "href": "/teacher/lesson-plans/cmqlsyjrb0003vmyfz0ju3lqh/edit?returnTo=%2Fteacher",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 713,
+              "width": 292,
+              "height": 179,
+              "bottom": 892,
+              "right": 341,
+              "visible": true
+            }
+          },
+          {
+            "tag": "a",
+            "name": "证据与学生 287 名学生 从班级进入学生证据、课堂表现与后续报告。 查看证据入口",
+            "href": "/teacher/classes/cmqlsyhhr0002vmyfdtov6ixx",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 904,
+              "width": 292,
+              "height": 179,
+              "bottom": 1083,
+              "right": 341,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "历史与报告 67 节已结束 课堂历史保留回放、归档和报告入口。 查看历史",
+            "href": "/teacher/history",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 1095,
+              "width": 292,
+              "height": 179,
+              "bottom": 1274,
+              "right": 341,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "分析状态 可从班级进入 分析未启用时显示明确状态，不生成占位指标。 查看分析状态",
+            "href": "/teacher/classes/cmqlsyhhr0002vmyfdtov6ixx/analytics-v2",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 1286,
+              "width": 292,
+              "height": 179,
+              "bottom": 1465,
+              "right": 341,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "我的班级 5",
+            "href": "/teacher/classes",
+            "disabled": false,
+            "rect": {
+              "x": 57,
+              "y": 1667,
+              "width": 276,
+              "height": 82,
+              "bottom": 1749,
+              "right": 333,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "上课历史 67",
+            "href": "/teacher/history",
+            "disabled": false,
+            "rect": {
+              "x": 57,
+              "y": 2059,
+              "width": 276,
+              "height": 82,
+              "bottom": 2141,
+              "right": 333,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "新建班级 创建班级并生成加入码",
+            "href": "/teacher/classes/new?returnTo=%2Fteacher",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 2206,
+              "width": 342,
+              "height": 82,
+              "bottom": 2288,
+              "right": 366,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "新建教案 创建 BOPPPS 教学设计",
+            "href": "/teacher/lesson-plans/new?returnTo=%2Fteacher",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 2304,
+              "width": 342,
+              "height": 82,
+              "bottom": 2386,
+              "right": 366,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "预置教案 浏览系统预置的教学模板",
+            "href": "/teacher/preset-lessons",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 2402,
+              "width": 342,
+              "height": 82,
+              "bottom": 2484,
+              "right": 366,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "教学资源管理 管理互动组件与知识卡片",
+            "href": "/teacher/resources",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 2500,
+              "width": 342,
+              "height": 82,
+              "bottom": 2582,
+              "right": 366,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "上课历史 查看全部已结束课堂并归档到班级",
+            "href": "/teacher/history",
+            "disabled": false,
+            "rect": {
+              "x": 24,
+              "y": 2598,
+              "width": 342,
+              "height": 82,
+              "bottom": 2680,
+              "right": 366,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "进入课前包复核",
+            "href": "/teacher/prep-packs",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 3275,
+              "width": 146,
+              "height": 36,
+              "bottom": 3311,
+              "right": 195,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 加入码: 863249 · 1 人在线",
+            "href": "/classroom/teacher/cmqea1es6001uuwyfkjc2qzq7",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 3755,
+              "width": 292,
+              "height": 106,
+              "bottom": 3861,
+              "right": 341,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 加入码: 818746 · 1 人在线",
+            "href": "/classroom/teacher/cmqea1gb7002auwyffc17i2hu",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 3877,
+              "width": 292,
+              "height": 106,
+              "bottom": 3983,
+              "right": 341,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 加入码: 852054 · 1 人在线",
+            "href": "/classroom/teacher/cmqea1hyw002quwyf7cdn2voj",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 3999,
+              "width": 292,
+              "height": 106,
+              "bottom": 4105,
+              "right": 341,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 加入码: 355795 · 2 人在线",
+            "href": "/classroom/teacher/cmqeagovc0018cnyf97hphnbs",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 4121,
+              "width": 292,
+              "height": 106,
+              "bottom": 4227,
+              "right": 341,
+              "visible": false
+            }
+          },
+          {
+            "tag": "a",
+            "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 加入码: 176699 · 2 人在线",
+            "href": "/classroom/teacher/cmqeais3h001vcnyf2tda6iyr",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 4243,
+              "width": 292,
+              "height": 106,
+              "bottom": 4349,
+              "right": 341,
+              "visible": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "step": 6,
+      "label": "teacher prep-packs direct mobile",
+      "route": "/teacher/prep-packs",
+      "screenshot": "screenshots/65-function-state-flows-batch30/06-teacher-prep-packs-direct-mobile.png",
+      "screenshotBytes": 65885,
+      "a11y": "screenshots/65-function-state-flows-batch30/06-teacher-prep-packs-direct-mobile.a11y.json",
+      "notes": {
+        "expected": "mobile prep-pack review should not collapse into opaque runtime error"
+      },
+      "auditSummary": {
+        "h1": [
+          "This page couldn’t load"
+        ],
+        "alerts": [],
+        "unnamedButtons": 0,
+        "hits": {
+          "teacherDashboard": false,
+          "prepPackEntry": false,
+          "prepPackReviewSurface": false,
+          "blocker500": false,
+          "reportLedgerSurface": false,
+          "liveStatus": false
+        },
+        "tableSignals": {
+          "courseEnhancementPackText": false,
+          "prismaMissingTable": false,
+          "nextError": false
+        },
+        "reportLedgerElements": [],
+        "primaryControls": [
+          {
+            "tag": "button",
+            "name": "Reload",
+            "href": "",
+            "disabled": false,
+            "rect": {
+              "x": 61,
+              "y": 471,
+              "width": 69,
+              "height": 32,
+              "bottom": 503,
+              "right": 130,
+              "visible": true
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "apiChecks": [
+    {
+      "label": "teacher session auth",
+      "route": "/api/auth/session",
+      "status": 200,
+      "ok": true,
+      "accepted": true,
+      "contentType": "application/json",
+      "summary": "{\"user\":{\"name\":\"张永韡\",\"email\":\"\",\"id\":\"cmjtgw3ov00008f1njzx4bg7l\",\"role\":\"TEACHER\"},\"expires\":\"2026-07-20T11:08:50.498Z\"}"
+    }
+  ],
+  "dialogs": [],
+  "downloads": [],
+  "errors": [],
+  "ignoredErrors": [
+    {
+      "action": "pageerror",
+      "message": "\nInvalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\"prisma\"].courseEnhancementPack.findFirst()` invocation in\n/Users/YW/.codex/worktrees/e734/act.just.edu.cn/.next/dev/server/chunks/ssr/src_05a7b0r._.js:985:165\n\n  982     select: {\n  983         id: true\n  984     }\n→ 985 }) : await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\"prisma\"].courseEnhancementPack.findFirst(\nThe table `public.CourseEnhancementPack` does not exist in the current database.",
+      "url": "http://localhost:3100/teacher/prep-packs",
+      "reason": "known prep-pack migration/table blocker under audit"
+    },
+    {
+      "action": "pageerror",
+      "message": "\nInvalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\"prisma\"].courseEnhancementPack.findFirst()` invocation in\n/Users/YW/.codex/worktrees/e734/act.just.edu.cn/.next/dev/server/chunks/ssr/src_05a7b0r._.js:967:183\n\n  964     select: {\n  965         id: true\n  966     }\n→ 967 }) : params?.cluster ? await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\"prisma\"].courseEnhancementPack.findFirst(\nThe table `public.CourseEnhancementPack` does not exist in the current database.",
+      "url": "http://localhost:3100/teacher/prep-packs?cluster=cluster-1",
+      "reason": "known prep-pack migration/table blocker under audit"
+    },
+    {
+      "action": "pageerror",
+      "message": "\nInvalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\"prisma\"].courseEnhancementPack.findFirst()` invocation in\n/Users/YW/.codex/worktrees/e734/act.just.edu.cn/.next/dev/server/chunks/ssr/src_05a7b0r._.js:985:165\n\n  982     select: {\n  983         id: true\n  984     }\n→ 985 }) : await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__[\"prisma\"].courseEnhancementPack.findFirst(\nThe table `public.CourseEnhancementPack` does not exist in the current database.",
+      "url": "http://localhost:3100/teacher/prep-packs",
+      "reason": "known prep-pack migration/table blocker under audit"
+    }
+  ],
+  "pngCount": 6,
+  "jsonCount": 6
+}

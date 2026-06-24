@@ -75,7 +75,7 @@ export function FunctionInputPanel({
       {/* 格式选项卡 */}
       <div className="mb-4 flex gap-1 rounded-lg bg-slate-800/50 p-1">
         {formatTabs.map((tab) => (
-          <button
+          <button type="button"
             key={tab.value}
             onClick={() => onFormatChange(tab.value)}
             className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -93,8 +93,8 @@ export function FunctionInputPanel({
       {inputFormat === 'tf' && (
         <div className="space-y-3">
           <div>
-            <label className="mb-1 block text-xs text-slate-400">分子系数 (降幂)</label>
-            <input
+            <label htmlFor="function-input-panel-control-1" className="mb-1 block text-xs text-slate-400">分子系数 (降幂)</label>
+            <input id="function-input-panel-control-1" aria-label="例如: 1, 0, -1"
               type="text"
               value={numerator}
               onChange={(e) => setNumerator(e.target.value)}
@@ -103,8 +103,8 @@ export function FunctionInputPanel({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-slate-400">分母系数 (降幂)</label>
-            <input
+            <label htmlFor="function-input-panel-control-2" className="mb-1 block text-xs text-slate-400">分母系数 (降幂)</label>
+            <input id="function-input-panel-control-2" aria-label="例如: 1, 1"
               type="text"
               value={denominator}
               onChange={(e) => setDenominator(e.target.value)}
@@ -119,8 +119,8 @@ export function FunctionInputPanel({
       {inputFormat === 'zpk' && (
         <div className="space-y-3">
           <div>
-            <label className="mb-1 block text-xs text-slate-400">零点位置</label>
-            <input
+            <label htmlFor="function-input-panel-control-3" className="mb-1 block text-xs text-slate-400">零点位置</label>
+            <input id="function-input-panel-control-3" aria-label="例如: 1, -1, 1+2i"
               type="text"
               value={zeros}
               onChange={(e) => setZeros(e.target.value)}
@@ -129,8 +129,8 @@ export function FunctionInputPanel({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-slate-400">极点位置</label>
-            <input
+            <label htmlFor="function-input-panel-control-4" className="mb-1 block text-xs text-slate-400">极点位置</label>
+            <input id="function-input-panel-control-4" aria-label="例如: -1, -2+3i"
               type="text"
               value={poles}
               onChange={(e) => setPoles(e.target.value)}
@@ -139,8 +139,8 @@ export function FunctionInputPanel({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-slate-400">增益 K</label>
-            <input
+            <label htmlFor="function-input-panel-k-5" className="mb-1 block text-xs text-slate-400">增益 K</label>
+            <input id="function-input-panel-k-5" aria-label="例如: 1"
               type="text"
               value={gain}
               onChange={(e) => setGain(e.target.value)}
@@ -154,8 +154,8 @@ export function FunctionInputPanel({
       {/* 表达式输入 */}
       {inputFormat === 'expr' && (
         <div>
-          <label className="mb-1 block text-xs text-slate-400">函数表达式 (变量为s)</label>
-          <input
+          <label htmlFor="function-input-panel-s-6" className="mb-1 block text-xs text-slate-400">函数表达式 (变量为s)</label>
+          <input id="function-input-panel-s-6" aria-label="例如: (s^2-1)/(s+1)"
             type="text"
             value={expression}
             onChange={(e) => setExpression(e.target.value)}
@@ -171,7 +171,7 @@ export function FunctionInputPanel({
       )}
 
       {/* 解析按钮 */}
-      <button
+      <button type="button"
         onClick={handleParse}
         className="mt-4 w-full rounded-lg bg-blue-500/20 px-4 py-2 text-sm font-medium text-blue-400 transition-colors hover:bg-blue-500/30"
       >

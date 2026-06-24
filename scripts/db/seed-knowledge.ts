@@ -1,8 +1,9 @@
+import { createPrismaClient } from '../../src/lib/prisma-client';
 
-import { PrismaClient, KnowledgeNodeType, BloomLevel, KnowledgeDimension } from '@prisma/client';
+import { KnowledgeNodeType, BloomLevel, KnowledgeDimension } from '@prisma/client';
 import { LESSON_02_CARDS, LESSON_02_CARD_LINKS } from '../src/features/knowledge/data/lesson-knowledge-cards';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 async function main() {
   console.log('🌱 Starting knowledge seeding...');

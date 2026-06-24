@@ -1,0 +1,32 @@
+uid=2_0 RootWebArea "AI-OBE船舶控制平台" url="http://127.0.0.1:3001/knowledge"
+  uid=2_1 main
+    uid=2_2 button "展开平台导航" expandable
+    uid=2_3 complementary
+      uid=2_4 navigation
+        uid=2_5 link "首页" description="首页" url="http://127.0.0.1:3001/"
+        uid=2_6 link "虚拟仿真" description="虚拟仿真" url="http://127.0.0.1:3001/simulations"
+        uid=2_7 link "知识资源" description="知识资源" url="http://127.0.0.1:3001/knowledge"
+        uid=2_8 link "竞技场" description="竞技场" url="http://127.0.0.1:3001/arena"
+        uid=2_9 link "控制工作台" description="控制工作台" url="http://127.0.0.1:3001/interactive-learning/control-workbench"
+        uid=2_10 link "学习路径" description="学习路径" url="http://127.0.0.1:3001/assessment/adaptive-practice"
+        uid=2_11 link "互动学习" description="互动学习" url="http://127.0.0.1:3001/interactive-learning"
+    uid=2_12 StaticText "学生"
+    uid=2_13 heading "知识图谱" level="1"
+    uid=2_14 StaticText "知识关系、证据来源与学习路径入口"
+    uid=2_15 button "切换到浅色模式"
+    uid=2_16 generic "知识图谱画布"
+      uid=2_17 button "目录 598 个节点" expandable
+      uid=2_18 button "筛选 3/21 类关系" expandable
+      uid=2_19 button "图例 23 种语义" expandable
+      uid=2_20 button "视图 2D · 0 固定" expandable
+      uid=2_21 StaticText "613"
+      uid=2_22 StaticText " 节点"
+      uid=2_23 StaticText "1306"
+      uid=2_24 StaticText " 关系"
+      uid=2_25 StaticText "结构优先"
+      uid=2_26 StaticText "关系 3/21 · 强度 >= 0.8 · 仅连通节点"
+  uid=2_27 button "Open Next.js Dev Tools" expandable haspopup="menu"
+  uid=2_28 alert atomic live="assertive" relevant="additions text"
+  uid=2_29 button "打开工具与页面工具菜单" expandable
+  uid=2_30 status atomic live="polite" relevant="additions text"
+    uid=2_31 StaticText "页面工具菜单已就绪。"

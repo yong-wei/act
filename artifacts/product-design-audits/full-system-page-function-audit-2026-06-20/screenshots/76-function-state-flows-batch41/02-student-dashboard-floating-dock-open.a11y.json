@@ -1,0 +1,479 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/dashboard",
+    "themeClass": "light",
+    "h1": [
+      "学习者驾驶舱"
+    ],
+    "h2": [
+      "当前路径与下一步",
+      "欢迎回来，demo！",
+      "学习入口地图",
+      "快速开始",
+      "控灵"
+    ],
+    "activeElement": {
+      "tag": "button",
+      "type": "button",
+      "role": "",
+      "name": "主题切换",
+      "inFloating": true,
+      "inAiSidebar": false,
+      "inMobileDrawer": false
+    },
+    "controls": [
+      {
+        "tag": "a",
+        "role": "",
+        "name": "学生驾驶舱",
+        "type": "",
+        "href": "/dashboard",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "page",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "个人中心",
+        "type": "",
+        "href": "/profile",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "切换到深色模式",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "切换到深色模式",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "D demo demo@example.com",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "学生驾驶舱",
+        "type": "",
+        "href": "/dashboard",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "page",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "个人中心",
+        "type": "",
+        "href": "/profile",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "继续自适应练习",
+        "type": "",
+        "href": "/assessment/adaptive-practice?goal=control-correction&intent=practice",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "查看证据时间线",
+        "type": "",
+        "href": "/profile/evidence",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "加入课堂 / 班级 输入课堂码或班级加入码",
+        "type": "",
+        "href": "/classroom/join",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "资源地图 学习 · 知识资源 课程、知识图谱与互动学习入口。 进入",
+        "type": "",
+        "href": "/knowledge",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "互动课程 学习 · 互动学习 课程、知识图谱与互动学习入口。 进入",
+        "type": "",
+        "href": "/interactive-learning",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "个性化 练习 · 学习路径 自适应学习路径、诊断与补强建议。 进入",
+        "type": "",
+        "href": "/assessment/adaptive-practice",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "官方评测 挑战 · 竞技场 竞技场挑战、榜单与正式评价。 进入",
+        "type": "",
+        "href": "/arena",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "实时仿真 实验 · 虚拟仿真 仿真对象、控制工作台与参数探索。 进入",
+        "type": "",
+        "href": "/simulations",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "控制实验 实验 · 控制工作台 仿真对象、控制工作台与参数探索。 进入",
+        "type": "",
+        "href": "/interactive-learning/control-workbench",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "能力画像 复盘 · 个人中心 个人证据、成长轨迹与学习报告。 进入",
+        "type": "",
+        "href": "/profile",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "能力画像 账号与画像 · 个人中心 登录、账号、个人中心与回调目标。 进入",
+        "type": "",
+        "href": "/profile",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "开始仿真 进入船舶与海工对象仿真任务，观察控制响应和指标变化。",
+        "type": "",
+        "href": "/simulations",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "进入挑战 进入挑战详情、公开实验、正式提交和榜单比较。",
+        "type": "",
+        "href": "/arena",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "打开路径中心 生成、比较并执行个性化学习路径。",
+        "type": "",
+        "href": "/assessment/adaptive-practice",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "关闭 (ESC)",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "全局 AI 问题输入框",
+        "type": "text",
+        "href": "",
+        "ariaLabel": "全局 AI 问题输入框",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "submit",
+        "href": "",
+        "ariaLabel": "",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": true,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "主题切换",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "主题切换",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "呼出控灵 AI助手",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "呼出控灵 AI助手",
+        "expanded": "",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "打开控灵与页面工具菜单",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "打开控灵与页面工具菜单",
+        "expanded": "true",
+        "controls": "",
+        "current": "",
+        "disabled": false,
+        "hidden": false
+      }
+    ],
+    "alerts": [],
+    "unnamedControls": 1,
+    "bodyText": "学生驾驶舱 个人中心 学生 学习者驾驶舱 学习路径、证据状态与下一步行动 D demo demo@example.com 学习者记录 当前路径与下一步 系统优先依据课堂任务、仿真记录、Arena 结果和自适应练习生成学习路径；缺少来源时先补证据，再推荐下一步。 当前路径 任务推进中 证据置信 已形成画像 缺失来源 Arena/自适应证据按实际接入显示 复盘入口 5 个任务 继续自适应练习 查看证据时间线 欢迎回来，demo！ 继续你的船舶控制系统学习之旅，掌握 PID 控制理论与实践 完成任务 5 仿真次数 6 技术分 76.0 伦理分 94 加入课堂 / 班级 输入课堂码或班级加入码 学习入口地图 资源地图 学习 · 知识资源 课程、知识图谱与互动学习入口。 进入 互动课程 学习 · 互动学习 课程、知识图谱与互动学习入口。 进入 个性化 练习 · 学习路径 自适应学习路径、诊断与补强建议。 进入 官方评测 挑战 · 竞技场 竞技场挑战、榜单与正式评价。 进入 实时仿真 实验 · 虚拟仿真 仿真对象、控制工作台与参数探索。 进入 控制实验 实验 · 控制工作台 仿真对象、控制工作台与参数探索。 进入 能力画像 复盘 · 个人中心 个人证据、成长轨迹与学习报告。 进入 能力画像 账号与画像 · 个人中心 登录、账号、个人中心与回调目标。 进入 快速开始 开始仿真 进入船舶与海工对象仿真任务，观察控制响应和指标变化。 进入挑战 进入挑战详情、公开实验、正式提交和榜单比较。 打开路径中心 生成、比较并执行个性化学习路径。 控灵 当前: dashboard 你好，我是控灵。今天我们将探索「dashboard」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 主题切换 深色 控灵 AI助手 控灵",
+    "geometry": {
+      "floatingRect": {
+        "x": 1192,
+        "y": 914,
+        "width": 224,
+        "height": 170,
+        "right": 1416,
+        "bottom": 1084
+      },
+      "floatingPanelRect": {
+        "x": 1192,
+        "y": 914,
+        "width": 224,
+        "height": 118,
+        "right": 1416,
+        "bottom": 1032
+      },
+      "aiSidebarRect": {
+        "x": 1440,
+        "y": 0,
+        "width": 420,
+        "height": 1100,
+        "right": 1860,
+        "bottom": 1100
+      },
+      "mobileDrawerRect": null,
+      "mainRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1865,
+        "right": 1440,
+        "bottom": 1865
+      },
+      "floatingCenterHit": {
+        "tag": "span",
+        "name": "控灵 AI助手",
+        "inFloating": true
+      },
+      "bottomRightHits": [
+        {
+          "x": 1392,
+          "y": 1052,
+          "tag": "button",
+          "name": "打开控灵与页面工具菜单",
+          "dataFloating": true,
+          "dataAi": false,
+          "className": "inline-flex items-center justify-center whitespace-nowrap ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible"
+        },
+        {
+          "x": 1368,
+          "y": 1004,
+          "tag": "span",
+          "name": "控灵 AI助手",
+          "dataFloating": true,
+          "dataAi": false,
+          "className": "flex-1"
+        },
+        {
+          "x": 1320,
+          "y": 1028,
+          "tag": "div",
+          "name": "主题切换 深色 控灵 AI助手",
+          "dataFloating": true,
+          "dataAi": false,
+          "className": "mb-3 max-h-[min(70vh,28rem)] w-56 overflow-y-auto rounded-2xl border border-border/70 bg-background/95 p-2 text-sm text-foreground shadow-2xl backdrop-blur"
+        }
+      ]
+    },
+    "markers": {
+      "routeFrame": "learning-atlas",
+      "desktopNavigation": "fixed",
+      "mobileNavigation": "role-route-tabs",
+      "floatingBehavior": "enabled",
+      "floatingCollisionPolicy": "safe-area-primary-controls",
+      "floatingMobileBehavior": "sheet-after-local-tools",
+      "appShellLayout": "",
+      "appShellNavigationState": "",
+      "shellNavigationStates": [
+        "expanded"
+      ],
+      "mobileDrawerOpen": false,
+      "mobileDrawerRole": "",
+      "mobileDrawerModal": "",
+      "floatingDockVisible": true,
+      "floatingDockAttr": "enabled",
+      "floatingSafeArea": "bottom-right",
+      "floatingTriggerLabel": "控灵",
+      "floatingTriggerExpanded": "true",
+      "floatingPanelOpen": true,
+      "floatingPanelRole": "",
+      "floatingPanelButtons": [
+        {
+          "name": "主题切换",
+          "disabled": false
+        },
+        {
+          "name": "呼出控灵 AI助手",
+          "disabled": false
+        }
+      ],
+      "aiSidebarState": "closed",
+      "aiSidebarRole": "",
+      "aiSidebarSurface": "global-sidebar",
+      "aiSidebarAvoidance": "inactive",
+      "knowledgeInspector": false,
+      "simulationCollisionPolicy": "",
+      "adaptiveDockPolicy": ""
+    }
+  }
+}

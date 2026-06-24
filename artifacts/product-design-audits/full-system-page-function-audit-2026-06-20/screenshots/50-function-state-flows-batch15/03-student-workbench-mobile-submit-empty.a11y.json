@@ -1,0 +1,643 @@
+{
+  "audit": {
+    "label": "student workbench mobile submit empty attempt",
+    "path": "/interactive-learning/control-workbench?arenaTask=task-second-order-lead-pid",
+    "title": "AI-OBE船舶控制平台",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "控制工作台"
+      },
+      {
+        "tag": "h1",
+        "text": "二阶对象快速稳定挑战"
+      },
+      {
+        "tag": "h3",
+        "text": "当前指标"
+      },
+      {
+        "tag": "h3",
+        "text": "官方评测结果"
+      },
+      {
+        "tag": "h3",
+        "text": "时域响应"
+      },
+      {
+        "tag": "h3",
+        "text": "Bode 图"
+      },
+      {
+        "tag": "h3",
+        "text": "根轨迹"
+      },
+      {
+        "tag": "h3",
+        "text": "Nyquist 图"
+      },
+      {
+        "tag": "h2",
+        "text": "设计流程"
+      },
+      {
+        "tag": "h3",
+        "text": "控灵"
+      }
+    ],
+    "controls": [
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/",
+        "name": "首页",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/arena",
+        "name": "竞技场",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "切换到深色模式",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "打开平台导航",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/arena/challenges/task-second-order-lead-pid",
+        "name": "返回挑战详情",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/arena/challenges/task-second-order-lead-pid",
+        "name": "返回挑战详情",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/arena",
+        "name": "查看榜单",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "提交官方评测",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "参考输入",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "未校正输出",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "校正后输出",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "按当前时域范围刷新",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "未校正开环",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "校正后开环",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "校正装置",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "按当前频率范围刷新",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "未校正根轨迹",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "校正后根轨迹",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "未校正开环",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "校正后开环",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "打开参数抽屉",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "添加时域响应",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "添加Bode 图",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "添加根轨迹",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "添加Nyquist 图",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "重置默认",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "重置 时域响应",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "删除 时域响应",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "重置 Bode 图",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "删除 Bode 图",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "重置 根轨迹",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "删除 根轨迹",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "重置 Nyquist 图",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "删除 Nyquist 图",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "关闭 (ESC)",
+        "disabled": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "href": "",
+        "name": "全局 AI 问题输入框",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "href": "",
+        "name": "",
+        "disabled": true
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "打开控灵与页面工具菜单",
+        "disabled": false
+      }
+    ],
+    "controlsWithoutNames": [
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "href": "",
+        "name": "",
+        "disabled": true
+      }
+    ],
+    "svgCanvasCount": 31,
+    "unlabeledSvgCanvas": [
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "canvas",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "canvas",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "canvas",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "canvas",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      }
+    ],
+    "liveRegions": [],
+    "errors": [
+      {
+        "tag": "div",
+        "text": "控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板"
+      },
+      {
+        "tag": "div",
+        "text": "你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我:"
+      },
+      {
+        "tag": "div",
+        "text": "你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我:"
+      },
+      {
+        "tag": "div",
+        "text": "你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。"
+      },
+      {
+        "tag": "div",
+        "text": "你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。"
+      },
+      {
+        "tag": "div",
+        "text": "你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。"
+      },
+      {
+        "tag": "p",
+        "text": "你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。"
+      }
+    ],
+    "fixedOrSticky": [
+      {
+        "tag": "button",
+        "className": "premium-lesson-action-tone premium-tone-cyan fixed bottom-36 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full p-0 shadow-lg",
+        "text": "打开参数抽屉",
+        "rect": {
+          "x": 322,
+          "y": 656,
+          "w": 44,
+          "h": 44
+        }
+      },
+      {
+        "tag": "div",
+        "className": "\n          fixed right-0 top-0 z-50 flex flex-col\n          h-screen w-screen\n          sm:w-[380px]\n          lg:w-[420px]\n          bg-white border-slate-200\n          transition-all duration-300 ea",
+        "text": "控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板",
+        "rect": {
+          "x": 390,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        }
+      },
+      {
+        "tag": "div",
+        "className": "no-print fixed bottom-4 right-6 z-[120] flex flex-col items-end",
+        "text": "控灵",
+        "rect": {
+          "x": 276,
+          "y": 788,
+          "w": 90,
+          "h": 40
+        }
+      }
+    ],
+    "forms": [
+      {
+        "text": "按 Enter 发送，ESC 关闭面板",
+        "controls": [
+          "全局 AI 问题输入框",
+          "BUTTON"
+        ]
+      }
+    ],
+    "tableLike": [],
+    "viewportTextHead": "首页 / 竞技场 / 控制工作台 学生 控制工作台 二阶对象快速稳定挑战 导航 挑战模式 · 综合仿真工作台 二阶对象快速稳定挑战 对象：二阶欠阻尼对象 官方评价 · 该体验连接官方评价或提交流程，隐藏评价边界必须保持可见。 返回挑战详情 当前目标 确认对象可见性、模型来源、评价指标和可用视图。 任务链 对象分析 下一行动 确认对象、指标和允许方法，再进入控制器设计。 证据状态 可提交到官方评价，合格证据将回流学习记录 该页面已经解析竞技场任务、对象、指标、允许方法和提交策略。下方工作区按面板实例渲染。 K=1.000 | 极点 2 | 零点 0 | 校正装置 PID | 阶跃响应 竞技场官方提交 当前指标 根据当前工作台状态即时估算，正式成绩以提交后的官方评测为准。 调节时间 未达标 当前值 10.938s 达标度 0% 目标 目标 ≤ 2.400s 不可接受阈值 不可接受 ≥ 8.000s 超调量 已达标 当前值 0.000% 达标度 100% 目标 目标 ≤ 5.000% 不可接受阈值 不可接受 ≥ 35.000% 稳态误差 未达标 当前值 0.150 达标度 0% 目标 目标 ≤ 0.010 不可接受阈值 不可接受 ≥ 0.120 ITAE 待计算 当前值 暂不可计算 达标度 待计算 目标 目标 ≤ 1.800 不可接受阈值 不可接受 ≥ 12.000 得分：0.0 硬约束已通过 基础分0.0 惩罚0.0 最终分0.0 官方评测结果 调节时间 未达标 实际值 10.938s 达标度 0% 目标 目标 ≤ 2.400s 不可接受阈值 不可接受 ≥ 8.000s 超调量 已达标 实际值 0.000% 达标度 100% 目标 目标 ≤ 5.000% 不可接受阈值 不可接受 ≥ 35.000% 稳态误差 未达标 实际值 0.150 达标度 0% 目标 目标 ≤ 0.010 不可接受阈值 不可接受 ≥ 0.120 ITAE 未达标 实际值 16.869 达标度 0% 目标 目标 ≤ 1.800 不可接受阈值 不可接受 ≥ 12.000 闭环稳定 响应有限 控制器因果 控制量未严重饱和 硬约束已通过，但排名分为 0：评分聚合中存在达标度为 0 的排名指标，主要受 调节时间、稳态误差、ITAE 影响，因此最终分归零。 硬约束全部通过，提交进入正式排名。 基础分 0.0，惩罚 0.0，最终分 0.0。 返回挑战详情 查看榜单 提交官方评测 Mp 0.00% tr 7.51 s ts 10.94 s ess 0.15 PM 68.40° GM -- N 0 P 0 Z 0 ωc 5.25 rad/s ωg -- 闭环稳定性 稳定 时域响应 时域信号 参考输入 未校正输出 校正后输出 独立面板 时域响应 参考输入 / 未校正输出 / 校正后输出 Bode 图 Bode 曲线 未校正开环 校正后开环 校正装置 独立面板 组合 Bode 图 未校正开环 / 校正后开环 / 校正装置 根轨迹 根轨迹来源 未校正根轨迹 校正后根轨迹 独立面板 根轨迹全览 当前开环增益：K=1.000 | p1=-1.20-j5.53 | p2=-1.20+j5.53 Nyquist 图 Nyquist 来源 未校正开环 校正后开环 独立面板 Nyquist 图 PM 50.29° | GM -- | ωc 5.12 rad/s | ωg -- | N/P/Z 0/0/0 · Z = P + N 联动已更新：四个表征共用同一组开环零极点与统一分析结果。 打开参数抽屉 设计流程与边界 挑战模式 · 竞技场挑战 · 白箱对象 设计流程 当前步骤 对象分析 下一行动 确认对象、指标和允许方法，再进入控制器设计。 对象边界 二阶欠阻尼对象 方法边界 串联校正、PID 1. 当前 对象分析 确认对象可见性、模型来源、评价指标和可用视图。 2. 可进入 控制器设计 在允许的方法边界内调整控制器结构和参数。 3. 可进入 性能对照 对照未校正、名义模型和当前方案的响应差异。 4. 可进入 约束检查 检查硬约束、控制量、隐藏场景或官方指标风险。 5. 可进入 官方提交 通过竞技场官方评价和榜单入口提交方案。 6. 待解锁 结果复盘 复查官方结果，定位下一轮设计应改进的位置。 面板布置与添加面板 会话状态与证据流 允许方法 串联校正、PID 指标 调节时间、超调量、稳态误差、ITAE 提交状态 提交结果进入 Arena 官方评价；可用证据将回流到学习记录。 支持与说明 全局浮动控件避让主仪表、提交按钮和本地工具。 控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+    "extra": {
+      "actions": [
+        "clicked getByRole('button', { name: /提交官方评测|提交|评测/i })"
+      ],
+      "screenshot": "screenshots/50-function-state-flows-batch15/03-student-workbench-mobile-submit-empty.png",
+      "requestedUrl": "/interactive-learning/control-workbench?arenaTask=task-second-order-lead-pid"
+    }
+  },
+  "accessibilitySnapshotUnavailable": "Playwright page.accessibility.snapshot unavailable in this runtime"
+}

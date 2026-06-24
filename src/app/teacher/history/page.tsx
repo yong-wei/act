@@ -154,7 +154,12 @@ export default function TeacherHistoryPage() {
   };
 
   return (
-    <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+    <main
+      className="surface-page mx-auto max-w-[1600px] px-6 py-8"
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={loading ? 'loading' : sessions.length === 0 ? 'empty' : 'finished'}
+    >
       <Link
         href="/teacher"
         className="mb-6 inline-flex items-center gap-2 text-sm text-subtle transition hover:text-foreground"
@@ -181,7 +186,7 @@ export default function TeacherHistoryPage() {
 
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
-            <input
+            <input aria-label="搜索教案标题..."
               type="text"
               placeholder="搜索教案标题..."
               value={searchTerm}
@@ -263,8 +268,8 @@ export default function TeacherHistoryPage() {
                   {isEditing && (
                     <div className="mt-4 grid gap-3 rounded-xl border border-border/60 bg-background/50 p-4 lg:grid-cols-[minmax(0,1fr),auto,auto] lg:items-end">
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-foreground">归档到班级</label>
-                        <select
+                        <label htmlFor="page-control-1" className="mb-2 block text-sm font-medium text-foreground">归档到班级</label>
+                        <select id="page-control-1"
                           value={activeEditClassId}
                           onChange={(event) =>
                             setSelectedClassBySession((prev) => ({

@@ -1,0 +1,48 @@
+{
+  "changeId": "unify-interactive-lesson-component-style",
+  "generatedAt": "2026-06-21T05:22:16.837Z",
+  "path": "artifacts/interactive-learning/unified-courseware-style/browser-audit.json",
+  "roles": [
+    "student",
+    "teacher"
+  ],
+  "routes": [
+    "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "viewports": [
+    "mobile",
+    "desktop",
+    "projection"
+  ],
+  "states": [
+    "student-unreleased",
+    "student-released",
+    "student-submitted",
+    "teacher-reveal",
+    "teacher-answer-reveal",
+    "teacher-diagnostics"
+  ],
+  "evidenceManifest": "artifacts/interactive-learning/unified-courseware-style/20260621T125500-evidence-manifest.json",
+  "requiredComponents": [
+    "title-panel",
+    "content.figure",
+    "derivation",
+    "block-diagram",
+    "signal-flow",
+    "activity",
+    "table-rich",
+    "compute"
+  ],
+  "noHorizontalOverflow": true,
+  "teacherControlsClearPrimaryStage": true,
+  "visibleChromeShells": 0,
+  "notes": [
+    "Step 01 was recaptured to make title panel and content.figure explicit in the evidence matrix.",
+    "All sampled cases keep commercial module chrome metadata-only and visible chrome shell count at zero.",
+    "Mason-related step-08 content removal is a prior user-directed course semantic change and is not part of this style contract."
+  ]
+}

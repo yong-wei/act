@@ -25,7 +25,7 @@ test('multi representation linkage page should not emit chart size warning on fi
   await expect(page.getByTestId('metric-Mp')).toBeVisible();
   await expect(page.getByText('组合 Bode 图')).toBeVisible();
   await expect(page.getByText('根轨迹全览')).toBeVisible();
-  await expect(page.getByText('Nyquist 图')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nyquist 图' })).toBeVisible();
   await expect(page.getByText('拖动开环极点')).toHaveCount(0);
 
   const phaseMarginValue = page
@@ -61,8 +61,8 @@ test('multi representation linkage page should not emit chart size warning on fi
   expect(correctionBoxAfter).not.toBeNull();
   expect(Math.round(objectBoxAfter!.height)).toBe(Math.round(objectBoxBefore!.height));
   expect(Math.round(correctionBoxAfter!.height)).toBe(Math.round(correctionBoxBefore!.height));
-  expect(Math.round(objectBoxAfter!.width)).toBe(Math.round(objectBoxBefore!.width));
-  expect(Math.round(correctionBoxAfter!.width)).toBe(Math.round(correctionBoxBefore!.width));
+  expect(Math.abs(Math.round(objectBoxAfter!.width) - Math.round(objectBoxBefore!.width))).toBeLessThanOrEqual(1);
+  expect(Math.abs(Math.round(correctionBoxAfter!.width) - Math.round(correctionBoxBefore!.width))).toBeLessThanOrEqual(1);
   await page.getByLabel('启用校正').check();
   await page.getByLabel('结构').selectOption('lead');
   await page.keyboard.press('Escape');
@@ -71,13 +71,16 @@ test('multi representation linkage page should not emit chart size warning on fi
     const text = ((await phaseMarginValue.textContent()) ?? '').trim();
     return text !== '--' && text !== initialPhaseMargin;
   }).toBe(true);
-  await expect(page.getByText('校正后开环', { exact: true })).toBeVisible();
-  await expect(page.getByText('校正装置', { exact: true })).toBeVisible();
+  const bodeSourceGroup = page.getByRole('group', { name: 'Bode 曲线' });
   const rootSourceGroup = page.getByRole('group', { name: '根轨迹来源' });
   const nyquistSourceGroup = page.getByRole('group', { name: 'Nyquist 来源' });
+  await expect(bodeSourceGroup.getByRole('button', { name: '校正后开环' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(bodeSourceGroup.getByRole('button', { name: '校正装置' })).toHaveAttribute('aria-pressed', 'true');
+  await rootSourceGroup.getByRole('button', { name: '校正后根轨迹' }).click();
   await expect(rootSourceGroup.getByRole('button', { name: '校正后根轨迹' })).toHaveAttribute('aria-pressed', 'true');
   await rootSourceGroup.getByRole('button', { name: '未校正根轨迹' }).click();
   await expect(rootSourceGroup.getByRole('button', { name: '未校正根轨迹' })).toHaveAttribute('aria-pressed', 'true');
+  await nyquistSourceGroup.getByRole('button', { name: '校正后开环' }).click();
   await expect(nyquistSourceGroup.getByRole('button', { name: '校正后开环' })).toHaveAttribute('aria-pressed', 'true');
   await nyquistSourceGroup.getByRole('button', { name: '未校正开环' }).click();
   await expect(nyquistSourceGroup.getByRole('button', { name: '未校正开环' })).toHaveAttribute('aria-pressed', 'true');

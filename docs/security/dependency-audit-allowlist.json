@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "policy": {
+    "threshold": "moderate",
+    "runtimeDependencyTreatment": "Production runtime and dev-tooling findings are both tracked at or above the threshold; reports must label runtime relevance so review can prioritize runtime exposure.",
+    "newFindingRule": "Any unallowlisted npm audit finding at moderate, high, or critical severity fails the governance command.",
+    "allowlistRemovalRule": "Entries must name an owner issue, review date, expiry date, and removal condition. Expired or unused entries fail the governance command and must be removed or renewed through a reviewed change."
+  },
+  "entries": [
+    {
+      "id": "NEXT-POSTCSS-GHSA-qx2v-qp2m-jg93-DIRECT",
+      "packageName": "next",
+      "dependencyPath": "node_modules/next",
+      "advisoryIds": ["postcss"],
+      "severity": "moderate",
+      "reason": "Residual npm audit owner finding for the bundled Next/PostCSS advisory after the migration series. The audited stable Next 16 line does not yet provide a useful remediation, and npm audit currently suggests the unsupported next@9.3.3 downgrade path.",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
+      "reviewDate": "2026-06-01",
+      "expiresOn": "2026-09-01",
+      "removalCondition": "Remove when the supported Next 15 backport or stable Next line bundles postcss >=8.5.10, or when npm audit no longer reports the Next-owned finding."
+    },
+    {
+      "id": "NEXT-POSTCSS-GHSA-qx2v-qp2m-jg93-TRANSITIVE",
+      "packageName": "postcss",
+      "dependencyPath": "node_modules/next/node_modules/postcss",
+      "advisoryIds": ["GHSA-qx2v-qp2m-jg93", "1117015", "postcss"],
+      "severity": "moderate",
+      "reason": "Residual bundled PostCSS finding owned by Next after the migration series; direct postcss is already on a fixed version and npm audit currently suggests the unsupported next@9.3.3 downgrade path.",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/261",
+      "reviewDate": "2026-06-01",
+      "expiresOn": "2026-09-01",
+      "removalCondition": "Remove when node_modules/next/node_modules/postcss is no longer below 8.5.10 or the advisory is no longer reported by npm audit."
+    },
+    {
+      "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-DIRECT",
+      "packageName": "prisma",
+      "dependencyPath": "node_modules/prisma",
+      "advisoryIds": ["@prisma/dev"],
+      "severity": "moderate",
+      "reason": "Residual Prisma-owned audit finding introduced by npm audit metadata after the Tailwind/Turbopack source-boundary change. npm audit suggests downgrading prisma to 6.19.3 from the current supported line, so this is tracked as dependency governance rather than a source-boundary failure.",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/291",
+      "reviewDate": "2026-06-03",
+      "expiresOn": "2026-09-01",
+      "removalCondition": "Remove when the supported Prisma line no longer depends on the vulnerable @prisma/dev/@hono/node-server path or npm audit no longer reports the Prisma-owned finding."
+    },
+    {
+      "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-PRISMA-DEV",
+      "packageName": "@prisma/dev",
+      "dependencyPath": "node_modules/@prisma/dev",
+      "advisoryIds": ["@hono/node-server"],
+      "severity": "moderate",
+      "reason": "Residual transitive Prisma development package finding for the @hono/node-server serveStatic advisory. The remediation lane is a supported Prisma update, not a Tailwind/Turbopack source-boundary change.",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/291",
+      "reviewDate": "2026-06-03",
+      "expiresOn": "2026-09-01",
+      "removalCondition": "Remove when @prisma/dev is no longer present in the vulnerable range or no longer depends on @hono/node-server <1.19.13."
+    },
+    {
+      "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-HONO",
+      "packageName": "@hono/node-server",
+      "dependencyPath": "node_modules/@hono/node-server",
+      "advisoryIds": ["GHSA-92pp-h63x-v22m", "1116281", "@hono/node-server"],
+      "severity": "moderate",
+      "reason": "Residual transitive @hono/node-server finding reached through Prisma tooling. It is recorded separately from security audit findings introduced by application runtime code and must be cleared through the Prisma dependency lane.",
+      "ownerIssue": "https://github.com/yong-wei/act/issues/291",
+      "reviewDate": "2026-06-03",
+      "expiresOn": "2026-09-01",
+      "removalCondition": "Remove when node_modules/@hono/node-server is at 1.19.13 or newer, disappears from the Prisma dependency tree, or npm audit no longer reports GHSA-92pp-h63x-v22m."
+    }
+  ],
+  "deprecationResiduals": []
+}

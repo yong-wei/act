@@ -7,17 +7,67 @@
  * 使用控灵品牌
  */
 
-import { useChat } from 'ai/react';
-import { useRef, useEffect } from 'react';
+import { useChat } from '@/hooks/useLegacyChat';
+import { useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 import { KonlingAvatar } from '@/components/ai/konling-avatar';
 import { AIMessageContent } from '@/components/ai/ai-message-content';
 import { KONLING_BRAND } from '@/lib/ai-branding';
 import { usePageAIContext } from '@/hooks/usePageAIContext';
+import { useSearchParams } from 'next/navigation';
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import {
+  buildAiAuditTaskState,
+  buildPortfolioReflectionDraft,
+  getAiAuditTaskContract,
+  summarizeAiToolResult,
+} from '@/lib/ai-task-boundary-contracts';
 
 export default function CopilotPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+  const context = searchParams.get('context');
+  const source = searchParams.get('source') ?? '当前学习证据';
+  const evidenceSummary = useMemo(() => (
+    context === 'evidence'
+      ? {
+        source,
+        focus: '学习证据复盘',
+        weakPoint: '请围绕证据来源、薄弱点和下一步练习给出建议。',
+        nextStep: '先说明证据可见来源，再给出一条可执行的补强练习。',
+      }
+      : null
+  ), [context, source]);
+  const reflectionDraft = useMemo(
+    () => context === 'portfolio-reflection' ? buildPortfolioReflectionDraft(source) : null,
+    [context, source]
+  );
+  const taskState = useMemo(() => {
+    if (context === 'portfolio-reflection') {
+      return buildAiAuditTaskState({
+        taskType: 'portfolio-reflection',
+        status: 'pending',
+        message: '已创建作品集反思草稿候选。',
+        nextAction: '打开作品集候选预览并继续整理',
+        targetId: reflectionDraft?.id,
+      });
+    }
+    if (context === 'evidence') {
+      return buildAiAuditTaskState({
+        taskType: 'evidence-copilot',
+        status: 'pending',
+        message: '证据上下文已转换为学生可读摘要，内部诊断不会显示在回答中。',
+        nextAction: '围绕证据来源、薄弱点和下一步练习继续提问',
+      });
+    }
+    return null;
+  }, [context, reflectionDraft?.id]);
+  const taskContract = context === 'portfolio-reflection'
+    ? getAiAuditTaskContract('portfolio-reflection')
+    : context === 'evidence'
+      ? getAiAuditTaskContract('evidence-copilot')
+      : null;
 
   // 获取页面上下文和用户画像
   const { pageContext, userProfile } = usePageAIContext({
@@ -26,6 +76,19 @@ export default function CopilotPage() {
     topic: '通用学习辅助',
     pageType: 'workspace',
   });
+  const copilotPageContext = useMemo(() => {
+    if (!evidenceSummary) return pageContext;
+    return {
+      ...pageContext,
+      topic: `证据 Copilot：${evidenceSummary.source}`,
+      learningObjectives: [
+        ...pageContext.learningObjectives,
+        `证据来源：${evidenceSummary.source}`,
+        evidenceSummary.weakPoint,
+        evidenceSummary.nextStep,
+      ],
+    };
+  }, [evidenceSummary, pageContext]);
 
   const {
     messages,
@@ -40,8 +103,9 @@ export default function CopilotPage() {
   } = useChat({
     api: '/api/ai/chat',
     body: {
-      pageContext,
+      pageContext: copilotPageContext,
       userProfile,
+      taskContext: evidenceSummary,
     },
   });
 
@@ -83,6 +147,33 @@ export default function CopilotPage() {
         <div className="mx-auto flex h-full max-w-4xl flex-col p-6">
           {/* 消息列表 */}
           <div className="flex-1 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+            {taskState ? <ActionStatusPanel state={taskState} className="mb-4" /> : null}
+            {taskContract ? (
+              <div className="mb-4 rounded-lg border border-slate-700 bg-slate-950/70 px-4 py-3 text-xs text-slate-300">
+                <span>任务类型：{taskContract.taskType}</span>
+                <span className="ml-3">输出目标：{taskContract.outputTarget}</span>
+                <span className="ml-3">写回：{taskContract.writebackBehavior}</span>
+              </div>
+            ) : null}
+            {evidenceSummary ? (
+              <div className="mb-4 rounded-xl border border-cyan-500/40 bg-cyan-500/10 p-4 text-sm text-cyan-100" data-ai-task-boundary="evidence-copilot-summary">
+                <div className="font-medium">证据摘要：{evidenceSummary.source}</div>
+                <p className="mt-1 text-cyan-100/80">{evidenceSummary.weakPoint}</p>
+                <p className="mt-1 text-xs text-cyan-100/70">下一步：{evidenceSummary.nextStep}</p>
+              </div>
+            ) : null}
+            {reflectionDraft ? (
+              <div className="mb-4 rounded-xl border border-violet-500/40 bg-violet-500/10 p-4 text-sm text-violet-100">
+                <div className="font-medium">{reflectionDraft.title}</div>
+                <p className="mt-1 text-violet-100/80">{reflectionDraft.detail}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <a href="/profile/portfolio?category=reflection&intent=create&source=copilot" className="rounded bg-violet-500 px-3 py-1.5 text-xs text-white">
+                    打开作品集候选预览
+                  </a>
+                  <span className="rounded border border-violet-400/50 px-3 py-1.5 text-xs">状态：{reflectionDraft.status}</span>
+                </div>
+              </div>
+            ) : null}
             {messages.length === 0 ? (
               <div className="space-y-6">
                 {/* 欢迎信息 */}
@@ -120,7 +211,7 @@ export default function CopilotPage() {
                   <p className="mb-3 text-sm text-slate-500">快捷问题</p>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                     {quickQuestions.map((q, i) => (
-                      <button
+                      <button type="button"
                         key={i}
                         onClick={() => append({ role: 'user', content: q.question })}
                         className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-left text-sm text-slate-300 transition-colors hover:border-amber-600 hover:bg-slate-800"
@@ -153,17 +244,15 @@ export default function CopilotPage() {
                             {tool.toolName === 'set_simulation_params' && '⚙️ 参数修改'}
                             {tool.toolName === 'analyze_result' && '📈 结果分析'}
                           </div>
-                          {tool.state === 'result' && (
-                            <pre className="overflow-x-auto text-xs text-slate-400">
-                              {JSON.stringify(tool.result, null, 2)}
-                            </pre>
-                          )}
+                          {tool.state === 'result' ? (
+                            <p className="text-xs text-slate-400">{summarizeAiToolResult(tool.toolName)}</p>
+                          ) : null}
                         </div>
                       ))}
                       {/* 文本消息 */}
                       {message.content && (
                         <div className="text-sm leading-relaxed">
-                          <AIMessageContent content={message.content} />
+                          <AIMessageContent content={message.content} sanitizeContent={message.role !== 'user'} />
                         </div>
                       )}
                     </div>
@@ -195,7 +284,7 @@ export default function CopilotPage() {
           {/* 输入区 */}
           <form onSubmit={handleSubmit} className="mt-4">
             <div className="flex gap-3">
-              <input
+              <input aria-label="请输入您的问题，例如：如何减少航迹误差？"
                 type="text"
                 value={input}
                 onChange={handleInputChange}

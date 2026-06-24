@@ -128,7 +128,7 @@ Expected: PASS。
 ### Task 4: 验证 L-2b 迁移闭环并记录试点结果
 
 **Files:**
-- Modify: `.codex/skills/interactive-lesson-implementation/notes/L-2b.md`
+- Modify: `.agents/skills/interactive-lesson-implementation/notes/L-2b.md`
 - Modify: `docs/ProjectDescription.md`（如本轮变更影响项目说明）
 
 **Step 1: Write the failing test**

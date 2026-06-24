@@ -1,6 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { createPrismaClient } from '@/lib/prisma-client';
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+type PrismaClientInstance = ReturnType<typeof createPrismaClient>;
+
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClientInstance };
 
 /**
  * Prisma Client 配置
@@ -12,12 +14,22 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
  * 示例 DATABASE_URL:
  * postgresql://user:pass@host:5432/db?connection_limit=10&pool_timeout=20
  */
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: ['warn', 'error'],
-  });
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
+function getPrismaClient(): PrismaClientInstance {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient({
+      log: ['warn', 'error'],
+    });
+  }
+  return globalForPrisma.prisma;
 }
+
+export const prisma = new Proxy({} as PrismaClientInstance, {
+  get(_target, property) {
+    const client = getPrismaClient();
+    const value = Reflect.get(client as object, property, client);
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
+  set(_target, property, value) {
+    return Reflect.set(getPrismaClient() as object, property, value);
+  },
+});

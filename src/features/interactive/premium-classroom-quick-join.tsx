@@ -38,7 +38,7 @@ export function PremiumClassroomQuickJoin() {
       <p className="mt-1 text-sm text-slate-300">输入课堂码可直接加入“柔性之海：豪华邮轮舒适度控制”，也可继续浏览下方入口。</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <input
+        <input aria-label="输入6位课堂码"
           type="text"
           inputMode="numeric"
           maxLength={6}

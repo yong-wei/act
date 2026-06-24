@@ -1,0 +1,1839 @@
+{
+  "baseUrl": "http://localhost:3001",
+  "capturedAt": "2026-06-15T02:19:50.677Z",
+  "routes": [
+    {
+      "id": "destroyer",
+      "label": "驱逐舰航向控制",
+      "path": "/simulations/destroyer"
+    },
+    {
+      "id": "lng",
+      "label": "LNG船靠泊控制",
+      "path": "/simulations/lng"
+    },
+    {
+      "id": "container",
+      "label": "集装箱船轨迹跟踪",
+      "path": "/simulations/container"
+    },
+    {
+      "id": "cruise",
+      "label": "邮轮舒适度控制",
+      "path": "/simulations/cruise"
+    },
+    {
+      "id": "drilling",
+      "label": "钻井平台动力定位",
+      "path": "/simulations/drilling"
+    },
+    {
+      "id": "icebreaker",
+      "label": "破冰船推进控制",
+      "path": "/simulations/icebreaker"
+    },
+    {
+      "id": "dredger",
+      "label": "疏浚船定位控制",
+      "path": "/simulations/dredger"
+    }
+  ],
+  "viewports": [
+    {
+      "id": "desktop",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "id": "mobile",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "results": [
+    {
+      "route": {
+        "id": "destroyer",
+        "label": "驱逐舰航向控制",
+        "path": "/simulations/destroyer"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/destroyer-light-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11c004ed200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11c004ed200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11c004ed200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11c004ed200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 5,
+        "whitePanelCount": 21,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n军用驱逐舰战术机动仿真\n学生\n军用驱逐舰战术机动仿真\n\nNomoto 船舶运动模型 · 航向保持与战术机动\n\n个人中心\n状态监控\n导航状态\n航向\n0.0°\n转艏速率\n0.00°/s\n舵角\n0.0°\n航速\n15.0 m/s\n航迹误差\n当前误差\n0.0 m\n平均误差\n0.0 m\n仿真时间\n0.0 s\n已暂停\n|\nPID\n控制与探究\n控制\n评估\n控制面板\n任务选择\n\n直角转向任务\n\n60秒后执行90度右转阶跃信号。\n\n控制模式\nMANUAL\nP\nPD\nPID\nPID 增益\nKp\n1.4\nKd\n1\nKi\n0.020\n开始\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n返回上一层\n055型驱逐舰战术机动仿真\n\n高保真航向控制 · 任务场景切换\n\nDestroyer / OBE\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "destroyer",
+        "label": "驱逐舰航向控制",
+        "path": "/simulations/destroyer"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/destroyer-light-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 8,
+        "textSample": "首页\n/\n虚拟仿真\n/\n军用驱逐舰战术机动仿真\n学生\n军用驱逐舰战术机动仿真\n\nNomoto 船舶运动模型 · 航向保持与战术机动\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n主\n俯\n战\n#\n网\n1.0x\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n状态遥测\n可展开或收起\n\n航向、航速、偏航率和扰动输入保持在场景侧读取。\n\n航向误差\n转艏速率\n舵角/推力响应\n控制与评价\n可展开或收起\n\n控制参数、稳态误差和超调评价保持为仿真局部工具。\n\n参数调节\n稳定裕度\n响应质量\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "destroyer",
+        "label": "驱逐舰航向控制",
+        "path": "/simulations/destroyer"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/destroyer-dark-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 5,
+        "whitePanelCount": 10,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n军用驱逐舰战术机动仿真\n学生\n军用驱逐舰战术机动仿真\n\nNomoto 船舶运动模型 · 航向保持与战术机动\n\n个人中心\n状态监控\n导航状态\n航向\n0.0°\n转艏速率\n0.00°/s\n舵角\n0.0°\n航速\n15.0 m/s\n航迹误差\n当前误差\n0.0 m\n平均误差\n0.0 m\n仿真时间\n0.0 s\n已暂停\n|\nPID\n控制与探究\n控制\n评估\n控制面板\n任务选择\n\n直角转向任务\n\n60秒后执行90度右转阶跃信号。\n\n控制模式\nMANUAL\nP\nPD\nPID\nPID 增益\nKp\n1.4\nKd\n1\nKi\n0.020\n开始\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n返回上一层\n055型驱逐舰战术机动仿真\n\n高保真航向控制 · 任务场景切换\n\nDestroyer / OBE\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "destroyer",
+        "label": "驱逐舰航向控制",
+        "path": "/simulations/destroyer"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/destroyer-dark-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 0,
+        "textSample": "首页\n/\n虚拟仿真\n/\n军用驱逐舰战术机动仿真\n学生\n军用驱逐舰战术机动仿真\n\nNomoto 船舶运动模型 · 航向保持与战术机动\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n主\n俯\n战\n#\n网\n1.0x\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n状态遥测\n可展开或收起\n\n航向、航速、偏航率和扰动输入保持在场景侧读取。\n\n航向误差\n转艏速率\n舵角/推力响应\n控制与评价\n可展开或收起\n\n控制参数、稳态误差和超调评价保持为仿真局部工具。\n\n参数调节\n稳定裕度\n响应质量\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "lng",
+        "label": "LNG船靠泊控制",
+        "path": "/simulations/lng"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/lng-light-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 2,
+        "whitePanelCount": 10,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\nLNG运输船仿真\n学生\nLNG运输船仿真\n\n大型船舶操纵仿真 · 大惯性系统控制\n\n个人中心\n状态监控\n时间:\n0.0s\n航向:\n0.0°\n目标航向:\n0.0°\n航向误差:\n0.0°\n转艏率:\n0.00°/s\n舵角:\n0.0°\n航速:\n19.1 kn\n液货晃荡:\n0.00°\n货舱压力:\n100 kPa\n⚠️ 时滞: 25秒 | 晃荡周期: ~12s\n控制与探究\n控制\n评估\n控制模式\n手动\nP 控制\nPD 控制\nPID 控制\n自动舵\n目标航向: 0°\n启用 Smith 预估器\n\n消除25秒时滞影响\n\n开始\n重置\n返回上一层\n长恒系列 LNG 运输船\n\n时滞补偿控制 · 液货晃荡耦合\n\nLNG / OBE\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "lng",
+        "label": "LNG船靠泊控制",
+        "path": "/simulations/lng"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/lng-light-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 8,
+        "textSample": "首页\n/\n虚拟仿真\n/\nLNG运输船仿真\n学生\nLNG运输船仿真\n\n大型船舶操纵仿真 · 大惯性系统控制\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n主\n俯\n战\n#\n网\n1.0x\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n状态遥测\n可展开或收起\n\n航向、航速、偏航率和扰动输入保持在场景侧读取。\n\n航向误差\n转艏速率\n舵角/推力响应\n控制与评价\n可展开或收起\n\n控制参数、稳态误差和超调评价保持为仿真局部工具。\n\n参数调节\n稳定裕度\n响应质量\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "lng",
+        "label": "LNG船靠泊控制",
+        "path": "/simulations/lng"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/lng-dark-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 2,
+        "whitePanelCount": 2,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\nLNG运输船仿真\n学生\nLNG运输船仿真\n\n大型船舶操纵仿真 · 大惯性系统控制\n\n个人中心\n状态监控\n时间:\n0.0s\n航向:\n0.0°\n目标航向:\n0.0°\n航向误差:\n0.0°\n转艏率:\n0.00°/s\n舵角:\n0.0°\n航速:\n19.1 kn\n液货晃荡:\n0.00°\n货舱压力:\n100 kPa\n⚠️ 时滞: 25秒 | 晃荡周期: ~12s\n控制与探究\n控制\n评估\n控制模式\n手动\nP 控制\nPD 控制\nPID 控制\n自动舵\n目标航向: 0°\n启用 Smith 预估器\n\n消除25秒时滞影响\n\n开始\n重置\n返回上一层\n长恒系列 LNG 运输船\n\n时滞补偿控制 · 液货晃荡耦合\n\nLNG / OBE\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "lng",
+        "label": "LNG船靠泊控制",
+        "path": "/simulations/lng"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/lng-dark-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 0,
+        "textSample": "首页\n/\n虚拟仿真\n/\nLNG运输船仿真\n学生\nLNG运输船仿真\n\n大型船舶操纵仿真 · 大惯性系统控制\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n主\n俯\n战\n#\n网\n1.0x\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n状态遥测\n可展开或收起\n\n航向、航速、偏航率和扰动输入保持在场景侧读取。\n\n航向误差\n转艏速率\n舵角/推力响应\n控制与评价\n可展开或收起\n\n控制参数、稳态误差和超调评价保持为仿真局部工具。\n\n参数调节\n稳定裕度\n响应质量\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "container",
+        "label": "集装箱船轨迹跟踪",
+        "path": "/simulations/container"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/container-light-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 2,
+        "whitePanelCount": 13,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n集装箱船仿真\n学生\n集装箱船仿真\n\n变质量 Nomoto · 风载荷与增益调度\n\n个人中心\n状态监控\n仿真时间\n0.0s\n当前航向\n0.0°\n航向误差\n0.0°\n转艏角速度\n0.00°/s\n舵角\n0.0°\n当前系统参数\nK = 0.080\nT = 80s\n装载 = 50%\n航速 = 10.3 m/s\n风载荷\n风速 = 10.0 m/s\n风向 = 90°\n横摇 = 0.0°\n正常\n控制与探究\n控制\n评估\n开始仿真\n重置\n目标航向: 0°\n装载率: 50%(半载)\nK=0.080\nT=80s\n风速: 10.0 m/s\n风向: 90°\n\n控制模式\n\nMANUAL\nP\nPD\nPID\n增益调度\n启用增益调度 (自动调整 PID)\n返回上一层\nMSC Tessa 超大型集装箱船\n\n变质量模型 · 风载荷耦合 · 增益调度\n\nContainer / OBE\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "container",
+        "label": "集装箱船轨迹跟踪",
+        "path": "/simulations/container"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/container-light-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 8,
+        "textSample": "首页\n/\n虚拟仿真\n/\n集装箱船仿真\n学生\n集装箱船仿真\n\n变质量 Nomoto · 风载荷与增益调度\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n主\n俯\n战\n#\n网\n1.0x\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n状态遥测\n可展开或收起\n\n航向、航速、偏航率和扰动输入保持在场景侧读取。\n\n航向误差\n转艏速率\n舵角/推力响应\n控制与评价\n可展开或收起\n\n控制参数、稳态误差和超调评价保持为仿真局部工具。\n\n参数调节\n稳定裕度\n响应质量\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "container",
+        "label": "集装箱船轨迹跟踪",
+        "path": "/simulations/container"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/container-dark-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 2,
+        "whitePanelCount": 5,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n集装箱船仿真\n学生\n集装箱船仿真\n\n变质量 Nomoto · 风载荷与增益调度\n\n个人中心\n状态监控\n仿真时间\n0.0s\n当前航向\n0.0°\n航向误差\n0.0°\n转艏角速度\n0.00°/s\n舵角\n0.0°\n当前系统参数\nK = 0.080\nT = 80s\n装载 = 50%\n航速 = 10.3 m/s\n风载荷\n风速 = 10.0 m/s\n风向 = 90°\n横摇 = 0.0°\n正常\n控制与探究\n控制\n评估\n开始仿真\n重置\n目标航向: 0°\n装载率: 50%(半载)\nK=0.080\nT=80s\n风速: 10.0 m/s\n风向: 90°\n\n控制模式\n\nMANUAL\nP\nPD\nPID\n增益调度\n启用增益调度 (自动调整 PID)\n返回上一层\nMSC Tessa 超大型集装箱船\n\n变质量模型 · 风载荷耦合 · 增益调度\n\nContainer / OBE\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "container",
+        "label": "集装箱船轨迹跟踪",
+        "path": "/simulations/container"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/container-dark-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 0,
+        "textSample": "首页\n/\n虚拟仿真\n/\n集装箱船仿真\n学生\n集装箱船仿真\n\n变质量 Nomoto · 风载荷与增益调度\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n主\n俯\n战\n#\n网\n1.0x\n\n先确认航向误差收敛，再观察扰动后的恢复过程。\n\n状态遥测\n可展开或收起\n\n航向、航速、偏航率和扰动输入保持在场景侧读取。\n\n航向误差\n转艏速率\n舵角/推力响应\n控制与评价\n可展开或收起\n\n控制参数、稳态误差和超调评价保持为仿真局部工具。\n\n参数调节\n稳定裕度\n响应质量\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "cruise",
+        "label": "邮轮舒适度控制",
+        "path": "/simulations/cruise"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/cruise-light-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 982,
+            "height": 800,
+            "clientWidth": 982,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 265,
+          "width": 984,
+          "height": 1362
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 3,
+        "whitePanelCount": 19,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n邮轮仿真\n学生\n邮轮仿真\n\n舒适性导向控制 · 减摇稳定与黑箱识别任务\n\n个人中心\n独立探索\n该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。\n场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n状态监控\n仿真时间\n0.0s\n剩余时长\n300.0s\n当前航向\n0.0°\n航向误差\n0.0°\n转艏角速度\n0.00°/s\n舵角\n0.0°\n横摇角\n0.00°\n舒适度评估\n优秀\nMSI: 0.0%\n横摇RMS0.00°\n横摇峰值0.00°\n控制与探究\n控制\n评估\nAI伴学\n虚拟仿真观察\n已开启\n\n开启后采用真实扰动模型；关闭时使用理想化环境。请对比两者结果差异，并可结合加速仿真节约时间。\n\n开始仿真\n重置\n单次校验时长: 300s（到时自动结束并生成评估数据）\n任务目标航向: 0°\n航线规则：先直航 800m，再右转 30° 并保持航向。\n海况等级: 3级(中浪)\n相对波向: 90°(横浪)\n\n控制模式\n\nMANUAL\nP\nPD\nPID\n控制器参数\nKp\nKi\nKd\nPID 控制：Kp、Ki、Kd 全部可调。\n减摇鳍\n已禁用\n左舷\n0.0°\n右舷\n0.0°\n功率\n0 kW\n陷波滤波器\n已禁用\n中心频率: 0.16 Hz\n带宽: 0.15 Hz\n陷波深度: -30 dB\n0.1-0.3Hz\n返回上一层\n柔性之海：豪华邮轮舒适度控制\n\n课程模式 · 当前环节 engineering-target\n\nCruise / teacher\n拖拽旋转视角 | 滚轮缩放 | 右键平移\n浅蓝箭头：期望航线 | 深蓝箭头与轨迹：实际航向与航迹\n知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)\n相机、视角和场景工具为任务局部控制。\n移动端底部说明条不固定覆盖场景；桌面浮层避让全局 dock 和场景局部工具。\n\n先观察公开海况下的横摇响应，再比较频域指标和舒适性变化。\n\n舒适性状态\n可展开或收起\n\n横摇、加速度和乘员舒适度指标作为场景伴随状态。\n\n横摇角\n横摇角速度\n舒适度指标\n频域与评价\n可展开或收起\n\n减摇控制、频率响应和舒适性评价保持在右侧评价域。\n\n频域响应\n减摇效果\n舒适性指标\n支持与证据状态\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "cruise",
+        "label": "邮轮舒适度控制",
+        "path": "/simulations/cruise"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/cruise-light-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 490,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 1,
+        "whitePanelCount": 10,
+        "textSample": "首页\n/\n虚拟仿真\n/\n邮轮仿真\n学生\n邮轮仿真\n\n舒适性导向控制 · 减摇稳定与黑箱识别任务\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n独立探索\n该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。\n场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。\n主\n俯\n战\n#\n网\n1.0x\n拖拽旋转视角 | 滚轮缩放 | 右键平移\n浅蓝箭头：期望航线 | 深蓝箭头与轨迹：实际航向与航迹\n知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)\n相机、视角和场景工具为任务局部控制。\n移动端底部说明条不固定覆盖场景；桌面浮层避让全局 dock 和场景局部工具。\n\n先观察公开海况下的横摇响应，再比较频域指标和舒适性变化。\n\n舒适性状态\n可展开或收起\n\n横摇、加速度和乘员舒适度指标作为场景伴随状态。\n\n横摇角\n横摇角速度\n舒适度指标\n频域与评价\n可展开或收起\n\n减摇控制、频率响应和舒适性评价保持在右侧评价域。\n\n频域响应\n减摇效果\n舒适性指标\n支持与证据状态\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "cruise",
+        "label": "邮轮舒适度控制",
+        "path": "/simulations/cruise"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/cruise-dark-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 982,
+            "height": 800,
+            "clientWidth": 982,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 265,
+          "width": 984,
+          "height": 1362
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 3,
+        "whitePanelCount": 9,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n邮轮仿真\n学生\n邮轮仿真\n\n舒适性导向控制 · 减摇稳定与黑箱识别任务\n\n个人中心\n独立探索\n该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。\n场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n状态监控\n仿真时间\n0.0s\n剩余时长\n300.0s\n当前航向\n0.0°\n航向误差\n0.0°\n转艏角速度\n0.00°/s\n舵角\n0.0°\n横摇角\n0.00°\n舒适度评估\n优秀\nMSI: 0.0%\n横摇RMS0.00°\n横摇峰值0.00°\n控制与探究\n控制\n评估\nAI伴学\n虚拟仿真观察\n已开启\n\n开启后采用真实扰动模型；关闭时使用理想化环境。请对比两者结果差异，并可结合加速仿真节约时间。\n\n开始仿真\n重置\n单次校验时长: 300s（到时自动结束并生成评估数据）\n任务目标航向: 0°\n航线规则：先直航 800m，再右转 30° 并保持航向。\n海况等级: 3级(中浪)\n相对波向: 90°(横浪)\n\n控制模式\n\nMANUAL\nP\nPD\nPID\n控制器参数\nKp\nKi\nKd\nPID 控制：Kp、Ki、Kd 全部可调。\n减摇鳍\n已禁用\n左舷\n0.0°\n右舷\n0.0°\n功率\n0 kW\n陷波滤波器\n已禁用\n中心频率: 0.16 Hz\n带宽: 0.15 Hz\n陷波深度: -30 dB\n0.1-0.3Hz\n返回上一层\n柔性之海：豪华邮轮舒适度控制\n\n课程模式 · 当前环节 engineering-target\n\nCruise / teacher\n拖拽旋转视角 | 滚轮缩放 | 右键平移\n浅蓝箭头：期望航线 | 深蓝箭头与轨迹：实际航向与航迹\n知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)\n相机、视角和场景工具为任务局部控制。\n移动端底部说明条不固定覆盖场景；桌面浮层避让全局 dock 和场景局部工具。\n\n先观察公开海况下的横摇响应，再比较频域指标和舒适性变化。\n\n舒适性状态\n可展开或收起\n\n横摇、加速度和乘员舒适度指标作为场景伴随状态。\n\n横摇角\n横摇角速度\n舒适度指标\n频域与评价\n可展开或收起\n\n减摇控制、频率响应和舒适性评价保持在右侧评价域。\n\n频域响应\n减摇效果\n舒适性指标\n支持与证据状态\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "cruise",
+        "label": "邮轮舒适度控制",
+        "path": "/simulations/cruise"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/cruise-dark-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 490,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 1,
+        "whitePanelCount": 0,
+        "textSample": "首页\n/\n虚拟仿真\n/\n邮轮仿真\n学生\n邮轮仿真\n\n舒适性导向控制 · 减摇稳定与黑箱识别任务\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n独立探索\n该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。\n场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。\n主\n俯\n战\n#\n网\n1.0x\n拖拽旋转视角 | 滚轮缩放 | 右键平移\n浅蓝箭头：期望航线 | 深蓝箭头与轨迹：实际航向与航迹\n知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)\n相机、视角和场景工具为任务局部控制。\n移动端底部说明条不固定覆盖场景；桌面浮层避让全局 dock 和场景局部工具。\n\n先观察公开海况下的横摇响应，再比较频域指标和舒适性变化。\n\n舒适性状态\n可展开或收起\n\n横摇、加速度和乘员舒适度指标作为场景伴随状态。\n\n横摇角\n横摇角速度\n舒适度指标\n频域与评价\n可展开或收起\n\n减摇控制、频率响应和舒适性评价保持在右侧评价域。\n\n频域响应\n减摇效果\n舒适性指标\n支持与证据状态\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "drilling",
+        "label": "钻井平台动力定位",
+        "path": "/simulations/drilling"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/drilling-light-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 5,
+        "whitePanelCount": 14,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n海洋石油981钻井平台仿真\n学生\n海洋石油981钻井平台仿真\n\n动力定位 DP 系统 · 多推进器解耦控制\n\n个人中心\n钻井位置\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n状态监控\n已暂停\n时间: 0.0s\n解耦控制\nDP 定位状态\n位置误差:\n0.00 m\n航向误差:\n0.0°\n总功率:\n0.0 MW\n0m\n3m\n5m\n10m\n推进器状态\n▣\n前 (Fore) ↑\n控制与探究\n控制\n评估\n控制面板\n开始\n解耦控制\n目标\n环境\n目标 X (m)\n0 m\n目标 Z (m)\n0 m\n目标航向 (°)\n0°\n返回上一层\n海洋石油981 深水钻井平台\n\nDP 解耦控制 · 推力分配 · 风浪流扰动\n\nDrilling / OBE\n\n先收起非当前面板，保证定位误差曲线和场景姿态同屏可见。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "drilling",
+        "label": "钻井平台动力定位",
+        "path": "/simulations/drilling"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/drilling-light-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 8,
+        "textSample": "首页\n/\n虚拟仿真\n/\n海洋石油981钻井平台仿真\n学生\n海洋石油981钻井平台仿真\n\n动力定位 DP 系统 · 多推进器解耦控制\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n钻井位置\n主\n俯\n战\n#\n网\n1.0x\n\n先收起非当前面板，保证定位误差曲线和场景姿态同屏可见。\n\n定位状态\n可展开或收起\n\n位置误差、艏向和环境载荷作为左侧状态流。\n\n横向偏差\n纵向偏差\n风浪流扰动\n推进分配\n可展开或收起\n\n推进器分配、前馈补偿和能量约束属于局部控制面板。\n\n推力分配\n前馈补偿\n能耗边界\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "drilling",
+        "label": "钻井平台动力定位",
+        "path": "/simulations/drilling"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/drilling-dark-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 5,
+        "whitePanelCount": 4,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n海洋石油981钻井平台仿真\n学生\n海洋石油981钻井平台仿真\n\n动力定位 DP 系统 · 多推进器解耦控制\n\n个人中心\n钻井位置\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n状态监控\n已暂停\n时间: 0.0s\n解耦控制\nDP 定位状态\n位置误差:\n0.00 m\n航向误差:\n0.0°\n总功率:\n0.0 MW\n0m\n3m\n5m\n10m\n推进器状态\n▣\n前 (Fore) ↑\n控制与探究\n控制\n评估\n控制面板\n开始\n解耦控制\n目标\n环境\n目标 X (m)\n0 m\n目标 Z (m)\n0 m\n目标航向 (°)\n0°\n返回上一层\n海洋石油981 深水钻井平台\n\nDP 解耦控制 · 推力分配 · 风浪流扰动\n\nDrilling / OBE\n\n先收起非当前面板，保证定位误差曲线和场景姿态同屏可见。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "drilling",
+        "label": "钻井平台动力定位",
+        "path": "/simulations/drilling"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/drilling-dark-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 0,
+        "textSample": "首页\n/\n虚拟仿真\n/\n海洋石油981钻井平台仿真\n学生\n海洋石油981钻井平台仿真\n\n动力定位 DP 系统 · 多推进器解耦控制\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n钻井位置\n主\n俯\n战\n#\n网\n1.0x\n\n先收起非当前面板，保证定位误差曲线和场景姿态同屏可见。\n\n定位状态\n可展开或收起\n\n位置误差、艏向和环境载荷作为左侧状态流。\n\n横向偏差\n纵向偏差\n风浪流扰动\n推进分配\n可展开或收起\n\n推进器分配、前馈补偿和能量约束属于局部控制面板。\n\n推力分配\n前馈补偿\n能耗边界\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "icebreaker",
+        "label": "破冰船推进控制",
+        "path": "/simulations/icebreaker"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/icebreaker-light-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 2,
+        "whitePanelCount": 16,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n雪龙2号破冰船仿真\n学生\n雪龙2号破冰船仿真\n\nAzipod 推进与冰阻力 · 参数摄动与鲁棒控制\n\n个人中心\n状态监控\n总览\n冰区\n推进\n航向\n0.0°\n位置\n(0, 0)\n时间\n0.0 s\n控制与探究\n控制\n警报\n评估\n运行\n控制模式\nMANUAL\nP\nPD\nPID\n目标航向\n0°\n航速\n6.0 m/s\n冰区模式\n实时状态\n航向误差\n0.0°\n航速\n6.0 m/s\n仿真时间\n0.0 s\n冰阻力\n0 kN\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n返回上一层\n雪龙2号极地科考破冰船仿真\n\nAzipod 推进 · 冰阻力 Stick-Slip 模型 · 参数摄动\n\n雪龙2号\n\n破冰场景先观察阻力突变，再比较推进角调整后的航速恢复。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "icebreaker",
+        "label": "破冰船推进控制",
+        "path": "/simulations/icebreaker"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/icebreaker-light-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 8,
+        "textSample": "首页\n/\n虚拟仿真\n/\n雪龙2号破冰船仿真\n学生\n雪龙2号破冰船仿真\n\nAzipod 推进与冰阻力 · 参数摄动与鲁棒控制\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n主\n俯\n战\n#\n网\n1.0x\n\n破冰场景先观察阻力突变，再比较推进角调整后的航速恢复。\n\n冰阻状态\n可展开或收起\n\n冰阻、速度和推进姿态作为破冰场景状态。\n\n冰阻力\n航速保持\n姿态变化\nAzipod 控制\n可展开或收起\n\n推进角、推力余量和鲁棒性观察作为局部控制面板。\n\n推进角\n推力余量\n鲁棒性观察\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "icebreaker",
+        "label": "破冰船推进控制",
+        "path": "/simulations/icebreaker"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/icebreaker-dark-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 2,
+        "whitePanelCount": 8,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n雪龙2号破冰船仿真\n学生\n雪龙2号破冰船仿真\n\nAzipod 推进与冰阻力 · 参数摄动与鲁棒控制\n\n个人中心\n状态监控\n总览\n冰区\n推进\n航向\n0.0°\n位置\n(0, 0)\n时间\n0.0 s\n控制与探究\n控制\n警报\n评估\n运行\n控制模式\nMANUAL\nP\nPD\nPID\n目标航向\n0°\n航速\n6.0 m/s\n冰区模式\n实时状态\n航向误差\n0.0°\n航速\n6.0 m/s\n仿真时间\n0.0 s\n冰阻力\n0 kN\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n返回上一层\n雪龙2号极地科考破冰船仿真\n\nAzipod 推进 · 冰阻力 Stick-Slip 模型 · 参数摄动\n\n雪龙2号\n\n破冰场景先观察阻力突变，再比较推进角调整后的航速恢复。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "icebreaker",
+        "label": "破冰船推进控制",
+        "path": "/simulations/icebreaker"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/icebreaker-dark-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 0,
+        "textSample": "首页\n/\n虚拟仿真\n/\n雪龙2号破冰船仿真\n学生\n雪龙2号破冰船仿真\n\nAzipod 推进与冰阻力 · 参数摄动与鲁棒控制\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n主\n俯\n战\n#\n网\n1.0x\n\n破冰场景先观察阻力突变，再比较推进角调整后的航速恢复。\n\n冰阻状态\n可展开或收起\n\n冰阻、速度和推进姿态作为破冰场景状态。\n\n冰阻力\n航速保持\n姿态变化\nAzipod 控制\n可展开或收起\n\n推进角、推力余量和鲁棒性观察作为局部控制面板。\n\n推进角\n推力余量\n鲁棒性观察\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "dredger",
+        "label": "疏浚船定位控制",
+        "path": "/simulations/dredger"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/dredger-light-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 4,
+        "whitePanelCount": 14,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n天鲸号挖泥船仿真\n学生\n天鲸号挖泥船仿真\n\nMMG 三自由度 · 动力定位与前馈扰动补偿\n\n个人中心\n目标位置\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n状态监控\n已暂停\n时间: 0.0s\n定位状态\n位置误差:\n0.000 m\n航向误差:\n0.00°\n航速:\n0.00 m/s\n舵角:\n0.0°\n控制与探究\n控制\n评估\n控制面板\n开始\n目标\n扰动\n控制\n目标 X (m)\n0 m\n目标 Z (m)\n0 m\n目标航向 (°)\n0°\n返回上一层\n天鲸号挖泥船动力定位仿真\n\nMMG 3-DOF 高保真模型 · 定位精度 < 0.1m\n\nDredger / OBE\n\n先收起非当前面板，保证定位误差曲线和场景姿态同屏可见。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "dredger",
+        "label": "疏浚船定位控制",
+        "path": "/simulations/dredger"
+      },
+      "theme": "light",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/dredger-light-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "light",
+        "storedTheme": "light",
+        "bodyBg": "rgb(248, 250, 252)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(248, 250, 252)",
+          "color": "rgb(15, 23, 42)",
+          "borderColor": "rgb(209, 221, 229)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 8,
+        "textSample": "首页\n/\n虚拟仿真\n/\n天鲸号挖泥船仿真\n学生\n天鲸号挖泥船仿真\n\nMMG 三自由度 · 动力定位与前馈扰动补偿\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n目标位置\n主\n俯\n战\n#\n网\n1.0x\n\n先收起非当前面板，保证定位误差曲线和场景姿态同屏可见。\n\n定位状态\n可展开或收起\n\n位置误差、艏向和环境载荷作为左侧状态流。\n\n横向偏差\n纵向偏差\n风浪流扰动\n推进分配\n可展开或收起\n\n推进器分配、前馈补偿和能量约束属于局部控制面板。\n\n推力分配\n前馈补偿\n能耗边界\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "dredger",
+        "label": "疏浚船定位控制",
+        "path": "/simulations/dredger"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 960
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/dredger-dark-desktop.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 1318,
+            "height": 800,
+            "clientWidth": 1318,
+            "clientHeight": 800
+          }
+        ],
+        "sceneRect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 930
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 4,
+        "restoreHandleCount": 0,
+        "topbarCount": 1,
+        "lightPanelCount": 4,
+        "whitePanelCount": 4,
+        "textSample": "展开导航\n首页\n/\n虚拟仿真\n/\n天鲸号挖泥船仿真\n学生\n天鲸号挖泥船仿真\n\nMMG 三自由度 · 动力定位与前馈扰动补偿\n\n个人中心\n目标位置\n主视角\n俯瞰\n战术\n#\n网格开\n1.0x\n状态监控\n已暂停\n时间: 0.0s\n定位状态\n位置误差:\n0.000 m\n航向误差:\n0.00°\n航速:\n0.00 m/s\n舵角:\n0.0°\n控制与探究\n控制\n评估\n控制面板\n开始\n目标\n扰动\n控制\n目标 X (m)\n0 m\n目标 Z (m)\n0 m\n目标航向 (°)\n0°\n返回上一层\n天鲸号挖泥船动力定位仿真\n\nMMG 3-DOF 高保真模型 · 定位精度 < 0.1m\n\nDredger / OBE\n\n先收起非当前面板，保证定位误差曲线和场景姿态同屏可见。\n\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    },
+    {
+      "route": {
+        "id": "dredger",
+        "label": "疏浚船定位控制",
+        "path": "/simulations/dredger"
+      },
+      "theme": "dark",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "responseStatus": 200,
+      "loadError": null,
+      "screenshot": "screenshots/dredger-dark-mobile.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'classList')"
+      ],
+      "metrics": {
+        "htmlClass": "dark",
+        "storedTheme": "dark",
+        "bodyBg": "rgb(2, 8, 23)",
+        "hasSimulationScene": true,
+        "hasSimUi": true,
+        "canvasCount": 1,
+        "canvasSizes": [
+          {
+            "width": 356,
+            "height": 560,
+            "clientWidth": 356,
+            "clientHeight": 560
+          }
+        ],
+        "sceneRect": {
+          "x": 16,
+          "y": 294,
+          "width": 358,
+          "height": 1122
+        },
+        "sceneStyles": {
+          "backgroundColor": "rgb(2, 8, 23)",
+          "color": "rgb(248, 250, 252)",
+          "borderColor": "rgb(30, 41, 59)"
+        },
+        "localPanelCount": 2,
+        "restoreHandleCount": 2,
+        "topbarCount": 1,
+        "lightPanelCount": 0,
+        "whitePanelCount": 0,
+        "textSample": "首页\n/\n虚拟仿真\n/\n天鲸号挖泥船仿真\n学生\n天鲸号挖泥船仿真\n\nMMG 三自由度 · 动力定位与前馈扰动补偿\n\n个人中心\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n目标位置\n主\n俯\n战\n#\n网\n1.0x\n\n先收起非当前面板，保证定位误差曲线和场景姿态同屏可见。\n\n定位状态\n可展开或收起\n\n位置误差、艏向和环境载荷作为左侧状态流。\n\n横向偏差\n纵向偏差\n风浪流扰动\n推进分配\n可展开或收起\n\n推进器分配、前馈补偿和能量约束属于局部控制面板。\n\n推力分配\n前馈补偿\n能耗边界\n控灵\n\n当前: 船舶控制仿真\n\n你好，我是控灵。我正在船舶控制仿真页面，有什么可以帮助你的吗？\n\n学习目标:\n\n掌握PID控制器调参\n理解船舶运动模型\n\n你可以问我:\n\n按 Enter 发送，ESC 关闭面板",
+        "notFound": false
+      }
+    }
+  ]
+}

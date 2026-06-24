@@ -24,10 +24,8 @@ function actorFromSession(session: Awaited<ReturnType<typeof getServerAuthSessio
   return { id: session.user.id, role: session.user.role as 'TEACHER' | 'ADMIN' };
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { publicationId: string } },
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ publicationId: string }> }) {
+  const params = await props.params;
   const session = await getServerAuthSession();
   const actor = actorFromSession(session);
   if (!actor) {

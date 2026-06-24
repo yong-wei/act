@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Workflow, Compass, GaugeCircle, Waves, Map } from 'lucide-react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { Workflow, Compass, GaugeCircle, Waves, Map, type LucideIcon } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
@@ -10,7 +10,7 @@ interface SynthesisStep {
   title: string;
   summary: string;
   details: string[];
-  icon: React.ElementType;
+  icon: LucideIcon;
 }
 
 const STEPS: SynthesisStep[] = [
@@ -75,22 +75,32 @@ interface TimeDomainSynthesisProps extends BaseWidgetProps {}
 
 export default function TimeDomainSynthesis({ onComplete, onStateChange }: TimeDomainSynthesisProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(STEPS[0]?.id ?? 'modeling');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = STEPS[0]?.id ?? 'modeling';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeStep = useMemo(
     () => STEPS.find((step) => step.id === activeId) ?? STEPS[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / STEPS.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { stepId: activeId, visitedCount: nextVisited.length },
+      data: { stepId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -106,7 +116,7 @@ export default function TimeDomainSynthesis({ onComplete, onStateChange }: TimeD
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   const ActiveIcon = activeStep.icon;
 
@@ -122,9 +132,9 @@ export default function TimeDomainSynthesis({ onComplete, onStateChange }: TimeD
           <div className="text-sm font-semibold text-slate-700">步骤导航</div>
           <div className="mt-4 space-y-2">
             {STEPS.map((step, index) => (
-              <button
+              <button type="button"
                 key={step.id}
-                onClick={() => setActiveId(step.id)}
+                onClick={() => recordVisit(step.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === step.id
                     ? 'bg-slate-900 text-white'

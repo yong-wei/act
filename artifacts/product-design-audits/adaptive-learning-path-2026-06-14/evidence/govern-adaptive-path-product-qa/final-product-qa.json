@@ -1,0 +1,402 @@
+{
+  "change": "govern-adaptive-path-product-qa",
+  "generatedAt": "2026-06-24T02:03:09.949Z",
+  "sourceCommit": "worktree:19ca69a6a58e2441174bda1f",
+  "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
+  "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
+  "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
+  "handoffMatrixSha256": "e1f27e07a86a8b9c1699b7d9ec9b6a10ecc04c6d656fabae94177d8e01bc44bd",
+  "captureManifest": "artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json",
+  "captureManifestSha256": "03bf61dad8ea89b01b5eec8365b57da2f6798555b55563c17de1d02c4be68362",
+  "visualSignals": "artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json",
+  "visualSignalsSha256": "b2f2fd2db89253922352c6759698defad8131465aabca5517dca9bd18948fcdd",
+  "conceptImages": [
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png",
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/04-history-evidence-record.png"
+  ],
+  "conceptImageSha256": {
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png": "f872897a63bceea5712235e3b5192b7f2513c4b960bb748b9f2b88a01ba676fc",
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png": "5a6c8553d2255d32df263f6275bc979bc3bf7a3b111deb13671d9b1dbd607297",
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png": "baccdf075a8a9dee1a5a9490e8b29dc5332ffd699c38bf154f84698464024466",
+    "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/04-history-evidence-record.png": "3dc794f29d136fa8d734985ab3f70e4437028f204b65f20b9cc704ccee68e1fe"
+  },
+  "childChangeValidations": [
+    {
+      "change": "generalize-adaptive-learning-path-generation",
+      "validationCommand": "rtk openspec validate generalize-adaptive-learning-path-generation --strict",
+      "result": "passed",
+      "archivedTasksComplete": true
+    },
+    {
+      "change": "govern-adaptive-path-resource-nodes",
+      "validationCommand": "rtk openspec validate govern-adaptive-path-resource-nodes --strict",
+      "result": "passed",
+      "archivedTasksComplete": true
+    },
+    {
+      "change": "add-konling-path-generation-tools",
+      "validationCommand": "rtk openspec validate add-konling-path-generation-tools --strict",
+      "result": "passed",
+      "archivedTasksComplete": true
+    },
+    {
+      "change": "redesign-adaptive-path-generation-selection-ui",
+      "validationCommand": "rtk openspec validate redesign-adaptive-path-generation-selection-ui --strict",
+      "result": "passed",
+      "archivedTasksComplete": true
+    },
+    {
+      "change": "build-adaptive-path-execution-history-ui",
+      "validationCommand": "rtk openspec validate build-adaptive-path-execution-history-ui --strict",
+      "result": "passed",
+      "archivedTasksComplete": true
+    }
+  ],
+  "routeMatrix": [
+    {
+      "id": "generation-main-desktop-light",
+      "route": "/assessment/adaptive-practice",
+      "goal": "frequency-response-foundations",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "authState": "authenticated",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "generation main",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-desktop-light.png",
+      "screenshotSha256": "6178f2e3fa0aae85ed31ef38e622dc73ae88885a235386f5ae6fe8c3ff137328",
+      "result": "passed"
+    },
+    {
+      "id": "generation-main-mobile-dark",
+      "route": "/assessment/adaptive-practice",
+      "goal": "frequency-response-foundations",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "mobile",
+      "authState": "authenticated",
+      "navigationState": "workspace-command-surface",
+      "dockState": "collapsed",
+      "pageState": "generation main",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-mobile-dark.png",
+      "screenshotSha256": "08984a96882559f00d08a4b6a3a88427ba82fa29994ad781dfcb74b17f63f86c",
+      "result": "passed"
+    },
+    {
+      "id": "konling-parameter-panel-desktop-dark",
+      "route": "/assessment/adaptive-practice",
+      "goal": "frequency-response-foundations",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "desktop",
+      "authState": "authenticated",
+      "navigationState": "desktop-collapsed",
+      "dockState": "expanded",
+      "pageState": "Konling parameter panel",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-parameter-panel-desktop-dark.png",
+      "screenshotSha256": "656761757edd0cffe41fa63a8272232e2ff655e13e3ba623a9874529af1760d0",
+      "result": "passed"
+    },
+    {
+      "id": "cold-start-starter-paths-mobile-light",
+      "route": "/assessment/adaptive-practice",
+      "goal": "frequency-response-foundations",
+      "role": "student",
+      "theme": "light",
+      "viewport": "mobile",
+      "authState": "authenticated",
+      "navigationState": "workspace-command-surface",
+      "dockState": "collapsed",
+      "pageState": "cold-start starter paths",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/cold-start-starter-paths-mobile-light.png",
+      "screenshotSha256": "60fedb6890d7fdf55515de4fde982aa1774f145e44a8e296c43945eba3510705",
+      "result": "passed"
+    },
+    {
+      "id": "path-comparison-desktop-light",
+      "route": "/assessment/adaptive-practice",
+      "goal": "control-correction",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "authState": "authenticated",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "comparable path options",
+      "selectedPath": "path-option-foundation",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/path-comparison-desktop-light.png",
+      "screenshotSha256": "023b20235d42a6da2fb151642cf969c29f762bfeca1115e6e3b6a0fe92587147",
+      "result": "passed"
+    },
+    {
+      "id": "path-comparison-mobile-dark",
+      "route": "/assessment/adaptive-practice",
+      "goal": "control-correction",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "mobile",
+      "authState": "authenticated",
+      "navigationState": "workspace-command-surface",
+      "dockState": "collapsed",
+      "pageState": "comparable path options",
+      "selectedPath": "path-option-foundation",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/path-comparison-mobile-dark.png",
+      "screenshotSha256": "6e4dca3c0581354aa1a65d15212917cbed65d5abe4f39ec7fecdcfe89466dcf8",
+      "result": "passed"
+    },
+    {
+      "id": "active-path-execution-desktop-light",
+      "route": "/assessment/adaptive-practice",
+      "goal": "control-correction",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "authState": "authenticated",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "active path execution",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-desktop-light.png",
+      "screenshotSha256": "e5d019cff202f8342ccd249b3c05156063c4a6bcc41f2c6295472c7764676e33",
+      "result": "passed"
+    },
+    {
+      "id": "active-path-execution-mobile-dark",
+      "route": "/assessment/adaptive-practice",
+      "goal": "control-correction",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "mobile",
+      "authState": "authenticated",
+      "navigationState": "workspace-command-surface",
+      "dockState": "collapsed",
+      "pageState": "active path execution",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-mobile-dark.png",
+      "screenshotSha256": "a1821c42bc34fcab5a06209aeeb6ade0d9de845103e70d413b758170e8162c2c",
+      "result": "passed"
+    },
+    {
+      "id": "node-detail-desktop-light",
+      "route": "/assessment/adaptive-practice",
+      "goal": "control-correction",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "authState": "authenticated",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "selected or completed node detail",
+      "selectedNode": "freq-response-checkpoint",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/node-detail-desktop-light.png",
+      "screenshotSha256": "9c4672a3da47bde2b8e980e35b612a77b9529ab2d30754aac0b1f171adc7d291",
+      "result": "passed"
+    },
+    {
+      "id": "skip-warning-desktop-light",
+      "route": "/assessment/adaptive-practice",
+      "goal": "control-correction",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "authState": "authenticated",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "skip warning",
+      "selectedNode": "freq-response-checkpoint",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/skip-warning-desktop-light.png",
+      "screenshotSha256": "6362484933558857ad9b651b21ab9dd1ed8c9fde6225857f496f08120b70e8ca",
+      "result": "passed"
+    },
+    {
+      "id": "history-evidence-desktop-light",
+      "route": "/assessment/adaptive-practice",
+      "goal": "control-correction",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "authState": "authenticated",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "history and evidence timeline",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/04-history-evidence-record.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/history-evidence-desktop-light.png",
+      "screenshotSha256": "b2d37167bb22b7509a129d104c4dab75a5384094d1fac35ab73e908f304a3117",
+      "result": "passed"
+    },
+    {
+      "id": "history-evidence-mobile-dark",
+      "route": "/assessment/adaptive-practice",
+      "goal": "control-correction",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "mobile",
+      "authState": "authenticated",
+      "navigationState": "workspace-command-surface",
+      "dockState": "collapsed",
+      "pageState": "history and evidence timeline",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/04-history-evidence-record.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/history-evidence-mobile-dark.png",
+      "screenshotSha256": "8d6232e0d0a0ca168efb070b5929d03fb511633da2bb90736cff634ad338580f",
+      "result": "passed"
+    },
+    {
+      "id": "app-shell-expanded-dock-desktop-dark",
+      "route": "/assessment/adaptive-practice",
+      "goal": "control-correction",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "desktop",
+      "authState": "authenticated",
+      "navigationState": "desktop-expanded",
+      "dockState": "expanded",
+      "pageState": "AppShell and dock stress state",
+      "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/app-shell-expanded-dock-desktop-dark.png",
+      "screenshotSha256": "85ca6486e417f7b76d0346d9bc234b35b8d03612c571a3986cfd364cabae0c07",
+      "result": "passed"
+    }
+  ],
+  "captureStates": [
+    {
+      "id": "generation-main-desktop-light",
+      "goal": "frequency-response-foundations",
+      "theme": "light",
+      "viewport": "desktop",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-desktop-light.png",
+      "screenshotSha256": "6178f2e3fa0aae85ed31ef38e622dc73ae88885a235386f5ae6fe8c3ff137328"
+    },
+    {
+      "id": "generation-main-mobile-dark",
+      "goal": "frequency-response-foundations",
+      "theme": "dark",
+      "viewport": "mobile",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-mobile-dark.png",
+      "screenshotSha256": "08984a96882559f00d08a4b6a3a88427ba82fa29994ad781dfcb74b17f63f86c"
+    },
+    {
+      "id": "konling-parameter-panel-desktop-dark",
+      "goal": "frequency-response-foundations",
+      "theme": "dark",
+      "viewport": "desktop",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-parameter-panel-desktop-dark.png",
+      "screenshotSha256": "656761757edd0cffe41fa63a8272232e2ff655e13e3ba623a9874529af1760d0"
+    },
+    {
+      "id": "cold-start-starter-paths-mobile-light",
+      "goal": "frequency-response-foundations",
+      "theme": "light",
+      "viewport": "mobile",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/cold-start-starter-paths-mobile-light.png",
+      "screenshotSha256": "60fedb6890d7fdf55515de4fde982aa1774f145e44a8e296c43945eba3510705"
+    },
+    {
+      "id": "path-comparison-desktop-light",
+      "goal": "control-correction",
+      "theme": "light",
+      "viewport": "desktop",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/path-comparison-desktop-light.png",
+      "screenshotSha256": "023b20235d42a6da2fb151642cf969c29f762bfeca1115e6e3b6a0fe92587147"
+    },
+    {
+      "id": "path-comparison-mobile-dark",
+      "goal": "control-correction",
+      "theme": "dark",
+      "viewport": "mobile",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/path-comparison-mobile-dark.png",
+      "screenshotSha256": "6e4dca3c0581354aa1a65d15212917cbed65d5abe4f39ec7fecdcfe89466dcf8"
+    },
+    {
+      "id": "active-path-execution-desktop-light",
+      "goal": "control-correction",
+      "theme": "light",
+      "viewport": "desktop",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-desktop-light.png",
+      "screenshotSha256": "e5d019cff202f8342ccd249b3c05156063c4a6bcc41f2c6295472c7764676e33"
+    },
+    {
+      "id": "active-path-execution-mobile-dark",
+      "goal": "control-correction",
+      "theme": "dark",
+      "viewport": "mobile",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-mobile-dark.png",
+      "screenshotSha256": "a1821c42bc34fcab5a06209aeeb6ade0d9de845103e70d413b758170e8162c2c"
+    },
+    {
+      "id": "node-detail-desktop-light",
+      "goal": "control-correction",
+      "theme": "light",
+      "viewport": "desktop",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/node-detail-desktop-light.png",
+      "screenshotSha256": "9c4672a3da47bde2b8e980e35b612a77b9529ab2d30754aac0b1f171adc7d291"
+    },
+    {
+      "id": "skip-warning-desktop-light",
+      "goal": "control-correction",
+      "theme": "light",
+      "viewport": "desktop",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/skip-warning-desktop-light.png",
+      "screenshotSha256": "6362484933558857ad9b651b21ab9dd1ed8c9fde6225857f496f08120b70e8ca"
+    },
+    {
+      "id": "history-evidence-desktop-light",
+      "goal": "control-correction",
+      "theme": "light",
+      "viewport": "desktop",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/history-evidence-desktop-light.png",
+      "screenshotSha256": "b2d37167bb22b7509a129d104c4dab75a5384094d1fac35ab73e908f304a3117"
+    },
+    {
+      "id": "history-evidence-mobile-dark",
+      "goal": "control-correction",
+      "theme": "dark",
+      "viewport": "mobile",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/history-evidence-mobile-dark.png",
+      "screenshotSha256": "8d6232e0d0a0ca168efb070b5929d03fb511633da2bb90736cff634ad338580f"
+    },
+    {
+      "id": "app-shell-expanded-dock-desktop-dark",
+      "goal": "control-correction",
+      "theme": "dark",
+      "viewport": "desktop",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/app-shell-expanded-dock-desktop-dark.png",
+      "screenshotSha256": "85ca6486e417f7b76d0346d9bc234b35b8d03612c571a3986cfd364cabae0c07"
+    }
+  ],
+  "independentVisualReview": {
+    "status": "passed",
+    "reviewer": "ui-flow-reviewer",
+    "report": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/independent-visual-review.md",
+    "reportSha256": "2ac273f97b3d84457dd9814ba1a13a13b8c9662af9f0815a8dcb44cf563f3335"
+  },
+  "functionalGates": {
+    "coldStartGeneratesSelectablePaths": true,
+    "generationSupportsGenericGoals": true,
+    "governedResourceNodes": true,
+    "atLeastOneCheckpoint": true,
+    "forbiddenStudentVisibleStringsAbsent": true,
+    "generationSelectionRejectionSwitchRecorded": true,
+    "startCompletionReviewContinuedInteractionRecorded": true,
+    "skipReturnDeviationCheckpointRecorded": true,
+    "konlingAdjustmentRecorded": true,
+    "externalResourceAccessGoverned": true,
+    "noCompletedNodeDoubleCount": true,
+    "desktopFluidWorkspace": true,
+    "mobileTaskFirstPanels": true,
+    "comparisonNotMarketingCards": true,
+    "appShellBreadcrumbsAccountControls": true,
+    "rightBottomKonlingDock": true
+  },
+  "temporaryExceptions": []
+}

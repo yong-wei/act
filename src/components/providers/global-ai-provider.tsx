@@ -17,6 +17,7 @@ import {
 } from 'react';
 import { usePathname } from 'next/navigation';
 import type { PageContext, UserProfile } from '@/types/ai-context';
+import type { KonlingKnowledgeWorkspaceHint, KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 import {
   resolveAIContext,
   isPathExcluded,
@@ -39,6 +40,10 @@ interface GlobalAIContextValue {
   tools: string[];
   /** 系统提示词扩展 */
   systemPromptExtension?: string;
+  /** 当前显式教学助理入口 */
+  assistantEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
+  /** 当前页面提供的知识工作区上下文提示 */
+  knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
   /** 快捷问题列表 */
   quickQuestions: Array<{ label: string; question: string }>;
   /** 打开侧边栏 */
@@ -52,7 +57,15 @@ interface GlobalAIContextValue {
   /** 清除未读计数 */
   clearUnread: () => void;
   /** 更新页面上下文（用于课程页面动态切换） */
-  updatePageContext: (context: Partial<PageContext> & { tools?: string[]; quickQuestions?: Array<{ label: string; question: string }>; systemPromptExtension?: string }) => void;
+  updatePageContext: (context: Partial<PageContext> & {
+    tools?: string[];
+    quickQuestions?: Array<{ label: string; question: string }>;
+    systemPromptExtension?: string;
+    assistantEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
+    knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
+  }) => void;
+  /** 打开指定教学助理模式 */
+  openAssistantEntryPoint: (entryPoint: KonlingTeachingAssistantEntryPoint) => void;
   /** 当前路径名 */
   pathname: string;
   /** 是否应该显示AI按钮 */
@@ -75,7 +88,7 @@ interface GlobalAIProviderProps {
 
 export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
 
   // 状态
   const [resolvedContext, setResolvedContext] = useState<ResolvedContext>({
@@ -89,10 +102,14 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     tools: string[];
     quickQuestions: Array<{ label: string; question: string }>;
     systemPromptExtension?: string;
+    assistantEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
+    knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
   }>({
     pageContext: null,
     tools: [],
     quickQuestions: [],
+    assistantEntryPoint: null,
+    knowledgeWorkspaceHint: null,
   });
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -125,6 +142,14 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     // 解析当前路径的AI上下文
     const resolved = resolveAIContext(pathname);
     setResolvedContext(resolved);
+    setDynamicContext({
+      pageContext: null,
+      tools: [],
+      quickQuestions: [],
+      systemPromptExtension: undefined,
+      assistantEntryPoint: null,
+      knowledgeWorkspaceHint: null,
+    });
 
     // 路由变化时关闭侧边栏（可选，根据UX需求决定）
     // 保持开启可能更好，让用户可以在不同页面间保持对话上下文
@@ -158,14 +183,32 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
 
   // 更新页面上下文（用于课程页面动态切换）
   const updatePageContext = useCallback((
-    context: Partial<PageContext> & { tools?: string[]; quickQuestions?: Array<{ label: string; question: string }>; systemPromptExtension?: string }
+    context: Partial<PageContext> & {
+      tools?: string[];
+      quickQuestions?: Array<{ label: string; question: string }>;
+      systemPromptExtension?: string;
+      assistantEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
+      knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
+    }
   ) => {
     setDynamicContext({
       pageContext: context,
       tools: context.tools || [],
       quickQuestions: context.quickQuestions || [],
       systemPromptExtension: context.systemPromptExtension,
+      assistantEntryPoint: context.assistantEntryPoint ?? null,
+      knowledgeWorkspaceHint: context.knowledgeWorkspaceHint ?? null,
     });
+  }, []);
+
+  const openAssistantEntryPoint = useCallback((entryPoint: KonlingTeachingAssistantEntryPoint) => {
+    setDynamicContext((current) => ({
+      ...current,
+      assistantEntryPoint: entryPoint,
+      systemPromptExtension: entryPoint.promptContext,
+    }));
+    setIsOpen(true);
+    setUnreadCount(0);
   }, []);
 
   // 合并基础上下文和动态上下文
@@ -202,8 +245,9 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
   const shouldShowButton = useMemo(() => {
     if (!mounted) return false;
     if (isPathExcluded(pathname)) return false;
+    if (sessionStatus !== 'authenticated' || !session?.user) return false;
     return resolvedContext.enabled;
-  }, [mounted, pathname, resolvedContext.enabled]);
+  }, [mounted, pathname, resolvedContext.enabled, session?.user, sessionStatus]);
 
   // 上下文值
   const contextValue: GlobalAIContextValue = {
@@ -214,6 +258,8 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     unreadCount,
     tools: mergedTools,
     systemPromptExtension: mergedSystemPromptExtension,
+    assistantEntryPoint: dynamicContext.assistantEntryPoint,
+    knowledgeWorkspaceHint: dynamicContext.knowledgeWorkspaceHint,
     quickQuestions: mergedQuickQuestions,
     openSidebar,
     closeSidebar,
@@ -221,6 +267,7 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     incrementUnread,
     clearUnread,
     updatePageContext,
+    openAssistantEntryPoint,
     pathname,
     shouldShowButton,
   };

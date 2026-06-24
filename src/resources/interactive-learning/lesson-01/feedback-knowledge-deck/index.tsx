@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { BookOpen, Layers, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -9,7 +9,7 @@ import type { LessonKnowledgeCard } from '@/resources/interactive-learning/share
 
 const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
   {
-    id: 'node-feedback-core',
+    id: '反馈_1_1',
     name: '反馈的核心思想',
     nodeType: 'THEORY',
     description: '输出回到输入，误差驱动控制器调整行为。',
@@ -21,7 +21,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['温控系统', '航向控制', '电机调速'],
   },
   {
-    id: 'node-control-system-components',
+    id: '自动控制系统_1_9678f418',
     name: '控制系统四要素',
     nodeType: 'THEORY',
     description: '对象、控制器、执行器、传感器构成闭环基础。',
@@ -33,7 +33,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['机器人', '工业控制', '生物医学系统'],
   },
   {
-    id: 'node-open-closed-loop',
+    id: '闭环控制_1_1',
     name: '开环 vs 闭环',
     nodeType: 'THEORY',
     description: '开环不看输出，闭环依赖反馈。',
@@ -45,7 +45,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['定时加热', '自动驾驶', '无人机稳姿'],
   },
   {
-    id: 'node-feedback-benefits',
+    id: '反馈控制_1_516da087',
     name: '反馈带来的价值',
     nodeType: 'THEORY',
     description: '提高鲁棒性、减弱扰动、改善精度。',
@@ -62,22 +62,32 @@ interface FeedbackKnowledgeDeckProps extends BaseWidgetProps {}
 
 export default function FeedbackKnowledgeDeck({ onComplete, onStateChange }: FeedbackKnowledgeDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(KNOWLEDGE_CARDS[0]?.id ?? 'node-feedback-core');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? '反馈_1_1';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeCard = useMemo(
     () => KNOWLEDGE_CARDS.find((card) => card.id === activeId) ?? KNOWLEDGE_CARDS[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / KNOWLEDGE_CARDS.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { cardId: activeId, visitedCount: nextVisited.length },
+      data: { cardId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -93,7 +103,7 @@ export default function FeedbackKnowledgeDeck({ onComplete, onStateChange }: Fee
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -110,9 +120,9 @@ export default function FeedbackKnowledgeDeck({ onComplete, onStateChange }: Fee
           </div>
           <div className="mt-4 space-y-2">
             {KNOWLEDGE_CARDS.map((card, index) => (
-              <button
+              <button type="button"
                 key={card.id}
-                onClick={() => setActiveId(card.id)}
+                onClick={() => recordVisit(card.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === card.id
                     ? 'bg-slate-900 text-white'

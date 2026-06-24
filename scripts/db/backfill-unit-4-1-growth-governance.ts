@@ -1,4 +1,5 @@
-import { PrismaClient, type Prisma } from '@prisma/client';
+import { createPrismaClient } from '../../src/lib/prisma-client';
+import { type Prisma } from '@prisma/client';
 
 import {
   calculateCompetencyVector,
@@ -14,7 +15,7 @@ import { refreshStudentGrowthEvaluation } from '@/lib/data-governance/growth-eva
 import { buildUNIT41SubmissionTelemetry } from '@/lib/data-governance/unit-4-1-submission-telemetry';
 import { parseUnit41BackfillOptions } from './backfill-unit-4-1-growth-options';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 const LESSON_KEY = 'unit-4-1-design-task-expression-v1';
 const options = parseUnit41BackfillOptions();
 

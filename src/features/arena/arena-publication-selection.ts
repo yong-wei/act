@@ -7,11 +7,23 @@ function publicationPriority(publication: ArenaPublicationRecord): number {
   return 3;
 }
 
+function comparePublicationPriority(left: ArenaPublicationRecord, right: ArenaPublicationRecord): number {
+  const priority = publicationPriority(left) - publicationPriority(right);
+  if (priority !== 0) return priority;
+  return Date.parse(left.deadline) - Date.parse(right.deadline);
+}
+
+export function selectArenaHallCurrentPublication(
+  publications: readonly ArenaPublicationRecord[],
+): ArenaPublicationRecord | undefined {
+  return [...publications].sort(comparePublicationPriority)[0];
+}
+
 export function selectArenaHallPublicationForTask(
   publications: readonly ArenaPublicationRecord[],
   taskId: string,
 ): ArenaPublicationRecord | undefined {
   return publications
     .filter((publication) => publication.taskId === taskId)
-    .sort((left, right) => publicationPriority(left) - publicationPriority(right))[0];
+    .sort(comparePublicationPriority)[0];
 }

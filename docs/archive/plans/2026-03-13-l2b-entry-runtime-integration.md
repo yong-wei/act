@@ -110,8 +110,8 @@ Expected: PASS。
 ### Task 4: 更新技能并回归验证
 
 **Files:**
-- Modify: `.codex/skills/interactive-lesson-implementation/SKILL.md`
-- Modify: `.codex/skills/interactive-lesson-implementation/notes/L-2b.md`
+- Modify: `.agents/skills/interactive-lesson-implementation/SKILL.md`
+- Modify: `.agents/skills/interactive-lesson-implementation/notes/L-2b.md`
 
 **Step 1: Write the failing test**
 

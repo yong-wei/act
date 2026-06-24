@@ -12,7 +12,12 @@ import {
   UploadCloud,
   Users,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
+
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import { createAuditedActionState } from '@/lib/action-status-contract';
+import type { AdminUsersQueryContract } from '@/lib/api-ui-contracts';
+import { toCsv } from '@/lib/csv-export';
 
 import { AdminConsoleHeader } from './admin-console-header';
 
@@ -69,6 +74,7 @@ type AdminDashboardProps = {
     email?: string | null;
     role: 'ADMIN';
   };
+  initialUsersQuery?: AdminUsersQueryContract;
 };
 
 type ImportErrorItem = {
@@ -78,12 +84,23 @@ type ImportErrorItem = {
 };
 
 type ImportResult = {
+  batchId?: string;
+  mode?: 'preview' | 'commit';
+  preview?: boolean;
   created: number;
   updated: number;
   failed: number;
   skippedEmpty?: number;
   totalRows?: number;
   errors?: ImportErrorItem[];
+  auditRecord?: {
+    actorId: string;
+    action: string;
+    batchId: string;
+    outcome: string;
+    rollbackAvailable: boolean;
+    recordedAt: string;
+  };
 };
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -98,14 +115,25 @@ const ROLE_STYLES: Record<UserRole, string> = {
   STUDENT: 'admin-console-pill admin-console-pill-student',
 };
 
-export function AdminDashboard({ currentUser }: AdminDashboardProps) {
+const DIALOG_FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function getDialogFocusableElements(dialog: HTMLElement) {
+  return Array.from(dialog.querySelectorAll<HTMLElement>(DIALOG_FOCUSABLE_SELECTOR))
+    .filter((item) => !item.hasAttribute('disabled') && item.offsetParent !== null);
+}
+
+export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const createDialogRef = useRef<HTMLDivElement>(null);
+  const resetDialogRef = useRef<HTMLDivElement>(null);
+  const createDialogOpenerRef = useRef<HTMLElement | null>(null);
+  const resetDialogOpenerRef = useRef<HTMLElement | null>(null);
   const [overview, setOverview] = useState<OverviewResponse | null>(null);
   const [users, setUsers] = useState<UserItem[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'ALL' | UserRole>('ALL');
+  const [page, setPage] = useState(initialUsersQuery?.page ?? 1);
+  const [search, setSearch] = useState(initialUsersQuery?.search ?? '');
+  const [roleFilter, setRoleFilter] = useState<'ALL' | UserRole>(initialUsersQuery?.role ?? 'ALL');
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingOverview, setLoadingOverview] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(
@@ -119,7 +147,11 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
   const [resetPassword, setResetPassword] = useState('');
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const [exportingUsers, setExportingUsers] = useState(false);
+  const [usersExportState, setUsersExportState] = useState<ReturnType<typeof createAuditedActionState> | null>(null);
   const [creating, setCreating] = useState(false);
+  const [usersQueryTouched, setUsersQueryTouched] = useState(false);
   const [createForm, setCreateForm] = useState({
     name: '',
     email: '',
@@ -130,11 +162,11 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
     password: '',
   });
 
-  const pageSize = 12;
+  const pageSize = initialUsersQuery?.pageSize ?? 12;
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(totalUsers / pageSize)),
-    [totalUsers]
+    [pageSize, totalUsers]
   );
 
   const formattedNow = useMemo(
@@ -146,10 +178,137 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
     []
   );
 
+  const routeActionState = useMemo(() => {
+    const action = initialUsersQuery?.action;
+    if (!action) return null;
+    if (action === 'export') {
+      if (!initialUsersQuery.source.roleSupported) {
+        return createAuditedActionState({
+          identity: {
+            id: 'admin-users-route-action:export',
+            category: 'export',
+            label: '账号导出',
+            sourceRoute: '/admin/users',
+            targetId: initialUsersQuery.targetId,
+            requestedAction: action,
+          },
+          status: 'blocked',
+          message: '账号导出参数包含无效角色筛选，已阻止生成文件。',
+          recoveryAction: '清空无效角色参数后重新导出',
+          httpStatus: 400,
+        });
+      }
+      return createAuditedActionState({
+        identity: {
+          id: 'admin-users-route-action:export',
+          category: 'export',
+          label: '账号导出',
+          sourceRoute: '/admin/users',
+          targetId: initialUsersQuery.targetId,
+          requestedAction: action,
+        },
+        status: 'pending',
+        message: '账号导出深链已保留当前筛选条件，请使用页面内导出按钮生成文件。',
+        nextAction: '按当前筛选集导出账号清单',
+      });
+    }
+    if (action === 'reset') {
+      return createAuditedActionState({
+        identity: {
+          id: 'admin-users-route-action:reset',
+          category: 'unsupported-action',
+          label: '账号重置',
+          sourceRoute: '/admin/users',
+          targetId: initialUsersQuery.targetId,
+          requestedAction: action,
+        },
+        status: 'unsupported',
+        message: '账号重置不能通过 URL 参数直接执行。',
+        recoveryAction: '在目标账号行内打开改密确认流程',
+      });
+    }
+    return createAuditedActionState({
+      identity: {
+        id: `admin-users-route-action:${action}`,
+        category: 'unsupported-action',
+        label: '账号路由动作',
+        sourceRoute: '/admin/users',
+        targetId: initialUsersQuery.targetId,
+        requestedAction: action,
+      },
+      status: 'unsupported',
+      message: `账号管理不支持动作参数 ${action}。`,
+      recoveryAction: '返回账号列表默认状态',
+    });
+  }, [initialUsersQuery]);
+
+  const invalidQueryState = useMemo(() => {
+    const query = initialUsersQuery;
+    if (!query || !shouldBlockInvalidAdminUsersQuery(query, usersQueryTouched)) return null;
+    const invalidParts = [
+      query.source.roleSupported ? null : '角色筛选',
+      query.source.pageValid ? null : '分页参数',
+      query.source.pageSizeValid ? null : '分页大小',
+    ].filter((part): part is string => Boolean(part));
+    if (invalidParts.length === 0) return null;
+    return createAuditedActionState({
+      identity: {
+        id: 'admin-users-query:invalid',
+        category: 'filter',
+        label: '账号筛选参数',
+        sourceRoute: '/admin/users',
+      },
+      status: 'blocked',
+      message: `账号筛选参数无效：${invalidParts.join('、')}。`,
+      recoveryAction: '清空无效参数后重新筛选',
+      httpStatus: 400,
+    });
+  }, [initialUsersQuery, usersQueryTouched]);
+
+  const usersListStatus = useMemo(() => {
+    if (invalidQueryState) return '账号筛选参数无效，账号列表已暂停更新。';
+    if (loadingUsers) return '正在加载账号列表。';
+    if (users.length === 0) {
+      return search.trim() || roleFilter !== 'ALL'
+        ? '当前筛选条件下没有匹配账号。'
+        : '账号列表暂无数据。';
+    }
+    return `账号列表已更新，共 ${totalUsers} 条，当前第 ${page} 页显示 ${users.length} 条。`;
+  }, [invalidQueryState, loadingUsers, page, roleFilter, search, totalUsers, users.length]);
+
   const showNotice = useCallback((type: 'success' | 'error', message: string) => {
     setNotice({ type, message });
     setTimeout(() => setNotice(null), 4000);
   }, []);
+
+  const rememberDialogOpener = useCallback((targetRef: MutableRefObject<HTMLElement | null>) => {
+    const activeElement = document.activeElement;
+    targetRef.current = activeElement instanceof HTMLElement ? activeElement : null;
+  }, []);
+
+  const restoreDialogOpener = useCallback((targetRef: MutableRefObject<HTMLElement | null>) => {
+    window.requestAnimationFrame(() => {
+      const opener = targetRef.current;
+      if (opener?.isConnected && opener.offsetParent !== null) {
+        opener.focus();
+      }
+    });
+  }, []);
+
+  const openCreateDialog = useCallback(() => {
+    rememberDialogOpener(createDialogOpenerRef);
+    setCreateOpen(true);
+  }, [rememberDialogOpener]);
+
+  const closeCreateDialog = useCallback(() => {
+    setCreateOpen(false);
+    restoreDialogOpener(createDialogOpenerRef);
+  }, [restoreDialogOpener]);
+
+  const closeResetDialog = useCallback(() => {
+    setResetOpen(false);
+    restoreDialogOpener(resetDialogOpenerRef);
+  }, [restoreDialogOpener]);
 
   const fetchOverview = useCallback(async () => {
     setLoadingOverview(true);
@@ -168,6 +327,11 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
   }, [showNotice]);
 
   const fetchUsers = useCallback(async () => {
+    if (invalidQueryState) {
+      setUsers([]);
+      setTotalUsers(0);
+      return;
+    }
     setLoadingUsers(true);
     try {
       const params = new URLSearchParams();
@@ -193,7 +357,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
     } finally {
       setLoadingUsers(false);
     }
-  }, [page, roleFilter, search, showNotice]);
+  }, [invalidQueryState, page, pageSize, roleFilter, search, showNotice]);
 
   useEffect(() => {
     fetchOverview();
@@ -222,7 +386,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
         throw new Error(error?.error?.formErrors?.[0] || error?.error || '创建账号失败');
       }
 
-      setCreateOpen(false);
+      closeCreateDialog();
       setCreateForm({
         name: '',
         email: '',
@@ -276,6 +440,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
   };
 
   const openReset = (user: UserItem) => {
+    rememberDialogOpener(resetDialogOpenerRef);
     setResetTarget(user);
     setResetToDefault(true);
     setResetPassword('');
@@ -300,12 +465,98 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
         throw new Error(error?.error || '修改密码失败');
       }
 
-      setResetOpen(false);
+      closeResetDialog();
       showNotice('success', '密码已更新');
     } catch (error) {
       showNotice('error', error instanceof Error ? error.message : '修改密码失败');
     }
   };
+
+  useEffect(() => {
+    if (!createOpen) return;
+    const dialog = createDialogRef.current;
+    if (!dialog) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeCreateDialog();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = getDialogFocusableElements(dialog);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!dialog.contains(document.activeElement) || document.activeElement === dialog) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+        return;
+      }
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.requestAnimationFrame(() => {
+      getDialogFocusableElements(dialog)[0]?.focus() ?? dialog.focus();
+    });
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => dialog.removeEventListener('keydown', handleKeyDown);
+  }, [closeCreateDialog, createOpen]);
+
+  useEffect(() => {
+    if (!resetOpen) return;
+    const dialog = resetDialogRef.current;
+    if (!dialog) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeResetDialog();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = getDialogFocusableElements(dialog);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!dialog.contains(document.activeElement) || document.activeElement === dialog) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+        return;
+      }
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.requestAnimationFrame(() => {
+      getDialogFocusableElements(dialog)[0]?.focus() ?? dialog.focus();
+    });
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => dialog.removeEventListener('keydown', handleKeyDown);
+  }, [closeResetDialog, resetOpen]);
 
   const handleDownloadTemplate = async () => {
     try {
@@ -325,12 +576,106 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
     }
   };
 
-  const handleImport = async (file: File) => {
+  const handleExportUsers = async () => {
+    if (invalidQueryState) {
+      setUsersExportState(createAuditedActionState({
+        identity: {
+          id: 'admin-users-filtered-export',
+          category: 'export',
+          label: '账号筛选导出',
+          sourceRoute: '/admin/users',
+          requestedAction: 'export',
+        },
+        status: 'blocked',
+        message: '当前账号筛选参数无效，已阻止导出。',
+        recoveryAction: '清空无效参数后重新筛选',
+        httpStatus: 400,
+      }));
+      return;
+    }
+    setExportingUsers(true);
+    const params = new URLSearchParams();
+    if (search.trim()) {
+      params.set('q', search.trim());
+    }
+    if (roleFilter !== 'ALL') {
+      params.set('role', roleFilter);
+    }
+    try {
+      const res = await fetch(`/api/admin/users/export?${params.toString()}`, { cache: 'no-store' });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null) as { error?: string } | null;
+        throw new Error(payload?.error || '导出账号失败');
+      }
+      const blob = await res.blob();
+      const filename = res.headers.get('x-export-filename')
+        ?? `admin-users-${roleFilter.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`;
+      const exportCount = Number(res.headers.get('x-export-count') ?? 0);
+      const exportTotal = Number(res.headers.get('x-export-total') ?? exportCount);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      setUsersExportState(createAuditedActionState({
+        identity: {
+          id: 'admin-users-filtered-export',
+          category: 'export',
+          label: '账号筛选导出',
+          sourceRoute: '/admin/users',
+          requestedAction: 'export',
+        },
+        status: 'succeeded',
+        message: `已按当前筛选条件导出 ${exportCount} 条账号，筛选总数 ${exportTotal}。`,
+        nextAction: exportCount === 0 ? '调整筛选条件后重新导出' : '检查下载文件',
+        downloadFilename: filename,
+      }));
+    } catch (error) {
+      setUsersExportState(createAuditedActionState({
+        identity: {
+          id: 'admin-users-filtered-export',
+          category: 'export',
+          label: '账号筛选导出',
+          sourceRoute: '/admin/users',
+          requestedAction: 'export',
+        },
+        status: 'failed',
+        message: error instanceof Error ? error.message : '导出账号失败',
+        recoveryAction: '刷新账号列表后重试',
+        httpStatus: 500,
+      }));
+    } finally {
+      setExportingUsers(false);
+    }
+  };
+
+  const downloadFailedImportRows = () => {
+    const errors = importResult?.errors ?? [];
+    const csv = [
+      ['row', 'account', 'reason'],
+      ...errors.map((item) => [item.row, item.account ?? '', item.reason]),
+    ];
+    const filename = `${importResult?.batchId ?? 'admin-user-import'}-failed-rows.csv`;
+    const blob = new Blob([toCsv(csv)], { type: 'text/csv;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async (file: File, mode: 'preview' | 'commit' = 'preview') => {
     setImporting(true);
-    setImportResult(null);
+    if (mode === 'preview') {
+      setPendingImportFile(file);
+      setImportResult(null);
+    }
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('mode', mode);
       const res = await fetch('/api/admin/users/import', {
         method: 'POST',
         body: formData,
@@ -343,10 +688,15 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
       setImportResult(result);
       showNotice(
         'success',
-        `导入完成：新增 ${result.created ?? 0}，更新 ${result.updated ?? 0}，失败 ${result.failed ?? 0}`
+        mode === 'preview'
+          ? `导入预览完成：预计新增 ${result.created ?? 0}，更新 ${result.updated ?? 0}，失败 ${result.failed ?? 0}`
+          : `导入完成：新增 ${result.created ?? 0}，更新 ${result.updated ?? 0}，失败 ${result.failed ?? 0}`
       );
-      fetchUsers();
-      fetchOverview();
+      if (mode === 'commit') {
+        setPendingImportFile(null);
+        fetchUsers();
+        fetchOverview();
+      }
     } catch (error) {
       showNotice('error', error instanceof Error ? error.message : '导入失败');
     } finally {
@@ -379,7 +729,12 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
   }, [overview]);
 
   return (
-    <div className="admin-console-shell">
+    <div
+      className="admin-console-shell"
+      data-commercial-operations-workspace="admin-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={loadingUsers || loadingOverview ? 'loading' : 'role-filtered'}
+    >
       <AdminConsoleHeader
         currentUser={currentUser}
         currentHref="/admin/users"
@@ -396,7 +751,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
           </>
         }
         actions={
-          <button onClick={handleRefresh} className="admin-console-button">
+          <button type="button" onClick={handleRefresh} className="admin-console-button" aria-label="刷新用户管理数据">
             <RefreshCcw className="h-4 w-4" />
             刷新数据
           </button>
@@ -430,35 +785,46 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
           <div className="admin-console-surface">
             <span className="admin-console-kicker">操作区</span>
             <div className="mt-4 space-y-3">
-              <button
-                onClick={() => setCreateOpen(true)}
+              <button type="button"
+                onClick={openCreateDialog}
                 className="admin-console-button-primary w-full justify-between"
               >
                 新建账号
                 <Plus className="h-4 w-4" />
               </button>
-              <button
+              <button type="button"
                 onClick={handleDownloadTemplate}
                 className="admin-console-button w-full justify-between"
+                aria-label="下载用户批量导入模板"
               >
                 下载模板
                 <Download className="h-4 w-4" />
               </button>
-              <button
+              <button type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="admin-console-button w-full justify-between"
+                aria-label="选择用户 Excel 文件并预览批量导入"
               >
                 批量导入
                 <UploadCloud className="h-4 w-4" />
+              </button>
+              <button type="button"
+                onClick={handleExportUsers}
+                disabled={exportingUsers || Boolean(invalidQueryState)}
+                className="admin-console-button w-full justify-between disabled:opacity-50"
+                aria-label="导出当前账号筛选结果"
+              >
+                {exportingUsers ? '正在导出' : '导出当前筛选'}
+                <Download className="h-4 w-4" />
               </button>
               <Link href="/admin/config" className="admin-console-nav-item">
                 <Settings className="h-4 w-4" />
                 打开系统配置
               </Link>
-              <input
+              <input aria-label="批量导入用户 Excel 文件"
                 ref={fileInputRef}
                 type="file"
-                accept=".xlsx,.xls"
+                accept=".xlsx"
                 className="hidden"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
@@ -478,7 +844,9 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
             <div className="admin-console-surface-soft">
               <span className="admin-console-kicker">导入结果</span>
               <div className="admin-console-muted mt-3 space-y-2 text-sm">
+                {importResult.batchId && <p>批次：{importResult.batchId}</p>}
                 <p>
+                  {importResult.preview ? '预计' : ''}
                   新增 {importResult.created ?? 0}，更新 {importResult.updated ?? 0}，失败 {importResult.failed ?? 0}
                 </p>
                 {typeof importResult.totalRows === 'number' && (
@@ -494,6 +862,26 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                       </p>
                     ))}
                   </div>
+                )}
+                {(importResult.errors?.length ?? 0) > 0 && (
+                  <button type="button" onClick={downloadFailedImportRows} className="admin-console-button mt-2 px-3 py-1.5 text-xs">
+                    下载失败行
+                  </button>
+                )}
+                {importResult.preview && pendingImportFile && (importResult.errors?.length ?? 0) === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleImport(pendingImportFile, 'commit')}
+                    className="admin-console-button-primary mt-2 px-3 py-1.5 text-xs"
+                  >
+                    确认导入
+                  </button>
+                )}
+                {importResult.auditRecord && (
+                  <p className="text-xs">
+                    审计：{importResult.auditRecord.outcome} · 模式 {importResult.mode ?? 'commit'} · 操作者 {importResult.auditRecord.actorId} ·
+                    {importResult.auditRecord.rollbackAvailable ? ' 可按批次自动回滚' : ' 自动回滚未启用'}
+                  </p>
                 )}
               </div>
             </div>
@@ -513,6 +901,8 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
         <section className="space-y-6">
           {notice && (
             <div
+              role={notice.type === 'error' ? 'alert' : 'status'}
+              aria-live={notice.type === 'error' ? 'assertive' : 'polite'}
               className={`admin-console-notice ${
                 notice.type === 'success'
                   ? 'admin-console-notice-success'
@@ -535,9 +925,10 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               <div className="flex flex-wrap gap-3">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 admin-console-muted" />
-                  <input
+                  <input aria-label="搜索姓名/账号/学号"
                     value={search}
                     onChange={(event) => {
+                      setUsersQueryTouched(true);
                       setSearch(event.target.value);
                       setPage(1);
                     }}
@@ -546,8 +937,10 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   />
                 </div>
                 <select
+                  aria-label="按角色筛选账号"
                   value={roleFilter}
                   onChange={(event) => {
+                    setUsersQueryTouched(true);
                     setRoleFilter(event.target.value as UserRole | 'ALL');
                     setPage(1);
                   }}
@@ -558,9 +951,10 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   <option value="TEACHER">教师</option>
                   <option value="STUDENT">学生</option>
                 </select>
-                <button
-                  onClick={() => setCreateOpen(true)}
+                <button type="button"
+                  onClick={openCreateDialog}
                   className="admin-console-button-primary"
+                  aria-label="新建用户账号"
                 >
                   <Plus className="h-4 w-4" />
                   新建账号
@@ -568,8 +962,27 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               </div>
             </div>
 
+            {routeActionState ? (
+              <ActionStatusPanel state={routeActionState} className="mt-4" />
+            ) : null}
+            {invalidQueryState ? (
+              <ActionStatusPanel state={invalidQueryState} className="mt-4" />
+            ) : null}
+            {usersExportState ? (
+              <ActionStatusPanel state={usersExportState} className="mt-4" />
+            ) : null}
+
+            <div
+              className="sr-only"
+              role="status"
+              aria-live="polite"
+              data-admin-users-list-status
+            >
+              {usersListStatus}
+            </div>
+
             <div className="admin-console-table-shell mt-6">
-              <table className="admin-console-table">
+              <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="账号列表">
                 <thead>
                   <tr>
                     <th className="px-4 py-3">账号信息</th>
@@ -586,50 +999,61 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                         正在加载账号列表…
                       </td>
                     </tr>
+                  ) : invalidQueryState ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
+                        账号筛选参数无效，请清空无效参数后重新筛选。
+                      </td>
+                    </tr>
                   ) : users.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
-                        暂无账号数据
+                        {search.trim() || roleFilter !== 'ALL'
+                          ? `没有找到匹配的账号。当前条件：${search.trim() || '全部关键词'} / ${roleFilter === 'ALL' ? '全部角色' : ROLE_LABELS[roleFilter]}。`
+                          : '暂无账号数据'}
                       </td>
                     </tr>
                   ) : (
                     users.map((user) => (
                       <tr key={user.id}>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="账号信息">
                           <div className="admin-console-title font-medium">{user.name || '未命名'}</div>
                           <div className="admin-console-table-subtle mt-1 text-xs">
                             {user.email || user.employeeNumber || user.profile?.studentNumber || '未绑定账号'}
                           </div>
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="学号/工号">
                           {user.profile?.studentNumber || user.employeeNumber || '-'}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="角色">
                           <span className={ROLE_STYLES[user.role]}>{ROLE_LABELS[user.role]}</span>
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="创建时间">
                           {new Intl.DateTimeFormat('zh-CN', {
                             dateStyle: 'medium',
                             timeStyle: 'short',
                           }).format(new Date(user.createdAt))}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="操作">
                           <div className="flex justify-end gap-2">
-                            <button
+                            <button type="button"
                               onClick={() => setSelectedUser(user)}
                               className="admin-console-button px-3 py-1.5 text-xs"
+                              aria-label={`查看账号 ${user.name || user.email || user.id}`}
                             >
                               查看
                             </button>
-                            <button
+                            <button type="button"
                               onClick={() => openReset(user)}
                               className="admin-console-button px-3 py-1.5 text-xs"
+                              aria-label={`修改账号 ${user.name || user.email || user.id} 的密码`}
                             >
                               改密
                             </button>
-                            <button
+                            <button type="button"
                               onClick={() => handleDelete(user)}
                               className="admin-console-button admin-console-tone-danger px-3 py-1.5 text-xs"
+                              aria-label={`删除账号 ${user.name || user.email || user.id}`}
                             >
                               删除
                             </button>
@@ -647,17 +1071,25 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 共 {totalUsers} 条 · 第 {page} / {totalPages} 页
               </span>
               <div className="flex gap-2">
-                <button
+                <button type="button"
                   disabled={page <= 1}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  onClick={() => {
+                    setUsersQueryTouched(true);
+                    setPage((prev) => Math.max(1, prev - 1));
+                  }}
                   className="admin-console-button px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="查看上一页账号"
                 >
                   上一页
                 </button>
-                <button
+                <button type="button"
                   disabled={page >= totalPages}
-                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                  onClick={() => {
+                    setUsersQueryTouched(true);
+                    setPage((prev) => Math.min(totalPages, prev + 1));
+                  }}
                   className="admin-console-button px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="查看下一页账号"
                 >
                   下一页
                 </button>
@@ -730,13 +1162,13 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <button type="button"
                     onClick={() => openReset(selectedUser)}
                     className="admin-console-button flex-1 justify-center"
                   >
                     修改密码
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => handleDelete(selectedUser)}
                     className="admin-console-button admin-console-tone-danger flex-1 justify-center"
                   >
@@ -755,22 +1187,23 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
 
       {createOpen && (
         <div className="admin-console-overlay">
-          <div className="admin-console-modal admin-console-modal-lg">
+          <div ref={createDialogRef} className="admin-console-modal admin-console-modal-lg" role="dialog" aria-modal="true" aria-labelledby="admin-create-user-title" tabIndex={-1}>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="admin-console-title text-xl font-semibold">新建账号</p>
+                <p id="admin-create-user-title" className="admin-console-title text-xl font-semibold">新建账号</p>
                 <p className="admin-console-muted mt-1 text-sm">支持创建学生、教师、管理员账号</p>
               </div>
-              <button
-                onClick={() => setCreateOpen(false)}
+              <button type="button"
+                onClick={closeCreateDialog}
                 className="admin-console-button px-3 py-1.5 text-xs"
+                aria-label="关闭新建账号对话框"
               >
                 关闭
               </button>
             </div>
 
             <div className="mt-5 grid gap-3">
-              <input
+              <input aria-label="姓名 *"
                 value={createForm.name}
                 onChange={(event) =>
                   setCreateForm((prev) => ({ ...prev, name: event.target.value }))
@@ -780,6 +1213,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               />
               <div className="grid gap-3 md:grid-cols-2">
                 <select
+                  aria-label="选择账号角色"
                   value={createForm.role}
                   onChange={(event) =>
                     setCreateForm((prev) => ({
@@ -793,7 +1227,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   <option value="TEACHER">教师</option>
                   <option value="ADMIN">管理员</option>
                 </select>
-                <input
+                <input aria-label="账号邮箱（可选）"
                   value={createForm.email}
                   onChange={(event) =>
                     setCreateForm((prev) => ({ ...prev, email: event.target.value }))
@@ -804,7 +1238,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               </div>
               {createForm.role === 'STUDENT' && (
                 <div className="grid gap-3 md:grid-cols-2">
-                  <input
+                  <input aria-label="学号 *"
                     value={createForm.studentNumber}
                     onChange={(event) =>
                       setCreateForm((prev) => ({
@@ -815,7 +1249,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                     placeholder="学号 *"
                     className="admin-console-input"
                   />
-                  <input
+                  <input aria-label="班级（可选）"
                     value={createForm.className}
                     onChange={(event) =>
                       setCreateForm((prev) => ({
@@ -829,7 +1263,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 </div>
               )}
               {createForm.role === 'TEACHER' && (
-                <input
+                <input aria-label="工号 *"
                   value={createForm.employeeNumber}
                   onChange={(event) =>
                     setCreateForm((prev) => ({
@@ -841,7 +1275,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   className="admin-console-input"
                 />
               )}
-              <input
+              <input aria-label="初始密码（默认 123456）"
                 value={createForm.password}
                 onChange={(event) =>
                   setCreateForm((prev) => ({ ...prev, password: event.target.value }))
@@ -853,10 +1287,10 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-3">
-              <button onClick={() => setCreateOpen(false)} className="admin-console-button">
+              <button type="button" onClick={closeCreateDialog} className="admin-console-button">
                 取消
               </button>
-              <button
+              <button type="button"
                 disabled={creating}
                 onClick={handleCreate}
                 className="admin-console-button-primary disabled:opacity-50"
@@ -871,17 +1305,18 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
 
       {resetOpen && (
         <div className="admin-console-overlay">
-          <div className="admin-console-modal admin-console-modal-sm">
+          <div ref={resetDialogRef} className="admin-console-modal admin-console-modal-sm" role="dialog" aria-modal="true" aria-labelledby="admin-reset-password-title" tabIndex={-1}>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="admin-console-title text-xl font-semibold">修改密码</p>
+                <p id="admin-reset-password-title" className="admin-console-title text-xl font-semibold">修改密码</p>
                 <p className="admin-console-muted mt-1 text-sm">
                   {resetTarget?.name || '账号'} · {resetTarget?.email || resetTarget?.profile?.studentNumber || ''}
                 </p>
               </div>
-              <button
-                onClick={() => setResetOpen(false)}
+              <button type="button"
+                onClick={closeResetDialog}
                 className="admin-console-button px-3 py-1.5 text-xs"
+                aria-label="关闭修改密码对话框"
               >
                 关闭
               </button>
@@ -898,7 +1333,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 <span className="admin-console-muted">重置为默认密码 123456</span>
               </label>
               {!resetToDefault && (
-                <input
+                <input aria-label="输入新密码"
                   value={resetPassword}
                   onChange={(event) => setResetPassword(event.target.value)}
                   placeholder="输入新密码"
@@ -909,10 +1344,10 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-3">
-              <button onClick={() => setResetOpen(false)} className="admin-console-button">
+              <button type="button" onClick={closeResetDialog} className="admin-console-button">
                 取消
               </button>
-              <button onClick={handleResetPassword} className="admin-console-button-primary">
+              <button type="button" onClick={handleResetPassword} className="admin-console-button-primary">
                 确认修改
               </button>
             </div>
@@ -922,11 +1357,21 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
 
       {importing && (
         <div className="admin-console-overlay">
-          <div className="admin-console-surface admin-console-title text-sm font-medium">
+          <div className="admin-console-surface admin-console-title text-sm font-medium" role="status" aria-live="polite">
             正在导入，请稍候…
           </div>
         </div>
       )}
     </div>
   );
+}
+
+export function shouldBlockInvalidAdminUsersQuery(
+  initialUsersQuery: AdminUsersQueryContract | undefined,
+  usersQueryTouched: boolean,
+) {
+  if (!initialUsersQuery || usersQueryTouched) return false;
+  return !initialUsersQuery.source.roleSupported
+    || !initialUsersQuery.source.pageValid
+    || !initialUsersQuery.source.pageSizeValid;
 }

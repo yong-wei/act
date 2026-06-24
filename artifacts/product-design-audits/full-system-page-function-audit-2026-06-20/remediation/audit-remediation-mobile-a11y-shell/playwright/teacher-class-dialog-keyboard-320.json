@@ -1,0 +1,13 @@
+{
+  "label": "teacher-class-dialog-keyboard",
+  "viewportWidth": 320,
+  "startDialog": [
+    "initial focus inside",
+    "forward Tab wraps",
+    "container Shift+Tab wraps",
+    "Escape closes",
+    "opener restored"
+  ],
+  "visibleStatus": "班级加入码已复制",
+  "capturedAt": "2026-06-21T16:29:56.908Z"
+}

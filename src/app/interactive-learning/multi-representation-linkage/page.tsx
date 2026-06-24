@@ -36,10 +36,11 @@ function parseInitialParams(searchParams: SearchParams | undefined): MultiRepres
   };
 }
 
-export default function MultiRepresentationLinkageRoute({
-  searchParams,
-}: {
-  searchParams?: SearchParams;
-}) {
+export default async function MultiRepresentationLinkageRoute(
+  props: {
+    searchParams?: Promise<SearchParams>;
+  }
+) {
+  const searchParams = await props.searchParams;
   return <MultiRepresentationLinkageClient initialParams={parseInitialParams(searchParams)} />;
 }

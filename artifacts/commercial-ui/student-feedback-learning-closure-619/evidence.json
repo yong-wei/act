@@ -1,0 +1,135 @@
+{
+  "id": "student-feedback-learning-closure-619",
+  "createdAt": "2026-06-22T14:12:00.000+08:00",
+  "change": "audit-remediation-student-learning-closure",
+  "purpose": "Structured commercial UI acceptance evidence for student feedback task context additions on missions and portfolio routes.",
+  "reviewedFiles": [
+    "src/app/(main)/missions/page.tsx",
+    "src/app/(main)/profile/portfolio/page.tsx",
+    "src/features/assessment/student-feedback-task-panel.tsx",
+    "src/lib/student-feedback-task-contract.ts"
+  ],
+  "verification": [
+    "rtk npm run test:unit -- src/lib/__tests__/student-feedback-task-contract.test.ts src/lib/__tests__/student-feedback-task-ui-source.test.ts",
+    "rtk npm run lint",
+    "rtk openspec validate audit-remediation-student-learning-closure --strict"
+  ],
+  "routes": [
+    {
+      "href": "/missions",
+      "routeFile": "src/app/(main)/missions/page.tsx",
+      "routeArchetype": "mission-workspace",
+      "viewports": [
+        {
+          "width": 1440,
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "authState": "authenticated",
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "authState": "authenticated",
+          "navigationState": "desktop-collapsed"
+        },
+        {
+          "width": 320,
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "authState": "authenticated",
+          "navigationState": "role-route-tabs"
+        }
+      ]
+    },
+    {
+      "href": "/profile/portfolio",
+      "routeFile": "src/app/(main)/profile/portfolio/page.tsx",
+      "routeArchetype": "report-ledger",
+      "viewports": [
+        {
+          "width": 1440,
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "authState": "authenticated",
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "authState": "authenticated",
+          "navigationState": "desktop-collapsed"
+        },
+        {
+          "width": 320,
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "authState": "authenticated",
+          "navigationState": "role-route-tabs"
+        }
+      ]
+    }
+  ]
+}

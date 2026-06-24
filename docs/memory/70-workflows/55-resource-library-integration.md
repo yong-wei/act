@@ -8,8 +8,8 @@
 下游: []
 相关:
 - [../../course-content/resource-library/integration-framework.md](../../../course-content/resource-library/integration-framework.md)
-- [../../.codex/skills/syllabus-refactor/SKILL.md](../../../.codex/skills/syllabus-refactor/SKILL.md)
-- [../../.codex/skills/lesson/SKILL.md](../../../.codex/skills/lesson/SKILL.md)
+- [../../.agents/skills/syllabus-refactor/SKILL.md](../../../.agents/skills/syllabus-refactor/SKILL.md)
+- [../../.agents/skills/lesson/SKILL.md](../../../.agents/skills/lesson/SKILL.md)
 - [../../docs/archive/plans/2026-03-28-resource-library-skill-integration.md](../../archive/plans/2026-03-28-resource-library-skill-integration.md)
 
 ## 适用场景

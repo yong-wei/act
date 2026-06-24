@@ -1,13 +1,13 @@
 #!/usr/bin/env node
+import { createPrismaClient } from '../lib/prisma-client.mjs';
 /**
  * 任务/关卡数据种子脚本
  * 运行: node scripts/db/seed-missions.mjs
  * 强制覆盖: node scripts/db/seed-missions.mjs --force
  */
 
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 const missions = [
   {

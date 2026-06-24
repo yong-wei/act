@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { BookOpen, Layers, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -9,7 +9,7 @@ import type { LessonKnowledgeCard } from '@/resources/interactive-learning/share
 
 const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
   {
-    id: 'node-laplace-transform',
+    id: '拉普拉斯变换_2_c635236f',
     name: '拉普拉斯变换的工程意义',
     nodeType: 'THEORY',
     description: '用指数加权把时域信号投影到 s 域，让微分方程变成代数方程。',
@@ -22,7 +22,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['电路响应求解', '系统稳定性分析', '控制器设计'],
   },
   {
-    id: 'node-laplace-interpretation',
+    id: '拉氏变换工程动机_2_11001',
     name: 's = σ + jω 的直觉',
     nodeType: 'THEORY',
     description: 'σ 决定衰减速度，ω 决定振荡频率。',
@@ -35,7 +35,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['极点分析', '响应快慢判断', '工程稳定性直觉'],
   },
   {
-    id: 'node-laplace-properties',
+    id: '微分定理_2_11002',
     name: '拉氏变换常用定理',
     nodeType: 'METHOD',
     description: '线性、微分、积分、位移与卷积是工程计算的主力工具。',
@@ -48,7 +48,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['快速求解', '系统响应估计', '工程验算'],
   },
   {
-    id: 'node-inverse-laplace-methods',
+    id: '部分分式展开_7_d822352e',
     name: '拉氏反变换方法',
     nodeType: 'METHOD',
     description: '部分分式、待定系数与留数法让 s 域回到时域。',
@@ -66,22 +66,32 @@ interface LaplaceKnowledgeDeckProps extends BaseWidgetProps {}
 
 export default function LaplaceKnowledgeDeck({ onComplete, onStateChange }: LaplaceKnowledgeDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(KNOWLEDGE_CARDS[0]?.id ?? 'node-laplace-transform');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? '拉普拉斯变换_2_c635236f';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeCard = useMemo(
     () => KNOWLEDGE_CARDS.find((card) => card.id === activeId) ?? KNOWLEDGE_CARDS[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / KNOWLEDGE_CARDS.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { cardId: activeId, visitedCount: nextVisited.length },
+      data: { cardId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -97,7 +107,7 @@ export default function LaplaceKnowledgeDeck({ onComplete, onStateChange }: Lapl
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -114,9 +124,9 @@ export default function LaplaceKnowledgeDeck({ onComplete, onStateChange }: Lapl
           </div>
           <div className="mt-4 space-y-2">
             {KNOWLEDGE_CARDS.map((card, index) => (
-              <button
+              <button type="button"
                 key={card.id}
-                onClick={() => setActiveId(card.id)}
+                onClick={() => recordVisit(card.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === card.id
                     ? 'bg-slate-900 text-white'

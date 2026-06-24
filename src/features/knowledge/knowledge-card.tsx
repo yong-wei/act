@@ -72,7 +72,7 @@ export function extractMdxPaths(resources?: unknown[]): string[] {
       }
       return null;
     })
-    .filter((path): path is string => !!path && (path.endsWith('.md') || path.endsWith('.mdx')));
+    .filter((path): path is string => !!path && path.endsWith('.md'));
 }
 
 export function extractInfographResource(resources?: unknown[]): KnowledgeInfographResource | null {
@@ -204,12 +204,30 @@ function RuntimeNodeCardSections({
   isLightTheme: boolean;
   onDetailOpen?: () => void;
 }) {
+  return (
+    <RuntimeNodeCardSectionsContent
+      key={path}
+      path={path}
+      title={title}
+      isLightTheme={isLightTheme}
+      onDetailOpen={onDetailOpen}
+    />
+  );
+}
+
+function RuntimeNodeCardSectionsContent({
+  path,
+  title,
+  isLightTheme,
+  onDetailOpen,
+}: {
+  path: string;
+  title: string;
+  isLightTheme: boolean;
+  onDetailOpen?: () => void;
+}) {
   const { content, isLoading, error } = useMdxContent(path);
   const [view, setView] = useState<'overview' | 'detail'>('overview');
-
-  useEffect(() => {
-    setView('overview');
-  }, [path]);
 
   const sections = useMemo(() => {
     const overview = stripLeadingHeading(extractMarkdownSection(content, '首页'));
@@ -349,7 +367,7 @@ export function KnowledgeCard({
     <Card className={`relative w-full ${surfaceClassName} ${className || ''}`}>
       {/* 关闭按钮 - 仅在传入 onClose 时显示 */}
       {onClose && (
-        <button
+        <button type="button"
           onClick={onClose}
           className="absolute right-3 top-3 z-10 rounded-full bg-muted p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           aria-label="关闭"

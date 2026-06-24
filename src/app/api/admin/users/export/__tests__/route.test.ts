@@ -1,0 +1,110 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const mocks = vi.hoisted(() => ({
+  requireAdminSession: vi.fn(),
+  prisma: {
+    user: {
+      count: vi.fn(),
+      findMany: vi.fn(),
+    },
+  },
+}));
+
+vi.mock('@/lib/admin', () => ({
+  requireAdminSession: mocks.requireAdminSession,
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: mocks.prisma,
+}));
+
+import { GET } from '../route';
+
+describe('GET /api/admin/users/export', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.requireAdminSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mocks.prisma.user.count.mockResolvedValue(2);
+    mocks.prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'student-1',
+        name: '张三',
+        email: 'zhang@example.test',
+        role: 'STUDENT',
+        employeeNumber: null,
+        createdAt: new Date('2026-06-21T08:00:00.000Z'),
+        profile: { studentNumber: '20240001', className: '自动化2401' },
+      },
+      {
+        id: 'student-2',
+        name: '李四',
+        email: null,
+        role: 'STUDENT',
+        employeeNumber: null,
+        createdAt: new Date('2026-06-21T09:00:00.000Z'),
+        profile: { studentNumber: '20240002', className: '自动化2401' },
+      },
+    ]);
+  });
+
+  it('exports the full filtered set without page skip/take', async () => {
+    const response = await GET(new Request(
+      'http://localhost/api/admin/users/export?q=2024&role=STUDENT&page=2&pageSize=1',
+    ) as never);
+    const csv = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/csv');
+    expect(response.headers.get('x-export-total')).toBe('2');
+    expect(response.headers.get('x-export-count')).toBe('2');
+    expect(csv).toContain('"student-1","张三"');
+    expect(csv).toContain('"student-2","李四"');
+    expect(mocks.prisma.user.findMany).toHaveBeenCalledWith(expect.not.objectContaining({
+      skip: expect.any(Number),
+    }));
+    expect(mocks.prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ role: 'STUDENT' }),
+      take: 5000,
+    }));
+  });
+
+  it('blocks unsupported role filters before querying users', async () => {
+    const response = await GET(new Request(
+      'http://localhost/api/admin/users/export?role=BAD',
+    ) as never);
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload).toEqual(expect.objectContaining({
+      code: 'invalid-role-filter',
+    }));
+    expect(mocks.prisma.user.count).not.toHaveBeenCalled();
+    expect(mocks.prisma.user.findMany).not.toHaveBeenCalled();
+  });
+
+  it('escapes spreadsheet formula prefixes in CSV fields', async () => {
+    mocks.prisma.user.count.mockResolvedValue(1);
+    mocks.prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'student-formula',
+        name: '=cmd"quote',
+        email: '+mail@example.test',
+        role: 'STUDENT',
+        employeeNumber: '@employee',
+        createdAt: new Date('2026-06-21T10:00:00.000Z'),
+        profile: { studentNumber: null, className: ' @自动化"2401' },
+      },
+    ]);
+
+    const response = await GET(new Request(
+      'http://localhost/api/admin/users/export?role=STUDENT',
+    ) as never);
+    const csv = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(csv).toContain(`"'=cmd""quote"`);
+    expect(csv).toContain(`"'+mail@example.test"`);
+    expect(csv).toContain(`"'@employee"`);
+    expect(csv).toContain(`"' @自动化""2401"`);
+  });
+});

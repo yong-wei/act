@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { BookOpen, Layers, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -9,7 +9,7 @@ import type { LessonKnowledgeCard } from '@/resources/interactive-learning/share
 
 const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
   {
-    id: 'node-series-compensation',
+    id: '串联校正_6_fede5751',
     name: '串联校正（Series Compensation）',
     nodeType: 'THEORY',
     description: '在开环通道串联校正网络以调整频率特性。',
@@ -21,7 +21,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['频域调参', '控制器设计', '性能指标协调'],
   },
   {
-    id: 'node-lead-network-feature',
+    id: '超前网络_6_9cc2ad14',
     name: '超前网络特性',
     nodeType: 'THEORY',
     description: '相角超前、幅值抬升，提升相角裕度与响应速度。',
@@ -34,7 +34,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['提高相角裕度', '加快响应', '改善超调'],
   },
   {
-    id: 'node-lead-max-phase',
+    id: '无源超前网络_6_f044ba0d',
     name: '最大超前角',
     nodeType: 'THEORY',
     description: '一级超前网络可提供的最大相角超前。',
@@ -47,7 +47,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['参数估算', '频域设计'],
   },
   {
-    id: 'node-lead-design-steps',
+    id: '超前网络_6_9cc2ad14',
     name: '超前网络设计步骤',
     nodeType: 'METHOD',
     description: '由相角裕度目标反推 a 与 T。',
@@ -59,7 +59,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['设计流程', '工程校正'],
   },
   {
-    id: 'node-lag-network-feature',
+    id: '滞后网络_6_89977f28',
     name: '滞后网络特性',
     nodeType: 'THEORY',
     description: '低频增益提升、高频衰减并带来相角滞后。',
@@ -72,7 +72,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['稳态精度提升', '抗扰与噪声抑制'],
   },
   {
-    id: 'node-lag-design-steps',
+    id: '滞后网络_6_89977f28',
     name: '滞后网络设计步骤',
     nodeType: 'METHOD',
     description: '利用幅值衰减挖掘相角储备并提高低频增益。',
@@ -84,7 +84,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['稳态误差设计', '幅值整形'],
   },
   {
-    id: 'node-lag-lead-compensation',
+    id: '串联滞后-超前校正_6_23ee8cb9',
     name: '滞后-超前联合校正',
     nodeType: 'THEORY',
     description: '同时提升稳态精度与相角裕度的双目标方案。',
@@ -96,7 +96,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['双指标平衡', '复杂性能目标'],
   },
   {
-    id: 'node-lag-lead-workflow',
+    id: '无源滞后-超前网络_6_66afb311',
     name: '滞后-超前设计流程',
     nodeType: 'METHOD',
     description: '先超前、后滞后，分阶段完成指标达成。',
@@ -113,22 +113,32 @@ interface SeriesKnowledgeDeckProps extends BaseWidgetProps {}
 
 export default function SeriesKnowledgeDeck({ onComplete, onStateChange }: SeriesKnowledgeDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(KNOWLEDGE_CARDS[0]?.id ?? 'node-series-compensation');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? '串联校正_6_fede5751';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeCard = useMemo(
     () => KNOWLEDGE_CARDS.find((card) => card.id === activeId) ?? KNOWLEDGE_CARDS[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / KNOWLEDGE_CARDS.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { cardId: activeId, visitedCount: nextVisited.length },
+      data: { cardId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -144,7 +154,7 @@ export default function SeriesKnowledgeDeck({ onComplete, onStateChange }: Serie
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -161,9 +171,9 @@ export default function SeriesKnowledgeDeck({ onComplete, onStateChange }: Serie
           </div>
           <div className="mt-4 space-y-2">
             {KNOWLEDGE_CARDS.map((card, index) => (
-              <button
+              <button type="button"
                 key={card.id}
-                onClick={() => setActiveId(card.id)}
+                onClick={() => recordVisit(card.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === card.id
                     ? 'bg-slate-900 text-white'

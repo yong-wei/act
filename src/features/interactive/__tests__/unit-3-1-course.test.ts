@@ -186,6 +186,7 @@ describe('unit 3-1 interactive course', () => {
     expect(stepPanelsSource).toContain('提交答案');
     expect(stepPanelsSource).toContain('mt-4 grid gap-4 md:grid-cols-2');
     expect(stepPanelsSource).toContain('点击当前步骤可继续显影下一层');
+    expect(stepPanelsSource).toContain('<StepInlineVisualContent key={step.id}');
     expect(stepPanelsSource).toContain('题面已固定显示');
     expect(stepPanelsSource).toContain('G_{\\\\mathrm{A}}(s)');
     expect(stepPanelsSource).toContain('分析三组模型在时域响应、运动模态与动态性能上的差异');
@@ -225,8 +226,8 @@ describe('unit 3-1 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('PremiumLessonEntryPage');
-    expect(entrySource).toContain('<PremiumLessonEntryPage');
+    expect(entrySource).toContain('CourseEntryShell');
+    expect(entrySource).toContain('<CourseEntryShell');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
     expect(entrySource).toContain('mediaCourseLabel');
   });

@@ -68,7 +68,7 @@ export function KnowledgeCard({
   const colorConfig = cardColors.default;
   const bloomLabel = getBloomLabel(node.bloomLevel);
   const knowledgeLabel = getKnowledgeDimLabel(node.knowledgeDim);
-  const mdxPaths = Array.isArray(node.resources)
+  const markdownPaths = Array.isArray(node.resources)
     ? node.resources
         .map((item) => {
           if (typeof item === 'string') return item;
@@ -79,7 +79,7 @@ export function KnowledgeCard({
           }
           return null;
         })
-        .filter((path): path is string => !!path && path.endsWith('.mdx'))
+        .filter((path): path is string => !!path && path.endsWith('.md'))
     : [];
 
   // 根据变体确定基础样式
@@ -102,54 +102,50 @@ export function KnowledgeCard({
       }}
     >
       {/* 卡片头部 */}
-      <div
-        className="flex cursor-pointer items-center justify-between p-4"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-start gap-3">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-lg"
-            style={{ backgroundColor: `${colorConfig.color}20` }}
-          >
-            <BookOpen className="h-4 w-4" style={{ color: colorConfig.color }} />
-          </div>
-          <div className="space-y-1">
-            <h4
-              className="text-sm font-semibold"
-              style={{ color: colorConfig.color }}
+      <div className="flex items-start justify-between gap-3 p-4">
+        <div
+          tabIndex={0}
+          role="button"
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            setIsExpanded((current) => !current);
+          }}
+          className="flex min-w-0 flex-1 cursor-pointer items-start justify-between gap-3"
+          onClick={() => setIsExpanded((current) => !current)}
+        >
+          <div className="flex min-w-0 items-start gap-3">
+            <div
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+              style={{ backgroundColor: `${colorConfig.color}20` }}
             >
-              {node.name}
-            </h4>
-            <p className="text-xs text-slate-500">{node.lessonId}</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-end gap-2">
-          {(bloomLabel || knowledgeLabel) && (
-            <div className="flex flex-wrap justify-end gap-2">
-              {bloomLabel && (
-                <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-200">
-                  认知：{bloomLabel}
-                </span>
-              )}
-              {knowledgeLabel && (
-                <span className="rounded-full border border-blue-500/40 bg-blue-500/15 px-2 py-0.5 text-[10px] text-blue-200">
-                  知识：{knowledgeLabel}
-                </span>
-              )}
+              <BookOpen className="h-4 w-4" style={{ color: colorConfig.color }} />
             </div>
-          )}
-          <div className="flex items-center gap-2">
-            {dismissible && onDismiss && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDismiss();
-                }}
-                className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-300"
+            <div className="min-w-0 space-y-1">
+              <h4
+                className="text-sm font-semibold"
+                style={{ color: colorConfig.color }}
               >
-                <X className="h-4 w-4" />
-              </button>
+                {node.name}
+              </h4>
+              <p className="text-xs text-slate-500">{node.lessonId}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end gap-2">
+            {(bloomLabel || knowledgeLabel) && (
+              <div className="flex flex-wrap justify-end gap-2">
+                {bloomLabel && (
+                  <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-200">
+                    认知：{bloomLabel}
+                  </span>
+                )}
+                {knowledgeLabel && (
+                  <span className="rounded-full border border-blue-500/40 bg-blue-500/15 px-2 py-0.5 text-[10px] text-blue-200">
+                    知识：{knowledgeLabel}
+                  </span>
+                )}
+              </div>
             )}
             <div className="text-slate-500">
               {isExpanded ? (
@@ -160,6 +156,17 @@ export function KnowledgeCard({
             </div>
           </div>
         </div>
+
+        {dismissible && onDismiss && (
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-300"
+            aria-label="关闭知识卡片"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* 定义（始终显示） */}
@@ -207,11 +214,11 @@ export function KnowledgeCard({
             </div>
           )}
 
-          {mdxPaths.length > 0 && (
+          {markdownPaths.length > 0 && (
             <div className="pt-4">
               <div className="mb-2 text-xs text-slate-500">扩展内容</div>
               <div className="space-y-4">
-                {mdxPaths.map((path) => (
+                {markdownPaths.map((path) => (
                   <MdxSlide key={path} path={path} />
                 ))}
               </div>
@@ -285,7 +292,7 @@ export function KnowledgeCardTrigger({
   color = '#ef4444',
 }: KnowledgeCardTriggerProps) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-slate-700"
       style={{

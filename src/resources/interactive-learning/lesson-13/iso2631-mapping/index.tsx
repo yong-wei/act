@@ -53,7 +53,7 @@ function MappingCard({ mapping, isExpanded, onToggle, index }: MappingCardProps)
       }`}
     >
       {/* 卡片头部 - 可点击展开 */}
-      <button
+      <button type="button"
         onClick={onToggle}
         className={`w-full p-4 flex items-center justify-between ${config.bg} transition-colors hover:opacity-90`}
       >
@@ -290,7 +290,7 @@ function MappingVisualization() {
             <span className="text-slate-600">超调量 σ%</span>
             <span className="font-mono font-medium">{overshoot}%</span>
           </div>
-          <input
+          <input aria-label="ISO 2631 频率"
             type="range"
             min={0}
             max={40}
@@ -317,7 +317,7 @@ function MappingVisualization() {
             <span className="text-slate-600">调节时间 ts</span>
             <span className="font-mono font-medium">{settlingTime}s</span>
           </div>
-          <input
+          <input aria-label="ISO 2631 加速度"
             type="range"
             min={10}
             max={90}
@@ -340,7 +340,7 @@ function MappingVisualization() {
             <span className="text-slate-600">侧向加速度</span>
             <span className="font-mono font-medium">{acceleration.toFixed(2)}g</span>
           </div>
-          <input
+          <input aria-label="ISO 2631 暴露时间"
             type="range"
             min={0}
             max={0.3}

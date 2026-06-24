@@ -4,7 +4,7 @@
 
 **Goal:** 把 `course-content/resource-library/` 正式纳入课程大纲重构与课程制作技能，使资源使用从“可参考”升级为“有入口、有筛选、有边界、有追溯”的正式流程。
 
-**Architecture:** 先新增一份统一的资源融入规范，明确资源类型、筛选原则、单元级评审单和产物级转写规则；再分别修改 `.codex/skills/syllabus-refactor/SKILL.md` 与 `.codex/skills/lesson/SKILL.md`，把资源读取顺序、候选筛选、采用级别与产物落点写成显式步骤；最后做一次最小一致性检查，确认路径、步骤编号与现有课程边界不冲突。
+**Architecture:** 先新增一份统一的资源融入规范，明确资源类型、筛选原则、单元级评审单和产物级转写规则；再分别修改 `.agents/skills/syllabus-refactor/SKILL.md` 与 `.agents/skills/lesson/SKILL.md`，把资源读取顺序、候选筛选、采用级别与产物落点写成显式步骤；最后做一次最小一致性检查，确认路径、步骤编号与现有课程边界不冲突。
 
 **Tech Stack:** Markdown、技能文档、`apply_patch`、`rg`
 
@@ -13,8 +13,8 @@
 ### Task 1: 建立失败基线与统一规范骨架
 
 **Files:**
-- Verify: `.codex/skills/syllabus-refactor/SKILL.md`
-- Verify: `.codex/skills/lesson/SKILL.md`
+- Verify: `.agents/skills/syllabus-refactor/SKILL.md`
+- Verify: `.agents/skills/lesson/SKILL.md`
 - Create: `course-content/resource-library/integration-framework.md`
 
 **Steps:**
@@ -25,7 +25,7 @@
 ### Task 2: 改造 syllabus-refactor 技能
 
 **Files:**
-- Modify: `.codex/skills/syllabus-refactor/SKILL.md`
+- Modify: `.agents/skills/syllabus-refactor/SKILL.md`
 - Reference: `course-content/resource-library/integration-framework.md`
 
 **Steps:**
@@ -37,7 +37,7 @@
 ### Task 3: 改造 lesson 技能
 
 **Files:**
-- Modify: `.codex/skills/lesson/SKILL.md`
+- Modify: `.agents/skills/lesson/SKILL.md`
 - Reference: `course-content/resource-library/integration-framework.md`
 
 **Steps:**
@@ -50,8 +50,8 @@
 
 **Files:**
 - Verify: `course-content/resource-library/integration-framework.md`
-- Verify: `.codex/skills/syllabus-refactor/SKILL.md`
-- Verify: `.codex/skills/lesson/SKILL.md`
+- Verify: `.agents/skills/syllabus-refactor/SKILL.md`
+- Verify: `.agents/skills/lesson/SKILL.md`
 
 **Steps:**
 1. 用 `rg` 检查三个文件中关于 `resource-library`、索引路径和步骤编号的引用是否完整。

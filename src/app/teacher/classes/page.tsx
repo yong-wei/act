@@ -46,7 +46,12 @@ export default function ClassesPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      <main
+        className="px-6 py-8"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="loading"
+      >
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-48 rounded bg-slate-800" />
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -60,7 +65,12 @@ export default function ClassesPage() {
   }
 
   return (
-    <main className="mx-auto max-w-[1600px] px-6 py-8">
+    <main
+      className="px-6 py-8"
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={filteredClasses.length === 0 ? 'empty' : 'active'}
+    >
       {/* 头部 */}
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -87,7 +97,7 @@ export default function ClassesPage() {
       <div className="mb-6">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <input
+          <input aria-label="搜索班级名称或班级码..."
             type="text"
             placeholder="搜索班级名称或班级码..."
             value={search}

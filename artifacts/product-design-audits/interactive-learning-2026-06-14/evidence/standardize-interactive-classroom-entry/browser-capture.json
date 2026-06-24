@@ -1,0 +1,97 @@
+{
+  "baseUrl": "http://localhost:3001",
+  "captures": [
+    {
+      "routePath": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "name": "course-entry",
+      "width": 1440,
+      "theme": "light",
+      "screenshot": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/course-entry-light-1440.png",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "productControlsFit": true
+    },
+    {
+      "routePath": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "name": "course-entry",
+      "width": 320,
+      "theme": "light",
+      "screenshot": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/course-entry-light-320.png",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "productControlsFit": true
+    },
+    {
+      "routePath": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "name": "course-entry",
+      "width": 1440,
+      "theme": "dark",
+      "screenshot": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/course-entry-dark-1440.png",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "productControlsFit": true
+    },
+    {
+      "routePath": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "name": "course-entry",
+      "width": 320,
+      "theme": "dark",
+      "screenshot": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/course-entry-dark-320.png",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "productControlsFit": true
+    },
+    {
+      "routePath": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/visual-session/waiting",
+      "name": "teacher-waiting",
+      "width": 1440,
+      "theme": "light",
+      "screenshot": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/teacher-waiting-light-1440.png",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression/teacher/visual-session/waiting",
+      "productControlsFit": true
+    },
+    {
+      "routePath": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/visual-session/waiting",
+      "name": "teacher-waiting",
+      "width": 320,
+      "theme": "light",
+      "screenshot": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/teacher-waiting-light-320.png",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression/teacher/visual-session/waiting",
+      "productControlsFit": true
+    },
+    {
+      "routePath": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/visual-session/waiting",
+      "name": "teacher-waiting",
+      "width": 1440,
+      "theme": "dark",
+      "screenshot": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/teacher-waiting-dark-1440.png",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression/teacher/visual-session/waiting",
+      "productControlsFit": true
+    },
+    {
+      "routePath": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/visual-session/waiting",
+      "name": "teacher-waiting",
+      "width": 320,
+      "theme": "dark",
+      "screenshot": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/teacher-waiting-dark-320.png",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression/teacher/visual-session/waiting",
+      "productControlsFit": true
+    },
+    {
+      "routePath": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/visual-session/waiting",
+      "name": "teacher-waiting",
+      "width": 1440,
+      "theme": "light",
+      "navigationState": "desktop-expanded",
+      "screenshot": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/teacher-waiting-light-1440-expanded.png",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression/teacher/visual-session/waiting",
+      "productControlsFit": true
+    },
+    {
+      "routePath": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "name": "course-entry",
+      "width": 1440,
+      "theme": "light",
+      "navigationState": "desktop-expanded",
+      "screenshot": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/course-entry-light-1440-expanded.png",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "productControlsFit": true
+    }
+  ]
+}

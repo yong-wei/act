@@ -2,11 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Loader2, Users } from 'lucide-react';
+import { ChevronDown, ChevronUp, Users } from 'lucide-react';
 
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
+import {
+  LessonRuntimeLoadingShell,
+  LessonRuntimeShell,
+} from '@/features/interactive/shared/lesson-runtime-shell';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
@@ -19,15 +23,18 @@ import {
   isUNIT_4_1TeacherSyncState,
   resolveUNIT_4_1TeacherSyncDraft,
   shouldPostUNIT_4_1TeacherSync,
+  UNIT_4_1_COURSE_SUBTITLE,
+  UNIT_4_1_COURSE_TITLE,
   UNIT_4_1_LESSON_KEY,
   UNIT_4_1_LESSON_STEPS,
   UNIT_4_1_RESOURCE_KEY,
+  UNIT_4_1_ROUTE_SEGMENT,
   UNIT_4_1_SESSION_ADAPTER,
   UNIT_4_1_STAGE_MAP,
+  UNIT_4_1_STAGE_LABEL,
   type UNIT_4_1StudentCourseState,
   type UNIT_4_1TeacherCourseSyncState,
 } from '@/lib/unit-4-1-course';
-import { UNIT_4_1CourseHeader } from './course-header';
 import {
   UNIT_4_1StepAiAssistant,
   UNIT_4_1StepContentPanel,
@@ -241,48 +248,46 @@ export function UNIT_4_1TeacherPage({
 
   if (loadingSession) {
     return (
-      <div className="premium-lesson-shell flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
+      <LessonRuntimeLoadingShell
+        mode="teacher"
+        title={UNIT_4_1_COURSE_TITLE}
+        subtitle={UNIT_4_1_COURSE_SUBTITLE}
+        routeSegment={UNIT_4_1_ROUTE_SEGMENT}
+      />
     );
   }
 
   return (
-    <div className="premium-lesson-shell">
-      <UNIT_4_1CourseHeader
-        steps={UNIT_4_1_LESSON_STEPS}
-        activeIndex={activeIndex}
-        onIndexChange={(index) => void handlePatchCurrentStep(index)}
-        middleNotice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
-        rightSlot={
-          <StepKnowledgeDrawer
-            lessonRuntime={lessonRuntime}
-            currentStepId={step.id}
-            orderedStepIds={UNIT_4_1_LESSON_STEPS.map((item) => item.id)}
-            title="页面知识卡片"
-          />
-        }
-      />
-
-      <main className="premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-6">
-        <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_320px]">
-          <div className="premium-lesson-panel-soft flex flex-wrap items-center justify-between gap-3 px-4 py-4">
-            <div>
-              <div className="premium-lesson-kicker">教师课堂台</div>
-              <div className="premium-lesson-title mt-2 text-lg font-semibold">课堂码：{sessionInfo?.joinCode ?? '------'}</div>
-              <div className="premium-lesson-muted mt-1 text-sm">教师可推进步骤、查看学生提交统计，并在需要时释放题目、显示答案。</div>
+    <LessonRuntimeShell
+      mode="teacher"
+      title={UNIT_4_1_COURSE_TITLE}
+      subtitle={UNIT_4_1_COURSE_SUBTITLE}
+      routeSegment={UNIT_4_1_ROUTE_SEGMENT}
+      sessionId={sessionId}
+      steps={UNIT_4_1_LESSON_STEPS}
+      activeIndex={activeIndex}
+      stageLabel={UNIT_4_1_STAGE_LABEL}
+      notice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
+      onIndexChange={(index) => void handlePatchCurrentStep(index)}
+      toolsDefaultState="collapsed"
+      localTools={
+        <>
+          <div className="premium-lesson-panel-soft px-4 py-4" data-teacher-projection-runtime="local-tools">
+            <div className="premium-lesson-kicker">教师课堂台</div>
+            <div className="premium-lesson-title mt-2 text-lg font-semibold">课堂码：{sessionInfo?.joinCode ?? '------'}</div>
+            <div className="premium-lesson-muted mt-1 text-sm">教师可推进步骤、查看学生提交统计，并在需要时释放题目、显示答案。</div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <TeacherJoinQrDialog joinCode={sessionInfo?.joinCode} />
+              <button
+                type="button"
+                onClick={() => void handleEndSession()}
+                disabled={endingSession}
+                className="premium-lesson-action-tone premium-tone-rose"
+              >
+                {endingSession ? '结束中...' : '结束课堂'}
+              </button>
             </div>
-            <TeacherJoinQrDialog joinCode={sessionInfo?.joinCode} />
-            <button
-              type="button"
-              onClick={() => void handleEndSession()}
-              disabled={endingSession}
-              className="premium-lesson-action-tone premium-tone-rose"
-            >
-              {endingSession ? '结束中...' : '结束课堂'}
-            </button>
           </div>
-
           <div className="premium-lesson-panel-soft px-4 py-4">
             <button
               type="button"
@@ -312,8 +317,21 @@ export function UNIT_4_1TeacherPage({
               </div>
             ) : null}
           </div>
-        </div>
-
+          <StepKnowledgeDrawer
+            lessonRuntime={lessonRuntime}
+            currentStepId={step.id}
+            orderedStepIds={UNIT_4_1_LESSON_STEPS.map((item) => item.id)}
+            title="页面知识卡片"
+            inlineTool
+          />
+        </>
+      }
+      runtimeAttributes={{
+        'data-teacher-projection-runtime': 'compact-navigation',
+        'data-runtime-manifest-truth': lessonRuntime.interactiveManifest?.lessonId ?? UNIT_4_1_LESSON_KEY,
+      }}
+    >
+      <div className="space-y-4">
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
         <UNIT_4_1StepContentPanel
@@ -321,7 +339,7 @@ export function UNIT_4_1TeacherPage({
           manifest={runtimeManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
           allowInlineReveal
-          role="teacher"
+          viewerRole="teacher"
           studentCount={joinedStudents.length}
           submittedStudents={submittedStudents}
           totalResponses={totalResponses}
@@ -382,7 +400,7 @@ export function UNIT_4_1TeacherPage({
             }
           />
         </div>
-      </main>
-    </div>
+      </div>
+    </LessonRuntimeShell>
   );
 }

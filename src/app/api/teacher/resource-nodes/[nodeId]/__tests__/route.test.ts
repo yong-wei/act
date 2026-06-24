@@ -5,9 +5,13 @@ const mocks = vi.hoisted(() => {
   const teachingResourceFindFirst = vi.fn();
   const teachingResourceFindMany = vi.fn();
   const teachingResourceUpdate = vi.fn();
+  const loadAllLessonRuntimeResourceCatalogEntries = vi.fn();
+  const loadRuntimeResourceProjectionInputs = vi.fn();
 
   return {
     getServerSession,
+    loadAllLessonRuntimeResourceCatalogEntries,
+    loadRuntimeResourceProjectionInputs,
     prisma: {
       teachingResource: {
         findFirst: teachingResourceFindFirst,
@@ -30,8 +34,12 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-vi.mock('@/lib/resource-registry', () => ({
-  getAllRegisteredResources: () => [
+vi.mock('@/lib/course-runtime', () => ({
+  loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
+}));
+
+vi.mock('@/lib/resource-registry-metadata', () => ({
+  getAllRegisteredResourceMetadata: () => [
     {
       id: 'registered-quiz',
       label: '注册后测组件',
@@ -41,6 +49,14 @@ vi.mock('@/lib/resource-registry', () => ({
     },
   ],
 }));
+
+vi.mock('@/lib/teacher-resource-node-data', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/teacher-resource-node-data')>();
+  return {
+    ...actual,
+    loadRuntimeResourceProjectionInputs: mocks.loadRuntimeResourceProjectionInputs,
+  };
+});
 
 import { PATCH } from '../route';
 
@@ -99,6 +115,8 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     });
     mocks.prisma.teachingResource.findFirst.mockResolvedValue(ownedResource);
     mocks.prisma.teachingResource.findMany.mockResolvedValue([ownedResource, prerequisiteResource]);
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
     mocks.prisma.teachingResource.update.mockResolvedValue({
       ...ownedResource,
       displayName: '课堂使用的 Bode 后测',
@@ -235,6 +253,64 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     }));
   });
 
+  it('audits patched prerequisites against runtime resource nodes', async () => {
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([
+      {
+        lesson: { lesson_id: '2-4', title: '频域课' },
+        graphOverlay: {
+          lesson_id: '2-4',
+          focus_node_ids: ['kn-bode'],
+          card_order: ['kn-bode'],
+          nodes: [{ id: 'kn-bode', name: '伯德图' }],
+          groups: [],
+        },
+        handoutPath: '/course-runtime/lessons/2-4/2-4-handout.md',
+        handoutSourcePath: 'course-content/runtime/lessons/2-4/2-4-handout.md',
+        handoutPdfPath: '/course-runtime/lessons/2-4/2-4-handout.pdf',
+        mediaResources: [
+          {
+            id: 'slides',
+            title: '频域课件',
+            filename: '2-4-slides.pdf',
+            kind: 'slides',
+            url: 'https://example.test/2-4-slides.pdf',
+            accessMode: 'new_tab',
+            embedMode: 'none',
+            status: 'ready',
+            featured: false,
+          },
+        ],
+      },
+    ]);
+    mocks.prisma.teachingResource.update.mockResolvedValue({
+      ...ownedResource,
+      config: {
+        resourceNodePlanning: {
+          prerequisites: ['runtime-media:2-4:slides'],
+        },
+      },
+    });
+
+    const response = await PATCH(
+      new Request('http://localhost/api/teacher/resource-nodes/teaching-resource%3Aowned-quiz', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          planningMetadata: {
+            prerequisites: ['runtime-media:2-4:slides'],
+          },
+        }),
+      }),
+      { params: Promise.resolve({ nodeId: 'teaching-resource:owned-quiz' }) }
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.node).toEqual(expect.objectContaining({
+      prerequisites: ['runtime-media:2-4:slides'],
+      pathExclusionReasons: [],
+    }));
+  });
+
   it('persists permitted display and planning metadata into TeachingResource config', async () => {
     const response = await PATCH(
       new Request('http://localhost/api/teacher/resource-nodes/teaching-resource%3Aowned-quiz', {
@@ -281,6 +357,121 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
       teacherPolicy: 'blocked',
       pathEligible: false,
       pathExclusionReasons: expect.arrayContaining(['teacher-policy-blocked']),
+    }));
+  });
+
+  it('persists readiness metadata and returns it in the updated node view', async () => {
+    mocks.prisma.teachingResource.update.mockResolvedValue({
+      ...ownedResource,
+      config: {
+        existing: true,
+        resourceNodePlanning: {
+          estimatedTimeMinutes: 18,
+          readiness: {
+            minimumCompetency: {
+              'control.correction': 0.7,
+            },
+            minimumEvidenceCount: 2,
+            requiredCompletedNodeIds: ['teaching-resource:owned-prerequisite'],
+            requiredOutcomeRefs: ['sim:step-response'],
+            unlockMessage: '完成准备资源后解锁。',
+            fallbackNodeIds: ['knowledge-card:kn-bode'],
+          },
+        },
+      },
+    });
+
+    const response = await PATCH(
+      new Request('http://localhost/api/teacher/resource-nodes/teaching-resource%3Aowned-quiz', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          planningMetadata: {
+            readiness: {
+              minimumCompetency: {
+                'control.correction': 0.7,
+              },
+              minimumEvidenceCount: 2,
+              requiredCompletedNodeIds: ['teaching-resource:owned-prerequisite'],
+              requiredOutcomeRefs: ['sim:step-response'],
+              unlockMessage: '完成准备资源后解锁。',
+              fallbackNodeIds: ['knowledge-card:kn-bode'],
+            },
+          },
+        }),
+      }),
+      { params: Promise.resolve({ nodeId: 'teaching-resource:owned-quiz' }) }
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        config: {
+          existing: true,
+          resourceNodePlanning: {
+            estimatedTimeMinutes: 18,
+            readiness: {
+              minimumCompetency: {
+                'control.correction': 0.7,
+              },
+              minimumEvidenceCount: 2,
+              requiredCompletedNodeIds: ['teaching-resource:owned-prerequisite'],
+              requiredOutcomeRefs: ['sim:step-response'],
+              unlockMessage: '完成准备资源后解锁。',
+              fallbackNodeIds: ['knowledge-card:kn-bode'],
+            },
+          },
+        },
+      }),
+    }));
+    expect(payload.node.readiness).toEqual({
+      minimumCompetency: {
+        'control.correction': 0.7,
+      },
+      minimumEvidenceCount: 2,
+      requiredCompletedNodeIds: ['teaching-resource:owned-prerequisite'],
+      requiredOutcomeRefs: ['sim:step-response'],
+      unlockMessage: '完成准备资源后解锁。',
+      fallbackNodeIds: ['knowledge-card:kn-bode'],
+    });
+  });
+
+  it('handles malformed planning metadata as a safe no-op instead of a 500', async () => {
+    mocks.prisma.teachingResource.update.mockResolvedValue({
+      ...ownedResource,
+      config: {
+        existing: true,
+        resourceNodePlanning: {
+          estimatedTimeMinutes: 18,
+        },
+      },
+    });
+
+    const response = await PATCH(
+      new Request('http://localhost/api/teacher/resource-nodes/teaching-resource%3Aowned-quiz', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          planningMetadata: 'not-an-object',
+        }),
+      }),
+      { params: Promise.resolve({ nodeId: 'teaching-resource:owned-quiz' }) }
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        config: {
+          existing: true,
+          resourceNodePlanning: {
+            estimatedTimeMinutes: 18,
+          },
+        },
+      }),
+    }));
+    expect(payload.node).toEqual(expect.objectContaining({
+      id: 'teaching-resource:owned-quiz',
+      estimatedTimeMinutes: 18,
     }));
   });
 

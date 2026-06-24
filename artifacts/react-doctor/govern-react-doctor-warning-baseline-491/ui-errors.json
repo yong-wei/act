@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "mode": "full",
+  "version": "0.5.1",
+  "ok": true,
+  "directory": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn",
+  "diff": null,
+  "projects": [
+    {
+      "directory": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn",
+      "project": {
+        "rootDirectory": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn",
+        "projectName": "ai-obe-platform",
+        "reactVersion": "^19.2.7",
+        "reactMajorVersion": 19,
+        "tailwindVersion": "^4.3.0",
+        "zodVersion": "^3.23.8",
+        "zodMajorVersion": 3,
+        "framework": "nextjs",
+        "hasTypeScript": true,
+        "hasReactCompiler": false,
+        "hasTanStackQuery": false,
+        "preactVersion": null,
+        "preactMajorVersion": null,
+        "hasReactNativeWorkspace": false,
+        "nextjsVersion": "^16.2.7",
+        "nextjsMajorVersion": 16,
+        "expoVersion": null,
+        "shopifyFlashListVersion": null,
+        "shopifyFlashListMajorVersion": null,
+        "hasReanimated": false,
+        "isPreES2023Target": true,
+        "sourceFileCount": 1776
+      },
+      "diagnostics": [],
+      "score": null,
+      "skippedChecks": [],
+      "elapsedMilliseconds": 5124.970708000001
+    }
+  ],
+  "diagnostics": [],
+  "summary": {
+    "errorCount": 0,
+    "warningCount": 0,
+    "affectedFileCount": 0,
+    "totalDiagnosticCount": 0,
+    "score": null,
+    "scoreLabel": null
+  },
+  "elapsedMilliseconds": 5126.934165999999,
+  "error": null
+}

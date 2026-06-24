@@ -14,6 +14,15 @@ import {
   dedupeRecommendations,
   dedupeRiskFlags,
 } from '@/lib/data-governance/profile-center';
+import {
+  createPrismaDiagnosisReportSnapshotStore,
+  hasDiagnosisReportSnapshotPersistenceTable,
+  readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence,
+} from '@/lib/data-governance/control-correction-diagnosis-profile';
+import {
+  materializeRoleBasedLearningDiagnosis,
+  type RoleBasedLearningDiagnosis,
+} from '@/lib/data-governance/role-based-learning-diagnosis';
 import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
@@ -31,7 +40,7 @@ interface EvidenceSummaryItem {
   questionSummaries?: Array<{
     questionId?: string;
     prompt?: string;
-    studentAnswer?: string | null;
+    studentAnswerRedacted?: boolean;
     referenceAnswer?: string;
     isCorrect?: boolean;
   }>;
@@ -58,6 +67,7 @@ export interface StudentSnapshotResponse {
     priority: number;
     rationale: RecommendationRationale;
   }>;
+  diagnosis: RoleBasedLearningDiagnosis;
 }
 
 export async function GET(_request: NextRequest) {
@@ -83,8 +93,33 @@ export async function GET(_request: NextRequest) {
         evidenceSummary: {},
         riskFlags: [],
         recommendations: [],
+        diagnosis: materializeRoleBasedLearningDiagnosis({
+          view: 'student',
+          goalId: 'control-correction',
+          userId,
+          targetUserId: userId,
+          diagnosisReportSnapshot: null,
+        }),
       } as unknown as StudentSnapshotResponse);
     }
+
+    const studentProfile = await prisma.studentProfile.findUnique({
+      where: { userId },
+      select: { classId: true },
+    });
+
+    const diagnosisReportSnapshot = await hasDiagnosisReportSnapshotPersistenceTable(prisma)
+      ? await readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence(
+        createPrismaDiagnosisReportSnapshotStore(prisma.diagnosisReportSnapshot),
+        {
+          view: 'student',
+          goalId: 'control-correction',
+          userId,
+          targetUserId: userId,
+          classId: studentProfile?.classId ?? null,
+        }
+      )
+      : null;
 
     // Get previous snapshot for trend calculation
     const previousSnapshot = await prisma.studentCompetencySnapshot.findFirst({
@@ -98,7 +133,9 @@ export async function GET(_request: NextRequest) {
     });
 
     // Get evidence summary from current snapshot
-    const evidenceSummary = (currentSnapshot.evidenceSummary as unknown as Record<string, EvidenceSummaryItem[]>) || {};
+    const evidenceSummary = sanitizeEvidenceSummary(
+      (currentSnapshot.evidenceSummary as unknown as Record<string, EvidenceSummaryItem[]>) || {}
+    );
 
     // Get risk flags
     const rawRiskFlags = await prisma.studentRiskFlag.findMany({
@@ -153,6 +190,16 @@ export async function GET(_request: NextRequest) {
       evidenceSummary,
       riskFlags,
       recommendations,
+      diagnosis: materializeRoleBasedLearningDiagnosis({
+        view: 'student',
+        goalId: 'control-correction',
+        userId,
+        targetUserId: userId,
+        learnerState: {
+          generatedAt: currentSnapshot.snapshotAt.toISOString(),
+        },
+        diagnosisReportSnapshot,
+      }),
     };
 
     return NextResponse.json(response);
@@ -161,6 +208,41 @@ export async function GET(_request: NextRequest) {
     console.error('[StudentSnapshot] Error:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
+}
+
+function sanitizeEvidenceSummary(
+  summary: Record<string, EvidenceSummaryItem[]>,
+): Record<string, EvidenceSummaryItem[]> {
+  return Object.fromEntries(
+    Object.entries(summary).map(([dimension, items]) => [
+      dimension,
+      Array.isArray(items)
+        ? items.slice(0, 6).map((item) => ({
+            factType: item.factType,
+            outcome: item.outcome,
+            score: item.score,
+            moduleId: item.moduleId,
+            lessonId: item.lessonId,
+            sourceLogId: item.sourceLogId,
+            evidenceTitle: truncateOptionalText(item.evidenceTitle),
+            stepId: item.stepId,
+            questionSummaries: item.questionSummaries?.slice(0, 3).map((question) => ({
+              questionId: question.questionId,
+              prompt: truncateOptionalText(question.prompt),
+              studentAnswerRedacted: typeof (question as { studentAnswer?: unknown }).studentAnswer === 'string' &&
+                ((question as { studentAnswer?: string }).studentAnswer?.length ?? 0) > 0,
+              referenceAnswer: truncateOptionalText(question.referenceAnswer),
+              isCorrect: question.isCorrect,
+            })),
+          }))
+        : [],
+    ]),
+  );
+}
+
+function truncateOptionalText(value: string | undefined, maxLength: number = 96) {
+  if (typeof value !== 'string') return undefined;
+  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
 }
 
 /**

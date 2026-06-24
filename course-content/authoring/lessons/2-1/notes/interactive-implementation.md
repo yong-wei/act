@@ -109,9 +109,9 @@
 - `src/features/interactive/unit-2-1-modeling-language/step-panels.tsx` 已补齐新区域 ID 的渲染映射，避免本地平行契约回对齐后丢失静态内容。
 - 新增实现侧一致性测试脚本：
   - `scripts/tests/test-interactive-contract-implementation-alignment.mjs`
-  - `.codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py`
+  - `.agents/skills/interactive-lesson/scripts/check_contract_alignment.py`
 - 互动课程实现技能现已要求：实现完成后必须运行
-  - `python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 2-1`
+  - `python3 .agents/skills/interactive-lesson/scripts/check_contract_alignment.py --lesson 2-1`
   - 该脚本会校验作者态契约与本地实现平行契约在步骤标题、互动类型、模板/区域、教师洞察、telemetry、错因标签与学生演示页预览路径上的一致性。
 
 ### 2026-04-05 验证记录
@@ -122,7 +122,7 @@
   - 已通过，确认技能文档与技能脚本已显式纳入一致性校验要求。
 - `python3 -m pytest course-content/tests/test_interactive_contract_alignment_script.py -q`
   - 已通过，确认技能脚本可对 `2-1` 执行一致性校验。
-- `python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 2-1`
+- `python3 .agents/skills/interactive-lesson/scripts/check_contract_alignment.py --lesson 2-1`
   - 已通过，16 步契约对齐检查全部通过。
 
 ### 当前仍需关注的非阻塞项

@@ -10,12 +10,16 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AppShell } from '@/components/platform/app-shell';
 import { UserMenu } from '@/components/shared/user-menu';
+import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
 import type { ArenaStudentPortfolio } from '@/features/arena/profile';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
 import type { StudentProfileEvidenceStatus } from '@/lib/data-governance/profile-center';
-import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
+import { getCommercialStudentEntryIntentGroups, getPlatformCockpitHref } from '@/lib/platform-role-navigation';
+
+const learnerDataShell = buildLearnerDataRouteShell('/profile');
 
 interface UserProfile {
   user: {
@@ -115,6 +119,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAllActivities, setShowAllActivities] = useState(false);
+  const entryIntents = getCommercialStudentEntryIntentGroups();
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.role) {
@@ -145,12 +150,26 @@ export default function ProfilePage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="login"
+      >
         <div className="text-center">
+          <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">学习入口 · 账号与画像</p>
           <p className="text-xl text-subtle">请先登录</p>
           <Link href={buildLoginRedirectForPath('/profile')} className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
             前往登录
           </Link>
+          <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-subtle">
+            {entryIntents.slice(0, 3).map((intent) => (
+              <Link key={intent.intent} href={intent.hrefs[0] ?? '/'} className="rounded-full border border-border px-3 py-1 hover:text-foreground">
+                {intent.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -158,7 +177,13 @@ export default function ProfilePage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="wait-for-profile"
+      >
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
           <p className="text-subtle">加载中...</p>
@@ -169,12 +194,22 @@ export default function ProfilePage() {
 
   if (error || !profile) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="retry-profile"
+      >
         <div className="text-center">
+          <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">学习入口 · 复盘</p>
           <p className="text-xl text-red-400">{error || '加载失败'}</p>
-          <button onClick={fetchProfile} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+          <button type="button" onClick={fetchProfile} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
+          <Link href="/dashboard" className="btn-ghost-themed ml-2 inline-block rounded-lg px-6 py-2">
+            返回驾驶舱
+          </Link>
         </div>
       </div>
     );
@@ -186,26 +221,27 @@ export default function ProfilePage() {
       : 0;
   const topArenaRank = profile.arenaPortfolio.personalBestByTask[0];
   const evidenceStatusMeta = getEvidenceStatusMeta(profile.evidenceStatus);
-  const studentCockpitHref = getPlatformCockpitHref('STUDENT');
 
   return (
-    <div className="surface-page">
-      <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href={studentCockpitHref} className="text-subtle transition hover:text-foreground">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </Link>
-            <h1 className="text-xl font-bold text-foreground">个人中心</h1>
-          </div>
-          <UserMenu user={profile.user} />
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
-        <div className="surface-card mb-8 bg-gradient-to-br from-card via-card to-accent/40 p-6">
+    <AppShell
+      viewerRole="student"
+      title="个人中心"
+      subtitle="能力画像、成长记录与证据复盘"
+      activeHref="/profile"
+      userMenu={<UserMenu user={profile.user} />}
+      className="surface-page"
+    >
+      <section
+      data-route-family={learnerDataShell.routeFamily}
+      data-route-identity={learnerDataShell.routeIdentity}
+      data-learner-record-surface={learnerDataShell.archetype}
+    >
+        <div
+          className="surface-card mb-8 p-6"
+          data-learner-record-priority="current-path"
+          data-learner-record-evidence-confidence={profile.evidenceStatus.confidence.level}
+          data-learner-record-missing-source={profile.evidenceStatus.statusMarkers.includes('missing-source') ? 'missing-source' : 'complete'}
+        >
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-3xl font-bold text-white">
@@ -239,6 +275,18 @@ export default function ProfilePage() {
                 <p className="mt-1">{formatEvidenceStatusSummary(profile.evidenceStatus)}</p>
               </div>
             </div>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              href={profile.personalizedReinforcement.adaptivePractice.actionUrl}
+              className="cta-primary rounded-lg px-4 py-2 text-sm"
+              data-learner-record-next-action="adaptive-practice"
+            >
+              执行下一步练习
+            </Link>
+            <Link href="/profile/evidence" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
+              复盘证据来源
+            </Link>
           </div>
         </div>
 
@@ -459,7 +507,7 @@ export default function ProfilePage() {
                 </p>
               </div>
               {profile.recentActivity.total > 3 && (
-                <button
+                <button type="button"
                   onClick={() => setShowAllActivities((value) => !value)}
                   className="rounded-full border border-border/70 px-4 py-2 text-sm text-foreground transition hover:border-amber-500/40 hover:text-amber-600 dark:hover:text-amber-300"
                 >
@@ -609,7 +657,7 @@ export default function ProfilePage() {
               iconPath="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
             />
             <QuickAction
-              href="/assessment/adaptive-practice"
+              href="/assessment/adaptive-practice?intent=practice"
               title="自适应练习"
               description="进入题库继续个性化补强"
               iconPath="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
@@ -624,8 +672,8 @@ export default function ProfilePage() {
             />
           </div>
         </div>
-      </main>
-    </div>
+      </section>
+    </AppShell>
   );
 }
 

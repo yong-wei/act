@@ -1,0 +1,229 @@
+{
+  "baseUrl": "http://127.0.0.1:3001/knowledge",
+  "capturedAt": "2026-06-04T21:14:40.974Z",
+  "results": [
+    {
+      "theme": "light",
+      "state": "default",
+      "screenshot": "artifacts/knowledge-graph-relationship-visuals/20260604T211356Z/light-default.png",
+      "title": "AI-OBE船舶控制平台",
+      "htmlClass": "light",
+      "canvasCount": 1,
+      "legendVisible": true,
+      "densityControls": [
+        "结构优先",
+        "焦点邻域",
+        "全部关系"
+      ],
+      "relationCountLine": "当前显示关系 1283 条",
+      "nodeCountLine": "节点 574 / 788",
+      "resourcePanelOpen": false,
+      "resourcePanelText": "",
+      "hoverPanelVisible": false,
+      "hoverPanelText": "",
+      "view3dActive": false,
+      "bodyTextSample": "返回首页\n知识图谱\n\nKnowledge Graph\n\n进入驾驶舱\n知识图谱\n基本概念\n61\n系统模型\n76\n时域分析\n93\n根轨迹分析\n52\n频域分析\n73\n系统校正\n44\n离散系统\n70\n非线性系统\n61\n状态空间\n131\n结构机理层\n21\n前沿拓展\n5\n约束设计层\n64\n知识边界与方法迁移层\n37\n关系筛选\n文件图谱\n当前显示关系 1283 条\n节点 574 / 788\n标签显示\n重点标签\n全部标签\n章节筛选（多选）\ncategory 筛选\nbloom_level 筛选\n关系密度\n结构优先\n焦点邻域\n全部关系\n关系类型\n全选\n清空\n关联 · 7517\n应用 · 5381\n包含 · 1541\n引出 · 1126\n前置 · 750\n对立 · 179\n关系图例\n实线箭头：前置/基础\n粗实线：章节包含\n长虚线箭头：后续/引出\n短虚线箭头：应用\n短虚线无箭头：对立\n细虚线：弱关联\n关系强度阈值\n0.8\n仅显示存在可见关系的节点\n清空"
+    },
+    {
+      "theme": "light",
+      "state": "hover",
+      "screenshot": "artifacts/knowledge-graph-relationship-visuals/20260604T211356Z/light-hover.png",
+      "title": "AI-OBE船舶控制平台",
+      "htmlClass": "light",
+      "canvasCount": 1,
+      "legendVisible": true,
+      "densityControls": [
+        "结构优先",
+        "焦点邻域",
+        "全部关系"
+      ],
+      "relationCountLine": "当前显示关系 1294 条",
+      "nodeCountLine": "节点 579 / 788",
+      "resourcePanelOpen": false,
+      "resourcePanelText": "",
+      "hoverPanelVisible": true,
+      "hoverPanelText": "按扰动控制控制理论Bloom：应用维度：程序性章节：基本概念利用可测量的扰动量产生补偿作用，以降低或抵消扰动对输出量影响的开环控制方式。",
+      "view3dActive": false,
+      "bodyTextSample": "返回首页\n知识图谱\n\nKnowledge Graph\n\n进入驾驶舱\n知识图谱\n基本概念\n61\n按扰动控制\n应用\n被控对象\n记忆\n被控量\n记忆\n比较元件\n理解\n测量元件\n记忆\n测速发电机\n理解\n程序控制系统\n理解\n传递函数\n理解\n垂直陀螺仪\n记忆\n磁盘驱动器\n理解\n电阻炉温度微分计算机控制系统\n理解\n调节器\n理解\n发动机转速控制系统\n理解\n反馈控制\n应用\n反馈控制系统\n理解\n方块图\n理解\n放大元件\n记忆\n飞机-自动驾驶仪系统\n理解\n非线性控制系统\n理解\n负反馈\n理解\n负反馈控制原理\n理解\n复合控制方式\n分析\n给定元件\n记忆\n锅炉液位控制系统\n理解\n函数记录仪\n应用\n恒值控制系统\n理解\n阶跃函数\n记忆\n经典控制理论\n记忆\n开环控制方式\n理解\n控制装置\n理解\n快速性\n理解\n零极点增益模型\n理解\n脉冲函数\n理解\n气动调节阀\n理解\n前向通路\n记忆\n扰动\n理解\n随动系统\n理解\n稳定性\n理解\n稳态误差\n理解\n系统辨识工具箱\n应用\n系统离散化与"
+    },
+    {
+      "theme": "light",
+      "state": "filtered",
+      "screenshot": "artifacts/knowledge-graph-relationship-visuals/20260604T211356Z/light-filtered.png",
+      "title": "AI-OBE船舶控制平台",
+      "htmlClass": "light",
+      "canvasCount": 1,
+      "legendVisible": true,
+      "densityControls": [
+        "结构优先",
+        "焦点邻域",
+        "全部关系"
+      ],
+      "relationCountLine": "当前显示关系 3864 条",
+      "nodeCountLine": "节点 768 / 788",
+      "resourcePanelOpen": false,
+      "resourcePanelText": "",
+      "hoverPanelVisible": false,
+      "hoverPanelText": "",
+      "view3dActive": false,
+      "bodyTextSample": "返回首页\n知识图谱\n\nKnowledge Graph\n\n进入驾驶舱\n知识图谱\n基本概念\n61\n按扰动控制\n应用\n被控对象\n记忆\n被控量\n记忆\n比较元件\n理解\n测量元件\n记忆\n测速发电机\n理解\n程序控制系统\n理解\n传递函数\n理解\n垂直陀螺仪\n记忆\n磁盘驱动器\n理解\n电阻炉温度微分计算机控制系统\n理解\n调节器\n理解\n发动机转速控制系统\n理解\n反馈控制\n应用\n反馈控制系统\n理解\n方块图\n理解\n放大元件\n记忆\n飞机-自动驾驶仪系统\n理解\n非线性控制系统\n理解\n负反馈\n理解\n负反馈控制原理\n理解\n复合控制方式\n分析\n给定元件\n记忆\n锅炉液位控制系统\n理解\n函数记录仪\n应用\n恒值控制系统\n理解\n阶跃函数\n记忆\n经典控制理论\n记忆\n开环控制方式\n理解\n控制装置\n理解\n快速性\n理解\n零极点增益模型\n理解\n脉冲函数\n理解\n气动调节阀\n理解\n前向通路\n记忆\n扰动\n理解\n随动系统\n理解\n稳定性\n理解\n稳态误差\n理解\n系统辨识工具箱\n应用\n系统离散化与"
+    },
+    {
+      "theme": "light",
+      "state": "3d",
+      "screenshot": "artifacts/knowledge-graph-relationship-visuals/20260604T211356Z/light-3d.png",
+      "title": "AI-OBE船舶控制平台",
+      "htmlClass": "light",
+      "canvasCount": 1,
+      "legendVisible": true,
+      "densityControls": [
+        "结构优先",
+        "焦点邻域",
+        "全部关系"
+      ],
+      "relationCountLine": "当前显示关系 3864 条",
+      "nodeCountLine": "节点 768 / 788",
+      "resourcePanelOpen": false,
+      "resourcePanelText": "",
+      "hoverPanelVisible": false,
+      "hoverPanelText": "",
+      "view3dActive": true,
+      "bodyTextSample": "返回首页\n知识图谱\n\nKnowledge Graph\n\n进入驾驶舱\n知识图谱\n基本概念\n61\n按扰动控制\n应用\n被控对象\n记忆\n被控量\n记忆\n比较元件\n理解\n测量元件\n记忆\n测速发电机\n理解\n程序控制系统\n理解\n传递函数\n理解\n垂直陀螺仪\n记忆\n磁盘驱动器\n理解\n电阻炉温度微分计算机控制系统\n理解\n调节器\n理解\n发动机转速控制系统\n理解\n反馈控制\n应用\n反馈控制系统\n理解\n方块图\n理解\n放大元件\n记忆\n飞机-自动驾驶仪系统\n理解\n非线性控制系统\n理解\n负反馈\n理解\n负反馈控制原理\n理解\n复合控制方式\n分析\n给定元件\n记忆\n锅炉液位控制系统\n理解\n函数记录仪\n应用\n恒值控制系统\n理解\n阶跃函数\n记忆\n经典控制理论\n记忆\n开环控制方式\n理解\n控制装置\n理解\n快速性\n理解\n零极点增益模型\n理解\n脉冲函数\n理解\n气动调节阀\n理解\n前向通路\n记忆\n扰动\n理解\n随动系统\n理解\n稳定性\n理解\n稳态误差\n理解\n系统辨识工具箱\n应用\n系统离散化与"
+    },
+    {
+      "theme": "light",
+      "state": "selected-node",
+      "screenshot": "artifacts/knowledge-graph-relationship-visuals/20260604T211356Z/light-selected-node.png",
+      "title": "AI-OBE船舶控制平台",
+      "htmlClass": "light",
+      "canvasCount": 1,
+      "legendVisible": true,
+      "densityControls": [
+        "结构优先",
+        "焦点邻域",
+        "全部关系"
+      ],
+      "relationCountLine": "当前显示关系 3864 条",
+      "nodeCountLine": "节点 768 / 788",
+      "resourcePanelOpen": true,
+      "resourcePanelText": "按扰动控制控制理论应用程序性章节：基本概念难度：4重要性：4利用可测量的扰动量产生补偿作用，以降低或抵消扰动对输出量影响的开环控制方式。示例图1-6所示的按扰动控制的速度控制系统，通过测量负载电流变化进行补偿。关键词顺馈控制补偿抗扰动关联知识点前置关系4包含开环控制方式0.9引出扰动0.9包含自动控制0.8包含自动控制",
+      "hoverPanelVisible": true,
+      "hoverPanelText": "按扰动控制控制理论Bloom：应用维度：程序性章节：基本概念利用可测量的扰动量产生补偿作用，以降低或抵消扰动对输出量影响的开环控制方式。",
+      "view3dActive": false,
+      "bodyTextSample": "返回首页\n知识图谱\n\nKnowledge Graph\n\n进入驾驶舱\n知识图谱\n基本概念\n61\n按扰动控制\n应用\n被控对象\n记忆\n被控量\n记忆\n比较元件\n理解\n测量元件\n记忆\n测速发电机\n理解\n程序控制系统\n理解\n传递函数\n理解\n垂直陀螺仪\n记忆\n磁盘驱动器\n理解\n电阻炉温度微分计算机控制系统\n理解\n调节器\n理解\n发动机转速控制系统\n理解\n反馈控制\n应用\n反馈控制系统\n理解\n方块图\n理解\n放大元件\n记忆\n飞机-自动驾驶仪系统\n理解\n非线性控制系统\n理解\n负反馈\n理解\n负反馈控制原理\n理解\n复合控制方式\n分析\n给定元件\n记忆\n锅炉液位控制系统\n理解\n函数记录仪\n应用\n恒值控制系统\n理解\n阶跃函数\n记忆\n经典控制理论\n记忆\n开环控制方式\n理解\n控制装置\n理解\n快速性\n理解\n零极点增益模型\n理解\n脉冲函数\n理解\n气动调节阀\n理解\n前向通路\n记忆\n扰动\n理解\n随动系统\n理解\n稳定性\n理解\n稳态误差\n理解\n系统辨识工具箱\n应用\n系统离散化与",
+      "selectedSidebarText": "按扰动控制\n应用"
+    },
+    {
+      "theme": "dark",
+      "state": "default",
+      "screenshot": "artifacts/knowledge-graph-relationship-visuals/20260604T211356Z/dark-default.png",
+      "title": "AI-OBE船舶控制平台",
+      "htmlClass": "dark",
+      "canvasCount": 1,
+      "legendVisible": true,
+      "densityControls": [
+        "结构优先",
+        "焦点邻域",
+        "全部关系"
+      ],
+      "relationCountLine": "当前显示关系 1283 条",
+      "nodeCountLine": "节点 574 / 788",
+      "resourcePanelOpen": false,
+      "resourcePanelText": "",
+      "hoverPanelVisible": false,
+      "hoverPanelText": "",
+      "view3dActive": false,
+      "bodyTextSample": "返回首页\n知识图谱\n\nKnowledge Graph\n\n进入驾驶舱\n知识图谱\n基本概念\n61\n系统模型\n76\n时域分析\n93\n根轨迹分析\n52\n频域分析\n73\n系统校正\n44\n离散系统\n70\n非线性系统\n61\n状态空间\n131\n结构机理层\n21\n前沿拓展\n5\n约束设计层\n64\n知识边界与方法迁移层\n37\n关系筛选\n文件图谱\n当前显示关系 1283 条\n节点 574 / 788\n标签显示\n重点标签\n全部标签\n章节筛选（多选）\ncategory 筛选\nbloom_level 筛选\n关系密度\n结构优先\n焦点邻域\n全部关系\n关系类型\n全选\n清空\n关联 · 7517\n应用 · 5381\n包含 · 1541\n引出 · 1126\n前置 · 750\n对立 · 179\n关系图例\n实线箭头：前置/基础\n粗实线：章节包含\n长虚线箭头：后续/引出\n短虚线箭头：应用\n短虚线无箭头：对立\n细虚线：弱关联\n关系强度阈值\n0.8\n仅显示存在可见关系的节点\n清空"
+    },
+    {
+      "theme": "dark",
+      "state": "hover",
+      "screenshot": "artifacts/knowledge-graph-relationship-visuals/20260604T211356Z/dark-hover.png",
+      "title": "AI-OBE船舶控制平台",
+      "htmlClass": "dark",
+      "canvasCount": 1,
+      "legendVisible": true,
+      "densityControls": [
+        "结构优先",
+        "焦点邻域",
+        "全部关系"
+      ],
+      "relationCountLine": "当前显示关系 1294 条",
+      "nodeCountLine": "节点 579 / 788",
+      "resourcePanelOpen": false,
+      "resourcePanelText": "",
+      "hoverPanelVisible": true,
+      "hoverPanelText": "按扰动控制控制理论Bloom：应用维度：程序性章节：基本概念利用可测量的扰动量产生补偿作用，以降低或抵消扰动对输出量影响的开环控制方式。",
+      "view3dActive": false,
+      "bodyTextSample": "返回首页\n知识图谱\n\nKnowledge Graph\n\n进入驾驶舱\n知识图谱\n基本概念\n61\n按扰动控制\n应用\n被控对象\n记忆\n被控量\n记忆\n比较元件\n理解\n测量元件\n记忆\n测速发电机\n理解\n程序控制系统\n理解\n传递函数\n理解\n垂直陀螺仪\n记忆\n磁盘驱动器\n理解\n电阻炉温度微分计算机控制系统\n理解\n调节器\n理解\n发动机转速控制系统\n理解\n反馈控制\n应用\n反馈控制系统\n理解\n方块图\n理解\n放大元件\n记忆\n飞机-自动驾驶仪系统\n理解\n非线性控制系统\n理解\n负反馈\n理解\n负反馈控制原理\n理解\n复合控制方式\n分析\n给定元件\n记忆\n锅炉液位控制系统\n理解\n函数记录仪\n应用\n恒值控制系统\n理解\n阶跃函数\n记忆\n经典控制理论\n记忆\n开环控制方式\n理解\n控制装置\n理解\n快速性\n理解\n零极点增益模型\n理解\n脉冲函数\n理解\n气动调节阀\n理解\n前向通路\n记忆\n扰动\n理解\n随动系统\n理解\n稳定性\n理解\n稳态误差\n理解\n系统辨识工具箱\n应用\n系统离散化与"
+    },
+    {
+      "theme": "dark",
+      "state": "filtered",
+      "screenshot": "artifacts/knowledge-graph-relationship-visuals/20260604T211356Z/dark-filtered.png",
+      "title": "AI-OBE船舶控制平台",
+      "htmlClass": "dark",
+      "canvasCount": 1,
+      "legendVisible": true,
+      "densityControls": [
+        "结构优先",
+        "焦点邻域",
+        "全部关系"
+      ],
+      "relationCountLine": "当前显示关系 3864 条",
+      "nodeCountLine": "节点 768 / 788",
+      "resourcePanelOpen": false,
+      "resourcePanelText": "",
+      "hoverPanelVisible": false,
+      "hoverPanelText": "",
+      "view3dActive": false,
+      "bodyTextSample": "返回首页\n知识图谱\n\nKnowledge Graph\n\n进入驾驶舱\n知识图谱\n基本概念\n61\n按扰动控制\n应用\n被控对象\n记忆\n被控量\n记忆\n比较元件\n理解\n测量元件\n记忆\n测速发电机\n理解\n程序控制系统\n理解\n传递函数\n理解\n垂直陀螺仪\n记忆\n磁盘驱动器\n理解\n电阻炉温度微分计算机控制系统\n理解\n调节器\n理解\n发动机转速控制系统\n理解\n反馈控制\n应用\n反馈控制系统\n理解\n方块图\n理解\n放大元件\n记忆\n飞机-自动驾驶仪系统\n理解\n非线性控制系统\n理解\n负反馈\n理解\n负反馈控制原理\n理解\n复合控制方式\n分析\n给定元件\n记忆\n锅炉液位控制系统\n理解\n函数记录仪\n应用\n恒值控制系统\n理解\n阶跃函数\n记忆\n经典控制理论\n记忆\n开环控制方式\n理解\n控制装置\n理解\n快速性\n理解\n零极点增益模型\n理解\n脉冲函数\n理解\n气动调节阀\n理解\n前向通路\n记忆\n扰动\n理解\n随动系统\n理解\n稳定性\n理解\n稳态误差\n理解\n系统辨识工具箱\n应用\n系统离散化与"
+    },
+    {
+      "theme": "dark",
+      "state": "3d",
+      "screenshot": "artifacts/knowledge-graph-relationship-visuals/20260604T211356Z/dark-3d.png",
+      "title": "AI-OBE船舶控制平台",
+      "htmlClass": "dark",
+      "canvasCount": 1,
+      "legendVisible": true,
+      "densityControls": [
+        "结构优先",
+        "焦点邻域",
+        "全部关系"
+      ],
+      "relationCountLine": "当前显示关系 3864 条",
+      "nodeCountLine": "节点 768 / 788",
+      "resourcePanelOpen": false,
+      "resourcePanelText": "",
+      "hoverPanelVisible": false,
+      "hoverPanelText": "",
+      "view3dActive": true,
+      "bodyTextSample": "返回首页\n知识图谱\n\nKnowledge Graph\n\n进入驾驶舱\n知识图谱\n基本概念\n61\n按扰动控制\n应用\n被控对象\n记忆\n被控量\n记忆\n比较元件\n理解\n测量元件\n记忆\n测速发电机\n理解\n程序控制系统\n理解\n传递函数\n理解\n垂直陀螺仪\n记忆\n磁盘驱动器\n理解\n电阻炉温度微分计算机控制系统\n理解\n调节器\n理解\n发动机转速控制系统\n理解\n反馈控制\n应用\n反馈控制系统\n理解\n方块图\n理解\n放大元件\n记忆\n飞机-自动驾驶仪系统\n理解\n非线性控制系统\n理解\n负反馈\n理解\n负反馈控制原理\n理解\n复合控制方式\n分析\n给定元件\n记忆\n锅炉液位控制系统\n理解\n函数记录仪\n应用\n恒值控制系统\n理解\n阶跃函数\n记忆\n经典控制理论\n记忆\n开环控制方式\n理解\n控制装置\n理解\n快速性\n理解\n零极点增益模型\n理解\n脉冲函数\n理解\n气动调节阀\n理解\n前向通路\n记忆\n扰动\n理解\n随动系统\n理解\n稳定性\n理解\n稳态误差\n理解\n系统辨识工具箱\n应用\n系统离散化与"
+    },
+    {
+      "theme": "dark",
+      "state": "selected-node",
+      "screenshot": "artifacts/knowledge-graph-relationship-visuals/20260604T211356Z/dark-selected-node.png",
+      "title": "AI-OBE船舶控制平台",
+      "htmlClass": "dark",
+      "canvasCount": 1,
+      "legendVisible": true,
+      "densityControls": [
+        "结构优先",
+        "焦点邻域",
+        "全部关系"
+      ],
+      "relationCountLine": "当前显示关系 3864 条",
+      "nodeCountLine": "节点 768 / 788",
+      "resourcePanelOpen": true,
+      "resourcePanelText": "按扰动控制控制理论应用程序性章节：基本概念难度：4重要性：4利用可测量的扰动量产生补偿作用，以降低或抵消扰动对输出量影响的开环控制方式。示例图1-6所示的按扰动控制的速度控制系统，通过测量负载电流变化进行补偿。关键词顺馈控制补偿抗扰动关联知识点前置关系4包含开环控制方式0.9引出扰动0.9包含自动控制0.8包含自动控制",
+      "hoverPanelVisible": true,
+      "hoverPanelText": "按扰动控制控制理论Bloom：应用维度：程序性章节：基本概念利用可测量的扰动量产生补偿作用，以降低或抵消扰动对输出量影响的开环控制方式。",
+      "view3dActive": false,
+      "bodyTextSample": "返回首页\n知识图谱\n\nKnowledge Graph\n\n进入驾驶舱\n知识图谱\n基本概念\n61\n按扰动控制\n应用\n被控对象\n记忆\n被控量\n记忆\n比较元件\n理解\n测量元件\n记忆\n测速发电机\n理解\n程序控制系统\n理解\n传递函数\n理解\n垂直陀螺仪\n记忆\n磁盘驱动器\n理解\n电阻炉温度微分计算机控制系统\n理解\n调节器\n理解\n发动机转速控制系统\n理解\n反馈控制\n应用\n反馈控制系统\n理解\n方块图\n理解\n放大元件\n记忆\n飞机-自动驾驶仪系统\n理解\n非线性控制系统\n理解\n负反馈\n理解\n负反馈控制原理\n理解\n复合控制方式\n分析\n给定元件\n记忆\n锅炉液位控制系统\n理解\n函数记录仪\n应用\n恒值控制系统\n理解\n阶跃函数\n记忆\n经典控制理论\n记忆\n开环控制方式\n理解\n控制装置\n理解\n快速性\n理解\n零极点增益模型\n理解\n脉冲函数\n理解\n气动调节阀\n理解\n前向通路\n记忆\n扰动\n理解\n随动系统\n理解\n稳定性\n理解\n稳态误差\n理解\n系统辨识工具箱\n应用\n系统离散化与",
+      "selectedSidebarText": "按扰动控制\n应用"
+    }
+  ],
+  "errors": []
+}

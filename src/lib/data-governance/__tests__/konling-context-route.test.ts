@@ -17,6 +17,9 @@ const mocks = vi.hoisted(() => ({
     studentCompetencySnapshot: {
       findFirst: vi.fn(),
     },
+    knowledgeNode: {
+      findMany: vi.fn(),
+    },
   },
 }));
 
@@ -32,10 +35,16 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-vi.mock('@/lib/data-governance/adaptive-learner-state-service', () => ({
-  isAdaptiveLearnerStateServiceEnabled: mocks.isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
-}));
+vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/data-governance/adaptive-learner-state-service')>(
+    '@/lib/data-governance/adaptive-learner-state-service',
+  );
+  return {
+    ...actual,
+    isAdaptiveLearnerStateServiceEnabled: mocks.isAdaptiveLearnerStateServiceEnabled,
+    readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
+  };
+});
 
 import { GET } from '@/app/api/ai/konling-context/route';
 
@@ -71,6 +80,7 @@ describe('Konling context route learner-state integration', () => {
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue({
       competencyVector: { controlModeling: { score: 72 } },
     });
+    mocks.prisma.knowledgeNode.findMany.mockResolvedValue([]);
     mocks.prisma.class.findUnique.mockResolvedValue({
       id: 'class-1',
       teacherId: 'teacher-1',
@@ -185,5 +195,152 @@ describe('Konling context route learner-state integration', () => {
 
     expect(response.status).toBe(403);
     expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+  });
+
+  it('returns server-owned knowledge workspace context for a selected resource node', async () => {
+    mocks.prisma.knowledgeNode.findMany.mockResolvedValue([
+      {
+        id: 'node-second-order',
+        name: '二阶系统标准型',
+        nodeType: 'THEORY',
+        description: '二阶系统传递函数标准形式',
+        metadata: { chapterName: '时域分析' },
+        knowledgeDim: 'CONCEPTUAL',
+        tags: ['二阶系统', '标准型'],
+      },
+    ]);
+
+    const response = await request(
+      'http://localhost/api/ai/konling-context?pageId=/knowledge&selectedNodeId=node-second-order&activeFilters=关系%202/6&densityMode=focused&viewMode=2D&visibleRelationCount=7&selectedNodeRelationCount=3'
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.knowledgeNode.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          isActive: true,
+          id: { in: ['node-second-order'] },
+        },
+      }),
+    );
+    expect(body.knowledge_workspace_context).toMatchObject({
+      source: 'server-owned',
+      route: '/knowledge',
+      status: 'selected-node',
+      selected_node: {
+        id: 'node-second-order',
+        name: '二阶系统标准型',
+        node_type: 'THEORY',
+        chapter: '时域分析',
+      },
+      relation_summary: {
+        density_mode: 'focused',
+        view_mode: '2D',
+        active_filters: ['关系 2/6'],
+        visible_relation_count: 7,
+        selected_node_relation_count: 3,
+      },
+      available_learning_actions: ['open-knowledge-card', 'search-related-resources', 'continue-learning-path'],
+    });
+    expect(body.missing_context).not.toContain('knowledge-workspace-selected-node-missing');
+  });
+
+  it('keeps the legacy selectedRelationCount query parameter compatible', async () => {
+    mocks.prisma.knowledgeNode.findMany.mockResolvedValue([
+      {
+        id: 'node-second-order',
+        name: '二阶系统标准型',
+        nodeType: 'THEORY',
+        description: '二阶系统传递函数标准形式',
+        metadata: { chapterName: '时域分析' },
+        knowledgeDim: 'CONCEPTUAL',
+        tags: ['二阶系统', '标准型'],
+      },
+    ]);
+
+    const response = await request(
+      'http://localhost/api/ai/konling-context?pageId=/knowledge&selectedNodeId=node-second-order&selectedRelationCount=5'
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.knowledge_workspace_context.relation_summary.selected_node_relation_count).toBe(5);
+  });
+
+  it('keeps degraded requested knowledge nodes unresolved instead of upgrading them to selected context', async () => {
+    mocks.prisma.knowledgeNode.findMany.mockResolvedValue([
+      {
+        id: 'node-second-order',
+        name: '二阶系统标准型',
+        nodeType: 'THEORY',
+        description: '二阶系统传递函数标准形式',
+        metadata: { chapterName: '时域分析' },
+        knowledgeDim: 'CONCEPTUAL',
+        tags: ['二阶系统', '标准型'],
+      },
+    ]);
+
+    const response = await request(
+      'http://localhost/api/ai/konling-context?pageId=/knowledge&requestedNodeId=node-second-order&status=degraded'
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.knowledgeNode.findMany).not.toHaveBeenCalled();
+    expect(body.knowledge_workspace_context).toMatchObject({
+      source: 'server-owned',
+      route: '/knowledge',
+      status: 'degraded',
+      selected_node: null,
+    });
+    expect(body.missing_context).toContain('knowledge-workspace-selected-node-unresolved');
+  });
+
+  it('keeps contradictory degraded selected-node hints unresolved', async () => {
+    mocks.prisma.knowledgeNode.findMany.mockResolvedValue([
+      {
+        id: 'node-second-order',
+        name: '二阶系统标准型',
+        nodeType: 'THEORY',
+        description: '二阶系统传递函数标准形式',
+        metadata: { chapterName: '时域分析' },
+        knowledgeDim: 'CONCEPTUAL',
+        tags: ['二阶系统', '标准型'],
+      },
+    ]);
+
+    const response = await request(
+      'http://localhost/api/ai/konling-context?pageId=/knowledge&selectedNodeId=node-second-order&status=degraded'
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.knowledgeNode.findMany).not.toHaveBeenCalled();
+    expect(body.knowledge_workspace_context).toMatchObject({
+      source: 'server-owned',
+      route: '/knowledge',
+      status: 'degraded',
+      selected_node: null,
+    });
+    expect(body.missing_context).toContain('knowledge-workspace-selected-node-unresolved');
+  });
+
+  it('keeps hover previews out of durable knowledge workspace context', async () => {
+    const response = await request(
+      'http://localhost/api/ai/konling-context?pageId=/knowledge&hoveredNodeId=node-hover&activeFilters=未启用额外筛选'
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.knowledgeNode.findMany).not.toHaveBeenCalled();
+    expect(body.knowledge_workspace_context).toMatchObject({
+      source: 'server-owned',
+      route: '/knowledge',
+      status: 'no-selection',
+      selected_node: null,
+      hover_policy: 'preview-only-not-durable-context',
+    });
+    expect(body.missing_context).toContain('knowledge-workspace-selected-node-missing');
   });
 });

@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Radar,
@@ -23,13 +23,17 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  LineChart,
-  Line,
   Cell,
 } from 'recharts';
+import { AppShell } from '@/components/platform/app-shell';
 import { UserMenu } from '@/components/shared/user-menu';
+import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
+import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
+import { buildFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
 import { getCompetencyLabel, COMPETENCY_DIMENSIONS } from '@/lib/data-governance/competency-model';
 import type { CompetencyVector, TrendVector } from '@/lib/data-governance/competency-model';
+import type { RoleBasedLearningDiagnosis } from '@/lib/data-governance/role-based-learning-diagnosis';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
 interface EvidenceSummaryItem {
@@ -41,7 +45,7 @@ interface EvidenceSummaryItem {
   questionSummaries?: Array<{
     questionId?: string;
     prompt?: string;
-    studentAnswer?: string | null;
+    studentAnswerRedacted?: boolean;
     referenceAnswer?: string;
     isCorrect?: boolean;
   }>;
@@ -67,6 +71,7 @@ interface GrowthSnapshotData {
     actionUrl?: string;
     priority: number;
   }>;
+  diagnosis: RoleBasedLearningDiagnosis;
 }
 
 interface GrowthRecord {
@@ -79,8 +84,16 @@ interface GrowthRecord {
   icon: string;
 }
 
+interface GroupedGrowthRecord extends GrowthRecord {
+  groupedCount?: number;
+  groupedRecordIds?: string[];
+}
+
+const learnerDataShell = buildLearnerDataRouteShell('/profile/growth');
+
 export default function GrowthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const sessionData = useSession();
   const session = sessionData?.data;
   const status = sessionData?.status ?? 'loading';
@@ -94,6 +107,7 @@ export default function GrowthPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const [snapshotRes, recordsRes] = await Promise.all([
         fetch(`/api/student/competency-snapshot?timeRange=${timeRange}`),
         fetch('/api/student/growth-records?limit=10'),
@@ -110,6 +124,7 @@ export default function GrowthPage() {
 
       setSnapshot(snapshotData);
       setGrowthRecords(recordsData.records || []);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
@@ -129,7 +144,13 @@ export default function GrowthPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="wait-for-growth"
+      >
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
           <p className="text-subtle">加载成长数据...</p>
@@ -140,7 +161,13 @@ export default function GrowthPage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="login"
+      >
         <div className="text-center">
           <p className="text-xl text-subtle">请先登录</p>
           <Link href="/login" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
@@ -153,10 +180,16 @@ export default function GrowthPage() {
 
   if (error) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="retry-growth"
+      >
         <div className="text-center">
           <p className="text-xl text-red-500">{error}</p>
-          <button onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+          <button type="button" onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
         </div>
@@ -191,43 +224,57 @@ export default function GrowthPage() {
         trend: snapshot?.trendVector?.[dim] || 'stable',
       }))
     : [];
+  const hasCompetencyChartData = (snapshot?.currentSnapshot?.factCount ?? 0) > 0
+    && barData.some((entry) => entry.score > 0 || entry.confidence > 0);
+  const groupedGrowthRecords = groupGrowthTimelineRecords(growthRecords);
+  const feedbackContext = buildFeedbackTaskContext({
+    assignment: searchParams.get('assignment'),
+    criterion: searchParams.get('criterion'),
+    source: searchParams.get('source'),
+    feedbackSource: searchParams.get('feedbackSource'),
+    status: searchParams.get('status'),
+    action: searchParams.get('action'),
+    returnTo: searchParams.get('returnTo'),
+    intent: searchParams.get('intent'),
+  });
 
   return (
-    <div className="surface-page">
-      {/* Header */}
-      <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/profile" className="text-subtle transition hover:text-foreground">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </Link>
-            <h1 className="text-xl font-bold text-foreground">我的成长中枢</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Time Range Selector */}
-            <div className="flex rounded-lg bg-accent/50 p-1">
-              {(['7d', '30d', '90d'] as const).map((range) => (
-                <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`rounded-md px-3 py-1 text-sm transition ${
-                    timeRange === range
-                      ? 'bg-amber-500 text-white'
-                      : 'text-subtle hover:text-foreground'
-                  }`}
-                >
-                  {range === '7d' ? '近7天' : range === '30d' ? '近30天' : '近90天'}
-                </button>
-              ))}
-            </div>
-            <UserMenu user={{ name: session?.user?.name, email: session?.user?.email, role: session?.user?.role }} />
-          </div>
+    <AppShell
+      viewerRole="student"
+      title="成长中枢"
+      subtitle="能力趋势、证据覆盖与下一步路径"
+      activeHref="/profile/growth"
+      actions={(
+        <div className="flex rounded-lg bg-platform-action-subtle p-1">
+          {(['7d', '30d', '90d'] as const).map((range) => (
+            <button type="button"
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={`rounded-md px-3 py-1 text-sm transition ${
+                timeRange === range
+                  ? 'bg-platform-action-primary text-platform-canvas'
+                  : 'text-platform-fg-secondary hover:text-platform-fg-primary'
+              }`}
+            >
+              {range === '7d' ? '近7天' : range === '30d' ? '近30天' : '近90天'}
+            </button>
+          ))}
         </div>
-      </header>
-
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      )}
+      userMenu={<UserMenu user={{ name: session?.user?.name, email: session?.user?.email, role: session?.user?.role }} />}
+      className="surface-page"
+    >
+      <section
+      data-route-family={learnerDataShell.routeFamily}
+      data-route-identity={learnerDataShell.routeIdentity}
+      data-learner-record-surface={learnerDataShell.archetype}
+    >
+      <div
+        data-learner-record-priority="evidence-timeline"
+        data-learner-record-evidence-confidence={hasCompetencyChartData ? 'medium' : 'low'}
+        data-learner-record-missing-source={hasCompetencyChartData ? 'complete' : 'missing-evidence'}
+      >
+        <StudentFeedbackTaskPanel context={feedbackContext} surface="growth" className="mb-6" />
         {/* Top Cards */}
         <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* Learning Stage Card */}
@@ -316,97 +363,128 @@ export default function GrowthPage() {
           </div>
         </div>
 
+        <div className="mb-8">
+          <DiagnosisSurfacePanel
+            diagnosis={snapshot?.diagnosis}
+            mode="student"
+            title="控制校正个人诊断"
+            description="把诊断快照转化为学生可理解的维度状态、证据引用和下一步行动。"
+          />
+        </div>
+
         {/* Middle Section - Competency Overview */}
         <div className="mb-8 grid gap-6 lg:grid-cols-2">
           {/* Radar Chart */}
-          <div className="surface-card p-6">
+          <div className="surface-card min-w-0 p-6">
             <h3 className="mb-4 text-lg font-semibold text-foreground">能力雷达</h3>
-            <div className="h-[320px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                  <PolarGrid stroke="currentColor" strokeOpacity={0.2} />
-                  <PolarAngleAxis
-                    dataKey="dimension"
-                    tick={{ fill: 'currentColor', fontSize: 12 }}
-                    tickLine={{ stroke: 'currentColor', strokeOpacity: 0.3 }}
-                  />
-                  <PolarRadiusAxis
-                    angle={90}
-                    domain={[0, 100]}
-                    tick={{ fill: 'currentColor', fontSize: 10, opacity: 0.7 }}
-                    tickCount={5}
-                    axisLine={{ stroke: 'currentColor', strokeOpacity: 0.3 }}
-                  />
-                  <Radar
-                    name="能力评分"
-                    dataKey="score"
-                    stroke="#f59e0b"
-                    fill="#f59e0b"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
-                  />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const item = payload[0].payload;
-                        return (
-                          <div className="surface-card border p-3 shadow-lg">
-                            <p className="font-medium text-amber-500">{item.fullDimension}</p>
-                            <p className="text-2xl font-bold">{item.score}</p>
-                            <p className="mt-1 text-xs text-subtle">
-                              趋势: {item.trend === 'up' ? '上升' : item.trend === 'down' ? '下降' : '稳定'}
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
+            {hasCompetencyChartData ? (
+              <div className="h-[320px] min-h-[320px] min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                    <PolarGrid stroke="currentColor" strokeOpacity={0.2} />
+                    <PolarAngleAxis
+                      dataKey="dimension"
+                      tick={{ fill: 'currentColor', fontSize: 12 }}
+                      tickLine={{ stroke: 'currentColor', strokeOpacity: 0.3 }}
+                    />
+                    <PolarRadiusAxis
+                      angle={90}
+                      domain={[0, 100]}
+                      tick={{ fill: 'currentColor', fontSize: 10, opacity: 0.7 }}
+                      tickCount={5}
+                      axisLine={{ stroke: 'currentColor', strokeOpacity: 0.3 }}
+                    />
+                    <Radar
+                      name="能力评分"
+                      dataKey="score"
+                      stroke="#f59e0b"
+                      fill="#f59e0b"
+                      fillOpacity={0.3}
+                      strokeWidth={2}
+                    />
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const item = payload[0].payload;
+                          return (
+                            <div className="surface-card border p-3 shadow-lg">
+                              <p className="font-medium text-amber-500">{item.fullDimension}</p>
+                              <p className="text-2xl font-bold">{item.score}</p>
+                              <p className="mt-1 text-xs text-subtle">
+                                趋势: {item.trend === 'up' ? '上升' : item.trend === 'down' ? '下降' : '稳定'}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex min-h-[320px] min-w-0 flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/30 p-6 text-center">
+                <p className="text-sm text-subtle">暂无足够证据生成能力雷达。</p>
+                <Link
+                  href="/assessment/adaptive-practice?intent=practice"
+                  className="btn-ghost-themed mt-4 rounded-lg px-4 py-2 text-sm"
+                  data-learner-record-next-action="adaptive-practice"
+                >
+                  开始练习
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Bar Chart */}
-          <div className="surface-card p-6">
+          <div className="surface-card min-w-0 p-6">
             <h3 className="mb-4 text-lg font-semibold text-foreground">能力详情</h3>
-            <div className="h-[320px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barData} layout="vertical" margin={{ left: 80 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
-                  <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
-                  <YAxis
-                    type="category"
-                    dataKey="dimension"
-                    tick={{ fontSize: 11 }}
-                    width={75}
-                  />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const item = payload[0].payload;
-                        return (
-                          <div className="surface-card border p-3 shadow-lg">
-                            <p className="font-medium">{item.dimension}</p>
-                            <p className="text-lg font-bold text-amber-500">{item.score} 分</p>
-                            <p className="text-xs text-subtle">置信度: {item.confidence}%</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar dataKey="score" radius={[0, 4, 4, 0]}>
-                    {barData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.score >= 75 ? '#22c55e' : entry.score >= 55 ? '#f59e0b' : '#ef4444'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {hasCompetencyChartData ? (
+              <div className="h-[320px] min-h-[320px] min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData} layout="vertical" margin={{ left: 80 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
+                    <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
+                    <YAxis
+                      type="category"
+                      dataKey="dimension"
+                      tick={{ fontSize: 11 }}
+                      width={75}
+                    />
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const item = payload[0].payload;
+                          return (
+                            <div className="surface-card border p-3 shadow-lg">
+                              <p className="font-medium">{item.dimension}</p>
+                              <p className="text-lg font-bold text-amber-500">{item.score} 分</p>
+                              <p className="text-xs text-subtle">置信度: {item.confidence}%</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="score" radius={[0, 4, 4, 0]}>
+                      {barData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.score >= 75 ? '#22c55e' : entry.score >= 55 ? '#f59e0b' : '#ef4444'}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex min-h-[320px] min-w-0 flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/30 p-6 text-center">
+                <p className="text-sm text-subtle">暂无足够证据生成能力详情。</p>
+                <Link href="/profile/evidence" className="btn-ghost-themed mt-4 rounded-lg px-4 py-2 text-sm">
+                  查看证据
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
@@ -516,7 +594,7 @@ export default function GrowthPage() {
         {/* Growth Timeline */}
         <div className="mb-8">
           <h3 className="mb-4 text-lg font-semibold text-foreground">成长档案时间线</h3>
-          {growthRecords.length === 0 ? (
+          {groupedGrowthRecords.length === 0 ? (
             <div className="surface-card-soft p-8 text-center">
               <p className="text-subtle">暂无成长记录，开始学习之旅吧！</p>
               <Link href="/missions" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
@@ -525,7 +603,7 @@ export default function GrowthPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {growthRecords.slice(0, 10).map((record, index) => (
+              {groupedGrowthRecords.slice(0, 10).map((record, index) => (
                 <div key={record.id} className="flex gap-4">
                   {/* Timeline Line */}
                   <div className="flex flex-col items-center">
@@ -573,7 +651,7 @@ export default function GrowthPage() {
                         </svg>
                       )}
                     </div>
-                    {index < growthRecords.length - 1 && (
+                    {index < groupedGrowthRecords.length - 1 && (
                       <div className="mt-2 h-full w-px bg-accent" />
                     )}
                   </div>
@@ -584,6 +662,9 @@ export default function GrowthPage() {
                       <div>
                         <p className="font-medium text-foreground">{record.title}</p>
                         <p className="mt-1 text-sm text-subtle">{record.description}</p>
+                        {record.groupedCount && record.groupedCount > 1 ? (
+                          <p className="mt-2 text-xs text-subtle">重复记录 {record.groupedCount} 条已合并显示</p>
+                        ) : null}
                       </div>
                       <span className="text-xs text-subtle">
                         {formatRelativeDate(record.date)}
@@ -621,7 +702,7 @@ export default function GrowthPage() {
                         )}
                         {item.questionSummaries?.slice(0, 2).map((question, questionIndex) => (
                           <p key={`${question.questionId ?? questionIndex}`} className="mt-2 text-xs text-subtle">
-                            {question.prompt ?? question.questionId ?? '题目'}：作答 {question.studentAnswer ?? '未作答'}
+                            {question.prompt ?? question.questionId ?? '题目'}：{question.studentAnswerRedacted ? '作答已脱敏' : '未记录作答'}
                             {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
                             {typeof question.isCorrect === 'boolean' ? `，${question.isCorrect ? '正确' : '需修正'}` : ''}
                           </p>
@@ -634,9 +715,54 @@ export default function GrowthPage() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+      </section>
+    </AppShell>
   );
+}
+
+function groupGrowthTimelineRecords(records: GrowthRecord[]): GroupedGrowthRecord[] {
+  const groupedRecords: GroupedGrowthRecord[] = [];
+  let index = 0;
+
+  while (index < records.length) {
+    const record = records[index];
+    const key = lowSignalGrowthRecordKey(record);
+    if (!key) {
+      groupedRecords.push(record);
+      index += 1;
+      continue;
+    }
+
+    const group = [record];
+    let nextIndex = index + 1;
+    while (nextIndex < records.length && lowSignalGrowthRecordKey(records[nextIndex]) === key) {
+      group.push(records[nextIndex]);
+      nextIndex += 1;
+    }
+
+    if (group.length <= 1) {
+      groupedRecords.push(record);
+      index = nextIndex;
+      continue;
+    }
+
+    groupedRecords.push({
+      ...record,
+      title: record.title,
+      description: `${record.description}（同类低信号记录已折叠）`,
+      groupedCount: group.length,
+      groupedRecordIds: group.map((entry) => entry.id),
+    });
+    index = nextIndex;
+  }
+
+  return groupedRecords;
+}
+
+function lowSignalGrowthRecordKey(record: GrowthRecord): string | null {
+  if (record.type !== 'risk_resolved' && record.type !== 'competency_evaluation') return null;
+  return [record.type, record.title, record.description].join('|');
 }
 
 function formatRelativeDate(dateStr: string): string {

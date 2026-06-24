@@ -1,0 +1,1889 @@
+lesson_id: 1-1
+title: 看见整门课：从反馈思想到控制全景
+total_steps: 15
+steps:
+  step-01:
+    title: 看见整门课
+    template: import
+    lecture_section: §一 + 模块1总览
+    preview:
+      student: /class/1-1/1
+      teacher: /class/1-1/1/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: cover
+      - order: 3
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 看见整门课
+        subtitle: 从反馈思想到控制全景
+        text: 整门课最快的一遍遍历——用同一条船，90 分钟把自动控制原理的全部核心主题走一遍。每个主题回答三个问题：它解决什么？核心想法是什么？如果用代码表达，一行够不够？
+      id: step-01-layout-support-01
+    - kind: content.figure
+      region: cover
+      order: 2
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-cover-comic.png
+        caption: 船舶驾驶台视角，前方海面，仪表盘显示航向偏差
+        width: full
+      id: step-01-content-figure-02
+    - kind: content.rich
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        block_key: step1_question
+        text: 当环境不断变化时，怎样让一个真实系统持续朝着期望状态工作？
+        style: pullquote
+      id: step-01-content-rich-03
+    - kind: content.stageMap
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        block_key: step1_stages
+        current: 1-1
+        items:
+        - id: 1-1
+          title: 看见整门课——从反馈思想到控制全景
+          status: current
+        - id: 1-2
+          title: 模型与极点——系统行为的第一张地图
+          status: upcoming
+        - id: 1-3
+          title: 根轨迹与时域——参数变化如何改写系统响应
+          status: upcoming
+        - id: 1-4
+          title: 时域与频域——同一个系统在两条时间轴上的表现
+          status: upcoming
+        - id: 1-5
+          title: 平台初体验——三域联动的第一次亲手操作
+          status: upcoming
+      id: step-01-content-stagemap-04
+    content_blocks:
+      step1_question:
+        text: 当环境不断变化时，怎样让一个真实系统持续朝着期望状态工作？
+        style: pullquote
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
+    student_default: all_visible
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 看见整门课
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/1
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: not_applicable
+      answer_visibility: not_applicable
+  step-02:
+    title: 本次课程目标
+    template: objectives
+    lecture_section: null
+    preview:
+      student: /class/1-1/2
+      teacher: /class/1-1/2/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 本次课程目标
+        subtitle: 完成本次课程后，我们能够——
+        text: 完成本次课程后，我们能够——
+      id: step-02-layout-support-01
+    - kind: content.cardSet
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        block_key: step2_goals
+        cards:
+        - text: 用一条船为贯穿对象，说出自动控制原理的全部核心主题及其各自回答的问题
+        - text: 解释反馈是什么，区分开环控制和闭环控制
+        - text: 说出六个核心函数的名称和用途（tf、step、rlocus、bode、margin、feedback）
+        - text: 在 MATLAB/Octave 中运行闪电速通完整代码
+        - text: 对照课程地图，说出后续五个模块各自的追问主线
+      id: step-02-content-cardset-02
+    content_blocks:
+      step2_goals:
+        cards:
+        - text: 用一条船为贯穿对象，说出自动控制原理的全部核心主题及其各自回答的问题
+        - text: 解释反馈是什么，区分开环控制和闭环控制
+        - text: 说出六个核心函数的名称和用途（tf、step、rlocus、bode、margin、feedback）
+        - text: 在 MATLAB/Octave 中运行闪电速通完整代码
+        - text: 对照课程地图，说出后续五个模块各自的追问主线
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
+    student_default: all_visible
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 本次课程目标
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/2
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: not_applicable
+      answer_visibility: not_applicable
+  step-03:
+    title: 前测——基础概念与数学准备
+    template: pre_test
+    lecture_section: null
+    preview:
+      student: /class/1-1/3
+      teacher: /class/1-1/3/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+      - order: 3
+        id: activity
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 前测——基础概念与数学准备
+        subtitle: 以下题目检查你已有的直觉和基础，不考察本课将讲的新概念。
+        text: 以下题目检查你已有的直觉和基础，不考察本课将讲的新概念。
+      id: step-03-layout-support-01
+    - kind: activity.panel
+      region: activity
+      order: 2
+      must_be_visible: true
+      payload:
+        interaction_key: pre_test
+      id: step-03-activity-panel-02
+    interaction_spec:
+      activity_cards:
+      - id: pre_q1
+        prompt: 在“输入电压 u(t) → 电机 → 输出转速 y(t)”这个关系中，哪一个量是输出？
+        response_kind: choice.single
+        options:
+        - key: A
+          text: 输入电压 u(t)
+        - key: B
+          text: 输出转速 y(t)
+        - key: C
+          text: 时间常数 τ
+        - key: D
+          text: 增益 K
+        reference_answer: B
+        submit_scope: per_card
+        explanation: 进入本课前只需要能识别输入和输出；后续传递函数会把这种输入-输出关系写成 G(s)。
+      - id: pre_q2
+        prompt: 如果一辆车只在上高速时打一次方向盘角度，之后不再调整，它能够一直保持在车道中心。
+        response_kind: choice.binary
+        options:
+        - key: T
+          text: 正确
+        - key: F
+          text: 错误
+        reference_answer: F
+        reveal_answer: 风、路面变化会让车逐渐偏离，需要持续修正
+        submit_scope: per_card
+      - id: pre_q3
+        prompt: 一个量随时间变化的快慢，在数学中通常用什么来描述？
+        response_kind: choice.single
+        options:
+        - key: A
+          text: 这个量本身的大小
+        - key: B
+          text: 这个量的变化率（导数）
+        - key: C
+          text: 这个量的平方
+        - key: D
+          text: 这个量的平均值
+        reference_answer: B
+        submit_scope: per_card
+      interaction_kind: activity_card_set
+    content_blocks: {}
+    teacher_controls:
+      open_browse: enabled
+      release_activity: teacher_controlled
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: per_card_after_submit
+      release_submission: true
+      view_class_distribution: true
+    student_default: questions_visible_submission_locked
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 前测——基础概念与数学准备
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/3
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    student_access:
+      browse_default: open
+      activity_default: locked_until_teacher_release
+      reveal_default: not_applicable
+      answer_visibility: after_own_submission
+  step-04:
+    title: 开环诊断的七个问题
+    template: content_only
+    lecture_section: §二·一条船，八个问题
+    preview:
+      student: /class/1-1/4
+      teacher: /class/1-1/4/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 开环诊断的七个问题
+        subtitle: 先把对象看清楚，再讨论怎样干预它
+        text: 本页把前七个问题组织成一条开环诊断路线：模型、结构、时域、指标、稳定、根轨迹、频域。完成这条路线后，反馈与校正才有明确对象。
+      id: step-04-layout-support-01
+    - kind: content.rich
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        block_key: step4_intro
+      id: step-04-content-rich-02
+    - kind: content.stageMap
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        block_key: step4_diagnosis_stages
+        current: modeling
+        stages:
+        - id: modeling
+          label: 写出模型
+          status: current
+        - id: structure
+          label: 画出结构
+          status: upcoming
+        - id: time
+          label: 读时域响应
+          status: upcoming
+        - id: score
+          label: 提取指标
+          status: upcoming
+        - id: stability
+          label: 判断稳定
+          status: upcoming
+        - id: root-locus
+          label: 扫描增益影响
+          status: upcoming
+        - id: frequency
+          label: 读频域响应
+          status: upcoming
+      id: step-04-content-stagemap-03
+    - kind: content.cardSet
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        block_key: step4_questions
+      id: step-04-content-cardset-04
+    content_blocks:
+      step4_intro:
+        text: 这条船需要保持航向，但在动手设计控制器之前，必须先完成开环诊断：对象怎么写、结构怎么画、响应怎么看、指标怎么读、稳定怎么判、参数影响怎么扫、频域证据怎么解释。
+      step4_questions:
+        cards:
+        - text: 问题一：怎样把这条船写成可以分析的对象？
+        - text: 问题二：怎样表达这条船内部的信息流？
+        - text: 问题三：这条船被推了一下之后，会怎样运动？
+        - text: 问题四：怎么给系统的表现打个分？
+        - text: 问题五：这条船会不会失控？
+        - text: 问题六：如果拧大增益，极点会往哪儿跑？
+        - text: 问题七：这条船对不同节奏的扰动，态度一样吗？
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
+    student_default: all_visible
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: not_applicable
+      answer_visibility: not_applicable
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 开环诊断的七个问题
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/4
+    acceptance_checks:
+    - 步骤 4 只定位开环诊断路线，不提前讲反馈与闭环校正。
+    - 七个问题均能在步骤 5-8 找到后续落页。
+  step-05:
+    title: 建模与结构表达
+    template: content_only
+    lecture_section: §二·问题一~二
+    preview:
+      student: /class/1-1/5
+      teacher: /class/1-1/5/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 建模与结构表达
+        subtitle: 先用一阶电机看清建模语言，再把结构表达迁移到船舶航向对象
+        text: 先用一阶电机看清建模语言，再把结构表达迁移到船舶航向对象
+      id: step-05-layout-support-01
+    - kind: content.rich
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        block_key: step5_intro
+      id: step-05-content-rich-02
+    - kind: content.formula
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        block_key: step5_de
+      id: step-05-content-formula-03
+    - kind: content.rich
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        block_key: step5_tf_motivation
+      id: step-05-content-rich-04
+    - kind: content.formula
+      region: content
+      order: 5
+      must_be_visible: true
+      payload:
+        block_key: step5_tf
+      id: step-05-content-formula-05
+    - kind: content.code
+      region: content
+      order: 6
+      must_be_visible: true
+      payload:
+        block_key: step5_code
+      id: step-05-content-code-06
+    - kind: content.figure
+      region: content
+      order: 7
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-block-diagram-basic.png
+        caption: 基本控制系统结构要素——比较点、决策环节、执行器、被控对象、传感器
+      id: step-05-content-figure-07
+    - kind: content.cardSet
+      region: content
+      order: 8
+      must_be_visible: true
+      payload:
+        block_key: step5_roles
+      id: step-05-content-cardset-08
+    content_blocks:
+      step5_intro:
+        text: 这条船需要自动保持航向。风浪推偏它，海流带偏它。为了先看清建模语言，本页先用一阶电机作为最小模型例子：输入电压 u(t)，输出转速 y(t)。同一套“输入—执行—对象—输出—测量”的结构要素，随后迁移回船舶航向对象。
+      step5_de:
+        formula: \tau\dot{y}(t)+y(t)=Ku(t)
+        symbols:
+        - symbol: \tau
+          meaning: 时间常数
+        - symbol: K
+          meaning: 增益
+        - symbol: u(t)
+          meaning: 输入电压
+        - symbol: y(t)
+          meaning: 输出转速
+        explanation: 输入电压同时驱动了转速和转速的变化率——两者的贡献由 τ 决定权重。
+      step5_tf_motivation:
+        text: 微分方程直观，但多个环节串联时求解笨重。传递函数提供了等价的代数语言。
+      step5_tf:
+        formula: G(s)=\frac{Y(s)}{U(s)}=\frac{K}{\tau s+1}
+        symbols:
+        - symbol: s
+          meaning: 复变量
+        - symbol: Y(s)
+          meaning: 输出在变换域中的表示
+        - symbol: U(s)
+          meaning: 输入在变换域中的表示
+      step5_code:
+        code: 'K = 1;  tau = 0.5;
+
+          G = tf(K, [tau 1]);   % G(s)=K/(tau*s+1)'
+        language: matlab
+      step5_roles:
+        cards:
+        - text: 决策环节——把目标要求转化为作用量
+        - text: 执行器——把控制量变成物理作用，比如舵角、电压或阀门开度
+        - text: 被控对象——被作用并产生输出的过程，比如船体、电机或炉温系统
+        - text: 传感器——采集输出信息
+        - text: 比较点——把目标量和测量量放到同一坐标中
+        - text: 结构迁移——船舶航向对象的输入可以是舵角或推进控制量，输出可以是航向角或横向偏差；数学阶次会更高，但结构要素相同
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
+    student_default: all_visible
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 建模与结构表达
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/5
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    - 一阶电机最小模型与船舶航向对象的结构迁移关系已显式说明，不能把两者混作同一个物理模型。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: not_applicable
+      answer_visibility: not_applicable
+  step-06:
+    title: 时域响应与性能指标
+    template: content_only
+    lecture_section: §二·问题三~四
+    preview:
+      student: /class/1-1/6
+      teacher: /class/1-1/6/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 时域响应与性能指标
+        subtitle: 给系统一个突然的输入，看它怎么反应——然后给它的表现打分
+        text: 给系统一个突然的输入，看它怎么反应——然后给它的表现打分
+      id: step-06-layout-support-01
+    - kind: content.rich
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        block_key: step6_intro
+      id: step-06-content-rich-02
+    - kind: content.formula
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        block_key: step6_modal
+      id: step-06-content-formula-03
+    - kind: content.rich
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        block_key: step6_pole_link
+      id: step-06-content-rich-04
+    - kind: content.code
+      region: content
+      order: 5
+      must_be_visible: true
+      payload:
+        block_key: step6_step_code
+      id: step-06-content-code-05
+    - kind: content.figure
+      region: content
+      order: 6
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-step-response-first-order.png
+        caption: 一阶惯性环节的阶跃响应——标注时间常数 τ 和稳态值 K
+      id: step-06-content-figure-06
+    - kind: content.cardSet
+      region: content
+      order: 7
+      must_be_visible: true
+      payload:
+        block_key: step6_indicators
+      id: step-06-content-cardset-07
+    - kind: content.rich
+      region: content
+      order: 8
+      must_be_visible: true
+      payload:
+        block_key: step6_stepinfo
+      id: step-06-content-rich-08
+    content_blocks:
+      step6_intro:
+        text: 有了模型，第一件事是看看这个对象自己是什么脾气。工程上最常用的测试方法：给一个突然的输入，看输出怎么响应。
+      step6_modal:
+        formula: e^{\sigma t}\sin(\omega t)
+        symbols:
+        - symbol: \sigma
+          meaning: 衰减/放大趋势（极点的实部）
+        - symbol: \omega
+          meaning: 摆动快慢（极点的虚部）
+      step6_pole_link:
+        text: σ 和 ω 来自传递函数分母中解出的极点——极点是系统行为最早的暴露者。极点在复平面上的位置，几乎决定了系统的全部主要动态特征。
+      step6_step_code:
+        code: step(G);   % 给系统一个单位阶跃输入，观察输出随时间变化
+        language: matlab
+      step6_indicators:
+        cards:
+        - text: 超调量 Mp——响应冲过目标多少，代表系统的冒进程度
+        - text: 调节时间 ts——多久之后稳定在目标附近，代表系统的利落程度
+        - text: 上升时间 tr——起步有多快，代表系统的响应速度
+      step6_stepinfo:
+        text: MATLAB 可用 stepinfo(G) 从阶跃响应曲线中直接提取这些数值指标。Octave 的 control 包通常不提供 stepinfo，需要先画出阶跃响应，再由脚本读图计算。
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
+    student_default: all_visible
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 时域响应与性能指标
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/6
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    - 本页是 1-1 闪电速通静态诊断页，不升级 compute.panel；互动图形留给后续模型与三域联动课。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: not_applicable
+      answer_visibility: not_applicable
+  step-07:
+    title: 稳定性与根轨迹
+    template: content_only
+    lecture_section: §二·问题五~六
+    preview:
+      student: /class/1-1/7
+      teacher: /class/1-1/7/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 稳定性与根轨迹
+        subtitle: 系统会不会失控？如果拧大增益，极点会往哪儿跑？
+        text: 系统会不会失控？如果拧大增益，极点会往哪儿跑？
+      id: step-07-layout-support-01
+    - kind: content.rich
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        block_key: step7_pole_recap
+      id: step-07-content-rich-02
+    - kind: content.rich
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        block_key: step7_stability
+      id: step-07-content-rich-03
+    - kind: content.code
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        block_key: step7_isstable
+      id: step-07-content-code-04
+    - kind: content.rich
+      region: content
+      order: 5
+      must_be_visible: true
+      payload:
+        block_key: step7_routh_preview
+      id: step-07-content-rich-08
+    - kind: content.rich
+      region: content
+      order: 6
+      must_be_visible: true
+      payload:
+        block_key: step7_rlocus_motive
+      id: step-07-content-rich-05
+    - kind: content.code
+      region: content
+      order: 7
+      must_be_visible: true
+      payload:
+        block_key: step7_rlocus_code
+      id: step-07-content-code-06
+    - kind: content.figure
+      region: content
+      order: 8
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-root-locus-example.png
+        caption: 一阶对象的根轨迹——增益增大时极点从对象极点出发沿实轴向左移动
+      id: step-07-content-figure-07
+    content_blocks:
+      step7_pole_recap:
+        text: 回顾前面的模态公式——σ 和 ω 在复平面上对应的坐标就是极点。一个系统有几个极点，就有几种基本的运动方式。
+      step7_stability:
+        text: 全部极点落在左半平面（σ<0）→ 系统稳定，扰动引起的偏差会逐渐消失。任意极点跑到右半平面（σ>0）→ 对应模态随时间放大，系统失稳。
+      step7_isstable:
+        code: isstable(G)   % 判断系统所有极点是否都位于稳定区域
+        language: matlab
+      step7_rlocus_motive:
+        text: 稳定只是底线。调大增益 K，极点会往哪走？极点移动的方向，直接决定了响应是变快还是更振荡。
+      step7_rlocus_code:
+        code: rlocus(G);   % 绘制极点随增益 K 变化的迁移路径
+        language: matlab
+      step7_routh_preview:
+        text: 高阶系统直接求根困难。劳斯判据提供代数捷径——从特征方程的系数直接判断稳定性。先记住这个入口，再用根轨迹观察增益变化时极点如何移动。
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
+    student_default: all_visible
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 稳定性与根轨迹
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/7
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    - 本页是 1-1 闪电速通静态诊断页，不升级 compute.panel；互动图形留给后续模型与三域联动课。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: not_applicable
+      answer_visibility: not_applicable
+  step-08:
+    title: 频域视角与诊断流程收束
+    template: content_only
+    lecture_section: §二·问题七 + 过渡段
+    preview:
+      student: /class/1-1/8
+      teacher: /class/1-1/8/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 频域视角与诊断流程收束
+        subtitle: 系统对不同节奏的扰动态度一样吗？——七个问题的诊断工具总览
+        text: 系统对不同节奏的扰动态度一样吗？——七个问题的诊断工具总览
+      id: step-08-layout-support-01
+    - kind: content.rich
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        block_key: step8_freq_motive
+      id: step-08-content-rich-02
+    - kind: content.code
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        block_key: step8_bode_code
+      id: step-08-content-code-03
+    - kind: content.figure
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-bode-example.png
+        caption: 一阶惯性环节的 Bode 图——幅频曲线和相频曲线
+      id: step-08-content-figure-04
+    - kind: content.rich
+      region: content
+      order: 5
+      must_be_visible: true
+      payload:
+        block_key: step8_freq_interpret
+      id: step-08-content-rich-05
+    - kind: content.cardSet
+      region: content
+      order: 6
+      must_be_visible: true
+      payload:
+        block_key: step8_pipeline
+      id: step-08-content-cardset-06
+    - kind: content.rich
+      region: content
+      order: 7
+      must_be_visible: true
+      payload:
+        block_key: step8_bridge
+      id: step-08-content-rich-07
+    content_blocks:
+      step8_freq_motive:
+        text: 真实海况中，扰动有节奏——风浪是周期性的，洋流是缓慢变化的。系统对不同频率的输入，态度一样吗？
+      step8_bode_code:
+        code: 'bode(G);    % 绘制幅频与相频曲线
+
+          margin(G);  % 标出增益裕度和相位裕度'
+        language: matlab
+      step8_freq_interpret:
+        text: 慢节奏扰动，系统容易跟上。快节奏扰动，输出幅值削弱，相位滞后。margin 会在 Bode 图上标出增益裕度和相位裕度：裕度越小，增益继续提高或相位继续滞后时越接近失稳边界。频域回答的是“哪些频率的扰动会被放大，哪些会被抑制”，也回答“离振荡风险还有多远”。
+      step8_pipeline:
+        cards:
+        - text: 1. 写出模型（tf）
+        - text: 2. 画出结构（方框图）
+        - text: 3. 测试时域响应（step）
+        - text: 4. 提取性能指标（stepinfo）
+        - text: 5. 判断稳定性（isstable）
+        - text: 6. 扫描参数影响（rlocus）
+        - text: 7. 分析频率特性（bode / margin）
+      step8_bridge:
+        text: 诊断不是终点。你真正想做的是改变系统的行为。下一步要从'看清对象'进入'干预对象'。
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: teacher_controlled_optional_for_pipeline_cards
+      reveal_reference_answer: not_applicable
+      enable_stepwise_reveal: true
+    student_default: all_visible
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 频域视角与诊断流程收束
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/8
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    - Bode / margin 页必须解释增益裕度和相位裕度的基本读图含义。
+    - 本页是 1-1 闪电速通静态诊断页，不升级 compute.panel；互动图形留给后续模型与三域联动课。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: all_visible_unless_teacher_enables_stepwise_pipeline_reveal
+      answer_visibility: not_applicable
+  step-09:
+    title: 反馈与校正——从开环到闭环
+    template: content_with_quiz
+    lecture_section: §三3.1~3.2
+    preview:
+      student: /class/1-1/9
+      teacher: /class/1-1/9/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+      - order: 3
+        id: activity
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 反馈与校正——从诊断到干预
+        subtitle: 先让输出信息回到比较端，再用控制器改写闭环行为
+        text: 先让输出信息回到比较端，再用控制器改写闭环行为
+      id: step-09-layout-support-01
+    - kind: content.rich
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        block_key: step9_intro
+      id: step-09-content-rich-02
+    - kind: content.figure
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-open-loop-block.png
+        caption: 开环控制结构——输入指令直接进入控制动作，没有测量、比较和修正回路
+        explanation: 若系统只按预设动作运行，不使用输出信息修正自己，这是开环控制。
+      id: step-09-content-figure-03
+    - kind: content.figure
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-feedback-loop-block.png
+        caption: 闭环反馈结构——输出经测量环节送回比较端，与期望输出相减得到偏差
+        explanation: 若系统持续测量输出，把测量结果送回比较端，再根据偏差修正动作，这是闭环控制。
+      id: step-09-content-figure-04
+    - kind: content.formula
+      region: content
+      order: 5
+      must_be_visible: true
+      payload:
+        block_key: step9_error_formula
+      id: step-09-content-formula-05
+    - kind: content.rich
+      region: content
+      order: 6
+      must_be_visible: true
+      payload:
+        block_key: step9_feedback_insight
+      id: step-09-content-rich-06
+    - kind: content.rich
+      region: content
+      order: 7
+      must_be_visible: true
+      payload:
+        block_key: step9_p_def
+      id: step-09-content-rich-07
+    - kind: content.formula
+      region: content
+      order: 8
+      must_be_visible: true
+      payload:
+        block_key: step9_C
+      id: step-09-content-formula-08
+    - kind: content.figure
+      region: content
+      order: 9
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-closed-loop-block.png
+        caption: 单位负反馈闭环系统——控制器 C(s) 在前向通道，对象 G(s) 紧随其后，反馈通道 H(s)=1
+      id: step-09-content-figure-09
+    - kind: content.rich
+      region: content
+      order: 10
+      must_be_visible: true
+      payload:
+        block_key: step9_phi_motive
+      id: step-09-content-rich-10
+    - kind: content.formula
+      region: content
+      order: 11
+      must_be_visible: true
+      payload:
+        block_key: step9_phi
+      id: step-09-content-formula-11
+    - kind: content.reveal
+      region: content
+      order: 12
+      must_be_visible: true
+      payload:
+        block_key: step9_derivation
+      id: step-09-content-reveal-12
+    - kind: activity.panel
+      region: activity
+      order: 13
+      must_be_visible: true
+      payload:
+        interaction_key: step9_quiz
+      id: step-09-activity-panel-13
+    content_blocks:
+      step9_intro:
+        text: 前七个问题完成了开环诊断。现在进入干预：如果系统太慢、不能抗扰或稳定裕度不足，就要把输出信息送回比较端，并用控制器改写闭环行为。
+      step9_p_def:
+        text: 最简单的控制器——误差大时用力修正，误差小时轻点修正。这就是比例控制。
+      step9_C:
+        formula: C(s)=K_p
+        symbols:
+        - symbol: K_p
+          meaning: 比例增益
+      step9_phi_motive:
+        text: 把这个控制器串入回路，从参考输入 r(t) 到输出 y(t) 的闭环传递函数变为——
+      step9_phi:
+        formula: \Phi(s)=\frac{C(s)G(s)}{1+C(s)G(s)}
+        symbols:
+        - symbol: \Phi(s)
+          meaning: 闭环传递函数
+      step9_derivation:
+        items:
+        - layer: 1
+          text: 代入 G(s)=1/(0.5s+1)，C(s)=K_p
+        - layer: 2
+          text: Φ(s)=K_p/(0.5s+1+K_p)
+        - layer: 3
+          text: 取 K_p=2，Φ(s)=2/(0.5s+3)=4/(s+6)
+        - layer: 4
+          text: 新系统的极点从原来的 -2 移到了 -6——响应变快，稳态值改变。一阶对象中没有超调；更复杂的二阶对象还会进一步出现振荡。
+      step9_error_formula:
+        formula: e(t)=r(t)-y_m(t)
+        symbols:
+        - symbol: r(t)
+          meaning: 期望输出
+        - symbol: y_m(t)
+          meaning: 测量输出
+        - symbol: e(t)
+          meaning: 误差
+      step9_feedback_insight:
+        text: 反馈把持续比较并修正这个动作内建到系统工作逻辑里。修正的时机、力度或方向不恰当，闭环可能比开环更差，因此必须继续用时域、根轨迹和频域证据核对。
+    interaction_spec:
+      activity_cards:
+      - id: step9_q1
+        prompt: 当 K_p 进入闭环传递函数 Φ(s)=K_pG(s)/(1+K_pG(s)) 后，最直接需要重新观察哪一组证据？
+        response_kind: choice.single
+        options:
+        - key: A
+          text: 只看控制器名称是否改变
+        - key: B
+          text: 重新观察极点位置、时域响应和频域裕度是否同时改变
+        - key: C
+          text: 只看输入信号幅值是否变大
+        - key: D
+          text: 只看代码行数是否减少
+        reference_answer: B
+        submit_scope: per_card
+        reveal_answer: 比例增益进入闭环分母后，极点、时域响应和频域裕度都可能改变，因此不能只停留在控制器定义。
+      interaction_kind: activity_card_set
+    teacher_controls:
+      open_browse: enabled
+      release_activity: teacher_controlled
+      teacher_step_reveal: teacher_controlled
+      reveal_reference_answer: per_card_after_submit
+      answer_reveal_policy: per_card_after_submit
+    student_default: content_visible_derivation_collapsed_quiz_locked
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 反馈与校正——从开环到闭环
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/9
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    - 活动题必须检验 Kp 改写闭环证据链，而不是只复述比例控制定义。
+    student_access:
+      browse_default: open
+      activity_default: locked_until_teacher_release
+      reveal_default: collapsed_until_teacher_release
+      answer_visibility: after_own_submission
+  step-10:
+    title: 三域对比与诊断循环
+    template: content_only
+    lecture_section: §三3.2~3.3
+    preview:
+      student: /class/1-1/10
+      teacher: /class/1-1/10/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 三域对比与诊断循环
+        subtitle: 反馈到底改变了什么？——同一组证据，三张图，一张对照表
+        text: 反馈到底改变了什么？——同一组证据，三张图，一张对照表
+      id: step-10-layout-support-01
+    - kind: content.figure
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-gain-comparison.png
+        caption: 比例反馈校正前后的三域对比——时域、根轨迹和频域同步改变
+      id: step-10-content-figure-02
+    - kind: content.rich
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        block_key: step10_figure_read
+      id: step-10-content-rich-03
+    - kind: content.table
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        block_key: step10_comparison
+      id: step-10-content-table-04
+    - kind: content.rich
+      region: content
+      order: 5
+      must_be_visible: true
+      payload:
+        block_key: step10_cycle
+      id: step-10-content-rich-05
+    - kind: content.rich
+      region: content
+      order: 6
+      must_be_visible: true
+      payload:
+        block_key: step10_conflict
+      id: step-10-content-rich-06
+    content_blocks:
+      step10_figure_read:
+        text: Kp=2 的比例反馈后：阶跃响应更快，闭环极点左移，环路幅频曲线上移。一阶对象中没有超调；更复杂对象中，增益提高还可能压缩相位裕度并带来振荡风险。
+      step10_comparison:
+        columns:
+        - 对比维度
+        - 开环控制
+        - 闭环比例控制（Kp=2）
+        rows:
+        - - 阶跃响应
+          - 可能存在稳态偏差，无修正机制
+          - 偏差持续缩小，响应主动靠近目标
+        - - 抗扰动能力
+          - 扰动直接作用在输出上，无人修正
+          - 扰动产生的偏差被反馈检测到，控制器自动补偿
+        - - 极点位置
+          - 固定（对象的固有极点）
+          - 随 Kp 移动；一阶对象中通常沿实轴移动
+        - - 根轨迹
+          - 不存在——没有可调参数改变极点
+          - Kp 从 0→∞，闭环极点沿固定路径迁移
+        - - 环路开环 Bode 图
+          - 固定
+          - 增益提高后幅频曲线整体上移，穿越频率通常右移
+        - - 稳定裕度
+          - 由对象原始环路决定
+          - 增益提高通常会改变穿越频率；相位裕度可能减小，需要用 margin 重新核对
+      step10_cycle:
+        text: 控制设计的核心循环：诊断 → 加控制器 → 重新诊断 → 比较效果 → 调整控制器 → 再次验证。这个循环你会走几十遍。
+      step10_conflict:
+        text: 响应速度和振荡倾向的此消彼长——后续工具（超前校正、PID、极点配置、优化设计）都在回答同一个问题：怎样在加快响应的同时控制住振荡。
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
+    student_default: all_visible
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 三域对比与诊断循环
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/10
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    - 开闭环对照表必须包含相位裕度可能减小的风险。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: not_applicable
+      answer_visibility: not_applicable
+  step-11:
+    title: 课程地图与学习习惯
+    template: content_only
+    lecture_section: §四 + §五
+    preview:
+      student: /class/1-1/11
+      teacher: /class/1-1/11/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 课程地图与学习习惯
+        subtitle: 五个追问对应五个模块——以及四个让学习更有效率的习惯
+        text: 五个追问对应五个模块——以及四个让学习更有效率的习惯
+      id: step-11-layout-support-01
+    - kind: content.table
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        block_key: step11_map
+      id: step-11-content-table-02
+    - kind: content.formula
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        block_key: step11_formula_chain
+      id: step-11-content-formula-03
+    - kind: content.cardSet
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        block_key: step11_habits
+      id: step-11-content-cardset-04
+    content_blocks:
+      step11_map:
+        columns:
+        - 模块
+        - 要回答的追问
+        - 在闪电速通中你见过了什么
+        rows:
+        - - 模块1 建立框架（10学时）
+          - 这门课在学什么，为什么要这样学
+          - 全部八个问题——用一条船做了一次全遍历
+        - - 模块2 构建语言（8学时）
+          - 怎样把真实对象写成统一的分析对象
+          - 问题一到四——这次补上完整的推导和计算
+        - - 模块3 深入机理（18学时）
+          - 系统结构为什么会带来这些行为
+          - 问题五到七——这次学会判据、法则和跨域翻译
+        - - 模块4 转向设计（14学时）
+          - 面对任务和约束，怎样形成可接受方案
+          - 这次完整走通诊断→选型→优化→验证的设计循环
+        - - 模块5 识别边界（12学时）
+          - 经典方法的边界在哪里，边界之外有什么
+          - 八个问题之外——看见非线性、数据驱动和策略学习
+      step11_formula_chain:
+        formula: \text{真实问题} \rightarrow \text{统一对象} \rightarrow \text{多种表征} \rightarrow
+          \text{结构机理} \rightarrow \text{约束设计} \rightarrow \text{边界识别}
+      step11_habits:
+        cards:
+        - text: 先识别对象，再进入方法——每次先问：目标是什么？对象是什么？是否存在反馈？
+        - text: 先画结构，再谈结论——先把'谁在控制谁、信息从哪里流到哪里'画清楚
+        - text: 先给证据，再给判断——用数字和曲线说话，不说'系统更稳定了'，说'相位裕度从 37° 升到 52°'
+        - text: 先独立表达，再借助工具修正——先写出自己的理解，再用 AI 或同伴讨论对照
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
+    student_default: all_visible
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 课程地图与学习习惯
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/11
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: not_applicable
+      answer_visibility: not_applicable
+  step-12:
+    title: 完整代码走通——开环诊断
+    template: content_only
+    lecture_section: §六6.1
+    preview:
+      student: /class/1-1/12
+      teacher: /class/1-1/12/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 完整代码走通——开环诊断
+        subtitle: 用一个真实的二阶对象，把 tf/step/rlocus/bode/margin 全部跑一遍
+        text: 用一个真实的二阶对象，把 tf/step/rlocus/bode/margin 全部跑一遍
+      id: step-12-layout-support-01
+    - kind: content.formula
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        block_key: step12_object
+      id: step-12-content-formula-02
+    - kind: content.code
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        block_key: step12_object_code
+      id: step-12-content-code-03
+    - kind: content.rich
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        block_key: step12_object_desc
+      id: step-12-content-rich-03
+    - kind: content.figure
+      region: content
+      order: 5
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-example-openloop-step.png
+        caption: 示例对象的开环阶跃响应——输出持续增长，呈现积分加惯性环节的典型特征
+      id: step-12-content-figure-04
+    - kind: content.rich
+      region: content
+      order: 6
+      must_be_visible: true
+      payload:
+        block_key: step12_step_read
+      id: step-12-content-rich-05
+    - kind: content.code
+      region: content
+      order: 7
+      must_be_visible: true
+      payload:
+        block_key: step12_step_code
+      id: step-12-content-code-06
+    - kind: content.figure
+      region: content
+      order: 8
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-example-root-locus.png
+        caption: 示例对象的根轨迹——两条分支从 0 和 -2 出发，在 -1 处会合后离开实轴
+      id: step-12-content-figure-07
+    - kind: content.rich
+      region: content
+      order: 9
+      must_be_visible: true
+      payload:
+        block_key: step12_rlocus_read
+      id: step-12-content-rich-08
+    - kind: content.code
+      region: content
+      order: 10
+      must_be_visible: true
+      payload:
+        block_key: step12_rlocus_code
+      id: step-12-content-code-09
+    - kind: content.figure
+      region: content
+      order: 11
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-example-bode.png
+        caption: 示例对象的开环 Bode 图——积分环节贡献低频增益，惯性环节使高频加速衰减
+      id: step-12-content-figure-10
+    - kind: content.rich
+      region: content
+      order: 12
+      must_be_visible: true
+      payload:
+        block_key: step12_bode_read
+      id: step-12-content-rich-11
+    - kind: content.code
+      region: content
+      order: 13
+      must_be_visible: true
+      payload:
+        block_key: step12_bode_code
+      id: step-12-content-code-12
+    content_blocks:
+      step12_object:
+        formula: G(s)=\frac{1}{s(s+2)}
+      step12_object_code:
+        code: G = tf(1, [1 2 0]);   % G(s)=1/(s^2+2s)=1/[s(s+2)]
+        language: matlab
+      step12_object_desc:
+        text: 一条简化的船舵回路——输入是期望舵角，输出是实际舵角。积分环节使舵角持续积分（舵角是舵速的积分），惯性环节使舵机响应有延迟。
+      step12_step_read:
+        text: 输出持续增长——积分环节的典型特征。实际舵机有机械限位，线性模型在远离限位的范围内准确反映了这个趋势。
+      step12_step_code:
+        code: step(G);   % 观察开环阶跃响应是否能收敛到有限稳态值
+        language: matlab
+      step12_rlocus_read:
+        text: K 很小时闭环极点落在负实轴上——单调收敛。K 增大后两个极点在 -1 处会合，离开实轴变成共轭复数对——振荡开始出现。
+      step12_rlocus_code:
+        code: rlocus(G);   % 查看加入比例增益 K 后，闭环极点如何移动
+        language: matlab
+      step12_bode_read:
+        text: 积分环节贡献低频段的高环路增益，惯性环节使高频衰减加速。相角从 -90° 起步进一步滞后——留给控制的相位余量从一开始就不宽裕。
+      step12_bode_code:
+        code: 'bode(G);    % 查看对象对不同频率输入的响应
+
+          margin(G);  % 查看当前开环对象可提供的稳定裕度'
+        language: matlab
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: teacher_controlled
+      reveal_reference_answer: not_applicable
+      enable_stepwise_reveal: true
+    student_default: all_visible
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 完整代码走通——开环诊断
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/12
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: not_applicable
+      answer_visibility: not_applicable
+  step-13:
+    title: 闭环校正与里程碑
+    template: content_only
+    lecture_section: §六6.2~6.3
+    preview:
+      student: /class/1-1/13
+      teacher: /class/1-1/13/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 闭环校正与里程碑
+        subtitle: 加入比例反馈，看诊断→校正→验证的完整闭环——以及这一讲的最终答卷
+        text: 加入比例反馈，看诊断→校正→验证的完整闭环——以及这一讲的最终答卷
+      id: step-13-layout-support-01
+    - kind: content.code
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        block_key: step13_correction_code
+      id: step-13-content-code-02
+    - kind: content.figure
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-example-correction-triptych.png
+        caption: 示例对象校正前后的三域对比——开环对象无法停在目标值上，加入比例反馈后闭环响应收敛
+      id: step-13-content-figure-03
+    - kind: content.rich
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        block_key: step13_figure_read
+      id: step-13-content-rich-04
+    - kind: content.code
+      region: content
+      order: 5
+      must_be_visible: true
+      payload:
+        block_key: step13_full_script
+      id: step-13-content-code-05
+    - kind: content.rich
+      region: content
+      order: 6
+      must_be_visible: true
+      payload:
+        block_key: step13_milestone
+        style: pullquote
+      id: step-13-content-rich-06
+    content_blocks:
+      step13_correction_code:
+        code: 'Kp2 = 2;  Phi2 = feedback(Kp2*G, 1);   % 构造闭环传递函数
+
+          step(G, Phi2);    % 对比校正前后的时域响应
+
+          rlocus(G);        % 用根轨迹解释闭环极点位置的变化
+
+          bode(G, Kp2*G);   % 对比校正前后环路开环幅频曲线的变化'
+        language: matlab
+        explanation: 这段代码把诊断结论用于比例反馈校正，并在三域中重新验证效果。
+      step13_figure_read:
+        text: Kp=2 的比例反馈后，开环对象持续增长的响应被改写为收敛响应，出现约 4% 超调和轻微摆动。根轨迹揭示闭环极点离开实轴，频域图显示环路幅频曲线整体上移，也改变了穿越频率和稳定裕度。
+      step13_full_script:
+        code: '% ===== 1-1 闪电速通：完整示例 =====
+
+            % 一条简化船舵回路：舵角指令 -> 舵机惯性 -> 舵角积分 -> 实际舵角
+
+            G = tf(1, [1 2 0]);           % G(s)=1/(s(s+2))
+
+
+            % ---- 开环诊断 ----
+
+            figure(1); step(G);           % 时域：阶跃响应——看过程
+
+            figure(2); rlocus(G);         % 复域：根轨迹——看迁移
+
+            figure(3); margin(G);         % 频域：Bode图+稳定裕度——看节律
+
+
+            % ---- 稳定性检查 ----
+
+            isstable(G)                   % 对开环对象判断稳定
+
+
+            % ---- 闭环校正 ----
+
+            Kp2 = 2;                      % 比例增益
+
+            Phi2 = feedback(Kp2*G, 1);    % Kp=2 时的闭环传递函数 Phi(s)
+
+            figure(4); step(G, Phi2);     % 时域：校正前后
+
+            figure(5); rlocus(G);         % 根轨迹：极点迁移
+
+            figure(6); bode(G, Kp2*G);    % 频域：环路增益变化'
+        language: matlab
+        explanation: 完整脚本覆盖建模、开环诊断、稳定性判断和闭环校正。
+      step13_milestone:
+        text: 在过去的 90 分钟里，你走通了一个完整的控制设计闭环：用传递函数描述对象 → 从时域、根轨迹、频域三个角度诊断对象的行为 → 加入反馈和控制器改变系统的表现
+          → 比较不同参数下的效果。后续三十二章的任务，是把这里的每一行代码背后的原理逐一展开。
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: teacher_controlled
+      reveal_reference_answer: not_applicable
+      reveal_owner: teacher
+      reveal_mode: stepwise_per_reveal_module
+      student_locked_until_released: true
+    student_default: figure_visible_code_collapsed
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 闭环校正与里程碑
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/13
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    - 校正代码和完整脚本必须由教师逐步显影控制释放；学生未获释放时不能自行展开隐藏层。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: collapsed_until_teacher_release
+      answer_visibility: not_applicable
+  step-14:
+    title: 后测——核心概念检验
+    template: post_test
+    lecture_section: null
+    preview:
+      student: /class/1-1/14
+      teacher: /class/1-1/14/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: activity
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 后测——核心概念检验
+        subtitle: 检验反馈概念、函数功能和校正循环的掌握情况
+        text: 检验反馈概念、函数功能和校正循环的掌握情况
+      id: step-14-layout-support-01
+    - kind: activity.panel
+      region: activity
+      order: 2
+      must_be_visible: true
+      payload:
+        interaction_key: post_test
+      id: step-14-activity-panel-02
+    interaction_spec:
+      activity_cards:
+      - id: post_q1
+        prompt: 反馈改写了系统的什么？
+        response_kind: choice.single
+        options:
+        - key: A
+          text: 让系统不需要传感器
+        - key: B
+          text: 把输出信息送回比较端，使系统能持续修正偏差
+        - key: C
+          text: 让系统运行得更快
+        - key: D
+          text: 消除了所有扰动的影响
+        reference_answer: B
+        submit_scope: per_card
+        reveal_answer: 反馈的关键不是让系统天然更快，而是把输出信息送回比较端，使系统能够根据偏差持续修正。
+      - id: post_q2
+        prompt: 将六个函数与各自的功能配对：tf / step / rlocus / bode / margin / feedback
+        response_kind: matching.pairs
+        options:
+        - key: tf
+          text: tf
+        - key: step
+          text: step
+        - key: rlocus
+          text: rlocus
+        - key: bode
+          text: bode
+        - key: margin
+          text: margin
+        - key: feedback
+          text: feedback
+        match_options:
+        - key: A
+          text: 建立传递函数对象
+        - key: B
+          text: 观察阶跃响应
+        - key: C
+          text: 查看极点迁移路径
+        - key: D
+          text: 查看频率响应
+        - key: E
+          text: 查看稳定裕度
+        - key: F
+          text: 构造闭环系统
+        reference_answer:
+          tf: A
+          step: B
+          rlocus: C
+          bode: D
+          margin: E
+          feedback: F
+        submit_scope: per_card
+        reveal_answer: tf 建立传递函数，step 看时域过程，rlocus 看极点迁移，bode 看频率响应，margin 看稳定裕度，feedback
+          构造闭环。
+      - id: post_q3
+        prompt: 将校正设计循环按正确顺序排列：调整控制器 / 加控制器 / 比较效果 / 诊断 / 再次验证
+        response_kind: ordering.sequence
+        options:
+        - key: A
+          text: 调整控制器
+        - key: B
+          text: 加控制器
+        - key: C
+          text: 比较效果
+        - key: D
+          text: 诊断
+        - key: E
+          text: 再次验证
+        reference_answer:
+        - D
+        - B
+        - C
+        - A
+        - E
+        submit_scope: per_card
+        reveal_answer: 先诊断对象，再加入控制器；加入后比较效果，再调整控制器，并重新验证。
+      interaction_kind: activity_card_set
+      answer_reveal_policy: per_card_after_submit
+      feedback_visibility: show_reference_answer_after_each_card_submission
+    content_blocks: {}
+    teacher_controls:
+      open_browse: enabled
+      release_activity: teacher_controlled
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: per_card_after_submit
+      answer_reveal_policy: per_card_after_submit
+    student_default: questions_visible_submission_locked
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 后测——核心概念检验
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/14
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    - 每题提交后只显示该题参考答案和解释，不提前显示未提交题目的答案。
+    student_access:
+      browse_default: open
+      activity_default: locked_until_teacher_release
+      reveal_default: not_applicable
+      answer_visibility: after_own_submission
+  step-15:
+    title: 总结——信息图与拓展思考
+    template: summary
+    lecture_section: §八
+    preview:
+      student: /class/1-1/15
+      teacher: /class/1-1/15/teacher
+    layout:
+      regions:
+      - order: 1
+        id: header
+      - order: 2
+        id: content
+      - order: 3
+        id: analytics
+    modules:
+    - kind: layout.support
+      region: header
+      order: 1
+      must_be_visible: true
+      payload:
+        title: 总结——信息图与拓展思考
+        subtitle: 这一讲你带走了什么，以及下一站去哪里
+        text: 这一讲你带走了什么，以及下一站去哪里
+      id: step-15-layout-support-01
+    - kind: content.figure
+      region: content
+      order: 2
+      must_be_visible: true
+      payload:
+        src: ../media/processed/1-1-info.png
+        caption: 本讲信息图——六个核心函数围绕船舵对象，箭头标注诊断-校正循环
+        width: full
+      id: step-15-content-figure-02
+    - kind: content.cardSet
+      region: content
+      order: 3
+      must_be_visible: true
+      payload:
+        block_key: step15_judgments
+      id: step-15-content-cardset-03
+    - kind: content.rich
+      region: content
+      order: 4
+      must_be_visible: true
+      payload:
+        block_key: step15_extended
+      id: step-15-content-rich-04
+    - kind: analytics.summary
+      region: analytics
+      order: 5
+      must_be_visible: true
+      payload:
+        data_source: lesson_1_1_session_events
+        display_condition: after_step_14_submission_or_teacher_summary_release
+        student_boundary: student sees only own submissions, goal attainment and participation
+          summary
+        teacher_boundary: teacher sees class-level aggregates only, including correctness
+          distribution, goal heatmap and submission coverage
+        student_metrics:
+        - 个人前测提交
+        - 个人后测提交
+        - 目标达成概览
+        - 课堂参与度
+        teacher_metrics:
+        - 班级正确率分布
+        - 目标达成热力图
+        - 提交覆盖率
+        items:
+        - 个人前测提交
+        - 个人后测提交
+        - 目标达成概览
+        - 课堂参与度
+      id: step-15-analytics-summary-05
+    content_blocks:
+      step15_judgments:
+        cards:
+        - text: 反馈是控制思想的核心——开环只能执行预设动作，闭环会持续把输出拉回目标。代价是修正的时机、力度和方向必须正确。
+        - text: 同一个系统可以从时域、根轨迹、频域三个角度被阅读——三张图看的是同一个对象，给出的是互补的证据。
+        - text: 诊断-校正循环是设计的基本节奏——先看清对象的脾气，再给控制器，再比较效果，再调整。这个循环你会走几十遍。
+      step15_extended:
+        text: 选一个你关心的工程系统——自动驾驶汽车、控温发酵罐、平衡机器人——查一下它的核心控制挑战是什么，它最可能用到哪个模块的知识。记下你的猜测，学完对应模块后回来验证。
+    teacher_controls:
+      open_browse: enabled
+      release_activity: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
+      analytics_scope: class_aggregate_only
+    student_default: all_visible
+    interaction_spec:
+      interaction_kind: none
+      interaction_archetype: display
+      student_task: 阅读本页证据，完成课堂观察。
+    telemetry_spec:
+      summary_fields:
+      - viewed
+      misconception_tags: []
+    teacher_insight_spec:
+      widgets: []
+    ai_context_spec:
+      page_goal: 总结——信息图与拓展思考
+      delivery_mode: hidden_page_context
+    preview_contract:
+      demo_path: /class/1-1/15
+    acceptance_checks:
+    - 页面对象、任务、证据和结论对学生自包含可读。
+    - 模块 payload 与 content_blocks 能被 shared manifest runtime 消费。
+    - 教师控制、遥测、AI 上下文与预览路径已显式给出。
+    - 统计面板必须声明数据来源、显示条件以及学生端/教师端边界。
+    student_access:
+      browse_default: open
+      activity_default: not_applicable
+      reveal_default: not_applicable
+      answer_visibility: not_applicable
+      analytics_visibility: own_metrics_only

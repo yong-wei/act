@@ -1,0 +1,181 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/teacher/resources",
+    "h1": [
+      "教师工作台",
+      "教学资源管理"
+    ],
+    "activeElement": {
+      "tag": "button",
+      "type": "button",
+      "name": "课堂组件",
+      "placeholder": ""
+    },
+    "alerts": [],
+    "buttons": [
+      {
+        "tag": "a",
+        "name": "返回首页",
+        "href": "/",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "张 张永韡 个人中心",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教师总览",
+        "href": "/teacher",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教案",
+        "href": "/teacher/lesson-plans",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "资源",
+        "href": "/teacher/resources",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课前包",
+        "href": "/teacher/prep-packs",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂历史",
+        "href": "/teacher/history",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级分析",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "返回教师工作台",
+        "href": "/teacher",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "ResourceNode 管理",
+        "href": "/teacher/resources/resource-nodes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "互动组件",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "课堂组件",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "知识图谱",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "关闭 (ESC)",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "",
+        "href": "",
+        "disabled": true,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "打开控灵与页面工具菜单",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "placeholder": "搜索资源...",
+        "ariaLabel": "搜索资源...",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "value": "",
+        "hidden": false
+      }
+    ],
+    "tables": [],
+    "unnamedButtons": 1,
+    "graphicsCount": 46,
+    "unnamedGraphics": 0,
+    "bodyText": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回教师工作台 教学资源管理 管理互动组件、课堂组件和知识卡片 ResourceNode 管理 互动组件 课堂组件 知识图谱 课堂组件的编辑功能正在开发中。目前仅支持查看组件列表。 二阶系统传递函数与分类 展示二阶系统标准型与阻尼分类要点 STATIC_MEDIA 单位阶跃响应与指标 展示超调量、峰值时间与调节时间定义 STATIC_MEDIA 课程路线图：稳定与稳态误差 展示稳定判据与稳态误差两条学习主线 STATIC_MEDIA 稳定性的概念与充要条件 用极点位置解释稳定、临界稳定与不稳定 STATIC_MEDIA 劳斯表构造与判别步骤 总结劳斯表构造与符号判别流程 STATIC_MEDIA 稳态误差计算流程 从误差来源到终值定理的计算流程 STATIC_MEDIA 课程路线图：根轨迹法 展示根轨迹法从大局到细节的学习主线 STATIC_MEDIA 根轨迹条件：模值与相角 梳理根轨迹的模值条件与相角条件 STATIC_MEDIA 根轨迹基本法则 实轴段、渐近线与分离点等绘制规则总览 STATIC_MEDIA 根轨迹细节修正 出射/入射角、虚轴交点与参数修正提示 STATIC_MEDIA 课程路线图：参数根轨迹 展示参数根轨迹与图形化思考的学习主线 STATIC_MEDIA 等效开环变换步骤 把参数变化转化为等效开环增益的步骤示意 STATIC_MEDIA 图形化思考到仿真验证 根轨迹到响应验证的图形化流程与代码示意 STATIC_MEDIA 课程路线图：频率特性与伯德图 展示频率响应与伯德图绘制的学习主线 STATIC_MEDIA 频率响应定义 正弦稳态响应下的幅值与相位关系 STATIC_MEDIA 伯德图绘制步骤 近似叠加绘图流程与斜率变化示意 STATIC_MEDIA 课程路线图：校正与时域综合 展示校正方法与时域综合分析的双主线 STATIC_MEDIA 比例-微分控制 vs 输出微分反馈 对比两种增阻尼方式的零点与响应差异 STATIC_MEDIA 前馈补偿与扰动补偿 比较输入补偿与扰动补偿的作用路径 STATIC_MEDIA 航向系统时域综合流程 从稳定性到场景性能的时域综合步骤 STATIC_MEDIA 视频播放组件 播放教学视频，支持分屏对比和AI旁白 INTERACTIVE_COMP 教师专用 课堂投票组件 实时投票，自动统计并展示结果 INTERACTIVE_COMP 教师专用 学习目标展示 展示课程目标和徽章解锁状态 INTERACTIVE_COMP 教师专用 后测评估探针 收集学生参数设计，运行仿真评分 INTERACTIVE_COMP 教师专用 伦理熔断触发器 监测违规行为，触发全屏警告和整改问答 INTERACTIVE_COMP 教师专用 AI动态报告 AI生成课堂总结报告，展示班级数据可视化 INTERACTIVE_COMP 教师专用 L02-P3-01: 导弹发射架建模挑战 应用题：考虑重力矩的倒立摆模型。 STATIC_TEXT L02-P1-01: 前测-物理定律连线 快速测试学生对牛顿定律和电磁学的记忆。 STATIC_TEXT L02-O-01: 学习目标清单 本节课的三大核心目标。 STATIC_TEXT L02-B-01: 导入视频-舵机失控 展示驱逐舰在海浪中舵机失控的画面，引出建模需求。 STATIC_MEDIA 课后测验：稳定性分析 关于 Nyquist 判据的快速选择题。 STATIC_TEXT 第2课：控制系统建模基础 (讲义) 介绍微分方程建模的基本概念，包含牛顿定律和基尔霍夫定律的应用。 STATIC_TEXT L02-S-01: 知识回顾 本节课核心公式汇总。 STATIC_TEXT 控灵 当前: resources 你好，我是控灵。今天我们将探索「resources」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+  }
+}

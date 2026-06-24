@@ -3,6 +3,8 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { buildEvidenceTimelineBrowserUrl } from '@/features/data-governance/evidence-timeline-browser';
+
 const repoRoot = process.cwd();
 
 function readSource(path: string): string {
@@ -24,11 +26,25 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('查看完整证据');
   });
 
-  it('links the legacy teacher diagnosis page to a guarded teacher evidence browser', () => {
+  it('redirects the legacy teacher diagnosis page to the class-scoped diagnosis surface', () => {
     const source = readSource('src/app/(main)/teacher/students/[studentId]/diagnosis/page.tsx');
 
-    expect(source).toContain('href={`/teacher/students/${studentId}/evidence`}');
-    expect(source).toContain('查看完整证据');
+    expect(source).toContain('redirect(`/teacher/classes/${encodeURIComponent(studentProfile.classId)}/students/${encodeURIComponent(studentId)}`)');
+    expect(source).not.toContain('/api/student/competency-snapshot');
+    expect(source).not.toContain('studentAnswer');
+  });
+
+  it('redirects the legacy teacher evidence page to the class-scoped evidence browser', () => {
+    const source = readSource('src/app/(main)/teacher/students/[studentId]/evidence/page.tsx');
+
+    expect(source).toContain('redirect(`/teacher/classes/${encodeURIComponent(studentProfile.classId)}/students/${encodeURIComponent(studentId)}/evidence${suffix}`)');
+    expect(source).toContain("query.set('returnTo', resolveTeacherReturnTo(searchParams?.returnTo, '/teacher/classes'))");
+    expect(source).toContain("appendSearchParam(query, 'gradingRunId', searchParams?.gradingRunId)");
+    expect(source).toContain("appendSearchParam(query, 'reportId', searchParams?.reportId)");
+    expect(source).toContain("appendSearchParam(query, 'source', searchParams?.source)");
+    expect(source).toContain('学生 ${studentId} 不存在，或不在当前教师可见范围。');
+    expect(source).not.toContain('EvidenceTimelineBrowser');
+    expect(source).not.toContain('/teacher/students/${params.studentId}/diagnosis');
   });
 
   it('defines browser pages for student, class-scoped teacher, and legacy teacher entry points', () => {
@@ -37,11 +53,46 @@ describe('evidence browser entry points', () => {
     expect(existsSync(join(repoRoot, 'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx'))).toBe(true);
   });
 
+  it('preserves teacher grading context on class-scoped evidence pages', () => {
+    const source = readSource('src/app/teacher/classes/[classId]/students/[studentId]/evidence/page.tsx');
+    const browserSource = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
+
+    expect(source).toContain('contextBadges={contextParts}');
+    expect(source).toContain('mergeTeacherEvidenceContext');
+    expect(source).toContain("url.searchParams.set('gradingRunId', context.gradingRunId)");
+    expect(source).toContain("url.searchParams.set('reportId', context.reportId)");
+    expect(source).toContain("url.searchParams.set('source', context.source)");
+    expect(browserSource).toContain('contextBadges?: string[]');
+    expect(browserSource).toContain('contextBadges.map');
+  });
+
   it('guards evidence browser state updates from stale filter requests', () => {
     const source = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
 
     expect(source).toContain('requestSequenceRef');
     expect(source).toContain('requestId !== requestSequenceRef.current');
+  });
+
+  it('initializes the student evidence browser from lessonId query parameters', () => {
+    const pageSource = readSource('src/app/(main)/profile/evidence/page.tsx');
+    const browserSource = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
+
+    expect(pageSource).toContain('searchParams');
+    expect(pageSource).toContain('initialLessonId={initialLessonId}');
+    expect(browserSource).toContain('initialLessonId?: string');
+    expect(browserSource).toContain("useState(initialLessonId ?? '')");
+    expect(browserSource).toContain("setLessonId(initialLessonId ?? '')");
+  });
+
+  it('passes sessionId filters through to the student evidence API URL', () => {
+    const pageSource = readSource('src/app/(main)/profile/evidence/page.tsx');
+
+    expect(pageSource).toContain('initialSessionId={initialSessionId}');
+    expect(buildEvidenceTimelineBrowserUrl('/api/student/evidence', {
+      lessonId: 'unit-4-1',
+      sessionId: 'session-123',
+      cursor: 'cursor-1',
+    })).toBe('/api/student/evidence?limit=20&lessonId=unit-4-1&sessionId=session-123&cursor=cursor-1');
   });
 
   it('clears stale first-page evidence before refetching while preserving loaded pages on pagination failures', () => {

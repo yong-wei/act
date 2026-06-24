@@ -104,6 +104,16 @@ stop_process "scheduler" "$PIDS_DIR/scheduler.pid"
 stop_process "Next.js 开发服务器" "$PIDS_DIR/frontend.pid"
 stop_process "本地 Redis" "$PIDS_DIR/redis.pid"
 
+if command -v screen &> /dev/null; then
+  for screen_name in act-worker act-scheduler act-frontend; do
+    if screen -ls 2>/dev/null | grep -q "[.]${screen_name}[[:space:]]"; then
+      echo -e "${YELLOW}停止 screen 会话 $screen_name...${NC}"
+      screen -S "$screen_name" -X quit 2>/dev/null || true
+      STOPPED_COUNT=$((STOPPED_COUNT + 1))
+    fi
+  done
+fi
+
 ###############################################################################
 # 停止可能存在的其他相关进程
 ###############################################################################

@@ -426,7 +426,7 @@ export function PhysicsBuilderSimple({
   const [hasCompleted, setHasCompleted] = useState(false);
   const [bestScore, setBestScore] = useState(0);
 
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const startTimeRef = useRef<number>(0);
 
   const characteristics = getResponseCharacteristics(dampingRatio);
@@ -593,7 +593,7 @@ export function PhysicsBuilderSimple({
               {/* 阻尼滑块 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm text-slate-400">阻尼比 ζ</label>
+                  <p className="text-sm text-slate-400">阻尼比 ζ</p>
                   <span
                     className="text-lg font-mono font-bold"
                     style={{ color: characteristics.color }}
@@ -601,7 +601,7 @@ export function PhysicsBuilderSimple({
                     {dampingRatio.toFixed(2)}
                   </span>
                 </div>
-                <input
+                <input aria-label="物理构型参数"
                   type="range"
                   min="0.05"
                   max="1.2"
@@ -626,7 +626,7 @@ export function PhysicsBuilderSimple({
 
               {/* 按钮 */}
               <div className="flex gap-3">
-                <button
+                <button type="button"
                   onClick={startSimulation}
                   disabled={isRunning}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-lg transition-colors"
@@ -634,7 +634,7 @@ export function PhysicsBuilderSimple({
                   <Play className="h-4 w-4" />
                   {isRunning ? '模拟中...' : '开始模拟'}
                 </button>
-                <button
+                <button type="button"
                   onClick={reset}
                   className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
                 >

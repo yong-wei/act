@@ -1,0 +1,16 @@
+{
+  "status": "pass",
+  "fixture": "artifacts/interactive-learning/structure-diagram-runtime-563/structure-diagram-fixture.interactive-manifest.json",
+  "lessonId": "structure-diagram-runtime-fixture",
+  "components": [
+    "visual.blockDiagram",
+    "visual.signalFlowGraph"
+  ],
+  "checks": {
+    "nativePayloads": true,
+    "staticImageOnlyRejectedByGate": true,
+    "pathLoopTraceability": true,
+    "masonTermsTraceToPathLoopIds": true,
+    "teacherDiagnosticsEvidence": true
+  }
+}

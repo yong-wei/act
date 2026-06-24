@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { verifyKonlingRuntimeScope } from '@/lib/konling-agent-runtime';
 import {
@@ -7,6 +8,8 @@ import {
   type InterventionRules,
   type StudentState,
 } from '@/features/ai/companion/intervention-engine';
+
+export const dynamic = 'force-dynamic';
 
 interface CheckRequest {
   studentState: StudentState;
@@ -52,6 +55,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return NextResponse.json(
       {
         error: 'AI介入判定失败',

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import type { PointerEvent as ReactPointerEvent, ReactElement } from 'react';
 import type { ECharts } from 'echarts/core';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { BlockMath } from 'react-katex';
@@ -241,7 +241,7 @@ function ChoiceGroup({ options, value, onChange }: { options: ChoiceOption[]; va
 
 function TextInput({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
   return (
-    <textarea
+    <textarea aria-label={placeholder}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
@@ -1206,7 +1206,7 @@ export function UNIT_3_3StudentActivityForm({
 
   if (activity.kind === 'none') return null;
 
-  let body: JSX.Element | null = null;
+  let body: ReactElement | null = null;
   if (activity.kind === 'binary_choice') {
     body = (
       <div className="grid gap-4">

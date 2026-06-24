@@ -1,0 +1,144 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<svg height="316pt" viewBox="0 0 463 316" width="463pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <title>Figure 4</title>
+ <desc>
+Creator: GL2PS 1.4.2, (C) 1999-2020 C. Geuzaine
+For: Octave
+CreationDate: Mon Jun 15 12:46:01 2026
+</desc>
+ <defs/>
+ <polygon fill="#ffffff" points="0,0 463,0 463,316 0,316"/>
+ <g>
+  <polygon fill="#ffffff" points="0,316 463,316 463,0 0,0" shape-rendering="crispEdges"/>
+  <clipPath id="cp00463316">
+   <polygon points="0,316 463,316 463,0 0,0"/>
+  </clipPath>
+  <g clip-path="url(#cp00463316)">
+   <polygon fill="#ffffff" points="96.9904,23.7177 96.9904,268.248 382.276,268.248 382.276,23.7177" shape-rendering="crispEdges"/>
+   <polyline fill="none" points="96.9904,268.248 96.9904,23.7177" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="137.745,268.248 137.745,23.7177" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="178.5,268.248 178.5,23.7177" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="219.255,268.248 219.255,23.7177" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="260.01,268.248 260.01,23.7177" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="300.765,268.248 300.765,23.7177" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="341.52,268.248 341.52,23.7177" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="382.276,268.248 382.276,23.7177" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,268.248 96.9904,264.666" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="137.745,268.248 137.745,264.666" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="178.5,268.248 178.5,264.666" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="219.255,268.248 219.255,264.666" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="260.01,268.248 260.01,264.666" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="300.765,268.248 300.765,264.666" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="341.52,268.248 341.52,264.666" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="382.276,268.248 382.276,264.666" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(89.4904,293.225) rotate(-0,7.5,-13)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 6 " y="-0">-5</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(130.245,293.225) rotate(-0,7.5,-13)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 6 " y="-0">-4</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(171,293.225) rotate(-0,7.5,-13)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 6 " y="-0">-3</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(211.755,293.225) rotate(-0,7.5,-13)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 6 " y="-0">-2</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(252.51,293.225) rotate(-0,7.5,-13)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 6 " y="-0">-1</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(296.265,293.225) rotate(-0,4.5,-13)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">0</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(337.02,293.225) rotate(-0,4.5,-13)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">1</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(377.776,293.225) rotate(-0,4.5,-13)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">2</text>
+   </g>
+   <polyline fill="none" points="96.9904,268.248 382.276,268.248" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,227.493 382.276,227.493" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,186.738 382.276,186.738" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,145.983 382.276,145.983" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,105.228 382.276,105.228" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,64.4727 382.276,64.4727" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,23.7177 382.276,23.7177" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,268.248 100.583,268.248" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,227.493 100.583,227.493" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,186.738 100.583,186.738" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,145.983 100.583,145.983" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,105.228 100.583,105.228" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,64.4727 100.583,64.4727" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,23.7177 100.583,23.7177" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(73.9824,274.748) rotate(-0,15,-6.5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 6 " y="-0">-3</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(73.9824,233.993) rotate(-0,15,-6.5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 6 " y="-0">-2</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(73.9824,193.238) rotate(-0,15,-6.5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 6 " y="-0">-1</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(79.9824,152.483) rotate(-0,9,-6.5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">0</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(79.9824,111.728) rotate(-0,9,-6.5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">1</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(79.9824,70.9727) rotate(-0,9,-6.5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">2</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(79.9824,30.2176) rotate(-0,9,-6.5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">3</text>
+   </g>
+   <polyline fill="none" points="96.9904,268.248 382.276,268.248" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="square" stroke-linejoin="miter" stroke-width="1"/>
+   <polyline fill="none" points="96.9904,268.248 96.9904,23.7177" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="square" stroke-linejoin="miter" stroke-width="1"/>
+   <g font-family="Noto Sans CJK SC" font-size="17.6" font-style="normal" font-weight="normal" transform="translate(198.133,316.225) rotate(-0,41.5,-18)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-2">σ</text>
+    <text fill="rgb(38,38,38)" font-family="'Noto Sans CJK SC'" x="11 29 47 65 " y="-2">（实部）</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="17.6" font-style="normal" font-weight="normal" transform="translate(23.4824,145.983) rotate(-90,45.5,0)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-4">j</text>
+    <text fill="rgb(38,38,38)" font-family="Noto Sans CJK SC" x="5 " y="-4">ω</text>
+    <text fill="rgb(38,38,38)" x="19 37 55 73 " y="-4">（虚部）</text>
+   </g>
+   <polygon fill="#e0efff" points="96.9904,23.7177 300.765,23.7177 300.765,268.248 96.9904,268.248" shape-rendering="crispEdges"/>
+   <polygon fill="#ffe8e8" points="300.765,23.7177 382.276,23.7177 382.276,268.248 300.765,268.248" shape-rendering="crispEdges"/>
+   <polyline fill="none" points="300.765,268.248 300.765,23.7177" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+   <polyline fill="none" points="96.9904,145.983 382.276,145.983" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1"/>
+   <polygon fill="#191919" points="133.094,145.983 132.426,148.04 130.676,149.311 128.513,149.311 126.763,148.04 126.094,145.983 126.763,143.925 128.513,142.654 130.676,142.654 132.426,143.925" shape-rendering="crispEdges"/>
+   <polyline fill="none" points="133.094,145.983 132.426,148.04 130.676,149.311 128.513,149.311 126.763,148.04 126.094,145.983 126.763,143.925 128.513,142.654 130.676,142.654 132.426,143.925 133.094,145.983" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5"/>
+   <polygon fill="#191919" points="263.51,72.6237 262.842,74.6809 261.092,75.9524 258.929,75.9524 257.179,74.6809 256.51,72.6237 257.179,70.5664 258.929,69.295 261.092,69.295 262.842,70.5664" shape-rendering="crispEdges"/>
+   <polyline fill="none" points="263.51,72.6237 262.842,74.6809 261.092,75.9524 258.929,75.9524 257.179,74.6809 256.51,72.6237 257.179,70.5664 258.929,69.295 261.092,69.295 262.842,70.5664 263.51,72.6237" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5"/>
+   <polygon fill="#191919" points="279.812,190.813 279.144,192.87 277.394,194.142 275.231,194.142 273.481,192.87 272.812,190.813 273.481,188.756 275.231,187.485 277.394,187.485 279.144,188.756" shape-rendering="crispEdges"/>
+   <polyline fill="none" points="279.812,190.813 279.144,192.87 277.394,194.142 275.231,194.142 273.481,192.87 272.812,190.813 273.481,188.756 275.231,187.485 277.394,187.485 279.144,188.756 279.812,190.813" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5"/>
+   <polygon fill="#191919" points="332.794,97.0767 332.126,99.1339 330.376,100.405 328.212,100.405 326.462,99.1339 325.794,97.0767 326.462,95.0194 328.212,93.748 330.376,93.748 332.126,95.0194" shape-rendering="crispEdges"/>
+   <polyline fill="none" points="332.794,97.0767 332.126,99.1339 330.376,100.405 328.212,100.405 326.462,99.1339 325.794,97.0767 326.462,95.0194 328.212,93.748 330.376,93.748 332.126,95.0194 332.794,97.0767" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5"/>
+   <polygon fill="#191919" points="320.567,227.493 319.899,229.55 318.149,230.821 315.986,230.821 314.236,229.55 313.567,227.493 314.236,225.436 315.986,224.164 318.149,224.164 319.899,225.436" shape-rendering="crispEdges"/>
+   <polyline fill="none" points="320.567,227.493 319.899,229.55 318.149,230.821 315.986,230.821 314.236,229.55 313.567,227.493 314.236,225.436 315.986,224.164 318.149,224.164 319.899,225.436 320.567,227.493" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5"/>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(113.292,54.1329) rotate(-0,-0,-8)" xml:space="preserve">
+    <text fill="rgb(0,63,140)" x="0 16 32 " y="-2">稳定区</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="16" font-style="normal" font-weight="normal" transform="translate(323.181,54.1329) rotate(-0,-0,-8)" xml:space="preserve">
+    <text fill="rgb(165,12,12)" x="0 16 32 48 " y="-2">不稳定区</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="15" font-style="normal" font-weight="normal" transform="translate(304.026,261.984) rotate(-0,-0,-8)" xml:space="preserve">
+    <text fill="rgb(0,0,0)" x="0 15 30 45 " y="-3">稳定边界</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="14" font-style="normal" font-weight="normal" transform="translate(109.217,139.718) rotate(-0,-0,-8)" xml:space="preserve">
+    <text fill="rgb(0,0,0)" x="0 14 28 42 " y="-3">单调走廊</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="14" font-style="normal" font-weight="normal" transform="translate(149.972,72.4727) rotate(-0,-0,-8)" xml:space="preserve">
+    <text fill="rgb(0,0,0)" x="0 14 28 42 " y="-3">振荡走廊</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="13" font-style="normal" font-weight="normal" transform="translate(135.708,167.247) rotate(-0,-0,-7)" xml:space="preserve">
+    <text fill="rgb(0,0,0)" x="0 13 26 " y="-2">快收敛</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="13" font-style="normal" font-weight="normal" transform="translate(262.048,67.3972) rotate(-0,-0,-7)" xml:space="preserve">
+    <text fill="rgb(0,0,0)" x="0 13 26 39 " y="-3">边摆边收</text>
+   </g>
+   <g font-family="'Noto Sans CJK SC'" font-size="13" font-style="normal" font-weight="normal" transform="translate(335.407,91.8502) rotate(-0,-0,-7)" xml:space="preserve">
+    <text fill="rgb(0,0,0)" x="0 13 " y="-2">发散</text>
+   </g>
+  </g>
+ </g>
+</svg>

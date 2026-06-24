@@ -44,6 +44,11 @@ export interface OfficialSubmissionScoreSummary {
   finalScore: number;
 }
 
+interface OfficialSubmissionResultState {
+  evaluation: ArenaEvaluationResult;
+  isLate: boolean;
+}
+
 const officialMetricStatusLabels: Record<OfficialSubmissionMetricStatus, string> = {
   reached: '已达标',
   close: '接近目标',
@@ -203,8 +208,18 @@ export function sanitizeOfficialEvaluationExplanation(
   result: ArenaEvaluationResult,
   metrics: MetricDefinition[],
   primaryMetricIds?: string[],
+  isLate = false,
 ): string[] {
   const visibleLines = result.explanation.filter((line) => line.trim() && !isRawEnglishEvaluatorLine(line));
+  if (isLate) {
+    const latePrefix = result.valid
+      ? '硬约束已通过，但本次提交已超过截止时间，保留为复盘证据，未进入正式排名。'
+      : '硬约束未全部通过，且本次提交已超过截止时间，保留为复盘证据，未进入正式排名。';
+    return [
+      latePrefix,
+      ...visibleLines.filter((line) => !line.includes('提交进入正式排名')),
+    ];
+  }
   if (result.valid && result.score === 0) {
     const scoringMetrics = getScoringMetricDefinitions(metrics, primaryMetricIds);
     const zeroMetrics = scoringMetrics
@@ -231,7 +246,7 @@ export function ArenaSubmitPanel({
   publicationId,
 }: ArenaSubmitPanelProps) {
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<ArenaEvaluationResult | null>(null);
+  const [result, setResult] = useState<OfficialSubmissionResultState | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const buildResult = buildArenaArtifactFromMultiRepresentationState({
@@ -244,21 +259,23 @@ export function ArenaSubmitPanel({
   const previewMetricRows = previewSummary
     ? buildOfficialSubmissionPreviewMetricRows(previewSummary, arenaContext.metricProfile.rankingMetrics)
     : [];
+  const evaluationResult = result?.evaluation ?? null;
   const metricRows = result
-    ? buildOfficialSubmissionMetricRows(result, arenaContext.metricProfile.rankingMetrics)
+    ? buildOfficialSubmissionMetricRows(result.evaluation, arenaContext.metricProfile.rankingMetrics)
     : [];
   const scoreSummary = result
     ? buildOfficialSubmissionScoreSummary(
-        result,
+        result.evaluation,
         arenaContext.metricProfile.rankingMetrics,
         arenaContext.task.primaryMetrics,
       )
     : null;
   const visibleExplanation = result
     ? sanitizeOfficialEvaluationExplanation(
-        result,
+        result.evaluation,
         arenaContext.metricProfile.rankingMetrics,
         arenaContext.task.primaryMetrics,
+        result.isLate,
       )
     : [];
 
@@ -289,7 +306,12 @@ export function ArenaSubmitPanel({
         setError(data.error ?? '提交失败');
         return;
       }
-      setResult(data.submission?.evaluation ?? null);
+      setResult(data.submission?.evaluation
+        ? {
+          evaluation: data.submission.evaluation,
+          isLate: Boolean(data.submission.isLate),
+        }
+        : null);
     } catch {
       setError('网络请求失败，请检查连接后重试。');
     } finally {
@@ -347,18 +369,18 @@ export function ArenaSubmitPanel({
         </section>
       )}
 
-      {result && (
+      {evaluationResult && (
         <div className="mt-3 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            {result.valid
+            {evaluationResult.valid
               ? <CheckCircle className="h-5 w-5 text-emerald-600" />
               : <XCircle className="h-5 w-5 text-destructive" />}
             <span className="font-semibold">
-              {result.valid ? `得分：${result.score.toFixed(1)}` : '未通过硬约束'}
+              {evaluationResult.valid ? `得分：${evaluationResult.score.toFixed(1)}` : '未通过硬约束'}
             </span>
             {scoreSummary ? (
               <span className={`rounded-md border px-2 py-1 text-xs ${
-                result.valid
+                evaluationResult.valid
                   ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200'
                   : 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-200'
               }`}
@@ -385,16 +407,16 @@ export function ArenaSubmitPanel({
             </div>
           ) : null}
 
-          {result.valid && metricRows.length > 0 && (
+          {evaluationResult.valid && metricRows.length > 0 && (
             <section className="space-y-2" aria-label="官方评测指标">
               <h3 className="text-sm font-semibold text-foreground">官方评测结果</h3>
               <OfficialSubmissionMetricRows rows={metricRows} actualLabel="实际值" />
             </section>
           )}
 
-          {result.hardConstraintResults.length > 0 && (
+          {evaluationResult.hardConstraintResults.length > 0 && (
             <ul className="space-y-1 text-xs text-muted-foreground">
-              {result.hardConstraintResults.map((hc) => (
+              {evaluationResult.hardConstraintResults.map((hc) => (
                 <li key={hc.id} className="flex items-center gap-1">
                   {hc.passed
                     ? <CheckCircle className="h-3 w-3 text-emerald-500" />

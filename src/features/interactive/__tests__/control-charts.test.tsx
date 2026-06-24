@@ -745,9 +745,12 @@ describe('control chart shared presets and themes', () => {
 
     expect(pageSource).toContain('data-panel-local-configuration="curve-toggle-group"');
     expect(pageSource).toContain('function PanelCurveToggleGroup');
-    expect(pageSource).toContain('const [panelOptionOverrides, setPanelOptionOverrides]');
+    expect(pageSource).toContain('const [panelOptionState, setPanelOptionState]');
     expect(pageSource).toContain('onPanelSelectedOptionsChange?.(panel.id, nextOptions)');
-    expect(pageSource).toContain('setPanelOptionOverrides({});');
+    expect(pageSource).toContain('const panelSelectionChanged = panelOptionState.signature !== panelSelectionSignature;');
+    expect(pageSource).toContain('setPanelOptionState({ signature: panelSelectionSignature, overrides: {} });');
+    expect(pageSource).toContain('const panelOptionOverrides = panelSelectionChanged ? {} : panelOptionState.overrides;');
+    expect(pageSource).toContain('current.signature === panelSelectionSignature ? current.overrides : {}');
     expect(pageSource).toContain('onToggle={(id, mode) => togglePanelLocalOption(panel, id, mode)}');
     expect(pageSource).toContain('data-line-style={option.style.lineType}');
     expect(pageSource).toContain('<LineStyleSample style={option.style} />');
@@ -794,6 +797,16 @@ describe('control chart shared presets and themes', () => {
 
     expect(panelSource).toContain('当前开环增益');
     expect(panelSource).toContain('rootLocus.currentGain');
+  });
+
+  it('lets explicit performance panels span the two-column control workbench grid', () => {
+    const workspaceSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-figure-workspace.tsx'),
+      'utf8',
+    );
+
+    expect(workspaceSource).toContain('data-control-workbench-panel={panelId}');
+    expect(workspaceSource).toContain('xl:col-span-2');
   });
 
   it('lets Nyquist options reuse a preserved viewport instead of resetting to the preset', () => {

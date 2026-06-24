@@ -3,6 +3,7 @@ import type {
   ResourceNodeAvailability,
   ResourceNodeCognitiveLoad,
   ResourceNodePrivacyLevel,
+  ResourceNodeReadinessMetadata,
   ResourceNodeTeacherPolicy,
   ResourceNodeType,
 } from './resource-node-registry';
@@ -36,6 +37,20 @@ export interface TeacherResourceNodeWarningView {
   severity: 'blocking' | 'warning';
 }
 
+export interface TeacherResourceNodeAuditView {
+  knowledgeCoveragePresent: boolean;
+  capabilityMappingPresent: boolean;
+  citationTargetReady: boolean;
+  evidenceCapabilityConfigured: boolean;
+  pathEligible: boolean;
+  exclusionReasons: string[];
+  sourceOwnership: {
+    content: ResourceNode['sourceOfRecord']['content'];
+    catalogMetadata: ResourceNode['sourceOfRecord']['catalogMetadata'];
+    planningMetadata: ResourceNode['sourceOfRecord']['planningMetadata'];
+  };
+}
+
 export interface TeacherResourceNodeView {
   id: string;
   title: string;
@@ -53,6 +68,8 @@ export interface TeacherResourceNodeView {
   availability: ResourceNodeAvailability;
   teacherPolicy: ResourceNodeTeacherPolicy;
   privacyLevel: ResourceNodePrivacyLevel;
+  readiness: ResourceNodeReadinessMetadata | null;
+  audit: TeacherResourceNodeAuditView;
   evidenceInstrumentationConfigured: boolean;
   pathEligible: boolean;
   pathExclusionReasons: string[];
@@ -65,6 +82,12 @@ export interface TeacherResourceNodeSummary {
   pathEligibleNodes: number;
   warningNodes: number;
   excludedNodes: number;
+  mappedNodes: number;
+  unmappedNodes: number;
+  capabilityMappedNodes: number;
+  citationReadyNodes: number;
+  evidenceCapabilityNodes: number;
+  blockedNodes: number;
 }
 
 export interface TeacherResourceNodeBulkPatchInput {
@@ -106,7 +129,10 @@ export interface TeacherResourceNodeOperationsReadiness {
 export interface TeacherResourceNodePatch {
   displayName?: string;
   description?: string;
-  planningMetadata?: {
+  planningMetadata?: unknown;
+}
+
+interface TeacherResourceNodePlanningPatch {
     prerequisites?: string[];
     knowledgeCoverage?: string[];
     estimatedTimeMinutes?: number | null;
@@ -114,14 +140,14 @@ export interface TeacherResourceNodePatch {
     availability?: ResourceNodeAvailability;
     teacherPolicy?: ResourceNodeTeacherPolicy;
     privacyLevel?: ResourceNodePrivacyLevel;
+    readiness?: unknown;
     pathEligible?: boolean;
-  };
 }
 
 export interface TeacherResourceNodePersistablePatch {
   displayName?: string;
   description?: string;
-  resourceNodePlanning: NonNullable<TeacherResourceNodePatch['planningMetadata']>;
+  resourceNodePlanning: TeacherResourceNodePlanningPatch;
 }
 
 export type TeacherResourceNodePatchErrorCode =
@@ -153,6 +179,7 @@ export const TEACHER_RESOURCE_NODE_PERMITTED_EDIT_FIELDS = [
   'planningMetadata.availability',
   'planningMetadata.teacherPolicy',
   'planningMetadata.privacyLevel',
+  'planningMetadata.readiness',
   'planningMetadata.pathEligible',
 ] as const;
 
@@ -204,8 +231,8 @@ export function filterTeacherResourceNodes(
     if (filters.privacyLevel && filters.privacyLevel !== 'all' && node.planningMetadata.privacyLevel !== filters.privacyLevel) {
       return false;
     }
-    if (filters.pathEligibility === 'eligible' && !node.eligibility.pathEligible) return false;
-    if (filters.pathEligibility === 'excluded' && node.eligibility.pathEligible) return false;
+    if (filters.pathEligibility === 'eligible' && !buildTeacherResourceNodeAudit(node).pathEligible) return false;
+    if (filters.pathEligibility === 'excluded' && buildTeacherResourceNodeAudit(node).pathEligible) return false;
     return true;
   });
 }
@@ -214,6 +241,7 @@ export function createTeacherResourceNodeView(
   node: ResourceNode,
   scope: TeacherResourceNodeScope,
 ): TeacherResourceNodeView {
+  const audit = buildTeacherResourceNodeAudit(node);
   return {
     id: node.id,
     title: node.title,
@@ -231,14 +259,12 @@ export function createTeacherResourceNodeView(
     availability: node.planningMetadata.availability,
     teacherPolicy: node.planningMetadata.teacherPolicy,
     privacyLevel: node.planningMetadata.privacyLevel,
+    readiness: copyReadinessMetadata(node.planningMetadata.readiness),
+    audit,
     evidenceInstrumentationConfigured: node.planningMetadata.evidenceInstrumentation.length > 0,
     pathEligible: node.eligibility.pathEligible,
     pathExclusionReasons: [...node.eligibility.reasons],
-    warnings: node.eligibility.auditIssues.map((issue) => ({
-      code: issue.code,
-      message: issue.message,
-      severity: issue.severity,
-    })),
+    warnings: buildTeacherResourceNodeAuditWarnings(node, audit),
     editable: canEditNode(node, scope),
   };
 }
@@ -248,9 +274,15 @@ export function buildTeacherResourceNodeManagementSummary(
 ): TeacherResourceNodeSummary {
   return {
     totalNodes: nodes.length,
-    pathEligibleNodes: nodes.filter((node) => node.eligibility.pathEligible).length,
-    warningNodes: nodes.filter((node) => node.eligibility.auditIssues.length > 0).length,
-    excludedNodes: nodes.filter((node) => !node.eligibility.pathEligible).length,
+    pathEligibleNodes: nodes.filter((node) => buildTeacherResourceNodeAudit(node).pathEligible).length,
+    warningNodes: nodes.filter((node) => buildTeacherResourceNodeAuditWarnings(node, buildTeacherResourceNodeAudit(node)).length > 0).length,
+    excludedNodes: nodes.filter((node) => !buildTeacherResourceNodeAudit(node).pathEligible).length,
+    mappedNodes: nodes.filter((node) => node.planningMetadata.knowledgeCoverage.length > 0).length,
+    unmappedNodes: nodes.filter((node) => node.planningMetadata.knowledgeCoverage.length === 0).length,
+    capabilityMappedNodes: nodes.filter((node) => Object.keys(node.planningMetadata.abilityImpact).length > 0).length,
+    citationReadyNodes: nodes.filter(hasCitationTarget).length,
+    evidenceCapabilityNodes: nodes.filter((node) => node.planningMetadata.evidenceInstrumentation.length > 0).length,
+    blockedNodes: nodes.filter((node) => !buildTeacherResourceNodeAudit(node).pathEligible).length,
   };
 }
 
@@ -351,13 +383,18 @@ export function buildTeacherResourceNodeOperationsReadiness(
 ): TeacherResourceNodeOperationsReadiness {
   const mappedNodes = nodes.filter((node) => node.planningMetadata.knowledgeCoverage.length > 0).length;
   const totalNodes = nodes.length;
+  const auditByNodeId = new Map(nodes.map((node) => [node.id, buildTeacherResourceNodeAudit(node)]));
+  const warningsByNodeId = new Map(nodes.map((node) => [
+    node.id,
+    buildTeacherResourceNodeAuditWarnings(node, auditByNodeId.get(node.id)!),
+  ]));
   const policyReviewRequired = nodes.filter((node) =>
     node.planningMetadata.teacherPolicy === 'blocked' ||
     node.planningMetadata.teacherPolicy === 'teacher-only' ||
-    node.eligibility.auditIssues.some((issue) => issue.severity === 'blocking')
+    warningsByNodeId.get(node.id)!.some((issue) => issue.severity === 'blocking')
   );
   const systemIssues = nodes.flatMap((node) =>
-    node.eligibility.auditIssues.map((issue) => ({
+    warningsByNodeId.get(node.id)!.map((issue) => ({
       code: `${node.id}:${issue.code}`,
       message: issue.message,
       severity: issue.severity,
@@ -370,7 +407,7 @@ export function buildTeacherResourceNodeOperationsReadiness(
     coverage: {
       totalNodes,
       mappedNodes,
-      pathEligibleNodes: nodes.filter((node) => node.eligibility.pathEligible).length,
+      pathEligibleNodes: nodes.filter((node) => auditByNodeId.get(node.id)!.pathEligible).length,
       coverageRatio: totalNodes > 0 ? round(mappedNodes / totalNodes, 4) : 0,
     },
     systemIssues,
@@ -383,21 +420,46 @@ export function canReadNode(node: ResourceNode, scope: TeacherResourceNodeScope)
 }
 
 export function canEditNode(node: ResourceNode, scope: TeacherResourceNodeScope): boolean {
-  if (scope.role === 'ADMIN') return true;
   return node.sourceKind === 'teaching_resource' && scope.editableSourceRefs.has(node.sourceRef);
 }
 
 function sanitizePlanningPatch(
-  patch: NonNullable<TeacherResourceNodePatch['planningMetadata']>,
-): NonNullable<TeacherResourceNodePatch['planningMetadata']> {
-  const result: NonNullable<TeacherResourceNodePatch['planningMetadata']> = {};
-  if (patch.prerequisites) result.prerequisites = uniqueSorted(patch.prerequisites);
-  if (patch.knowledgeCoverage) result.knowledgeCoverage = uniqueSorted(patch.knowledgeCoverage);
-  if (patch.estimatedTimeMinutes !== undefined) result.estimatedTimeMinutes = patch.estimatedTimeMinutes;
-  if (patch.cognitiveLoad) result.cognitiveLoad = patch.cognitiveLoad;
-  if (patch.availability) result.availability = patch.availability;
-  if (patch.teacherPolicy) result.teacherPolicy = patch.teacherPolicy;
-  if (patch.privacyLevel) result.privacyLevel = patch.privacyLevel;
+  patch: unknown,
+): TeacherResourceNodePlanningPatch {
+  const result: TeacherResourceNodePlanningPatch = {};
+  if (!isRecord(patch)) return result;
+  if (Array.isArray(patch.prerequisites)) result.prerequisites = uniqueSorted(patch.prerequisites.filter(isString));
+  if (Array.isArray(patch.knowledgeCoverage)) result.knowledgeCoverage = uniqueSorted(patch.knowledgeCoverage.filter(isString));
+  if (typeof patch.estimatedTimeMinutes === 'number' || patch.estimatedTimeMinutes === null) {
+    result.estimatedTimeMinutes = patch.estimatedTimeMinutes;
+  }
+  if (patch.cognitiveLoad === 'low' || patch.cognitiveLoad === 'medium' || patch.cognitiveLoad === 'high') {
+    result.cognitiveLoad = patch.cognitiveLoad;
+  }
+  if (
+    patch.availability === 'available' ||
+    patch.availability === 'draft' ||
+    patch.availability === 'archived' ||
+    patch.availability === 'teacher_only'
+  ) {
+    result.availability = patch.availability;
+  }
+  if (
+    patch.teacherPolicy === 'allowed' ||
+    patch.teacherPolicy === 'teacher-assigned' ||
+    patch.teacherPolicy === 'teacher-only' ||
+    patch.teacherPolicy === 'blocked'
+  ) {
+    result.teacherPolicy = patch.teacherPolicy;
+  }
+  if (
+    patch.privacyLevel === 'student-visible' ||
+    patch.privacyLevel === 'teacher-scoped' ||
+    patch.privacyLevel === 'admin-scoped'
+  ) {
+    result.privacyLevel = patch.privacyLevel;
+  }
+  if ('readiness' in patch) result.readiness = sanitizeReadinessPatch(patch.readiness);
   if (patch.pathEligible === false) result.teacherPolicy = 'blocked';
   if (patch.pathEligible === true) result.teacherPolicy = result.teacherPolicy === 'blocked'
     ? 'allowed'
@@ -429,10 +491,129 @@ function textMatchesNode(node: ResourceNode, query: string): boolean {
   return haystack.includes(query);
 }
 
+function buildTeacherResourceNodeAudit(node: ResourceNode): TeacherResourceNodeAuditView {
+  const knowledgeCoveragePresent = node.planningMetadata.knowledgeCoverage.length > 0;
+  const capabilityMappingPresent = Object.keys(node.planningMetadata.abilityImpact).length > 0;
+  const citationTargetReady = hasCitationTarget(node);
+  const evidenceCapabilityConfigured = node.planningMetadata.evidenceInstrumentation.length > 0;
+  const exclusionReasons = uniqueSorted([
+    ...node.eligibility.reasons,
+    ...(!capabilityMappingPresent ? ['missing-capability-mapping'] : []),
+    ...(!evidenceCapabilityConfigured ? ['missing-evidence-instrumentation'] : []),
+  ]);
+  return {
+    knowledgeCoveragePresent,
+    capabilityMappingPresent,
+    citationTargetReady,
+    evidenceCapabilityConfigured,
+    pathEligible: node.eligibility.pathEligible && capabilityMappingPresent && evidenceCapabilityConfigured,
+    exclusionReasons,
+    sourceOwnership: {
+      content: node.sourceOfRecord.content,
+      catalogMetadata: node.sourceOfRecord.catalogMetadata,
+      planningMetadata: node.sourceOfRecord.planningMetadata,
+    },
+  };
+}
+
+function buildTeacherResourceNodeAuditWarnings(
+  node: ResourceNode,
+  audit: TeacherResourceNodeAuditView,
+): TeacherResourceNodeWarningView[] {
+  const warnings: TeacherResourceNodeWarningView[] = node.eligibility.auditIssues.map((issue) => ({
+    code: issue.code,
+    message: issue.message,
+    severity: issue.severity,
+  }));
+  if (!audit.capabilityMappingPresent && !warnings.some((warning) => warning.code === 'missing-capability-mapping')) {
+    warnings.push({
+      code: 'missing-capability-mapping',
+      message: 'ResourceNode has no capability target mapping for high-confidence path planning.',
+      severity: 'blocking',
+    });
+  }
+  const evidenceWarning = warnings.find((warning) => warning.code === 'missing-evidence-instrumentation');
+  if (evidenceWarning) {
+    evidenceWarning.severity = 'blocking';
+  } else if (!audit.evidenceCapabilityConfigured) {
+    warnings.push({
+      code: 'missing-evidence-instrumentation',
+      message: 'ResourceNode has no evidence instrumentation mapping.',
+      severity: 'blocking',
+    });
+  }
+  return warnings;
+}
+
+function hasCitationTarget(node: ResourceNode): boolean {
+  return Boolean(node.launchTarget || node.renderTarget);
+}
+
 function uniqueSorted(values: readonly string[]): string[] {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean))).sort((left, right) =>
     left.localeCompare(right)
   );
+}
+
+function copyReadinessMetadata(readiness: ResourceNodeReadinessMetadata | null): ResourceNodeReadinessMetadata | null {
+  if (!readiness) return null;
+  return {
+    minimumCompetency: { ...readiness.minimumCompetency },
+    minimumEvidenceCount: readiness.minimumEvidenceCount,
+    requiredCompletedNodeIds: [...readiness.requiredCompletedNodeIds],
+    requiredOutcomeRefs: [...readiness.requiredOutcomeRefs],
+    unlockMessage: readiness.unlockMessage,
+    fallbackNodeIds: [...readiness.fallbackNodeIds],
+  };
+}
+
+function sanitizeReadinessPatch(
+  readiness: unknown,
+): ResourceNodeReadinessMetadata | null {
+  if (!readiness || typeof readiness !== 'object' || Array.isArray(readiness)) return null;
+  const record = readiness as Record<string, unknown>;
+  const minimumCompetency = Object.fromEntries(
+    Object.entries(isRecord(record.minimumCompetency) ? record.minimumCompetency : {})
+      .filter((entry): entry is [string, number] => entry[0].trim().length > 0 && Number.isFinite(entry[1]))
+      .map(([key, value]): [string, number] => [key.trim(), Math.max(0, Math.min(1, value))])
+      .sort(([left], [right]) => left.localeCompare(right)),
+  );
+  const minimumEvidenceCount = typeof record.minimumEvidenceCount === 'number' && Number.isFinite(record.minimumEvidenceCount)
+    ? Math.max(0, record.minimumEvidenceCount)
+    : 0;
+  const requiredCompletedNodeIds = uniqueSorted(readStringArray(record.requiredCompletedNodeIds));
+  const requiredOutcomeRefs = uniqueSorted(readStringArray(record.requiredOutcomeRefs));
+  const fallbackNodeIds = uniqueSorted(readStringArray(record.fallbackNodeIds));
+  const hasGate = Object.keys(minimumCompetency).length > 0 ||
+    minimumEvidenceCount > 0 ||
+    requiredCompletedNodeIds.length > 0 ||
+    requiredOutcomeRefs.length > 0;
+  if (!hasGate) return null;
+  const unlockMessage = typeof record.unlockMessage === 'string' && record.unlockMessage.trim().length > 0
+    ? record.unlockMessage.trim()
+    : '完成准备节点后会自动解锁。';
+  return {
+    minimumCompetency,
+    minimumEvidenceCount,
+    requiredCompletedNodeIds,
+    requiredOutcomeRefs,
+    unlockMessage,
+    fallbackNodeIds,
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : [];
 }
 
 function round(value: number, digits: number): number {

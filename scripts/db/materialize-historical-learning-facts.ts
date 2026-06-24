@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { createPrismaClient } from '../../src/lib/prisma-client';
 
 import {
   applyHistoricalEvidenceMaterializationPlan,
@@ -14,7 +14,7 @@ import {
   type EvidenceSourceId,
 } from '@/lib/data-governance/evidence-source-catalog';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 const DEFAULT_BATCH_SIZE = 1000;
 const SOURCE_PROCESSING_ORDER: EvidenceSourceId[] = [
   'StudentStepResponse',

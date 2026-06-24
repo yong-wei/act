@@ -1,0 +1,1683 @@
+{
+  "audit": {
+    "label": "teacher mobile class analytics v2 long page",
+    "path": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2",
+    "title": "AI-OBE船舶控制平台",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "教师工作台"
+      },
+      {
+        "tag": "h1",
+        "text": "班级学情总览"
+      },
+      {
+        "tag": "h2",
+        "text": "从治理结果回看班级学情"
+      },
+      {
+        "tag": "h2",
+        "text": "能力维度概览"
+      },
+      {
+        "tag": "h2",
+        "text": "画像等级分布"
+      },
+      {
+        "tag": "h2",
+        "text": "能力矩阵"
+      },
+      {
+        "tag": "h2",
+        "text": "重点学生"
+      },
+      {
+        "tag": "h3",
+        "text": "控灵"
+      }
+    ],
+    "controls": [
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/",
+        "name": "返回首页",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "张 张永韡 个人中心",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher",
+        "name": "教师总览",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes",
+        "name": "班级",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/lesson-plans",
+        "name": "教案",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/resources",
+        "name": "资源",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/prep-packs",
+        "name": "课前包",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/history",
+        "name": "课堂历史",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2",
+        "name": "班级分析",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf",
+        "name": "",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "刷新数据",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "能力分",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "近阶段变化",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "风险等级",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hd560011g9q2cmuhs9oa",
+        "name": "陈范洋 242210301105",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hd780015g9q29m7cqqnm",
+        "name": "陈凤荣 242210301106",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hihe00b1g9q25736uklw",
+        "name": "韦俊宇 242210301324",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiji00b5g9q29rp690gp",
+        "name": "魏延玺 242210301325",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hilk00b9g9q2pclb1oj6",
+        "name": "吴晓风 242210301326",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hinn00bdg9q2citenosq",
+        "name": "肖毅 242210301327",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hipp00bhg9q21uj9l15i",
+        "name": "徐慧聪 242210301328",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hirv00blg9q2mkvhjc77",
+        "name": "薛鸣涛 242210301329",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hitx00bpg9q2xrln6xgl",
+        "name": "杨伊凡 242210301330",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiw600btg9q2gty5p21e",
+        "name": "杨逸凡 242210301331",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj0n00c1g9q265jsunf7",
+        "name": "袁泽安 242210301333",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj2q00c5g9q2p3hv7q5r",
+        "name": "张池铖 242210301334",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj4s00c9g9q2skrua7yu",
+        "name": "张迅 242210301335",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj6u00cdg9q2ndp6zm9h",
+        "name": "智栋 242210301336",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj8w00chg9q23sc5o8jr",
+        "name": "朱成锦 242210301337",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjb000clg9q2knpo75tf",
+        "name": "丁至翰 242210301338",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hd9e0019g9q24u8cbfrx",
+        "name": "陈李 242210301107",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjf700ctg9q2v5xz3e6r",
+        "name": "赖梦雯 242210188402",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjhe00cxg9q218rkctl2",
+        "name": "沈越洋 242210288524",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjjh00d1g9q2xtlf1y24",
+        "name": "杜依轩 242210288602",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjnm00d9g9q24yg2lohf",
+        "name": "黄韵茹 242210488104",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjpq00ddg9q291lade7a",
+        "name": "宋志远 242210488231",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjs100dhg9q2by9h9w06",
+        "name": "闵舒涵 242210488306",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hju500dlg9q2mfam8rem",
+        "name": "桑思甜 242210488308",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjw700dpg9q2w7bfeczr",
+        "name": "张一诺 242210488414",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjyb00dtg9q2jljtcpn8",
+        "name": "陈家骥 242210501111",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk0h00dxg9q2fx6l685d",
+        "name": "沈俊杰 242210501123",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk2k00e1g9q2yytubxps",
+        "name": "吴宗保 242210501131",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk4m00e5g9q28mgfpkv1",
+        "name": "杨超逸 242210504234",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk9100edg9q2zj3gagvn",
+        "name": "张悦 242210688609",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkb300ehg9q2spwm6m7t",
+        "name": "王誉轩 242210688934",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkd800elg9q2mtubq9vx",
+        "name": "吴子恒 242210802122",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkfe00epg9q2r4ron9er",
+        "name": "黄丹琳 242210901204",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkhg00etg9q21feuaja5",
+        "name": "刘壮举 242210901318",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkji00exg9q2dpd3j84q",
+        "name": "罗圣琪 242210902206",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hklv00f1g9q2pq6n00dt",
+        "name": "邹童乐 242211801234",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkof00f5g9q28p0wssip",
+        "name": "王浩宇 242211901234",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkr400f9g9q2zo45vbv9",
+        "name": "祁翔 242211904124",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hktw00fdg9q2bj4ri8z8",
+        "name": "孙远 242211904226",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hky500flg9q2b8un91q8",
+        "name": "朱邦威 242212188144",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl0800fpg9q214jysswl",
+        "name": "李兆涵 242212188211",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl2a00ftg9q22ybj39td",
+        "name": "吴卓文 242212188637",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hck90005g9q21xy31um8",
+        "name": "左乔生 222210301333",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hcro000hg9q2hx1k4b7b",
+        "name": "周守运 212241802339",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hcts000lg9q2nyh265ty",
+        "name": "何倩 242210301101",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hcwc000pg9q252g9nazf",
+        "name": "胡梦凡 242210301102",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hczy000tg9q2zvevd7cd",
+        "name": "张宁 242210301103",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hd32000xg9q2p0hvtmxx",
+        "name": "赵璟铭 242210301104",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdbg001dg9q2pcmhfpob",
+        "name": "陈奕彬 242210301108",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hddi001hg9q2aa4e6hc7",
+        "name": "顾福智 242210301109",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdfn001lg9q26bs13vm6",
+        "name": "管梦航 242210301110",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdjw001tg9q239wu2fj6",
+        "name": "郭子民 242210301112",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdly001xg9q2th8x4xp9",
+        "name": "黄文涵 242210301113",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdo10021g9q2wqk94tcd",
+        "name": "鞠周宇 242210301114",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdq40025g9q2md75a087",
+        "name": "孔泽霖 242210301115",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hds80029g9q2c8ykrrbz",
+        "name": "刘庆 242210301116",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdub002dg9q2is8bvnz3",
+        "name": "罗俊豪 242210301117",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdww002hg9q2sgrfuzn2",
+        "name": "罗庆 242210301118",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdz1002lg9q2trlnvalp",
+        "name": "宋文强 242210301119",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7he1e002pg9q2modg2otv",
+        "name": "孙皓然 242210301120",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7he3z002tg9q2cr2r910l",
+        "name": "孙建潼 242210301121",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7he8i0031g9q23iioo0w1",
+        "name": "覃振宝 242210301124",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7heap0035g9q2zrsajnq9",
+        "name": "唐煜 242210301125",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hecv0039g9q2lug7agg3",
+        "name": "王涵 242210301126",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hef1003dg9q2yoe115ng",
+        "name": "王麒善 242210301127",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hehf003hg9q24c6ycfxh",
+        "name": "王润泽 242210301128",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hejh003lg9q21fr21g2y",
+        "name": "王顺 242210301129",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7helk003pg9q2jn4jlpvh",
+        "name": "王蕴博 242210301130",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7henu003tg9q2o8825pm8",
+        "name": "韦汉昌 242210301131",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7heqb003xg9q2wqh8l6j7",
+        "name": "杨俊毅 242210301132",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hewp0049g9q2td819jw5",
+        "name": "朱育兴 242210301136",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7heys004dg9q2x2xecasy",
+        "name": "曹思楠 242210301201",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hf0v004hg9q2m8f4w365",
+        "name": "刘佳妮 242210301202",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hf2x004lg9q2x9osrpwx",
+        "name": "彭欣瑶 242210301203",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hf75004tg9q28ofwlndy",
+        "name": "张欣格 242210301205",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hf97004xg9q2zlhkbvmy",
+        "name": "高恒茂 242210301206",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfbf0051g9q2zri0snsa",
+        "name": "耿昱杰 242210301207",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfdk0055g9q2f97hk7ja",
+        "name": "黄康杰 242210301208",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfgb0059g9q2diu3hxvv",
+        "name": "季言旭 242210301209",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfig005dg9q29ceeloka",
+        "name": "蒋祖羲 242210301210",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfkk005hg9q2bqcut5af",
+        "name": "李俊涛 242210301211",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfmn005lg9q26f2u7gf5",
+        "name": "李茂翼 242210301212",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfoq005pg9q27udcl7vs",
+        "name": "梁冬旭 242210301213",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfr0005tg9q2gnxnnras",
+        "name": "梁志豪 242210301214",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfvd0061g9q2jqfd291i",
+        "name": "刘邦泰 242210301216",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfzl0069g9q2v27eo58u",
+        "name": "柳越 242210301218",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hg1o006dg9q22b68n4b8",
+        "name": "龙凯 242210301219",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hg3u006hg9q2pb7vjngt",
+        "name": "罗智杰 242210301220",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hg5w006lg9q22wz82ubj",
+        "name": "秦楷钦 242210301221",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hg7z006pg9q276jm8vb7",
+        "name": "孙超 242210301222",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hga1006tg9q26yybofzh",
+        "name": "唐英泽 242210301223",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hgc3006xg9q2sh73i4iu",
+        "name": "唐泽 242210301224",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hgg90075g9q291xejdfv",
+        "name": "王熠乘 242210301226",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hgkg007dg9q2o3woubqq",
+        "name": "夏子俊 242210301228",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hgmi007hg9q257bga3zi",
+        "name": "徐程程 242210301229",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hgom007lg9q2483soxfd",
+        "name": "薛木然 242210301230",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hgqq007pg9q2nadohh64",
+        "name": "叶锦涛 242210301231",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hgss007tg9q276u91ff4",
+        "name": "余灿 242210301232",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hguw007xg9q2vh3qiniz",
+        "name": "张嘉誉 242210301233",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hgz60085g9q2medec8k7",
+        "name": "张智奥 242210301235",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hh3b008dg9q20u1q6tmt",
+        "name": "宗济贤 242210301237",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hh5g008hg9q2jkqf47dr",
+        "name": "郝心悦 242210301301",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hh7i008lg9q2ssagvu3x",
+        "name": "刘惠君 242210301302",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hh9n008pg9q2zviw703e",
+        "name": "王彩云 242210301303",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhbr008tg9q2k2d19hg9",
+        "name": "王雨湘 242210301304",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhdu008xg9q2iwws54rk",
+        "name": "张心缘 242210301305",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhfv0091g9q2uhqw9i4v",
+        "name": "蔡杰 242210301306",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhi10095g9q2qy0zqn56",
+        "name": "陈昊 242210301307",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhk30099g9q2tawhtm65",
+        "name": "陈强 242210301308",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hho7009hg9q2oh9ug8wm",
+        "name": "单琮芫 242210301310",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhqa009lg9q2j35m3fjk",
+        "name": "杜文鑫 242210301311",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhse009pg9q2eknf1nq7",
+        "name": "方耀远 242210301312",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhui009tg9q2voddfi5e",
+        "name": "谷佟 242210301313",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhwl009xg9q2vntklp2u",
+        "name": "顾文仪 242210301314",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhyq00a1g9q2b05t7euk",
+        "name": "黄奕嘉 242210301315",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi0v00a5g9q2kvhqthub",
+        "name": "贾滨赫 242210301316",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi2y00a9g9q2qpsf6lvd",
+        "name": "李金峰 242210301317",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi5100adg9q2bms0g2yc",
+        "name": "李志同 242210301318",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi7300ahg9q2y0eqmdib",
+        "name": "梁宏 242210301319",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hib800apg9q2wvhxk5d8",
+        "name": "滕铭志 242210301321",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hida00atg9q2g4mmkixj",
+        "name": "王雨航 242210301322",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hgwy0081g9q2cekr7yzm",
+        "name": "张展鹏 242210301234",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hh1a0089g9q287vp97bn",
+        "name": "周士旺 242210301236",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiya00bxg9q273j4xjap",
+        "name": "俞睿 242210301332",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjd300cpg9q26965ftdo",
+        "name": "孙博扬 242210103219",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjlk00d5g9q2gnmlbvb6",
+        "name": "刘宇硕 242210288617",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk6w00e9g9q2nm8109x2",
+        "name": "陈学鹏 242210688415",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkw000fhg9q27sys8pzh",
+        "name": "孙尚 242212188136",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl4b00fxg9q2zkb8v0ww",
+        "name": "陈兴旺 242212288313",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhm5009dg9q2xgqnwo03",
+        "name": "崔津铭 242210301309",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi9600alg9q2cnlecxco",
+        "name": "刘中天 242210301320",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hifc00axg9q27s38gcmd",
+        "name": "王煜泽 242210301323",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hcni0009g9q2lqfx4hxv",
+        "name": "肖文涛 232210302124",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdht001pg9q2ajn7d0z1",
+        "name": "郭子豪 242210301111",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7he6c002xg9q2sya6ce4x",
+        "name": "孙天宇 242210301122",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hesg0041g9q2tktscmxt",
+        "name": "张杭靖 242210301133",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7heum0045g9q2kxt3phtt",
+        "name": "赵超 242210301134",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hf4z004pg9q2cg46gaqc",
+        "name": "张佳宁 242210301204",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hft7005xg9q2jhqe6ph8",
+        "name": "林凯 242210301215",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hge60071g9q22zo2vqws",
+        "name": "万宇航 242210301225",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hcpl000dg9q2dtsk3ksl",
+        "name": "王旭东 232210301121",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hfxi0065g9q23nj165b8",
+        "name": "刘威辰 242210301217",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hgid0079g9q21lqtxv52",
+        "name": "吴学文 242210301227",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hck90005g9q21xy31um8",
+        "name": "左乔生 中风险 近期表现平稳 控制建模与分析 参数设计与调优 综合指数 0 成长档案 0 条",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hcni0009g9q2lqfx4hxv",
+        "name": "肖文涛 中风险 近期表现平稳 控制建模与分析 参数设计与调优 综合指数 0 成长档案 0 条",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hcpl000dg9q2dtsk3ksl",
+        "name": "王旭东 中风险 近期表现平稳 控制建模与分析 参数设计与调优 综合指数 0 成长档案 0 条",
+        "disabled": false
+      }
+    ],
+    "controlsWithoutNames": [
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf",
+        "name": "",
+        "disabled": false
+      }
+    ],
+    "svgCanvasCount": 155,
+    "unlabeledSvgCanvas": [
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      }
+    ],
+    "liveRegions": [],
+    "errors": [],
+    "fixedOrSticky": [
+      {
+        "tag": "div",
+        "className": "\n          fixed right-0 top-0 z-50 flex flex-col\n          h-screen w-screen\n          sm:w-[380px]\n          lg:w-[420px]\n          bg-white border-slate-200\n          transition-all duration-300 ea",
+        "text": "控灵 当前: analytics v2 你好，我是控灵。今天我们将探索「analytics v2」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板",
+        "rect": {
+          "x": 390,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        }
+      },
+      {
+        "tag": "div",
+        "className": "no-print fixed bottom-4 right-6 z-[120] flex flex-col items-end",
+        "text": "控灵",
+        "rect": {
+          "x": 276,
+          "y": 788,
+          "w": 90,
+          "h": 40
+        }
+      }
+    ],
+    "forms": [
+      {
+        "text": "按 Enter 发送，ESC 关闭面板",
+        "controls": [
+          "全局 AI 问题输入框",
+          "BUTTON"
+        ]
+      }
+    ],
+    "tableLike": [],
+    "viewportTextHead": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 班级学情总览 治理结果部分可用 2024自动化 · 143 名学生 · 25 天前更新 刷新数据 从治理结果回看班级学情 这里不再展示孤立的技术分和伦理分，而是围绕能力矩阵、风险分层、治理覆盖度和重点学生，为教师提供可行动的班级判断依据。 治理覆盖进度 当前仅覆盖 135/143 名学生，需结合课堂记录综合判断。 135/143 已生成画像 班级总体指数 31.1 最新班级快照与学生画像聚合值 重点关注学生 135 中高风险或整体表现偏弱 高风险学生 0 建议优先一对一跟进 能力维度概览 六维能力均值与波动，可快速判断本班共性短板。 控制建模与分析 均值 40.4 / 波动 5.6 参数设计与调优 均值 30.1 / 波动 33.1 跨域迁移与联动 均值 25.5 / 波动 23.9 工程决策与约束 均值 38.3 / 波动 39.6 探究反思与提示词 均值 20.2 / 波动 28.4 自主学习进展 均值 32.2 / 波动 4 画像等级分布 基于当前治理结果的班级层级结构。 优秀 0 人 良好 0 人 中等 8 人 需提升 33 人 需关注 60 人 能力矩阵 按学生逐项查看能力分、变化趋势或风险等级，让教师先看到“谁需要关注”，再决定看哪一门能力。 能力分 近阶段变化 风险等级 学生 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 陈范洋 242210301105 41 0 0 0 0 34 陈凤荣 242210301106 45 0 0 0 0 36 韦俊宇 242210301324 50 0 0 0 0 30 魏延玺 242210301325 43 0 0 0 0 37 吴晓风 242210301326 36 60 0 70 0 31 肖毅 242210301327 36 63 47 74 60 31 徐慧聪 242210301328 44 0 40 50 0 35 薛鸣涛 242210301329 38 70 60 90 0 31 杨伊凡 242210301330 37 0 0 0 0 30 杨逸凡 242210301331 - - - - - - 袁泽安 242210301333 43 0 0 0 0 37 张池铖 242210301334 43 0 0 0 0 37 张迅 242210301335 42 69 53 89 60 34 智栋 242210301336 50 0 40 50 0 21 朱成锦 242210301337 39 63 46 71 60 35 丁至翰 242210301338 - - - - - - 陈李 242210301107 - - - - - - 赖梦雯 242210188402 45 0 0 0 0 36 沈越洋 242210288524 44 70 0 0 0 33 杜依轩 242210288602 50 0 0 0 0 30 黄韵茹 242210488104 - - - - - - 宋志远 242210488231 43 0 40 0 60 33 闵舒涵 242210488306 44 0 0 0 0 36 桑思甜 242210488308 43 0 0 0 0 38 张一诺 242210488414 - - - - - - 陈家骥 242210501111 42 68 47 75 60 38 沈俊杰 242210501123 41 70 60 90 0 36 吴宗保 242210501131 42 0 0 0 0 38 杨超逸 242210504234 42 0 40 50 60 35 张悦 242210688609 45 0 0 0 0 35 王誉轩 242210688934 35 68 50 88 60 29 吴子恒 242210802122 38 69 48 71 60 32 黄丹琳 242210901204 - - - - - - 刘壮举 242210901318 43 60 30 80 0 35 罗圣琪 242210902206 44 0 0 0 0 34 邹童乐 24221180123",
+    "extra": {
+      "actions": [],
+      "screenshot": "screenshots/49-function-state-flows-batch14/09-teacher-class-analytics-v2-mobile.png",
+      "requestedUrl": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2"
+    }
+  },
+  "accessibilitySnapshotUnavailable": "Playwright page.accessibility.snapshot unavailable in this runtime"
+}

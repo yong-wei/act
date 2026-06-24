@@ -78,7 +78,7 @@ Expected: 测试通过。
 
 Run:
 - `rtk npx vitest run src/features/interactive/__tests__/unit-3-3-course.test.ts`
-- `rtk python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --contract course-content/authoring/lessons/3-3/design/interactive-contract.yaml --implementation src/lib/unit-3-3-course.ts --page-contract-const UNIT_3_3_PAGE_CONTRACTS --step-const UNIT_3_3_LESSON_STEPS`
+- `rtk python3 .agents/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --contract course-content/authoring/lessons/3-3/design/interactive-contract.yaml --implementation src/lib/unit-3-3-course.ts --page-contract-const UNIT_3_3_PAGE_CONTRACTS --step-const UNIT_3_3_LESSON_STEPS`
 - `rtk npm run lint`
 
 Expected: 全部通过；若时间允许，再补 `rtk npm run build`。

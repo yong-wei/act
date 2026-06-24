@@ -7,7 +7,7 @@
  * Supports both standalone and embedded (BOPPPS) modes.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Lightbulb, Bot, Circle } from 'lucide-react';
 import { useLessonContext } from '@/features/lesson-engine/ContextInjector';
@@ -52,7 +52,6 @@ export default function ArgumentPrincipleWidget({
   });
 
   // Local state
-  const [aiHint, setAiHint] = useState<string | null>(null);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -75,16 +74,11 @@ export default function ArgumentPrincipleWidget({
     }
   }, [hasInteracted, onStateChange]);
 
-  // Generate contextual AI hints
-  useEffect(() => {
-    if (!embedded) return;
-
-    if (!hasInteracted) {
-      setAiHint('尝试修改传递函数的极点和零点位置，观察 Nyquist 图的变化。');
-    } else {
-      setAiHint('观察轮廓映射后对原点的包围次数，这与系统稳定性直接相关。');
-    }
-  }, [hasInteracted, embedded]);
+  const aiHint = !embedded
+    ? null
+    : hasInteracted
+      ? '观察轮廓映射后对原点的包围次数，这与系统稳定性直接相关。'
+      : '尝试修改传递函数的极点和零点位置，观察 Nyquist 图的变化。';
 
   // Ask AI for help
   const askAI = async () => {
@@ -106,7 +100,7 @@ export default function ArgumentPrincipleWidget({
   };
 
   return (
-    <div
+    <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
       className={`relative flex h-full w-full flex-col bg-slate-950 ${className}`}
       onClick={handleInteraction}
     >
@@ -127,7 +121,7 @@ export default function ArgumentPrincipleWidget({
 
       {/* AI Assistant Button */}
       {embedded && (
-        <button
+        <button type="button"
           onClick={(e) => {
             e.stopPropagation();
             askAI();
@@ -145,7 +139,7 @@ export default function ArgumentPrincipleWidget({
         <div className="absolute bottom-16 right-4 z-20 w-80 max-h-60 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900/95 p-4 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-emerald-400">AI 助手</span>
-            <button
+            <button type="button"
               onClick={() => setShowAIPanel(false)}
               className="text-slate-500 hover:text-slate-300"
             >

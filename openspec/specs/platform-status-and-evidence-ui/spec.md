@@ -1,9 +1,7 @@
 ## Purpose
 
 Define shared display semantics for platform evidence, confidence, privacy, replay, protocol, evaluation, readiness, missing-context, and fallback states without moving domain truth into shared UI primitives.
-
 ## Requirements
-
 ### Requirement: Evidence status UI uses shared semantics
 The system SHALL provide shared UI semantics for evidence confidence, source coverage, privacy scope, replay status, protocol version, official/preview evaluation boundary, readiness, missing context, and fallback state.
 
@@ -32,3 +30,35 @@ The system SHALL distinguish complete, partial, stale, missing, unsupported, and
 #### Scenario: Personalization is limited
 - **WHEN** evidence or mapping coverage is insufficient for a confident recommendation, path, or intervention
 - **THEN** the UI SHALL show the limiting coverage or fallback reason.
+
+### Requirement: Workspace evidence rail uses shared status semantics
+Dense workspaces SHALL place confidence, official/preview state, source coverage, replay/readiness, and missing-context states in a consistent evidence rail or equivalent compact status zone.
+
+#### Scenario: Workspace shows governed state
+- **WHEN** Control Workbench, Arena detail, interactive course runtime, simulation workspace, teacher analytics, or admin governance shows governed state
+- **THEN** the state SHALL use shared evidence/status semantics
+- **AND** workspace-specific panels SHALL NOT invent page-local status badge vocabularies for the same concepts.
+
+### Requirement: Loading, empty, degraded, and unavailable states inherit route archetype
+Platform status UI SHALL render loading, empty, degraded, feature-flagged, low-confidence, and missing-evidence states within the current route archetype and theme template.
+
+#### Scenario: Status state appears during redesign
+- **WHEN** a learner, entry, workspace, knowledge, teacher, admin, or report surface enters loading, empty, degraded, unavailable, or low-confidence state
+- **THEN** the state SHALL use the route's approved visual template, status vocabulary, and next-action guidance
+- **AND** it SHALL NOT fall back to disconnected spinner pages, placeholder cards, or old dark loading screens.
+
+### Requirement: Report status labels preserve privacy and provenance
+Platform status and evidence UI SHALL preserve privacy, provenance, and confidence labels in report-ledger contexts.
+
+#### Scenario: Report contains evidence-derived metrics
+- **WHEN** a report displays evidence-derived metrics, recommendations, governance status, or learner outcomes
+- **THEN** the report SHALL include source scope, freshness, confidence, privacy, and official/preview status where applicable
+- **AND** those labels SHALL remain visible in screenshot, print, or export review.
+
+### Requirement: Report examples cover classroom, Arena, learner, and governance contexts
+Report-ledger UI SHALL be validated against representative report examples from each core platform role.
+
+#### Scenario: Report-ledger migration is accepted
+- **WHEN** report-ledger visual evidence is submitted
+- **THEN** classroom, Arena, learner, and governance or data-center examples SHALL show source, timestamp, privacy, confidence, and official/preview labels
+- **AND** watermark, texture, or brand treatment SHALL NOT obscure charts, formulas, names, tables, metrics, or privacy labels.

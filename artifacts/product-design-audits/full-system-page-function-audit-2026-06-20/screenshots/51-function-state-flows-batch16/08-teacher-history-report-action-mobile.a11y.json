@@ -1,0 +1,524 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/teacher/history",
+    "h1": [
+      "教师工作台",
+      "上课历史"
+    ],
+    "activeElement": {
+      "tag": "body",
+      "type": "",
+      "name": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回教师工作台 上课历史 查看全部已结束课堂，并将课堂归档到对应班级。 已结束课堂清单 点击“课堂统计”进入课堂记录与统计汇总页面。 59 节课 审计功能流教案 381469 未归档班级 2026/6/20 13 分钟 0 人参与 课堂码 673906 课堂统计 编辑 3-8：频域判别与跨域综合语言 (副本) 未归档班级 2026/6/3 11001 分钟 0 人参与 课堂码 353315 课堂统计 编辑 5-3：从单回路控制到复杂自主系统链路 (副本) 2024自动化 2026/5/26 103 分钟 81 人参与 课堂码 297119 课堂统计 编辑 5-2：非线性系统的最小分析入口 (副本) 2024自动化 2026/5/21 99 分钟 79 人参与 课堂码 262206 课堂统计 编辑 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 (副本) 2024自动化 2026/5/20 98 分钟 110 人参与 课堂码 943921 课堂统计 编辑 4-7：高保真辨识、设计验证与扰动边界 (副本) 2024自动化 2026/5/19 97 分钟 83 人参与 课堂码 431817 课堂统计 编辑 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 (副本) 2024自动化 2026/5/14 92 分钟 72 人参与 课堂码 620789 课堂统计 编辑 4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化 (副本) 2024自动化 2026/5/13 99 分钟 97 人参与 课堂码 854252 课堂统计 编辑 4-4：多目标权衡与控制器优化设计 (副本) 2024自动化 2026/5/12 103 分钟 77 人参与 课堂码 703810 课堂统计 编辑 4-3：初始方案落地实践：从对象分析到结构组合与首轮验证 (副本) 2024自动化 2026/5/9 101 分钟 69 人参与 课堂码 625334 课堂统计 编辑 4-2：控制器选型原理：不同控制结构为何适合不同任务 (副本) 2024自动化 2026/5/7 94 分钟 76 人参与 课堂码 923999 课堂统计 编辑 4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 2024自动化 2026/5/6 97 分钟 83 人参与 课堂码 390475 课堂统计 编辑 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 (副本) 未归档班级 2026/5/2 1 分钟 1 人参与 课堂码 545918 课堂统计 编辑 3-9：稳定—动态—稳态综合映射实验 (副本) 2024自动化 2026/4/30 116 分钟 80 人参与 课堂码 714588 课堂统计 编辑 3-8：频域判别与跨域综合语言 (副本) 2024自动化 2026/4/29 91 分钟 72 人参与 课堂码 419306 课堂统计 编辑 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理 (副本) 2024自动化 2026/4/28 99 分钟 75 人参与 课堂码 187470 课堂统计 编辑 3-6：零点作用与动态改善实验——从性能目标到校正设计 (副本) 2024自动化 2026/4/16 111 分钟 85 人参与 课堂码 184047 课堂统计 编辑 3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变 (副本) 未归档班级 2026/4/15 122 分钟 1 人参与 课堂码 274946 课堂统计 编辑 L-sum：设计可行域——让约束成为指南针 (副本) 2024自动化 2026/3/19 95 分钟 99 人参与 课堂码 373349 课堂统计 编辑 L-sum：设计可行域——让约束成为指南针 (副本) 未归档班级 2026/3/19 14 分钟 1 人参与 课堂码 957235 课堂统计 编辑 L-2d：三域联动探索 · 平台操作初体验 (副本) 2024自动化 2026/3/18 100 分钟 40 人参与 课堂码 854712 课堂统计 编辑 L-2c：频域直觉速通 · Bode图与相位裕度初识 (副本) 2024自动化 2026/3/17 94 分钟 93 人参与 课堂码 181767 课堂统计 编辑 L-2c：频域直觉速通 · Bode图与相位裕度初识 (副本) 2023自动化启航班 2026/3/16 78 分钟 2 人参与 课堂码 902669 课堂统计 编辑 L-2b：根轨迹直觉速通 · 极点迁移的几何感知 (副本) 未归档班级 2026/3/12 66555 分钟 0 人参与 课堂码 127389 课堂统计 编辑 L-2b：根轨迹直觉速通 · 极点迁移的几何感知 (副本) 2023自动化启航班 2026/3/12 4 分钟 2 人参与 课堂码 330609 课堂统计 编辑 L-2b：根轨迹直觉速通 · 极点迁移的几何感知 (副本) 2023自动化启航班 2026/3/12 25 分钟 2 人参与 课堂码 643802 课堂统计 编辑 L-2a：三张面孔，同一系统 · 时域直觉速通 (副本) 未归档班级 2026/3/12 2 分钟 0 人参与 课堂码 735778 课堂统计 编辑 L-2a：三张面孔，同一系统 · 时域直觉速通 (副本) 2024自动化 2026/3/11 68000 分钟 99 人参与 课堂码 214652 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 2023自动化启航班 2026/3/5 77166 分钟 2 人参与 课堂码 996686 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 2023自动化启航班 2026/3/4 147 分钟 24 人参与 课堂码 317676 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 未归档班级 2026/3/3 78775 分钟 0 人参与 课堂码 518847 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 未归档班级 2026/3/3 78776 分钟 0 人参与 课堂码 834818 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 未归档班级 2026/3/3 78782 分钟 0 人参与 课堂码 516189 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 未归档班级 2026/3/3 78783 分钟 0 人参与 课堂码 122489 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 未归档班级 2026/3/3 78783 分钟 0 人参与 课堂码 742052 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 未归档班级 2026/3/3 78783 分钟 0 人参与 课堂码 921989 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 未归档班级 2026/3/3 78817 分钟 0 人参与 课堂码 702764 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 未归档班级 2026/3/3 78875 分钟 1 人参与 课堂码 262281 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 2023自动化启航班 2026/3/1 95 分钟 30 人参与 课堂码 NGX57K 课堂统计 编辑 柔性之海——豪华邮轮的舒适度控制 (副本) 未归档班级 2026/2/28 25383 分钟 2 人参与 课堂码 235017 课堂统计 编辑 测试教案 未归档班级 2025/12/31 7308 分钟 0 人参与 课堂码 527145 课堂统计 编辑 测试教案 未归档班级 2025/12/31 110901 分钟 0 人参与 课堂码 657664 课堂统计 编辑 测试教案 未归档班级 2025/12/31 7335 分钟 0 人参与 课堂码 182685 课堂统计 编辑 幅相特性与稳定判据：频域的启示 2023自动化启航班 2025/6/16 90 分钟 25 人参与 课堂码 EDM6QC 课堂统计 编辑 控制奥德赛·指标裁判席 2023自动化启航班 2025/6/9 100 分钟 24 人参与 课堂码 AKA7GJ 课堂统计 编辑 传递函数与控制系统数学模型 2023自动化启航班 2025/6/2 95 分钟 30 人参与 课堂码 JET7F6 课堂统计 编辑 描述函数分析法与自振判别：交点与稳定性 2023自动化启航班 2025/5/26 90 分钟 29 人参与 课堂码 8KLEKV 课堂统计 编辑 非线性系统与描述函数基础：从现象到模型 2023自动化启航班 2025/5/19 100 分钟 28 人参与 课堂码 3T8Q8D 课堂统计 编辑 稳定裕度与三频段：宽备窄用 2023自动化启航班 2025/5/12 95 分钟 27 人参与 课堂码 U2GXYR 课堂统计 编辑 幅相特性与稳定判据：频域的启示 2023自动化启航班 2025/5/5 90 分钟 26 人参与 课堂码 D6JCXN 课堂统计 编辑 根轨迹法：放眼大局与细节修正 2023自动化启航班 2025/4/28 100 分钟 25 人参与 课堂码 5FZ6JC 课堂统计 编辑 稳定性与稳态误差：控制系统首要任务与准确性的度量 2023自动化启航班 2025/4/21 95 分钟 24 人参与 课堂码 XADVZF 课堂统计 编辑 衰减振荡·欠阻尼二阶系统 2023自动化启航班 2025/4/14 90 分钟 30 人参与 课堂码 5DBLBK 课堂统计 编辑 控制奥德赛·指标裁判席 2023自动化启航班 2025/4/7 100 分钟 29 人参与 课堂码 ETMDU8 课堂统计 编辑 方框图、信号流图与梅森公式 2023自动化启航班 2025/3/31 95 分钟 28 人参与 课堂码 8LPBQ2 课堂统计 编辑 传递函数与控制系统数学模型 2023自动化启航班 2025/3/24 90 分钟 27 人参与 课堂码 973ADW 课堂统计 编辑 微分方程与控制系统基础模型 2023自动化启航班 2025/3/17 100 分钟 26 人参与 课堂码 RR8HDU 课堂统计 编辑 机理建模·微分方程 2023自动化启航班 2025/3/10 95 分钟 25 人参与 课堂码 7S3LCZ 课堂统计 编辑 反馈：控制原理的核心思想 2023自动化启航班 2025/3/3 90 分钟 24 人参与 课堂码 M6YZTQ 课堂统计 编辑 控灵 当前: history 你好，我是控灵。今天我们将探索「history」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+      "placeholder": ""
+    },
+    "alerts": [],
+    "inputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "placeholder": "搜索教案标题...",
+        "ariaLabel": "搜索教案标题...",
+        "valueLength": 0,
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "valueLength": 0,
+        "hidden": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "a",
+        "name": "返回首页",
+        "disabled": false,
+        "href": "/"
+      },
+      {
+        "tag": "button",
+        "name": "张 张永韡 个人中心",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "教师总览",
+        "disabled": false,
+        "href": "/teacher"
+      },
+      {
+        "tag": "a",
+        "name": "班级",
+        "disabled": false,
+        "href": "/teacher/classes"
+      },
+      {
+        "tag": "a",
+        "name": "教案",
+        "disabled": false,
+        "href": "/teacher/lesson-plans"
+      },
+      {
+        "tag": "a",
+        "name": "资源",
+        "disabled": false,
+        "href": "/teacher/resources"
+      },
+      {
+        "tag": "a",
+        "name": "课前包",
+        "disabled": false,
+        "href": "/teacher/prep-packs"
+      },
+      {
+        "tag": "a",
+        "name": "课堂历史",
+        "disabled": false,
+        "href": "/teacher/history"
+      },
+      {
+        "tag": "a",
+        "name": "班级分析",
+        "disabled": false,
+        "href": "/teacher/classes"
+      },
+      {
+        "tag": "a",
+        "name": "返回教师工作台",
+        "disabled": false,
+        "href": "/teacher"
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmqltdhz50004vmyf76d2txz3/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmpxv1whn000qvtyfk11ieea1/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmplw3180000kuhvl8qzopj5j/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmpev4wkq000nhjkdto6fwmcu/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmpdfptu4000k10gm6qqhq012/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmpbw9hjg000j6fd7t5lembkj/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmp4vb32d04bcy3z65rlv7vhi/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmp3fnmik000ly3z64c0w5j2b/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmp1vz3l3001ue3jfwnwwvzio/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmoxloe52000uq5bcojma7r78/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmouv40fy009hd2apimc3xxlp/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmotfl8jz000ulndce351rym9/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmoo4690y0015x7nz3wao51t5/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmokuwm6j000hio3jdafw2bhv/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmojfpo3e01wgw3msifoy89kn/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmohvvd9h00asuejs5a4dlwj5/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmo0uw468006by1oywg41pzw1/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmnzfignb000kqfnwizt22l2b/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmwuj1x900b7kk3pdmlqrrnd/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmwtg5kh000jkk3p1k8etlln/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmveybwl00ho7in0i411xqr0/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmtvkdgx003fy6krdvr4etyn/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmt7xuod000ly6krozp0bq4y/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmmugwxl000l9d7235dpsz05/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmmsbvkn000lcw3h11kdko9j/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmmqi1g10ijtagfar0hvgvtb/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmmqfbw9000eagfaqgbn1pky/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmlevnty000ez9t9n16uvhhh/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmcbf58500iejoy4k6ttdvbn/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmbb8jnt000xjoy41vagfpwd/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmapxb0n002hf64i81tqpg8q/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmapvxwb0022f64iwado9imp/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmapoyny001nf64i491a0y9o/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmapnpek0018f64i04hipo8a/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "disabled": false,
+        "href": "/classroom/teacher/cmmapn2cn000tf64iebkmnfid/review"
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "disabled": false,
+        "href": ""
+      }
+    ],
+    "unnamedButtons": 1,
+    "graphicsCount": 245,
+    "unnamedGraphics": 0,
+    "bodyText": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回教师工作台 上课历史 查看全部已结束课堂，并将课堂归档到对应班级。 已结束课堂清单 点击“课堂统计”进入课堂记录与统计汇总页面。 59 节课 审计功能流教案 381469 未归档班级 2026/6/20 13 分钟 0 人参与 课堂码 673906 课堂统计 编辑 3-8：频域判别与跨域综合语言 (副本) 未归档班级 2026/6/3 11001 分钟 0 人参与 课堂码 353315 课堂统计 编辑 5-3：从单回路控制到复杂自主系统链路 (副本) 2024自动化 2026/5/26 103 分钟 81 人参与 课堂码 297119 课堂统计 编辑 5-2：非线性系统的最小分析入口 (副本) 2024自动化 2026/5/21 99 分钟 79 人参与 课堂码 262206 课堂统计 编辑 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 (副本) 2024自动化 2026/5/20 98 分钟 110 人参与 课堂码 943921 课堂统计 编辑 4-7：高保真辨识、设计验证与扰动边界 (副本) 2024自动化 2026/5/19 97 分钟 83 人参与 课堂码 431817 课堂统计 编辑 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 (副本) 2024自动化 2026/5/14 92 分钟 72 人参与 课堂码 620789 课堂统计 编辑 4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化 (副本) 2024自动化 2026/5/13 99 分钟 97 人参与 课堂码 854252 课堂统计 编辑 4-4：多目标权衡与控制器优化设计 (副本) 2024自动化 2026/5/12 103 分钟 77 人参与 课堂码 703810 课堂统计 编辑 4-3：初始方案落地实践：从对象分析到结构组合与首轮验证 (副本) 2024自动化 2026/5/9 101 分钟 69 人参与 课堂码 625334 课堂统计 编辑 4-2：控制器选型原理：不同控制结构为何适合不同任务 (副本) 2024自动化 2026/5/7 94 分钟 76 人参与 课堂码 923999 课堂统计 编辑 4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 2024自动化 2026/5/6 97 分钟 83 人参与 课堂码 390475 课堂统计 编辑 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 (副本) 未归档班级 2026/5/2 1 分钟 1 人参与 课堂码 545918 课堂统计 编辑 3-9：稳定—动态—稳态综合映射实验 (副本) 2024自动化 2026/4/30 116 分钟 80 人参与 课堂码 714588 课堂统计 编辑 3-8：频域判别与跨域综合语言 (副本) 2024自动化 2026/4/29 91 分钟 72 人参与 课堂码 419306 课堂统计 编辑 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理 (副本) 2024自动化 2026/4/28 99 分钟 75 人参与 课堂码 187470 课堂统计 编辑 3-6：零点作用与动态改善实验——从性能目标到校正设计 (副本) 2024自动化 2026/4/16 111 分钟 85 人参与 课堂码 184047 课堂统计 编辑 3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变 (副本) 未归档班级 2026/4/15 122 分钟 1 人参与 课堂码 274946 课堂统计 编辑 L-sum：设计可行域——让约束成为指南针 (副本) 2024自动化 2026/3/"
+  }
+}

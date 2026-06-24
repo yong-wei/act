@@ -11,8 +11,9 @@ import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route'
 const repoRoot = process.cwd();
 
 describe('2-1 mainline replacement', () => {
-  it('registers the 2-1 AI context and removes 1-1/1-2 from the premium registry', () => {
+  it('registers current mainline AI contexts and removes retired module 1 registry entries', () => {
     expect(COURSE_AI_CONTEXT_REGISTRY['unit-2-1-modeling-language-v1']).toBeDefined();
+    expect(COURSE_AI_CONTEXT_REGISTRY['unit-1-2-modeling-from-object-to-system-v1']).toBeDefined();
     expect(COURSE_AI_CONTEXT_REGISTRY['unit-1-1-laplace-transfer-function-v1']).toBeUndefined();
     expect(COURSE_AI_CONTEXT_REGISTRY['unit-1-2-block-diagram-simplification-v1']).toBeUndefined();
     expect(COURSE_AI_CONTEXT_REGISTRY['l2a-time-domain-fasttrack']).toBeUndefined();
@@ -22,9 +23,13 @@ describe('2-1 mainline replacement', () => {
     expect(COURSE_AI_CONTEXT_REGISTRY['lsum-design-feasible-domain-v1']).toBeUndefined();
   });
 
-  it('exposes only the current mainline premium lessons and removes retired module 1 entries', () => {
+  it('exposes the current premium lessons and removes retired module 1 entries', () => {
     const lessonIds = PREMIUM_LESSONS.map((lesson) => String(lesson.id));
-    expect(lessonIds).toEqual(['cruise-comfort-boppps']);
+    expect(lessonIds).toEqual([
+      'unit-1-1-see-the-full-picture',
+      'unit-1-2-modeling-from-object-to-system',
+      'cruise-comfort-boppps',
+    ]);
     expect(lessonIds).not.toContain('unit-2-1-modeling-language');
     expect(lessonIds).not.toContain('unit-2-2-time-domain-response');
     expect(lessonIds).not.toContain('unit-1-1-laplace-transfer-function');
@@ -39,6 +44,8 @@ describe('2-1 mainline replacement', () => {
   it('keeps only current mainline presets and removes retired module 1 presets', () => {
     expect(ALL_PRESETS.some((preset) => preset.key === 'unit-2-1-modeling-language-v1')).toBe(true);
     expect(ALL_PRESETS.some((preset) => preset.key === 'unit-2-2-time-domain-response-v1')).toBe(true);
+    expect(ALL_PRESETS.some((preset) => preset.key === 'unit-1-1-see-the-full-picture-v1')).toBe(true);
+    expect(ALL_PRESETS.some((preset) => preset.key === 'unit-1-2-modeling-from-object-to-system-v1')).toBe(true);
     expect(ALL_PRESETS.some((preset) => preset.key === 'unit-1-1-laplace-transfer-function-v1')).toBe(false);
     expect(ALL_PRESETS.some((preset) => preset.key === 'unit-1-2-block-diagram-simplification-v1')).toBe(false);
     expect(ALL_PRESETS.some((preset) => preset.key === 'l2a-time-domain-fasttrack-v1')).toBe(false);
@@ -57,6 +64,11 @@ describe('2-1 mainline replacement', () => {
     expect(resolveSessionRouteFromPlanTitle('1-1：拉氏变换与传递函数——从微分方程到代数方程')).toEqual({
       routeSegment: null,
       isPremiumCourse: false,
+    });
+
+    expect(resolveSessionRouteFromPlanTitle('1-2：建模——从真实对象到可分析的系统')).toEqual({
+      routeSegment: 'unit-1-2-modeling-from-object-to-system',
+      isPremiumCourse: true,
     });
 
     expect(resolveSessionRouteFromPlanTitle('1-2：系统结构图与化简——从积木块到系统蓝图')).toEqual({
@@ -90,21 +102,16 @@ describe('2-1 mainline replacement', () => {
     });
   });
 
-  it('keeps the central AI context registry free of retired module 1 imports', () => {
+  it('keeps the central AI context registry free of retired legacy module 1 imports', () => {
     const source = readFileSync(join(repoRoot, 'src/lib/course-ai-contexts.ts'), 'utf8');
 
-    expect(source).not.toContain("./unit-1-1-ai-contexts");
-    expect(source).not.toContain("./unit-1-2-ai-contexts");
     expect(source).not.toContain("./unit-1-3-ai-contexts");
     expect(source).not.toContain("./l2a-ai-contexts");
     expect(source).not.toContain("./l2b-ai-contexts");
     expect(source).not.toContain("./l2c-ai-contexts");
     expect(source).not.toContain("./l2d-ai-contexts");
     expect(source).not.toContain("./lsum-ai-contexts");
-    expect(source).not.toContain('UNIT_1_1_COURSE_META');
-    expect(source).not.toContain('UNIT_1_2_COURSE_META');
-    expect(source).not.toContain('getUnit11StepAIContext');
-    expect(source).not.toContain('getUnit12StepAIContext');
+    expect(source).not.toContain('unit-1-2-block-diagram-simplification-v1');
     expect(source).not.toContain('L2A_COURSE_META');
     expect(source).not.toContain('L2B_COURSE_META');
     expect(source).not.toContain('L2C_COURSE_META');

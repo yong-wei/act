@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireAdminSession } from '@/lib/admin';
 import { initializeUserProgress } from '@/lib/user-sync';
+import { normalizeAdminUsersQueryContract } from '@/lib/api-ui-contracts';
 
 // 基础验证 schema
 const baseUserSchema = z.object({
@@ -55,23 +56,28 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const search = searchParams.get('search')?.trim();
-  const role = searchParams.get('role');
-  const page = Math.max(Number(searchParams.get('page') || 1), 1);
-  const pageSize = Math.min(Math.max(Number(searchParams.get('pageSize') || 12), 1), 50);
+  const query = normalizeAdminUsersQueryContract({
+    q: searchParams.get('q'),
+    search: searchParams.get('search'),
+    role: searchParams.get('role'),
+    page: searchParams.get('page'),
+    pageSize: searchParams.get('pageSize'),
+    action: searchParams.get('action'),
+    targetId: searchParams.get('targetId'),
+    userId: searchParams.get('userId'),
+  });
 
   const where: Prisma.UserWhereInput = {};
-  if (role && Object.values(UserRole).includes(role as UserRole)) {
-    const roleValue = role as UserRole;
-    where.role = roleValue;
+  if (query.role !== 'ALL') {
+    where.role = query.role;
   }
 
-  if (search) {
+  if (query.search) {
     where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { email: { contains: search, mode: 'insensitive' } },
-      { employeeNumber: { contains: search, mode: 'insensitive' } },
-      { profile: { is: { studentNumber: { contains: search } } } },
+      { name: { contains: query.search, mode: 'insensitive' } },
+      { email: { contains: query.search, mode: 'insensitive' } },
+      { employeeNumber: { contains: query.search, mode: 'insensitive' } },
+      { profile: { is: { studentNumber: { contains: query.search } } } },
     ];
   }
 
@@ -88,15 +94,22 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
     }),
   ]);
 
   return NextResponse.json({
     total,
-    page,
-    pageSize,
+    page: query.page,
+    pageSize: query.pageSize,
+    query: {
+      search: query.search,
+      role: query.role,
+      action: query.action,
+      targetId: query.targetId,
+      source: query.source,
+    },
     users: users.map((user) => ({
       id: user.id,
       name: user.name,

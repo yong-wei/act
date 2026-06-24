@@ -78,7 +78,7 @@ export function PresetLessonList({ onUseTemplate }: PresetLessonListProps) {
       const result = await response.json();
 
       // 跳转到编辑页面
-      window.location.href = `/teacher/lesson-plans/${result.lessonPlanId}/edit`;
+      window.location.href = `/teacher/lesson-plans/${result.lessonPlanId}/edit?returnTo=${encodeURIComponent('/teacher/preset-lessons')}`;
     } catch (error) {
       console.error('克隆预置教案失败:', error);
       alert('克隆失败，请重试');
@@ -210,14 +210,14 @@ function PresetCard({ preset, summary, onPreview, onClone, isCloning }: PresetCa
 
       {/* 操作按钮 */}
       <div className="mt-4 flex gap-2">
-        <button
+        <button type="button"
           onClick={onPreview}
           className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-600 bg-slate-700/50 px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
         >
           <Eye className="h-4 w-4" />
           预览
         </button>
-        <button
+        <button type="button"
           onClick={onClone}
           disabled={isCloning}
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-cyan-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-500 disabled:opacity-50"

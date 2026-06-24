@@ -1,0 +1,680 @@
+{
+  "id": "chapter-02",
+  "number": 2,
+  "title": "控制系统的数学模型",
+  "pipeline": "mathpixplus",
+  "textbookPath": "textbook.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/chapter-02.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/chapter-02.qa.json",
+  "sourcePageStart": 13,
+  "sourcePageEnd": 42,
+  "sourcePageCount": 30,
+  "imageCount": 66,
+  "figureDescriptionCount": 66,
+  "markdownSha256": "701ecc350b5734213c2fb1ca9827e5c22330d8eba2a439ce071f3f197de72b56",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/chapter-02.local.md.images.json",
+  "sourceImageManifestCount": 66,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0013-01-300dpi.png",
+      "exportPath": "assets/fig-02-48.png",
+      "originalRelativePath": "assets/mathpix-source-page-0013-01-300dpi.png",
+      "caption": "图 2－48 机械系统原理图 （1）对于图 2－48（a）所示系统，根据力平衡方程，在不计重力时，可得",
+      "sourcePdfPage": 13,
+      "sha256": "429c7a57c5f888ec9f23124b9cdf851b8d7b866b3aaa550315742629958f2706",
+      "bytes": 134740
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0014-01-300dpi.png",
+      "exportPath": "assets/fig-02-49.png",
+      "originalRelativePath": "assets/mathpix-source-page-0014-01-300dpi.png",
+      "caption": "图 2－49 电网络与机械系统原理图 （1）对于图 2－49（a），根据复数阻抗的方法可得电网络的传递函数为",
+      "sourcePdfPage": 14,
+      "sha256": "3cdbeb48c595617f3159913c80eec90c1e2f782c22fd8afe91b10aef1bbe677f",
+      "bytes": 120562
+    },
+    {
+      "index": 3,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0015-01-300dpi.png",
+      "exportPath": "assets/fig-02-50.png",
+      "originalRelativePath": "assets/mathpix-source-page-0015-01-300dpi.png",
+      "caption": "图2－50 无源网络电路图 （1）对于图 2－50（a）所示的无源网络，设通过电阻 $R_{1}$ 的电流为 $i_{1}$（方向自左向右），通过电容 $C$ 的电流为 $i_{2}$（方向自左向右），通过电阻 $R_{2}$ 的电流为 $i$（方向自上向下），根据电压平衡可得",
+      "sourcePdfPage": 15,
+      "sha256": "66ada34d459f6ef2f654cb22e88c94d106f87f7a2224c34f185b2a45eb3b5a9d",
+      "bytes": 86723
+    },
+    {
+      "index": 4,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0017-01-300dpi.png",
+      "exportPath": "assets/fig-02-05-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0017-01-300dpi.png",
+      "caption": "图2－5－1 系统（1）单位斜坡响应曲线（MATLAB）",
+      "sourcePdfPage": 17,
+      "sha256": "bca3881a60f2f8ca00ce82f179b292c97d1111fea2ca03a9890e9b368bab3794",
+      "bytes": 246594
+    },
+    {
+      "index": 5,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0017-02-300dpi.png",
+      "exportPath": "assets/fig-02-05-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0017-02-300dpi.png",
+      "caption": "> Image description: The image shows a plot of the unit ramp response curve for \"System (1),\" generated using MATLAB, as indicated by the caption \"图2-5-1 系统（1）单位斜坡响应曲线（MATLAB）.\" The graph features a Cartesian coordinate system. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 20 seconds with major tick marks every 2 units. The vertical y-axis is labeled \"Amplitude\" and ranges from -0.1 to 0.6, with increments of 0.1. A dashed grid overlays the plot area for precise value reading. The plotted curve starts at the origin (0,0), rises sharply to a peak amplitude of approximately 0.54 at around 2 seconds, and then oscillates. It dips to a minimum of about -0.09 near 5 seconds before gradually stabilizing toward an amplitude of zero as time progresses beyond 12 seconds. This represents the transient behavior of the system's response to a ramp input. 图2－5－2 系统（2）单位脉冲响应曲线（MATLAB）",
+      "sourcePdfPage": 17,
+      "sha256": "33a271854470ea0a8a11b3b2622e923bc3b5cf6eb4449cbfe6a2b7f9c0f93233",
+      "bytes": 211499
+    },
+    {
+      "index": 6,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0017-03-300dpi.png",
+      "exportPath": "assets/fig-02-05-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0017-03-300dpi.png",
+      "caption": "> Image description: This image is a technical plot titled \"Step Response,\" showing the time-domain behavior of a system's output. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 20 seconds, with major grid markings every 2 seconds. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1.2, with increments of 0.2. The figure displays a single smooth curve starting at the origin (0,0) and rising asymptotically toward a steady-state value of 1.0. The response is characteristic of a first-order or overdamped second-order system, as it reaches its final value without oscillation or overshoot. The curve begins to flatten significantly around 6 to 8 seconds. According to the Chinese caption \"图2－5－2 系统（2）单位脉冲响应曲线（MATLAB）,\" this is a unit step response curve for System (2) generated using MATLAB software. 图2－5－3 系统（3）单位阶跃响应曲线（MATLAB）",
+      "sourcePdfPage": 17,
+      "sha256": "5285b7da1d83aafc4ab47f472c9d5a8be89bee2d5531ba3319321a581ef468f3",
+      "bytes": 201126
+    },
+    {
+      "index": 7,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0019-01-300dpi.png",
+      "exportPath": "assets/fig-02-51.png",
+      "originalRelativePath": "assets/mathpix-source-page-0019-01-300dpi.png",
+      "caption": "图2－51 系统结构图",
+      "sourcePdfPage": 19,
+      "sha256": "47f735cbc7693cfb00228b1a4ecec2cf27ad7fc09ccb6a195ea7ef964ee171b7",
+      "bytes": 40877
+    },
+    {
+      "index": 8,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0020-01-300dpi.png",
+      "exportPath": "assets/fig-02-52.png",
+      "originalRelativePath": "assets/mathpix-source-page-0020-01-300dpi.png",
+      "caption": "图 2－52 有源网络电路图 （1）对于图2－52（a）所示的有源网络，可得",
+      "sourcePdfPage": 20,
+      "sha256": "5d3db4a5547e021faf844b719be335a46ffdbb23ab78b9a77806a0d46caa64ae",
+      "bytes": 146381
+    },
+    {
+      "index": 9,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0021-01-300dpi.png",
+      "exportPath": "assets/fig-02-53.png",
+      "originalRelativePath": "assets/mathpix-source-page-0021-01-300dpi.png",
+      "caption": "> Image description: The image shows a circuit diagram labeled \"图2－53 控制系统模拟电路图\" (Figure 2-53 Analog Circuit Diagram of Control System). The schematic depicts three operational amplifier stages connected in series, each represented by a triangle symbol with the gain label $-K$ and grounded emitters. The first stage is an integrator/filter consisting of input resistors $R_0$, a feedback resistor $R_1$, and a feedback capacitor $C_1$. The second stage similarly features a feedback capacitor $C_2$ and an input resistor $R_0$. The third stage uses a feedback resistor $R_2$ and an input resistor $R_0$. The system is configured in a closed-loop feedback arrangement: the output voltage $U_o$ is fed back to the input side, where it meets the input voltage $U$. This structure represents a typical analog controller implementation using operational amplifiers. 图2－53 控制系统模拟电路图",
+      "sourcePdfPage": 21,
+      "sha256": "fdd51651427727d2c3a9d8f33d236601e74fe8d0f061b59894b18df98375fe88",
+      "bytes": 136206
+    },
+    {
+      "index": 10,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0022-01-300dpi.png",
+      "exportPath": "assets/fig-02-14-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0022-01-300dpi.png",
+      "caption": "图 2－14－1 直流伺服电机结构图",
+      "sourcePdfPage": 22,
+      "sha256": "4c751a4241e42f9742318c04190994abb52fa2b8d9208fa1fe13840cedd59069",
+      "bytes": 67507
+    },
+    {
+      "index": 11,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0022-02-300dpi.png",
+      "exportPath": "assets/fig-02-54.png",
+      "originalRelativePath": "assets/mathpix-source-page-0022-02-300dpi.png",
+      "caption": "图2－54 位置随动系统原理图",
+      "sourcePdfPage": 22,
+      "sha256": "63db3d151760f9eddda12b1b59aa7ac496219e76a08b4f662d82261480a58ef3",
+      "bytes": 210644
+    },
+    {
+      "index": 12,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0023-01-300dpi.png",
+      "exportPath": "assets/fig-02-15-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0023-01-300dpi.png",
+      "caption": "图2－15－1 位置随动系统结构图 （3）系统传递函数。系统结构图的简化如图 2－15－2 所示。",
+      "sourcePdfPage": 23,
+      "sha256": "09e173665735c3a37181962c2a8d4355552d9b1fe40e34143954193a364a93fd",
+      "bytes": 92195
+    },
+    {
+      "index": 13,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0023-02-300dpi.png",
+      "exportPath": "assets/fig-02-15-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0023-02-300dpi.png",
+      "caption": "图2－15－2 系统结构图简化",
+      "sourcePdfPage": 23,
+      "sha256": "1991f8120dcf42e04af3a36f91daaa544e54fb25fd7ee97534a00c7de1573f24",
+      "bytes": 74083
+    },
+    {
+      "index": 14,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0023-03-300dpi.png",
+      "exportPath": "assets/fig-02-55.png",
+      "originalRelativePath": "assets/mathpix-source-page-0023-03-300dpi.png",
+      "caption": "图 2－55 直流电动机调速系统原理图",
+      "sourcePdfPage": 23,
+      "sha256": "0f6dd19bf1f6250e6b640a4bc131155f2b6ce8d9516d08957e7061c728dfdeaa",
+      "bytes": 255560
+    },
+    {
+      "index": 15,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0024-01-300dpi.png",
+      "exportPath": "assets/fig-02-16-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0024-01-300dpi.png",
+      "caption": "图 2－16－1 直流电动机调速系统结构图",
+      "sourcePdfPage": 24,
+      "sha256": "eb8502b35df495ca0ce0310254c63c393f3775bedd371365973e0405d6f18b0d",
+      "bytes": 119101
+    },
+    {
+      "index": 16,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0024-02-300dpi.png",
+      "exportPath": "assets/fig-02-16-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0024-02-300dpi.png",
+      "caption": "图2－16－2 电机调速系统结构图简化 经过反馈连接等效，可得图 2－16－3 所示简化结构图。",
+      "sourcePdfPage": 24,
+      "sha256": "87dfe680cb453c5f0302013cc795efaed2f77712b180eabdfd6afc57dc9f4115",
+      "bytes": 92496
+    },
+    {
+      "index": 17,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0025-01-300dpi.png",
+      "exportPath": "assets/fig-02-16-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0025-01-300dpi.png",
+      "caption": "> Image description: This image shows a control system block diagram titled \"图2－16－3 电机调速系统结构图简化\" (Simplified Structure Diagram of Motor Speed Control System). The system processes an input signal $U_i$ to produce an output speed $\\Omega$. The forward path consists of three sequential blocks, $G_1$, $G_2$, and $G_3$, followed by a complex transfer function block: $\\frac{C_m G_4 G_5}{1 + C_e C_m G_4 G_5}$. There are two negative feedback loops. The inner loop feeds back from the output $\\Omega$ through a block labeled $K_4/C_m G_5$, returning to a summing junction before $G_2$. The outer loop feeds back from $\\Omega$ through a block labeled $K_5$, returning to the initial summing junction before $G_1$. Arrows indicate the unidirectional flow of signals between blocks and junctions, representing a typical closed-loop engineering control architecture for motor speed regulation. 图2－16－3 电机调速系统结构图简化",
+      "sourcePdfPage": 25,
+      "sha256": "e5856a9a69ed33e73da97c509ce91bc862c44f4ed124f0c6e5bfcdfb87eb373e",
+      "bytes": 88539
+    },
+    {
+      "index": 18,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0025-02-300dpi.png",
+      "exportPath": "assets/fig-02-16-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0025-02-300dpi.png",
+      "caption": "图2－16－4 电机调速系统信号流图 由图 2－16－4 可知，本系统有一条前向通道，三个单独回路，无互不接触回路，即",
+      "sourcePdfPage": 25,
+      "sha256": "b426dd6386dc6eea092ba0b4981bd9e1095a772289a7fcc8d7326ca17e6b5a22",
+      "bytes": 83837
+    },
+    {
+      "index": 19,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0025-03-300dpi.png",
+      "exportPath": "assets/fig-02-56.png",
+      "originalRelativePath": "assets/mathpix-source-page-0025-03-300dpi.png",
+      "caption": "图2－56 题2－17系统结构图",
+      "sourcePdfPage": 25,
+      "sha256": "dc3ae9ae7bc36391656dd916e84c59ee0d1e6fa437a2ac9f369f12dd1cc0f40f",
+      "bytes": 112579
+    },
+    {
+      "index": 20,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0026-01-300dpi.png",
+      "exportPath": "assets/fig-02-56-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0026-01-300dpi.png",
+      "caption": "> Image description: This image contains four control system block diagrams labeled (c), (d), (e), and (f) under the caption \"图 2－56 题 2－17 系统结构图（续)\". Each diagram represents a linear time-invariant system in the s-domain, mapping an input signal $R(s)$ to an output signal $C(s)$. The diagrams consist of functional blocks (transfer functions denoted as $G_n(s)$ and $H_n(s)$), summing junctions (circles with $+$ or $-$ signs), and directed arrows indicating signal flow. - **Diagram (c)** features a forward path through $G_1(s)$ and $G_2(s)$, with multiple feedback loops including $G_3(s)$, $H_1(s)$, and $H_2(s)$. - **Diagram (d)** shows a series of blocks $G_1(s), G_2(s),$ and $G_3(s)$ with nested negative feedback loops via $H_1(s), H_2(s),$ and $H_3(s)$. - **Diagram (e)** includes forward blocks $G_1(s), G_2(s),$ and $G_3(s)$ with three distinct feedback paths through $H_2(s), H_1(s),$ and $G_4(s)$. - **Diagram (f)** displays a simpler structure with forward path $G_1(s)$ and $G_2(s)$, and feedback loops involving $H_1(s)$ and $G_3(s)$. 图 2－56 题 2－17 系统结构图（续） （1）图2－56（a）系统。经过比较点后移，可得图2－17－1，则系统传递函数为",
+      "sourcePdfPage": 26,
+      "sha256": "2b018d44fc44194797b32a41e9a29f35f4302cd6e65e9b0803ccb285cddb74c6",
+      "bytes": 330775
+    },
+    {
+      "index": 21,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0026-02-300dpi.png",
+      "exportPath": "assets/fig-02-17-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0026-02-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled as \"图 2－17－1 系统（a）简化结构图.\" The diagram illustrates a feedback loop with an input variable $R(s)$ on the left and an output variable $C(s)$ on the right. The forward path consists of a signal flowing from $R(s)$ through block $G_1$ to a summing junction (represented by a circle). From the summing junction, the signal proceeds directly to the output $C(s)$. There are two feedback paths returning signals to the summing junction. The first is a direct feed-forward path from $R(s)$ through block $G_2$. The second is a negative feedback loop where the output $C(s)$ passes back through blocks $G_3$ and then another instance of $G_2$ before reaching the summing junction, indicated by a minus sign. Arrows indicate the direction of signal flow throughout the system. 图 2－17－1 系统（a）简化结构图",
+      "sourcePdfPage": 26,
+      "sha256": "7ab5ead8bf8cadfb90c3888e0a391e64bba491726705fc0cfa2e400cfea1892b",
+      "bytes": 48499
+    },
+    {
+      "index": 22,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0026-03-300dpi.png",
+      "exportPath": "assets/fig-02-17-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0026-03-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled as \"图 2－17－1 系统（a）简化结构图.\" The diagram represents a feedback loop in the s-domain. The process begins with an input signal $R(s)$ entering a summing junction (represented by a circle). From this junction, the forward path proceeds through two sequential blocks: block $G_1$ followed by block $G_2$, leading to the final output variable $C(s)$. A feedback loop branches off from the line between $G_1$ and $G_2$. This feedback path contains a transfer function block labeled $\\frac{H_1}{1+H_1 H_2}$, which feeds back into the summing junction. Arrows indicate the unidirectional flow of signals throughout the system. In engineering terms, this depicts a closed-loop control system where the output of the first stage is modified by a feedback mechanism before being processed by the second stage to produce the final output. 图 2－17－2 系统（b）简化结构图 （3）图2－56（c）系统。经过比较点后移，可得图2－17－3，经过并联等效，可得图2－17－4，则系统传递函数为",
+      "sourcePdfPage": 26,
+      "sha256": "fb86f33c59e891bfc4177ef59f8001730cce8f4aa1b01fcaf9df035e6452f886",
+      "bytes": 42761
+    },
+    {
+      "index": 23,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0027-01-300dpi.png",
+      "exportPath": "assets/fig-02-17-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0027-01-300dpi.png",
+      "caption": "> Image description: A control system block diagram labeled \"图2－17－3 系统（c）结构图变换\" depicts the relationship between an input signal $R(s)$ and an output signal $C(s)$. The input $R(s)$ splits into two parallel paths. The upper path passes through block $G_3$, while the lower path passes through block $G_1$. Both paths converge at a summing junction. From this junction, the signal flows forward through block $G_2$ to reach the output $C(s)$. The system incorporates two feedback loops originating from $C(s)$ and returning to the summing junction with negative signs. The first feedback loop passes through block $H_1$. The second feedback loop consists of blocks $H_2$ followed by $G_1$. All components are connected by directed arrows indicating signal flow, representing a typical linear time-invariant system in the Laplace domain used for engineering analysis. 图2－17－3 系统（c）结构图变换",
+      "sourcePdfPage": 27,
+      "sha256": "7218980abbafb8992b94dabc3d026ba5104eeb2a03b63f25440a8c018e27d897",
+      "bytes": 80221
+    },
+    {
+      "index": 24,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0027-02-300dpi.png",
+      "exportPath": "assets/fig-02-17-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0027-02-300dpi.png",
+      "caption": "图2－17－4 系统（c）简化结构图",
+      "sourcePdfPage": 27,
+      "sha256": "ae268f0b0296da6f6932b04fc5f2c8bf772463e36fff386c03144e2d1afa6756",
+      "bytes": 41161
+    },
+    {
+      "index": 25,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0027-03-300dpi.png",
+      "exportPath": "assets/fig-02-17-04-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0027-03-300dpi.png",
+      "caption": "> Image description: A control system block diagram labeled \"图2－17－4 系统（c）简化结构图\" illustrates a feedback network with three forward blocks and three feedback paths. The input signal $R(s)$ enters from the left into a summing junction. The forward path consists of sequential blocks $G_1$, $G_2$, and $G_3$, leading to the output signal $C(s)$. There are three distinct feedback loops: 1. An inner loop feeds back from the output of $G_1$ through block $H_1$ to the first summing junction. 2. A second inner loop feeds back from the final output $C(s)$ through block $H_3$ to a summing junction located between $G_2$ and $G_3$. 3. An outer global feedback loop feeds back from $C(s)$ through a block labeled $\\frac{H_2}{G_1 G_3}$ to the initial summing junction. Arrows indicate signal flow, and minus signs at the summing junctions denote negative feedback. 图 2－17－5 系统（d）结构图变换",
+      "sourcePdfPage": 27,
+      "sha256": "353691a30af9a7d9927fcf7a407da138892aefed5a8e2971e3bf9810e59e9c16",
+      "bytes": 77462
+    },
+    {
+      "index": 26,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0027-04-300dpi.png",
+      "exportPath": "assets/fig-02-17-06.png",
+      "originalRelativePath": "assets/mathpix-source-page-0027-04-300dpi.png",
+      "caption": "图2－17－6 系统（d）简化结构图 （5）图2－56（e）系统。经过比较点后移和引出点前移，可得图2－17－7；经过并联等效，可得图 2－17－8；经过反馈连接等效，可得图 2－17－9，则系统传递函数为",
+      "sourcePdfPage": 27,
+      "sha256": "a65710571bc04e7a9988dee791996c8075193ace313ceb5981aa1efcb5e1066c",
+      "bytes": 68841
+    },
+    {
+      "index": 27,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0027-05-300dpi.png",
+      "exportPath": "assets/fig-02-17-07.png",
+      "originalRelativePath": "assets/mathpix-source-page-0027-05-300dpi.png",
+      "caption": "> Image description: A control system block diagram is shown, labeled as \"图2－17－7 系统（e）结构图变换\". The input variable $R(s)$ enters from the left and splits into two paths. The upper path passes through a series of blocks: first $G_1$, then a summing junction, followed by $G_2$ and $G_3$. There are two feedback loops returning to this summing junction: one passing through block $H_1$ and another through $G_1$ (after $H_1$), and a second loop containing the combined block $H_2 G_3$. The summing junction indicates negative feedback for these paths. The lower path is a direct feed-forward branch from $R(s)$ through block $G_4$, which meets at a final summing junction before the output variable $C(s)$. This diagram represents a complex linear time-invariant system in the s-domain, illustrating signal flow and feedback mechanisms used for stability or tracking analysis. 图2－17－7 系统（e）结构图变换",
+      "sourcePdfPage": 27,
+      "sha256": "fe00610e95bd29140c8049d1bd7c2614c1617031485d5f7e0a2137e289d130b9",
+      "bytes": 84817
+    },
+    {
+      "index": 28,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0027-06-300dpi.png",
+      "exportPath": "assets/fig-02-17-07-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0027-06-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled as \"图2－17－7 系统（e）结构图变换.\" The diagram illustrates the relationship between an input signal $R(s)$ and an output signal $C(s)$. The forward path begins with $R(s)$, which splits into two parallel branches. The upper branch passes through block $G_1$ to a summing junction, then through block $G_2$, and finally through block $G_3$ before reaching the final summing junction that produces $C(s)$. A local negative feedback loop exists around $G_2$; it takes the output of $G_2$ and feeds it back through a block labeled $G_3H_2 + H_1 - G_1H_1$ to the first summing junction. The lower parallel branch consists of a single block, $G_4$, which connects $R(s)$ directly to the final output summing junction. Arrows indicate the direction of signal flow from left to right and through the feedback loop. 图2－17－8 系统（e）结构图变换",
+      "sourcePdfPage": 27,
+      "sha256": "74512089c211ce40a718a3d9a2a8bead5f9e56a0878a7d13665c4bbd5a13de2f",
+      "bytes": 74467
+    },
+    {
+      "index": 29,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0028-01-300dpi.png",
+      "exportPath": "assets/fig-02-17-09.png",
+      "originalRelativePath": "assets/mathpix-source-page-0028-01-300dpi.png",
+      "caption": "> Image description: A technical block diagram of a control system, labeled as \"图2－17－9 系统（e）简化结构图,\" illustrating the relationship between an input signal $R(s)$ and an output signal $C(s)$. The diagram features two parallel paths connecting the input to the output. The upper path consists of a transfer function block represented by the fraction $\\frac{G_1 G_2 G_3}{1 + G_2 (G_3 H_2 + H_1 - G_1 H_1)}$. The lower path contains a single block labeled $G_4$. Arrows indicate the forward flow of signals from left to right. Both paths converge at a summing junction (represented by a circle) before reaching the final output variable $C(s)$. In engineering terms, this represents a simplified structural diagram where the system's overall response is the sum of two parallel transfer functions acting on the reference input $R(s)$. 图2－17－9 系统（e）简化结构图 （6）图2－56（f）系统。经过比较点后移，可得图2－17－10；经过并联等效和反馈连接等效可可得图 2－17－11，则系统传递函数为",
+      "sourcePdfPage": 28,
+      "sha256": "f34531cdcda307cb6b7d4211f660245938e92ec2f9c0bb22cdb572b8917f3ebd",
+      "bytes": 64359
+    },
+    {
+      "index": 30,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0028-02-300dpi.png",
+      "exportPath": "assets/fig-02-17-10.png",
+      "originalRelativePath": "assets/mathpix-source-page-0028-02-300dpi.png",
+      "caption": "> Image description: A control system block diagram labeled \"图2－17－10 系统（f）结构图变换\" illustrates the relationship between an input signal $R(s)$ and an output signal $C(s)$. The input $R(s)$ splits into two parallel paths: one passing through block $G_1$ and the other through block $G_3$. These two paths converge at a summing junction, where the output of $G_3$ is added to the output of $G_1$. Following the summing junction, the signal enters block $G_2$, which leads directly to the final output $C(s)$. Additionally, there is a feedback loop originating from the output $C(s)$, passing through a block labeled $G_1H_1$, and returning to the summing junction with a negative sign (indicated by a minus symbol), signifying negative feedback. The diagram uses arrows to denote the unidirectional flow of signals between blocks and junctions in the s-domain. 图2－17－10 系统（f）结构图变换",
+      "sourcePdfPage": 28,
+      "sha256": "990e2507155af42e41ed722500e8df7ef811a724ee2f5f35f36ad5b410372cbf",
+      "bytes": 49435
+    },
+    {
+      "index": 31,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0028-03-300dpi.png",
+      "exportPath": "assets/fig-02-17-10-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0028-03-300dpi.png",
+      "caption": "> Image description: This image shows a control system block diagram representing the structural transformation of \"System (f),\" as indicated by the caption \"图2－17－10 系统（f）结构图变换.\" The diagram consists of two sequential blocks connected by directional arrows, indicating signal flow from left to right. The input variable is labeled $R(s)$. This signal enters the first block, which contains the transfer function $G_1 + G_3$. The output of this first block serves as the input for the second block. The second block features a more complex fractional transfer function: $\\frac{G_2}{1 + G_1 G_2 H_1}$. Finally, an arrow leads from the second block to the system output variable, labeled $C(s)$. In engineering terms, this represents a simplified series representation of a control system where the overall transfer function is the product of these two blocks. 图2－17－11 系统（f）简化结构图 2－18 试简化图 2－57 中系统结构图，并求传递函数 $C(s) / R(s)$ 和 $C(s) / N(s)$ 。",
+      "sourcePdfPage": 28,
+      "sha256": "f421dc575fa48400421644846f4fbbaccfa9dcc544a7c6e444978a59a01f312b",
+      "bytes": 33266
+    },
+    {
+      "index": 32,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0028-04-300dpi.png",
+      "exportPath": "assets/fig-02-57.png",
+      "originalRelativePath": "assets/mathpix-source-page-0028-04-300dpi.png",
+      "caption": "图2－57 题2－18系统结构图 （1）图2－57（a）系统。仅考虑输人 $R(s)$ 作用于系统时，系统的结构图如图2－18－1所示。 经过反馈连接等效，可得图 2－18－2，则系统传递函数为",
+      "sourcePdfPage": 28,
+      "sha256": "54d289d74ae47de2a734321b3a45a3a544e75df1b024f6becde05149f827bb08",
+      "bytes": 193041
+    },
+    {
+      "index": 33,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0029-01-300dpi.png",
+      "exportPath": "assets/fig-02-18-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0029-01-300dpi.png",
+      "caption": "图 2－18－2 $N(s)=0$ 时系统（a）简化结构图 仅考虑扰动 $N(s)$ 作用于系统时，系统的结构图如图 2－18－3 和图 2－18－4 所示。",
+      "sourcePdfPage": 29,
+      "sha256": "563193bc4d8426c08bf95006ae84cd341c5c2fa7128a2708d811e87fdf6639a0",
+      "bytes": 39756
+    },
+    {
+      "index": 34,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0029-02-300dpi.png",
+      "exportPath": "assets/fig-02-18-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0029-02-300dpi.png",
+      "caption": "图2－18－3 $R(s)=0$ 时系统（a）结构图",
+      "sourcePdfPage": 29,
+      "sha256": "4c7150bfe30d83de0773f6111f14c8b52732a7fadfc64807c5c7e4de715d38bc",
+      "bytes": 73648
+    },
+    {
+      "index": 35,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0029-03-300dpi.png",
+      "exportPath": "assets/fig-02-18-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0029-03-300dpi.png",
+      "caption": "图 2－18－4 $\\quad R(s)=0$ 时等效系统（a）结构图 经过反馈连接等效，可得图 2－18－5；经过比较点的移动，可得图 2－18－6，则系统传递函数为",
+      "sourcePdfPage": 29,
+      "sha256": "cdcce5b1fe886b5ef8f0979554e97de02c664dcda8f8c6de1e66f0f4111756ec",
+      "bytes": 61452
+    },
+    {
+      "index": 36,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0029-04-300dpi.png",
+      "exportPath": "assets/fig-02-18-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0029-04-300dpi.png",
+      "caption": "图 2－18－5 $R(s)=0$ 时系统（a）结构图变换",
+      "sourcePdfPage": 29,
+      "sha256": "b1d9db65895582034ddc48d6ade7222dfc37023d99259ffae3414c4c0ec4f79d",
+      "bytes": 54909
+    },
+    {
+      "index": 37,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0029-05-300dpi.png",
+      "exportPath": "assets/fig-02-18-06.png",
+      "originalRelativePath": "assets/mathpix-source-page-0029-05-300dpi.png",
+      "caption": "图 2－18－6 $R(s)=0$ 时系统（a）简化结构图 （2）图 2－57（b）系统。仅考虑输人 $R(s)$ 作用于系统时，系统的结构图如图 2－18－7 所示。",
+      "sourcePdfPage": 29,
+      "sha256": "5f858929e79ffe9601b3fc939f095c55b5b2a83bf547ab794e08185406d6619f",
+      "bytes": 65957
+    },
+    {
+      "index": 38,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0029-06-300dpi.png",
+      "exportPath": "assets/fig-02-18-07.png",
+      "originalRelativePath": "assets/mathpix-source-page-0029-06-300dpi.png",
+      "caption": "图2－18－7 $\\quad N(s)=0$ 时系统（b）结构图",
+      "sourcePdfPage": 29,
+      "sha256": "de1e308ca2b8fccd125a520f9ac243acb2fe4918f40441f49a7a3e9d812fc5af",
+      "bytes": 68667
+    },
+    {
+      "index": 39,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0030-01-300dpi.png",
+      "exportPath": "assets/fig-02-18-08.png",
+      "originalRelativePath": "assets/mathpix-source-page-0030-01-300dpi.png",
+      "caption": "图 2－18－8 $N(s)=0$ 时系统（b）结构图变换",
+      "sourcePdfPage": 30,
+      "sha256": "f0c935666390a838e1a14c8c485ce166a6498562c7cd7f8831a435f0261522c5",
+      "bytes": 71847
+    },
+    {
+      "index": 40,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0030-02-300dpi.png",
+      "exportPath": "assets/fig-02-18-08-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0030-02-300dpi.png",
+      "caption": "> Image description: A control system block diagram is shown in Figure 2-18-8, titled \"图 2－18－8 $N(s)=0$ 时系统（b）结构图变换.\" The diagram illustrates a feedback loop with an input variable $R(s)$ and an output variable $C(s)$. The signal path from $R(s)$ splits into two parallel branches. The upper branch passes through a block labeled $G_1 G_2$. The lower branch enters a summing junction (indicated by a minus sign for feedback), then proceeds through a block labeled $G_2 + G_3$, and finally reaches another summing junction where it combines with the signal from the upper branch. This combined signal then passes through a final block, $G_4$, to produce the output $C(s)$. A feedback loop connects the output $C(s)$ back to the first summing junction. Arrows indicate the direction of signal flow throughout the system. 图 2－18－9 $N(s)=0$ 时系统（b）结构图变换 仅考虑扰动 $N(s)$ 作用于系统时，系统的结构图如图 2－18－11 所示，则系统传递函数为",
+      "sourcePdfPage": 30,
+      "sha256": "bdb9db199f53a1533b6dd6bb9a31a7010db2df9e6fbd1d5bd1ceade546c9f25b",
+      "bytes": 54312
+    },
+    {
+      "index": 41,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0030-03-300dpi.png",
+      "exportPath": "assets/fig-02-18-10.png",
+      "originalRelativePath": "assets/mathpix-source-page-0030-03-300dpi.png",
+      "caption": "图2－18－10 $N(s)=0$ 时系统（b）简化结构图",
+      "sourcePdfPage": 30,
+      "sha256": "8bb3a19c27302bdd38a8ca5447a55947e0ad8f38b94577a88fa044eb85fe94f0",
+      "bytes": 59902
+    },
+    {
+      "index": 42,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0030-04-300dpi.png",
+      "exportPath": "assets/fig-02-18-11.png",
+      "originalRelativePath": "assets/mathpix-source-page-0030-04-300dpi.png",
+      "caption": "图 2－18－11 $R(s)=0$ 时系统（b）简化结构图 2－19 试绘制教材中图 2－56 各系统结构图对应的信号流图，并用梅森增益公式求各系统的传递函数 $C(s) / R(s)$ 。 （1）图2－56（a）系统。系统信号流图如图2－19－1所示。由图2－19－1可知，本系统有两条前向通道，一个单独回路，即",
+      "sourcePdfPage": 30,
+      "sha256": "a6e36651ed42a1e36d010c1014ade7c4f4813022086c06e12a419170d1666c1f",
+      "bytes": 51185
+    },
+    {
+      "index": 43,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0030-05-300dpi.png",
+      "exportPath": "assets/fig-02-19-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0030-05-300dpi.png",
+      "caption": "图2－19－1 系统（a）信号流图",
+      "sourcePdfPage": 30,
+      "sha256": "754435f767ffb32d2f78d52331ce5f536275b1a527fb0616d2719c52f3cf6063",
+      "bytes": 39912
+    },
+    {
+      "index": 44,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0030-06-300dpi.png",
+      "exportPath": "assets/fig-02-19-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0030-06-300dpi.png",
+      "caption": "> Image description: This figure is a signal flow graph representing a system, labeled as \"图2－19－1 系统（a）信号流图\". The diagram consists of nodes connected by directed edges (arrows) indicating the direction of signal flow. The process begins at an input node labeled $R$, which connects to a central node via a forward arrow. From this central node, a primary path leads toward an output node labeled $C$ through a gain block denoted as $G_1$. This path then passes through another node before reaching $C$ via a final gain block $G_2$. A feedback loop is present: from the node between $G_1$ and $G_2$, a signal flows backward through a gain of $1$ to a node, then through $H_1$ to another node, and finally back to the starting central node via a path labeled $-H_2$ and a gain of $1$. This structure represents a classic control system with forward gains and feedback components. 图2－19－2 系统（b）信号流图",
+      "sourcePdfPage": 30,
+      "sha256": "1c3191d9b08c0e4082488a109316d5ddf6015a67d44cc9d99473182919a34518",
+      "bytes": 40992
+    },
+    {
+      "index": 45,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0031-01-300dpi.png",
+      "exportPath": "assets/fig-02-19-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0031-01-300dpi.png",
+      "caption": "> Image description: A signal flow graph representing system (c), as indicated by the caption \"图2-19-3系统（c）信号流图.\" The diagram consists of four nodes connected by directed edges. The leftmost node is labeled $R$ (input). From $R$, one path leads directly to a second node via an edge with a gain of $1$. A second path, a forward branch labeled $G_3$, arcs over the top to connect $R$ to a third node. This third node is connected to the second node by an edge labeled $G_1$. From the third node, a forward path leads to a fourth node via an edge labeled $G_2$. Finally, the fourth node connects to the rightmost node, labeled $C$ (output), through an edge with a gain of $1$. Two feedback loops are present: one edge labeled $-H_1$ returns from the fourth node to the third node, and another edge labeled $-H_2$ returns from the fourth node back to the second node. 图2－19－3系统（c）信号流图",
+      "sourcePdfPage": 31,
+      "sha256": "4a8b85fef15f72e4b378220d6d34f79321dc80a655fb760c94c969223e25af3a",
+      "bytes": 49552
+    },
+    {
+      "index": 46,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0031-02-300dpi.png",
+      "exportPath": "assets/fig-02-19-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0031-02-300dpi.png",
+      "caption": "> Image description: A signal flow graph representing system (c), as indicated by the caption \"图2-19-3系统（c）信号流图.\" The diagram depicts a unidirectional flow from an input node $R$ on the left to an output node $C$ on the right. The path consists of several interconnected nodes and directed edges: 1. An initial edge with a gain of $1$ connects node $R$ to the first internal node. 2. A forward path continues through three sequential gains labeled $G_1$, $G_2$, and $G_3$. 3. Three feedback loops are present: - A loop from the second node back to the first with gain $-H_1$. - A loop from the third node back to the second with gain $-H_2$. - A loop from the fourth node back to the third with gain $-H_3$. 4. The final edge connects the last internal node to output $C$ with a gain of $1$. This structure represents a control system with multiple nested feedback loops. 图2－19－4 系统（d）信号流图 （4）图2－56（d）系统。系统信号流图如图2－19－4所示。由图2－19－4可知，本系统有一条前向通道，三个单独回路，其中一对回路互不接触：",
+      "sourcePdfPage": 31,
+      "sha256": "7e6fcee981ad44306f54ff4807f62da91820c2266e8a29c0c1bda3dca7dc31c8",
+      "bytes": 46702
+    },
+    {
+      "index": 47,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0032-01-300dpi.png",
+      "exportPath": "assets/fig-02-19-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0032-01-300dpi.png",
+      "caption": "> Image description: A signal flow graph representing a system (labeled as \"图2-19-5 系统（e）信号流图\") is shown, mapping the path from an input node $R$ to an output node $C$. The graph consists of several nodes connected by directed edges with associated gain variables. From $R$, one path goes through a gain of 1 to a central node, while another bypasses it via a branch labeled $G_4$ leading directly toward the end. Between the input and output, there is a forward path consisting of gains $G_1$, $G_2$, and $G_3$. The system includes feedback loops: one loop returns from the node after $G_1$ back to itself with gain $-H_1$, and another larger loop returns from the node after $G_3$ back to the start of $G_2$ with gain $-H_2$. Additionally, a path labeled $H_1$ connects the node after $G_1$ back toward the input. The final segment leads to output $C$ via two edges with gains of 1. 图2－19－5 系统（e）信号流图",
+      "sourcePdfPage": 32,
+      "sha256": "b011f7cff4863bfec29e3b36b72f1e69442f232cda0eb12a656c8d28ea12cf49",
+      "bytes": 82153
+    },
+    {
+      "index": 48,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0032-02-300dpi.png",
+      "exportPath": "assets/fig-02-19-05-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0032-02-300dpi.png",
+      "caption": "> Image description: This image shows a signal flow graph labeled as \"图2-19-5 系统 (e) 信号流图\" (Figure 2-19-5 System (e) Signal Flow Graph). The diagram represents a system's mathematical structure using nodes and directed edges. The flow begins at node $R$ on the left, connected by a forward arrow with a gain of $1$ to a second node. From this second node, there is a forward path through an edge labeled $G_1$ leading to a third node, followed by another forward edge labeled $G_2$ leading to a fourth node. This final node connects via an arrow with a gain of $1$ to the output node $C$. The system includes two feedback loops: one returning from the fourth node back to the second node with a label $-H_1$, and another returning from the third node back to the starting node $R$ labeled $G_3$. 图2－19－6 系统（f）信号流图 （6）图 2－56（f）系统。系统信号流图如图 2－19－6所示。由图 2－19－6可知，本系统有两条前向通道，一个单独回路，即",
+      "sourcePdfPage": 32,
+      "sha256": "2134fbb01989da144e286ef012549b066f5b66af9e47c6e7db69861d7accd3c4",
+      "bytes": 39944
+    },
+    {
+      "index": 49,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0033-01-300dpi.png",
+      "exportPath": "assets/fig-02-20-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0033-01-300dpi.png",
+      "caption": "> Image description: A signal flow graph labeled \"图 2－20－1 系统（a）信号流图\" depicts a system with input node $R$ and output node $C$. The signal flows from left to right through several nodes. From node $R$, an arrow with gain $1$ leads to the first internal node. From there, a forward path continues through gains $G_1$ and $G_2$ toward the final summation node before reaching output $C$ via a gain of $1$. The system includes several feedback loops: one loop returns from the final summation node back to the first internal node with a gain of $-1$, and another local loop exists between the second and third nodes with a gain of $-H_1$. Additionally, there is a path from an external input node $N$ through a gain of $1$ to a node that feeds into the main path via a gain of $-1$. A forward feed-forward path $G_3$ connects this upper branch back to the node after $G_1$. 图 2－20－1 系统（a）信号流图",
+      "sourcePdfPage": 33,
+      "sha256": "76ddf0462d99c02486bbeab6a93666aa1323bc8e746925e1dca9f21e7ff2cee9",
+      "bytes": 78111
+    },
+    {
+      "index": 50,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0033-02-300dpi.png",
+      "exportPath": "assets/fig-02-20-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0033-02-300dpi.png",
+      "caption": "> Image description: A signal flow graph labeled \"图 2－20－1 系统（a）信号流图\" depicts a system with nodes and directed edges representing signal paths. The graph starts at node $R$ on the left and ends at node $C$ on the right. The main forward path consists of several segments: an edge from $R$ to a middle node with a gain of 1, followed by another edge with a gain of 1 leading to a junction. From this junction, an edge labeled $G_2$ leads to a central node, which also receives an input from node $N$ via a vertical downward arrow. From the central node, an edge labeled $G_4$ leads to a final intermediate node, followed by an edge with a gain of 1 connecting to node $C$. Additionally, there are feedback and feedforward loops: a path labeled $G_1$ arcs from $R$ forward to the junction before $G_2$, and a return path with a gain of $-1$ arcs back from the node after $G_4$ to an earlier node. A path labeled $G_3$ connects the junction before $G_2$ to the central node. 图2－20－2 系统（b）信号流图",
+      "sourcePdfPage": 33,
+      "sha256": "2709e1608b2c5d2d4ccbd79ad2d5be50b6eb2dfe5137d5549f314d5a4aa9ed3f",
+      "bytes": 60433
+    },
+    {
+      "index": 51,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0033-03-300dpi.png",
+      "exportPath": "assets/fig-02-58.png",
+      "originalRelativePath": "assets/mathpix-source-page-0033-03-300dpi.png",
+      "caption": "图2－58 题2－21系统结构图 （1）图2－58（a）系统。信号流图如图2－21－1所示。",
+      "sourcePdfPage": 33,
+      "sha256": "4d4ff57b49a587f3fe25ba52b620ae634cb1f36ab407be57cd6df867fc795790",
+      "bytes": 165151
+    },
+    {
+      "index": 52,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0034-01-300dpi.png",
+      "exportPath": "assets/fig-02-21-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0034-01-300dpi.png",
+      "caption": "图 2－21－1 系统（a）信号流图",
+      "sourcePdfPage": 34,
+      "sha256": "2537444ed5a0f6490d8753a1fffb1f9f1a0b7c27e505b4302e586b661c8ec452",
+      "bytes": 63804
+    },
+    {
+      "index": 53,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0034-02-300dpi.png",
+      "exportPath": "assets/fig-02-21-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0034-02-300dpi.png",
+      "caption": "> Image description: A signal flow graph labeled \"图 2－21－1 系统（a）信号流图\" depicts a system with an input node $R$ and an output node $C$. The signal flows from left to right, starting at $R$, which connects via a directed arrow to node $E$. From node $E$, the path splits into three parallel branches. The top branch goes to node $G_1$ with a gain of $-1$; the middle branch crosses diagonally toward $G_2$ with a gain of $1$; and the bottom branch leads to node $G_2$ with a gain of $1$. Between nodes $G_1$ and $G_2$, there are cross-coupling paths: an arrow from $G_1$ to $G_2$ with a gain of $-1$, and an arrow from $G_2$ to $G_1$ with a gain of $1$. Both $G_1$ and $G_2$ then converge toward node $C$ via paths with gains of $1$. Additionally, a feedback loop exists from node $C$ back to node $E$ with a gain of $-1$. 图 2－21－2 系统（b）信号流图",
+      "sourcePdfPage": 34,
+      "sha256": "b0eeabcb8666737437a1b52a8934bfa49a7c0f7934013ac393fde2519c6b9f3d",
+      "bytes": 73751
+    },
+    {
+      "index": 54,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0035-01-300dpi.png",
+      "exportPath": "assets/fig-02-21-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0035-01-300dpi.png",
+      "caption": "图2－21－3 系统（a）结构图 经过反馈连接等效，可得图 2－21－4 所示结构图变换；经过比较点后移，可得图 2－21－5所示简化结构图，则系统传递函数为",
+      "sourcePdfPage": 35,
+      "sha256": "507e3528d679dbdd7e61f3717d612064436fa49bf779ac3bcfb9c71c03786d37",
+      "bytes": 99017
+    },
+    {
+      "index": 55,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0035-02-300dpi.png",
+      "exportPath": "assets/fig-02-21-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0035-02-300dpi.png",
+      "caption": "图 2－21－4 系统（a）结构图变换",
+      "sourcePdfPage": 35,
+      "sha256": "30d91f65f9efa3dc8084d78cea28cd6c298b7a15679621cd0f3c83d5f568dc43",
+      "bytes": 83910
+    },
+    {
+      "index": 56,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0035-03-300dpi.png",
+      "exportPath": "assets/fig-02-21-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0035-03-300dpi.png",
+      "caption": "图2－21－5 系统（a）简化结构图",
+      "sourcePdfPage": 35,
+      "sha256": "aba0914398e3f44ef6ab4ccf8c3925e4103e3030b8b694fcb43c0c144e7df2f5",
+      "bytes": 85784
+    },
+    {
+      "index": 57,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0036-01-300dpi.png",
+      "exportPath": "assets/fig-02-21-06.png",
+      "originalRelativePath": "assets/mathpix-source-page-0036-01-300dpi.png",
+      "caption": "图2－21－6 系统（b）结构图",
+      "sourcePdfPage": 36,
+      "sha256": "0215d9d0966872c60e82ed5c9a355bf8f468c103ad0706efc3a35fe9cb0c8632",
+      "bytes": 72698
+    },
+    {
+      "index": 58,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0036-02-300dpi.png",
+      "exportPath": "assets/fig-02-21-06-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0036-02-300dpi.png",
+      "caption": "> Image description: This figure is a control system block diagram labeled \"图2－21－6 系统（b）结构图.\" The system begins with an input signal $R(s)$ entering a summing junction, where it is compared with a feedback loop from the output $C(s)$, resulting in the error signal $E(s)$. The signal $E(s)$ splits into two paths: one leading directly to a second summing junction and another passing through a block labeled $G_2$. This $G_2$ path feeds back into the same summing junction and also proceeds forward to a third summing junction. The output of the second summing junction passes through block $G_1$, which then feeds into both a feedback loop containing another $G_2$ block and a final summing junction. The final output $C(s)$ is the result of these combined paths. Arrows indicate the unidirectional flow of signals between blocks and junctions, representing a complex closed-loop control architecture with multiple internal feedback loops. 图 2－21－7 系统（b）结构图变换 经过引出点与比较点的互相移位，可得图2－21－7所示简化结构图；经过比较点合并及并联等效，可得图 2－21－8 所示简化结构图；经过反馈等效和串联等效，可得图 2－21－9 所示，简化结构图，则系统传递函数为",
+      "sourcePdfPage": 36,
+      "sha256": "7c5feeb89f1b00084a44fa12e1b665d77250c3f8a940c518856db35a4b9c7c30",
+      "bytes": 79959
+    },
+    {
+      "index": 59,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0036-03-300dpi.png",
+      "exportPath": "assets/fig-02-21-08.png",
+      "originalRelativePath": "assets/mathpix-source-page-0036-03-300dpi.png",
+      "caption": "> Image description: A control system block diagram labeled \"图2－21－8 系统（b）结构图变换\" illustrates a feedback loop with multiple signal paths. The input variable $R(s)$ enters a summing junction to produce the error signal $E(s)$. From $E(s)$, the signal splits into two parallel branches. The upper branch passes through block $G_2-1$, then into another summing junction where it is modified by a local feedback loop containing block $G_2$. This path continues through block $G_1$ and finally through block $1-G_2$. The lower branch consists of a single block, $G_2$. Both branches converge at a final summing junction to produce the output variable $C(s)$. A global feedback loop carries $C(s)$ back to the initial summing junction with a negative sign. Arrows indicate the direction of signal flow from left to right and through the feedback paths. 图2－21－8 系统（b）结构图变换",
+      "sourcePdfPage": 36,
+      "sha256": "4eddf56fb2d3b93bd61ab32be79046417b20a97409ac386e9462d72a97c70369",
+      "bytes": 74272
+    },
+    {
+      "index": 60,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0036-04-300dpi.png",
+      "exportPath": "assets/fig-02-21-08-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0036-04-300dpi.png",
+      "caption": "> Image description: A control system block diagram labeled \"图2－21－8 系统（b）结构图变换\" depicts a feedback loop. The input signal $R(s)$ enters from the left into a summing junction, where it is compared with a feedback signal to produce the error signal $E(s)$. The forward path splits into two parallel branches. The upper branch contains a transfer function block defined as $\\frac{G_1(G_2-1)(1-G_2)}{1+G_1G_2}$. The lower branch consists of a single block labeled $G_2$. Both branches converge at a second summing junction to produce the output signal $C(s)$. A feedback loop connects the output $C(s)$ back to the initial summing junction with a negative sign, indicating negative feedback. Arrows indicate the unidirectional flow of signals from left to right through the blocks and backward through the feedback path. The diagram represents a mathematical transformation of a system's structural layout in the s-domain. 图2－21－9 系统（b）简化结构图",
+      "sourcePdfPage": 36,
+      "sha256": "ea919f6a019ebd47a222afe2a49c546ffe6922a34307ecdfeb0626bbd000466a",
+      "bytes": 67225
+    },
+    {
+      "index": 61,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0037-01-300dpi.png",
+      "exportPath": "assets/fig-02-59.png",
+      "originalRelativePath": "assets/mathpix-source-page-0037-01-300dpi.png",
+      "caption": "图2－59 题2－22系统信号流图 （1）图2－59（a）系统。考查信号流图2－59（a），其存在两条前向通道，三个单独回路，无不接触回路，即",
+      "sourcePdfPage": 37,
+      "sha256": "fb8ef65f29abe89dcfba64167e27f21766adce7e816fa72258770e780a37e517",
+      "bytes": 453399
+    },
+    {
+      "index": 62,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0040-01-300dpi.png",
+      "exportPath": "assets/fig-02-60.png",
+      "originalRelativePath": "assets/mathpix-source-page-0040-01-300dpi.png",
+      "caption": "> Image description: This technical diagram illustrates a double pendulum system, as indicated by the caption \"图2-60 双摆系统示意图.\" The system consists of two identical pendulums, each with a mass $M$ at the end, suspended from fixed pivots on a horizontal ceiling. The angular displacement of the left pendulum is labeled $\\theta_1$, and the right is $\\theta_2$. A spring with stiffness constant $k$ connects the two rods. An external force vector, denoted as $f(t)$, is applied horizontally to the left rod at the point where it attaches to the spring. Arrows indicate the direction of angular movement for both pendulums. The figure represents a coupled mechanical oscillator system used in engineering and physics to study synchronized motion and forced vibrations. 图2－60 双摆系统示意图",
+      "sourcePdfPage": 40,
+      "sha256": "557b817caf22730c872cdcd5ab494ea04c378e989e5d858e6f0743d767c4c092",
+      "bytes": 122158
+    },
+    {
+      "index": 63,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0041-01-300dpi.png",
+      "exportPath": "assets/fig-02-23-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0041-01-300dpi.png",
+      "caption": "图 2－23－1 双摆系统结构图",
+      "sourcePdfPage": 41,
+      "sha256": "227040aa618a7cc7bfb601ab4e6978213323651d7bd61fbc11882adb82178fde",
+      "bytes": 105693
+    },
+    {
+      "index": 64,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0041-02-300dpi.png",
+      "exportPath": "assets/fig-02-23-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0041-02-300dpi.png",
+      "caption": "图2－23－2 双摆系统信号流图 信号流图与传递函数：为了便于观察，将信号流图改画为图 2－23－3 所示。由图2－23－3有",
+      "sourcePdfPage": 41,
+      "sha256": "d9d0991b2f2b838557b7a844b330a3b8682e64c959b6c3a4b0d9e7bf963f3347",
+      "bytes": 75587
+    },
+    {
+      "index": 65,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0041-03-300dpi.png",
+      "exportPath": "assets/fig-02-23-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0041-03-300dpi.png",
+      "caption": "图 2－23－3 双摆系统信号流图",
+      "sourcePdfPage": 41,
+      "sha256": "0b2dd8779ecfa1347299447baa511bde3a68c13bbb905fae2714ce0582f6395f",
+      "bytes": 88224
+    },
+    {
+      "index": 66,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-02-mathpix/assets/mathpix-source-page-0042-01-300dpi.png",
+      "exportPath": "assets/fig-02-24-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0042-01-300dpi.png",
+      "caption": "图 2－24－1 生态系统的信号流图",
+      "sourcePdfPage": 42,
+      "sha256": "599d6a54ac0f7ca293933df5a0690daed85a4c527721ab04ac6033395d01de75",
+      "bytes": 97823
+    }
+  ]
+}

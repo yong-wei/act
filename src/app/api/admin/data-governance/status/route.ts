@@ -428,6 +428,43 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const requestedRiskId = request.nextUrl.searchParams.get('riskId')?.trim() || null;
+    const requestedSurface = request.nextUrl.searchParams.get('surface')?.trim() || null;
+    const requestedLessonPlanId = request.nextUrl.searchParams.get('lessonPlanId')?.trim() || null;
+    const requestedTab = request.nextUrl.searchParams.get('tab')?.trim() || null;
+    const requestedGraphNodeId = request.nextUrl.searchParams.get('graphNodeId')?.trim() || null;
+    const requestedGraphAudit = request.nextUrl.searchParams.get('audit')?.trim() || null;
+    const graphCenterAudit = requestedGraphNodeId
+      ? {
+          graphNodeId: requestedGraphNodeId,
+          audit: requestedGraphAudit,
+          preferredTab: requestedGraphAudit === 'overlay-limitations'
+            ? 'cache' as const
+            : requestedGraphAudit === 'resource-binding' || requestedGraphAudit === 'citation-readiness'
+              ? 'sources' as const
+              : 'overview' as const,
+        }
+      : null;
+    const authoringLessonPlan = requestedSurface === 'authoring' && requestedLessonPlanId
+      ? await prisma.lessonPlan.findUnique({
+          where: { id: requestedLessonPlanId },
+          select: { id: true },
+        })
+      : null;
+    const authoringContext = requestedSurface === 'authoring'
+      ? {
+          surface: 'authoring' as const,
+          lessonPlanId: requestedLessonPlanId,
+          lessonPlanMissing: Boolean(requestedLessonPlanId && !authoringLessonPlan),
+          requestedTab,
+          reportHref: requestedLessonPlanId
+            ? `/admin/data-governance?surface=authoring&tab=reports&lessonPlanId=${encodeURIComponent(requestedLessonPlanId)}`
+            : '/admin/data-governance?surface=authoring&tab=reports',
+          recoveryHref: requestedLessonPlanId
+            ? `/admin/lesson-plans/${encodeURIComponent(requestedLessonPlanId)}/edit?returnTo=%2Fadmin%2Fdata-governance`
+            : '/admin/lesson-plans',
+        }
+      : null;
 
     // Get queue stats from Redis
     const redis = redisClient.getClient();
@@ -538,6 +575,26 @@ export async function GET(request: NextRequest) {
       }),
       collectEvidenceSourceCoverageReport(),
     ]);
+    const targetRiskFlag = requestedRiskId && !recentRiskFlags.some((risk) => risk.id === requestedRiskId)
+      ? await prisma.studentRiskFlag.findUnique({
+          where: { id: requestedRiskId, isResolved: false },
+          select: {
+            id: true,
+            userId: true,
+            flagType: true,
+            severity: true,
+            description: true,
+            triggeredAt: true,
+            isResolved: true,
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+        })
+      : null;
 
     // Get Redis buffer stats
     const today = new Date().toISOString().split('T')[0];
@@ -590,16 +647,22 @@ export async function GET(request: NextRequest) {
     const sourceCoverageById = new Map(
       sourceCoverageReport.sources.map((source) => [source.sourceId, source])
     );
-    const exclusionReasonsBySource = sourceCoverageReport.exclusions.reduce((accumulator, exclusion) => {
-      const current = accumulator.get(exclusion.sourceId) ?? [];
-      current.push(exclusion.reason);
-      accumulator.set(exclusion.sourceId, current);
-      return accumulator;
-    }, new Map<string, string[]>());
+    const exclusionReasonsBySource = sourceCoverageReport.exclusions.reduce<Record<string, string[]>>(
+      (accumulator, exclusion) => {
+        accumulator[exclusion.sourceId] = [
+          ...(accumulator[exclusion.sourceId] ?? []),
+          exclusion.reason,
+        ];
+        return accumulator;
+      },
+      {},
+    );
 
     return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
+      authoringContext,
+      graphCenterAudit,
       queues: queueStats,
       data: {
         studentSnapshots: studentSnapshotCount,
@@ -634,6 +697,18 @@ export async function GET(request: NextRequest) {
         triggeredAt: risk.triggeredAt.toISOString(),
         isResolved: risk.isResolved,
       })),
+      targetRiskFlag: targetRiskFlag
+        ? {
+            id: targetRiskFlag.id,
+            userId: targetRiskFlag.userId,
+            userName: targetRiskFlag.user.name || targetRiskFlag.user.email || targetRiskFlag.userId.slice(0, 8),
+            flagType: targetRiskFlag.flagType,
+            severity: targetRiskFlag.severity,
+            description: targetRiskFlag.description,
+            triggeredAt: targetRiskFlag.triggeredAt.toISOString(),
+            isResolved: targetRiskFlag.isResolved,
+          }
+        : null,
       factTypeDistribution: summarizeLearningFactTypes(learningFacts),
       sessionQuality: summarizeSessionQuality(recentSessionQualityReports),
       featureCache,
@@ -656,7 +731,7 @@ export async function GET(request: NextRequest) {
             affectedUsers: coverage?.affectedUsers ?? 0,
             provenanceCounts: coverage?.provenanceCounts ?? {},
             readinessGapCounts: coverage?.readinessGapCounts ?? {},
-            exclusionReasons: exclusionReasonsBySource.get(source.id) ?? [],
+            exclusionReasons: exclusionReasonsBySource[source.id] ?? [],
           };
         }),
       },

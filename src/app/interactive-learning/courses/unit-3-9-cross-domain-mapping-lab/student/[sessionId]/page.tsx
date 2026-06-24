@@ -6,11 +6,12 @@ import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { UNIT_3_9StudentPage } from '@/features/interactive/unit-3-9-cross-domain-mapping-lab/student-page';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
-export default async function UNIT_3_9StudentRoute({
-  params,
-}: {
-  params: { sessionId: string };
-}) {
+export default async function UNIT_3_9StudentRoute(
+  props: {
+    params: Promise<{ sessionId: string }>;
+  }
+) {
+  const params = await props.params;
   await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab');
 
   const session = await getServerSession(authOptions);

@@ -8,6 +8,7 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { normalizeRegistrationError } from '@/lib/register-error';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function RegisterPage() {
     if (!response.ok) {
       const data = await response.json();
       setIsSubmitting(false);
-      setError(data?.error?.formErrors?.fieldErrors?.email?.[0] ?? data?.error ?? 'Registration failed.');
+      setError(normalizeRegistrationError(data?.error));
       return;
     }
 
@@ -52,50 +53,52 @@ export default function RegisterPage() {
   };
 
   return (
-    <Card className="w-full border-slate-800 bg-slate-900/70">
-      <CardHeader>
-        <CardTitle className="text-xl text-white">创建账号</CardTitle>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <Input
-            type="text"
-            name="name"
-            placeholder="账号（登录名）"
-            autoComplete="username"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-          <Input
-            type="email"
-            name="email"
-            placeholder="邮箱"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-          <Input
-            type="password"
-            name="password"
-            placeholder="密码（至少8位）"
-            autoComplete="new-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-          />
-          {error ? <p className="text-sm text-red-400">{error}</p> : null}
-        </CardContent>
-        <CardFooter className="flex flex-col gap-3">
-          <Button className="w-full" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? '正在创建...' : '创建账号'}
-          </Button>
-          <Link className="text-sm text-slate-300 hover:text-white" href="/login">
-            已有账号？去登录
-          </Link>
-        </CardFooter>
-      </form>
-    </Card>
+    <div className="w-full" data-commercial-workspace="auth">
+      <Card className="mx-auto w-full max-w-md border-border/70 bg-card/75">
+        <CardHeader>
+          <CardTitle className="text-xl text-card-foreground">创建账号</CardTitle>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            <Input
+              type="text"
+              name="name"
+              placeholder="账号（登录名）"
+              autoComplete="username"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+            />
+            <Input
+              type="email"
+              name="email"
+              placeholder="邮箱"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+            <Input
+              type="password"
+              name="password"
+              placeholder="密码（至少8位）"
+              autoComplete="new-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          </CardContent>
+          <CardFooter className="flex flex-col gap-3">
+            <Button className="w-full" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? '正在创建...' : '创建账号'}
+            </Button>
+            <Link className="text-sm text-muted-foreground hover:text-foreground" href="/login">
+              已有账号？去登录
+            </Link>
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
   );
 }

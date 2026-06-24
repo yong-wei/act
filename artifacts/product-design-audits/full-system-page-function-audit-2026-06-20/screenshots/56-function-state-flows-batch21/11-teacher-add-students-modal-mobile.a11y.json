@@ -1,0 +1,1681 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/teacher/classes/cmma7g0590004g9q2nl2jyzdf",
+    "h1": [
+      "教师工作台",
+      "2024自动化"
+    ],
+    "activeElement": {
+      "tag": "button",
+      "type": "button",
+      "name": "添加学生",
+      "placeholder": ""
+    },
+    "alerts": [],
+    "buttons": [
+      {
+        "tag": "a",
+        "name": "返回首页",
+        "href": "/",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "张 张永韡 个人中心",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教师总览",
+        "href": "/teacher",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教案",
+        "href": "/teacher/lesson-plans",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "资源",
+        "href": "/teacher/resources",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课前包",
+        "href": "/teacher/prep-packs",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂历史",
+        "href": "/teacher/history",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级分析",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "返回班级列表",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "开始上课",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级学情总览 查看能力矩阵、风险分层和治理覆盖情况。",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂历史 回看已结束课堂、课堂记录与复盘入口。",
+        "href": "#history",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "学生清单 进入学生画像、成长档案与个体风险详情。",
+        "href": "#students",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "查看干预建议",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmplw3180000kuhvl8qzopj5j/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmpev4wkq000nhjkdto6fwmcu/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmpdfptu4000k10gm6qqhq012/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmpbw9hjg000j6fd7t5lembkj/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmp4vb32d04bcy3z65rlv7vhi/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmp3fnmik000ly3z64c0w5j2b/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmp1vz3l3001ue3jfwnwwvzio/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmoxloe52000uq5bcojma7r78/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmouv40fy009hd2apimc3xxlp/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmotfl8jz000ulndce351rym9/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmokuwm6j000hio3jdafw2bhv/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmojfpo3e01wgw3msifoy89kn/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmohvvd9h00asuejs5a4dlwj5/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmo0uw468006by1oywg41pzw1/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmmwuj1x900b7kk3pdmlqrrnd/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmmveybwl00ho7in0i411xqr0/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmmtvkdgx003fy6krdvr4etyn/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂统计",
+        "href": "/classroom/teacher/cmmlevnty000ez9t9n16uvhhh/review",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "添加学生",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "陈 陈兴旺 242212288313",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl4b00fxg9q2zkb8v0ww",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl4b00fxg9q2zkb8v0ww",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "吴 吴卓文 242212188637",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl2a00ftg9q22ybj39td",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl2a00ftg9q22ybj39td",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "李 李兆涵 242212188211",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl0800fpg9q214jysswl",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl0800fpg9q214jysswl",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "朱 朱邦威 242212188144",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hky500flg9q2b8un91q8",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hky500flg9q2b8un91q8",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "孙 孙尚 242212188136",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkw000fhg9q27sys8pzh",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkw000fhg9q27sys8pzh",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "孙 孙远 242211904226",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hktw00fdg9q2bj4ri8z8",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hktw00fdg9q2bj4ri8z8",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "祁 祁翔 242211904124",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkr400f9g9q2zo45vbv9",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkr400f9g9q2zo45vbv9",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "王 王浩宇 242211901234",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkof00f5g9q28p0wssip",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkof00f5g9q28p0wssip",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "邹 邹童乐 242211801234",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hklv00f1g9q2pq6n00dt",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hklv00f1g9q2pq6n00dt",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "罗 罗圣琪 242210902206",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkji00exg9q2dpd3j84q",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkji00exg9q2dpd3j84q",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "刘 刘壮举 242210901318",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkhg00etg9q21feuaja5",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkhg00etg9q21feuaja5",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "黄 黄丹琳 242210901204",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkfe00epg9q2r4ron9er",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkfe00epg9q2r4ron9er",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "吴 吴子恒 242210802122",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkd800elg9q2mtubq9vx",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkd800elg9q2mtubq9vx",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "王 王誉轩 242210688934",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkb300ehg9q2spwm6m7t",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkb300ehg9q2spwm6m7t",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "张 张悦 242210688609",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk9100edg9q2zj3gagvn",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk9100edg9q2zj3gagvn",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "陈 陈学鹏 242210688415",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk6w00e9g9q2nm8109x2",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk6w00e9g9q2nm8109x2",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "杨 杨超逸 242210504234",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk4m00e5g9q28mgfpkv1",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk4m00e5g9q28mgfpkv1",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "吴 吴宗保 242210501131",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk2k00e1g9q2yytubxps",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk2k00e1g9q2yytubxps",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "沈 沈俊杰 242210501123",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk0h00dxg9q2fx6l685d",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk0h00dxg9q2fx6l685d",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "陈 陈家骥 242210501111",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjyb00dtg9q2jljtcpn8",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjyb00dtg9q2jljtcpn8",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "张 张一诺 242210488414",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjw700dpg9q2w7bfeczr",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjw700dpg9q2w7bfeczr",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "桑 桑思甜 242210488308",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hju500dlg9q2mfam8rem",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hju500dlg9q2mfam8rem",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "闵 闵舒涵 242210488306",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjs100dhg9q2by9h9w06",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjs100dhg9q2by9h9w06",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "宋 宋志远 242210488231",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjpq00ddg9q291lade7a",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjpq00ddg9q291lade7a",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "黄 黄韵茹 242210488104",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjnm00d9g9q24yg2lohf",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjnm00d9g9q24yg2lohf",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "刘 刘宇硕 242210288617",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjlk00d5g9q2gnmlbvb6",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjlk00d5g9q2gnmlbvb6",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "杜 杜依轩 242210288602",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjjh00d1g9q2xtlf1y24",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjjh00d1g9q2xtlf1y24",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "沈 沈越洋 242210288524",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjhe00cxg9q218rkctl2",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjhe00cxg9q218rkctl2",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "赖 赖梦雯 242210188402",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjf700ctg9q2v5xz3e6r",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjf700ctg9q2v5xz3e6r",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "孙 孙博扬 242210103219",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjd300cpg9q26965ftdo",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjd300cpg9q26965ftdo",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "丁 丁至翰 242210301338",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjb000clg9q2knpo75tf",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjb000clg9q2knpo75tf",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "朱 朱成锦 242210301337",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj8w00chg9q23sc5o8jr",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj8w00chg9q23sc5o8jr",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "智 智栋 242210301336",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj6u00cdg9q2ndp6zm9h",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj6u00cdg9q2ndp6zm9h",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "张 张迅 242210301335",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj4s00c9g9q2skrua7yu",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj4s00c9g9q2skrua7yu",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "张 张池铖 242210301334",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj2q00c5g9q2p3hv7q5r",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj2q00c5g9q2p3hv7q5r",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "袁 袁泽安 242210301333",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj0n00c1g9q265jsunf7",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj0n00c1g9q265jsunf7",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "俞 俞睿 242210301332",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiya00bxg9q273j4xjap",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiya00bxg9q273j4xjap",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "杨 杨逸凡 242210301331",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiw600btg9q2gty5p21e",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiw600btg9q2gty5p21e",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "杨 杨伊凡 242210301330",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hitx00bpg9q2xrln6xgl",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hitx00bpg9q2xrln6xgl",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "薛 薛鸣涛 242210301329",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hirv00blg9q2mkvhjc77",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hirv00blg9q2mkvhjc77",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "徐 徐慧聪 242210301328",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hipp00bhg9q21uj9l15i",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hipp00bhg9q21uj9l15i",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "肖 肖毅 242210301327",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hinn00bdg9q2citenosq",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hinn00bdg9q2citenosq",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "吴 吴晓风 242210301326",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hilk00b9g9q2pclb1oj6",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hilk00b9g9q2pclb1oj6",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "魏 魏延玺 242210301325",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiji00b5g9q29rp690gp",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiji00b5g9q29rp690gp",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "韦 韦俊宇 242210301324",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hihe00b1g9q25736uklw",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hihe00b1g9q25736uklw",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "王 王煜泽 242210301323",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hifc00axg9q27s38gcmd",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hifc00axg9q27s38gcmd",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "王 王雨航 242210301322",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hida00atg9q2g4mmkixj",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hida00atg9q2g4mmkixj",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "滕 滕铭志 242210301321",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hib800apg9q2wvhxk5d8",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hib800apg9q2wvhxk5d8",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "刘 刘中天 242210301320",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi9600alg9q2cnlecxco",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi9600alg9q2cnlecxco",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "梁 梁宏 242210301319",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi7300ahg9q2y0eqmdib",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi7300ahg9q2y0eqmdib",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "李 李志同 242210301318",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi5100adg9q2bms0g2yc",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi5100adg9q2bms0g2yc",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "李 李金峰 242210301317",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi2y00a9g9q2qpsf6lvd",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi2y00a9g9q2qpsf6lvd",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "贾 贾滨赫 242210301316",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi0v00a5g9q2kvhqthub",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hi0v00a5g9q2kvhqthub",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "黄 黄奕嘉 242210301315",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhyq00a1g9q2b05t7euk",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhyq00a1g9q2b05t7euk",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "顾 顾文仪 242210301314",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhwl009xg9q2vntklp2u",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "详情",
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hhwl009xg9q2vntklp2u",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "accept": "",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "placeholder": "搜索教案...",
+        "ariaLabel": "搜索教案...",
+        "accept": "",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "placeholder": "搜索姓名、账号或学号...",
+        "ariaLabel": "搜索姓名、账号或学号...",
+        "accept": "",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "accept": "",
+        "value": "",
+        "hidden": false
+      }
+    ],
+    "tables": [
+      {
+        "headers": [
+          "学生",
+          "画像等级",
+          "综合指数",
+          "证据状态",
+          "风险状态",
+          "近期趋势",
+          "成长档案",
+          "操作"
+        ],
+        "rowCount": 143
+      }
+    ],
+    "unnamedButtons": 3,
+    "graphicsCount": 396,
+    "unnamedGraphics": 0,
+    "bodyText": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回班级列表 2024自动化 治理结果部分可用 2025-2026 春季学期 143 名学生 25 天前更新 班级学情治理进度 当前仅覆盖 135/143 名学生，需结合课堂记录综合判断。 135/143 已覆盖学生 班级加入码 ZXVBP6 开始上课 班级学情总览 查看能力矩阵、风险分层和治理覆盖情况。 课堂历史 回看已结束课堂、课堂记录与复盘入口。 学生清单 进入学生画像、成长档案与个体风险详情。 重点关注 135 名学生处于需重点跟进状态。 班级总体指数 31.1 来自最新班级快照与学生画像聚合。 高风险学生 0 需要优先干预的个体数量。 中风险学生 37 建议在课堂中持续观察的学生。 人均学习事实 31.6 反映治理链路沉淀下来的过程证据密度。 证据充分 55/143 42 名待刷新，46 名缺少证据。 近期会话质量 0/7 黄灯 1，红灯 0。 班级诊断 控制校正班级诊断 聚合班级诊断快照、弱点聚类、证据覆盖与备课入口状态。 维度 1 证据 0 限制 7 当前诊断处于降级状态 页面不会把缺失或低置信度内容伪装成真实分数；请结合证据覆盖、路径状态和后续采集结果判断。 Control Correction control-correction 维度需要按证据覆盖、路径终端验证和班级分布判断干预优先级。 证据不足 得分 暂无 百分位 冷启动 成长 冷启动 置信度 无置信度 证据数 0 覆盖率 0% 证据抽屉 当前角色没有可展示的证据引用，或快照尚未生成。 查看干预建议 弱点聚类与备课入口 Control Correction 证据限制：missing-goal-slice 等待证据 影响人数 55 班级基数 143 置信度 无置信度 优先级 中 证据覆盖：ready 55，stale 42，missing 46，low 6 限制说明 诊断快照缺失 路径结果不可用 目标切片缺失 维度证据缺失 引用缺失 低置信度 无活动路径 课堂历史 (18) 全部状态 已结束 进行中 5-3：从单回路控制到复杂自主系统链路 (副本) 2026/5/26 103 分钟 81 人 课堂统计 5-2：非线性系统的最小分析入口 (副本) 2026/5/21 99 分钟 79 人 课堂统计 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 (副本) 2026/5/20 98 分钟 110 人 课堂统计 4-7：高保真辨识、设计验证与扰动边界 (副本) 2026/5/19 97 分钟 83 人 课堂统计 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 (副本) 2026/5/14 92 分钟 72 人 课堂统计 4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化 (副本) 2026/5/13 99 分钟 97 人 课堂统计 4-4：多目标权衡与控制器优化设计 (副本) 2026/5/12 103 分钟 77 人 课堂统计 4-3：初始方案落地实践：从对象分析到结构组合与首轮验证 (副本) 2026/5/9 101 分钟 69 人 课堂统计 4-2：控制器选型原理：不同控制结构为何适合不同任务 (副本) 2026/5/7 94 分钟 76 人 课堂统计 4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 2026/5/6 97 分钟 83 人 课堂统计 3-9：稳定—动态—稳态综合映射实验 (副本) 2026/4/30 116 分钟 80 人 课堂统计 3-8：频域判别与跨域综合语言 (副本) 2026/4/29 91 分钟 72 人 课堂统计 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理 (副本) 2026/4/28 99 分钟 75 人 课堂统计 3-6：零点作用与动态改善实验——从性能目标到校正设计 (副本) 2026/4/16 111 分钟 85 人 课堂统计 L-sum：设计可行域——让约束成为指南针 (副本) 2026/3/19 95 分钟 99 人 课堂统计 L-2d：三域联动探索 · 平台操作初体验 (副本) 2026/3/18 100 分钟 40 人 课堂统计 L-2c：频域直觉速通 · Bode图与相位裕度初识 (副本) 2026/3/17 94 分钟 93 人 课堂统计 L-2a：三张面孔，同一系统 · 时域直觉速通 (副本) 2026/3/11 68000 分钟 99 人 课堂统计 班级学生 以学生画像、风险和成长档案为主视图，不再只显示技术分/伦理分。 143 人 添加学生 学生 画像等级 综合指数 证据状态 风险状态 近期趋势 成长档案 操作 陈 陈兴旺 242212288313 需提升 54.3 可使用 高置信 · 93 条证据 风险平稳 近期表现平稳 1 详情 删除 吴 吴卓文 242212188637 需关注 7.2 待刷新 高置信 · 43 条证据 低风险 近期表现平稳 1 详情 删除 李 李兆涵 242212188211 需关注 13.3 待刷新 中置信 · 6 条证据 风险平稳 近期表现平稳 1 详情 删除 朱 朱邦威 242212188144 需提升 45.5 可使用 高置信 · 41 条证据 风险平稳 近期表现平稳 1 详情 删除 孙 孙尚 242212188136 需提升 43.1 可使用 高置信 · 43 条证据 风险平稳 近期表现平稳 1 详情 删除 孙 孙远 242211904226 需关注 13.3 缺少证据 无置信 · 0 条证据 中风险 近期表现平稳 0 详情 删除 祁 祁翔 242211904124 需关注 28.1 可使用 高置信 · 25 条证据 风险平稳 近期表现平稳 1 详情 删除 王 王浩宇 242211901234 需提升 43.7 可使用 高置信 · 119 条证据 风险平稳 近期表现平稳 1 详情 删除 邹 邹童乐 242211801234 需关注 12.8 可使用 高置信 · 15 条证据 低风险 近期表现平稳 1 详情 删除 罗 罗圣琪 242210902206 需关注 13.1 可使用 高置信 · 34 条证据 风险平稳 近期表现平稳 1 详情 删除 刘 刘壮举 242210901318 需提升 41.4 待刷新 高置信 · 39 条证据 风险平稳 近期表现平稳 1 详情 删除 黄 黄丹琳 242210901204 需关注 0 缺少证据 无置信 · 0 条证据 风险平稳 近期暂无治理趋势 0 详情 删除 吴 吴子恒 242210802122 需提升 53 可使用 高置信 · 60 条证据 风险平稳 近期表现平稳 1 详情 删除 王 王誉轩 242210688934 需提升 54.7 可使用 高置信 · 56 条证据 风险平稳 近期表现平稳 1 详情 删除 张 张悦 242210688609 需关注 13.3 可使用 高置信 · 21 条证据 风险平稳 近期表现平稳 1 详情 删除 陈 陈学鹏 242210688415 需关注 28.2 可使用 高置信 · 38 条证据 风险平稳 近期表现平稳 1 详情 删除 杨 杨超逸 242210504234 需关注 37.8 可使用 高置信 · 52 条证据 风险平稳 近期表现平稳 1 详情 删除 吴 吴宗保 242210501131 需关注 13.3 待刷新 中置信 · 5 条证据 风险平稳 近期表现平稳 1 详情 删除 沈 沈俊杰 242210501123 需提升 49.4 可使用 高置信 · 29 条证据 风险平稳 近期表现平稳 1 详情 删除 陈 陈家骥 242210501111 需提升 54.7 可使用 高置信 · 121 条证据 风险平稳 近期表现平稳 1 详情 删除 张 张一诺 242210488414 需关注 0 缺少证据 无置信 · 0 条证据 中风险 近期表现平稳 0 详情 删除 桑 桑思甜 242210488308 需关注 13.3 待刷新 中置信 · 4 条证据 低风险 近期表现平稳 1 详情 删除 闵 闵舒涵 242210488306 需关注 13.3 待刷新 高置信 · 10 条证据 风险平稳 近期表现平稳 0 详情 删除 宋 宋志远 242210488231 需关注 29.3 可使用 高置信 · 48 条证据 风险平稳 近期表现平稳 1 详情 删除 黄 黄韵茹 242210488104 需关注 0 缺少证据 无置信 · 0 条证据 风险平稳 近期暂无治理趋势 0 详情 删除 刘 刘宇硕 242210288617 需关注 0 缺少证据 无置信 · 0 条证据 中风险 近期表现平稳 0 详情 删除 杜 杜依轩 242210288602 需关注 13.3 低置信 低置信 · 1 条证据 低风险 近期表现平稳 1 详情 删除 沈 沈越洋 242210288524 需关注 24.5 待刷新 高置信 · 18 条证据 风险平稳 近期表现平稳 1 详情 删除 赖 赖梦雯 242210188402 需关注 13.3 可使用 高置信 · 8 条证据 低风险 近期表现平稳 1 详情 删除 孙 孙博扬 242210103219 需关注 29.2 可使用 高置信 · 49 条证据 风险平稳 近期表现平稳 1 详情 删除 丁 丁至翰 242210301338 需关注 0 缺少证据 无置信 · 0 条证据 风险平稳 近期暂无治理趋势 0 详情 删除 朱 朱成锦 242210301337 需提升 52.4 可使用 高置信 · 121 条证据 风险平稳 近期表现平稳 1 详情 删除 智 智栋 242210301336 需关注 26.9 可使用 中置信 · 5 条证据 中风险 近两周稳步提升 1 详情 删除 张 张迅 242210301335 中等偏上 57.9 可使用 高置信 · 42 条证据 风险平稳 近期表现平稳 1 详情 删除 张 张池铖 242210301334 需关注 13.3 待刷新 中置信 · 3 条证据 低风险 近期表现平稳 1 详情 删除 袁 袁泽安 242210301333 需关注 13.3 待刷新 中置信 · 3 条证据 低风险 近期表现平稳 1 详情 删除 俞 俞睿 242210301332 需关注 0 缺少证据 无置信 · 0 条证据 中风险 近期表现平稳 0 详情 删除 杨 杨逸凡 242210301331 需关注 0 缺少证据 无置信 · 0 条证据 中风险 近期表现平稳 0 详情 删除 杨 杨伊凡 242210301330 需关注 11.2 可使用 高置信 · 58 条证据 风险平稳 近期表现平稳 1 详情 删除 薛 薛鸣涛 242210301329 需提升 48.2 可使用 高置信 · 55 条证据 风险平稳 近期表现平稳 1 详情 删除 徐 徐慧聪 242210301328 需关注 28.1 待刷新 高"
+  }
+}

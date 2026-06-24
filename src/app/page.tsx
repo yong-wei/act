@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -31,18 +32,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  ShipModelPreview,
-  getShipModelPosterPath,
-  preloadShipModel,
-} from '@/resources/simulations/ship-model-preview'
+import { getShipModelPosterPath } from '@/resources/simulations/ship-model-assets'
 import { LoginModal } from '@/components/shared/login-modal'
 import { useTheme } from '@/components/providers/theme-provider'
 import { resolveHomeModelRenderMode, type ConnectionHint } from '@/lib/model-render-policy'
 import { getHomepageScenarioBackgroundClass } from '@/lib/homepage-theme'
 import {
+  getCommercialStudentEntryIntentGroups,
   getPlatformCockpitHref,
-  getStudentCoreNavigationEntries,
+  getStudentLearningIntentNavigationGroups,
+  resolveCommercialEntryHref,
   type PlatformNavigationIconKey,
 } from '@/lib/platform-role-navigation'
 
@@ -135,7 +134,8 @@ const shipScenarios = [
   },
 ]
 
-const homepageStudentEntries = getStudentCoreNavigationEntries()
+const homepageStudentEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries)
+const homepageEntryIntentGroups = getCommercialStudentEntryIntentGroups()
 
 const homepageIconMap: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = {
   adaptive: Sparkles,
@@ -146,6 +146,22 @@ const homepageIconMap: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = 
   ship: Ship,
   workbench: Wrench,
 }
+
+const ShipModelPreview = dynamic(
+  () => import('@/resources/simulations/ship-model-preview').then((module) => module.ShipModelPreview),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-card/55 backdrop-blur-sm">
+        <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4">
+          <div className="rounded-full border border-border/60 bg-card/80 px-3 py-1 text-xs text-foreground">
+            模型加载中...
+          </div>
+        </div>
+      </div>
+    ),
+  },
+)
 
 export default function HomePage() {
   const router = useRouter()
@@ -233,7 +249,9 @@ export default function HomePage() {
     const current = shipScenarios[currentSlide]
 
     if (current?.modelPath) {
-      preloadShipModel(current.modelPath, 'high')
+      void import('@/resources/simulations/ship-model-preview')
+        .then(({ preloadShipModel }) => preloadShipModel(current.modelPath, 'high'))
+        .catch(() => undefined)
     }
   }, [currentSlide, shouldUseDynamicHomeModel])
 
@@ -257,6 +275,10 @@ export default function HomePage() {
   return (
     <div
       className="surface-page"
+      data-commercial-workspace="homepage"
+      data-commercial-student-entry-route="/"
+      data-commercial-entry-intent="experiment"
+      data-learning-entry-map="product-intent"
       style={{ fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif' }}
     >
       <div className="relative overflow-hidden">
@@ -302,6 +324,7 @@ export default function HomePage() {
                 <Button
                   onClick={handleEnterCockpit}
                   className="cta-primary"
+                  data-entry-secondary-action="student-cockpit"
                 >
                   进入驾驶舱
                 </Button>
@@ -309,6 +332,7 @@ export default function HomePage() {
                 <Button
                   onClick={() => setShowLoginModal(true)}
                   className="cta-primary"
+                  data-entry-secondary-action="student-cockpit"
                 >
                   进入驾驶舱
                 </Button>
@@ -350,25 +374,21 @@ export default function HomePage() {
               <div className="flex flex-wrap gap-3">
                 {currentScenario.ctaHref ? (
                   <Button asChild className="cta-primary">
-                    <Link href={currentScenario.ctaHref} prefetch={false}>
+                    <Link
+                      href={currentScenario.ctaHref}
+                      prefetch={false}
+                      data-entry-primary-action="current-experiment"
+                    >
                       <Play className="mr-2 h-4 w-4" />
                       {currentScenario.ctaLabel ?? '开启任务链'}
                     </Link>
                   </Button>
                 ) : (
-                  <Button className="cta-primary">
+                  <Button className="cta-primary" data-entry-primary-action="current-experiment">
                     <Play className="mr-2 h-4 w-4" />
                     {currentScenario.ctaLabel ?? '开启任务链'}
                   </Button>
                 )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="btn-ghost-themed border"
-                  onClick={() => setShowCourseDesignDialog(true)}
-                >
-                  了解课程设计
-                </Button>
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
@@ -396,7 +416,7 @@ export default function HomePage() {
                   onInteractionEnd={() => setIsDragging(false)}
                 />
               ) : (
-                <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm">
+                <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-card/55 backdrop-blur-sm">
                   <Image
                     src={getShipModelPosterPath(currentScenario.modelPath)}
                     alt={`${currentScenario.title}静态预览`}
@@ -416,14 +436,20 @@ export default function HomePage() {
 
           <div className="mx-auto max-w-[1600px] px-6 pb-12">
             <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-              <div className="surface-card p-6">
+              <div className="surface-card p-6" data-commercial-entry-intent-map="homepage">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold text-foreground">任务序列</div>
-                  <div className="text-xs text-subtle">{currentSlide + 1}/{totalSlides}</div>
+                  <button
+                    type="button"
+                    className="text-xs text-subtle transition hover:text-primary"
+                    onClick={() => setShowCourseDesignDialog(true)}
+                  >
+                    课程设计 · {currentSlide + 1}/{totalSlides}
+                  </button>
                 </div>
                 <div className="mt-4 space-y-3">
                   {shipScenarios.map((scenario, index) => (
-                    <button
+                    <button type="button"
                       key={scenario.id}
                       onClick={() => setCurrentSlide(index)}
                       className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition ${
@@ -442,16 +468,18 @@ export default function HomePage() {
               <div className="surface-card p-6">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold text-foreground">平台入口矩阵</div>
-                  <div className="text-xs text-subtle">六个核心入口</div>
+                  <div className="text-xs text-subtle">商业入口 · 学习意图</div>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  {homepageStudentEntries.map((module) => {
-                    const ModuleIcon = homepageIconMap[module.iconKey as PlatformNavigationIconKey] ?? Layers
+                  {homepageEntryIntentGroups.map((intentGroup) => {
+                    const entry = homepageStudentEntries.find((candidate) => intentGroup.entryIds.includes(candidate.id))
+                    const ModuleIcon = entry ? homepageIconMap[entry.iconKey as PlatformNavigationIconKey] ?? Layers : Layers
+                    const entryHref = entry?.href ?? resolveCommercialEntryHref(intentGroup.intent, Boolean(session))
                     return (
                       <Link
-                        key={module.id}
-                        href={module.href}
-                        prefetch={module.href.startsWith('/simulations') ? false : undefined}
+                        key={intentGroup.intent}
+                        href={entryHref}
+                        prefetch={entry?.href.startsWith('/simulations') ? false : undefined}
                         className="surface-card-soft group p-4 transition hover:-translate-y-1 hover:border-primary/45"
                       >
                         <div className="flex items-center justify-between">
@@ -460,8 +488,9 @@ export default function HomePage() {
                           </div>
                           <ArrowUpRight className="h-4 w-4 text-subtle group-hover:text-primary" />
                         </div>
-                        <div className="mt-4 text-sm font-semibold text-foreground">{module.label}</div>
-                        <div className="mt-2 text-xs text-subtle">{module.description}</div>
+                        <div className="mt-4 text-xs font-medium text-primary">{intentGroup.label}</div>
+                        <div className="mt-1 text-sm font-semibold text-foreground">{entry?.label ?? intentGroup.label}</div>
+                        <div className="mt-2 text-xs text-subtle">{intentGroup.summary}</div>
                       </Link>
                     )
                   })}
@@ -476,13 +505,13 @@ export default function HomePage() {
               今日推荐任务：半潜平台动力定位挑战 · 预计时长 90 分钟
             </div>
             <div className="flex items-center gap-3">
-              <button
+              <button type="button"
                 onClick={prevSlide}
                 className="btn-ghost-themed rounded-full border p-2 transition"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <button
+              <button type="button"
                 onClick={nextSlide}
                 className="btn-ghost-themed rounded-full border p-2 transition"
               >

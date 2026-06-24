@@ -1,43 +1,40 @@
 # 精品课程体系
 
 状态: active
-最后更新: 2026-03-21
-摘要: 记录精品课程与普通课堂路由的差异，以及当前已经接入的主要课程类型；当前除 L-2 系列与 L-sum 外，`1-1`、`1-2`、`1-3` 也已作为 runtime-first 精品课接入。
+最后更新: 2026-06-12
+摘要: 记录精品课程与普通课堂路由的差异，以及当前标准互动课的稳定入口；`1-1` 当前是“看见系统全貌”标准互动课，路由为 `unit-1-1-see-the-full-picture`。
 上游:
 - [10-lesson-framework.md](10-lesson-framework.md)
 下游: []
 相关:
 - [../20-architecture/30-auth-and-session.md](../20-architecture/30-auth-and-session.md)
+- [../70-workflows/30-content-update-flow.md](../70-workflows/30-content-update-flow.md)
 
 ## 定义
 
-精品课程是指根据课程标题映射到独立路由段、拥有专用入口页和专用教师/学生课堂页的一类课程。
+精品课程是指根据课程内容映射到独立路由段、拥有专用入口页和专用教师/学生课堂页的一类课程。新标准互动课应优先消费 runtime 的 `lesson.json`、`interactive-manifest.json`、讲义、知识图、知识卡和媒体说明，并通过 manifest runtime 与注册模块实现。
 
 ## 当前已知课程族
 
-- L-2a
-- L-2b
-- L-2c
-- L-2d
-- L-sum
-- 1-1
-- 1-2
-- 1-3
-- Cruise comfort
+- 标准互动课: `1-1`、`1-2`、`1-3`
+- 控制与仿真相关旧课: L-2a、L-2b、L-2c、L-2d、L-sum、Cruise comfort
+- 当前 App Router 下还存在 `unit-2-1` 到 `unit-5-6` 等课程页，后续判断具体状态时应查看对应 authoring/runtime 和实现文件，不要只靠旧课程族名称。
+
+## 1-1 当前事实
+
+- `1-1` 的课程定位是“看见系统全貌”，不是旧记忆里的 Laplace 变换课。
+- 固定路由段是 `unit-1-1-see-the-full-picture`。
+- 入口路由是 `/interactive-learning/courses/unit-1-1-see-the-full-picture`。
+- 教师页与学生页位于该路由下的私有 `[sessionId]` 子路由。
+- 作者态位于 `course-content/authoring/lessons/1-1`。
+- 运行态位于 `course-content/runtime/lessons/1-1`。
+- 当前实现入口包括 `src/lib/unit-1-1-course.ts`、`src/lib/lesson-1-1-ai-contexts.ts`、`src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx` 和 `src/features/interactive/unit-1-1-see-the-full-picture/*`。
+- 作者态材料、互动契约和 acceptance 已齐备；manifest audit 已达到 15 steps、91 modules、0 issues。
+- 当前剩余工程口径是把 `1-1` 纳入严格实现契约注册，并补充必要课堂页/e2e 验收。
 
 ## 记忆重点
 
-- 课程标题归一化会影响路由映射
-- 同一套 `/api/session` 与 `/state` 能被多门精品课程复用，但前端课堂页实现彼此独立
-- `1-1` 的固定路由段是 `unit-1-1-laplace-transfer-function`
-- `1-1` 的入口、教师页、学生页都位于 `/interactive-learning/courses/unit-1-1-laplace-transfer-function/*`
-- `1-1` 的运行时内容位于 `course-content/runtime/lessons/legacy/1-1`
-- `1-2` 的固定路由段是 `unit-1-2-block-diagram-simplification`
-- `1-2` 的入口、教师页、学生页都位于 `/interactive-learning/courses/unit-1-2-block-diagram-simplification/*`
-- `1-2` 的运行时内容位于 `course-content/runtime/lessons/legacy/1-2`，并要求先消费 `review/*` 审查产物再进入互动课实现
-- `1-2` 的课堂实现以 `design/interactive-page.md` 的 17 步为真源；当前 `runtime/lessons/legacy/1-2/lesson.json` 仍保留 13 步摘要编排，这个差异是已知状态，不要误判为导出失败
-- `1-3` 的固定路由段是 `unit-1-3-time-domain-response`
-- `1-3` 的入口、教师页、学生页都位于 `/interactive-learning/courses/unit-1-3-time-domain-response/*`
-- `1-3` 的运行时内容位于 `course-content/runtime/lessons/2-2`，当前已包含 `handout.md`、`graph-overlay.json`、`review/*` 与 6 张代码直出 SVG
-- `1-3` 课堂当前已完成 17 步首轮落地，并额外补强 `step-07` 三列表、`step-09` 四指标总览、`step-13` 例题三步法工作区；后续仍建议补一次真实教师端 session 验收
-- 对于存在代码直出媒体的精品课程，当前稳定做法是先把输出落到 `authoring/.../media/processed` 审核，再走 runtime 导出链
+- 课程标题归一化会影响路由映射，但当前新标准课不能只靠标题猜测路由；优先查 `src/lib/platform-role-navigation.ts`、课程列表、App Router 实现和 runtime manifest。
+- 同一套 `/api/session` 与 `/state` 能被多门精品课程复用，但前端课堂页实现彼此独立。
+- 对于存在代码直出媒体的精品课程，稳定做法是先把输出落到 `authoring/.../media/processed` 审核，再走 runtime 导出链。
+- `sync_runtime_knowledge.py --check` 当前仍可能带有 legacy `concepts/*.mdx` 路径预期；对已采用 `cards/nodes/*.md` 与 runtime knowledge cards 的标准课，应结合 review 和 manifest audit 判断就绪状态。

@@ -1,6 +1,3 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-
 import type { Components } from 'react-markdown';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
@@ -12,6 +9,7 @@ import 'katex/dist/katex.min.css';
 
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { resolveHandoutAssetUrl } from '@/lib/handout-pdf';
+import { readReadableContentText } from '@/lib/runtime-content-path';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,16 +104,16 @@ function createMarkdownComponents(lessonId: string): Components {
     ),
     img: ({ node, src = '', alt = '', ...props }) => (
       // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={resolveHandoutAssetUrl(src, { lessonId })}
+      (<img
+        src={resolveHandoutAssetUrl(typeof src === 'string' ? src : '', { lessonId })}
         alt={alt}
         className="my-5 w-full rounded-2xl border border-slate-200 bg-white object-contain"
         {...props}
-      />
+      />)
     ),
     a: ({ node, href = '', children, ...props }) => (
       <a
-        href={resolveHandoutAssetUrl(href, { lessonId })}
+        href={resolveHandoutAssetUrl(typeof href === 'string' ? href : '', { lessonId })}
         className="text-sky-700 underline underline-offset-2"
         {...props}
       >
@@ -142,19 +140,20 @@ function createMarkdownComponents(lessonId: string): Components {
   };
 }
 
-export default async function LessonHandoutPrintPage({
-  params,
-}: {
-  params: { lessonId: string };
-}) {
+export default async function LessonHandoutPrintPage(
+  props: {
+    params: Promise<{ lessonId: string }>;
+  }
+) {
+  const params = await props.params;
   try {
     const runtime = await loadLessonRuntimeEntry(params.lessonId);
-    const markdown = await fs.readFile(path.join(process.cwd(), runtime.handoutSourcePath), 'utf8');
+    const markdown = await readReadableContentText(runtime.handoutSourcePath);
     const markdownComponents = createMarkdownComponents(params.lessonId);
 
     return (
       <main className="min-h-screen bg-white text-slate-900" data-handout-print-ready="true">
-        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PRINT_PAGE_CSS }} />
+        <style suppressHydrationWarning>{PRINT_PAGE_CSS}</style>
         <div className="mx-auto max-w-[820px] px-8 py-10">
           <header className="mb-8 border-b border-slate-200 pb-5">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{params.lessonId} Handout</div>

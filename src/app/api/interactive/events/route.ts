@@ -24,6 +24,17 @@ import {
 } from '@/lib/data-governance/submission-evidence-quality';
 import type { NormalizedInteractionEvent } from '@/lib/data-governance/interactive-event-ingestion';
 import type { PageType } from '@/lib/data-governance/event-protocol';
+import {
+  buildControlWorkbenchTeacherDiagnostics,
+  materializeControlWorkbenchEvidenceFromSubmissionPayload,
+  type ControlWorkbenchDiagnosticEvent,
+} from '@/features/interactive/shared/manifest-runtime/control-workbench-evidence';
+import {
+  annotatedMediaDiagnosticEventFromEvidence,
+  buildAnnotatedMediaTeacherDiagnostics,
+  materializeAnnotatedMediaEvidenceFromSubmissionPayload,
+  type AnnotatedMediaDiagnosticEvent,
+} from '@/features/interactive/shared/manifest-runtime/annotated-media-evidence';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,6 +128,92 @@ function readPayloadString(payload: Record<string, unknown>, key: string): strin
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function readFirstQuestionCardId(payload: Record<string, unknown>): string | null {
+  const summaries = payload.questionSummaries;
+  if (!Array.isArray(summaries)) return null;
+  for (const summary of summaries) {
+    const record = readRecord(summary);
+    const cardId = readPayloadString(record, 'cardId')
+      ?? readPayloadString(record, 'questionId')
+      ?? readPayloadString(record, 'id');
+    if (cardId) return cardId;
+  }
+  return null;
+}
+
+function resolveSubmissionIdentity(payload: Record<string, unknown>, attemptKey: string | null | undefined): string | null {
+  return attemptKey
+    ?? readPayloadString(payload, 'submissionIdentity')
+    ?? readPayloadString(payload, 'submissionId')
+    ?? readPayloadString(payload, 'attemptId');
+}
+
+function buildClassroomSubmissionDedupeKey(input: {
+  userId: string;
+  sessionId: string | null | undefined;
+  lessonKey: string | null | undefined;
+  stepId: string | null | undefined;
+  attemptKey: string | null | undefined;
+  payload: Record<string, unknown>;
+}): string | null {
+  if (!input.sessionId || !input.stepId) return null;
+  const submissionIdentity = resolveSubmissionIdentity(input.payload, input.attemptKey);
+  if (!submissionIdentity) return null;
+  const cardId = readPayloadString(input.payload, 'cardId')
+    ?? readPayloadString(input.payload, 'questionId')
+    ?? readFirstQuestionCardId(input.payload)
+    ?? 'step';
+  return [
+    input.userId,
+    input.sessionId,
+    input.lessonKey ?? '',
+    input.stepId,
+    cardId,
+    submissionIdentity,
+  ].join('|');
+}
+
+function buildClassroomSubmissionDedupeKeyForEvent(eventData: NormalizedInteractionEvent, userId: string): string | null {
+  const payload =
+    eventData.event.data && typeof eventData.event.data === 'object'
+      ? eventData.event.data
+      : {};
+  const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
+  if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
+    return null;
+  }
+  return buildClassroomSubmissionDedupeKey({
+    userId,
+    sessionId: eventData.sessionId,
+    lessonKey: eventData.event.lessonKey ?? null,
+    stepId: eventData.event.stepId ?? readPayloadString(payload, 'stepId'),
+    attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
+    payload,
+  });
+}
+
+function buildClassroomSubmissionDedupeKeyForResponse(response: {
+  userId: string;
+  sessionId: string;
+  lessonKey: string | null;
+  stepId: string;
+  attemptKey: string | null;
+  responseData: Prisma.JsonValue;
+}): string | null {
+  return buildClassroomSubmissionDedupeKey({
+    userId: response.userId,
+    sessionId: response.sessionId,
+    lessonKey: response.lessonKey,
+    stepId: response.stepId,
+    attemptKey: response.attemptKey,
+    payload: readRecord(response.responseData),
+  });
+}
+
 function withSubmissionEvidenceQuality(
   payload: Record<string, unknown>,
   canonicalEventType: string,
@@ -132,9 +229,63 @@ function withSubmissionEvidenceQuality(
   };
 }
 
+async function dedupeClassroomSubmissionEvents(
+  events: NormalizedInteractionEvent[],
+  userId: string,
+): Promise<{ events: NormalizedInteractionEvent[]; duplicateSubmissionEvents: number }> {
+  const candidateKeys = events
+    .map((event) => buildClassroomSubmissionDedupeKeyForEvent(event, userId))
+    .filter((key): key is string => Boolean(key));
+  if (candidateKeys.length === 0) {
+    return { events, duplicateSubmissionEvents: 0 };
+  }
+
+  const sessionIds = Array.from(new Set(events.map((event) => event.sessionId).filter((value): value is string => Boolean(value))));
+  const stepIds = Array.from(new Set(events.map((event) => (
+    event.event.stepId ?? readPayloadString(readRecord(event.event.data), 'stepId')
+  )).filter((value): value is string => Boolean(value))));
+  const existingResponses = sessionIds.length > 0 && stepIds.length > 0
+    ? await prisma.studentStepResponse.findMany({
+      where: {
+        userId,
+        sessionId: { in: sessionIds },
+        stepId: { in: stepIds },
+      },
+      select: {
+        userId: true,
+        sessionId: true,
+        lessonKey: true,
+        stepId: true,
+        attemptKey: true,
+        responseData: true,
+      },
+    })
+    : [];
+  const seenKeys = new Set(
+    existingResponses
+      .map(buildClassroomSubmissionDedupeKeyForResponse)
+      .filter((key): key is string => Boolean(key)),
+  );
+  const dedupedEvents: NormalizedInteractionEvent[] = [];
+  let duplicateSubmissionEvents = 0;
+
+  for (const event of events) {
+    const key = buildClassroomSubmissionDedupeKeyForEvent(event, userId);
+    if (key && seenKeys.has(key)) {
+      duplicateSubmissionEvents += 1;
+      continue;
+    }
+    if (key) seenKeys.add(key);
+    dedupedEvents.push(event);
+  }
+
+  return { events: dedupedEvents, duplicateSubmissionEvents };
+}
+
 function buildStudentStepResponseRows(
   events: NormalizedInteractionEvent[],
   userId: string,
+  serverRecordedAt: Date,
 ): Prisma.StudentStepResponseCreateManyInput[] {
   const rows: Prisma.StudentStepResponseCreateManyInput[] = [];
 
@@ -160,6 +311,20 @@ function buildStudentStepResponseRows(
     }
 
     const clientEventId = resolveClientEventId(eventData.event);
+    const controlWorkbenchEvidence = materializeControlWorkbenchEvidenceFromSubmissionPayload(
+      normalizedPayload,
+      {
+        trustedSourceLogId: sourceLogId,
+        serverRecordedAt: serverRecordedAt.toISOString(),
+      },
+    );
+    const annotatedMediaEvidence = materializeAnnotatedMediaEvidenceFromSubmissionPayload(
+      normalizedPayload,
+      {
+        trustedSourceLogId: sourceLogId,
+        serverRecordedAt: serverRecordedAt.toISOString(),
+      },
+    );
 
     rows.push({
       userId,
@@ -172,6 +337,8 @@ function buildStudentStepResponseRows(
       submittedAt,
       responseData: {
         ...normalizedPayload,
+        ...(controlWorkbenchEvidence ? { controlWorkbenchEvidence } : {}),
+        ...(annotatedMediaEvidence ? { annotatedMediaEvidence } : {}),
         eventType: canonicalEventType,
         resourceKey: eventData.event.resourceKey,
         lessonKey: eventData.event.lessonKey ?? null,
@@ -179,7 +346,7 @@ function buildStudentStepResponseRows(
         attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
         clientEventId,
         learningContext: eventData.learningContext,
-      },
+      } as Prisma.InputJsonValue,
     });
   }
 
@@ -335,9 +502,14 @@ export async function POST(request: NextRequest) {
       return true;
     });
 
+    const {
+      events: evidenceDedupedEvents,
+      duplicateSubmissionEvents,
+    } = await dedupeClassroomSubmissionEvents(dedupedEvents, session.user.id);
+
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
-    const interactionLogEvents = dedupedEvents.map((item) => {
+    const interactionLogEvents = evidenceDedupedEvents.map((item) => {
       const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
       const canonicalEventType = resolveCanonicalEventType(item.event.type, eventData);
       const normalizedEventData = withSubmissionEvidenceQuality(eventData, canonicalEventType);
@@ -387,14 +559,15 @@ export async function POST(request: NextRequest) {
       : [];
 
     const sourceLinkedEvents = attachSourceLogIds(
-      dedupedEvents,
+      evidenceDedupedEvents,
       persistedLogs.map((log) => ({
         id: log.id,
         clientEventId: log.clientEventId ?? readJsonString(log.eventData, 'clientEventId'),
       })),
     );
 
-    const studentStepResponseRows = buildStudentStepResponseRows(sourceLinkedEvents, session.user.id);
+    const serverRecordedAt = new Date();
+    const studentStepResponseRows = buildStudentStepResponseRows(sourceLinkedEvents, session.user.id, serverRecordedAt);
     if (studentStepResponseRows.length > 0) {
       try {
         await prisma.studentStepResponse.createMany({
@@ -475,9 +648,10 @@ export async function POST(request: NextRequest) {
     // Update response
     return NextResponse.json({
       success: true,
-      count: dedupedEvents.length,
+      count: evidenceDedupedEvents.length,
       degraded: degradedEvents.length,
-      duplicates: duplicateEvents,
+      duplicates: duplicateEvents + duplicateSubmissionEvents,
+      submissionDuplicates: duplicateSubmissionEvents,
       routing: routingResults.reduce((acc, r) => {
         acc[r.destination] = (acc[r.destination] || 0) + 1;
         return acc;
@@ -523,7 +697,60 @@ export async function GET(request: NextRequest) {
     const sessionId = searchParams.get('sessionId');
     const userId = searchParams.get('userId');
     const eventType = searchParams.get('eventType');
+    const diagnostics = searchParams.get('diagnostics');
     const limit = parseInt(searchParams.get('limit') || '100', 10);
+
+    if (diagnostics === 'control-workbench') {
+      if (!isTeacherOrAdmin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      const responses = await prisma.studentStepResponse.findMany({
+        where: {
+          ...(sessionId ? { sessionId } : {}),
+          ...(resourceKey ? { lessonKey: resourceKey } : {}),
+          ...(userId ? { userId } : {}),
+        },
+        orderBy: { submittedAt: 'desc' },
+        take: limit,
+        select: {
+          userId: true,
+          responseData: true,
+        },
+      });
+      return NextResponse.json({
+        diagnostics: buildControlWorkbenchTeacherDiagnostics(
+          responses
+            .map((response) => controlWorkbenchDiagnosticEventFromResponse(response.userId, response.responseData))
+            .filter((event): event is ControlWorkbenchDiagnosticEvent => Boolean(event)),
+        ),
+      });
+    }
+
+    if (diagnostics === 'annotated-media') {
+      if (!isTeacherOrAdmin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      const responses = await prisma.studentStepResponse.findMany({
+        where: {
+          ...(sessionId ? { sessionId } : {}),
+          ...(resourceKey ? { lessonKey: resourceKey } : {}),
+          ...(userId ? { userId } : {}),
+        },
+        orderBy: { submittedAt: 'desc' },
+        take: limit,
+        select: {
+          userId: true,
+          responseData: true,
+        },
+      });
+      return NextResponse.json({
+        diagnostics: buildAnnotatedMediaTeacherDiagnostics(
+          responses
+            .map((response) => annotatedMediaDiagnosticEventFromResponse(response.userId, response.responseData))
+            .filter((event): event is AnnotatedMediaDiagnosticEvent => Boolean(event)),
+        ),
+      });
+    }
 
     if (!resourceId && !resourceKey) {
       return NextResponse.json({ error: 'resourceId or resourceKey is required' }, { status: 400 });
@@ -597,4 +824,61 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function controlWorkbenchDiagnosticEventFromResponse(
+  userId: string,
+  responseData: unknown,
+): ControlWorkbenchDiagnosticEvent | null {
+  const data = readRecord(responseData);
+  const evidence = readRecord(data.controlWorkbenchEvidence);
+  const payload = readRecord(evidence.payload);
+  if (!evidence.eventType || !payload.capabilityId) return null;
+  const parameterSnapshot = readRecord(payload.parameterSnapshot);
+  const answerPayload = readRecord(payload.answerPayload);
+  const selectedDesignState = readRecord(payload.selectedDesignState);
+  const releaseState = readPayloadString(payload, 'releaseState');
+  const fallbackState = readPayloadString(payload, 'fallbackState');
+  if (
+    releaseState !== 'unreleased'
+    && releaseState !== 'released'
+    && releaseState !== 'revealed'
+  ) {
+    return null;
+  }
+  if (
+    fallbackState !== 'supported'
+    && fallbackState !== 'fallback'
+    && fallbackState !== 'unsupported'
+  ) {
+    return null;
+  }
+  return {
+    actorId: userId,
+    actorRole: 'student',
+    lessonKey: readPayloadString(evidence, 'lessonKey') ?? '',
+    stepId: readPayloadString(evidence, 'stepId') ?? '',
+    moduleId: readPayloadString(evidence, 'moduleId') ?? '',
+    viewed: true,
+    submitted: true,
+    releaseState,
+    fallbackState,
+    touchedParameterIds: Object.keys(parameterSnapshot),
+    judgmentOutcome: readPayloadString(answerPayload, 'judgment')
+      ?? readPayloadString(answerPayload, 'responseContractId')
+      ?? readPayloadString(selectedDesignState, 'judgment')
+      ?? null,
+    attemptKey: readPayloadString(evidence, 'attemptKey') ?? '',
+    clientEventId: readPayloadString(evidence, 'clientEventId') ?? '',
+    clientEventAt: readPayloadString(evidence, 'clientEventAt') ?? undefined,
+    serverRecordedAt: readPayloadString(payload, 'serverRecordedAt') ?? undefined,
+  };
+}
+
+function annotatedMediaDiagnosticEventFromResponse(
+  userId: string,
+  responseData: unknown,
+): AnnotatedMediaDiagnosticEvent | null {
+  const data = readRecord(responseData);
+  return annotatedMediaDiagnosticEventFromEvidence(userId, data.annotatedMediaEvidence);
 }

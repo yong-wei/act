@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CompetencyVector } from '../competency-model';
 
 const mocks = vi.hoisted(() => ({
@@ -92,6 +92,49 @@ function emptySimulationArenaFeature() {
   };
 }
 
+function emptyPathExecutionWindow() {
+  return {
+    window: {
+      firstStartedAt: null,
+      lastStartedAt: null,
+      daysCovered: 0,
+    },
+    evidenceCount: 0,
+    adoptionCount: 0,
+    completionCount: 0,
+    deviationCount: 0,
+    fallbackCount: 0,
+    terminalValidationCount: 0,
+    sourceCoverage: {
+      adoption: 'missing',
+      completion: 'missing',
+      deviation: 'missing',
+      fallback: 'missing',
+      terminalValidation: 'missing',
+      interventionOutcome: 'missing',
+    },
+    confidence: {
+      level: 'none',
+      score: 0,
+      lowConfidenceCount: 0,
+    },
+    interventionOutcome: {
+      acceptedCount: 0,
+      completedCount: 0,
+      dismissedCount: 0,
+      lowConfidenceCount: 0,
+    },
+    sourceReferences: [],
+  };
+}
+
+function emptyPathExecutionFeature() {
+  return {
+    recent30d: emptyPathExecutionWindow(),
+    allTime: emptyPathExecutionWindow(),
+  };
+}
+
 function defaultApprovedAggregates() {
   return {
     latestSnapshot: {
@@ -182,6 +225,7 @@ function evidenceCache(overrides: Record<string, unknown> = {}) {
       approvedAggregates: defaultApprovedAggregates(),
       adaptiveLearnerState: defaultAdaptiveLearnerStateFeature(),
       simulationArena: emptySimulationArenaFeature(),
+      pathExecution: emptyPathExecutionFeature(),
       ...overrideFeatures,
     },
     ...Object.fromEntries(
@@ -285,6 +329,8 @@ function previewOnlySimulationArenaFeature() {
 
 describe('generateRecommendations', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-20T12:00:00.000Z'));
     vi.clearAllMocks();
     delete process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED;
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue({
@@ -298,6 +344,10 @@ describe('generateRecommendations', () => {
     mocks.prisma.userProgress.count.mockImplementation(async (args?: { where?: { status?: string } }) =>
       args?.where?.status === 'COMPLETED' ? 6 : 8
     );
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('uses the governed feature cache as the recommendation evidence source', async () => {
@@ -402,6 +452,109 @@ describe('generateRecommendations', () => {
       readiness: 'low-confidence',
       evidenceKinds: ['preview-only', 'standalone'],
     });
+  });
+
+  it('cites governed path execution features without raw execution scans or model-authored text', async () => {
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
+      features: {
+        pathExecution: {
+          recent30d: emptyPathExecutionWindow(),
+          allTime: {
+            ...emptyPathExecutionWindow(),
+            window: {
+              firstStartedAt: '2026-06-04T10:00:00.000Z',
+              lastStartedAt: '2026-06-04T10:20:00.000Z',
+              daysCovered: 1,
+            },
+            evidenceCount: 4,
+            adoptionCount: 1,
+            completionCount: 1,
+            deviationCount: 1,
+            fallbackCount: 1,
+            terminalValidationCount: 1,
+            sourceCoverage: {
+              adoption: 'available',
+              completion: 'available',
+              deviation: 'available',
+              fallback: 'available',
+              terminalValidation: 'available',
+              interventionOutcome: 'available',
+            },
+            confidence: {
+              level: 'medium',
+              score: 0.88,
+              lowConfidenceCount: 1,
+            },
+            interventionOutcome: {
+              acceptedCount: 1,
+              completedCount: 0,
+              dismissedCount: 0,
+              lowConfidenceCount: 1,
+            },
+            sourceReferences: [
+              {
+                sourceType: 'LearningPathExecution',
+                sourceId: 'exec-1',
+                pathId: 'path-1',
+                nodeId: 'terminal-node',
+                occurredAt: '2026-06-04T10:20:00.000Z',
+                privacyLevel: 'student-visible',
+                status: 'completed',
+                resourceType: 'arena_task',
+              },
+              {
+                sourceType: 'LearningPathIntervention',
+                sourceId: 'int-1',
+                pathId: 'path-1',
+                nodeId: null,
+                occurredAt: '2026-06-04T10:06:00.000Z',
+                privacyLevel: 'teacher-scoped',
+                interventionKind: 'hint',
+                studentOutcome: 'accepted',
+              },
+            ],
+          },
+        },
+      },
+    }));
+
+    const recommendations = await generateRecommendations('student-1');
+    const weakDimension = recommendations.find((item) => item.title === '提升跨域迁移与联动能力');
+
+    expect(mocks.prisma.studentEvidenceFeatureCache.findUnique).toHaveBeenCalledWith({
+      where: { userId: 'student-1' },
+    });
+    expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ userId: 'student-1' }),
+    }));
+    expect(mocks.prisma).not.toHaveProperty('learningPathExecution');
+    expect((weakDimension?.rationale as any).pathExecution).toMatchObject({
+      readiness: 'partial',
+      featureGroup: 'pathExecution',
+      evidenceCount: 4,
+      evidenceWindow: {
+        firstStartedAt: '2026-06-04T10:00:00.000Z',
+        lastStartedAt: '2026-06-04T10:20:00.000Z',
+      },
+      sourceCoverage: {
+        completion: 'available',
+        terminalValidation: 'available',
+        interventionOutcome: 'available',
+      },
+      confidence: {
+        level: 'medium',
+        lowConfidenceCount: 1,
+      },
+      sourceReferences: [
+        expect.objectContaining({
+          sourceType: 'LearningPathExecution',
+          sourceId: 'exec-1',
+        }),
+      ],
+    });
+    expect((weakDimension?.rationale as any).pathExecution.sourceReferences).toHaveLength(1);
+    expect(JSON.stringify((weakDimension?.rationale as any).pathExecution)).not.toContain('suggestedAction');
+    expect(JSON.stringify((weakDimension?.rationale as any).pathExecution)).not.toContain('int-1');
   });
 
   it('keeps stale evidence state ahead of simulation Arena low-confidence downgrade', async () => {

@@ -1,0 +1,730 @@
+{
+  "id": "chapter-06",
+  "number": 6,
+  "title": "线性系统的校正方法",
+  "pipeline": "mathpixplus",
+  "textbookPath": "textbook.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/chapter-06.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/chapter-06.qa.json",
+  "sourcePageStart": 182,
+  "sourcePageEnd": 223,
+  "sourcePageCount": 42,
+  "imageCount": 71,
+  "figureDescriptionCount": 70,
+  "markdownSha256": "1e2682782a842515b50f58743f8030477f827f274f2289107591da32515867cf",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/chapter-06.local.md.images.json",
+  "sourceImageManifestCount": 71,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0183-01-300dpi.png",
+      "exportPath": "assets/fig-06-01-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0183-01-300dpi.png",
+      "caption": "> Image description: This figure presents the open-loop Bode plot of a system to be corrected, generated via MATLAB. The image consists of two vertically aligned graphs sharing a logarithmic horizontal axis representing angular frequency $\\omega$ in radians per second ($\\text{rad/s}$), ranging from $10^{-2}$ to $10^3$. The top graph plots the magnitude $|G|$ in decibels ($\\text{dB}$) on the vertical axis, showing a downward slope that crosses $0\\text{ dB}$ near $\\omega = 2.92\\text{ rad/s}$. The bottom graph plots the phase angle $\\varphi$ in degrees ($^\\circ$) on the vertical axis, starting at $-90^\\circ$ and descending toward $-270^\\circ$. Text at the top specifies stability margins: a gain margin ($\\text{Gm}$) of $1.34\\text{ dB}$ at $3.16\\text{ rad/s}$ and a phase margin ($\\text{Pm}$) of $4.05\\text{ deg}$ at $2.92\\text{ rad/s}$. The caption identifies this as \"图6－1－1 待校正系统的开环 Bode 图（MATLAB）\". 图6－1－1 待校正系统的开环 Bode 图（MATLAB）",
+      "sourcePdfPage": 183,
+      "sha256": "42406963e6b64dcdb3ed19689f5aa0f55ef4e1ef9506a028d8f159016f310745",
+      "bytes": 454199
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0183-02-300dpi.png",
+      "exportPath": "assets/fig-06-01-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0183-02-300dpi.png",
+      "caption": "图6－1－2 待校正系统时间响应（MATLAB）",
+      "sourcePdfPage": 183,
+      "sha256": "c5a44c55963f1caa0d5fc993e8f1f85fb3d84daf85d76e04632f272472d8fa94",
+      "bytes": 277192
+    },
+    {
+      "index": 3,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0183-03-300dpi.png",
+      "exportPath": "assets/fig-06-01-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0183-03-300dpi.png",
+      "caption": "> Image description: This figure presents the open-loop Bode plot of a corrected system generated in MATLAB, as indicated by the caption \"图 6－1－3 已校正系统的开环 Bode 图（MATLAB）\". The image consists of two vertically aligned graphs sharing a logarithmic horizontal axis representing angular frequency $\\omega$ in radians per second ($\\text{rad/s}$), ranging from $10^{-1}$ to $10^3$. The top plot displays the magnitude $20\\log_{10}|G|$ in decibels ($\\text{dB}$), showing a downward slope as frequency increases. The bottom plot shows the phase angle $\\phi$ in degrees ($^\\circ$), decreasing from $-90^\\circ$ toward $-270^\\circ$. Text at the top provides key stability metrics: a gain margin $\\text{Gm} = 9.9\\text{ dB}$ at $7.38\\text{ rad/sec}$ and a phase margin $\\text{Pm} = 29.8\\text{ deg}$ at $3.85\\text{ rad/sec}$. These values are critical for evaluating the relative stability of the control system. 图 6－1－3 已校正系统的开环 Bode 图（MATLAB）",
+      "sourcePdfPage": 183,
+      "sha256": "cd924cdd1cad81031f0b61b776a7fba9c14309a1af249c204d4e55a23d71336c",
+      "bytes": 354207
+    },
+    {
+      "index": 4,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0183-04-300dpi.png",
+      "exportPath": "assets/fig-06-01-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0183-04-300dpi.png",
+      "caption": "图 6－1－4 已校正系统时间响应（MATLAB）",
+      "sourcePdfPage": 183,
+      "sha256": "4628c386aed9de2291f6bfedd3c7baf52fb0fdfdabc78aeecb94128080f54177",
+      "bytes": 199714
+    },
+    {
+      "index": 5,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0184-01-300dpi.png",
+      "exportPath": "assets/fig-06-02-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0184-01-300dpi.png",
+      "caption": "图6－2－1 待校正系统开环对数幅频渐近特性",
+      "sourcePdfPage": 184,
+      "sha256": "77ee702b1476144b8093498aaac5f5edcd93f576940ecbd258d8a6500b076677",
+      "bytes": 321444
+    },
+    {
+      "index": 6,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0185-01-300dpi.png",
+      "exportPath": "assets/fig-06-02-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0185-01-300dpi.png",
+      "caption": "> Image description: This image shows a Bode plot of a corrected system's open-loop transfer function, generated by MATLAB (as indicated by the caption \"图 6－2－2 已校正系统开环 Bode 图（MATLAB）\"). The figure consists of two vertically stacked plots sharing a logarithmic frequency axis $\\omega$ in rad/s, ranging from $10^{-2}$ to $10^3$. The top plot displays the magnitude $20\\lg|G|$ in decibels (dB), showing a steady downward slope. The bottom plot shows the phase angle $\\phi$ in degrees ($^\\circ$), starting at $-90^\\circ$ and descending toward $-180^\\circ$. Text at the top provides key stability metrics: a gain margin $Gm = \\text{inf dB}$ (at infinite frequency) and a phase margin $Pm = 62.5\\text{deg}$ occurring at a crossover frequency of $7.95\\text{rad/sec}$. In engineering terms, these values indicate the relative stability and robustness of the control system's open-loop response. 图 6－2－2 已校正系统开环 Bode 图（MATLAB）",
+      "sourcePdfPage": 185,
+      "sha256": "6688822286731f825250f3239ca4260f77e1bdc0453f1806aacb26304621cb3a",
+      "bytes": 534192
+    },
+    {
+      "index": 7,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0186-01-300dpi.png",
+      "exportPath": "assets/fig-06-39.png",
+      "originalRelativePath": "assets/mathpix-source-page-0186-01-300dpi.png",
+      "caption": "图6－39 串联校正系统的对数幅频渐近特性 （1）校正前后系统的开环传递函数。由图 6－39 可知，各系统的固定不变部分、校正网络和校正后的传递函数如下： 图6－39（a）$\\quad G_{0}(s)=\\frac{20}{s(0.1 s+1)}, \\quad G_{c}(s)=\\frac{2 s+1}{10 s+1}$",
+      "sourcePdfPage": 186,
+      "sha256": "5a3f893da21e2d0a5dc07a6616c75daa0417a07f5068b40578ac0a57b5b30ff2",
+      "bytes": 126215
+    },
+    {
+      "index": 8,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0187-01-300dpi.png",
+      "exportPath": "assets/fig-06-03-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0187-01-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot representing the time response of a system before correction, as indicated by the caption \"图6－3－1 系统（a）校正前时间响应（MATLAB）\". The graph features two axes: the vertical y-axis is labeled \"Amplitude\" with values ranging from 0 to 1.4 in increments of 0.2, and the horizontal x-axis is labeled \"Time/sec\" with values ranging from 0 to 1.2 in increments of 0.2. A dashed grid overlays the plot area for precise reading. The plotted curve starts at the origin (0,0) and exhibits an underdamped response characteristic. It rises sharply to a first peak amplitude of approximately 1.3 at roughly 0.22 seconds, then oscillates around a steady-state value of 1.0. The oscillations decrease in magnitude over time, with a second smaller peak occurring near 0.7 seconds before the signal stabilizes at an amplitude of 1.0 after approximately 1.0 second. 图6－3－1 系统（a）校正前时间响应（MATLAB）",
+      "sourcePdfPage": 187,
+      "sha256": "32c6ae416ed751b75dbab732e67a63114e27b4a6dbe3b9fb174b03009053d6cd",
+      "bytes": 199254
+    },
+    {
+      "index": 9,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0187-02-300dpi.png",
+      "exportPath": "assets/fig-06-03-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0187-02-300dpi.png",
+      "caption": "> Image description: This image is a technical plot showing the time response of a system before correction, as indicated by the caption \"图6－3－1 系统（a）校正前时间响应（MATLAB)\". The graph features a Cartesian coordinate system with two axes. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 6 seconds. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1.4. The plot displays a single continuous curve starting at the origin (0,0). The amplitude rises sharply, peaking at approximately 1.1 around 0.8 seconds, before gradually decaying and stabilizing toward a steady-state value of 1.0 as time increases toward 6 seconds. This characteristic shape represents an underdamped step response in control engineering, illustrating the system's transient behavior, including overshoot and settling time, prior to any corrective adjustments. 图6－3－2 系统（a）校正后时间响应（MATLAB）",
+      "sourcePdfPage": 187,
+      "sha256": "1f13f5d06ed41a983d568b84fd8e9ccbd305186bb71751b869731389c61405aa",
+      "bytes": 188901
+    },
+    {
+      "index": 10,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0188-01-300dpi.png",
+      "exportPath": "assets/fig-06-03-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0188-01-300dpi.png",
+      "caption": "> Image description: This image is a technical plot showing the time response of a system before correction, as indicated by the caption \"图 6－3－3 系统（b）校正前时间响应（MATLAB)\". The graph features a Cartesian coordinate system where the horizontal x-axis represents \"Time/sec\" ranging from 0 to 1.2 and the vertical y-axis represents \"Amplitude\" ranging from 0 to 1.4. The plot displays a single continuous curve starting at the origin (0,0). The response exhibits an underdamped behavior characterized by an initial steep rise, reaching a first peak amplitude of approximately 1.3 at roughly 0.22 seconds. This is followed by a damped oscillation that dips to about 0.9 around 0.45 seconds and reaches a second, smaller peak near 0.7 seconds before eventually stabilizing and converging toward a steady-state value of 1.0 as time approaches 1.2 seconds. 图 6－3－3 系统（b）校正前时间响应（MATLAB）",
+      "sourcePdfPage": 188,
+      "sha256": "f86ccd8fd3203a818580392975ceb2b6bd41de20d2a30332bb3d5f65c7a67591",
+      "bytes": 192154
+    },
+    {
+      "index": 11,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0188-02-300dpi.png",
+      "exportPath": "assets/fig-06-03-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0188-02-300dpi.png",
+      "caption": "> Image description: This image is a technical plot showing the time response of a system before correction, as indicated by the caption \"图 6－3－3 系统（b）校正前时间响应（MATLAB)\". The graph features a Cartesian coordinate system with two axes. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1 in increments of 0.1. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 0.2 seconds, with major tick marks every 0.02 seconds. The plot displays a single smooth, monotonically increasing curve that starts at the origin (0,0) and asymptotically approaches an amplitude of 1 as time increases. The curve exhibits a characteristic first-order or overdamped second-order system response, showing no overshoot or oscillation. A dashed grid is overlaid on the plot to facilitate precise reading of values across the time and amplitude scales. 图 6－3－4 系统（b）校正后时间响应（MATLAB）",
+      "sourcePdfPage": 188,
+      "sha256": "577fd6bc4a77b608dfa1ede1b3c63581e00d5a1ae750f307b6bd25d9630656de",
+      "bytes": 265936
+    },
+    {
+      "index": 12,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0189-01-300dpi.png",
+      "exportPath": "assets/fig-06-04-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0189-01-300dpi.png",
+      "caption": "> Image description: This image is a Bode magnitude plot showing the open-loop logarithmic amplitude-frequency asymptotic characteristics of lead compensation, as indicated by the Chinese caption \"图6－4－1 超前校正开环对数幅频渐近特性（MATLAB）\". The horizontal axis represents angular frequency $\\omega$ in radians per second ($\\text{rad/s}$) on a logarithmic scale, ranging from $10^{-1}$ to $10^3$. The vertical axis represents the loop gain $L(\\omega)$ in decibels ($\\text{dB}$), ranging from $-120$ to $60$. Several asymptotic curves are plotted: * **$L_{c1}(\\omega)$**: A flat line at $0\\text{ dB}$. * **$L_{c2}(\\omega)$**: Starts with a slope of $-20\\text{ dB/dec}$, levels off, and then rises again. * **$L'(\\omega)$, $L''(\\omega)$, and $L''_1(\\omega)$**: These curves diverge from the $0\\text{ dB}$ line at $\\omega \\approx 10^1\\text{ rad/s}$ with downward slopes of $-40\\text{ dB/dec}$ and $-60\\text{ dB/dec}$, illustrating different system roll-off rates. 图6－4－1 超前校正开环对数幅频渐近特性 （MATLAB）",
+      "sourcePdfPage": 189,
+      "sha256": "4d2b554f41c5f1c7270a6812764a327e94e991961e0c07a64b293469aa205c76",
+      "bytes": 380112
+    },
+    {
+      "index": 13,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0189-02-300dpi.png",
+      "exportPath": "assets/fig-06-04-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0189-02-300dpi.png",
+      "caption": "图 6－4－2 滞后校正开环对数幅频渐近特性 （MATLAB）",
+      "sourcePdfPage": 189,
+      "sha256": "5a8994ddb2a7a2d8fa076de8742b78fec2f0821ddb6a5e027cf471d30a2a01b0",
+      "bytes": 386406
+    },
+    {
+      "index": 14,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0190-01-300dpi.png",
+      "exportPath": "assets/fig-06-04-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0190-01-300dpi.png",
+      "caption": "> Image description: This image is a technical plot showing the unit step response of a series lead-compensated system, as indicated by the Chinese caption \"图 6－4－3 串联超前校正系统单位阶跃响应 (MATLAB)\". The graph features two axes: the vertical y-axis is labeled \"Amplitude\" with numerical markings at 0, 0.5, 1, and 1.5. The horizontal x-axis is labeled \"Time/sec\" with a scale ranging from 0 to 1 second in increments of 0.1. The plot displays a single continuous curve starting at the origin (0,0). The response exhibits an underdamped behavior: it rises sharply to a first peak amplitude of approximately 1.4 at roughly 0.18 seconds, drops to a minimum around 0.38 seconds, and then oscillates with decreasing magnitude before stabilizing asymptotically at a steady-state value of 1. This represents the system's transient response and eventual convergence toward the unit step input. 图 6－4－3 串联超前校正系统单位阶跃响应 （MATLAB）",
+      "sourcePdfPage": 190,
+      "sha256": "9f7436ce3288b65ad54edb15432686cac4751061d2590eefa0520dc407661603",
+      "bytes": 204950
+    },
+    {
+      "index": 15,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0190-02-300dpi.png",
+      "exportPath": "assets/fig-06-04-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0190-02-300dpi.png",
+      "caption": "> Image description: This image shows a plot of the unit step response for a series lead-compensated system, generated via MATLAB, as indicated by the caption \"图 6－4－3 串联超前校正系统单位阶跃响应（MATLAB）\". The graph features a Cartesian coordinate system. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 12 seconds. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1.4. A single continuous black curve represents the system's response over time. Starting at the origin (0,0), the amplitude rises sharply, peaking at approximately 1.2 around 1.5 seconds. After this overshoot, the signal gradually decays and stabilizes, asymptotically approaching a steady-state value of 1.0 as time increases toward 12 seconds. The plot illustrates key control engineering characteristics including rise time, maximum overshoot, and settling time for the compensated system. 图 6－4－4 串联滞后校正系统单位阶跃响应 （MATLAB） 作出串联超前校正系统的单位阶跃响应，如图 6－4－3 所示，测得",
+      "sourcePdfPage": 190,
+      "sha256": "bd02bcdabc2350d424c3154c722649fca221161a722a162a0ef3a89b7f7d3124",
+      "bytes": 194530
+    },
+    {
+      "index": 16,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0191-01-300dpi.png",
+      "exportPath": "assets/fig-06-05-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0191-01-300dpi.png",
+      "caption": "图 6－5－1 开环系统及校正装置的对数幅频渐近特性（MATLAB）",
+      "sourcePdfPage": 191,
+      "sha256": "648ec26498909d7eed107a6a75fa43f6c8970fd6051c9a385e0162ae46b81bac",
+      "bytes": 426492
+    },
+    {
+      "index": 17,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0191-02-300dpi.png",
+      "exportPath": "assets/fig-06-05-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0191-02-300dpi.png",
+      "caption": "图 6－5－2 待校正系统时间晌应（MATLAB） 由图6－5－1 中 $L^{\\prime}(\\omega)$ 与 $\\omega$ 轴交点，得待校正系统的截止频率 $\\omega_{c}^{\\prime}=2 \\mathrm{rad} / \\mathrm{s}$ ，算出待校正系统的相角裕度为",
+      "sourcePdfPage": 191,
+      "sha256": "9016d47ea9ab5d30614e591e1690a2922966796e8e1282877b8ae91c5ff6c5a7",
+      "bytes": 220860
+    },
+    {
+      "index": 18,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0192-01-300dpi.png",
+      "exportPath": "assets/fig-06-05-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0192-01-300dpi.png",
+      "caption": "> Image description: The image shows a plot of the time response for a corrected system, as indicated by the caption \"图 6－5－3 已校正系统时间响应（MATLAB）\". The graph is plotted on a Cartesian coordinate system. The vertical axis (y-axis) is labeled \"Amplitude\" and ranges from $0$ to $1.4$, with major grid increments of $0.2$. The horizontal axis (x-axis) is labeled \"Time/sec\" and ranges from $0$ to $30$ seconds, with marked intervals every $5$ seconds. The plot displays a single continuous curve starting at the origin $(0, 0)$. The response rises sharply, reaching a peak amplitude of approximately $1.08$ around $t = 5$ seconds (overshoot). Following this peak, the signal gradually decays and stabilizes toward a steady-state value of $1.0$. This characteristic represents a typical underdamped second-order system response to a step input in control engineering. 图 6－5－3 已校正系统时间响应（MATLAB）",
+      "sourcePdfPage": 192,
+      "sha256": "1ef04a7962edf11fd0b1547ae8b2f78b07a7d041014105e895842ce3f3b808cb",
+      "bytes": 213102
+    },
+    {
+      "index": 19,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0193-01-300dpi.png",
+      "exportPath": "assets/fig-06-06-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0193-01-300dpi.png",
+      "caption": "图6－6－1 系统开环对数幅频渐近特性（滞后校正） （3）确定滞后网络参数 $b$ 和 $T$ 。当 $\\omega_{c}^{\\prime \\prime}=0.59 \\mathrm{rad} / \\mathrm{s}$ 时，由图6－6－1 可以测得 $L^{\\prime}\\left(\\omega_{c}^{\\prime \\prime}\\right)=18.56 \\mathrm{~dB}$ ；再由 $20 \\lg b=-L^{\\prime}\\left(\\omega_{c}^{\\prime \\prime}\\right)$ ，解得 $b=0.118$ 。令 $\\frac{1}{b T}=0.1 \\omega_{c}^{\\prime \\prime}$ ，求得 $T=$ 143.64 s ，于是串联滞后校正网络的对数幅频特性曲线 $L_{c}(\\omega)$ 如图 6－6－1 所示，其传递函数为",
+      "sourcePdfPage": 193,
+      "sha256": "4b0cfe45d865ba4da3809894b7dda6d6988d9f61a26bb96f0fa03e18f3724db0",
+      "bytes": 437439
+    },
+    {
+      "index": 20,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0193-02-300dpi.png",
+      "exportPath": "assets/fig-06-06-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0193-02-300dpi.png",
+      "caption": "图6－6－2 系统开坏对数幅频渐近特性（超前－滞后校正）",
+      "sourcePdfPage": 193,
+      "sha256": "a940a2d881c788adc89191e67c089192f7c87577c1a069989d77ae0dc4fc413e",
+      "bytes": 399974
+    },
+    {
+      "index": 21,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0194-01-300dpi.png",
+      "exportPath": "assets/fig-06-06-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0194-01-300dpi.png",
+      "caption": "> Image description: The image is a technical plot showing the time response of a lag-compensated system, as indicated by the caption \"图 6－6－3 滞后校正系统时间响应（MATLAB）\". The graph features a Cartesian coordinate system with two axes. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1.4 in increments of 0.2. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 50 seconds, with major grid markings every 5 seconds. The plot displays a single continuous black curve representing the system's output over time. Starting at the origin (0,0), the signal rises sharply, reaching a peak amplitude of approximately 1.2 at around 5 seconds. It then exhibits a slight oscillation, dipping and leveling off as it asymptotically approaches a steady-state value of 1.0. This behavior is characteristic of a control system's step response, illustrating transient characteristics such as overshoot and settling time. 图 6－6－3 滞后校正系统时间响应（MATLAB）",
+      "sourcePdfPage": 194,
+      "sha256": "2e44762ff42d551fcf0de375f2158bce2abee3c4059ce5aafb79ff8d8b44e874",
+      "bytes": 234149
+    },
+    {
+      "index": 22,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0194-02-300dpi.png",
+      "exportPath": "assets/fig-06-06-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0194-02-300dpi.png",
+      "caption": "> Image description: The image is a MATLAB-generated plot showing the time response of a lag compensation system (as indicated by the caption \"图 6－6－3 滞后校正系统时间响应\"). The graph features a vertical y-axis labeled \"Amplitude\" ranging from 0 to 1.4 and a horizontal x-axis labeled \"Time/sec\" ranging from 0 to 12 seconds. The plot displays a single continuous curve representing the system's step response. Starting at the origin (0,0), the amplitude rises sharply, reaching a peak overshoot of approximately 1.2 around 1.5 seconds. The signal then oscillates slightly before stabilizing and asymptotically approaching a steady-state value of 1.0 as time increases toward 12 seconds. This visualization is used in control engineering to analyze transient performance characteristics such as rise time, peak overshoot, and settling time for a compensated system. 图 6－6－4 超前－滞后校正系统时间响应（MATLAB）",
+      "sourcePdfPage": 194,
+      "sha256": "a33145b30405ffe18b0fe8845db4b9123868c401a97eddf7b1f43028fcb4a17d",
+      "bytes": 187657
+    },
+    {
+      "index": 23,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0195-01-300dpi.png",
+      "exportPath": "assets/fig-06-40.png",
+      "originalRelativePath": "assets/mathpix-source-page-0195-01-300dpi.png",
+      "caption": "> Image description: The image contains three Bode magnitude plots labeled (a), (b), and (c) showing the asymptotic frequency characteristics of recommended correction networks. Each plot features a vertical axis $L(\\omega)$ representing gain in decibels and a horizontal logarithmic axis $\\omega$ representing angular frequency. Plot (a), titled \"滞后校正\" (lag compensation), shows a flat response at low frequencies, followed by a slope of $-20\\text{dB/dec}$ between $\\omega = 0.1$ and $1.0$, returning to a $0\\text{dB/dec}$ slope thereafter. Plot (b), titled \"超前校正\" (lead compensation), remains flat until $\\omega = 10$, then rises with a slope of $20\\text{dB/dec}$ up to $\\omega = 100$, where it levels off at $0\\text{dB/dec}$. Plot (c), titled \"滞后-超前校正\" (lag-lead compensation), combines these effects, descending at $-20\\text{dB/dec}$ from $\\omega = 0.1$ to $2.0$, and ascending at $20\\text{dB/dec}$ until $\\omega = 40$. The figure caption is \"图 6－40 推荐的校正网络对数幅频渐近特性.\" 图 6－40 推荐的校正网络对数幅频渐近特性 （1）稳定性分析。由图 6－40 可知，各系统的校正网络和校正后的传递函数为 图 6－40（a）：$\\quad G_{c}(s)=\\frac{s+1}{10 s+1}, \\quad G(s)=G_{0}(s) G_{c}(s)=\\frac{400(s+1)}{s^{2}(0.01 s+1)(10 s+1)}$绘制出待校正系统、校正网络和已校正系统的对数幅频渐近特性曲线，如图 6－7－1 中 $L^{\\prime}(\\omega)$ 、 $L_{c}(\\omega)$ 和 $L^{\\prime \\prime}(\\omega)$ 所示。由图6－7－1得已校正系统的截止频率 $\\omega_{c}^{\\prime \\prime}=6.32 \\mathrm{rad} / \\mathrm{s}$ ，算出已校正系统的相角裕度为",
+      "sourcePdfPage": 195,
+      "sha256": "67cc85ba4a34fef44a80f43776ebae95e60b7493f47555674a5ef4412a15bd8b",
+      "bytes": 174809
+    },
+    {
+      "index": 24,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0196-01-300dpi.png",
+      "exportPath": "assets/fig-06-07-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0196-01-300dpi.png",
+      "caption": "图6－7－1 采用（a）方案时的开环对数幅频渐近特性",
+      "sourcePdfPage": 196,
+      "sha256": "8ce3dc0dc40e0b4bdbe1ce19573fdc8b1162587ca1969f951a66871b13a2cfb5",
+      "bytes": 429012
+    },
+    {
+      "index": 25,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0196-02-300dpi.png",
+      "exportPath": "assets/fig-06-07-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0196-02-300dpi.png",
+      "caption": "图6－7－2 采用（b）方案时的开环对数幅频渐近特性",
+      "sourcePdfPage": 196,
+      "sha256": "f041ec59c1e8a4b77c965eb76d942a99b98fcc754febbaadd827976de7e9af69",
+      "bytes": 403235
+    },
+    {
+      "index": 26,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0196-03-300dpi.png",
+      "exportPath": "assets/fig-06-07-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0196-03-300dpi.png",
+      "caption": "图6－7－3 采用（c）方案时的开环对数幅频渐近特性 （2）噪声抑制能力分析。当 $f=12 \\mathrm{~Hz}$ 时，$\\omega=2 \\pi f=75.4 \\mathrm{rad} / \\mathrm{s}$ 。以图6－40（a）所示网络作为校正网络，有",
+      "sourcePdfPage": 196,
+      "sha256": "f712980fb3acaadff6e31a67c58d6bf473539d855f557ff62b780a46d442f992",
+      "bytes": 399168
+    },
+    {
+      "index": 27,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0197-01-300dpi.png",
+      "exportPath": "assets/fig-06-07-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0197-01-300dpi.png",
+      "caption": "图 6－7－4 采用（b）方案时系统的时间响应（MATLAB）",
+      "sourcePdfPage": 197,
+      "sha256": "fe3cf95be42922729a7cabee1bb10abdf283757ebfbceaabd67bd03710d2868f",
+      "bytes": 182967
+    },
+    {
+      "index": 28,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0197-02-300dpi.png",
+      "exportPath": "assets/fig-06-07-04-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0197-02-300dpi.png",
+      "caption": "> Image description: The image shows a plot of a system's time response generated by MATLAB, as indicated by the caption \"图 6－7－4 采用（b）方案时系统的时间响应（MATLAB）\". The graph features a vertical y-axis labeled \"Amplitude\" and a horizontal x-axis labeled \"Time/sec\". The x-axis ranges from $0$ to $0.8$ seconds with major grid lines every $0.1$ units. The y-axis ranges from $0$ to $1.4$ with major grid lines every $0.2$ units. A single continuous curve starts at the origin $(0,0)$, rises steeply, and reaches a peak amplitude of approximately $1.3$ at around $0.28$ seconds. After this overshoot, the signal gradually decays and converges toward a steady-state value of $1.0$ as it approaches $0.8$ seconds. In engineering terms, this represents an underdamped second-order system response to a step input, characterized by visible overshoot and settling behavior. 图 6－7－5 采用（c）方案时系统的时间响应（MATLAB）",
+      "sourcePdfPage": 197,
+      "sha256": "362ec08242bd0495718232f092bc6c2f97aed0eeed317ab589350f033b2ae608",
+      "bytes": 246973
+    },
+    {
+      "index": 29,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0198-01-300dpi.png",
+      "exportPath": "assets/fig-06-08-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0198-01-300dpi.png",
+      "caption": "图 6－8－1 开环对数幅频渐近特性（滞后－超前校正）",
+      "sourcePdfPage": 198,
+      "sha256": "d364b469929102f022d8fc045753ef95fc3dd6c96429b62920f33b41aad38dae",
+      "bytes": 422781
+    },
+    {
+      "index": 30,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0199-01-300dpi.png",
+      "exportPath": "assets/fig-06-08-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0199-01-300dpi.png",
+      "caption": "> Image description: This image shows a Bode plot of an open-loop system, generated in MATLAB, as indicated by the caption \"图 6－8－2 已校正系统的开环 Bode 图（MATLAB）\". The figure consists of two vertically aligned graphs sharing a logarithmic horizontal axis representing angular frequency $\\omega$ in radians per second ($\\text{rad/s}$), ranging from $10^{-3}$ to $10^4$. The top graph plots the magnitude $20\\log_{10}|G|$ in decibels ($\\text{dB}$) against frequency, showing a downward slope. The bottom graph plots the phase angle $\\varphi$ in degrees ($^\\circ$) against frequency, exhibiting a non-linear curve that dips and then rises before descending toward $-270^\\circ$. Text at the top specifies stability margins: a gain margin $\\text{Gm} = 14\\text{ dB}$ at $84.9\\text{ rad/sec}$ and a phase margin $\\text{Pm} = 49.4\\text{ deg}$ at $30.1\\text{ rad/sec}$. These values are critical for evaluating the stability of the control system. 图 6－8－2 已校正系统的开环 Bode 图（MATLAB）",
+      "sourcePdfPage": 199,
+      "sha256": "10d9144c23afacd3a7fbddccdb982e5a7422050d9ab5915ba178ec1b7c8d41c2",
+      "bytes": 574168
+    },
+    {
+      "index": 31,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0199-02-300dpi.png",
+      "exportPath": "assets/fig-06-08-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0199-02-300dpi.png",
+      "caption": "图 6－8－3 已校正系统的单位阶跃响应（MATLAB） MATLAB 检验：作已校正系统的开环 Bode 图，如图 6－8－2 所示，测得",
+      "sourcePdfPage": 199,
+      "sha256": "824d30ae88485de651fac5cdd6608ac19467008fd6f1a812dbd82d925f887042",
+      "bytes": 252351
+    },
+    {
+      "index": 32,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0200-01-300dpi.png",
+      "exportPath": "assets/fig-06-41.png",
+      "originalRelativePath": "assets/mathpix-source-page-0200-01-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled \"图6－41 复合控制系统结构图\" (Composite Control System Structure Diagram). The system starts with an input signal $R(s)$ that splits into two paths. One path goes directly to a summing junction, while the other passes through a forward-feed block $G_r(s)$. The main feedback loop consists of a second summing junction where the output of $G_r(s)$ is added and the feedback signal from $C(s)$ is subtracted, resulting in an error signal $E(s)$. This signal enters a series of two transfer function blocks: first $\\frac{K}{0.1s+1}$, followed by $\\frac{10}{s(0.5s+1)}$. The final output is labeled $C(s)$, which is fed back to the initial summing junction. Arrows indicate the unidirectional flow of signals through these components, representing a classic closed-loop control architecture with an additional feedforward component. 图6－41 复合控制系统结构图 由系统结构图 6－41，可得以 $R(s)$ 为输入、以 $E(s)$ 为输出的结构图，如图 6－9－1 所示。 由图6－9－1可得",
+      "sourcePdfPage": 200,
+      "sha256": "6a78fd0383c2ad2f09a468705918f59fa33e0983b4abc655cd9d7a8d70cf2941",
+      "bytes": 58267
+    },
+    {
+      "index": 33,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0200-02-300dpi.png",
+      "exportPath": "assets/fig-06-09-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0200-02-300dpi.png",
+      "caption": "> Image description: This image shows a control system block diagram labeled \"图 6－9－1 系统结构图.\" The diagram illustrates a feedback loop configuration starting from an input variable $R(s)$ on the left and ending at an output error signal $E(s)$ on the right. The system consists of two negative feedback paths. The first path branches from $R(s)$ through a transfer function block $\\frac{10KG_r(s)}{s(0.1s+1)(0.5s+1)}$ and returns to a summing junction with a minus sign. A second, similar loop branches from the output $E(s)$ back through a transfer function block $\\frac{10K}{s(0.1s+1)(0.5s+1)}$, also returning to a summing junction with a minus sign. Arrows indicate the signal flow from left to right and through the feedback loops. In engineering terms, this represents a system designed to minimize error $E(s)$ using two distinct feedback mechanisms involving second-order dynamics and an integrator. 图 6－9－1 系统结构图",
+      "sourcePdfPage": 200,
+      "sha256": "98d01e025ea19c84a051b0a581af39cc1c2cf4f2824b9635a45a4c1aaa87e8df",
+      "bytes": 76498
+    },
+    {
+      "index": 34,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0200-03-300dpi.png",
+      "exportPath": "assets/fig-06-09-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0200-03-300dpi.png",
+      "caption": "图 6－9－2 $1+\\frac{K^{*}}{s(s+10)(s+2)}=0$ 的根轨迹",
+      "sourcePdfPage": 200,
+      "sha256": "782ab24c864b178174fb2dda91816566590234dd646b0f47883eab302ff0ae52",
+      "bytes": 125468
+    },
+    {
+      "index": 35,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0201-01-300dpi.png",
+      "exportPath": "assets/fig-06-09-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0201-01-300dpi.png",
+      "caption": "图6－9－3 复合控制系统 Simulink 仿真图",
+      "sourcePdfPage": 201,
+      "sha256": "e0c2c9f05f94b1214f6305b007ac471d64f1d7a34de77bc7c8cfa41b83b08e4e",
+      "bytes": 493314
+    },
+    {
+      "index": 36,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0201-02-300dpi.png",
+      "exportPath": "assets/fig-06-09-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0201-02-300dpi.png",
+      "caption": "图 6－9－4 复合控制系统单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 201,
+      "sha256": "6721c342b1c1e4061336c614bb16a822b79df4eb6b69c98277d378452b68ac9d",
+      "bytes": 239410
+    },
+    {
+      "index": 37,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0201-03-300dpi.png",
+      "exportPath": "assets/fig-06-09-04-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0201-03-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot depicting the response of a composite control system to a ramp input. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 10, while the vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 10. Two curves are plotted: a dashed line representing the \"斜坡输入\" (ramp input) and a solid line representing the \"系统输出\" (system output). Both signals start at the origin (0,0). The ramp input increases linearly with a constant slope of 1. The system output initially lags behind the input, exhibiting a curved transient phase before asymptotically approaching the linear path of the input. This behavior illustrates the steady-state tracking error characteristic of a control system responding to a ramp signal. The caption identifies this as \"图 6－9－4 复合控制系统单位阶跃响应（MATLAB）,\" although the visual data specifically shows a ramp response. 图 6－9－5 复合控制系统单位斜坡响应（MATLAB）",
+      "sourcePdfPage": 201,
+      "sha256": "446a3bfcd0dc56760bb715b66c6602347f5edf7d51e38cbc1dc760a23f48146a",
+      "bytes": 236320
+    },
+    {
+      "index": 38,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0202-01-300dpi.png",
+      "exportPath": "assets/fig-06-42.png",
+      "originalRelativePath": "assets/mathpix-source-page-0202-01-300dpi.png",
+      "caption": "图 6－42 复合控制系统结构图 对图 6－42 系统进行结构图变换，如图 6－10－1 所示。",
+      "sourcePdfPage": 202,
+      "sha256": "e751554a956fa3360c091f44c5fc34d548ac4e8656e57193f10633c759175faa",
+      "bytes": 75330
+    },
+    {
+      "index": 39,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0202-02-300dpi.png",
+      "exportPath": "assets/fig-06-10-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0202-02-300dpi.png",
+      "caption": "图 6－10－1 系统结构图变换 由系统结构图变换图 6－10－1，可得",
+      "sourcePdfPage": 202,
+      "sha256": "f545ff5ed18dad6c6ee45a595e06300d6d6cc3bef1a577e4706d6ffa3b98aa34",
+      "bytes": 261057
+    },
+    {
+      "index": 40,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0203-01-300dpi.png",
+      "exportPath": "assets/fig-06-43.png",
+      "originalRelativePath": "assets/mathpix-source-page-0203-01-300dpi.png",
+      "caption": "图6－43 复合控制系统结构图",
+      "sourcePdfPage": 203,
+      "sha256": "71d1d5f2a2a7c70fdd40758cb845da5ddf1350d3095f72c3330eaca92ed46f4d",
+      "bytes": 71573
+    },
+    {
+      "index": 41,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0203-02-300dpi.png",
+      "exportPath": "assets/fig-06-43-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0203-02-300dpi.png",
+      "caption": "将图 6－43 等效变换如图 6－11－1 所示。由图 6－11－1 可见：",
+      "sourcePdfPage": 203,
+      "sha256": "682ab53e5506813f5927c4dddbedc166165bc00cf4d8e1548cb20315504d840c",
+      "bytes": 68468
+    },
+    {
+      "index": 42,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0203-03-300dpi.png",
+      "exportPath": "assets/fig-06-11-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0203-03-300dpi.png",
+      "caption": "> Image description: This image shows two control system block diagrams illustrating an equivalent transformation of a system structure, captioned as \"图 6－11－1 系统结构图等效变换.\" The left diagram features an input signal $N(s)$ and an output signal $C(s)$. The main forward path is direct from $N(s)$ to $C(s)$. There are two feedback loops: one inner loop containing a block $\\frac{G_1(s)G_2(s)}{1+G_1(s)G_2(s)G_c(s)}$ and an outer loop with a block labeled $\\frac{G_n(s)}{G_1(s)}$. Summing junctions manage the signal flow, including one that combines $C(s)$ (negative) and the output of the lower block (positive). The right diagram shows the equivalent transformed structure. The input $N(s)$ splits into two parallel paths: a lower path through a block $\\frac{G_2(s)G_n(s)}{1+G_1(s)G_2(s)G_n(s)}$ and an upper path that leads to a summing junction. This is followed by another feedback loop containing the block $\\frac{G_1(s)G_2(s)}{1+G_1(s)G_2(s)G_c(s)}$, resulting in the output $C(s)$. 图 6－11－1 系统结构图等效变换",
+      "sourcePdfPage": 203,
+      "sha256": "a49667730321805c9b9117d341e66dac0d0597344647270d4923b541cd1cdb96",
+      "bytes": 154296
+    },
+    {
+      "index": 43,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0204-01-300dpi.png",
+      "exportPath": "assets/fig-06-11-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0204-01-300dpi.png",
+      "caption": "> Image description: The image shows a plot titled \"图 6－11－2 复合控制系统时间响应（MATLAB）,\" depicting the time response of a composite control system. The graph features a Cartesian coordinate system with two axes: the horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 8, while the vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1.4. The plot displays a single continuous curve starting at the origin (0,0). The response shows an underdamped behavior: it rises sharply, reaching a peak amplitude of approximately 1.25 at around 2 seconds. It then oscillates, dipping to a minimum near 0.9 at 4 seconds and eventually stabilizing at a steady-state value of 1.0 as time approaches 8 seconds. This figure illustrates key engineering performance metrics such as rise time, overshoot, and settling time for the control system's step response. 图 6－11－2 复合控制系统时间响应（MATLAB）",
+      "sourcePdfPage": 204,
+      "sha256": "e68fcbf42693571aca8041bd3367232b28b3fd029fc7df9364b1e570d7daffb3",
+      "bytes": 218875
+    },
+    {
+      "index": 44,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0204-02-300dpi.png",
+      "exportPath": "assets/fig-06-33.png",
+      "originalRelativePath": "assets/mathpix-source-page-0204-02-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled as \"图6-33 ＊按输入补偿的复合控制系统结构图.\" The diagram illustrates a feedback loop with several transfer function blocks and signal summation points. The input variable $R(s)$ enters from the left. It splits into two paths: one goes directly to a summing junction, and the other passes through a feedforward block $G_r(s)$. The first summing junction subtracts a feedback signal from $R(s)$, resulting in an error signal $E(s)$. This signal $E(s)$ then passes through block $G_1(s)$. The output of $G_1(s)$ and the output of $G_r(s)$ are combined at a second summing junction. The resulting sum is passed through block $G_2(s)$, leading to the final system output $C(s)$. A feedback loop connects the output $C(s)$ back to the first summing junction. Arrows indicate the unidirectional flow of signals throughout the composite control system. 图6－33＊按输人补偿的复合控制系统结构图",
+      "sourcePdfPage": 204,
+      "sha256": "c5017cf186d3d6c2135975b3c18418df1cf389e9562c455e7b25172aa5af5d6d",
+      "bytes": 54176
+    },
+    {
+      "index": 45,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0206-01-300dpi.png",
+      "exportPath": "assets/fig-06-12-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0206-01-300dpi.png",
+      "caption": "图6－12－1 复合控制系统时间响应（ $T=0$ ，MATLAB）图6－12－2 复合控制系统时间响应（ $T=0.2$ ，MATLAB）",
+      "sourcePdfPage": 206,
+      "sha256": "ac5d2e555e1b5625dfe5e100d63baaef9ea705be9e5a087b7263f047cef8d094",
+      "bytes": 394209
+    },
+    {
+      "index": 46,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0206-02-300dpi.png",
+      "exportPath": "assets/fig-06-12-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0206-02-300dpi.png",
+      "caption": "图6－12－3 复合控制系统时间响应（ $T=20$ ，MATLAB） 6－13 设组合驱动装置如图 6－44 所示。该装置由两个工作滑轮 $A$ 和 $B$ 组成，通过弹性皮带连在一起，挂在弹簧上的第三个拉力滑轮可以将皮带拉紧，而弹簧运动可以视为无摩擦的运动。在组合驱动装置中，主滑轮 $A$ 由直流电机驱动，滑轮 $A$ 和 $B$上都装有测速计，其输出电压与滑轮的转速成正比，利用测得的速度信号，可以估计每个滑轮的转角。 设组合驱动装置的转速控制系统如图 6－45 所示，其中被控对象为组合驱动装置，其传递函数",
+      "sourcePdfPage": 206,
+      "sha256": "0b3053dd319ec26a90c9ac83cf07c97c6406d35619c9190070571fb30f68fd75",
+      "bytes": 196911
+    },
+    {
+      "index": 47,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0206-03-300dpi.png",
+      "exportPath": "assets/fig-06-44.png",
+      "originalRelativePath": "assets/mathpix-source-page-0206-03-300dpi.png",
+      "caption": "> Image description: A technical schematic titled \"图6－44 组合驱动装置示意图\" (Schematic of a Combined Drive Device) illustrates a belt-driven pulley system. The assembly consists of three pulleys arranged in a triangular configuration: two base pulleys labeled \"滑轮 A\" (Pulley A) and \"滑轮 B\" (Pulley B), and a top tensioning pulley labeled \"拉力滑轮\" (Tension Pulley). A \"弹性皮带\" (Elastic Belt) loops around all three pulleys. An arrow on the left side of the belt indicates its direction of motion. The tension pulley is connected to a fixed ceiling support via a \"弹簧\" (Spring), which applies downward pressure to maintain belt tension. The diagram represents an engineering mechanism designed for power transmission where a spring-loaded idler ensures constant tension in an elastic drive belt across multiple pulleys. 图6－44 组合驱动装置示意图",
+      "sourcePdfPage": 206,
+      "sha256": "e876d58ae13a5ef767893d1f45dcf1b66496ab15cbd9db873a63dfe46b63156d",
+      "bytes": 112829
+    },
+    {
+      "index": 48,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0207-01-300dpi.png",
+      "exportPath": "assets/fig-06-45.png",
+      "originalRelativePath": "assets/mathpix-source-page-0207-01-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled as \"图 6－45 组合驱动装置转速控制系统结构图.\" The diagram illustrates a closed-loop feedback system represented in the s-domain. The signal flow begins with an input variable $R(s)$, which enters a block labeled $G_p(s)$. The output of this block leads into a summing junction (represented by a circle), where it is compared with a feedback signal. The resulting error signal flows forward through two sequential blocks: a controller $G_c(s)$ and a plant or process block $G_0(s)$. The final output variable is denoted as $C(s)$. A feedback loop connects the output $C(s)$ back to the summing junction, indicated by an arrow with a minus sign ($-$), signifying negative feedback. The layout follows standard engineering conventions for linear control systems, showing the relationship between the reference input, controllers, system dynamics, and the controlled output. 图 6－45 组合驱动装置转速控制系统结构图",
+      "sourcePdfPage": 207,
+      "sha256": "a9a121b2d08cfd1f208253334372db89e0aee9627defa30e5de9eda9a5d076ad",
+      "bytes": 33995
+    },
+    {
+      "index": 49,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0208-01-300dpi.png",
+      "exportPath": "assets/fig-06-13-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0208-01-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot representing the time response of a drive device speed control system (as indicated by the Chinese caption \"图6－13－1 驱动装置转速控制系统时间响应\"). The graph features a Cartesian coordinate system. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 1.2 seconds, with major grid markings every 0.2 seconds. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1.4, with increments of 0.2. A single solid black curve illustrates the system's dynamic response to a step input. Starting at (0,0), the amplitude increases smoothly in an S-curve shape, crossing the 0.6 mark around 0.4 seconds. The signal reaches its first peak slightly above 1.0 at approximately 0.8 seconds before exhibiting a minor oscillation and stabilizing asymptotically toward a steady-state value of 1.0. This represents a typical underdamped second-order system response. 图6－13－1 驱动装置转速控制系统时间响应（MATLAB） 6－14 设有前置滤波器的鲁棒控制系统如图 6－46 所示，其中被控对象",
+      "sourcePdfPage": 208,
+      "sha256": "b1920312de2b4630b4769c7cf0ebb54c5d94e19674c6894f2a060969e3b06e07",
+      "bytes": 202912
+    },
+    {
+      "index": 50,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0208-02-300dpi.png",
+      "exportPath": "assets/fig-06-46.png",
+      "originalRelativePath": "assets/mathpix-source-page-0208-02-300dpi.png",
+      "caption": "> Image description: This figure is a block diagram of a robust control system with a pre-filter, as indicated by the caption \"图 6－46 具有前置滤波器的鲁棒控制系统结构图.\" The signal flow starts from an input $R(s)$ passing through a pre-filter block $G_p(s)$. This output enters a summing junction where it is compared with a feedback loop from the final output $C(s)$. The resulting error signal passes through a controller block $G_c(s)$ and into a second summing junction. This junction incorporates two negative feedback paths: one from a gain block $K_a$ and another from a gain block $K_b$. The output of this junction enters a plant stage consisting of two sequential transfer functions: $\\frac{2}{s+1}$ (with output labeled $x_2$) and $\\frac{5}{s+2}$ (with output labeled $x_1$), which equals the final system output $C(s)$. Arrows indicate the unidirectional flow of signals through these components. 图 6－46 具有前置滤波器的鲁棒控制系统结构图",
+      "sourcePdfPage": 208,
+      "sha256": "470eff1a76379e620ed7f62d2dd27c18de27f4e3c0a645e088b1271076f8228d",
+      "bytes": 78934
+    },
+    {
+      "index": 51,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0210-01-300dpi.png",
+      "exportPath": "assets/fig-06-14-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0210-01-300dpi.png",
+      "caption": "> Image description: The image shows a plot titled \"图 6-14-1 系统单位阶跃响应 (MATLAB),\" representing the unit step response of a system. The graph is plotted on a Cartesian coordinate system with two axes: the horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 1, while the vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1. The plot displays a smooth, monotonically increasing curve that starts at the origin (0,0) and asymptotically approaches a steady-state value of 1 as time increases. The curve exhibits a characteristic S-shape typical of higher-order system responses. A grid of dashed lines is overlaid on the plot to facilitate reading specific values. In engineering terms, this figure illustrates how the system's output evolves over time when subjected to a unit step input, showing its transient behavior and final value. 图 6－14－1 系统单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 210,
+      "sha256": "3d0d3b10b4df9478aa61e77f38ed415b49669f49f6dd3549408261f180968a43",
+      "bytes": 258247
+    },
+    {
+      "index": 52,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0211-01-300dpi.png",
+      "exportPath": "assets/fig-06-47.png",
+      "originalRelativePath": "assets/mathpix-source-page-0211-01-300dpi.png",
+      "caption": "> Image description: This figure, titled \"图6－47 卫星回收控制系统\" (Satellite Recovery Control System), consists of two parts. Part (a) is a grayscale photograph showing astronauts in space near a spacecraft. Part (b) is a control system block diagram. The block diagram illustrates a closed-loop feedback system. The input signal $R(s)$ enters a summing junction, where it is compared with the feedback signal from the output $C(s)$. The resulting error signal passes through a gain block labeled $K_a$, which then feeds into a plant transfer function represented by the expression $\\frac{e^{-sT}}{s(s+10)}$. This second block incorporates a time delay element $e^{-sT}$ and a second-order system denominator. Arrows indicate the unidirectional flow of signals from left to right, with a feedback loop returning the output $C(s)$ to the initial summing junction. The diagram represents the mathematical modeling of the satellite recovery process. 图6－47 卫星回收控制系统",
+      "sourcePdfPage": 211,
+      "sha256": "36f2c20b93a598a9510efe86188514d7eb44e7cebdfc4957f302f944f9ff34c8",
+      "bytes": 254874
+    },
+    {
+      "index": 53,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0211-02-300dpi.png",
+      "exportPath": "assets/fig-06-15-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0211-02-300dpi.png",
+      "caption": "图 6－15－1 卫星回收系统开环 Bode 图（MATLAB）",
+      "sourcePdfPage": 211,
+      "sha256": "41500821cf2d89aee97a7bbf5b10f67394b2f95d4b63de843e4488ce2b431b1d",
+      "bytes": 348797
+    },
+    {
+      "index": 54,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0212-01-300dpi.png",
+      "exportPath": "assets/fig-06-15-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0212-01-300dpi.png",
+      "caption": "> Image description: A screenshot of a MATLAB Simulink model titled \"sm6_19\" illustrates a control system for satellite recovery, as indicated by the caption \"图 6－15－2 卫星回收系统 Simulink 仿真图.\" The block diagram consists of several interconnected components arranged linearly from left to right. The process begins with a \"Step\" input block, which feeds into a summing junction (a circle with a plus and minus sign). This is followed by a gain block labeled \"Ka\" and a transport delay block labeled \"T=0.5.\" The signal then enters a \"Transfer Fcn\" block defined by the mathematical expression $1 / (s^2 + 10s)$. Finally, the output is connected to a \"Scope\" for visualization. A feedback loop returns the output of the transfer function back to the negative terminal of the summing junction. Arrows indicate the unidirectional flow of signals through these blocks, representing a closed-loop control system simulation using the ode45 solver. 图 6－15－2 卫星回收系统 Simulink 仿真图",
+      "sourcePdfPage": 212,
+      "sha256": "10749edd522611522c8c7169f8729517193be1f22729716edbc8d83c9b277401",
+      "bytes": 259006
+    },
+    {
+      "index": 55,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0212-02-300dpi.png",
+      "exportPath": "assets/fig-06-15-02-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0212-02-300dpi.png",
+      "caption": "> Image description: The image shows a time-domain response plot from a Simulink simulation of a satellite recovery system (as indicated by the caption \"图 6－15－2 卫星回收系统 Simulink 仿真图\"). The graph features a vertical y-axis labeled \"Amplitude\" ranging from 0 to 1.4 and a horizontal x-axis labeled \"Time/sec\" ranging from 0 to 10. The plotted curve represents a system response that remains at zero until approximately 0.5 seconds, after which it rises sharply. The signal exhibits an overshoot, reaching a peak amplitude of approximately 1.2 at around 2 seconds. It then undergoes damped oscillations, dipping slightly below the steady-state value before stabilizing at an amplitude of 1.0 starting from roughly 6 seconds. This behavior is characteristic of an underdamped second-order system response to a step input, illustrating the system's stability and convergence toward its target setpoint over time. 图 6－15－3 卫星回收系统的时间响应（MATLAB）",
+      "sourcePdfPage": 212,
+      "sha256": "372bf3e1de4137ed4920d37d3c84df71eb489157c905679b78fb1292f20c2715",
+      "bytes": 209040
+    },
+    {
+      "index": 56,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0213-01-300dpi.png",
+      "exportPath": "assets/fig-06-16-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0213-01-300dpi.png",
+      "caption": "> Image description: The image shows a plot titled \"图 6－16－1 汽车点火子系统的时间响应（MATLAB）,\" depicting the time response of an automotive ignition subsystem. The graph features a Cartesian coordinate system with two axes: the horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 6 seconds, while the vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1.4. The plot displays a single continuous curve starting at the origin (0,0). The response rises sharply, reaching a peak amplitude of approximately 1.15 at around 0.6 seconds. Following this overshoot, the signal exhibits a slight oscillation before gradually decaying and stabilizing toward a steady-state value of 1.0 as time progresses toward 6 seconds. This represents a typical underdamped second-order system response in engineering, characterized by rise time, peak overshoot, and settling time. 图 6－16－1 汽车点火子系统的时间响应（MATLAB）",
+      "sourcePdfPage": 213,
+      "sha256": "e6faf4134b21980c83606931bf484f309a7f517c24587af8a27bb4310df65734",
+      "bytes": 179412
+    },
+    {
+      "index": 57,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0214-01-300dpi.png",
+      "exportPath": "assets/fig-06-48.png",
+      "originalRelativePath": "assets/mathpix-source-page-0214-01-300dpi.png",
+      "caption": "图6－48 核电厂的遥控机器人示意图",
+      "sourcePdfPage": 214,
+      "sha256": "3b3e2accae4359014176eb8ef14367f8a8361ca46f934f5ff0dbb6ecf2636b84",
+      "bytes": 248489
+    },
+    {
+      "index": 58,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0215-01-300dpi.png",
+      "exportPath": "assets/fig-06-17-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0215-01-300dpi.png",
+      "caption": "图 6－17－1 校正前遥控机器人 Simulink 仿真图",
+      "sourcePdfPage": 215,
+      "sha256": "61bc4caa51858c038b7d944db7abc9b88ada60e968f578086a511905221fab69",
+      "bytes": 278656
+    },
+    {
+      "index": 59,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0216-01-300dpi.png",
+      "exportPath": "assets/fig-06-17-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0216-01-300dpi.png",
+      "caption": "图 6－17－2 校正后遥控机器人 Simulink 仿真图",
+      "sourcePdfPage": 216,
+      "sha256": "32c327f91afa90c2070f96f1c1f51d4963ca64c68addb872d4d9784d015f7602",
+      "bytes": 320310
+    },
+    {
+      "index": 60,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0216-02-300dpi.png",
+      "exportPath": "assets/fig-06-17-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0216-02-300dpi.png",
+      "caption": "图 6－17－3 校正前系统时间响应（MATLAB）",
+      "sourcePdfPage": 216,
+      "sha256": "50657c15117d10e72c10a9bf3f31f04b945a1f9acf42061069a29819b0924b44",
+      "bytes": 214982
+    },
+    {
+      "index": 61,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0216-03-300dpi.png",
+      "exportPath": "assets/fig-06-17-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0216-03-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot of a system's time response before correction (as indicated by the caption \"图 6－17－3 校正前系统时间响应\"). The graph features a vertical y-axis labeled \"Amplitude\" ranging from 0 to 1.4 and a horizontal x-axis labeled \"Time/sec\" ranging from 0 to 20. The plot displays a single continuous curve representing the system's output over time. Starting at (0,0), the signal rises sharply, exhibiting an underdamped behavior characterized by an initial overshoot that peaks at approximately 1.15 around $t=4$ seconds. The response then oscillates with decreasing amplitude—dipping to about 0.85 and rising slightly again—before eventually stabilizing and converging toward a steady-state value of approximately 0.9. This visualization is typical in control engineering to analyze transient performance metrics such as rise time, peak overshoot, and settling time. 图 6－17－4 校正后系统时间响应（MATLAB）",
+      "sourcePdfPage": 216,
+      "sha256": "0a16a03e73d67f8631b0ff1b8896039a9852a4de9c26c664746b853fd0d3cf9e",
+      "bytes": 203690
+    },
+    {
+      "index": 62,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0216-04-300dpi.png",
+      "exportPath": "assets/fig-06-49.png",
+      "originalRelativePath": "assets/mathpix-source-page-0216-04-300dpi.png",
+      "caption": "图 6－49 机器人控制",
+      "sourcePdfPage": 216,
+      "sha256": "43823ff703e370209d2fe8fcf64f9d12d0add1d4afefe2a9ba1cf31243fe8912",
+      "bytes": 244541
+    },
+    {
+      "index": 63,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0217-01-300dpi.png",
+      "exportPath": "assets/fig-06-18-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0217-01-300dpi.png",
+      "caption": "图 6－18－1 校正后系统的单位阶跃响应曲线（MATLAB）",
+      "sourcePdfPage": 217,
+      "sha256": "dcfe359129332eb3cb0276059c11666b88417f34356a4d682e617f28036c3a74",
+      "bytes": 215165
+    },
+    {
+      "index": 64,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0218-01-300dpi.png",
+      "exportPath": "assets/fig-06-50.png",
+      "originalRelativePath": "assets/mathpix-source-page-0218-01-300dpi.png",
+      "caption": "> Image description: A grayscale engineering diagram, labeled as Figure 6-50 (图6－50), illustrates a schematic of a dual-arm coordinated robot system (双手协调机器人示意图). The image depicts two robotic manipulators mounted on separate circular bases atop a flat surface. Each arm consists of multiple segments and joints, designed for articulated movement. The two robots are positioned to interact with a single, thin linear object—likely a rod or bar—resting horizontally between them. The end-effector of the left robot is angled downward, making contact with one end of the object, while the right robot's end-effector is oriented vertically, contacting the opposite end. This configuration demonstrates a coordinated manipulation task where two independent robotic arms work together to hold or move a shared workpiece. There are no visible axes, variables, or arrows in this specific figure. 图6－50 双手协调机器人示意图",
+      "sourcePdfPage": 218,
+      "sha256": "92c2edf6ff426434fd44df68315f9d30d97ed848e7b598d40ec93b5402957be7",
+      "bytes": 301120
+    },
+    {
+      "index": 65,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0218-02-300dpi.png",
+      "exportPath": "assets/fig-06-19-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0218-02-300dpi.png",
+      "caption": "图 6－19－1 机器人控制系统的时间响应（MATLAB）",
+      "sourcePdfPage": 218,
+      "sha256": "1c0afcb26813efa2650ef305dd2e385f0cb0f04801d3a890abd678fe443dbaeb",
+      "bytes": 256272
+    },
+    {
+      "index": 66,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0219-01-300dpi.png",
+      "exportPath": "assets/fig-06-51.png",
+      "originalRelativePath": "assets/mathpix-source-page-0219-01-300dpi.png",
+      "caption": "> Image description: A grayscale technical diagram, captioned \"图6－51 机器人和视觉系统示意图\" (Figure 6-51 Schematic of Robot and Vision System), illustrates a robotic control loop. The system consists of three primary components: 1. **移动子系统 (Mobile Subsystem):** A robotic arm mounted on a wheeled mobile platform, positioned to interact with the environment. 2. **对象环境 (Object Environment):** A rectangular base containing small vertical blocks, serving as the workspace for the robot. 3. **计算机 (Computer):** A block representing the processing unit, which is connected via cables to both the mobile subsystem and a camera. A camera, labeled as part of the **识别子系统 (Identification Subsystem)** at the top right, is mounted atop the computer block and directed toward the object environment. The layout depicts an engineering feedback loop where the vision system identifies objects in the environment and sends data to the computer, which then controls the mobile robot's movements. 图6－51 机器人和视觉系统示意图",
+      "sourcePdfPage": 219,
+      "sha256": "78c75954dc0b785841d3f7482e615203c4ef79ba0ff9feec97e4f92dd0a6099a",
+      "bytes": 276353
+    },
+    {
+      "index": 67,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0220-01-300dpi.png",
+      "exportPath": "assets/fig-06-20-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0220-01-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot representing the unit step response of a robot control system (图6－20－1). The graph features a Cartesian coordinate system with two axes: the horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 10, while the vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1.4. The plot displays a single continuous curve starting at the origin (0,0). The response rises steeply, crossing an amplitude of 0.6 at approximately 1.5 seconds and reaching a peak overshoot slightly above 1.0 around 3.5 seconds. After this peak, the signal exhibits a slight oscillation before stabilizing and converging to a steady-state value of 1.0 starting from approximately 6 seconds. This curve illustrates typical second-order system characteristics, including rise time, peak overshoot, and settling time in an engineering control context. 图6－20－1 机器人控制系统单位阶跃响应（MATLAB） 6－21 图 6－52（a）所示的大型天线可以用来接收卫星信号。为了能跟踪卫星的运动，必须保证天线的准确定向。天线指向控制系统采用电枢控制的电机来驱动天线，其结构图如图6－52（b）所示。若要求系统斜坡响应的稳态误差小于 $1 \\%$ ，阶跃响应的超调量小于 $5 \\%$ ，调节时间小于 $2 \\mathrm{~s}(\\Delta=2 \\%)$ 。要求：",
+      "sourcePdfPage": 220,
+      "sha256": "9d56bf4d984fb48a9025d254fbbcbc421f1ed3bf07f97a03f4003f35353ae5d5",
+      "bytes": 215244
+    },
+    {
+      "index": 68,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0220-02-300dpi.png",
+      "exportPath": "assets/fig-06-52.png",
+      "originalRelativePath": "assets/mathpix-source-page-0220-02-300dpi.png",
+      "caption": "图6－52 天线指向控制系统",
+      "sourcePdfPage": 220,
+      "sha256": "a8859c1c19bc6bc09b3ae473146990640db4309ae9715d6b4dc15168fd3b2a76",
+      "bytes": 308686
+    },
+    {
+      "index": 69,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0221-01-300dpi.png",
+      "exportPath": "assets/fig-06-21-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0221-01-300dpi.png",
+      "caption": "图6－21－1 天线指向控制系统的时间响应（MATLAB）",
+      "sourcePdfPage": 221,
+      "sha256": "a7a011c26768408211b74bdc70fb08f38e52d276978f638fb4248a85c41c4e84",
+      "bytes": 506637
+    },
+    {
+      "index": 70,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0222-01-300dpi.png",
+      "exportPath": "assets/fig-06-53.png",
+      "originalRelativePath": "assets/mathpix-source-page-0222-01-300dpi.png",
+      "caption": "> Image description: This figure, captioned \"图6－53 热轧机控制系统\" (Hot Rolling Mill Control System), consists of two parts illustrating a mechanical process and its corresponding control system. Part (a) shows a physical diagram of a hot rolling mill. A steel plate (钢板) moves from a furnace (熔炉) through two rolling stands, labeled \"1号台\" (Stand 1) and \"2号台\" (Stand 2), toward heat leveling equipment (热整平设备). Part (b) is a block diagram of the control system. The input variable $R(s)$ represents expected thickness (预期厚度), which passes through a block $G_p(s)$. This signal enters a summing junction before passing through a controller block $G_c(s)$. A disturbance signal $N(s)$ (扰动) is added at another summing junction before the plant block $G_0(s)$, resulting in the output variable $C(s)$, representing actual thickness (厚度). A feedback loop connects the output $C(s)$ back to the first summing junction. 图6－53 热轧机控制系统 热轧机系统控制的关键技术是通过调整辊轧机的间隙来控制钢板的厚度。热轧机控制系统框图如图 6－53（b）所示，其中",
+      "sourcePdfPage": 222,
+      "sha256": "8f588e48c87e3a1e0610361a0b9735502fb9059371afc80095a91f454b87eb23",
+      "bytes": 211551
+    },
+    {
+      "index": 71,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-06-mathpix/assets/mathpix-source-page-0223-01-300dpi.png",
+      "exportPath": "assets/fig-06-22-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0223-01-300dpi.png",
+      "caption": "> Image description: The image contains two side-by-side time-domain response plots labeled (a) \"输入响应\" (Input Response) and (b) \"扰动响应\" (Disturbance Response). Both graphs feature a horizontal x-axis representing \"Time/sec\" ranging from 0 to 10 and a vertical y-axis representing \"Amplitude.\" Plot (a) shows two curves responding to an input. A solid line exhibits a significant overshoot, peaking near 1.5 before settling at an amplitude of 1.0 around 6 seconds. A dashed line shows a slower, smoother rise toward the same steady-state value of 1.0. Plot (b), as indicated by the caption \"单位阶跃扰动响应曲线如图6－22－1（b）所示\" (Unit step disturbance response curve is shown in Figure 6-22-1(b)), displays a single solid line starting at 0, dipping to a minimum of approximately -0.09 at 2 seconds, and then oscillating slightly before stabilizing back toward 0 by 7 seconds. 图6－22－1 热轧机控制系统时间响应（MATLAB）",
+      "sourcePdfPage": 223,
+      "sha256": "6e424e0900ec40ae034ee5381a44a23f1f5ba81d0315c219f4772ef855d1ff34",
+      "bytes": 422723
+    }
+  ]
+}

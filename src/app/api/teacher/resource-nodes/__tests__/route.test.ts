@@ -3,9 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => {
   const getServerSession = vi.fn();
   const teachingResourceFindMany = vi.fn();
+  const loadAllLessonRuntimeResourceCatalogEntries = vi.fn();
+  const loadAllTextbookRuntimeResourceCatalogEntries = vi.fn();
+  const loadRuntimeResourceProjectionInputs = vi.fn();
 
   return {
     getServerSession,
+    loadAllLessonRuntimeResourceCatalogEntries,
+    loadAllTextbookRuntimeResourceCatalogEntries,
+    loadRuntimeResourceProjectionInputs,
     prisma: {
       teachingResource: {
         findMany: teachingResourceFindMany,
@@ -26,8 +32,24 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-vi.mock('@/lib/resource-registry', () => ({
-  getAllRegisteredResources: () => [
+vi.mock('@/lib/course-runtime', () => ({
+  loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
+}));
+
+vi.mock('@/lib/textbook-runtime-resources', () => ({
+  loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
+}));
+
+vi.mock('@/lib/teacher-resource-node-data', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/teacher-resource-node-data')>();
+  return {
+    ...actual,
+    loadRuntimeResourceProjectionInputs: mocks.loadRuntimeResourceProjectionInputs,
+  };
+});
+
+vi.mock('@/lib/resource-registry-metadata', () => ({
+  getAllRegisteredResourceMetadata: () => [
     {
       id: 'registered-quiz',
       label: '注册后测组件',
@@ -73,6 +95,9 @@ describe('GET /api/teacher/resource-nodes', () => {
       user: { id: 'teacher-1', role: 'TEACHER' },
     });
     mocks.prisma.teachingResource.findMany.mockResolvedValue([ownedResource]);
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
+    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([]);
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
   });
 
   it('rejects non-teacher users', async () => {
@@ -131,6 +156,293 @@ describe('GET /api/teacher/resource-nodes', () => {
     ]);
   });
 
+  it('uses registered resource semantics when a DB TeachingResource has no direct knowledge mapping', async () => {
+    mocks.prisma.teachingResource.findMany.mockResolvedValue([{
+      ...ownedResource,
+      id: 'owned-registry-quiz',
+      title: '资源库后测实例',
+      registryId: 'registered-quiz',
+      knowledgeNodes: [],
+      config: {},
+    }]);
+
+    const response = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?q=资源库后测实例')
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.nodes).toEqual([
+      expect.objectContaining({
+        id: 'teaching-resource:owned-registry-quiz',
+        knowledgeCoverage: ['kn-bode'],
+        pathEligible: true,
+        audit: expect.objectContaining({
+          knowledgeCoveragePresent: true,
+          capabilityMappingPresent: true,
+          evidenceCapabilityConfigured: true,
+        }),
+      }),
+    ]);
+  });
+
+  it('includes runtime lesson media and handouts as read-only resource nodes', async () => {
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([
+      {
+        lesson: { lesson_id: '2-4', title: '频域课' },
+        graphOverlay: {
+          lesson_id: '2-4',
+          focus_node_ids: ['kn-bode'],
+          card_order: ['kn-bode'],
+          nodes: [{ id: 'kn-bode', name: '伯德图' }],
+          groups: [],
+        },
+        handoutPath: '/course-runtime/lessons/2-4/2-4-handout.md',
+        handoutSourcePath: 'course-content/runtime/lessons/2-4/2-4-handout.md',
+        handoutPdfPath: '/course-runtime/lessons/2-4/2-4-handout.pdf',
+        mediaResources: [
+          {
+            id: 'slides',
+            title: '频域课件',
+            filename: '2-4-slides.pdf',
+            kind: 'slides',
+            url: 'https://example.test/2-4-slides.pdf',
+            accessMode: 'new_tab',
+            embedMode: 'none',
+            status: 'ready',
+            featured: false,
+          },
+          {
+            id: 'intro-video',
+            title: '频域导入视频',
+            filename: '2-4-intro-video.mp4',
+            kind: 'video',
+            url: null,
+            accessMode: 'dialog',
+            embedMode: 'iframe',
+            status: 'pending',
+            featured: false,
+          },
+        ],
+      },
+    ]);
+
+    const response = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?courseModule=2-4')
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'runtime-handout:2-4',
+        type: 'handout',
+        editable: false,
+      }),
+      expect.objectContaining({
+        id: 'runtime-media:2-4:slides',
+        type: 'slides',
+        editable: false,
+        renderTarget: 'https://example.test/2-4-slides.pdf',
+      }),
+      expect.objectContaining({
+        id: 'runtime-media:2-4:intro-video',
+        type: 'video',
+        editable: false,
+        renderTarget: null,
+      }),
+    ]));
+  });
+
+  it('loads runtime projection sidecars into the teacher resource registry', async () => {
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([
+      {
+        id: 'runtime-step:2-4:step-01',
+        resourceNodeId: 'lesson-step:2-4:step-01',
+        title: '频域入口步骤',
+        resourceType: 'lesson_step',
+        sourceKind: 'runtime_lesson_step',
+        sourceRef: '2-4:step-01',
+        sourceRecord: '2-4:step-01',
+        sourcePathOrUrl: 'course-content/runtime/lessons/2-4/interactive-manifest.json',
+        sourceHash: 'sha256:step',
+        sourceVersionRef: 'interactive-manifest.v2',
+        projectionLevel: 'ResourceNode',
+        routeTarget: '/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-01',
+        renderTarget: '/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-01',
+        graphNodeRefs: {
+          knowledge: ['kn-bode'],
+          capability: ['controlModeling'],
+          quality: [],
+        },
+        evidenceInstrumentation: ['lesson_step_view'],
+        privacyScope: 'student-visible',
+        teacherPolicy: 'allowed',
+        evidenceContract: {
+          eventSource: true,
+          eventType: true,
+          clientEventIdPolicy: true,
+          attemptKey: true,
+          sourceLogId: true,
+          dedupeKey: true,
+          timestamps: true,
+          learningFactPolicy: true,
+          confidencePolicy: false,
+          privacyScope: true,
+          complete: false,
+          missingFields: ['confidencePolicy'],
+        },
+        reviewAudit: {
+          status: 'generated-provisional',
+          reviewerId: null,
+          reviewerRole: null,
+          reviewedAt: null,
+          reviewBatchId: null,
+          reviewedSourceHash: null,
+          reviewedVersionRef: 'interactive-manifest.v2',
+          generationToolOrModel: 'template',
+          promptOrManifestHash: null,
+          confidence: null,
+          staleInvalidationRule: 'requires human review before path eligibility or mastery effect',
+        },
+      },
+    ]);
+
+    const response = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?q=频域入口步骤')
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.nodes).toEqual([
+      expect.objectContaining({
+        id: 'lesson-step:2-4:step-01',
+        editable: false,
+        pathEligible: false,
+        pathExclusionReasons: expect.arrayContaining(['provisional-runtime-projection']),
+      }),
+    ]);
+  });
+
+  it('includes runtime textbook containers and sections as read-only resource nodes', async () => {
+    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([
+      {
+        textbook: {
+          bookId: 'dorf-modern-control-systems',
+          title: 'Modern Control Systems',
+          sourceHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems',
+        },
+        sections: [
+          {
+            bookId: 'dorf-modern-control-systems',
+            sectionId: 'ch10-sec01',
+            title: '根轨迹校正设计',
+            citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md',
+            knowledgeNodeIds: ['kn-bode'],
+            capabilityTargetIds: ['parameterDesign'],
+            estimatedTimeMinutes: 18,
+          },
+          {
+            bookId: 'dorf-modern-control-systems',
+            sectionId: 'ch01-preview-001',
+            title: 'Preview',
+            citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch01-preview-001.md',
+            knowledgeNodeIds: [],
+            capabilityTargetIds: [],
+            estimatedTimeMinutes: 2,
+            planningOverride: {
+              teacherPolicy: 'blocked',
+              terminalConstraints: ['textbook-section-not-path-eligible'],
+            },
+          },
+        ],
+      },
+    ]);
+
+    const response = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?courseModule=dorf-modern-control-systems')
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'textbook:dorf-modern-control-systems',
+        type: 'textbook',
+        editable: false,
+        pathEligible: false,
+      }),
+      expect.objectContaining({
+        id: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
+        type: 'textbook_section',
+        editable: false,
+        pathEligible: true,
+        renderTarget: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md',
+      }),
+      expect.objectContaining({
+        id: 'textbook-section:dorf-modern-control-systems:ch01-preview-001',
+        pathEligible: false,
+      }),
+    ]));
+  });
+
+  it('keeps registry, runtime, and knowledge nodes read-only for admins', async () => {
+    mocks.getServerSession.mockResolvedValue({
+      user: { id: 'admin-1', role: 'ADMIN' },
+    });
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([
+      {
+        lesson: { lesson_id: '2-4', title: '频域课' },
+        graphOverlay: {
+          lesson_id: '2-4',
+          focus_node_ids: ['kn-bode'],
+          card_order: ['kn-bode'],
+          nodes: [{ id: 'kn-bode', name: '伯德图' }],
+          groups: [],
+        },
+        handoutPath: '/course-runtime/lessons/2-4/2-4-handout.md',
+        handoutSourcePath: 'course-content/runtime/lessons/2-4/2-4-handout.md',
+        handoutPdfPath: '/course-runtime/lessons/2-4/2-4-handout.pdf',
+        mediaResources: [
+          {
+            id: 'slides',
+            title: '频域课件',
+            filename: '2-4-slides.pdf',
+            kind: 'slides',
+            url: 'https://example.test/2-4-slides.pdf',
+            accessMode: 'new_tab',
+            embedMode: 'none',
+            status: 'ready',
+            featured: false,
+          },
+        ],
+      },
+    ]);
+
+    const response = await GET(new Request('http://localhost/api/teacher/resource-nodes'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'registry:registered-quiz',
+        editable: false,
+      }),
+      expect.objectContaining({
+        id: 'runtime-media:2-4:slides',
+        editable: false,
+      }),
+      expect.objectContaining({
+        id: 'knowledge-node:kn-bode',
+        editable: false,
+      }),
+      expect.objectContaining({
+        id: 'teaching-resource:owned-quiz',
+        editable: true,
+      }),
+    ]));
+  });
+
   it('includes knowledge cards and filters by course/module metadata', async () => {
     const response = await GET(new Request('http://localhost/api/teacher/resource-nodes'));
     const payload = await response.json();
@@ -159,5 +471,47 @@ describe('GET /api/teacher/resource-nodes', () => {
     );
     const modulePayload = await moduleResponse.json();
     expect(modulePayload.nodes.map((node: { id: string }) => node.id)).toEqual(['teaching-resource:owned-quiz']);
+  });
+
+  it('filters path eligibility using high-confidence audit readiness', async () => {
+    mocks.prisma.teachingResource.findMany.mockResolvedValue([
+      {
+        ...ownedResource,
+        config: {
+          resourceNodePlanning: {
+            abilityImpact: {},
+            evidenceInstrumentation: [],
+          },
+        },
+      },
+    ]);
+
+    const eligibleResponse = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?pathEligibility=eligible')
+    );
+    const eligiblePayload = await eligibleResponse.json();
+    const excludedResponse = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?pathEligibility=excluded')
+    );
+    const excludedPayload = await excludedResponse.json();
+
+    expect(eligibleResponse.status).toBe(200);
+    expect(eligiblePayload.nodes.map((node: { id: string }) => node.id)).not.toContain('teaching-resource:owned-quiz');
+    expect(eligiblePayload.nodes).toEqual([
+      expect.objectContaining({ id: 'registry:registered-quiz' }),
+    ]);
+    expect(excludedPayload.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'teaching-resource:owned-quiz',
+        pathEligible: true,
+        audit: expect.objectContaining({
+          pathEligible: false,
+          exclusionReasons: expect.arrayContaining([
+            'missing-capability-mapping',
+            'missing-evidence-instrumentation',
+          ]),
+        }),
+      }),
+    ]));
   });
 });

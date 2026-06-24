@@ -1519,17 +1519,8 @@ export function UNIT_2_1StudentActivityForm({
   const [draft, setDraft] = useState<Record<string, unknown>>(() => getDefaultDraft(activity, savedResponse));
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setDraft(getDefaultDraft(activity, savedResponse));
-  }, [activity, savedResponse]);
-
   if (activity.kind === 'none') {
-    return (
-      <section className="premium-lesson-panel-soft px-4 py-4">
-        <div className="premium-lesson-title text-sm font-medium">本页互动状态</div>
-        <div className="premium-lesson-muted mt-2 text-sm">{activity.helper}</div>
-      </section>
-    );
+    return null;
   }
 
   if (!released) {

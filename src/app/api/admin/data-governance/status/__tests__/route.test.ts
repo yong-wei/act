@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '@/lib/data-governance/student-evidence-feature-cache';
 
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
@@ -65,9 +66,13 @@ const mocks = vi.hoisted(() => ({
     classSessionReport: {
       findMany: vi.fn(),
     },
+    lessonPlan: {
+      findUnique: vi.fn(),
+    },
     studentRiskFlag: {
       count: vi.fn(),
       findMany: vi.fn(),
+      findUnique: vi.fn(),
     },
     user: {
       findMany: vi.fn(),
@@ -98,12 +103,14 @@ vi.mock('@/lib/nextjs-dynamic-error', () => ({
 
 import { GET } from '../route';
 
-function createRequest() {
-  return new NextRequest('http://localhost/api/admin/data-governance/status');
+function createRequest(query = '') {
+  return new NextRequest(`http://localhost/api/admin/data-governance/status${query}`);
 }
 
 describe('GET /api/admin/data-governance/status', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-20T12:00:00.000Z'));
     vi.resetAllMocks();
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'admin-1', role: 'ADMIN' },
@@ -131,6 +138,7 @@ describe('GET /api/admin/data-governance/status', () => {
         },
       ]);
     mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue(null);
     mocks.prisma.learningFact.findMany
       .mockResolvedValueOnce([
         { factType: 'question' },
@@ -282,6 +290,10 @@ describe('GET /api/admin/data-governance/status', () => {
     ]);
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('returns the evidence source catalog for admins', async () => {
     const response = await GET(createRequest());
     const payload = await response.json();
@@ -379,7 +391,7 @@ describe('GET /api/admin/data-governance/status', () => {
       staleEntries: 0,
       latestRefreshAt: '2026-05-19T08:10:00.000Z',
       totalSourceFacts: 4,
-      payloadVersion: 'student-evidence-features.v3',
+      payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
     });
     expect(payload.sessionQuality).toEqual({
       recentSessions: 3,
@@ -405,6 +417,68 @@ describe('GET /api/admin/data-governance/status', () => {
           qualityReasons: ['low_fact_coverage'],
         }),
       ],
+    });
+  });
+
+  it('returns a requested risk outside the recent risk window for deep links', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue({
+      id: 'risk-older',
+      userId: 'student-1',
+      flagType: 'participation',
+      severity: 'high',
+      description: '较早待处理风险',
+      triggeredAt: new Date('2026-05-18T08:00:00.000Z'),
+      isResolved: false,
+      user: { name: '张三', email: 'student@example.test' },
+    });
+
+    const response = await GET(createRequest('?riskId=risk-older'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentRiskFlag.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'risk-older', isResolved: false },
+    }));
+    expect(payload.targetRiskFlag).toMatchObject({
+      id: 'risk-older',
+      userId: 'student-1',
+      userName: '张三',
+      isResolved: false,
+    });
+  });
+
+  it('echoes authoring report context for lesson-plan quality deep links', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({ id: 'plan-1' });
+
+    const response = await GET(createRequest('?surface=authoring&tab=reports&lessonPlanId=plan-1'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.authoringContext).toEqual({
+      surface: 'authoring',
+      lessonPlanId: 'plan-1',
+      lessonPlanMissing: false,
+      requestedTab: 'reports',
+      reportHref: '/admin/data-governance?surface=authoring&tab=reports&lessonPlanId=plan-1',
+      recoveryHref: '/admin/lesson-plans/plan-1/edit?returnTo=%2Fadmin%2Fdata-governance',
+    });
+  });
+
+  it('marks missing lesson plans in authoring report context', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue(null);
+
+    const response = await GET(createRequest('?surface=authoring&tab=reports&lessonPlanId=missing'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.lessonPlan.findUnique).toHaveBeenCalledWith({
+      where: { id: 'missing' },
+      select: { id: true },
+    });
+    expect(payload.authoringContext).toMatchObject({
+      lessonPlanId: 'missing',
+      lessonPlanMissing: true,
+      recoveryHref: '/admin/lesson-plans/missing/edit?returnTo=%2Fadmin%2Fdata-governance',
     });
   });
 

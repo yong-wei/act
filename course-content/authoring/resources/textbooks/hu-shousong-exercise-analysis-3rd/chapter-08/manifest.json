@@ -1,0 +1,840 @@
+{
+  "id": "chapter-08",
+  "number": 8,
+  "title": "非线性控制系统分析",
+  "pipeline": "mathpixplus",
+  "textbookPath": "textbook.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/chapter-08.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/chapter-08.qa.json",
+  "sourcePageStart": 260,
+  "sourcePageEnd": 302,
+  "sourcePageCount": 43,
+  "imageCount": 82,
+  "figureDescriptionCount": 81,
+  "markdownSha256": "575cbe766c540c04412a35b0bf11dc9f13959854679dc63c9642dc98c480a037",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/chapter-08.local.md.images.json",
+  "sourceImageManifestCount": 82,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0260-01-300dpi.png",
+      "exportPath": "assets/fig-08-76.png",
+      "originalRelativePath": "assets/mathpix-source-page-0260-01-300dpi.png",
+      "caption": "图8－76 题 8－1 系统结构图",
+      "sourcePdfPage": 260,
+      "sha256": "89828416a69aa04f3bffa80d2a6af783be86380b51a42415b318926c37f886f1",
+      "bytes": 46117
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0261-01-300dpi.png",
+      "exportPath": "assets/fig-08-01-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0261-01-300dpi.png",
+      "caption": "图 8－1－1 题 8－1 系统（1）的相轨迹 （MATLAB）",
+      "sourcePdfPage": 261,
+      "sha256": "90f9148814d277bbc782b66dfa699383009b710edb8e39e155b2897e53e4f8a9",
+      "bytes": 205480
+    },
+    {
+      "index": 3,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0261-02-300dpi.png",
+      "exportPath": "assets/fig-08-01-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0261-02-300dpi.png",
+      "caption": "> Image description: The image shows a mathematical plot featuring two oscillating waveforms on a Cartesian coordinate system. The horizontal axis is numbered from 0 to 20 in increments of 2, while the vertical axis ranges from -5 to 5 in increments of 1. Two distinct curves are plotted: a solid line and a dashed line. Both exhibit sinusoidal behavior. The solid curve has a larger amplitude, oscillating between approximately -4.5 and +4.3, with peaks occurring near x=8.5 and x=19. The dashed curve has a smaller amplitude, oscillating between roughly -3 and +3, with its first trough around x=5 and its peak near x=11. The figure is captioned in Chinese as \"图 8－1－1 题 8－1 系统（1）的相轨迹 （MATLAB）,\" indicating it represents phase trajectories for a specific system (System 1) from Problem 8-1, generated using MATLAB software. 图 8－1－2 题 8－1 系统（1）的 $e(t)$ 零输人响应曲线（MATLAB）",
+      "sourcePdfPage": 261,
+      "sha256": "a23d56226519c7ed3fa67daa6ef62bb9672ed043a2dbbaae93a4bbef382982a8",
+      "bytes": 238888
+    },
+    {
+      "index": 4,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0262-01-300dpi.png",
+      "exportPath": "assets/fig-08-01-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0262-01-300dpi.png",
+      "caption": "图 8－1－3 题 8－1 系统（2）的相轨迹 （MATLAB）",
+      "sourcePdfPage": 262,
+      "sha256": "f59fdf0411f4f4003c3802c382013ca65a891fab5e2097ab7c01ad522b5b51ae",
+      "bytes": 194487
+    },
+    {
+      "index": 5,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0262-02-300dpi.png",
+      "exportPath": "assets/fig-08-01-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0262-02-300dpi.png",
+      "caption": "> Image description: The image shows a mathematical plot featuring two sinusoidal waveforms on a Cartesian coordinate system. The horizontal axis (x-axis) is labeled with numerical values from 0 to 20 in increments of 2. The vertical axis (y-axis) ranges from -4 to 4, with major grid lines every unit. Two oscillating curves are plotted: one as a solid black line and the other as a dashed black line. Both waves share the same amplitude, peaking at approximately 3 and dipping to -3. They exhibit a phase shift; for instance, at $x=0$, the solid line starts at its minimum (-3) while the dashed line starts near its maximum (3). The curves intersect periodically throughout the domain. According to the caption \"图 8－1－3 题 8－1 系统（2）的相轨迹 （MATLAB）\", this figure represents a phase trajectory for system (2) from problem 8-1, generated using MATLAB software. 图 8－1－4 题 8－1系统（2）的 $e(t)$ 零输人响应曲线（MATLAB）",
+      "sourcePdfPage": 262,
+      "sha256": "a2f60115a2f016455ba9a937bfe570089164a62b37ee2a5fbf4cf2c9a879ce77",
+      "bytes": 229273
+    },
+    {
+      "index": 6,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0262-03-300dpi.png",
+      "exportPath": "assets/fig-08-01-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0262-03-300dpi.png",
+      "caption": "图 8－1－5 题 8－1 系统（3）的相轨迹（MATLAB）",
+      "sourcePdfPage": 262,
+      "sha256": "28844e8a832bdae9876c556681224faa2b0a7491b409ba1bd89a72b9b69615cc",
+      "bytes": 229021
+    },
+    {
+      "index": 7,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0262-04-300dpi.png",
+      "exportPath": "assets/fig-08-01-05-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0262-04-300dpi.png",
+      "caption": "> Image description: The image shows a mathematical plot featuring two periodic waveforms on a Cartesian coordinate system. The horizontal axis is numbered from 0 to 20 in increments of 2, while the vertical axis ranges from -2.5 to 2.5 with labels every 0.5 units. Two sinusoidal curves are plotted: one represented by a solid black line and the other by a dashed black line. The solid curve has a larger amplitude, peaking at approximately 2 and dipping to -2. Both waves share the same frequency and period, but they are shifted in phase relative to each other. Specifically, the dashed wave leads the solid wave. The figure is titled \"图 8－1－5 题 8－1 系统（3）的相轨迹（MATLAB）,\" indicating it represents a phase trajectory for system (3) from problem 8-1, generated using MATLAB software. The plot illustrates the time-domain relationship between two oscillating signals in an engineering or physics context. 图 8－1－6 题 8－1 系统（3）的 $e(t)$ 零输人响应曲线（MATLAB）",
+      "sourcePdfPage": 262,
+      "sha256": "431446241f2a56af74126d1f849ee9f3ef066c46de9bedc63e7c90234c918a89",
+      "bytes": 250922
+    },
+    {
+      "index": 8,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0263-01-300dpi.png",
+      "exportPath": "assets/fig-08-02-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0263-01-300dpi.png",
+      "caption": "> Image description: This image shows a phase portrait plot generated by MATLAB for a dynamical system, labeled as \"图 8－2－1 题 8－2 系统的相轨迹\". The graph plots the derivative of state $x$ (denoted as $\\dot{x}$ on the vertical axis) against the state variable $x$ (on the horizontal axis). Both axes range from -2 to 2. The plot features a cubic-like curve with three equilibrium points where $\\dot{x} = 0$. The region between approximately $x = -2$ and $x = 1$, demarcated by vertical dashed lines, is labeled as \"稳定区域\" (stable region). Within this zone, arrows on the curve point toward the central equilibrium point. Outside these boundaries—specifically for $x < -2$ and $x > 1$—the regions are labeled as \"不稳定区域\" (unstable region), where arrows indicate trajectories moving away from the center. This visualization represents the stability analysis of a first-order nonlinear system. 图 8－2－1 题 8－2 系统的相轨迹（MATLAB）",
+      "sourcePdfPage": 263,
+      "sha256": "548d7e92636a498ad6fd649acc841180210310df8823707ff2f21f37a1beb588",
+      "bytes": 322989
+    },
+    {
+      "index": 9,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0264-01-300dpi.png",
+      "exportPath": "assets/fig-08-03-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0264-01-300dpi.png",
+      "caption": "图 8－3－1 题 8－3 系统（1）相轨迹（MATLAB）",
+      "sourcePdfPage": 264,
+      "sha256": "b9ce6a80e6c5312d04089bed7802acb0c4f57dba88a5c81ed74ff50bc44435ed",
+      "bytes": 185442
+    },
+    {
+      "index": 10,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0264-02-300dpi.png",
+      "exportPath": "assets/fig-08-03-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0264-02-300dpi.png",
+      "caption": "> Image description: A black-and-white technical plot showing the phase trajectories of a dynamical system, generated in MATLAB. The image features a two-dimensional Cartesian coordinate system with the horizontal axis labeled $x$ and the vertical axis labeled $\\dot{x}$. Both axes range from $-5$ to $5$, with grid lines every unit. The figure displays several curved trajectory lines with directional arrows indicating the flow of the system over time. The trajectories exhibit a spiral behavior, rotating around a central point near the origin $(0, 0)$. A distinct horizontal line segment exists on the $\\dot{x} = 0$ axis between $x=0$ and approximately $x=1.5$, suggesting a discontinuity or a specific constraint in the system's state space. Roman numerals I, II, and III are placed along the left vertical axis to denote different regions of the phase plane. The caption identifies this as \"图 8－3－1 题 8－3 系统（1）相轨迹,\" referring to the phase trajectories of System (1). 图 8－3－2 题 8－3 系统（2）相轨迹（MATLAB）",
+      "sourcePdfPage": 264,
+      "sha256": "83cb8ddce22fd1ad0d82fd2a71999fc238720d36ede68322fd11e872d7a50e92",
+      "bytes": 177878
+    },
+    {
+      "index": 11,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0266-01-300dpi.png",
+      "exportPath": "assets/fig-08-03-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0266-01-300dpi.png",
+      "caption": "图8－3－3 题8－3系统（3）相轨迹",
+      "sourcePdfPage": 266,
+      "sha256": "01383c936e7a7bd4b185b84c3175324d3e51b7b568b20e7bfb32b131fa605c9b",
+      "bytes": 156570
+    },
+    {
+      "index": 12,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0267-01-300dpi.png",
+      "exportPath": "assets/fig-08-03-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0267-01-300dpi.png",
+      "caption": "> Image description: This image is a phase portrait plot generated in MATLAB, labeled as \"图 8－3－4 题 8－3 系统（4）相轨迹\". The graph features a two-dimensional coordinate system where the horizontal axis represents the variable $x$ and the vertical axis represents its time derivative $\\dot{x}$. Both axes range approximately from -10 to 8. The plot displays multiple curved phase trajectories with directional arrows indicating the flow of the system over time. These trajectories originate from the lower-left quadrant, curve upward and to the right, and then loop back toward the left. A horizontal dashed line is positioned at $\\dot{x} = 3$, intersecting several trajectories. The overall pattern shows a non-linear dynamical system where states evolve in a cyclic or spiraling manner across the phase plane, illustrating the relationship between position $x$ and velocity $\\dot{x}$. 图 8－3－4 题 8－3 系统（4）相轨迹（MATLAB）",
+      "sourcePdfPage": 267,
+      "sha256": "180e7d29f86569ef0b76a490ef7e23f1eaecee85eaa525a01197e0bc2b5efb39",
+      "bytes": 275217
+    },
+    {
+      "index": 13,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0267-02-300dpi.png",
+      "exportPath": "assets/fig-08-03-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0267-02-300dpi.png",
+      "caption": "图 8－3－5 题 8－3 系统（5）相轨迹（MATLAB）",
+      "sourcePdfPage": 267,
+      "sha256": "7decc1bce510469aefe7c7c2bcffc4bbd293cdb161f9e0113956a6de265ae45c",
+      "bytes": 246141
+    },
+    {
+      "index": 14,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0268-01-300dpi.png",
+      "exportPath": "assets/fig-08-04-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0268-01-300dpi.png",
+      "caption": "图 8－4－1 题 8－4 系统（1）的概略相轨迹及奇点",
+      "sourcePdfPage": 268,
+      "sha256": "3febe1385d1850077226e8648b60c8de02a03b03dd279e2c46ee71542bcf1a78",
+      "bytes": 114871
+    },
+    {
+      "index": 15,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0268-02-300dpi.png",
+      "exportPath": "assets/fig-08-04-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0268-02-300dpi.png",
+      "caption": "图8－4－2 题 8－4 系统（2）的相轨迹及奇点类型中心点",
+      "sourcePdfPage": 268,
+      "sha256": "3209a31c9328a59c036763f112596ba085d2389f3dce64ba513db31aab58996a",
+      "bytes": 42328
+    },
+    {
+      "index": 16,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0269-01-300dpi.png",
+      "exportPath": "assets/fig-08-04-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0269-01-300dpi.png",
+      "caption": "图 8－4－3 题 8－4 系统（3）的相轨迹及奇点类型中心点",
+      "sourcePdfPage": 269,
+      "sha256": "c50f6ec04584ed1189cc34df110161eba187ef6b9d862578d7c917a20d9a1ed5",
+      "bytes": 43619
+    },
+    {
+      "index": 17,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0269-02-300dpi.png",
+      "exportPath": "assets/fig-08-77.png",
+      "originalRelativePath": "assets/mathpix-source-page-0269-02-300dpi.png",
+      "caption": "> Image description: This image shows a control system block diagram labeled \"图8－77 题 8－5 的非线性系统结构图.\" The system is a closed-loop feedback loop. The process begins with an input signal $r(t)$ entering a summing junction. The output of this junction is the error signal $e(t)$, which serves as the input to a nonlinear block. This block contains a graph showing a saturation function with a slope $k=1$ and saturation limits at $-2$ and $2$. The output of the nonlinear block is labeled $u(t)$, which then enters a linear transfer function block represented by $\\frac{1}{s^2}$. The final system output is denoted as $c(t)$. A feedback path carries $c(t)$ back to the summing junction with a negative sign, indicating negative feedback. Arrows indicate the unidirectional flow of signals from left to right through the forward path and from right to left via the feedback loop. 图8－77 题 8－5 的非线性系统结构图",
+      "sourcePdfPage": 269,
+      "sha256": "4d01280cfe5b44f0401d687d77526ad0ed74cc0b3088b800e60f56579766318f",
+      "bytes": 45367
+    },
+    {
+      "index": 18,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0270-01-300dpi.png",
+      "exportPath": "assets/fig-08-05-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0270-01-300dpi.png",
+      "caption": "> Image description: The image shows a phase plane plot from MATLAB, labeled as \"图 8－5－1 题 8－5 系统相轨迹\". The graph features a Cartesian coordinate system where the horizontal axis is labeled $e$ and the vertical axis is labeled $\\dot{e}$. Both axes range from $-5$ to $5$ (horizontal) and $-3$ to $3$ (vertical), with grid lines every one unit. The central figure is a closed, symmetric loop resembling a stadium shape or a rounded rectangle. The trajectory consists of two straight horizontal segments at $\\dot{e} = 2$ and $\\dot{e} = -2$, extending between approximately $e = -2.5$ and $e = 2.5$. These are connected by two semi-circular arcs on the left and right sides, reaching maximum widths at $e = -4$ and $e = 4$. In engineering terms, this represents a phase trajectory of a system, illustrating the relationship between an error variable $e$ and its derivative $\\dot{e}$. 图 8－5－1 题 8－5 系统相轨迹（MATLAB）",
+      "sourcePdfPage": 270,
+      "sha256": "a1e257e910b789661ae772facdd194d06041eba9c4d59018b7fc29e5db9dc306",
+      "bytes": 145982
+    },
+    {
+      "index": 19,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0270-02-300dpi.png",
+      "exportPath": "assets/fig-08-05-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0270-02-300dpi.png",
+      "caption": "> Image description: The image shows a plot of a sinusoidal waveform from a textbook, labeled as \"图 8－5－1 题 8－5 系统相轨迹 (MATLAB)\". The graph features two perpendicular axes: the horizontal axis is labeled $t$ (representing time) and the vertical axis is labeled $e$ (likely representing error). The horizontal axis ranges from $0$ to $30$, with major grid lines every $5$ units. The vertical axis ranges from $-5$ to $5$, with increments of $1$. A continuous, oscillating curve fluctuates between a maximum value of approximately $3.7$ and a minimum value of approximately $-4.2$. The waveform is periodic, completing roughly three full cycles within the displayed time interval. This plot represents the time-domain response of a system, specifically showing an undamped or sustained oscillation of variable $e$ over time $t$, generated using MATLAB software. 图 8－5－2 题 8－5 系统 $e(t)$ 响应曲线（MATLAB）",
+      "sourcePdfPage": 270,
+      "sha256": "c6cfd669332d4232a32ac26c5af78dbc1c4ea7cf87c9651861f0b386a61e9863",
+      "bytes": 173660
+    },
+    {
+      "index": 20,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0271-01-300dpi.png",
+      "exportPath": "assets/fig-08-78.png",
+      "originalRelativePath": "assets/mathpix-source-page-0271-01-300dpi.png",
+      "caption": "图 8－78 题 8－6 具有变增益放大器的系统",
+      "sourcePdfPage": 271,
+      "sha256": "c049adecc71fcadc86206e5c6011092825aed4939d214f6eac23e419c04d3f92",
+      "bytes": 100103
+    },
+    {
+      "index": 21,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0272-01-300dpi.png",
+      "exportPath": "assets/fig-08-06-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0272-01-300dpi.png",
+      "caption": "图 8－6－1 题 8－6 系统相轨迹（MATLAB）",
+      "sourcePdfPage": 272,
+      "sha256": "e7bcc7b8637bc01f2a7b7f375434b33f0036cb408b6ca55735b360ef19fe53de",
+      "bytes": 153497
+    },
+    {
+      "index": 22,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0272-02-300dpi.png",
+      "exportPath": "assets/fig-08-06-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0272-02-300dpi.png",
+      "caption": "图8－6－2 题 8－6 系统误差响应曲线（MATLAB）",
+      "sourcePdfPage": 272,
+      "sha256": "7d1087fb7b6f75c0e6c9d0fe16f5b277b0a037f6866f324768bb0013ec412520",
+      "bytes": 180997
+    },
+    {
+      "index": 23,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0273-01-300dpi.png",
+      "exportPath": "assets/fig-08-79.png",
+      "originalRelativePath": "assets/mathpix-source-page-0273-01-300dpi.png",
+      "caption": "图 8－79 题 8－7 有库仑摩擦的二阶系统结构图",
+      "sourcePdfPage": 273,
+      "sha256": "0f81ef350f638b19f528611e451d5c9f180820d0912cbb56e81e1b1cb790d836",
+      "bytes": 54692
+    },
+    {
+      "index": 24,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0274-01-300dpi.png",
+      "exportPath": "assets/fig-08-07-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0274-01-300dpi.png",
+      "caption": "图 8－7－1 库仑摩擦系统相轨迹（MATLAB）",
+      "sourcePdfPage": 274,
+      "sha256": "b7b1ba87b10b2f9ad893e1c0854bc58287047c5df0e116f9f199870930ec402b",
+      "bytes": 149765
+    },
+    {
+      "index": 25,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0274-02-300dpi.png",
+      "exportPath": "assets/fig-08-07-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0274-02-300dpi.png",
+      "caption": "> Image description: This image shows a MATLAB Simulink block diagram of a control system, captioned \"图 8－7－1 库仑摩擦系统相轨迹 (MATLAB),\" indicating it models the phase trajectory of a Coulomb friction system. The signal flow begins with a \"Step\" input entering a summing junction. The error signal passes through a gain block $K$ with a value of 5, then into another summing junction that incorporates feedback from a \"Relay\" block. This combined signal enters a transfer function block $G = \\frac{1}{0.5s+1}$, followed by an integrator block labeled \"dc\" ($\\frac{1}{s}$). The output is routed to a scope labeled \"c\" and a \"To Workspace\" block for data logging. A feedback loop connects the final output back to the initial summing junction. Additionally, a \"Clock\" signal is sent to a separate \"To Workspace1\" block to record time $t$. The diagram illustrates a closed-loop system with non-linear relay feedback. 图 8－7－2 带有库仑摩擦的二阶系统（Simulink 环境）",
+      "sourcePdfPage": 274,
+      "sha256": "4ddd22aea535f91c8e57717dbacbb99cdd45115a3dff18965b92881f38711db9",
+      "bytes": 110794
+    },
+    {
+      "index": 26,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0274-03-300dpi.png",
+      "exportPath": "assets/fig-08-07-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0274-03-300dpi.png",
+      "caption": "> Image description: This image is a plot showing the time-domain response of a second-order system with Coulomb friction, as indicated by the Chinese caption \"图 8－7－2 带有库仑摩擦的二阶系统 (Simulink 环境)\". The graph features two axes: the horizontal axis represents time $t$, ranging from 0 to 10, and the vertical axis represents a variable $c(t)$, ranging from 0 to 1.4. Two curves are plotted starting from the origin $(0,0)$ and converging toward a steady-state value of approximately 1.0. One curve is a solid line exhibiting slight oscillation (underdamped behavior), while the other is a dashed line showing a significantly higher initial overshoot, peaking at roughly 1.3 around $t=1$, before oscillating and settling. This figure illustrates how different system parameters or friction levels affect the transient response and stability of a second-order engineering system simulated in Simulink. 图8－7－3 题 8－7 系统输出响应曲线（MATLAB） 由图 8－7－3 可见，系统稳定收玫，引人库仑摩擦非线性环节后，系统的单位阶跃响应阻尼程度加大，超调量减小，改善了动态性能。 8－8 设非线性系统如图 8－80 所示，输人为单位斜坡函数。试在 $e \\dot{e}$ 平面上绘制相轨迹。",
+      "sourcePdfPage": 274,
+      "sha256": "5d271998ee025e97bcfb6102ec853348814d772599717cd85be1400d29d4c903",
+      "bytes": 90191
+    },
+    {
+      "index": 27,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0275-01-300dpi.png",
+      "exportPath": "assets/img-chapter-08-027.png",
+      "originalRelativePath": "assets/mathpix-source-page-0275-01-300dpi.png",
+      "caption": null,
+      "sourcePdfPage": 275,
+      "sha256": "426d2d4c23be5b80fbb8a24f0b2b10ad1106eec5d31cd6b8f552828faec14769",
+      "bytes": 40897
+    },
+    {
+      "index": 28,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0275-02-300dpi.png",
+      "exportPath": "assets/fig-08-08-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0275-02-300dpi.png",
+      "caption": "图 8－8－1 题 8－8 系统的概略相轨迹",
+      "sourcePdfPage": 275,
+      "sha256": "ca6323221c8d7e155f65567be8c32d14042e7358f27bcd71ab9852aac87a4367",
+      "bytes": 72019
+    },
+    {
+      "index": 29,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0275-03-300dpi.png",
+      "exportPath": "assets/fig-08-08-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0275-03-300dpi.png",
+      "caption": "> Image description: This image shows a phase plane plot (phase trajectory) for a system, labeled as \"图 8－8－1 题 8－8 系统的概略相轨迹\". The graph features two perpendicular axes: the horizontal axis is labeled $e$ and the vertical axis is labeled $\\dot{e}$. Both axes use a numerical scale ranging from approximately -10 to 10 for $e$ and -5 to 5 for $\\dot{e}$, with dashed grid lines marking intervals of 2 units. The plot displays three distinct spiral trajectories that originate from different initial points on the right side of the plane. Each trajectory is marked with directional arrows indicating a clockwise motion as they spiral inward toward the origin $(0,0)$. In engineering terms, this represents a stable focus, where the system's error $e$ and its rate of change $\\dot{e}$ oscillate with decreasing amplitude over time, eventually converging to an equilibrium state at the origin. 图 8－8－2 题 8－8 系统的相轨迹（MATLAB）",
+      "sourcePdfPage": 275,
+      "sha256": "a340b06b0d85dde666b9777928e963109865bf266ab830600ade5cf6f64fe993",
+      "bytes": 212118
+    },
+    {
+      "index": 30,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0276-01-300dpi.png",
+      "exportPath": "assets/fig-08-81.png",
+      "originalRelativePath": "assets/mathpix-source-page-0276-01-300dpi.png",
+      "caption": "图8－81 题8－9 的非线性系统结构图",
+      "sourcePdfPage": 276,
+      "sha256": "56c12729d784cd42760ec75a993004b6f8decbc045d83040ccfbf20364f37c40",
+      "bytes": 52165
+    },
+    {
+      "index": 31,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0278-01-300dpi.png",
+      "exportPath": "assets/fig-08-09-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0278-01-300dpi.png",
+      "caption": "图 8－9－1 题 8－9 系统相轨迹（MATLAB）",
+      "sourcePdfPage": 278,
+      "sha256": "a6e01b854752cfd3619e2245361102758dc1d5929c53d67c31df1f6fee571f22",
+      "bytes": 213667
+    },
+    {
+      "index": 32,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0278-02-300dpi.png",
+      "exportPath": "assets/fig-08-09-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0278-02-300dpi.png",
+      "caption": "> Image description: The image shows a plot of two time-domain signals, $c(t)$ and $e(t)$, plotted against time $t$ on the horizontal axis. The vertical axis ranges from -0.5 to 1.5. The signal $c(t)$ starts at a value of 1.0 at $t=0$, initially decreases, and then exhibits decaying oscillations that converge toward a steady-state value of 1.0. The signal $e(t)$ starts at 0 at $t=0$ and displays similar decaying oscillations centered around the zero axis. The relationship between the two curves indicates that $e(t)$ represents the error signal, likely defined as the difference between $c(t)$ and its target setpoint of 1.0. The damped sinusoidal nature of both waveforms suggests a second-order underdamped system response in control engineering. The figure is captioned \"图 8－9－1 题 8－9 系统相轨迹（MATLAB）,\" indicating it was generated using MATLAB to analyze system trajectories. 图 8－9－2 题 8－9 系统 $e(t)$ 及 $c(t)$ 的时间响应（MATLAB） 8－10 已知具有理想继电器的非线性系统如图 8－82 所示，试用相平面法分析：",
+      "sourcePdfPage": 278,
+      "sha256": "48e62ce79db2e679b054635789f777defb343ad52f4c19fa4382f1214735503f",
+      "bytes": 166919
+    },
+    {
+      "index": 33,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0278-03-300dpi.png",
+      "exportPath": "assets/fig-08-82.png",
+      "originalRelativePath": "assets/mathpix-source-page-0278-03-300dpi.png",
+      "caption": "图 8－82 题 8－10 具有理想继电器的非线性系统结构图",
+      "sourcePdfPage": 278,
+      "sha256": "8d1d57642d5f981b273015c1f83a851c5028430f63eb92f370dc40621346831d",
+      "bytes": 45964
+    },
+    {
+      "index": 34,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0279-01-300dpi.png",
+      "exportPath": "assets/fig-08-10-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0279-01-300dpi.png",
+      "caption": "图 8－10－1 $\\quad T_{d}=0$ 时系统相轨迹（MATLAB）",
+      "sourcePdfPage": 279,
+      "sha256": "831fa750cfe84b4481358202739299e8b84cc2f535c530a83adcf50dfa6e507b",
+      "bytes": 96471
+    },
+    {
+      "index": 35,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0279-02-300dpi.png",
+      "exportPath": "assets/fig-08-10-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0279-02-300dpi.png",
+      "caption": "图 8－10－2 具有继电器的非线性系统（Simulink 环境）",
+      "sourcePdfPage": 279,
+      "sha256": "d082327921f80673fc08a55d9b4d113ba52ab36e5692218caafb646c611f2ac6",
+      "bytes": 155336
+    },
+    {
+      "index": 36,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0279-03-300dpi.png",
+      "exportPath": "assets/fig-08-10-02-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0279-03-300dpi.png",
+      "caption": "> Image description: The image shows a plot of a time-domain signal $c(t)$ from a nonlinear system with a relay, as indicated by the Chinese caption \"图 8－10－2 具有继电器的非线性系统 (Simulink 环境)\". The graph features two perpendicular axes: the horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 10 seconds. The vertical y-axis is labeled $c(t)$ and ranges from 0 to 2. A grid of dashed lines overlays the plot area for precise value reading. The plotted function is a periodic, sinusoidal-like wave starting at the origin $(0,0)$. It reaches its first peak of $2$ at approximately $t = 2.8$ seconds, returns to zero at roughly $t = 5.6$ seconds, and reaches a second peak of $2$ at approximately $t = 8.4$ seconds. The waveform represents the output response of the described Simulink nonlinear system over time. 图8－10－3 $T_{d}=0$ 时系统的时间响应（MATLAB）",
+      "sourcePdfPage": 279,
+      "sha256": "a9a68449b2825b6df6d2c9de2181ecbdd98be3b5579445c8925c3ef88ed7ea48",
+      "bytes": 219103
+    },
+    {
+      "index": 37,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0279-04-300dpi.png",
+      "exportPath": "assets/fig-08-10-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0279-04-300dpi.png",
+      "caption": "> Image description: A technical plot showing a phase-plane trajectory of a system's time response when $T_d=0$, as indicated by the Chinese caption \"图8－10－3 $T_{d}=0$ 时系统的时间响应（MATLAB）\". The graph is plotted on a Cartesian coordinate system where the horizontal axis is labeled $e$ and the vertical axis is labeled $\\dot{e}$. The x-axis ($e$) ranges from -0.4 to 1.4, and the y-axis ($\\dot{e}$) ranges from -1.2 to 0.4. The plot features a curved trajectory starting near $(0, 0)$, descending into the fourth quadrant to reach a minimum $\\dot{e}$ value of approximately -1.1 at $e \\approx 0.5$, and then curving back upward toward $e=1$ on the x-axis. A straight line segment also intersects this curve, originating from roughly $(-0.1, 0.2)$ and extending downward to meet the trajectory near $(0.5, -1.0)$. The figure represents a state-space analysis of error ($e$) versus its derivative ($\\dot{e}$). 图 8－10－4 $T_{d}=0.5$ 时系统相轨迹（MATLAB）",
+      "sourcePdfPage": 279,
+      "sha256": "be0cce88dcc9aaae67682bd4842cd591d573f8e0b5df63b383ad19aaf4bef1f8",
+      "bytes": 216695
+    },
+    {
+      "index": 38,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0280-01-300dpi.png",
+      "exportPath": "assets/fig-08-10-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0280-01-300dpi.png",
+      "caption": "图8－10－5 $T_{d}=0.5$ 时系统的时间响应（MATLAB）",
+      "sourcePdfPage": 280,
+      "sha256": "50aa307abc2179f4704f68c1beb308964504468b1fc05d887db297b4e3edd065",
+      "bytes": 154601
+    },
+    {
+      "index": 39,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0280-02-300dpi.png",
+      "exportPath": "assets/fig-08-10-05-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0280-02-300dpi.png",
+      "caption": "> Image description: A line graph plotting the time response of a system, generated in MATLAB, as indicated by the caption \"图8－10－5 $T_d=0.5$ 时系统的时间响应（MATLAB）\". The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 20 seconds with increments of 2. The vertical y-axis is labeled \"$c(t)$\" and ranges from 0 to 1.4 with increments of 0.2. The figure shows a single smooth curve starting at the origin (0,0) and rising asymptotically toward a steady-state value of 1.0. The response exhibits a characteristic first-order or overdamped behavior, reaching approximately 63% of its final value around 2 seconds and stabilizing near $c(t)=1$ after approximately 10 to 12 seconds. There is no overshoot or oscillation visible in the plot. 图8－10－6 $T_{d}=2$ 时系统时间响应（MATLAB）",
+      "sourcePdfPage": 280,
+      "sha256": "946adfce1da3cb11a33da8a85f63a736acd9937bfaf9067844f6bd87f52f1480",
+      "bytes": 181558
+    },
+    {
+      "index": 40,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0280-03-300dpi.png",
+      "exportPath": "assets/fig-08-10-07.png",
+      "originalRelativePath": "assets/mathpix-source-page-0280-03-300dpi.png",
+      "caption": "图 8－10－7 $T_{d}=2$ 且继电器有延迟时系统的时间响应（MATLAB） 由图8－10－5和图8－10－7可见，由于实际系统中继电器总是需要一定的开关速度，因此当 $r(t)=1(t)$ 时，非线性系统的单位阶跃响应的稳态过程亦呈现为 $1(t)$ 叠加小幅振荡的运",
+      "sourcePdfPage": 280,
+      "sha256": "aace407e35bde77fa856b2314f95dd02fe1b669689ebb9eb416973da4ec0faa2",
+      "bytes": 218815
+    },
+    {
+      "index": 41,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0281-01-300dpi.png",
+      "exportPath": "assets/fig-08-83.png",
+      "originalRelativePath": "assets/mathpix-source-page-0281-01-300dpi.png",
+      "caption": "图8－83 题 8－11的非线性系统结构图",
+      "sourcePdfPage": 281,
+      "sha256": "1fbe7bef8abb926db5fe8b93c8927460e2cd91b69cc65e994e5048b4e24c61d7",
+      "bytes": 65541
+    },
+    {
+      "index": 42,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0282-01-300dpi.png",
+      "exportPath": "assets/fig-08-11-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0282-01-300dpi.png",
+      "caption": "图8－11－1 题 8－11开关断开时系统的相轨迹（MATLAB）",
+      "sourcePdfPage": 282,
+      "sha256": "5ebdc917797f99d782206410df38d4451bd6a874490254709864c88916765259",
+      "bytes": 156959
+    },
+    {
+      "index": 43,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0283-01-300dpi.png",
+      "exportPath": "assets/fig-08-11-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0283-01-300dpi.png",
+      "caption": "图8－11－2 题8－11开关闭合时系统的相轨迹（MATLAB）",
+      "sourcePdfPage": 283,
+      "sha256": "162eea670bc6fc292369ae46b352fc6094e34448b97b195d82f8723a7f2c4657",
+      "bytes": 123339
+    },
+    {
+      "index": 44,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0283-02-300dpi.png",
+      "exportPath": "assets/fig-08-11-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0283-02-300dpi.png",
+      "caption": "图8－11－3 题 8－11系统误差响应曲线（MATLAB）",
+      "sourcePdfPage": 283,
+      "sha256": "164e228886f7c5ce7310e0c04fe9bfbbbd77d1ec93ce65233917480d95939086",
+      "bytes": 149619
+    },
+    {
+      "index": 45,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0284-01-300dpi.png",
+      "exportPath": "assets/fig-08-12-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0284-01-300dpi.png",
+      "caption": "图 8－12－1 题 8－12 开环对数幅频特性曲线（MATLAB）",
+      "sourcePdfPage": 284,
+      "sha256": "9d499f3e56d40ccc20f03a182db859cb009e0cf022af0b08740c8a4e838d4f44",
+      "bytes": 257924
+    },
+    {
+      "index": 46,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0285-01-300dpi.png",
+      "exportPath": "assets/fig-08-13-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0285-01-300dpi.png",
+      "caption": "图8－13－1 题 8－13 变增益特性和正弦响应曲线",
+      "sourcePdfPage": 285,
+      "sha256": "81b845fd87b33920adcd44c65d624caed4b0a08f8bc754090120ba3c140a9765",
+      "bytes": 112916
+    },
+    {
+      "index": 47,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0286-01-300dpi.png",
+      "exportPath": "assets/fig-08-13-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0286-01-300dpi.png",
+      "caption": "图8－13－2 具有死区的继电特性和正弦响应曲线",
+      "sourcePdfPage": 286,
+      "sha256": "d339ba252b9738fdbc4f90ad66f8f4d4a6b733027d8de56b207f373cdf49f406",
+      "bytes": 76849
+    },
+    {
+      "index": 48,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0286-02-300dpi.png",
+      "exportPath": "assets/fig-08-13-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0286-02-300dpi.png",
+      "caption": "图8－13－3 $y=x^{3}$ 特性和正弦响应曲线 8－14 将图 8－84 所示非线性系统简化成典型结构图形式，并写出线性部分的传递函数。",
+      "sourcePdfPage": 286,
+      "sha256": "79ab53d0b69aef7b7f564b3ea49eb056901c0287745a71421cf60ddc6ccafca7",
+      "bytes": 95658
+    },
+    {
+      "index": 49,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0287-01-300dpi.png",
+      "exportPath": "assets/fig-08-84.png",
+      "originalRelativePath": "assets/mathpix-source-page-0287-01-300dpi.png",
+      "caption": "图 8－84 题 8－14 的非线性系统结构图 图8－84（b）经过结构简化，如图 8－14－1所示。得线性部分的传递函数",
+      "sourcePdfPage": 287,
+      "sha256": "46874adbd432d9ba8a593c07f902db4c94da9d32000442f71bfb4e16aa0fe1b7",
+      "bytes": 97308
+    },
+    {
+      "index": 50,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0287-02-300dpi.png",
+      "exportPath": "assets/fig-08-14-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0287-02-300dpi.png",
+      "caption": "图8－14－1 非线性系统（b）的简化结构图 图8－84（a）经过结构简化，如图8－14－2所示。得线性部分的传递函数",
+      "sourcePdfPage": 287,
+      "sha256": "d26f11fb788b794cccbb77f06d924d8d2c9a5141e6af45aa4f7bcedd54b3fe28",
+      "bytes": 58558
+    },
+    {
+      "index": 51,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0287-03-300dpi.png",
+      "exportPath": "assets/fig-08-14-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0287-03-300dpi.png",
+      "caption": "图8－14－2 非线性系统（a）的简化结构图 8－15 根据已知非线性特性的描述函数，求图 8－85 所示各种非线性特性的描述函数。",
+      "sourcePdfPage": 287,
+      "sha256": "44f867a6760bb94dd08e89f9403c4f3faed006b87f187da4bedaf487dd5fcb16",
+      "bytes": 57234
+    },
+    {
+      "index": 52,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0287-04-300dpi.png",
+      "exportPath": "assets/fig-08-85.png",
+      "originalRelativePath": "assets/mathpix-source-page-0287-04-300dpi.png",
+      "caption": "图8－85 题8－15的非线性特性",
+      "sourcePdfPage": 287,
+      "sha256": "625ebfc5e2fba255fad22af6facee02835e8f4adb103e95f5c4d044a807d459c",
+      "bytes": 149037
+    },
+    {
+      "index": 53,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0288-01-300dpi.png",
+      "exportPath": "assets/fig-08-15-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0288-01-300dpi.png",
+      "caption": "图8－15－1 非线性特性并联时的等效非线性特性",
+      "sourcePdfPage": 288,
+      "sha256": "7458812c65a158db6a7c744dd96e8ffa52fb8bea609d35fa7137ed4a52af7e4e",
+      "bytes": 120089
+    },
+    {
+      "index": 54,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0288-02-300dpi.png",
+      "exportPath": "assets/fig-08-15-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0288-02-300dpi.png",
+      "caption": "图8－15－2 非线性特性并联时的等效非线性特性",
+      "sourcePdfPage": 288,
+      "sha256": "66e2a1e9e6d656e72bf8d92eb85f9332861750bdfdf8bb83e433edaa87100e38",
+      "bytes": 125350
+    },
+    {
+      "index": 55,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0289-01-300dpi.png",
+      "exportPath": "assets/fig-08-15-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0289-01-300dpi.png",
+      "caption": "图 8－15－3 非线性特性串联时的等效非线性特性",
+      "sourcePdfPage": 289,
+      "sha256": "9daafb2329d5ba80c37c70ce7c93147f4cbd92c0dda4f5543f6966c7d357e132",
+      "bytes": 70797
+    },
+    {
+      "index": 56,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0289-02-300dpi.png",
+      "exportPath": "assets/fig-08-16-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0289-02-300dpi.png",
+      "caption": "> Image description: A technical diagram illustrating the stability analysis of a nonlinear system, labeled as Figure 8-16-1 (图8－16－1 非线性系统的稳定性分析). The figure features a complex plane with a vertical axis labeled \"$j$\" and a horizontal real axis. An arrow originates from the origin ($0$) and curves downward and to the left into the third quadrant, representing the frequency response $G(j\\omega)$. The curve terminates at a point on the negative real axis marked by the expression $-\\frac{1}{N(A)}$. The trajectory of the curve is indicated by an arrowhead pointing away from the origin. In engineering terms, this plot typically represents a Nyquist-like stability criterion for nonlinear systems, where the relationship between the linear plant $G(j\\omega)$ and the nonlinear gain $N(A)$ determines system stability based on whether the locus encircles the critical point $-\\frac{1}{N(A)}$. 图8－16－1 非线性系统的稳定性分析",
+      "sourcePdfPage": 289,
+      "sha256": "6285cdd9d214388d4506ea6ff16e317e111e20bb1fe3f743812ae93c10c07072",
+      "bytes": 32506
+    },
+    {
+      "index": 57,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0290-01-300dpi.png",
+      "exportPath": "assets/fig-08-16-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0290-01-300dpi.png",
+      "caption": "> Image description: This image is a technical plot from a textbook, captioned \"图8－16－2 题8－16稳定性分析（MATLAB),\" depicting a stability analysis in the complex plane. The graph features a horizontal \"Real Axis\" ranging from -10 to 1 and a vertical \"Imaginary Axis\" ranging from -10 to 10. Two distinct curves are plotted, both originating from the origin (0,0). One curve is labeled $G(j\\omega)$, which descends into the third quadrant toward the bottom-left. The second curve is labeled $-\\frac{1}{N(A)}$, which arcs upward into the second quadrant and then extends downward into the third quadrant. Both curves include directional arrows indicating their trajectory as frequency or parameters change. A dashed vertical line marks the imaginary axis, and a dashed horizontal line marks the real axis. In engineering terms, this represents a Nyquist-style stability analysis used to determine system stability based on the intersection of these loci. 图8－16－2 题8－16稳定性分析（MATLAB） 8－17 已知非线性系统的结构图如图8－86所示，图中非线性环节的描述函数 $N(A)= \\frac{A+6}{A+2}(A>0)$ ，试用描述函数法确定：",
+      "sourcePdfPage": 290,
+      "sha256": "e496ec00c3ce99cac5ce9e51ba609874552be65ae3b3a9f4e2ffe07c2d7540c2",
+      "bytes": 146539
+    },
+    {
+      "index": 58,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0290-02-300dpi.png",
+      "exportPath": "assets/fig-08-86.png",
+      "originalRelativePath": "assets/mathpix-source-page-0290-02-300dpi.png",
+      "caption": "图 8－86 题 8－17 的非线性系统结构图",
+      "sourcePdfPage": 290,
+      "sha256": "9e014960084fa64e4516c1ce228ca00a446a5626ac3104bca475723209f68c7c",
+      "bytes": 33202
+    },
+    {
+      "index": 59,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0290-03-300dpi.png",
+      "exportPath": "assets/fig-08-17-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0290-03-300dpi.png",
+      "caption": "图 8－17－1 系统稳定性分析",
+      "sourcePdfPage": 290,
+      "sha256": "ccc7e6898d1779cd952a83411671414739634075b4c52b897aeb3865e5d1ac11",
+      "bytes": 41313
+    },
+    {
+      "index": 60,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0292-01-300dpi.png",
+      "exportPath": "assets/fig-08-87.png",
+      "originalRelativePath": "assets/mathpix-source-page-0292-01-300dpi.png",
+      "caption": "> Image description: A block diagram of a nonlinear control system is shown in Figure 8-87 (图 8－87). The system consists of a forward path and a unity negative feedback loop. The input signal $r=0$ enters a summing junction, where it is compared with the feedback signal to produce an error signal $e(t)$. This signal passes through a linear gain block labeled \"5,\" followed by a nonlinear element represented by a saturation function graph. The saturation block has upper and lower limits of 1 and 0.2 (or -0.2), respectively. The output of the nonlinearity enters a transfer function block defined as $\\frac{2}{s(s+1)}$. The final system output is labeled $c$. A feedback line connects the output $c$ back to the negative terminal of the summing junction, completing the closed-loop structure. This diagram represents a typical nonlinear feedback control loop used for stability analysis. 图 8－87 题 8－18 的非线性系统结构图",
+      "sourcePdfPage": 292,
+      "sha256": "4af7a07a61a29c8ba6fb2cafffb88dc6546cb25cd201911b4c552c867e3c4ba7",
+      "bytes": 45403
+    },
+    {
+      "index": 61,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0292-02-300dpi.png",
+      "exportPath": "assets/fig-08-18-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0292-02-300dpi.png",
+      "caption": "图8－18－1 题 8－18 的非线性系统结构变换图",
+      "sourcePdfPage": 292,
+      "sha256": "0559249fc4b6fceb9fc5ec826ea56d3fae80d8f01b1eb7660a15ff4c22811fbc",
+      "bytes": 36187
+    },
+    {
+      "index": 62,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0293-01-300dpi.png",
+      "exportPath": "assets/fig-08-18-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0293-01-300dpi.png",
+      "caption": "> Image description: A technical diagram showing a Nyquist plot of a frequency response function $G(j\\omega)$ in the complex plane. The horizontal axis represents the real part and the vertical axis is labeled with $j$ to represent the imaginary part. The plot features a solid curved line starting from the origin $(0,0)$, curving downwards and to the left into the third quadrant, and ending at a point on the negative real axis. An arrow on this curve indicates the direction of increasing frequency $\\omega$. The intersection of the curve with the negative real axis is explicitly labeled as $-\\frac{1}{N(A)}$. Additionally, there is a horizontal line segment extending from the curve to the vertical axis, marked with the value $-0.157$. A dotted semicircular arc connects the end of the plot back toward the origin. The figure is used for system stability analysis, as indicated by the Chinese caption \"图8－18－2 题 8－18 系统稳定性分析\". 图8－18－2 题 8－18 系统稳定性分析",
+      "sourcePdfPage": 293,
+      "sha256": "d67e109d212bb1b04a6befcd41023a6b24963af43e4e989fc83d148be79c9293",
+      "bytes": 40725
+    },
+    {
+      "index": 63,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0293-02-300dpi.png",
+      "exportPath": "assets/fig-08-18-02-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0293-02-300dpi.png",
+      "caption": "> Image description: The image shows a plot of a time-domain signal $c(t)$ against time in seconds. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 10, with major grid lines every 1 second. The vertical y-axis is labeled \"$c(t)$\" and ranges from -0.2 to 0.2, with increments of 0.05. The graph displays an oscillating waveform that begins at the origin $(0,0)$. As time progresses, the amplitude of the oscillations increases initially before stabilizing into a steady-state sinusoidal wave. The peaks reach approximately $0.15$ and the troughs reach approximately $-0.16$. From an engineering perspective, this figure represents the stability analysis of a system (as indicated by the caption \"图8－18－2 题 8－18 系统稳定性分析\"). Specifically, it depicts a marginally stable or unstable response where the output oscillates with a constant or slightly growing amplitude over time. 图8－18－3 题 8－18 系统的自振信号输出（MATLAB）",
+      "sourcePdfPage": 293,
+      "sha256": "13c0677860e2cc2803ecb7ae71688b03c48b125a23433dd1a6965a422c94107c",
+      "bytes": 200833
+    },
+    {
+      "index": 64,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0294-01-300dpi.png",
+      "exportPath": "assets/fig-08-88.png",
+      "originalRelativePath": "assets/mathpix-source-page-0294-01-300dpi.png",
+      "caption": "> Image description: This image shows a block diagram of a nonlinear control system, labeled as \"图8－88 题 8－19 的非线性系统结构图\". The system begins with an input signal $r=0$ entering a summing junction. The output of this junction is the variable $x$, which feeds into a nonlinear element represented by a signum-like function (outputting $1$ for positive inputs and $-1$ for negative inputs). The output of this nonlinear block, labeled as $y$, enters a linear transfer function block defined as $\\frac{5}{s(s+2)^2}$. The final system output is denoted as $c$. A feedback loop connects the output $c$ back to the summing junction through a gain block with a value of $2$. Arrows indicate the unidirectional flow of signals from left to right, with the feedback path returning from right to left. This structure represents a closed-loop system combining a nonlinear relay and a third-order linear plant. 图8－88 题 8－19 的非线性系统结构图",
+      "sourcePdfPage": 294,
+      "sha256": "9a27a6d5c5c003b3e5895a2d06d1ae71983778479749c0ccc61026e52e881b4b",
+      "bytes": 40263
+    },
+    {
+      "index": 65,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0294-02-300dpi.png",
+      "exportPath": "assets/fig-08-19-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0294-02-300dpi.png",
+      "caption": "图8－19－1 系统稳定性分析",
+      "sourcePdfPage": 294,
+      "sha256": "8d75a4c8c7dec89cfcac047f15c2eb9b0a2756a4c167c3c701c7344762f1eca5",
+      "bytes": 34008
+    },
+    {
+      "index": 66,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0295-01-300dpi.png",
+      "exportPath": "assets/fig-08-19-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0295-01-300dpi.png",
+      "caption": "> Image description: This image displays three vertically stacked time-domain plots representing the steady-state waveforms of a nonlinear system, generated in MATLAB. The common horizontal axis is labeled \"Time/sec,\" ranging from 0 to 14 seconds. The top plot shows variable $x(t)$ as a solid sinusoidal wave oscillating between approximately -0.7 and 0.8. The middle plot displays variable $c(t)$ as a dashed sinusoidal wave with an amplitude ranging roughly from -0.4 to 0.4. The bottom plot depicts variable $y(t)$ as a dashed square wave, switching abruptly between values of 1 and -1. The figure illustrates the relationship between these three variables over time, where the smooth oscillations of $x(t)$ and $c(t)$ correspond to the binary switching behavior of $y(t)$. The caption identifies this as \"图8－19－2 非线性系统 $c, x, y$ 的稳态波形（MATLAB）,\" indicating these are steady-state waveforms for a nonlinear system. 图8－19－2 非线性系统 $c, x, y$ 的稳态波形（MATLAB）",
+      "sourcePdfPage": 295,
+      "sha256": "ae171869629ed66ca75ee5ff6d28e84d6c5288fc1fb97c459678a7e64bcb9311",
+      "bytes": 304424
+    },
+    {
+      "index": 67,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0296-01-300dpi.png",
+      "exportPath": "assets/fig-08-20-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0296-01-300dpi.png",
+      "caption": "图8－20－1 伪线性系统的结构图 统如图 8－89 所示。系统原来处于静止状态，且 $0<\\beta<1$ ，输入 $r(t)=-R \\cdot 1(t)(R>a)$ ，试分别画出有速度反馈和无速度反馈时的系统相轨迹。",
+      "sourcePdfPage": 296,
+      "sha256": "65f91a82e93265f9f8203de321ddec92384a749c73d812d334ad39c81c8bc812",
+      "bytes": 111624
+    },
+    {
+      "index": 68,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0296-02-300dpi.png",
+      "exportPath": "assets/fig-08-89.png",
+      "originalRelativePath": "assets/mathpix-source-page-0296-02-300dpi.png",
+      "caption": "图8－89 非线性系统 解（1）无速度反馈。由图8－89可知，$x(t)=\\ddot{c}(t)$ 。当 $e>a$ 时，$x=b=\\ddot{c}$ ，而 $e=r$－ $c, \\dot{e}=-\\dot{c}, \\ddot{e}=-\\ddot{c}=-b$ ；当 $|e|<a$ 时，$x=\\ddot{c}=0$ ，故 $\\ddot{e}=0$ ；当 $e<-a$ 时，必有 $x=-b=\\ddot{c}$ ，故 $\\ddot{e}=-\\ddot{c}=b$ 。相轨迹方程为",
+      "sourcePdfPage": 296,
+      "sha256": "432295730244c93cf281823ebb3620e9b6ff2bd2beb448b1b63826b18c2484a4",
+      "bytes": 69723
+    },
+    {
+      "index": 69,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0297-01-300dpi.png",
+      "exportPath": "assets/fig-08-21-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0297-01-300dpi.png",
+      "caption": "图 8－21－1 无速度反馈时系统的相轨迹",
+      "sourcePdfPage": 297,
+      "sha256": "1618f9f37e37a48fd0c870411195ea964de4b7b6a3ed103af8d922477811ec4e",
+      "bytes": 60519
+    },
+    {
+      "index": 70,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0297-02-300dpi.png",
+      "exportPath": "assets/fig-08-21-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0297-02-300dpi.png",
+      "caption": "图8－21－2 系统等效结构图",
+      "sourcePdfPage": 297,
+      "sha256": "61af5fa1f1a40facc9fc6d0cbce995762a18c198572a29c4ec96dca9255c0768",
+      "bytes": 50043
+    },
+    {
+      "index": 71,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0297-03-300dpi.png",
+      "exportPath": "assets/fig-08-21-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0297-03-300dpi.png",
+      "caption": "图8－21－3 有速度反馈时系统的概略相轨迹",
+      "sourcePdfPage": 297,
+      "sha256": "bb02a6086c42598d991d8215e7207afeb89f278f317b7e914df950358bf6de7a",
+      "bytes": 55725
+    },
+    {
+      "index": 72,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0297-04-300dpi.png",
+      "exportPath": "assets/fig-08-21-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0297-04-300dpi.png",
+      "caption": "> Image description: A technical plot showing a schematic phase trajectory of a system with velocity feedback (as indicated by the Chinese caption \"图8-21-3 有速度反馈时系统的概略相轨迹\"). The image features a 2D coordinate system with a horizontal x-axis ranging from -2 to 1 and a vertical y-axis ranging from -0.5 to 1.5. The plot displays a closed loop formed by a solid black line. This trajectory starts at (1, 0), rises linearly to approximately (0.3, 1.2), remains constant horizontally until roughly (-1.6, 1.2), and then curves downward back toward the x-axis at (-2, 0). Two dashed diagonal lines intersect the plot: one crossing from top-left to bottom-right through the point (-1, 0), and another nearly vertical dashed line on the right side. The figure illustrates the stability and limiting behavior of a dynamical system's state space under specific feedback control. 图 8－21－4 有速度反馈时系统的相轨迹（MATLAB）",
+      "sourcePdfPage": 297,
+      "sha256": "d2293a1e03dc23166dc34163858945550b3b4ace2cdc2465de4c0ea6d8fabb95",
+      "bytes": 86953
+    },
+    {
+      "index": 73,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0298-01-300dpi.png",
+      "exportPath": "assets/fig-08-90.png",
+      "originalRelativePath": "assets/mathpix-source-page-0298-01-300dpi.png",
+      "caption": "> Image description: A block diagram of a nonlinear system is shown in Figure 8-90 (labeled \"图8－90 非线性系统结构图\"). The system consists of a feedback loop starting with a summing junction on the left, indicated by a circle with a plus and minus sign. An arrow leads from this junction into a nonlinear block containing a piecewise function $M$, where the output is $1$ for positive inputs, $0$ at zero, and $-1$ for negative inputs. The output of the nonlinear block feeds into a linear transfer function block represented by the expression $\\frac{Ke^{-rs}}{s(s+1)(s+2)}$. The final system output is labeled as $c(t)$. A feedback path consists of a line returning from the output $c(t)$ back to the negative terminal of the initial summing junction, completing the closed-loop control structure. 图8－90 非线性系统结构图",
+      "sourcePdfPage": 298,
+      "sha256": "854592b632f88c64a7d11805277893584f9fbc7fd5e002cfe5027a5ce0aa531e",
+      "bytes": 39870
+    },
+    {
+      "index": 74,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0299-01-300dpi.png",
+      "exportPath": "assets/img-chapter-08-074.png",
+      "originalRelativePath": "assets/mathpix-source-page-0299-01-300dpi.png",
+      "caption": null,
+      "sourcePdfPage": 299,
+      "sha256": "2edbf277710984771e5a7185b00b8e4bca54ae578643f2ecbffa48383b4ff457",
+      "bytes": 30951
+    },
+    {
+      "index": 75,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0299-02-300dpi.png",
+      "exportPath": "assets/fig-08-22-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0299-02-300dpi.png",
+      "caption": "图8－22－2 $\\tau \\neq 0$ 时系统的稳定性分析（MATLAB）",
+      "sourcePdfPage": 299,
+      "sha256": "72fc3d1bcd7e72cb7449c566a04d25a6004a462ccd841167e095c52d6ae51ed5",
+      "bytes": 161250
+    },
+    {
+      "index": 76,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0300-01-300dpi.png",
+      "exportPath": "assets/fig-08-22-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0300-01-300dpi.png",
+      "caption": "> Image description: This image shows a Simulink block diagram of a delayed system model, labeled as Figure 8-22-3 (图8-22-3). The control loop begins with a \"Constant\" block set to 0, which enters a summation junction. The error signal passes through a \"Sign\" function block and a \"Transport Delay\" block before reaching a gain block $K$ with a value of 4.97. The signal then flows into a \"Zero-Pole\" transfer function block defined as $\\frac{1}{(s+1)(s+2)}$, followed by an \"Integrator\" block $\\frac{1}{s}$. The output, denoted as $c(t)$, is sent to a scope and a \"To Workspace\" block. A feedback loop connects the integrator's output back to the initial summation junction. Additionally, a separate path consists of a \"Clock\" connected to a \"To Workspace2\" block for time variable $t$. The diagram represents a closed-loop system incorporating non-linear signum control and transport delay. 图8－22－3 Simulink 环境下的延迟系统模型",
+      "sourcePdfPage": 300,
+      "sha256": "d2448490d2b7f703916dae8c3bb10cb75f3460eb9ff6b8b6f20c6b54b7a3b3ef",
+      "bytes": 136464
+    },
+    {
+      "index": 77,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0300-02-300dpi.png",
+      "exportPath": "assets/fig-08-22-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0300-02-300dpi.png",
+      "caption": "> Image description: A line graph plotting a time-domain signal $c(t)$ against time in seconds. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 40, with major grid increments every 5 seconds. The vertical y-axis is labeled \"$c(t)$\" and ranges from -2.5 to 2.5, with markings every 0.5 units. The plot displays a periodic sinusoidal waveform. It begins at $t=0$ with an initial value of 1. After a brief transient period, the signal settles into a steady-state oscillation between approximately -2 and 2. The wave exhibits a constant frequency and amplitude throughout the majority of the time window. In an engineering context, this represents the output response of a system over time, specifically illustrating a delayed system model as indicated by the provided Chinese caption \"图8－22－3 Simulink 环境下的延迟系统模型\". 图8－22－4 系统输出时间响应（MATLAB） 8－23 若使图 8－91 所示非线性系统输出量 $c$ 的自振振幅 $A_{c}=0.1$ ，角频率 $\\omega=10$ ，试确定参数 $T$ 及 $K$ 的数值（ $T 、 K$ 均大于零）。",
+      "sourcePdfPage": 300,
+      "sha256": "3e321b9f524372c0598b39bc05b26190e44358cb5a694773378ea7377c0e96c2",
+      "bytes": 211622
+    },
+    {
+      "index": 78,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0300-03-300dpi.png",
+      "exportPath": "assets/fig-08-91.png",
+      "originalRelativePath": "assets/mathpix-source-page-0300-03-300dpi.png",
+      "caption": "图8－91 非线性系统结构图",
+      "sourcePdfPage": 300,
+      "sha256": "4fe0a02ce59400e1c3d2daa468e9fde64ec5fe9ec181509170ca8c2f38d0c340",
+      "bytes": 51381
+    },
+    {
+      "index": 79,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0301-01-300dpi.png",
+      "exportPath": "assets/fig-08-23-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0301-01-300dpi.png",
+      "caption": "图8－23－1 非线性系统稳定性分析",
+      "sourcePdfPage": 301,
+      "sha256": "9f9692932d9b8e357caf61f83176b8a5924ceb0ba6dc0025937706d080f0c616",
+      "bytes": 34271
+    },
+    {
+      "index": 80,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0301-02-300dpi.png",
+      "exportPath": "assets/fig-08-23-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0301-02-300dpi.png",
+      "caption": "> Image description: This image is a technical plot showing the time-domain response of a signal $c(t)$ for a nonlinear system stability analysis, as indicated by the caption \"图8－23－1 非线性系统稳定性分析\". The graph features a vertical y-axis labeled $c(t)$, with values ranging from $-0.2$ to $0.15$. The horizontal x-axis is labeled \"Time/sec\", spanning from $0$ to $5$ seconds. A dashed grid is overlaid on the plot for precise reading. The plotted waveform begins at the origin $(0,0)$ and exhibits an initial transient phase where the amplitude of oscillation increases over the first 1.5 seconds. Following this period, the signal settles into a steady-state limit cycle—a sustained periodic oscillation with a constant peak-to-peak amplitude of approximately $0.2$ (ranging from roughly $-0.1$ to $0.1$). This behavior is characteristic of a stable limit cycle in nonlinear system dynamics. 图8－23－2 非线性系统输出时间响应（MATLAB） 8－24 设非线性系统如图 8－92 所示，其中参数 $K_{1}, K_{2}, T_{1}, T_{2}, M$ 均为正。试确定：",
+      "sourcePdfPage": 301,
+      "sha256": "9dd281bdf35cfae4707866269e144024fc286d4c17fe69b52cbcbd7bc88311ee",
+      "bytes": 221243
+    },
+    {
+      "index": 81,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0302-01-300dpi.png",
+      "exportPath": "assets/fig-08-92.png",
+      "originalRelativePath": "assets/mathpix-source-page-0302-01-300dpi.png",
+      "caption": "图8－92 题 8－24 非线性系统结构图",
+      "sourcePdfPage": 302,
+      "sha256": "d7fe28832d1cd4ae4f7f77c1daad8028fbd3d6e1a5b533c2ee8bcd26909fb487",
+      "bytes": 54493
+    },
+    {
+      "index": 82,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-08-mathpix/assets/mathpix-source-page-0302-02-300dpi.png",
+      "exportPath": "assets/fig-08-92-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0302-02-300dpi.png",
+      "caption": "> Image description: The image shows a plot of a time-domain signal $c(t)$ versus Time in seconds. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 120, with major grid markings every 20 units. The vertical y-axis is labeled \"$c(t)$\" and ranges from -30 to 30, with increments of 10. The graph depicts an oscillating waveform that begins at the origin $(0,0)$. As time progresses, the amplitude of the oscillations increases gradually before stabilizing into a steady-state limit cycle. The peaks eventually reach approximately 25 units and the troughs reach approximately -25 units. This behavior is characteristic of a nonlinear system exhibiting growth toward a stable periodic oscillation. The figure is captioned in Chinese as \"图8－92 题 8－24 非线性系统结构图,\" indicating it relates to a problem on nonlinear system structures. 图8－24－1 非线性系统输出时间响应（MATLAB）",
+      "sourcePdfPage": 302,
+      "sha256": "59a69796604147c9fcd14f2ae333b90d77e049d811c6153ba81c8b3a00f81be2",
+      "bytes": 220641
+    }
+  ]
+}

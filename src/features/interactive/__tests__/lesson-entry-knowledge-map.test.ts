@@ -54,6 +54,20 @@ function getGroupTitle(group: RawKnowledgeGroup | undefined, index: number) {
   return group?.group_name ?? group?.title ?? `阶段 ${index + 1}`;
 }
 
+function sortByRuntimeCardOrder(nodeIds: string[], overlay: RawGraphOverlay) {
+  const cardOrderIndex = new Map((overlay.card_order ?? []).map((nodeId, index) => [nodeId, index]));
+  const originalIndex = new Map(overlay.nodes.map((node, index) => [node.id, index]));
+
+  return [...nodeIds].sort((left, right) => {
+    const leftOrder = cardOrderIndex.get(left);
+    const rightOrder = cardOrderIndex.get(right);
+    if (leftOrder !== undefined && rightOrder !== undefined) return leftOrder - rightOrder;
+    if (leftOrder !== undefined) return -1;
+    if (rightOrder !== undefined) return 1;
+    return (originalIndex.get(left) ?? 0) - (originalIndex.get(right) ?? 0);
+  });
+}
+
 describe('lesson entry knowledge map layout', () => {
   it.each(['2-2', '2-3', '4-3', '5-2', '5-3'])('creates stable non-overlapping roadmap positions for lesson %s', (lessonId) => {
     const overlay = loadOverlay(lessonId);
@@ -87,9 +101,10 @@ describe('lesson entry knowledge map layout', () => {
     const firstColumn = layout.columns[0];
     expect(firstColumn.title).toBe(getGroupTitle(firstGroup, 0));
     expect(firstColumn.nodeIds).toEqual(
-      (firstGroup?.node_ids ?? [])
-        .filter((nodeId, index, source) => source.indexOf(nodeId) === index)
-        .sort((a, b) => (overlay.card_order ?? []).indexOf(a) - (overlay.card_order ?? []).indexOf(b)),
+      sortByRuntimeCardOrder(
+        (firstGroup?.node_ids ?? []).filter((nodeId, index, source) => source.indexOf(nodeId) === index),
+        overlay,
+      ),
     );
 
     for (const nodeId of firstGroup?.node_ids ?? []) {

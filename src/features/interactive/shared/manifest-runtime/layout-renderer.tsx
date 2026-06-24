@@ -6,6 +6,10 @@ import type {
   InteractiveRuntimeModuleManifest,
   InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
+import {
+  isActivityRuntimeModuleKind,
+  resolveInteractiveModuleVisualStandard,
+} from './module-visual-standards';
 
 export type {
   InteractiveRuntimeManifest,
@@ -35,48 +39,6 @@ type InteractiveTemplateRenderer = (props: {
   step: InteractiveRuntimeStepManifest;
   regionNodes: InteractiveLayoutRegionNode[];
 }) => ReactNode;
-
-const ACTIVITY_RUNTIME_MODULE_KINDS = new Set([
-  'activity.panel',
-  'activity.workspace',
-  'activity-card',
-  'activity-card-grid',
-  'activity-card-row',
-  'activity-card-set',
-  'binary-choice',
-  'card-sort',
-  'drag-match',
-  'hotspot-labeling',
-  'reason-chain',
-  'multi-select-matrix',
-  'task-card-workspace',
-  'triple-match',
-  'single-choice-card',
-  'quiz-card',
-  'quiz-group',
-  'teacher-reveal-only',
-  'table-builder',
-]);
-
-function renderActivityRuntimeModuleSlot({
-  module,
-}: {
-  module: InteractiveRuntimeModuleManifest;
-}) {
-  return createElement(
-    'section',
-    {
-      'data-manifest-activity-module': module.id,
-      'data-manifest-activity-kind': module.kind,
-      className: 'rounded-2xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3',
-    },
-    createElement(
-      'p',
-      { className: 'text-sm font-medium text-foreground' },
-      module.title || '互动任务',
-    ),
-  );
-}
 
 function buildOrderedRegions(
   step: InteractiveRuntimeStepManifest,
@@ -110,7 +72,7 @@ function renderStackedTemplate({
 
   return createElement(
     'div',
-    { 'data-template': step.layout.template, className: 'space-y-4' },
+    { 'data-template': step.layout.template, className: 'interactive-courseware-stack' },
     orderedRegions.map(({ region, nodes }) =>
       createElement(
         'section',
@@ -118,7 +80,7 @@ function renderStackedTemplate({
           key: region.id,
           'data-region': region.id,
           'data-width': region.width,
-          className: 'space-y-4',
+          className: 'interactive-courseware-region',
         },
         nodes.map((item) => createElement(Fragment, { key: item.moduleId }, item.node)),
       ),
@@ -150,6 +112,46 @@ function renderManifestModuleError({
         `${step.id} / ${module.id} / ${module.kind}: ${reason}`,
       ),
     ],
+  );
+}
+
+function renderCommercialModuleChrome({
+  module,
+  node,
+}: {
+  module: InteractiveRuntimeModuleManifest;
+  node: ReactNode;
+}) {
+  const standard = resolveInteractiveModuleVisualStandard(module.kind);
+  const roleStates = standard?.roleStates.join(' ') ?? 'student guest teacher';
+  const themeStates = standard?.themeStates.join(' ') ?? 'light dark';
+  const viewportStates = standard?.viewportStates.join(' ') ?? 'desktop mobile projection';
+  const teacherControlScope = standard?.teacherControlAttachment === 'module' ? module.id : 'none';
+
+  return createElement(
+    'section',
+    {
+      'data-commercial-module-chrome': module.kind,
+      'data-interactive-module-standard-class': standard?.canonicalClass ?? 'unregistered',
+      'data-interactive-module-chrome-category': standard?.chromeCategory ?? 'fallback',
+      'data-interactive-module-role-states': roleStates,
+      'data-interactive-module-theme-states': themeStates,
+      'data-interactive-module-viewport-states': viewportStates,
+      'data-interactive-module-projection-safe': String(standard?.projectionSafe === true),
+      'data-interactive-module-geometry': standard?.geometry ?? 'stable-panel',
+      'data-interactive-module-teacher-controls': standard?.teacherControlAttachment ?? 'none',
+      'data-interactive-module-control-scope': teacherControlScope,
+      'data-interactive-module-chrome-role': 'metadata-only',
+      'data-commercial-module-state': module.mustBeVisible ? 'required' : 'available',
+      'data-commercial-workspace-zone': 'instrument-area',
+      'data-task-workspace-zone': 'instrument-area',
+      className: [
+        'commercial-module-chrome min-h-[120px]',
+        'commercial-module-chrome--stable-panel commercial-module-chrome--projection-readable',
+        standard?.chromeClassName ?? 'commercial-module-chrome--fallback',
+      ].join(' '),
+    },
+    node,
   );
 }
 
@@ -233,13 +235,16 @@ function renderStepTitleModule({
     'section',
     {
       'data-manifest-step-title': step.id,
-      className: 'premium-lesson-panel',
+      'data-commercial-workspace': 'interactive-learning',
+      'data-commercial-workspace-zone': 'context-strip',
+      'data-courseware-panel-exterior': 'title-panel',
+      className: 'premium-lesson-panel interactive-courseware-panel',
     },
     [
       createElement('div', { key: 'kicker', className: 'premium-lesson-kicker' }, pageLabel),
-      createElement('h2', { key: 'title', className: 'premium-lesson-title mt-2 text-2xl font-semibold' }, renderLayoutInlineContent(step.title)),
+      createElement('h1', { key: 'title', className: 'interactive-courseware-title-level-1' }, renderLayoutInlineContent(step.title)),
       getStepDescription(step)
-        ? createElement('p', { key: 'description', className: 'premium-lesson-muted mt-2 text-sm leading-7' }, renderLayoutInlineContent(getStepDescription(step)))
+        ? createElement('p', { key: 'description', className: 'interactive-courseware-body' }, renderLayoutInlineContent(getStepDescription(step)))
         : null,
     ],
   );
@@ -286,27 +291,21 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
 }) {
   const regionNodes: InteractiveLayoutRegionNode[] = step.modules
     .map((module) => {
-      if (ACTIVITY_RUNTIME_MODULE_KINDS.has(module.kind)) {
-        if (module.mustBeVisible) {
-          return {
-            moduleId: module.id,
-            regionId: module.region,
-            node: renderActivityRuntimeModuleSlot({ module }),
-          } as InteractiveLayoutRegionNode;
-        }
+      if (isActivityRuntimeModuleKind(module.kind)) {
         return null;
       }
       const renderModule = moduleRegistry[module.kind];
       if (!renderModule) {
         if (module.mustBeVisible) {
+          const node = renderManifestModuleError({
+            step,
+            module,
+            reason: '缺少模块 renderer',
+          });
           return {
             moduleId: module.id,
             regionId: module.region,
-            node: renderManifestModuleError({
-              step,
-              module,
-              reason: '缺少模块 renderer',
-            }),
+            node: renderCommercialModuleChrome({ module, node }),
           } as InteractiveLayoutRegionNode;
         }
         return null;
@@ -319,14 +318,15 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
       });
       if (!node) {
         if (module.mustBeVisible) {
+          const errorNode = renderManifestModuleError({
+            step,
+            module,
+            reason: '模块 renderer 返回空内容',
+          });
           return {
             moduleId: module.id,
             regionId: module.region,
-            node: renderManifestModuleError({
-              step,
-              module,
-              reason: '模块 renderer 返回空内容',
-            }),
+            node: renderCommercialModuleChrome({ module, node: errorNode }),
           } as InteractiveLayoutRegionNode;
         }
         return null;
@@ -334,7 +334,7 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
       return {
         moduleId: module.id,
         regionId: module.region,
-        node,
+        node: renderCommercialModuleChrome({ module, node }),
       } as InteractiveLayoutRegionNode;
     })
     .filter(Boolean) as InteractiveLayoutRegionNode[];

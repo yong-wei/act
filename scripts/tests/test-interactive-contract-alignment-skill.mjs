@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const skillPath = path.join(root, '.codex/skills/interactive-lesson-implementation/SKILL.md');
+const skillPath = path.join(root, '.agents/skills/interactive-lesson/SKILL.md');
 const checkScriptPath = path.join(
   root,
-  '.codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py',
+  '.agents/skills/interactive-lesson/scripts/check_contract_alignment.py',
 );
 
 const skill = fs.readFileSync(skillPath, 'utf8');
@@ -19,7 +19,7 @@ assert.equal(
 );
 
 assert.equal(
-  skill.includes('python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py'),
+  skill.includes('python3 .agents/skills/interactive-lesson/scripts/check_contract_alignment.py'),
   true,
   '互动课程技能应给出一致性校验脚本的固定 python3 命令',
 );

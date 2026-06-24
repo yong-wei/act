@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import Image from 'next/image';
-import { BookOpen, FileText, X, ArrowRight, Link2, ChevronDown, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import { BookOpen, FileText, X, ArrowRight, Link2, ChevronDown, ChevronRight, Image as ImageIcon, ListPlus, Target } from 'lucide-react';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
@@ -40,12 +40,42 @@ interface ResourcePanelProps {
   onNodeClick?: (nodeId: string) => void;
 }
 
+interface ResourcePanelSelectionState {
+  nodeDetail: KnowledgeNodeDetail | null;
+  nodeDetailOwnerId: string | null;
+  isLoading: boolean;
+  isCardOpen: boolean;
+  expandedRelationGroups: Record<string, boolean>;
+}
+
 const RELATION_GROUP_ORDER: Array<RelatedNode['category']> = ['prerequisite', 'follows', 'related'];
 const RELATION_GROUP_LABEL: Record<RelatedNode['category'], string> = {
   prerequisite: '前置关系',
   follows: '后续关系',
   related: '关联关系',
 };
+const MOBILE_INSPECTOR_QUERY = '(max-width: 1023px)';
+const INSPECTOR_FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+export function resolveResourcePanelSelectionState(
+  selectedNode: KnowledgeNodeData
+): ResourcePanelSelectionState {
+  const isChapterNode = isChapterNodeId(selectedNode.id);
+  return {
+    nodeDetail: isChapterNode ? selectedNode as KnowledgeNodeDetail : null,
+    nodeDetailOwnerId: isChapterNode ? selectedNode.id : null,
+    isLoading: !isChapterNode,
+    isCardOpen: false,
+    expandedRelationGroups: {},
+  };
+}
 
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -62,17 +92,128 @@ function resolveInfographSrc(resource: ReturnType<typeof extractInfographResourc
   return resource.path.startsWith('/') ? resource.path : `/${resource.path}`;
 }
 
+function isKnowledgeCardPath(value: unknown): boolean {
+  return typeof value === 'string'
+    && value.startsWith('course-content/runtime/knowledge/cards/nodes/')
+    && value.endsWith('.md');
+}
+
+function readLessonIdFromResources(resources: unknown[] | undefined): string | null {
+  if (!Array.isArray(resources)) return null;
+  for (const item of resources) {
+    if (!item || typeof item !== 'object') continue;
+    const lessonId = (item as Record<string, unknown>).lessonId;
+    if (typeof lessonId === 'string' && lessonId.trim()) return lessonId.trim();
+  }
+  return null;
+}
+
+export function resolveKnowledgeResourceLaunch(node: KnowledgeNodeData | null) {
+  if (!node) {
+    return {
+      href: null,
+      label: '等待选择知识节点',
+      reason: '请选择一个知识节点后再启动资源。',
+      lessonId: null,
+      hasKnowledgeCard: false,
+    };
+  }
+
+  const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+  const lessonId = typeof metadata.lessonId === 'string' && metadata.lessonId.trim()
+    ? metadata.lessonId.trim()
+    : readLessonIdFromResources(node.resources);
+  const hasKnowledgeCard = (Array.isArray(node.resources) && node.resources.some(isKnowledgeCardPath))
+    || isKnowledgeCardPath(metadata.launchTarget)
+    || isKnowledgeCardPath(metadata.renderTarget)
+    || isKnowledgeCardPath(metadata.lessonEntry);
+  const explicitTarget = metadata.launchTarget ?? metadata.renderTarget ?? metadata.lessonEntry;
+  if (typeof explicitTarget === 'string' && explicitTarget.trim() && !isKnowledgeCardPath(explicitTarget)) {
+    return {
+      href: explicitTarget.startsWith('/') ? explicitTarget : `/${explicitTarget}`,
+      label: '启动关联资源',
+      reason: null,
+      lessonId,
+      hasKnowledgeCard,
+    };
+  }
+
+  const resourcePath = Array.isArray(node.resources)
+    ? node.resources.find((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    : null;
+  if (resourcePath && !hasKnowledgeCard) {
+    const href = resourcePath.startsWith('course-content/runtime/knowledge/')
+      ? resourcePath.replace('course-content/runtime/knowledge/', '/course-runtime/knowledge/')
+      : resourcePath.startsWith('/')
+        ? resourcePath
+        : `/${resourcePath}`;
+    return {
+      href,
+      label: resourcePath.includes('/cards/') ? '打开知识卡片资源' : '启动关联资源',
+      reason: null,
+      lessonId,
+      hasKnowledgeCard,
+    };
+  }
+
+  if (lessonId) {
+    return {
+      href: `/interactive-learning/courses/${lessonId}`,
+      label: '进入关联课程',
+      reason: null,
+      lessonId,
+      hasKnowledgeCard,
+    };
+  }
+
+  return {
+    href: null,
+    label: hasKnowledgeCard ? '查看知识卡片' : '暂无可启动资源',
+    reason: hasKnowledgeCard ? '该节点关联知识卡片，请使用上方知识卡片入口查看。' : '该节点尚未关联课程资源、仿真或证据入口。',
+    lessonId,
+    hasKnowledgeCard,
+  };
+}
+
 export function ResourcePanel({
   isOpen,
   selectedNode,
   onClose,
   onNodeClick,
 }: ResourcePanelProps) {
-  const [nodeDetail, setNodeDetail] = useState<KnowledgeNodeDetail | null>(null);
-  const [isCardOpen, setIsCardOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  if (!isOpen || !selectedNode) return null;
+
+  return (
+    <ResourcePanelContent
+      selectedNode={selectedNode}
+      onClose={onClose}
+      onNodeClick={onNodeClick}
+    />
+  );
+}
+
+function ResourcePanelContent({
+  selectedNode,
+  onClose,
+  onNodeClick,
+}: Omit<ResourcePanelProps, 'isOpen' | 'selectedNode'> & { selectedNode: KnowledgeNodeData }) {
+  const [nodeDetail, setNodeDetail] = useState<KnowledgeNodeDetail | null>(
+    () => resolveResourcePanelSelectionState(selectedNode).nodeDetail
+  );
+  const [nodeDetailOwnerId, setNodeDetailOwnerId] = useState<string | null>(
+    () => resolveResourcePanelSelectionState(selectedNode).nodeDetailOwnerId
+  );
+  const [isCardOpen, setIsCardOpen] = useState(
+    () => resolveResourcePanelSelectionState(selectedNode).isCardOpen
+  );
+  const [isLoading, setIsLoading] = useState(() => resolveResourcePanelSelectionState(selectedNode).isLoading);
   const [isLightTheme, setIsLightTheme] = useState(false);
-  const [expandedRelationGroups, setExpandedRelationGroups] = useState<Record<string, boolean>>({});
+  const [expandedRelationGroups, setExpandedRelationGroups] = useState<Record<string, boolean>>(
+    () => resolveResourcePanelSelectionState(selectedNode).expandedRelationGroups
+  );
+  const inspectorRef = useRef<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const updateTheme = () => {
@@ -88,37 +229,99 @@ export function ResourcePanel({
   }, []);
 
   useEffect(() => {
-    if (!selectedNode) return;
+    const nextSelectionState = resolveResourcePanelSelectionState(selectedNode);
+    setNodeDetail(nextSelectionState.nodeDetail);
+    setNodeDetailOwnerId(nextSelectionState.nodeDetailOwnerId);
+    setIsLoading(nextSelectionState.isLoading);
+    setIsCardOpen(nextSelectionState.isCardOpen);
+    setExpandedRelationGroups(nextSelectionState.expandedRelationGroups);
 
-    if (isChapterNodeId(selectedNode.id)) {
-      setNodeDetail(selectedNode as KnowledgeNodeDetail);
+    if (!nextSelectionState.isLoading) {
       return;
     }
 
+    const selectedNodeId = selectedNode.id;
+    let cancelled = false;
+    const controller = new AbortController();
     const fetchDetail = async () => {
-      setIsLoading(true);
       try {
-        const res = await fetch(`/api/knowledge/nodes/${selectedNode.id}`);
+        const res = await fetch(`/api/knowledge/nodes/${selectedNodeId}`, { signal: controller.signal });
         if (!res.ok) return;
         const data = await res.json();
-        setNodeDetail(data);
+        if (!cancelled && data?.id === selectedNodeId) {
+          setNodeDetail(data);
+          setNodeDetailOwnerId(selectedNodeId);
+        }
       } catch (error) {
+        if ((error as Error).name === 'AbortError') return;
         console.error('Failed to fetch knowledge node detail:', error);
       } finally {
-        setIsLoading(false);
+        if (!cancelled && !controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    setNodeDetail(null);
-    setIsCardOpen(false);
     fetchDetail();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [selectedNode]);
 
   useEffect(() => {
-    if (!isOpen) setIsCardOpen(false);
-  }, [isOpen]);
+    previouslyFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
-  const displayNode = (nodeDetail || selectedNode) as KnowledgeNodeDetail | null;
+    return () => {
+      const previous = previouslyFocusedElementRef.current;
+      if (previous?.isConnected && previous !== document.body && previous !== document.documentElement) {
+        previous.focus();
+        return;
+      }
+      document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]')?.focus();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!window.matchMedia(MOBILE_INSPECTOR_QUERY).matches) return;
+    window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus();
+    });
+  }, [selectedNode.id]);
+
+  const handleInspectorKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      onClose();
+      return;
+    }
+
+    if (event.key !== 'Tab' || !window.matchMedia(MOBILE_INSPECTOR_QUERY).matches) return;
+
+    const focusable = Array.from(
+      inspectorRef.current?.querySelectorAll<HTMLElement>(INSPECTOR_FOCUSABLE_SELECTOR) ?? []
+    ).filter((item) => !item.hasAttribute('disabled') && item.tabIndex !== -1);
+    if (focusable.length === 0) {
+      event.preventDefault();
+      inspectorRef.current?.focus();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }, [onClose]);
+
+  const currentNodeDetail = nodeDetailOwnerId === selectedNode.id ? nodeDetail : null;
+  const displayNode = (currentNodeDetail || selectedNode) as KnowledgeNodeDetail | null;
   const metadata = (displayNode?.metadata ?? {}) as Record<string, unknown>;
   const relatedNodes = displayNode?.relatedNodes || [];
 
@@ -128,7 +331,7 @@ export function ResourcePanel({
     nodes: relatedNodes.filter((item) => item.category === category),
   })).filter((group) => group.nodes.length > 0);
 
-  if (!isOpen || !selectedNode || !displayNode) return null;
+  if (!displayNode) return null;
 
   const chapterName = resolveChapterName(
     displayNode.chapter,
@@ -140,8 +343,8 @@ export function ResourcePanel({
   const infographSrc = resolveInfographSrc(infographResource);
   const knowledgeCardPaths = mdxPaths.filter(
     (path) =>
-      path.startsWith('content/concepts/')
-      || path.startsWith('course-content/runtime/knowledge/cards/')
+      path.startsWith('course-content/runtime/knowledge/cards/nodes/')
+      && path.endsWith('.md')
   );
   const hasKnowledgeCard = knowledgeCardPaths.length > 0;
 
@@ -149,6 +352,13 @@ export function ResourcePanel({
   const bloomLabel = getBloomLabel(displayNode.bloomLevel);
   const knowledgeLabel = getKnowledgeDimLabel(displayNode.knowledgeDim);
   const isVirtualChapter = isChapterNodeId(displayNode.id) || Boolean(metadata.isVirtualChapter);
+  const launchAction = resolveKnowledgeResourceLaunch(displayNode);
+  const returnHref = `/knowledge?node=${encodeURIComponent(displayNode.id)}`;
+  const evidenceHref = launchAction.lessonId
+    ? `/profile/evidence?lessonId=${encodeURIComponent(launchAction.lessonId)}`
+    : '/profile/evidence';
+  const addToPlaylistHref = `/playlists/new?nodeId=${encodeURIComponent(displayNode.id)}`;
+  const learningTaskHref = `/assessment/adaptive-practice?nodeId=${encodeURIComponent(displayNode.id)}&intent=contextual-recommendation`;
 
   const examples = toStringArray(metadata.examples);
   const keywords = toStringArray(metadata.keywords);
@@ -163,36 +373,50 @@ export function ResourcePanel({
 
   const panelTheme = isLightTheme
     ? {
-        shell: 'border-l border-slate-300 bg-white text-slate-800',
-        header: 'border-slate-200 bg-white/95 text-slate-800',
-        muted: 'text-slate-600',
-        block: 'border-slate-200 bg-slate-50',
-        blockTitle: 'text-slate-700',
-        text: 'text-slate-700',
+        shell: 'border border-platform-border bg-platform-surface text-platform-fg-primary',
+        header: 'border-platform-border bg-platform-surface/95 text-platform-fg-primary',
+        muted: 'text-platform-fg-muted',
+        block: 'border-platform-border bg-platform-canvas-muted',
+        blockTitle: 'text-platform-fg-primary',
+        text: 'text-platform-fg-secondary',
       }
     : {
-        shell: 'border-l border-blue-500/30 bg-[#091540] text-slate-100',
-        header: 'border-blue-500/30 bg-[#091540] text-slate-100',
-        muted: 'text-slate-400',
-        block: 'border-blue-500/20 bg-[#0c1d4f]/50',
-        blockTitle: 'text-blue-400',
-        text: 'text-slate-300',
+        shell: 'border border-platform-border bg-platform-surface text-platform-fg-primary',
+        header: 'border-platform-border bg-platform-surface/95 text-platform-fg-primary',
+        muted: 'text-platform-fg-muted',
+        block: 'border-platform-border bg-platform-canvas-muted',
+        blockTitle: 'text-platform-fg-primary',
+        text: 'text-platform-fg-secondary',
       };
 
   return (
     <aside
-      className={`absolute right-0 top-0 z-50 h-full w-[320px] transform overflow-y-auto transition-transform duration-300 ${panelTheme.shell} ${
-        isOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}
+      ref={inspectorRef}
+      role="dialog"
+      aria-modal="false"
+      tabIndex={-1}
+      onKeyDown={handleInspectorKeyDown}
+      className={`fixed inset-x-2 bottom-20 z-50 max-h-[calc(72vh-4.5rem)] overflow-y-auto rounded-xl pb-16 shadow-xl transition-transform duration-300 lg:fixed lg:inset-x-auto lg:bottom-20 lg:right-[var(--knowledge-workspace-inset,1rem)] lg:top-[calc(18.625rem+var(--knowledge-workspace-inset,1rem))] lg:z-40 lg:max-h-none lg:w-[var(--knowledge-inspector-width,clamp(22.5rem,30vw,28.75rem))] lg:rounded-xl lg:pb-0 lg:shadow-2xl xl:top-[calc(72px+var(--knowledge-workspace-inset,1rem))] ${panelTheme.shell} translate-x-0`}
+      data-knowledge-local-panel="resource-panel"
+      data-knowledge-inspector="floating-right-edge"
+      data-knowledge-inspector-responsive="desktop-floating-mobile-sheet"
+      data-knowledge-inspector-focus-contract="mobile-trap-escape-return"
+      data-knowledge-inspector-dock-safe-area="bottom-padding"
+      aria-label="知识节点检查器"
     >
-      <div className={`sticky top-0 z-10 flex items-center justify-between border-b p-4 ${panelTheme.header}`}>
+      <div
+        className={`sticky top-0 z-10 flex items-center justify-between border-b p-4 ${panelTheme.header}`}
+        data-knowledge-inspector-section="header"
+      >
         <div className="flex min-w-0 items-center gap-2">
-          <FileText className="h-4 w-4 shrink-0 text-sky-500" />
+          <FileText className="h-4 w-4 shrink-0 text-platform-action-primary" />
           <span className="truncate text-sm font-medium">{selectedNode.name}</span>
         </div>
-        <button
+        <button type="button"
+          ref={closeButtonRef}
           onClick={onClose}
-          className={`shrink-0 transition-colors ${isLightTheme ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-slate-200'}`}
+          className="shrink-0 text-platform-fg-muted transition-colors hover:text-platform-fg-primary"
+          aria-label="关闭知识节点检查器"
         >
           <X className="h-4 w-4" />
         </button>
@@ -202,9 +426,9 @@ export function ResourcePanel({
 
       {!isLoading && (
         <div className="space-y-4 p-4">
-          <section className="space-y-3">
+          <section className="space-y-3" data-knowledge-inspector-section="semantic-metadata">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded-full bg-sky-600 px-2.5 py-0.5 text-xs font-medium text-white">
+              <span className="inline-flex items-center rounded-full bg-platform-action-primary px-2.5 py-0.5 text-xs font-medium text-platform-fg-inverse">
                 {isVirtualChapter ? '章节节点' : typeLabel}
               </span>
               {bloomLabel && !isVirtualChapter && (
@@ -232,13 +456,15 @@ export function ResourcePanel({
               )}
             </div>
 
-            <p className={`text-sm leading-relaxed ${panelTheme.text}`}>{displayNode.description}</p>
+            <p className={`text-sm leading-relaxed ${panelTheme.text}`} data-knowledge-inspector-section="summary">
+              {displayNode.description}
+            </p>
           </section>
 
           {infographSrc && (
-            <section className={`overflow-hidden rounded-lg border ${panelTheme.block}`}>
+            <section className={`overflow-hidden rounded-lg border ${panelTheme.block}`} data-knowledge-inspector-section="infograph-preview">
               <div className={`flex items-center gap-2 border-b px-3 py-2 text-sm font-medium ${panelTheme.blockTitle} ${isLightTheme ? 'border-slate-200' : 'border-blue-500/20'}`}>
-                <ImageIcon className="h-4 w-4 text-sky-500" />
+                <ImageIcon className="h-4 w-4 text-platform-action-primary" />
                 知识点信息图
               </div>
               <Image
@@ -307,9 +533,9 @@ export function ResourcePanel({
           )}
 
           {!isVirtualChapter && relationGroups.length > 0 && (
-            <section className={`rounded-lg border p-3 ${panelTheme.block}`}>
+            <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="relation-overview">
               <div className="mb-3 flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-sky-500" />
+                <Link2 className="h-4 w-4 text-platform-action-primary" />
                 <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>关联知识点</h3>
               </div>
               <div className="space-y-2">
@@ -347,7 +573,7 @@ export function ResourcePanel({
                         <ul className="space-y-1 px-2 pb-2">
                           {group.nodes.map((node) => (
                             <li key={node.id}>
-                              <button
+                              <button type="button"
                                 onClick={() => onNodeClick?.(node.id)}
                                 className={`group flex w-full items-center gap-2 rounded-md p-2 text-left transition-colors ${
                                   isLightTheme ? 'bg-slate-50 hover:bg-slate-100' : 'bg-slate-800/50 hover:bg-slate-700/50'
@@ -384,10 +610,10 @@ export function ResourcePanel({
           )}
 
           {!isVirtualChapter && (
-            <section className={`rounded-lg border p-3 ${panelTheme.block}`}>
+            <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="evidence-sources">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-sky-500" />
+                  <BookOpen className="h-4 w-4 text-platform-action-primary" />
                   <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>知识卡片</h3>
                 </div>
                 {hasKnowledgeCard ? (
@@ -404,6 +630,77 @@ export function ResourcePanel({
                 ) : (
                   <span className={`text-xs ${panelTheme.muted}`}>未关联</span>
                 )}
+              </div>
+            </section>
+          )}
+
+          {!isVirtualChapter && (
+            <section
+              className="rounded-lg border border-platform-border bg-platform-surface p-3"
+              data-resource-node-launch-contract="launch-return-evidence"
+              data-knowledge-inspector-section="learning-actions"
+            >
+              <div className="mb-3 flex items-center gap-2">
+                <ArrowRight className="h-4 w-4 text-platform-action-primary" />
+                <h3 className="text-sm font-medium text-platform-fg-primary">学习路径动作</h3>
+              </div>
+              <div className="grid gap-2">
+                {launchAction.href ? (
+                  <a
+                    href={launchAction.href}
+                    className="inline-flex items-center justify-between rounded-md border border-platform-border bg-platform-action-subtle px-3 py-2 text-xs font-medium text-platform-fg-primary transition-colors hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                    data-resource-node-action="launch"
+                  >
+                    {launchAction.label}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </a>
+                ) : (
+                  <div
+                    className="rounded-md border border-platform-border bg-platform-action-subtle px-3 py-2 text-xs text-platform-fg-secondary"
+                    data-resource-node-action="launch"
+                    aria-disabled="true"
+                  >
+                    {launchAction.reason}
+                  </div>
+                )}
+                <a
+                  href={returnHref}
+                  className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                  data-resource-node-action="return-to-learning-path"
+                >
+                  返回当前知识路径
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href={evidenceHref}
+                  className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                  data-resource-node-action="review-evidence"
+                >
+                  {launchAction.lessonId ? '查看关联课次证据' : '进入证据浏览器'}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href={addToPlaylistHref}
+                  className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                  data-resource-node-action="add-to-course-flow"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <ListPlus className="h-3.5 w-3.5" />
+                    加入课程流
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href={learningTaskHref}
+                  className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                  data-resource-node-action="create-learning-task"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <Target className="h-3.5 w-3.5" />
+                    创建学习任务
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
               </div>
             </section>
           )}

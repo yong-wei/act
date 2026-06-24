@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { BookOpen, Layers, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -9,7 +9,7 @@ import type { LessonKnowledgeCard } from '@/resources/interactive-learning/share
 
 const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
   {
-    id: 'node-differential-equation-model',
+    id: '微分方程_2_775c96a3',
     name: '微分方程模型',
     nodeType: 'THEORY',
     description: '用输入/输出的导数关系描述系统动态。',
@@ -22,7 +22,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['时域分析', '传递函数推导', '控制器设计'],
   },
   {
-    id: 'node-modeling-methods',
+    id: '分析法_2_bc08248e',
     name: '机理建模方法',
     nodeType: 'THEORY',
     description: '基于物理/化学定律分析系统动态。',
@@ -34,7 +34,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['电路系统', '机械系统', '热力系统'],
   },
   {
-    id: 'node-black-box-modeling',
+    id: '实验法_系统辨识__2_b07364ee',
     name: '黑箱建模（系统辨识）',
     nodeType: 'THEORY',
     description: '用实验数据逼近系统模型。',
@@ -46,7 +46,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['系统辨识', '数据驱动建模'],
   },
   {
-    id: 'node-system-model-types',
+    id: '系统模型转换_1_18f4b178',
     name: '控制系统模型类型',
     nodeType: 'THEORY',
     description: '时域、复数域与频率域的模型表达。',
@@ -58,7 +58,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['模型转换', '多域分析'],
   },
   {
-    id: 'node-differential-modeling-steps',
+    id: '动态数学模型_2_b7f98344',
     name: '微分方程建模步骤',
     nodeType: 'METHOD',
     description: '确定变量、列方程、消去中间量。',
@@ -70,7 +70,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['建模流程', '工程建模'],
   },
   {
-    id: 'node-modeling-examples',
+    id: '数学模型_2_b21e01f6',
     name: '典型建模案例',
     nodeType: 'THEORY',
     description: 'RLC、电机与机械位移系统的建模路径。',
@@ -82,7 +82,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['RLC 电路', '电机系统', '机械系统'],
   },
   {
-    id: 'node-linearization-equilibrium',
+    id: '非线性微分方程的线性化_2_caa86ba6',
     name: '非线性模型线性化',
     nodeType: 'THEORY',
     description: '在均衡点附近做泰勒展开保留一阶项。',
@@ -94,7 +94,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['小信号分析', '局部线性控制'],
   },
   {
-    id: 'node-motion-modes',
+    id: '模态_2_d586e1e6',
     name: '运动模态与齐次解',
     nodeType: 'THEORY',
     description: '齐次微分方程解可表示为模态叠加。',
@@ -111,22 +111,32 @@ interface DiffKnowledgeDeckProps extends BaseWidgetProps {}
 
 export default function DiffKnowledgeDeck({ onComplete, onStateChange }: DiffKnowledgeDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(KNOWLEDGE_CARDS[0]?.id ?? 'node-differential-equation-model');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? '微分方程_2_775c96a3';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeCard = useMemo(
     () => KNOWLEDGE_CARDS.find((card) => card.id === activeId) ?? KNOWLEDGE_CARDS[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / KNOWLEDGE_CARDS.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { cardId: activeId, visitedCount: nextVisited.length },
+      data: { cardId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -142,7 +152,7 @@ export default function DiffKnowledgeDeck({ onComplete, onStateChange }: DiffKno
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -159,9 +169,9 @@ export default function DiffKnowledgeDeck({ onComplete, onStateChange }: DiffKno
           </div>
           <div className="mt-4 space-y-2">
             {KNOWLEDGE_CARDS.map((card, index) => (
-              <button
+              <button type="button"
                 key={card.id}
-                onClick={() => setActiveId(card.id)}
+                onClick={() => recordVisit(card.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === card.id
                     ? 'bg-slate-900 text-white'

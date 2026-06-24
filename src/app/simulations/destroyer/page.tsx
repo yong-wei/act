@@ -1,25 +1,26 @@
-import dynamicImport from 'next/dynamic';
-import { FeaturePageNav } from '@/components/shared/feature-page-nav';
+import { SimulationShell } from '../_components/simulation-shell';
+import { DestroyerSimulation } from '../_components/simulation-loaders';
+import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { buildFeedbackTaskContext, type FeedbackTaskQuery } from '@/lib/student-feedback-task-contract';
 
 export const dynamic = 'force-dynamic';
 
-const DestroyerSimulation = dynamicImport(
-  () => import('@/resources/simulations/simulations/destroyer-simulation'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[560px] items-center justify-center text-slate-300">
-        正在加载仿真场景...
-      </div>
-    ),
-  },
-);
-
-export default function DestroyerSimulationPage() {
+export default async function DestroyerSimulationPage({
+  searchParams,
+}: {
+  searchParams?: Promise<FeedbackTaskQuery>;
+}) {
+  const params = await searchParams;
+  const feedbackContext = buildFeedbackTaskContext(params ?? {});
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
-      <FeaturePageNav title="军用驱逐舰战术机动仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
+    <SimulationShell
+      title="军用驱逐舰战术机动仿真"
+      subtitle="Nomoto 船舶运动模型 · 航向保持与战术机动"
+      activeHref="/simulations/destroyer"
+      localToolTemplate="heading-control"
+    >
+      <StudentFeedbackTaskPanel context={feedbackContext} surface="simulation-destroyer" className="mb-4" />
       <DestroyerSimulation />
-    </div>
+    </SimulationShell>
   );
 }

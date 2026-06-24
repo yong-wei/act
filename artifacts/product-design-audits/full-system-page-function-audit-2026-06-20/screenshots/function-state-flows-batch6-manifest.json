@@ -1,0 +1,202 @@
+{
+  "generatedAt": "2026-06-20T04:16:39.403Z",
+  "baseUrl": "http://localhost:3100",
+  "screenshots": [
+    {
+      "file": "screenshots/41-function-state-flows-batch6/teacher-valid-classroom-review-desktop.png",
+      "url": "http://localhost:3100/classroom/teacher/cmplw3180000kuhvl8qzopj5j/review",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:16:33.469Z",
+      "role": "teacher",
+      "route": "/classroom/teacher/cmplw3180000kuhvl8qzopj5j/review",
+      "viewport": "desktop",
+      "state": "valid-ended-classroom-review",
+      "fixture": {
+        "sessionId": "cmplw3180000kuhvl8qzopj5j"
+      },
+      "observation": "教师访问有班级、有互动、有 class-summary report 的已结束课堂复盘页。"
+    },
+    {
+      "file": "screenshots/41-function-state-flows-batch6/teacher-valid-classroom-review-mobile.png",
+      "url": "http://localhost:3100/classroom/teacher/cmplw3180000kuhvl8qzopj5j/review",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:16:36.064Z",
+      "role": "teacher",
+      "route": "/classroom/teacher/cmplw3180000kuhvl8qzopj5j/review",
+      "viewport": "mobile",
+      "state": "valid-ended-classroom-review-mobile",
+      "fixture": {
+        "sessionId": "cmplw3180000kuhvl8qzopj5j"
+      },
+      "observation": "教师移动端访问有效已结束课堂复盘页。"
+    },
+    {
+      "file": "screenshots/41-function-state-flows-batch6/admin-config-ai-model-test-forced-error-desktop.png",
+      "url": "http://localhost:3100/admin/config",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:16:38.632Z",
+      "role": "admin",
+      "route": "/admin/config",
+      "viewport": "desktop",
+      "state": "ai-model-test-error-forced",
+      "observation": "通过拦截测试 API 模拟 provider 失败，检查配置页错误反馈状态。"
+    },
+    {
+      "file": "screenshots/41-function-state-flows-batch6/login-mobile-keyboard-focus-after-tabs.png",
+      "url": "http://localhost:3100/login",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:16:39.386Z",
+      "role": "guest",
+      "route": "/login",
+      "viewport": "mobile",
+      "state": "keyboard-focus-after-8-tabs",
+      "observation": "移动视口键盘 Tab 8 次后的焦点可见性抽查。",
+      "focusables": [
+        {
+          "index": 0,
+          "tag": "a",
+          "role": "",
+          "type": "",
+          "name": "AI-OBE船舶智控平台Mission Control for Maritime Education",
+          "ariaLabel": "",
+          "href": "/"
+        },
+        {
+          "index": 1,
+          "tag": "a",
+          "role": "",
+          "type": "",
+          "name": "个人中心回调",
+          "ariaLabel": "",
+          "href": "/login?callbackUrl=%2Fprofile"
+        },
+        {
+          "index": 2,
+          "tag": "a",
+          "role": "",
+          "type": "",
+          "name": "返回产品地图",
+          "ariaLabel": "",
+          "href": "/"
+        },
+        {
+          "index": 3,
+          "tag": "a",
+          "role": "",
+          "type": "",
+          "name": "浏览互动学习",
+          "ariaLabel": "",
+          "href": "/interactive-learning"
+        },
+        {
+          "index": 4,
+          "tag": "input",
+          "role": "",
+          "type": "text",
+          "name": "学号/工号",
+          "ariaLabel": "",
+          "href": ""
+        },
+        {
+          "index": 5,
+          "tag": "input",
+          "role": "",
+          "type": "password",
+          "name": "密码",
+          "ariaLabel": "",
+          "href": ""
+        },
+        {
+          "index": 6,
+          "tag": "button",
+          "role": "",
+          "type": "submit",
+          "name": "登录",
+          "ariaLabel": "",
+          "href": ""
+        },
+        {
+          "index": 7,
+          "tag": "a",
+          "role": "",
+          "type": "",
+          "name": "学习课程、知识图谱与互动学习入口。",
+          "ariaLabel": "",
+          "href": "/knowledge"
+        },
+        {
+          "index": 8,
+          "tag": "a",
+          "role": "",
+          "type": "",
+          "name": "练习自适应学习路径、诊断与补强建议。",
+          "ariaLabel": "",
+          "href": "/assessment/adaptive-practice"
+        },
+        {
+          "index": 9,
+          "tag": "a",
+          "role": "",
+          "type": "",
+          "name": "挑战竞技场挑战、榜单与正式评价。",
+          "ariaLabel": "",
+          "href": "/arena"
+        },
+        {
+          "index": 10,
+          "tag": "a",
+          "role": "",
+          "type": "",
+          "name": "实验仿真对象、控制工作台与参数探索。",
+          "ariaLabel": "",
+          "href": "/simulations"
+        },
+        {
+          "index": 11,
+          "tag": "a",
+          "role": "",
+          "type": "",
+          "name": "复盘个人证据、成长轨迹与学习报告。",
+          "ariaLabel": "",
+          "href": "/profile/evidence"
+        },
+        {
+          "index": 12,
+          "tag": "a",
+          "role": "",
+          "type": "",
+          "name": "账号与画像登录、账号、个人中心与回调目标。",
+          "ariaLabel": "",
+          "href": "/login?callbackUrl=%2Fprofile"
+        },
+        {
+          "index": 13,
+          "tag": "button",
+          "role": "",
+          "type": "button",
+          "name": "button",
+          "ariaLabel": "",
+          "href": ""
+        },
+        {
+          "index": 14,
+          "tag": "input",
+          "role": "",
+          "type": "text",
+          "name": "全局 AI 问题输入框",
+          "ariaLabel": "全局 AI 问题输入框",
+          "href": ""
+        },
+        {
+          "index": 15,
+          "tag": "button",
+          "role": "",
+          "type": "button",
+          "name": "打开工具与页面工具菜单",
+          "ariaLabel": "打开工具与页面工具菜单",
+          "href": ""
+        }
+      ]
+    }
+  ]
+}

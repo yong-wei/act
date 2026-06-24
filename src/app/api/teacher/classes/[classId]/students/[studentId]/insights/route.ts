@@ -30,6 +30,15 @@ import {
   type TeacherSessionQualityStatus,
   type TeacherStudentEvidenceStatus,
 } from '@/lib/data-governance/teacher-evidence-governance';
+import {
+  createPrismaDiagnosisReportSnapshotStore,
+  hasDiagnosisReportSnapshotPersistenceTable,
+  readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence,
+} from '@/lib/data-governance/control-correction-diagnosis-profile';
+import {
+  materializeRoleBasedLearningDiagnosis,
+  type RoleBasedLearningDiagnosis,
+} from '@/lib/data-governance/role-based-learning-diagnosis';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +48,6 @@ type TeacherStudentRiskItem = {
   description: string;
   triggeredAt: string;
   occurrenceCount: number;
-  evidence: Record<string, unknown>;
 };
 
 type TeacherStudentGrowthItem = {
@@ -48,7 +56,6 @@ type TeacherStudentGrowthItem = {
   description: string;
   recordType: string;
   occurredAt: string;
-  evidence: Record<string, unknown>;
 };
 
 type TeacherStudentRecommendationItem = {
@@ -77,7 +84,7 @@ type TeacherStudentEvidenceItem = {
   questionSummaries?: Array<{
     questionId?: string;
     prompt?: string;
-    studentAnswer?: string | null;
+    studentAnswerRedacted?: boolean;
     referenceAnswer?: string;
     isCorrect?: boolean;
   }>;
@@ -192,6 +199,7 @@ export interface TeacherStudentInsightsPayload {
     items: TeacherStudentEvidenceItem[];
   }>;
   evidenceDrawer: TeacherStudentEvidenceDrawer;
+  diagnosis: RoleBasedLearningDiagnosis;
 }
 
 export async function GET(
@@ -411,6 +419,39 @@ export async function GET(
       studentSessionReports,
       classSessionReports,
     });
+    const diagnosisReportSnapshot = await hasDiagnosisReportSnapshotPersistenceTable(prisma)
+      ? await readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence(
+        createPrismaDiagnosisReportSnapshotStore(prisma.diagnosisReportSnapshot),
+        {
+          view: 'teacher-student',
+          goalId: 'control-correction',
+          userId: session.user.id,
+          targetUserId: studentId,
+          classId,
+          teacherClassIds: [classId],
+        }
+      )
+      : null;
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      view: 'teacher-student',
+      goalId: 'control-correction',
+      userId: session.user.id,
+      targetUserId: studentId,
+      classId,
+      teacherClassIds: [classId],
+      learnerState: currentSnapshot
+        ? { generatedAt: currentSnapshot.snapshotAt.toISOString() }
+        : null,
+      featureCache: studentEvidenceFeatureRead.cache,
+      teacherReport: {
+        classInfo: {
+          classId,
+          studentCount: 1,
+        },
+        studentDrilldowns: [{ userId: studentId }],
+      },
+      diagnosisReportSnapshot,
+    });
 
     const payload: TeacherStudentInsightsPayload = {
       student: {
@@ -474,7 +515,6 @@ export async function GET(
         description: record.description,
         recordType: record.recordType,
         occurredAt: record.occurredAt.toISOString(),
-        evidence: (record.evidenceJson ?? {}) as Record<string, unknown>,
       })),
       recommendations: recommendations.map((recommendation) => ({
         id: recommendation.id,
@@ -495,6 +535,7 @@ export async function GET(
         items: evidenceSummary[dimension] ?? [],
       })),
       evidenceDrawer,
+      diagnosis,
     };
 
     return NextResponse.json(payload);
@@ -563,7 +604,6 @@ function summarizeRiskFlags(
         description: flag.description,
         triggeredAt: flag.triggeredAt.toISOString(),
         occurrenceCount: 1,
-        evidence: (flag.evidenceJson ?? {}) as Record<string, unknown>,
       });
       continue;
     }
@@ -571,7 +611,6 @@ function summarizeRiskFlags(
     existing.occurrenceCount += 1;
     if (flag.triggeredAt.getTime() > new Date(existing.triggeredAt).getTime()) {
       existing.triggeredAt = flag.triggeredAt.toISOString();
-      existing.evidence = (flag.evidenceJson ?? {}) as Record<string, unknown>;
     }
   }
 
@@ -749,12 +788,21 @@ function sanitizeEvidenceSummary(
       dimension,
       Array.isArray(items)
         ? items.slice(0, 6).map((item) => ({
-            ...item,
+            factType: item.factType,
+            outcome: item.outcome,
+            score: item.score,
+            moduleId: item.moduleId,
+            lessonId: item.lessonId,
+            sourceLogId: item.sourceLogId,
+            evidenceTitle: truncateOptionalText(item.evidenceTitle),
+            stepId: item.stepId,
             questionSummaries: item.questionSummaries?.slice(0, 3).map((question) => ({
-              ...question,
+              questionId: question.questionId,
               prompt: truncateOptionalText(question.prompt),
-              studentAnswer: truncateNullableText(question.studentAnswer),
+              studentAnswerRedacted: typeof (question as { studentAnswer?: unknown }).studentAnswer === 'string' &&
+                ((question as { studentAnswer?: string }).studentAnswer?.length ?? 0) > 0,
               referenceAnswer: truncateOptionalText(question.referenceAnswer),
+              isCorrect: question.isCorrect,
             })),
           }))
         : [],
@@ -764,11 +812,6 @@ function sanitizeEvidenceSummary(
 
 function truncateOptionalText(value: string | undefined, maxLength: number = 96) {
   if (typeof value !== 'string') return undefined;
-  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
-}
-
-function truncateNullableText(value: string | null | undefined, maxLength: number = 96) {
-  if (typeof value !== 'string') return value ?? null;
   return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
 }
 

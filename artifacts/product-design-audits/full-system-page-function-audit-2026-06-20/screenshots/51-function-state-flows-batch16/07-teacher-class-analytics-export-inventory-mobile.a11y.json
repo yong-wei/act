@@ -1,0 +1,515 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2",
+    "h1": [
+      "教师工作台",
+      "班级学情总览"
+    ],
+    "activeElement": {
+      "tag": "body",
+      "type": "",
+      "name": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 班级学情总览 治理结果部分可用 2024自动化 · 143 名学生 · 25 天前更新 刷新数据 从治理结果回看班级学情 这里不再展示孤立的技术分和伦理分，而是围绕能力矩阵、风险分层、治理覆盖度和重点学生，为教师提供可行动的班级判断依据。 治理覆盖进度 当前仅覆盖 135/143 名学生，需结合课堂记录综合判断。 135/143 已生成画像 班级总体指数 31.1 最新班级快照与学生画像聚合值 重点关注学生 135 中高风险或整体表现偏弱 高风险学生 0 建议优先一对一跟进 能力维度概览 六维能力均值与波动，可快速判断本班共性短板。 控制建模与分析 均值 40.4 / 波动 5.6 参数设计与调优 均值 30.1 / 波动 33.1 跨域迁移与联动 均值 25.5 / 波动 23.9 工程决策与约束 均值 38.3 / 波动 39.6 探究反思与提示词 均值 20.2 / 波动 28.4 自主学习进展 均值 32.2 / 波动 4 画像等级分布 基于当前治理结果的班级层级结构。 优秀 0 人 良好 0 人 中等 8 人 需提升 33 人 需关注 60 人 能力矩阵 按学生逐项查看能力分、变化趋势或风险等级，让教师先看到“谁需要关注”，再决定看哪一门能力。 能力分 近阶段变化 风险等级 学生 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 陈范洋 242210301105 41 0 0 0 0 34 陈凤荣 242210301106 45 0 0 0 0 36 韦俊宇 242210301324 50 0 0 0 0 30 魏延玺 242210301325 43 0 0 0 0 37 吴晓风 242210301326 36 60 0 70 0 31 肖毅 242210301327 36 63 47 74 60 31 徐慧聪 242210301328 44 0 40 50 0 35 薛鸣涛 242210301329 38 70 60 90 0 31 杨伊凡 242210301330 37 0 0 0 0 30 杨逸凡 242210301331 - - - - - - 袁泽安 242210301333 43 0 0 0 0 37 张池铖 242210301334 43 0 0 0 0 37 张迅 242210301335 42 69 53 89 60 34 智栋 242210301336 50 0 40 50 0 21 朱成锦 242210301337 39 63 46 71 60 35 丁至翰 242210301338 - - - - - - 陈李 242210301107 - - - - - - 赖梦雯 242210188402 45 0 0 0 0 36 沈越洋 242210288524 44 70 0 0 0 33 杜依轩 242210288602 50 0 0 0 0 30 黄韵茹 242210488104 - - - - - - 宋志远 242210488231 43 0 40 0 60 33 闵舒涵 242210488306 44 0 0 0 0 36 桑思甜 242210488308 43 0 0 0 0 38 张一诺 242210488414 - - - - - - 陈家骥 242210501111 42 68 47 75 60 38 沈俊杰 242210501123 41 70 60 90 0 36 吴宗保 242210501131 42 0 0 0 0 38 杨超逸 242210504234 42 0 40 50 60 35 张悦 242210688609 45 0 0 0 0 35 王誉轩 242210688934 35 68 50 88 60 29 吴子恒 242210802122 38 69 48 71 60 32 黄丹琳 242210901204 - - - - - - 刘壮举 242210901318 43 60 30 80 0 35 罗圣琪 242210902206 44 0 0 0 0 34 邹童乐 242211801234 44 0 0 0 0 33 王浩宇 242211901234 37 63 48 83 0 31 祁翔 242211904124 39 0 40 0 60 30 孙远 242211904226 50 0 0 0 0 30 朱邦威 242212188144 35 68 53 88 0 30 李兆涵 242212188211 44 0 0 0 0 37 吴卓文 242212188637 24 0 0 0 0 19 左乔生 222210301333 - - - - - - 周守运 212241802339 50 0 0 0 0 30 何倩 242210301101 - - - - - - 胡梦凡 242210301102 45 0 0 0 0 35 张宁 242210301103 - - - - - - 赵璟铭 242210301104 45 0 0 0 0 35 陈奕彬 242210301108 - - - - - - 顾福智 242210301109 - - - - - - 管梦航 242210301110 - - - - - - 郭子民 242210301112 - - - - - - 黄文涵 242210301113 43 0 0 0 0 37 鞠周宇 242210301114 - - - - - - 孔泽霖 242210301115 - - - - - - 刘庆 242210301116 31 68 50 88 60 26 罗俊豪 242210301117 37 50 40 70 60 31 罗庆 242210301118 - - - - - - 宋文强 242210301119 31 65 45 85 60 29 孙皓然 242210301120 39 64 48 70 60 31 孙建潼 242210301121 32 70 58 86 0 28 覃振宝 242210301124 - - - - - - 唐煜 242210301125 39 68 50 88 60 35 王涵 242210301126 36 64 47 74 60 29 王麒善 242210301127 38 62 35 82 60 33 王润泽 242210301128 - - - - - - 王顺 242210301129 43 0 0 0 0 37 王蕴博 242210301130 - - - - - - 韦汉昌 242210301131 - - - - - - 杨俊毅 242210301132 - - - - - - 朱育兴 242210301136 44 0 0 0 0 36 曹思楠 242210301201 37 0 40 0 60 32 刘佳妮 242210301202 25 69 49 71 0 19 彭欣瑶 242210301203 39 63 43 73 60 33 张欣格 242210301205 47 0 40 50 0 31 高恒茂 242210301206 46 0 0 0 0 34 耿昱杰 242210301207 43 0 0 0 0 30 黄康杰 242210301208 43 0 0 0 0 37 季言旭 242210301209 - - - - - - 蒋祖羲 242210301210 41 0 0 0 0 39 李俊涛 242210301211 - - - - - - 李茂翼 242210301212 37 69 48 71 60 31 梁冬旭 242210301213 44 0 0 0 0 36 梁志豪 242210301214 35 70 60 90 0 35 刘邦泰 242210301216 35 69 57 89 0 28 柳越 242210301218 42 69 57 89 0 36 龙凯 242210301219 27 0 0 0 0 20 罗智杰 242210301220 44 60 30 80 0 32 秦楷钦 242210301221 - - - - - - 孙超 242210301222 50 0 0 0 0 30 唐英泽 242210301223 43 0 0 0 0 37 唐泽 242210301224 - - - - - - 王熠乘 242210301226 41 68 53 88 0 35 夏子俊 242210301228 - - - - - - 徐程程 242210301229 - - - - - - 薛木然 242210301230 - - - - - - 叶锦涛 242210301231 - - - - - - 余灿 242210301232 - - - - - - 张嘉誉 242210301233 34 69 57 89 0 30 张智奥 242210301235 - - - - - - 宗济贤 242210301237 41 70 54 90 60 34 郝心悦 242210301301 - - - - - - 刘惠君 242210301302 46 0 40 50 0 32 王彩云 242210301303 39 68 51 88 60 32 王雨湘 242210301304 50 0 0 0 0 30 张心缘 242210301305 41 0 0 0 0 38 蔡杰 242210301306 41 0 0 0 0 33 陈昊 242210301307 - - - - - - 陈强 242210301308 - - - - - - 单琮芫 242210301310 45 0 0 0 0 36 杜文鑫 242210301311 37 70 50 70 0 30 方耀远 242210301312 43 0 0 0 0 37 谷佟 242210301313 42 70 0 0 0 36 顾文仪 242210301314 50 0 0 0 0 30 黄奕嘉 242210301315 - - - - - - 贾滨赫 242210301316 39 68 50 88 60 33 李金峰 242210301317 38 68 50 88 60 33 李志同 242210301318 30 70 60 90 0 25 梁宏 242210301319 39 68 50 88 60 31 滕铭志 242210301321 43 0 0 0 0 35 王雨航 242210301322 - - - - - - 张展鹏 242210301234 - - - - - - 周士旺 242210301236 47 0 0 0 0 33 俞睿 242210301332 - - - - - - 孙博扬 242210103219 42 0 40 0 60 33 刘宇硕 242210288617 - - - - - - 陈学鹏 242210688415 40 0 40 0 60 30 孙尚 242212188136 37 69 49 71 0 33 陈兴旺 242212288313 38 65 44 85 60 33 崔津铭 242210301309 40 50 40 70 60 32 刘中天 242210301320 41 0 40 50 60 34 王煜泽 242210301323 29 63 39 74 0 24 肖文涛 232210302124 - - - - - - 郭子豪 242210301111 28 0 0 0 0 25 孙天宇 242210301122 42 69 49 74 60 34 张杭靖 242210301133 33 0 40 0 60 25 赵超 242210301134 35 0 0 0 0 28 张佳宁 242210301204 37 68 50 88 60 31 林凯 242210301215 - - - - - - 万宇航 242210301225 50 0 0 0 0 30 王旭东 232210301121 - - - - - - 刘威辰 242210301217 35 65 50 83 60 29 吴学文 242210301227 40 68 46 71 60 35 重点学生 按风险、整体表现与成长记录综合排序，便于教师快速锁定跟进对象。 左乔生 中风险 近期表现平稳 控制建模与分析 参数设计与调优 综合指数 0 成长档案 0 条 肖文涛 中风险 近期表现平稳 控制建模与分析 参数设计与调优 综合指数 0 成长档案 0 条 王旭东 中风险 近期表现平稳 控制建模与分析 参数设计与调优 综合指数 0 成长档案 0 条 何倩 中风险 近期表现平稳 控制建模与分析 参数设计与调优 综合指数 0 成长档案 0 条 张宁 中风险 近期表现平稳 控制建模与分析 参数设计与调优 综合指数 0 成长档案 0 条 控灵 当前: analytics v2 你好，我是控灵。今天我们将探索「analytics v2」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+      "placeholder": ""
+    },
+    "alerts": [],
+    "inputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "valueLength": 0,
+        "hidden": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "a",
+        "name": "返回首页",
+        "disabled": false,
+        "href": "/"
+      },
+      {
+        "tag": "button",
+        "name": "张 张永韡 个人中心",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "教师总览",
+        "disabled": false,
+        "href": "/teacher"
+      },
+      {
+        "tag": "a",
+        "name": "班级",
+        "disabled": false,
+        "href": "/teacher/classes"
+      },
+      {
+        "tag": "a",
+        "name": "教案",
+        "disabled": false,
+        "href": "/teacher/lesson-plans"
+      },
+      {
+        "tag": "a",
+        "name": "资源",
+        "disabled": false,
+        "href": "/teacher/resources"
+      },
+      {
+        "tag": "a",
+        "name": "课前包",
+        "disabled": false,
+        "href": "/teacher/prep-packs"
+      },
+      {
+        "tag": "a",
+        "name": "课堂历史",
+        "disabled": false,
+        "href": "/teacher/history"
+      },
+      {
+        "tag": "a",
+        "name": "班级分析",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2"
+      },
+      {
+        "tag": "a",
+        "name": "",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf"
+      },
+      {
+        "tag": "button",
+        "name": "刷新数据",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "button",
+        "name": "能力分",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "button",
+        "name": "近阶段变化",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "button",
+        "name": "风险等级",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "陈范洋 242210301105",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hd560011g9q2cmuhs9oa"
+      },
+      {
+        "tag": "a",
+        "name": "陈凤荣 242210301106",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hd780015g9q29m7cqqnm"
+      },
+      {
+        "tag": "a",
+        "name": "韦俊宇 242210301324",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hihe00b1g9q25736uklw"
+      },
+      {
+        "tag": "a",
+        "name": "魏延玺 242210301325",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiji00b5g9q29rp690gp"
+      },
+      {
+        "tag": "a",
+        "name": "吴晓风 242210301326",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hilk00b9g9q2pclb1oj6"
+      },
+      {
+        "tag": "a",
+        "name": "肖毅 242210301327",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hinn00bdg9q2citenosq"
+      },
+      {
+        "tag": "a",
+        "name": "徐慧聪 242210301328",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hipp00bhg9q21uj9l15i"
+      },
+      {
+        "tag": "a",
+        "name": "薛鸣涛 242210301329",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hirv00blg9q2mkvhjc77"
+      },
+      {
+        "tag": "a",
+        "name": "杨伊凡 242210301330",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hitx00bpg9q2xrln6xgl"
+      },
+      {
+        "tag": "a",
+        "name": "杨逸凡 242210301331",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hiw600btg9q2gty5p21e"
+      },
+      {
+        "tag": "a",
+        "name": "袁泽安 242210301333",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj0n00c1g9q265jsunf7"
+      },
+      {
+        "tag": "a",
+        "name": "张池铖 242210301334",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj2q00c5g9q2p3hv7q5r"
+      },
+      {
+        "tag": "a",
+        "name": "张迅 242210301335",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj4s00c9g9q2skrua7yu"
+      },
+      {
+        "tag": "a",
+        "name": "智栋 242210301336",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj6u00cdg9q2ndp6zm9h"
+      },
+      {
+        "tag": "a",
+        "name": "朱成锦 242210301337",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hj8w00chg9q23sc5o8jr"
+      },
+      {
+        "tag": "a",
+        "name": "丁至翰 242210301338",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjb000clg9q2knpo75tf"
+      },
+      {
+        "tag": "a",
+        "name": "陈李 242210301107",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hd9e0019g9q24u8cbfrx"
+      },
+      {
+        "tag": "a",
+        "name": "赖梦雯 242210188402",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjf700ctg9q2v5xz3e6r"
+      },
+      {
+        "tag": "a",
+        "name": "沈越洋 242210288524",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjhe00cxg9q218rkctl2"
+      },
+      {
+        "tag": "a",
+        "name": "杜依轩 242210288602",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjjh00d1g9q2xtlf1y24"
+      },
+      {
+        "tag": "a",
+        "name": "黄韵茹 242210488104",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjnm00d9g9q24yg2lohf"
+      },
+      {
+        "tag": "a",
+        "name": "宋志远 242210488231",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjpq00ddg9q291lade7a"
+      },
+      {
+        "tag": "a",
+        "name": "闵舒涵 242210488306",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjs100dhg9q2by9h9w06"
+      },
+      {
+        "tag": "a",
+        "name": "桑思甜 242210488308",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hju500dlg9q2mfam8rem"
+      },
+      {
+        "tag": "a",
+        "name": "张一诺 242210488414",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjw700dpg9q2w7bfeczr"
+      },
+      {
+        "tag": "a",
+        "name": "陈家骥 242210501111",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hjyb00dtg9q2jljtcpn8"
+      },
+      {
+        "tag": "a",
+        "name": "沈俊杰 242210501123",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk0h00dxg9q2fx6l685d"
+      },
+      {
+        "tag": "a",
+        "name": "吴宗保 242210501131",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk2k00e1g9q2yytubxps"
+      },
+      {
+        "tag": "a",
+        "name": "杨超逸 242210504234",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk4m00e5g9q28mgfpkv1"
+      },
+      {
+        "tag": "a",
+        "name": "张悦 242210688609",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hk9100edg9q2zj3gagvn"
+      },
+      {
+        "tag": "a",
+        "name": "王誉轩 242210688934",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkb300ehg9q2spwm6m7t"
+      },
+      {
+        "tag": "a",
+        "name": "吴子恒 242210802122",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkd800elg9q2mtubq9vx"
+      },
+      {
+        "tag": "a",
+        "name": "黄丹琳 242210901204",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkfe00epg9q2r4ron9er"
+      },
+      {
+        "tag": "a",
+        "name": "刘壮举 242210901318",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkhg00etg9q21feuaja5"
+      },
+      {
+        "tag": "a",
+        "name": "罗圣琪 242210902206",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkji00exg9q2dpd3j84q"
+      },
+      {
+        "tag": "a",
+        "name": "邹童乐 242211801234",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hklv00f1g9q2pq6n00dt"
+      },
+      {
+        "tag": "a",
+        "name": "王浩宇 242211901234",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkof00f5g9q28p0wssip"
+      },
+      {
+        "tag": "a",
+        "name": "祁翔 242211904124",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hkr400f9g9q2zo45vbv9"
+      },
+      {
+        "tag": "a",
+        "name": "孙远 242211904226",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hktw00fdg9q2bj4ri8z8"
+      },
+      {
+        "tag": "a",
+        "name": "朱邦威 242212188144",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hky500flg9q2b8un91q8"
+      },
+      {
+        "tag": "a",
+        "name": "李兆涵 242212188211",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl0800fpg9q214jysswl"
+      },
+      {
+        "tag": "a",
+        "name": "吴卓文 242212188637",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hl2a00ftg9q22ybj39td"
+      },
+      {
+        "tag": "a",
+        "name": "左乔生 222210301333",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hck90005g9q21xy31um8"
+      },
+      {
+        "tag": "a",
+        "name": "周守运 212241802339",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hcro000hg9q2hx1k4b7b"
+      },
+      {
+        "tag": "a",
+        "name": "何倩 242210301101",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hcts000lg9q2nyh265ty"
+      },
+      {
+        "tag": "a",
+        "name": "胡梦凡 242210301102",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hcwc000pg9q252g9nazf"
+      },
+      {
+        "tag": "a",
+        "name": "张宁 242210301103",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hczy000tg9q2zvevd7cd"
+      },
+      {
+        "tag": "a",
+        "name": "赵璟铭 242210301104",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hd32000xg9q2p0hvtmxx"
+      },
+      {
+        "tag": "a",
+        "name": "陈奕彬 242210301108",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdbg001dg9q2pcmhfpob"
+      },
+      {
+        "tag": "a",
+        "name": "顾福智 242210301109",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hddi001hg9q2aa4e6hc7"
+      },
+      {
+        "tag": "a",
+        "name": "管梦航 242210301110",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdfn001lg9q26bs13vm6"
+      },
+      {
+        "tag": "a",
+        "name": "郭子民 242210301112",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdjw001tg9q239wu2fj6"
+      },
+      {
+        "tag": "a",
+        "name": "黄文涵 242210301113",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdly001xg9q2th8x4xp9"
+      },
+      {
+        "tag": "a",
+        "name": "鞠周宇 242210301114",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdo10021g9q2wqk94tcd"
+      },
+      {
+        "tag": "a",
+        "name": "孔泽霖 242210301115",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdq40025g9q2md75a087"
+      },
+      {
+        "tag": "a",
+        "name": "刘庆 242210301116",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hds80029g9q2c8ykrrbz"
+      },
+      {
+        "tag": "a",
+        "name": "罗俊豪 242210301117",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdub002dg9q2is8bvnz3"
+      },
+      {
+        "tag": "a",
+        "name": "罗庆 242210301118",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdww002hg9q2sgrfuzn2"
+      },
+      {
+        "tag": "a",
+        "name": "宋文强 242210301119",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hdz1002lg9q2trlnvalp"
+      },
+      {
+        "tag": "a",
+        "name": "孙皓然 242210301120",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7he1e002pg9q2modg2otv"
+      },
+      {
+        "tag": "a",
+        "name": "孙建潼 242210301121",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7he3z002tg9q2cr2r910l"
+      },
+      {
+        "tag": "a",
+        "name": "覃振宝 242210301124",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7he8i0031g9q23iioo0w1"
+      },
+      {
+        "tag": "a",
+        "name": "唐煜 242210301125",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7heap0035g9q2zrsajnq9"
+      },
+      {
+        "tag": "a",
+        "name": "王涵 242210301126",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hecv0039g9q2lug7agg3"
+      },
+      {
+        "tag": "a",
+        "name": "王麒善 242210301127",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hef1003dg9q2yoe115ng"
+      },
+      {
+        "tag": "a",
+        "name": "王润泽 242210301128",
+        "disabled": false,
+        "href": "/teacher/classes/cmma7g0590004g9q2nl2jyzdf/students/cmma7hehf003hg9q24c6ycfxh"
+      }
+    ],
+    "unnamedButtons": 2,
+    "graphicsCount": 155,
+    "unnamedGraphics": 0,
+    "bodyText": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 班级学情总览 治理结果部分可用 2024自动化 · 143 名学生 · 25 天前更新 刷新数据 从治理结果回看班级学情 这里不再展示孤立的技术分和伦理分，而是围绕能力矩阵、风险分层、治理覆盖度和重点学生，为教师提供可行动的班级判断依据。 治理覆盖进度 当前仅覆盖 135/143 名学生，需结合课堂记录综合判断。 135/143 已生成画像 班级总体指数 31.1 最新班级快照与学生画像聚合值 重点关注学生 135 中高风险或整体表现偏弱 高风险学生 0 建议优先一对一跟进 能力维度概览 六维能力均值与波动，可快速判断本班共性短板。 控制建模与分析 均值 40.4 / 波动 5.6 参数设计与调优 均值 30.1 / 波动 33.1 跨域迁移与联动 均值 25.5 / 波动 23.9 工程决策与约束 均值 38.3 / 波动 39.6 探究反思与提示词 均值 20.2 / 波动 28.4 自主学习进展 均值 32.2 / 波动 4 画像等级分布 基于当前治理结果的班级层级结构。 优秀 0 人 良好 0 人 中等 8 人 需提升 33 人 需关注 60 人 能力矩阵 按学生逐项查看能力分、变化趋势或风险等级，让教师先看到“谁需要关注”，再决定看哪一门能力。 能力分 近阶段变化 风险等级 学生 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 陈范洋 242210301105 41 0 0 0 0 34 陈凤荣 242210301106 45 0 0 0 0 36 韦俊宇 242210301324 50 0 0 0 0 30 魏延玺 242210301325 43 0 0 0 0 37 吴晓风 242210301326 36 60 0 70 0 31 肖毅 242210301327 36 63 47 74 60 31 徐慧聪 242210301328 44 0 40 50 0 35 薛鸣涛 242210301329 38 70 60 90 0 31 杨伊凡 242210301330 37 0 0 0 0 30 杨逸凡 242210301331 - - - - - - 袁泽安 242210301333 43 0 0 0 0 37 张池铖 242210301334 43 0 0 0 0 37 张迅 242210301335 42 69 53 89 60 34 智栋 242210301336 50 0 40 50 0 21 朱成锦 242210301337 39 63 46 71 60 35 丁至翰 242210301338 - - - - - - 陈李 242210301107 - - - - - - 赖梦雯 242210188402 45 0 0 0 0 36 沈越洋 242210288524 44 70 0 0 0 33 杜依轩 242210288602 50 0 0 0 0 30 黄韵茹 242210488104 - - - - - - 宋志远 242210488231 43 0 40 0 60 33 闵舒涵 242210488306 44 0 0 0 0 36 桑思甜 242210488308 43 0 0 0 0 38 张一诺 242210488414 - - - - - - 陈家骥 242210501111 42 68 47 75 60 38 沈俊杰 242210501123 41 70 60 90 0 36 吴宗保 242210501131 42 0 0 0 0 38 杨超逸 242210504234 42 0 40 50 60 35 张悦 242210"
+  }
+}

@@ -191,7 +191,7 @@ export default function CorrectionPrecheck({ onComplete, onStateChange }: Correc
             const isCorrect = checked && option.id === current.answerId;
             const isWrong = checked && isSelected && option.id !== current.answerId;
             return (
-              <button
+              <button type="button"
                 key={option.id}
                 onClick={() => !checked && setSelected(option.id)}
                 className={`flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-colors ${
@@ -222,7 +222,7 @@ export default function CorrectionPrecheck({ onComplete, onStateChange }: Correc
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <div className="text-sm text-slate-500">当前得分 {score}/{QUIZ_ITEMS.length}</div>
           <div className="flex items-center gap-2">
-            <button
+            <button type="button"
               onClick={handleReset}
               className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50"
             >
@@ -230,14 +230,14 @@ export default function CorrectionPrecheck({ onComplete, onStateChange }: Correc
               重置
             </button>
             {!checked ? (
-              <button
+              <button type="button"
                 onClick={handleCheck}
                 className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-xs text-white"
               >
                 提交
               </button>
             ) : (
-              <button
+              <button type="button"
                 onClick={handleNext}
                 className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-xs text-white"
                 disabled={isLast}

@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 
@@ -36,18 +35,19 @@ import {
   UNIT_2_1StudentActivityForm,
   UNIT_2_1StudentSummaryPanel,
 } from './step-panels';
+import { commitUNIT_2_1StudentSubmission } from './submission-state';
 import type { WorkspaceParameterChange } from './workspace';
 
 export function UNIT_2_1StudentPage({
   sessionId,
   lessonRuntime,
+  demoStepId,
 }: {
   sessionId: string;
   lessonRuntime: RuntimeLessonEntryBundle;
+  demoStepId?: string;
 }) {
   const isDemo = sessionId === 'demo';
-  const searchParams = useSearchParams();
-  const demoStepId = searchParams.get('step');
   const { data: authSession } = useSession();
 
   const currentStudentName = authSession?.user?.name?.trim() || '学生';
@@ -161,26 +161,15 @@ export function UNIT_2_1StudentPage({
   }, [error, errorTelemetry, step.id, trackSyncError]);
 
   const handleSubmitResponse = (response: UNIT_2_1StepResponse) => {
-    const isResubmit = Boolean(savedResponse);
     void saveCourseState((prev) => {
-      const nextState: UNIT_2_1StudentCourseState = {
-        ...prev,
-        studentName: currentStudentName,
-        updatedAt: Date.now(),
-        responses: {
-          ...prev.responses,
-          [step.id]: response,
-        },
-      };
-      submitCurrentManifestResponse({
+      return commitUNIT_2_1StudentSubmission({
+        previousState: prev,
+        currentStudentName,
+        stepId: step.id,
         response,
-        isResubmit,
-        dataOverrides: {
-          stepId: step.id,
-          summary: response.summary ?? null,
-        },
+        savedResponse,
+        submitManifestResponse: submitCurrentManifestResponse,
       });
-      return nextState;
     });
   };
 
@@ -247,7 +236,7 @@ export function UNIT_2_1StudentPage({
         }
       />
 
-      <main className="premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-6">
+      <main className="premium-lesson-main py-4 sm:py-6">
         {isOutOfSync ? (
           <div className="premium-lesson-tone-block premium-tone-amber mb-4 flex flex-wrap items-center justify-between gap-3">
             <span>当前页面与教师不同步，点击可跳转到教师所在环节。</span>
@@ -297,6 +286,7 @@ export function UNIT_2_1StudentPage({
 
         <div className="mt-4">
           <UNIT_2_1StudentActivityForm
+            key={`${step.id}:${savedResponse?.submittedAt ?? 0}`}
             step={step}
             savedResponse={savedResponse}
             released={released}

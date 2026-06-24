@@ -2,12 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
   ArrowLeft,
   BarChart3,
+  Clipboard,
+  Download,
+  Lock,
   RefreshCw,
+  Send,
   ShieldAlert,
   Sparkles,
   TrendingUp,
@@ -21,22 +25,39 @@ import {
   formatTeacherStudentDisplayId,
   type GovernanceTone,
 } from '@/features/teacher/teacher-insights';
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
+import {
+  buildTeacherReportDeliveryState,
+  normalizeTeacherReportDeliveryQuery,
+} from '@/lib/teacher-report-grading-contracts';
 
 type HeatmapView = 'score' | 'change' | 'risk';
+type GraphCenterClassView = 'diagnosis' | 'population';
+
+function normalizeGraphCenterClassView(view: string | null): GraphCenterClassView {
+  return view === 'population' ? 'population' : 'diagnosis';
+}
 
 export default function ClassAnalyticsV2Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const params = useParams();
   const classId = params?.classId as string;
   const sessionData = useSession();
   const session = sessionData?.data;
   const status = sessionData?.status ?? 'loading';
+  const graphCenterNodeId = searchParams.get('graphNodeId')?.trim() || null;
+  const graphCenterView = normalizeGraphCenterClassView(searchParams.get('view'));
+  const graphCenterPopulationActive = Boolean(graphCenterNodeId && graphCenterView === 'population');
+  const graphCenterViewLabel = graphCenterPopulationActive ? '影响学生' : '薄弱节点诊断';
 
   const [insights, setInsights] = useState<TeacherClassInsightsPayload | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapData | null>(null);
-  const [heatmapView, setHeatmapView] = useState<HeatmapView>('score');
+  const [heatmapView, setHeatmapView] = useState<HeatmapView>(() => graphCenterPopulationActive ? 'risk' : 'score');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deliveryState, setDeliveryState] = useState<AuditedActionState | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -77,6 +98,12 @@ export default function ClassAnalyticsV2Page() {
     }
   }, [classId, fetchData, router, session, status]);
 
+  useEffect(() => {
+    if (graphCenterPopulationActive) {
+      setHeatmapView('risk');
+    }
+  }, [graphCenterPopulationActive]);
+
   const matrixByStudent = useMemo(() => {
     const matrix = new Map<string, Map<string, HeatmapData['matrix'][number]>>();
     heatmap?.matrix.forEach((item) => {
@@ -87,9 +114,142 @@ export default function ClassAnalyticsV2Page() {
     return matrix;
   }, [heatmap]);
 
+  const deliveryQuery = useMemo(() => normalizeTeacherReportDeliveryQuery({
+    action: searchParams.get('action'),
+    report: searchParams.get('report'),
+    reportId: searchParams.get('reportId'),
+    version: searchParams.get('version'),
+    format: searchParams.get('format'),
+    studentId: searchParams.get('studentId'),
+    returnTo: searchParams.get('returnTo') ?? `/teacher/classes/${classId}/analytics-v2`,
+  }, classId), [classId, searchParams]);
+
+  const routeDeliveryState = useMemo(
+    () => buildTeacherReportDeliveryState(deliveryQuery),
+    [deliveryQuery]
+  );
+
+  useEffect(() => {
+    setDeliveryState(null);
+  }, [deliveryQuery.action, deliveryQuery.reportId, deliveryQuery.studentId, deliveryQuery.versionId]);
+
+  const activeDeliveryState = deliveryState ?? routeDeliveryState;
+
+  const reportVersionLabel = useMemo(
+    () => `${deliveryQuery.reportId} · ${insights?.governance.lastUpdatedLabel ?? '等待刷新'}`,
+    [deliveryQuery.reportId, insights?.governance.lastUpdatedLabel]
+  );
+
+  const handleReportDownload = useCallback(async () => {
+    try {
+      setDeliveryState(createAuditedActionState({
+        identity: {
+          id: `teacher-report-download:${deliveryQuery.reportId}`,
+          category: 'export',
+          label: '教师报告导出',
+          sourceRoute: `/teacher/classes/${classId}/analytics-v2`,
+          targetId: deliveryQuery.reportId,
+          requestedAction: 'export',
+        },
+        status: 'pending',
+        message: '正在生成教师报告导出文件。',
+        nextAction: '等待浏览器下载 JSON 文件',
+      }));
+      const response = await fetch(`/api/teacher/classes/${classId}/control-correction-report?export=true`, {
+        cache: 'no-store',
+      });
+      if (!response.ok) {
+        throw new Error('教师报告导出失败');
+      }
+      const payload = await response.json();
+      const filename = `teacher-report-${classId}-${new Date().toISOString().slice(0, 10)}.json`;
+      const blob = new Blob([JSON.stringify(payload.export ?? payload.report ?? payload, null, 2)], {
+        type: 'application/json;charset=utf-8',
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setDeliveryState(createAuditedActionState({
+        identity: {
+          id: `teacher-report-download:${deliveryQuery.reportId}`,
+          category: 'export',
+          label: '教师报告导出',
+          sourceRoute: `/teacher/classes/${classId}/analytics-v2`,
+          targetId: deliveryQuery.reportId,
+          requestedAction: 'export',
+        },
+        status: 'succeeded',
+        message: '教师报告导出文件已生成。',
+        nextAction: '检查下载文件并交付给学生',
+        downloadFilename: filename,
+      }));
+    } catch (err) {
+      setDeliveryState(createAuditedActionState({
+        identity: {
+          id: `teacher-report-download:${deliveryQuery.reportId}`,
+          category: 'export',
+          label: '教师报告导出',
+          sourceRoute: `/teacher/classes/${classId}/analytics-v2`,
+          targetId: deliveryQuery.reportId,
+          requestedAction: 'export',
+        },
+        status: 'failed',
+        message: err instanceof Error ? err.message : '教师报告导出失败。',
+        recoveryAction: '刷新报告数据后重试',
+      }));
+    }
+  }, [classId, deliveryQuery.reportId]);
+
+  const handleCopySummary = useCallback(async () => {
+    const summary = `${insights?.classInfo.name ?? '班级'}：${insights?.governance.detail ?? '报告暂未生成'}。重点关注 ${insights?.overview.attentionStudents ?? 0} 人。`;
+    try {
+      await navigator.clipboard.writeText(summary);
+      setDeliveryState(createAuditedActionState({
+        identity: {
+          id: `teacher-report-summary:${deliveryQuery.reportId}`,
+          category: 'export',
+          label: '教师报告摘要',
+          sourceRoute: `/teacher/classes/${classId}/analytics-v2`,
+          targetId: deliveryQuery.reportId,
+          requestedAction: 'summary',
+        },
+        status: 'succeeded',
+        message: '教师报告摘要已复制。',
+        nextAction: '粘贴到班级通知或学生反馈中',
+      }));
+    } catch {
+      setDeliveryState(createAuditedActionState({
+        identity: {
+          id: `teacher-report-summary:${deliveryQuery.reportId}`,
+          category: 'export',
+          label: '教师报告摘要',
+          sourceRoute: `/teacher/classes/${classId}/analytics-v2`,
+          targetId: deliveryQuery.reportId,
+          requestedAction: 'summary',
+        },
+        status: 'failed',
+        message: '复制摘要失败。',
+        recoveryAction: '手动选择报告摘要后复制',
+      }));
+    }
+  }, [classId, deliveryQuery.reportId, insights]);
+
   if (status === 'loading' || loading) {
     return (
-      <div className="teacher-insight-shell flex items-center justify-center">
+      <div
+        className="teacher-insight-shell flex items-center justify-center"
+        data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="loading"
+        data-report-ledger-surface="teacher-class-analytics-report"
+        data-report-ledger-watermark="low-contrast-brand"
+        data-report-ledger-privacy-scope="teacher-review"
+        data-report-ledger-export="restricted"
+      >
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-sky-500 border-t-transparent" />
           <p className="text-subtle">加载班级学情总览...</p>
@@ -100,10 +260,20 @@ export default function ClassAnalyticsV2Page() {
 
   if (error || !insights) {
     return (
-      <div className="teacher-insight-shell flex items-center justify-center">
+      <div
+        className="teacher-insight-shell flex items-center justify-center"
+        data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="error"
+        data-report-ledger-surface="teacher-class-analytics-report"
+        data-report-ledger-watermark="low-contrast-brand"
+        data-report-ledger-privacy-scope="teacher-review"
+        data-report-ledger-export="restricted"
+      >
         <div className="text-center">
           <p className="text-xl text-red-500">{error || '加载失败'}</p>
-          <button onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+          <button type="button" onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
         </div>
@@ -114,11 +284,24 @@ export default function ClassAnalyticsV2Page() {
   const governanceToneClass = getGovernanceToneClass(insights.governance.tone);
 
   return (
-    <div className="teacher-insight-shell">
+    <div
+      className="teacher-insight-shell"
+      data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics"
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics="ready"
+      data-report-ledger-surface="teacher-class-analytics-report"
+      data-report-ledger-watermark="low-contrast-brand"
+      data-report-ledger-privacy-scope="teacher-review"
+      data-report-ledger-export="restricted"
+      data-graph-center-class-context={graphCenterNodeId ? 'true' : undefined}
+      data-graph-center-node-id={graphCenterNodeId ?? undefined}
+      data-graph-center-view={graphCenterNodeId ? graphCenterView : undefined}
+    >
       <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
+        <div className="flex w-full items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Link href={`/teacher/classes/${classId}`} className="text-subtle transition hover:text-foreground">
+            <Link href={`/teacher/classes/${classId}`} className="text-subtle transition hover:text-foreground" aria-label="返回班级详情">
               <ArrowLeft className="h-6 w-6" />
             </Link>
             <div>
@@ -131,14 +314,36 @@ export default function ClassAnalyticsV2Page() {
               </p>
             </div>
           </div>
-          <button onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
+          <button type="button" onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm" aria-label="刷新班级学情总览数据">
             <RefreshCw className="h-4 w-4" />
             刷新数据
           </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      <main className="px-6 pb-32 pt-8 md:pb-8">
+        <ReportDeliveryPanel
+          state={activeDeliveryState}
+          versionLabel={reportVersionLabel}
+          onDownload={handleReportDownload}
+          onCopySummary={handleCopySummary}
+        />
+        {graphCenterNodeId ? (
+          <section
+            className="mb-6 rounded-lg border border-border bg-muted/40 p-4 text-sm text-subtle"
+            data-graph-center-class-action-context="true"
+            data-graph-center-node-id={graphCenterNodeId}
+            data-graph-center-view={graphCenterView}
+          >
+            <div className="font-semibold text-foreground">图谱上下文：{graphCenterViewLabel}</div>
+            <div className="mt-1">
+              当前班级诊断已定位到图谱节点 <span className="font-mono text-xs text-foreground">{graphCenterNodeId}</span>。
+            </div>
+          </section>
+        ) : null}
+        <div className="sr-only" role="status" aria-live="polite" data-teacher-report-delivery-status>
+          {activeDeliveryState?.announcement ?? activeDeliveryState?.message ?? '教师报告交付动作已就绪。'}
+        </div>
         <section className="teacher-insight-hero mb-8">
           <div className="grid gap-4 xl:grid-cols-[1.3fr,0.7fr]">
             <div className="space-y-4">
@@ -239,7 +444,11 @@ export default function ClassAnalyticsV2Page() {
           </div>
         </section>
 
-        <section className="surface-card mb-8 p-6">
+        <section
+          className="surface-card mb-8 p-6"
+          data-graph-center-diagnosis-view={graphCenterNodeId && graphCenterView === 'diagnosis' ? 'true' : undefined}
+          data-graph-center-node-id={graphCenterNodeId ?? undefined}
+        >
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-foreground">能力矩阵</h2>
@@ -257,6 +466,7 @@ export default function ClassAnalyticsV2Page() {
                   key={view.key}
                   type="button"
                   onClick={() => setHeatmapView(view.key as HeatmapView)}
+                  aria-pressed={heatmapView === view.key}
                   className={`rounded-full px-4 py-2 text-sm transition ${
                     heatmapView === view.key
                       ? 'bg-primary text-primary-foreground'
@@ -318,7 +528,12 @@ export default function ClassAnalyticsV2Page() {
           )}
         </section>
 
-        <section className="surface-card p-6">
+        <section
+          id="graph-center-affected-population"
+          className="surface-card p-6"
+          data-graph-center-population-view={graphCenterPopulationActive ? 'true' : undefined}
+          data-graph-center-node-id={graphCenterNodeId ?? undefined}
+        >
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-foreground">重点学生</h2>
@@ -366,6 +581,112 @@ export default function ClassAnalyticsV2Page() {
           </div>
         </section>
       </main>
+      <ReportDeliveryDock
+        state={activeDeliveryState}
+        versionLabel={reportVersionLabel}
+        onDownload={handleReportDownload}
+        onCopySummary={handleCopySummary}
+      />
+    </div>
+  );
+}
+
+function ReportDeliveryPanel({
+  state,
+  versionLabel,
+  onDownload,
+  onCopySummary,
+}: {
+  state: AuditedActionState | null;
+  versionLabel: string;
+  onDownload: () => void;
+  onCopySummary: () => void;
+}) {
+  return (
+    <section
+      className="surface-card mb-8 p-5"
+      data-teacher-report-delivery="workspace"
+      data-report-version={versionLabel}
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-primary">Report delivery</p>
+          <h2 className="mt-2 text-lg font-semibold text-foreground">教师报告交付</h2>
+          <p className="mt-1 text-sm text-subtle">版本 {versionLabel} · 当前可导出报告和复制摘要；发送对象、版本锁定和补强任务保留为可恢复状态。</p>
+        </div>
+        <ReportDeliveryActions
+          onDownload={onDownload}
+          onCopySummary={onCopySummary}
+        />
+      </div>
+      <ReportDeliveryCapabilityNote />
+      {state ? <ActionStatusPanel state={state} className="mt-4" /> : null}
+    </section>
+  );
+}
+
+function ReportDeliveryDock({
+  state,
+  versionLabel,
+  onDownload,
+  onCopySummary,
+}: {
+  state: AuditedActionState | null;
+  versionLabel: string;
+  onDownload: () => void;
+  onCopySummary: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur md:hidden"
+      data-teacher-report-delivery="mobile-fixed-actions"
+    >
+      <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-sm font-medium text-foreground">教师报告交付 · {versionLabel}</p>
+          <p className="text-xs text-subtle">{state ? state.message : '固定动作区可在长报告任意位置完成导出和摘要复制。'}</p>
+        </div>
+        <ReportDeliveryActions
+          onDownload={onDownload}
+          onCopySummary={onCopySummary}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ReportDeliveryActions({
+  onDownload,
+  onCopySummary,
+}: {
+  onDownload: () => void;
+  onCopySummary: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <button type="button" onClick={onDownload} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm" aria-label="导出教师报告 JSON 文件">
+        <Download className="h-4 w-4" />
+        导出 JSON
+      </button>
+      <button type="button" onClick={onCopySummary} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm" aria-label="复制教师报告摘要">
+        <Clipboard className="h-4 w-4" />
+        复制摘要
+      </button>
+    </div>
+  );
+}
+
+function ReportDeliveryCapabilityNote() {
+  return (
+    <div className="mt-4 grid gap-2 text-xs text-subtle sm:grid-cols-2">
+      <div className="flex items-center gap-2 rounded border border-border/70 px-3 py-2">
+        <Send className="h-4 w-4" />
+        <span>发送学生：通过有效学生 deep link 进入；缺失对象显示阻断恢复。</span>
+      </div>
+      <div className="flex items-center gap-2 rounded border border-border/70 px-3 py-2">
+        <Lock className="h-4 w-4" />
+        <span>锁定版本：等待稳定版本生成后开放，当前不会作为可点击动作。</span>
+      </div>
     </div>
   );
 }

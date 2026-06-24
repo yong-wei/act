@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const skillPath = path.join(root, '.codex/skills/homework-problem-authoring/SKILL.md');
+const skillPath = path.join(root, '.agents/skills/homework/SKILL.md');
 const contractPath = path.join(
   root,
-  '.codex/skills/homework-problem-authoring/references/output-contract.md',
+  '.agents/skills/homework/references/output-contract.md',
 );
 
 const skill = fs.readFileSync(skillPath, 'utf8');

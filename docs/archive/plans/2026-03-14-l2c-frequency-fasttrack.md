@@ -129,7 +129,7 @@ Expected: PASS
 ### Task 4: 完整验证与文档更新
 
 **Files:**
-- Create: `.codex/skills/interactive-lesson-implementation/notes/L-2c.md`
+- Create: `.agents/skills/interactive-lesson-implementation/notes/L-2c.md`
 - Modify: `docs/ProjectDescription.md`
 
 **Step 1: Verification**
@@ -155,6 +155,6 @@ Run:
 **Step 3: Commit**
 
 ```bash
-git add course-content src scripts/tests docs .codex/skills/interactive-lesson-implementation/notes/L-2c.md
+git add course-content src scripts/tests docs .agents/skills/interactive-lesson-implementation/notes/L-2c.md
 git commit -m "feat: add L-2c frequency fast track lesson"
 ```

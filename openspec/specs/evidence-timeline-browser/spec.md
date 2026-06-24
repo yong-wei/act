@@ -16,3 +16,35 @@ The system SHALL expose paginated student and teacher evidence APIs backed by Le
 #### Scenario: Teacher evidence access is scoped
 - **WHEN** a teacher requests evidence for a student in one of their classes
 - **THEN** the API returns newest-first evidence with filters and denies unrelated students
+
+### Requirement: Evidence timelines group repeated low-signal events
+The evidence timeline browser SHALL group repeated events and highlight meaningful learner-state changes.
+
+#### Scenario: Repeated superseded snapshots exist
+- **WHEN** multiple low-signal or superseded evidence events appear in a learner timeline
+- **THEN** the UI SHALL group, summarize, or de-emphasize them
+- **AND** high-value events such as simulation breakthroughs, path deviations, mastery changes, and risk changes SHALL remain visually identifiable.
+
+### Requirement: Evidence browser aligns with learner data shell
+The evidence browser SHALL use the same ability dimensions, status vocabulary, filters, and route frame as profile and adaptive learning surfaces.
+
+#### Scenario: Student filters evidence
+- **WHEN** a student filters by ability dimension, course or lesson context, event type, or result
+- **THEN** the evidence browser SHALL preserve the learner data shell and current route context
+- **AND** empty results SHALL remain navigable and actionable.
+
+### Requirement: Evidence timeline follows learner record hierarchy
+The evidence timeline SHALL align with learner record and pathway hierarchy.
+
+#### Scenario: Evidence browser renders
+- **WHEN** a learner or authorized reviewer opens evidence history
+- **THEN** timeline grouping, source freshness, confidence, privacy scope, and replay state SHALL use shared evidence/status roles
+- **AND** mobile timeline filters SHALL not obscure the evidence list.
+
+### Requirement: Evidence timeline preserves source-specific privacy
+The evidence timeline SHALL preserve role-specific visibility for learner, teacher, and administrator review.
+
+#### Scenario: Reviewer role changes
+- **WHEN** the same learner evidence is viewed by student, teacher, or administrator contexts
+- **THEN** source labels, privacy scope, hidden restricted details, and available next actions SHALL match the viewer role
+- **AND** teacher-scoped or governance-scoped data SHALL NOT leak into student-facing evidence details.

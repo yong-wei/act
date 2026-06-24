@@ -242,7 +242,9 @@ export function evaluateBlackBoxSubmission({
       ? [{ id: 'experiment_budget_high', label: '黑箱实验调用偏多', value: experimentPenalty }]
       : [],
     explanation: [
-      '黑箱官方评测硬约束全部通过，提交进入正式排名。',
+      score > 0
+        ? '黑箱官方评测硬约束全部通过，提交进入正式排名。'
+        : '黑箱官方评测硬约束全部通过，但排名分为 0，提交保留为诊断证据，未进入正式排名。',
       `基础分 ${baseScore.toFixed(1)}，实验预算惩罚 ${experimentPenalty.toFixed(1)}，最终分 ${score.toFixed(1)}。`,
     ],
     metadata,

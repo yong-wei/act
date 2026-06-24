@@ -16,6 +16,10 @@ const mocks = vi.hoisted(() => {
     generateRecommendations,
     prismaArenaSubmissionStore,
     prisma: {
+      $queryRaw: vi.fn(),
+      diagnosisReportSnapshot: {
+        findMany: vi.fn(),
+      },
       class: {
         findUnique: vi.fn(),
       },
@@ -91,7 +95,10 @@ import {
   summarizeTeacherEvidenceCoverage,
   type TeacherStudentEvidenceStatus,
 } from '../teacher-evidence-governance';
-import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '../student-evidence-feature-cache';
+import {
+  STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+  type StudentSimulationArenaFeatureSummary,
+} from '../student-evidence-feature-cache';
 
 function enrolledStudent(userId: string, name: string) {
   return {
@@ -141,13 +148,19 @@ function evidenceCache(userId: string, overrides: Record<string, unknown> = {}) 
   };
 }
 
-function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
+function simulationArenaFeature(overrides: Partial<StudentSimulationArenaFeatureSummary> = {}): StudentSimulationArenaFeatureSummary {
   return {
     recent30d: {
+      window: {
+        firstStartedAt: '2026-05-20T08:00:00.000Z',
+        lastStartedAt: '2026-05-20T08:00:00.000Z',
+        daysCovered: 0,
+      },
       evidenceCount: 2,
       completedCount: 1,
       officialCount: 1,
       previewCount: 0,
+      agentAssistedCount: 0,
       courseLaunchedCount: 2,
       standaloneCount: 0,
       traceReferenceCount: 2,
@@ -163,6 +176,11 @@ function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
         lowConfidenceCount: 0,
         missingCount: 0,
       },
+      interventionOutcome: {
+        reviewedCount: 0,
+        improvedCount: 0,
+        lowConfidenceCount: 0,
+      },
       weakMetrics: [
         { metricId: 'trackingError', affectedFactCount: 2, lowestValue: 0.42 },
       ],
@@ -172,6 +190,8 @@ function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
           source: 'arena',
           traceReference: 'ArenaEvaluationRun:official-run-1',
           factId: 'fact-arena-1',
+          sourceEventId: 'fact-arena-1:event',
+          sourceLogId: 'fact-arena-1:log',
           startedAt: '2026-05-20T08:00:00.000Z',
           protocolVersion: 'arena-eval-v1',
           checksum: 'checksum-safe',
@@ -179,10 +199,16 @@ function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
       ],
     },
     allTime: {
+      window: {
+        firstStartedAt: '2026-05-20T08:00:00.000Z',
+        lastStartedAt: '2026-05-20T08:00:00.000Z',
+        daysCovered: 0,
+      },
       evidenceCount: 2,
       completedCount: 1,
       officialCount: 1,
       previewCount: 0,
+      agentAssistedCount: 0,
       courseLaunchedCount: 2,
       standaloneCount: 0,
       traceReferenceCount: 2,
@@ -198,6 +224,11 @@ function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
         lowConfidenceCount: 0,
         missingCount: 0,
       },
+      interventionOutcome: {
+        reviewedCount: 0,
+        improvedCount: 0,
+        lowConfidenceCount: 0,
+      },
       weakMetrics: [
         { metricId: 'trackingError', affectedFactCount: 2, lowestValue: 0.42 },
       ],
@@ -207,6 +238,8 @@ function simulationArenaFeature(overrides: Record<string, unknown> = {}) {
           source: 'arena',
           traceReference: 'ArenaEvaluationRun:official-run-1',
           factId: 'fact-arena-1',
+          sourceEventId: 'fact-arena-1:event',
+          sourceLogId: 'fact-arena-1:log',
           startedAt: '2026-05-20T08:00:00.000Z',
           protocolVersion: 'arena-eval-v1',
           checksum: 'checksum-safe',
@@ -330,6 +363,8 @@ describe('teacher evidence governance insights', () => {
     });
     mocks.prismaArenaSubmissionStore.listSubmissions.mockResolvedValue([]);
     mocks.generateRecommendations.mockResolvedValue([]);
+    mocks.prisma.$queryRaw.mockResolvedValue([{ exists: false }]);
+    mocks.prisma.diagnosisReportSnapshot.findMany.mockResolvedValue([]);
     mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([]);
   });
 
@@ -760,6 +795,8 @@ describe('teacher evidence governance insights', () => {
                   source: 'arena',
                   traceReference: 'ArenaEvaluationRun:other-class-run',
                   factId: 'other-class-fact',
+                  sourceEventId: 'other-class-fact:event',
+                  sourceLogId: 'other-class-fact:log',
                   startedAt: '2026-05-20T08:00:00.000Z',
                 },
               ],
@@ -1017,6 +1054,8 @@ describe('teacher evidence governance insights', () => {
             outcome: 'partial',
             score: 70,
             stepId: 'step-05',
+            studentAnswer: longAnswer,
+            privateKonlingMemory: 'private Konling memory secret',
             questionSummaries: [{
               questionId: 'q-1',
               prompt: '说明相平面边界',
@@ -1043,15 +1082,17 @@ describe('teacher evidence governance insights', () => {
         simulationArena: simulationArenaFeature({
           allTime: {
             ...simulationArenaFeature().allTime,
-            hiddenOfficialEvaluation: 'official-secret',
             traceReferences: [
               {
                 source: 'arena',
                 traceReference: 'ArenaEvaluationRun:official-run-1',
                 factId: 'fact-arena-1',
+                sourceEventId: 'fact-arena-1:event',
+                sourceLogId: 'fact-arena-1:log',
                 startedAt: '2026-05-20T08:00:00.000Z',
+                hiddenOfficialEvaluation: 'official-secret',
                 rawTracePayload: [{ t: 0, hidden: true }],
-              },
+              } as unknown as StudentSimulationArenaFeatureSummary['allTime']['traceReferences'][number],
             ],
           },
         }),
@@ -1256,10 +1297,18 @@ describe('teacher evidence governance insights', () => {
       },
     });
     expect(JSON.stringify(body)).not.toContain(longAnswer);
+    expect(JSON.stringify(body)).not.toContain('private Konling memory secret');
     expect(JSON.stringify(body)).not.toContain('official-secret');
     expect(JSON.stringify(body)).not.toContain('official-run-1');
     expect(JSON.stringify(body)).not.toContain('rawTracePayload');
-    expect(body.evidenceSummary[3].items[0].questionSummaries[0].studentAnswer.length).toBeLessThanOrEqual(120);
+    expect(body.evidenceSummary[3].items[0].questionSummaries[0]).not.toHaveProperty('studentAnswer');
+    expect(body.evidenceSummary[3].items[0].questionSummaries[0]).toEqual(expect.objectContaining({
+      questionId: 'q-1',
+      studentAnswerRedacted: true,
+    }));
+    expect(body.evidenceSummary[3].items[0].questionSummaries[0].referenceAnswer.length).toBeLessThanOrEqual(120);
+    expect(body.evidenceSummary[3].items[0]).not.toHaveProperty('studentAnswer');
+    expect(body.evidenceSummary[3].items[0]).not.toHaveProperty('privateKonlingMemory');
   });
 
   it('denies student insights outside teacher class ownership', async () => {

@@ -42,11 +42,69 @@ export type PlatformTokenCategory =
   | 'evidence'
   | 'privacy'
   | 'replay'
-  | 'evaluation';
+  | 'evaluation'
+  | 'chart';
+export type PlatformThemeMode = 'light' | 'dark';
+export type PlatformPremiumVisualRole =
+  | 'matte-chart'
+  | 'engineering-paper'
+  | 'instrument-panel'
+  | 'evidence-state'
+  | 'night-navigation'
+  | 'low-light-instrument'
+  | 'trace-signal'
+  | 'warning-success-signal';
+export type PlatformSimulationThemeRole =
+  | 'scene-canvas'
+  | 'translucent-shell'
+  | 'local-panel'
+  | 'bottom-toolbar'
+  | 'hint-strip'
+  | 'border-line'
+  | 'text-label'
+  | 'status-marker'
+  | 'evidence-marker'
+  | 'replay-marker'
+  | 'preview-context'
+  | 'official-context';
+export type PlatformSimulationStateRole =
+  | 'preview'
+  | 'official'
+  | 'replay'
+  | 'warning'
+  | 'success'
+  | 'danger'
+  | 'unavailable'
+  | 'hint';
+export type PlatformFloatingActionDockControl = 'konling' | 'management' | 'settings' | 'page-tools' | 'issue-badge';
+export type PlatformFloatingActionDockVisibility = 'role-aware' | 'feature-flagged' | 'workspace-hidden';
+export type PlatformFloatingActionDockResponsiveMode = 'expanded' | 'collapsed-icons' | 'hidden-by-workspace';
 
 export interface PlatformSemanticToken {
   name: string;
   category: PlatformTokenCategory;
+  purpose: string;
+}
+
+export interface PlatformPremiumVisualThemeContract {
+  theme: PlatformThemeMode;
+  visualWorld: string;
+  requiredRoles: readonly PlatformPremiumVisualRole[];
+  requiredTokenCategories: readonly PlatformTokenCategory[];
+  prohibitedFallbacks: readonly string[];
+}
+
+export interface PlatformSimulationThemeTemplate {
+  theme: PlatformThemeMode;
+  visualWorld: string;
+  roles: readonly PlatformSimulationThemeRole[];
+  tokenNames: readonly string[];
+  prohibitedFallbacks: readonly string[];
+}
+
+export interface PlatformSimulationStateRoleToken {
+  role: PlatformSimulationStateRole;
+  tokenName: string;
   purpose: string;
 }
 
@@ -143,7 +201,195 @@ export interface PlatformShellAdapter {
   migrationRule: string;
 }
 
+export interface PlatformLegacyShellRetirementContract {
+  legacyComponent: PlatformShellAdapter['legacyComponent'];
+  allowedDisposition: 'retire-or-adapt';
+  preservationRequirements: readonly string[];
+  retirementRule: string;
+}
+
+export interface PlatformFloatingActionDockContract {
+  owner: 'platform-shell';
+  controls: readonly PlatformFloatingActionDockControl[];
+  visibility: PlatformFloatingActionDockVisibility;
+  bottomOffset: string;
+  rightOffset: string;
+  spacing: string;
+  minHitTargetPx: number;
+  zIndexToken: string;
+  responsiveModes: readonly PlatformFloatingActionDockResponsiveMode[];
+  collisionRules: readonly string[];
+  keyboardRules: readonly string[];
+}
+
+export interface PlatformFloatingActionDockControlContract {
+  control: PlatformFloatingActionDockControl;
+  roleScope: readonly PlatformNavigationAudience[];
+  purpose: string;
+  hiddenWhen: readonly string[];
+  payloadBoundary: string;
+}
+
+export interface PlatformDockControlDispositionContract {
+  legacyComponent: 'PageFloatingControls' | 'GlobalAIFloatingButton';
+  owner: 'platform-shell';
+  disposition: 'register-or-retire';
+  replacementControl: PlatformFloatingActionDockControl;
+  removalCondition: string;
+  collisionRequirements: readonly string[];
+}
+
+export interface PlatformCommercialWorkspaceShell {
+  workspace: 'simulation' | 'arena' | 'control-workbench' | 'interactive-learning' | 'adaptive-learning' | 'teacher' | 'data-center' | 'admin';
+  derivedFrom: 'commercial-platform-shell';
+  density: 'tool' | 'learning' | 'analytics' | 'governance';
+  zones: readonly PlatformCommercialWorkspaceZoneId[];
+  contextualNavigation: string;
+  inheritsTokenCategories: readonly PlatformTokenCategory[];
+  requiredConventions: readonly string[];
+}
+
+export type PlatformCommercialWorkspaceZoneId =
+  | 'context-strip'
+  | 'command-bar'
+  | 'instrument-area'
+  | 'evidence-rail'
+  | 'support-drawer';
+
+export interface PlatformCommercialWorkspaceZone {
+  id: PlatformCommercialWorkspaceZoneId;
+  label: string;
+  purpose: string;
+  domainOwnership: 'feature-owned';
+  presentationOwnership: 'shared-commercial-surface';
+}
+
+export interface PlatformCommercialWorkspaceRoute {
+  href: string;
+  workspace: PlatformCommercialWorkspaceShell['workspace'];
+  density: PlatformCommercialWorkspaceShell['density'];
+  representativeSurface: string;
+  expectedZones: readonly PlatformCommercialWorkspaceZoneId[];
+}
+
 export const PLATFORM_SHELL_ROLLBACK_FLAG = 'platform.unifiedShell';
+
+export const PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS: PlatformPremiumVisualThemeContract[] = [
+  {
+    theme: 'light',
+    visualWorld: 'matte chart paper with engineering instruments and governed evidence signals',
+    requiredRoles: ['matte-chart', 'engineering-paper', 'instrument-panel', 'evidence-state'],
+    requiredTokenCategories: ['canvas', 'surface', 'foreground', 'border', 'action', 'evidence', 'chart'],
+    prohibitedFallbacks: [
+      'unrelated white-card administration styling',
+      'page-local pastel marketing palette',
+      'decorative gradients without token roles',
+    ],
+  },
+  {
+    theme: 'dark',
+    visualWorld: 'night-navigation control desk with low-light instruments and readable traces',
+    requiredRoles: ['night-navigation', 'low-light-instrument', 'trace-signal', 'warning-success-signal'],
+    requiredTokenCategories: ['canvas', 'surface', 'foreground', 'border', 'action', 'evidence', 'chart'],
+    prohibitedFallbacks: [
+      'washed-out inverted light theme',
+      'low-contrast chart traces',
+      'hidden controls on dark surfaces',
+    ],
+  },
+] as const;
+
+export const PLATFORM_SIMULATION_THEME_TEMPLATES: PlatformSimulationThemeTemplate[] = [
+  {
+    theme: 'light',
+    visualWorld: 'daylight engineering chart with matte instruments, translucent controls, and governed evidence',
+    roles: [
+      'scene-canvas',
+      'translucent-shell',
+      'local-panel',
+      'bottom-toolbar',
+      'hint-strip',
+      'border-line',
+      'text-label',
+      'status-marker',
+      'evidence-marker',
+      'replay-marker',
+      'preview-context',
+      'official-context',
+    ],
+    tokenNames: [
+      'platform-canvas',
+      'platform-canvas-muted',
+      'platform-surface',
+      'platform-surface-raised',
+      'platform-surface-overlay',
+      'platform-fg-primary',
+      'platform-fg-secondary',
+      'platform-border',
+      'platform-border-strong',
+      'platform-action-primary',
+      'platform-action-subtle',
+      'platform-evidence-context',
+      'platform-replay-ready',
+      'platform-evaluation-official',
+    ],
+    prohibitedFallbacks: [
+      'generic white administration cards',
+      'decorative glow blobs',
+      'page-local pastel palette',
+    ],
+  },
+  {
+    theme: 'dark',
+    visualWorld: 'night bridge with low-light instruments, readable traces, and accessible signal colors',
+    roles: [
+      'scene-canvas',
+      'translucent-shell',
+      'local-panel',
+      'bottom-toolbar',
+      'hint-strip',
+      'border-line',
+      'text-label',
+      'status-marker',
+      'evidence-marker',
+      'replay-marker',
+      'preview-context',
+      'official-context',
+    ],
+    tokenNames: [
+      'platform-canvas',
+      'platform-canvas-muted',
+      'platform-surface',
+      'platform-surface-raised',
+      'platform-surface-overlay',
+      'platform-fg-primary',
+      'platform-fg-secondary',
+      'platform-border',
+      'platform-border-strong',
+      'platform-action-primary',
+      'platform-chart-1',
+      'platform-evidence-eligible',
+      'platform-replay-ready',
+      'platform-evaluation-preview',
+    ],
+    prohibitedFallbacks: [
+      'one-note navy card skin',
+      'cyan-only chrome',
+      'washed-out inverted light theme',
+    ],
+  },
+] as const;
+
+export const PLATFORM_SIMULATION_STATE_ROLE_TOKENS: PlatformSimulationStateRoleToken[] = [
+  { role: 'preview', tokenName: 'platform-evaluation-preview', purpose: 'Preview-only simulation context and draft evidence.' },
+  { role: 'official', tokenName: 'platform-evaluation-official', purpose: 'Official evaluation or approved mission context.' },
+  { role: 'replay', tokenName: 'platform-replay-ready', purpose: 'Replay and repeatable observation affordances.' },
+  { role: 'warning', tokenName: 'platform-evidence-context', purpose: 'Cautionary but recoverable simulation state.' },
+  { role: 'success', tokenName: 'platform-evidence-eligible', purpose: 'Successful or eligible simulation evidence state.' },
+  { role: 'danger', tokenName: 'platform-evidence-unsupported', purpose: 'Unsafe, failed, or unsupported simulation condition.' },
+  { role: 'unavailable', tokenName: 'platform-replay-missing', purpose: 'Unavailable replay, scene, or context state.' },
+  { role: 'hint', tokenName: 'platform-action-subtle', purpose: 'Instructional hints that support the current simulation task.' },
+] as const;
 
 const PLATFORM_STATUS_LABELS = {
   confidence: {
@@ -373,6 +619,12 @@ export const PLATFORM_SEMANTIC_TOKENS: PlatformSemanticToken[] = [
   { name: 'platform-evaluation-official', category: 'evaluation', purpose: 'Official evaluation result.' },
   { name: 'platform-evaluation-preview', category: 'evaluation', purpose: 'Preview or rehearsal evaluation result.' },
   { name: 'platform-evaluation-hidden', category: 'evaluation', purpose: 'Hidden evaluation scenario or protected result.' },
+  { name: 'platform-chart-1', category: 'chart', purpose: 'Primary chart series color for commercial dashboards.' },
+  { name: 'platform-chart-2', category: 'chart', purpose: 'Secondary chart series color for commercial dashboards.' },
+  { name: 'platform-chart-3', category: 'chart', purpose: 'Success or growth chart series color for commercial dashboards.' },
+  { name: 'platform-chart-4', category: 'chart', purpose: 'Warning or variance chart series color for commercial dashboards.' },
+  { name: 'platform-chart-5', category: 'chart', purpose: 'Comparison chart series color for commercial dashboards.' },
+  { name: 'platform-chart-6', category: 'chart', purpose: 'Accent chart series color for commercial dashboards.' },
 ];
 
 export const PLATFORM_SHELL_ADAPTERS: PlatformShellAdapter[] = [
@@ -402,6 +654,364 @@ export const PLATFORM_SHELL_ADAPTERS: PlatformShellAdapter[] = [
     migrationRule: 'Keep governance data aggregation and redaction decisions in admin/data-governance feature modules.',
   },
 ];
+
+export const PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS: PlatformLegacyShellRetirementContract[] = [
+  {
+    legacyComponent: 'UnifiedTopBar',
+    allowedDisposition: 'retire-or-adapt',
+    preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
+    retirementRule: 'Replace with a commercial shell when the page can preserve cockpit routing, back links, and right-side actions.',
+  },
+  {
+    legacyComponent: 'ArenaPageShell',
+    allowedDisposition: 'retire-or-adapt',
+    preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
+    retirementRule: 'Replace with a commercial shell when Arena task, scoring, and submission context remain owned by Arena modules.',
+  },
+  {
+    legacyComponent: 'TeacherLayout',
+    allowedDisposition: 'retire-or-adapt',
+    preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
+    retirementRule: 'Replace with a commercial shell when authenticated teacher routing and class/session actions remain intact.',
+  },
+  {
+    legacyComponent: 'AdminConsoleHeader',
+    allowedDisposition: 'retire-or-adapt',
+    preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
+    retirementRule: 'Replace with a commercial shell when admin governance tabs, status notes, and actions remain reachable.',
+  },
+  {
+    legacyComponent: 'FeaturePageNav',
+    allowedDisposition: 'retire-or-adapt',
+    preservationRequirements: ['route access', 'role actions', 'contextual navigation'],
+    retirementRule: 'Replace with a commercial shell when local return links and floating tool mode are preserved.',
+  },
+] as const;
+
+export const PLATFORM_FLOATING_ACTION_DOCK_CONTRACT: PlatformFloatingActionDockContract = {
+  owner: 'platform-shell',
+  controls: ['konling', 'management', 'settings', 'page-tools', 'issue-badge'],
+  visibility: 'role-aware',
+  bottomOffset: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)',
+  rightOffset: 'calc(env(safe-area-inset-right, 0px) + 1rem)',
+  spacing: '0.5rem',
+  minHitTargetPx: 44,
+  zIndexToken: 'platform-floating-dock',
+  responsiveModes: ['expanded', 'collapsed-icons', 'hidden-by-workspace'],
+  collisionRules: [
+    'dock owns bottom-right fixed controls on primary platform routes',
+    'page-local fixed buttons must register as dock controls or move into local tool navigation',
+    'mobile collapse must not cover primary submit, playback, or lesson navigation controls',
+  ],
+  keyboardRules: [
+    'controls remain reachable in document order after page-local toolbars',
+    'collapsed icon controls expose accessible labels',
+    'hidden controls do not leave orphan focus targets',
+  ],
+} as const;
+
+export const PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS: PlatformFloatingActionDockControlContract[] = [
+  {
+    control: 'konling',
+    roleScope: ['student', 'teacher', 'admin'],
+    purpose: 'Open governed assistant, coaching, or support affordances without page-local fixed buttons.',
+    hiddenWhen: ['feature flag disabled', 'workspace uses a modal assistant surface', 'role cannot access assistant context'],
+    payloadBoundary: 'Dock receives visibility and launcher state only; feature-owned assistant modules own private memory and prompts.',
+  },
+  {
+    control: 'management',
+    roleScope: ['teacher', 'admin'],
+    purpose: 'Expose teacher/admin management shortcuts without competing with local workspace command bars.',
+    hiddenWhen: ['role lacks management permissions', 'route frame declares management controls local-only'],
+    payloadBoundary: 'Dock does not fetch classroom, roster, governance, or audit payloads.',
+  },
+  {
+    control: 'settings',
+    roleScope: ['student', 'teacher', 'admin'],
+    purpose: 'Expose theme, density, account, and workspace preference entry points consistently.',
+    hiddenWhen: ['workspace takes over settings in an immersive full-screen mode'],
+    payloadBoundary: 'Dock receives account/action metadata only; profile and authorization data stay in auth and route layers.',
+  },
+  {
+    control: 'page-tools',
+    roleScope: ['student', 'teacher', 'admin'],
+    purpose: 'Host route-owned tools, report actions, classroom controls, and workspace support drawers without separate fixed systems.',
+    hiddenWhen: ['route has no page-local tools', 'immersive route declares hidden dock behavior'],
+    payloadBoundary: 'Dock receives registration metadata only; page-owned modules retain command execution and data loading.',
+  },
+  {
+    control: 'issue-badge',
+    roleScope: ['teacher', 'admin'],
+    purpose: 'Expose governance, evidence, or issue count badges without overlapping forms, charts, report labels, or graph canvases.',
+    hiddenWhen: ['route has no issue badge', 'badge is rendered inline in a report table'],
+    payloadBoundary: 'Dock receives count, label, and target href only; issue details remain in feature-owned routes.',
+  },
+] as const;
+
+export const PLATFORM_DOCK_CONTROL_DISPOSITION_CONTRACTS: PlatformDockControlDispositionContract[] = [
+  {
+    legacyComponent: 'PageFloatingControls',
+    owner: 'platform-shell',
+    disposition: 'register-or-retire',
+    replacementControl: 'page-tools',
+    removalCondition: 'PageFloatingControls registrations move into the shared dock or route-local command surfaces retire their fixed bottom-right placement.',
+    collisionRequirements: ['safe-area', 'z-index', 'keyboard reachability', 'primary task control clearance'],
+  },
+  {
+    legacyComponent: 'GlobalAIFloatingButton',
+    owner: 'platform-shell',
+    disposition: 'register-or-retire',
+    replacementControl: 'konling',
+    removalCondition: 'GlobalAIFloatingButton registers through the shared dock and no longer renders as an independent fixed control.',
+    collisionRequirements: ['safe-area', 'z-index', 'keyboard reachability', 'primary task control clearance'],
+  },
+] as const;
+
+const commercialWorkspaceShellConventions = [
+  'account/profile action remains secondary to role cockpit action',
+  'contextual navigation does not duplicate global product navigation',
+  'panel wrappers preserve stable width and height while controls or fallback text change',
+] as const;
+
+const commercialWorkspaceShellTokenCategories = [
+  'canvas',
+  'surface',
+  'foreground',
+  'border',
+  'action',
+  'evidence',
+  'privacy',
+] as const;
+
+export const PLATFORM_COMMERCIAL_WORKSPACE_ZONES: PlatformCommercialWorkspaceZone[] = [
+  {
+    id: 'context-strip',
+    label: 'Context strip',
+    purpose: 'Expose object, mode, route source, class, challenge, lesson, or return context.',
+    domainOwnership: 'feature-owned',
+    presentationOwnership: 'shared-commercial-surface',
+  },
+  {
+    id: 'command-bar',
+    label: 'Command bar',
+    purpose: 'Expose primary submit, save, reset, view, report, and role operations.',
+    domainOwnership: 'feature-owned',
+    presentationOwnership: 'shared-commercial-surface',
+  },
+  {
+    id: 'instrument-area',
+    label: 'Instrument area',
+    purpose: 'Hold charts, diagrams, media, lesson modules, simulators, and analysis panels.',
+    domainOwnership: 'feature-owned',
+    presentationOwnership: 'shared-commercial-surface',
+  },
+  {
+    id: 'evidence-rail',
+    label: 'Evidence rail',
+    purpose: 'Show confidence, official or preview state, coverage, readiness, and missing context.',
+    domainOwnership: 'feature-owned',
+    presentationOwnership: 'shared-commercial-surface',
+  },
+  {
+    id: 'support-drawer',
+    label: 'Support drawer',
+    purpose: 'Hold explanations, hints, logs, assistant support, and teacher-only controls.',
+    domainOwnership: 'feature-owned',
+    presentationOwnership: 'shared-commercial-surface',
+  },
+] as const;
+
+const commercialWorkspaceZoneIds = PLATFORM_COMMERCIAL_WORKSPACE_ZONES.map((zone) => zone.id);
+
+export const PLATFORM_COMMERCIAL_WORKSPACE_SHELLS: PlatformCommercialWorkspaceShell[] = [
+  {
+    workspace: 'simulation',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'tool',
+    zones: commercialWorkspaceZoneIds,
+    contextualNavigation: 'Simulation catalog, launch provenance, scene tools, replay, and route-derived return target context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'arena',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'tool',
+    zones: commercialWorkspaceZoneIds,
+    contextualNavigation: 'Arena challenge, publication, ranking, submission, and return target context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'control-workbench',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'tool',
+    zones: commercialWorkspaceZoneIds,
+    contextualNavigation: 'Control Workbench object, preset, mode, Arena source, and route-derived return target context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'interactive-learning',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'learning',
+    zones: commercialWorkspaceZoneIds,
+    contextualNavigation: 'Interactive lesson, classroom session, step, and catalog return context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'adaptive-learning',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'learning',
+    zones: commercialWorkspaceZoneIds,
+    contextualNavigation: 'Adaptive practice, diagnosis, growth profile, and recommendation context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'teacher',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'analytics',
+    zones: commercialWorkspaceZoneIds,
+    contextualNavigation: 'Teacher class, lesson plan, classroom session, resource, and history context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'data-center',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'analytics',
+    zones: commercialWorkspaceZoneIds,
+    contextualNavigation: 'Platform data center source quality, presentation metrics, drilldown, and export context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+  {
+    workspace: 'admin',
+    derivedFrom: 'commercial-platform-shell',
+    density: 'governance',
+    zones: commercialWorkspaceZoneIds,
+    contextualNavigation: 'Admin user, system usage, data governance, configuration, and audit context.',
+    inheritsTokenCategories: commercialWorkspaceShellTokenCategories,
+    requiredConventions: commercialWorkspaceShellConventions,
+  },
+] as const;
+
+export const PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX: PlatformCommercialWorkspaceRoute[] = [
+  {
+    href: '/simulations/[id]',
+    workspace: 'simulation',
+    density: 'tool',
+    representativeSurface: 'immersive simulation scene',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar', 'evidence-rail', 'support-drawer'],
+  },
+  {
+    href: '/interactive-learning/control-workbench',
+    workspace: 'control-workbench',
+    density: 'tool',
+    representativeSurface: 'direct and Arena-bound Control Workbench',
+    expectedZones: commercialWorkspaceZoneIds,
+  },
+  {
+    href: '/arena/challenges/[taskId]',
+    workspace: 'arena',
+    density: 'tool',
+    representativeSurface: 'Arena challenge detail with collapsible workspace shell and centralized Arena visual assets',
+    expectedZones: commercialWorkspaceZoneIds,
+  },
+  {
+    href: '/interactive-learning/[lesson]',
+    workspace: 'interactive-learning',
+    density: 'learning',
+    representativeSurface: 'standard interactive lesson runtime',
+    expectedZones: commercialWorkspaceZoneIds,
+  },
+  {
+    href: '/teacher',
+    workspace: 'teacher',
+    density: 'analytics',
+    representativeSurface: 'teacher operations dashboard',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/teacher/classes',
+    workspace: 'teacher',
+    density: 'analytics',
+    representativeSurface: 'teacher class operations',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/teacher/lesson-plans',
+    workspace: 'teacher',
+    density: 'analytics',
+    representativeSurface: 'teacher lesson plan operations',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/teacher/resources',
+    workspace: 'teacher',
+    density: 'analytics',
+    representativeSurface: 'teacher resource operations',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/teacher/history',
+    workspace: 'teacher',
+    density: 'analytics',
+    representativeSurface: 'teacher classroom history operations',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/teacher/classes/[classId]/analytics-v2',
+    workspace: 'teacher',
+    density: 'analytics',
+    representativeSurface: 'teacher class analytics',
+    expectedZones: ['instrument-area'],
+  },
+  {
+    href: '/admin',
+    workspace: 'admin',
+    density: 'governance',
+    representativeSurface: 'admin operations console home',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/admin/users',
+    workspace: 'admin',
+    density: 'governance',
+    representativeSurface: 'admin user management console',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/admin/config',
+    workspace: 'admin',
+    density: 'governance',
+    representativeSurface: 'admin system and model configuration console',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/admin/states',
+    workspace: 'admin',
+    density: 'governance',
+    representativeSurface: 'admin usage statistics console',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/data-center',
+    workspace: 'data-center',
+    density: 'analytics',
+    representativeSurface: 'platform data center',
+    expectedZones: ['context-strip', 'instrument-area', 'command-bar'],
+  },
+  {
+    href: '/admin/data-governance',
+    workspace: 'admin',
+    density: 'governance',
+    representativeSurface: 'admin data governance',
+    expectedZones: ['instrument-area'],
+  },
+] as const;
 
 export const FORBIDDEN_SHARED_UI_IMPORT_PREFIXES = [
   '@/features/',

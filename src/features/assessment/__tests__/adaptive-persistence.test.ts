@@ -98,9 +98,13 @@ function createMockDb() {
     },
   };
 
+  const transaction = vi.fn(
+    async (callback: (tx: typeof db) => Promise<unknown>) => callback(db),
+  ) as unknown as <T>(callback: (tx: typeof db) => Promise<T>) => Promise<T>;
+
   return {
     ...db,
-    $transaction: vi.fn(async (callback: (tx: typeof db) => Promise<unknown>) => callback(db)),
+    $transaction: transaction,
   };
 }
 
@@ -117,6 +121,12 @@ describe('submitAnswerDurably', () => {
       questionId: question.id,
       selectedOption: correctOptionText!,
       timeSpent: 42,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
     }, db);
 
     expect(result).toMatchObject({
@@ -134,6 +144,18 @@ describe('submitAnswerDurably', () => {
       create: expect.objectContaining({
         selectedOptionKey: expect.stringMatching(/^[A-D]$/),
         correctOptionKey: expect.stringMatching(/^[A-D]$/),
+      }),
+    }));
+    expect(db.adaptiveAssessmentAbilityEstimate.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        dimensions: expect.objectContaining({
+          pathExecution: {
+            pathId: 'path-1',
+            nodeId: 'adaptive-quiz:control-target-check',
+            goalId: 'control-correction',
+            routeIntent: 'path-execution',
+          },
+        }),
       }),
     }));
 

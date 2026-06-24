@@ -15,6 +15,8 @@ import {
   type StudentEvidenceStatusMarker,
   type StudentSimulationArenaFeatureSummary,
   type StudentSimulationArenaWeakMetric,
+  type StudentPathEvidenceFeatureSummary,
+  type StudentPathEvidenceSourceReference,
   type StudentEvidenceWindow,
 } from './student-evidence-feature-cache';
 import {
@@ -47,6 +49,7 @@ export interface RecommendationRationale {
     markers: StudentEvidenceStatusMarker[];
   };
   simulationArena?: RecommendationSimulationArenaRationale;
+  pathExecution?: RecommendationPathExecutionRationale;
 }
 
 export interface RecommendationSimulationArenaRationale {
@@ -59,6 +62,17 @@ export interface RecommendationSimulationArenaRationale {
   interventionOutcome: StudentSimulationArenaFeatureSummary['allTime']['interventionOutcome'];
   weakMetrics: StudentSimulationArenaWeakMetric[];
   qualityMarkers: StudentSimulationArenaFeatureSummary['allTime']['qualityMarkers'];
+}
+
+export interface RecommendationPathExecutionRationale {
+  readiness: 'ready' | 'partial' | 'low-confidence' | 'missing';
+  featureGroup: 'pathExecution';
+  evidenceWindow: StudentEvidenceWindow;
+  evidenceCount: number;
+  sourceCoverage: StudentPathEvidenceFeatureSummary['allTime']['sourceCoverage'];
+  confidence: StudentPathEvidenceFeatureSummary['allTime']['confidence'];
+  interventionOutcome: StudentPathEvidenceFeatureSummary['allTime']['interventionOutcome'];
+  sourceReferences: StudentPathEvidenceSourceReference[];
 }
 
 export interface Recommendation {
@@ -108,6 +122,7 @@ interface RecommendationEvidenceContext {
   };
   statusMarkers: StudentEvidenceStatusMarker[];
   simulationArena?: StudentSimulationArenaFeatureSummary;
+  pathExecution?: StudentPathEvidenceFeatureSummary;
 }
 
 // Recommendation rule definitions
@@ -551,9 +566,11 @@ function buildRecommendationRationale(
   context: RecommendationContext
 ): RecommendationRationale {
   const simulationArena = buildRecommendationSimulationArenaRationale(context.evidence.simulationArena);
+  const pathExecution = buildRecommendationPathExecutionRationale(context.evidence.pathExecution);
   const confidenceState = resolveRationaleConfidenceState(
     resolveConfidenceState(context.evidence),
     simulationArena,
+    pathExecution,
   );
 
   return {
@@ -571,6 +588,7 @@ function buildRecommendationRationale(
       markers: context.evidence.statusMarkers,
     },
     ...(simulationArena ? { simulationArena } : {}),
+    ...(pathExecution ? { pathExecution } : {}),
   };
 }
 
@@ -595,6 +613,7 @@ function buildRecommendationEvidenceContext(input: {
       },
       statusMarkers: normalizeStatusMarkers(input.featureCache.statusMarkers),
       simulationArena: normalizeSimulationArenaFeature(input.featureCache.features),
+      pathExecution: normalizePathExecutionFeature(input.featureCache.features),
     };
   }
 
@@ -645,6 +664,133 @@ function normalizeSimulationArenaFeature(value: unknown): StudentSimulationArena
     recent30d: normalizeSimulationArenaWindow(simulationArena.recent30d),
     allTime: normalizeSimulationArenaWindow(simulationArena.allTime),
   };
+}
+
+function normalizePathExecutionFeature(value: unknown): StudentPathEvidenceFeatureSummary | undefined {
+  const features = getObject(value);
+  const pathExecution = getObject(features.pathExecution);
+  if (Object.keys(pathExecution).length === 0) {
+    return undefined;
+  }
+
+  return {
+    recent30d: normalizePathExecutionWindow(pathExecution.recent30d),
+    allTime: normalizePathExecutionWindow(pathExecution.allTime),
+  };
+}
+
+function normalizePathExecutionWindow(
+  value: unknown
+): StudentPathEvidenceFeatureSummary['allTime'] {
+  const window = getObject(value);
+  const sourceCoverage = getObject(window.sourceCoverage);
+  return {
+    window: normalizeEvidenceWindow(window.window),
+    evidenceCount: numberValue(window.evidenceCount),
+    adoptionCount: numberValue(window.adoptionCount),
+    completionCount: numberValue(window.completionCount),
+    deviationCount: numberValue(window.deviationCount),
+    fallbackCount: numberValue(window.fallbackCount),
+    terminalValidationCount: numberValue(window.terminalValidationCount),
+    sourceCoverage: {
+      adoption: normalizeCoverageState(sourceCoverage.adoption),
+      completion: normalizeCoverageState(sourceCoverage.completion),
+      deviation: normalizeCoverageState(sourceCoverage.deviation),
+      fallback: normalizeCoverageState(sourceCoverage.fallback),
+      terminalValidation: normalizeCoverageState(sourceCoverage.terminalValidation),
+      interventionOutcome: normalizeCoverageState(sourceCoverage.interventionOutcome),
+    },
+    confidence: normalizePathExecutionConfidence(window.confidence),
+    interventionOutcome: normalizePathExecutionInterventionOutcome(window.interventionOutcome),
+    terminalValidation: normalizePathExecutionTerminalValidation(window.terminalValidation),
+    sourceReferences: normalizePathExecutionSourceReferences(window.sourceReferences),
+  };
+}
+
+function normalizePathExecutionTerminalValidation(
+  value: unknown,
+): StudentPathEvidenceFeatureSummary['allTime']['terminalValidation'] {
+  const terminalValidation = getObject(value);
+  return {
+    latestState: typeof terminalValidation.latestState === 'string' ? terminalValidation.latestState : null,
+    completedCount: numberValue(terminalValidation.completedCount),
+    failedCount: numberValue(terminalValidation.failedCount),
+    lowConfidenceCount: numberValue(terminalValidation.lowConfidenceCount),
+    fallbackRequiredCount: numberValue(terminalValidation.fallbackRequiredCount),
+    lowConfidenceMarkers: stringList(terminalValidation.lowConfidenceMarkers),
+    failureReasons: stringList(terminalValidation.failureReasons),
+  };
+}
+
+function normalizePathExecutionConfidence(
+  value: unknown
+): StudentPathEvidenceFeatureSummary['allTime']['confidence'] {
+  const confidence = getObject(value);
+  const level = confidence.level;
+  return {
+    level: level === 'none' || level === 'low' || level === 'medium' || level === 'high'
+      ? level
+      : 'none',
+    score: numberValue(confidence.score),
+    lowConfidenceCount: numberValue(confidence.lowConfidenceCount),
+  };
+}
+
+function normalizePathExecutionInterventionOutcome(
+  value: unknown
+): StudentPathEvidenceFeatureSummary['allTime']['interventionOutcome'] {
+  const interventionOutcome = getObject(value);
+  return {
+    acceptedCount: numberValue(interventionOutcome.acceptedCount),
+    completedCount: numberValue(interventionOutcome.completedCount),
+    dismissedCount: numberValue(interventionOutcome.dismissedCount),
+    ignoredCount: numberValue(interventionOutcome.ignoredCount),
+    rejectedCount: numberValue(interventionOutcome.rejectedCount),
+    partiallyAcceptedCount: numberValue(interventionOutcome.partiallyAcceptedCount),
+    lowConfidenceCount: numberValue(interventionOutcome.lowConfidenceCount),
+  };
+}
+
+function normalizePathExecutionSourceReferences(value: unknown): StudentPathEvidenceSourceReference[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => {
+      const ref = getObject(item);
+      const sourceType = ref.sourceType;
+      const sourceId = stringOrNull(ref.sourceId);
+      const pathId = stringOrNull(ref.pathId);
+      const occurredAt = stringOrNull(ref.occurredAt);
+      const privacyLevel = ref.privacyLevel;
+      if (
+        !sourceId ||
+        !pathId ||
+        !occurredAt ||
+        (
+          sourceType !== 'LearningPathExecution' &&
+          sourceType !== 'LearningPathDeviation' &&
+          sourceType !== 'LearningPathIntervention'
+        ) ||
+        (privacyLevel !== 'student-visible' && privacyLevel !== 'teacher-scoped')
+      ) {
+        return null;
+      }
+      return {
+        sourceType,
+        sourceId,
+        pathId,
+        nodeId: stringOrNull(ref.nodeId),
+        occurredAt,
+        privacyLevel,
+        ...(stringOrNull(ref.status) ? { status: stringOrNull(ref.status)! } : {}),
+        ...(stringOrNull(ref.resourceType) ? { resourceType: stringOrNull(ref.resourceType)! } : {}),
+        ...(stringOrNull(ref.deviationType) ? { deviationType: stringOrNull(ref.deviationType)! } : {}),
+        ...(stringOrNull(ref.interventionKind) ? { interventionKind: stringOrNull(ref.interventionKind)! } : {}),
+        ...(stringOrNull(ref.studentOutcome) ? { studentOutcome: stringOrNull(ref.studentOutcome)! } : {}),
+      };
+    })
+    .filter((item): item is StudentPathEvidenceSourceReference => Boolean(item));
 }
 
 function normalizeSimulationArenaWindow(
@@ -760,6 +906,43 @@ function buildRecommendationSimulationArenaRationale(
     weakMetrics: allTime.weakMetrics,
     qualityMarkers: allTime.qualityMarkers,
   };
+}
+
+function buildRecommendationPathExecutionRationale(
+  pathExecution: StudentPathEvidenceFeatureSummary | undefined
+): RecommendationPathExecutionRationale | undefined {
+  if (!pathExecution || pathExecution.allTime.evidenceCount === 0) {
+    return undefined;
+  }
+  const allTime = pathExecution.allTime;
+  return {
+    readiness: resolvePathExecutionReadiness(allTime),
+    featureGroup: 'pathExecution',
+    evidenceWindow: allTime.window,
+    evidenceCount: allTime.evidenceCount,
+    sourceCoverage: allTime.sourceCoverage,
+    confidence: allTime.confidence,
+    interventionOutcome: allTime.interventionOutcome,
+    sourceReferences: allTime.sourceReferences.filter((ref) => ref.privacyLevel === 'student-visible'),
+  };
+}
+
+function resolvePathExecutionReadiness(
+  window: StudentPathEvidenceFeatureSummary['allTime']
+): RecommendationPathExecutionRationale['readiness'] {
+  if (window.evidenceCount === 0) {
+    return 'missing';
+  }
+  if (window.confidence.level === 'low') {
+    return 'low-confidence';
+  }
+  if (
+    window.confidence.lowConfidenceCount > 0 ||
+    Object.values(window.sourceCoverage).some((coverage) => coverage !== 'available')
+  ) {
+    return 'partial';
+  }
+  return 'ready';
 }
 
 function resolveSimulationArenaReadiness(
@@ -886,18 +1069,25 @@ function resolveConfidenceState(evidence: RecommendationEvidenceContext): Recomm
 
 function resolveRationaleConfidenceState(
   baseState: RecommendationConfidenceState,
-  simulationArena: RecommendationSimulationArenaRationale | undefined
+  simulationArena: RecommendationSimulationArenaRationale | undefined,
+  pathExecution: RecommendationPathExecutionRationale | undefined
 ): RecommendationConfidenceState {
-  if (!simulationArena) {
+  if (!simulationArena && !pathExecution) {
     return baseState;
   }
   if (baseState !== 'ready') {
     return baseState;
   }
-  if (simulationArena.readiness === 'low-confidence') {
+  if (simulationArena?.readiness === 'low-confidence') {
     return 'low-confidence';
   }
-  if (simulationArena.readiness === 'partial') {
+  if (simulationArena?.readiness === 'partial') {
+    return 'partial';
+  }
+  if (pathExecution?.readiness === 'low-confidence') {
+    return 'low-confidence';
+  }
+  if (pathExecution?.readiness === 'partial') {
     return 'partial';
   }
   return baseState;
@@ -927,6 +1117,10 @@ function stringOrNull(value: unknown): string | null {
 
 function numberValue(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function stringList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
 /**

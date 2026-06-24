@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import importlib.util
 from pathlib import Path
 
@@ -60,7 +61,7 @@ def test_build_runtime_relations_normalizes_legacy_relation_schema():
     assert repeated['relation_id'] == relation['relation_id']
 
 
-def test_build_runtime_relations_rejects_duplicate_ids_for_different_relations():
+def test_build_runtime_relations_rewrites_duplicate_ids_for_different_relations():
     nodes_by_id = {
         'A_1': {'id': 'A_1', 'name': 'A', 'chapter': 1},
         'B_1': {'id': 'B_1', 'name': 'B', 'chapter': 1},
@@ -83,9 +84,41 @@ def test_build_runtime_relations_rejects_duplicate_ids_for_different_relations()
         },
     ]
 
-    try:
-        export_runtime.build_runtime_relations(nodes_by_id, conflicting_records)
-    except ValueError as exc:
-        assert 'duplicate relation_id' in str(exc)
-    else:
-        raise AssertionError('expected duplicate relation_id conflict to raise ValueError')
+    relations = export_runtime.build_runtime_relations(nodes_by_id, conflicting_records)
+
+    assert len(relations) == 2
+    relation_ids = {relation['relation_id'] for relation in relations}
+    assert 'rt-1' in relation_ids
+    assert len(relation_ids) == 2
+
+
+def test_resolve_lessons_export_all_skips_mainline_draft(monkeypatch, tmp_path):
+    available_authoring = {
+        '1-1': tmp_path / 'authoring' / '1-1',
+        '1-2': tmp_path / 'authoring' / '1-2',
+        'legacy/L-2b': tmp_path / 'authoring' / 'legacy' / 'L-2b',
+    }
+    for path in available_authoring.values():
+        path.mkdir(parents=True)
+
+    monkeypatch.setattr(
+        export_runtime,
+        'load_lesson_id_map',
+        lambda: {
+            'entries': [
+                {'status': 'mainline', 'request_ids': ['1-1']},
+                {'status': 'mainline_draft', 'request_ids': ['1-2']},
+                {'status': 'legacy_source', 'request_ids': ['legacy/L-2b']},
+                {'status': 'mainline', 'request_ids': ['missing']},
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        export_runtime,
+        'get_authoring_lesson_dir',
+        lambda lesson_id: available_authoring.get(lesson_id, tmp_path / 'missing' / lesson_id),
+    )
+
+    lessons = export_runtime.resolve_lessons(argparse.Namespace(export_all=True, lesson=None))
+
+    assert lessons == ['1-1']

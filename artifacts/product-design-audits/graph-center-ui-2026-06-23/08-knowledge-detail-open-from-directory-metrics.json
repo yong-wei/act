@@ -1,0 +1,155 @@
+{
+  "viewport": {
+    "width": 1365,
+    "height": 900
+  },
+  "body": {
+    "clientWidth": 1365,
+    "scrollWidth": 1365
+  },
+  "canvas": {
+    "x": 96,
+    "y": 93,
+    "width": 835.5,
+    "height": 900,
+    "right": 931.5,
+    "bottom": 993,
+    "className": "relative h-full min-w-0 flex-1 overflow-hidden",
+    "data": {
+      "data-knowledge-canvas-primary": "true",
+      "data-knowledge-layout-version": "0",
+      "data-knowledge-visible-node-count": "596",
+      "data-knowledge-visible-link-count": "1290",
+      "data-knowledge-pinned-node-count": "0",
+      "data-knowledge-pinned-layout-signature": "",
+      "data-knowledge-selected-node-id": "反馈控制_1_516da087",
+      "data-knowledge-konling-selected-node-id": "反馈控制_1_516da087",
+      "data-knowledge-konling-relation-summary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点",
+      "data-knowledge-konling-density-mode": "structure",
+      "data-knowledge-konling-view-mode": "2D"
+    }
+  },
+  "inspector": {
+    "x": 931.5,
+    "y": 93,
+    "width": 409.5,
+    "height": 900,
+    "right": 1341,
+    "bottom": 993,
+    "className": "fixed inset-x-2 bottom-2 z-50 max-h-[72vh] overflow-y-auto rounded-xl pb-16 shadow-xl transition-transform duration-300 lg:relative lg:inset-auto lg:z-20 lg:h-full lg:max-h-none lg:w-[clamp(22.5rem,30vw,28.75rem)] lg:shrink-0 lg:rounded-none lg:border-y-0 lg:border-r-0 lg:pb-0 lg:shadow-none border border-platform-border bg-platform-surface text-platform-fg-primary translate-x-0",
+    "data": {
+      "data-knowledge-local-panel": "resource-panel",
+      "data-knowledge-inspector": "stable-rail",
+      "data-knowledge-inspector-responsive": "desktop-rail-mobile-sheet",
+      "data-knowledge-inspector-focus-contract": "mobile-trap-escape-return",
+      "data-knowledge-inspector-dock-safe-area": "bottom-padding"
+    }
+  },
+  "selectedNodeId": "反馈控制_1_516da087",
+  "forceGraphCanvas": {
+    "x": 96,
+    "y": 93,
+    "width": 836,
+    "height": 900,
+    "right": 932,
+    "bottom": 993,
+    "className": "",
+    "data": {}
+  },
+  "command": {
+    "x": 112,
+    "y": 109,
+    "width": 603.1875,
+    "height": 668.5,
+    "right": 715.1875,
+    "bottom": 777.5,
+    "className": "absolute left-4 top-4 z-30 hidden max-w-[min(45rem,calc(100vw-36rem))] lg:block",
+    "data": {
+      "data-knowledge-desktop-command-system": "compact",
+      "data-knowledge-local-tool": "chapter-directory",
+      "data-state": "open",
+      "data-knowledge-active-filter-summary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点",
+      "data-knowledge-command-summary": "1290 条可见关系 · 2.16 边/点 · 弱关系 0% · 打开：目录"
+    }
+  },
+  "activeToolPanel": {
+    "x": 121,
+    "y": 192.5,
+    "width": 448,
+    "height": 576,
+    "right": 569,
+    "bottom": 768.5,
+    "className": "mt-2 max-h-[min(36rem,calc(100vh-9rem))] w-[min(28rem,calc(100vw-38rem))] min-w-[22rem] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur-md",
+    "data": {
+      "data-knowledge-desktop-tool-panel": "chapter-directory",
+      "data-knowledge-local-tool": "chapter-directory",
+      "data-state": "open"
+    }
+  },
+  "aiSidebar": {
+    "x": 1365,
+    "y": 0,
+    "width": 420,
+    "height": 900,
+    "right": 1785,
+    "bottom": 900,
+    "className": "\n          fixed right-0 top-0 z-50 flex flex-col\n          h-screen w-screen\n          sm:w-[380px]\n          lg:w-[420px]\n          bg-white border-slate-200\n          transition-all duration-300 ease-out\n          translate-x-full opacity-0 pointer-events-none\n          shadow-2xl\n        ",
+    "data": {
+      "data-global-ai-sidebar": "closed",
+      "data-konling-assistant-surface": "global-sidebar",
+      "data-konling-inspector-avoidance": "inactive",
+      "data-knowledge-mobile-inspector-policy": "suspend"
+    }
+  },
+  "main": {
+    "x": 0,
+    "y": 0,
+    "width": 1365,
+    "height": 1013,
+    "right": 1365,
+    "bottom": 1013,
+    "className": "min-h-screen text-platform-fg-primary bg-platform-canvas-muted surface-page",
+    "data": {
+      "data-platform-route-frame": "knowledge-data-map",
+      "data-platform-route-theme-support": "light dark",
+      "data-platform-desktop-navigation": "collapsible",
+      "data-platform-route-navigation-layers": "global-product contextual-workspace local-tool",
+      "data-platform-mobile-navigation": "workspace-command-surface",
+      "data-platform-floating-dock-behavior": "collapsed",
+      "data-platform-floating-dock-collision-policy": "safe-area-primary-controls",
+      "data-platform-floating-dock-mobile-behavior": "sheet-after-local-tools"
+    }
+  },
+  "workspace": {
+    "x": 96,
+    "y": 93,
+    "width": 1245,
+    "height": 900,
+    "right": 1341,
+    "bottom": 993,
+    "className": "relative flex h-screen w-full bg-platform-page text-platform-fg-primary",
+    "data": {
+      "data-knowledge-workspace": "canvas-first",
+      "data-knowledge-squeeze-down-rejected": "permanent-panels-hidden-at-320",
+      "data-knowledge-konling-context-source": "server-owned",
+      "data-knowledge-konling-context-status": "selected-node",
+      "data-knowledge-shared-dock-collision-policy": "avoid-local-tools-and-inspector"
+    }
+  },
+  "pageWrapper": {
+    "x": 96,
+    "y": 93,
+    "width": 1245,
+    "height": 900,
+    "right": 1341,
+    "bottom": 993,
+    "className": "",
+    "data": {
+      "data-commercial-student-entry-route": "/knowledge",
+      "data-commercial-workspace": "knowledge-data-map",
+      "data-commercial-workspace-zone": "instrument-area",
+      "data-knowledge-data-map-surface": "knowledge-graph",
+      "data-evidence-map-semantics": "source-quality freshness privacy confidence status"
+    }
+  }
+}

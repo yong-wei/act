@@ -226,9 +226,11 @@ export function analyzeSimulationResult({
 /**
  * 工具1: 获取仿真状态
  */
+export const getSimulationStatusInputSchema = z.object({});
+
 export const getSimulationStatusTool = tool({
   description: '获取当前仿真器的状态信息，包括船舶位置、航向、舵角、PID参数、海况等',
-  parameters: z.object({}),
+  inputSchema: getSimulationStatusInputSchema,
   execute: async () => {
     const state = getSimulationState();
     return {
@@ -268,15 +270,17 @@ export const getSimulationStatusTool = tool({
 /**
  * 工具2: 修改仿真参数
  */
+export const setSimulationParamsInputSchema = z.object({
+  kp: z.number().min(0).max(5).optional().describe('比例增益 Kp (0-5)'),
+  ki: z.number().min(0).max(1).optional().describe('积分增益 Ki (0-1)'),
+  kd: z.number().min(0).max(3).optional().describe('微分增益 Kd (0-3)'),
+  seaStateLevel: z.number().min(1).max(5).optional().describe('海况等级 (1-5)'),
+  speed: z.number().min(4).max(22).optional().describe('目标航速 m/s (4-22)'),
+});
+
 export const setSimulationParamsTool = tool({
   description: '修改仿真器的PID参数或环境配置。修改会生成一个待确认的变更请求，需要学生在前端确认后才会生效。',
-  parameters: z.object({
-    kp: z.number().min(0).max(5).optional().describe('比例增益 Kp (0-5)'),
-    ki: z.number().min(0).max(1).optional().describe('积分增益 Ki (0-1)'),
-    kd: z.number().min(0).max(3).optional().describe('微分增益 Kd (0-3)'),
-    seaStateLevel: z.number().min(1).max(5).optional().describe('海况等级 (1-5)'),
-    speed: z.number().min(4).max(22).optional().describe('目标航速 m/s (4-22)'),
-  }),
+  inputSchema: setSimulationParamsInputSchema,
   execute: async ({ kp, ki, kd, seaStateLevel, speed }) => {
     const request = buildSimulationParamChangeRequest({ kp, ki, kd, seaStateLevel, speed });
 
@@ -294,19 +298,21 @@ export const setSimulationParamsTool = tool({
 /**
  * 工具3: 分析仿真结果
  */
+export const analyzeResultInputSchema = z.object({
+  avgError: z.number().describe('平均航迹误差(米)'),
+  maxRudderRate: z.number().describe('最大舵角速度(度/秒)'),
+  overshoot: z.number().optional().describe('超调量(%)'),
+  settlingTime: z.number().optional().describe('调节时间(秒)'),
+  duration: z.number().describe('仿真时长(秒)'),
+  controlMode: z.string().describe('控制模式: manual/p/pd/pid'),
+  kp: z.number().describe('当前Kp值'),
+  ki: z.number().describe('当前Ki值'),
+  kd: z.number().describe('当前Kd值'),
+});
+
 export const analyzeResultTool = tool({
   description: '分析仿真结果，结合船舶控制知识库给出专业点评，包括性能评估、安全分析和改进建议',
-  parameters: z.object({
-    avgError: z.number().describe('平均航迹误差(米)'),
-    maxRudderRate: z.number().describe('最大舵角速度(度/秒)'),
-    overshoot: z.number().optional().describe('超调量(%)'),
-    settlingTime: z.number().optional().describe('调节时间(秒)'),
-    duration: z.number().describe('仿真时长(秒)'),
-    controlMode: z.string().describe('控制模式: manual/p/pd/pid'),
-    kp: z.number().describe('当前Kp值'),
-    ki: z.number().describe('当前Ki值'),
-    kd: z.number().describe('当前Kd值'),
-  }),
+  inputSchema: analyzeResultInputSchema,
   execute: async (args) => analyzeSimulationResult(args),
 });
 

@@ -11,7 +11,7 @@
 ### Task 1: Update Review Skill Rules
 
 **Files:**
-- Modify: `./.codex/skills/lesson-content-review/SKILL.md`
+- Modify: `./.agents/skills/lesson-content-review/SKILL.md`
 
 **Step 1: Tighten the deterministic verification section**
 

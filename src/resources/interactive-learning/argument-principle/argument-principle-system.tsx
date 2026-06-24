@@ -208,14 +208,14 @@ export function ArgumentPrincipleSystem() {
             <h1 className="text-lg font-semibold text-white">幅角原理可视化</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <button type="button"
               onClick={handleReset}
               className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-800"
             >
               <RotateCcw className="h-4 w-4" />
               重置视图
             </button>
-            <button
+            <button type="button"
               className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-800"
             >
               <Save className="h-4 w-4" />

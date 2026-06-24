@@ -1,0 +1,86 @@
+{
+  "change": "standardize-sitewide-compact-spacing",
+  "generatedAt": "2026-06-23",
+  "inventory": [
+    {
+      "path": "src/components/platform/app-shell.tsx",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "AppShell registered route frame primary content wrapper",
+      "classification": "migrated",
+      "reason": "All route archetypes now use APP_SHELL_COMPACT_PAGE_EDGE_CLASS with fixed compact viewport edges.",
+      "removalCondition": "Permanent sitewide shell contract."
+    },
+    {
+      "path": "src/app/globals.css",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "surface-page, admin-console-container, premium-lesson-main shared page edge tokens",
+      "classification": "migrated",
+      "reason": "Shared containers now read --platform-page-edge-x instead of mx-auto max-width caps.",
+      "removalCondition": "Permanent sitewide spacing token contract."
+    },
+    {
+      "path": "src/features/interactive/**/{student-page,teacher-page,course-header}.tsx",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "Interactive lesson runtime course-local header and main wrappers",
+      "classification": "migrated",
+      "reason": "Repeated premium-lesson-main and course header page-level caps were removed from modern interactive courses.",
+      "removalCondition": "Permanent runtime shell contract; new lessons must use shared compact page edges."
+    },
+    {
+      "path": "src/app/teacher/layout.tsx, src/app/teacher/classes/page.tsx, src/app/teacher/classes/[classId]/page.tsx, src/app/teacher/classes/[classId]/analytics-v2/page.tsx, src/app/teacher/classes/[classId]/students/[studentId]/page.tsx, src/app/teacher/lesson-plans/page.tsx, src/features/teacher/teacher-dashboard.tsx, src/features/teacher/teacher-prep-pack-review-surface.tsx, src/features/teacher/teacher-resource-manager.tsx, src/features/teacher/resources/teacher-resource-node-management.tsx, src/features/control-workbench/shell/control-workbench-shell.tsx",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "Migrated representative teacher operations, resource, class, report, and control workbench shells touched by this change",
+      "classification": "migrated",
+      "reason": "Only the listed shells were migrated in this change; remaining teacher pages with centered wrappers are tracked as temporary exceptions or future work.",
+      "removalCondition": "Permanent commercial workspace spacing contract."
+    },
+    {
+      "path": "src/app/(main)/profile/portfolio/page.tsx",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "Representative learner portfolio workspace page shell touched by this change",
+      "classification": "migrated",
+      "reason": "The listed non-teacher route shells no longer center the whole page in a wide-screen cap; root page remains outside this migration.",
+      "removalCondition": "Permanent compact page edge contract."
+    },
+    {
+      "path": "src/app/interactive-learning/lessons/[lessonId]/handout-print/page.tsx",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "Print/export handout page",
+      "classification": "component-intrinsic-exception",
+      "reason": "Print/PDF pages require a measured page width rather than workspace utilization.",
+      "removalCondition": "Permanent print/export exception."
+    },
+    {
+      "path": "src/features/interactive/shared/teacher-classroom-waiting-page.tsx",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "QR code square preview",
+      "classification": "component-intrinsic-exception",
+      "reason": "The centered max-width constrains QR image size, not the page shell.",
+      "removalCondition": "Permanent media-preview exception."
+    },
+    {
+      "path": "src/features/lesson-engine/**, src/resources/interactive-learning/**",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "Legacy resource widgets and lesson-engine local components",
+      "classification": "temporary-exception",
+      "reason": "Legacy resource widgets still own their own component measures and are outside the modern AppShell/runtime shell migration surface.",
+      "removalCondition": "Remove as each legacy resource is migrated into the shared compact workspace shell."
+    },
+    {
+      "path": "src/app/review/**, src/app/classroom/teacher/[sessionId]/review/page.tsx",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "Internal visual review and classroom retrospective pages",
+      "classification": "temporary-exception",
+      "reason": "Review pages use fixed comparison measures until internal review surfaces are moved into AppShell report-ledger shells.",
+      "removalCondition": "Remove after review surfaces adopt the compact report-ledger frame."
+    },
+    {
+      "path": "src/app/(auth)/**, src/app/(main)/missions/page.tsx, src/app/teacher/classes/new/page.tsx, src/app/teacher/preset-lessons/page.tsx, src/app/teacher/history/page.tsx, src/app/teacher/arena/publications/[publicationId]/page.tsx, src/app/(main)/teacher/students/[studentId]/evidence/page.tsx, src/app/page.tsx",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "Narrow auth, mission assistant, single-form/detail, root marketing, and legacy teacher/report flows not fully migrated by this change",
+      "classification": "temporary-exception",
+      "reason": "These flows require follow-up page-shell migration so route frames, not broad page wrappers, own page width.",
+      "removalCondition": "Remove after auth and single-form routes move narrow measures into internal form components."
+    }
+  ]
+}

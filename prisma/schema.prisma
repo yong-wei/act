@@ -1,12 +1,10 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "postgresql"
 }
 
 enum UserRole {
@@ -738,6 +736,31 @@ model ClassSession {
   @@index([classId])
 }
 
+// 教师审核后的课程运行时增强包
+model CourseEnhancementPack {
+  id                  String   @id
+  teacherId           String
+  classId             String
+  goalId              String
+  lessonId            String
+  sourcePrepPackId    String   @unique
+  diagnosisSnapshotId String?
+  status              String
+  source              Json     @default("{}")
+  items               Json     @default("[]")
+  auditLog            Json     @default("[]")
+  teacherFeedback     Json     @default("[]")
+  activatedAt         DateTime?
+  rolledBackAt        DateTime?
+  archivedAt          DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([teacherId, status, updatedAt])
+  @@index([classId, lessonId, status])
+  @@index([diagnosisSnapshotId])
+}
+
 enum SessionStatus {
   ACTIVE
   PAUSED
@@ -897,11 +920,93 @@ model LearningPath {
   nodeIds       Json    @default("[]") // 节点 ID 有序数组
   isAiGenerated Boolean @default(false)
   isBookmarked  Boolean @default(false)
+  goalId        String?
+  plannerVersion String?
+  pathStatus   String  @default("legacy")
+  currentNodeId String?
+  learnerStateRef String?
+  classId      String?
+  inputSnapshot Json?
+  pathPayload  Json    @default("{}")
+  explanationPayload Json @default("{}")
+  alternativePayload Json @default("[]")
+  entryNodeId  String?
+  terminalValidation Json?
+  lastExecutionMetadata Json?
+  legacySummaryPayload Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  executions LearningPathExecution[]
+  deviations LearningPathDeviation[]
+  interventions LearningPathIntervention[]
+
   @@index([userId])
+  @@index([userId, goalId, pathStatus])
+  @@index([classId, goalId, pathStatus])
+}
+
+model LearningPathExecution {
+  id             String   @id @default(cuid())
+  pathId         String
+  userId         String
+  nodeId         String
+  resourceType   String
+  status         String
+  startedAt      DateTime?
+  completedAt    DateTime?
+  failedAt       DateTime?
+  evidenceRefs   Json     @default("[]")
+  liftMetadata   Json     @default("{}")
+  simulationRef  Json?
+  arenaRef       Json?
+  idempotencyKey String?
+  createdAt      DateTime @default(now())
+
+  path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, idempotencyKey])
+  @@index([pathId, createdAt])
+  @@index([userId, nodeId, status])
+}
+
+model LearningPathDeviation {
+  id                 String   @id @default(cuid())
+  pathId             String
+  userId             String
+  deviationType      String
+  priorNodeId        String?
+  targetNodeId       String?
+  context            Json     @default("{}")
+  evidenceConfidence String   @default("unknown")
+  idempotencyKey     String?
+  createdAt          DateTime @default(now())
+
+  path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, idempotencyKey])
+  @@index([pathId, createdAt])
+  @@index([userId, deviationType, createdAt])
+}
+
+model LearningPathIntervention {
+  id                 String   @id @default(cuid())
+  pathId             String
+  userId             String
+  interventionKind   String
+  citedEvidence      Json     @default("[]")
+  suggestedAction    String
+  studentOutcome     String   @default("pending")
+  privacySafeSummary String
+  idempotencyKey     String?
+  createdAt          DateTime @default(now())
+
+  path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, idempotencyKey])
+  @@index([pathId, createdAt])
+  @@index([userId, interventionKind, createdAt])
 }
 
 // 学习笔记
@@ -1245,6 +1350,9 @@ model AgentToolRun {
   actorUser    User         @relation("AgentToolRunActor", fields: [actorUserId], references: [id], onDelete: Cascade)
   targetUser   User         @relation("AgentToolRunTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
 
+  // Scope-level idempotency is enforced by raw migration
+  // 20260615111000_add_agent_tool_run_scope_idempotency because nullable
+  // scope columns require COALESCE semantics that Prisma schema cannot express.
   @@unique([agentSessionId, toolName, idempotencyKey])
   @@index([agentSessionId, startedAt])
   @@index([ownerUserId, toolName, startedAt])
@@ -1712,6 +1820,24 @@ model StudentEvidenceFeatureCache {
   @@index([refreshedAt])
   @@index([lastSourceFactAt])
   @@index([payloadVersion])
+}
+
+model DiagnosisReportSnapshot {
+  id                  String   @id
+  goalId              String
+  subjectKind         String
+  userId              String?
+  classId             String?
+  generatedAt         DateTime
+  materializerVersion String
+  snapshot            Json
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([goalId, subjectKind, generatedAt])
+  @@index([goalId, userId, generatedAt])
+  @@index([goalId, classId, generatedAt])
+  @@index([materializerVersion, generatedAt])
 }
 
 // Optimized profile summary for AI assistant

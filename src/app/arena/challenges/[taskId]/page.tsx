@@ -20,13 +20,14 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-export default async function ArenaChallengePage({
-  params,
-  searchParams,
-}: {
-  params: { taskId: string };
-  searchParams?: { publicationId?: string };
-}) {
+export default async function ArenaChallengePage(
+  props: {
+    params: Promise<{ taskId: string }>;
+    searchParams?: Promise<{ publicationId?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const task = getArenaChallengeTask(params.taskId);
   if (!task) notFound();
 

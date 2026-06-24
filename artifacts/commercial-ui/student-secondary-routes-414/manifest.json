@@ -1,0 +1,400 @@
+{
+  "changeId": "migrate-student-secondary-routes-to-unified-shell",
+  "issue": 414,
+  "capturedAt": "2026-06-12T20:14:22.602Z",
+  "baseUrl": "http://localhost:3001",
+  "routes": [
+    {
+      "route": "/interactive-learning",
+      "theme": "light",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "互动学习",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "互动学习",
+        "activeLinkTitle": "互动学习",
+        "activeLinkText": "",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": false,
+        "mobileNavigation": "workspace-command-surface",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      }
+    },
+    {
+      "route": "/interactive-learning",
+      "theme": "dark",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "互动学习",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "互动学习",
+        "activeLinkTitle": "互动学习",
+        "activeLinkText": "",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": false,
+        "mobileNavigation": "workspace-command-surface",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      }
+    },
+    {
+      "route": "/interactive-learning/courses",
+      "theme": "light",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "互动学习",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "互动学习",
+        "activeLinkTitle": "互动学习",
+        "activeLinkText": "",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": false,
+        "mobileNavigation": "workspace-command-surface",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      }
+    },
+    {
+      "route": "/interactive-learning/courses",
+      "theme": "dark",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "互动学习",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "互动学习",
+        "activeLinkTitle": "互动学习",
+        "activeLinkText": "",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": false,
+        "mobileNavigation": "workspace-command-surface",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      }
+    },
+    {
+      "route": "/interactive-learning/chapter-components",
+      "theme": "light",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "互动学习",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "互动学习",
+        "activeLinkTitle": "互动学习",
+        "activeLinkText": "",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": false,
+        "mobileNavigation": "workspace-command-surface",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      }
+    },
+    {
+      "route": "/interactive-learning/chapter-components",
+      "theme": "dark",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "互动学习",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "互动学习",
+        "activeLinkTitle": "互动学习",
+        "activeLinkText": "",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": false,
+        "mobileNavigation": "workspace-command-surface",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      }
+    },
+    {
+      "route": "/interactive-learning/cross-domain-exploration",
+      "theme": "light",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "互动学习",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "互动学习",
+        "activeLinkTitle": "互动学习",
+        "activeLinkText": "",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": false,
+        "mobileNavigation": "workspace-command-surface",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      }
+    },
+    {
+      "route": "/interactive-learning/cross-domain-exploration",
+      "theme": "dark",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "互动学习",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "互动学习",
+        "activeLinkTitle": "互动学习",
+        "activeLinkText": "",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": false,
+        "mobileNavigation": "workspace-command-surface",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      }
+    },
+    {
+      "route": "/assessment/adaptive-practice",
+      "theme": "light",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "自适应学习",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "自适应学习",
+        "activeLinkTitle": "自适应学习",
+        "activeLinkText": "",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": false,
+        "mobileNavigation": "workspace-command-surface",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      }
+    },
+    {
+      "route": "/assessment/adaptive-practice",
+      "theme": "dark",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "自适应学习",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "自适应学习",
+        "activeLinkTitle": "自适应学习",
+        "activeLinkText": "",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": false,
+        "mobileNavigation": "workspace-command-surface",
+        "horizontalOverflow": false,
+        "firstViewportTaskVisible": true,
+        "mainCount": 1
+      }
+    }
+  ],
+  "screenshots": [
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-learning-light-desktop-expanded.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-learning-light-desktop-collapsed.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-learning-light-mobile.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-learning-dark-desktop-expanded.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-learning-dark-desktop-collapsed.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-learning-dark-mobile.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-courses-light-desktop-expanded.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-courses-light-desktop-collapsed.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-courses-light-mobile.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-courses-dark-desktop-expanded.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-courses-dark-desktop-collapsed.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/interactive-courses-dark-mobile.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/chapter-components-light-desktop-expanded.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/chapter-components-light-desktop-collapsed.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/chapter-components-light-mobile.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/chapter-components-dark-desktop-expanded.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/chapter-components-dark-desktop-collapsed.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/chapter-components-dark-mobile.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/cross-domain-exploration-light-desktop-expanded.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/cross-domain-exploration-light-desktop-collapsed.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/cross-domain-exploration-light-mobile.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/cross-domain-exploration-dark-desktop-expanded.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/cross-domain-exploration-dark-desktop-collapsed.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/cross-domain-exploration-dark-mobile.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/adaptive-practice-light-desktop-expanded.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/adaptive-practice-light-desktop-collapsed.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/adaptive-practice-light-mobile.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/adaptive-practice-dark-desktop-expanded.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/adaptive-practice-dark-desktop-collapsed.png",
+    "artifacts/commercial-ui/student-secondary-routes-414/adaptive-practice-dark-mobile.png"
+  ]
+}

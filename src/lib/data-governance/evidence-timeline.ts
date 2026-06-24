@@ -18,6 +18,9 @@ export interface EvidenceTimelineFilters {
   factType?: string;
   outcome?: string;
   sessionId?: string;
+  assignment?: string;
+  criterion?: string;
+  assignmentSource?: string;
 }
 
 export interface EvidenceTimelineCursor {
@@ -43,12 +46,44 @@ export interface EvidenceTimelineItem {
   competencyContribution: Record<string, number>;
   evidenceTitle?: string;
   stepId?: string;
-  questionSummaries?: EvidenceQuestionSummary[];
+  questionSummaries?: EvidenceTimelineQuestionSummary[];
   quality?: SubmissionEvidenceQuality;
   qualityReason?: string;
   sourceState?: string;
   schemaVersion?: string | null;
+  displayPriority?: 'normal' | 'deemphasized';
+  groupKey?: string;
+  groupLabel?: string;
+  groupedCount?: number;
+  groupedEvidenceIds?: string[];
+  learnerRecord?: EvidenceTimelineLearnerRecord;
 }
+
+export interface EvidenceTimelineQuestionSummary extends Omit<EvidenceQuestionSummary, 'studentAnswer'> {
+  studentAnswer?: string | null;
+  studentAnswerRedacted?: boolean;
+}
+
+export type EvidenceTimelineLearnerRecordSourceScope =
+  | 'interactive-lesson-submission'
+  | 'arena-official-result'
+  | 'arena-preview-result'
+  | 'simulation-workbench-completion'
+  | 'adaptive-practice-submission';
+
+export interface EvidenceTimelineLearnerRecord {
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope;
+  freshness: 'fresh' | 'recent' | 'stale' | 'unknown';
+  confidence: 'high' | 'medium' | 'low' | 'unknown';
+  missingSourceState: string;
+  privacyScope: 'student-visible' | 'teacher-scoped' | 'governance-scoped' | 'restricted';
+  nextAction: {
+    href: string;
+    label: string;
+  };
+}
+
+export type EvidenceTimelineViewerRole = 'student' | 'teacher' | 'admin';
 
 export interface EvidenceTimelinePage {
   items: EvidenceTimelineItem[];
@@ -93,8 +128,17 @@ export interface EvidenceTimelineDb {
   };
 }
 
+export interface ListEvidenceTimelineInput {
+  db: EvidenceTimelineDb;
+  userId: string;
+  filters?: EvidenceTimelineFilters;
+  viewerRole?: EvidenceTimelineViewerRole;
+  restrictedFallbackAction?: EvidenceTimelineLearnerRecord['nextAction'];
+}
+
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
+const GROUP_LOOKAHEAD = 2;
 const ORDER_BY: Prisma.LearningFactOrderByWithRelationInput[] = [
   { startedAt: 'desc' },
   { createdAt: 'desc' },
@@ -115,6 +159,9 @@ export function parseEvidenceTimelineFilters(searchParams: URLSearchParams): Evi
     factType: readSearchString(searchParams.get('factType')),
     outcome: readSearchString(searchParams.get('outcome')),
     sessionId: readSearchString(searchParams.get('sessionId')),
+    assignment: readSearchString(searchParams.get('assignment')),
+    criterion: readSearchString(searchParams.get('criterion')),
+    assignmentSource: readSearchString(searchParams.get('feedbackSource') ?? searchParams.get('source')),
   });
 }
 
@@ -122,25 +169,25 @@ export async function listEvidenceTimeline({
   db,
   userId,
   filters = {},
-}: {
-  db: EvidenceTimelineDb;
-  userId: string;
-  filters?: EvidenceTimelineFilters;
-}): Promise<EvidenceTimelinePage> {
+  viewerRole = 'student',
+  restrictedFallbackAction = { href: '/profile/evidence', label: '查看可见证据' },
+}: ListEvidenceTimelineInput): Promise<EvidenceTimelinePage> {
   const normalizedFilters = normalizeFilters(filters);
   const limit = normalizedFilters.limit ?? DEFAULT_LIMIT;
+  const groupLookaheadLimit = Math.min(limit + GROUP_LOOKAHEAD, MAX_LIMIT);
+  const queryLimit = Math.min(groupLookaheadLimit + 1, MAX_LIMIT + 1);
   const facts = normalizedFilters.dimension
-    ? await collectDimensionFilteredFacts(db, userId, normalizedFilters, limit)
+    ? await collectDimensionFilteredFacts(db, userId, normalizedFilters, queryLimit - 1)
     : await db.learningFact.findMany({
         where: buildLearningFactWhere(userId, normalizedFilters),
         orderBy: ORDER_BY,
-        take: limit + 1,
+        take: queryLimit,
       });
   const matchedFacts = normalizedFilters.dimension
     ? facts
     : facts.filter((fact) => matchesDimension(fact, normalizedFilters.dimension));
-  const pageFacts = matchedFacts.slice(0, limit);
-  const sourceLogIds = pageFacts
+  const groupableFacts = matchedFacts.slice(0, groupLookaheadLimit);
+  const sourceLogIds = groupableFacts
     .map((fact) => fact.sourceLogId)
     .filter((sourceLogId): sourceLogId is string => typeof sourceLogId === 'string' && sourceLogId.length > 0);
   const responses = sourceLogIds.length
@@ -165,10 +212,21 @@ export async function listEvidenceTimeline({
       .map((response) => [response.sourceLogId!, response])
   );
 
+  const groupedItems = groupEvidenceTimelineItems(
+    groupableFacts.map((fact) => formatEvidenceTimelineItem(
+      fact,
+      responseBySourceLogId.get(fact.sourceLogId ?? ''),
+      viewerRole,
+      restrictedFallbackAction,
+    ))
+  );
+  const visibleItems = groupedItems.slice(0, limit);
+  const cursorFact = resolveCursorFact(visibleItems, groupableFacts);
+
   return {
-    items: pageFacts.map((fact) => formatEvidenceTimelineItem(fact, responseBySourceLogId.get(fact.sourceLogId ?? ''))),
-    nextCursor: matchedFacts.length > limit
-      ? createCursorFromFact(pageFacts[pageFacts.length - 1])
+    items: visibleItems,
+    nextCursor: cursorFact && matchedFacts.some((fact) => compareTimelineFactOrder(fact, cursorFact) > 0)
+      ? createEvidenceTimelineCursor(cursorFromFact(cursorFact))
       : null,
     appliedFilters: normalizedFilters,
   };
@@ -221,9 +279,30 @@ function buildLearningFactWhere(
   if (filters.outcome) where.outcome = filters.outcome;
   if (filters.sessionId) where.sessionId = filters.sessionId;
 
+  const scopedConditions: Prisma.LearningFactWhereInput[] = [];
+  if (filters.assignment) {
+    scopedConditions.push({ contextJson: { path: ['assignmentId'], equals: filters.assignment } });
+  }
+  if (filters.criterion) {
+    scopedConditions.push({ contextJson: { path: ['criterionId'], equals: filters.criterion } });
+  }
+  if (filters.assignmentSource) {
+    const sourceConditions: Prisma.LearningFactWhereInput[] = [
+      { contextJson: { path: ['source'], equals: filters.assignmentSource } },
+      { contextJson: { path: ['feedbackSource'], equals: filters.assignmentSource } },
+      { contextJson: { path: ['gradingRunId'], equals: filters.assignmentSource } },
+    ];
+    if (filters.assignmentSource === 'document-feedback' && filters.assignment && filters.criterion) {
+      sourceConditions.push({ factType: 'document_rubric_grading' });
+    }
+    scopedConditions.push({
+      OR: sourceConditions,
+    });
+  }
+
   const cursor = decodeCursor(filters.cursor);
   if (cursor) {
-    where.AND = [
+    scopedConditions.push(
       {
         OR: [
           { startedAt: { lt: new Date(cursor.startedAt) } },
@@ -238,7 +317,11 @@ function buildLearningFactWhere(
           },
         ],
       },
-    ];
+    );
+  }
+
+  if (scopedConditions.length > 0) {
+    where.AND = scopedConditions;
   }
 
   return where;
@@ -246,12 +329,24 @@ function buildLearningFactWhere(
 
 function formatEvidenceTimelineItem(
   fact: LearningFactTimelineRecord,
-  response?: StudentStepResponseTimelineRecord
+  response?: StudentStepResponseTimelineRecord,
+  viewerRole: EvidenceTimelineViewerRole = 'student',
+  restrictedFallbackAction: EvidenceTimelineLearnerRecord['nextAction'] = { href: '/profile/evidence', label: '查看可见证据' },
 ): EvidenceTimelineItem {
   const responseData = readRecord(response?.responseData);
   const contextJson = readRecord(fact.contextJson);
   const quality = resolveQuality(responseData, contextJson);
-  const questionSummaries = readQuestionSummaries(responseData.questionSummaries ?? contextJson.questionSummaries ?? contextJson.cards);
+  const questionSummaries = readQuestionSummaries(
+    responseData.questionSummaries ?? contextJson.questionSummaries ?? contextJson.cards,
+    viewerRole !== 'student',
+  );
+  const explicitLearnerRecord = readLearnerRecordMetadata(
+    contextJson.learnerRecord,
+    viewerRole,
+    restrictedFallbackAction,
+  );
+  const derivedLearnerRecord = explicitLearnerRecord
+    ?? deriveLearnerRecordMetadata(fact, response, quality?.quality, viewerRole, restrictedFallbackAction);
 
   return compactObject({
     id: fact.id,
@@ -280,7 +375,298 @@ function formatEvidenceTimelineItem(
     qualityReason: quality?.reason,
     sourceState: quality?.sourceState,
     schemaVersion: quality?.schemaVersion,
+    learnerRecord: derivedLearnerRecord,
   });
+}
+
+function deriveLearnerRecordMetadata(
+  fact: LearningFactTimelineRecord,
+  response: StudentStepResponseTimelineRecord | undefined,
+  quality: SubmissionEvidenceQuality | undefined,
+  viewerRole: EvidenceTimelineViewerRole,
+  restrictedFallbackAction: EvidenceTimelineLearnerRecord['nextAction'],
+): EvidenceTimelineLearnerRecord | undefined {
+  const sourceScope = inferLearnerRecordSourceScope(fact, response);
+  if (!sourceScope) {
+    return undefined;
+  }
+
+  return readLearnerRecordMetadata({
+    sourceScope,
+    freshness: inferLearnerRecordFreshness(fact),
+    confidence: inferLearnerRecordConfidence(fact, quality, sourceScope),
+    missingSourceState: inferLearnerRecordMissingSourceState(fact, quality, sourceScope),
+    privacyScope: 'student-visible',
+    nextAction: inferLearnerRecordNextAction(fact, sourceScope, viewerRole, restrictedFallbackAction),
+  }, viewerRole, restrictedFallbackAction);
+}
+
+function readLearnerRecordMetadata(
+  value: unknown,
+  viewerRole: EvidenceTimelineViewerRole,
+  restrictedFallbackAction: EvidenceTimelineLearnerRecord['nextAction'],
+): EvidenceTimelineLearnerRecord | undefined {
+  const record = readRecord(value);
+  const sourceScope = readLearnerRecordSourceScope(record.sourceScope);
+  if (!sourceScope) {
+    return undefined;
+  }
+  const privacyScope = readLearnerRecordPrivacyScope(record.privacyScope);
+
+  const nextAction = readRecord(record.nextAction);
+  const href = readString(nextAction.href);
+  const label = readString(nextAction.label);
+  const canSeeScopedDetails = viewerCanSeeLearnerRecordScope(viewerRole, privacyScope);
+  const shouldUseReviewerFallback = viewerRole !== 'student' && privacyScope === 'student-visible';
+
+  return {
+    sourceScope,
+    freshness: readLearnerRecordFreshness(record.freshness),
+    confidence: readLearnerRecordConfidence(record.confidence),
+    missingSourceState: canSeeScopedDetails
+      ? readString(record.missingSourceState) ?? 'unknown'
+      : 'restricted',
+    privacyScope: canSeeScopedDetails ? privacyScope : 'restricted',
+    nextAction: canSeeScopedDetails && !shouldUseReviewerFallback
+      ? {
+          href: href ?? '/profile/evidence',
+          label: label ?? '查看证据',
+        }
+      : {
+          href: restrictedFallbackAction.href,
+          label: restrictedFallbackAction.label,
+        },
+  };
+}
+
+function readLearnerRecordSourceScope(value: unknown): EvidenceTimelineLearnerRecordSourceScope | undefined {
+  return value === 'interactive-lesson-submission'
+    || value === 'arena-official-result'
+    || value === 'arena-preview-result'
+    || value === 'simulation-workbench-completion'
+    || value === 'adaptive-practice-submission'
+    ? value
+    : undefined;
+}
+
+function readLearnerRecordFreshness(value: unknown): EvidenceTimelineLearnerRecord['freshness'] {
+  return value === 'fresh' || value === 'recent' || value === 'stale' ? value : 'unknown';
+}
+
+function readLearnerRecordConfidence(value: unknown): EvidenceTimelineLearnerRecord['confidence'] {
+  return value === 'high' || value === 'medium' || value === 'low' ? value : 'unknown';
+}
+
+function inferLearnerRecordSourceScope(
+  fact: LearningFactTimelineRecord,
+  response: StudentStepResponseTimelineRecord | undefined,
+): EvidenceTimelineLearnerRecordSourceScope | undefined {
+  const arenaSourceScope = inferArenaLearnerRecordSourceScope(fact);
+  if (arenaSourceScope) {
+    return arenaSourceScope;
+  }
+  if (fact.factType === 'question' && (response || fact.lessonId || fact.moduleId?.startsWith('step-'))) {
+    return 'interactive-lesson-submission';
+  }
+  if (fact.factType === 'simulation' || fact.moduleId?.includes('workbench')) {
+    return 'simulation-workbench-completion';
+  }
+  if (fact.factType === 'adaptive_practice' || fact.moduleId === 'adaptive-practice' || fact.moduleId === 'adaptive-assessment') {
+    return 'adaptive-practice-submission';
+  }
+  return undefined;
+}
+
+function inferArenaLearnerRecordSourceScope(
+  fact: LearningFactTimelineRecord,
+): EvidenceTimelineLearnerRecordSourceScope | undefined {
+  const context = readRecord(fact.contextJson);
+  const arena = readRecord(context.arena);
+  const evidenceGovernance = readRecord(context.evidenceGovernance);
+  const sourceEventId = fact.sourceEventId ?? '';
+
+  if (
+    fact.factType === 'arena_official'
+    || fact.factType === 'arena_submission'
+    || sourceEventId.includes('arena_submit')
+    || sourceEventId.includes('arena_evaluation_complete')
+    || evidenceGovernance.policyReason === 'official_arena_evaluation'
+  ) {
+    return 'arena-official-result';
+  }
+
+  if (
+    fact.factType === 'arena_preview'
+    || fact.moduleId?.startsWith('arena-preview')
+    || sourceEventId.includes('arena_simulation_run')
+    || sourceEventId.includes('arena_virtual_simulation_import')
+    || Object.keys(arena).length > 0
+  ) {
+    return 'arena-preview-result';
+  }
+
+  return undefined;
+}
+
+function inferLearnerRecordFreshness(fact: LearningFactTimelineRecord): EvidenceTimelineLearnerRecord['freshness'] {
+  const ageMs = Date.now() - fact.startedAt.getTime();
+  if (!Number.isFinite(ageMs) || ageMs < 0) return 'unknown';
+  const ageDays = ageMs / 86400000;
+  if (ageDays <= 14) return 'fresh';
+  if (ageDays <= 90) return 'recent';
+  return 'stale';
+}
+
+function inferLearnerRecordConfidence(
+  fact: LearningFactTimelineRecord,
+  quality: SubmissionEvidenceQuality | undefined,
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope,
+): EvidenceTimelineLearnerRecord['confidence'] {
+  if (quality === 'rich') return 'high';
+  if (sourceScope === 'arena-official-result') return 'high';
+  if (quality === 'partial' || quality === 'legacy') return 'medium';
+  if (sourceScope === 'arena-preview-result') return 'medium';
+  if (typeof fact.score === 'number' && fact.score >= 80) return 'medium';
+  return 'low';
+}
+
+function inferLearnerRecordMissingSourceState(
+  fact: LearningFactTimelineRecord,
+  quality: SubmissionEvidenceQuality | undefined,
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope,
+): string {
+  if (sourceScope === 'arena-preview-result') return 'official-arena-missing';
+  if (quality === 'missing' || fact.outcome === 'abandoned') return 'low-confidence';
+  if (quality === 'partial' || quality === 'legacy') return 'partial';
+  return 'complete';
+}
+
+function inferLearnerRecordNextAction(
+  fact: LearningFactTimelineRecord,
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope,
+  viewerRole: EvidenceTimelineViewerRole,
+  reviewerFallbackAction: EvidenceTimelineLearnerRecord['nextAction'],
+): EvidenceTimelineLearnerRecord['nextAction'] {
+  if (viewerRole !== 'student') {
+    return {
+      href: reviewerFallbackAction.href,
+      label: reviewerFallbackAction.label,
+    };
+  }
+  if (sourceScope === 'interactive-lesson-submission') {
+    const lessonSuffix = fact.lessonId ? `?lessonId=${encodeURIComponent(fact.lessonId)}` : '';
+    return { href: `/profile/evidence${lessonSuffix}`, label: '复盘课堂作答' };
+  }
+  if (sourceScope === 'arena-preview-result') {
+    return { href: '/arena', label: '提交官方评测' };
+  }
+  if (sourceScope === 'arena-official-result') {
+    return { href: '/arena', label: '查看 Arena 结果' };
+  }
+  if (sourceScope === 'simulation-workbench-completion') {
+    return { href: '/interactive-learning/control-workbench', label: '继续工作台验证' };
+  }
+  return { href: '/assessment/adaptive-practice?intent=practice', label: '继续自适应练习' };
+}
+
+function readLearnerRecordPrivacyScope(value: unknown): EvidenceTimelineLearnerRecord['privacyScope'] {
+  if (value === undefined || value === null || value === '') {
+    return 'student-visible';
+  }
+  return value === 'teacher-scoped' || value === 'governance-scoped' || value === 'student-visible'
+    ? value
+    : 'restricted';
+}
+
+function viewerCanSeeLearnerRecordScope(
+  viewerRole: EvidenceTimelineViewerRole,
+  privacyScope: EvidenceTimelineLearnerRecord['privacyScope'],
+) {
+  if (privacyScope === 'student-visible') return true;
+  if (privacyScope === 'teacher-scoped') return viewerRole === 'teacher' || viewerRole === 'admin';
+  if (privacyScope === 'governance-scoped') return viewerRole === 'admin';
+  return false;
+}
+
+function groupEvidenceTimelineItems(items: EvidenceTimelineItem[]): EvidenceTimelineItem[] {
+  const groupedItems: EvidenceTimelineItem[] = [];
+  let index = 0;
+
+  while (index < items.length) {
+    const item = items[index];
+    const key = lowSignalGroupKey(item);
+    if (!key) {
+      groupedItems.push({ ...item, displayPriority: 'normal' });
+      index += 1;
+      continue;
+    }
+
+    const group = [item];
+    let nextIndex = index + 1;
+    while (nextIndex < items.length && lowSignalGroupKey(items[nextIndex]) === key) {
+      group.push(items[nextIndex]);
+      nextIndex += 1;
+    }
+
+    if (group.length <= 1) {
+      groupedItems.push({ ...item, displayPriority: 'normal' });
+      index = nextIndex;
+      continue;
+    }
+
+    groupedItems.push(compactObject({
+      ...item,
+      displayPriority: 'deemphasized' as const,
+      groupKey: key,
+      groupLabel: `重复低信号证据 ${group.length} 条`,
+      groupedCount: group.length,
+      groupedEvidenceIds: group.map((entry) => entry.id),
+    }));
+    index = nextIndex;
+  }
+
+  return groupedItems;
+}
+
+function lowSignalGroupKey(item: EvidenceTimelineItem): string | null {
+  const sparseQuestion = item.factType === 'question' && !item.questionSummaries?.length;
+  if (!sparseQuestion) return null;
+
+  return [
+    item.factType,
+    item.outcome,
+    item.lessonId ?? 'unknown-lesson',
+    item.stepId ?? item.moduleId ?? 'unknown-step',
+    item.quality ?? 'sparse',
+  ].join('|');
+}
+
+function resolveCursorFact(
+  visibleItems: EvidenceTimelineItem[],
+  facts: LearningFactTimelineRecord[]
+): LearningFactTimelineRecord | undefined {
+  const coveredIds = new Set(
+    visibleItems.flatMap((item) => item.groupedEvidenceIds ?? [item.id])
+  );
+  let cursorFact: LearningFactTimelineRecord | undefined;
+
+  for (const fact of facts) {
+    if (coveredIds.has(fact.id)) {
+      cursorFact = fact;
+    }
+  }
+
+  return cursorFact;
+}
+
+function compareTimelineFactOrder(left: LearningFactTimelineRecord, right: LearningFactTimelineRecord): number {
+  if (left.startedAt.getTime() !== right.startedAt.getTime()) {
+    return right.startedAt.getTime() - left.startedAt.getTime();
+  }
+  if (left.createdAt.getTime() !== right.createdAt.getTime()) {
+    return right.createdAt.getTime() - left.createdAt.getTime();
+  }
+  return right.id.localeCompare(left.id);
 }
 
 function resolveQuality(
@@ -337,6 +723,9 @@ function normalizeFilters(filters: EvidenceTimelineFilters): EvidenceTimelineFil
     factType: readSearchString(filters.factType),
     outcome: readSearchString(filters.outcome),
     sessionId: readSearchString(filters.sessionId),
+    assignment: readSearchString(filters.assignment),
+    criterion: readSearchString(filters.criterion),
+    assignmentSource: readSearchString(filters.assignmentSource),
   });
 }
 
@@ -383,16 +772,18 @@ function decodeCursor(cursor?: string): EvidenceTimelineCursor | null {
   return null;
 }
 
-function readQuestionSummaries(value: unknown): EvidenceQuestionSummary[] {
+function readQuestionSummaries(value: unknown, redactAnswers = false): EvidenceTimelineQuestionSummary[] {
   if (!Array.isArray(value)) return [];
 
   return value
     .map((item) => {
       const entry = readRecord(item);
+      const studentAnswer = readAnswer(entry.studentAnswer ?? entry.selectedValue ?? entry.answer ?? entry.value);
       return compactObject({
         questionId: readString(entry.questionId) ?? readString(entry.id),
         prompt: readString(entry.prompt) ?? readString(entry.title),
-        studentAnswer: readAnswer(entry.studentAnswer ?? entry.selectedValue ?? entry.answer ?? entry.value),
+        studentAnswer: redactAnswers ? undefined : studentAnswer,
+        studentAnswerRedacted: redactAnswers && studentAnswer !== undefined && studentAnswer !== null,
         referenceAnswer: readString(entry.referenceAnswer)
           ?? readString(entry.referenceValue)
           ?? readString(entry.correctAnswer),

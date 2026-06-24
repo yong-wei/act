@@ -162,29 +162,34 @@ async function fetchDeepSeekV4Flash(
   });
 }
 
-function withSiliconFlowDefaults(requestBody: Record<string, unknown>, config: AIProviderConfig): Record<string, unknown> {
-  if (requestBody.model === QWEN_3_6_35B_A3B_MODEL) {
+function prepareSiliconFlowRequestBody(
+  requestBody: Record<string, unknown>,
+  config: AIProviderConfig
+): Record<string, unknown> {
+  const { stream_options: _streamOptions, ...providerBody } = requestBody;
+
+  if (providerBody.model === QWEN_3_6_35B_A3B_MODEL) {
     return {
-      ...requestBody,
+      ...providerBody,
       enable_thinking: config.modelOptions?.enableThinking ?? false,
     };
   }
 
-  return requestBody;
+  return providerBody;
 }
 
 export function createSiliconFlowAdapter(config: AIProviderConfig): AIProviderAdapter {
   const siliconflow = createOpenAI({
     baseURL: config.baseURL,
     apiKey: config.apiKey,
-    compatibility: 'compatible',
+    name: 'siliconflow',
     fetch: async (input, init) => {
       const rawBody = typeof init?.body === 'string' ? init.body : undefined;
       const requestBody = rawBody ? JSON.parse(rawBody) as Record<string, unknown> : undefined;
       if (requestBody?.model !== DEEPSEEK_V4_FLASH_MODEL) {
         return globalThis.fetch(input, {
           ...init,
-          body: requestBody ? JSON.stringify(withSiliconFlowDefaults(requestBody, config)) : init?.body,
+          body: requestBody ? JSON.stringify(prepareSiliconFlowRequestBody(requestBody, config)) : init?.body,
         });
       }
 
@@ -196,7 +201,7 @@ export function createSiliconFlowAdapter(config: AIProviderConfig): AIProviderAd
     id: 'siliconflow',
     config,
     getModel(modelId?: string) {
-      return siliconflow(modelId || config.model);
+      return siliconflow.chat(modelId || config.model);
     },
   };
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { BookOpen, Layers, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -9,7 +9,7 @@ import type { LessonKnowledgeCard } from '@/resources/interactive-learning/share
 
 const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
   {
-    id: 'node-nonlinear-ubiquity',
+    id: '非线性系统_8_4ccc0148',
     name: '非线性系统的普遍性',
     nodeType: 'THEORY',
     description: '实际系统普遍存在饱和、死区、摩擦、间隙等非线性。',
@@ -21,7 +21,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['执行机构约束', '工程建模', '系统辨识'],
   },
   {
-    id: 'node-nonlinear-special-properties',
+    id: '非线性系统_8_4ccc0148',
     name: '非线性系统的特殊性质',
     nodeType: 'THEORY',
     description: '不满足叠加原理，稳定性与初始条件、外作用密切相关。',
@@ -33,7 +33,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['稳定性分析', '非线性控制', '故障诊断'],
   },
   {
-    id: 'node-harmonic-linearization',
+    id: '描述函数法_8_849fa8a1',
     name: '谐波线性化',
     nodeType: 'METHOD',
     description: '用输出基波近似非线性响应，将问题转化为等效频域分析。',
@@ -46,7 +46,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['描述函数法', '近似稳定性评估'],
   },
   {
-    id: 'node-describing-function-definition',
+    id: '描述函数法_8_849fa8a1',
     name: '描述函数定义',
     nodeType: 'METHOD',
     description: '描述函数是输出基波与输入正弦之间的复数比。',
@@ -59,7 +59,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['频域等效', '自振判别'],
   },
   {
-    id: 'node-ideal-relay-describing',
+    id: '继电特性_8_0676d186',
     name: '理想继电器描述函数',
     nodeType: 'METHOD',
     description: '理想继电器的描述函数为幅值相关的实函数。',
@@ -72,7 +72,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['继电控制', '自振分析'],
   },
   {
-    id: 'node-saturation-describing',
+    id: '饱和特性_8_e55b1fb5',
     name: '饱和特性描述函数',
     nodeType: 'METHOD',
     description: '饱和环节的描述函数与饱和幅值 a、斜率 k 相关。',
@@ -85,7 +85,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['执行器限幅', '稳态自振估计'],
   },
   {
-    id: 'node-dead-zone-describing',
+    id: '死区特性_8_9ed850fc',
     name: '死区特性描述函数',
     nodeType: 'METHOD',
     description: '死区使得小幅输入无法产生输出，描述函数随 A 增大而上升。',
@@ -98,7 +98,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['测量死区补偿', '低幅响应评估'],
   },
   {
-    id: 'node-hysteresis-backlash',
+    id: '间隙特性_8_51523138',
     name: '滞环与间隙特性',
     nodeType: 'METHOD',
     description: '滞环/间隙导致描述函数出现复数相位滞后。',
@@ -115,22 +115,32 @@ interface NonlinearKnowledgeDeckProps extends BaseWidgetProps {}
 
 export default function NonlinearKnowledgeDeck({ onComplete, onStateChange }: NonlinearKnowledgeDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(KNOWLEDGE_CARDS[0]?.id ?? 'node-nonlinear-ubiquity');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? '非线性系统_8_4ccc0148';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeCard = useMemo(
     () => KNOWLEDGE_CARDS.find((card) => card.id === activeId) ?? KNOWLEDGE_CARDS[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / KNOWLEDGE_CARDS.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { cardId: activeId, visitedCount: nextVisited.length },
+      data: { cardId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -146,7 +156,7 @@ export default function NonlinearKnowledgeDeck({ onComplete, onStateChange }: No
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -163,9 +173,9 @@ export default function NonlinearKnowledgeDeck({ onComplete, onStateChange }: No
           </div>
           <div className="mt-4 space-y-2">
             {KNOWLEDGE_CARDS.map((card, index) => (
-              <button
+              <button type="button"
                 key={card.id}
-                onClick={() => setActiveId(card.id)}
+                onClick={() => recordVisit(card.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === card.id
                     ? 'bg-slate-900 text-white'

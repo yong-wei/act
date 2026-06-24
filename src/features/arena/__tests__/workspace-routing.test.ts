@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 import { ARENA_CHALLENGE_TASKS, getArenaChallengeObject, getArenaChallengeTask } from '../data/seed-challenges';
 import { getArenaWorkspaceHref } from '../workspace-routing';
 
-function routeFor(taskId: string, params?: Record<string, string>) {
+function routeFor(taskId: string, params?: Record<string, string | undefined>) {
   const task = getArenaChallengeTask(taskId);
   expect(task).toBeDefined();
   const object = getArenaChallengeObject(task!.objectId);
@@ -55,6 +56,29 @@ describe('Arena workspace routing', () => {
     expect(url.searchParams.get('classId')).toBe('class-a');
     expect(url.searchParams.get('seasonId')).toBe('season-a');
     expect(url.searchParams.get('preset')).toBe('multi-representation-linkage');
+  });
+
+  it('omits optional publication context values that are absent', () => {
+    const url = routeFor('task-second-order-lead-pid', {
+      publicationId: 'publication-a',
+      classId: undefined,
+      seasonId: undefined,
+    });
+
+    expect(url.searchParams.get('publicationId')).toBe('publication-a');
+    expect(url.searchParams.has('classId')).toBe(false);
+    expect(url.searchParams.has('seasonId')).toBe(false);
+    expect(url.href).not.toContain('undefined');
+  });
+
+  it('keeps publication, class, and season context wired from challenge detail to workbench', () => {
+    const source = readFileSync(
+      new URL('../challenge-detail.tsx', import.meta.url),
+      'utf8',
+    );
+
+    expect(source).toContain('publicationId, classId, seasonId');
+    expect(source).toContain('getArenaWorkspaceHref(task, object, workspaceContext');
   });
 
   it('keeps every non-Odyssey Arena task on the unified control workbench by default', () => {

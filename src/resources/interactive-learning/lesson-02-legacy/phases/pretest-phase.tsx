@@ -181,7 +181,7 @@ export function PretestPhase({ onComplete, onNext }: PretestPhaseProps) {
                 const showFeedback = showResults && isConnected;
 
                 return (
-                  <button
+                  <button type="button"
                     key={item.id}
                     onClick={() => !showResults && handleLeftClick(item.id)}
                     disabled={showResults}
@@ -266,7 +266,7 @@ export function PretestPhase({ onComplete, onNext }: PretestPhaseProps) {
                 const showFeedback = showResults && isConnected;
 
                 return (
-                  <button
+                  <button type="button"
                     key={item.id}
                     onClick={() => !showResults && handleRightClick(item.id)}
                     disabled={showResults || !selectedLeft}
@@ -327,7 +327,7 @@ export function PretestPhase({ onComplete, onNext }: PretestPhaseProps) {
       {/* 底部控制栏 */}
       <div className="border-t border-slate-800 bg-slate-900/50 p-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
-          <button
+          <button type="button"
             onClick={reset}
             className="flex items-center gap-2 rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800"
           >
@@ -337,21 +337,21 @@ export function PretestPhase({ onComplete, onNext }: PretestPhaseProps) {
 
           <div className="flex items-center gap-3">
             {!showResults ? (
-              <button
+              <button type="button"
                 onClick={checkAnswers}
                 disabled={!allConnected}
                 className={`flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-medium transition-colors ${
                   allConnected
                     ? 'bg-amber-500 text-slate-900 hover:bg-amber-400'
-                    : 'cursor-not-allowed bg-slate-700 text-slate-500'
+                    : 'cursor-not-allowed bg-slate-700 text-slate-300'
                 }`}
               >
                 检查答案
               </button>
             ) : (
-              <button
+              <button type="button"
                 onClick={handleContinue}
-                className="flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-amber-400"
+                className="flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-medium text-black transition-colors hover:bg-amber-400"
               >
                 开始建模工坊
                 <ChevronRight className="h-4 w-4" />

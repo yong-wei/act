@@ -37,7 +37,7 @@ export function PosttestPhase({
     card: knowledgeCard,
     isLoading: isKnowledgeCardLoading,
     error: knowledgeCardError,
-  } = useKnowledgeCard('node-linearization');
+  } = useKnowledgeCard('小偏差线性化_2_277afa67');
 
   const hints = [
     '转动惯量 J 对应惯性项 J·θ̈',
@@ -64,7 +64,7 @@ export function PosttestPhase({
           </div>
 
           {isCorrect && (
-            <button
+            <button type="button"
               onClick={onComplete}
               className="flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-400"
             >
@@ -129,7 +129,7 @@ export function PosttestPhase({
 
             {/* 知识卡片入口 */}
             <div className="mt-3 flex justify-end">
-              <button
+              <button type="button"
                 onClick={() => setShowKnowledgeCard(!showKnowledgeCard)}
                 disabled={!knowledgeCard}
                 className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs transition-colors ${
@@ -166,7 +166,7 @@ export function PosttestPhase({
             <div className="space-y-4">
               {/* 输入框 */}
               <div className="relative">
-                <textarea
+                <textarea aria-label="例如: J\ddot{\theta} + f\dot{\theta} + mgl\sin\theta = T"
                   value={answer}
                   onChange={(e) => onAnswerChange(e.target.value)}
                   placeholder="例如: J\ddot{\theta} + f\dot{\theta} + mgl\sin\theta = T"
@@ -179,7 +179,7 @@ export function PosttestPhase({
                 <span className="text-xs text-slate-500">快捷输入：</span>
                 {['\\ddot{\\theta}', '\\dot{\\theta}', '\\sin\\theta', 'mgl'].map(
                   (symbol) => (
-                    <button
+                    <button type="button"
                       key={symbol}
                       onClick={() => onAnswerChange(answer + symbol)}
                       className="rounded bg-slate-700 px-2 py-1 font-mono text-xs text-slate-300 hover:bg-slate-600"
@@ -192,7 +192,7 @@ export function PosttestPhase({
 
               {/* 提交按钮 */}
               <div className="flex items-center justify-between">
-                <button
+                <button type="button"
                   onClick={() => setShowHint(!showHint)}
                   className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200"
                 >
@@ -200,7 +200,7 @@ export function PosttestPhase({
                   {showHint ? '隐藏提示' : '需要提示？'}
                 </button>
 
-                <button
+                <button type="button"
                   onClick={onSubmit}
                   disabled={!answer.trim() || isLoading}
                   className={`flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-medium transition-colors ${

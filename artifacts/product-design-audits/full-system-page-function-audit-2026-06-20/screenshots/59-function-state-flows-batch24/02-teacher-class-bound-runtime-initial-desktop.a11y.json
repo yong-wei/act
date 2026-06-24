@@ -1,0 +1,243 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqm6s1s1001f1wyf4ggkifs5",
+    "h1": [
+      "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+    ],
+    "activeElement": {
+      "tag": "body",
+      "type": "",
+      "name": "展开导航 学习 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 / 教师投影 教师 4-1：设计起点：性能指标体系、工程约束与可行域表达 Design Task Expression 教师投影 任务表达入口：从跨域证据写出设计任务 课堂码 113718 · 用封面情境图、课程信息图和导入问题进入任务表达。 B · 导入 1 / 13 第 01 页 任务表达入口：从跨域证据写出设计任务 用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。 客船航向与稳定平台情境 同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。 任务表达课程信息图 从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。 导入问题 面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？ 把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？ 本页工具 默认折叠 上一页 B · 导入 第 01 页 · 任务表达入口：从跨域证据写出设计任务 第 02 页 · 本次课程目标 第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书 第 04 页 · 主场景 A：客船航向控制先保什么 第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前 第 06 页 · 双案例对照：排序变化来自哪里 第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么 第 08 页 · 任务分类：硬约束、软目标、观察指标 第 09 页 · 任务表达卡工作区：把后续设计输入写全 第 10 页 · 区域分层：可行域、满意域、最优域不是一步 第 11 页 · 误判检查：稳定不等于完成，可行不等于最优 第 12 页 · 后测：先写任务，再谈方法 第 13 页 · 总结：任务表达卡成为后续设计输入 下一页 控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+      "placeholder": ""
+    },
+    "alerts": [],
+    "buttons": [
+      {
+        "tag": "button",
+        "name": "展开平台导航",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "首页",
+        "href": "/",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "虚拟仿真",
+        "href": "/simulations",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "知识资源",
+        "href": "/knowledge",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "竞技场",
+        "href": "/arena",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "控制工作台",
+        "href": "/interactive-learning/control-workbench",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "学习",
+        "href": "/dashboard",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "互动学习",
+        "href": "/interactive-learning",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "互动课程",
+        "href": "/interactive-learning/courses",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "4-1：设计起点：性能指标体系、工程约束与可行域表达",
+        "href": "/interactive-learning/courses/unit-4-1-design-task-expression",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "切换到深色模式",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "首页",
+        "href": "/",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "虚拟仿真",
+        "href": "/simulations",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "知识资源",
+        "href": "/knowledge",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "竞技场",
+        "href": "/arena",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "控制工作台",
+        "href": "/interactive-learning/control-workbench",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "二维码",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "结束课堂",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "当前在线学生0 人",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "页面知识卡片查看当前页面关联的 5 张知识卡片。",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "上一页",
+        "href": "",
+        "disabled": true,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "下一页",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "关闭 (ESC)",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "",
+        "href": "",
+        "disabled": true,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "打开控灵与页面工具菜单",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "跳转课程页",
+        "value": "step-01",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "value": "",
+        "hidden": false
+      }
+    ],
+    "unnamedButtons": 1,
+    "graphicsCount": 18,
+    "unnamedGraphics": 0,
+    "bodyText": "展开导航 学习 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 / 教师投影 教师 4-1：设计起点：性能指标体系、工程约束与可行域表达 Design Task Expression 教师投影 任务表达入口：从跨域证据写出设计任务 课堂码 113718 · 用封面情境图、课程信息图和导入问题进入任务表达。 B · 导入 1 / 13 第 01 页 任务表达入口：从跨域证据写出设计任务 用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计任务的学习任务。 客船航向与稳定平台情境 同一间控制实验场景中，客船航向控制与船载稳定平台给出两类工程任务。 任务表达课程信息图 从对象证据、指标角色、区域分层到任务表达卡，形成后续控制设计的输入。 导入问题 面对同一套稳定性、动态性能和频域储备证据，客船航向控制与稳定平台会形成怎样不同的目标、约束和优先级？ 把这些证据写成任务表达卡时，哪些指标应成为底线，哪些指标应成为改进方向，哪些指标只用于观察后果？ 本页工具 默认折叠 上一页 B · 导入 第 01 页 · 任务表达入口：从跨域证据写出设计任务 第 02 页 · 本次课程目标 第 03 页 · 同图异读预判：为什么同一套证据会写出两张任务书 第 04 页 · 主场景 A：客船航向控制先保什么 第 05 页 · 对照案例 B：稳定平台为什么把速度排得更前 第 06 页 · 双案例对照：排序变化来自哪里 第 07 页 · 指标角色重组：时域、频域、积分误差各自回答什么 第 08 页 · 任务分类：硬约束、软目标、观察指标 第 09 页 · 任务表达卡工作区：把后续设计输入写全 第 10 页 · 区域分层：可行域、满意域、最优域不是一步 第 11 页 · 误判检查：稳定不等于完成，可行不等于最优 第 12 页 · 后测：先写任务，再谈方法 第 13 页 · 总结：任务表达卡成为后续设计输入 下一页 控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+  }
+}

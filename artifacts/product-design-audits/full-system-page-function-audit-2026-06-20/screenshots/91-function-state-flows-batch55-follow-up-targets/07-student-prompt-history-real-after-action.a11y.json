@@ -1,0 +1,383 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/evaluation/prompt-assessment?source=batch55&autodemo=0&mode=history",
+    "h1": [
+      "元提示词评价与过程一致性"
+    ],
+    "h2": [
+      "结构化提示词编辑器",
+      "提示词预览",
+      "提示词质量仪表盘",
+      "一致性报告",
+      "常态化训练量化追踪",
+      "控灵",
+      "📝 根轨迹报告评价"
+    ],
+    "activeElement": {
+      "tag": "body",
+      "role": "",
+      "type": "",
+      "name": "STRUCTURE EVALUATED 元提示词评价与过程一致性 先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。 结构化提示词编辑器 控制对象 * 性能目标 * 约束条件 * 设计背景 额外说明 评价提示词质量过程一致性校验生成常态化演示轨迹 提示词预览 控制对象：未填写 性能目标：未填写 约束条件：未填写 设计背景：未填写 提示词质量仪表盘 尚未执行评价。 一致性报告 尚未执行一致性校验。 常态化训练量化追踪 刷新趋势数据 提示词版本数 6 最近提示词得分 90 一致性均值 69.3 能力值 θ -1.70 提示词质量版本轨迹 V1 06/21 02:07 综合评分：92 一致性：81 V2 06/21 02:07 综合评分：98 一致性：81 V3 06/21 02:07 综合评分：90 一致性：46 V4 06/21 02:09 综合评分：92 一致性：81 V5 06/21 02:09 综合评分：98 一致性：81 V6 06/21 02:09 综合评分：90 一致性：46 跨域能力成长轨迹 06/20 14:04 θ -1.7 准确率：0% 计算 θ 0.18 跨域 θ -1.8 设计 θ -1.8 提示：建议每次修改提示词后再次评价，形成版本迭代轨迹。 控灵 当前: prompt assessme... 请生成一个用于评价根轨迹报告的提示词版本。 [] [] [] [ { \"id\": \"node-metric-judgement\", \"name\": \"指标裁判规则\", \"description\": \"将速度、稳定与精度转化为可解释的评分逻辑。\", \"tags\": [ \"lesson-06\", \"assessment\", \"metrics\" ] } ] 【控灵证据提示】本次流式回答尚未完成最终引用核验。缺少证据类型：content、learner-state、path-execution、evidence。低置信原因：missing-content；missing-learner-state；missing-path-execution；missing-evidence；missing-grounding:knowledge-or-resource；assistant-required-citation-owner-missing:answer；answer-intent-content-citation-missing:fact-explanation；assistant-citations-unverified-stream。 这里为您生成一个用于评价根轨迹（Root Locus）报告的提示词（Prompt）。该提示词旨在引导 AI 或评审者从稳定性、动态性能和参数设计三个维度进行专业评估。 您可以直接复制以下内容使用： 📝 根轨迹报告评价 控灵正在思考... 停止 按 Enter 发送，ESC 关闭面板 控灵"
+    },
+    "visibleControls": [
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "评价提示词质量",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "过程一致性校验",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "生成常态化演示轨迹",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "刷新趋势数据",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "清空对话",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "关闭 (ESC)",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "name": "全局 AI 问题输入框",
+        "value": "",
+        "href": "",
+        "disabled": true,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "停止",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "打开控灵与页面工具菜单",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": true
+      }
+    ],
+    "controls": [
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "评价提示词质量",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "过程一致性校验",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "生成常态化演示轨迹",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "刷新趋势数据",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "清空对话",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "关闭 (ESC)",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "name": "全局 AI 问题输入框",
+        "value": "",
+        "href": "",
+        "disabled": true,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "停止",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "打开控灵与页面工具菜单",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": true
+      }
+    ],
+    "alerts": [],
+    "dialogs": [],
+    "tables": [],
+    "bodyText": "STRUCTURE EVALUATED 元提示词评价与过程一致性 先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。 结构化提示词编辑器 控制对象 * 性能目标 * 约束条件 * 设计背景 额外说明 评价提示词质量过程一致性校验生成常态化演示轨迹 提示词预览 控制对象：未填写 性能目标：未填写 约束条件：未填写 设计背景：未填写 提示词质量仪表盘 尚未执行评价。 一致性报告 尚未执行一致性校验。 常态化训练量化追踪 刷新趋势数据 提示词版本数 6 最近提示词得分 90 一致性均值 69.3 能力值 θ -1.70 提示词质量版本轨迹 V1 06/21 02:07 综合评分：92 一致性：81 V2 06/21 02:07 综合评分：98 一致性：81 V3 06/21 02:07 综合评分：90 一致性：46 V4 06/21 02:09 综合评分：92 一致性：81 V5 06/21 02:09 综合评分：98 一致性：81 V6 06/21 02:09 综合评分：90 一致性：46 跨域能力成长轨迹 06/20 14:04 θ -1.7 准确率：0% 计算 θ 0.18 跨域 θ -1.8 设计 θ -1.8 提示：建议每次修改提示词后再次评价，形成版本迭代轨迹。 控灵 当前: prompt assessme... 请生成一个用于评价根轨迹报告的提示词版本。 [] [] [] [ { \"id\": \"node-metric-judgement\", \"name\": \"指标裁判规则\", \"description\": \"将速度、稳定与精度转化为可解释的评分逻辑。\", \"tags\": [ \"lesson-06\", \"assessment\", \"metrics\" ] } ] 【控灵证据提示】本次流式回答尚未完成最终引用核验。缺少证据类型：content、learner-state、path-execution、evidence。低置信原因：missing-content；missing-learner-state；missing-path-execution；missing-evidence；missing-grounding:knowledge-or-resource；assistant-required-citation-owner-missing:answer；answer-intent-content-citation-missing:fact-explanation；assistant-citations-unverified-stream。 这里为您生成一个用于评价根轨迹（Root Locus）报告的提示词（Prompt）。该提示词旨在引导 AI 或评审者从稳定性、动态性能和参数设计三个维度进行专业评估。 您可以直接复制以下内容使用： 📝 根轨迹报告评价 控灵正在思考... 停止 按 Enter 发送，ESC 关闭面板 控灵",
+    "actionSignals": {
+      "success": true,
+      "loading": true,
+      "failure": false,
+      "report": true,
+      "governance": true,
+      "adaptive": true
+    },
+    "scroll": {
+      "width": 1440,
+      "height": 1340,
+      "viewportWidth": 1440,
+      "viewportHeight": 1100
+    }
+  }
+}

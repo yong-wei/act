@@ -1,0 +1,178 @@
+{
+  "lesson_id": "1-2",
+  "title": "建模：从真实对象到可分析的系统",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "X",
+  "graph_version": "1",
+  "focus_node_ids": [
+    "建模_1_2",
+    "机理建模_1_2",
+    "数据驱动建模_1_2",
+    "微分方程_1_2",
+    "拉氏变换_1_2",
+    "传递函数_1_2",
+    "方框图_1_2",
+    "信号流图_1_2",
+    "特征方程_1_2",
+    "特征根_1_2",
+    "极点_1_2",
+    "复平面_1_2",
+    "模型结构相似性_1_2",
+    "稳定边界_1_2",
+    "稳定区_1_2"
+  ],
+  "reuse_node_ids": [
+    "反馈_1_1",
+    "闭环控制_1_1",
+    "控制器_1_1",
+    "课程总图_1_1"
+  ],
+  "card_order": [
+    "建模_1_2",
+    "机理建模_1_2",
+    "数据驱动建模_1_2",
+    "微分方程_1_2",
+    "拉氏变换_1_2",
+    "传递函数_1_2",
+    "方框图_1_2",
+    "信号流图_1_2",
+    "特征方程_1_2",
+    "特征根_1_2",
+    "极点_1_2",
+    "复平面_1_2",
+    "稳定区_1_2",
+    "稳定边界_1_2",
+    "模型结构相似性_1_2"
+  ],
+  "entry_nodes": [
+    "建模_1_2"
+  ],
+  "summary_nodes": [
+    "建模_1_2",
+    "极点_1_2",
+    "复平面_1_2"
+  ],
+  "preceding_lesson": "1-1",
+  "following_lesson": "1-3",
+  "refinement_units": [
+    "2-1"
+  ],
+  "sequence": {
+    "lesson_id": "1-2",
+    "note": "本顺序按 1-2 interactive-page 与 interactive-contract 的 14 步互动设计定稿；groups[].step_ids 对应作者态互动步骤归属。",
+    "groups": [
+      {
+        "group_name": "导入与课程目标",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03"
+        ],
+        "node_ids": [
+          "建模_1_2"
+        ]
+      },
+      {
+        "group_name": "建模路径与微分方程",
+        "step_ids": [
+          "step-04",
+          "step-05"
+        ],
+        "node_ids": [
+          "建模_1_2",
+          "机理建模_1_2",
+          "数据驱动建模_1_2",
+          "微分方程_1_2"
+        ]
+      },
+      {
+        "group_name": "传递函数与结构表达",
+        "step_ids": [
+          "step-06",
+          "step-07",
+          "step-08"
+        ],
+        "node_ids": [
+          "拉氏变换_1_2",
+          "传递函数_1_2",
+          "方框图_1_2",
+          "信号流图_1_2"
+        ]
+      },
+      {
+        "group_name": "极点、复平面与行为地图",
+        "step_ids": [
+          "step-09",
+          "step-10"
+        ],
+        "node_ids": [
+          "极点_1_2",
+          "复平面_1_2",
+          "稳定区_1_2",
+          "稳定边界_1_2"
+        ]
+      },
+      {
+        "group_name": "案例、例题与检测",
+        "step_ids": [
+          "step-11",
+          "step-12",
+          "step-13"
+        ],
+        "node_ids": [
+          "特征方程_1_2",
+          "特征根_1_2"
+        ]
+      },
+      {
+        "group_name": "总结回看",
+        "step_ids": [
+          "step-14"
+        ],
+        "node_ids": [
+          "模型结构相似性_1_2",
+          "建模_1_2",
+          "极点_1_2",
+          "复平面_1_2"
+        ]
+      }
+    ],
+    "card_order": [
+      "建模_1_2",
+      "机理建模_1_2",
+      "数据驱动建模_1_2",
+      "微分方程_1_2",
+      "拉氏变换_1_2",
+      "传递函数_1_2",
+      "方框图_1_2",
+      "信号流图_1_2",
+      "特征方程_1_2",
+      "特征根_1_2",
+      "极点_1_2",
+      "复平面_1_2",
+      "稳定区_1_2",
+      "稳定边界_1_2",
+      "模型结构相似性_1_2"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/1-2/1-2-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/1-2/1-2-handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/1-2/1-2-handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/1-2/1-2-handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/1-2/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/1-2/media",
+  "media_index_path": "/course-runtime/lessons/1-2/media/1-2-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/1-2/media/1-2-media.md",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/1-2/review/1-2-boppps.md",
+    "report_path": "/course-runtime/lessons/1-2/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/1-2/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/1-2/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/1-2/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/1-2/review/source-manifest.json"
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/1-2/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/1-2/interactive-manifest.json"
+}

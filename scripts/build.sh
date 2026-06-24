@@ -15,11 +15,21 @@ CACHE_ROOT="${CACHE_ROOT:-.cache/buildx}"
 CACHE_FROM_DIR="${CACHE_FROM_DIR:-${CACHE_ROOT}/cache}"
 CACHE_TO_DIR="${CACHE_TO_DIR:-${CACHE_ROOT}/cache-new}"
 EXTERNAL_RUNTIME_DIR="${EXTERNAL_RUNTIME_DIR:-course-content/runtime}"
+DATABASE_URL_FOR_BUILD="${DATABASE_URL:-}"
+if [[ -z "${DATABASE_URL_FOR_BUILD}" && -f .env ]]; then
+  DATABASE_URL_FOR_BUILD="$(node -e 'require("dotenv").config({ path: ".env", quiet: true }); process.stdout.write(process.env.DATABASE_URL || "");')"
+fi
 
 if ! grep -qx "${EXTERNAL_RUNTIME_DIR}" .dockerignore; then
   echo "ERROR: .dockerignore 必须排除 ${EXTERNAL_RUNTIME_DIR}，避免运行时资源进入镜像构建上下文。" >&2
   exit 1
 fi
+for required_script in scripts/build-next-with-trace-check.mjs scripts/prune-next-trace-boundary.mjs; do
+  if ! grep -qx "!${required_script}" .dockerignore; then
+    echo "ERROR: .dockerignore 必须放行 ${required_script}，否则 Docker builder 阶段 npm run build 会缺少构建脚本。" >&2
+    exit 1
+  fi
+done
 
 echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
 rm -rf "${ROOT_DIR}/.next"
@@ -38,13 +48,20 @@ else
   echo "[cache] 未找到 ${CACHE_FROM_DIR}/index.json，首次构建不使用 --cache-from"
 fi
 
+BUILD_ARGS=(
+  --build-arg "NPM_REGISTRY=${NPM_REGISTRY}"
+  --build-arg "PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}"
+)
+if [[ -n "${DATABASE_URL_FOR_BUILD}" ]]; then
+  BUILD_ARGS+=(--secret "id=database_url,env=DATABASE_URL")
+fi
+
 echo "[2/2] 构建并导出镜像（容器内 next build 同样执行类型检查）"
 echo "[build] 外部运行时资源目录由宿主机提供，不进入镜像构建上下文: ${EXTERNAL_RUNTIME_DIR}"
-docker buildx build \
+DATABASE_URL="${DATABASE_URL_FOR_BUILD}" docker buildx build \
   --platform "${PLATFORM}" \
   --progress=plain \
-  --build-arg "NPM_REGISTRY=${NPM_REGISTRY}" \
-  --build-arg "PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}" \
+  "${BUILD_ARGS[@]}" \
   "${CACHE_ARGS[@]}" \
   -t "${IMAGE_TAG}" \
   --output="type=docker,dest=${OUTPUT_TAR}" \

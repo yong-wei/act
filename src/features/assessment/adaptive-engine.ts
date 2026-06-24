@@ -26,6 +26,12 @@ export interface SubmitAnswerParams {
   questionId: string;
   selectedOption: string;
   timeSpent: number;
+  pathContext?: {
+    pathId: string;
+    nodeId: string;
+    goalId?: string | null;
+    routeIntent?: string | null;
+  };
 }
 
 export interface SubmitAnswerResult {
@@ -42,6 +48,7 @@ export interface SubmittedAnswerDetails {
   question: CrossDomainQuestion;
   selectedOptionKey: string;
   correctOptionKey: string;
+  pathContext?: SubmitAnswerParams['pathContext'];
 }
 
 interface SessionState {
@@ -447,6 +454,7 @@ export function submitAnswerWithDetails(params: SubmitAnswerParams): SubmittedAn
     question,
     selectedOptionKey: selected.optionKey,
     correctOptionKey: correct.optionKey,
+    pathContext: params.pathContext,
   };
 
   return {
@@ -509,6 +517,7 @@ export function createSubmitAnswerDetails(params: SubmitAnswerParams): Submitted
     question,
     selectedOptionKey: selected.optionKey,
     correctOptionKey: correct.optionKey,
+    pathContext: params.pathContext,
   };
 
   return {

@@ -1,0 +1,175 @@
+{
+  "knowledgeDefault": {
+    "activeAria": "知识资源",
+    "activeText": "",
+    "desktopNavigation": "collapsible",
+    "desktopSidebarDisplay": "block",
+    "dockRect": {
+      "height": 40,
+      "width": 40,
+      "x": 1361,
+      "y": 904
+    },
+    "gridTemplateColumns": "72px 1353px",
+    "layout": "collapsible",
+    "mobileButtonVisible": null,
+    "mobileNavigation": "workspace-command-surface",
+    "preference": "collapsed",
+    "routeFrame": "knowledge-data-map",
+    "shellState": "collapsed",
+    "sidebarState": "collapsed",
+    "sidebarWidth": 72,
+    "url": "http://localhost:3001/knowledge",
+    "viewport": {
+      "height": 960,
+      "width": 1440
+    },
+    "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/app-shell-navigation-preference-484/01-knowledge-default-collapsed-1440.png"
+  },
+  "knowledgeExpanded": {
+    "activeAria": null,
+    "activeText": "知识资源",
+    "desktopNavigation": "collapsible",
+    "desktopSidebarDisplay": "block",
+    "dockRect": {
+      "height": 40,
+      "width": 40,
+      "x": 1361,
+      "y": 904
+    },
+    "gridTemplateColumns": "248px 1177px",
+    "layout": "collapsible",
+    "mobileButtonVisible": null,
+    "mobileNavigation": "workspace-command-surface",
+    "preference": "expanded",
+    "routeFrame": "knowledge-data-map",
+    "shellState": "expanded",
+    "sidebarState": "expanded",
+    "sidebarWidth": 248,
+    "url": "http://localhost:3001/knowledge",
+    "viewport": {
+      "height": 960,
+      "width": 1440
+    },
+    "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/app-shell-navigation-preference-484/02-knowledge-expanded-persisted-1440.png"
+  },
+  "arenaPersisted": {
+    "activeAria": null,
+    "activeText": "竞技场",
+    "desktopNavigation": "collapsible",
+    "desktopSidebarDisplay": "block",
+    "dockRect": {
+      "height": 40,
+      "width": 40,
+      "x": 1361,
+      "y": 904
+    },
+    "gridTemplateColumns": "248px 1177px",
+    "layout": "collapsible",
+    "mobileButtonVisible": true,
+    "mobileNavigation": "drawer",
+    "preference": "expanded",
+    "routeFrame": "mission-workspace",
+    "shellState": "expanded",
+    "sidebarState": "expanded",
+    "sidebarWidth": 248,
+    "url": "http://localhost:3001/arena",
+    "viewport": {
+      "height": 960,
+      "width": 1440
+    },
+    "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/app-shell-navigation-preference-484/03-arena-expanded-persisted-1440.png"
+  },
+  "arenaMobile": {
+    "activeAria": null,
+    "activeText": "竞技场",
+    "desktopNavigation": "collapsible",
+    "desktopSidebarDisplay": "none",
+    "dockRect": {
+      "height": 40,
+      "width": 40,
+      "x": 241,
+      "y": 704
+    },
+    "gridTemplateColumns": "305px",
+    "layout": "collapsible",
+    "mobileButtonVisible": true,
+    "mobileNavigation": "drawer",
+    "preference": "expanded",
+    "routeFrame": "mission-workspace",
+    "shellState": "expanded",
+    "sidebarState": "expanded",
+    "sidebarWidth": 0,
+    "url": "http://localhost:3001/arena",
+    "viewport": {
+      "height": 760,
+      "width": 320
+    },
+    "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/app-shell-navigation-preference-484/04-arena-mobile-drawer-independent-320.png"
+  },
+  "teacherDataCenterExpanded": {
+    "activeAria": null,
+    "activeText": "数据中心",
+    "desktopNavigation": "collapsible",
+    "desktopSidebarDisplay": "block",
+    "dockRect": {
+      "height": 40,
+      "width": 40,
+      "x": 1361,
+      "y": 904
+    },
+    "gridTemplateColumns": "248px 1177px",
+    "layout": "collapsible",
+    "mobileButtonVisible": null,
+    "mobileNavigation": "workspace-command-surface",
+    "preference": "expanded",
+    "routeFrame": "knowledge-data-map",
+    "shellState": "expanded",
+    "sidebarState": "expanded",
+    "sidebarWidth": 248,
+    "url": "http://localhost:3001/data-center",
+    "viewport": {
+      "height": 960,
+      "width": 1440
+    },
+    "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/app-shell-navigation-preference-484/05-teacher-data-center-expanded-persisted-1440.png"
+  },
+  "adminDataCenterExpanded": {
+    "activeAria": null,
+    "activeText": "数据中心",
+    "desktopNavigation": "collapsible",
+    "desktopSidebarDisplay": "block",
+    "dockRect": {
+      "height": 40,
+      "width": 40,
+      "x": 1361,
+      "y": 904
+    },
+    "gridTemplateColumns": "248px 1177px",
+    "layout": "collapsible",
+    "mobileButtonVisible": null,
+    "mobileNavigation": "workspace-command-surface",
+    "preference": "expanded",
+    "routeFrame": "knowledge-data-map",
+    "shellState": "expanded",
+    "sidebarState": "expanded",
+    "sidebarWidth": 248,
+    "url": "http://localhost:3001/data-center",
+    "viewport": {
+      "height": 960,
+      "width": 1440
+    },
+    "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/app-shell-navigation-preference-484/06-admin-data-center-expanded-persisted-1440.png"
+  },
+  "screenshots": [
+    "01-knowledge-default-collapsed-1440.png",
+    "02-knowledge-expanded-persisted-1440.png",
+    "03-arena-expanded-persisted-1440.png",
+    "04-arena-mobile-drawer-independent-320.png",
+    "05-teacher-data-center-expanded-persisted-1440.png",
+    "06-admin-data-center-expanded-persisted-1440.png"
+  ],
+  "notes": [
+    "Teacher and administrator persistence evidence uses /data-center because it is the role-aware AppShell route currently migrated for both roles; legacy /teacher and /admin operation shells are fixed until their AppShell migration lands."
+  ]
+}

@@ -11,10 +11,8 @@ import {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  _request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const graph = await loadKnowledgeGraphData();
     if (graph.source === 'file') {
@@ -24,11 +22,12 @@ export async function GET(
       }
     }
 
-    const node = await prisma.knowledgeNode.findUnique({
-      where: { id: params.id },
+    const node = await prisma.knowledgeNode.findFirst({
+      where: { id: params.id, isActive: true },
       include: {
         // 当前节点作为源的关系（当前节点 → 其他节点）
         sourceLinks: {
+          where: { targetNode: { is: { isActive: true } } },
           include: {
             targetNode: {
               select: {
@@ -41,6 +40,7 @@ export async function GET(
         },
         // 当前节点作为目标的关系（其他节点 → 当前节点）
         targetLinks: {
+          where: { sourceNode: { is: { isActive: true } } },
           include: {
             sourceNode: {
               select: {
@@ -121,10 +121,8 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {

@@ -6,6 +6,7 @@
 
 import type { AIContext, PageContext, UserProfile, LearningStyle, KnowledgeType, PromptBuilderOptions } from '@/types/ai-context';
 import { KONLING_BRAND } from './ai-branding';
+import type { KaqArtifactVersionRefs } from './kaq-artifact-versioning';
 
 interface KonlingPromptRuntimeContext {
   learnerState?: unknown;
@@ -18,9 +19,105 @@ interface KonlingPromptRuntimeContext {
     memoryType: string;
     summary: string;
   }>;
+  knowledgeWorkspace?: {
+    source?: string;
+    route?: string;
+    status?: string;
+    selected_node?: {
+      id?: string;
+      name?: string;
+      node_type?: string;
+      chapter?: string | null;
+      knowledge_dim?: string | null;
+      description?: string;
+      tags?: string[];
+    } | null;
+    relation_summary?: {
+      density_mode?: string | null;
+      view_mode?: string | null;
+      active_filters?: string[];
+      visible_relation_count?: number;
+      selected_node_relation_count?: number;
+    };
+    available_learning_actions?: string[];
+    hover_policy?: string;
+    missing_context?: string[];
+  } | null;
+  knowledgeCapabilityContext?: {
+    answerIntent?: string;
+    knowledgeNodeRefs?: string[];
+    capabilityTargetRefs?: string[];
+    resourceRefs?: string[];
+    pathNodeRefs?: string[];
+    citationRefs?: string[];
+    missingContext?: string[];
+  };
+  graphContext?: {
+    status?: string;
+    learningGoal?: {
+      id?: string;
+      title?: string;
+      version?: string;
+    } | null;
+    selectedGraphNodeIds?: string[];
+    expandedSubgraph?: {
+      graphVersion?: string;
+      graphNodeIds?: Record<string, string[]>;
+    } | null;
+    citationRefs?: string[];
+    evidenceRefs?: string[];
+    versionRefs?: Record<string, string | null | undefined> | KaqArtifactVersionRefs | null;
+    confidence?: string;
+    missingGrounding?: Array<{
+      class?: string;
+      reason?: string;
+      severity?: string;
+    }>;
+  } | null;
+  citationContext?: {
+    required?: boolean;
+    contentCitations?: Array<{
+      sourceType: string;
+      displayTitle: string;
+      confidence: string;
+      evidenceBasis: string;
+    }>;
+    evidenceCitations?: Array<{
+      sourceType: string;
+      displayTitle: string;
+      confidence: string;
+      evidenceBasis: string;
+    }>;
+    missingCitationClasses?: string[];
+    lowConfidenceReasons?: string[];
+  };
   permittedTools?: string[];
   missingContext?: string[];
   featureFlags?: Record<string, boolean>;
+  teachingAssistantMode?: {
+    mode: {
+      id: string;
+      label: string;
+    };
+    status: string;
+    unavailableReasons: string[];
+    degradedReasons: string[];
+    privacyPolicy: {
+      payload: string;
+      forbiddenContent: string[];
+    };
+    outputContract: {
+      status: string;
+      requiredCitationOwners: string[];
+      forbiddenActions: string[];
+    };
+    citationRequirements: {
+      required: boolean;
+      classes: string[];
+      requiredOwners: string[];
+      missingClasses: string[];
+    };
+  };
 }
 
 /**
@@ -70,14 +167,168 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
       lines.push(`  ${index + 1}. [${memory.memoryType}] ${memory.summary}`);
     });
   }
+  if (runtime.knowledgeWorkspace) {
+    const workspace = runtime.knowledgeWorkspace;
+    lines.push('- 知识工作区上下文:');
+    lines.push(`  - 状态: ${workspace.status ?? 'unknown'}`);
+    lines.push(`  - 悬浮策略: ${workspace.hover_policy ?? 'preview-only-not-durable-context'}`);
+    if (workspace.selected_node) {
+      lines.push(`  - 当前选中节点: ${workspace.selected_node.name ?? workspace.selected_node.id ?? '未命名'} (${workspace.selected_node.id ?? 'unknown'})`);
+      if (workspace.selected_node.chapter || workspace.selected_node.knowledge_dim) {
+        lines.push(`  - 节点语义: ${[workspace.selected_node.chapter, workspace.selected_node.knowledge_dim].filter(Boolean).join(' / ')}`);
+      }
+      if (workspace.selected_node.description) {
+        lines.push(`  - 节点说明: ${workspace.selected_node.description}`);
+      }
+    }
+    if (workspace.relation_summary) {
+      lines.push(`  - 图谱视图: ${workspace.relation_summary.view_mode ?? 'unknown'} / ${workspace.relation_summary.density_mode ?? 'unknown'}；关系 ${workspace.relation_summary.selected_node_relation_count ?? 0}/${workspace.relation_summary.visible_relation_count ?? 0}`);
+      if (workspace.relation_summary.active_filters?.length) {
+        lines.push(`  - 当前筛选: ${workspace.relation_summary.active_filters.join('；')}`);
+      }
+    }
+    if (workspace.available_learning_actions?.length) {
+      lines.push(`  - 可用学习动作: ${workspace.available_learning_actions.join(', ')}`);
+    }
+  }
+  if (runtime.knowledgeCapabilityContext) {
+    const grounding = runtime.knowledgeCapabilityContext;
+    lines.push('- 知识与能力 grounding:');
+    lines.push(`  - 回答意图: ${grounding.answerIntent ?? 'unknown'}`);
+    if (grounding.knowledgeNodeRefs?.length) {
+      lines.push(`  - 知识节点: ${grounding.knowledgeNodeRefs.slice(0, 5).join(', ')}`);
+    }
+    if (grounding.capabilityTargetRefs?.length) {
+      lines.push(`  - 能力目标: ${grounding.capabilityTargetRefs.slice(0, 5).join(', ')}`);
+    }
+    if (grounding.resourceRefs?.length) {
+      lines.push(`  - 资源范围: ${grounding.resourceRefs.slice(0, 5).join(', ')}`);
+    }
+    if (grounding.pathNodeRefs?.length) {
+      lines.push(`  - 路径节点: ${grounding.pathNodeRefs.slice(0, 5).join(', ')}`);
+    }
+    if (grounding.citationRefs?.length) {
+      lines.push(`  - 引用锚点: ${grounding.citationRefs.slice(0, 6).join(', ')}`);
+    }
+    if (grounding.missingContext?.length) {
+      lines.push(`  - grounding 限制: ${grounding.missingContext.join(', ')}`);
+    }
+  }
+  if (runtime.graphContext) {
+    const graph = runtime.graphContext;
+    lines.push('- K/A/Q 图谱 grounding:');
+    lines.push(`  - 状态: ${graph.status ?? 'unknown'}；置信度: ${graph.confidence ?? 'unknown'}`);
+    if (graph.learningGoal?.id) {
+      lines.push(`  - LearningGoal: ${graph.learningGoal.id} / ${graph.learningGoal.title ?? 'untitled'} / ${graph.learningGoal.version ?? 'unknown-version'}`);
+    }
+    const graphNodeIds = [
+      ...(graph.expandedSubgraph?.graphNodeIds?.knowledge ?? []),
+      ...(graph.expandedSubgraph?.graphNodeIds?.capability ?? []),
+      ...(graph.expandedSubgraph?.graphNodeIds?.quality ?? []),
+    ];
+    if (graph.selectedGraphNodeIds?.length) {
+      lines.push(`  - 当前图谱节点: ${graph.selectedGraphNodeIds.slice(0, 6).join(', ')}`);
+    } else if (graphNodeIds.length) {
+      lines.push(`  - 可 grounding 图谱节点: ${graphNodeIds.slice(0, 6).join(', ')}`);
+    }
+    const graphCitationAnchors = anonymizeGraphRefs(graph.citationRefs ?? []);
+    if (graphCitationAnchors.length) {
+      lines.push(`  - 引用锚点: ${graphCitationAnchors.slice(0, 6).join(', ')}`);
+    }
+    const graphEvidenceAnchors = anonymizeGraphRefs(graph.evidenceRefs ?? []);
+    if (graphEvidenceAnchors.length) {
+      lines.push(`  - 证据锚点: ${graphEvidenceAnchors.slice(0, 6).join(', ')}`);
+    }
+    if (graph.versionRefs) {
+      const versionKeys = Object.entries(graph.versionRefs)
+        .filter(([, value]) => Boolean(value))
+        .map(([key, value]) => `${key}=${value}`);
+      if (versionKeys.length) lines.push(`  - 版本 refs: ${versionKeys.slice(0, 5).join(', ')}`);
+    }
+    if (graph.missingGrounding?.length) {
+      lines.push(`  - graph grounding 限制: ${graph.missingGrounding.map((item) => `${item.class}:${item.reason}`).join(', ')}`);
+    }
+  }
+  if (runtime.citationContext?.required) {
+    lines.push('- 引用协议: 概念解释、个性化建议、仿真/Arena 失败分析、路径纠偏和报告解释必须至少使用 1 个内容引用；有学习者、路径、仿真、Arena 或干预证据时还必须使用 1 个证据引用。');
+    lines.push('- 学生可见引用元数据必须包含 sourceType、displayTitle、href、confidence、evidenceBasis；不得暴露 hiddenEvaluation、原始高频轨迹或私有记忆正文。');
+    if (runtime.citationContext.contentCitations?.length) {
+      lines.push(`- 可用内容引用: ${runtime.citationContext.contentCitations.slice(0, 3).map(formatCitationHint).join('；')}`);
+    }
+    if (runtime.citationContext.evidenceCitations?.length) {
+      lines.push(`- 可用证据引用: ${runtime.citationContext.evidenceCitations.slice(0, 4).map(formatCitationHint).join('；')}`);
+    }
+    if (runtime.citationContext.missingCitationClasses?.length || runtime.citationContext.lowConfidenceReasons?.length) {
+      lines.push(`- 引用限制: ${[
+        ...(runtime.citationContext.missingCitationClasses ?? []).map((item) => `缺少 ${item}`),
+        ...(runtime.citationContext.lowConfidenceReasons ?? []),
+      ].join(', ')}；不能把结论表述为完全验证。`);
+    }
+  }
+  if (runtime.teachingAssistantMode) {
+    const mode = runtime.teachingAssistantMode;
+    lines.push('- 控灵教学助理模式:');
+    lines.push(`  - 模式: ${mode.mode.label} (${mode.mode.id})`);
+    lines.push(`  - 状态: ${mode.status}`);
+    lines.push(`  - 输出合同: ${mode.outputContract.status}`);
+    lines.push(`  - 隐私策略: ${mode.privacyPolicy.payload}`);
+    if (mode.mode.id === 'path-advisor') {
+      lines.push('  - 路径工具调用边界: 只有用户明确要求生成、重建、重新规划或调整学习路径时，才调用 generate_learning_path 或 revise_learning_path_options。解释失败原因、回顾生成依据、咨询生成条件、推荐当前路径下一步、比较既有方案或查看路径状态时，不得调用路径写入工具；应优先使用 get_learner_state、get_plan_context、recommend_next_action 或 explain_learning_path_tradeoff。');
+      lines.push('  - 路径工具参数: 调用 generate_learning_path 或 revise_learning_path_options 时，将用户自然语言约束写入 naturalLanguageIntent，并尽量结构化 timeBudgetMinutes、resourcePreference、difficultyRhythm、checkpointPreference 与 allowExternalResources。');
+    }
+    if (mode.privacyPolicy.forbiddenContent.length) {
+      lines.push(`  - 禁止内容: ${mode.privacyPolicy.forbiddenContent.join(', ')}`);
+    }
+    if (mode.outputContract.forbiddenActions.length) {
+      lines.push(`  - 禁止动作: ${mode.outputContract.forbiddenActions.join(', ')}`);
+    }
+    if (mode.citationRequirements.required) {
+      lines.push(`  - 模式引用要求: ${mode.citationRequirements.classes.join(', ')}；责任归属 ${mode.citationRequirements.requiredOwners.join(', ')}`);
+    }
+    if (mode.unavailableReasons.length || mode.degradedReasons.length) {
+      lines.push(`  - 模式限制: ${[...mode.unavailableReasons, ...mode.degradedReasons].join(', ')}`);
+    }
+  }
   if (runtime.missingContext?.length) {
     lines.push(`- 低置信或缺失上下文: ${runtime.missingContext.join(', ')}`);
+    if (runtime.missingContext.includes('simulation-run-summary-unavailable')) {
+      lines.push('- 仿真限制: 当前未绑定可验证运行摘要、任务上下文或提交结果；只能解释通用仿真概念和下一步观察方法，不得给出权威仿真诊断、评分判断或正式调参结论。');
+    }
   }
   if (runtime.permittedTools?.length) {
     lines.push(`- 可用工具: ${runtime.permittedTools.join(', ')}`);
   }
   lines.push('- 不得采用客户端传入的学生画像覆盖服务端学习状态。');
   return lines.join('\n');
+}
+
+function anonymizeGraphRefs(refs: string[]): string[] {
+  const counts: Record<string, number> = {};
+  return refs
+    .map((ref) => {
+      const type = normalizeGraphRefType(ref);
+      if (!type) return null;
+      counts[type] = (counts[type] ?? 0) + 1;
+      return `${type}:${counts[type]}`;
+    })
+    .filter((ref): ref is string => Boolean(ref));
+}
+
+function normalizeGraphRefType(ref: string): string | null {
+  const rawType = typeof ref === 'string' ? ref.split(':')[0]?.trim().toLowerCase() : '';
+  if (!rawType) return null;
+  if (rawType === 'learner') return 'learner-state';
+  if (rawType === 'path') return 'path-execution';
+  return rawType.replace(/[^a-z0-9_-]/g, '') || null;
+}
+
+function formatCitationHint(citation: {
+  sourceType: string;
+  displayTitle: string;
+  confidence: string;
+  evidenceBasis: string;
+}): string {
+  return `[${citation.sourceType}] ${citation.displayTitle} (${citation.confidence}, ${citation.evidenceBasis})`;
 }
 
 /**

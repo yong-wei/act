@@ -1,0 +1,106 @@
+{
+  "lesson_id": "1-1",
+  "unit_type": "理论",
+  "generated_at": "2026-06-11T02:25:31.111166+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/1-1/design/1-1-handout.md",
+    "course-content/authoring/lessons/1-1/design/1-1-interactive-page.md"
+  ],
+  "interactive_page_source": "course-content/authoring/lessons/1-1/design/1-1-interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/1-1/design/1-1-interactive-contract.yaml",
+  "handout_pdf_source": "course-content/authoring/lessons/1-1/design/1-1-handout.pdf",
+  "boppps_source": "course-content/authoring/lessons/1-1/design/1-1-boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/1-1/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "1-1-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-block-diagram-basic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-step-response-first-order.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-root-locus-example.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-bode-example.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-open-loop-block.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-feedback-loop-block.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-closed-loop-block.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-gain-comparison.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-example-openloop-step.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-example-root-locus.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-example-bode.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-example-correction-triptych.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-1-audio.m4a",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
+}

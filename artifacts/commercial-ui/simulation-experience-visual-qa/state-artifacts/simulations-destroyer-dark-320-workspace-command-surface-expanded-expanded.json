@@ -1,0 +1,18 @@
+{
+  "route": "/simulations/destroyer",
+  "theme": "dark",
+  "width": 320,
+  "navigationState": "workspace-command-surface",
+  "dockState": "expanded",
+  "localToolState": "expanded",
+  "primarySceneNonblank": true,
+  "instrumentAreaNonblank": true,
+  "collisionEvidence": {
+    "dockAndLocalToolsObservedTogether": true,
+    "dockObservedExpanded": true,
+    "localToolsObservedExpanded": true,
+    "localControlCollisionFree": true
+  },
+  "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-320-workspace-command-surface-expanded-expanded.png",
+  "result": "passed"
+}

@@ -139,9 +139,17 @@ export function PremiumLessonEntryPage({
   };
 
   return (
-    <div className="premium-lesson-shell">
-      <header className="premium-lesson-topbar">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6">
+    <div
+      className="premium-lesson-shell"
+      data-commercial-workspace="interactive-learning"
+      data-commercial-student-entry-route={`/interactive-learning/courses/${config.routeSegment}`}
+      data-commercial-entry-intent="learn"
+      data-task-workspace-archetype="lesson-runtime"
+      data-launch-provenance="course-launched"
+      data-return-target="/interactive-learning/courses"
+    >
+      <header className="premium-lesson-topbar" data-commercial-workspace-zone="context-strip">
+        <div className="flex w-full items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <Link
             href="/interactive-learning/courses"
             className="premium-lesson-nav-button inline-flex items-center gap-1 px-3 py-1"
@@ -156,8 +164,8 @@ export function PremiumLessonEntryPage({
         </div>
       </header>
 
-      <main className="premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-8">
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+      <main className="premium-lesson-main py-4 sm:py-8">
+        <div className="mt-4 grid gap-4 md:grid-cols-3" data-commercial-workspace-zone="command-bar">
           {showTeacherSection ? (
             <section className="premium-lesson-panel p-5">
               <div className="premium-lesson-title mb-3 inline-flex items-center gap-2 text-sm">
@@ -173,6 +181,7 @@ export function PremiumLessonEntryPage({
                 onClick={() => void createClassroom()}
                 disabled={isCreating}
                 className="premium-lesson-action-primary mt-5 flex w-full"
+                data-course-entry-action="teacher-launch"
               >
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 开始上课（教师）
@@ -188,6 +197,7 @@ export function PremiumLessonEntryPage({
             <Link
               href={`/interactive-learning/courses/${config.routeSegment}/student/demo`}
               className="premium-lesson-action-secondary mt-5 flex w-full"
+              data-course-entry-action="demo-launch"
             >
               进入演示模式
             </Link>
@@ -210,6 +220,7 @@ export function PremiumLessonEntryPage({
                   onChange={(event) => setJoinCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="输入 6 位课堂码"
                   className="premium-lesson-input mt-2 text-base tracking-[0.24em]"
+                  data-course-entry-action="join-code"
                 />
               </label>
               <button
@@ -217,6 +228,7 @@ export function PremiumLessonEntryPage({
                 onClick={() => void joinClassroom()}
                 disabled={isJoining}
                 className="premium-lesson-action-secondary mt-4 flex w-full"
+                data-course-entry-action="join-launch"
               >
                 {isJoining ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                 加入课堂
@@ -227,7 +239,7 @@ export function PremiumLessonEntryPage({
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mt-4">{error}</div> : null}
 
-        <section className="premium-lesson-panel mt-4 px-5 py-5">
+        <section className="premium-lesson-panel mt-4 px-5 py-5" data-commercial-workspace-zone="instrument-area">
           <div className="premium-lesson-kicker">{config.overviewKicker ?? config.mediaCourseLabel ?? lessonRuntime?.lesson.lesson_id ?? 'Course Entry'}</div>
           <h2 className="premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl">{config.title}</h2>
           {config.description ? (
@@ -248,10 +260,12 @@ export function PremiumLessonEntryPage({
         </section>
 
         {showMediaHub && lessonRuntime ? (
-          <LessonEntryMediaHub
-            lessonRuntime={lessonRuntime}
-            courseLabel={config.mediaCourseLabel ?? lessonRuntime.lesson.lesson_id}
-          />
+          <section data-commercial-workspace-zone="support-drawer">
+            <LessonEntryMediaHub
+              lessonRuntime={lessonRuntime}
+              courseLabel={config.mediaCourseLabel ?? lessonRuntime.lesson.lesson_id}
+            />
+          </section>
         ) : null}
         {showRuntimeSections && lessonRuntime ? (
           <LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />

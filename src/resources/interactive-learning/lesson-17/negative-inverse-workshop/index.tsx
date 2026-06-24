@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { ListChecks, GitBranch, TrendingDown, Signal, Layers } from 'lucide-react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { ListChecks, GitBranch, TrendingDown, Signal, Layers, type LucideIcon } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
@@ -11,7 +11,7 @@ interface WorkshopSection {
   summary: string;
   bullets: string[];
   tag: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 }
 
 const SECTIONS: WorkshopSection[] = [
@@ -69,22 +69,32 @@ interface NegativeInverseWorkshopProps extends BaseWidgetProps {}
 
 export default function NegativeInverseWorkshop({ onComplete, onStateChange }: NegativeInverseWorkshopProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(SECTIONS[0]?.id ?? 'relay');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = SECTIONS[0]?.id ?? 'relay';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeSection = useMemo(
     () => SECTIONS.find((section) => section.id === activeId) ?? SECTIONS[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / SECTIONS.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { sectionId: activeId, visitedCount: nextVisited.length },
+      data: { sectionId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -100,7 +110,7 @@ export default function NegativeInverseWorkshop({ onComplete, onStateChange }: N
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   const ActiveIcon = activeSection.icon;
 
@@ -119,9 +129,9 @@ export default function NegativeInverseWorkshop({ onComplete, onStateChange }: N
           </div>
           <div className="mt-4 space-y-2">
             {SECTIONS.map((section) => (
-              <button
+              <button type="button"
                 key={section.id}
-                onClick={() => setActiveId(section.id)}
+                onClick={() => recordVisit(section.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === section.id
                     ? 'bg-slate-900 text-white'

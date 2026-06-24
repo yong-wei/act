@@ -3,19 +3,22 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { getRegisteredResourceMetadata, type RegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const resource = await prisma.teachingResource.findUnique({
       where: { id: params.id }
     });
 
     if (!resource) {
+      const registeredResource = getRegisteredResourceMetadata(params.id);
+      if (registeredResource && isRegisteredResourceStudentVisible(registeredResource)) {
+        return NextResponse.json(toRegisteredTeachingResource(registeredResource));
+      }
       return NextResponse.json({ error: 'Resource not found' }, { status: 404 });
     }
 
@@ -27,10 +30,39 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+function toRegisteredTeachingResource(resource: RegisteredResourceMetadata) {
+  const now = new Date(0).toISOString();
+  return {
+    id: resource.id,
+    title: resource.label,
+    description: null,
+    type: resource.type,
+    content: null,
+    registryId: resource.id,
+    category: null,
+    displayName: resource.label,
+    displayOrder: 0,
+    teacherOnly: false,
+    config: resource.defaultConfig ?? {},
+    aiHints: null,
+    authorId: 'resource-registry',
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function isRegisteredResourceStudentVisible(resource: RegisteredResourceMetadata): boolean {
+  const planning = resource.planningOverride ?? {};
+  return planning.teacherPolicy !== 'teacher-only' &&
+    planning.teacherPolicy !== 'blocked' &&
+    planning.teacherPolicy !== 'teacher-assigned' &&
+    planning.privacyLevel !== 'teacher-scoped' &&
+    planning.availability !== 'teacher_only' &&
+    planning.availability !== 'archived';
+}
+
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {

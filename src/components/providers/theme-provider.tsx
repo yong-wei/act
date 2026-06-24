@@ -28,6 +28,11 @@ export function ThemeProvider({
   defaultTheme?: ThemeMode;
 }) {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
+    if (typeof window !== 'undefined') {
+      const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return resolveInitialTheme(storedTheme, systemPrefersDark, defaultTheme);
+    }
     if (typeof document !== 'undefined') {
       if (document.documentElement.classList.contains('light')) {
         return 'light';
@@ -41,12 +46,8 @@ export function ThemeProvider({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const resolvedTheme = resolveInitialTheme(storedTheme, systemPrefersDark, defaultTheme);
-    setThemeState(resolvedTheme);
     setMounted(true);
-  }, [defaultTheme]);
+  }, []);
 
   useEffect(() => {
     if (!mounted) {
@@ -87,4 +88,8 @@ export function useTheme() {
     throw new Error('useTheme must be used within ThemeProvider');
   }
   return context;
+}
+
+export function useOptionalTheme() {
+  return useContext(ThemeContext);
 }

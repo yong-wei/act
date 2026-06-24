@@ -973,7 +973,7 @@ function TextInput({
 }) {
   if (multiline) {
     return (
-      <textarea
+      <textarea aria-label={placeholder ?? '劳斯稳定边界学习记录'}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
@@ -982,7 +982,7 @@ function TextInput({
     );
   }
   return (
-    <input
+    <input aria-label={placeholder ?? '劳斯稳定边界输入'}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
@@ -1019,43 +1019,64 @@ function RevealTrack({
         {allowInlineReveal ? '点击当前最下方已显影步骤可继续展开下一层。' : '当前显影由教师推进。'}
       </div>
       <div className="mt-3 grid gap-2">
-        {items.slice(0, visibleCount).map((item, index) => (
-          <div
-            key={item.key}
-            onClick={() => {
-              if (index === visibleCount - 1 && canRevealMore) {
+        {items.slice(0, visibleCount).map((item, index) => {
+          const canRevealFromItem = index === visibleCount - 1 && canRevealMore;
+          const itemClassName = `rounded-2xl border px-3 py-3 text-sm ${
+            canRevealFromItem
+              ? 'cursor-pointer border-cyan-400/60 bg-cyan-500/10 ring-1 ring-cyan-400/40'
+              : 'border-cyan-400/60 bg-cyan-500/10'
+          }`;
+          const itemContent = (
+            <>
+              <div className="font-medium">{renderInlineMathText(item.label)}</div>
+              <div className="mt-2">
+                {item.body ? <RichText content={item.body} /> : null}
+                {item.formula ? (
+                  <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                    <BlockMath math={item.formula} />
+                  </div>
+                ) : null}
+                {item.bullets?.length ? (
+                  <ul className="mt-3 grid gap-2 text-sm leading-7">
+                    {item.bullets.map((bullet) => (
+                      <li key={bullet} className="ml-4 list-disc">
+                        <RichText content={bullet} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {canRevealFromItem ? (
+                  <div className="premium-lesson-caption mt-3 text-xs">点击当前步骤继续显影下一层。</div>
+                ) : null}
+              </div>
+            </>
+          );
+
+          if (!canRevealFromItem) {
+            return (
+              <div key={item.key} className={itemClassName}>
+                {itemContent}
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={item.key}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
                 setLocalRevealCount((count) => Math.min(count + 1, items.length));
-              }
-            }}
-            className={`rounded-2xl border px-3 py-3 text-sm ${
-              index === visibleCount - 1 && canRevealMore
-                ? 'cursor-pointer border-cyan-400/60 bg-cyan-500/10 ring-1 ring-cyan-400/40'
-                : 'border-cyan-400/60 bg-cyan-500/10'
-            }`}
-          >
-            <div className="font-medium">{renderInlineMathText(item.label)}</div>
-            <div className="mt-2">
-              {item.body ? <RichText content={item.body} /> : null}
-              {item.formula ? (
-                <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
-                  <BlockMath math={item.formula} />
-                </div>
-              ) : null}
-              {item.bullets?.length ? (
-                <ul className="mt-3 grid gap-2 text-sm leading-7">
-                  {item.bullets.map((bullet) => (
-                    <li key={bullet} className="ml-4 list-disc">
-                      <RichText content={bullet} />
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              {index === visibleCount - 1 && canRevealMore ? (
-                <div className="premium-lesson-caption mt-3 text-xs">点击当前步骤继续显影下一层。</div>
-              ) : null}
+              }}
+              onClick={() => setLocalRevealCount((count) => Math.min(count + 1, items.length))}
+              className={itemClassName}
+            >
+              {itemContent}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

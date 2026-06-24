@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-07T10:22:40.833608Z",
+  "lesson": {
+    "lesson_id": "1-1",
+    "title": "看见整门课：从反馈思想到控制全景",
+    "groups": [
+      "反馈与开闭环"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "闭环控制_1_1",
+    "name": "闭环控制",
+    "name_en": null,
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "理解",
+    "definition": "闭环控制是利用输出信息持续修正控制动作的方式。",
+    "examples": [],
+    "formulas": [],
+    "keywords": [
+      "闭环控制",
+      "反馈"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/闭环控制_1_1.md",
+  "card_frontmatter": {
+    "node_id": "闭环控制_1_1",
+    "name": "闭环控制",
+    "lesson_units": [
+      "1-1"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "1",
+    "tags": [
+      "闭环控制",
+      "反馈",
+      "1-1"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/1-1/design/1-1-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 闭环控制\n\n**一句话定义**：闭环控制是利用输出信息持续修正控制动作的方式。\n\n**核心直觉**：闭环系统持续测量、比较和修正，因此能把偏差纳入控制过程。\n\n---",
+  "card_detail": "闭环控制通过反馈回路把输出送回比较端，形成“目标-测量-误差-控制动作”的循环。它能提高抗扰动能力，但参数选择不当也可能引入振荡或失稳风险。",
+  "card_plain_excerpt": "## 首页\n\n# 闭环控制\n\n**一句话定义**：闭环控制是利用输出信息持续修正控制动作的方式。\n\n**核心直觉**：闭环系统持续测量、比较和修正，因此能把偏差纳入控制过程。\n\n---\n\n## 详情\n\n闭环控制通过反馈回路把输出送回比较端，形成“目标-测量-误差-控制动作”的循环。它能提高抗扰动能力，但参数选择不当也可能引入振荡或失稳风险。",
+  "core_intuition": "闭环系统持续测量、比较和修正，因此能把偏差纳入控制过程。",
+  "relations": [
+    {
+      "source_id": "反馈_1_1",
+      "source": "反馈",
+      "target_id": "闭环控制_1_1",
+      "target": "闭环控制",
+      "relation": "enables",
+      "strength": null,
+      "description": "反馈是闭环控制的核心机制",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "闭环控制_1_1",
+      "source": "闭环控制",
+      "target_id": "误差_1_1",
+      "target": "误差信号",
+      "relation": "uses",
+      "strength": null,
+      "description": "闭环控制通过比较期望输出与测量输出形成误差信号，并据此驱动修正",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "闭环控制_1_1",
+      "source": "闭环控制",
+      "target_id": "开环控制_1_1",
+      "target": "开环控制",
+      "relation": "contrasts_with",
+      "strength": null,
+      "description": "闭环与开环的根本区别在于是否使用输出信息修正动作",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "闭环控制",
+        "闭环控制",
+        "反馈"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

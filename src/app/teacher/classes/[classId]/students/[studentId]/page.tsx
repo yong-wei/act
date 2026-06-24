@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 import type { TeacherStudentInsightsPayload } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
+import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 
 export default function TeacherStudentInsightsPage() {
   const router = useRouter();
@@ -59,7 +60,13 @@ export default function TeacherStudentInsightsPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="teacher-insight-shell flex items-center justify-center">
+      <div
+        className="teacher-insight-shell flex items-center justify-center"
+        data-intelligent-teaching-assistant-demo-surface="teacher-student-insights"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="loading"
+      >
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-sky-500 border-t-transparent" />
           <p className="text-subtle">加载学生学情...</p>
@@ -70,10 +77,16 @@ export default function TeacherStudentInsightsPage() {
 
   if (error || !data) {
     return (
-      <div className="teacher-insight-shell flex items-center justify-center">
+      <div
+        className="teacher-insight-shell flex items-center justify-center"
+        data-intelligent-teaching-assistant-demo-surface="teacher-student-insights"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="error"
+      >
         <div className="text-center">
           <p className="text-xl text-red-500">{error || '加载失败'}</p>
-          <button onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+          <button type="button" onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
         </div>
@@ -82,9 +95,15 @@ export default function TeacherStudentInsightsPage() {
   }
 
   return (
-    <div className="teacher-insight-shell">
+    <div
+      className="teacher-insight-shell"
+      data-intelligent-teaching-assistant-demo-surface="teacher-student-insights"
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics="ready"
+    >
       <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
+        <div className="flex w-full items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href={`/teacher/classes/${classId}`} className="text-subtle transition hover:text-foreground">
               <ArrowLeft className="h-6 w-6" />
@@ -94,14 +113,14 @@ export default function TeacherStudentInsightsPage() {
               <h1 className="text-xl font-bold text-foreground">{data.student.name} 的个体学情</h1>
             </div>
           </div>
-          <button onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
+          <button type="button" onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
             <RefreshCw className="h-4 w-4" />
             刷新数据
           </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      <main className="px-6 py-8">
         <section className="teacher-insight-hero mb-8">
           <div className="grid gap-4 xl:grid-cols-[1.25fr,0.75fr]">
             <div className="space-y-4">
@@ -178,6 +197,15 @@ export default function TeacherStudentInsightsPage() {
             </div>
           </div>
         </section>
+
+        <div className="mb-8">
+          <DiagnosisSurfacePanel
+            diagnosis={data.diagnosis}
+            mode="teacher-student"
+            title={`${data.student.name} 的控制校正诊断`}
+            description="展示教师可见的个体维度诊断、证据摘要、路径状态和干预入口。"
+          />
+        </div>
 
         <section className="mb-8 grid gap-4 lg:grid-cols-[0.95fr,1.05fr]">
           <div className="surface-card p-6">
@@ -451,7 +479,7 @@ export default function TeacherStudentInsightsPage() {
                         )}
                         {item.questionSummaries?.slice(0, 2).map((question, questionIndex) => (
                           <p key={`${question.questionId ?? questionIndex}`} className="mt-2 text-xs text-subtle">
-                            {question.prompt ?? question.questionId ?? '题目'}：作答 {question.studentAnswer ?? '未作答'}
+                            {question.prompt ?? question.questionId ?? '题目'}：{question.studentAnswerRedacted ? '作答已脱敏' : '未记录作答'}
                             {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
                             {typeof question.isCorrect === 'boolean' ? `，${question.isCorrect ? '正确' : '需修正'}` : ''}
                           </p>

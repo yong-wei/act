@@ -444,7 +444,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/concepts/幅值裕度_5_73af26a5.mdx"
+        "course-content/runtime/knowledge/cards/nodes/幅值裕度_5_73af26a5.md"
       ],
       "tags": [
         "穿越频率",
@@ -719,7 +719,7 @@
       },
       "content": {},
       "resources": [
-        "course-content/runtime/knowledge/cards/concepts/相角裕度_5_5a74b451.mdx"
+        "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md"
       ],
       "tags": [
         "截止频率",

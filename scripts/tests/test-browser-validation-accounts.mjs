@@ -10,7 +10,7 @@ function read(relativePath) {
 
 const fixedPasswordScript = read('scripts/db/update-fixed-account-passwords.mjs');
 const passwordOverrideTest = read('scripts/tests/test-account-password-overrides.mjs');
-const validationDoc = read('.codex/skills/interactive-lesson-implementation/references/closed-loop-browser-validation.md');
+const validationDoc = read('.agents/skills/interactive-lesson/references/closed-loop-browser-validation.md');
 const demoSeed = read('scripts/db/seed-demo-user.mjs');
 
 const teacherPassword = 'TestTeacher@Just2026!';

@@ -1,12 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Users } from 'lucide-react';
+import { resolveScopedReturnTarget } from '@/lib/navigation-return-target';
 
 export default function NewClassPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTarget = resolveScopedReturnTarget(
+    searchParams.get('returnTo') ?? undefined,
+    '/teacher/classes',
+    ['/teacher'],
+  );
+  const returnLabel = returnTarget === '/teacher' ? '返回教师工作台' : '返回班级列表';
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -46,11 +54,11 @@ export default function NewClassPage() {
     <main className="mx-auto max-w-2xl px-6 py-8">
       {/* 返回链接 */}
       <Link
-        href="/teacher/classes"
+        href={returnTarget}
         className="mb-6 inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" />
-        返回班级列表
+        {returnLabel}
       </Link>
 
       {/* 表单卡片 */}
@@ -67,10 +75,10 @@ export default function NewClassPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">
+            <label htmlFor="page-control-1" className="mb-2 block text-sm font-medium text-slate-300">
               班级名称 <span className="text-rose-400">*</span>
             </label>
-            <input
+            <input id="page-control-1"
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -81,10 +89,10 @@ export default function NewClassPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">
+            <label htmlFor="page-control-2" className="mb-2 block text-sm font-medium text-slate-300">
               班级描述
             </label>
-            <textarea
+            <textarea id="page-control-2"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="简短描述这个班级的内容或特点..."
@@ -95,10 +103,10 @@ export default function NewClassPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-300">
+              <label htmlFor="page-control-3" className="mb-2 block text-sm font-medium text-slate-300">
                 学年
               </label>
-              <input
+              <input id="page-control-3"
                 type="text"
                 value={form.year}
                 onChange={(e) => setForm({ ...form, year: e.target.value })}
@@ -107,10 +115,10 @@ export default function NewClassPage() {
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-300">
+              <label htmlFor="page-control-4" className="mb-2 block text-sm font-medium text-slate-300">
                 学期
               </label>
-              <input
+              <input id="page-control-4"
                 type="text"
                 value={form.semester}
                 onChange={(e) => setForm({ ...form, semester: e.target.value })}
@@ -128,7 +136,7 @@ export default function NewClassPage() {
 
           <div className="flex items-center justify-end gap-3 pt-4">
             <Link
-              href="/teacher/classes"
+              href={returnTarget}
               className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:border-slate-600 hover:bg-slate-800"
             >
               取消

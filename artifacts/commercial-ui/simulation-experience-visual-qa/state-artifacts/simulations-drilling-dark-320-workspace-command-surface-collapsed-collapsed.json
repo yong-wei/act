@@ -1,0 +1,18 @@
+{
+  "route": "/simulations/drilling",
+  "theme": "dark",
+  "width": 320,
+  "navigationState": "workspace-command-surface",
+  "dockState": "collapsed",
+  "localToolState": "collapsed",
+  "primarySceneNonblank": true,
+  "instrumentAreaNonblank": true,
+  "collisionEvidence": {
+    "dockAndLocalToolsObservedTogether": false,
+    "dockObservedExpanded": false,
+    "localToolsObservedExpanded": false,
+    "localControlCollisionFree": true
+  },
+  "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-320-workspace-command-surface-collapsed-collapsed.png",
+  "result": "passed"
+}
