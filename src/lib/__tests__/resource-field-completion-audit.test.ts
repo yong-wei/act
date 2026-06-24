@@ -539,6 +539,124 @@ describe('resource field completion audit', () => {
     expect(result.reviewedBindings).toEqual([]);
   });
 
+  it('matches audit family resource types against canonical LearningGoal resource mix', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('knowledge-card:frequency-family-type', 'knowledge-card'),
+        family: 'knowledge-card',
+        reviewStatus: 'human-confirmed',
+        graphNodeRefs: {
+          knowledge: ['kn:autocontrol:frequency-response'],
+          capability: [],
+          quality: [],
+        },
+        reviewAudit: {
+          ...baselineAuditRow('knowledge-card:frequency-family-type', 'knowledge-card').reviewAudit,
+          reviewerId: 'curriculum-reviewer',
+          reviewerRole: 'teacher',
+          reviewedAt: '2026-06-24T00:00:00.000Z',
+          reviewBatchId: 'test-baseline',
+          reviewedSourceHash: 'sha256:knowledge-card:frequency-family-type',
+          reviewedVersionRef: 'resource-node-registry.v1',
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.concept.linked).toBe(1);
+    expect(row.categories.concept.humanConfirmed).toBe(1);
+    expect(row.categories.concept.pathEligible).toBe(1);
+    expect(row.selectedReviewedBindingIds).toContain(
+      'frequency-response-foundations:concept:knowledge-card:frequency-family-type',
+    );
+  });
+
+  it('counts human-confirmed baseline rows separately from path-eligible rows', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('knowledge-card:confirmed-missing-path-fields', 'knowledge_card'),
+        reviewStatus: 'human-confirmed',
+        sourceHash: null,
+        missingFieldCodes: ['missing-content-hash'],
+        pathEligibility: {
+          current: false,
+          afterCompletion: true,
+          masteryAffecting: true,
+          blockedBy: ['missing-content-hash'],
+        },
+        graphNodeRefs: {
+          knowledge: ['kn:autocontrol:frequency-response'],
+          capability: [],
+          quality: [],
+        },
+        reviewAudit: {
+          ...baselineAuditRow('knowledge-card:confirmed-missing-path-fields', 'knowledge_card').reviewAudit,
+          reviewerId: 'curriculum-reviewer',
+          reviewerRole: 'teacher',
+          reviewedAt: '2026-06-24T00:00:00.000Z',
+          reviewBatchId: 'test-baseline',
+          reviewedSourceHash: null,
+          reviewedVersionRef: 'resource-node-registry.v1',
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.concept.linked).toBe(1);
+    expect(row.categories.concept.humanConfirmed).toBe(1);
+    expect(row.categories.concept.pathEligible).toBe(0);
+    expect(row.selectedReviewedBindingIds).toEqual([]);
+    expect(result.reviewedBindings).toEqual([]);
+  });
+
+  it('counts authoring textbook sections as canonical textbook resources without path promotion', () => {
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [{
+        ...baselineAuditRow('authoring-textbook-section:confirmed-pending-governance', 'authoring-textbook-section'),
+        family: 'authoring-textbook-section',
+        reviewStatus: 'human-confirmed',
+        sourceHash: null,
+        missingFieldCodes: ['missing-content-hash'],
+        pathEligibility: {
+          current: false,
+          afterCompletion: true,
+          masteryAffecting: true,
+          blockedBy: ['missing-content-hash'],
+        },
+        graphNodeRefs: {
+          knowledge: ['kn:autocontrol:frequency-response'],
+          capability: [],
+          quality: [],
+        },
+        reviewAudit: {
+          ...baselineAuditRow(
+            'authoring-textbook-section:confirmed-pending-governance',
+            'authoring-textbook-section',
+          ).reviewAudit,
+          reviewerId: 'curriculum-reviewer',
+          reviewerRole: 'teacher',
+          reviewedAt: '2026-06-24T00:00:00.000Z',
+          reviewBatchId: 'test-baseline',
+          reviewedSourceHash: null,
+          reviewedVersionRef: 'resource-node-registry.v1',
+        },
+      }],
+    });
+    const row = result.matrix.rows.find((item) => item.learningGoalId === 'frequency-response-foundations')!;
+
+    expect(row.categories.concept.linked).toBe(1);
+    expect(row.categories.concept.humanConfirmed).toBe(1);
+    expect(row.categories.concept.pathEligible).toBe(0);
+    expect(row.selectedReviewedBindingIds).toEqual([]);
+    expect(result.reviewedBindings).toEqual([]);
+  });
+
   it('keeps a LearningGoal limited until concept coverage has two reviewed bindings', () => {
     const reviewedRow = (
       resourceId: string,

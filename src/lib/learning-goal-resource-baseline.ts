@@ -256,7 +256,7 @@ function buildMatrixRow(input: {
   const coverageRefs = buildLearningGoalCoverageRefs(input.registeredGoal);
   const matchedRows = input.auditRows.filter((row) =>
     rowMatchesCoverageRefs(row, coverageRefs) &&
-    input.registeredGoal.allowedResourceMix.includes(row.resourceType as never)
+    input.registeredGoal.allowedResourceMix.includes(canonicalBaselineResourceType(row) as never)
   );
   const requiredCategories = requiredBaselineCategories(learningGoal);
   const categories = Object.fromEntries(
@@ -319,19 +319,13 @@ function summarizeCategory(
   generatedAt: string,
 ): LearningGoalResourceBaselineCategorySummary {
   const linkedRows = rows.filter((row) => rowMatchesCategory(row, category, learningGoal));
-  const reviewedRows = linkedRows.filter((row) => isReviewedBaselineRow(row));
-  const eligibleRows = reviewedRows.filter((row) => row.pathEligibility.current);
+  const reviewedRows = linkedRows.filter((row) => row.reviewStatus === 'human-confirmed');
+  const eligibleRows = linkedRows.filter((row) => isReviewedBaselineRow(row) && row.pathEligibility.current);
   const provisionalRows = linkedRows.filter((row) => row.reviewStatus !== 'human-confirmed' && !isReviewedBaselineRow(row));
   const highComplexityLocked = linkedRows.filter((row) =>
-    row.resourceType === 'simulation' ||
-    row.resourceType === 'arena_task' ||
-    row.resourceType === 'control_workbench' ||
-    row.resourceType === 'checkpoint'
+    isHighComplexityBaselineResource(row)
   ).length - eligibleRows.filter((row) =>
-    row.resourceType === 'simulation' ||
-    row.resourceType === 'arena_task' ||
-    row.resourceType === 'control_workbench' ||
-    row.resourceType === 'checkpoint'
+    isHighComplexityBaselineResource(row)
   ).length;
 
   for (const row of eligibleRows.slice(0, requiredBindingCount(category))) {
@@ -440,7 +434,7 @@ function rowMatchesCategory(
   if (category === 'citation') return row.groundingEligibility.citationReady;
   if (category === 'terminal-validation') {
     return learningGoal.terminalValidationPolicy.required &&
-      learningGoal.terminalValidationPolicy.terminalNodeTypes.includes(row.resourceType as never);
+      learningGoal.terminalValidationPolicy.terminalNodeTypes.includes(canonicalBaselineResourceType(row) as never);
   }
   return categoriesForRow(row, learningGoal).includes(category);
 }
@@ -450,28 +444,49 @@ function categoriesForRow(
   learningGoal: LearningGoalDefinition,
 ): LearningGoalBaselineCategory[] {
   const categories: LearningGoalBaselineCategory[] = [];
-  if (row.resourceType === 'knowledge_card' || row.resourceType === 'textbook_section' || row.resourceType === 'lesson_step' || row.resourceType === 'handout' || row.resourceType === 'slides' || row.family === 'knowledge-infograph') {
+  const resourceType = canonicalBaselineResourceType(row);
+  if (resourceType === 'knowledge_card' || resourceType === 'textbook_section' || resourceType === 'lesson_step' || resourceType === 'handout' || resourceType === 'slides' || row.family === 'knowledge-infograph') {
     categories.push('concept');
   }
-  if (row.resourceType === 'quiz' || row.resourceType === 'adaptive_quiz') {
+  if (resourceType === 'quiz' || resourceType === 'adaptive_quiz') {
     categories.push('diagnostic');
     categories.push('practice');
   }
-  if (row.resourceType === 'simulation' || row.resourceType === 'control_workbench' || row.resourceType === 'arena_task' || row.resourceType === 'external_resource' || row.resourceType === 'project') {
+  if (resourceType === 'simulation' || resourceType === 'control_workbench' || resourceType === 'arena_task' || resourceType === 'external_resource' || resourceType === 'project') {
     categories.push('practice');
   }
-  if (row.resourceType === 'checkpoint') categories.push('checkpoint');
-  if (row.resourceType === 'reflection' || row.resourceType === 'ai_intervention' || row.resourceType === 'konling') {
+  if (resourceType === 'checkpoint') categories.push('checkpoint');
+  if (resourceType === 'reflection' || resourceType === 'ai_intervention' || resourceType === 'konling') {
     categories.push('remediation');
   }
   if (row.groundingEligibility.citationReady) categories.push('citation');
   if (
     learningGoal.terminalValidationPolicy.required &&
-    learningGoal.terminalValidationPolicy.terminalNodeTypes.includes(row.resourceType as never)
+    learningGoal.terminalValidationPolicy.terminalNodeTypes.includes(resourceType as never)
   ) {
     categories.push('terminal-validation');
   }
   return uniqueSorted(categories);
+}
+
+function canonicalBaselineResourceType(row: ResourceFieldCompletionAuditRow): string {
+  if (row.resourceType === 'knowledge-card' || row.family === 'knowledge-card') return 'knowledge_card';
+  if (row.resourceType === 'runtime-lesson-step' || row.family === 'runtime-lesson-step') return 'lesson_step';
+  if (row.resourceType === 'runtime-lesson-module' || row.family === 'runtime-lesson-module') return 'lesson_step';
+  if (row.resourceType === 'runtime-handout' || row.family === 'runtime-handout') return 'handout';
+  if (row.resourceType === 'textbook-section' || row.family === 'textbook-section') return 'textbook_section';
+  if (row.resourceType === 'authoring-textbook-section' || row.family === 'authoring-textbook-section') return 'textbook_section';
+  if (row.resourceType === 'external-resource' || row.family === 'external-resource') return 'external_resource';
+  if (row.resourceType === 'arena' || row.family === 'arena') return 'arena_task';
+  return row.resourceType;
+}
+
+function isHighComplexityBaselineResource(row: ResourceFieldCompletionAuditRow): boolean {
+  const resourceType = canonicalBaselineResourceType(row);
+  return resourceType === 'simulation' ||
+    resourceType === 'arena_task' ||
+    resourceType === 'control_workbench' ||
+    resourceType === 'checkpoint';
 }
 
 function isReviewedBaselineRow(row: ResourceFieldCompletionAuditRow): boolean {
@@ -488,10 +503,11 @@ function isReviewedBaselineRow(row: ResourceFieldCompletionAuditRow): boolean {
 }
 
 function isAssessmentRow(row: ResourceFieldCompletionAuditRow): boolean {
-  return row.resourceType === 'quiz' ||
-    row.resourceType === 'adaptive_quiz' ||
-    row.resourceType === 'checkpoint' ||
-    row.resourceType === 'arena_task';
+  const resourceType = canonicalBaselineResourceType(row);
+  return resourceType === 'quiz' ||
+    resourceType === 'adaptive_quiz' ||
+    resourceType === 'checkpoint' ||
+    resourceType === 'arena_task';
 }
 
 function requiredBaselineCategories(learningGoal: LearningGoalDefinition): LearningGoalBaselineCategory[] {
