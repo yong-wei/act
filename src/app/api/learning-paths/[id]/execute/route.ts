@@ -519,14 +519,14 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
   const ref = toRecord(input.liftMetadata?.adaptiveAssessmentRef);
   const id = readRefId(ref, ['id', 'answerId', 'sourceId', 'ref']);
   if (!id) {
-    return {
+    return downgradeUntrustedAdaptiveAssessmentCompletion({
       ...input,
       liftMetadata: {
         ...(input.liftMetadata ?? {}),
         adaptiveAssessmentRef: pendingOutcomeRef('AdaptiveAssessmentAnswer'),
       },
       evidenceRefs: sanitizeAdaptiveAssessmentEvidenceRefs(input.evidenceRefs, null),
-    };
+    });
   }
   const answer = await db.adaptiveAssessmentAnswer?.findFirst?.({
     where: {
@@ -597,14 +597,44 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
           : 'adaptive-assessment-path-mismatch',
       )
     : unknownEvidenceRef('AdaptiveAssessmentAnswer', id);
-  return {
+  return downgradeUntrustedAdaptiveAssessmentCompletion({
     ...input,
     liftMetadata: {
       ...(input.liftMetadata ?? {}),
       adaptiveAssessmentRef,
     },
     evidenceRefs: sanitizeAdaptiveAssessmentEvidenceRefs(input.evidenceRefs, adaptiveAssessmentRef),
+  });
+}
+
+function downgradeUntrustedAdaptiveAssessmentCompletion<T extends {
+  resourceType: string;
+  status: string;
+  completedAt?: unknown;
+  failedAt?: unknown;
+  liftMetadata?: Record<string, unknown>;
+}>(input: T): T {
+  if (
+    input.resourceType !== 'adaptive_quiz' ||
+    input.status !== 'completed' ||
+    isTrustedAdaptiveAssessmentPathCompletionRef(toRecord(input.liftMetadata).adaptiveAssessmentRef)
+  ) {
+    return input;
+  }
+  return {
+    ...input,
+    status: 'started',
+    completedAt: null,
+    failedAt: null,
   };
+}
+
+function isTrustedAdaptiveAssessmentPathCompletionRef(value: unknown): boolean {
+  const record = toRecord(value);
+  return firstString(record.kind) === 'AdaptiveAssessmentAnswer' &&
+    firstString(record.provenance) === 'official' &&
+    record.readinessGateEligible === true &&
+    firstString(record.reviewState) === 'reviewed';
 }
 
 function resolveGovernedInstrumentedPathNodeOutcomeEvidence<T extends {

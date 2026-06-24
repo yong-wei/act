@@ -204,6 +204,40 @@ describe('assessment API auth boundaries', () => {
     }));
   });
 
+  it('persists submitted path context for checkpoint assessment nodes', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      goalId: 'control-correction',
+      nodeIds: ['checkpoint:control-correction-review'],
+      pathPayload: {
+        mainPathNodeIds: ['checkpoint:control-correction-review'],
+        planNodes: [{ nodeId: 'checkpoint:control-correction-review', type: 'checkpoint' }],
+      },
+    });
+
+    const response = await submitRequest({
+      sessionId: 'adaptive-path:path-1:checkpoint:control-correction-review',
+      questionId: 'preset-q-01',
+      selectedOption: 'A',
+      timeSpent: 12,
+      routeIntent: 'path-execution',
+      pathId: 'path-1',
+      nodeId: 'checkpoint:control-correction-review',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'checkpoint:control-correction-review',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }));
+  });
+
   it('does not persist submitted path context when client goal mismatches the server path', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
@@ -332,6 +366,33 @@ describe('assessment API auth boundaries', () => {
     expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
       userId: 'student-1',
       sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      goalId: 'control-correction',
+    });
+  });
+
+  it('derives path next-question goal for checkpoint assessment nodes', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      goalId: 'control-correction',
+      nodeIds: ['checkpoint:control-correction-review'],
+      pathPayload: {
+        mainPathNodeIds: ['checkpoint:control-correction-review'],
+        planNodes: [{ nodeId: 'checkpoint:control-correction-review', type: 'checkpoint' }],
+      },
+    });
+
+    const response = await nextQuestionRequest({
+      sessionId: 'adaptive-path:path-1:checkpoint:control-correction-review',
+      pathId: 'path-1',
+      nodeId: 'checkpoint:control-correction-review',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:checkpoint:control-correction-review',
       goalId: 'control-correction',
     });
   });

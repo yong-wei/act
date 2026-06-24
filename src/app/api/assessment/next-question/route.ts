@@ -77,10 +77,14 @@ async function readVerifiedPathGoalId(body: NextQuestionRequest, userId: string,
     throw new Error('路径自适应题目请求的 nodeId 不属于当前路径');
   }
   const pathNode = readPathNode(path, nodeId);
-  if (pathNode?.type !== 'adaptive_quiz') {
-    throw new Error('路径自适应题目请求的 nodeId 不是自适应测验节点');
+  if (!isPathAssessmentNode(pathNode)) {
+    throw new Error('路径自适应题目请求的 nodeId 不是自适应测验或检查点节点');
   }
   return path.goalId;
+}
+
+function isPathAssessmentNode(pathNode: Record<string, unknown> | null): boolean {
+  return pathNode?.type === 'adaptive_quiz' || pathNode?.type === 'checkpoint';
 }
 
 function readStandaloneGoalId(body: NextQuestionRequest): string | null {

@@ -1065,6 +1065,7 @@ describe('learning path round API routes', () => {
 
     expect(response.status).toBe(200);
     expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'started',
       liftMetadata: expect.objectContaining({
         adaptiveAssessmentRef: expect.objectContaining({
           kind: 'AdaptiveAssessmentAnswer',
@@ -1108,6 +1109,42 @@ describe('learning path round API routes', () => {
           kind: 'AdaptiveAssessmentAnswer',
           id: 'answer-1',
           provenance: 'unknown',
+        }),
+      }),
+      evidenceRefs: [],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'adaptive-quiz:control-target-check',
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: [],
+        }),
+      }),
+    }));
+  });
+
+  it('does not complete adaptive quiz nodes when no answer ref is provided', async () => {
+    useStructuredAdaptiveAssessmentPath();
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      idempotencyKey: 'missing-adaptive-answer-ref',
+      liftMetadata: {},
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.adaptiveAssessmentAnswer.findFirst).not.toHaveBeenCalled();
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'started',
+      completedAt: null,
+      failedAt: null,
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          provenance: 'pending',
         }),
       }),
       evidenceRefs: [],

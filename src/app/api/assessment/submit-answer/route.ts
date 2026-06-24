@@ -77,13 +77,17 @@ async function readVerifiedPathContext(body: SubmitAnswerRequest, userId: string
   if (typeof body.goalId === 'string' && body.goalId.trim() && body.goalId.trim() !== path.goalId) return undefined;
   if (!readPathNodeIds(path).includes(nodeId)) return undefined;
   const pathNode = readPathNode(path, nodeId);
-  if (pathNode?.type !== 'adaptive_quiz') return undefined;
+  if (!isPathAssessmentNode(pathNode)) return undefined;
   return {
     pathId,
     nodeId,
     goalId: path.goalId,
     routeIntent: typeof body.routeIntent === 'string' && body.routeIntent.trim() ? body.routeIntent.trim() : null,
   };
+}
+
+function isPathAssessmentNode(pathNode: Record<string, unknown> | null): boolean {
+  return pathNode?.type === 'adaptive_quiz' || pathNode?.type === 'checkpoint';
 }
 
 function scopedPathAssessmentSessionId(pathId: string, nodeId: string): string {
