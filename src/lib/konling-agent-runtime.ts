@@ -5424,11 +5424,18 @@ function isPersonalizationCitationClass(value: string): boolean {
 }
 
 function isPersonalizationLowConfidenceReason(value: string): boolean {
-  return value === 'missing-evidence'
-    || value.includes('learner-state')
-    || value.includes('path-execution')
-    || value.includes('learner-evidence')
-    || value.includes('personalization');
+  const missingCitationPrefix = 'missing-citation:';
+  const missingContextPrefix = 'missing-context:';
+  if (value.startsWith(missingCitationPrefix)) {
+    return isPersonalizationCitationClass(value.slice(missingCitationPrefix.length));
+  }
+  if (value.startsWith(missingContextPrefix)) {
+    return isLimitedPersonalizationContextReason(value);
+  }
+  if (!value.startsWith('missing-')) return false;
+  const missingClass = value.slice('missing-'.length);
+  return missingClass === 'personalization'
+    || isPersonalizationCitationClass(missingClass);
 }
 
 function buildPersonalizationAvailability(

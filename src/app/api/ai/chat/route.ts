@@ -355,7 +355,6 @@ export async function POST(request: Request) {
         where: {
           id: agentSession.id,
           ownerUserId: scope.scope.targetUserId,
-          actorUserId: scope.scope.authenticatedUserId,
           classId: scope.scope.classId ?? null,
           courseId: scope.scope.courseId,
           pageId: scope.scope.pageId,

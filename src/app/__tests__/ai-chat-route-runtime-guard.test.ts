@@ -230,6 +230,8 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('const agentSessionStateUpdate = await prisma.agentSession.updateMany');
     expect(chatRouteSource).toContain('konlingCitationGuard: citationGuardMetadataPayload');
     expect(chatRouteSource).toContain('AgentSession citation metadata persistence failed');
+    expect(chatRouteSource).toContain('ownerUserId: scope.scope.targetUserId');
+    expect(chatRouteSource).not.toContain('actorUserId: scope.scope.authenticatedUserId');
     expect(chatRouteSource).toContain('messageMetadata: ({ part })');
     expect(chatRouteSource).toContain('konlingCitationGuard');
     expect(chatRouteSource).toContain('function buildCitationGuardMetadataPayload');
