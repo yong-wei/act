@@ -200,7 +200,7 @@ describe('POST /api/interactive/events', () => {
           timestamp: Date.parse('2026-05-09T02:30:00.000Z'),
           resourceKey: 'unit-4-3',
           sessionId: 'cmoxloe52000uq5bcojma7r78',
-          data: {},
+          data: { sessionId: 'cmoxloe52000uq5bcojma7r78' },
         },
       ],
     }));
@@ -218,10 +218,14 @@ describe('POST /api/interactive/events', () => {
     expect(createArg.data[0].eventData).toMatchObject({
       invalidContextReason: 'forbidden_session',
     });
+    expect(createArg.data[0].eventData).not.toHaveProperty('sessionId');
     expect(mocks.persistCoreLearningFact).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         sessionId: null,
+        payload: expect.not.objectContaining({
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+        }),
       }),
     );
   });

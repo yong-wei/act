@@ -142,6 +142,10 @@ export function normalizeInteractionContexts(
         ? 'classroom_review'
         : 'classroom_live'
       : resolveStandaloneLearningContext(event.data);
+    const { sessionId: _untrustedPayloadSessionId, ...payloadWithoutSessionId } = event.data ?? {};
+    const normalizedPayload = sessionId
+      ? (event.data ?? {})
+      : payloadWithoutSessionId;
 
     return {
       resourceId,
@@ -153,7 +157,7 @@ export function normalizeInteractionContexts(
         ...event,
         sessionId,
         data: {
-          ...(event.data ?? {}),
+          ...normalizedPayload,
           ...(clientEventId ? { clientEventId } : {}),
           ...(isAfterSessionEnd ? { afterSessionEnd: true } : {}),
           learningContext,
