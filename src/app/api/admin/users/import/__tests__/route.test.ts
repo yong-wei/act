@@ -15,6 +15,12 @@ const mocks = vi.hoisted(() => ({
       create: vi.fn(),
       update: vi.fn(),
     },
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
+    adminOperationArtifact: {
+      upsert: vi.fn(),
+    },
   },
 }));
 
@@ -69,6 +75,8 @@ describe('POST /api/admin/users/import', () => {
       id: 'student-user-1',
       profile: { id: 'profile-1' },
     });
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
+    mocks.prisma.adminOperationArtifact.upsert.mockResolvedValue({});
   });
 
   it('imports a valid student workbook using the official columns', async () => {
@@ -97,7 +105,20 @@ describe('POST /api/admin/users/import', () => {
         updated: 0,
         failed: 0,
         rollbackAvailable: false,
+        operationId: expect.stringMatching(/^admin-user-import:/),
+        idempotencyKey: expect.stringMatching(/^admin-op:/),
+        retentionPolicy: 'admin-import-failed-row-artifacts-7d',
         recordedAt: expect.any(String),
+      },
+      operationLedger: {
+        operationId: expect.stringMatching(/^admin-user-import:/),
+        actorId: 'admin-1',
+        actorRole: 'ADMIN',
+        sourceFileHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+        idempotencyKey: expect.stringMatching(/^admin-op:/),
+        rollback: {
+          available: false,
+        },
       },
     });
     expect(mocks.prisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
@@ -114,6 +135,9 @@ describe('POST /api/admin/users/import', () => {
       }),
     }));
     expect(mocks.initializeUserProgress).toHaveBeenCalledWith('student-user-1');
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { idempotencyKey: expect.stringMatching(/^admin-op:/) },
+    }));
   });
 
   it('normalizes numeric accounts and skips blank rows', async () => {
@@ -204,10 +228,35 @@ describe('POST /api/admin/users/import', () => {
       failed: 1,
       errors: [{
         row: 3,
-        account: '20240006',
+        accountFingerprint: expect.any(String),
         reason: '同批次重复账号，已在第 2 行出现',
       }],
+      failedRows: [{
+        row: 3,
+        accountFingerprint: expect.any(String),
+        reason: '同批次重复账号，已在第 2 行出现',
+      }],
+      failedRowArtifact: {
+        id: expect.stringMatching(/^admin-user-import-.*:failed-rows$/),
+        downloadUrl: expect.stringContaining('/api/admin/operations/artifacts/'),
+        piiMinimized: true,
+        rowCount: 1,
+        authorizedRoles: ['ADMIN'],
+        revocable: true,
+      },
     });
+    expect(payload.errors[0].accountFingerprint).not.toBe('20240006');
+    expect(JSON.stringify(payload)).not.toContain('"account":"20240006"');
+    expect(payload.failedRows[0].accountFingerprint).not.toBe('20240006');
+    expect(JSON.stringify(payload.failedRowArtifact)).not.toContain('20240006');
+    expect(mocks.prisma.adminOperationArtifact.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { artifactId: payload.failedRowArtifact.id },
+      create: expect.objectContaining({
+        payload: {
+          failedRows: payload.failedRows,
+        },
+      }),
+    }));
     expect(mocks.prisma.user.findMany).toHaveBeenCalledTimes(1);
     expect(mocks.prisma.user.create).not.toHaveBeenCalled();
     expect(mocks.prisma.user.update).not.toHaveBeenCalled();
@@ -254,10 +303,11 @@ describe('POST /api/admin/users/import', () => {
       },
       errors: [{
         row: 2,
-        account: '20240004',
+        accountFingerprint: expect.any(String),
         reason: '同一账号匹配到多个用户，请先清理重复数据',
       }],
     });
+    expect(JSON.stringify(payload)).not.toContain('"account":"20240004"');
     expect(mocks.prisma.user.create).not.toHaveBeenCalled();
     expect(mocks.prisma.user.update).not.toHaveBeenCalled();
   });
@@ -279,10 +329,11 @@ describe('POST /api/admin/users/import', () => {
       totalRows: 1,
       errors: [{
         row: 2,
-        account: '20240002',
+        accountFingerprint: expect.any(String),
         reason: '角色无效：访客',
       }],
     });
+    expect(JSON.stringify(payload)).not.toContain('"account":"20240002"');
     expect(mocks.prisma.user.findMany).not.toHaveBeenCalled();
     expect(mocks.prisma.user.create).not.toHaveBeenCalled();
   });

@@ -7,6 +7,12 @@ const mocks = vi.hoisted(() => ({
       findUnique: vi.fn(),
       upsert: vi.fn(),
     },
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
+    adminOperationArtifact: {
+      upsert: vi.fn(),
+    },
   },
 }));
 
@@ -33,6 +39,8 @@ describe('/api/admin/platform-settings', () => {
     mocks.requireAdminSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
     mocks.prisma.platformSetting.findUnique.mockResolvedValue(null);
     mocks.prisma.platformSetting.upsert.mockImplementation(async ({ create, update }) => update ?? create);
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
+    mocks.prisma.adminOperationArtifact.upsert.mockResolvedValue({});
   });
 
   it('requires an admin session', async () => {
@@ -72,11 +80,19 @@ describe('/api/admin/platform-settings', () => {
       success: true,
       homeDynamicModelEnabled: true,
       dataCenterShowDemoSourceLabels: true,
+      operationLedger: {
+        kind: 'admin-config-save',
+        outcome: 'completed',
+      },
     });
+    expect(response.headers.get('x-admin-operation-id')).toMatch(/^admin-config-save:/);
     expect(mocks.prisma.platformSetting.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { key: 'data_center_show_demo_source_labels' },
       create: { key: 'data_center_show_demo_source_labels', value: true },
       update: { value: true },
+    }));
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { idempotencyKey: expect.stringMatching(/^admin-op:/) },
     }));
   });
 

@@ -10,6 +10,12 @@ import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { redisClient } from '@/lib/redis-client';
+import {
+  buildAdminOperationIdempotencyKey,
+  buildAdminOperationLedgerEntry,
+  operationLedgerHeaders,
+} from '@/lib/admin-operation-ledger';
+import { persistAdminOperationLedger } from '@/lib/admin-operation-ledger-runtime';
 import { summarizeLearningFactTypes } from '@/features/admin/states/system-usage-data';
 import {
   buildEvidenceSourceCoverageReport,
@@ -434,6 +440,7 @@ export async function GET(request: NextRequest) {
     const requestedTab = request.nextUrl.searchParams.get('tab')?.trim() || null;
     const requestedGraphNodeId = request.nextUrl.searchParams.get('graphNodeId')?.trim() || null;
     const requestedGraphAudit = request.nextUrl.searchParams.get('audit')?.trim() || null;
+    const shouldRecordRefresh = request.nextUrl.searchParams.get('recordOperation') === 'refresh';
     const graphCenterAudit = requestedGraphNodeId
       ? {
           graphNodeId: requestedGraphNodeId,
@@ -658,9 +665,43 @@ export async function GET(request: NextRequest) {
       {},
     );
 
-    return NextResponse.json({
+    const completedAt = new Date().toISOString();
+    const operationLedger = shouldRecordRefresh
+      ? buildAdminOperationLedgerEntry({
+          kind: 'admin-governance-refresh',
+          actorId: session.user.id,
+          actorRole: session.user.role,
+          scope: 'admin-data-governance-status',
+          startedAt: completedAt,
+          completedAt,
+          outcome: 'completed',
+          idempotencyKey: buildAdminOperationIdempotencyKey([
+            'admin-governance-refresh',
+            session.user.id,
+            requestedRiskId ?? '',
+            requestedSurface ?? '',
+            requestedGraphNodeId ?? '',
+            requestedGraphAudit ?? '',
+          ]),
+          rollback: {
+            available: false,
+            rationale: '数据治理刷新只读取状态，不修改业务数据，无需回滚。',
+          },
+          auditSummary: `数据治理状态已刷新：activeRiskFlags=${riskFlagCount}，learningFacts=${learningFactCount}。`,
+          recoveryState: {
+            status: 'available',
+            action: '复核治理风险或导出风险文件',
+          },
+        })
+      : null;
+    if (operationLedger) {
+      await persistAdminOperationLedger(operationLedger);
+    }
+
+    const payload = {
       status: 'healthy',
-      timestamp: new Date().toISOString(),
+      timestamp: completedAt,
+      operationLedger: operationLedger ?? undefined,
       authoringContext,
       graphCenterAudit,
       queues: queueStats,
@@ -735,6 +776,9 @@ export async function GET(request: NextRequest) {
           };
         }),
       },
+    };
+    return NextResponse.json(payload, {
+      headers: operationLedger ? operationLedgerHeaders(operationLedger) : undefined,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);

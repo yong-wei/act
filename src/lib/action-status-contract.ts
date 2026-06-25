@@ -2,6 +2,7 @@ export type AuditedActionCategory =
   | 'submit'
   | 'save'
   | 'filter'
+  | 'refresh'
   | 'export'
   | 'download'
   | 'send'
@@ -63,6 +64,7 @@ export const AUDITED_ACTION_CATEGORIES: readonly AuditedActionCategory[] = [
   'submit',
   'save',
   'filter',
+  'refresh',
   'export',
   'download',
   'send',
@@ -77,6 +79,7 @@ const ACTION_LABELS: Record<AuditedActionCategory, string> = {
   submit: '提交',
   save: '保存',
   filter: '筛选',
+  refresh: '刷新',
   export: '导出',
   download: '下载',
   send: '发送',

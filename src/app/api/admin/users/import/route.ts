@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
+import { createHash } from 'node:crypto';
 import { hash } from 'bcryptjs';
 import { UserRole, type Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireAdminSession } from '@/lib/admin';
 import { initializeUserProgress } from '@/lib/user-sync';
 import { loadFirstWorksheetRows } from '@/lib/server-spreadsheet';
+import {
+  buildAdminOperationIdempotencyKey,
+  buildAdminOperationLedgerEntry,
+  buildFailedImportArtifact,
+  minimizeFailedImportRows,
+} from '@/lib/admin-operation-ledger';
+import { persistAdminOperationLedger } from '@/lib/admin-operation-ledger-runtime';
 
 type ImportRow = {
   account: string;
@@ -20,6 +28,12 @@ type ImportRow = {
 type ImportError = {
   row: number;
   account: string;
+  reason: string;
+};
+
+type PublicImportError = {
+  row: number;
+  accountFingerprint: string | null;
   reason: string;
 };
 
@@ -97,6 +111,10 @@ function buildHeaderIndexes(headerRow: unknown[]) {
 function getCellValue(row: unknown[], index: number) {
   if (index < 0) return '';
   return normalizeValue(row[index]);
+}
+
+function sha256Hex(buffer: ArrayBuffer) {
+  return createHash('sha256').update(Buffer.from(buffer)).digest('hex');
 }
 
 function pickNonEmptyProfileUpdate(row: ImportRow): Prisma.StudentProfileUpdateInput {
@@ -224,8 +242,11 @@ export async function POST(request: Request) {
   }
 
   let rows: unknown[][] | null;
+  let sourceFileHash: string;
   try {
-    rows = await loadFirstWorksheetRows(await file.arrayBuffer());
+    const fileBuffer = await file.arrayBuffer();
+    sourceFileHash = sha256Hex(fileBuffer);
+    rows = await loadFirstWorksheetRows(fileBuffer);
   } catch {
     return NextResponse.json(
       { error: '无法解析 Excel 文件，请使用官方模板重新填写' },
@@ -382,6 +403,76 @@ export async function POST(request: Request) {
     }
   }
 
+  const completedAt = new Date().toISOString();
+  const failedRows = minimizeFailedImportRows(errors);
+  const publicErrors = failedRows.map((row): PublicImportError => ({
+    row: row.row,
+    accountFingerprint: row.accountFingerprint,
+    reason: row.reason,
+  }));
+  const failedRowArtifact = buildFailedImportArtifact({
+    batchId,
+    failedRows,
+    generatedAt: completedAt,
+  });
+  const failedRowArtifactWithDownload = failedRowArtifact
+    ? {
+        ...failedRowArtifact,
+        downloadUrl: `/api/admin/operations/artifacts/${encodeURIComponent(failedRowArtifact.id)}`,
+      }
+    : null;
+  const artifactRefs = failedRowArtifactWithDownload ? [failedRowArtifactWithDownload] : [];
+  const outcome = errors.length > 0 ? 'completed-with-errors' : 'completed';
+  const idempotencyKey = buildAdminOperationIdempotencyKey([
+    'admin-user-import',
+    mode,
+    sourceFileHash,
+    session.user.id,
+  ]);
+  const operationLedger = buildAdminOperationLedgerEntry({
+    kind: 'admin-user-import',
+    actorId: session.user.id,
+    actorRole: session.user.role,
+    scope: `admin-users-import:${mode}`,
+    startedAt: completedAt,
+    completedAt,
+    outcome,
+    idempotencyKey,
+    sourceFileHash,
+    artifactRefs,
+    retentionPolicy: {
+      policy: 'admin-import-failed-row-artifacts-7d',
+      expiresAt: failedRowArtifactWithDownload?.expiresAt,
+      revocable: true,
+    },
+    rollback: {
+      available: false,
+      rationale: mode === 'preview'
+        ? '预览不会写入账号，无需回滚。'
+        : '批量账号导入会合并新建、更新与初始化进度；当前阶段保留审计与失败行证据，不启用自动回滚。',
+    },
+    auditSummary: `${mode === 'preview' ? '预览' : '提交'}完成：新增 ${created}，更新 ${updated}，失败 ${errors.length}，空行 ${skippedEmpty}。`,
+    recoveryState: errors.length > 0
+      ? {
+          status: 'download-artifact',
+          action: '下载 PII 最小化失败行后修正源文件',
+        }
+      : {
+          status: mode === 'preview' ? 'available' : 'not-available',
+          action: mode === 'preview' ? '确认导入或更换文件重新预览' : '通过批次审计记录复核导入结果',
+        },
+  });
+  await persistAdminOperationLedger(
+    operationLedger,
+    failedRowArtifactWithDownload
+      ? [{
+          ref: failedRowArtifactWithDownload,
+          operationId: operationLedger.operationId,
+          payload: { failedRows },
+        }]
+      : [],
+  );
+
   return NextResponse.json({
     batchId,
     mode,
@@ -391,18 +482,25 @@ export async function POST(request: Request) {
     failed: errors.length,
     skippedEmpty,
     totalRows: Math.max(rows.length - 1, 0),
-    errors,
+    errors: publicErrors,
+    failedRowArtifact: failedRowArtifactWithDownload,
+    failedRows,
+    operationLedger,
     auditRecord: {
       actorId: session.user.id,
       action: 'admin-users-import',
       batchId,
       mode,
-      outcome: errors.length > 0 ? 'completed-with-errors' : 'completed',
+      outcome,
       created,
       updated,
       failed: errors.length,
       rollbackAvailable: false,
-      recordedAt: new Date().toISOString(),
+      rollbackRationale: operationLedger.rollback.rationale,
+      operationId: operationLedger.operationId,
+      idempotencyKey,
+      retentionPolicy: operationLedger.retentionPolicy.policy,
+      recordedAt: completedAt,
     },
   });
 }

@@ -7,6 +7,12 @@ const mocks = vi.hoisted(() => ({
       count: vi.fn(),
       findMany: vi.fn(),
     },
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
+    adminOperationArtifact: {
+      upsert: vi.fn(),
+    },
   },
 }));
 
@@ -45,6 +51,8 @@ describe('GET /api/admin/users/export', () => {
         profile: { studentNumber: '20240002', className: '自动化2401' },
       },
     ]);
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
+    mocks.prisma.adminOperationArtifact.upsert.mockResolvedValue({});
   });
 
   it('exports the full filtered set without page skip/take', async () => {
@@ -57,6 +65,10 @@ describe('GET /api/admin/users/export', () => {
     expect(response.headers.get('content-type')).toContain('text/csv');
     expect(response.headers.get('x-export-total')).toBe('2');
     expect(response.headers.get('x-export-count')).toBe('2');
+    expect(response.headers.get('x-admin-operation-id')).toMatch(/^admin-users-export:/);
+    expect(response.headers.get('x-admin-operation-outcome')).toBe('export-ready');
+    expect(response.headers.get('x-admin-operation-idempotency-key')).toMatch(/^admin-op:/);
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalled();
     expect(csv).toContain('"student-1","张三"');
     expect(csv).toContain('"student-2","李四"');
     expect(mocks.prisma.user.findMany).toHaveBeenCalledWith(expect.not.objectContaining({

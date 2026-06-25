@@ -106,13 +106,17 @@ describe('admin governance action contract', () => {
 
     expect(contract.state).toMatchObject({
       status: 'succeeded',
-      message: '治理风险导出请求已生成，文件由服务端按未解决风险范围生成。',
+      message: '治理风险导出请求已生成，文件由服务端按未解决风险范围生成，操作账本保留导出范围和恢复状态。',
+      displayReference: expect.stringMatching(/^admin-op:/),
       downloadFilename: 'data-governance-risks-2026-06-21.xlsx',
     });
     expect(contract.auditRecord).toMatchObject({
       action: 'export',
       outcome: 'export-ready',
       undoAvailable: false,
+      operationId: expect.stringMatching(/^admin-governance-export:/),
+      idempotencyKey: expect.stringMatching(/^admin-op:/),
+      retentionPolicy: 'admin-operation-ledger-30d',
     });
   });
 
@@ -154,6 +158,11 @@ describe('admin governance action contract', () => {
     expect(dataGovernanceDashboardSource).toContain('data-admin-mobile-cards="true"');
     expect(dataGovernanceDashboardSource).toContain('aria-label={`处置治理风险 ${risk.flagLabel} ${risk.userName}`}');
     expect(dataGovernanceDashboardSource).toContain('aria-label="刷新数据治理状态"');
+    expect(dataGovernanceDashboardSource).toContain('const [refreshActionState, setRefreshActionState]');
+    expect(dataGovernanceDashboardSource).toContain("category: 'refresh'");
+    expect(dataGovernanceDashboardSource).toContain('<ActionStatusPanel state={refreshActionState} />');
+    expect(dataGovernanceDashboardSource).toContain('去重键：{visibleAuditRecord.idempotencyKey ??');
+    expect(dataGovernanceDashboardSource).toContain('保留策略：{visibleAuditRecord.retentionPolicy ??');
     expect(dataGovernanceDashboardSource).toContain("params.set('graphNodeId', initialActionQuery.graphNodeId.trim())");
     expect(dataGovernanceDashboardSource).toContain("params.set('audit', initialActionQuery.audit.trim())");
     expect(dataGovernanceDashboardSource).toContain('data-graph-center-preferred-tab');

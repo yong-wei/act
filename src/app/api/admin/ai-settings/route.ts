@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/admin';
+import {
+  buildAdminOperationIdempotencyKey,
+  buildAdminOperationLedgerEntry,
+  operationLedgerHeaders,
+} from '@/lib/admin-operation-ledger';
+import { persistAdminOperationLedger } from '@/lib/admin-operation-ledger-runtime';
 import { buildAdminModelProviderRuntimeStates } from '@/lib/ai/model-provider-compatibility';
 import {
   getAIProviderSettings,
@@ -47,5 +53,59 @@ export async function PUT(request: Request) {
     );
   }
   const saved = await setAIProviderSettings(settings);
-  return NextResponse.json(saved, { headers: { 'Cache-Control': 'no-store' } });
+  const completedAt = new Date().toISOString();
+  const activeProvider = saved.providers.find((provider) => provider.id === saved.activeProvider);
+  const idempotencyKey = buildAdminOperationIdempotencyKey([
+    'admin-config-save',
+    'ai-settings',
+    JSON.stringify({
+      activeProvider: saved.activeProvider,
+      providers: saved.providers.map((provider) => ({
+        id: provider.id,
+        baseURL: provider.baseURL,
+        selectedModel: provider.selectedModel,
+        enabled: provider.enabled,
+        priority: provider.priority,
+        capabilities: provider.capabilities,
+      })),
+    }),
+    session.user.id,
+  ]);
+  const operationLedger = buildAdminOperationLedgerEntry({
+    kind: 'admin-config-save',
+    actorId: session.user.id,
+    actorRole: session.user.role,
+    scope: `admin-config-ai-settings:${saved.activeProvider}`,
+    startedAt: completedAt,
+    completedAt,
+    outcome: 'completed',
+    idempotencyKey,
+    artifactRefs: [{
+      id: `admin-config-ai-settings:${saved.activeProvider}`,
+      kind: 'config-diff',
+      label: 'AI 供应商配置',
+      authorizedRoles: ['ADMIN'],
+      piiMinimized: true,
+      revocable: true,
+    }],
+    rollback: {
+      available: false,
+      rationale: '系统配置保存通过 diff summary 支持人工恢复，不启用自动回滚。',
+    },
+    auditSummary: `AI 设置已保存：activeProvider=${saved.activeProvider}，selectedModel=${activeProvider?.selectedModel ?? 'none'}。`,
+    recoveryState: {
+      status: 'available',
+      action: '按 diff summary 手动恢复上一组配置',
+    },
+  });
+  await persistAdminOperationLedger(operationLedger);
+  return NextResponse.json({
+    ...saved,
+    operationLedger,
+  }, {
+    headers: {
+      'Cache-Control': 'no-store',
+      ...operationLedgerHeaders(operationLedger),
+    },
+  });
 }

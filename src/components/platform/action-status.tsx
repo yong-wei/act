@@ -33,6 +33,7 @@ export function ActionStatusPanel({ state, action, className }: ActionStatusPane
         <div>
           <p className="font-medium text-platform-fg-primary">{state.identity.label}</p>
           <p className="mt-1 leading-6 text-platform-fg-secondary">{state.message}</p>
+          <p className="mt-2 break-all text-xs text-platform-fg-secondary">操作：{state.identity.id}</p>
           {state.displayReference ? (
             <p className="mt-2 break-all text-xs text-platform-fg-secondary">引用：{state.displayReference}</p>
           ) : null}

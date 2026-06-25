@@ -7,6 +7,12 @@ const mocks = vi.hoisted(() => ({
     studentRiskFlag: {
       findMany: vi.fn(),
     },
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
+    adminOperationArtifact: {
+      upsert: vi.fn(),
+    },
   },
 }));
 
@@ -43,6 +49,8 @@ describe('GET /api/admin/data-governance/export', () => {
     mocks.writeXlsxFile.mockReturnValue({
       toBuffer: vi.fn().mockResolvedValue(Buffer.from('xlsx-bytes')),
     });
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
+    mocks.prisma.adminOperationArtifact.upsert.mockResolvedValue({});
   });
 
   it('exports governance risks as CSV with matching filename and content type', async () => {
@@ -54,6 +62,9 @@ describe('GET /api/admin/data-governance/export', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/csv');
     expect(response.headers.get('x-export-filename')).toMatch(/data-governance-risks-\d{4}-\d{2}-\d{2}\.csv/);
+    expect(response.headers.get('x-admin-operation-id')).toMatch(/^admin-governance-export:/);
+    expect(response.headers.get('x-admin-operation-idempotency-key')).toMatch(/^admin-op:/);
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalled();
     expect(csv).toContain('"risk-1","student-1","张三"');
   });
 
@@ -92,7 +103,30 @@ describe('GET /api/admin/data-governance/export', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('spreadsheetml.sheet');
     expect(response.headers.get('x-export-filename')).toMatch(/\.xlsx$/);
+    expect(response.headers.get('x-admin-operation-outcome')).toBe('export-ready');
     expect(Buffer.from(body).toString()).toBe('xlsx-bytes');
     expect(mocks.writeXlsxFile).toHaveBeenCalled();
+  });
+
+  it('includes the operation ledger in JSON exports', async () => {
+    const response = await GET(new Request(
+      'http://localhost/api/admin/data-governance/export?format=json',
+    ) as never);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.operationLedger).toMatchObject({
+      kind: 'admin-governance-export',
+      actorId: 'admin-1',
+      outcome: 'export-ready',
+      idempotencyKey: expect.stringMatching(/^admin-op:/),
+      rollback: {
+        available: false,
+      },
+    });
+    expect(payload.auditRecord).toMatchObject({
+      operationId: expect.stringMatching(/^admin-governance-export:/),
+      idempotencyKey: expect.stringMatching(/^admin-op:/),
+    });
   });
 });
