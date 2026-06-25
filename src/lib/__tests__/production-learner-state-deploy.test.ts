@@ -20,9 +20,23 @@ describe('production learner-state deployment configuration', () => {
     const sharedEnvIndex = deployScript.indexOf('SHARED_ENV_ARGS=(');
     const appEnvIndex = deployScript.indexOf('APP_ENV_ARGS=(');
     const workerEnvIndex = deployScript.indexOf('WORKER_ENV_ARGS=(');
+    const runtimeEnvIndex = deployScript.indexOf('write_runtime_env()');
+    const networkIndex = deployScript.indexOf('ensure_network_and_volume()');
+    const operatorCaptureIndex = deployScript.indexOf('operator_adaptive_learner_state_service_enabled_was_set=0');
+    const runtimeLoadIndex = deployScript.indexOf('if [ -f "$RUNTIME_ENV_FILE" ]; then');
+    const operatorRestoreIndex = deployScript.indexOf('ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$operator_adaptive_learner_state_service_enabled"');
+    const unsetRuntimeFlagIndex = deployScript.indexOf('unset ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED');
+    const defaultFlagIndex = deployScript.indexOf('ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED:-true}"');
 
-    expect(deployScript).toContain('ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED:-true}"');
-    expect(deployScript).toContain('ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED=$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED');
+    expect(operatorCaptureIndex).toBeGreaterThanOrEqual(0);
+    expect(runtimeLoadIndex).toBeGreaterThan(operatorCaptureIndex);
+    expect(operatorRestoreIndex).toBeGreaterThan(runtimeLoadIndex);
+    expect(unsetRuntimeFlagIndex).toBeGreaterThan(runtimeLoadIndex);
+    expect(defaultFlagIndex).toBeGreaterThan(operatorRestoreIndex);
+    expect(runtimeEnvIndex).toBeGreaterThanOrEqual(0);
+    expect(networkIndex).toBeGreaterThan(runtimeEnvIndex);
+    expect(deployScript.slice(runtimeEnvIndex, networkIndex))
+      .not.toContain('ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED=$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED');
     expect(sharedEnvIndex).toBeGreaterThanOrEqual(0);
     expect(appEnvIndex).toBeGreaterThan(sharedEnvIndex);
     expect(workerEnvIndex).toBeGreaterThan(appEnvIndex);

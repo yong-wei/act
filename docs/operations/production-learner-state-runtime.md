@@ -5,7 +5,9 @@ This checklist separates PR-contained evidence from post-merge production operat
 ## PR Evidence
 
 - `.env.example` and `deploy/podman/.env.server.example` declare `ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED=true`.
-- `deploy/podman/deploy.sh` defaults `ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED` to `true`, writes it to the runtime env file, and injects it through `SHARED_ENV_ARGS` so both app and worker containers receive the same value.
+- `deploy/podman/deploy.sh` defaults `ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED` to `true` and injects it through `SHARED_ENV_ARGS` so both app and worker containers receive the same value.
+- The flag is not persisted to the generated runtime env file, so operators can still set `ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED=false` in `/home/projects/act/.env` for emergency rollback.
+- Existing generated runtime env files that still contain the flag are ignored for this setting; `/home/projects/act/.env` remains the rollback source of truth.
 - Focused tests verify deploy-script injection, learner-state route disabled/sparse/read-failure states, learner-state service no-data/stale path states, and Konling sparse-personalization behavior.
 
 ## Post-Merge Operations

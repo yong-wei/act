@@ -28,11 +28,24 @@ for env_file in "$PROJECT_DIR/.env.server" "$SCRIPT_DIR/.env.server" "$PROJECT_D
   fi
 done
 
+operator_adaptive_learner_state_service_enabled_was_set=0
+operator_adaptive_learner_state_service_enabled=""
+if [ "${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED+x}" = "x" ]; then
+  operator_adaptive_learner_state_service_enabled_was_set=1
+  operator_adaptive_learner_state_service_enabled="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
+fi
+
 if [ -f "$RUNTIME_ENV_FILE" ]; then
   set -a
   # shellcheck disable=SC1090
   . "$RUNTIME_ENV_FILE"
   set +a
+fi
+
+if [ "$operator_adaptive_learner_state_service_enabled_was_set" = "1" ]; then
+  ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$operator_adaptive_learner_state_service_enabled"
+else
+  unset ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED
 fi
 
 derive_db_password() {
@@ -297,7 +310,6 @@ REDIS_IMAGE=$REDIS_IMAGE
 REDIS_URL=$redis_url_value
 WORKER_CONTAINER=$WORKER_CONTAINER
 WORKER_CONCURRENCY=$WORKER_CONCURRENCY
-ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED=$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED
 NETWORK_NAME=$NETWORK_NAME
 DB_VOLUME=$DB_VOLUME
 REDIS_VOLUME=$REDIS_VOLUME
