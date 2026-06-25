@@ -55,18 +55,30 @@ type ImportUserWithProfile = Prisma.UserGetPayload<{
 type PlannedImportOperation =
   | {
       type: 'create';
+      rowNumber: number;
       row: ImportRow;
       role: UserRole;
       passwordHash: string;
     }
   | {
       type: 'update';
+      rowNumber: number;
       userId: string;
       hasProfile: boolean;
       row: ImportRow;
       role: UserRole;
       passwordHash: string | null;
     };
+
+class ImportWriteError extends Error {
+  constructor(
+    readonly row: number,
+    readonly account: string,
+    readonly cause: unknown
+  ) {
+    super('导入写入失败，请检查该行账号、邮箱或学生档案是否与现有数据冲突');
+  }
+}
 
 const HEADER_ALIASES = {
   account: [
@@ -463,6 +475,7 @@ export async function POST(request: Request) {
       if (mode === 'commit') {
         plannedOperations.push({
           type: 'create',
+          rowNumber,
           row: importRow,
           role,
           passwordHash: await hash(importRow.password || '123456', 10),
@@ -475,6 +488,7 @@ export async function POST(request: Request) {
     if (mode === 'commit') {
       plannedOperations.push({
         type: 'update',
+        rowNumber,
         userId: existing.id,
         hasProfile: Boolean(existing.profile),
         row: importRow,
@@ -569,19 +583,23 @@ export async function POST(request: Request) {
 
   const applyPlannedOperations = async (db: ImportDb) => {
     for (const operation of plannedOperations) {
-      if (operation.type === 'create') {
-        await createUserFromImport(db, operation.row, operation.role, operation.passwordHash);
-        continue;
-      }
+      try {
+        if (operation.type === 'create') {
+          await createUserFromImport(db, operation.row, operation.role, operation.passwordHash);
+          continue;
+        }
 
-      await updateUserByAccount(
-        db,
-        operation.userId,
-        operation.hasProfile,
-        operation.row,
-        operation.role,
-        operation.passwordHash
-      );
+        await updateUserByAccount(
+          db,
+          operation.userId,
+          operation.hasProfile,
+          operation.row,
+          operation.role,
+          operation.passwordHash
+        );
+      } catch (error) {
+        throw new ImportWriteError(operation.rowNumber, operation.row.account, error);
+      }
     }
   };
 
@@ -598,6 +616,18 @@ export async function POST(request: Request) {
         const db = tx as ImportDb;
         await applyPlannedOperations(db);
         return persistImportLedger(db);
+      }).catch(async (error) => {
+        if (!(error instanceof ImportWriteError)) {
+          throw error;
+        }
+        errors.push({
+          row: error.row,
+          account: error.account,
+          reason: error.message,
+        });
+        created = 0;
+        updated = 0;
+        return persistImportLedger(prisma);
       })
     : await persistImportLedger(prisma);
 

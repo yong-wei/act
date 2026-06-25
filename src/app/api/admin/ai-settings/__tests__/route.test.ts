@@ -246,6 +246,52 @@ describe('PUT /api/admin/ai-settings', () => {
       }),
     }));
   });
+
+  it('changes the audit idempotency key when saved provider metadata changes', async () => {
+    const firstResponse = await PUT(buildPutRequest({
+      activeProvider: 'custom-provider',
+      providers: [{
+        id: 'custom-provider',
+        name: 'Custom Provider',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        authMode: 'bearer-api-key',
+        secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
+        selectedModel: 'custom/model',
+        models: [{ id: 'custom-model', label: 'Custom Model', model: 'custom/model' }],
+      }],
+    }));
+    const firstPayload = await firstResponse.json();
+
+    const secondResponse = await PUT(buildPutRequest({
+      activeProvider: 'custom-provider',
+      providers: [{
+        id: 'custom-provider',
+        name: 'Custom Provider Renamed',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        authMode: 'bearer-api-key',
+        secretRef: 'env:CUSTOM_PROVIDER_ROTATED_API_KEY',
+        selectedModel: 'custom/model',
+        models: [{
+          id: 'custom-model',
+          label: 'Custom Model Renamed',
+          model: 'custom/model',
+          description: 'renamed model entry',
+        }],
+      }],
+    }));
+    const secondPayload = await secondResponse.json();
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(firstPayload.operationLedger.idempotencyKey).toMatch(/^admin-op:/);
+    expect(secondPayload.operationLedger.idempotencyKey).toMatch(/^admin-op:/);
+    expect(secondPayload.operationLedger.idempotencyKey).not.toBe(
+      firstPayload.operationLedger.idempotencyKey
+    );
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('GET /api/admin/ai-settings', () => {

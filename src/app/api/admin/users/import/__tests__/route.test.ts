@@ -394,18 +394,53 @@ describe('POST /api/admin/users/import', () => {
     }));
   });
 
-  it('lets transaction write failures abort before ledger persistence', async () => {
-    mocks.txPrisma.user.create.mockRejectedValueOnce(new Error('db write failed'));
+  it('records failed rows when transaction writes abort', async () => {
+    mocks.txPrisma.user.create.mockRejectedValueOnce(
+      new Error('Unique constraint failed: Key (email)=(write-fail@example.com), account=20240011, password=secret')
+    );
     const file = await buildWorkbookFile([
       ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],
       ['20240011', '写入失败', '学生', 'write-fail@example.com', '自动化2401', '自动化', '2024', 'secret'],
     ]);
 
-    await expect(POST(buildImportRequest(file))).rejects.toThrow('db write failed');
+    const response = await POST(buildImportRequest(file));
+    const payload = await response.json();
 
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      created: 0,
+      updated: 0,
+      failed: 1,
+      errors: [{
+        row: 2,
+        accountFingerprint: expect.any(String),
+        reason: '导入写入失败，请检查该行账号、邮箱或学生档案是否与现有数据冲突',
+      }],
+      auditRecord: {
+        outcome: 'completed-with-errors',
+      },
+    });
+    expect(JSON.stringify(payload)).not.toContain('write-fail@example.com');
+    expect(JSON.stringify(payload)).not.toContain('20240011');
+    expect(JSON.stringify(payload)).not.toContain('secret');
     expect(mocks.txPrisma.user.create).toHaveBeenCalled();
     expect(mocks.txPrisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
     expect(mocks.txPrisma.adminOperationArtifact.upsert).not.toHaveBeenCalled();
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        outcome: 'completed-with-errors',
+      }),
+    }));
+    expect(mocks.prisma.adminOperationArtifact.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        payload: {
+          failedRows: payload.failedRows,
+        },
+      }),
+    }));
+    expect(JSON.stringify(mocks.prisma.adminOperationArtifact.upsert.mock.calls)).not.toContain('write-fail@example.com');
+    expect(JSON.stringify(mocks.prisma.adminOperationArtifact.upsert.mock.calls)).not.toContain('20240011');
+    expect(JSON.stringify(mocks.prisma.adminOperationArtifact.upsert.mock.calls)).not.toContain('secret');
   });
 
   it('returns a controlled validation error when required headers are missing', async () => {
