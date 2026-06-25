@@ -264,6 +264,7 @@ describe('submitAnswerDurably', () => {
         answeredAt: new Date('2026-05-26T02:30:00.000Z'),
       })
       .mockResolvedValueOnce(null);
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValueOnce([]);
     db.adaptiveAssessmentAnswer.upsert.mockImplementationOnce(async (args: { create?: Record<string, unknown> }) => ({
       id: 'answer-retry',
       userId: 'student-1',
@@ -328,6 +329,136 @@ describe('submitAnswerDurably', () => {
         }),
       }),
     }));
+  });
+
+  it('reuses a passed path retry answer when the original failed submission is replayed', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS.find((candidate) => {
+      const metadata = buildKaqQuizQuestionMetadata(candidate);
+      return metadata.learningGoalIds.includes('control-correction') &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'readiness-gate';
+    });
+    expect(question).toBeTruthy();
+    const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+
+    db.adaptiveAssessmentSession.upsert
+      .mockResolvedValueOnce({
+        id: 'base-session',
+        userId: 'student-1',
+        sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      })
+      .mockResolvedValueOnce({
+        id: 'retry-session',
+        userId: 'student-1',
+        sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+      });
+    db.adaptiveAssessmentAnswer.findUnique
+      .mockResolvedValueOnce({
+        id: 'answer-old',
+        userId: 'student-1',
+        questionId: question!.id,
+        isCorrect: false,
+        score: 0,
+        responseTimeSeconds: 42,
+        abilityEstimate: 0.4,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+      })
+      .mockResolvedValueOnce({
+        id: 'answer-retry',
+        userId: 'student-1',
+        questionId: question!.id,
+        isCorrect: true,
+        score: 100,
+        responseTimeSeconds: 42,
+        abilityEstimate: 2.1,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        answeredAt: new Date('2026-05-26T02:31:00.000Z'),
+      });
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValueOnce([
+      {
+        id: 'answer-retry',
+        userId: 'student-1',
+        session: {
+          id: 'retry-session',
+          sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+        },
+        questionId: question!.id,
+        selectedOptionKey: 'A',
+        isCorrect: true,
+        responseTimeSeconds: 42,
+        answeredAt: new Date('2026-05-26T02:31:00.000Z'),
+        questionRef: {
+          difficulty: question!.difficulty,
+          questionType: question!.type,
+          domains: question!.domains,
+          knowledgeTags: question!.knowledgeTags,
+        },
+      },
+    ]);
+    db.adaptiveAssessmentAnswer.upsert.mockResolvedValue({
+      id: 'answer-retry',
+      userId: 'student-1',
+      sessionId: 'retry-session',
+      questionId: question!.id,
+      isCorrect: true,
+      score: 100,
+      responseTimeSeconds: 42,
+      abilityEstimate: 2.1,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt: new Date('2026-05-26T02:31:00.000Z'),
+    });
+
+    const result = await submitAnswerDurably({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      questionId: question!.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 42,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }, db);
+
+    expect(result.durableSessionId).toBe('retry-session');
+    expect(result.durableAnswerId).toBe('answer-retry');
+    expect(db.adaptiveAssessmentSession.upsert).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: {
+        userId_sessionKey: {
+          userId: 'student-1',
+          sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+        },
+      },
+    }));
+    expect(db.adaptiveAssessmentAnswer.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'student-1',
+        questionId: question!.id,
+        isCorrect: true,
+        session: {
+          sessionKey: {
+            startsWith: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-',
+          },
+        },
+      }),
+    }));
+    expect(db.adaptiveAssessmentAnswer.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId_questionId: {
+          sessionId: 'retry-session',
+          questionId: question!.id,
+        },
+      },
+      update: {},
+    }));
+    expect(db.adaptiveAssessmentAbilityEstimate.create).not.toHaveBeenCalled();
+    expect(db.adaptiveMasteryUpdate.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
 
   it('keeps duplicate passed path submissions idempotent without creating a retry session', async () => {

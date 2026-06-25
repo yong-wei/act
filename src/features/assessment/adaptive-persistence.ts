@@ -48,6 +48,7 @@ type PersistedAssessmentAnswerRow = {
   responseTimeSeconds?: number;
   answeredAt: Date;
   session?: {
+    id?: string;
     sessionKey?: string;
   };
   questionRef?: {
@@ -133,6 +134,13 @@ interface PersistedSubmission {
   algorithmVersion: string;
   masteryUpdateCount: number;
 }
+
+type PersistedAssessmentAnswerWithSession = PersistedAssessmentAnswerRow & {
+  session?: {
+    id?: string;
+    sessionKey?: string;
+  };
+};
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -381,6 +389,40 @@ function buildAssessmentLearningEvent(params: {
   };
 }
 
+async function findPassedPathRetryAnswer(
+  tx: AdaptiveAssessmentPersistenceTx,
+  details: SubmittedAnswerDetails,
+): Promise<PersistedAssessmentAnswerWithSession | null> {
+  const retrySessionPrefix = `${details.record.sessionId}:retry-`;
+  const retryAnswers = await tx.adaptiveAssessmentAnswer.findMany({
+    where: {
+      userId: details.record.userId,
+      questionId: details.question.id,
+      isCorrect: true,
+      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      session: {
+        sessionKey: {
+          startsWith: retrySessionPrefix,
+        },
+      },
+    },
+    include: {
+      session: {
+        select: {
+          id: true,
+          sessionKey: true,
+        },
+      },
+    },
+    orderBy: [
+      { answeredAt: 'desc' },
+      { id: 'desc' },
+    ],
+  });
+
+  return retryAnswers.find((answer) => answer.session?.id && answer.session.sessionKey) ?? null;
+}
+
 async function persistAdaptiveAssessmentSubmission(
   details: SubmittedAnswerDetails,
   db: AdaptiveAssessmentPersistenceDb,
@@ -423,7 +465,9 @@ async function persistAdaptiveAssessmentSubmission(
       },
     });
     if (existingPathAnswer && !existingPathAnswer.isCorrect) {
-      const retrySessionId = `${details.record.sessionId}:retry-${answeredAt.getTime()}`;
+      const passedRetryAnswer = await findPassedPathRetryAnswer(tx, details);
+      const retrySessionId = passedRetryAnswer?.session?.sessionKey ??
+        `${details.record.sessionId}:retry-${answeredAt.getTime()}`;
       session = await tx.adaptiveAssessmentSession.upsert({
         where: {
           userId_sessionKey: {
