@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+
 import { PRESET_QUESTIONS } from '../adaptive-question-bank';
+import { generateQuestion } from '../adaptive-engine';
 import {
   getAbilityReportWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback,
@@ -225,6 +228,543 @@ describe('submitAnswerDurably', () => {
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
 
+  it('writes path assessment retries to a retry session after a prior answer', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS.find((candidate) => {
+      const metadata = buildKaqQuizQuestionMetadata(candidate);
+      return metadata.learningGoalIds.includes('control-correction') &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'readiness-gate';
+    });
+    expect(question).toBeTruthy();
+    const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+    const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
+    const failedOptionKey = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[failedOptionIndex];
+    expect(failedOptionKey).toBeTruthy();
+
+    db.adaptiveAssessmentSession.upsert
+      .mockResolvedValueOnce({
+        id: 'base-session',
+        userId: 'student-1',
+        sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      })
+      .mockResolvedValueOnce({
+        id: 'retry-session',
+        userId: 'student-1',
+        sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+      });
+    db.adaptiveAssessmentAnswer.findUnique
+      .mockResolvedValueOnce({
+        id: 'answer-old',
+        userId: 'student-1',
+        questionId: question!.id,
+        selectedOptionKey: failedOptionKey,
+        isCorrect: false,
+        score: 0,
+        responseTimeSeconds: 42,
+        abilityEstimate: 0.4,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+      })
+      .mockResolvedValueOnce(null);
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValueOnce([]);
+    db.adaptiveAssessmentAnswer.upsert.mockImplementationOnce(async (args: { create?: Record<string, unknown> }) => ({
+      id: 'answer-retry',
+      userId: 'student-1',
+      sessionId: 'retry-session',
+      questionId: question!.id,
+      isCorrect: true,
+      score: 100,
+      responseTimeSeconds: 42,
+      abilityEstimate: 2.1,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt: new Date(),
+      ...(args.create ?? {}),
+    }));
+
+    const result = await submitAnswerDurably({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      questionId: question!.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 42,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }, db);
+
+    expect(result.durableSessionId).toBe('retry-session');
+    expect(result.durableAnswerId).toBe('answer-retry');
+    expect(db.adaptiveAssessmentSession.upsert).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: {
+        userId_sessionKey: {
+          userId: 'student-1',
+          sessionKey: expect.stringMatching(/^adaptive-path:path-1:adaptive-quiz:control-target-check:retry-\d+$/),
+        },
+      },
+    }));
+    expect(db.adaptiveAssessmentAnswer.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId_questionId: {
+          sessionId: 'retry-session',
+          questionId: question!.id,
+        },
+      },
+      create: expect.objectContaining({
+        sessionId: 'retry-session',
+        questionId: question!.id,
+      }),
+    }));
+    expect(db.adaptiveAssessmentAbilityEstimate.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        sessionId: 'retry-session',
+        answerId: 'answer-retry',
+        dimensions: expect.objectContaining({
+          pathExecution: {
+            pathId: 'path-1',
+            nodeId: 'adaptive-quiz:control-target-check',
+            goalId: 'control-correction',
+            routeIntent: 'path-execution',
+          },
+        }),
+      }),
+    }));
+  });
+
+  it('reuses a passed path retry answer when the original failed submission is replayed', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS.find((candidate) => {
+      const metadata = buildKaqQuizQuestionMetadata(candidate);
+      return metadata.learningGoalIds.includes('control-correction') &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'readiness-gate';
+    });
+    expect(question).toBeTruthy();
+    const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+    const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
+    const failedOptionKey = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[failedOptionIndex];
+    expect(failedOptionKey).toBeTruthy();
+
+    db.adaptiveAssessmentSession.upsert
+      .mockResolvedValueOnce({
+        id: 'base-session',
+        userId: 'student-1',
+        sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      })
+      .mockResolvedValueOnce({
+        id: 'retry-session',
+        userId: 'student-1',
+        sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+      });
+    db.adaptiveAssessmentAnswer.findUnique
+      .mockResolvedValueOnce({
+        id: 'answer-old',
+        userId: 'student-1',
+        questionId: question!.id,
+        selectedOptionKey: failedOptionKey,
+        isCorrect: false,
+        score: 0,
+        responseTimeSeconds: 42,
+        abilityEstimate: 0.4,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+      })
+      .mockResolvedValueOnce({
+        id: 'answer-retry',
+        userId: 'student-1',
+        questionId: question!.id,
+        isCorrect: true,
+        score: 100,
+        responseTimeSeconds: 42,
+        abilityEstimate: 2.1,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        answeredAt: new Date('2026-05-26T02:31:00.000Z'),
+      });
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValueOnce([
+      {
+        id: 'answer-retry',
+        userId: 'student-1',
+        session: {
+          id: 'retry-session',
+          sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+        },
+        questionId: question!.id,
+        selectedOptionKey: 'A',
+        isCorrect: true,
+        responseTimeSeconds: 42,
+        answeredAt: new Date('2026-05-26T02:31:00.000Z'),
+        questionRef: {
+          difficulty: question!.difficulty,
+          questionType: question!.type,
+          domains: question!.domains,
+          knowledgeTags: question!.knowledgeTags,
+        },
+      },
+    ]);
+    db.adaptiveAssessmentAnswer.upsert.mockResolvedValue({
+      id: 'answer-retry',
+      userId: 'student-1',
+      sessionId: 'retry-session',
+      questionId: question!.id,
+      isCorrect: true,
+      score: 100,
+      responseTimeSeconds: 42,
+      abilityEstimate: 2.1,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt: new Date('2026-05-26T02:31:00.000Z'),
+    });
+
+    const result = await submitAnswerDurably({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      questionId: question!.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 42,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }, db);
+
+    expect(result.durableSessionId).toBe('retry-session');
+    expect(result.durableAnswerId).toBe('answer-retry');
+    expect(db.adaptiveAssessmentSession.upsert).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: {
+        userId_sessionKey: {
+          userId: 'student-1',
+          sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+        },
+      },
+    }));
+    expect(db.adaptiveAssessmentAnswer.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'student-1',
+        questionId: question!.id,
+        selectedOptionKey: expect.any(String),
+        session: {
+          sessionKey: {
+            startsWith: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-',
+          },
+        },
+      }),
+    }));
+    expect(db.adaptiveAssessmentAnswer.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId_questionId: {
+          sessionId: 'retry-session',
+          questionId: question!.id,
+        },
+      },
+      update: {},
+    }));
+    expect(db.adaptiveAssessmentAbilityEstimate.create).not.toHaveBeenCalled();
+    expect(db.adaptiveMasteryUpdate.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('reuses a matching failed path retry answer when the same retry selection is replayed', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS.find((candidate) => {
+      const metadata = buildKaqQuizQuestionMetadata(candidate);
+      return metadata.learningGoalIds.includes('control-correction') &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'readiness-gate';
+    });
+    expect(question).toBeTruthy();
+    const failedOptions = question!.options
+      .map((option, index) => ({ option, key: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index] }))
+      .filter(({ option }) => !option.isCorrect);
+    expect(failedOptions.length).toBeGreaterThanOrEqual(2);
+    const [originalFailure, retryFailure] = failedOptions;
+
+    db.adaptiveAssessmentSession.upsert
+      .mockResolvedValueOnce({
+        id: 'base-session',
+        userId: 'student-1',
+        sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      })
+      .mockResolvedValueOnce({
+        id: 'retry-session',
+        userId: 'student-1',
+        sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-456',
+      });
+    db.adaptiveAssessmentAnswer.findUnique
+      .mockResolvedValueOnce({
+        id: 'answer-old',
+        userId: 'student-1',
+        questionId: question!.id,
+        selectedOptionKey: originalFailure.key,
+        isCorrect: false,
+        score: 0,
+        responseTimeSeconds: 42,
+        abilityEstimate: 0.4,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+      })
+      .mockResolvedValueOnce({
+        id: 'answer-retry',
+        userId: 'student-1',
+        questionId: question!.id,
+        selectedOptionKey: retryFailure.key,
+        isCorrect: false,
+        score: 0,
+        responseTimeSeconds: 42,
+        abilityEstimate: 0.3,
+        algorithmVersion: 'adaptive-assessment-bkt-v1',
+        answeredAt: new Date('2026-05-26T02:31:00.000Z'),
+      });
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValueOnce([
+      {
+        id: 'answer-retry',
+        userId: 'student-1',
+        session: {
+          id: 'retry-session',
+          sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-456',
+        },
+        questionId: question!.id,
+        selectedOptionKey: retryFailure.key,
+        isCorrect: false,
+        responseTimeSeconds: 42,
+        answeredAt: new Date('2026-05-26T02:31:00.000Z'),
+        questionRef: {
+          difficulty: question!.difficulty,
+          questionType: question!.type,
+          domains: question!.domains,
+          knowledgeTags: question!.knowledgeTags,
+        },
+      },
+    ]);
+    db.adaptiveAssessmentAnswer.upsert.mockResolvedValue({
+      id: 'answer-retry',
+      userId: 'student-1',
+      sessionId: 'retry-session',
+      questionId: question!.id,
+      isCorrect: false,
+      score: 0,
+      responseTimeSeconds: 42,
+      abilityEstimate: 0.3,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt: new Date('2026-05-26T02:31:00.000Z'),
+    });
+
+    const result = await submitAnswerDurably({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      questionId: question!.id,
+      selectedOption: retryFailure.option.text,
+      timeSpent: 42,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }, db);
+
+    expect(result.durableSessionId).toBe('retry-session');
+    expect(result.durableAnswerId).toBe('answer-retry');
+    expect(db.adaptiveAssessmentAnswer.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'student-1',
+        questionId: question!.id,
+        selectedOptionKey: retryFailure.key,
+        session: {
+          sessionKey: {
+            startsWith: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-',
+          },
+        },
+      }),
+    }));
+    expect(db.adaptiveAssessmentSession.upsert).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: {
+        userId_sessionKey: {
+          userId: 'student-1',
+          sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-456',
+        },
+      },
+    }));
+    expect(db.adaptiveAssessmentAnswer.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId_questionId: {
+          sessionId: 'retry-session',
+          questionId: question!.id,
+        },
+      },
+      update: {},
+    }));
+    expect(db.adaptiveAssessmentAbilityEstimate.create).not.toHaveBeenCalled();
+    expect(db.adaptiveMasteryUpdate.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('keeps replayed failed path submissions idempotent when the selected option is unchanged', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS.find((candidate) => {
+      const metadata = buildKaqQuizQuestionMetadata(candidate);
+      return metadata.learningGoalIds.includes('control-correction') &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'readiness-gate';
+    });
+    expect(question).toBeTruthy();
+    const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
+    const failedOption = question!.options[failedOptionIndex];
+    const failedOptionKey = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[failedOptionIndex];
+    expect(failedOption?.text).toBeTruthy();
+    expect(failedOptionKey).toBeTruthy();
+
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'base-session',
+      userId: 'student-1',
+      sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+    });
+    db.adaptiveAssessmentAnswer.findUnique.mockResolvedValue({
+      id: 'answer-old',
+      userId: 'student-1',
+      questionId: question!.id,
+      selectedOptionKey: failedOptionKey,
+      isCorrect: false,
+      score: 0,
+      responseTimeSeconds: 42,
+      abilityEstimate: 0.4,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+    });
+    db.adaptiveAssessmentAnswer.upsert.mockResolvedValue({
+      id: 'answer-old',
+      userId: 'student-1',
+      sessionId: 'base-session',
+      questionId: question!.id,
+      isCorrect: false,
+      score: 0,
+      responseTimeSeconds: 42,
+      abilityEstimate: 0.4,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+    });
+
+    const result = await submitAnswerDurably({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      questionId: question!.id,
+      selectedOption: failedOption!.text,
+      timeSpent: 42,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }, db);
+
+    expect(result.durableSessionId).toBe('base-session');
+    expect(result.durableAnswerId).toBe('answer-old');
+    expect(db.adaptiveAssessmentSession.upsert).toHaveBeenCalledTimes(1);
+    expect(db.adaptiveAssessmentAnswer.findMany).not.toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        session: expect.any(Object),
+      }),
+    }));
+    expect(db.adaptiveAssessmentAnswer.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId_questionId: {
+          sessionId: 'base-session',
+          questionId: question!.id,
+        },
+      },
+      update: {},
+    }));
+    expect(db.adaptiveAssessmentAbilityEstimate.create).not.toHaveBeenCalled();
+    expect(db.adaptiveMasteryUpdate.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('keeps duplicate passed path submissions idempotent without creating a retry session', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS.find((candidate) => {
+      const metadata = buildKaqQuizQuestionMetadata(candidate);
+      return metadata.learningGoalIds.includes('control-correction') &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'readiness-gate';
+    });
+    expect(question).toBeTruthy();
+    const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'base-session',
+      userId: 'student-1',
+      sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+    });
+    db.adaptiveAssessmentAnswer.findUnique.mockResolvedValue({
+      id: 'answer-existing',
+      userId: 'student-1',
+      questionId: question!.id,
+      isCorrect: true,
+      score: 100,
+      responseTimeSeconds: 42,
+      abilityEstimate: 2.1,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+    });
+    db.adaptiveAssessmentAnswer.upsert.mockResolvedValue({
+      id: 'answer-existing',
+      userId: 'student-1',
+      sessionId: 'base-session',
+      questionId: question!.id,
+      isCorrect: true,
+      score: 100,
+      responseTimeSeconds: 42,
+      abilityEstimate: 2.1,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+    });
+
+    const result = await submitAnswerDurably({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      questionId: question!.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 42,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }, db);
+
+    expect(result.durableSessionId).toBe('base-session');
+    expect(result.durableAnswerId).toBe('answer-existing');
+    expect(db.adaptiveAssessmentSession.upsert).toHaveBeenCalledTimes(1);
+    expect(db.adaptiveAssessmentSession.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        userId_sessionKey: {
+          userId: 'student-1',
+          sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+        },
+      },
+    }));
+    expect(db.adaptiveAssessmentAnswer.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId_questionId: {
+          sessionId: 'base-session',
+          questionId: question!.id,
+        },
+      },
+      update: {},
+    }));
+    expect(db.adaptiveAssessmentAbilityEstimate.create).not.toHaveBeenCalled();
+    expect(db.adaptiveMasteryUpdate.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
   it('stores immutable item reference snapshots for question metadata', async () => {
     const db = createMockDb();
     const question = PRESET_QUESTIONS[0];
@@ -350,6 +890,295 @@ describe('submitAnswerDurably', () => {
     expect(db.adaptiveAssessmentSession.updateMany).toHaveBeenCalledTimes(PRESET_QUESTIONS.length);
     expect(db.adaptiveAssessmentSession.updateMany.mock.calls.at(-1)?.[0].data.selectedQuestionIds)
       .toHaveLength(PRESET_QUESTIONS.length);
+  });
+
+  it('scopes persisted next-question selections to the path learning goal', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+      questionScope: 'readiness',
+    }, db);
+
+    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    expect(metadata.learningGoalIds).toContain('control-correction');
+    expect(metadata.purpose).toBe('readiness-gate');
+    expect(metadata.review.state).toBe('reviewed');
+  });
+
+  it('allows generated low-stakes questions during goal practice selection', async () => {
+    globalThis.__adaptiveAssessmentStore = undefined;
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const generated = generateQuestion({
+      targetKnowledgeTags: ['controller-tuning'],
+      difficultyTarget: 0.5,
+      domains: ['time', 'frequency'],
+      learningGoalIds: ['control-correction'],
+      ownerUserId: 'student-next',
+      sessionId: 'practice-session-1',
+    });
+    const otherGoalGenerated = generateQuestion({
+      targetKnowledgeTags: ['phase-margin'],
+      difficultyTarget: 0.5,
+      domains: ['frequency'],
+      learningGoalIds: ['frequency-response-foundations'],
+      ownerUserId: 'student-next',
+      sessionId: 'practice-session-1',
+    });
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'practice-session-1',
+      selectedQuestionIds: PRESET_QUESTIONS.map((question) => question.id),
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'practice-session-1',
+      goalId: 'control-correction',
+      questionScope: 'practice',
+    }, db);
+
+    expect(next.question.id).toBe(generated.id);
+    expect(next.question.id).not.toBe(otherGoalGenerated.id);
+    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    expect(metadata.learningGoalIds).toContain('control-correction');
+    expect(metadata.review.state).toBe('provisional');
+  });
+
+  it('excludes unscoped generated questions from goal practice selection', async () => {
+    globalThis.__adaptiveAssessmentStore = undefined;
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const generated = generateQuestion({
+      targetKnowledgeTags: ['controller-tuning'],
+      difficultyTarget: 0.5,
+      domains: ['time', 'frequency'],
+      ownerUserId: 'student-next',
+      sessionId: 'practice-session-unscoped',
+    });
+    const generatedFallbackGoal = buildKaqQuizQuestionMetadata(generated).learningGoalIds[0];
+    expect(generatedFallbackGoal).toBeTruthy();
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'practice-session-unscoped',
+      selectedQuestionIds: PRESET_QUESTIONS.map((question) => question.id),
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'practice-session-unscoped',
+      goalId: generatedFallbackGoal,
+      questionScope: 'practice',
+    }, db);
+
+    expect(next.question.id).not.toBe(generated.id);
+  });
+
+  it('uses same-goal non-readiness reviewed questions for goal practice selection', async () => {
+    globalThis.__adaptiveAssessmentStore = undefined;
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const controlCorrectionReadinessQuestionIds = PRESET_QUESTIONS
+      .filter((question) => {
+        const metadata = buildKaqQuizQuestionMetadata(question);
+        return metadata.learningGoalIds.includes('control-correction') &&
+          metadata.purpose === 'readiness-gate';
+      })
+      .map((question) => question.id);
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'practice-session-2',
+      selectedQuestionIds: controlCorrectionReadinessQuestionIds,
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'practice-session-2',
+      goalId: 'control-correction',
+      questionScope: 'practice',
+    }, db);
+
+    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    expect(metadata.learningGoalIds).toContain('control-correction');
+    expect(metadata.review.state).toBe('reviewed');
+    expect(metadata.purpose).not.toBe('readiness-gate');
+  });
+
+  it('does not expose generated questions to the same user in a different session', async () => {
+    globalThis.__adaptiveAssessmentStore = undefined;
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const generated = generateQuestion({
+      targetKnowledgeTags: ['controller-tuning'],
+      difficultyTarget: 0.5,
+      domains: ['time', 'frequency'],
+      learningGoalIds: ['control-correction'],
+      ownerUserId: 'student-owner',
+      sessionId: 'practice-owner',
+    });
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'practice-other-session',
+      selectedQuestionIds: PRESET_QUESTIONS.map((question) => question.id),
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-owner',
+      sessionId: 'practice-other-session',
+      goalId: 'control-correction',
+      questionScope: 'practice',
+    }, db);
+
+    expect(next.question.id).not.toBe(generated.id);
+  });
+
+  it('does not expose generated questions to another user in the same session key', async () => {
+    globalThis.__adaptiveAssessmentStore = undefined;
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const generated = generateQuestion({
+      targetKnowledgeTags: ['controller-tuning'],
+      difficultyTarget: 0.5,
+      domains: ['time', 'frequency'],
+      learningGoalIds: ['control-correction'],
+      ownerUserId: 'student-owner',
+      sessionId: 'practice-owner',
+    });
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'practice-owner',
+      selectedQuestionIds: PRESET_QUESTIONS.map((question) => question.id),
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-other',
+      sessionId: 'practice-owner',
+      goalId: 'control-correction',
+      questionScope: 'practice',
+    }, db);
+
+    expect(next.question.id).not.toBe(generated.id);
+  });
+
+  it('fails path next-question selection for unknown learning goals', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+
+    await expect(selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'unknown-goal',
+      questionScope: 'readiness',
+    }, db)).rejects.toThrow('未找到学习目标 unknown-goal 的已审核 readiness 题目');
+  });
+
+  it('reissues a selected path readiness question before the answer is submitted', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const controlCorrectionReadinessQuestionIds = PRESET_QUESTIONS
+      .filter((question) => {
+        const metadata = buildKaqQuizQuestionMetadata(question);
+        return metadata.learningGoalIds.includes('control-correction') &&
+          metadata.purpose === 'readiness-gate' &&
+          metadata.review.state === 'reviewed';
+      })
+      .map((question) => question.id);
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'session-1',
+      selectedQuestionIds: controlCorrectionReadinessQuestionIds,
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+      questionScope: 'readiness',
+    }, db);
+
+    expect(controlCorrectionReadinessQuestionIds).toContain(next.question.id);
+  });
+
+  it('reissues scoped readiness questions when answered path readiness questions are exhausted', async () => {
+    const db = createMockDb();
+    const controlCorrectionReadinessQuestionIds = PRESET_QUESTIONS
+      .filter((question) => {
+        const metadata = buildKaqQuizQuestionMetadata(question);
+        return metadata.learningGoalIds.includes('control-correction') &&
+          metadata.purpose === 'readiness-gate' &&
+          metadata.review.state === 'reviewed';
+      })
+      .map((question) => question.id);
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue(controlCorrectionReadinessQuestionIds.map((questionId) => ({
+      id: `answer-${questionId}`,
+      userId: 'student-next',
+      session: { sessionKey: 'session-next' },
+      questionId,
+      selectedOptionKey: 'A',
+      isCorrect: false,
+      responseTimeSeconds: 42,
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+      questionRef: {
+        difficulty: 0.5,
+        questionType: 'multi-criteria',
+        domains: ['complex', 'time'],
+        knowledgeTags: ['controller-tuning'],
+        metadata: {
+          kaq: {
+            review: { state: 'reviewed' },
+          },
+        },
+      },
+    })));
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'session-1',
+      selectedQuestionIds: controlCorrectionReadinessQuestionIds,
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+      questionScope: 'readiness',
+    }, db);
+
+    expect(controlCorrectionReadinessQuestionIds).toContain(next.question.id);
+  });
+
+  it('selects reviewed checkpoint questions for path checkpoint scope', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+      questionScope: 'checkpoint',
+    }, db);
+
+    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    expect(metadata.learningGoalIds).toContain('control-correction');
+    expect(metadata.review.state).toBe('reviewed');
+    expect(metadata.purpose).toBe('checkpoint');
   });
 
   it('retries next-question selection when the persisted asked set changed concurrently', async () => {

@@ -5,6 +5,7 @@ import {
   type QuestionDomain,
   type QuestionType,
 } from '@/features/assessment/adaptive-question-bank';
+import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
 
 export interface AdaptiveAnswerRecord {
   sessionId: string;
@@ -76,6 +77,8 @@ export interface PublicQuestion extends Omit<CrossDomainQuestion, 'options'> {
   options: Array<{ label: string; text: string; explanation: string }>;
 }
 
+export type AdaptiveQuestionScope = 'practice' | 'readiness' | 'checkpoint';
+
 export interface AbilityReport {
   userId: string;
   estimatedAbility: number;
@@ -126,6 +129,12 @@ export function getAdaptiveQuestionById(questionId: string): CrossDomainQuestion
     return preset;
   }
   return store.generatedQuestions.get(questionId) ?? null;
+}
+
+function getQuestionForSession(questionId: string, params: { userId: string; sessionId: string }): CrossDomainQuestion | null {
+  const question = getAdaptiveQuestionById(questionId);
+  if (!question || !question.generatedMetadata) return question;
+  return isGeneratedQuestionVisible(question, params) ? question : null;
 }
 
 function getSession(sessionId: string, userId: string): SessionState {
@@ -288,9 +297,17 @@ export function pickAdaptiveRecommendedFocus(weakAreas: string[]): string[] {
   return weakAreas.slice(0, 3).map((tag) => mapping[tag] ?? `围绕 ${tag} 继续练习跨域题目`);
 }
 
-function allQuestions(): CrossDomainQuestion[] {
+function allQuestions(params?: { userId?: string; sessionId?: string }): CrossDomainQuestion[] {
   const store = createStore();
-  return [...PRESET_QUESTIONS, ...Array.from(store.generatedQuestions.values())];
+  const generatedQuestions = Array.from(store.generatedQuestions.values())
+    .filter((question) => isGeneratedQuestionVisible(question, params));
+  return [...PRESET_QUESTIONS, ...generatedQuestions];
+}
+
+function isGeneratedQuestionVisible(question: CrossDomainQuestion, params?: { userId?: string; sessionId?: string }): boolean {
+  if (!question.generatedMetadata) return true;
+  return question.generatedMetadata.ownerUserId === params?.userId &&
+    question.generatedMetadata.sessionId === params?.sessionId;
 }
 
 export function getDiagnostic(userId: string): DiagnosticResult {
@@ -313,6 +330,8 @@ export function getDiagnosticFromAnswers(answers: AdaptiveAnswerRecord[]): Diagn
 export function selectNextQuestion(params: {
   userId: string;
   sessionId: string;
+  goalId?: string | null;
+  questionScope?: AdaptiveQuestionScope;
 }): {
   question: PublicQuestion;
   estimatedAbility: number;
@@ -329,6 +348,8 @@ export function selectNextQuestionFromAnswers(
   params: {
     userId: string;
     sessionId: string;
+    goalId?: string | null;
+    questionScope?: AdaptiveQuestionScope;
   },
   answers: AdaptiveAnswerRecord[],
   askedQuestionIds = new Set(
@@ -346,8 +367,29 @@ export function selectNextQuestionFromAnswers(
   const weakAreas = new Set(buildAdaptiveWeakAreas(answers));
   const targetDifficulty = clamp((theta + 3) / 6, 0, 1);
 
-  const candidates = allQuestions();
+  const targetGoalId = typeof params.goalId === 'string' && params.goalId.trim().length > 0
+    ? params.goalId.trim()
+    : null;
+  const questionScope = params.questionScope ?? 'practice';
+  const candidates = filterQuestionsByGoal(allQuestions(params), targetGoalId, questionScope);
+  const answeredQuestionIds = new Set(
+    answers
+      .filter((answer) => answer.sessionId === params.sessionId)
+      .map((answer) => answer.questionId),
+  );
   const unaskedCandidates = candidates.filter((question) => !askedQuestionIds.has(question.id));
+  if (targetGoalId && (questionScope === 'readiness' || questionScope === 'checkpoint') && unaskedCandidates.length === 0) {
+    const selectedUnansweredCandidate = candidates.find((question) => (
+      askedQuestionIds.has(question.id) && !answeredQuestionIds.has(question.id)
+    ));
+    if (selectedUnansweredCandidate) {
+      return {
+        question: toPublicQuestion(selectedUnansweredCandidate),
+        estimatedAbility: theta,
+        confidenceInterval,
+      };
+    }
+  }
   const selectionPool = unaskedCandidates.length > 0 ? unaskedCandidates : candidates;
   const scored = selectionPool.map((question) => {
     const closeness = 1 - Math.abs(question.difficulty - targetDifficulty);
@@ -370,10 +412,57 @@ export function selectNextQuestionFromAnswers(
   };
 }
 
+function filterQuestionsByGoal(
+  questions: CrossDomainQuestion[],
+  targetGoalId?: string | null,
+  questionScope: AdaptiveQuestionScope = 'practice',
+): CrossDomainQuestion[] {
+  if (!targetGoalId) return questions;
+  const scopedQuestions = questions.filter((question) => {
+    const metadata = buildKaqQuizQuestionMetadata(question);
+    if (questionScope === 'readiness') {
+      return metadata.learningGoalIds.includes(targetGoalId) &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'readiness-gate';
+    }
+    if (questionScope === 'checkpoint') {
+      return metadata.learningGoalIds.includes(targetGoalId) &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'checkpoint';
+    }
+
+    if (metadata.review.state === 'provisional') {
+      return explicitGeneratedLearningGoalIds(question).includes(targetGoalId);
+    }
+    return metadata.learningGoalIds.includes(targetGoalId) &&
+      metadata.review.state === 'reviewed' &&
+      metadata.purpose !== 'readiness-gate';
+  });
+  if (scopedQuestions.length === 0) {
+    if (questionScope === 'readiness') {
+      throw new Error(`未找到学习目标 ${targetGoalId} 的已审核 readiness 题目`);
+    }
+    if (questionScope === 'checkpoint') {
+      throw new Error(`未找到学习目标 ${targetGoalId} 的已审核 checkpoint 题目`);
+    }
+    throw new Error(`未找到学习目标 ${targetGoalId} 的低风险练习题目`);
+  }
+  return scopedQuestions;
+}
+
+function explicitGeneratedLearningGoalIds(question: CrossDomainQuestion): string[] {
+  return (question.generatedMetadata?.learningGoalIds ?? [])
+    .map((goalId) => goalId.trim())
+    .filter((goalId) => goalId.length > 0);
+}
+
 export function generateQuestion(params: {
   targetKnowledgeTags: string[];
   difficultyTarget: number;
   domains: QuestionDomain[];
+  learningGoalIds?: string[];
+  ownerUserId?: string;
+  sessionId?: string;
 }) {
   const tags = params.targetKnowledgeTags.length > 0 ? params.targetKnowledgeTags : ['controller-tuning', 'robustness'];
   const domains: QuestionDomain[] = params.domains.length > 0 ? params.domains : ['time', 'frequency'];
@@ -382,7 +471,14 @@ export function generateQuestion(params: {
   const id = `generated-q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const stem = `请完成一道跨域控制设计题：已知系统在 ${domains.join(' / ')} 域表现不一致，请针对知识点 ${tags.join('、')} 设计可执行调参策略，并说明约束。`;
 
-  const question = buildGeneratedQuestion(id, stem, difficulty, domains, tags);
+  const learningGoalIds = (params.learningGoalIds ?? [])
+    .map((goalId) => goalId.trim())
+    .filter((goalId) => goalId.length > 0);
+  const question = buildGeneratedQuestion(id, stem, difficulty, domains, tags, {
+    learningGoalIds,
+    ownerUserId: params.ownerUserId,
+    sessionId: params.sessionId,
+  });
   const store = createStore();
   store.generatedQuestions.set(question.id, question);
 
@@ -416,7 +512,7 @@ function findCorrectOption(question: CrossDomainQuestion) {
 }
 
 export function submitAnswerWithDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
-  const question = getAdaptiveQuestionById(params.questionId);
+  const question = getQuestionForSession(params.questionId, params);
   if (!question) {
     throw new Error('题目不存在');
   }
@@ -483,7 +579,7 @@ export function buildSubmitAnswerResult(
 }
 
 export function createSubmitAnswerDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
-  const question = getAdaptiveQuestionById(params.questionId);
+  const question = getQuestionForSession(params.questionId, params);
   if (!question) {
     throw new Error('题目不存在');
   }

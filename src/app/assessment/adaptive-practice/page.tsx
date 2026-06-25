@@ -943,10 +943,14 @@ function getEstimatedMinutes(node: Record<string, unknown>): number {
 }
 
 function isComplexOutcomeNode(type: string): boolean {
-  return type === 'adaptive_quiz' ||
+  return isPathAssessmentResultNode(type) ||
     type === 'control_workbench' ||
     type === 'simulation' ||
     type === 'arena_task';
+}
+
+function isPathAssessmentResultNode(type: string): boolean {
+  return type === 'adaptive_quiz' || type === 'checkpoint';
 }
 
 function readPathNodeResultSummary(record: Record<string, unknown>, type: string): PathNodeResultCardView | null {
@@ -2130,7 +2134,7 @@ export default function AdaptivePracticePage() {
   const syncAdaptiveAssessmentPathResult = useCallback(async (result: SubmitAnswerResponse) => {
     if (!activePathId || !activeNodeId || !result.durableAnswerId) return;
     const targetNode = pathExecutionNodes.find((node) => node.nodeId === activeNodeId);
-    if (!targetNode || targetNode.type !== 'adaptive_quiz') return;
+    if (!targetNode || !isPathAssessmentResultNode(targetNode.type)) return;
     await writePathNodeActivity(targetNode, 'initial-completion', 'completed', {
       adaptiveAssessmentRef: {
         id: result.durableAnswerId,
@@ -2296,6 +2300,7 @@ export default function AdaptivePracticePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          sessionId,
           targetKnowledgeTags: diagnostic.weakAreas,
           difficultyTarget: 0.6,
           domains: ['time', 'frequency', 'complex'],

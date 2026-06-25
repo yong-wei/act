@@ -1,0 +1,630 @@
+{
+  "artifactVersion": "kaq-quiz-foundation-bank.v1",
+  "generatedAt": "2026-06-24T12:04:56.402Z",
+  "sourceWindow": {
+    "from": null,
+    "to": "2026-06-22T15:15:02.987Z"
+  },
+  "versionRefs": {
+    "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+    "learningGoalPackageVersion": "learning-goal-package/v1",
+    "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+    "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+    "resourceRegistryVersion": "resource-node-registry.v1",
+    "resourceProjectionVersion": "resource-semantic-projection.v1",
+    "overlayVersion": "graph-center-overlay.v1",
+    "plannerVersion": "adaptive-learning-path-planner.v1",
+    "groundingVersion": "konling-graph-grounding.v1",
+    "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+    "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+  },
+  "batchLearningGoalIds": [
+    "control-correction",
+    "frequency-response-foundations",
+    "feedback-loop-concept-foundations",
+    "transfer-function-modeling-foundations",
+    "time-domain-response-analysis",
+    "root-locus-analysis-foundations",
+    "stability-margin-frequency-analysis",
+    "simulation-validation-practice",
+    "ship-ocean-transfer-application"
+  ],
+  "rows": [
+    {
+      "learningGoalId": "control-correction",
+      "title": "控制系统校正设计",
+      "denominator": 6,
+      "reviewedQuestionCount": 6,
+      "generatedQuestionCount": 0,
+      "status": "complete",
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-06-22T15:15:02.987Z"
+      },
+      "versionRefs": {
+        "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+        "learningGoalPackageVersion": "learning-goal-package/v1",
+        "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+        "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+        "resourceRegistryVersion": "resource-node-registry.v1",
+        "resourceProjectionVersion": "resource-semantic-projection.v1",
+        "overlayVersion": "graph-center-overlay.v1",
+        "plannerVersion": "adaptive-learning-path-planner.v1",
+        "groundingVersion": "konling-graph-grounding.v1",
+        "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+        "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+      },
+      "quizSets": [
+        {
+          "quizSetId": "kaq-quiz-set:control-correction:readiness-gate",
+          "purpose": "readiness-gate",
+          "questionIds": [
+            "preset-q-01",
+            "preset-q-37"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:control-correction:precheck",
+          "purpose": "precheck",
+          "questionIds": [
+            "preset-q-10",
+            "preset-q-46"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:control-correction:practice",
+          "purpose": "practice",
+          "questionIds": [
+            "preset-q-19"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:control-correction:checkpoint",
+          "purpose": "checkpoint",
+          "questionIds": [
+            "preset-q-28"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        }
+      ],
+      "limitationReasons": []
+    },
+    {
+      "learningGoalId": "frequency-response-foundations",
+      "title": "频率响应基础",
+      "denominator": 6,
+      "reviewedQuestionCount": 6,
+      "generatedQuestionCount": 0,
+      "status": "complete",
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-06-22T15:15:02.987Z"
+      },
+      "versionRefs": {
+        "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+        "learningGoalPackageVersion": "learning-goal-package/v1",
+        "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+        "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+        "resourceRegistryVersion": "resource-node-registry.v1",
+        "resourceProjectionVersion": "resource-semantic-projection.v1",
+        "overlayVersion": "graph-center-overlay.v1",
+        "plannerVersion": "adaptive-learning-path-planner.v1",
+        "groundingVersion": "konling-graph-grounding.v1",
+        "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+        "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+      },
+      "quizSets": [
+        {
+          "quizSetId": "kaq-quiz-set:frequency-response-foundations:readiness-gate",
+          "purpose": "readiness-gate",
+          "questionIds": [
+            "preset-q-29"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:frequency-response-foundations:precheck",
+          "purpose": "precheck",
+          "questionIds": [
+            "preset-q-02",
+            "preset-q-38"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:frequency-response-foundations:practice",
+          "purpose": "practice",
+          "questionIds": [
+            "preset-q-11",
+            "preset-q-47"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:frequency-response-foundations:checkpoint",
+          "purpose": "checkpoint",
+          "questionIds": [
+            "preset-q-20"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        }
+      ],
+      "limitationReasons": []
+    },
+    {
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "title": "反馈与闭环结构基础",
+      "denominator": 6,
+      "reviewedQuestionCount": 6,
+      "generatedQuestionCount": 0,
+      "status": "complete",
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-06-22T15:15:02.987Z"
+      },
+      "versionRefs": {
+        "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+        "learningGoalPackageVersion": "learning-goal-package/v1",
+        "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+        "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+        "resourceRegistryVersion": "resource-node-registry.v1",
+        "resourceProjectionVersion": "resource-semantic-projection.v1",
+        "overlayVersion": "graph-center-overlay.v1",
+        "plannerVersion": "adaptive-learning-path-planner.v1",
+        "groundingVersion": "konling-graph-grounding.v1",
+        "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+        "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+      },
+      "quizSets": [
+        {
+          "quizSetId": "kaq-quiz-set:feedback-loop-concept-foundations:readiness-gate",
+          "purpose": "readiness-gate",
+          "questionIds": [
+            "preset-q-21"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:feedback-loop-concept-foundations:precheck",
+          "purpose": "precheck",
+          "questionIds": [
+            "preset-q-30"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:feedback-loop-concept-foundations:practice",
+          "purpose": "practice",
+          "questionIds": [
+            "preset-q-03",
+            "preset-q-39"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:feedback-loop-concept-foundations:checkpoint",
+          "purpose": "checkpoint",
+          "questionIds": [
+            "preset-q-12",
+            "preset-q-48"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        }
+      ],
+      "limitationReasons": []
+    },
+    {
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "title": "传递函数建模基础",
+      "denominator": 6,
+      "reviewedQuestionCount": 6,
+      "generatedQuestionCount": 0,
+      "status": "complete",
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-06-22T15:15:02.987Z"
+      },
+      "versionRefs": {
+        "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+        "learningGoalPackageVersion": "learning-goal-package/v1",
+        "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+        "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+        "resourceRegistryVersion": "resource-node-registry.v1",
+        "resourceProjectionVersion": "resource-semantic-projection.v1",
+        "overlayVersion": "graph-center-overlay.v1",
+        "plannerVersion": "adaptive-learning-path-planner.v1",
+        "groundingVersion": "konling-graph-grounding.v1",
+        "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+        "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+      },
+      "quizSets": [
+        {
+          "quizSetId": "kaq-quiz-set:transfer-function-modeling-foundations:readiness-gate",
+          "purpose": "readiness-gate",
+          "questionIds": [
+            "preset-q-13",
+            "preset-q-49"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:transfer-function-modeling-foundations:precheck",
+          "purpose": "precheck",
+          "questionIds": [
+            "preset-q-22"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:transfer-function-modeling-foundations:practice",
+          "purpose": "practice",
+          "questionIds": [
+            "preset-q-31"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:transfer-function-modeling-foundations:checkpoint",
+          "purpose": "checkpoint",
+          "questionIds": [
+            "preset-q-04",
+            "preset-q-40"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        }
+      ],
+      "limitationReasons": []
+    },
+    {
+      "learningGoalId": "time-domain-response-analysis",
+      "title": "时域响应与性能指标分析",
+      "denominator": 6,
+      "reviewedQuestionCount": 6,
+      "generatedQuestionCount": 0,
+      "status": "complete",
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-06-22T15:15:02.987Z"
+      },
+      "versionRefs": {
+        "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+        "learningGoalPackageVersion": "learning-goal-package/v1",
+        "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+        "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+        "resourceRegistryVersion": "resource-node-registry.v1",
+        "resourceProjectionVersion": "resource-semantic-projection.v1",
+        "overlayVersion": "graph-center-overlay.v1",
+        "plannerVersion": "adaptive-learning-path-planner.v1",
+        "groundingVersion": "konling-graph-grounding.v1",
+        "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+        "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+      },
+      "quizSets": [
+        {
+          "quizSetId": "kaq-quiz-set:time-domain-response-analysis:readiness-gate",
+          "purpose": "readiness-gate",
+          "questionIds": [
+            "preset-q-05",
+            "preset-q-41"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:time-domain-response-analysis:precheck",
+          "purpose": "precheck",
+          "questionIds": [
+            "preset-q-14",
+            "preset-q-50"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:time-domain-response-analysis:practice",
+          "purpose": "practice",
+          "questionIds": [
+            "preset-q-23"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:time-domain-response-analysis:checkpoint",
+          "purpose": "checkpoint",
+          "questionIds": [
+            "preset-q-32"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        }
+      ],
+      "limitationReasons": []
+    },
+    {
+      "learningGoalId": "root-locus-analysis-foundations",
+      "title": "根轨迹分析基础",
+      "denominator": 5,
+      "reviewedQuestionCount": 5,
+      "generatedQuestionCount": 0,
+      "status": "complete",
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-06-22T15:15:02.987Z"
+      },
+      "versionRefs": {
+        "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+        "learningGoalPackageVersion": "learning-goal-package/v1",
+        "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+        "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+        "resourceRegistryVersion": "resource-node-registry.v1",
+        "resourceProjectionVersion": "resource-semantic-projection.v1",
+        "overlayVersion": "graph-center-overlay.v1",
+        "plannerVersion": "adaptive-learning-path-planner.v1",
+        "groundingVersion": "konling-graph-grounding.v1",
+        "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+        "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+      },
+      "quizSets": [
+        {
+          "quizSetId": "kaq-quiz-set:root-locus-analysis-foundations:readiness-gate",
+          "purpose": "readiness-gate",
+          "questionIds": [
+            "preset-q-33"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:root-locus-analysis-foundations:precheck",
+          "purpose": "precheck",
+          "questionIds": [
+            "preset-q-06",
+            "preset-q-42"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:root-locus-analysis-foundations:practice",
+          "purpose": "practice",
+          "questionIds": [
+            "preset-q-15"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:root-locus-analysis-foundations:checkpoint",
+          "purpose": "checkpoint",
+          "questionIds": [
+            "preset-q-24"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        }
+      ],
+      "limitationReasons": []
+    },
+    {
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "title": "稳定裕度与频域安全边界",
+      "denominator": 5,
+      "reviewedQuestionCount": 5,
+      "generatedQuestionCount": 0,
+      "status": "complete",
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-06-22T15:15:02.987Z"
+      },
+      "versionRefs": {
+        "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+        "learningGoalPackageVersion": "learning-goal-package/v1",
+        "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+        "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+        "resourceRegistryVersion": "resource-node-registry.v1",
+        "resourceProjectionVersion": "resource-semantic-projection.v1",
+        "overlayVersion": "graph-center-overlay.v1",
+        "plannerVersion": "adaptive-learning-path-planner.v1",
+        "groundingVersion": "konling-graph-grounding.v1",
+        "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+        "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+      },
+      "quizSets": [
+        {
+          "quizSetId": "kaq-quiz-set:stability-margin-frequency-analysis:readiness-gate",
+          "purpose": "readiness-gate",
+          "questionIds": [
+            "preset-q-25"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:stability-margin-frequency-analysis:precheck",
+          "purpose": "precheck",
+          "questionIds": [
+            "preset-q-34"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:stability-margin-frequency-analysis:practice",
+          "purpose": "practice",
+          "questionIds": [
+            "preset-q-07",
+            "preset-q-43"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:stability-margin-frequency-analysis:checkpoint",
+          "purpose": "checkpoint",
+          "questionIds": [
+            "preset-q-16"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        }
+      ],
+      "limitationReasons": []
+    },
+    {
+      "learningGoalId": "simulation-validation-practice",
+      "title": "仿真验证实践",
+      "denominator": 5,
+      "reviewedQuestionCount": 5,
+      "generatedQuestionCount": 0,
+      "status": "complete",
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-06-22T15:15:02.987Z"
+      },
+      "versionRefs": {
+        "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+        "learningGoalPackageVersion": "learning-goal-package/v1",
+        "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+        "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+        "resourceRegistryVersion": "resource-node-registry.v1",
+        "resourceProjectionVersion": "resource-semantic-projection.v1",
+        "overlayVersion": "graph-center-overlay.v1",
+        "plannerVersion": "adaptive-learning-path-planner.v1",
+        "groundingVersion": "konling-graph-grounding.v1",
+        "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+        "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+      },
+      "quizSets": [
+        {
+          "quizSetId": "kaq-quiz-set:simulation-validation-practice:readiness-gate",
+          "purpose": "readiness-gate",
+          "questionIds": [
+            "preset-q-17"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:simulation-validation-practice:precheck",
+          "purpose": "precheck",
+          "questionIds": [
+            "preset-q-26"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:simulation-validation-practice:practice",
+          "purpose": "practice",
+          "questionIds": [
+            "preset-q-35"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:simulation-validation-practice:checkpoint",
+          "purpose": "checkpoint",
+          "questionIds": [
+            "preset-q-08",
+            "preset-q-44"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        }
+      ],
+      "limitationReasons": []
+    },
+    {
+      "learningGoalId": "ship-ocean-transfer-application",
+      "title": "船海场景迁移应用",
+      "denominator": 5,
+      "reviewedQuestionCount": 5,
+      "generatedQuestionCount": 0,
+      "status": "complete",
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-06-22T15:15:02.987Z"
+      },
+      "versionRefs": {
+        "artifactVersioningVersion": "kaq-artifact-versioning.v1",
+        "learningGoalPackageVersion": "learning-goal-package/v1",
+        "objectiveCatalogVersion": "autocontrol-kaq-objectives.v1",
+        "graphCatalogVersion": "autocontrol-kaq-graph.v1",
+        "resourceRegistryVersion": "resource-node-registry.v1",
+        "resourceProjectionVersion": "resource-semantic-projection.v1",
+        "overlayVersion": "graph-center-overlay.v1",
+        "plannerVersion": "adaptive-learning-path-planner.v1",
+        "groundingVersion": "konling-graph-grounding.v1",
+        "baselineMatrixVersion": "learning-goal-resource-baseline.v1",
+        "questionBankVersion": "kaq-quiz-foundation-bank.v1"
+      },
+      "quizSets": [
+        {
+          "quizSetId": "kaq-quiz-set:ship-ocean-transfer-application:readiness-gate",
+          "purpose": "readiness-gate",
+          "questionIds": [
+            "preset-q-09",
+            "preset-q-45"
+          ],
+          "reviewedQuestionCount": 2,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:ship-ocean-transfer-application:precheck",
+          "purpose": "precheck",
+          "questionIds": [
+            "preset-q-18"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:ship-ocean-transfer-application:practice",
+          "purpose": "practice",
+          "questionIds": [
+            "preset-q-27"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        },
+        {
+          "quizSetId": "kaq-quiz-set:ship-ocean-transfer-application:checkpoint",
+          "purpose": "checkpoint",
+          "questionIds": [
+            "preset-q-36"
+          ],
+          "reviewedQuestionCount": 1,
+          "generatedQuestionCount": 0
+        }
+      ],
+      "limitationReasons": []
+    }
+  ],
+  "totals": {
+    "learningGoalCount": 9,
+    "reviewedQuestionCount": 50,
+    "generatedQuestionCount": 0,
+    "limitedLearningGoalCount": 0
+  }
+}

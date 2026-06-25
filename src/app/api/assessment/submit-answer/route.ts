@@ -58,33 +58,36 @@ export async function POST(request: Request) {
 async function readVerifiedPathContext(body: SubmitAnswerRequest, userId: string, sessionId: string) {
   if (typeof body.pathId !== 'string' || !body.pathId.trim()) return undefined;
   if (typeof body.nodeId !== 'string' || !body.nodeId.trim()) return undefined;
-  if (typeof body.goalId !== 'string' || !body.goalId.trim()) return undefined;
   const pathId = body.pathId.trim();
   const nodeId = body.nodeId.trim();
-  const goalId = body.goalId.trim();
   if (sessionId !== scopedPathAssessmentSessionId(pathId, nodeId)) return undefined;
   const path = await prisma.learningPath.findFirst({
     where: {
       id: pathId,
       userId,
-      goalId,
       currentNodeId: nodeId,
     },
     select: {
+      goalId: true,
       nodeIds: true,
       pathPayload: true,
     },
   });
-  if (!path) return undefined;
+  if (!path?.goalId) return undefined;
+  if (typeof body.goalId === 'string' && body.goalId.trim() && body.goalId.trim() !== path.goalId) return undefined;
   if (!readPathNodeIds(path).includes(nodeId)) return undefined;
   const pathNode = readPathNode(path, nodeId);
-  if (pathNode?.type !== 'adaptive_quiz') return undefined;
+  if (!isPathAssessmentNode(pathNode)) return undefined;
   return {
     pathId,
     nodeId,
-    goalId,
+    goalId: path.goalId,
     routeIntent: typeof body.routeIntent === 'string' && body.routeIntent.trim() ? body.routeIntent.trim() : null,
   };
+}
+
+function isPathAssessmentNode(pathNode: Record<string, unknown> | null): boolean {
+  return pathNode?.type === 'adaptive_quiz' || pathNode?.type === 'checkpoint';
 }
 
 function scopedPathAssessmentSessionId(pathId: string, nodeId: string): string {
