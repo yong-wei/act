@@ -2,6 +2,20 @@ type StreamingCitationGuard = {
   status: string;
   missingCitationClasses: string[];
   lowConfidenceReasons: string[];
+  diagnosticReasons?: string[];
+  missingContext?: string[];
+  personalizationAvailability?: {
+    status: string;
+    missingCitationClasses: string[];
+    lowConfidenceReasons: string[];
+  };
+  retrievalSources?: Array<{
+    id?: string;
+    sourceType: string;
+    displayTitle?: string;
+    evidenceBasis: string;
+    confidence?: string;
+  }>;
   citations: Array<{
     id: string;
     displayTitle?: string;
@@ -9,9 +23,46 @@ type StreamingCitationGuard = {
   }>;
 };
 
-export function buildStreamingCitationFallbackNotice(guard: StreamingCitationGuard | null) {
-  if (!guard || guard.status === 'verified') return null;
-  const sources = guard.citations
+type StreamingCitationFallbackNoticeOptions = {
+  nodeEnv?: string;
+  debugInjectionOverride?: boolean;
+};
+
+function readDebugInjectionOverride(value: string | undefined): boolean | null {
+  if (!value) return null;
+  const normalized = value.trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on', 'enabled'].includes(normalized)) return true;
+  if (['0', 'false', 'no', 'off', 'disabled'].includes(normalized)) return false;
+  return null;
+}
+
+export function shouldInjectStreamingCitationFallbackNotice(
+  options: StreamingCitationFallbackNoticeOptions = {},
+) {
+  const explicit = options.debugInjectionOverride ?? readDebugInjectionOverride(
+    process.env.KONLING_STREAMING_CITATION_DEBUG_INJECTION,
+  );
+  if (explicit !== null) return explicit;
+  return (options.nodeEnv ?? process.env.NODE_ENV) !== 'production';
+}
+
+export function buildStreamingCitationFallbackNotice(
+  guard: StreamingCitationGuard | null,
+  options: StreamingCitationFallbackNoticeOptions = {},
+) {
+  if (!guard) return null;
+  const hasDiagnostics = guard.status !== 'verified'
+    || guard.missingCitationClasses.length > 0
+    || guard.lowConfidenceReasons.length > 0
+    || (guard.diagnosticReasons?.length ?? 0) > 0
+    || (guard.missingContext?.length ?? 0) > 0
+    || guard.personalizationAvailability?.status === 'limited';
+  if (!hasDiagnostics) return null;
+  if (!shouldInjectStreamingCitationFallbackNotice(options)) {
+    if (guard.status === 'verified') return null;
+    return '【控灵证据提示】本次回答的引用证据仍需核验，请优先依据已展示的可核验来源判断；涉及个人学习状态或路径建议时，请以页面中的正式记录为准。\n\n';
+  }
+  const sources = (guard.retrievalSources ?? guard.citations)
     .slice(0, 3)
     .map((citation) => citation.displayTitle || citation.evidenceBasis || citation.id)
     .filter(Boolean);
@@ -19,10 +70,19 @@ export function buildStreamingCitationFallbackNotice(guard: StreamingCitationGua
   const missingText = guard.missingCitationClasses.length > 0
     ? `缺少证据类型：${guard.missingCitationClasses.join('、')}。`
     : '';
+  const missingContextText = (guard.missingContext?.length ?? 0) > 0
+    ? `缺少上下文：${guard.missingContext?.join('、')}。`
+    : '';
   const confidenceText = guard.lowConfidenceReasons.length > 0
     ? `低置信原因：${guard.lowConfidenceReasons.join('；')}。`
     : '';
-  return `【控灵证据提示】本次流式回答尚未完成最终引用核验。${sourceText}${missingText}${confidenceText}\n\n`;
+  const diagnosticText = (guard.diagnosticReasons?.length ?? 0) > 0
+    ? `诊断原因：${guard.diagnosticReasons?.join('；')}。`
+    : '';
+  const personalizationText = guard.personalizationAvailability?.status === 'limited'
+    ? `个性化状态：limited；缺少 ${guard.personalizationAvailability.missingCitationClasses.join('、') || '无'}；原因 ${guard.personalizationAvailability.lowConfidenceReasons.join('；') || '无'}。`
+    : '';
+  return `【控灵证据提示】本次流式回答尚未完成最终引用核验。${sourceText}${missingText}${missingContextText}${confidenceText}${diagnosticText}${personalizationText}\n\n`;
 }
 
 export function insertStreamingCitationFallbackNotice(stream: ReadableStream<any>, notice: string | null) {

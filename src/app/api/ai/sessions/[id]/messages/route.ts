@@ -18,6 +18,7 @@ import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
+  buildKonlingCitationRetrievalSources,
   buildKonlingRuntimeContext,
   buildKonlingTeachingAssistantRuntimeContract,
   buildKonlingToolRuntime,
@@ -232,6 +233,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
       id: (Date.now() + 1).toString(),
       role: 'assistant',
       content: guardedAssistantContent,
+      metadata: {
+        konlingCitationGuard: {
+          status: citationGuard.status,
+          missingCitationClasses: citationGuard.missingCitationClasses,
+          lowConfidenceReasons: citationGuard.lowConfidenceReasons,
+          diagnosticReasons: citationGuard.diagnosticReasons ?? [],
+          personalizationAvailability: citationGuard.personalizationAvailability,
+          missingContext: modeContract.groundingContext.missingContext,
+          retrievalSources: buildKonlingCitationRetrievalSources(citationGuard),
+        },
+      },
     });
 
     const finalMessages = [...updatedMessages, assistantMessage];

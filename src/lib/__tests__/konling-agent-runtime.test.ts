@@ -158,6 +158,42 @@ function createRuntimeContext(overrides: Partial<KonlingRuntimeContext> = {}): K
   };
 }
 
+function createCompleteGraphContext(
+  overrides: Partial<NonNullable<KonlingRuntimeContext['graphContext']>> = {},
+): NonNullable<KonlingRuntimeContext['graphContext']> {
+  return {
+    source: 'server-owned',
+    status: 'complete',
+    advisoryOnly: true,
+    learningGoal: {
+      id: 'control-correction',
+      title: '控制系统校正设计',
+      version: 'test',
+      objectiveBoundary: {
+        knowledgeObjectiveIds: [],
+        capabilityObjectiveIds: ['capability:root-locus-design'],
+        qualityObjectiveIds: [],
+      },
+      pathPolicyFamily: 'rules-plus-graph-search',
+      terminalValidationPolicy: { mode: 'checkpoint-set', requiredNodeIds: [] },
+    },
+    selectedGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+    expandedSubgraph: null,
+    learnerOverlay: null,
+    classOverlay: null,
+    resourceCoverage: {},
+    pathArtifact: null,
+    citationRefs: ['content:1'],
+    evidenceRefs: [],
+    versionRefs: null,
+    confidence: 'high',
+    missingGrounding: [],
+    clientHintsAccepted: [],
+    clientHintsRejected: [],
+    ...overrides,
+  };
+}
+
 function createGraphLearnerState(
   userId: string,
   score = 0.72,
@@ -2595,6 +2631,207 @@ describe('konling agent runtime', () => {
     expect(guard.lowConfidenceReasons).toContain('assistant-required-citation-owner-missing:report-explanation');
   });
 
+  it('records missing learner evidence as limited personalization for grading explanations with content citations', () => {
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:rubric',
+        sourceType: 'content',
+        displayTitle: '评分量规',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'server-rubric',
+        owner: 'answer',
+      }, {
+        id: 'content:grading-rationale',
+        sourceType: 'content',
+        displayTitle: '评分说明',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'server-rubric',
+        owner: 'report-explanation',
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: ['learner-state'],
+      lowConfidenceReasons: ['missing-learner-state'],
+      responseProtocol: {
+        requiredOwners: ['answer', 'report-explanation'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const runtime = createRuntimeContext({
+      citationContext,
+      permittedTools: ['get_page_context', 'search_knowledge_graph'],
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'grading-assistant',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', privacyScopes: ['teacher-scoped'] }),
+      serverModeContext: {
+        rubric: true,
+        'converted-document': true,
+        'draft-grading-state': true,
+        'teacher-review-state': true,
+      },
+    });
+
+    const guard = buildKonlingCitationGuard({
+      citationContext,
+      teachingAssistantMode: modeContract,
+    }, [
+      '依据 citation(content:rubric, content, 评分量规, high, server-rubric) 判断评分边界。',
+      '报告说明引用 citation(content:grading-rationale, content, 评分说明, high, server-rubric)。',
+    ].join(' '));
+
+    expect(modeContract.answerIntent).toBe('grading-explanation');
+    expect(modeContract.status).toBe('degraded');
+    expect(modeContract.unavailableReasons).toEqual([]);
+    expect(guard).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      personalizationAvailability: {
+        status: 'limited',
+        missingCitationClasses: ['learner-state'],
+        lowConfidenceReasons: expect.arrayContaining(['missing-learner-state']),
+      },
+    });
+  });
+
+  it('records missing intervention and memory evidence as limited personalization metadata', () => {
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:report',
+        sourceType: 'content',
+        displayTitle: '学情总结说明',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'answer',
+      }, {
+        id: 'content:report-explanation',
+        sourceType: 'content',
+        displayTitle: '报告解释说明',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'report-explanation',
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: ['intervention', 'memory'],
+      lowConfidenceReasons: ['missing-intervention', 'missing-memory'],
+      responseProtocol: {
+        requiredOwners: ['answer', 'report-explanation'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const runtime = createRuntimeContext({
+      citationContext,
+      graphContext: createCompleteGraphContext(),
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph'],
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'class-summarizer',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', privacyScopes: ['teacher-scoped'] }),
+      serverModeContext: {
+        'class-report': true,
+        'diagnosis-view': true,
+      },
+    });
+
+    const guard = buildKonlingCitationGuard({
+      citationContext,
+      teachingAssistantMode: modeContract,
+    }, [
+      '根据 citation(content:report, content, 学情总结说明, high, course-ai-context) 总结班级情况。',
+      '报告解释引用 citation(content:report-explanation, content, 报告解释说明, high, course-ai-context)。',
+    ].join(' '));
+
+    expect(modeContract.answerIntent).toBe('personalized-diagnosis');
+    expect(guard).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      personalizationAvailability: {
+        status: 'limited',
+        missingCitationClasses: expect.arrayContaining(['intervention', 'memory']),
+        lowConfidenceReasons: expect.arrayContaining(['missing-intervention', 'missing-memory']),
+      },
+    });
+  });
+
+  it('does not treat privacy or mode contract violations as limited personalization', () => {
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:report',
+        sourceType: 'content',
+        displayTitle: '学情总结说明',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'answer',
+      }, {
+        id: 'content:report-explanation',
+        sourceType: 'content',
+        displayTitle: '报告解释说明',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'report-explanation',
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: ['memory'],
+      lowConfidenceReasons: ['missing-memory'],
+      responseProtocol: {
+        requiredOwners: ['answer', 'report-explanation'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const runtime = createRuntimeContext({
+      citationContext,
+      graphContext: createCompleteGraphContext(),
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph'],
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'class-summarizer',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', privacyScopes: ['teacher-scoped'] }),
+      serverModeContext: {
+        'class-report': true,
+        'diagnosis-view': true,
+      },
+    });
+
+    const guard = buildKonlingCitationGuard({
+      citationContext,
+      teachingAssistantMode: modeContract,
+    }, [
+      '根据 citation(content:report, content, 学情总结说明, high, course-ai-context) 总结班级情况。',
+      '报告解释引用 citation(content:report-explanation, content, 报告解释说明, high, course-ai-context)。',
+      '同时输出 private-konling-memory 和 hidden-arena-internals。',
+    ].join(' '));
+
+    expect(guard.status).toBe('low-confidence');
+    expect(guard.fallbackRequired).toBe(true);
+    expect(guard.lowConfidenceReasons).toEqual(expect.arrayContaining([
+      'assistant-mode-contract-violation:private-konling-memory',
+      'assistant-mode-contract-violation:hidden-arena-internals',
+    ]));
+    expect(guard.personalizationAvailability).toMatchObject({
+      status: 'limited',
+      missingCitationClasses: expect.arrayContaining(['memory']),
+      lowConfidenceReasons: expect.arrayContaining(['missing-memory']),
+    });
+  });
+
   it('requires evidence citations when evidence is available even if content is cited', () => {
     const pathCitationContext: KonlingCitationContext = {
       required: true,
@@ -2655,6 +2892,180 @@ describe('konling agent runtime', () => {
         'assistant-evidence-citations-missing',
         'answer-intent-evidence-citation-missing:path-advice',
       ]),
+    });
+  });
+
+  it('records missing learner evidence as limited personalization for diagnosis answers with content citations', () => {
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:diagnosis-topic',
+        sourceType: 'content',
+        displayTitle: '超调量诊断依据',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'answer',
+      }, {
+        id: 'content:diagnosis-next-step',
+        sourceType: 'content',
+        displayTitle: '下一步练习建议',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'recommendation',
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: ['learner-state', 'path-execution', 'evidence'],
+      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution', 'missing-evidence'],
+      responseProtocol: {
+        requiredOwners: ['answer', 'recommendation'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const runtime = createRuntimeContext({
+      citationContext,
+      graphContext: createCompleteGraphContext(),
+      learnerState: null,
+      missingContext: ['learner-state'],
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'diagnosis-explainer',
+      runtimeContext: runtime,
+      scope: createScope({
+        authenticatedUserId: 'teacher-1',
+        role: 'teacher',
+        pageId: 'student-learning-overview',
+        privacyScopes: ['teacher-scoped'],
+      }),
+      serverModeContext: { 'diagnosis-view': true },
+    });
+
+    const guard = buildKonlingCitationGuard({
+      citationContext,
+      teachingAssistantMode: modeContract,
+    }, [
+      '根据 citation(content:diagnosis-topic, content, 超调量诊断依据, high, course-ai-context) 解释超调量诊断。',
+      '建议按 citation(content:diagnosis-next-step, content, 下一步练习建议, high, course-ai-context) 先复习阻尼比。',
+    ].join(' '));
+
+    expect(modeContract.answerIntent).toBe('personalized-diagnosis');
+    expect(modeContract.status).toBe('degraded');
+    expect(modeContract.unavailableReasons).toEqual([]);
+    expect(guard.citations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'content:diagnosis-topic', owner: 'answer' }),
+      expect.objectContaining({ id: 'content:diagnosis-next-step', owner: 'recommendation' }),
+    ]));
+    expect(guard).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      personalizationAvailability: {
+        status: 'limited',
+        missingCitationClasses: expect.arrayContaining(['learner-state', 'path-execution']),
+        lowConfidenceReasons: expect.arrayContaining(['missing-learner-state', 'missing-path-execution']),
+      },
+    });
+  });
+
+  it('records missing learner evidence as limited personalization for path advice with content citations', () => {
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:path-topic',
+        sourceType: 'content',
+        displayTitle: '根轨迹路径建议',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'answer',
+      }, {
+        id: 'content:path-next-step',
+        sourceType: 'content',
+        displayTitle: '路径下一步说明',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'recommendation',
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: ['learner-state', 'path-execution', 'evidence'],
+      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution', 'missing-evidence'],
+      responseProtocol: {
+        requiredOwners: ['answer', 'recommendation'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const runtime = createRuntimeContext({
+      citationContext,
+      graphContext: createCompleteGraphContext(),
+      learnerState: null,
+      planContext: {
+        currentPathId: 'path-1',
+        activeNodeId: 'node-1',
+        nextNodeIds: ['node-2'],
+        recentPathIds: ['path-1'],
+        completedNodeIds: [],
+        pathOptions: [{
+          styleId: 'recommended',
+          policyFamily: 'rules-plus-graph-search',
+          label: '推荐路径',
+          nodeIds: ['node-1', 'node-2'],
+          targetDeficits: ['capability:root-locus-design'],
+          evidenceBasis: ['capability:root-locus-design'],
+          lockedNodeIds: [],
+          readinessSummary: [],
+          resourceMix: { lesson_step: 1 },
+          effort: { estimatedMinutes: 45, relative: 'medium' },
+          terminalValidationNodeIds: [],
+          limitations: [],
+        }],
+        status: 'available',
+      },
+      missingContext: ['learner-state'],
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope: createScope({
+        authenticatedUserId: 'teacher-1',
+        role: 'teacher',
+        pageId: 'student-path-center',
+        privacyScopes: ['teacher-scoped'],
+      }),
+      serverModeContext: { 'student-path-center': true },
+    });
+
+    const guard = buildKonlingCitationGuard({
+      citationContext,
+      teachingAssistantMode: modeContract,
+    }, [
+      '根据 citation(content:path-topic, content, 根轨迹路径建议, high, course-ai-context) 说明路径重点。',
+      '下一步按 citation(content:path-next-step, content, 路径下一步说明, high, course-ai-context) 练习校正设计。',
+    ].join(' '));
+
+    expect(modeContract.answerIntent).toBe('path-advice');
+    expect(modeContract.status).toBe('degraded');
+    expect(modeContract.unavailableReasons).toEqual([]);
+    expect(guard.citations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'content:path-topic', owner: 'answer' }),
+      expect.objectContaining({ id: 'content:path-next-step', owner: 'recommendation' }),
+    ]));
+    expect(guard).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      personalizationAvailability: {
+        status: 'limited',
+        missingCitationClasses: expect.arrayContaining(['learner-state', 'path-execution']),
+        lowConfidenceReasons: expect.arrayContaining(['missing-learner-state', 'missing-path-execution']),
+      },
     });
   });
 
@@ -3207,7 +3618,7 @@ describe('konling agent runtime', () => {
     });
   });
 
-  it('marks streaming citation guard as low-confidence until final assistant text is verified', () => {
+  it('records streaming final-text uncertainty as metadata without downgrading verified content citations', () => {
     const guard = buildKonlingStreamingCitationGuard({
       citationContext: {
         required: true,
@@ -3232,9 +3643,57 @@ describe('konling agent runtime', () => {
     });
 
     expect(guard).toMatchObject({
-      status: 'low-confidence',
-      fallbackRequired: true,
-      lowConfidenceReasons: ['assistant-citations-unverified-stream'],
+      status: 'verified',
+      fallbackRequired: false,
+      lowConfidenceReasons: [],
+      diagnosticReasons: ['assistant-citations-unverified-stream'],
+    });
+  });
+
+  it('treats missing learner path context as personalization limitation for fact explanations', () => {
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:unit:step',
+        sourceType: 'content',
+        displayTitle: 'PID 参数整定',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'answer',
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: ['learner-state', 'path-execution', 'evidence'],
+      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution', 'missing-evidence'],
+      responseProtocol: {
+        requiredOwners: ['answer'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const runtime = createRuntimeContext({
+      citationContext,
+      permittedTools: ['get_page_context', 'search_knowledge_graph'],
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: runtime,
+      scope: createScope({ resourceId: null, pathNodeId: null }),
+    });
+
+    const guard = buildKonlingCitationGuard({
+      citationContext,
+      teachingAssistantMode: modeContract,
+    }, '根据 citation(content:unit:step, content, PID 参数整定, high, course-ai-context) 解释 PID 参数整定。');
+
+    expect(modeContract.answerIntent).toBe('fact-explanation');
+    expect(guard.status).toBe('verified');
+    expect(guard.fallbackRequired).toBe(false);
+    expect(guard.missingCitationClasses).toEqual([]);
+    expect(guard.personalizationAvailability).toEqual({
+      status: 'limited',
+      missingCitationClasses: ['learner-state', 'path-execution', 'evidence'],
+      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution', 'missing-evidence'],
     });
   });
 

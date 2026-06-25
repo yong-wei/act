@@ -31,6 +31,29 @@ describe('AI SDK message compatibility', () => {
     expect(message.content).toBe('第一段第二段');
   });
 
+  it('preserves metadata when normalizing legacy content messages', () => {
+    const message = toLegacyMessage({
+      id: 'm4',
+      role: 'assistant',
+      content: '带引用的回答',
+      metadata: {
+        konlingCitationGuard: {
+          missingContext: ['learner-state'],
+          retrievalSources: [{ sourceType: 'content', displayTitle: 'PID 参数整定' }],
+          personalizationAvailability: { status: 'limited' },
+        },
+      },
+    });
+
+    expect(message.metadata).toEqual({
+      konlingCitationGuard: {
+        missingContext: ['learner-state'],
+        retrievalSources: [{ sourceType: 'content', displayTitle: 'PID 参数整定' }],
+        personalizationAvailability: { status: 'limited' },
+      },
+    });
+  });
+
   it('maps AI SDK v6 tool parts to legacy tool invocations', () => {
     const message = toLegacyMessage({
       id: 'm3',
