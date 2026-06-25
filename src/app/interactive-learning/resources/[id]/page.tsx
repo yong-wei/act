@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import type { TeachingResource } from '@prisma/client';
+import { ActionStatusPanel } from '@/components/platform/action-status';
 import { InteractiveLearningShell } from '@/features/interactive/interactive-learning-shell';
 import { ResourceRenderer } from '@/features/lesson-engine/resource-renderer';
 import {
@@ -13,6 +14,7 @@ import {
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
+import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 import type { WidgetResult } from '@/resources/widgets/widget-props';
 
 export default function InteractiveResourcePage() {
@@ -58,7 +60,17 @@ export default function InteractiveResourcePage() {
           label: '互动学习',
           href: '/interactive-learning',
           family: 'interactive-learning',
-        };
+      };
+  const resourceErrorState = error
+    ? buildPlatformRecoveryState({
+        kind: 'missing-object',
+        sourceRoute: '/interactive-learning/resources/[id]',
+        targetLabel: '互动资源',
+        displayReference: resourceId ?? null,
+        message: error,
+        recoveryAction: `返回${sourceContext.label}并重新选择资源`,
+      })
+    : null;
 
   useEffect(() => {
     if (!resourceId) return;
@@ -151,9 +163,19 @@ export default function InteractiveResourcePage() {
             <Loader2 className="h-6 w-6 animate-spin" />
             <span className="ml-3">正在加载资源...</span>
           </div>
-        ) : error ? (
-          <div className="flex h-full min-h-[20rem] items-center justify-center text-platform-fg-secondary">
-            {error}
+        ) : resourceErrorState ? (
+          <div className="flex h-full min-h-[20rem] items-center justify-center p-6">
+            <ActionStatusPanel
+              state={resourceErrorState}
+              action={(
+                <Link
+                  href={sourceContext.href}
+                  className="inline-flex items-center rounded-md border border-platform-border px-3 py-2 text-xs text-platform-fg-secondary hover:text-platform-action-primary"
+                >
+                  返回{sourceContext.label}
+                </Link>
+              )}
+            />
           </div>
         ) : resource ? (
           <ResourceRenderer resource={resource} onComplete={handlePathResourceComplete} />

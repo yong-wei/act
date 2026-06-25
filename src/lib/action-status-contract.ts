@@ -36,6 +36,8 @@ export interface AuditedActionState {
   message: string;
   recoveryAction?: string;
   nextAction?: string;
+  displayReference?: string;
+  recoveryKind?: string;
   announcement: string;
   severity: AuditedActionSeverity;
   httpStatus?: number;
@@ -101,6 +103,8 @@ export function createAuditedActionState(input: {
   message: string;
   recoveryAction?: string;
   nextAction?: string;
+  displayReference?: string;
+  recoveryKind?: string;
   httpStatus?: number;
   downloadFilename?: string | null;
 }): AuditedActionState {
@@ -118,6 +122,8 @@ export function createAuditedActionState(input: {
     message: input.message,
     recoveryAction: input.recoveryAction,
     nextAction: input.nextAction,
+    displayReference: input.displayReference,
+    recoveryKind: input.recoveryKind,
     announcement,
     severity,
     httpStatus: input.httpStatus,

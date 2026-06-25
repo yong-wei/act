@@ -87,7 +87,7 @@ export default function RegisterPage() {
               onChange={(event) => setPassword(event.target.value)}
               required
             />
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            {error ? <p className="text-sm text-destructive" role="alert" aria-live="assertive">{error}</p> : null}
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
             <Button className="w-full" type="submit" disabled={isSubmitting}>
