@@ -4939,9 +4939,10 @@ async function buildKonlingCitationContext(
     });
   }
 
-  const featureCache = await db.studentEvidenceFeatureCache?.findUnique?.({
+  const featureCacheRead = db.studentEvidenceFeatureCache?.findUnique?.({
     where: { userId: input.scope.targetUserId },
-  }).catch(() => null);
+  });
+  const featureCache = featureCacheRead ? await featureCacheRead.catch(() => null) : null;
   evidenceCitations.push(...buildFeatureCacheCitations(featureCache, input.scope, input.planContext));
 
   const hasLearnerStateCitation = evidenceCitations.some((citation) => citation.sourceType === 'learner-state');
