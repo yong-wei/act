@@ -80,7 +80,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("requestedIntent !== null && requestedIntent.trim().length > 0 && routeIntent === 'practice'");
     expect(source).toContain("data-adaptive-path-workspace-intent={workspaceIntent}");
     expect(source).toContain("const showPracticeWorkspace = workspaceIntent === 'practice'");
-    expect(source).toContain("const showPresetGoalCards = false");
+    expect(source).toContain('const showPresetGoalCards = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
     expect(source).toContain("showSelectionWorkspace ? (");
     expect(source).toContain("(showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
     expect(source).toContain("showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace");

@@ -1295,7 +1295,7 @@ export default function AdaptivePracticePage() {
   const showSelectionWorkspace = workspaceIntent === 'selection';
   const showExecutionWorkspace = workspaceIntent === 'execution';
   const showEvidenceWorkspace = workspaceIntent === 'evidence-review';
-  const showPresetGoalCards = false;
+  const showPresetGoalCards = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;
   const activePathId = searchParams.get('pathId');
   const activeNodeId = searchParams.get('nodeId');
   const activeGraphNodeId = searchParams.get('graphNodeId');

@@ -597,7 +597,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain('onClick={loadNextQuestion}');
   });
 
-  it('keeps landing generation entry route-based without preset goal cards', () => {
+  it('renders catalog goal cards on the no-goal landing entry', () => {
     const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
     const options = getAdaptivePracticeGoalOptions();
 
@@ -615,7 +615,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('data-adaptive-path-generation-ready="catalog"');
     expect(source).toContain('withFeedbackTaskHref(goal.hrefs.generation)');
     expect(source).toContain("const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';");
-    expect(source).toContain('const showPresetGoalCards = false');
+    expect(source).toContain('const showPresetGoalCards = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
     expect(source).toContain('useGlobalAI');
     expect(source).toContain('openPathGenerationAdvisor');
     expect(source).toContain('const hasInvalidRequestedGoal = requestedGoal !== null && !explicitGoal');
