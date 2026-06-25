@@ -390,7 +390,7 @@ function buildAssessmentLearningEvent(params: {
   };
 }
 
-async function findPassedPathRetryAnswer(
+async function findMatchingPathRetryAnswer(
   tx: AdaptiveAssessmentPersistenceTx,
   details: SubmittedAnswerDetails,
 ): Promise<PersistedAssessmentAnswerWithSession | null> {
@@ -399,7 +399,7 @@ async function findPassedPathRetryAnswer(
     where: {
       userId: details.record.userId,
       questionId: details.question.id,
-      isCorrect: true,
+      selectedOptionKey: details.selectedOptionKey,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       session: {
         sessionKey: {
@@ -470,8 +470,8 @@ async function persistAdaptiveAssessmentSubmission(
       !existingPathAnswer.isCorrect &&
       existingPathAnswer.selectedOptionKey !== details.selectedOptionKey
     ) {
-      const passedRetryAnswer = await findPassedPathRetryAnswer(tx, details);
-      const retrySessionId = passedRetryAnswer?.session?.sessionKey ??
+      const matchingRetryAnswer = await findMatchingPathRetryAnswer(tx, details);
+      const retrySessionId = matchingRetryAnswer?.session?.sessionKey ??
         `${details.record.sessionId}:retry-${answeredAt.getTime()}`;
       session = await tx.adaptiveAssessmentSession.upsert({
         where: {
