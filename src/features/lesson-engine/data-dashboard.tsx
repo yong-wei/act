@@ -28,13 +28,29 @@ interface StudentStateData {
 
 interface DataDashboardProps {
   sessionId: string;
+  roster?: Array<{
+    id: string;
+    name: string | null;
+    email?: string | null;
+    online: boolean;
+    submitted: boolean;
+  }>;
+  delivery?: {
+    submittedCount: number;
+    inProgressCount: number;
+    notStartedCount: number;
+    notSubmitted: Array<{ id: string; name: string | null; email?: string | null }>;
+  } | null;
   onClose: () => void;
 }
 
-export function DataDashboard({ sessionId, onClose }: DataDashboardProps) {
+export function DataDashboard({ sessionId, roster = [], delivery = null, onClose }: DataDashboardProps) {
   const [states, setStates] = useState<StudentStateData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const onlineCount = roster.length > 0
+    ? roster.filter((student) => student.online).length
+    : states.length;
 
   const fetchStates = useCallback(async () => {
     try {
@@ -141,15 +157,57 @@ export function DataDashboard({ sessionId, onClose }: DataDashboardProps) {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Online Students */}
-          <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
+          <div className="rounded-xl border border-platform-border bg-platform-surface p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-cyan-500/20">
-                <Users className="h-5 w-5 text-cyan-400" />
+              <div className="rounded-lg bg-platform-action-subtle p-2">
+                <Users className="h-5 w-5 text-platform-action-primary" />
               </div>
-              <span className="text-slate-400 text-sm">在线学生</span>
+              <span className="text-sm text-platform-fg-secondary">在线学生</span>
             </div>
-            <div className="text-4xl font-bold text-white">{states.length}</div>
+            <div className="text-4xl font-bold text-platform-fg-primary">{onlineCount}</div>
+            {roster.length > 0 ? (
+              <ul className="mt-4 space-y-2 text-sm text-platform-fg-secondary" data-classroom-online-roster>
+                {roster.slice(0, 6).map((student) => (
+                  <li key={student.id} className="flex items-center justify-between gap-3">
+                    <span className="truncate">{student.name ?? student.email ?? '未命名学生'}</span>
+                    <span className={student.online ? 'text-platform-evidence-eligible' : 'text-platform-fg-muted'}>
+                      {student.online ? '在线' : '未进入'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
+
+          {delivery ? (
+            <div className="rounded-xl border border-platform-border bg-platform-surface p-6" data-classroom-delivery-state>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="rounded-lg bg-platform-action-subtle p-2">
+                  <Activity className="h-5 w-5 text-platform-action-primary" />
+                </div>
+                <span className="text-sm text-platform-fg-secondary">发放与提交</span>
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-platform-evidence-eligible">{delivery.submittedCount}</div>
+                  <div className="text-xs text-platform-fg-muted">已提交</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-platform-evidence-context">{delivery.inProgressCount}</div>
+                  <div className="text-xs text-platform-fg-muted">进行中</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-platform-fg-secondary">{delivery.notStartedCount}</div>
+                  <div className="text-xs text-platform-fg-muted">未开始</div>
+                </div>
+              </div>
+              {delivery.notSubmitted.length > 0 ? (
+                <p className="mt-4 text-xs leading-5 text-platform-fg-secondary">
+                  未提交：{delivery.notSubmitted.slice(0, 5).map((student) => student.name ?? student.email ?? '未命名学生').join('、')}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           {/* Average PID - Kp */}
           {avgPid && (

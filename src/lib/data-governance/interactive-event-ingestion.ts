@@ -1,8 +1,11 @@
 import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
+import { canAccessClassroomSession, type ClassroomSessionAccessUser } from '@/lib/classroom-session-access';
 
 export interface SessionEndMetadata {
   status: string | null;
   endTime: Date | null;
+  classId?: string | null;
+  teacherId?: string | null;
 }
 
 export interface ValidInteractionEvent {
@@ -24,7 +27,8 @@ export type LearningContext =
 
 export type InvalidContextReason =
   | 'invalid_session_id_format'
-  | 'unknown_session';
+  | 'unknown_session'
+  | 'forbidden_session';
 
 export interface NormalizedInteractionEvent extends ValidInteractionEvent {
   clientEventId: string | null;
@@ -100,6 +104,7 @@ function resolveStandaloneLearningContext(payload: Record<string, unknown> | und
 export function normalizeInteractionContexts(
   events: ValidInteractionEvent[],
   sessionEndById: Map<string, SessionEndMetadata>,
+  actor: ClassroomSessionAccessUser = {},
 ): NormalizedInteractionEvent[] {
   return events.map(({ event, resourceId }) => {
     const rawSessionId = typeof event.sessionId === 'string' && event.sessionId.trim().length > 0
@@ -117,6 +122,12 @@ export function normalizeInteractionContexts(
     } else if (rawSessionId && !sessionEnd) {
       sessionId = null;
       invalidContextReason = 'unknown_session';
+    } else if (rawSessionId && sessionEnd && actor.id && sessionEnd.teacherId && !canAccessClassroomSession({
+      teacherId: sessionEnd.teacherId ?? '',
+      classId: sessionEnd.classId ?? null,
+    }, actor)) {
+      sessionId = null;
+      invalidContextReason = 'forbidden_session';
     }
 
     const isAfterSessionEnd =
@@ -131,6 +142,10 @@ export function normalizeInteractionContexts(
         ? 'classroom_review'
         : 'classroom_live'
       : resolveStandaloneLearningContext(event.data);
+    const { sessionId: _untrustedPayloadSessionId, ...payloadWithoutSessionId } = event.data ?? {};
+    const normalizedPayload = sessionId
+      ? (event.data ?? {})
+      : payloadWithoutSessionId;
 
     return {
       resourceId,
@@ -142,7 +157,7 @@ export function normalizeInteractionContexts(
         ...event,
         sessionId,
         data: {
-          ...(event.data ?? {}),
+          ...normalizedPayload,
           ...(clientEventId ? { clientEventId } : {}),
           ...(isAfterSessionEnd ? { afterSessionEnd: true } : {}),
           learningContext,

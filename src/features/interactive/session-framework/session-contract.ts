@@ -20,11 +20,24 @@ export interface SessionSummary {
   latestUpdate: string | Date | null;
 }
 
+export interface ClassroomIdentityPayloadLite {
+  kind: 'class-bound' | 'temporary';
+  label: string;
+  summaryLabel: string;
+  lessonTitle: string;
+  classId: string | null;
+  className: string | null;
+  sessionId?: string;
+  joinCode?: string;
+}
+
 export interface SessionInfo {
   id: string;
   joinCode?: string;
   status: 'ACTIVE' | 'PAUSED' | 'FINISHED';
   classId?: string | null;
+  class?: { name?: string | null } | null;
+  classroomIdentity?: ClassroomIdentityPayloadLite | null;
   currentItemId: string | null;
   currentStage?: string | null;
   planTitle?: string;
@@ -36,6 +49,26 @@ export interface TeacherViewStatePayload {
   courseStates: SessionStateRecord[];
   teacherStates: SessionStateRecord[];
   summary: SessionSummary;
+  classroom?: {
+    identity: ClassroomIdentityPayloadLite | null;
+    currentStepId: string | null;
+    currentStage: string | null;
+    status: string | null;
+  };
+  presence?: {
+    roster: Array<SessionUserLite & { online: boolean; submitted: boolean }>;
+    onlineCount: number;
+    expectedCount: number;
+    latestUpdate: string | Date | null;
+  };
+  delivery?: {
+    releasedStepId: string | null;
+    submittedCount: number;
+    inProgressCount: number;
+    notStartedCount: number;
+    notSubmitted: SessionUserLite[];
+    latestUpdate: string | Date | null;
+  };
 }
 
 export interface StudentViewStatePayload {

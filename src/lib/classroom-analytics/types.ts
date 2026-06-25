@@ -18,6 +18,13 @@ export interface ClassroomStateMutationInput {
   stateKey?: string | null;
   lessonKey?: string | null;
   clientEventAt?: number | string | null;
+  eventType?: string | null;
+  actorRole?: string | null;
+  stepId?: string | null;
+  cardId?: string | null;
+  clientEventId?: string | null;
+  sourceLogId?: string | null;
+  dedupeIdentity?: string | null;
   data: unknown;
 }
 

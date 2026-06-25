@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { logClassroomEvent } from '@/lib/classroom-observability';
 import type { ClassroomStateMutationInput } from '@/lib/classroom-analytics/types';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import {
+  buildClassroomIdentityPayload,
+  buildClassroomLifecycleEvidenceFields,
+  normalizeClassroomLifecycleClientEventAt,
+} from '@/lib/classroom-lifecycle-contract';
+import {
+  canAccessClassroomSession,
+  canManageClassroomSession,
+  isClassroomTeacherOrAdmin,
+  normalizeClassroomActorRole,
+} from '@/lib/classroom-session-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,8 +45,24 @@ function resolveStateKey(itemId: string | null | undefined, explicitStateKey: st
   return 'course';
 }
 
-function isTeacherOrAdminRole(role: unknown) {
-  return ['TEACHER', 'ADMIN', '教师', '管理员'].includes(String(role ?? '').toUpperCase());
+function resolveWriteStateKey(
+  itemId: string | null | undefined,
+  explicitStateKey: string | null | undefined,
+  lifecycleEvent: { clientEventId: string } | null,
+) {
+  const baseStateKey = resolveStateKey(itemId, explicitStateKey);
+  if (baseStateKey === 'teacher-sync' && lifecycleEvent) {
+    return `classroom-event:${lifecycleEvent.clientEventId}`;
+  }
+  return baseStateKey;
+}
+
+function readLifecycleClientEventId(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function readLifecycleClientEventAt(value: unknown): number | string | null {
+  return normalizeClassroomLifecycleClientEventAt(value);
 }
 
 function buildClassroomEvidenceWriteback() {
@@ -42,8 +70,29 @@ function buildClassroomEvidenceWriteback() {
     mode: 'live-state-and-event-materialization',
     explanation:
       '本接口保存课堂运行态 StudentState；互动提交由 /api/interactive/events 写入 InteractionLog、StudentStepResponse 并实时物化 LearningFact，课堂结束后的 finalization 刷新教师复盘与学生证据页。',
+    requiredEventFields: [
+      'eventType',
+      'actorRole',
+      'sessionId',
+      'stepId',
+      'cardId',
+      'clientEventId',
+      'sourceLogId',
+      'clientEventAt',
+      'dedupeIdentity',
+    ],
     dedupeRule: '具备 attemptKey、submissionIdentity、submissionId 或 attemptId 的课堂提交，会在互动事件入口按 userId、sessionId、lessonKey、stepId、cardId 和提交身份做应用层串行归并；cardId 是去重键的一部分，不能单独作为提交身份。重复提交不保留 raw InteractionLog，数据库级并发幂等仍未关闭。',
   };
+}
+
+function appendLifecycleEvent(data: unknown, event: unknown | null): Prisma.InputJsonValue {
+  if (!event || typeof data !== 'object' || data === null || Array.isArray(data)) {
+    return data as Prisma.InputJsonValue;
+  }
+  return {
+    ...(data as Record<string, unknown>),
+    classroomEvent: event,
+  } as Prisma.InputJsonValue;
 }
 
 /**
@@ -59,18 +108,71 @@ export async function POST(request: Request, props: { params: Promise<{ sessionI
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        role: true,
+        profile: { select: { classId: true } },
+      },
+    });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const body = (await request.json()) as ClassroomStateMutationInput;
     const { itemId, data, lessonKey } = body;
-    const stateKey = resolveStateKey(itemId, body.stateKey);
     const lastClientEventAt = toDateTime(body.clientEventAt);
+    const actorRole = normalizeClassroomActorRole(user.role);
+    const sessionRecord = await prisma.classSession.findUnique({
+      where: { id: params.sessionId },
+      select: { teacherId: true, classId: true },
+    });
+    if (!sessionRecord) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    }
+
+    const accessUser = {
+      id: user.id,
+      role: user.role,
+      profile: user.profile ?? session.user.profile ?? null,
+    };
+    if (!canAccessClassroomSession(sessionRecord, accessUser)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const lifecycleClientEventId = readLifecycleClientEventId(body.clientEventId);
+    const lifecycleClientEventAt = readLifecycleClientEventAt(body.clientEventAt);
+    if (body.eventType && (!lifecycleClientEventId || lifecycleClientEventAt === null)) {
+      return NextResponse.json({ error: 'Lifecycle event requires clientEventId and clientEventAt' }, { status: 400 });
+    }
+
+    let lifecycleEvent: ReturnType<typeof buildClassroomLifecycleEvidenceFields> | null = null;
+    if (body.eventType && lifecycleClientEventId && lifecycleClientEventAt !== null) {
+      lifecycleEvent = buildClassroomLifecycleEvidenceFields({
+          eventType: body.eventType,
+          actorRole,
+          sessionId: params.sessionId,
+          stepId: body.stepId ?? itemId ?? null,
+          cardId: body.cardId ?? null,
+          clientEventId: lifecycleClientEventId,
+          sourceLogId: body.sourceLogId ?? null,
+          clientEventAt: lifecycleClientEventAt,
+        });
+    }
+    const stateKey = resolveWriteStateKey(itemId, body.stateKey, lifecycleEvent);
+    const isTeacherSyncWrite = resolveStateKey(itemId, body.stateKey) === 'teacher-sync';
 
     if (!data) {
       return NextResponse.json({ error: 'Data is required' }, { status: 400 });
+    }
+
+    if (isTeacherSyncWrite && !isClassroomTeacherOrAdmin(user.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    if (isTeacherSyncWrite && !canManageClassroomSession(sessionRecord, accessUser)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Upsert: 更新或创建学生状态
@@ -86,7 +188,7 @@ export async function POST(request: Request, props: { params: Promise<{ sessionI
         stateKey,
         lessonKey: lessonKey || null,
         itemId,
-        data,
+        data: appendLifecycleEvent(data, lifecycleEvent),
         submittedAt: new Date(),
         lastClientEventAt,
       },
@@ -96,16 +198,17 @@ export async function POST(request: Request, props: { params: Promise<{ sessionI
         stateKey,
         lessonKey: lessonKey || null,
         itemId,
-        data,
+        data: appendLifecycleEvent(data, lifecycleEvent),
         lastClientEventAt,
       }
     });
 
-    if (itemId === 'student:presence' || itemId === 'teacher:course-sync') {
+    if (itemId === 'student:presence' || itemId === 'teacher:course-sync' || lifecycleEvent) {
       logClassroomEvent('session_state_post', {
         sessionId: params.sessionId,
         userId: user.id,
         itemId,
+        lifecycleEvent,
       });
     }
 
@@ -131,7 +234,43 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
     const teacherStateKey = 'teacher-sync';
 
     if (scope === 'teacher-view') {
-      if (!isTeacherOrAdminRole(session.user.role)) {
+      if (!isClassroomTeacherOrAdmin(session.user.role)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
+      const sessionRecord = await prisma.classSession.findUnique({
+        where: { id: params.sessionId },
+        select: {
+          id: true,
+          teacherId: true,
+          joinCode: true,
+          status: true,
+          classId: true,
+          currentItemId: true,
+          currentStage: true,
+          plan: { select: { title: true } },
+          class: {
+            select: {
+              name: true,
+              students: {
+                select: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      if (!sessionRecord) {
+        return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+      }
+      if (!canManageClassroomSession(sessionRecord, session.user)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
 
@@ -174,11 +313,49 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
         courseStates[0]?.submittedAt ||
         teacherStates[0]?.submittedAt ||
         null;
+      const currentItemId = sessionRecord?.currentItemId ?? null;
+      const expectedRoster = sessionRecord?.class?.students.map((student) => student.user) ?? [];
+      const observedRoster = courseStates
+        .map((state) => state.user)
+        .filter((user): user is NonNullable<typeof user> => Boolean(user));
+      const roster = expectedRoster.length > 0 ? expectedRoster : observedRoster;
+      const submittedCurrentStep = currentItemId
+        ? courseStates.filter((state) => state.itemId === currentItemId)
+        : courseStates;
+      const onlineUserIds = new Set(observedRoster.map((user) => user.id));
+      const submittedUserIds = new Set(submittedCurrentStep.map((state) => state.userId));
+      const notSubmitted = roster.filter((user) => !submittedUserIds.has(user.id));
 
       return NextResponse.json({
         states: courseStates,
         courseStates,
         teacherStates,
+        classroom: {
+          identity: sessionRecord ? buildClassroomIdentityPayload(sessionRecord) : null,
+          currentStepId: currentItemId,
+          currentStage: sessionRecord?.currentStage ?? null,
+          status: sessionRecord?.status ?? null,
+        },
+        presence: {
+          roster: roster.map((user) => ({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            online: onlineUserIds.has(user.id),
+            submitted: submittedUserIds.has(user.id),
+          })),
+          onlineCount: onlineUserIds.size,
+          expectedCount: roster.length,
+          latestUpdate,
+        },
+        delivery: {
+          releasedStepId: currentItemId,
+          submittedCount: submittedUserIds.size,
+          inProgressCount: Math.max(onlineUserIds.size - submittedUserIds.size, 0),
+          notStartedCount: Math.max(roster.length - onlineUserIds.size, 0),
+          notSubmitted,
+          latestUpdate,
+        },
         evidenceWriteback: buildClassroomEvidenceWriteback(),
         summary: {
           totalStudents: courseStates.length,
@@ -188,6 +365,17 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
     }
 
     if (scope === 'self') {
+      const sessionRecord = await prisma.classSession.findUnique({
+        where: { id: params.sessionId },
+        select: { teacherId: true, classId: true },
+      });
+      if (!sessionRecord) {
+        return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+      }
+      if (!canAccessClassroomSession(sessionRecord, session.user)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
       const state = await prisma.studentState.findUnique({
         where: {
           sessionId_userId_stateKey: {
@@ -220,7 +408,18 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
     }
 
     if (scope === 'student-view') {
-      const [selfState, teacherSyncState, totalStudents] = await Promise.all([
+      const sessionRecord = await prisma.classSession.findUnique({
+        where: { id: params.sessionId },
+        select: { teacherId: true, classId: true },
+      });
+      if (!sessionRecord) {
+        return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+      }
+      if (!canAccessClassroomSession(sessionRecord, session.user)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
+      const [selfState, teacherSyncState] = await Promise.all([
         prisma.studentState.findUnique({
           where: {
             sessionId_userId_stateKey: {
@@ -256,12 +455,6 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
             },
           },
         }),
-        prisma.studentState.count({
-          where: {
-            sessionId: params.sessionId,
-            stateKey: courseStateKey,
-          },
-        }),
       ]);
 
       const states = [teacherSyncState, selfState].filter(Boolean);
@@ -272,14 +465,24 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
         teacherStates: teacherSyncState ? [teacherSyncState] : [],
         evidenceWriteback: buildClassroomEvidenceWriteback(),
         summary: {
-          totalStudents,
           latestUpdate: teacherSyncState?.submittedAt || selfState?.submittedAt || null,
         },
       });
     }
 
     // 获取所有学生状态
-    if (!isTeacherOrAdminRole(session.user.role)) {
+    if (!isClassroomTeacherOrAdmin(session.user.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const sessionRecord = await prisma.classSession.findUnique({
+      where: { id: params.sessionId },
+      select: { teacherId: true, classId: true },
+    });
+    if (!sessionRecord) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    }
+    if (!canManageClassroomSession(sessionRecord, session.user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

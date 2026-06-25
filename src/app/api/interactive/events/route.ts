@@ -114,6 +114,91 @@ function resolvePageType(payload: Record<string, unknown>): PageType {
   return 'dashboard';
 }
 
+function normalizeActorRole(role: unknown) {
+  const value = String(role ?? '').toLowerCase();
+  if (value.includes('teacher') || value.includes('admin') || value.includes('教师') || value.includes('管理员')) {
+    return 'teacher';
+  }
+  return 'student';
+}
+
+function applyServerActorRole(
+  event: ClassroomInteractionEventInput,
+  actorRole: string,
+): ClassroomInteractionEventInput {
+  const data = event.data && typeof event.data === 'object' ? event.data : {};
+  return {
+    ...event,
+    actorRole,
+    data: {
+      ...data,
+      actorRole,
+      ...(data.eventType && data.sessionId
+        ? {
+            dedupeIdentity: [
+              data.sessionId,
+              data.eventType,
+              actorRole,
+              data.cardId ?? data.stepId ?? 'session',
+              data.clientEventId ?? event.id ?? event.timestamp,
+            ].join(':'),
+          }
+        : {}),
+    },
+  };
+}
+
+function withTrustedActorRole(value: unknown, actorRole: string): unknown {
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      const trusted = withTrustedActorRole(parsed, actorRole);
+      return JSON.stringify(trusted);
+    } catch {
+      return value;
+    }
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return value;
+  }
+  return {
+    ...(value as Record<string, unknown>),
+    actorRole,
+  };
+}
+
+function trustNestedEvidenceActorRoles(
+  payload: Record<string, unknown>,
+  actorRole: string,
+): Record<string, unknown> {
+  const next: Record<string, unknown> = {
+    ...payload,
+    actorRole,
+  };
+
+  if ('controlWorkbenchEvidenceDraft' in next) {
+    next.controlWorkbenchEvidenceDraft = withTrustedActorRole(next.controlWorkbenchEvidenceDraft, actorRole);
+  }
+  if ('annotatedMediaEvidenceDraft' in next) {
+    next.annotatedMediaEvidenceDraft = withTrustedActorRole(next.annotatedMediaEvidenceDraft, actorRole);
+  }
+
+  for (const key of ['answerDigest', 'answers']) {
+    const source = next[key];
+    if (!source || typeof source !== 'object' || Array.isArray(source)) {
+      continue;
+    }
+    next[key] = Object.fromEntries(
+      Object.entries(source as Record<string, unknown>).map(([entryKey, entryValue]) => [
+        entryKey,
+        withTrustedActorRole(entryValue, actorRole),
+      ]),
+    );
+  }
+
+  return next;
+}
+
 function readJsonString(payload: Prisma.JsonValue, key: string): string | null {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return null;
@@ -295,7 +380,11 @@ function buildStudentStepResponseRows(
         ? eventData.event.data
         : {};
     const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
-    const normalizedPayload = withSubmissionEvidenceQuality(payload, canonicalEventType);
+    const trustedActorRole = eventData.event.actorRole ?? 'student';
+    const normalizedPayload = trustNestedEvidenceActorRoles(
+      withSubmissionEvidenceQuality(payload, canonicalEventType),
+      trustedActorRole,
+    );
 
     if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
       continue;
@@ -374,6 +463,8 @@ async function loadSessionEndMetadata(
       id: true,
       status: true,
       endTime: true,
+      classId: true,
+      teacherId: true,
     },
   });
 
@@ -383,6 +474,8 @@ async function loadSessionEndMetadata(
       {
         status: item.status,
         endTime: item.endTime,
+        classId: item.classId,
+        teacherId: item.teacherId,
       },
     ]),
   );
@@ -413,6 +506,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { events } = body;
+    const serverActorRole = normalizeActorRole(session.user.role);
 
     if (!Array.isArray(events) || events.length === 0) {
       return NextResponse.json({ error: 'Events array is required' }, { status: 400 });
@@ -424,10 +518,10 @@ export async function POST(request: NextRequest) {
 
     for (const event of events as ClassroomInteractionEventInput[]) {
       const resolvedResourceKey = event.resourceKey ?? event.resourceId;
-      const normalizedEvent: ClassroomInteractionEventInput = {
+      const normalizedEvent = applyServerActorRole({
         ...event,
         resourceKey: event.resourceKey || event.resourceId || '',
-      };
+      }, serverActorRole);
 
       // 基础校验
       if (!normalizedEvent.type || typeof normalizedEvent.timestamp !== 'number') {
@@ -464,7 +558,11 @@ export async function POST(request: NextRequest) {
     }
 
     const sessionEndById = await loadSessionEndMetadata(validEvents);
-    const enrichedValidEvents = normalizeInteractionContexts(validEvents, sessionEndById);
+    const enrichedValidEvents = normalizeInteractionContexts(validEvents, sessionEndById, {
+      id: session.user.id,
+      role: session.user.role,
+      profile: session.user.profile ?? null,
+    });
     const clientEventIds = Array.from(
       new Set(
         enrichedValidEvents
@@ -506,13 +604,26 @@ export async function POST(request: NextRequest) {
       events: evidenceDedupedEvents,
       duplicateSubmissionEvents,
     } = await dedupeClassroomSubmissionEvents(dedupedEvents, session.user.id);
+    const trustedEvidenceEvents = evidenceDedupedEvents.map((item) => {
+      const payload = item.event.data && typeof item.event.data === 'object' ? item.event.data : {};
+      const canonicalEventType = resolveCanonicalEventType(item.event.type, payload);
+      const trustedPayload = trustNestedEvidenceActorRoles(
+        withSubmissionEvidenceQuality(payload, canonicalEventType),
+        item.event.actorRole ?? serverActorRole,
+      );
+      return {
+        ...item,
+        event: {
+          ...item.event,
+          data: trustedPayload,
+        },
+      };
+    });
 
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
-    const interactionLogEvents = evidenceDedupedEvents.map((item) => {
+    const interactionLogEvents = trustedEvidenceEvents.map((item) => {
       const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
-      const canonicalEventType = resolveCanonicalEventType(item.event.type, eventData);
-      const normalizedEventData = withSubmissionEvidenceQuality(eventData, canonicalEventType);
       return {
         userId: session.user.id,
         resourceId: item.resourceId,
@@ -526,7 +637,7 @@ export async function POST(request: NextRequest) {
         clientEventId: item.clientEventId,
         learningContext: item.learningContext,
         invalidContextReason: item.invalidContextReason,
-        eventData: normalizedEventData,
+        eventData,
         clientEventAt: toDateTime(item.event.clientEventAt ?? item.event.timestamp),
       };
     });
@@ -559,7 +670,7 @@ export async function POST(request: NextRequest) {
       : [];
 
     const sourceLinkedEvents = attachSourceLogIds(
-      evidenceDedupedEvents,
+      trustedEvidenceEvents,
       persistedLogs.map((log) => ({
         id: log.id,
         clientEventId: log.clientEventId ?? readJsonString(log.eventData, 'clientEventId'),
@@ -595,14 +706,13 @@ export async function POST(request: NextRequest) {
           ? eventData.event.data
           : {};
       const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
-      const normalizedPayload = withSubmissionEvidenceQuality(payload, canonicalEventType);
       const learningEvent = toLearningEvent(
         {
           ...eventData.event,
           eventId: typeof eventData.event.id === 'string' ? eventData.event.id : undefined,
           actionType: canonicalEventType,
           payload: {
-            ...normalizedPayload,
+            ...payload,
             ...(resolveClientEventId(eventData.event) ? { clientEventId: resolveClientEventId(eventData.event) } : {}),
             learningContext: eventData.learningContext,
             ...(eventData.invalidContextReason ? { invalidContextReason: eventData.invalidContextReason } : {}),

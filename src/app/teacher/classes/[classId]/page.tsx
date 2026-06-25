@@ -282,15 +282,33 @@ export default function ClassDetailPage() {
       const res = await fetch('/api/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId: selectedPlanId, classId })
+        body: JSON.stringify({ planId: selectedPlanId, classId, launchContext: 'class-bound' })
       });
 
       if (!res.ok) {
         const error = await res.json();
-        if (error.existingSessionId) {
-          // 已有进行中的课堂
-          if (confirm('该班级已有进行中的课堂，是否直接进入？')) {
+        if (error.existingSessionId && error.requiresExplicitChoice) {
+          if (window.confirm(`${error.classroomIdentity?.summaryLabel ?? '该班级和教案'}已有进行中的课堂。是否直接进入？`)) {
             router.push(`/classroom/teacher/${error.existingSessionId}`);
+            return;
+          }
+          if (window.confirm('确认仍要为该班级和教案新开一节课堂？')) {
+            const retry = await fetch('/api/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                planId: selectedPlanId,
+                classId,
+                launchContext: 'class-bound',
+                duplicateAction: 'new-session',
+              }),
+            });
+            const retryPayload = await retry.json().catch(() => ({}));
+            if (!retry.ok || !retryPayload.id) {
+              throw new Error(retryPayload.error || '开始课堂失败');
+            }
+            setAnnouncement('课堂已创建，正在进入教师课堂。');
+            router.push(`/classroom/teacher/${retryPayload.id}`);
           }
           return;
         }
@@ -1036,6 +1054,9 @@ export default function ClassDetailPage() {
                 </select>
               )}
             </div>
+            <p className="mb-4 rounded-lg border border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10 px-3 py-2 text-sm text-platform-fg-primary">
+              班级课堂：{classData?.name ?? '当前班级'}。学生端、教师投影和课后复盘将使用该班级身份。
+            </p>
 
             {startDialogError && (
               <p id={startDialogErrorId} role="alert" className="mb-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">

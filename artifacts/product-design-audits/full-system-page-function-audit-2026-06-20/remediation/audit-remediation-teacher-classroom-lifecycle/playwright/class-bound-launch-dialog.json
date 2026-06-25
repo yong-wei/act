@@ -1,0 +1,7 @@
+{
+  "route": "/teacher/classes/class-1",
+  "screenshotPath": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-teacher-classroom-lifecycle/playwright/class-bound-launch-dialog.png",
+  "visibleIdentity": "班级课堂：2026 控制班",
+  "duplicateHandling": "covered-by-src/app/__tests__/lesson-plan-session-routes.test.ts",
+  "capturedAt": "2026-06-25T19:46:44.484Z"
+}
