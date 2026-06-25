@@ -36,6 +36,7 @@ import {
   defaultPathGenerationPanel,
   pathGenerationPanelFromSearchParams,
 } from '@/lib/adaptive-path-generation-panel';
+import { getAdaptivePracticeGoalOptions } from '@/lib/adaptive-path-goal-options';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
 import {
   getPathNodeSemanticsForResourceType,
@@ -598,14 +599,28 @@ describe('adaptive learning center UI contracts', () => {
 
   it('keeps landing generation entry route-based without preset goal cards', () => {
     const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const options = getAdaptivePracticeGoalOptions();
 
-    expect(source).toContain("const controlCorrectionGenerationHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';");
-    expect(source).toContain("const frequencyResponseGenerationHref = '/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation';");
+    expect(options).toHaveLength(9);
+    expect(options.map((option) => option.id)).toEqual(expect.arrayContaining([
+      'feedback-loop-concept-foundations',
+      'time-domain-response-analysis',
+      'simulation-validation-practice',
+      'ship-ocean-transfer-application',
+    ]));
+    expect(source).toContain('const generationGoalOptions = getAdaptivePracticeGoalOptions();');
+    expect(source).toContain('{generationGoalOptions.map((goal) => (');
+    expect(source).toContain("getAdaptivePracticeGoalOption('control-correction')");
+    expect(source).toContain("generationGoalOptions.find((goal) => goal.id === 'frequency-response-foundations')");
+    expect(source).toContain('defaultGoalOption?.hrefs.generation');
+    expect(source).toContain('secondaryGoalOption?.hrefs.generation');
     expect(source).toContain("const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';");
     expect(source).toContain('const showPresetGoalCards = false');
     expect(source).toContain('useGlobalAI');
     expect(source).toContain('openPathGenerationAdvisor');
-    expect(source).toContain('const pathAdvisorContextGoal = activeGoal ?? (showGenerationWorkspace ? pathGenerationPanel.goalId : null)');
+    expect(source).toContain('const hasInvalidRequestedGoal = requestedGoal !== null && !explicitGoal');
+    expect(source).toContain('const pathAdvisorContextGoal = hasInvalidRequestedGoal');
+    expect(source).toContain('disabled={pathGenerationPending !== null || hasInvalidRequestedGoal}');
     expect(source).toContain('pathAdvisorContextGoal || isDemoMode');
     expect(source).toContain("data-adaptive-path-generation-action=\"open-in-page-path-advisor\"");
     expect(source).toContain("data-adaptive-path-generation-action=\"choose-generation-goal\"");
@@ -736,19 +751,24 @@ describe('adaptive learning center UI contracts', () => {
     });
   });
 
-  it('registers path-advisor entry point only after an explicit control-correction goal is selected', () => {
+  it('registers path-advisor entry point for every explicit catalog goal', () => {
     const source = readFileSync(join(repoRoot, 'src/features/adaptive/path-advisor-entrypoint-bridge.tsx'), 'utf8');
     const layoutSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/layout.tsx'), 'utf8');
 
     expect(source).toContain("import { useSearchParams } from 'next/navigation';");
-    expect(source).toContain("value === 'control-correction' || value === 'frequency-response-foundations'");
+    expect(source).toContain('isAdaptivePracticeGoalId(requestedGoal)');
+    expect(source).toContain("const activeGraphNodeId = searchParams.get('graphNodeId')");
+    expect(source).toContain('if (activeGraphNodeId) {');
     expect(source).toContain('const modeContextToken = explicitGoal ? modeContextTokens[explicitGoal] ?? null : null;');
     expect(source).toContain('if (!explicitGoal || !classId || !modeContextToken) {');
+    expect(source).toContain('goalContexts[explicitGoal]');
     expect(source).toContain('updatePageContext({ assistantEntryPoint: null });');
     expect(source).toContain('return () => updatePageContext({ assistantEntryPoint: null });');
     expect(source).toContain('promptContext: `student-path-center:${explicitGoal}:adaptive-path-center`');
     expect(source).toContain('goalId: explicitGoal');
-    expect(layoutSource).toContain("'frequency-response-foundations': createKonlingTeachingAssistantServerContextToken");
+    expect(layoutSource).toContain('const goalOptions = getAdaptivePracticeGoalOptions();');
+    expect(layoutSource).toContain('Object.fromEntries(goalOptions.map((goal) => [');
+    expect(layoutSource).toContain('courseId: goal.id');
   });
 
   it('renders adaptive path execution, skip warning, and evidence history in student-facing language', () => {
@@ -836,7 +856,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("goalId: AdaptivePracticeGoalId");
     expect(source).toContain('function resolveAdaptivePracticeGoalId');
     expect(source).toContain('goalId: resolveAdaptivePracticeGoalId');
-    expect(source).toContain('controlCorrectionPathPlan?.goal.id ?? controlCorrectionPathRound?.goalId ?? activeGoal');
+    expect(source).toContain('activePathPlan?.goal.id ?? activePathRound?.goalId ?? activeGoal');
     expect(source).toContain("new URLSearchParams({ goal: goalId, intent: 'path-execution', nodeId: node.nodeId })");
     expect(source).not.toContain("new URLSearchParams({ goal: 'control-correction', intent: 'path-execution', nodeId: node.nodeId })");
     expect(source).not.toContain('Readiness Gate');
@@ -1892,27 +1912,29 @@ describe('adaptive learning center UI contracts', () => {
     expect(JSON.stringify(view.fallbackStates)).not.toContain('goal=control-correction');
   });
 
-  it('binds the adaptive practice page to control-correction query context', () => {
+  it('binds the adaptive practice page to catalog-backed goal query context', () => {
     const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
 
     expect(source).toContain('buildControlCorrectionLearningCenterView');
     expect(source).toContain("searchParams.get('goal')");
-    expect(source).toContain('const shouldRecoverDefaultPath = !explicitGoal');
+    expect(source).toContain('const hasInvalidRequestedGoal = requestedGoal !== null && !explicitGoal');
+    expect(source).toContain('const shouldRecoverDefaultPath = !hasInvalidRequestedGoal &&');
     expect(source).toContain("shouldRecoverDefaultPath ? 'control-correction' : null");
     expect(source).toContain('isAdaptivePracticeGoalId');
-    expect(source).toContain("value === 'control-correction' || value === 'frequency-response-foundations'");
+    expect(source).toContain('restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null)');
+    expect(source).toContain('getAdaptivePracticeGoalOptions');
     expect(source).toContain("searchParams.get('intent')");
     expect(source).toContain("searchParams.get('pathId')");
     expect(source).toContain("searchParams.get('nodeId')");
     expect(source).toContain('new URLSearchParams({ goal: activeGoal, intent: routeIntent })');
-    expect(source).toContain("controlCorrectionQuery.set('pathId', activePathId)");
-    expect(source).toContain("controlCorrectionQuery.set('nodeId', activeNodeId)");
+    expect(source).toContain("defaultGoalQuery && activePathId");
+    expect(source).toContain("defaultGoalQuery && activeNodeId");
     expect(source).toContain('data-control-correction-center="adaptive-practice"');
     expect(source).toContain('fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(goalToLoad)}`)');
     expect(source).toContain("authStatus === 'loading'");
     expect(source).toContain("authStatus === 'unauthenticated'");
-    expect(source).toContain("setControlCorrectionLearnerState(null)");
-    expect(source).toContain("setControlCorrectionPathPlan(null)");
+    expect(source).toContain("setActiveLearnerState(null)");
+    expect(source).toContain("setActivePathPlan(null)");
     expect(source).toContain("goalToLoad === 'control-correction'");
     expect(source).toContain('learnerState?.pathContext.activeControlCorrectionPath.pathId');
     expect(source).toContain('learnerState?.pathContext.recentPathIds ?? []');
@@ -1922,7 +1944,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('fetchLatestLearningPathRound(goalToLoad)');
     expect(source).toContain('showRecoveredExecutionWorkspace');
     expect(source).toContain('data-adaptive-path-completed-summary="latest-restored"');
-    expect(source).toContain('formatPathCompletionTime(controlCorrectionPathRound)');
+    expect(source).toContain('formatPathCompletionTime(activePathRound)');
     expect(source).toContain('fetchLatestLearningPathRound(activeGoal)');
     const generationRefreshBlock = source.slice(
       source.indexOf('const refreshLatestLearningPathAfterKonling = useCallback'),
@@ -1932,9 +1954,7 @@ describe('adaptive learning center UI contracts', () => {
       .toBeLessThan(generationRefreshBlock.indexOf('const pathIdsToTry = uniquePathIds(fallbackPathIds)'));
     expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathId)}`)');
     expect(source).toContain('fetch(`/api/learning-paths/latest?goal=${encodeURIComponent(goalId)}`)');
-    expect(source).toContain("if (!round || !isAdaptivePracticeGoalId(round.goalId)) return null;");
-    expect(source).toContain('id: round.goalId');
-    expect(source).toContain('Array.isArray(round.alternativePayload)');
+    expect(source).toContain('restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null)');
     expect(source).toContain('data-control-correction-alternative-count');
     expect(source).toContain('goalId: activeGoal');
     expect(source).toContain('routeIntent: activeGoal ? routeIntent : null');

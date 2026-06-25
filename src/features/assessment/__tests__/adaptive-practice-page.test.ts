@@ -96,7 +96,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("const activeOptionId = searchParams.get('optionId')");
     expect(source).toContain("const selectedExecutionOption = useMemo");
     expect(source).toContain("option.optionId === activeOptionId");
-    expect(source).toContain("getPathExecutionNodes(controlCorrectionPathPlan, controlCorrectionPathRound, selectedExecutionOption)");
+    expect(source).toContain("getPathExecutionNodes(activePathPlan, activePathRound, selectedExecutionOption)");
     expect(source).toContain("const pathUpdate = getRecord(payload.pathUpdate)");
     expect(source).toContain("typeof pathUpdate.currentNodeId === 'string'");
     expect(source).toContain("option.activeNodeIds?.[0] ?? option.nodeIds?.[0]");
@@ -105,17 +105,17 @@ describe('adaptive practice page entry states', () => {
   it('keeps demo path state available for execution and visual QA routes', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
-    const learnerStateEffectStart = source.indexOf("if (!activeGoal) {\n      setControlCorrectionLearnerState(null);");
+    const learnerStateEffectStart = source.indexOf("if (!activeGoal) {\n      setActiveLearnerState(null);");
     const learnerStateEffect = source.slice(
       learnerStateEffectStart,
       source.indexOf("if (authStatus === 'loading')", learnerStateEffectStart),
     );
 
     expect(learnerStateEffectStart).toBeGreaterThan(-1);
-    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setControlCorrectionLearnerState(null);\n      return;\n    }');
-    expect(source).not.toContain('if (!activeGoal || isDemoMode) {\n      setControlCorrectionLearnerState(null);');
-    expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setControlCorrectionPathPlan(null);');
-    expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setControlCorrectionPathRound(null);');
+    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setActiveLearnerState(null);\n      return;\n    }');
+    expect(source).not.toContain('if (!activeGoal || isDemoMode) {\n      setActiveLearnerState(null);');
+    expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setActivePathPlan(null);');
+    expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setActivePathRound(null);');
   });
 
   it('keeps demo execution fixture with an actionable current node for visual QA', () => {
