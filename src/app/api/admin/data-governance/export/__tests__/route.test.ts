@@ -108,6 +108,51 @@ describe('GET /api/admin/data-governance/export', () => {
     expect(mocks.writeXlsxFile).toHaveBeenCalled();
   });
 
+  it('binds export ledger keys to the actual risk set, not only row count', async () => {
+    const firstResponse = await GET(new Request(
+      'http://localhost/api/admin/data-governance/export?format=csv',
+    ) as never);
+    const firstKey = firstResponse.headers.get('x-admin-operation-idempotency-key');
+
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValueOnce([
+      {
+        id: 'risk-2',
+        userId: 'student-2',
+        flagType: 'participation',
+        severity: 'high',
+        description: '新风险',
+        triggeredAt: new Date('2026-06-21T08:00:00.000Z'),
+        isResolved: false,
+        user: { name: '李四', email: 'lisi@example.test' },
+      },
+    ]);
+
+    const secondResponse = await GET(new Request(
+      'http://localhost/api/admin/data-governance/export?format=csv',
+    ) as never);
+    const secondKey = secondResponse.headers.get('x-admin-operation-idempotency-key');
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(firstKey).toMatch(/^admin-op:/);
+    expect(secondKey).toMatch(/^admin-op:/);
+    expect(secondKey).not.toBe(firstKey);
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not persist export-ready ledger entries before XLSX generation succeeds', async () => {
+    mocks.writeXlsxFile.mockReturnValueOnce({
+      toBuffer: vi.fn().mockRejectedValue(new Error('xlsx generation failed')),
+    });
+
+    await expect(GET(new Request(
+      'http://localhost/api/admin/data-governance/export?format=xlsx',
+    ) as never)).rejects.toThrow('xlsx generation failed');
+
+    expect(mocks.prisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
+    expect(mocks.prisma.adminOperationArtifact.upsert).not.toHaveBeenCalled();
+  });
+
   it('includes the operation ledger in JSON exports', async () => {
     const response = await GET(new Request(
       'http://localhost/api/admin/data-governance/export?format=json',

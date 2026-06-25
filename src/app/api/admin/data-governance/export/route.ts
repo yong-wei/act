@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { createHash } from 'node:crypto';
 import writeXlsxFile from 'write-excel-file/node';
 
 import { requireAdminSession } from '@/lib/admin';
@@ -53,6 +54,10 @@ export async function GET(request: NextRequest) {
     triggeredAt: risk.triggeredAt.toISOString(),
     isResolved: risk.isResolved,
   }));
+  const riskSetDigest = createHash('sha256')
+    .update(JSON.stringify(rows))
+    .digest('hex')
+    .slice(0, 16);
   const operationLedger = buildAdminOperationLedgerEntry({
     kind: 'admin-governance-export',
     actorId: session.user.id,
@@ -65,6 +70,7 @@ export async function GET(request: NextRequest) {
       'admin-governance-export',
       format,
       rows.length,
+      riskSetDigest,
       session.user.id,
       generatedAt.slice(0, 10),
     ]),
@@ -87,10 +93,9 @@ export async function GET(request: NextRequest) {
       action: '下载文件并归档审计记录',
     },
   });
-  await persistAdminOperationLedger(operationLedger);
 
   if (format === 'json') {
-    return new NextResponse(JSON.stringify({
+    const body = JSON.stringify({
       generatedAt,
       actorId: session.user.id,
       risks: rows,
@@ -103,7 +108,9 @@ export async function GET(request: NextRequest) {
         idempotencyKey: operationLedger.idempotencyKey,
         recordedAt: generatedAt,
       },
-    }, null, 2), {
+    }, null, 2);
+    await persistAdminOperationLedger(operationLedger);
+    return new NextResponse(body, {
       status: 200,
       headers: exportHeaders(filename, 'application/json; charset=utf-8', rows.length, operationLedger),
     });
@@ -124,13 +131,16 @@ export async function GET(request: NextRequest) {
   ];
 
   if (format === 'csv') {
-    return new NextResponse(toCsv(table), {
+    const body = toCsv(table);
+    await persistAdminOperationLedger(operationLedger);
+    return new NextResponse(body, {
       status: 200,
       headers: exportHeaders(filename, 'text/csv; charset=utf-8', rows.length, operationLedger),
     });
   }
 
   const buffer = await writeXlsxFile(table, { sheet: '治理风险' }).toBuffer();
+  await persistAdminOperationLedger(operationLedger);
   return new NextResponse(buffer, {
     status: 200,
     headers: exportHeaders(
