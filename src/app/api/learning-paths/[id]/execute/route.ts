@@ -559,13 +559,17 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
   const kaqReview = toRecord(toRecord(kaqMetadata).review);
   const kaqLearningGoalIds = arrayOfStrings(toRecord(kaqMetadata).learningGoalIds);
   const reviewedKaqAnswer = firstString(kaqReview.state) === 'reviewed';
-  const readinessGateEligible = reviewedKaqAnswer && firstString(toRecord(kaqMetadata).purpose) === 'readiness-gate';
+  const kaqPurpose = firstString(toRecord(kaqMetadata).purpose);
+  const readinessGateEligible = reviewedKaqAnswer && kaqPurpose === 'readiness-gate';
+  const checkpointEligible = reviewedKaqAnswer && input.resourceType === 'checkpoint' && kaqPurpose === 'checkpoint';
+  const readinessCompletionEligible = input.resourceType === 'adaptive_quiz' && readinessGateEligible;
+  const pathCompletionEligible = readinessCompletionEligible || checkpointEligible;
   const learningGoalMatches = typeof input.goalId === 'string' && input.goalId.trim().length > 0
     ? kaqLearningGoalIds.includes(input.goalId)
     : true;
   const pathContextMatches = answer ? matchesAdaptiveAssessmentPathContext(answer, input) : false;
   const adaptiveAssessmentRef = answer
-    ? pathContextMatches && readinessGateEligible && learningGoalMatches
+    ? pathContextMatches && pathCompletionEligible && learningGoalMatches
       ? compactObject({
         kind: 'AdaptiveAssessmentAnswer',
         id: answer.id,
@@ -574,6 +578,7 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
         questionSnapshotId: firstString(toRecord(kaqMetadata).immutableContentHash),
         reviewState: firstString(kaqReview.state),
         readinessGateEligible,
+        pathCompletionEligible,
         terminalValidationEligible: readinessGateEligible,
         learningGoalIds: kaqLearningGoalIds.length > 0 ? kaqLearningGoalIds : undefined,
         outcomeRefs: Array.isArray(toRecord(kaqMetadata).outcomeRefs)
@@ -593,9 +598,9 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
         'AdaptiveAssessmentAnswer',
         id,
         pathContextMatches
-          ? readinessGateEligible
-            ? 'adaptive-assessment-goal-mismatch'
-            : 'adaptive-assessment-readiness-not-eligible'
+          ? learningGoalMatches
+            ? 'adaptive-assessment-readiness-not-eligible'
+            : 'adaptive-assessment-goal-mismatch'
           : 'adaptive-assessment-path-mismatch',
       )
     : unknownEvidenceRef('AdaptiveAssessmentAnswer', id);
@@ -639,7 +644,7 @@ function isTrustedAdaptiveAssessmentPathCompletionRef(value: unknown): boolean {
   const record = toRecord(value);
   return firstString(record.kind) === 'AdaptiveAssessmentAnswer' &&
     firstString(record.provenance) === 'official' &&
-    record.readinessGateEligible === true &&
+    record.pathCompletionEligible === true &&
     firstString(record.reviewState) === 'reviewed' &&
     isPassingAdaptiveAssessmentPathCompletionRef(record);
 }

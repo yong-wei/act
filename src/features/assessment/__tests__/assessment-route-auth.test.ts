@@ -396,7 +396,7 @@ describe('assessment API auth boundaries', () => {
       userId: 'student-1',
       sessionId: 'adaptive-path:path-1:checkpoint:control-correction-review',
       goalId: 'control-correction',
-      questionScope: 'readiness',
+      questionScope: 'checkpoint',
     });
   });
 

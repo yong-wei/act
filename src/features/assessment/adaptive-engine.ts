@@ -77,7 +77,7 @@ export interface PublicQuestion extends Omit<CrossDomainQuestion, 'options'> {
   options: Array<{ label: string; text: string; explanation: string }>;
 }
 
-export type AdaptiveQuestionScope = 'practice' | 'readiness';
+export type AdaptiveQuestionScope = 'practice' | 'readiness' | 'checkpoint';
 
 export interface AbilityReport {
   userId: string;
@@ -378,7 +378,7 @@ export function selectNextQuestionFromAnswers(
       .map((answer) => answer.questionId),
   );
   const unaskedCandidates = candidates.filter((question) => !askedQuestionIds.has(question.id));
-  if (targetGoalId && questionScope === 'readiness' && unaskedCandidates.length === 0) {
+  if (targetGoalId && (questionScope === 'readiness' || questionScope === 'checkpoint') && unaskedCandidates.length === 0) {
     const selectedUnansweredCandidate = candidates.find((question) => (
       askedQuestionIds.has(question.id) && !answeredQuestionIds.has(question.id)
     ));
@@ -426,6 +426,11 @@ function filterQuestionsByGoal(
         metadata.review.state === 'reviewed' &&
         metadata.purpose === 'readiness-gate';
     }
+    if (questionScope === 'checkpoint') {
+      return metadata.learningGoalIds.includes(targetGoalId) &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'checkpoint';
+    }
 
     if (metadata.review.state === 'provisional') {
       return explicitGeneratedLearningGoalIds(question).includes(targetGoalId);
@@ -435,9 +440,13 @@ function filterQuestionsByGoal(
       metadata.purpose !== 'readiness-gate';
   });
   if (scopedQuestions.length === 0) {
-    throw new Error(questionScope === 'readiness'
-      ? `未找到学习目标 ${targetGoalId} 的已审核 readiness 题目`
-      : `未找到学习目标 ${targetGoalId} 的低风险练习题目`);
+    if (questionScope === 'readiness') {
+      throw new Error(`未找到学习目标 ${targetGoalId} 的已审核 readiness 题目`);
+    }
+    if (questionScope === 'checkpoint') {
+      throw new Error(`未找到学习目标 ${targetGoalId} 的已审核 checkpoint 题目`);
+    }
+    throw new Error(`未找到学习目标 ${targetGoalId} 的低风险练习题目`);
   }
   return scopedQuestions;
 }

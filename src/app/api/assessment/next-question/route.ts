@@ -30,9 +30,9 @@ export async function POST(request: Request) {
 
     const userId = session.user.id;
     const sessionId = body.sessionId ?? `adaptive-${userId}`;
-    const verifiedPathGoalId = await readVerifiedPathGoalId(body, userId, sessionId);
-    const goalId = verifiedPathGoalId ?? readStandaloneGoalId(body);
-    const questionScope: AdaptiveQuestionScope = verifiedPathGoalId ? 'readiness' : 'practice';
+    const verifiedPathContext = await readVerifiedPathContext(body, userId, sessionId);
+    const goalId = verifiedPathContext?.goalId ?? readStandaloneGoalId(body);
+    const questionScope: AdaptiveQuestionScope = verifiedPathContext?.questionScope ?? 'practice';
 
     const result = await selectNextQuestionWithPersistenceFallback({ userId, sessionId, goalId, questionScope });
     return NextResponse.json(result);
@@ -48,7 +48,11 @@ export async function POST(request: Request) {
   }
 }
 
-async function readVerifiedPathGoalId(body: NextQuestionRequest, userId: string, sessionId: string): Promise<string | null> {
+async function readVerifiedPathContext(
+  body: NextQuestionRequest,
+  userId: string,
+  sessionId: string,
+): Promise<{ goalId: string; questionScope: AdaptiveQuestionScope } | null> {
   const pathId = typeof body.pathId === 'string' && body.pathId.trim().length > 0 ? body.pathId.trim() : null;
   const nodeId = typeof body.nodeId === 'string' && body.nodeId.trim().length > 0 ? body.nodeId.trim() : null;
   const routeIntent = typeof body.routeIntent === 'string' && body.routeIntent.trim().length > 0 ? body.routeIntent.trim() : null;
@@ -87,7 +91,10 @@ async function readVerifiedPathGoalId(body: NextQuestionRequest, userId: string,
   if (!isPathAssessmentNode(pathNode)) {
     throw new Error('路径自适应题目请求的 nodeId 不是自适应测验或检查点节点');
   }
-  return path.goalId;
+  return {
+    goalId: path.goalId,
+    questionScope: pathNode.type === 'checkpoint' ? 'checkpoint' : 'readiness',
+  };
 }
 
 function isPathAssessmentNode(pathNode: Record<string, unknown> | null): boolean {
