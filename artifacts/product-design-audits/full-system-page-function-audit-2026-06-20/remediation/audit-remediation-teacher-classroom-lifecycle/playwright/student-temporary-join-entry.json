@@ -1,0 +1,7 @@
+{
+  "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+  "screenshotPath": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-teacher-classroom-lifecycle/playwright/student-temporary-join-entry.png",
+  "visibleStudentPath": "输入课堂码加入课堂",
+  "runtimeStudentState": "covered-by-src/features/interactive/__tests__/classroom-join-entry.test.ts",
+  "capturedAt": "2026-06-25T19:46:33.442Z"
+}

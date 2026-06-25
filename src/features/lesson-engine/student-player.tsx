@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import { Users, CheckCircle, Loader2, WifiOff } from 'lucide-react';
 import { ResourceRenderer } from './resource-renderer';
 import { Prisma, TeachingResource, BopppsStage, KnowledgeNode, LessonItemType } from '@prisma/client';
+import {
+  buildClassroomIdentityPayload,
+  type ClassroomIdentityPayload,
+} from '@/lib/classroom-lifecycle-contract';
 
 // BOPPPS 阶段标签
 const STAGE_LABELS: Record<BopppsStage, { label: string; color: string }> = {
@@ -34,6 +38,8 @@ interface SessionInfo {
   currentItemId: string | null;
   currentStage: BopppsStage | null;
   classId: string | null;
+  class?: { name?: string | null } | null;
+  classroomIdentity?: ClassroomIdentityPayload | null;
   plan: { id: string; title: string };
 }
 
@@ -48,6 +54,8 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
   const [sessionStatus, setSessionStatus] = useState(initialSession.status);
   const [isConnected, setIsConnected] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
+  const [studentRuntimeStatus, setStudentRuntimeStatus] = useState('等待教师发放课堂内容。');
+  const classroomIdentity = initialSession.classroomIdentity ?? buildClassroomIdentityPayload(initialSession);
 
   // 查找当前项
   const currentItem = items.find((item) => item.id === currentItemId) || items[0] || null;
@@ -69,13 +77,14 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
       // 更新当前项
       if (data.currentItemId && data.currentItemId !== currentItemId) {
         setCurrentItemId(data.currentItemId);
+        setStudentRuntimeStatus('教师已发放新的课堂环节。');
       }
 
       // 检查课堂状态
       if (data.status !== sessionStatus) {
         setSessionStatus(data.status);
         if (data.status === 'FINISHED') {
-          // 课堂已结束
+          setStudentRuntimeStatus('课堂已结束，本次作答正在进入证据页。');
         }
       }
     } catch {
@@ -99,23 +108,24 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
     const evidenceHref = `/profile/evidence?sessionId=${encodeURIComponent(initialSession.id)}`;
 
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="max-w-lg px-6 text-center" data-classroom-student-state="finished-review">
-          <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">课堂已结束</h2>
-          <p className="text-slate-400">本次课堂作答会进入课堂复盘和个人证据页；重复提交会按课堂、步骤和提交身份合并。</p>
+      <div className="flex min-h-screen items-center justify-center bg-platform-canvas">
+        <div className="max-w-lg px-6 text-center" data-classroom-student-state="finished-review" data-classroom-identity-kind={classroomIdentity.kind}>
+          <CheckCircle className="mx-auto mb-4 h-16 w-16 text-platform-evidence-eligible" />
+          <h2 className="mb-2 text-2xl font-bold text-platform-fg-primary">课堂已结束</h2>
+          <p className="text-sm text-platform-action-primary">{classroomIdentity.summaryLabel}</p>
+          <p className="mt-3 text-platform-fg-secondary">本次课堂作答会进入课堂复盘和个人证据页；重复提交会按课堂、步骤和提交身份合并。</p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <button
               type="button"
               onClick={() => router.push(evidenceHref)}
-              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors"
+              className="rounded-lg bg-platform-action-primary px-6 py-3 text-platform-fg-inverse transition-colors hover:bg-platform-action-hover"
             >
               查看课堂证据
             </button>
             <button
               type="button"
               onClick={() => router.push('/classroom/join')}
-              className="px-6 py-3 border border-slate-700 text-slate-200 hover:bg-slate-900 rounded-lg transition-colors"
+              className="rounded-lg border border-platform-border px-6 py-3 text-platform-fg-secondary transition-colors hover:bg-platform-surface"
             >
               加入其他课堂
             </button>
@@ -128,14 +138,19 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
   return (
     <div className="h-screen flex flex-col bg-slate-950 text-white overflow-hidden">
       {/* 顶部状态栏 */}
-      <header className="h-14 border-b border-slate-800 bg-slate-900/80 backdrop-blur-sm flex items-center justify-between px-4 flex-shrink-0">
+      <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-platform-border bg-platform-surface-overlay px-4 backdrop-blur-sm">
         {/* 左侧: 课程信息 */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-cyan-400" />
-            <span className="text-sm font-medium truncate max-w-[200px]">
-              {initialSession.plan.title}
-            </span>
+            <div className="min-w-0">
+              <span className="block truncate text-sm font-medium max-w-[220px]">
+                {classroomIdentity.label}
+              </span>
+              <span className="block max-w-[220px] truncate text-[11px] text-platform-fg-muted">
+                {initialSession.plan.title}
+              </span>
+            </div>
           </div>
           {currentItem && (
             <span
@@ -153,7 +168,7 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
           {isConnected ? (
             <div className="flex items-center gap-1.5 text-xs text-green-400">
               <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-              同步中
+              已发放
             </div>
           ) : (
             <div className="flex items-center gap-1.5 text-xs text-red-400">
@@ -161,11 +176,12 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
               连接中断
             </div>
           )}
-          <div className="text-xs text-slate-500 font-mono">
-            #{initialSession.joinCode}
+          <div className="font-mono text-xs text-platform-fg-muted">
+            课堂码 {initialSession.joinCode}
           </div>
         </div>
       </header>
+      <div className="sr-only" role="status" aria-live="polite">{studentRuntimeStatus}</div>
 
       {/* 主内容区 */}
       <main className="flex-1 overflow-hidden relative">
@@ -181,9 +197,9 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
             stage={currentItem.stage}
           />
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400">
+          <div className="flex h-full flex-col items-center justify-center text-platform-fg-secondary">
             <Loader2 className="h-8 w-8 animate-spin mb-4" />
-            <p>等待教师开始...</p>
+            <p data-classroom-student-state="released-waiting">等待教师发放课堂环节...</p>
           </div>
         )}
       </main>
@@ -201,8 +217,8 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
                 }}
               />
             </div>
-            <span className="text-xs text-slate-500 font-mono min-w-[60px] text-right">
-              {currentIndex + 1} / {items.length}
+            <span className="min-w-[60px] text-right font-mono text-xs text-platform-fg-muted" data-classroom-student-state="released-submission-ready">
+              已发放，提交后进入课堂证据 · {currentIndex + 1} / {items.length}
             </span>
           </div>
         </div>

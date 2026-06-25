@@ -1,0 +1,11 @@
+{
+  "route": "/classroom/teacher/audit-session-runtime",
+  "routePattern": "/classroom/teacher/[sessionId]",
+  "screenshots": {
+    "desktopExpanded": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-teacher-classroom-lifecycle/playwright/teacher-runtime-1440.png",
+    "desktopCollapsed": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-teacher-classroom-lifecycle/playwright/teacher-runtime-1440-collapsed.png",
+    "mobile": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-teacher-classroom-lifecycle/playwright/teacher-runtime-320.png"
+  },
+  "visibleIdentity": "2026 控制班 · 班级课堂",
+  "capturedAt": "2026-06-25T19:46:55.721Z"
+}

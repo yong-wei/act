@@ -52,14 +52,62 @@ describe('classroom join entry', () => {
   it('connects classroom finished and teacher end states to evidence and review routes', () => {
     const studentSource = readFileSync(join(repoRoot, 'src/features/lesson-engine/student-player.tsx'), 'utf8');
     const teacherSource = readFileSync(join(repoRoot, 'src/features/lesson-engine/teacher-player.tsx'), 'utf8');
+    const dashboardSource = readFileSync(join(repoRoot, 'src/features/lesson-engine/data-dashboard.tsx'), 'utf8');
 
     expect(studentSource).toContain('data-classroom-student-state="finished-review"');
     expect(studentSource).toContain('/profile/evidence?sessionId=');
     expect(studentSource).toContain('查看课堂证据');
     expect(teacherSource).toContain('data-classroom-state-flow="join-release-submit-summary-end-review"');
     expect(teacherSource).toContain('data-classroom-end-state={status}');
+    expect(teacherSource).toContain('data-classroom-teacher-state="finished-review"');
+    expect(teacherSource).toContain('role="status" aria-live="polite"');
+    expect(dashboardSource).toContain('data-classroom-online-roster');
+    expect(dashboardSource).toContain('data-classroom-delivery-state');
     expect(teacherSource).toContain("router.push(reviewHref)");
     expect(teacherSource).not.toContain("confirm('确定要结束课堂吗？");
     expect(teacherSource).not.toContain('alert(error instanceof Error');
+  });
+
+  it('guards direct classroom runtime pages with server-side session access checks', () => {
+    const teacherPageSource = readFileSync(join(repoRoot, 'src/app/classroom/teacher/[sessionId]/page.tsx'), 'utf8');
+    const studentPageSource = readFileSync(join(repoRoot, 'src/app/classroom/student/[sessionId]/page.tsx'), 'utf8');
+
+    expect(teacherPageSource).toContain('getServerSession(authOptions)');
+    expect(teacherPageSource).toContain('canManageClassroomSession(session, userSession.user)');
+    expect(studentPageSource).toContain('getServerSession(authOptions)');
+    expect(studentPageSource).toContain('canAccessClassroomSession(session, userSession.user)');
+  });
+
+  it('marks class-bound and temporary launch contexts explicitly', () => {
+    const classPageSource = readFileSync(join(repoRoot, 'src/app/teacher/classes/[classId]/page.tsx'), 'utf8');
+    const lessonListSource = readFileSync(join(repoRoot, 'src/features/lesson-engine/lesson-plan-list.tsx'), 'utf8');
+    const courseEntrySource = readFileSync(join(repoRoot, 'src/features/interactive/shared/course-entry-shell.tsx'), 'utf8');
+    const premiumEntrySource = readFileSync(join(repoRoot, 'src/features/interactive/shared/premium-lesson-entry-page.tsx'), 'utf8');
+    const studentSource = readFileSync(join(repoRoot, 'src/features/lesson-engine/student-player.tsx'), 'utf8');
+
+    expect(classPageSource).toContain("launchContext: 'class-bound'");
+    expect(classPageSource).toContain('班级课堂：{classData?.name');
+    expect(classPageSource).toContain("duplicateAction: 'new-session'");
+    expect(lessonListSource).toContain("launchContext: 'temporary'");
+    expect(lessonListSource).toContain("duplicateAction: 'new-session'");
+    expect(courseEntrySource).toContain('sourcePresetKey: config.presetKey');
+    expect(courseEntrySource).toContain("duplicateAction: 'new-session'");
+    expect(premiumEntrySource).toContain('sourcePresetKey: config.presetKey');
+    expect(premiumEntrySource).toContain("duplicateAction: 'new-session'");
+    expect(studentSource).toContain('data-classroom-identity-kind={classroomIdentity.kind}');
+    expect(studentSource).not.toContain('session id');
+  });
+
+  it('records teacher control lifecycle events through the state endpoint', () => {
+    const teacherSource = readFileSync(join(repoRoot, 'src/features/lesson-engine/teacher-player.tsx'), 'utf8');
+    const dashboardSource = readFileSync(join(repoRoot, 'src/features/lesson-engine/data-dashboard.tsx'), 'utf8');
+
+    expect(teacherSource).toContain('recordControlEvidence');
+    expect(teacherSource).toContain("recordControlEvidence('start-class'");
+    expect(teacherSource).toContain("recordControlEvidence('copy-code'");
+    expect(teacherSource).toContain("recordControlEvidence('online-panel'");
+    expect(teacherSource).toContain("recordControlEvidence('release-interaction'");
+    expect(teacherSource).toContain("stateKey: 'teacher-sync'");
+    expect(dashboardSource).toContain('roster.filter((student) => student.online).length');
   });
 });

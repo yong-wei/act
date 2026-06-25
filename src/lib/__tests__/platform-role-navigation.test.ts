@@ -309,6 +309,7 @@ describe('platform role navigation', () => {
       '/assessment/document-feedback',
       '/data-center',
       '/classroom/student/[sessionId]',
+      '/classroom/teacher/[sessionId]',
       '/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]',
       '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]',
       '/interactive-learning/courses/[course]/student/[sessionId]',
@@ -821,6 +822,7 @@ describe('platform role navigation', () => {
 
     expect(exceptions.map((route) => route.href)).toEqual([
       '/classroom/student/[sessionId]',
+      '/classroom/teacher/[sessionId]',
       '/interactive-learning/courses/[course]/student/[sessionId]',
       '/interactive-learning/courses/[course]/teacher/[sessionId]',
       '/playlists/[id]/play',

@@ -65,11 +65,34 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
       const res = await fetch('/api/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId })
+        body: JSON.stringify({ planId, launchContext: 'temporary' })
       });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
+        if (res.status === 409 && errorData.existingSessionId && errorData.requiresExplicitChoice) {
+          const reuseExisting = window.confirm(`${errorData.classroomIdentity?.summaryLabel ?? '该教案'}已有进行中的临时课堂。是否进入已有课堂？`);
+          if (reuseExisting) {
+            router.push(`/classroom/teacher/${errorData.existingSessionId}`);
+            return;
+          }
+          const createNew = window.confirm('确认仍要新开一个临时课堂？');
+          if (createNew) {
+            const retry = await fetch('/api/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ planId, launchContext: 'temporary', duplicateAction: 'new-session' }),
+            });
+            const retryPayload = await retry.json().catch(() => ({}));
+            if (!retry.ok || !retryPayload.id) {
+              throw new Error(retryPayload.error || 'Failed to start session');
+            }
+            router.push(`/classroom/teacher/${retryPayload.id}`);
+            return;
+          }
+          setLoadingId(null);
+          return;
+        }
         throw new Error(errorData.error || 'Failed to start session');
       }
 

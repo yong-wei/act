@@ -174,6 +174,58 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.generateSessionSummaryReports).not.toHaveBeenCalled();
   });
 
+  it('downgrades class-bound events when the student does not belong to the session class', async () => {
+    mocks.prisma.classSession.findMany.mockResolvedValue([
+      {
+        id: 'cmoxloe52000uq5bcojma7r78',
+        status: 'ACTIVE',
+        endTime: null,
+        classId: 'class-2',
+        teacherId: 'teacher-1',
+      },
+    ]);
+    mocks.getServerSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT', profile: { classId: 'class-1' } },
+    });
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'log-forbidden', clientEventId: 'client-forbidden-session', eventData: { clientEventId: 'client-forbidden-session' } },
+    ]);
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-forbidden-session',
+          type: 'view',
+          timestamp: Date.parse('2026-05-09T02:30:00.000Z'),
+          resourceKey: 'unit-4-3',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          data: {},
+        },
+      ],
+    }));
+    const createArg = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0];
+
+    expect(response.status).toBe(200);
+    expect(createArg.data).toEqual([
+      expect.objectContaining({
+        clientEventId: 'client-forbidden-session',
+        sessionId: null,
+        learningContext: 'standalone_resource',
+        invalidContextReason: 'forbidden_session',
+      }),
+    ]);
+    expect(createArg.data[0].eventData).toMatchObject({
+      invalidContextReason: 'forbidden_session',
+    });
+    expect(mocks.persistCoreLearningFact).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        sessionId: null,
+      }),
+    );
+  });
+
   it('refreshes the session report after a session_finalize event is persisted', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
     mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
@@ -574,6 +626,8 @@ describe('POST /api/interactive/events', () => {
             data: {
               clientEventId: 'client-forged-source',
               eventType: 'lesson_submit',
+              sessionId: 'cmoxloe52000uq5bcojma7r78',
+              stepId: 'step-08',
               sourceLogId: 'forged-log-id',
               answerDigest: { 'weight-preference': 'C' },
             },
@@ -588,6 +642,7 @@ describe('POST /api/interactive/events', () => {
     expect(persistedInteractionLogData.eventData).toEqual(expect.objectContaining({
       clientEventId: 'client-forged-source',
       eventType: 'lesson_submit',
+      dedupeIdentity: 'cmoxloe52000uq5bcojma7r78:lesson_submit:student:step-08:client-forged-source',
     }));
     expect(persistedInteractionLogData.eventData).not.toHaveProperty('sourceLogId');
     expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalledWith({
@@ -605,6 +660,45 @@ describe('POST /api/interactive/events', () => {
       sourceLogId: 'actual-log-id',
     });
     expect(learningEvent.payload.sourceLogId).not.toBe('forged-log-id');
+  });
+
+  it('derives actorRole from the authenticated user before persisting interaction events', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'actual-role-log-id', clientEventId: 'client-forged-role', eventData: { clientEventId: 'client-forged-role' } },
+    ]);
+
+    const response = await POST(createPostRequest({
+        events: [
+          {
+            id: 'client-forged-role',
+            type: 'submit',
+            timestamp: Date.parse('2026-05-12T01:54:42.900Z'),
+            resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+            lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+            sessionId: 'cmoxloe52000uq5bcojma7r78',
+            stepId: 'step-08',
+            actorRole: 'teacher',
+            data: {
+              clientEventId: 'client-forged-role',
+              eventType: 'lesson_submit',
+              sessionId: 'cmoxloe52000uq5bcojma7r78',
+              stepId: 'step-08',
+              actorRole: 'teacher',
+              answerDigest: { 'weight-preference': 'C' },
+            },
+          },
+        ],
+      }));
+
+    const persistedInteractionLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
+
+    expect(response.status).toBe(200);
+    expect(persistedInteractionLogData.actorRole).toBe('student');
+    expect(persistedInteractionLogData.eventData).toEqual(expect.objectContaining({
+      actorRole: 'student',
+      dedupeIdentity: 'cmoxloe52000uq5bcojma7r78:lesson_submit:student:step-08:client-forged-role',
+    }));
   });
 
   it('materializes control workbench evidence with trusted source log fields', async () => {
@@ -667,11 +761,18 @@ describe('POST /api/interactive/events', () => {
     expect(createArg.data[0].responseData.controlWorkbenchEvidence).toMatchObject({
       sourceLogId: 'actual-workbench-log-id',
       lessonKey: 'unit-4-2-controller-selection-first-start-v1',
+      actorRole: 'student',
       payload: {
         capabilityId: 'control-frequency-reading-workbench',
         serverRecordedAt: '2026-06-18T01:00:00.000Z',
       },
     });
+    const persistedLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
+    const persistedDraft = JSON.parse(persistedLogData.eventData.answerDigest['parameter.set']);
+    const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];
+    const routedDraft = JSON.parse(routedLearningEvent.payload.answerDigest['parameter.set']);
+    expect(persistedDraft.actorRole).toBe('student');
+    expect(routedDraft.actorRole).toBe('student');
     vi.useRealTimers();
   });
 
@@ -692,7 +793,7 @@ describe('POST /api/interactive/events', () => {
       moduleId: 'annotated-media',
       componentKind: 'visual.annotatedMedia',
       componentId: 'closed-loop-media',
-      actorRole: 'student',
+      actorRole: 'teacher',
       clientEventAt: '2026-06-18T00:00:00.000Z',
       schemaVersion: 'annotated-media-evidence-v1',
       serverRecordedAt: null,
@@ -758,6 +859,7 @@ describe('POST /api/interactive/events', () => {
     expect(createArg.data[0].responseData.annotatedMediaEvidence).toMatchObject({
       sourceLogId: 'actual-annotated-media-log-id',
       lessonKey: 'annotated-media-activity-fixture',
+      actorRole: 'student',
       payload: {
         mediaId: 'closed-loop-media',
         selectedAnnotationIds: ['input-hotspot', 'output-hotspot'],
@@ -768,6 +870,12 @@ describe('POST /api/interactive/events', () => {
         serverRecordedAt: '2026-06-18T01:00:00.000Z',
       },
     });
+    const persistedLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
+    const persistedDraft = JSON.parse(persistedLogData.eventData.answers.annotatedMediaEvidenceDraft);
+    const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];
+    const routedDraft = JSON.parse(routedLearningEvent.payload.answers.annotatedMediaEvidenceDraft);
+    expect(persistedDraft.actorRole).toBe('student');
+    expect(routedDraft.actorRole).toBe('student');
     vi.useRealTimers();
   });
 

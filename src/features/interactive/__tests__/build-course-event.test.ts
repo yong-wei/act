@@ -16,5 +16,15 @@ describe('buildCourseEvent', () => {
 
     expect(event.resourceId).toBeNull();
     expect(event.resourceKey).toBe('unit-3-7-steady-error-low-frequency-compensation');
+    expect(event.data).toMatchObject({
+      eventType: 'lesson_step_view',
+      actorRole: 'student',
+      sessionId: 'session-001',
+      stepId: 'step-01',
+      clientEventId: expect.stringContaining('session-001:lesson_step_view:step-01:'),
+      sourceLogId: null,
+      dedupeIdentity: expect.stringContaining('session-001:lesson_step_view:student:step-01:'),
+    });
+    expect(event.data?.clientEventAt).toBeDefined();
   });
 });
