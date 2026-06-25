@@ -5415,6 +5415,7 @@ export function buildKonlingCitationGuard(
 function isPersonalizationCitationClass(value: string): boolean {
   return value === 'learner-state'
     || value === 'path-execution'
+    || value === 'evidence'
     || value === 'simulation'
     || value === 'arena'
     || value === 'intervention'
@@ -5423,7 +5424,8 @@ function isPersonalizationCitationClass(value: string): boolean {
 }
 
 function isPersonalizationLowConfidenceReason(value: string): boolean {
-  return value.includes('learner-state')
+  return value === 'missing-evidence'
+    || value.includes('learner-state')
     || value.includes('path-execution')
     || value.includes('learner-evidence')
     || value.includes('personalization');

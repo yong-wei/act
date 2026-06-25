@@ -35,7 +35,7 @@ describe('Konling streaming citation fallback', () => {
     expect(notice).toContain('streaming-final-text-unverified');
   });
 
-  it('keeps production streaming answers free of raw debug notices by default', () => {
+  it('keeps production streaming answers free of raw diagnostics while surfacing safe low-confidence guidance', () => {
     const notice = buildStreamingCitationFallbackNotice({
       status: 'low-confidence',
       missingCitationClasses: ['learning-path'],
@@ -45,7 +45,10 @@ describe('Konling streaming citation fallback', () => {
       nodeEnv: 'production',
     });
 
-    expect(notice).toBeNull();
+    expect(notice).toContain('【控灵证据提示】');
+    expect(notice).toContain('引用证据仍需核验');
+    expect(notice).not.toContain('learning-path');
+    expect(notice).not.toContain('assistant-citations-unverified-stream');
   });
 
   it('allows explicit production debug notice injection for support review', () => {

@@ -2784,8 +2784,8 @@ describe('konling agent runtime', () => {
         owner: 'recommendation',
       }],
       evidenceCitations: [],
-      missingCitationClasses: ['learner-state', 'path-execution'],
-      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution'],
+      missingCitationClasses: ['learner-state', 'path-execution', 'evidence'],
+      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution', 'missing-evidence'],
       responseProtocol: {
         requiredOwners: ['answer', 'recommendation'],
         minimum: { content: 1, evidenceWhenAvailable: 1 },
@@ -2833,7 +2833,7 @@ describe('konling agent runtime', () => {
       lowConfidenceReasons: [],
       personalizationAvailability: {
         status: 'limited',
-        missingCitationClasses: ['learner-state', 'path-execution'],
+        missingCitationClasses: expect.arrayContaining(['learner-state', 'path-execution']),
         lowConfidenceReasons: expect.arrayContaining(['missing-learner-state', 'missing-path-execution']),
       },
     });
@@ -2860,8 +2860,8 @@ describe('konling agent runtime', () => {
         owner: 'recommendation',
       }],
       evidenceCitations: [],
-      missingCitationClasses: ['learner-state', 'path-execution'],
-      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution'],
+      missingCitationClasses: ['learner-state', 'path-execution', 'evidence'],
+      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution', 'missing-evidence'],
       responseProtocol: {
         requiredOwners: ['answer', 'recommendation'],
         minimum: { content: 1, evidenceWhenAvailable: 1 },
@@ -2931,7 +2931,7 @@ describe('konling agent runtime', () => {
       lowConfidenceReasons: [],
       personalizationAvailability: {
         status: 'limited',
-        missingCitationClasses: ['learner-state', 'path-execution'],
+        missingCitationClasses: expect.arrayContaining(['learner-state', 'path-execution']),
         lowConfidenceReasons: expect.arrayContaining(['missing-learner-state', 'missing-path-execution']),
       },
     });
@@ -3531,8 +3531,8 @@ describe('konling agent runtime', () => {
         owner: 'answer',
       }],
       evidenceCitations: [],
-      missingCitationClasses: ['learner-state', 'path-execution'],
-      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution'],
+      missingCitationClasses: ['learner-state', 'path-execution', 'evidence'],
+      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution', 'missing-evidence'],
       responseProtocol: {
         requiredOwners: ['answer'],
         minimum: { content: 1, evidenceWhenAvailable: 1 },
@@ -3560,8 +3560,8 @@ describe('konling agent runtime', () => {
     expect(guard.missingCitationClasses).toEqual([]);
     expect(guard.personalizationAvailability).toEqual({
       status: 'limited',
-      missingCitationClasses: ['learner-state', 'path-execution'],
-      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution'],
+      missingCitationClasses: ['learner-state', 'path-execution', 'evidence'],
+      lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution', 'missing-evidence'],
     });
   });
 

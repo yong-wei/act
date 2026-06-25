@@ -51,7 +51,6 @@ export function buildStreamingCitationFallbackNotice(
   options: StreamingCitationFallbackNoticeOptions = {},
 ) {
   if (!guard) return null;
-  if (!shouldInjectStreamingCitationFallbackNotice(options)) return null;
   const hasDiagnostics = guard.status !== 'verified'
     || guard.missingCitationClasses.length > 0
     || guard.lowConfidenceReasons.length > 0
@@ -59,6 +58,10 @@ export function buildStreamingCitationFallbackNotice(
     || (guard.missingContext?.length ?? 0) > 0
     || guard.personalizationAvailability?.status === 'limited';
   if (!hasDiagnostics) return null;
+  if (!shouldInjectStreamingCitationFallbackNotice(options)) {
+    if (guard.status === 'verified') return null;
+    return '【控灵证据提示】本次回答的引用证据仍需核验，请优先依据已展示的可核验来源判断；涉及个人学习状态或路径建议时，请以页面中的正式记录为准。\n\n';
+  }
   const sources = (guard.retrievalSources ?? guard.citations)
     .slice(0, 3)
     .map((citation) => citation.displayTitle || citation.evidenceBasis || citation.id)
