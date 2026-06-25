@@ -610,10 +610,10 @@ describe('adaptive learning center UI contracts', () => {
     ]));
     expect(source).toContain('const generationGoalOptions = getAdaptivePracticeGoalOptions();');
     expect(source).toContain('{generationGoalOptions.map((goal) => (');
-    expect(source).toContain("getAdaptivePracticeGoalOption('control-correction')");
-    expect(source).toContain("generationGoalOptions.find((goal) => goal.id === 'frequency-response-foundations')");
-    expect(source).toContain('defaultGoalOption?.hrefs.generation');
-    expect(source).toContain('secondaryGoalOption?.hrefs.generation');
+    expect(source).toContain('{generationGoalOptions.length} 个目标');
+    expect(source).toContain('{generationGoalOptions.map((goal, index) => {');
+    expect(source).toContain('data-adaptive-path-generation-ready="catalog"');
+    expect(source).toContain('withFeedbackTaskHref(goal.hrefs.generation)');
     expect(source).toContain("const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';");
     expect(source).toContain('const showPresetGoalCards = false');
     expect(source).toContain('useGlobalAI');
@@ -1927,8 +1927,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("searchParams.get('pathId')");
     expect(source).toContain("searchParams.get('nodeId')");
     expect(source).toContain('new URLSearchParams({ goal: activeGoal, intent: routeIntent })');
-    expect(source).toContain("defaultGoalQuery && activePathId");
-    expect(source).toContain("defaultGoalQuery && activeNodeId");
+    expect(source).toContain("if (activeGoalQuery && activePathId) activeGoalQuery.set('pathId', activePathId)");
+    expect(source).toContain("if (activeGoalQuery && activeNodeId) activeGoalQuery.set('nodeId', activeNodeId)");
     expect(source).toContain('data-control-correction-center="adaptive-practice"');
     expect(source).toContain('fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(goalToLoad)}`)');
     expect(source).toContain("authStatus === 'loading'");

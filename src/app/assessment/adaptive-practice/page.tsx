@@ -57,7 +57,6 @@ import {
 import { restoreAdaptiveLearningPathPlanFromRound } from '@/lib/adaptive-path-round-restore';
 import {
   adaptivePracticeGoalLabel,
-  getAdaptivePracticeGoalOption,
   getAdaptivePracticeGoalOptions,
   isAdaptivePracticeGoalId,
   type AdaptivePathAdvisorQuickPrompt,
@@ -1309,22 +1308,7 @@ export default function AdaptivePracticePage() {
   const activeGoalContextHref = withFeedbackTaskHref(activeGoal
     ? `/assessment/adaptive-practice?${activeGoalQuery?.toString() ?? ''}`
     : '/assessment/adaptive-practice');
-  const defaultGoalOption = getAdaptivePracticeGoalOption('control-correction') ?? generationGoalOptions[0] ?? null;
-  const secondaryGoalOption = generationGoalOptions.find((goal) => goal.id === 'frequency-response-foundations') ?? generationGoalOptions[1] ?? defaultGoalOption;
-  const defaultGoalQuery = defaultGoalOption
-    ? new URLSearchParams({ goal: defaultGoalOption.id, intent: routeIntent })
-    : null;
-  if (defaultGoalQuery && activePathId) defaultGoalQuery.set('pathId', activePathId);
-  if (defaultGoalQuery && activeNodeId) defaultGoalQuery.set('nodeId', activeNodeId);
-  if (defaultGoalQuery && activeOptionId) defaultGoalQuery.set('optionId', activeOptionId);
-  const controlCorrectionContextHref = withFeedbackTaskHref(defaultGoalQuery
-    ? `/assessment/adaptive-practice?${defaultGoalQuery.toString()}`
-    : '/assessment/adaptive-practice');
-  const controlCorrectionGenerationHref = defaultGoalOption?.hrefs.generation ?? '/assessment/adaptive-practice?intent=contextual-recommendation';
-  const frequencyResponseGenerationHref = secondaryGoalOption?.hrefs.generation ?? controlCorrectionGenerationHref;
   const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';
-  const feedbackControlCorrectionGenerationHref = withFeedbackTaskHref(controlCorrectionGenerationHref);
-  const feedbackFrequencyResponseGenerationHref = withFeedbackTaskHref(frequencyResponseGenerationHref);
   const feedbackGenericPathGenerationHref = withFeedbackTaskHref(genericPathGenerationHref);
   const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoalContextHref)}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
@@ -2689,63 +2673,45 @@ export default function AdaptivePracticePage() {
                 </p>
               </div>
               <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
-                2 个目标
+                {generationGoalOptions.length} 个目标
               </span>
             </div>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div
-                className="rounded-lg border border-border bg-background/55 p-4"
-                data-adaptive-path-generation-goal="control-correction"
-                data-adaptive-path-generation-ready="true"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
-                    <GitBranch className="size-5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className="text-xs text-subtle">目标一</p>
-                    <h3 className="text-base font-semibold text-foreground">控制系统校正设计</h3>
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {generationGoalOptions.map((goal, index) => {
+                const GoalIcon = goal.intentType === 'controller-design'
+                  ? GitBranch
+                  : goal.intentType === 'simulation-validation'
+                    ? Compass
+                    : Target;
+                return (
+                  <div
+                    key={goal.id}
+                    className="rounded-lg border border-border bg-background/55 p-4"
+                    data-adaptive-path-generation-goal={goal.id}
+                    data-adaptive-path-generation-ready="catalog"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
+                        <GoalIcon className="size-5" aria-hidden="true" />
+                      </span>
+                      <div>
+                        <p className="text-xs text-subtle">目标 {index + 1}</p>
+                        <h3 className="text-base font-semibold text-foreground">{goal.label}</h3>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-subtle">{goal.detail}</p>
+                    <p className="mt-2 text-xs leading-5 text-subtle">{goal.terminalValidationSummary}</p>
+                    <Link
+                      href={withFeedbackTaskHref(goal.hrefs.generation)}
+                      data-adaptive-path-generation-action="enter-registered-goal-context"
+                      className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                    >
+                      <Sparkles className="size-3.5" aria-hidden="true" />
+                      生成该目标路径
+                    </Link>
                   </div>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-subtle">
-                  面向时域指标、根轨迹设计、仿真验证和 Arena 迁移，适合生成可执行的校正学习路径。
-                </p>
-                <Link
-                  href={feedbackControlCorrectionGenerationHref}
-                  data-adaptive-path-generation-action="enter-registered-goal-context"
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
-                >
-                  <Sparkles className="size-3.5" aria-hidden="true" />
-                  生成该目标路径
-                </Link>
-              </div>
-
-              <div
-                className="rounded-lg border border-border bg-background/55 p-4"
-                data-adaptive-path-generation-goal="frequency-response-foundations"
-                data-adaptive-path-generation-ready="evidence-first"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
-                    <Compass className="size-5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className="text-xs text-subtle">目标二</p>
-                    <h3 className="text-base font-semibold text-foreground">频率响应基础</h3>
-                  </div>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-subtle">
-                  面向 Bode 图、频域稳定性和基础练习，适合先补齐学习证据，再进入可比较路径。
-                </p>
-                <Link
-                  href={feedbackFrequencyResponseGenerationHref}
-                  data-adaptive-path-generation-action="enter-registered-goal-context"
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
-                >
-                  <Sparkles className="size-3.5" aria-hidden="true" />
-                  生成该目标路径
-                </Link>
-              </div>
+                );
+              })}
             </div>
           </section>
           ) : null}
