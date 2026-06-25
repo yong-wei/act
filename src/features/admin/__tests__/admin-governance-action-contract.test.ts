@@ -106,18 +106,21 @@ describe('admin governance action contract', () => {
 
     expect(contract.state).toMatchObject({
       status: 'succeeded',
-      message: '治理风险导出请求已生成，文件由服务端按未解决风险范围生成，操作账本保留导出范围和恢复状态。',
-      displayReference: expect.stringMatching(/^admin-op:/),
+      message: '治理风险导出请求已就绪，文件和操作账本 ID 将由服务端下载响应返回。',
+      identity: {
+        id: 'admin-governance-export-request:xlsx:2026-06-21',
+      },
       downloadFilename: 'data-governance-risks-2026-06-21.xlsx',
     });
+    expect(contract.state?.displayReference).toBeUndefined();
     expect(contract.auditRecord).toMatchObject({
       action: 'export',
       outcome: 'export-ready',
       undoAvailable: false,
-      operationId: expect.stringMatching(/^admin-governance-export:/),
-      idempotencyKey: expect.stringMatching(/^admin-op:/),
       retentionPolicy: 'admin-operation-ledger-30d',
     });
+    expect(contract.auditRecord?.operationId).toBeUndefined();
+    expect(contract.auditRecord?.idempotencyKey).toBeUndefined();
   });
 
   it('resolves route action targets from target and recent risk collections', () => {

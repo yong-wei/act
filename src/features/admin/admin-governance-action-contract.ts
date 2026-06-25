@@ -1,5 +1,4 @@
 import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
-import { buildAdminOperationId, buildAdminOperationIdempotencyKey } from '@/lib/admin-operation-ledger';
 
 export type GovernanceRiskSummary = {
   id: string;
@@ -58,31 +57,18 @@ export function buildGovernanceActionContract(input: {
   if (action === 'export') {
     const format = normalizeExportFormat(input.query?.format);
     const filename = `data-governance-risks-${recordedAt.slice(0, 10)}.${format}`;
-    const idempotencyKey = buildAdminOperationIdempotencyKey([
-      'admin-governance-export',
-      format,
-      input.risks.length,
-      input.actorId,
-      recordedAt.slice(0, 10),
-    ]);
-    const operationId = buildAdminOperationId({
-      kind: 'admin-governance-export',
-      scope: `admin-data-governance-export:${format}`,
-      seed: idempotencyKey,
-    });
     return {
       state: createAuditedActionState({
         identity: {
-          id: operationId,
+          id: `admin-governance-export-request:${format}:${recordedAt.slice(0, 10)}`,
           category: 'export',
           label: '治理风险导出',
           sourceRoute: '/admin/data-governance',
           requestedAction: action,
         },
         status: 'succeeded',
-        message: '治理风险导出请求已生成，文件由服务端按未解决风险范围生成，操作账本保留导出范围和恢复状态。',
-        nextAction: '下载文件并留存审计记录',
-        displayReference: idempotencyKey,
+        message: '治理风险导出请求已就绪，文件和操作账本 ID 将由服务端下载响应返回。',
+        nextAction: '下载文件并使用响应中的审计 ID 留存记录',
         downloadFilename: filename,
       }),
       auditRecord: {
@@ -92,8 +78,6 @@ export function buildGovernanceActionContract(input: {
         assignee: null,
         outcome: 'export-ready',
         undoAvailable: false,
-        operationId,
-        idempotencyKey,
         retentionPolicy: 'admin-operation-ledger-30d',
         recordedAt,
       },
