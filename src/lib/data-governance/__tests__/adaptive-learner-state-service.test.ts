@@ -686,6 +686,60 @@ describe('adaptive learner state service', () => {
     ]));
   });
 
+  it('distinguishes no evidence, no active path, and stale feature-cache states', async () => {
+    const noEvidenceState = await readAdaptiveLearnerState(createDb({
+      studentCompetencySnapshot: { findFirst: async () => null },
+      studentProfileSummary: { findUnique: async () => null },
+      studentEvidenceFeatureCache: { findUnique: async () => null },
+      learningFact: { findMany: async () => [] },
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      adaptiveAssessmentAbilityEstimate: { findFirst: async () => null },
+      studentRiskFlag: { findMany: async () => [] },
+      learningPath: { findMany: async () => [] },
+    }), {
+      userId: 'student-sparse',
+      role: 'student',
+      goal: 'control-correction',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+    const staleState = await readAdaptiveLearnerState(createDb({
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-03-01T00:00:00.000Z'),
+          evidenceWindow: evidenceWindow(),
+          sourceCounts: { LearningFact: 1 },
+          sourceCoverage: { LearningFact: 'available' },
+          confidenceMarkers: { level: 'medium', score: 0.6, evidenceCount: 1, sourceCompleteness: 0.5 },
+          statusMarkers: [],
+          features: {
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+          },
+        }),
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      goal: 'control-correction',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    expect(noEvidenceState.evidence.readState).toBe('missing');
+    expect(noEvidenceState.evidence.statusMarkers).toEqual(expect.arrayContaining(['missing-source', 'low-confidence']));
+    expect(noEvidenceState.pathContext).toMatchObject({
+      activeControlCorrectionPath: { state: 'none' },
+      statusMarkers: ['missing'],
+    });
+    expect(noEvidenceState.goalSlices?.controlCorrection?.dimensions.every((dimension) =>
+      dimension.fallbackMarkers.includes('missing-governed-evidence')
+    )).toBe(true);
+    expect(staleState.evidence.readState).toBe('stale');
+    expect(staleState.goalSlices?.controlCorrection?.dimensions.some((dimension) =>
+      dimension.fallbackMarkers.includes('stale')
+    )).toBe(true);
+  });
+
   it('keeps the active control-correction path even when recent generic paths fill the general window', async () => {
     const recentGenericPaths = Array.from({ length: 10 }, (_, index) => ({
       id: `legacy-path-${index}`,

@@ -55,6 +55,54 @@ describe('adaptive learner-state API', () => {
     expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
   });
 
+  it('returns learner-state payloads with sparse no-data states when the service is enabled', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    mocks.readAdaptiveLearnerState.mockResolvedValue({
+      userId: 'student-1',
+      authority: 'server-owned',
+      evidence: {
+        readState: 'missing',
+        statusMarkers: ['missing-source', 'low-confidence'],
+      },
+      pathContext: {
+        activeControlCorrectionPath: { state: 'none' },
+        statusMarkers: ['missing'],
+      },
+      missingEvidence: ['StudentEvidenceFeatureCache'],
+    });
+
+    const response = await request('http://localhost/api/adaptive/learner-state?goal=control-correction');
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      evidence: {
+        readState: 'missing',
+        statusMarkers: ['missing-source', 'low-confidence'],
+      },
+      pathContext: {
+        activeControlCorrectionPath: { state: 'none' },
+        statusMarkers: ['missing'],
+      },
+      missingEvidence: ['StudentEvidenceFeatureCache'],
+    });
+  });
+
+  it('returns a read-failure response separately from sparse learner data', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    mocks.readAdaptiveLearnerState.mockRejectedValue(new Error('feature cache read failed'));
+
+    const response = await request('http://localhost/api/adaptive/learner-state?goal=control-correction');
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({ error: '获取学习状态失败' });
+  });
+
   it('allows a student to read only their own learner state', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
