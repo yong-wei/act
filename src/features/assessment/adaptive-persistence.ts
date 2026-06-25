@@ -82,6 +82,7 @@ type AdaptiveAssessmentPersistenceTx = {
       id: string;
       userId: string;
       questionId: string;
+      selectedOptionKey: string;
       isCorrect: boolean;
       score: number;
       responseTimeSeconds: number;
@@ -464,7 +465,11 @@ async function persistAdaptiveAssessmentSubmission(
         },
       },
     });
-    if (existingPathAnswer && !existingPathAnswer.isCorrect) {
+    if (
+      existingPathAnswer &&
+      !existingPathAnswer.isCorrect &&
+      existingPathAnswer.selectedOptionKey !== details.selectedOptionKey
+    ) {
       const passedRetryAnswer = await findPassedPathRetryAnswer(tx, details);
       const retrySessionId = passedRetryAnswer?.session?.sessionKey ??
         `${details.record.sessionId}:retry-${answeredAt.getTime()}`;

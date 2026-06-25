@@ -239,6 +239,9 @@ describe('submitAnswerDurably', () => {
     expect(question).toBeTruthy();
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
+    const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
+    const failedOptionKey = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[failedOptionIndex];
+    expect(failedOptionKey).toBeTruthy();
 
     db.adaptiveAssessmentSession.upsert
       .mockResolvedValueOnce({
@@ -256,6 +259,7 @@ describe('submitAnswerDurably', () => {
         id: 'answer-old',
         userId: 'student-1',
         questionId: question!.id,
+        selectedOptionKey: failedOptionKey,
         isCorrect: false,
         score: 0,
         responseTimeSeconds: 42,
@@ -342,6 +346,9 @@ describe('submitAnswerDurably', () => {
     expect(question).toBeTruthy();
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
+    const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
+    const failedOptionKey = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[failedOptionIndex];
+    expect(failedOptionKey).toBeTruthy();
 
     db.adaptiveAssessmentSession.upsert
       .mockResolvedValueOnce({
@@ -359,6 +366,7 @@ describe('submitAnswerDurably', () => {
         id: 'answer-old',
         userId: 'student-1',
         questionId: question!.id,
+        selectedOptionKey: failedOptionKey,
         isCorrect: false,
         score: 0,
         responseTimeSeconds: 42,
@@ -451,6 +459,87 @@ describe('submitAnswerDurably', () => {
       where: {
         sessionId_questionId: {
           sessionId: 'retry-session',
+          questionId: question!.id,
+        },
+      },
+      update: {},
+    }));
+    expect(db.adaptiveAssessmentAbilityEstimate.create).not.toHaveBeenCalled();
+    expect(db.adaptiveMasteryUpdate.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('keeps replayed failed path submissions idempotent when the selected option is unchanged', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS.find((candidate) => {
+      const metadata = buildKaqQuizQuestionMetadata(candidate);
+      return metadata.learningGoalIds.includes('control-correction') &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'readiness-gate';
+    });
+    expect(question).toBeTruthy();
+    const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
+    const failedOption = question!.options[failedOptionIndex];
+    const failedOptionKey = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[failedOptionIndex];
+    expect(failedOption?.text).toBeTruthy();
+    expect(failedOptionKey).toBeTruthy();
+
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'base-session',
+      userId: 'student-1',
+      sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+    });
+    db.adaptiveAssessmentAnswer.findUnique.mockResolvedValue({
+      id: 'answer-old',
+      userId: 'student-1',
+      questionId: question!.id,
+      selectedOptionKey: failedOptionKey,
+      isCorrect: false,
+      score: 0,
+      responseTimeSeconds: 42,
+      abilityEstimate: 0.4,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+    });
+    db.adaptiveAssessmentAnswer.upsert.mockResolvedValue({
+      id: 'answer-old',
+      userId: 'student-1',
+      sessionId: 'base-session',
+      questionId: question!.id,
+      isCorrect: false,
+      score: 0,
+      responseTimeSeconds: 42,
+      abilityEstimate: 0.4,
+      algorithmVersion: 'adaptive-assessment-bkt-v1',
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+    });
+
+    const result = await submitAnswerDurably({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      questionId: question!.id,
+      selectedOption: failedOption!.text,
+      timeSpent: 42,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }, db);
+
+    expect(result.durableSessionId).toBe('base-session');
+    expect(result.durableAnswerId).toBe('answer-old');
+    expect(db.adaptiveAssessmentSession.upsert).toHaveBeenCalledTimes(1);
+    expect(db.adaptiveAssessmentAnswer.findMany).not.toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        session: expect.any(Object),
+      }),
+    }));
+    expect(db.adaptiveAssessmentAnswer.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sessionId_questionId: {
+          sessionId: 'base-session',
           questionId: question!.id,
         },
       },
