@@ -40,6 +40,8 @@ describe('ActionStatusPanel', () => {
           status: 'failed',
           message: '审批失败。',
           recoveryAction: '检查评分草稿后重试',
+          displayReference: 'run-1',
+          recoveryKind: 'missing-object',
         }),
       }),
     );
@@ -47,6 +49,8 @@ describe('ActionStatusPanel', () => {
     expect(html).toContain('role="alert"');
     expect(html).toContain('aria-live="assertive"');
     expect(html).toContain('data-audited-action-category="approve"');
+    expect(html).toContain('data-platform-recovery-kind="missing-object"');
+    expect(html).toContain('引用：run-1');
     expect(html).toContain('恢复：检查评分草稿后重试');
   });
 });

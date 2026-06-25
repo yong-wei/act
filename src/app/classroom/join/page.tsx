@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, LogIn, Users, Loader2, AlertCircle } from 'lucide-react';
 
+import { ActionStatusPanel } from '@/components/platform/action-status';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 
 type JoinMode = 'session' | 'class';
 
@@ -247,6 +249,16 @@ function JoinClassroomShell({
 }) {
   const isClassMode = joinMode === 'class';
   const hasResult = Boolean(sessionInfo || classInfo);
+  const joinErrorState = error
+    ? buildPlatformRecoveryState({
+        kind: 'classroom-code-error',
+        sourceRoute: '/classroom/join',
+        targetLabel: isClassMode ? '班级加入码' : '课堂码',
+        displayReference: joinCode || null,
+        message: error,
+        recoveryAction: recoveryLink ? '查看个人课堂证据或重新输入加入码' : undefined,
+      })
+    : null;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
@@ -299,26 +311,22 @@ function JoinClassroomShell({
             />
           </div>
 
-          {error && (
-            <div
-              className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400"
-              role="alert"
-              aria-live="polite"
-              data-classroom-join-state="recoverable-error"
-            >
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-              {recoveryLink ? (
-                <Link
-                  href={recoveryLink.href}
-                  className="mt-3 inline-flex h-9 items-center justify-center rounded-lg border border-red-400/40 px-3 text-xs font-semibold text-red-100 transition hover:border-red-300 hover:bg-red-400/10"
-                  data-classroom-join-recovery-link="review-evidence"
-                >
-                  {recoveryLink.label}
-                </Link>
-              ) : null}
+          {joinErrorState && (
+            <div data-classroom-join-state="recoverable-error">
+              <ActionStatusPanel
+                state={joinErrorState}
+                className="mb-4 border-red-500/30 bg-red-500/10 text-red-100"
+                action={recoveryLink ? (
+                  <Link
+                    href={recoveryLink.href}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-red-400/40 px-3 text-xs font-semibold text-red-100 transition hover:border-red-300 hover:bg-red-400/10"
+                    data-classroom-join-recovery-link="review-evidence"
+                  >
+                    <AlertCircle className="mr-2 h-4 w-4 flex-shrink-0" />
+                    {recoveryLink.label}
+                  </Link>
+                ) : null}
+              />
             </div>
           )}
 

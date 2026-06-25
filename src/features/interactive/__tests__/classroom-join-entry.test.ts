@@ -33,10 +33,13 @@ describe('classroom join entry', () => {
   it('makes classroom join errors recoverable and announces the evidence writeback path', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/classroom/join/page.tsx'), 'utf8');
     const routeSource = readFileSync(join(repoRoot, 'src/app/api/session/join/route.ts'), 'utf8');
+    const actionStatusPanelSource = readFileSync(join(repoRoot, 'src/components/platform/action-status.tsx'), 'utf8');
 
-    expect(pageSource).toContain('role="alert"');
+    expect(pageSource).toContain('<ActionStatusPanel');
+    expect(pageSource).toContain("kind: 'classroom-code-error'");
     expect(pageSource).toContain('data-classroom-join-state="recoverable-error"');
     expect(pageSource).toContain('data-classroom-join-recovery-link="review-evidence"');
+    expect(actionStatusPanelSource).toContain("role={isErrorLike ? 'alert' : 'status'}");
     expect(pageSource).toContain('setRecoveryLink(reviewHref ?');
     expect(pageSource).toContain('sessionInfo.joinState?.evidenceWriteback');
     expect(routeSource).toContain('type ClassroomJoinState');

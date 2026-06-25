@@ -35,6 +35,7 @@ export default async function EditLessonPlanPage(props: PageProps) {
         planId={params.id}
         listHref="/admin/lesson-plans"
         createHref="/admin/lesson-plans/new?returnTo=%2Fadmin%2Flesson-plans"
+        sourceRoute="/admin/lesson-plans/[id]/edit"
         title="未找到教案记录"
         description="该教案 ID 当前不存在，可能已经删除或来自过期链接。请返回教案管理列表重新选择，或创建新的 BOPPPS 教案。"
       />

@@ -25,6 +25,7 @@ export function ActionStatusPanel({ state, action, className }: ActionStatusPane
       data-audited-action-id={state.identity.id}
       data-audited-action-category={state.identity.category}
       data-audited-action-status={state.status}
+      data-platform-recovery-kind={state.recoveryKind}
       role={isErrorLike ? 'alert' : 'status'}
       aria-live={isErrorLike ? 'assertive' : 'polite'}
     >
@@ -32,6 +33,9 @@ export function ActionStatusPanel({ state, action, className }: ActionStatusPane
         <div>
           <p className="font-medium text-platform-fg-primary">{state.identity.label}</p>
           <p className="mt-1 leading-6 text-platform-fg-secondary">{state.message}</p>
+          {state.displayReference ? (
+            <p className="mt-2 break-all text-xs text-platform-fg-secondary">引用：{state.displayReference}</p>
+          ) : null}
           <p className="sr-only">{state.announcement}</p>
         </div>
         <span className="inline-flex w-fit rounded-full border border-platform-border px-2.5 py-1 text-xs text-platform-fg-secondary">

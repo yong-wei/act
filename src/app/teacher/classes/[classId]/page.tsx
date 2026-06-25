@@ -25,6 +25,7 @@ import {
   ShieldAlert,
   Database,
 } from 'lucide-react';
+import { ActionStatusPanel } from '@/components/platform/action-status';
 import { AddStudentsModal } from '@/components/teacher/add-students-modal';
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
@@ -33,6 +34,7 @@ import {
   buildTeacherStudentInsightsHref,
   formatTeacherStudentDisplayId,
 } from '@/features/teacher/teacher-insights';
+import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 
 interface Student {
   id: string;
@@ -434,21 +436,32 @@ export default function ClassDetailPage() {
   }
 
   if (!classData) {
+    const missingClassState = buildPlatformRecoveryState({
+      kind: 'missing-object',
+      sourceRoute: '/teacher/classes/[classId]',
+      targetLabel: '班级',
+      displayReference: typeof classId === 'string' ? classId : null,
+      message: '班级不存在或当前教师账号不可见。',
+      recoveryAction: '返回班级列表并刷新数据',
+    });
+
     return (
       <main
         className="surface-page px-6 py-8"
         data-commercial-operations-workspace="teacher-operations"
         data-commercial-workspace-zone="instrument-area"
       >
-        <div className="text-center">
-          <p className="text-xl text-subtle">班级不存在</p>
-          <Link
-            href="/teacher/classes"
-            className="mt-4 inline-block text-primary hover:text-primary/80"
-          >
-            返回班级列表
-          </Link>
-        </div>
+        <ActionStatusPanel
+          state={missingClassState}
+          action={(
+            <Link
+              href="/teacher/classes"
+              className="inline-flex rounded-lg border border-border px-3 py-2 text-sm text-primary hover:text-primary/80"
+            >
+              返回班级列表
+            </Link>
+          )}
+        />
       </main>
     );
   }
