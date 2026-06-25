@@ -45,6 +45,7 @@ export function toUIMessage(message: IncomingMessage): UIMessage {
   }
 
   return {
+    ...message,
     id: message.id ?? crypto.randomUUID(),
     role: message.role,
     parts: [{ type: 'text', text: message.content ?? '' }],

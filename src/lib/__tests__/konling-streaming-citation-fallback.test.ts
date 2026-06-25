@@ -35,6 +35,83 @@ describe('Konling streaming citation fallback', () => {
     expect(notice).toContain('streaming-final-text-unverified');
   });
 
+  it('keeps production streaming answers free of raw debug notices by default', () => {
+    const notice = buildStreamingCitationFallbackNotice({
+      status: 'low-confidence',
+      missingCitationClasses: ['learning-path'],
+      lowConfidenceReasons: ['assistant-citations-unverified-stream'],
+      citations: [],
+    }, {
+      nodeEnv: 'production',
+    });
+
+    expect(notice).toBeNull();
+  });
+
+  it('allows explicit production debug notice injection for support review', () => {
+    const notice = buildStreamingCitationFallbackNotice({
+      status: 'low-confidence',
+      missingCitationClasses: ['learning-path'],
+      lowConfidenceReasons: ['assistant-citations-unverified-stream'],
+      citations: [],
+    }, {
+      nodeEnv: 'production',
+      debugInjectionOverride: true,
+    });
+
+    expect(notice).toContain('【控灵证据提示】');
+    expect(notice).toContain('assistant-citations-unverified-stream');
+  });
+
+  it('injects complete development diagnostics for verified streaming replies with audit reasons', () => {
+    const notice = buildStreamingCitationFallbackNotice({
+      status: 'verified',
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      diagnosticReasons: ['assistant-citations-unverified-stream'],
+      missingContext: ['learner-state', 'path-execution'],
+      personalizationAvailability: {
+        status: 'limited',
+        missingCitationClasses: ['learner-state'],
+        lowConfidenceReasons: ['missing-learner-state'],
+      },
+      retrievalSources: [{
+        sourceType: 'content',
+        displayTitle: 'PID 参数整定',
+        evidenceBasis: 'course-ai-context',
+        confidence: 'high',
+      }],
+      citations: [],
+    }, {
+      nodeEnv: 'development',
+    });
+
+    expect(notice).toContain('【控灵证据提示】');
+    expect(notice).toContain('PID 参数整定');
+    expect(notice).toContain('learner-state');
+    expect(notice).toContain('path-execution');
+    expect(notice).toContain('assistant-citations-unverified-stream');
+    expect(notice).toContain('missing-learner-state');
+    expect(notice).toContain('limited');
+  });
+
+  it('allows explicit production debug injection for verified streaming diagnostics', () => {
+    const notice = buildStreamingCitationFallbackNotice({
+      status: 'verified',
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      diagnosticReasons: ['assistant-citations-unverified-stream'],
+      missingContext: ['learner-state'],
+      citations: [],
+    }, {
+      nodeEnv: 'production',
+      debugInjectionOverride: true,
+    });
+
+    expect(notice).toContain('assistant-citations-unverified-stream');
+    expect(notice).toContain('learner-state');
+  });
+
   it('injects the fallback as text-delta content after the stream start chunk', async () => {
     const source = new ReadableStream<any>({
       start(controller) {

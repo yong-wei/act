@@ -24,6 +24,7 @@ import {
 } from '@/lib/konling-teaching-assistant-server-context';
 import {
   buildKonlingCitationGuard,
+  buildKonlingCitationRetrievalSources,
   buildKonlingStreamingCitationGuard,
   buildKonlingRuntimeContext,
   buildKonlingTeachingAssistantRuntimeContract,
@@ -87,6 +88,28 @@ function getAIStreamErrorMessage(error: unknown) {
   return isExternalAIProviderError(error)
     ? '智能助手暂时无法连接外部模型，请稍后再试。'
     : '智能助手暂时无法完成请求，请稍后再试。';
+}
+
+function buildCitationGuardMetadataPayload(
+  citationGuardMetadata: ReturnType<typeof buildKonlingCitationGuard>,
+  missingContext: string[],
+) {
+  return {
+    status: citationGuardMetadata.status,
+    missingCitationClasses: citationGuardMetadata.missingCitationClasses,
+    lowConfidenceReasons: citationGuardMetadata.lowConfidenceReasons,
+    diagnosticReasons: citationGuardMetadata.diagnosticReasons ?? [],
+    personalizationAvailability: citationGuardMetadata.personalizationAvailability,
+    missingContext,
+    retrievalSources: buildKonlingCitationRetrievalSources(citationGuardMetadata),
+    citations: citationGuardMetadata.citations.map((citation) => ({
+      sourceType: citation.sourceType,
+      displayTitle: citation.displayTitle,
+      href: citation.href,
+      confidence: citation.confidence,
+      evidenceBasis: citation.evidenceBasis,
+    })),
+  };
 }
 
 export async function POST(request: Request) {
@@ -197,6 +220,8 @@ export async function POST(request: Request) {
     let systemPrompt: string;
     let agentSessionResponseHeaders: HeadersInit | undefined;
     let citationGuardMetadata: ReturnType<typeof buildKonlingCitationGuard> | null = null;
+    let citationGuardMetadataContext: { missingContext: string[] } | null = null;
+    let citationGuardMetadataPayload: ReturnType<typeof buildCitationGuardMetadataPayload> | null = null;
     let modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
       streaming: true,
@@ -288,6 +313,13 @@ export async function POST(request: Request) {
         adaptiveRuntime: modeRuntimeContext,
       });
       citationGuardMetadata = buildKonlingStreamingCitationGuard(modeRuntimeContext);
+      citationGuardMetadataContext = {
+        missingContext: modeContract.groundingContext.missingContext,
+      };
+      citationGuardMetadataPayload = buildCitationGuardMetadataPayload(
+        citationGuardMetadata,
+        citationGuardMetadataContext.missingContext,
+      );
       modelRequirements = {
         ...modelRequirements,
         tools: true,
@@ -311,9 +343,38 @@ export async function POST(request: Request) {
         agentSessionId,
         phase: 'ai-chat-tool-runtime',
         status: 'running',
-        state: { route: '/api/ai/chat', teachingAssistantMode: modeContract.mode.id, modeStatus: modeContract.status },
+        state: {
+          route: '/api/ai/chat',
+          teachingAssistantMode: modeContract.mode.id,
+          modeStatus: modeContract.status,
+          konlingCitationGuard: citationGuardMetadataPayload,
+        },
         permittedTools: modeContract.permittedTools,
       });
+      const agentSessionStateUpdate = await prisma.agentSession.updateMany({
+        where: {
+          id: agentSession.id,
+          ownerUserId: scope.scope.targetUserId,
+          actorUserId: scope.scope.authenticatedUserId,
+          classId: scope.scope.classId ?? null,
+          courseId: scope.scope.courseId,
+          pageId: scope.scope.pageId,
+          resourceId: scope.scope.resourceId ?? null,
+          pathNodeId: scope.scope.pathNodeId ?? null,
+        },
+        data: {
+          stateJson: {
+            ...agentSession.state,
+            route: '/api/ai/chat',
+            teachingAssistantMode: modeContract.mode.id,
+            modeStatus: modeContract.status,
+            konlingCitationGuard: citationGuardMetadataPayload,
+          },
+        },
+      });
+      if (agentSessionStateUpdate.count !== 1) {
+        throw new KonlingRuntimeScopeError(404, 'AgentSession citation metadata persistence failed.');
+      }
       const toolRuntime = buildKonlingToolRuntime({
         db: prisma,
         scope: scope.scope,
@@ -371,27 +432,16 @@ export async function POST(request: Request) {
       originalMessages: uiMessages,
       generateMessageId: () => crypto.randomUUID(),
       messageMetadata: ({ part }) => {
-        if (!citationGuardMetadata || (part.type !== 'start' && part.type !== 'finish')) return undefined;
+        if (!citationGuardMetadataPayload || (part.type !== 'start' && part.type !== 'finish')) return undefined;
         return {
-          konlingCitationGuard: {
-            status: citationGuardMetadata.status,
-            missingCitationClasses: citationGuardMetadata.missingCitationClasses,
-            lowConfidenceReasons: citationGuardMetadata.lowConfidenceReasons,
-            citations: citationGuardMetadata.citations.map((citation) => ({
-              sourceType: citation.sourceType,
-              displayTitle: citation.displayTitle,
-              href: citation.href,
-              confidence: citation.confidence,
-              evidenceBasis: citation.evidenceBasis,
-            })),
-          },
+          konlingCitationGuard: citationGuardMetadataPayload,
         };
       },
       onError: getAIStreamErrorMessage,
     });
     const guardedUiMessageStream = insertStreamingCitationFallbackNotice(
       uiMessageStream,
-      buildStreamingCitationFallbackNotice(citationGuardMetadata),
+      buildStreamingCitationFallbackNotice(citationGuardMetadataPayload),
     );
 
     // 返回流式响应

@@ -554,6 +554,23 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
         ? []
         : [`missing-citation:${citationClass}`]
     );
+  const canAnswerFromTeachingContent = hasKonlingCitationClass('content', input.runtimeContext.citationContext);
+  const canDegradePersonalization = canAnswerFromTeachingContent
+    && supportsLimitedPersonalizationAnswerIntent(answerIntent);
+  const blockingMissingRequiredContext = canDegradePersonalization
+    ? missingRequiredContext.filter((reason) => !isLimitedPersonalizationContextReason(reason))
+    : missingRequiredContext;
+  const limitedPersonalizationContextReasons = canDegradePersonalization
+    ? missingRequiredContext.filter((reason) =>
+        isLimitedPersonalizationContextReason(reason) && reason !== 'missing-context:evidence-citations'
+      )
+    : [];
+  const blockingMissingCitationClasses = canDegradePersonalization
+    ? missingCitationClasses.filter((reason) => !isLimitedPersonalizationCitationReason(reason))
+    : missingCitationClasses;
+  const limitedPersonalizationCitationReasons = canDegradePersonalization
+    ? missingCitationClasses.filter(isLimitedPersonalizationCitationReason)
+    : [];
   const effectiveGraphContext = input.runtimeContext.graphContext
     ?? buildKonlingKaqGraphContext({
       scope: input.scope,
@@ -562,8 +579,8 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const unavailableReasons = [
     ...unknownModeReasons,
     ...(roleSupported ? [] : [`unsupported-role:${input.scope.role}`]),
-    ...missingRequiredContext,
-    ...missingCitationClasses,
+    ...blockingMissingRequiredContext,
+    ...blockingMissingCitationClasses,
   ];
   const graphGroundingDegradedReasons = isKonlingGraphAwareMode(mode, answerIntent)
     ? buildKonlingGraphGroundingDegradedReasons(effectiveGraphContext)
@@ -571,6 +588,8 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const degradedReasons = unavailableReasons.length === 0
     ? [
         ...(input.runtimeContext.citationContext?.lowConfidenceReasons ?? []),
+        ...limitedPersonalizationContextReasons,
+        ...limitedPersonalizationCitationReasons,
         ...graphGroundingDegradedReasons,
       ]
     : [];
@@ -655,6 +674,24 @@ function classifyKonlingAnswerIntent(
     return isKonlingMediaGuidanceScope(runtimeContext) ? 'media-guidance' : 'fact-explanation';
   }
   return 'fact-explanation';
+}
+
+function supportsLimitedPersonalizationAnswerIntent(answerIntent: KonlingAnswerIntent): boolean {
+  return answerIntent === 'fact-explanation'
+    || answerIntent === 'personalized-diagnosis'
+    || answerIntent === 'path-advice'
+    || answerIntent === 'grading-explanation';
+}
+
+function isLimitedPersonalizationContextReason(reason: string): boolean {
+  return reason === 'missing-context:learner-state-summary'
+    || reason === 'missing-context:path-execution-context'
+    || reason === 'missing-context:evidence-citations';
+}
+
+function isLimitedPersonalizationCitationReason(reason: string): boolean {
+  if (!reason.startsWith('missing-citation:')) return false;
+  return isPersonalizationCitationClass(reason.replace('missing-citation:', ''));
 }
 
 function isKonlingMediaGuidanceScope(
@@ -959,6 +996,22 @@ export interface KonlingCitationGuard {
   missingCitationClasses: string[];
   lowConfidenceReasons: string[];
   fallbackRequired: boolean;
+  diagnosticReasons?: string[];
+  personalizationAvailability?: {
+    status: 'available' | 'limited';
+    missingCitationClasses: string[];
+    lowConfidenceReasons: string[];
+  };
+}
+
+export function buildKonlingCitationRetrievalSources(guard: KonlingCitationGuard) {
+  return guard.citations.map((citation) => ({
+    sourceType: citation.sourceType,
+    displayTitle: citation.displayTitle,
+    href: citation.href,
+    confidence: citation.confidence,
+    evidenceBasis: citation.evidenceBasis,
+  }));
 }
 
 export interface KonlingMemoryView {
@@ -5332,14 +5385,67 @@ export function buildKonlingCitationGuard(
       }
     }
   }
-  const uniqueLowConfidenceReasons = [...new Set(lowConfidenceReasons)];
-  const fallbackRequired = missingCitationClasses.length > 0 || uniqueLowConfidenceReasons.length > 0;
+  const personalizationMissingClasses = missingCitationClasses.filter(isPersonalizationCitationClass);
+  const personalizationLowConfidenceReasons = lowConfidenceReasons.filter(isPersonalizationLowConfidenceReason);
+  const shouldRecordPersonalizationAsMetadata = modeContract
+    ? supportsLimitedPersonalizationAnswerIntent(modeContract.answerIntent)
+    : false;
+  const requiredMissingCitationClasses = shouldRecordPersonalizationAsMetadata
+    ? missingCitationClasses.filter((item) => !isPersonalizationCitationClass(item))
+    : missingCitationClasses;
+  const requiredLowConfidenceReasons = shouldRecordPersonalizationAsMetadata
+    ? lowConfidenceReasons.filter((item) => !isPersonalizationLowConfidenceReason(item))
+    : lowConfidenceReasons;
+  const uniqueLowConfidenceReasons = [...new Set(requiredLowConfidenceReasons)];
+  const uniqueMissingCitationClasses = [...new Set(requiredMissingCitationClasses)];
+  const fallbackRequired = uniqueMissingCitationClasses.length > 0 || uniqueLowConfidenceReasons.length > 0;
   return {
     status: fallbackRequired ? 'low-confidence' : 'verified',
     citations,
-    missingCitationClasses: [...new Set(missingCitationClasses)],
+    missingCitationClasses: uniqueMissingCitationClasses,
     lowConfidenceReasons: uniqueLowConfidenceReasons,
     fallbackRequired,
+    personalizationAvailability: buildPersonalizationAvailability(
+      personalizationMissingClasses,
+      personalizationLowConfidenceReasons,
+    ),
+  };
+}
+
+function isPersonalizationCitationClass(value: string): boolean {
+  return value === 'learner-state'
+    || value === 'path-execution'
+    || value === 'simulation'
+    || value === 'arena'
+    || value === 'intervention'
+    || value === 'memory'
+    || value === 'learner-evidence';
+}
+
+function isPersonalizationLowConfidenceReason(value: string): boolean {
+  return value.includes('learner-state')
+    || value.includes('path-execution')
+    || value.includes('learner-evidence')
+    || value.includes('personalization');
+}
+
+function buildPersonalizationAvailability(
+  missingCitationClasses: string[],
+  lowConfidenceReasons: string[],
+): KonlingCitationGuard['personalizationAvailability'] {
+  const uniqueMissingCitationClasses = [...new Set(missingCitationClasses)];
+  const uniqueLowConfidenceReasons = [...new Set(lowConfidenceReasons)];
+  if (uniqueMissingCitationClasses.length === 0 && uniqueLowConfidenceReasons.length === 0) {
+    return {
+      status: 'available',
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+    };
+  }
+  return {
+    status: 'limited',
+    missingCitationClasses: uniqueMissingCitationClasses,
+    lowConfidenceReasons: uniqueLowConfidenceReasons,
   };
 }
 
@@ -5389,9 +5495,7 @@ export function buildKonlingStreamingCitationGuard(
   const base = buildKonlingCitationGuard(context);
   return {
     ...base,
-    status: 'low-confidence',
-    lowConfidenceReasons: [...new Set([...base.lowConfidenceReasons, 'assistant-citations-unverified-stream'])],
-    fallbackRequired: true,
+    diagnosticReasons: [...new Set([...(base.diagnosticReasons ?? []), 'assistant-citations-unverified-stream'])],
   };
 }
 
