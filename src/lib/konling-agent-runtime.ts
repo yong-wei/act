@@ -4941,7 +4941,7 @@ async function buildKonlingCitationContext(
 
   const featureCache = await db.studentEvidenceFeatureCache?.findUnique?.({
     where: { userId: input.scope.targetUserId },
-  });
+  }).catch(() => null);
   evidenceCitations.push(...buildFeatureCacheCitations(featureCache, input.scope, input.planContext));
 
   const hasLearnerStateCitation = evidenceCitations.some((citation) => citation.sourceType === 'learner-state');

@@ -58,6 +58,7 @@ pnpm-debug.log*
 # Env files
 .env
 .env.*
+!deploy/podman/.env.server.example
 .envrc
 
 # Prisma local db

@@ -1028,6 +1028,142 @@ describe('konling agent runtime', () => {
     expect(contract.permittedTools).toContain('generate_learning_path');
   });
 
+  it('records disabled learner-state service as operational missing context while preserving content citations', async () => {
+    process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'false';
+
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'step-03',
+      pageContextHint: {
+        pageType: 'practice',
+        courseId: 'control-correction',
+        courseTitle: '控制系统校正设计',
+        stepId: 'step-03',
+        topic: '根轨迹校正',
+        learningObjectives: ['解释根轨迹校正'],
+        knowledgeType: 'K',
+      },
+      trustedContentContext: true,
+    });
+
+    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(runtime.featureFlags.learnerState).toBe(false);
+    expect(runtime.missingContext).toEqual(expect.arrayContaining([
+      'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED',
+      'citation-learner-state-missing',
+    ]));
+    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
+    const guard = buildKonlingCitationGuard(runtime, '根据 citation(content:step-03, content, 根轨迹校正, high, page-context) 解释根轨迹校正。');
+    expect(guard.missingCitationClasses).not.toContain('content');
+  });
+
+  it('adds learner-state citation metadata when learner-state is available', async () => {
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'step-03',
+      pageContextHint: {
+        pageType: 'practice',
+        courseId: 'control-correction',
+        courseTitle: '控制系统校正设计',
+        stepId: 'step-03',
+        topic: '根轨迹校正',
+        learningObjectives: ['解释根轨迹校正'],
+        knowledgeType: 'K',
+      },
+      trustedContentContext: true,
+    });
+
+    expect(runtime.learnerState).toBeTruthy();
+    expect(runtime.userProfile.abilityVector).toMatchObject({
+      computational: 0.88,
+      design: 0.72,
+    });
+    expect(runtime.citationContext?.evidenceCitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learner-state:student-1',
+        sourceType: 'learner-state',
+        evidenceBasis: 'AdaptiveLearnerState',
+        owner: 'recommendation',
+      }),
+    ]));
+  });
+
+  it('keeps content citations available when learner-state feature-cache reads fail', async () => {
+    mocks.readAdaptiveLearnerState.mockRejectedValueOnce(new Error('feature cache read failed'));
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockRejectedValue(new Error('feature cache read failed')),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'step-03',
+      pageContextHint: {
+        pageType: 'practice',
+        courseId: 'control-correction',
+        courseTitle: '控制系统校正设计',
+        stepId: 'step-03',
+        topic: '根轨迹校正',
+        learningObjectives: ['解释根轨迹校正'],
+        knowledgeType: 'K',
+      },
+      trustedContentContext: true,
+    });
+
+    expect(runtime.learnerState).toBeNull();
+    expect(runtime.missingContext).toContain('learner-state-read-failed');
+    expect(runtime.citationContext?.contentCitations.length).toBeGreaterThan(0);
+    const guard = buildKonlingCitationGuard(runtime, '根据 citation(content:step-03, content, 根轨迹校正, high, page-context) 解释根轨迹校正。');
+    expect(guard.missingCitationClasses).not.toContain('content');
+    expect(guard.personalizationAvailability).toMatchObject({
+      status: 'limited',
+      missingCitationClasses: expect.arrayContaining(['learner-state', 'path-execution', 'evidence']),
+    });
+  });
+
   it('resolves control-correction course aliases before reading learner goal slices', async () => {
     await buildKonlingRuntimeContext({
       studentProfile: {
