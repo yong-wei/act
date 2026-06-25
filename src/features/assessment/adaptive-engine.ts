@@ -389,7 +389,6 @@ export function selectNextQuestionFromAnswers(
         confidenceInterval,
       };
     }
-    throw new Error(`学习目标 ${targetGoalId} 的已审核 readiness 题目已完成`);
   }
   const selectionPool = unaskedCandidates.length > 0 ? unaskedCandidates : candidates;
   const scored = selectionPool.map((question) => {

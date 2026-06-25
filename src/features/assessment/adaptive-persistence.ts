@@ -392,7 +392,7 @@ async function persistAdaptiveAssessmentSubmission(
   const algorithm = await upsertAdaptiveAssessmentAlgorithmVersion(tx, answeredAt);
   await lockAdaptiveAssessmentUserWrites(tx, details.record.userId);
 
-  const session = await tx.adaptiveAssessmentSession.upsert({
+  let session = await tx.adaptiveAssessmentSession.upsert({
     where: {
       userId_sessionKey: {
         userId: details.record.userId,
@@ -412,30 +412,71 @@ async function persistAdaptiveAssessmentSubmission(
     },
   });
 
-  const contentHash = questionMetadataContentHash(details.question);
-  const kaqMetadata = buildKaqQuizQuestionMetadata(details.question);
+  let effectiveDetails = details;
+  if (details.pathContext) {
+    const existingPathAnswer = await tx.adaptiveAssessmentAnswer.findUnique({
+      where: {
+        sessionId_questionId: {
+          sessionId: session.id,
+          questionId: details.question.id,
+        },
+      },
+    });
+    if (existingPathAnswer) {
+      const retrySessionId = `${details.record.sessionId}:retry-${answeredAt.getTime()}`;
+      session = await tx.adaptiveAssessmentSession.upsert({
+        where: {
+          userId_sessionKey: {
+            userId: details.record.userId,
+            sessionKey: retrySessionId,
+          },
+        },
+        update: {
+          lastAnsweredAt: answeredAt,
+          algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+        },
+        create: {
+          userId: details.record.userId,
+          sessionKey: retrySessionId,
+          algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+          startedAt: answeredAt,
+          lastAnsweredAt: answeredAt,
+        },
+      });
+      effectiveDetails = {
+        ...details,
+        record: {
+          ...details.record,
+          sessionId: retrySessionId,
+        },
+      };
+    }
+  }
+
+  const contentHash = questionMetadataContentHash(effectiveDetails.question);
+  const kaqMetadata = buildKaqQuizQuestionMetadata(effectiveDetails.question);
   const questionRef = await tx.adaptiveAssessmentItemRef.upsert({
     where: {
       questionId_algorithmVersion_contentHash: {
-        questionId: details.question.id,
+        questionId: effectiveDetails.question.id,
         algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
         contentHash,
       },
     },
     update: {},
     create: {
-      questionId: details.question.id,
+      questionId: effectiveDetails.question.id,
       contentHash,
-      source: questionSource(details.question.id),
-      questionType: details.question.type,
-      domains: details.question.domains,
-      knowledgeTags: details.question.knowledgeTags,
-      difficulty: details.question.difficulty,
-      optionCount: details.question.options.length,
+      source: questionSource(effectiveDetails.question.id),
+      questionType: effectiveDetails.question.type,
+      domains: effectiveDetails.question.domains,
+      knowledgeTags: effectiveDetails.question.knowledgeTags,
+      difficulty: effectiveDetails.question.difficulty,
+      optionCount: effectiveDetails.question.options.length,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       metadata: {
         kaq: kaqMetadata,
-        ...(details.question.generatedMetadata ? { generatedMetadata: details.question.generatedMetadata } : {}),
+        ...(effectiveDetails.question.generatedMetadata ? { generatedMetadata: effectiveDetails.question.generatedMetadata } : {}),
       },
     },
   });
@@ -471,7 +512,7 @@ async function persistAdaptiveAssessmentSubmission(
     where: {
       sessionId_questionId: {
         sessionId: session.id,
-        questionId: details.question.id,
+        questionId: effectiveDetails.question.id,
       },
     },
   });
@@ -479,27 +520,27 @@ async function persistAdaptiveAssessmentSubmission(
   const persistedAnswerRecords = toAdaptiveAnswerRecords(eligiblePersistedAnswersBefore);
   const answerHistory = existingAnswer
     ? persistedAnswerRecords
-    : [...persistedAnswerRecords, details.record];
-  const result = buildSubmitAnswerResult(details, answerHistory);
+    : [...persistedAnswerRecords, effectiveDetails.record];
+  const result = buildSubmitAnswerResult(effectiveDetails, answerHistory);
 
   const answer = await tx.adaptiveAssessmentAnswer.upsert({
     where: {
       sessionId_questionId: {
         sessionId: session.id,
-        questionId: details.question.id,
+        questionId: effectiveDetails.question.id,
       },
     },
     update: {},
     create: {
-      userId: details.record.userId,
+      userId: effectiveDetails.record.userId,
       sessionId: session.id,
       questionRefId: questionRef.id,
-      questionId: details.question.id,
-      selectedOptionKey: details.selectedOptionKey,
-      correctOptionKey: details.correctOptionKey,
-      isCorrect: details.record.isCorrect,
+      questionId: effectiveDetails.question.id,
+      selectedOptionKey: effectiveDetails.selectedOptionKey,
+      correctOptionKey: effectiveDetails.correctOptionKey,
+      isCorrect: effectiveDetails.record.isCorrect,
       score,
-      responseTimeSeconds: details.record.timeSpent,
+      responseTimeSeconds: effectiveDetails.record.timeSpent,
       abilityEstimate: result.estimatedAbility,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       answeredAt,
@@ -516,10 +557,10 @@ async function persistAdaptiveAssessmentSubmission(
     };
   }
   const kaqQuizEvidence = materializeKaqQuizOutcomeEvidence({
-    question: details.question,
-    sessionId: details.record.sessionId,
+    question: effectiveDetails.question,
+    sessionId: effectiveDetails.record.sessionId,
     answerId: answer.id,
-    isCorrect: details.record.isCorrect,
+    isCorrect: effectiveDetails.record.isCorrect,
     score,
     scoringVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
     occurredAt: answeredAt.toISOString(),
@@ -538,7 +579,7 @@ async function persistAdaptiveAssessmentSubmission(
 
   await tx.adaptiveAssessmentAbilityEstimate.create({
     data: {
-      userId: details.record.userId,
+      userId: effectiveDetails.record.userId,
       sessionId: session.id,
       answerId: answer.id,
       theta: result.estimatedAbility,
@@ -547,8 +588,8 @@ async function persistAdaptiveAssessmentSubmission(
       dimensions: {
         source: 'adaptive-assessment',
         answerCount: answerHistory.length,
-        ...(details.pathContext ? {
-          pathExecution: details.pathContext,
+        ...(effectiveDetails.pathContext ? {
+          pathExecution: effectiveDetails.pathContext,
         } : {}),
       },
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
@@ -560,10 +601,10 @@ async function persistAdaptiveAssessmentSubmission(
     ...toMasteryAnswers(eligiblePersistedAnswersBefore),
     {
       id: answer.id,
-      questionId: details.question.id,
-      isCorrect: details.record.isCorrect,
+      questionId: effectiveDetails.question.id,
+      isCorrect: effectiveDetails.record.isCorrect,
       answeredAt,
-      knowledgeTags: details.question.knowledgeTags,
+      knowledgeTags: effectiveDetails.question.knowledgeTags,
     },
   ], {
     algorithmVersion: algorithm.version,
@@ -572,7 +613,7 @@ async function persistAdaptiveAssessmentSubmission(
   const currentUpdates = rebuiltUpdates.filter((update) => update.answerId === answer.id);
   const masteryResult = await tx.adaptiveMasteryUpdate.createMany({
     data: currentUpdates.map((update) => ({
-      userId: details.record.userId,
+      userId: effectiveDetails.record.userId,
       sessionId: session.id,
       answerId: answer.id,
       questionId: update.questionId,
@@ -591,7 +632,7 @@ async function persistAdaptiveAssessmentSubmission(
   const masteryPosterior = average(currentUpdates.map((update) => update.posteriorMastery));
   const masteryConfidence = average(currentUpdates.map((update) => update.confidence));
   const durableDetails = {
-    ...details,
+    ...effectiveDetails,
     result,
   };
 

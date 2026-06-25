@@ -2018,7 +2018,7 @@ describe('control-correction path rounds', () => {
     ]));
   });
 
-  it('unlocks adaptive outcome gates from governed checkpoint assessment refs', async () => {
+  it('does not unlock adaptive outcome gates from governed checkpoint assessment refs', async () => {
     const db = mockDb();
     const path = {
       id: 'path-1',
@@ -2066,21 +2066,23 @@ describe('control-correction path rounds', () => {
           id: 'answer-1',
           provenance: 'official',
           reviewState: 'reviewed',
-          readinessGateEligible: true,
+          readinessGateEligible: false,
+          pathCompletionEligible: true,
           score: 100,
         },
       },
     });
 
     const updateArg = vi.mocked(db.learningPath.update).mock.calls[0]?.[0];
-    expect(updateArg.data.currentNodeId).toBe('control-workbench:lead-design');
-    expect(updateArg.data.lastExecutionMetadata.availableOutcomeRefs)
-      .toEqual(expect.arrayContaining(['adaptive_assessment:answer-1']));
+    expect(updateArg.data.currentNodeId).toBe('checkpoint:control-correction-review');
+    expect(updateArg.data.lastExecutionMetadata.completedNodeIds)
+      .toEqual(expect.arrayContaining(['checkpoint:control-correction-review']));
+    expect(updateArg.data.lastExecutionMetadata.availableOutcomeRefs).toEqual([]);
     expect(updateArg.data.pathPayload.planNodes).toEqual(expect.arrayContaining([
       expect.objectContaining({
         nodeId: 'control-workbench:lead-design',
-        status: 'current',
-        readiness: expect.objectContaining({ state: 'ready' }),
+        status: 'locked',
+        readiness: expect.objectContaining({ state: 'locked' }),
       }),
     ]));
   });
@@ -2953,7 +2955,8 @@ describe('control-correction path rounds', () => {
               id: 'answer-checkpoint-1',
               provenance: 'official',
               reviewState: 'reviewed',
-              readinessGateEligible: true,
+              readinessGateEligible: false,
+              pathCompletionEligible: true,
               isCorrect: true,
               score: 100,
               privatePayload: 'hidden',

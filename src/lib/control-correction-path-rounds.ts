@@ -1188,6 +1188,21 @@ function isTrustedAdaptiveAssessmentOutcomeRef(value: unknown): boolean {
     firstString(record.mismatchReason) === undefined;
 }
 
+function isTrustedAdaptiveAssessmentResultRef(resourceType: string, value: unknown): boolean {
+  const record = toRecord(value);
+  const kind = firstString(record.kind, record.sourceType);
+  const provenance = readProvenance(record);
+  return kind === 'AdaptiveAssessmentAnswer' &&
+    provenance === 'official' &&
+    firstString(record.reviewState) === 'reviewed' &&
+    isPassingAdaptiveAssessmentOutcomeRef(record) &&
+    firstString(record.id, record.answerId, record.sourceId) !== undefined &&
+    firstString(record.mismatchReason) === undefined &&
+    (resourceType === 'checkpoint'
+      ? record.pathCompletionEligible === true
+      : record.readinessGateEligible === true);
+}
+
 function isPassingAdaptiveAssessmentOutcomeRef(record: Record<string, unknown>): boolean {
   if (record.isCorrect === true) return true;
   if (record.isCorrect === false) return false;
@@ -1259,7 +1274,7 @@ function buildExecutionResultSummary(execution: any): PathExecutionResultSummary
   const metadata = toRecord(execution.liftMetadata);
   if (isAdaptiveAssessmentCompletionResourceType(resourceType)) {
     const ref = toRecord(metadata.adaptiveAssessmentRef);
-    if (!isTrustedAdaptiveAssessmentOutcomeRef(ref)) return pendingResultSummary('adaptive-assessment', '自适应练习结果');
+    if (!isTrustedAdaptiveAssessmentResultRef(resourceType, ref)) return pendingResultSummary('adaptive-assessment', '自适应练习结果');
     return compactObject({
       state: 'available',
       kind: 'adaptive-assessment',
