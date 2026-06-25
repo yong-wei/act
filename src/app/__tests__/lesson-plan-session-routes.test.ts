@@ -86,6 +86,7 @@ import { POST as createLessonPlan } from '../api/lesson-plans/route';
 import { PATCH as updateLessonPlan } from '../api/lesson-plans/[id]/route';
 import { POST as startSession } from '../api/session/route';
 import { GET as getSession, PATCH as updateSession } from '../api/session/[sessionId]/route';
+import { ALL_PRESETS } from '@/features/teacher/preset-lessons';
 
 describe('lesson plan empty-item guards', () => {
   beforeEach(() => {
@@ -260,6 +261,41 @@ describe('lesson plan empty-item guards', () => {
       allowedActions: ['reuse', 'new-session'],
       classroomIdentity: { kind: 'temporary' },
     });
+    expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
+  });
+
+  it('preflights preset temporary classroom duplicates before a clone exists', async () => {
+    const preset = ALL_PRESETS[0];
+    mocks.prisma.classSession.findFirst.mockResolvedValue({
+      id: 'existing-session',
+      joinCode: '654321',
+      classId: null,
+      status: 'ACTIVE',
+      plan: { title: `${preset.title} (副本)` },
+      class: null,
+    });
+
+    const response = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({
+        launchContext: 'temporary',
+        sourcePresetKey: preset.key,
+      }),
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      existingSessionId: 'existing-session',
+      requiresExplicitChoice: true,
+      classroomIdentity: { kind: 'temporary' },
+    });
+    expect(mocks.prisma.classSession.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        plan: { is: { title: `${preset.title} (副本)` } },
+      }),
+    }));
+    expect(mocks.prisma.lessonPlan.findUnique).not.toHaveBeenCalled();
     expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
   });
 

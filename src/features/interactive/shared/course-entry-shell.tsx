@@ -138,6 +138,25 @@ export function CourseEntryShell({
 
     setIsCreating(true);
     try {
+      const preflightRes = await fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          launchContext: 'temporary',
+          sourcePresetKey: config.presetKey,
+        }),
+      });
+      const preflightData = (await preflightRes.json()) as JoinSessionResponse;
+      if (preflightRes.status === 409 && preflightData.existingSessionId && preflightData.requiresExplicitChoice) {
+        const createNew = window.confirm(`${preflightData.error ?? '该互动课已有进行中的临时课堂。'}\n\n确定新开课堂？取消则进入已有课堂。`);
+        if (!createNew) {
+          router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${preflightData.existingSessionId}/waiting`);
+          return;
+        }
+      } else if (!preflightRes.ok && preflightRes.status !== 400) {
+        throw new Error(preflightData.error || '课堂查重失败');
+      }
+
       const cloneRes = await fetch('/api/teacher/preset-lessons/clone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -155,33 +174,11 @@ export function CourseEntryShell({
           planId: cloneData.lessonPlanId,
           launchContext: 'temporary',
           sourcePresetKey: config.presetKey,
+          duplicateAction: 'new-session',
         }),
       });
-      let createData = (await createRes.json()) as JoinSessionResponse;
-      let createOk = createRes.ok;
-      if (createRes.status === 409 && createData.existingSessionId && createData.requiresExplicitChoice) {
-        const createNew = window.confirm(`${createData.error ?? '该互动课已有进行中的临时课堂。'}\n\n确定新开课堂？取消则进入已有课堂。`);
-        if (!createNew) {
-          router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${createData.existingSessionId}/waiting`);
-          return;
-        }
-        const retryRes = await fetch('/api/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            planId: cloneData.lessonPlanId,
-            launchContext: 'temporary',
-            sourcePresetKey: config.presetKey,
-            duplicateAction: 'new-session',
-          }),
-        });
-        createData = (await retryRes.json()) as JoinSessionResponse;
-        createOk = retryRes.ok;
-        if (!retryRes.ok || !createData.id) {
-          throw new Error(createData.error || '课堂创建失败');
-        }
-      }
-      if (!createOk || !createData.id) {
+      const createData = (await createRes.json()) as JoinSessionResponse;
+      if (!createRes.ok || !createData.id) {
         throw new Error(createData.error || '课堂创建失败');
       }
 

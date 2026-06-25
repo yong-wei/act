@@ -92,8 +92,14 @@ describe('classroom join entry', () => {
     expect(lessonListSource).toContain("duplicateAction: 'new-session'");
     expect(courseEntrySource).toContain('sourcePresetKey: config.presetKey');
     expect(courseEntrySource).toContain("duplicateAction: 'new-session'");
+    expect(courseEntrySource.indexOf("fetch('/api/session'")).toBeLessThan(
+      courseEntrySource.indexOf("fetch('/api/teacher/preset-lessons/clone'"),
+    );
     expect(premiumEntrySource).toContain('sourcePresetKey: config.presetKey');
     expect(premiumEntrySource).toContain("duplicateAction: 'new-session'");
+    expect(premiumEntrySource.indexOf("fetch('/api/session'")).toBeLessThan(
+      premiumEntrySource.indexOf("fetch('/api/teacher/preset-lessons/clone'"),
+    );
     expect(studentSource).toContain('data-classroom-identity-kind={classroomIdentity.kind}');
     expect(studentSource).not.toContain('session id');
   });

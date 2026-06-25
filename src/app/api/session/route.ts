@@ -8,6 +8,7 @@ import { generateUniqueJoinCode } from '@/lib/join-code';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { EMPTY_LESSON_PLAN_MESSAGE } from '@/lib/lesson-plan-readiness';
 import { loadSessionLessonSnapshot } from '@/lib/session-lesson-snapshot';
+import { ALL_PRESETS } from '@/features/teacher/preset-lessons';
 import {
   buildClassroomIdentityPayload,
   buildClassroomLifecycleEvidenceFields,
@@ -31,6 +32,44 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { planId, classId, duplicateAction, sourcePresetKey } = body;
+
+    if (!planId && sourcePresetKey && !classId && duplicateAction !== 'new-session') {
+      const preset = ALL_PRESETS.find((item) => item.key === sourcePresetKey);
+      if (!preset) {
+        return NextResponse.json({ error: 'Preset not found' }, { status: 404 });
+      }
+      const activeSession = await prisma.classSession.findFirst({
+        where: {
+          teacherId: user.id,
+          classId: null,
+          status: 'ACTIVE',
+          plan: { is: { title: `${preset.title} (副本)` } },
+        },
+        include: {
+          plan: { select: { title: true } },
+          class: { select: { name: true } },
+        },
+      });
+
+      if (activeSession) {
+        const classroomIdentity = buildClassroomIdentityPayload(activeSession);
+        if (duplicateAction === 'reuse') {
+          return NextResponse.json({
+            ...activeSession,
+            classroomIdentity,
+            reusedExistingSession: true,
+          });
+        }
+
+        return NextResponse.json({
+          error: '该教案已有进行中的临时课堂，请选择进入已有课堂或确认新开课堂。',
+          existingSessionId: activeSession.id,
+          requiresExplicitChoice: true,
+          allowedActions: ['reuse', 'new-session'],
+          classroomIdentity,
+        }, { status: 409 });
+      }
+    }
 
     if (!planId) {
       return NextResponse.json({ error: '请选择教案' }, { status: 400 });
