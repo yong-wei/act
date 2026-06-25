@@ -15,18 +15,22 @@ type PersistArtifactInput = {
   };
 };
 
+type AdminOperationLedgerDb = {
+  adminOperationLedger: {
+    upsert: (args: unknown) => Promise<unknown>;
+  };
+  adminOperationArtifact: {
+    upsert: (args: unknown) => Promise<unknown>;
+    findUnique?: (args: unknown) => Promise<unknown>;
+  };
+};
+
 export async function persistAdminOperationLedger(
   entry: AdminOperationLedgerEntry,
   artifacts: PersistArtifactInput[] = [],
+  db: AdminOperationLedgerDb = prisma as unknown as AdminOperationLedgerDb,
 ) {
-  const client = prisma as unknown as {
-    adminOperationLedger: {
-      upsert: (args: unknown) => Promise<unknown>;
-    };
-    adminOperationArtifact: {
-      upsert: (args: unknown) => Promise<unknown>;
-    };
-  };
+  const client = db;
 
   await client.adminOperationLedger.upsert({
     where: { idempotencyKey: entry.idempotencyKey },

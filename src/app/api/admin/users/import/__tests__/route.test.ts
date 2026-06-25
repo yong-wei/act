@@ -5,7 +5,24 @@ const mocks = vi.hoisted(() => ({
   requireAdminSession: vi.fn(),
   hash: vi.fn(),
   initializeUserProgress: vi.fn(),
+  txPrisma: {
+    user: {
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    studentProfile: {
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
+    adminOperationArtifact: {
+      upsert: vi.fn(),
+    },
+  },
   prisma: {
+    $transaction: vi.fn(),
     user: {
       findMany: vi.fn(),
       create: vi.fn(),
@@ -71,12 +88,15 @@ describe('POST /api/admin/users/import', () => {
     });
     mocks.hash.mockResolvedValue('hashed-password');
     mocks.prisma.user.findMany.mockResolvedValue([]);
-    mocks.prisma.user.create.mockResolvedValue({
+    mocks.txPrisma.user.create.mockResolvedValue({
       id: 'student-user-1',
       profile: { id: 'profile-1' },
     });
     mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
     mocks.prisma.adminOperationArtifact.upsert.mockResolvedValue({});
+    mocks.txPrisma.adminOperationLedger.upsert.mockResolvedValue({});
+    mocks.txPrisma.adminOperationArtifact.upsert.mockResolvedValue({});
+    mocks.prisma.$transaction.mockImplementation(async (callback) => callback(mocks.txPrisma));
   });
 
   it('imports a valid student workbook using the official columns', async () => {
@@ -121,10 +141,12 @@ describe('POST /api/admin/users/import', () => {
         },
       },
     });
-    expect(mocks.prisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.hash).toHaveBeenCalledWith('secret', 10);
+    expect(mocks.txPrisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         name: '张三',
         email: 'zhangsan@example.com',
+        passwordHash: 'hashed-password',
         role: 'STUDENT',
         profile: {
           create: expect.objectContaining({
@@ -134,8 +156,10 @@ describe('POST /api/admin/users/import', () => {
         },
       }),
     }));
-    expect(mocks.initializeUserProgress).toHaveBeenCalledWith('student-user-1');
-    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.prisma.user.create).not.toHaveBeenCalled();
+    expect(mocks.initializeUserProgress).toHaveBeenCalledWith('student-user-1', mocks.txPrisma);
+    expect(mocks.prisma.$transaction).toHaveBeenCalled();
+    expect(mocks.txPrisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { idempotencyKey: expect.stringMatching(/^admin-op:/) },
     }));
   });
@@ -170,7 +194,7 @@ describe('POST /api/admin/users/import', () => {
         ]),
       },
     }));
-    expect(mocks.prisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.txPrisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         email: null,
         profile: {
@@ -181,6 +205,49 @@ describe('POST /api/admin/users/import', () => {
         },
       }),
     }));
+  });
+
+  it('updates existing users through the import transaction client', async () => {
+    mocks.prisma.user.findMany
+      .mockResolvedValueOnce([{ id: 'existing-student-1', profile: { id: 'profile-1' } }])
+      .mockResolvedValueOnce([{ id: 'existing-student-1' }]);
+    const file = await buildWorkbookFile([
+      ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],
+      ['20240008', '更新学生', '学生', 'student08@example.com', '自动化2402', '自动化', '2024', 'new-secret'],
+    ]);
+
+    const response = await POST(buildImportRequest(file));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      created: 0,
+      updated: 1,
+      failed: 0,
+      auditRecord: {
+        outcome: 'completed',
+      },
+    });
+    expect(mocks.hash).toHaveBeenCalledWith('new-secret', 10);
+    expect(mocks.txPrisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'existing-student-1' },
+      data: expect.objectContaining({
+        name: '更新学生',
+        email: 'student08@example.com',
+        passwordHash: 'hashed-password',
+        role: 'STUDENT',
+      }),
+    }));
+    expect(mocks.txPrisma.studentProfile.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'existing-student-1' },
+      data: expect.objectContaining({
+        studentNumber: '20240008',
+        className: '自动化2402',
+      }),
+    }));
+    expect(mocks.prisma.user.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentProfile.update).not.toHaveBeenCalled();
+    expect(mocks.txPrisma.adminOperationLedger.upsert).toHaveBeenCalled();
   });
 
   it('previews a valid workbook without mutating users', async () => {
@@ -206,6 +273,7 @@ describe('POST /api/admin/users/import', () => {
     });
     expect(mocks.prisma.user.create).not.toHaveBeenCalled();
     expect(mocks.prisma.user.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
     expect(mocks.initializeUserProgress).not.toHaveBeenCalled();
   });
 
@@ -257,9 +325,87 @@ describe('POST /api/admin/users/import', () => {
         },
       }),
     }));
-    expect(mocks.prisma.user.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.user.findMany).toHaveBeenCalledTimes(2);
     expect(mocks.prisma.user.create).not.toHaveBeenCalled();
     expect(mocks.prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it('reports duplicate emails inside the same commit batch before transaction writes', async () => {
+    const file = await buildWorkbookFile([
+      ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],
+      ['20240009', '学生 A', '学生', 'duplicate@example.com', '自动化2401', '自动化', '2024', 'secret'],
+      ['20240010', '学生 B', '学生', 'duplicate@example.com', '自动化2402', '自动化', '2024', 'secret'],
+    ]);
+
+    const response = await POST(buildImportRequest(file));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      created: 1,
+      updated: 0,
+      failed: 1,
+      errors: [{
+        row: 3,
+        accountFingerprint: expect.any(String),
+        reason: '同批次重复邮箱，已在第 2 行出现',
+      }],
+      auditRecord: {
+        outcome: 'completed-with-errors',
+      },
+    });
+    expect(JSON.stringify(payload)).not.toContain('"account":"20240010"');
+    expect(mocks.prisma.user.findMany).toHaveBeenCalledTimes(2);
+    expect(mocks.txPrisma.user.create).toHaveBeenCalledTimes(1);
+    expect(mocks.txPrisma.adminOperationLedger.upsert).toHaveBeenCalled();
+  });
+
+  it('prevalidates email conflicts before opening the import write transaction', async () => {
+    mocks.prisma.user.findMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 'existing-email-user' }]);
+    const file = await buildWorkbookFile([
+      ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],
+      ['20240007', '邮箱冲突', '学生', 'used@example.com', '自动化2401', '自动化', '2024', 'secret'],
+    ]);
+
+    const response = await POST(buildImportRequest(file));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      created: 0,
+      updated: 0,
+      failed: 1,
+      errors: [{
+        row: 2,
+        accountFingerprint: expect.any(String),
+        reason: '邮箱已被其他用户使用',
+      }],
+      auditRecord: {
+        outcome: 'completed-with-errors',
+      },
+    });
+    expect(JSON.stringify(payload)).not.toContain('"account":"20240007"');
+    expect(mocks.hash).not.toHaveBeenCalled();
+    expect(mocks.txPrisma.user.create).not.toHaveBeenCalled();
+    expect(mocks.txPrisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { idempotencyKey: expect.stringMatching(/^admin-op:/) },
+    }));
+  });
+
+  it('lets transaction write failures abort before ledger persistence', async () => {
+    mocks.txPrisma.user.create.mockRejectedValueOnce(new Error('db write failed'));
+    const file = await buildWorkbookFile([
+      ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],
+      ['20240011', '写入失败', '学生', 'write-fail@example.com', '自动化2401', '自动化', '2024', 'secret'],
+    ]);
+
+    await expect(POST(buildImportRequest(file))).rejects.toThrow('db write failed');
+
+    expect(mocks.txPrisma.user.create).toHaveBeenCalled();
+    expect(mocks.txPrisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
+    expect(mocks.txPrisma.adminOperationArtifact.upsert).not.toHaveBeenCalled();
   });
 
   it('returns a controlled validation error when required headers are missing', async () => {
