@@ -19,6 +19,7 @@ import {
 } from '@/lib/konling-teaching-assistant-server-context';
 import { prisma } from '@/lib/prisma';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { getAdaptivePracticeGoalOption } from '@/lib/adaptive-path-goal-options';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const runtime = 'nodejs';
@@ -119,6 +120,7 @@ export async function POST(request: Request) {
           citationContext: buildPathAwareCitationContext(
             baseRuntimeContext.citationContext,
             pathPlanContext,
+            goalId,
           ),
         }
       : baseRuntimeContext;
@@ -194,6 +196,7 @@ export async function POST(request: Request) {
 function buildPathAwareCitationContext(
   citationContext: KonlingCitationContext | undefined,
   planContext: KonlingPlanContext,
+  goalId: string,
 ): KonlingCitationContext {
   const baseCitationContext = citationContext ?? createMissingPathAdvisorCitationContext();
   if (!planContext.currentPathId) return baseCitationContext;
@@ -202,7 +205,7 @@ function buildPathAwareCitationContext(
     ? baseCitationContext.evidenceCitations
     : [
         ...baseCitationContext.evidenceCitations,
-        buildPathExecutionCitation(pathCitationId),
+        buildPathExecutionCitation(pathCitationId, goalId),
       ];
   return {
     ...baseCitationContext,
@@ -230,11 +233,12 @@ function createMissingPathAdvisorCitationContext(): KonlingCitationContext {
   };
 }
 
-function buildPathExecutionCitation(id: string): KonlingCitation {
+function buildPathExecutionCitation(id: string, goalId: string): KonlingCitation {
+  const goalTitle = getAdaptivePracticeGoalOption(goalId)?.title ?? '当前学习路径';
   return {
     id,
     sourceType: 'path-execution',
-    displayTitle: '当前控制校正学习路径',
+    displayTitle: `${goalTitle}学习路径`,
     href: null,
     confidence: 'medium',
     evidenceBasis: 'LearningPath',

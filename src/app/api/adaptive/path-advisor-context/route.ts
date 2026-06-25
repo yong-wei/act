@@ -4,27 +4,11 @@ import { getServerAuthSession } from '@/lib/auth';
 import {
   createKonlingTeachingAssistantServerContextToken,
 } from '@/lib/konling-teaching-assistant-server-context';
+import { getAdaptivePathAdvisorGoalContext } from '@/lib/adaptive-path-goal-options';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 
 export const dynamic = 'force-dynamic';
-
-const PATH_ADVISOR_GOAL_CONTEXTS: Record<string, {
-  courseTitle: string;
-  topic: string;
-  learningObjectives: string[];
-}> = {
-  'control-correction': {
-    courseTitle: '控制系统校正设计',
-    topic: '控制系统校正学习路径',
-    learningObjectives: ['基于控制校正学习证据生成、比较和调整学习路径'],
-  },
-  'frequency-response-foundations': {
-    courseTitle: '频率响应基础',
-    topic: '频率响应基础学习路径',
-    learningObjectives: ['基于频率响应学习证据生成、比较和调整学习路径'],
-  },
-};
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -50,11 +34,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: '当前账号缺少班级信息，暂不能生成学习路径' }, { status: 403 });
   }
 
-  const goalContext = PATH_ADVISOR_GOAL_CONTEXTS[goalId] ?? {
-    courseTitle: goalId,
-    topic: '学习路径',
-    learningObjectives: ['基于学习证据生成、比较和调整学习路径'],
-  };
+  const goalContext = getAdaptivePathAdvisorGoalContext(goalId);
+  if (!goalContext) {
+    return NextResponse.json({ error: '学习路径目标暂不可用于路径顾问' }, { status: 400 });
+  }
   const modeContextToken = createKonlingTeachingAssistantServerContextToken({
     mode: 'path-advisor',
     classId,
