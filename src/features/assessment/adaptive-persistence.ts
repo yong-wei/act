@@ -422,7 +422,7 @@ async function persistAdaptiveAssessmentSubmission(
         },
       },
     });
-    if (existingPathAnswer) {
+    if (existingPathAnswer && !existingPathAnswer.isCorrect) {
       const retrySessionId = `${details.record.sessionId}:retry-${answeredAt.getTime()}`;
       session = await tx.adaptiveAssessmentSession.upsert({
         where: {
