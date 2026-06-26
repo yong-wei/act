@@ -233,7 +233,7 @@ function buildPublicationContext(publication: ArenaPublicationReportPublication)
       ? '公开挑战'
       : publication.visibility === 'course'
         ? '课程范围'
-        : '班级范围'
+        : `班级 ${publication.classId}`
   );
   const teacherLabel = publication.context?.teacherName ?? '教师发布';
   const sourceLabel = publication.context?.sourceLabel ?? (

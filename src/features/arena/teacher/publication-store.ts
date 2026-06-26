@@ -208,6 +208,21 @@ function readString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
 }
 
+function buildDisplayContext(publication: ArenaPublicationRecord): ArenaPublicationRecord['context'] {
+  return {
+    assignmentTitle: publication.context?.assignmentTitle,
+    classTitle: publication.context?.classTitle ?? (
+      publication.visibility === 'public'
+        ? '公开挑战'
+        : publication.visibility === 'course'
+          ? '课程范围'
+          : `班级 ${publication.classId}`
+    ),
+    teacherName: publication.context?.teacherName,
+    sourceLabel: publication.context?.sourceLabel,
+  };
+}
+
 function toRecord(row: Record<string, unknown>): ArenaPublicationRecord {
   const config = row.config && typeof row.config === 'object' && !Array.isArray(row.config)
     ? row.config as ArenaPublicationDisplayConfig
@@ -497,7 +512,7 @@ export async function resolveAccessibleArenaPublicationForStudent(
     deadline: publication.deadline,
     leaderboardPolicyId: publication.leaderboardPolicyId,
     gradingPolicy: publication.gradingPolicy,
-    displayContext: publication.context,
+    displayContext: buildDisplayContext(publication),
   };
 }
 

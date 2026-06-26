@@ -311,6 +311,23 @@ describe('arena publication report analytics', () => {
     expect(report.publicationContext.classTitle).toBe('课程范围');
   });
 
+  it('keeps the class identifier visible when class publications have no display context', () => {
+    const report = buildArenaPublicationReport({
+      publication: {
+        id: 'publication-class-context-fallback',
+        taskId: 'task-report',
+        classId: 'class-a',
+        deadline: '2026-06-01T08:00:00.000Z',
+        visibility: 'class',
+        leaderboardPolicyId: 'leaderboard-class-homework',
+        gradingPolicy: {},
+      },
+      submissions: [],
+    });
+
+    expect(report.publicationContext.classTitle).toBe('班级 class-a');
+  });
+
   it('keeps public publication reports scoped to publication and detached from class roster', () => {
     const report = buildArenaPublicationReport({
       publication: {

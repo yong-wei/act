@@ -223,6 +223,9 @@ describe('arena teaching platform integration', () => {
       classId: 'class-a',
       studentVisibility: 'class',
       isLate: false,
+      displayContext: {
+        classTitle: '班级 class-a',
+      },
     });
     await expect(resolveAccessibleArenaPublicationForStudent(db as any, {
       publicationId: publication.id,
