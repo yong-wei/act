@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { selectArenaHallCurrentPublication, selectArenaHallPublicationForTask } from '../arena-publication-selection';
 import type { ArenaPublicationRecord } from '../teacher/publication-store';
 
+const beforeDeadlines = new Date('2026-05-15T10:00:00.000Z');
+const afterFirstDeadline = new Date('2026-06-02T10:00:00.000Z');
+
 function publication(overrides: Partial<ArenaPublicationRecord>): ArenaPublicationRecord {
   return {
     id: 'publication-course',
@@ -44,7 +47,7 @@ describe('arena hall publication selection', () => {
       homeworkBinding: true,
     });
 
-    expect(selectArenaHallPublicationForTask([course, assigned], 'task-second-order-lead-pid')?.id)
+    expect(selectArenaHallPublicationForTask([course, assigned], 'task-second-order-lead-pid', beforeDeadlines)?.id)
       .toBe('publication-class-homework');
   });
 
@@ -65,7 +68,75 @@ describe('arena hall publication selection', () => {
       deadline: '2026-06-05T15:00:00.000Z',
     });
 
-    expect(selectArenaHallCurrentPublication([earlierCourse, laterClassHomework])?.id)
+    expect(selectArenaHallCurrentPublication([earlierCourse, laterClassHomework], beforeDeadlines)?.id)
       .toBe('publication-later-class-homework');
+  });
+
+  it('keeps report-ready expired publications from replacing an active challenge entry', () => {
+    const expiredClassHomework = publication({
+      id: 'publication-expired-class-homework',
+      visibility: 'class',
+      studentVisibility: 'class',
+      homeworkBinding: true,
+      deadline: '2026-06-01T15:00:00.000Z',
+      gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+    });
+    const activeCourse = publication({
+      id: 'publication-active-course',
+      visibility: 'course',
+      studentVisibility: 'course',
+      deadline: '2026-06-05T15:00:00.000Z',
+    });
+
+    expect(selectArenaHallCurrentPublication([expiredClassHomework, activeCourse], afterFirstDeadline)?.id)
+      .toBe('publication-active-course');
+    expect(selectArenaHallPublicationForTask(
+      [expiredClassHomework, activeCourse],
+      'task-second-order-lead-pid',
+      afterFirstDeadline,
+    )?.id).toBe('publication-active-course');
+  });
+
+  it('keeps late-submission publications ahead of report-only expired publications', () => {
+    const expiredReportOnly = publication({
+      id: 'publication-expired-report-only',
+      visibility: 'class',
+      studentVisibility: 'class',
+      homeworkBinding: true,
+      deadline: '2026-06-01T15:00:00.000Z',
+      gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+    });
+    const lateOnly = publication({
+      id: 'publication-late-only',
+      visibility: 'course',
+      studentVisibility: 'course',
+      deadline: '2026-06-01T15:00:00.000Z',
+      gradingPolicy: { hideFullLeaderboardBeforeDeadline: true, allowLateSubmissions: true },
+    });
+
+    expect(selectArenaHallCurrentPublication([expiredReportOnly, lateOnly], afterFirstDeadline)?.id)
+      .toBe('publication-late-only');
+  });
+
+  it('selects the most recently closed publication among report-only expired entries before assignment priority', () => {
+    const olderReport = publication({
+      id: 'publication-older-report',
+      visibility: 'class',
+      studentVisibility: 'class',
+      homeworkBinding: true,
+      deadline: '2026-05-20T15:00:00.000Z',
+      gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+    });
+    const recentReport = publication({
+      id: 'publication-recent-report',
+      deadline: '2026-06-01T15:00:00.000Z',
+      gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+    });
+
+    expect(selectArenaHallPublicationForTask(
+      [olderReport, recentReport],
+      'task-second-order-lead-pid',
+      afterFirstDeadline,
+    )?.id).toBe('publication-recent-report');
   });
 });

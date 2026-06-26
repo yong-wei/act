@@ -20,6 +20,23 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+function formatPublicationDeadline(value: string): string {
+  return new Intl.DateTimeFormat('zh-CN', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+
+function buildStudentLeaderboardBoundary(publication: ArenaResolvedSubmissionContext): string {
+  if (publication.visibility === 'public' || publication.studentVisibility === 'public') {
+    return '公开榜单只统计服务端 ArenaSubmission 官方提交；LearningFact 仅作为学习证据。';
+  }
+  if (publication.visibility === 'course') {
+    return '课程任务榜单只统计本发布的 ArenaSubmission 官方提交，迟交、零分和无效尝试按提交口径处理。';
+  }
+  return '班级榜单只统计本发布的 ArenaSubmission 官方提交。';
+}
+
 export default async function ArenaChallengePage(
   props: {
     params: Promise<{ taskId: string }>;
@@ -107,6 +124,25 @@ export default async function ArenaChallengePage(
       publicationId={publicationId}
       classId={publicationContext?.classId}
       seasonId={publicationContext?.seasonId}
+      publicationContext={publicationContext ? {
+        assignmentTitle: publicationContext.displayContext?.assignmentTitle ?? (
+          publicationContext.visibility === 'public' ? '公开 Arena 挑战' : 'Arena 发布挑战'
+        ),
+        classTitle: publicationContext.displayContext?.classTitle ?? (
+          publicationContext.visibility === 'public'
+            ? '公开挑战'
+            : publicationContext.visibility === 'class'
+              ? '班级范围'
+              : '课程范围'
+        ),
+        teacherLabel: publicationContext.displayContext?.teacherName ?? '教师发布',
+        sourceLabel: publicationContext.displayContext?.sourceLabel ?? (
+          publicationContext.visibility === 'public' ? '公开 Arena' : '课堂发布'
+        ),
+        deadlineLabel: formatPublicationDeadline(publicationContext.deadline),
+        lifecycleLabel: publicationContext.isLate ? '已截止' : '进行中',
+        leaderboardBoundary: buildStudentLeaderboardBoundary(publicationContext),
+      } : undefined}
     />
   );
 }

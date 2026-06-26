@@ -30,12 +30,29 @@ export interface ArenaPublicationGradingPolicy {
   [key: string]: unknown;
 }
 
+interface ArenaPublicationDisplayConfig extends Partial<ArenaChallengePublication> {
+  assignmentTitle?: unknown;
+  homeworkTitle?: unknown;
+  title?: unknown;
+  classTitle?: unknown;
+  className?: unknown;
+  teacherName?: unknown;
+  teacherLabel?: unknown;
+  sourceLabel?: unknown;
+}
+
 export interface ArenaPublicationRecord extends ArenaChallengePublication {
   id: string;
   teacherId: string;
   visibility: ArenaPublicationVisibility;
   status: ArenaPublicationStatus;
   gradingPolicy: ArenaPublicationGradingPolicy;
+  context?: {
+    assignmentTitle?: string;
+    classTitle?: string;
+    teacherName?: string;
+    sourceLabel?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -44,12 +61,19 @@ export interface ArenaResolvedSubmissionContext {
   id: string;
   taskId: string;
   visibility: ArenaPublicationVisibility;
+  studentVisibility: ArenaPublicationVisibility;
   classId?: string;
   seasonId?: string;
   isLate: boolean;
   deadline: string;
   leaderboardPolicyId: string;
   gradingPolicy: ArenaPublicationGradingPolicy;
+  displayContext?: {
+    assignmentTitle?: string;
+    classTitle?: string;
+    teacherName?: string;
+    sourceLabel?: string;
+  };
 }
 
 export class ArenaPublicationPermissionError extends Error {
@@ -68,7 +92,15 @@ export class ArenaPublicationAccessError extends Error {
 
 type ArenaPublicationDb = {
   class: {
-    findUnique(args: unknown): Promise<{ id: string; teacherId: string } | null>;
+    findUnique(args: unknown): Promise<{
+      id: string;
+      teacherId: string;
+      name?: string | null;
+      teacher?: {
+        name?: string | null;
+        email?: string | null;
+      } | null;
+    } | null>;
   };
   arenaChallengePublication: {
     create(args: unknown): Promise<Record<string, unknown>>;
@@ -180,9 +212,28 @@ function readGradingPolicy(value: unknown): ArenaPublicationGradingPolicy {
     : {};
 }
 
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function buildDisplayContext(publication: ArenaPublicationRecord): ArenaPublicationRecord['context'] {
+  return {
+    assignmentTitle: publication.context?.assignmentTitle,
+    classTitle: publication.context?.classTitle ?? (
+      publication.visibility === 'public'
+        ? '公开挑战'
+        : publication.visibility === 'course'
+          ? '课程范围'
+          : `班级 ${publication.classId}`
+    ),
+    teacherName: publication.context?.teacherName,
+    sourceLabel: publication.context?.sourceLabel,
+  };
+}
+
 function toRecord(row: Record<string, unknown>): ArenaPublicationRecord {
   const config = row.config && typeof row.config === 'object' && !Array.isArray(row.config)
-    ? row.config as Partial<ArenaChallengePublication>
+    ? row.config as ArenaPublicationDisplayConfig
     : {};
   const visibility = isArenaPublicationVisibility(row.visibility) ? row.visibility : 'class';
   const status = isArenaPublicationStatus(row.status) ? row.status : 'active';
@@ -214,6 +265,12 @@ function toRecord(row: Record<string, unknown>): ArenaPublicationRecord {
       ? config.telemetryLevel
       : 'L0',
     status,
+    context: {
+      assignmentTitle: readString(config.assignmentTitle) ?? readString(config.homeworkTitle) ?? readString(config.title),
+      classTitle: readString(config.classTitle) ?? readString(config.className),
+      teacherName: readString(config.teacherName) ?? readString(config.teacherLabel),
+      sourceLabel: readString(config.sourceLabel),
+    },
     gradingPolicy: readGradingPolicy(row.gradingPolicy),
     createdAt: readDate(row.createdAt),
     updatedAt: readDate(row.updatedAt),
@@ -224,10 +281,28 @@ async function assertTeacherCanUseClass(
   db: ArenaPublicationDb,
   actor: ArenaPublicationActor,
   classId: string,
-): Promise<{ id: string; teacherId: string }> {
+): Promise<{
+  id: string;
+  teacherId: string;
+  name?: string | null;
+  teacher?: {
+    name?: string | null;
+    email?: string | null;
+  } | null;
+}> {
   const targetClass = await db.class.findUnique({
     where: { id: classId },
-    select: { id: true, teacherId: true },
+    select: {
+      id: true,
+      teacherId: true,
+      name: true,
+      teacher: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
   });
   if (!targetClass) {
     throw new ArenaPublicationPermissionError('Arena publication class was not found.');
@@ -312,7 +387,11 @@ export async function createArenaPublicationRecord(
       homeworkBinding: preview.homeworkBinding,
       gradingPolicy: input.gradingPolicy ?? {},
       status: input.status ?? 'active',
-      config: preview,
+      config: {
+        ...preview,
+        classTitle: targetClass.name ?? targetClass.id,
+        teacherName: targetClass.teacher?.name ?? targetClass.teacher?.email ?? undefined,
+      },
     },
   });
 
@@ -364,13 +443,8 @@ export async function listArenaPublicationsForStudent(
     }
     throw error;
   }
-  const now = input.now ?? new Date();
   return rows
-    .map(toRecord)
-    .filter((publication) => {
-      if (publication.gradingPolicy.allowLateSubmissions === true) return true;
-      return now.getTime() <= Date.parse(publication.deadline);
-    });
+    .map(toRecord);
 }
 
 export async function updateArenaPublicationStatus(
@@ -461,12 +535,14 @@ export async function resolveAccessibleArenaPublicationForStudent(
     id: publication.id,
     taskId: publication.taskId,
     visibility: publication.visibility,
+    studentVisibility: publication.studentVisibility,
     classId: submissionClassId,
     seasonId: typeof publication.gradingPolicy.seasonId === 'string' ? publication.gradingPolicy.seasonId : undefined,
     isLate,
     deadline: publication.deadline,
     leaderboardPolicyId: publication.leaderboardPolicyId,
     gradingPolicy: publication.gradingPolicy,
+    displayContext: buildDisplayContext(publication),
   };
 }
 

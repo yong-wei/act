@@ -308,6 +308,24 @@ describe('arena publication report analytics', () => {
     });
     expect(report.scores).toEqual({ average: 85, median: 85, highest: 90 });
     expect(report.personalBests.map((best) => best.userId)).toEqual(['student-b', 'student-a', 'student-c']);
+    expect(report.publicationContext.classTitle).toBe('课程范围');
+  });
+
+  it('keeps the class identifier visible when class publications have no display context', () => {
+    const report = buildArenaPublicationReport({
+      publication: {
+        id: 'publication-class-context-fallback',
+        taskId: 'task-report',
+        classId: 'class-a',
+        deadline: '2026-06-01T08:00:00.000Z',
+        visibility: 'class',
+        leaderboardPolicyId: 'leaderboard-class-homework',
+        gradingPolicy: {},
+      },
+      submissions: [],
+    });
+
+    expect(report.publicationContext.classTitle).toBe('班级 class-a');
   });
 
   it('keeps public publication reports scoped to publication and detached from class roster', () => {
@@ -504,6 +522,68 @@ describe('arena publication report analytics', () => {
     });
     expect(report.classroomReview.leaderboardVisibilityMessage).toContain('有效尝试');
   });
+
+  it('exposes publication product context, lifecycle state, delivery actions, and leaderboard boundaries', () => {
+    const report = buildArenaPublicationReport({
+      publication: {
+        id: 'publication-context',
+        taskId: 'task-third-order-block-diagram',
+        classId: 'class-control-2026',
+        deadline: '2026-05-01T08:00:00.000Z',
+        visibility: 'class',
+        leaderboardPolicyId: 'leaderboard-class-homework',
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: true, allowLateSubmissions: true },
+        status: 'active',
+        context: {
+          assignmentTitle: '第三章课堂挑战',
+          classTitle: '自动控制 2026 级 1 班',
+          teacherName: '张老师',
+          sourceLabel: '课堂发布',
+        },
+      },
+      submissions: [
+        submission({
+          id: 'late-valid',
+          userId: 'student-a',
+          studentLabel: '学生甲',
+          score: 82,
+          valid: true,
+          isLate: true,
+          publicationId: 'publication-context',
+          classId: 'class-control-2026',
+          submittedAt: '2026-05-02T08:00:00.000Z',
+        }),
+      ],
+    });
+
+    expect(report.publicationContext).toMatchObject({
+      taskTitle: '三阶对象结构化补偿挑战',
+      assignmentTitle: '第三章课堂挑战',
+      classTitle: '自动控制 2026 级 1 班',
+      teacherLabel: '张老师',
+      sourceLabel: '课堂发布',
+      reportTitle: '三阶对象结构化补偿挑战 · 第三章课堂挑战',
+    });
+    expect(report.lifecycle).toMatchObject({
+      state: 'late-only',
+      tone: 'warning',
+      primaryLabel: '已截止，可接收迟交',
+      actionLabel: '查看迟交与报告',
+    });
+    expect(report.leaderboardBoundary).toMatchObject({
+      scope: 'class',
+      sourceLabel: '班级发布榜单',
+      rankingSource: 'ArenaSubmission',
+      attemptPolicy: 'best-effective-attempt',
+    });
+    expect(report.deliveryActions.map((action) => action.id)).toEqual([
+      'export-report',
+      'send-report',
+      'lock-board',
+      'copy-commentary',
+    ]);
+    expect(report.deliveryActions.every((action) => typeof action.statusLabel === 'string' && action.statusLabel.length > 0)).toBe(true);
+  });
 });
 
 function publicationRow(overrides: Record<string, unknown> = {}) {
@@ -539,7 +619,7 @@ function reportDb() {
     class: {
       findUnique: vi.fn(async ({ where }: any) => (
         where.id === 'class-a'
-          ? { id: 'class-a', teacherId: 'teacher-a' }
+          ? { id: 'class-a', teacherId: 'teacher-a', name: '自动控制 A 班', teacher: { name: '张老师', email: 'teacher-a@example.edu' } }
           : null
       )),
     },
@@ -589,7 +669,17 @@ describe('arena publication report access', () => {
     });
     expect(db.class.findUnique).toHaveBeenCalledWith({
       where: { id: 'class-a' },
-      select: { id: true, teacherId: true },
+      select: {
+        id: true,
+        teacherId: true,
+        name: true,
+        teacher: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
     expect(listSubmissions).toHaveBeenCalledWith({
       taskId: 'task-report',
@@ -697,8 +787,17 @@ describe('arena publication report route', () => {
     expect(pageSource).toContain('课堂复盘');
     expect(pageSource).toContain('匿名方案候选');
     expect(pageSource).toContain('privacyNote');
-    expect(pageSource).toContain('leaderboardPolicyId');
-    expect(pageSource).toContain('截止前隐藏完整同伴榜单');
+    expect(pageSource).toContain('publicationContext.reportTitle');
+    expect(pageSource).toContain('data-arena-publication-context');
+    expect(pageSource).toContain('leaderboardBoundary.explanation');
+    expect(pageSource).toContain('报告交付');
+    expect(pageSource).toContain('data-arena-publication-mobile-actions="safe-area"');
+    expect(pageSource).toContain('data-task-workspace-zone="floating-dock-safe-area"');
+    expect(pageSource).toContain('pb-[calc(env(safe-area-inset-bottom,0px)+8rem)]');
+    expect(pageSource).toContain('export-report');
+    expect(pageSource).toContain('send-report');
+    expect(pageSource).toContain('lock-board');
+    expect(pageSource).toContain('copy-commentary');
   });
 
   it('links persisted teacher arena publication rows to the report page', () => {

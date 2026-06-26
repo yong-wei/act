@@ -40,6 +40,15 @@ interface ChallengeDetailProps {
   publicationId?: string;
   classId?: string;
   seasonId?: string;
+  publicationContext?: {
+    assignmentTitle: string;
+    classTitle: string;
+    teacherLabel: string;
+    sourceLabel: string;
+    deadlineLabel: string;
+    lifecycleLabel: string;
+    leaderboardBoundary: string;
+  };
 }
 
 export function ChallengeDetail({
@@ -51,6 +60,7 @@ export function ChallengeDetail({
   publicationId,
   classId,
   seasonId,
+  publicationContext,
 }: ChallengeDetailProps) {
   const stats = buildArenaTaskStats(submissions, [task.id])[task.id] ?? {
     participantCount: 0,
@@ -110,6 +120,21 @@ export function ChallengeDetail({
                 </div>
                 <h1 className="mt-4 break-words text-3xl font-semibold text-foreground md:text-4xl">{task.title}</h1>
                 <p className="mt-3 max-w-3xl text-base leading-7 text-subtle">{task.goal}</p>
+                {publicationContext ? (
+                  <div className="mt-5 rounded-lg border border-primary/25 bg-primary/10 p-4" data-arena-publication-entry-context="visible">
+                    <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-primary">
+                      发布挑战
+                      <span className="rounded-full border border-primary/25 px-2 py-1 text-xs">{publicationContext.lifecycleLabel}</span>
+                    </div>
+                    <div className="mt-3 grid gap-3 text-sm md:grid-cols-2">
+                      <DetailItem label="作业/发布" value={publicationContext.assignmentTitle} />
+                      <DetailItem label="班级/范围" value={publicationContext.classTitle} />
+                      <DetailItem label="教师/来源" value={`${publicationContext.teacherLabel} · ${publicationContext.sourceLabel}`} />
+                      <DetailItem label="截止时间" value={`截止 ${publicationContext.deadlineLabel}`} />
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-primary">{publicationContext.leaderboardBoundary}</p>
+                  </div>
+                ) : null}
                 <ArenaWorkspaceLink
                   href={workspaceHref}
                   task={task}
