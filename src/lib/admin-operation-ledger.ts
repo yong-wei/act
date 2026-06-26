@@ -126,6 +126,7 @@ export function buildAdminOperationLedgerEntry(input: {
 
 export function buildFailedImportArtifact(input: {
   batchId: string;
+  artifactSeed?: string;
   failedRows: readonly PiiMinimizedFailedImportRow[];
   generatedAt: string;
   retentionDays?: number;
@@ -134,8 +135,11 @@ export function buildFailedImportArtifact(input: {
   const expiresAt = new Date(
     new Date(input.generatedAt).getTime() + (input.retentionDays ?? 7) * 24 * 60 * 60 * 1000,
   ).toISOString();
+  const artifactSegment = input.artifactSeed
+    ? `${input.batchId}:${stableFingerprint(input.artifactSeed).slice(0, 12)}`
+    : input.batchId;
   return {
-    id: `${input.batchId}:failed-rows`,
+    id: `${artifactSegment}:failed-rows`,
     kind: 'failed-rows',
     label: 'PII 最小化失败行',
     authorizedRoles: ['ADMIN'],

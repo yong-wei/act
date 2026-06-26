@@ -330,6 +330,34 @@ describe('POST /api/admin/users/import', () => {
     expect(mocks.prisma.user.update).not.toHaveBeenCalled();
   });
 
+  it('keeps failed row artifact ids distinct for same-millisecond failed imports', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1800000000000);
+    try {
+      const firstFile = await buildWorkbookFile([
+        ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],
+        ['20240012', '', '学生', 'first@example.com', '自动化2401', '自动化', '2024', 'secret'],
+      ], 'first.xlsx');
+      const secondFile = await buildWorkbookFile([
+        ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],
+        ['20240013', '', '学生', 'second@example.com', '自动化2401', '自动化', '2024', 'secret'],
+      ], 'second.xlsx');
+
+      const firstResponse = await POST(buildImportRequest(firstFile));
+      const firstPayload = await firstResponse.json();
+      const secondResponse = await POST(buildImportRequest(secondFile));
+      const secondPayload = await secondResponse.json();
+
+      expect(firstResponse.status).toBe(200);
+      expect(secondResponse.status).toBe(200);
+      expect(firstPayload.batchId).toBe(secondPayload.batchId);
+      expect(firstPayload.failedRowArtifact.id).toMatch(/^admin-user-import-.*:[a-f0-9]{12}:failed-rows$/);
+      expect(secondPayload.failedRowArtifact.id).toMatch(/^admin-user-import-.*:[a-f0-9]{12}:failed-rows$/);
+      expect(secondPayload.failedRowArtifact.id).not.toBe(firstPayload.failedRowArtifact.id);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
   it('reports duplicate emails inside the same commit batch before transaction writes', async () => {
     const file = await buildWorkbookFile([
       ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],

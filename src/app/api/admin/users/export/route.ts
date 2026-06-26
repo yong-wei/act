@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { createHash } from 'node:crypto';
 import type { Prisma } from '@prisma/client';
 
 import { requireAdminSession } from '@/lib/admin';
@@ -68,17 +69,22 @@ export async function GET(request: NextRequest) {
     }),
   ]);
 
+  const exportRows = users.map((user) => [
+    user.id,
+    user.name ?? '',
+    user.email ?? '',
+    user.role,
+    user.profile?.studentNumber ?? user.employeeNumber ?? '',
+    user.profile?.className ?? '',
+    user.createdAt.toISOString(),
+  ]);
+  const exportSetDigest = createHash('sha256')
+    .update(JSON.stringify(exportRows))
+    .digest('hex')
+    .slice(0, 16);
   const csv = toCsv([
     ['id', 'name', 'email', 'role', 'account', 'className', 'createdAt'],
-    ...users.map((user) => [
-      user.id,
-      user.name ?? '',
-      user.email ?? '',
-      user.role,
-      user.profile?.studentNumber ?? user.employeeNumber ?? '',
-      user.profile?.className ?? '',
-      user.createdAt.toISOString(),
-    ]),
+    ...exportRows,
   ]);
   const filename = `admin-users-${query.role.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`;
   const completedAt = new Date().toISOString();
@@ -96,6 +102,7 @@ export async function GET(request: NextRequest) {
       query.search,
       total,
       users.length,
+      exportSetDigest,
       session.user.id,
     ]),
     artifactRefs: [{

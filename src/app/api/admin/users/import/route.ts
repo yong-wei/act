@@ -509,6 +509,7 @@ export async function POST(request: Request) {
     }));
     const failedRowArtifact = buildFailedImportArtifact({
       batchId,
+      artifactSeed: sourceFileHash,
       failedRows,
       generatedAt: completedAt,
     });

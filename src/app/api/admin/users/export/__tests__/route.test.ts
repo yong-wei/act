@@ -80,6 +80,46 @@ describe('GET /api/admin/users/export', () => {
     }));
   });
 
+  it('binds export ledger keys to the actual exported users, not only counts', async () => {
+    const firstResponse = await GET(new Request(
+      'http://localhost/api/admin/users/export?role=STUDENT',
+    ) as never);
+    const firstKey = firstResponse.headers.get('x-admin-operation-idempotency-key');
+
+    mocks.prisma.user.findMany.mockResolvedValueOnce([
+      {
+        id: 'student-3',
+        name: '王五',
+        email: 'wang@example.test',
+        role: 'STUDENT',
+        employeeNumber: null,
+        createdAt: new Date('2026-06-21T08:00:00.000Z'),
+        profile: { studentNumber: '20240003', className: '自动化2401' },
+      },
+      {
+        id: 'student-4',
+        name: '赵六',
+        email: null,
+        role: 'STUDENT',
+        employeeNumber: null,
+        createdAt: new Date('2026-06-21T09:00:00.000Z'),
+        profile: { studentNumber: '20240004', className: '自动化2401' },
+      },
+    ]);
+
+    const secondResponse = await GET(new Request(
+      'http://localhost/api/admin/users/export?role=STUDENT',
+    ) as never);
+    const secondKey = secondResponse.headers.get('x-admin-operation-idempotency-key');
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(firstKey).toMatch(/^admin-op:/);
+    expect(secondKey).toMatch(/^admin-op:/);
+    expect(secondKey).not.toBe(firstKey);
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledTimes(2);
+  });
+
   it('blocks unsupported role filters before querying users', async () => {
     const response = await GET(new Request(
       'http://localhost/api/admin/users/export?role=BAD',
