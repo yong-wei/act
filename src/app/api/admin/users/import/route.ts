@@ -621,11 +621,15 @@ export async function POST(request: Request) {
         if (!(error instanceof ImportWriteError)) {
           throw error;
         }
-        errors.push({
-          row: error.row,
-          account: error.account,
-          reason: error.message,
-        });
+        for (const operation of plannedOperations) {
+          errors.push({
+            row: operation.rowNumber,
+            account: operation.row.account,
+            reason: operation.rowNumber === error.row
+              ? error.message
+              : '本批次事务已回滚，该行未提交',
+          });
+        }
         created = 0;
         updated = 0;
         return persistImportLedger(prisma);

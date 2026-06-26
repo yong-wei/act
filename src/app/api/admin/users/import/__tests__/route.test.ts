@@ -422,12 +422,18 @@ describe('POST /api/admin/users/import', () => {
     }));
   });
 
-  it('records failed rows when transaction writes abort', async () => {
-    mocks.txPrisma.user.create.mockRejectedValueOnce(
+  it('records all planned rows as failed when transaction writes abort', async () => {
+    mocks.txPrisma.user.create
+      .mockResolvedValueOnce({
+        id: 'student-user-11',
+        profile: { id: 'profile-11' },
+      })
+      .mockRejectedValueOnce(
       new Error('Unique constraint failed: Key (email)=(write-fail@example.com), account=20240011, password=secret')
     );
     const file = await buildWorkbookFile([
       ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],
+      ['20240010', '同批回滚', '学生', 'rollback@example.com', '自动化2401', '自动化', '2024', 'secret'],
       ['20240011', '写入失败', '学生', 'write-fail@example.com', '自动化2401', '自动化', '2024', 'secret'],
     ]);
 
@@ -438,20 +444,34 @@ describe('POST /api/admin/users/import', () => {
     expect(payload).toMatchObject({
       created: 0,
       updated: 0,
-      failed: 1,
-      errors: [{
-        row: 2,
-        accountFingerprint: expect.any(String),
-        reason: '导入写入失败，请检查该行账号、邮箱或学生档案是否与现有数据冲突',
-      }],
+      failed: 2,
+      errors: [
+        {
+          row: 2,
+          accountFingerprint: expect.any(String),
+          reason: '本批次事务已回滚，该行未提交',
+        },
+        {
+          row: 3,
+          accountFingerprint: expect.any(String),
+          reason: '导入写入失败，请检查该行账号、邮箱或学生档案是否与现有数据冲突',
+        },
+      ],
       auditRecord: {
         outcome: 'completed-with-errors',
       },
     });
+    expect(payload.failedRows).toHaveLength(2);
+    expect(payload.failedRowArtifact).toMatchObject({
+      rowCount: 2,
+      piiMinimized: true,
+    });
     expect(JSON.stringify(payload)).not.toContain('write-fail@example.com');
     expect(JSON.stringify(payload)).not.toContain('20240011');
+    expect(JSON.stringify(payload)).not.toContain('rollback@example.com');
+    expect(JSON.stringify(payload)).not.toContain('20240010');
     expect(JSON.stringify(payload)).not.toContain('secret');
-    expect(mocks.txPrisma.user.create).toHaveBeenCalled();
+    expect(mocks.txPrisma.user.create).toHaveBeenCalledTimes(2);
     expect(mocks.txPrisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
     expect(mocks.txPrisma.adminOperationArtifact.upsert).not.toHaveBeenCalled();
     expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
