@@ -47,7 +47,11 @@ describe('PresentationDataCenter commercial workspace layout', () => {
     expect(source).toContain('data-report-ledger-export="available"');
     expect(source).toContain('aria-hidden="true"');
     expect(source).toContain('pointer-events-none');
-    expect(source).toContain('downloadExportSafeSnapshot(exportSnapshot()');
+    expect(source).toContain('data-export-state-contract="preparing-ready-downloaded-failed-retry"');
+    expect(source).toContain('onClick={handleSnapshotExport}');
+    expect(source).toContain('downloadExportSafeSnapshot(buildPresentationExportSnapshot(data, totals, role), exportFilename)');
+    expect(source).toContain('buildSnapshotDownloadHref(buildPresentationExportSnapshot(data, totals, role, data._meta.generatedAt))');
+    expect(source).toContain("setExportStatus('retry')");
     expect(source).not.toContain('导出快照功能将在后续版本中提供');
     expect(source).toContain('来源质量');
     expect(source).toContain('隐私范围');
@@ -162,21 +166,23 @@ describe('PresentationDataCenter commercial workspace layout', () => {
     expect(staleCards.find((card) => card.marker === 'freshness')?.summary).toContain('2025-09-01');
     expect(restrictedCards.find((card) => card.marker === 'privacy-scope')?.value).toContain('受限');
     expect(restrictedCards.find((card) => card.marker === 'status-legend')?.exportAvailability).toBe('受限导出');
-    expect(staleCards.find((card) => card.marker === 'status-legend')?.actionHref).toBe('/teacher');
-    expect(adminStaleCards.find((card) => card.marker === 'status-legend')?.actionHref).toBe('/admin/data-governance');
-    expect(restrictedCards.find((card) => card.marker === 'privacy-scope')?.actionHref).toBe('/admin/data-governance');
-    expect(restrictedCards.every((card) => card.actionHref === '/admin/data-governance')).toBe(true);
-    expect(teacherRestrictedCards.every((card) => card.actionHref === '/teacher')).toBe(true);
+    expect(staleCards.find((card) => card.marker === 'status-legend')?.actionHref).toBe('/teacher?origin=%2Fdata-center&targetScope=stale-source-review&sourceQuality=stale');
+    expect(adminStaleCards.find((card) => card.marker === 'status-legend')?.actionHref).toBe('/admin/data-governance?origin=%2Fdata-center&targetScope=stale-source-review&sourceQuality=stale');
+    expect(restrictedCards.find((card) => card.marker === 'privacy-scope')?.actionHref).toBe('/admin/data-governance?origin=%2Fdata-center&targetScope=restricted-aggregate-review&sourceQuality=restricted');
+    expect(restrictedCards.every((card) => card.actionHref === '/admin/data-governance?origin=%2Fdata-center&targetScope=restricted-aggregate-review&sourceQuality=restricted')).toBe(true);
+    expect(teacherRestrictedCards.every((card) => card.actionHref === '/teacher?origin=%2Fdata-center&targetScope=restricted-aggregate-review&sourceQuality=restricted')).toBe(true);
   });
 });
 
 describe('buildPresentationExportSnapshot', () => {
   it('builds a real export-safe snapshot for the data-center report ledger', () => {
+    const beforeExport = Date.now();
     const snapshot = buildPresentationExportSnapshot(presentationDataCenterMock, {
       interactionTotal: 27594,
       simulationVisitTotal: 70870,
       monthlyVisitTotal: 261400,
-    });
+    }, 'admin');
+    const afterExport = Date.now();
 
     expect(snapshot.metrics.map((metric) => metric.label)).toEqual([
       '学期',
@@ -192,6 +198,37 @@ describe('buildPresentationExportSnapshot', () => {
       'Control Odyssey 访问',
     ]);
     expect(snapshot.sourceQualitySummary).toEqual(['demo']);
+    expect(snapshot.status).toBe('ready');
+    const exportedAt = new Date(snapshot.exportedAt).getTime();
+    expect(exportedAt).toBeGreaterThanOrEqual(beforeExport);
+    expect(exportedAt).toBeLessThanOrEqual(afterExport);
+    expect(snapshot.requesterRole).toBe('admin');
+    expect(snapshot.sourceTableFamilies).toEqual([
+      'TeachingResource',
+      'LessonPlan',
+      'ClassSession',
+      'StudentProgressAggregate',
+      'SimulationActivityAggregate',
+    ]);
+    expect(snapshot.sourceWindow).toEqual({
+      label: presentationDataCenterMock._meta.semester,
+      from: presentationDataCenterMock._meta.semester,
+      to: presentationDataCenterMock._meta.generatedAt,
+    });
+    expect(snapshot.redactionPolicy).toMatchObject({
+      scope: 'aggregate-only',
+      directIdentifierPolicy: 'removed',
+      privateEvidencePolicy: 'removed',
+      authorizationScope: 'none',
+    });
+    expect(snapshot.redactionPolicy.excludedFamilies).toEqual([
+      'rawLearningFacts',
+      'competencySnapshots',
+      'riskFlags',
+      'classSnapshots',
+      'directStudentIds',
+      'privateEvidenceBodies',
+    ]);
     expect(snapshot.metrics.every((metric) => metric.rawEvidence === undefined)).toBe(true);
     expect(snapshot.metrics.every((metric) => metric.rawTraces === undefined)).toBe(true);
   });
@@ -369,6 +406,10 @@ describe('buildExportSafeSnapshot', () => {
     ];
     const snapshot = buildExportSafeSnapshot(metrics);
     expect(snapshot.exportedAt).toBeTruthy();
+    expect(snapshot.status).toBe('ready');
+    expect(snapshot.requesterRole).toBe('teacher');
+    expect(snapshot.sourceWindow.label).toBe('当前聚合快照');
+    expect(snapshot.redactionPolicy.excludedFamilies).toContain('directStudentIds');
     expect(new Date(snapshot.exportedAt).getTime()).toBeGreaterThan(0);
     expect(snapshot.metrics).toHaveLength(3);
     expect(snapshot.sourceQualitySummary).toHaveLength(2);

@@ -15,6 +15,7 @@ export interface SimulationShellProps {
   activeHref: string;
   returnHref?: string;
   returnLabel?: string;
+  taskContext?: SimulationTaskContext | null;
   launchProvenance?: string;
   children: ReactNode;
   contextStrip?: ReactNode;
@@ -25,12 +26,25 @@ export interface SimulationShellProps {
   className?: string;
 }
 
+export interface SimulationTaskContext {
+  taskId: string;
+  taskTitle: string;
+  objective: string;
+  completionCriteria: string;
+  returnHref: string;
+  returnLabel: string;
+  saveBackTarget: string;
+  saveBackStatus: 'saved' | 'queued' | 'unsupported' | 'failed';
+  returnFlowState: string;
+}
+
 export function SimulationShell({
   title,
   subtitle,
   activeHref,
   returnHref = '/simulations',
   returnLabel = '虚拟仿真',
+  taskContext,
   launchProvenance = 'standalone',
   children,
   contextStrip,
@@ -71,6 +85,9 @@ export function SimulationShell({
       >
         {children}
       </SimulationSceneFrame>
+      {taskContext ? (
+        <SimulationTaskContextPanel context={taskContext} />
+      ) : null}
       {hasStructuredSlots ? (
         <SimulationStructuredSurfaces
           contextStrip={contextStrip}
@@ -80,6 +97,44 @@ export function SimulationShell({
         />
       ) : null}
     </AppShell>
+  );
+}
+
+function SimulationTaskContextPanel({ context }: { context: SimulationTaskContext }) {
+  return (
+    <section
+      className="mt-4 rounded-lg border border-platform-border bg-platform-surface p-4"
+      data-simulation-task-context="mission-task-return-saveback"
+      data-originating-task-id={context.taskId}
+      data-originating-task-title={context.taskTitle}
+      data-save-back-status={context.saveBackStatus}
+      data-return-flow-state={context.returnFlowState}
+    >
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-platform-fg-muted">任务上下文</p>
+          <h2 className="mt-1 text-sm font-semibold text-platform-fg-primary">{context.taskTitle}</h2>
+          <p className="mt-2 text-xs leading-5 text-platform-fg-secondary">{context.objective}</p>
+        </div>
+        <Button asChild variant="outline" size="sm" className="shrink-0">
+          <Link href={context.returnHref}>{context.returnLabel}</Link>
+        </Button>
+      </div>
+      <dl className="mt-4 grid gap-3 text-xs text-platform-fg-secondary md:grid-cols-3">
+        <div className="rounded-md border border-platform-border bg-platform-canvas-muted px-3 py-2">
+          <dt className="font-medium text-platform-fg-primary">完成标准</dt>
+          <dd className="mt-1">{context.completionCriteria}</dd>
+        </div>
+        <div className="rounded-md border border-platform-border bg-platform-canvas-muted px-3 py-2">
+          <dt className="font-medium text-platform-fg-primary">写回目标</dt>
+          <dd className="mt-1">{context.saveBackTarget}</dd>
+        </div>
+        <div className="rounded-md border border-platform-border bg-platform-canvas-muted px-3 py-2">
+          <dt className="font-medium text-platform-fg-primary">流程状态</dt>
+          <dd className="mt-1">{context.returnFlowState}</dd>
+        </div>
+      </dl>
+    </section>
   );
 }
 
