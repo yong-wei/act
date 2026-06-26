@@ -619,7 +619,7 @@ function reportDb() {
     class: {
       findUnique: vi.fn(async ({ where }: any) => (
         where.id === 'class-a'
-          ? { id: 'class-a', teacherId: 'teacher-a' }
+          ? { id: 'class-a', teacherId: 'teacher-a', name: '自动控制 A 班', teacher: { name: '张老师', email: 'teacher-a@example.edu' } }
           : null
       )),
     },
@@ -669,7 +669,17 @@ describe('arena publication report access', () => {
     });
     expect(db.class.findUnique).toHaveBeenCalledWith({
       where: { id: 'class-a' },
-      select: { id: true, teacherId: true },
+      select: {
+        id: true,
+        teacherId: true,
+        name: true,
+        teacher: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
     expect(listSubmissions).toHaveBeenCalledWith({
       taskId: 'task-report',

@@ -117,4 +117,26 @@ describe('arena hall publication selection', () => {
     expect(selectArenaHallCurrentPublication([expiredReportOnly, lateOnly], afterFirstDeadline)?.id)
       .toBe('publication-late-only');
   });
+
+  it('selects the most recently closed publication among report-only expired entries before assignment priority', () => {
+    const olderReport = publication({
+      id: 'publication-older-report',
+      visibility: 'class',
+      studentVisibility: 'class',
+      homeworkBinding: true,
+      deadline: '2026-05-20T15:00:00.000Z',
+      gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+    });
+    const recentReport = publication({
+      id: 'publication-recent-report',
+      deadline: '2026-06-01T15:00:00.000Z',
+      gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+    });
+
+    expect(selectArenaHallPublicationForTask(
+      [olderReport, recentReport],
+      'task-second-order-lead-pid',
+      afterFirstDeadline,
+    )?.id).toBe('publication-recent-report');
+  });
 });

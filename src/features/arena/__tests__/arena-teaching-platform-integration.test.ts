@@ -19,9 +19,14 @@ const future = '2026-06-01T15:00:00.000Z';
 const past = '2026-05-01T15:00:00.000Z';
 
 function createMockDb() {
-  const classes = new Map<string, { id: string; teacherId: string }>([
-    ['class-a', { id: 'class-a', teacherId: 'teacher-a' }],
-    ['class-b', { id: 'class-b', teacherId: 'teacher-b' }],
+  const classes = new Map<string, {
+    id: string;
+    teacherId: string;
+    name: string;
+    teacher: { name: string; email: string };
+  }>([
+    ['class-a', { id: 'class-a', teacherId: 'teacher-a', name: '自动控制 A 班', teacher: { name: '张老师', email: 'teacher-a@example.edu' } }],
+    ['class-b', { id: 'class-b', teacherId: 'teacher-b', name: '自动控制 B 班', teacher: { name: '李老师', email: 'teacher-b@example.edu' } }],
   ]);
   const publications = new Map<string, any>();
   const profiles = new Map<string, { userId: string; classId: string | null }>([
@@ -224,7 +229,8 @@ describe('arena teaching platform integration', () => {
       studentVisibility: 'class',
       isLate: false,
       displayContext: {
-        classTitle: '班级 class-a',
+        classTitle: '自动控制 A 班',
+        teacherName: '张老师',
       },
     });
     await expect(resolveAccessibleArenaPublicationForStudent(db as any, {

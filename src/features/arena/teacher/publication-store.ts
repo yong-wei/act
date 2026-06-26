@@ -92,7 +92,15 @@ export class ArenaPublicationAccessError extends Error {
 
 type ArenaPublicationDb = {
   class: {
-    findUnique(args: unknown): Promise<{ id: string; teacherId: string } | null>;
+    findUnique(args: unknown): Promise<{
+      id: string;
+      teacherId: string;
+      name?: string | null;
+      teacher?: {
+        name?: string | null;
+        email?: string | null;
+      } | null;
+    } | null>;
   };
   arenaChallengePublication: {
     create(args: unknown): Promise<Record<string, unknown>>;
@@ -273,10 +281,28 @@ async function assertTeacherCanUseClass(
   db: ArenaPublicationDb,
   actor: ArenaPublicationActor,
   classId: string,
-): Promise<{ id: string; teacherId: string }> {
+): Promise<{
+  id: string;
+  teacherId: string;
+  name?: string | null;
+  teacher?: {
+    name?: string | null;
+    email?: string | null;
+  } | null;
+}> {
   const targetClass = await db.class.findUnique({
     where: { id: classId },
-    select: { id: true, teacherId: true },
+    select: {
+      id: true,
+      teacherId: true,
+      name: true,
+      teacher: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
   });
   if (!targetClass) {
     throw new ArenaPublicationPermissionError('Arena publication class was not found.');
@@ -361,7 +387,11 @@ export async function createArenaPublicationRecord(
       homeworkBinding: preview.homeworkBinding,
       gradingPolicy: input.gradingPolicy ?? {},
       status: input.status ?? 'active',
-      config: preview,
+      config: {
+        ...preview,
+        classTitle: targetClass.name ?? targetClass.id,
+        teacherName: targetClass.teacher?.name ?? targetClass.teacher?.email ?? undefined,
+      },
     },
   });
 

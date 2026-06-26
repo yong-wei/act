@@ -18,11 +18,19 @@ function comparePublicationPriority(
   right: ArenaPublicationRecord,
   now: Date,
 ): number {
-  const lifecycle = publicationLifecyclePriority(left, now) - publicationLifecyclePriority(right, now);
+  const leftLifecycle = publicationLifecyclePriority(left, now);
+  const rightLifecycle = publicationLifecyclePriority(right, now);
+  const lifecycle = leftLifecycle - rightLifecycle;
   if (lifecycle !== 0) return lifecycle;
+
+  if (leftLifecycle === 2) {
+    const reportDeadlineOrder = Date.parse(right.deadline) - Date.parse(left.deadline);
+    if (reportDeadlineOrder !== 0) return reportDeadlineOrder;
+  }
 
   const priority = publicationPriority(left) - publicationPriority(right);
   if (priority !== 0) return priority;
+
   return Date.parse(left.deadline) - Date.parse(right.deadline);
 }
 
