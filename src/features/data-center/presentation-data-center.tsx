@@ -42,7 +42,12 @@ import {
   SOURCE_QUALITY_MARKERS,
   type DataCenterSourceQuality,
 } from './shared/data-center-contracts';
-import { buildExportSafeSnapshot, type SafeSnapshot, type SnapshotMetric } from './shared/export-safe-snapshot';
+import {
+  buildExportSafeSnapshot,
+  type DataCenterExportStatus,
+  type SafeSnapshot,
+  type SnapshotMetric,
+} from './shared/export-safe-snapshot';
 import { presentationDataCenterMock, type PresentationDataCenterData } from './presentation-mock-data';
 
 const numberFormatter = new Intl.NumberFormat('zh-CN');
@@ -83,6 +88,7 @@ export function PresentationDataCenter({ role, showDemoSourceLabels }: Presentat
   const axisColor = isDark ? 'hsl(var(--platform-fg-muted))' : 'hsl(var(--platform-fg-secondary))';
   const gridColor = 'hsl(var(--platform-border))';
   const [data] = useState(presentationDataCenterMock);
+  const [exportStatus, setExportStatus] = useState<DataCenterExportStatus>('ready');
 
   const chartTooltipStyle = {
     background: 'hsl(var(--platform-surface))',
@@ -107,7 +113,20 @@ export function PresentationDataCenter({ role, showDemoSourceLabels }: Presentat
     generatedAt: data._meta.generatedAt,
     role,
   });
-  const exportSnapshot = () => buildPresentationExportSnapshot(data, totals);
+  const exportFilename = `data-center-snapshot-${data._meta.semester}.json`;
+  const exportHref = buildSnapshotDownloadHref(buildPresentationExportSnapshot(data, totals, role, data._meta.generatedAt));
+  const handleSnapshotExport = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    setExportStatus('preparing');
+    try {
+      event.preventDefault();
+      downloadExportSafeSnapshot(buildPresentationExportSnapshot(data, totals, role), exportFilename);
+      window.requestAnimationFrame(() => setExportStatus('downloaded'));
+    } catch {
+      setExportStatus('failed');
+      window.setTimeout(() => setExportStatus('retry'), 800);
+      event.preventDefault();
+    }
+  };
 
   return (
     <AppShell
@@ -438,21 +457,29 @@ export function PresentationDataCenter({ role, showDemoSourceLabels }: Presentat
 
         <div
           id="data-center-export"
-          className="flex flex-wrap items-center justify-end gap-3 border-t border-platform-border pt-4"
+          className="flex flex-wrap items-center justify-end gap-3 border-t border-platform-border pt-4 pb-[calc(env(safe-area-inset-bottom)+4rem)] md:pb-4"
           data-commercial-workspace-zone="command-bar"
+          data-data-center-export-state={exportStatus}
+          data-export-state-contract="preparing-ready-downloaded-failed-retry"
         >
-          <p className="text-xs text-platform-fg-muted">
-            导出快照将自动移除原始学习证据、原始轨迹和私有数据，保留来源标记
-          </p>
-          <button type="button"
+          <div className="min-w-0 flex-1 text-xs text-platform-fg-muted">
+            <p>
+              导出快照将自动移除原始学习证据、原始轨迹、能力快照、风险标记、班级快照、直接学生标识和私有证据正文。
+            </p>
+            <p role="status" aria-live="polite" className="mt-1 text-platform-fg-secondary">
+              导出状态：{exportStatusLabel(exportStatus)} · 请求角色：{role} · 来源窗口：{data._meta.semester} 至 {data._meta.generatedAt}
+            </p>
+          </div>
+          <a
+            href={exportHref}
+            download={exportFilename}
             className="inline-flex items-center gap-2 rounded-lg border border-platform-border bg-platform-surface px-4 py-2 text-sm font-medium text-platform-fg-primary transition-colors hover:bg-platform-action-subtle"
-            onClick={() => {
-              downloadExportSafeSnapshot(exportSnapshot(), `data-center-snapshot-${data._meta.semester}.json`);
-            }}
+            onClick={handleSnapshotExport}
+            data-data-center-export-action={exportStatus === 'failed' || exportStatus === 'retry' ? 'retry' : 'download'}
           >
             <Download className="h-4 w-4" />
-            导出演示快照
-          </button>
+            {exportStatus === 'failed' || exportStatus === 'retry' ? '重试导出' : '导出演示快照'}
+          </a>
         </div>
       </div>
     </AppShell>
@@ -517,13 +544,23 @@ export function buildDataMapContextCards({
       : isRestricted
         ? '受限 · 聚合可见'
         : '可用 · 可导出';
-  const actionHref = role === 'admin'
-    ? '/admin/data-governance'
-    : role === 'teacher'
-      ? '/teacher'
-      : exportAvailability === '可导出'
-        ? '/data-center#data-center-export'
-        : '/admin/data-governance';
+  const actionHref = buildDataCenterHandoffHref(
+    role === 'admin'
+      ? '/admin/data-governance'
+      : role === 'teacher'
+        ? '/teacher'
+        : exportAvailability === '可导出'
+          ? '/data-center#data-center-export'
+          : '/admin/data-governance',
+    {
+      sourceQuality,
+      targetScope: isRestricted
+        ? 'restricted-aggregate-review'
+        : isStale
+          ? 'stale-source-review'
+          : 'export-safe-snapshot',
+    },
+  );
 
   return [
     {
@@ -572,6 +609,8 @@ export function buildDataMapContextCards({
 export function buildPresentationExportSnapshot(
   data: PresentationDataCenterData,
   totals: { interactionTotal: number; simulationVisitTotal: number; monthlyVisitTotal: number },
+  requesterRole: PlatformRole = 'teacher',
+  exportedAt?: string,
 ) {
   const sourceQuality = data._meta.sourceQuality;
   const metrics: SnapshotMetric[] = [
@@ -588,7 +627,48 @@ export function buildPresentationExportSnapshot(
     { label: 'Control Odyssey 访问', value: data.controlOdysseyVisits, sourceQuality },
   ];
 
-  return buildExportSafeSnapshot(metrics);
+  return buildExportSafeSnapshot(metrics, {
+    exportedAt,
+    requesterRole,
+    sourceQuality,
+    sourceWindow: {
+      label: data._meta.semester,
+      from: data._meta.semester,
+      to: data._meta.generatedAt,
+    },
+  });
+}
+
+function buildDataCenterHandoffHref(
+  href: string,
+  {
+    sourceQuality,
+    targetScope,
+  }: {
+    sourceQuality: DataCenterSourceQuality;
+    targetScope: string;
+  },
+) {
+  const hashIndex = href.indexOf('#');
+  const hrefWithoutHash = hashIndex >= 0 ? href.slice(0, hashIndex) : href;
+  const hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
+  const [path, query = ''] = hrefWithoutHash.split('?');
+  const params = new URLSearchParams(query);
+  params.set('origin', '/data-center');
+  params.set('targetScope', targetScope);
+  params.set('sourceQuality', sourceQuality);
+  return `${path}?${params.toString()}${hash}`;
+}
+
+function exportStatusLabel(status: DataCenterExportStatus) {
+  const labels: Record<DataCenterExportStatus, string> = {
+    preparing: '准备中',
+    ready: '可导出',
+    downloaded: '已下载',
+    failed: '导出失败',
+    retry: '可重试',
+  };
+  return labels[status];
 }
 
 export function downloadExportSafeSnapshot(snapshot: SafeSnapshot, filename: string) {
@@ -601,6 +681,10 @@ export function downloadExportSafeSnapshot(snapshot: SafeSnapshot, filename: str
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
+}
+
+function buildSnapshotDownloadHref(snapshot: SafeSnapshot) {
+  return `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(snapshot, null, 2))}`;
 }
 
 function MetricCard({

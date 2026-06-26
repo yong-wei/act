@@ -1,0 +1,92 @@
+{
+  "exportedAt": "2026-06-26T13:44:12.091Z",
+  "status": "ready",
+  "metrics": [
+    {
+      "label": "学期",
+      "value": "2025-2026-2",
+      "sourceQuality": "demo"
+    },
+    {
+      "label": "最近同步",
+      "value": "2026-05-30",
+      "sourceQuality": "demo"
+    },
+    {
+      "label": "隐私范围",
+      "value": "聚合视图",
+      "sourceQuality": "demo"
+    },
+    {
+      "label": "状态图例",
+      "value": "可导出",
+      "sourceQuality": "demo"
+    },
+    {
+      "label": "导出安全策略",
+      "value": "移除原始证据、原始轨迹、隐藏评价、原始答案和私有记忆",
+      "sourceQuality": "demo"
+    },
+    {
+      "label": "学生规模",
+      "value": 1890,
+      "sourceQuality": "demo"
+    },
+    {
+      "label": "教师规模",
+      "value": 18,
+      "sourceQuality": "demo"
+    },
+    {
+      "label": "学期总访问量",
+      "value": 261400,
+      "sourceQuality": "demo"
+    },
+    {
+      "label": "互动总量",
+      "value": 27594,
+      "sourceQuality": "demo"
+    },
+    {
+      "label": "仿真访问总量",
+      "value": 70870,
+      "sourceQuality": "demo"
+    },
+    {
+      "label": "Control Odyssey 访问",
+      "value": 45800,
+      "sourceQuality": "demo"
+    }
+  ],
+  "sourceQualitySummary": [
+    "demo"
+  ],
+  "sourceTableFamilies": [
+    "TeachingResource",
+    "LessonPlan",
+    "ClassSession",
+    "StudentProgressAggregate",
+    "SimulationActivityAggregate"
+  ],
+  "sourceWindow": {
+    "label": "2025-2026-2",
+    "from": "2025-2026-2",
+    "to": "2026-05-30"
+  },
+  "requesterRole": "teacher",
+  "sourceQuality": "demo",
+  "redactionPolicy": {
+    "scope": "aggregate-only",
+    "excludedFamilies": [
+      "rawLearningFacts",
+      "competencySnapshots",
+      "riskFlags",
+      "classSnapshots",
+      "directStudentIds",
+      "privateEvidenceBodies"
+    ],
+    "directIdentifierPolicy": "removed",
+    "privateEvidencePolicy": "removed",
+    "authorizationScope": "none"
+  }
+}
