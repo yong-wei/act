@@ -77,6 +77,7 @@ export async function PUT(request: Request) {
         })),
         enabled: provider.enabled,
         priority: provider.priority,
+        health: provider.health,
         capabilities: provider.capabilities,
       })),
     }),

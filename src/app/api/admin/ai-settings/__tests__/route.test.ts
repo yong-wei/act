@@ -292,6 +292,40 @@ describe('PUT /api/admin/ai-settings', () => {
     );
     expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledTimes(2);
   });
+
+  it('changes the audit idempotency key when only provider health changes', async () => {
+    const basePayload = {
+      activeProvider: 'custom-provider',
+      providers: [{
+        id: 'custom-provider',
+        name: 'Custom Provider',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        authMode: 'bearer-api-key',
+        secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
+        selectedModel: 'custom/model',
+        health: 'healthy',
+        models: [{ id: 'custom-model', label: 'Custom Model', model: 'custom/model' }],
+      }],
+    };
+
+    const firstResponse = await PUT(buildPutRequest(basePayload));
+    const firstPayload = await firstResponse.json();
+    const secondResponse = await PUT(buildPutRequest({
+      ...basePayload,
+      providers: [{
+        ...basePayload.providers[0],
+        health: 'degraded',
+      }],
+    }));
+    const secondPayload = await secondResponse.json();
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(secondPayload.operationLedger.idempotencyKey).not.toBe(
+      firstPayload.operationLedger.idempotencyKey
+    );
+  });
 });
 
 describe('GET /api/admin/ai-settings', () => {
