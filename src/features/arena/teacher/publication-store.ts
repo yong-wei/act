@@ -398,13 +398,8 @@ export async function listArenaPublicationsForStudent(
     }
     throw error;
   }
-  const now = input.now ?? new Date();
   return rows
-    .map(toRecord)
-    .filter((publication) => {
-      if (publication.gradingPolicy.allowLateSubmissions === true) return true;
-      return now.getTime() <= Date.parse(publication.deadline);
-    });
+    .map(toRecord);
 }
 
 export async function updateArenaPublicationStatus(

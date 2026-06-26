@@ -46,6 +46,16 @@ function createMockDb() {
         return record;
       }),
       findUnique: vi.fn(async ({ where }: any) => publications.get(where.id) ?? null),
+      findMany: vi.fn(async ({ where }: any) => Array.from(publications.values()).filter((publication) => {
+        if (where?.status && publication.status !== where.status) return false;
+        const visibility = publication.visibility;
+        if (visibility === 'course' || visibility === 'public') return true;
+        return where?.OR?.some((condition: any) => (
+          condition.visibility === 'class' &&
+          publication.visibility === 'class' &&
+          publication.classId === condition.classId
+        ));
+      })),
       update: vi.fn(async ({ where, data }: any) => {
         const current = publications.get(where.id);
         const next = { ...current, ...data, updatedAt: new Date('2026-05-15T10:05:00.000Z') };
@@ -115,6 +125,29 @@ describe('arena teaching platform integration', () => {
     await expect(listArenaPublicationsForStudent(db as any, {
       studentId: 'student-a',
     })).resolves.toEqual([]);
+  });
+
+  it('keeps expired active publications visible in the student hall for report-ready context', async () => {
+    const db = createMockDb();
+    const publication = await createArenaPublicationRecord(db as any, {
+      actor: { id: 'teacher-a', role: 'TEACHER' },
+      taskId: 'task-integrator-low-frequency-balance',
+      classId: 'class-a',
+      visibility: 'class',
+      deadline: past,
+      leaderboardPolicyId: 'leaderboard-class-homework',
+      homeworkBinding: true,
+      gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+    });
+
+    await expect(listArenaPublicationsForStudent(db as any, {
+      studentId: 'student-a',
+      now: new Date('2026-05-15T10:00:00.000Z'),
+    })).resolves.toEqual([expect.objectContaining({
+      id: publication.id,
+      deadline: past,
+      visibility: 'class',
+    })]);
   });
 
   it('persists publications only for the teacher owning the target class or an admin', async () => {

@@ -267,6 +267,9 @@ describe('arena student entry UI boundaries', () => {
     const pageSource = readRepoFile('src/app/arena/challenges/[taskId]/page.tsx');
 
     expect(pageSource).toContain("publication.studentVisibility === 'public'");
+    expect(pageSource).toContain("publicationContext.visibility === 'public' ? '公开 Arena 挑战'");
+    expect(pageSource).toContain("? '公开挑战'");
+    expect(pageSource).toContain("publicationContext.visibility === 'public' ? '公开 Arena'");
     expect(pageSource).toContain('公开榜单只统计服务端 ArenaSubmission 官方提交');
   });
 

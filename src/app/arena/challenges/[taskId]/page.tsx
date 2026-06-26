@@ -125,12 +125,20 @@ export default async function ArenaChallengePage(
       classId={publicationContext?.classId}
       seasonId={publicationContext?.seasonId}
       publicationContext={publicationContext ? {
-        assignmentTitle: publicationContext.displayContext?.assignmentTitle ?? 'Arena 发布挑战',
+        assignmentTitle: publicationContext.displayContext?.assignmentTitle ?? (
+          publicationContext.visibility === 'public' ? '公开 Arena 挑战' : 'Arena 发布挑战'
+        ),
         classTitle: publicationContext.displayContext?.classTitle ?? (
-          publicationContext.visibility === 'class' ? '班级范围' : '课程范围'
+          publicationContext.visibility === 'public'
+            ? '公开挑战'
+            : publicationContext.visibility === 'class'
+              ? '班级范围'
+              : '课程范围'
         ),
         teacherLabel: publicationContext.displayContext?.teacherName ?? '教师发布',
-        sourceLabel: publicationContext.displayContext?.sourceLabel ?? '课堂发布',
+        sourceLabel: publicationContext.displayContext?.sourceLabel ?? (
+          publicationContext.visibility === 'public' ? '公开 Arena' : '课堂发布'
+        ),
         deadlineLabel: formatPublicationDeadline(publicationContext.deadline),
         lifecycleLabel: publicationContext.isLate ? '已截止' : '进行中',
         leaderboardBoundary: buildStudentLeaderboardBoundary(publicationContext),
