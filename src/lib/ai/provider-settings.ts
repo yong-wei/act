@@ -18,6 +18,7 @@ import {
 export const AI_PROVIDER_SETTINGS_KEY = 'ai_provider_settings';
 export const AI_PROVIDER_SETTINGS_AUDIT_KEY = 'ai_provider_settings_audit';
 const SECRET_REF_PATTERN = /^env:[A-Z][A-Z0-9_]*$/;
+type AIProviderSettingsDb = Pick<typeof prisma, 'platformSetting'>;
 
 export interface AIProviderModelSetting {
   id: string;
@@ -422,15 +423,18 @@ export async function getAIProviderSettings(): Promise<AIProviderSettings> {
   }
 }
 
-export async function setAIProviderSettings(settings: AIProviderSettings): Promise<AIProviderSettings> {
+export async function setAIProviderSettings(
+  settings: AIProviderSettings,
+  db: AIProviderSettingsDb = prisma,
+): Promise<AIProviderSettings> {
   const normalized = normalizeAIProviderSettings(settings);
   const value = normalized as unknown as Prisma.InputJsonValue;
-  await prisma.platformSetting.upsert({
+  await db.platformSetting.upsert({
     where: { key: AI_PROVIDER_SETTINGS_KEY },
     create: { key: AI_PROVIDER_SETTINGS_KEY, value },
     update: { value },
   });
-  await prisma.platformSetting.upsert({
+  await db.platformSetting.upsert({
     where: { key: AI_PROVIDER_SETTINGS_AUDIT_KEY },
     create: {
       key: AI_PROVIDER_SETTINGS_AUDIT_KEY,
