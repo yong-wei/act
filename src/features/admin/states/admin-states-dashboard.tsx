@@ -172,7 +172,7 @@ export function AdminStatesDashboard({ currentUser, initialExportQuery }: AdminS
   const exportState = routeExportRequested
     ? createAuditedActionState({
         identity: {
-          id: 'admin-states-usage-export',
+          id: `admin-states-export-request:${demoMode ? 'demo' : 'real'}:${new Date().toISOString().slice(0, 10)}`,
           category: 'export',
           label: '系统使用量导出',
           sourceRoute: '/admin/states',
@@ -182,26 +182,15 @@ export function AdminStatesDashboard({ currentUser, initialExportQuery }: AdminS
         message: error
           ? `系统使用量真实数据获取失败，导出已阻断：${error}`
           : demoMode
-          ? '系统使用量导出已生成演示数据文件，文件明确标记为 demo。'
-          : '系统使用量导出已按当前真实数据生成。',
+          ? '系统使用量演示导出请求已就绪，文件和操作账本 ID 将由服务端下载响应返回。'
+          : '系统使用量真实数据导出请求已就绪，文件和操作账本 ID 将由服务端下载响应返回。',
         recoveryAction: error ? '恢复真实数据接口后重试导出' : undefined,
-        nextAction: error ? undefined : '下载文件并归档审计记录',
+        nextAction: error ? undefined : '下载文件并使用响应中的审计 ID 留存记录',
         downloadFilename: error ? undefined : exportFilename,
       })
     : null;
   const exportHref = routeExportRequested && !error
-    ? `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify({
-        generatedAt: new Date().toISOString(),
-        actorId: currentUser.id,
-        source: demoMode ? 'demo' : 'real',
-        data,
-        auditRecord: {
-          action: 'admin-states-export',
-          outcome: 'export-ready',
-          filename: exportFilename,
-          format: initialExportQuery?.format ?? 'json',
-        },
-      }, null, 2))}`
+    ? `/api/admin/states/export?source=${demoMode ? 'demo' : 'real'}&format=${encodeURIComponent(initialExportQuery?.format ?? 'json')}`
     : null;
 
   return (

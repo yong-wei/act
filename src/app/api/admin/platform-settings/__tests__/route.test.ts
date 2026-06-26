@@ -3,8 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   requireAdminSession: vi.fn(),
   prisma: {
+    $transaction: vi.fn(),
     platformSetting: {
       findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
+    adminOperationArtifact: {
       upsert: vi.fn(),
     },
   },
@@ -33,6 +40,9 @@ describe('/api/admin/platform-settings', () => {
     mocks.requireAdminSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
     mocks.prisma.platformSetting.findUnique.mockResolvedValue(null);
     mocks.prisma.platformSetting.upsert.mockImplementation(async ({ create, update }) => update ?? create);
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
+    mocks.prisma.adminOperationArtifact.upsert.mockResolvedValue({});
+    mocks.prisma.$transaction.mockImplementation(async (callback) => callback(mocks.prisma));
   });
 
   it('requires an admin session', async () => {
@@ -72,12 +82,46 @@ describe('/api/admin/platform-settings', () => {
       success: true,
       homeDynamicModelEnabled: true,
       dataCenterShowDemoSourceLabels: true,
+      operationLedger: {
+        kind: 'admin-config-save',
+        outcome: 'completed',
+      },
     });
+    expect(response.headers.get('x-admin-operation-id')).toMatch(/^admin-config-save:/);
     expect(mocks.prisma.platformSetting.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { key: 'data_center_show_demo_source_labels' },
       create: { key: 'data_center_show_demo_source_labels', value: true },
       update: { value: true },
     }));
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { idempotencyKey: expect.stringMatching(/^admin-op:/) },
+    }));
+  });
+
+  it('keeps platform setting writes and ledger writes in the same transaction', async () => {
+    const transactionClient = {
+      platformSetting: {
+        upsert: vi.fn(async ({ create, update }) => update ?? create),
+      },
+      adminOperationLedger: {
+        upsert: vi.fn(async () => {
+          throw new Error('ledger write failed');
+        }),
+      },
+      adminOperationArtifact: {
+        upsert: vi.fn(),
+      },
+    };
+    mocks.prisma.$transaction.mockImplementationOnce(async (callback) => callback(transactionClient));
+
+    await expect(PUT(buildPutRequest({
+      homeDynamicModelEnabled: true,
+      dataCenterShowDemoSourceLabels: false,
+    }))).rejects.toThrow('ledger write failed');
+
+    expect(transactionClient.platformSetting.upsert).toHaveBeenCalledTimes(2);
+    expect(transactionClient.adminOperationLedger.upsert).toHaveBeenCalled();
+    expect(mocks.prisma.platformSetting.upsert).not.toHaveBeenCalled();
   });
 
   it('rejects missing or non-boolean demo source label policy', async () => {

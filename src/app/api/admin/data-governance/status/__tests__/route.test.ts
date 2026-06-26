@@ -77,6 +77,9 @@ const mocks = vi.hoisted(() => ({
     user: {
       findMany: vi.fn(),
     },
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
   },
   rethrowIfNextDynamicError: vi.fn(),
 }));
@@ -288,6 +291,7 @@ describe('GET /api/admin/data-governance/status', () => {
     mocks.prisma.user.findMany.mockResolvedValue([
       { id: 'student-1', name: '张三', email: 'student@example.test' },
     ]);
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
   });
 
   afterEach(() => {
@@ -462,6 +466,36 @@ describe('GET /api/admin/data-governance/status', () => {
       reportHref: '/admin/data-governance?surface=authoring&tab=reports&lessonPlanId=plan-1',
       recoveryHref: '/admin/lesson-plans/plan-1/edit?returnTo=%2Fadmin%2Fdata-governance',
     });
+  });
+
+  it('records an admin operation ledger entry for manual refresh requests', async () => {
+    const response = await GET(createRequest('?recordOperation=refresh&riskId=risk-1'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.operationLedger).toMatchObject({
+      kind: 'admin-governance-refresh',
+      actorId: 'admin-1',
+      outcome: 'completed',
+      idempotencyKey: expect.stringMatching(/^admin-op:/),
+    });
+    expect(response.headers.get('x-admin-operation-id')).toMatch(/^admin-governance-refresh:/);
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        kind: 'admin-governance-refresh',
+        scope: 'admin-data-governance-status',
+      }),
+    }));
+  });
+
+  it('does not record an admin operation ledger entry for automatic status reads', async () => {
+    const response = await GET(createRequest());
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.operationLedger).toBeUndefined();
+    expect(response.headers.get('x-admin-operation-id')).toBeNull();
+    expect(mocks.prisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
   });
 
   it('marks missing lesson plans in authoring report context', async () => {

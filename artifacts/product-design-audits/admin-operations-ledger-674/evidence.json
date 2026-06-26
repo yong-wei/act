@@ -1,0 +1,110 @@
+{
+  "changeId": "audit-remediation-admin-operations-ledger",
+  "issue": 674,
+  "sourceAudit": "full-system Product Design audit",
+  "remainingAdminOperationFindingIds": [
+    6,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    161,
+    162,
+    163,
+    164,
+    263,
+    265,
+    317
+  ],
+  "excludedScopes": [
+    "KAQ governance",
+    "resource metadata completion",
+    "Graph Center diagnostics",
+    "path planner evidence"
+  ],
+  "evidence": [
+    {
+      "surface": "/admin/users",
+      "files": [
+        "src/app/api/admin/users/import/route.ts",
+        "src/app/api/admin/operations/artifacts/[artifactId]/route.ts",
+        "src/app/api/admin/users/template/route.ts",
+        "src/app/api/admin/users/export/route.ts",
+        "src/features/admin/admin-dashboard.tsx",
+        "src/lib/admin-operation-ledger.ts",
+        "src/lib/admin-operation-ledger-runtime.ts",
+        "prisma/schema.prisma",
+        "prisma/migrations/20260626050000_add_admin_operation_ledger/migration.sql"
+      ],
+      "coverage": [
+        "durable operation ledger records",
+        "operation ledger payload",
+        "source file hash",
+        "idempotency key",
+        "raw account removed from import API response",
+        "role-scoped PII-minimized failed-row artifact download",
+        "expired, revoked, and role-mismatched artifact rejection",
+        "rollback rationale",
+        "mobile action availability"
+      ]
+    },
+    {
+      "surface": "/admin/config",
+      "files": [
+        "src/features/admin/system-config-dashboard.tsx",
+        "src/app/api/admin/platform-settings/route.ts",
+        "src/app/api/admin/ai-settings/route.ts",
+        "src/app/api/admin/ai-settings/test/route.ts"
+      ],
+      "coverage": [
+        "durable config save/test ledger records",
+        "configuration diff summary",
+        "runtime impact scope",
+        "save/test idempotency",
+        "server-returned ledger shown in save/test status panels",
+        "audit output",
+        "recovery state",
+        "empty provider draft blocking",
+        "invalid activeProvider rejection before persistence"
+      ]
+    },
+    {
+      "surface": "/admin/data-governance",
+      "files": [
+        "src/app/api/admin/data-governance/export/route.ts",
+        "src/app/api/admin/data-governance/status/route.ts",
+        "src/features/admin/admin-governance-action-contract.ts",
+        "src/features/admin/data-governance-dashboard.tsx"
+      ],
+      "coverage": [
+        "durable governance refresh operation state",
+        "governance export operation ledger",
+        "audit record operation id",
+        "retention policy"
+      ]
+    },
+    {
+      "surface": "/admin/states",
+      "files": [
+        "src/app/api/admin/states/export/route.ts",
+        "src/features/admin/states/admin-states-dashboard.tsx"
+      ],
+      "coverage": [
+        "durable statistics export operation ledger",
+        "statistics export operation id",
+        "statistics export idempotency key",
+        "audit retention policy"
+      ]
+    }
+  ]
+}

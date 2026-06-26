@@ -3,10 +3,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   requireAdminSession: vi.fn(),
+  prisma: {
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
+    adminOperationArtifact: {
+      upsert: vi.fn(),
+    },
+  },
 }));
 
 vi.mock('@/lib/admin', () => ({
   requireAdminSession: mocks.requireAdminSession,
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: mocks.prisma,
 }));
 
 import { GET } from '../route';
@@ -17,6 +29,8 @@ describe('GET /api/admin/users/template', () => {
     mocks.requireAdminSession.mockResolvedValue({
       user: { id: 'admin-1', role: 'ADMIN' },
     });
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
+    mocks.prisma.adminOperationArtifact.upsert.mockResolvedValue({});
   });
 
   it('generates a readable xlsx workbook with the official user import columns', async () => {
@@ -30,6 +44,10 @@ describe('GET /api/admin/users/template', () => {
     expect(response.headers.get('Content-Disposition')).toBe(
       'attachment; filename="users-template.xlsx"'
     );
+    expect(response.headers.get('x-admin-operation-id')).toMatch(/^admin-user-template-download:/);
+    expect(response.headers.get('x-admin-operation-outcome')).toBe('download-ready');
+    expect(response.headers.get('x-admin-operation-idempotency-key')).toMatch(/^admin-op:/);
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalled();
     expect(rows[0]).toEqual([
       '账号',
       '姓名',

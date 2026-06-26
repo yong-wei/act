@@ -70,6 +70,11 @@ describe('AdminDashboard API/UI query contract states', () => {
     expect(html).toContain('按当前筛选集导出账号清单');
     expect(html).toContain('导出当前筛选');
     expect(html).toContain('aria-label="批量导入用户 Excel 文件"');
+    expect(adminDashboardSource).toContain('data-admin-operation-zone="users-import-export"');
+    expect(adminDashboardSource).toContain('setTemplateDownloadState(createAuditedActionState');
+    expect(adminDashboardSource).toContain('data-admin-operation-ledger-state="user-import"');
+    expect(adminDashboardSource).toContain('账号指纹');
+    expect(adminDashboardSource).not.toContain('`（${item.account}）`');
   });
 
   it('blocks URL export actions when the role filter is unsupported', () => {
@@ -135,7 +140,11 @@ describe('AdminDashboard API/UI query contract states', () => {
     const downloadFailedRowsSource = adminDashboardSource.slice(start, end);
 
     expect(downloadFailedRowsSource).toContain('toCsv(csv)');
+    expect(downloadFailedRowsSource).toContain("['row', 'accountFingerprint', 'reason']");
+    expect(downloadFailedRowsSource).toContain('failedRows.map');
+    expect(downloadFailedRowsSource).toContain('failedRowArtifact?.downloadUrl');
     expect(downloadFailedRowsSource).not.toContain('replace(/"/g');
+    expect(downloadFailedRowsSource).not.toContain("['row', 'account', 'reason']");
   });
 
   it('keeps the admin users table mobile-carded and announces list state changes', () => {
@@ -163,6 +172,7 @@ describe('AdminDashboard API/UI query contract states', () => {
     expect(adminDashboardSource).toContain('data-label="账号信息"');
     expect(adminDashboardSource).toContain('aria-label={`删除账号 ${user.name || user.email || user.id}`}');
     expect(adminDashboardSource).toContain('aria-label="按角色筛选账号"');
+    expect(adminDashboardSource).toContain('className="admin-console-input w-full pl-9 sm:w-64"');
     expect(adminDashboardSource).toContain('ref={createDialogRef}');
     expect(adminDashboardSource).toContain('ref={resetDialogRef}');
     expect(adminDashboardSource).toContain(`event.key === 'Escape'`);

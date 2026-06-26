@@ -3,8 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   requireAdminSession: vi.fn(),
   prisma: {
+    $transaction: vi.fn(),
     platformSetting: {
       findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
+    adminOperationArtifact: {
       upsert: vi.fn(),
     },
   },
@@ -35,6 +42,9 @@ describe('PUT /api/admin/ai-settings', () => {
     });
     mocks.prisma.platformSetting.findUnique.mockResolvedValue(null);
     mocks.prisma.platformSetting.upsert.mockImplementation(async ({ create, update }) => update ?? create);
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
+    mocks.prisma.adminOperationArtifact.upsert.mockResolvedValue({});
+    mocks.prisma.$transaction.mockImplementation(async (callback) => callback(mocks.prisma));
   });
 
   it('requires an admin session', async () => {
@@ -84,6 +94,84 @@ describe('PUT /api/admin/ai-settings', () => {
 
     expect(response.status).toBe(400);
     expect(payload.issues.join('\n')).toContain('baseURL');
+    expect(mocks.prisma.platformSetting.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects activeProvider values that do not match a submitted provider', async () => {
+    const response = await PUT(buildPutRequest({
+      activeProvider: 'missing-provider',
+      providers: [{
+        id: 'custom-provider',
+        name: 'Custom Provider',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
+        selectedModel: 'custom/model',
+        models: [{ id: 'custom-model', label: 'Custom Model', model: 'custom/model' }],
+      }],
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.issues.join('\n')).toContain('activeProvider must reference an existing provider');
+    expect(mocks.prisma.platformSetting.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects missing activeProvider before persistence', async () => {
+    const response = await PUT(buildPutRequest({
+      providers: [{
+        id: 'custom-provider',
+        name: 'Custom Provider',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
+        selectedModel: 'custom/model',
+        models: [{ id: 'custom-model', label: 'Custom Model', model: 'custom/model' }],
+      }],
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.issues.join('\n')).toContain('activeProvider is required');
+    expect(mocks.prisma.platformSetting.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects blank provider names before persistence', async () => {
+    const response = await PUT(buildPutRequest({
+      activeProvider: 'custom-provider',
+      providers: [{
+        id: 'custom-provider',
+        name: '   ',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
+        selectedModel: 'custom/model',
+        models: [{ id: 'custom-model', label: 'Custom Model', model: 'custom/model' }],
+      }],
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.issues.join('\n')).toContain('name is required');
+    expect(mocks.prisma.platformSetting.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects missing provider names before persistence', async () => {
+    const response = await PUT(buildPutRequest({
+      activeProvider: 'custom-provider',
+      providers: [{
+        id: 'custom-provider',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
+        selectedModel: 'custom/model',
+        models: [{ id: 'custom-model', label: 'Custom Model', model: 'custom/model' }],
+      }],
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.issues.join('\n')).toContain('name is required');
     expect(mocks.prisma.platformSetting.upsert).not.toHaveBeenCalled();
   });
 
@@ -152,6 +240,127 @@ describe('PUT /api/admin/ai-settings', () => {
     expect(auditCall?.[0].create.value).toMatchObject({
       secretRefSchemes: [{ providerId: 'custom-provider', scheme: 'env', configured: true }],
     });
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { idempotencyKey: expect.stringMatching(/^admin-op:/) },
+      create: expect.objectContaining({
+        kind: 'admin-config-save',
+        scope: 'admin-config-ai-settings:custom-provider',
+      }),
+    }));
+  });
+
+  it('changes the audit idempotency key when saved provider metadata changes', async () => {
+    const firstResponse = await PUT(buildPutRequest({
+      activeProvider: 'custom-provider',
+      providers: [{
+        id: 'custom-provider',
+        name: 'Custom Provider',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        authMode: 'bearer-api-key',
+        secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
+        selectedModel: 'custom/model',
+        models: [{ id: 'custom-model', label: 'Custom Model', model: 'custom/model' }],
+      }],
+    }));
+    const firstPayload = await firstResponse.json();
+
+    const secondResponse = await PUT(buildPutRequest({
+      activeProvider: 'custom-provider',
+      providers: [{
+        id: 'custom-provider',
+        name: 'Custom Provider Renamed',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        authMode: 'bearer-api-key',
+        secretRef: 'env:CUSTOM_PROVIDER_ROTATED_API_KEY',
+        selectedModel: 'custom/model',
+        models: [{
+          id: 'custom-model',
+          label: 'Custom Model Renamed',
+          model: 'custom/model',
+          description: 'renamed model entry',
+        }],
+      }],
+    }));
+    const secondPayload = await secondResponse.json();
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(firstPayload.operationLedger.idempotencyKey).toMatch(/^admin-op:/);
+    expect(secondPayload.operationLedger.idempotencyKey).toMatch(/^admin-op:/);
+    expect(secondPayload.operationLedger.idempotencyKey).not.toBe(
+      firstPayload.operationLedger.idempotencyKey
+    );
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('changes the audit idempotency key when only provider health changes', async () => {
+    const basePayload = {
+      activeProvider: 'custom-provider',
+      providers: [{
+        id: 'custom-provider',
+        name: 'Custom Provider',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        authMode: 'bearer-api-key',
+        secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
+        selectedModel: 'custom/model',
+        health: 'healthy',
+        models: [{ id: 'custom-model', label: 'Custom Model', model: 'custom/model' }],
+      }],
+    };
+
+    const firstResponse = await PUT(buildPutRequest(basePayload));
+    const firstPayload = await firstResponse.json();
+    const secondResponse = await PUT(buildPutRequest({
+      ...basePayload,
+      providers: [{
+        ...basePayload.providers[0],
+        health: 'degraded',
+      }],
+    }));
+    const secondPayload = await secondResponse.json();
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(secondPayload.operationLedger.idempotencyKey).not.toBe(
+      firstPayload.operationLedger.idempotencyKey
+    );
+  });
+
+  it('keeps provider settings and ledger writes in the same transaction', async () => {
+    const transactionClient = {
+      platformSetting: {
+        upsert: vi.fn(async ({ create, update }) => update ?? create),
+      },
+      adminOperationLedger: {
+        upsert: vi.fn(async () => {
+          throw new Error('ledger write failed');
+        }),
+      },
+      adminOperationArtifact: {
+        upsert: vi.fn(),
+      },
+    };
+    mocks.prisma.$transaction.mockImplementationOnce(async (callback) => callback(transactionClient));
+
+    await expect(PUT(buildPutRequest({
+      activeProvider: 'custom-provider',
+      providers: [{
+        id: 'custom-provider',
+        name: 'Custom Provider',
+        providerKind: 'openai-compatible',
+        baseURL: 'https://custom-provider.test/v1',
+        secretRef: 'env:CUSTOM_PROVIDER_API_KEY',
+        selectedModel: 'custom/model',
+        models: [{ id: 'custom-model', label: 'Custom Model', model: 'custom/model' }],
+      }],
+    }))).rejects.toThrow('ledger write failed');
+
+    expect(transactionClient.platformSetting.upsert).toHaveBeenCalledTimes(2);
+    expect(transactionClient.adminOperationLedger.upsert).toHaveBeenCalled();
+    expect(mocks.prisma.platformSetting.upsert).not.toHaveBeenCalled();
   });
 });
 

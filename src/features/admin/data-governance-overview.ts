@@ -1,3 +1,5 @@
+import type { AdminOperationLedgerEntry } from '@/lib/admin-operation-ledger';
+
 export type GovernanceQueueStats = {
   waiting: number;
   active: number;
@@ -8,6 +10,7 @@ export type GovernanceQueueStats = {
 export type GovernanceStatusPayload = {
   status: string;
   timestamp: string;
+  operationLedger?: AdminOperationLedgerEntry;
   authoringContext?: {
     surface: 'authoring';
     lessonPlanId: string | null;

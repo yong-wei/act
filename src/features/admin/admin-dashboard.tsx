@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
 
 import { ActionStatusPanel } from '@/components/platform/action-status';
+import type { AdminOperationLedgerEntry, PiiMinimizedFailedImportRow } from '@/lib/admin-operation-ledger';
 import { createAuditedActionState } from '@/lib/action-status-contract';
 import type { AdminUsersQueryContract } from '@/lib/api-ui-contracts';
 import { toCsv } from '@/lib/csv-export';
@@ -79,7 +80,7 @@ type AdminDashboardProps = {
 
 type ImportErrorItem = {
   row: number;
-  account?: string;
+  accountFingerprint?: string | null;
   reason: string;
 };
 
@@ -93,12 +94,27 @@ type ImportResult = {
   skippedEmpty?: number;
   totalRows?: number;
   errors?: ImportErrorItem[];
+  failedRows?: PiiMinimizedFailedImportRow[];
+  failedRowArtifact?: {
+    id: string;
+    label: string;
+    downloadUrl?: string;
+    rowCount?: number;
+    expiresAt?: string;
+    revocable: boolean;
+    piiMinimized: boolean;
+  } | null;
+  operationLedger?: AdminOperationLedgerEntry;
   auditRecord?: {
     actorId: string;
     action: string;
     batchId: string;
     outcome: string;
     rollbackAvailable: boolean;
+    rollbackRationale?: string;
+    operationId?: string;
+    idempotencyKey?: string;
+    retentionPolicy?: string;
     recordedAt: string;
   };
 };
@@ -149,6 +165,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const [exportingUsers, setExportingUsers] = useState(false);
+  const [templateDownloadState, setTemplateDownloadState] = useState<ReturnType<typeof createAuditedActionState> | null>(null);
   const [usersExportState, setUsersExportState] = useState<ReturnType<typeof createAuditedActionState> | null>(null);
   const [creating, setCreating] = useState(false);
   const [usersQueryTouched, setUsersQueryTouched] = useState(false);
@@ -559,6 +576,18 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
   }, [closeResetDialog, resetOpen]);
 
   const handleDownloadTemplate = async () => {
+    setTemplateDownloadState(createAuditedActionState({
+      identity: {
+        id: 'admin-users-template-download',
+        category: 'download',
+        label: '导入模板下载',
+        sourceRoute: '/admin/users',
+        requestedAction: 'download-template',
+      },
+      status: 'pending',
+      message: '正在生成用户批量导入模板。',
+      nextAction: '等待浏览器下载模板文件',
+    }));
     try {
       const res = await fetch('/api/admin/users/template');
       if (!res.ok) {
@@ -571,7 +600,35 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
       link.download = 'users-template.xlsx';
       link.click();
       window.URL.revokeObjectURL(url);
+      const operationId = res.headers.get('x-admin-operation-id');
+      setTemplateDownloadState(createAuditedActionState({
+        identity: {
+          id: operationId ?? 'admin-users-template-download',
+          category: 'download',
+          label: '导入模板下载',
+          sourceRoute: '/admin/users',
+          requestedAction: 'download-template',
+        },
+        status: 'succeeded',
+        message: '用户批量导入模板已生成，下载记录已写入操作账本。',
+        nextAction: '填写模板后预览导入',
+        displayReference: operationId ?? undefined,
+        downloadFilename: 'users-template.xlsx',
+      }));
     } catch (error) {
+      setTemplateDownloadState(createAuditedActionState({
+        identity: {
+          id: 'admin-users-template-download',
+          category: 'download',
+          label: '导入模板下载',
+          sourceRoute: '/admin/users',
+          requestedAction: 'download-template',
+        },
+        status: 'failed',
+        message: error instanceof Error ? error.message : '下载模板失败',
+        recoveryAction: '刷新页面后重新下载模板',
+        httpStatus: 500,
+      }));
       showNotice('error', error instanceof Error ? error.message : '下载模板失败');
     }
   };
@@ -612,6 +669,8 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
         ?? `admin-users-${roleFilter.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`;
       const exportCount = Number(res.headers.get('x-export-count') ?? 0);
       const exportTotal = Number(res.headers.get('x-export-total') ?? exportCount);
+      const operationId = res.headers.get('x-admin-operation-id');
+      const idempotencyKey = res.headers.get('x-admin-operation-idempotency-key');
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -627,8 +686,9 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
           requestedAction: 'export',
         },
         status: 'succeeded',
-        message: `已按当前筛选条件导出 ${exportCount} 条账号，筛选总数 ${exportTotal}。`,
+        message: `已按当前筛选条件导出 ${exportCount} 条账号，筛选总数 ${exportTotal}。操作账本已记录 operation id 与导出范围。`,
         nextAction: exportCount === 0 ? '调整筛选条件后重新导出' : '检查下载文件',
+        displayReference: operationId ?? idempotencyKey ?? undefined,
         downloadFilename: filename,
       }));
     } catch (error) {
@@ -651,10 +711,20 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
   };
 
   const downloadFailedImportRows = () => {
+    if (importResult?.failedRowArtifact?.downloadUrl) {
+      const link = document.createElement('a');
+      link.href = importResult.failedRowArtifact.downloadUrl;
+      link.download = `${importResult.batchId ?? 'admin-user-import'}-failed-rows.csv`;
+      link.click();
+      return;
+    }
+    const failedRows = importResult?.failedRows ?? [];
     const errors = importResult?.errors ?? [];
     const csv = [
-      ['row', 'account', 'reason'],
-      ...errors.map((item) => [item.row, item.account ?? '', item.reason]),
+      ['row', 'accountFingerprint', 'reason'],
+      ...(failedRows.length > 0
+        ? failedRows.map((item) => [item.row, item.accountFingerprint ?? '', item.reason])
+        : errors.map((item) => [item.row, '', item.reason])),
     ];
     const filename = `${importResult?.batchId ?? 'admin-user-import'}-failed-rows.csv`;
     const blob = new Blob([toCsv(csv)], { type: 'text/csv;charset=utf-8' });
@@ -784,7 +854,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
         <aside className="space-y-4">
           <div className="admin-console-surface">
             <span className="admin-console-kicker">操作区</span>
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 space-y-3" data-admin-operation-zone="users-import-export">
               <button type="button"
                 onClick={openCreateDialog}
                 className="admin-console-button-primary w-full justify-between"
@@ -841,10 +911,15 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
           </div>
 
           {importResult && (
-            <div className="admin-console-surface-soft">
+            <div className="admin-console-surface-soft" data-admin-operation-ledger-state="user-import">
               <span className="admin-console-kicker">导入结果</span>
               <div className="admin-console-muted mt-3 space-y-2 text-sm">
                 {importResult.batchId && <p>批次：{importResult.batchId}</p>}
+                {importResult.operationLedger ? (
+                  <p className="break-all">
+                    操作：{importResult.operationLedger.operationId} · 去重键：{importResult.operationLedger.idempotencyKey}
+                  </p>
+                ) : null}
                 <p>
                   {importResult.preview ? '预计' : ''}
                   新增 {importResult.created ?? 0}，更新 {importResult.updated ?? 0}，失败 {importResult.failed ?? 0}
@@ -856,18 +931,30 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                 )}
                 {(importResult.errors?.length ?? 0) > 0 && (
                   <div className="admin-console-notice admin-console-notice-danger mt-3 max-h-40 overflow-y-auto text-xs">
-                    {importResult.errors?.map((item, index) => (
-                      <p key={`${item.row}-${index}`}>
-                        第 {item.row} 行{item.account ? `（${item.account}）` : ''}：{item.reason}
-                      </p>
-                    ))}
+                    {importResult.errors?.map((item, index) => {
+                      const accountFingerprint = item.accountFingerprint ?? importResult.failedRows?.[index]?.accountFingerprint;
+                      return (
+                        <p key={`${item.row}-${index}`}>
+                          第 {item.row} 行
+                          {accountFingerprint ? `（账号指纹 ${accountFingerprint}）` : ''}
+                          ：{item.reason}
+                        </p>
+                      );
+                    })}
                   </div>
                 )}
                 {(importResult.errors?.length ?? 0) > 0 && (
                   <button type="button" onClick={downloadFailedImportRows} className="admin-console-button mt-2 px-3 py-1.5 text-xs">
-                    下载失败行
+                    下载 PII 最小化失败行
                   </button>
                 )}
+                {importResult.failedRowArtifact ? (
+                  <p className="text-xs">
+                    失败行 artifact：{importResult.failedRowArtifact.label} · 行数 {importResult.failedRowArtifact.rowCount ?? 0} ·
+                    {importResult.failedRowArtifact.piiMinimized ? ' 已最小化个人信息' : ' 未最小化'} ·
+                    {importResult.failedRowArtifact.expiresAt ? ` 过期 ${importResult.failedRowArtifact.expiresAt}` : ' 可撤销'}
+                  </p>
+                ) : null}
                 {importResult.preview && pendingImportFile && (importResult.errors?.length ?? 0) === 0 && (
                   <button
                     type="button"
@@ -880,9 +967,14 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                 {importResult.auditRecord && (
                   <p className="text-xs">
                     审计：{importResult.auditRecord.outcome} · 模式 {importResult.mode ?? 'commit'} · 操作者 {importResult.auditRecord.actorId} ·
-                    {importResult.auditRecord.rollbackAvailable ? ' 可按批次自动回滚' : ' 自动回滚未启用'}
+                    {importResult.auditRecord.rollbackAvailable ? ' 可按批次自动回滚' : ` ${importResult.auditRecord.rollbackRationale ?? '自动回滚未启用'}`}
                   </p>
                 )}
+                {importResult.operationLedger ? (
+                  <p className="text-xs">
+                    保留策略：{importResult.operationLedger.retentionPolicy.policy} · 恢复：{importResult.operationLedger.recoveryState.action}
+                  </p>
+                ) : null}
               </div>
             </div>
           )}
@@ -922,8 +1014,8 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                   按角色、姓名、账号或学号筛选，并在右侧查看详情与执行敏感操作。
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <div className="relative">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <div className="relative w-full sm:w-auto">
                   <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 admin-console-muted" />
                   <input aria-label="搜索姓名/账号/学号"
                     value={search}
@@ -933,7 +1025,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                       setPage(1);
                     }}
                     placeholder="搜索姓名/账号/学号"
-                    className="admin-console-input w-64 pl-9"
+                    className="admin-console-input w-full pl-9 sm:w-64"
                   />
                 </div>
                 <select
@@ -964,6 +1056,9 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
 
             {routeActionState ? (
               <ActionStatusPanel state={routeActionState} className="mt-4" />
+            ) : null}
+            {templateDownloadState ? (
+              <ActionStatusPanel state={templateDownloadState} className="mt-4" />
             ) : null}
             {invalidQueryState ? (
               <ActionStatusPanel state={invalidQueryState} className="mt-4" />

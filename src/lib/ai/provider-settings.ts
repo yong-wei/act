@@ -18,6 +18,7 @@ import {
 export const AI_PROVIDER_SETTINGS_KEY = 'ai_provider_settings';
 export const AI_PROVIDER_SETTINGS_AUDIT_KEY = 'ai_provider_settings_audit';
 const SECRET_REF_PATTERN = /^env:[A-Z][A-Z0-9_]*$/;
+type AIProviderSettingsDb = Pick<typeof prisma, 'platformSetting'>;
 
 export interface AIProviderModelSetting {
   id: string;
@@ -133,6 +134,7 @@ export function validateAIProviderSettings(settings: AIProviderSettings): string
   const errors: string[] = [];
   for (const provider of settings.providers) {
     if (!provider.id) errors.push('Provider id is required.');
+    if (!provider.name.trim()) errors.push(`Provider ${provider.id || 'unknown'} name is required.`);
     if (provider.providerKind !== 'openai-compatible' && provider.providerKind !== 'anthropic-compatible') {
       errors.push(`Provider ${provider.id} has unsupported providerKind.`);
     }
@@ -165,6 +167,11 @@ export function validateAIProviderSettingsInput(value: unknown): string[] {
     return errors;
   }
 
+  const activeProvider = cleanId(raw.activeProvider);
+  if (!activeProvider) {
+    errors.push('activeProvider is required.');
+  }
+  const providerIds = new Set<string>();
   raw.providers.forEach((provider, index) => {
     const item = provider && typeof provider === 'object'
       ? provider as Partial<AIProviderSetting>
@@ -173,6 +180,13 @@ export function validateAIProviderSettingsInput(value: unknown): string[] {
     if (!item) {
       errors.push(`Provider ${label} must be an object.`);
       return;
+    }
+    const providerId = cleanId(item.id);
+    if (providerId) {
+      providerIds.add(providerId);
+    }
+    if (typeof item.name !== 'string' || !cleanText(item.name)) {
+      errors.push(`Provider ${label} name is required.`);
     }
     if (item.providerKind !== undefined && item.providerKind !== 'openai-compatible' && item.providerKind !== 'anthropic-compatible') {
       errors.push(`Provider ${label} has unsupported providerKind.`);
@@ -204,6 +218,9 @@ export function validateAIProviderSettingsInput(value: unknown): string[] {
       }
     }
   });
+  if (activeProvider && !providerIds.has(activeProvider)) {
+    errors.push('activeProvider must reference an existing provider.');
+  }
 
   return errors;
 }
@@ -406,15 +423,18 @@ export async function getAIProviderSettings(): Promise<AIProviderSettings> {
   }
 }
 
-export async function setAIProviderSettings(settings: AIProviderSettings): Promise<AIProviderSettings> {
+export async function setAIProviderSettings(
+  settings: AIProviderSettings,
+  db: AIProviderSettingsDb = prisma,
+): Promise<AIProviderSettings> {
   const normalized = normalizeAIProviderSettings(settings);
   const value = normalized as unknown as Prisma.InputJsonValue;
-  await prisma.platformSetting.upsert({
+  await db.platformSetting.upsert({
     where: { key: AI_PROVIDER_SETTINGS_KEY },
     create: { key: AI_PROVIDER_SETTINGS_KEY, value },
     update: { value },
   });
-  await prisma.platformSetting.upsert({
+  await db.platformSetting.upsert({
     where: { key: AI_PROVIDER_SETTINGS_AUDIT_KEY },
     create: {
       key: AI_PROVIDER_SETTINGS_AUDIT_KEY,

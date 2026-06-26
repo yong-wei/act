@@ -106,14 +106,21 @@ describe('admin governance action contract', () => {
 
     expect(contract.state).toMatchObject({
       status: 'succeeded',
-      message: '治理风险导出请求已生成，文件由服务端按未解决风险范围生成。',
+      message: '治理风险导出请求已就绪，文件和操作账本 ID 将由服务端下载响应返回。',
+      identity: {
+        id: 'admin-governance-export-request:xlsx:2026-06-21',
+      },
       downloadFilename: 'data-governance-risks-2026-06-21.xlsx',
     });
+    expect(contract.state?.displayReference).toBeUndefined();
     expect(contract.auditRecord).toMatchObject({
       action: 'export',
       outcome: 'export-ready',
       undoAvailable: false,
+      retentionPolicy: 'admin-operation-ledger-30d',
     });
+    expect(contract.auditRecord?.operationId).toBeUndefined();
+    expect(contract.auditRecord?.idempotencyKey).toBeUndefined();
   });
 
   it('resolves route action targets from target and recent risk collections', () => {
@@ -154,6 +161,11 @@ describe('admin governance action contract', () => {
     expect(dataGovernanceDashboardSource).toContain('data-admin-mobile-cards="true"');
     expect(dataGovernanceDashboardSource).toContain('aria-label={`处置治理风险 ${risk.flagLabel} ${risk.userName}`}');
     expect(dataGovernanceDashboardSource).toContain('aria-label="刷新数据治理状态"');
+    expect(dataGovernanceDashboardSource).toContain('const [refreshActionState, setRefreshActionState]');
+    expect(dataGovernanceDashboardSource).toContain("category: 'refresh'");
+    expect(dataGovernanceDashboardSource).toContain('<ActionStatusPanel state={refreshActionState} />');
+    expect(dataGovernanceDashboardSource).toContain('去重键：{visibleAuditRecord.idempotencyKey ??');
+    expect(dataGovernanceDashboardSource).toContain('保留策略：{visibleAuditRecord.retentionPolicy ??');
     expect(dataGovernanceDashboardSource).toContain("params.set('graphNodeId', initialActionQuery.graphNodeId.trim())");
     expect(dataGovernanceDashboardSource).toContain("params.set('audit', initialActionQuery.audit.trim())");
     expect(dataGovernanceDashboardSource).toContain('data-graph-center-preferred-tab');

@@ -29,6 +29,7 @@ describe('ActionStatusPanel', () => {
     expect(html).toContain('aria-live="polite"');
     expect(html).toContain('data-audited-action-status="succeeded"');
     expect(html).toContain('审批已写回');
+    expect(html).toContain('操作：approve-1');
     expect(html).toContain('下一步：查看学生报告');
   });
 

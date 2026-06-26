@@ -5,6 +5,8 @@
 import { prisma } from '@/lib/prisma';
 import { ProgressStatus } from '@prisma/client';
 
+type UserProgressDb = Pick<typeof prisma, 'mission' | 'userProgress'>;
+
 /**
  * 确保用户有学生档案，如果没有则创建
  */
@@ -29,9 +31,9 @@ export async function ensureUserProfile(userId: string) {
 /**
  * 初始化用户任务进度（解锁第一关）
  */
-export async function initializeUserProgress(userId: string) {
+export async function initializeUserProgress(userId: string, db: UserProgressDb = prisma) {
   // 查找第一个任务（order 最小）
-  const firstMission = await prisma.mission.findFirst({
+  const firstMission = await db.mission.findFirst({
     where: { isActive: true },
     orderBy: { order: 'asc' },
   });
@@ -41,7 +43,7 @@ export async function initializeUserProgress(userId: string) {
   }
 
   // 检查是否已有进度记录
-  const existingProgress = await prisma.userProgress.findUnique({
+  const existingProgress = await db.userProgress.findUnique({
     where: {
       userId_missionId: {
         userId,
@@ -55,7 +57,7 @@ export async function initializeUserProgress(userId: string) {
   }
 
   // 创建进度记录并解锁第一关
-  return prisma.userProgress.create({
+  return db.userProgress.create({
     data: {
       userId,
       missionId: firstMission.id,

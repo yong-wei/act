@@ -14,6 +14,11 @@ import {
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
 import {
+  buildAdminOperationId,
+  buildAdminOperationIdempotencyKey,
+  type AdminOperationLedgerEntry,
+} from '@/lib/admin-operation-ledger';
+import {
   buildGovernanceOverview,
   type GovernanceStatusPayload,
 } from '@/features/admin/data-governance-overview';
@@ -51,6 +56,24 @@ export function graphCenterAuditInitialTab(audit: GraphCenterAuditContext | null
   return 'overview';
 }
 
+function governanceRefreshStateFromLedger(ledger: AdminOperationLedgerEntry) {
+  return createAuditedActionState({
+    identity: {
+      id: ledger.operationId,
+      category: 'refresh',
+      label: '数据治理刷新',
+      sourceRoute: '/admin/data-governance',
+      requestedAction: 'refresh',
+    },
+    status: ledger.outcome === 'failed' ? 'failed' : 'succeeded',
+    message: ledger.auditSummary,
+    nextAction: '复核治理风险或导出风险文件',
+    recoveryAction: ledger.recoveryState.action,
+    recoveryKind: ledger.recoveryState.status,
+    displayReference: ledger.idempotencyKey,
+  });
+}
+
 export function DataGovernanceDashboard({ currentUser, initialActionQuery }: DataGovernanceDashboardProps) {
   const [status, setStatus] = useState<GovernanceStatusPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,10 +85,38 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
   const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'sources' | 'cache'>(initialTab);
   const [executedActionState, setExecutedActionState] = useState<AuditedActionState | null>(null);
   const [executedAuditRecord, setExecutedAuditRecord] = useState<GovernanceActionAuditRecord | null>(null);
+  const [refreshActionState, setRefreshActionState] = useState<AuditedActionState | null>(null);
 
-  const fetchStatus = useCallback(async () => {
+  const fetchStatus = useCallback(async (manual = false) => {
+    const idempotencyKey = buildAdminOperationIdempotencyKey([
+      'admin-governance-refresh',
+      currentUser.id,
+      initialActionQuery?.riskId ?? '',
+      initialActionQuery?.surface ?? '',
+      initialActionQuery?.audit ?? '',
+    ]);
+    const operationId = buildAdminOperationId({
+      kind: 'admin-governance-refresh',
+      scope: 'admin-data-governance-status',
+      seed: idempotencyKey,
+    });
     try {
       setLoading(true);
+      if (manual) {
+        setRefreshActionState(createAuditedActionState({
+          identity: {
+            id: operationId,
+            category: 'refresh',
+            label: '数据治理刷新',
+            sourceRoute: '/admin/data-governance',
+            requestedAction: 'refresh',
+          },
+          status: 'pending',
+          message: '正在刷新数据治理状态，操作账本已记录刷新范围。',
+          nextAction: '等待状态接口返回',
+          displayReference: idempotencyKey,
+        }));
+      }
       const params = new URLSearchParams();
       if (initialActionQuery?.riskId?.trim()) {
         params.set('riskId', initialActionQuery.riskId.trim());
@@ -85,6 +136,9 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
       if (initialActionQuery?.audit?.trim()) {
         params.set('audit', initialActionQuery.audit.trim());
       }
+      if (manual) {
+        params.set('recordOperation', 'refresh');
+      }
       const response = await fetch(`/api/admin/data-governance/status${params.size ? `?${params}` : ''}`, {
         cache: 'no-store',
       });
@@ -94,12 +148,47 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
       const data = (await response.json()) as GovernanceStatusPayload;
       setStatus(data);
       setError(null);
+      if (manual) {
+        setRefreshActionState(data.operationLedger
+          ? governanceRefreshStateFromLedger(data.operationLedger)
+          : createAuditedActionState({
+              identity: {
+                id: operationId,
+                category: 'refresh',
+                label: '数据治理刷新',
+                sourceRoute: '/admin/data-governance',
+                requestedAction: 'refresh',
+              },
+              status: 'succeeded',
+              message: `数据治理状态已刷新，当前状态 ${data.status}，最近风险 ${data.recentRiskFlags.length} 条。`,
+              nextAction: '复核治理风险或导出风险文件',
+              displayReference: idempotencyKey,
+            }));
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '获取数据治理状态失败');
+      const message = err instanceof Error ? err.message : '获取数据治理状态失败';
+      setError(message);
+      if (manual) {
+        setRefreshActionState(createAuditedActionState({
+          identity: {
+            id: operationId,
+            category: 'refresh',
+            label: '数据治理刷新',
+            sourceRoute: '/admin/data-governance',
+            requestedAction: 'refresh',
+          },
+          status: 'failed',
+          message,
+          recoveryAction: '检查数据治理状态接口后重试刷新',
+          displayReference: idempotencyKey,
+          httpStatus: 500,
+        }));
+      }
     } finally {
       setLoading(false);
     }
   }, [
+    currentUser.id,
     initialActionQuery?.audit,
     initialActionQuery?.graphNodeId,
     initialActionQuery?.lessonPlanId,
@@ -324,7 +413,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
         }
         actions={
           <button type="button"
-            onClick={fetchStatus}
+            onClick={() => fetchStatus(true)}
             className="admin-console-button-primary"
             disabled={loading}
             aria-label="刷新数据治理状态"
@@ -394,6 +483,9 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
             ) : null}
           />
         ) : null}
+        {refreshActionState ? (
+          <ActionStatusPanel state={refreshActionState} />
+        ) : null}
 
         {visibleAuditRecord ? (
           <section className="admin-console-surface-soft text-sm">
@@ -405,6 +497,9 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
               <div>风险：{visibleAuditRecord.riskId ?? '-'}</div>
               <div>负责人：{visibleAuditRecord.assignee ?? '-'}</div>
               <div>回滚可用：{visibleAuditRecord.undoAvailable ? '是' : '否'}</div>
+              <div className="break-all">操作：{visibleAuditRecord.operationId ?? '-'}</div>
+              <div className="break-all">去重键：{visibleAuditRecord.idempotencyKey ?? '-'}</div>
+              <div>保留策略：{visibleAuditRecord.retentionPolicy ?? 'admin-operation-ledger-30d'}</div>
             </div>
           </section>
         ) : null}
