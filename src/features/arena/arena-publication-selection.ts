@@ -7,7 +7,20 @@ function publicationPriority(publication: ArenaPublicationRecord): number {
   return 3;
 }
 
-function comparePublicationPriority(left: ArenaPublicationRecord, right: ArenaPublicationRecord): number {
+function publicationLifecyclePriority(publication: ArenaPublicationRecord, now: Date): number {
+  if (Date.parse(publication.deadline) >= now.getTime()) return 0;
+  if (publication.gradingPolicy.allowLateSubmissions === true) return 1;
+  return 2;
+}
+
+function comparePublicationPriority(
+  left: ArenaPublicationRecord,
+  right: ArenaPublicationRecord,
+  now: Date,
+): number {
+  const lifecycle = publicationLifecyclePriority(left, now) - publicationLifecyclePriority(right, now);
+  if (lifecycle !== 0) return lifecycle;
+
   const priority = publicationPriority(left) - publicationPriority(right);
   if (priority !== 0) return priority;
   return Date.parse(left.deadline) - Date.parse(right.deadline);
@@ -15,15 +28,17 @@ function comparePublicationPriority(left: ArenaPublicationRecord, right: ArenaPu
 
 export function selectArenaHallCurrentPublication(
   publications: readonly ArenaPublicationRecord[],
+  now = new Date(),
 ): ArenaPublicationRecord | undefined {
-  return [...publications].sort(comparePublicationPriority)[0];
+  return [...publications].sort((left, right) => comparePublicationPriority(left, right, now))[0];
 }
 
 export function selectArenaHallPublicationForTask(
   publications: readonly ArenaPublicationRecord[],
   taskId: string,
+  now = new Date(),
 ): ArenaPublicationRecord | undefined {
   return publications
     .filter((publication) => publication.taskId === taskId)
-    .sort(comparePublicationPriority)[0];
+    .sort((left, right) => comparePublicationPriority(left, right, now))[0];
 }
