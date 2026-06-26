@@ -155,7 +155,7 @@ export function minimizeFailedImportRows(
 ): PiiMinimizedFailedImportRow[] {
   return rows.map((item) => ({
     row: item.row,
-    accountFingerprint: item.account ? stableFingerprint(item.account).slice(0, 12) : null,
+    accountFingerprint: null,
     reason: item.reason,
   }));
 }

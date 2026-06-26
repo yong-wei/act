@@ -296,12 +296,12 @@ describe('POST /api/admin/users/import', () => {
       failed: 1,
       errors: [{
         row: 3,
-        accountFingerprint: expect.any(String),
+        accountFingerprint: null,
         reason: '同批次重复账号，已在第 2 行出现',
       }],
       failedRows: [{
         row: 3,
-        accountFingerprint: expect.any(String),
+        accountFingerprint: null,
         reason: '同批次重复账号，已在第 2 行出现',
       }],
       failedRowArtifact: {
@@ -375,7 +375,7 @@ describe('POST /api/admin/users/import', () => {
       failed: 1,
       errors: [{
         row: 3,
-        accountFingerprint: expect.any(String),
+        accountFingerprint: null,
         reason: '同批次重复邮箱，已在第 2 行出现',
       }],
       auditRecord: {
@@ -407,7 +407,7 @@ describe('POST /api/admin/users/import', () => {
       failed: 1,
       errors: [{
         row: 2,
-        accountFingerprint: expect.any(String),
+        accountFingerprint: null,
         reason: '邮箱已被其他用户使用',
       }],
       auditRecord: {
@@ -448,12 +448,12 @@ describe('POST /api/admin/users/import', () => {
       errors: [
         {
           row: 2,
-          accountFingerprint: expect.any(String),
+          accountFingerprint: null,
           reason: '本批次事务已回滚，该行未提交',
         },
         {
           row: 3,
-          accountFingerprint: expect.any(String),
+          accountFingerprint: null,
           reason: '导入写入失败，请检查该行账号、邮箱或学生档案是否与现有数据冲突',
         },
       ],
@@ -532,7 +532,7 @@ describe('POST /api/admin/users/import', () => {
       },
       errors: [{
         row: 2,
-        accountFingerprint: expect.any(String),
+        accountFingerprint: null,
         reason: '同一账号匹配到多个用户，请先清理重复数据',
       }],
     });
@@ -558,7 +558,7 @@ describe('POST /api/admin/users/import', () => {
       totalRows: 1,
       errors: [{
         row: 2,
-        accountFingerprint: expect.any(String),
+        accountFingerprint: null,
         reason: '角色无效：访客',
       }],
     });
