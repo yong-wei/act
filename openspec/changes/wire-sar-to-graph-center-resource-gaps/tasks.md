@@ -1,0 +1,6 @@
+- [ ] Add associated retrieval payload fields to Graph Center selected node details.
+- [ ] Add SAR-backed resource gap candidate retrieval.
+- [ ] Ensure candidate bindings remain draft/suggested and do not bypass ResourceNode audit.
+- [ ] Add role visibility checks for student, teacher, and admin payloads.
+- [ ] Add Graph Center tests for selected node associated evidence and resource gap suggestions.
+- [ ] Run `openspec validate wire-sar-to-graph-center-resource-gaps --strict`.

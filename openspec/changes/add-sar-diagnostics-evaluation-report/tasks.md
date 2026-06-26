@@ -1,0 +1,6 @@
+- [ ] Add SAR trace serialization and diagnostics metric builders.
+- [ ] Add admin data governance SAR report route or payload.
+- [ ] Add deterministic control-correction multi-hop demo fixture.
+- [ ] Add comparison output for SAR-assisted vs ordinary Source Pack retrieval samples.
+- [ ] Add tests for trace serialization, privacy redaction, verified citation rate calculation, and demo fixture query.
+- [ ] Run `openspec validate add-sar-diagnostics-evaluation-report --strict`.
