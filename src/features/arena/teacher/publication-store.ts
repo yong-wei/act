@@ -30,12 +30,29 @@ export interface ArenaPublicationGradingPolicy {
   [key: string]: unknown;
 }
 
+interface ArenaPublicationDisplayConfig extends Partial<ArenaChallengePublication> {
+  assignmentTitle?: unknown;
+  homeworkTitle?: unknown;
+  title?: unknown;
+  classTitle?: unknown;
+  className?: unknown;
+  teacherName?: unknown;
+  teacherLabel?: unknown;
+  sourceLabel?: unknown;
+}
+
 export interface ArenaPublicationRecord extends ArenaChallengePublication {
   id: string;
   teacherId: string;
   visibility: ArenaPublicationVisibility;
   status: ArenaPublicationStatus;
   gradingPolicy: ArenaPublicationGradingPolicy;
+  context?: {
+    assignmentTitle?: string;
+    classTitle?: string;
+    teacherName?: string;
+    sourceLabel?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -44,12 +61,19 @@ export interface ArenaResolvedSubmissionContext {
   id: string;
   taskId: string;
   visibility: ArenaPublicationVisibility;
+  studentVisibility: ArenaPublicationVisibility;
   classId?: string;
   seasonId?: string;
   isLate: boolean;
   deadline: string;
   leaderboardPolicyId: string;
   gradingPolicy: ArenaPublicationGradingPolicy;
+  displayContext?: {
+    assignmentTitle?: string;
+    classTitle?: string;
+    teacherName?: string;
+    sourceLabel?: string;
+  };
 }
 
 export class ArenaPublicationPermissionError extends Error {
@@ -180,9 +204,13 @@ function readGradingPolicy(value: unknown): ArenaPublicationGradingPolicy {
     : {};
 }
 
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
 function toRecord(row: Record<string, unknown>): ArenaPublicationRecord {
   const config = row.config && typeof row.config === 'object' && !Array.isArray(row.config)
-    ? row.config as Partial<ArenaChallengePublication>
+    ? row.config as ArenaPublicationDisplayConfig
     : {};
   const visibility = isArenaPublicationVisibility(row.visibility) ? row.visibility : 'class';
   const status = isArenaPublicationStatus(row.status) ? row.status : 'active';
@@ -214,6 +242,12 @@ function toRecord(row: Record<string, unknown>): ArenaPublicationRecord {
       ? config.telemetryLevel
       : 'L0',
     status,
+    context: {
+      assignmentTitle: readString(config.assignmentTitle) ?? readString(config.homeworkTitle) ?? readString(config.title),
+      classTitle: readString(config.classTitle) ?? readString(config.className),
+      teacherName: readString(config.teacherName) ?? readString(config.teacherLabel),
+      sourceLabel: readString(config.sourceLabel),
+    },
     gradingPolicy: readGradingPolicy(row.gradingPolicy),
     createdAt: readDate(row.createdAt),
     updatedAt: readDate(row.updatedAt),
@@ -461,12 +495,14 @@ export async function resolveAccessibleArenaPublicationForStudent(
     id: publication.id,
     taskId: publication.taskId,
     visibility: publication.visibility,
+    studentVisibility: publication.studentVisibility,
     classId: submissionClassId,
     seasonId: typeof publication.gradingPolicy.seasonId === 'string' ? publication.gradingPolicy.seasonId : undefined,
     isLate,
     deadline: publication.deadline,
     leaderboardPolicyId: publication.leaderboardPolicyId,
     gradingPolicy: publication.gradingPolicy,
+    displayContext: publication.context,
   };
 }
 

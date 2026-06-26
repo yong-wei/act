@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { BarChart3, ClipboardList, ShieldAlert, Trophy, Users } from 'lucide-react';
+import { BarChart3, ClipboardList, Copy, FileDown, LockKeyhole, Send, ShieldAlert, Trophy, Users } from 'lucide-react';
 
 import { getServerAuthSession } from '@/lib/auth';
 import {
@@ -36,6 +36,12 @@ function formatAttemptStatus(value: 'effective' | 'late' | 'zero-score' | 'inval
   return '无效';
 }
 
+function lifecycleToneClass(tone: 'success' | 'warning' | 'neutral' | 'muted'): string {
+  if (tone === 'neutral') return 'border-primary/35 bg-primary/10 text-primary';
+  if (tone === 'success' || tone === 'warning') return 'border-primary/35 bg-primary/10 text-primary';
+  return 'border-border bg-muted/40 text-subtle';
+}
+
 export default async function ArenaPublicationReportPage(props: ArenaPublicationReportPageProps) {
   const params = await props.params;
   const session = await getServerAuthSession();
@@ -51,23 +57,55 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
 
     return (
       <main className="surface-page min-h-screen">
-        <section className="mx-auto max-w-[1600px] px-6 py-10">
+        <section className="mx-auto max-w-[1600px] px-6 pb-[calc(env(safe-area-inset-bottom,0px)+8rem)] pt-10">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-sm text-subtle">竞技场发布报告</p>
-              <h1 className="mt-2 text-3xl font-semibold text-foreground">{report.publication.taskId}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <h1 className="text-3xl font-semibold text-foreground">{report.publicationContext.reportTitle}</h1>
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${lifecycleToneClass(report.lifecycle.tone)}`}>
+                  {report.lifecycle.primaryLabel}
+                </span>
+              </div>
               <p className="mt-2 text-sm text-subtle">
-                {report.publication.classId} · 截止 {formatDate(report.publication.deadline)} · {report.publication.visibility}
+                {report.publicationContext.classTitle} · {report.publicationContext.teacherLabel} · 截止 {report.publicationContext.deadlineLabel}
               </p>
               <p className="mt-1 text-xs text-subtle">
-                榜单策略 {report.publication.leaderboardPolicyId} ·
-                {report.publication.gradingPolicy.hideFullLeaderboardBeforeDeadline ? '截止前隐藏完整同伴榜单' : '榜单实时可见'}
+                {report.publicationContext.sourceLabel} · {report.lifecycle.detail}
               </p>
             </div>
             <Link href="/teacher/arena" className="btn-ghost-themed rounded-lg border px-3 py-2 text-sm">
               返回竞技场配置
             </Link>
           </div>
+
+          <section className="surface-card mt-6 p-5" data-arena-publication-context={report.lifecycle.state}>
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">发布上下文</h2>
+                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                  <SignalRow label="任务" value={report.publicationContext.taskTitle} />
+                  <SignalRow label="班级/范围" value={report.publicationContext.classTitle} />
+                  <SignalRow label="来源" value={report.publicationContext.sourceLabel} />
+                  <SignalRow label="榜单边界" value={report.leaderboardBoundary.sourceLabel} />
+                </div>
+                <p className="mt-4 rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm leading-6 text-subtle">
+                  {report.leaderboardBoundary.explanation}
+                </p>
+              </div>
+              <div
+                className="rounded-lg border border-border/70 bg-card/55 p-4"
+                data-arena-publication-mobile-actions="safe-area"
+              >
+                <h2 className="text-sm font-semibold text-foreground">报告交付</h2>
+                <div className="mt-3 grid gap-2">
+                  {report.deliveryActions.map((action) => (
+                    <DeliveryActionRow key={action.id} action={action} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <MetricPanel
@@ -258,6 +296,9 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
               <span>当前发布还没有官方提交。报告仍保留任务、班级、截止时间、可见性和榜单策略上下文。</span>
             </div>
           ) : null}
+          <div className="sr-only" data-task-workspace-zone="floating-dock-safe-area">
+            Arena 发布报告交付动作避让全局浮动控件，并保留移动端底部安全区。
+          </div>
         </section>
       </main>
     );
@@ -297,6 +338,36 @@ function MetricPanel({
       </div>
       <div className="mt-3 text-3xl font-semibold text-foreground">{value}</div>
       <div className="mt-2 text-xs text-subtle">{detail}</div>
+    </div>
+  );
+}
+
+function DeliveryActionRow({
+  action,
+}: {
+  action: {
+    id: 'export-report' | 'send-report' | 'lock-board' | 'copy-commentary';
+    label: string;
+    statusLabel: string;
+    available: boolean;
+  };
+}) {
+  const Icon = action.id === 'export-report'
+    ? FileDown
+    : action.id === 'send-report'
+      ? Send
+      : action.id === 'lock-board'
+        ? LockKeyhole
+        : Copy;
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/65 px-3 py-2 text-sm">
+      <span className="flex items-center gap-2 text-foreground">
+        <Icon className="h-4 w-4 text-primary" />
+        {action.label}
+      </span>
+      <span className={action.available ? 'text-subtle' : 'text-muted-foreground'}>
+        {action.statusLabel}
+      </span>
     </div>
   );
 }

@@ -188,6 +188,7 @@ describe('arena teaching platform integration', () => {
     })).resolves.toMatchObject({
       id: publication.id,
       classId: 'class-a',
+      studentVisibility: 'class',
       isLate: false,
     });
     await expect(resolveAccessibleArenaPublicationForStudent(db as any, {
@@ -218,6 +219,7 @@ describe('arena teaching platform integration', () => {
     })).resolves.toMatchObject({
       id: publication.id,
       visibility: 'course',
+      studentVisibility: 'course',
       classId: 'class-b',
     });
   });

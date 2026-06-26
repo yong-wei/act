@@ -14,6 +14,7 @@ import {
   getArenaMetricProfile,
 } from '../data/seed-challenges';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
+import type { ArenaPublicationRecord } from '../teacher/publication-store';
 
 const repoRoot = process.cwd();
 
@@ -73,6 +74,37 @@ function leaderboardSubmission(overrides: Partial<ArenaSubmissionRecord>): Arena
     },
     submittedAt: '2026-05-10T10:01:00.000Z',
     reusedEvaluation: false,
+    ...overrides,
+  };
+}
+
+function arenaPublicationFixture(overrides: Partial<ArenaPublicationRecord>): ArenaPublicationRecord {
+  return {
+    id: 'publication-fixture',
+    taskId: 'task-second-order-lead-pid',
+    classId: 'class-a',
+    teacherId: 'teacher-a',
+    studentVisibility: 'class',
+    visibility: 'class',
+    deadline: '2099-06-01T08:00:00.000Z',
+    leaderboardPolicyId: 'leaderboard-class-homework',
+    homeworkBinding: true,
+    templateId: 'template-pid-tuning',
+    targetSignal: '单位阶跃参考输入',
+    disturbance: '无外加扰动',
+    initialCondition: '零初始状态',
+    allowedMethods: [],
+    hardConstraints: [],
+    scoringMetricWeights: {},
+    paretoEnabled: false,
+    hiddenTestEnabled: false,
+    gradeBinding: true,
+    publicLeaderboard: false,
+    telemetryLevel: 'L0',
+    status: 'active',
+    gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+    createdAt: '2026-05-16T08:00:00.000Z',
+    updatedAt: '2026-05-16T08:00:00.000Z',
     ...overrides,
   };
 }
@@ -206,6 +238,38 @@ describe('arena student entry UI boundaries', () => {
     expect(html).not.toContain('ArenaBlackBoxSubmissionPanel');
   });
 
+  it('renders publication context and leaderboard source boundaries for student challenge entries', () => {
+    const props = getChallengeDetailFixture('task-second-order-lead-pid');
+    const html = renderToStaticMarkup(createElement(ChallengeDetail, {
+      ...props,
+      submissions: [],
+      publicationId: 'publication-a',
+      publicationContext: {
+        assignmentTitle: '第三章课堂挑战',
+        classTitle: '自动控制 2026 级 1 班',
+        teacherLabel: '张老师',
+        sourceLabel: '课堂发布',
+        deadlineLabel: '2026年6月1日 16:00',
+        lifecycleLabel: '进行中',
+        leaderboardBoundary: '班级榜单只统计本发布的 ArenaSubmission 官方提交。',
+      },
+    }));
+
+    expect(html).toContain('发布挑战');
+    expect(html).toContain('第三章课堂挑战');
+    expect(html).toContain('自动控制 2026 级 1 班');
+    expect(html).toContain('张老师');
+    expect(html).toContain('截止 2026年6月1日 16:00');
+    expect(html).toContain('班级榜单只统计本发布的 ArenaSubmission 官方提交。');
+  });
+
+  it('keeps student publication leaderboard source wording aligned with public visibility', () => {
+    const pageSource = readRepoFile('src/app/arena/challenges/[taskId]/page.tsx');
+
+    expect(pageSource).toContain("publication.studentVisibility === 'public'");
+    expect(pageSource).toContain('公开榜单只统计服务端 ArenaSubmission 官方提交');
+  });
+
   it('renders the Arena hall as a capability training map with existing filters', () => {
     const html = renderToStaticMarkup(createElement(ArenaHall, {
       taskStats: {},
@@ -223,6 +287,40 @@ describe('arena student entry UI boundaries', () => {
     expect(html).toContain('常见失误');
     expect(html).toContain('对象来源');
     expect(html).toContain('允许方法');
+  });
+
+  it('renders active and expired publication lifecycle badges in the Arena hall', () => {
+    const activeHtml = renderToStaticMarkup(createElement(ArenaHall, {
+      taskStats: {},
+      studentPublications: [arenaPublicationFixture({
+        id: 'publication-active',
+        deadline: '2099-06-01T08:00:00.000Z',
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+      })],
+    }));
+    const expiredHtml = renderToStaticMarkup(createElement(ArenaHall, {
+      taskStats: {},
+      studentPublications: [arenaPublicationFixture({
+        id: 'publication-expired',
+        deadline: '2020-06-01T08:00:00.000Z',
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+      })],
+    }));
+    const lateOnlyHtml = renderToStaticMarkup(createElement(ArenaHall, {
+      taskStats: {},
+      studentPublications: [arenaPublicationFixture({
+        id: 'publication-late-only',
+        deadline: '2020-06-01T08:00:00.000Z',
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: true, allowLateSubmissions: true },
+      })],
+    }));
+
+    expect(activeHtml).toContain('发布进行中');
+    expect(activeHtml).toContain('班级榜单：本发布官方提交');
+    expect(expiredHtml).toContain('发布已截止');
+    expect(expiredHtml).toContain('报告/复盘可用');
+    expect(lateOnlyHtml).toContain('已截止，可迟交');
+    expect(lateOnlyHtml).toContain('迟交不进入正式榜单');
   });
 
   it('renders challenge detail training intent, prerequisites, effort, and failure points', () => {
@@ -258,7 +356,6 @@ describe('arena student entry UI boundaries', () => {
     expect(hallSource).toContain("'method', label: '方法榜'");
     expect(hallSource).toContain("'metric', label: '指标榜'");
     expect(hallSource).not.toContain('Pareto 榜');
-    expect(hallSource).not.toContain('班级榜');
     expect(hallSource).not.toContain('赛季榜');
   });
 
