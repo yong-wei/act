@@ -69,6 +69,18 @@ export type {
 };
 
 const GOVERNED_ID_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*:[^\s]+$/u;
+const VERSION_REF_KEYS = [
+  'artifactVersioningVersion',
+  'learningGoalPackageVersion',
+  'objectiveCatalogVersion',
+  'graphCatalogVersion',
+  'resourceRegistryVersion',
+  'resourceProjectionVersion',
+  'overlayVersion',
+  'plannerVersion',
+  'groundingVersion',
+  'citationVersion',
+] as const;
 const USE_CASE_SOURCE_TYPES: Record<LearningEvidenceCitationUseCase, Set<LearningEvidenceCorpusSourceType>> = {
   diagnosis: new Set(['course-content', 'knowledge-card', 'runtime-handout', 'path-summary', 'diagnosis', 'simulation-summary', 'arena-summary']),
   grading: new Set(['course-content', 'knowledge-card', 'runtime-handout', 'grading-artifact', 'path-summary', 'simulation-summary', 'arena-summary']),
@@ -294,6 +306,9 @@ export function adaptTextbookSearchDocument(
   doc: TextbookRuntimeSearchDocument,
 ): { item: SourcePackItem; limitations: SourcePackLimitation[] } {
   const limitations: SourcePackLimitation[] = [];
+  const citationLocator = doc.citationAddress?.locator ??
+    anchorFromHref(doc.citationAddress?.href ?? null) ??
+    anchorFromHref(doc.href);
 
   // ── Href safety ───────────────────────────────────────────────────────
   const rawHref = doc.href ?? doc.citationAddress?.href ?? null;
@@ -373,7 +388,15 @@ export function adaptTextbookSearchDocument(
       bookId: doc.metadata.bookId,
       sectionId: doc.metadata.sectionId,
       chapterId: doc.metadata.chapterId ?? '',
+      chapterNumber: doc.metadata.chapterNumber ?? '',
       resourceId: doc.resourceProjection?.resourceId ?? '',
+      segmentRef: doc.resourceProjection?.segmentRef ?? '',
+      citationLocator: citationLocator ?? '',
+      citationAddressKind: doc.citationAddress?.kind ?? '',
+      sourceVersion: doc.resourceProjection?.versionRefs?.resourceProjectionVersion ?? doc.resourceProjection?.versionRefs?.resourceRegistryVersion ?? '',
+      ...versionRefsMetadata(doc.resourceProjection?.versionRefs),
+      knowledgeNodeRefs: doc.resourceProjection?.knowledgeNodeRefs ?? [],
+      capabilityTargetRefs: doc.resourceProjection?.capabilityTargetRefs ?? [],
       contentHash: doc.contentHash ?? doc.resourceProjection?.contentHash ?? '',
       kind: doc.kind,
     },
@@ -557,4 +580,23 @@ function toGovernedId(prefix: string, value: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, 96);
   return `${prefix}:${normalized || 'unknown'}`;
+}
+
+function versionRefsMetadata(
+  refs: TextbookRuntimeSearchDocument['resourceProjection']['versionRefs'],
+): Record<string, string> {
+  const metadata: Record<string, string> = {};
+  for (const key of VERSION_REF_KEYS) {
+    const value = refs?.[key];
+    if (typeof value === 'string' && value.length > 0) {
+      metadata[key] = value;
+    }
+  }
+  return metadata;
+}
+
+function anchorFromHref(href: string | null): string | null {
+  if (!href) return null;
+  const hashIndex = href.indexOf('#');
+  return hashIndex >= 0 && hashIndex < href.length - 1 ? href.slice(hashIndex + 1) : null;
 }

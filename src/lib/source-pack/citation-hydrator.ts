@@ -94,6 +94,7 @@ const rawVerifiedHrefPattern = /(course-content\/authoring|#L\d+\b)/i;
 export function isSafeHref(href: string | null | undefined): boolean {
   if (!href || href.trim().length === 0) return false;
   const trimmed = href.trim();
+  if (trimmed !== href || /[\s\p{Cc}]/u.test(trimmed)) return false;
 
   // Protocol-relative (//example.com/…) — treated as unsafe because
   // the actual protocol is ambiguous and may be file: in some contexts.
@@ -109,8 +110,16 @@ export function isSafeHref(href: string | null | undefined): boolean {
   }
 
   // Explicit http/https
-  if (trimmed.startsWith('https://') || trimmed.startsWith('http://') || trimmed.startsWith('doi:')) {
-    return true;
+  if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+    try {
+      const parsed = new URL(trimmed);
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    } catch {
+      return false;
+    }
+  }
+  if (trimmed.startsWith('doi:')) {
+    return /^doi:[^\s\p{Cc}]+$/u.test(trimmed);
   }
 
   // Reject known unsafe schemes

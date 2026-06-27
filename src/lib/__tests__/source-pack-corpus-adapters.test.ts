@@ -158,6 +158,14 @@ function makeTextbookDoc(overrides?: Partial<TextbookRuntimeSearchDocument>): Te
       citationTargetRef: 'ct-002',
       knowledgeNodeRefs: ['kn-002'],
       capabilityTargetRefs: ['cap-002'],
+      versionRefs: {
+        artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+        graphCatalogVersion: 'graph-catalog.v1',
+        resourceRegistryVersion: 'resource-registry.v1',
+        resourceProjectionVersion: 'resource-projection.v1',
+        groundingVersion: 'grounding.v1',
+        citationVersion: 'citation.v1',
+      },
     },
     citationAddress: {
       kind: 'text',
@@ -280,6 +288,12 @@ describe('isSafeHref', () => {
     expect(isSafeHref(undefined)).toBe(false);
     expect(isSafeHref('')).toBe(false);
     expect(isSafeHref('   ')).toBe(false);
+  });
+
+  it('rejects whitespace or control characters in hrefs', () => {
+    expect(isSafeHref('https://example.com\n/next')).toBe(false);
+    expect(isSafeHref(' https://example.com')).toBe(false);
+    expect(isSafeHref('https://example.com/\u0000')).toBe(false);
   });
 });
 
@@ -604,6 +618,42 @@ describe('textbook citation preservation', () => {
     expect(item.metadata?.bookId).toBe('dorf-modern-control-systems');
     expect(item.metadata?.sectionId).toBe('ch02-sec01');
     expect(item.metadata?.chapterId).toBe('ch02');
+    expect(item.metadata?.chapterNumber).toBe(2);
+    expect(item.metadata?.segmentRef).toBe('seg-002');
+    expect(item.metadata?.citationLocator).toBe('#sec1');
+    expect(item.metadata?.sourceVersion).toBe('resource-projection.v1');
+    expect(item.metadata?.artifactVersioningVersion).toBe('kaq-artifact-versioning.v1');
+    expect(item.metadata?.graphCatalogVersion).toBe('graph-catalog.v1');
+    expect(item.metadata?.resourceRegistryVersion).toBe('resource-registry.v1');
+    expect(item.metadata?.resourceProjectionVersion).toBe('resource-projection.v1');
+    expect(item.metadata?.groundingVersion).toBe('grounding.v1');
+    expect(item.metadata?.citationVersion).toBe('citation.v1');
+    expect(item.metadata?.knowledgeNodeRefs).toEqual(['kn-002']);
+    expect(item.metadata?.capabilityTargetRefs).toEqual(['cap-002']);
+  });
+
+  it('derives textbook citation locator from href when locator is missing', () => {
+    const doc = makeTextbookDoc({
+      citationAddress: {
+        ...makeTextbookDoc().citationAddress!,
+        locator: undefined,
+      },
+    });
+    const { item } = adaptTextbookSearchDocument(doc);
+    expect(item.metadata?.citationLocator).toBe('sec1');
+  });
+
+  it('derives textbook citation locator from doc href when citation address href has no hash', () => {
+    const doc = makeTextbookDoc({
+      href: '/course-runtime/textbook/ch02/root-locus#doc-sec1',
+      citationAddress: {
+        ...makeTextbookDoc().citationAddress!,
+        locator: undefined,
+        href: '/course-runtime/textbook/ch02/root-locus',
+      },
+    });
+    const { item } = adaptTextbookSearchDocument(doc);
+    expect(item.metadata?.citationLocator).toBe('doc-sec1');
   });
 
   it('preserves citation address in textbook output', () => {
