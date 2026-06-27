@@ -641,8 +641,9 @@ function buildDeliveryActionIdentity(
   label: string,
   requestedAction: 'export' | 'summary',
 ) {
+  const actionId = entry.actionId.replace(`:${entry.action}:`, `:${requestedAction}:`);
   return {
-    id: entry.actionId,
+    id: actionId,
     category: requestedAction === 'export' ? 'export' as const : 'save' as const,
     label,
     sourceRoute: '/teacher/classes/report-delivery-ledger',

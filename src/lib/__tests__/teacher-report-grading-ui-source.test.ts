@@ -26,6 +26,7 @@ describe('teacher report and grading UI source contracts', () => {
     expect(source).toContain('surface: deliveryQuery.surface');
     expect(source).toContain("identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告导出', 'export')");
     expect(source).toContain("identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告摘要', 'summary')");
+    expect(source).toContain('entry.actionId.replace(`:${entry.action}:`, `:${requestedAction}:`)');
     expect(source).toContain('targetId: entry.artifactRef');
     expect(source).toContain('data-teacher-report-handoff-states="delivery-status-contract"');
     expect(source).toContain('data-report-ledger-send-publish-state="degraded"');
