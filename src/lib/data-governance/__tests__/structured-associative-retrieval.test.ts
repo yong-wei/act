@@ -163,6 +163,14 @@ describe('structured associative retrieval contract', () => {
     })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
 
     expect(validateSarEvent(event({
+      metadata: { hiddenEvaluationInternals: { rubric: 'private' } },
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarEvent(event({
+      metadata: { note: 'hidden evaluation internals must stay private' },
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarEvent(event({
       metadata: { entries: [{ rawSubmission: 'student answer dump' }] },
     })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
 

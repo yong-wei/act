@@ -120,6 +120,7 @@ const RESTRICTED_KEYS = new Set([
   'learnerSubmission',
   'learnerSubmissions',
   'hiddenArenaInternals',
+  'hiddenEvaluationInternals',
   'privateKonlingMemory',
   'auditOnlyTrace',
 ]);
@@ -128,6 +129,7 @@ const RESTRICTED_TEXT = [
   /\braw[_ -]?learner[_ -]?submissions?\b/i,
   /\braw[_ -]?submissions?\b/i,
   /\bhidden[_ -]?arena[_ -]?internals?\b/i,
+  /\bhidden[_ -]?evaluation[_ -]?internals?\b/i,
   /\barena[_ -]?internal\b/i,
   /\bprivate[_ -]?konling[_ -]?memory\b/i,
   /\bkonling[_ -]?private\b/i,
