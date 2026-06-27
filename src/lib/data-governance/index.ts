@@ -45,3 +45,7 @@ export * from './teacher-prep-pack-generation';
 
 // Interactive session finalization
 export * from './interactive-session-finalization';
+
+// Structured Associative Retrieval (SAR)
+export * from './structured-associative-retrieval-types';
+export * from './structured-associative-retrieval';
