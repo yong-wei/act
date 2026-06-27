@@ -153,6 +153,56 @@ describe('teacher report and grading audit contracts', () => {
     });
   });
 
+  it('keeps pending delivery actions out of completed ledger states', () => {
+    const sendQuery = normalizeTeacherReportDeliveryQuery({
+      action: 'send',
+      studentId: 'student-1',
+    }, 'class-1');
+    expect(buildTeacherReportDeliveryLedgerEntry({
+      query: sendQuery,
+      surface: sendQuery.surface,
+      now: new Date('2026-06-27T00:00:00.000Z'),
+    })).toMatchObject({
+      deliveryStatus: 'ready',
+      sendState: 'ready',
+      copySummaryState: 'ready',
+    });
+
+    const summaryQuery = normalizeTeacherReportDeliveryQuery({
+      action: 'summary',
+    }, 'class-1');
+    expect(buildTeacherReportDeliveryLedgerEntry({
+      query: summaryQuery,
+      surface: summaryQuery.surface,
+      now: new Date('2026-06-27T00:00:00.000Z'),
+    })).toMatchObject({
+      deliveryStatus: 'ready',
+      sendState: 'draft',
+      copySummaryState: 'ready',
+    });
+  });
+
+  it('keeps lock action recovery separate from missing-context recovery', () => {
+    const lockQuery = normalizeTeacherReportDeliveryQuery({
+      action: 'lock',
+    }, 'class-1');
+    const lockState = buildTeacherReportDeliveryState(lockQuery);
+    expect(lockState).toMatchObject({
+      status: 'blocked',
+      recoveryAction: '先导出或刷新报告，再锁定交付版本',
+    });
+    expect(lockState?.httpStatus).toBeUndefined();
+
+    const missingClassLockQuery = normalizeTeacherReportDeliveryQuery({
+      action: 'lock',
+    }, 'missing-class-1');
+    expect(buildTeacherReportDeliveryState(missingClassLockQuery)).toMatchObject({
+      status: 'blocked',
+      httpStatus: 404,
+      recoveryAction: '回到班级、课堂历史或学生列表选择有效上下文',
+    });
+  });
+
   it('maps grading missing run and unsupported method into teacher states', () => {
     const missingRun = normalizeTeacherGradingRouteQuery({
       gradingRunId: 'missing-batch58',

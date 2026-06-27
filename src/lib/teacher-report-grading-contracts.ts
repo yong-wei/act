@@ -157,7 +157,7 @@ export function buildTeacherReportDeliveryState(query: TeacherReportDeliveryQuer
       displayReference: ledgerEntry.artifactRef,
     });
   }
-  if (ledgerEntry.deliveryStatus === 'missing-context' || ledgerEntry.deliveryStatus === 'blocked') {
+  if (ledgerEntry.deliveryStatus === 'missing-context') {
     return createAuditedActionState({
       identity,
       status: 'blocked',
@@ -182,6 +182,16 @@ export function buildTeacherReportDeliveryState(query: TeacherReportDeliveryQuer
       status: 'blocked',
       message: `报告 ${query.versionId} 需要生成稳定版本后才能锁定。`,
       recoveryAction: '先导出或刷新报告，再锁定交付版本',
+      displayReference: ledgerEntry.artifactRef,
+    });
+  }
+  if (ledgerEntry.deliveryStatus === 'blocked') {
+    return createAuditedActionState({
+      identity,
+      status: 'blocked',
+      message: ledgerEntry.studentSafeSummary,
+      recoveryAction: ledgerEntry.recoveryAction ?? '回到班级学生列表选择有效对象',
+      httpStatus: 404,
       displayReference: ledgerEntry.artifactRef,
     });
   }
@@ -409,8 +419,7 @@ function getDeliveryLedgerStatus(
   if (missingContext) return 'missing-context';
   if (action === 'unsupported') return 'blocked';
   if (action === 'export' || action === 'download') return 'ready';
-  if (action === 'send' || action === 'deliver') return 'sent';
-  if (action === 'summary') return 'copied';
+  if (action === 'send' || action === 'deliver' || action === 'summary') return 'ready';
   if (action === 'reinforcement') return 'degraded';
   if (action === 'lock') return 'blocked';
   return 'ready';
