@@ -15,6 +15,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import { buildTeacherReportDeliveryHref } from '@/lib/teacher-report-grading-contracts';
 
 interface TeacherClassOption {
   id: string;
@@ -220,8 +221,21 @@ export default function TeacherHistoryPage() {
           <div className="space-y-4">
             {sessions.map((session) => {
               const isEditing = editingSessionId === session.id;
+              const reportDeliveryHref = buildTeacherReportDeliveryHref({
+                classId: session.classId,
+                action: 'export',
+                sessionId: session.id,
+                surface: 'history',
+                returnTo: '/teacher/history',
+              });
               return (
-                <div key={session.id} className="surface-card-soft p-4">
+                <div
+                  key={session.id}
+                  className="surface-card-soft p-4"
+                  data-report-ledger-surface="teacher-history-report-delivery"
+                  data-report-ledger-session-id={session.id}
+                  data-report-ledger-delivery-state={session.classId ? 'ready' : 'missing-context'}
+                >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-3">
@@ -248,6 +262,14 @@ export default function TeacherHistoryPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        href={reportDeliveryHref}
+                        className="btn-ghost-themed rounded-lg px-3 py-2 text-sm"
+                        data-teacher-report-delivery-link="history"
+                        data-report-ledger-recovery={session.classId ? undefined : 'archive-class-first'}
+                      >
+                        报告账本
+                      </Link>
                       <Link
                         href={`/classroom/teacher/${session.id}/review`}
                         className="btn-ghost-themed rounded-lg px-3 py-2 text-sm"

@@ -27,6 +27,7 @@ import {
   TEACHER_OPERATIONS_ANALYTICS_SLOTS,
   buildOperationsUnavailableSlot,
 } from '@/features/admin/teacher-admin-governance-workspaces';
+import { buildTeacherReportDeliveryHref } from '@/lib/teacher-report-grading-contracts';
 
 interface TeacherDashboardProps {
   user: {
@@ -123,7 +124,15 @@ export function TeacherDashboard({
   }, [mode, router]);
 
   const activeClassHref = resolveTeacherOperationsClassHref(activeSessions, recentClasses);
-  const analyticsHref = `${activeClassHref}${activeClassHref === '/teacher/classes' ? '' : '/analytics-v2'}`;
+  const deliveryClassId = activeSessions[0]?.classId ?? recentClasses[0]?.id ?? null;
+  const analyticsHref = deliveryClassId
+    ? buildTeacherReportDeliveryHref({
+      classId: deliveryClassId,
+      action: 'export',
+      surface: 'teacher-home',
+      returnTo: '/teacher',
+    })
+    : `${activeClassHref}${activeClassHref === '/teacher/classes' ? '' : '/analytics-v2'}`;
   const teacherHomeReturnTo = encodeURIComponent('/teacher');
   const preparationHref = recentPlans[0]
     ? `/teacher/lesson-plans/${recentPlans[0].id}/edit?returnTo=${teacherHomeReturnTo}`
@@ -222,6 +231,8 @@ export function TeacherDashboard({
               className="rounded-lg border border-border bg-muted/30 p-4 transition hover:border-primary/40 hover:bg-muted/50"
               data-teacher-operations-active-work={item.id === 'active-work' ? item.value : undefined}
               data-teacher-operations-pending-action={item.id}
+              data-report-ledger-surface={item.id === 'analytics' || item.id === 'history-report' ? 'teacher-home-report-delivery' : undefined}
+              data-report-ledger-delivery-state={item.id === 'analytics' ? 'ready' : item.id === 'history-report' ? 'draft' : undefined}
             >
               <p className="text-xs font-medium text-subtle">{item.label}</p>
               <p className="mt-2 text-lg font-semibold text-foreground">{item.value}</p>
@@ -332,7 +343,8 @@ export function TeacherDashboard({
         data-report-ledger-surface="assistant-effect-report-export"
         data-report-ledger-watermark="low-contrast-brand"
         data-report-ledger-privacy-scope="teacher-review"
-        data-report-ledger-export="available"
+        data-report-ledger-export="deferred"
+        data-report-ledger-delivery-state="degraded"
         data-operations-unavailable-slot="assistant-effect-report"
         data-operations-unavailable-state="feature-flagged"
         data-operations-fabricates-metrics="false"
@@ -348,7 +360,7 @@ export function TeacherDashboard({
           <div className="flex flex-wrap gap-2 text-xs text-subtle">
             <span className="rounded-md border border-border px-2 py-1">来源质量：待接入</span>
             <span className="rounded-md border border-border px-2 py-1">状态图例：feature-flagged</span>
-            <span className="rounded-md border border-border px-2 py-1">导出：仅确定性报告</span>
+            <span className="rounded-md border border-border px-2 py-1">导出：等待真实报告</span>
           </div>
         </div>
       </section>

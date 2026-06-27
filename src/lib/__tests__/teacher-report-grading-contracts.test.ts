@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildTeacherReportDeliveryHref,
+  buildTeacherReportDeliveryLedgerEntry,
   buildTeacherGradingMissingRunState,
   buildTeacherGradingRouteState,
   buildTeacherReportDeliveryState,
@@ -32,8 +34,87 @@ describe('teacher report and grading audit contracts', () => {
     expect(buildTeacherReportDeliveryState(missingStudent)).toMatchObject({
       status: 'blocked',
       httpStatus: 404,
-      recoveryAction: '回到班级学生列表选择有效学生',
+      recoveryAction: '回到班级、课堂历史或学生列表选择有效上下文',
     });
+  });
+
+  it('builds redacted report delivery ledger fields across teacher surfaces', () => {
+    const query = normalizeTeacherReportDeliveryQuery({
+      action: 'export',
+      report: 'control-correction',
+      sessionId: 'session-1',
+      lessonId: 'lesson-3-6',
+      actorId: 'teacher-1',
+      actorRole: 'TEACHER',
+      recipientScope: 'class',
+      surface: 'classroom-review',
+    }, 'class-1');
+    const entry = buildTeacherReportDeliveryLedgerEntry({
+      query,
+      surface: query.surface,
+      now: new Date('2026-06-27T00:00:00.000Z'),
+    });
+
+    expect(entry).toMatchObject({
+      surface: 'classroom-review',
+      reportId: 'control-correction',
+      classId: 'class-1',
+      sessionId: 'session-1',
+      lessonId: 'lesson-3-6',
+      actorId: 'teacher-1',
+      actorRole: 'TEACHER',
+      recipientScope: 'class',
+      deliveryStatus: 'ready',
+      exportState: 'ready',
+      sendState: 'draft',
+      copySummaryState: 'ready',
+      redactionPolicy: 'student-safe-summary-only',
+      actionTimestamp: '2026-06-27T00:00:00.000Z',
+    });
+    expect(entry.actionId).toMatch(/^teacher-report:classroom-review:export:ref-/);
+    expect(entry.artifactRef).toMatch(/^teacher-report-artifact:ref-/);
+    expect(entry.idempotencyKey).toMatch(/^teacher-report-idempotency:ref-/);
+    expect(entry.artifactRef).not.toContain('class-1');
+    expect(entry.artifactRef).not.toContain('control-correction');
+    expect(entry.idempotencyKey).not.toContain('class-1');
+    expect(entry.idempotencyKey).not.toContain('session-1');
+    expect(entry.deliveryScope).not.toContain('class-1');
+    expect(entry.studentSafeSummary).not.toContain('internal');
+    expect(entry.studentSafeSummary).not.toContain('raw evidence');
+  });
+
+  it('preserves URL surface context and records a live timestamp by default', () => {
+    const query = normalizeTeacherReportDeliveryQuery({
+      action: 'summary',
+      surface: 'history',
+      sessionId: 'session-1',
+      report: 'control-correction',
+    }, 'class-1');
+    const entry = buildTeacherReportDeliveryLedgerEntry({
+      query,
+      surface: query.surface,
+    });
+
+    expect(query.surface).toBe('history');
+    expect(entry.surface).toBe('history');
+    expect(entry.actionId).toContain('teacher-report:history:summary:');
+    expect(entry.actionTimestamp).not.toBe('1970-01-01T00:00:00.000Z');
+  });
+
+  it('builds delivery hrefs that preserve class and session context', () => {
+    expect(buildTeacherReportDeliveryHref({
+      classId: 'class-1',
+      action: 'summary',
+      sessionId: 'session-1',
+      lessonId: 'lesson-1',
+      surface: 'history',
+      returnTo: '/teacher/history',
+    })).toBe('/teacher/classes/class-1/analytics-v2?action=summary&report=control-correction&surface=history&returnTo=%2Fteacher%2Fhistory&sessionId=session-1&lessonId=lesson-1');
+
+    expect(buildTeacherReportDeliveryHref({
+      classId: null,
+      surface: 'history',
+    })).toBe('/teacher/classes');
   });
 
   it('maps every report delivery action to supported teacher states', () => {

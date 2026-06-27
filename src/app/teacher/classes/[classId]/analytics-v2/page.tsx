@@ -28,8 +28,10 @@ import {
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
 import {
+  buildTeacherReportDeliveryLedgerEntry,
   buildTeacherReportDeliveryState,
   normalizeTeacherReportDeliveryQuery,
+  type TeacherReportDeliveryLedgerEntry,
 } from '@/lib/teacher-report-grading-contracts';
 
 type HeatmapView = 'score' | 'change' | 'risk';
@@ -121,12 +123,26 @@ export default function ClassAnalyticsV2Page() {
     version: searchParams.get('version'),
     format: searchParams.get('format'),
     studentId: searchParams.get('studentId'),
+    sessionId: searchParams.get('sessionId'),
+    lessonId: searchParams.get('lessonId'),
+    actorId: session?.user?.id ?? null,
+    actorRole: session?.user?.role ?? 'teacher',
+    recipientScope: searchParams.get('recipientScope'),
+    surface: searchParams.get('surface'),
     returnTo: searchParams.get('returnTo') ?? `/teacher/classes/${classId}/analytics-v2`,
-  }, classId), [classId, searchParams]);
+  }, classId), [classId, searchParams, session?.user?.id, session?.user?.role]);
 
   const routeDeliveryState = useMemo(
     () => buildTeacherReportDeliveryState(deliveryQuery),
     [deliveryQuery]
+  );
+  const deliveryLedgerEntry = useMemo(
+    () => buildTeacherReportDeliveryLedgerEntry({
+      query: deliveryQuery,
+      surface: deliveryQuery.surface,
+      studentSafeSummary: `${insights?.classInfo.name ?? classId} 的教师报告交付状态仅包含班级、课堂和学生安全摘要。`,
+    }),
+    [classId, deliveryQuery, insights?.classInfo.name]
   );
 
   useEffect(() => {
@@ -143,17 +159,11 @@ export default function ClassAnalyticsV2Page() {
   const handleReportDownload = useCallback(async () => {
     try {
       setDeliveryState(createAuditedActionState({
-        identity: {
-          id: `teacher-report-download:${deliveryQuery.reportId}`,
-          category: 'export',
-          label: '教师报告导出',
-          sourceRoute: `/teacher/classes/${classId}/analytics-v2`,
-          targetId: deliveryQuery.reportId,
-          requestedAction: 'export',
-        },
+        identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告导出', 'export'),
         status: 'pending',
         message: '正在生成教师报告导出文件。',
         nextAction: '等待浏览器下载 JSON 文件',
+        displayReference: deliveryLedgerEntry.artifactRef,
       }));
       const response = await fetch(`/api/teacher/classes/${classId}/control-correction-report?export=true`, {
         cache: 'no-store',
@@ -173,69 +183,45 @@ export default function ClassAnalyticsV2Page() {
       anchor.click();
       URL.revokeObjectURL(url);
       setDeliveryState(createAuditedActionState({
-        identity: {
-          id: `teacher-report-download:${deliveryQuery.reportId}`,
-          category: 'export',
-          label: '教师报告导出',
-          sourceRoute: `/teacher/classes/${classId}/analytics-v2`,
-          targetId: deliveryQuery.reportId,
-          requestedAction: 'export',
-        },
+        identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告导出', 'export'),
         status: 'succeeded',
         message: '教师报告导出文件已生成。',
         nextAction: '检查下载文件并交付给学生',
+        displayReference: deliveryLedgerEntry.artifactRef,
         downloadFilename: filename,
       }));
     } catch (err) {
       setDeliveryState(createAuditedActionState({
-        identity: {
-          id: `teacher-report-download:${deliveryQuery.reportId}`,
-          category: 'export',
-          label: '教师报告导出',
-          sourceRoute: `/teacher/classes/${classId}/analytics-v2`,
-          targetId: deliveryQuery.reportId,
-          requestedAction: 'export',
-        },
+        identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告导出', 'export'),
         status: 'failed',
         message: err instanceof Error ? err.message : '教师报告导出失败。',
         recoveryAction: '刷新报告数据后重试',
+        displayReference: deliveryLedgerEntry.artifactRef,
       }));
     }
-  }, [classId, deliveryQuery.reportId]);
+  }, [classId, deliveryLedgerEntry]);
 
   const handleCopySummary = useCallback(async () => {
     const summary = `${insights?.classInfo.name ?? '班级'}：${insights?.governance.detail ?? '报告暂未生成'}。重点关注 ${insights?.overview.attentionStudents ?? 0} 人。`;
     try {
       await navigator.clipboard.writeText(summary);
       setDeliveryState(createAuditedActionState({
-        identity: {
-          id: `teacher-report-summary:${deliveryQuery.reportId}`,
-          category: 'export',
-          label: '教师报告摘要',
-          sourceRoute: `/teacher/classes/${classId}/analytics-v2`,
-          targetId: deliveryQuery.reportId,
-          requestedAction: 'summary',
-        },
+        identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告摘要', 'summary'),
         status: 'succeeded',
         message: '教师报告摘要已复制。',
         nextAction: '粘贴到班级通知或学生反馈中',
+        displayReference: deliveryLedgerEntry.artifactRef,
       }));
     } catch {
       setDeliveryState(createAuditedActionState({
-        identity: {
-          id: `teacher-report-summary:${deliveryQuery.reportId}`,
-          category: 'export',
-          label: '教师报告摘要',
-          sourceRoute: `/teacher/classes/${classId}/analytics-v2`,
-          targetId: deliveryQuery.reportId,
-          requestedAction: 'summary',
-        },
+        identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告摘要', 'summary'),
         status: 'failed',
         message: '复制摘要失败。',
         recoveryAction: '手动选择报告摘要后复制',
+        displayReference: deliveryLedgerEntry.artifactRef,
       }));
     }
-  }, [classId, deliveryQuery.reportId, insights]);
+  }, [deliveryLedgerEntry, insights]);
 
   if (status === 'loading' || loading) {
     return (
@@ -324,6 +310,7 @@ export default function ClassAnalyticsV2Page() {
       <main className="px-6 pb-32 pt-8 md:pb-8">
         <ReportDeliveryPanel
           state={activeDeliveryState}
+          ledgerEntry={deliveryLedgerEntry}
           versionLabel={reportVersionLabel}
           onDownload={handleReportDownload}
           onCopySummary={handleCopySummary}
@@ -583,6 +570,7 @@ export default function ClassAnalyticsV2Page() {
       </main>
       <ReportDeliveryDock
         state={activeDeliveryState}
+        ledgerEntry={deliveryLedgerEntry}
         versionLabel={reportVersionLabel}
         onDownload={handleReportDownload}
         onCopySummary={handleCopySummary}
@@ -593,11 +581,13 @@ export default function ClassAnalyticsV2Page() {
 
 function ReportDeliveryPanel({
   state,
+  ledgerEntry,
   versionLabel,
   onDownload,
   onCopySummary,
 }: {
   state: AuditedActionState | null;
+  ledgerEntry: TeacherReportDeliveryLedgerEntry;
   versionLabel: string;
   onDownload: () => void;
   onCopySummary: () => void;
@@ -607,6 +597,11 @@ function ReportDeliveryPanel({
       className="surface-card mb-8 p-5"
       data-teacher-report-delivery="workspace"
       data-report-version={versionLabel}
+      data-report-ledger-action-id={ledgerEntry.actionId}
+      data-report-ledger-idempotency-key={ledgerEntry.idempotencyKey}
+      data-report-ledger-artifact-ref={ledgerEntry.artifactRef}
+      data-report-ledger-redaction-policy={ledgerEntry.redactionPolicy}
+      data-report-ledger-delivery-status={ledgerEntry.deliveryStatus}
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
@@ -620,18 +615,37 @@ function ReportDeliveryPanel({
         />
       </div>
       <ReportDeliveryCapabilityNote />
+      <ReportDeliveryHandoffStates />
+      <ReportDeliveryLedgerDetails entry={ledgerEntry} />
       {state ? <ActionStatusPanel state={state} className="mt-4" /> : null}
     </section>
   );
 }
 
+function buildDeliveryActionIdentity(
+  entry: TeacherReportDeliveryLedgerEntry,
+  label: string,
+  requestedAction: 'export' | 'summary',
+) {
+  return {
+    id: entry.actionId,
+    category: requestedAction === 'export' ? 'export' as const : 'save' as const,
+    label,
+    sourceRoute: '/teacher/classes/report-delivery-ledger',
+    targetId: entry.artifactRef,
+    requestedAction,
+  };
+}
+
 function ReportDeliveryDock({
   state,
+  ledgerEntry,
   versionLabel,
   onDownload,
   onCopySummary,
 }: {
   state: AuditedActionState | null;
+  ledgerEntry: TeacherReportDeliveryLedgerEntry;
   versionLabel: string;
   onDownload: () => void;
   onCopySummary: () => void;
@@ -640,6 +654,8 @@ function ReportDeliveryDock({
     <div
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur md:hidden"
       data-teacher-report-delivery="mobile-fixed-actions"
+      data-report-ledger-action-id={ledgerEntry.actionId}
+      data-report-ledger-delivery-status={ledgerEntry.deliveryStatus}
     >
       <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
@@ -651,6 +667,20 @@ function ReportDeliveryDock({
           onCopySummary={onCopySummary}
         />
       </div>
+    </div>
+  );
+}
+
+function ReportDeliveryLedgerDetails({ entry }: { entry: TeacherReportDeliveryLedgerEntry }) {
+  return (
+    <div
+      className="mt-4 grid gap-2 text-xs text-subtle lg:grid-cols-4"
+      data-teacher-report-ledger-details="class-analytics"
+    >
+      <span className="rounded border border-border/70 px-3 py-2">动作：{entry.action}</span>
+      <span className="rounded border border-border/70 px-3 py-2">范围：{entry.deliveryScope}</span>
+      <span className="rounded border border-border/70 px-3 py-2">产物：{entry.artifactRef}</span>
+      <span className="rounded border border-border/70 px-3 py-2">脱敏：{entry.redactionPolicy}</span>
     </div>
   );
 }
@@ -686,6 +716,35 @@ function ReportDeliveryCapabilityNote() {
       <div className="flex items-center gap-2 rounded border border-border/70 px-3 py-2">
         <Lock className="h-4 w-4" />
         <span>锁定版本：等待稳定版本生成后开放，当前不会作为可点击动作。</span>
+      </div>
+    </div>
+  );
+}
+
+function ReportDeliveryHandoffStates() {
+  return (
+    <div
+      className="mt-4 grid gap-2 text-xs text-subtle sm:grid-cols-3"
+      data-teacher-report-handoff-states="delivery-status-contract"
+    >
+      <div
+        className="rounded border border-border/70 px-3 py-2"
+        data-report-ledger-send-publish-state="degraded"
+      >
+        发送/发布：需选择有效学生或班级交付范围后继续。
+      </div>
+      <Link
+        href="/teacher/grading-workbench?status=draft&returnTo=/teacher/classes"
+        className="rounded border border-border/70 px-3 py-2 transition hover:border-primary/40 hover:text-foreground"
+        data-report-ledger-grading-handoff-state="ready"
+      >
+        评分交接：进入报告评分工作台处理草稿。
+      </Link>
+      <div
+        className="rounded border border-border/70 px-3 py-2"
+        data-report-ledger-retry-state="available"
+      >
+        失败重试：导出、复制或对象缺失时保留恢复动作。
       </div>
     </div>
   );
