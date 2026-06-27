@@ -212,6 +212,12 @@ describe('structured associative retrieval contract', () => {
       })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
     }
 
+    for (const key of ['rawLearnerSubmissionText', 'rawSubmissionsByStudent', 'hiddenArenaInternalsPayload'] as const) {
+      expect(validateSarEvent(event({
+        metadata: { [key]: { value: 'summarized value' } },
+      })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+    }
+
     expect(validateSarEvent(event({
       metadata: { CitationChip: { label: 'verified citation' } },
     })).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
@@ -222,6 +228,7 @@ describe('structured associative retrieval contract', () => {
       'citationAddress',
       'verifiedCitationRefs',
       'citationRefs',
+      'citationChipPayload',
     ] as const) {
       expect(validateSarEvent(event({
         metadata: { [key]: { label: 'verified citation' } },

@@ -134,6 +134,14 @@ const RESTRICTED_KEYS = new Set([
   'auditOnlyTrace',
 ]);
 
+const RESTRICTED_KEY_PREFIXES = new Set([
+  'rawLearnerSubmission',
+  'rawLearnerSubmissions',
+  'rawSubmission',
+  'rawSubmissions',
+  'hiddenArenaInternals',
+]);
+
 const RESTRICTED_TEXT = [
   /\braw[_ -]?answer[_ -]?bod(?:y|ies)\b/i,
   /\braw[_ -]?answers?\b/i,
@@ -167,6 +175,10 @@ const CITATION_PAYLOAD_KEYS = new Set([
   'verifiedCitations',
   'verifiedCitationRef',
   'verifiedCitationRefs',
+]);
+
+const CITATION_PAYLOAD_KEY_PREFIXES = new Set([
+  'citationChip',
 ]);
 
 export function validateSarEvent(event: unknown): SarValidationResult {
@@ -499,8 +511,8 @@ function scanMetadata(value: unknown, path: string, issues: SarValidationIssue[]
   for (const [key, child] of Object.entries(value)) {
     const childPath = `${path}.${key}`;
     const normalizedKey = normalizeMetadataKey(key);
-    const restrictedKey = hasNormalizedKey(RESTRICTED_KEYS, normalizedKey);
-    const citationKey = hasNormalizedKey(CITATION_PAYLOAD_KEYS, normalizedKey);
+    const restrictedKey = hasNormalizedKey(RESTRICTED_KEYS, normalizedKey, RESTRICTED_KEY_PREFIXES);
+    const citationKey = hasNormalizedKey(CITATION_PAYLOAD_KEYS, normalizedKey, CITATION_PAYLOAD_KEY_PREFIXES);
     if (restrictedKey || citationKey) {
       issues.push(issue(
         citationKey ? 'citation-boundary-violation' : 'restricted-raw-content',
@@ -519,9 +531,16 @@ function scanRestricted(value: unknown, path: string, issues: SarValidationIssue
   }
 }
 
-function hasNormalizedKey(keys: ReadonlySet<string>, normalizedKey: string): boolean {
+function hasNormalizedKey(
+  keys: ReadonlySet<string>,
+  normalizedKey: string,
+  prefixes: ReadonlySet<string> = new Set(),
+): boolean {
   for (const key of keys) {
     if (normalizeMetadataKey(key) === normalizedKey) return true;
+  }
+  for (const prefix of prefixes) {
+    if (normalizedKey.startsWith(normalizeMetadataKey(prefix))) return true;
   }
   return false;
 }
