@@ -8,12 +8,17 @@ const rawCitationTargetPattern = /(https?:\/\/|:\/\/|course-content\/authoring|#
 const rawVerifiedHrefPattern = /(course-content\/authoring|#L\d+\b)/i;
 const externalHrefPattern = /^([A-Za-z][A-Za-z0-9+.-]*):/;
 const protocolRelativeHrefPattern = /^\/\//;
+const localAnchorHrefPattern = /^#[^\s]+$/;
 const governedExternalCitationSchemes = new Set(['https', 'doi']);
 const governedExternalCitationResolvers = new Set([
   'verified-external-reference',
   'server-owned-runtime',
   'doi',
   'official-reference',
+]);
+const governedRelativeCitationResolvers = new Set([
+  'course-runtime',
+  'server-owned-runtime',
 ]);
 
 const governedIdSchema = z.string().min(1)
@@ -95,7 +100,23 @@ export const sourcePackCitationSchema = z.object({
     });
     return;
   }
-  if (!hrefScheme) return;
+  if (!hrefScheme) {
+    if (!isGovernedRelativeHref(citation.href)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Verified relative citation hrefs require a platform-owned path or local anchor.',
+        path: ['href'],
+      });
+    }
+    if (!governedRelativeCitationResolvers.has(citation.resolver || '')) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Verified relative citation hrefs require a governed resolver.',
+        path: ['resolver'],
+      });
+    }
+    return;
+  }
   if (!governedExternalCitationSchemes.has(hrefScheme)) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
@@ -111,6 +132,23 @@ export const sourcePackCitationSchema = z.object({
     });
   }
 });
+
+function isGovernedRelativeHref(href: string): boolean {
+  if (localAnchorHrefPattern.test(href)) return true;
+  if (/\s/.test(href) || !href.startsWith('/')) return false;
+  try {
+    const parsed = new URL(href, 'https://act.local');
+    if (parsed.origin !== 'https://act.local') return false;
+    return (
+      parsed.pathname === '/course-runtime'
+      || parsed.pathname.startsWith('/course-runtime/')
+      || parsed.pathname === '/resources'
+      || parsed.pathname.startsWith('/resources/')
+    );
+  } catch {
+    return false;
+  }
+}
 
 export const sourcePackItemSchema = z.object({
   id: z.string().min(1),

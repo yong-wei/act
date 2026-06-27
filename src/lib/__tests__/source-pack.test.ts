@@ -259,6 +259,17 @@ describe('source pack contract', () => {
       ['mailto:test@example.com', 'doi'],
       ['//model.example/raw.md', undefined],
       ['//model.example/raw.md', 'verified-external-reference'],
+      ['/model/raw.md', 'course-runtime'],
+      ['/knowledge#user-content-fn1', 'server-owned-runtime'],
+      ['/resources/source-pack/item', undefined],
+      ['/course-runtime/../model/raw.md', 'course-runtime'],
+      ['/resources/../model/raw.md', 'course-runtime'],
+      ['/resources/source-pack/item https://model.example/raw', 'course-runtime'],
+      ['/resources/%2e%2e/model/raw.md', 'course-runtime'],
+      ['/course-runtime/%2e%2e/model/raw.md', 'course-runtime'],
+      ['/resources/%2E%2E/model/raw.md', 'course-runtime'],
+      ['/resources/%2e./model/raw.md', 'course-runtime'],
+      ['/resources/.%2e/model/raw.md', 'course-runtime'],
     ] as const) {
       expect(safeValidateSourcePack({
         ...pack,
