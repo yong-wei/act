@@ -30,3 +30,29 @@ export type {
   SourcePackScoreFields,
   SourcePackSourceKind,
 } from './types';
+
+// Corpus adapters
+export {
+  adaptLearningEvidenceChunk,
+  adaptLearningEvidenceBatch,
+  adaptTextbookSearchDocument,
+  adaptResourceProjection,
+  type AdaptLearningEvidenceChunkOptions,
+  type AdaptCorpusResult,
+} from './corpus-adapters';
+
+// Citation hydrator
+export {
+  hydrateCitationFromAddress,
+  hydrateCitationFromTarget,
+  isSafeHref,
+  buildUnsafeHrefLimitation,
+  type HydratorCitationAddressInput,
+  type HydratorCitationTargetInput,
+} from './citation-hydrator';
+
+// Resource projection adapter
+export {
+  adaptResourceProjectionRow,
+  isProvisionalReview,
+} from './resource-projection-adapter';
