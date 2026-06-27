@@ -11,6 +11,7 @@ import {
   type SarRetrievalEventEntity,
   type SarRetrievalResult,
   type SarRetrievalTrace,
+  type SarTraceHop,
 } from '../structured-associative-retrieval';
 
 const event = (overrides: Partial<SarRetrievalEvent> = {}): SarRetrievalEvent => ({
@@ -280,6 +281,20 @@ describe('structured associative retrieval contract', () => {
         }],
       }),
     })).issues.map((issue) => issue.code)).toContain('invalid-reference');
+
+    expect(validateSarTrace(trace({
+      expansionHops: [{
+        ...trace().expansionHops[0],
+        viaEventId: 42,
+      } as unknown as SarTraceHop],
+    })).issues.map((issue) => issue.code)).toContain('invalid-trace');
+
+    expect(validateSarTrace(trace({
+      expansionHops: [{
+        ...trace().expansionHops[0],
+        viaEventId: ' ',
+      }],
+    })).issues.map((issue) => issue.code)).toContain('invalid-trace');
 
     expect(validateSarResult(sarResult({
       trace: trace({ selectedRefs: ['sar:event:missing'] }),

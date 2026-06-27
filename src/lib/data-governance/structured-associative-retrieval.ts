@@ -251,6 +251,9 @@ export function validateSarTrace(trace: unknown): SarValidationResult {
       }
       requireString(hop, 'fromEntityId', issues, `expansionHops.${index}.fromEntityId`, 'invalid-trace');
       requireString(hop, 'toEntityId', issues, `expansionHops.${index}.toEntityId`, 'invalid-trace');
+      if (hop.viaEventId !== undefined) {
+        requireString(hop, 'viaEventId', issues, `expansionHops.${index}.viaEventId`, 'invalid-trace');
+      }
       requireEnum(hop.relationRole, RELATION_ROLES, `expansionHops.${index}.relationRole`, issues, 'invalid-trace');
       validateConfidence(hop.confidence, `expansionHops.${index}.confidence`, issues);
     });
