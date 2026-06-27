@@ -47,6 +47,13 @@ export function buildSourcePack(input: BuildSourcePackInput): SourcePack {
       : []
   );
   const generatedAt = now.toISOString();
+  const indexRefs: SourcePackIndexRefs = {
+    generatedAt,
+    ...input.indexRefs,
+  };
+  if (!indexRefs.corpusVersion && !indexRefs.graphVersion && !indexRefs.projectionVersion) {
+    indexRefs.projectionVersion = 'source-pack.builder.shell:no-adapter';
+  }
   const queryHash = stableHash([query.profile, query.text, query.filters ?? {}, topK]);
   const citationTargetIds = unique(items.flatMap((item) => [
     item.citationTargetId,
@@ -57,10 +64,7 @@ export function buildSourcePack(input: BuildSourcePackInput): SourcePack {
     packId: stableId('source-pack', [queryHash, items.map((item) => item.id), limitations.map((limitation) => limitation.code)]),
     profile,
     query,
-    indexRefs: {
-      generatedAt,
-      ...input.indexRefs,
-    },
+    indexRefs,
     coverage: {
       requestedTopK: topK,
       returnedItems: items.length,

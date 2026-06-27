@@ -64,7 +64,15 @@ export const sourcePackIndexRefsSchema = z.object({
   graphVersion: z.string().min(1).optional(),
   projectionVersion: z.string().min(1).optional(),
   generatedAt: z.string().datetime(),
-}).strict();
+}).strict().superRefine((indexRefs, context) => {
+  if (!indexRefs.corpusVersion && !indexRefs.graphVersion && !indexRefs.projectionVersion) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Source Pack indexRefs require a corpus, graph, or projection version reference.',
+      path: ['projectionVersion'],
+    });
+  }
+});
 
 export const sourcePackScoresSchema = z.object({
   relevance: z.number().min(0).max(1),

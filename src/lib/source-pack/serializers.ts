@@ -11,6 +11,9 @@ export interface SourcePackAuditOutput {
   limitationCount: number;
   citationTargetIds: string[];
   retrievalChunkIds: string[];
+  corpusVersion?: string;
+  graphVersion?: string;
+  projectionVersion?: string;
   generatedAt: string;
 }
 
@@ -93,6 +96,9 @@ export function serializeSourcePackMarkdown(pack: SourcePack): string {
     lines.push(`  - Recoverable: ${limitation.recoverable ? 'yes' : 'no'}`);
   }
   lines.push('', '## Audit', '', `- Schema: ${validPack.audit.schemaVersion}`, `- Created: ${validPack.audit.createdAt}`);
+  if (validPack.indexRefs.corpusVersion) lines.push(`- Corpus version: ${validPack.indexRefs.corpusVersion}`);
+  if (validPack.indexRefs.graphVersion) lines.push(`- Graph version: ${validPack.indexRefs.graphVersion}`);
+  if (validPack.indexRefs.projectionVersion) lines.push(`- Projection version: ${validPack.indexRefs.projectionVersion}`);
 
   return `${lines.join('\n').trimEnd()}\n`;
 }
@@ -109,6 +115,9 @@ export function buildSourcePackAuditOutput(pack: SourcePack): SourcePackAuditOut
     limitationCount: validPack.audit.limitationCount,
     citationTargetIds: validPack.audit.citationTargetIds,
     retrievalChunkIds: validPack.audit.retrievalChunkIds,
+    corpusVersion: validPack.indexRefs.corpusVersion,
+    graphVersion: validPack.indexRefs.graphVersion,
+    projectionVersion: validPack.indexRefs.projectionVersion,
     generatedAt: validPack.indexRefs.generatedAt,
   };
 }

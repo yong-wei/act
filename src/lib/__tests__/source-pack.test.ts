@@ -8,6 +8,7 @@ import { runSourcePackCli } from '../../../scripts/source-pack/source-pack-cli';
 import {
   buildSourcePack,
   safeValidateSourcePack,
+  serializeSourcePackAudit,
   serializeSourcePackJson,
   serializeSourcePackMarkdown,
   validateSourcePack,
@@ -60,15 +61,19 @@ describe('source pack contract', () => {
     });
 
     expect(validateSourcePack(pack).packId).toMatch(/^source-pack:/);
+    expect(pack.indexRefs.projectionVersion).toBe('source-pack.builder.shell:no-adapter');
     expect(pack.audit.citationTargetIds).toEqual(['citation:textbook:dorf:ch08:001']);
     expect(pack.audit.retrievalChunkIds).toEqual(['chunk:dorf:ch08:001']);
 
     const json = serializeSourcePackJson(pack);
     const markdown = serializeSourcePackMarkdown(pack);
+    const audit = JSON.parse(serializeSourcePackAudit(pack)) as { projectionVersion?: string };
 
     expect(json).toContain('citation:textbook:dorf:ch08:001');
+    expect(json).toContain('source-pack.builder.shell:no-adapter');
     expect(json).toContain('chunk:dorf:ch08:001');
     expect(markdown).toContain('Citation target: citation:textbook:dorf:ch08:001');
+    expect(markdown).toContain('Projection version: source-pack.builder.shell:no-adapter');
     expect(markdown).toContain('Retrieval chunk: chunk:dorf:ch08:001');
     expect(markdown).toContain('Citation source: textbook:dorf-modern-control-systems');
     expect(markdown).toContain('Citation resolver: course-runtime');
@@ -84,6 +89,23 @@ describe('source pack contract', () => {
     expect(markdown).toContain('Eligible items: 1');
     expect(markdown).toContain('Omitted items: 2');
     expect(markdown).not.toContain('#L42');
+    expect(audit.projectionVersion).toBe('source-pack.builder.shell:no-adapter');
+  });
+
+  it('requires an index or projection version reference', () => {
+    const pack = buildSourcePack({
+      query: 'version ref fixture',
+      profile: 'generic',
+      items: [sampleItem],
+      now: new Date('2026-06-28T00:00:00.000Z'),
+    });
+
+    expect(safeValidateSourcePack({
+      ...pack,
+      indexRefs: {
+        generatedAt: pack.indexRefs.generatedAt,
+      },
+    }).success).toBe(false);
   });
 
   it('accepts nested citation target ids as stable item identifiers', () => {
