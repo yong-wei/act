@@ -233,6 +233,8 @@ describe('source pack contract', () => {
       ['mailto:test@example.com', undefined],
       ['mailto:test@example.com', 'course-runtime'],
       ['mailto:test@example.com', 'doi'],
+      ['//model.example/raw.md', undefined],
+      ['//model.example/raw.md', 'verified-external-reference'],
     ] as const) {
       expect(safeValidateSourcePack({
         ...pack,

@@ -7,6 +7,7 @@ const barePlatformRefPattern = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*(?:\/[\p{L}\p{N}_.-
 const rawCitationTargetPattern = /(https?:\/\/|:\/\/|course-content\/authoring|#L\d+\b)/i;
 const rawVerifiedHrefPattern = /(course-content\/authoring|#L\d+\b)/i;
 const externalHrefPattern = /^([A-Za-z][A-Za-z0-9+.-]*):/;
+const protocolRelativeHrefPattern = /^\/\//;
 const governedExternalCitationSchemes = new Set(['https', 'doi']);
 const governedExternalCitationResolvers = new Set([
   'verified-external-reference',
@@ -85,7 +86,16 @@ export const sourcePackCitationSchema = z.object({
   verified: z.boolean(),
 }).strict().superRefine((citation, context) => {
   const hrefScheme = citation.href?.match(externalHrefPattern)?.[1]?.toLowerCase();
-  if (!citation.verified || !hrefScheme) return;
+  if (!citation.verified || !citation.href) return;
+  if (protocolRelativeHrefPattern.test(citation.href)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Verified external citation hrefs require an explicit allowed scheme.',
+      path: ['href'],
+    });
+    return;
+  }
+  if (!hrefScheme) return;
   if (!governedExternalCitationSchemes.has(hrefScheme)) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
