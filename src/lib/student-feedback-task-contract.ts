@@ -119,6 +119,10 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
   };
 }
 
+export function shouldRenderPortfolioFeedbackTask(query: FeedbackTaskQuery): boolean {
+  return firstQueryValue(query.intent) === 'collect' && Boolean(buildFeedbackTaskContext(query)?.supported);
+}
+
 export function buildFeedbackTaskHref(
   baseHref: string,
   context: Pick<StudentFeedbackTaskContext, 'assignmentId' | 'criterionId' | 'source' | 'lifecycleState' | 'returnTo'>,

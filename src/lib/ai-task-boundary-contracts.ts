@@ -19,7 +19,11 @@ export interface AiTaskCandidate {
   title: string;
   detail: string;
   source: string;
-  status: 'candidate' | 'draft' | 'ready';
+  status: 'candidate' | 'draft' | 'ready' | 'saved-draft' | 'discarded';
+  intent: string;
+  outputTarget: AiAuditTaskContract['outputTarget'];
+  assignment?: string;
+  promotionPolicy: 'explicit-save-or-submit';
 }
 
 const INTERNAL_CONTEXT_PATTERNS = [
@@ -135,39 +139,67 @@ export function buildAiAuditTaskState(input: {
   });
 }
 
-export function buildReportFeedbackTaskCandidates(): AiTaskCandidate[] {
+export function buildReportFeedbackTaskCandidates(input: {
+  source?: string;
+  assignment?: string;
+  intent?: string;
+} = {}): AiTaskCandidate[] {
+  const source = input.source ?? 'report-feedback';
+  const intent = input.intent ?? 'report-feedback-practice';
   return [
     {
       id: 'practice-control-object',
       title: '复核控制对象和性能指标',
       detail: '把报告反馈中的控制对象、超调量、调节时间和稳态误差重新整理成任务清单。',
-      source: 'report-feedback',
+      source,
       status: 'candidate',
+      intent,
+      outputTarget: 'practice-candidate',
+      assignment: input.assignment,
+      promotionPolicy: 'explicit-save-or-submit',
     },
     {
       id: 'practice-evidence-citation',
       title: '补齐证据引用',
       detail: '逐条检查反馈建议是否能回到仿真、作答或评分证据。',
-      source: 'report-feedback',
+      source,
       status: 'candidate',
+      intent,
+      outputTarget: 'practice-candidate',
+      assignment: input.assignment,
+      promotionPolicy: 'explicit-save-or-submit',
     },
     {
       id: 'practice-revision-plan',
       title: '形成修订计划',
       detail: '将教师反馈转为可提交的新版本报告结构和验证步骤。',
-      source: 'report-feedback',
+      source,
       status: 'candidate',
+      intent,
+      outputTarget: 'practice-candidate',
+      assignment: input.assignment,
+      promotionPolicy: 'explicit-save-or-submit',
     },
   ];
 }
 
-export function buildPortfolioReflectionDraft(source: string | null | undefined): AiTaskCandidate {
+export function buildPortfolioReflectionDraft(
+  source: string | null | undefined,
+  input: {
+    assignment?: string;
+    intent?: string;
+  } = {},
+): AiTaskCandidate {
   return {
     id: `portfolio-reflection-${source || 'copilot'}`,
     title: 'AI 协作反思草稿',
     detail: '记录本次 AI 协作的任务目标、采用建议、保留疑问和下一步验证。',
     source: source || 'copilot',
     status: 'draft',
+    intent: input.intent ?? 'create-portfolio-reflection',
+    outputTarget: 'portfolio-draft',
+    assignment: input.assignment,
+    promotionPolicy: 'explicit-save-or-submit',
   };
 }
 

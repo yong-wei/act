@@ -10,6 +10,7 @@ import {
   buildFeedbackTaskStatusState,
   buildPortfolioFeedbackDraft,
   getFeedbackTaskMissionTarget,
+  shouldRenderPortfolioFeedbackTask,
   type StudentFeedbackTaskContext,
 } from '../student-feedback-task-contract';
 
@@ -262,5 +263,30 @@ describe('student feedback task contract', () => {
       title: '控制设计报告反馈收录候选',
       returnHref: '/assessment/document-feedback?assignment=report-control-design&criterion=engineering-rationale&status=completed&source=batch59',
     });
+  });
+
+  it('does not treat portfolio reflection assignment as a feedback task', () => {
+    expect(shouldRenderPortfolioFeedbackTask({
+      assignment: 'ai-collaboration',
+      intent: 'create',
+    })).toBe(false);
+    expect(shouldRenderPortfolioFeedbackTask({
+      assignment: 'ai-collaboration',
+      intent: 'reflection-review',
+    })).toBe(false);
+    expect(shouldRenderPortfolioFeedbackTask({
+      assignment: 'ai-collaboration',
+      intent: 'collect',
+    })).toBe(false);
+    expect(shouldRenderPortfolioFeedbackTask({
+      assignment: 'report-control-design',
+      intent: 'collect',
+    })).toBe(true);
+    expect(shouldRenderPortfolioFeedbackTask({
+      assignment: 'report-1',
+      criterion: 'validation',
+      source: 'document-feedback',
+      intent: 'collect',
+    })).toBe(true);
   });
 });

@@ -1,0 +1,354 @@
+{
+  "capturedAt": "2026-06-27T06:59:07.659Z",
+  "baseUrl": "http://localhost:3001",
+  "checks": [
+    {
+      "route": "/evaluation/prompt-assessment?source=issue677&assignment=report-control-design&intent=prompt-history-review&autodemo=1",
+      "viewport": {
+        "width": 1440,
+        "height": 950
+      },
+      "authRole": "STUDENT",
+      "finalUrl": "http://localhost:3001/evaluation/prompt-assessment?source=issue677&assignment=report-control-design&intent=prompt-history-review&autodemo=1",
+      "surface": "prompt-evaluation",
+      "focusMode": "local-first",
+      "primaryRect": {
+        "x": 161,
+        "y": 447,
+        "top": 447,
+        "left": 161,
+        "right": 507,
+        "bottom": 497,
+        "width": 346,
+        "height": 50
+      },
+      "dockRect": {
+        "x": 1326,
+        "y": 894,
+        "top": 894,
+        "left": 1326,
+        "right": 1416,
+        "bottom": 934,
+        "width": 90,
+        "height": 40
+      },
+      "localOverlapsDock": false,
+      "triggerText": "控灵",
+      "triggerAriaLabel": "打开控灵与页面工具菜单",
+      "primaryFocusIndex": 0,
+      "dockFocusIndex": 12,
+      "localBeforeDock": true,
+      "contextTextPresent": {
+        "issue677": true,
+        "report-control-design": true
+      },
+      "forbiddenTextPresent": {}
+    },
+    {
+      "route": "/ai/copilot?context=portfolio-reflection&source=issue677&assignment=ai-collaboration&intent=reflection-review",
+      "viewport": {
+        "width": 1440,
+        "height": 950
+      },
+      "authRole": "STUDENT",
+      "finalUrl": "http://localhost:3001/ai/copilot?context=portfolio-reflection&source=issue677&assignment=ai-collaboration&intent=reflection-review",
+      "surface": "copilot-portfolio-reflection",
+      "focusMode": "local-first",
+      "primaryRect": {
+        "x": 296,
+        "y": 962,
+        "top": 962,
+        "left": 296,
+        "right": 1056,
+        "bottom": 1012,
+        "width": 760,
+        "height": 50
+      },
+      "dockRect": {
+        "x": 1326,
+        "y": 894,
+        "top": 894,
+        "left": 1326,
+        "right": 1416,
+        "bottom": 934,
+        "width": 90,
+        "height": 40
+      },
+      "localOverlapsDock": false,
+      "triggerText": "控灵",
+      "triggerAriaLabel": "打开控灵与页面工具菜单",
+      "primaryFocusIndex": 5,
+      "dockFocusIndex": 8,
+      "localBeforeDock": true,
+      "contextTextPresent": {
+        "issue677": true,
+        "ai-collaboration": true,
+        "reflection-review": true
+      },
+      "forbiddenTextPresent": {}
+    },
+    {
+      "route": "/ai?task=report-feedback&source=issue677&assignment=report-control-design&intent=report-feedback-review",
+      "viewport": {
+        "width": 1440,
+        "height": 950
+      },
+      "authRole": "STUDENT",
+      "finalUrl": "http://localhost:3001/ai?task=report-feedback&source=issue677&assignment=report-control-design&intent=report-feedback-review",
+      "surface": "ai-workshop",
+      "focusMode": "local-first",
+      "primaryRect": {
+        "x": 671.796875,
+        "y": 280.8125,
+        "top": 280.8125,
+        "left": 671.796875,
+        "right": 711.796875,
+        "bottom": 306.8125,
+        "width": 40,
+        "height": 26
+      },
+      "dockRect": {
+        "x": 1326,
+        "y": 894,
+        "top": 894,
+        "left": 1326,
+        "right": 1416,
+        "bottom": 934,
+        "width": 90,
+        "height": 40
+      },
+      "localOverlapsDock": false,
+      "triggerText": "控灵",
+      "triggerAriaLabel": "打开控灵与页面工具菜单",
+      "primaryFocusIndex": 1,
+      "dockFocusIndex": 24,
+      "localBeforeDock": true,
+      "contextTextPresent": {
+        "issue677": true,
+        "report-control-design": true
+      },
+      "forbiddenTextPresent": {}
+    },
+    {
+      "route": "/profile/portfolio?category=reflection&intent=create&source=issue677&assignment=ai-collaboration&taskIntent=reflection-review",
+      "viewport": {
+        "width": 1440,
+        "height": 950
+      },
+      "authRole": "STUDENT",
+      "finalUrl": "http://localhost:3001/profile/portfolio?category=reflection&intent=create&source=issue677&assignment=ai-collaboration&taskIntent=reflection-review",
+      "surface": "portfolio-reflection",
+      "focusMode": "local-first",
+      "primaryRect": {
+        "x": 45,
+        "y": 648,
+        "top": 648,
+        "left": 45,
+        "right": 161,
+        "bottom": 684,
+        "width": 116,
+        "height": 36
+      },
+      "dockRect": {
+        "x": 1326,
+        "y": 894,
+        "top": 894,
+        "left": 1326,
+        "right": 1416,
+        "bottom": 934,
+        "width": 90,
+        "height": 40
+      },
+      "localOverlapsDock": false,
+      "triggerText": "控灵",
+      "triggerAriaLabel": "打开控灵与页面工具菜单",
+      "primaryFocusIndex": 7,
+      "dockFocusIndex": 13,
+      "localBeforeDock": true,
+      "contextTextPresent": {
+        "issue677": true,
+        "ai-collaboration": true,
+        "reflection-review": true
+      },
+      "forbiddenTextPresent": {
+        "未知反馈任务": false,
+        "反馈任务不存在": false,
+        "请先登录": false
+      }
+    },
+    {
+      "route": "/evaluation/prompt-assessment?source=issue677&assignment=report-control-design&intent=prompt-history-review&autodemo=1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "authRole": "STUDENT",
+      "finalUrl": "http://localhost:3001/evaluation/prompt-assessment?source=issue677&assignment=report-control-design&intent=prompt-history-review&autodemo=1",
+      "surface": "prompt-evaluation",
+      "focusMode": "local-first",
+      "primaryRect": {
+        "x": 33,
+        "y": 561,
+        "top": 561,
+        "left": 33,
+        "right": 357,
+        "bottom": 611,
+        "width": 324,
+        "height": 50
+      },
+      "dockRect": {
+        "x": 276,
+        "y": 788,
+        "top": 788,
+        "left": 276,
+        "right": 366,
+        "bottom": 828,
+        "width": 90,
+        "height": 40
+      },
+      "localOverlapsDock": false,
+      "triggerText": "控灵",
+      "triggerAriaLabel": "打开控灵与页面工具菜单",
+      "primaryFocusIndex": 0,
+      "dockFocusIndex": 12,
+      "localBeforeDock": true,
+      "contextTextPresent": {
+        "issue677": true,
+        "report-control-design": true
+      },
+      "forbiddenTextPresent": {}
+    },
+    {
+      "route": "/ai/copilot?context=portfolio-reflection&source=issue677&assignment=ai-collaboration&intent=reflection-review",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "authRole": "STUDENT",
+      "finalUrl": "http://localhost:3001/ai/copilot?context=portfolio-reflection&source=issue677&assignment=ai-collaboration&intent=reflection-review",
+      "surface": "copilot-portfolio-reflection",
+      "focusMode": "local-first",
+      "primaryRect": {
+        "x": 24,
+        "y": 1190,
+        "top": 1190,
+        "left": 24,
+        "right": 278,
+        "bottom": 1240,
+        "width": 254,
+        "height": 50
+      },
+      "dockRect": {
+        "x": 276,
+        "y": 788,
+        "top": 788,
+        "left": 276,
+        "right": 366,
+        "bottom": 828,
+        "width": 90,
+        "height": 40
+      },
+      "localOverlapsDock": false,
+      "triggerText": "控灵",
+      "triggerAriaLabel": "打开控灵与页面工具菜单",
+      "primaryFocusIndex": 5,
+      "dockFocusIndex": 8,
+      "localBeforeDock": true,
+      "contextTextPresent": {
+        "issue677": true,
+        "ai-collaboration": true,
+        "reflection-review": true
+      },
+      "forbiddenTextPresent": {}
+    },
+    {
+      "route": "/ai?task=report-feedback&source=issue677&assignment=report-control-design&intent=report-feedback-review",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "authRole": "STUDENT",
+      "finalUrl": "http://localhost:3001/ai?task=report-feedback&source=issue677&assignment=report-control-design&intent=report-feedback-review",
+      "surface": "ai-workshop",
+      "focusMode": "local-first",
+      "primaryRect": {
+        "x": 33,
+        "y": 589.40625,
+        "top": 589.40625,
+        "left": 33,
+        "right": 73,
+        "bottom": 615.40625,
+        "width": 40,
+        "height": 26
+      },
+      "dockRect": {
+        "x": 276,
+        "y": 788,
+        "top": 788,
+        "left": 276,
+        "right": 366,
+        "bottom": 828,
+        "width": 90,
+        "height": 40
+      },
+      "localOverlapsDock": false,
+      "triggerText": "控灵",
+      "triggerAriaLabel": "打开控灵与页面工具菜单",
+      "primaryFocusIndex": 1,
+      "dockFocusIndex": 24,
+      "localBeforeDock": true,
+      "contextTextPresent": {
+        "issue677": true,
+        "report-control-design": true
+      },
+      "forbiddenTextPresent": {}
+    },
+    {
+      "route": "/profile/portfolio?category=reflection&intent=create&source=issue677&assignment=ai-collaboration&taskIntent=reflection-review",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "authRole": "STUDENT",
+      "finalUrl": "http://localhost:3001/profile/portfolio?category=reflection&intent=create&source=issue677&assignment=ai-collaboration&taskIntent=reflection-review",
+      "surface": "portfolio-reflection",
+      "focusMode": "local-first",
+      "primaryRect": {
+        "x": 45,
+        "y": 884,
+        "top": 884,
+        "left": 45,
+        "right": 161,
+        "bottom": 920,
+        "width": 116,
+        "height": 36
+      },
+      "dockRect": {
+        "x": 276,
+        "y": 788,
+        "top": 788,
+        "left": 276,
+        "right": 366,
+        "bottom": 828,
+        "width": 90,
+        "height": 40
+      },
+      "localOverlapsDock": false,
+      "triggerText": "控灵",
+      "triggerAriaLabel": "打开控灵与页面工具菜单",
+      "primaryFocusIndex": 7,
+      "dockFocusIndex": 13,
+      "localBeforeDock": true,
+      "contextTextPresent": {
+        "issue677": true,
+        "ai-collaboration": true,
+        "reflection-review": true
+      },
+      "forbiddenTextPresent": {
+        "未知反馈任务": false,
+        "反馈任务不存在": false,
+        "请先登录": false
+      }
+    }
+  ]
+}

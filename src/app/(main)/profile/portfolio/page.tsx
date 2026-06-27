@@ -17,6 +17,7 @@ import { buildAiAuditTaskState, buildPortfolioReflectionDraft } from '@/lib/ai-t
 import {
   buildFeedbackTaskContext,
   buildPortfolioFeedbackDraft,
+  shouldRenderPortfolioFeedbackTask,
   type PortfolioFeedbackDraft,
 } from '@/lib/student-feedback-task-contract';
 
@@ -73,12 +74,15 @@ export default function PortfolioPage() {
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'works' | 'prompts' | 'simulations' | 'ethics' | 'reflections'>('works');
   const reflectionIntent = searchParams.get('category') === 'reflection' ? searchParams.get('intent') : null;
+  const reflectionTaskIntent = searchParams.get('taskIntent') ?? searchParams.get('intent') ?? undefined;
   const reflectionDraft = reflectionIntent === 'create'
-    ? buildPortfolioReflectionDraft(searchParams.get('source') ?? 'portfolio')
+    ? buildPortfolioReflectionDraft(searchParams.get('source') ?? 'portfolio', {
+      assignment: searchParams.get('assignment') ?? undefined,
+      intent: reflectionTaskIntent,
+    })
     : null;
-  const feedbackContext = buildFeedbackTaskContext({
+  const feedbackQuery = {
     assignment: searchParams.get('assignment'),
     criterion: searchParams.get('criterion'),
     source: searchParams.get('source'),
@@ -87,10 +91,17 @@ export default function PortfolioPage() {
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
     intent: searchParams.get('intent'),
-  });
-  const feedbackPortfolioDraft = searchParams.get('intent') === 'collect' && feedbackContext
+  };
+  const feedbackContext = shouldRenderPortfolioFeedbackTask(feedbackQuery)
+    ? buildFeedbackTaskContext(feedbackQuery)
+    : null;
+  const feedbackPortfolioDraft = feedbackContext
     ? buildPortfolioFeedbackDraft(feedbackContext)
     : null;
+  const hasLocalPortfolioTask = Boolean(reflectionDraft || feedbackPortfolioDraft);
+  const [activeTab, setActiveTab] = useState<'works' | 'prompts' | 'simulations' | 'ethics' | 'reflections'>(
+    hasLocalPortfolioTask ? 'reflections' : 'works',
+  );
 
   const fetchPortfolio = useCallback(async () => {
     try {
@@ -160,7 +171,18 @@ export default function PortfolioPage() {
     }
   }, [feedbackPortfolioDraft, searchParams]);
 
-  if (status === 'loading' || loading) {
+  if (status === 'authenticated' && session?.user?.role !== 'STUDENT') {
+    return (
+      <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+          <p className="text-subtle">正在返回教师工作台...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'loading' || (loading && !hasLocalPortfolioTask)) {
     return (
       <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">
         <div className="flex flex-col items-center gap-4">
@@ -206,7 +228,13 @@ export default function PortfolioPage() {
   ] as const;
 
   return (
-    <div className="surface-page" data-commercial-workspace="learner-record">
+    <div
+      className="surface-page"
+      data-commercial-workspace="learner-record"
+      data-ai-local-task-surface={reflectionDraft || feedbackPortfolioDraft ? 'portfolio-reflection' : undefined}
+      data-ai-task-focus-mode={reflectionDraft || feedbackPortfolioDraft ? 'local-first' : undefined}
+      data-task-workspace-archetype={reflectionDraft || feedbackPortfolioDraft ? 'ai-local-task' : undefined}
+    >
       {/* Header */}
       <header className="surface-topbar px-6 py-4">
         <div className="flex w-full items-center justify-between">
@@ -222,7 +250,7 @@ export default function PortfolioPage() {
         </div>
       </header>
 
-      <main className="px-6 py-8">
+      <main className="px-6 pb-[calc(env(safe-area-inset-bottom,0px)+8rem)] pt-8 md:pb-8">
         <StudentFeedbackTaskPanel context={feedbackContext} surface="portfolio" className="mb-6" />
         {/* Introduction Card */}
         <div className="surface-card mb-8 bg-gradient-to-br from-card via-card to-violet-500/10 p-6">
@@ -322,7 +350,7 @@ function PromptDesignsTab({ designs }: { designs: PortfolioData['promptDesigns']
         icon="💬"
         title="暂无高质量提示词"
         description="在提示词结构评估中获得70分以上，即可收录到你的档案"
-        action={{ label: '练习提示词设计', href: '/evaluation' }}
+        action={{ label: '练习提示词设计', href: '/evaluation/prompt-assessment' }}
       />
     );
   }
@@ -465,6 +493,8 @@ function ReflectionsTab({
   draft?: ReturnType<typeof buildPortfolioReflectionDraft> | null;
   feedbackDraft?: PortfolioFeedbackDraft | null;
 }) {
+  const [draftDisposition, setDraftDisposition] = useState<'candidate' | 'saved-draft' | 'discarded'>('candidate');
+
   if (feedbackDraft) {
     const state = buildAiAuditTaskState({
       taskType: 'portfolio-reflection',
@@ -498,26 +528,50 @@ function ReflectionsTab({
     );
   }
   if (draft) {
+    const isSavedDraft = draftDisposition === 'saved-draft';
+    const isDiscarded = draftDisposition === 'discarded';
     const state = buildAiAuditTaskState({
       taskType: 'portfolio-reflection',
-      status: 'pending',
-      message: '作品集反思草稿候选已创建，本页尚未保存到学习档案。',
-      nextAction: '返回反思页继续整理或丢弃候选',
+      status: isDiscarded ? 'blocked' : isSavedDraft ? 'succeeded' : 'pending',
+      message: isDiscarded
+        ? '作品集反思草稿候选已丢弃，未写入学习档案。'
+        : isSavedDraft
+          ? '作品集反思已标记为本页草稿，本页尚未发布到学习档案。'
+          : '作品集反思草稿候选已创建，本页尚未保存到学习档案。',
+      nextAction: isDiscarded
+        ? '重新生成候选或返回反思页'
+        : isSavedDraft
+          ? '继续整理后再执行正式保存或发布'
+          : '返回反思页继续整理、标记本页草稿或丢弃候选',
       targetId: draft.id,
     });
     return (
       <div className="space-y-4">
         <ActionStatusPanel state={state} />
-        <div className="surface-card-soft p-5" data-ai-task-boundary="portfolio-reflection-draft">
+        <div className="surface-card-soft p-5" data-ai-task-boundary="portfolio-reflection-draft" data-task-workspace-zone="local-primary-input">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
-              {draft.status}
+              {draftDisposition === 'candidate' ? draft.status : draftDisposition}
             </span>
             <span className="text-xs text-subtle">来源：{draft.source}</span>
           </div>
           <h3 className="mt-3 font-medium text-foreground">{draft.title}</h3>
           <p className="mt-2 text-sm text-subtle">{draft.detail}</p>
+          <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-subtle">
+            任务：{draft.assignment ?? 'portfolio-reflection'} · 意图：{draft.intent} · 输出：{draft.outputTarget} · 晋升策略：{draft.promotionPolicy}
+          </div>
           <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setDraftDisposition('saved-draft')}
+              className="btn-ghost-themed rounded px-4 py-2 text-sm"
+              data-primary-task-input="portfolio-reflection-draft"
+            >
+              标记本页草稿
+            </button>
+            <button type="button" onClick={() => setDraftDisposition('discarded')} className="btn-ghost-themed rounded px-4 py-2 text-sm">
+              丢弃候选
+            </button>
             <Link href="/profile/portfolio?category=reflection" className="btn-ghost-themed rounded px-4 py-2 text-sm">
               返回反思页
             </Link>

@@ -45,6 +45,12 @@ interface PromptHistoryEntry {
   userId: string;
   sessionId: string;
   promptContent: string;
+  auditTaskContext?: {
+    source?: string;
+    assignment?: string;
+    intent?: string;
+    outputTarget?: 'answer' | 'prompt-history' | 'practice-candidate' | 'portfolio-draft';
+  };
   assessment: AssessResponse;
   consistency?: ConsistencyResponse;
   version: number;
@@ -162,6 +168,9 @@ export default function PromptAssessmentPage() {
   const { data: session, status: sessionStatus } = useSession();
   const autoDemo = searchParams.get('autodemo') === '1';
   const mode = searchParams.get('mode') ?? (autoDemo ? 'autodemo' : 'editor');
+  const taskSource = searchParams.get('source') ?? undefined;
+  const taskAssignment = searchParams.get('assignment') ?? undefined;
+  const taskIntent = searchParams.get('intent') ?? mode;
   const [autoSeeded, setAutoSeeded] = useState(false);
   const currentUserId = session?.user?.id;
   const activeUserId = autoDemo ? DEMO_USER_ID : currentUserId ?? DEMO_USER_ID;
@@ -183,7 +192,14 @@ export default function PromptAssessmentPage() {
   const [trendLoading, setTrendLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastPromptAction, setLastPromptAction] = useState<PromptAction | null>(null);
+  const [lastPromptDisposition, setLastPromptDisposition] = useState<'idle' | 'completed' | 'discarded'>('idle');
   const promptTaskContract = getAiAuditTaskContract('prompt-evaluation');
+  const promptAuditTaskContext = useMemo(() => ({
+    source: taskSource,
+    assignment: taskAssignment,
+    intent: taskIntent,
+    outputTarget: promptTaskContract.outputTarget,
+  }), [promptTaskContract.outputTarget, taskAssignment, taskIntent, taskSource]);
   const promptTaskState = buildAiAuditTaskState({
     taskType: 'prompt-evaluation',
     status: error ? 'failed' : loading || trendLoading ? 'pending' : assessment || consistency ? 'succeeded' : 'idle',
@@ -195,6 +211,8 @@ export default function PromptAssessmentPage() {
           ? 'Prompt 历史和趋势正在同步。'
           : assessment || consistency
             ? `Prompt 评价已完成，当前模式为 ${mode}。`
+            : lastPromptDisposition === 'discarded'
+              ? '本次 Prompt 评价结果已清空并丢弃。'
             : `Prompt 评价工作台已就绪，当前模式为 ${mode}。`,
     nextAction: loading
       ? '可中止当前请求'
@@ -270,12 +288,14 @@ export default function PromptAssessmentPage() {
       const version = historyRecords.length + 1;
       const demoAssessment = buildDemoAssessment(Math.min(version - 1, 2), compiledPrompt);
       setAssessment(demoAssessment);
+      setLastPromptDisposition('completed');
       setHistoryRecords((prev) => [
         ...prev,
         {
           userId: DEMO_USER_ID,
           sessionId: DEMO_SESSION_ID,
           promptContent: compiledPrompt,
+          auditTaskContext: promptAuditTaskContext,
           assessment: demoAssessment,
           consistency: consistency ?? undefined,
           version,
@@ -300,6 +320,7 @@ export default function PromptAssessmentPage() {
           sessionId: activeSessionId,
           prompt: compiledPrompt,
           structuredData: structured,
+          auditTaskContext: promptAuditTaskContext,
           context: {
             taskType: 'controller-design',
             difficulty: 'intermediate',
@@ -313,6 +334,7 @@ export default function PromptAssessmentPage() {
 
       const data = (await response.json()) as AssessResponse;
       setAssessment(data);
+      setLastPromptDisposition('completed');
       await loadTrendData();
     } catch (evaluateError) {
       setError(isAbortError(evaluateError) ? '操作已中止' : evaluateError instanceof Error ? evaluateError.message : '评价失败');
@@ -333,12 +355,14 @@ export default function PromptAssessmentPage() {
       const demoConsistency = buildDemoConsistency(Math.min(version - 1, 2));
       setAssessment(demoAssessment);
       setConsistency(demoConsistency);
+      setLastPromptDisposition('completed');
       setHistoryRecords((prev) => [
         ...prev,
         {
           userId: DEMO_USER_ID,
           sessionId: DEMO_SESSION_ID,
           promptContent: compiledPrompt,
+          auditTaskContext: promptAuditTaskContext,
           assessment: demoAssessment,
           consistency: demoConsistency,
           version,
@@ -364,6 +388,7 @@ export default function PromptAssessmentPage() {
           designSessionId: activeSessionId,
           promptVersion: latestRecord?.version ?? 1,
           promptContent: compiledPrompt,
+          auditTaskContext: promptAuditTaskContext,
           designActions: [
             { timestamp: Date.now() - 42000, action: 'adjust_kp', params: { kp: 1.6, kd: 0.18 } },
             { timestamp: Date.now() - 30000, action: 'adjust_bandwidth', params: { kp: 1.25, kd: 0.5 } },
@@ -385,6 +410,7 @@ export default function PromptAssessmentPage() {
 
       const data = (await response.json()) as ConsistencyResponse;
       setConsistency(data);
+      setLastPromptDisposition('completed');
       await loadTrendData();
     } catch (consistencyError) {
       setError(isAbortError(consistencyError) ? '操作已中止' : consistencyError instanceof Error ? consistencyError.message : '一致性校验失败');
@@ -400,6 +426,7 @@ export default function PromptAssessmentPage() {
     setAssessment(null);
     setConsistency(null);
     setError(null);
+    setLastPromptDisposition('discarded');
   };
 
   const stopPromptAction = () => {
@@ -458,6 +485,7 @@ export default function PromptAssessmentPage() {
           userId: DEMO_USER_ID,
           sessionId: DEMO_SESSION_ID,
           promptContent: prompt,
+          auditTaskContext: promptAuditTaskContext,
           assessment: buildDemoAssessment(index, prompt),
           consistency: buildDemoConsistency(index),
           version: index + 1,
@@ -472,12 +500,13 @@ export default function PromptAssessmentPage() {
       setAbilityReport(null);
       setAssessment(demoHistory[demoHistory.length - 1]?.assessment ?? null);
       setConsistency(demoHistory[demoHistory.length - 1]?.consistency ?? null);
+      setLastPromptDisposition('completed');
     } catch (seedError) {
       setError(seedError instanceof Error ? seedError.message : '生成演示轨迹失败');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [promptAuditTaskContext]);
 
   const retryPromptAction = () => {
     if (lastPromptAction === 'assessment') {
@@ -501,7 +530,12 @@ export default function PromptAssessmentPage() {
   }, [autoDemo, autoSeeded, seedDemoHistory]);
 
   return (
-    <div className="surface-page px-4 py-6 md:px-8">
+    <div
+      className="surface-page px-4 py-6 md:px-8"
+      data-ai-local-task-surface="prompt-evaluation"
+      data-ai-task-focus-mode="local-first"
+      data-task-workspace-archetype="ai-local-task"
+    >
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="surface-card bg-gradient-to-br from-card via-card to-accent/35 p-5">
           <p className="text-xs uppercase tracking-[0.28em] text-amber-400">Structure Evaluated</p>
@@ -513,12 +547,12 @@ export default function PromptAssessmentPage() {
             <ActionStatusPanel state={promptTaskState} />
           </div>
           <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-slate-400">
-            模式：{mode} · 输出：{promptTaskContract.outputTarget} · 写回：{promptTaskContract.writebackBehavior}
+            模式：{mode} · 来源：{promptAuditTaskContext.source ?? 'page-local'} · 任务：{promptAuditTaskContext.assignment ?? 'prompt-assessment'} · 意图：{promptAuditTaskContext.intent} · 输出：{promptTaskContract.outputTarget} · 写回：{promptTaskContract.writebackBehavior}
           </div>
         </header>
 
         <section className="grid gap-4 lg:grid-cols-[380px_1fr]">
-          <aside className="surface-card space-y-4 p-4">
+          <aside className="surface-card space-y-4 p-4" data-task-workspace-zone="local-primary-input">
             <h2 className="text-lg font-medium">结构化提示词编辑器</h2>
 
             {[
@@ -607,7 +641,7 @@ export default function PromptAssessmentPage() {
             </div>
           </aside>
 
-          <main className="space-y-4">
+          <main className="space-y-4 pb-[calc(env(safe-area-inset-bottom,0px)+8rem)] md:pb-0" data-task-workspace-zone="floating-dock-safe-area">
             <div className="surface-card p-4">
               <h3 className="mb-2 text-base font-medium">提示词预览</h3>
               <pre className="whitespace-pre-wrap rounded bg-slate-950 p-3 text-sm leading-6 text-slate-200">{compiledPrompt}</pre>
