@@ -6,6 +6,13 @@ const governedIdPattern = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*:[^\s]+$/u;
 const barePlatformRefPattern = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*(?:\/[\p{L}\p{N}_.-]+)*$/u;
 const rawCitationTargetPattern = /(https?:\/\/|:\/\/|course-content\/authoring|#L\d+\b)/i;
 const rawVerifiedHrefPattern = /(course-content\/authoring|#L\d+\b)/i;
+const externalHrefPattern = /^[A-Za-z][A-Za-z0-9+.-]*:\/\//;
+const governedExternalCitationResolvers = new Set([
+  'verified-external-reference',
+  'server-owned-runtime',
+  'doi',
+  'official-reference',
+]);
 
 const governedIdSchema = z.string().min(1)
   .refine((value) => governedIdPattern.test(value), {
@@ -75,7 +82,20 @@ export const sourcePackCitationSchema = z.object({
   href: verifiedHrefSchema.optional(),
   resolver: z.string().min(1).optional(),
   verified: z.boolean(),
-}).strict();
+}).strict().superRefine((citation, context) => {
+  if (
+    citation.verified
+    && citation.href
+    && externalHrefPattern.test(citation.href)
+    && !governedExternalCitationResolvers.has(citation.resolver || '')
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Verified external citation hrefs require a governed resolver.',
+      path: ['resolver'],
+    });
+  }
+});
 
 export const sourcePackItemSchema = z.object({
   id: z.string().min(1),

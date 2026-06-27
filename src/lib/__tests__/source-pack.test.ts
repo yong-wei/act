@@ -146,6 +146,30 @@ describe('source pack contract', () => {
         ...sampleItem,
         citation: {
           ...sampleItem.citation,
+          href: 'https://model.example/raw.md',
+          resolver: undefined,
+        },
+      }],
+    }).success).toBe(false);
+
+    expect(safeValidateSourcePack({
+      ...pack,
+      items: [{
+        ...sampleItem,
+        citation: {
+          ...sampleItem.citation,
+          href: 'https://model.example/raw.md',
+          resolver: 'course-runtime',
+        },
+      }],
+    }).success).toBe(false);
+
+    expect(safeValidateSourcePack({
+      ...pack,
+      items: [{
+        ...sampleItem,
+        citation: {
+          ...sampleItem.citation,
           href: 'https://model.example/raw.md#L42',
         },
       }],
