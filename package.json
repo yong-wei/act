@@ -58,6 +58,7 @@
     "test:intelligent-teaching-assistant-demo": "npx --yes tsx ./scripts/tests/intelligent-teaching-assistant-demo-acceptance.ts",
     "test:competition-baseline": "npx --yes tsx ./scripts/tests/competition-baseline-acceptance.ts",
     "test:provider-runtime-smoke": "npx --yes tsx ./scripts/tests/provider-runtime-smoke.ts",
+    "source:pack": "tsx ./scripts/source-pack/source-pack-cli.ts",
     "test:admin-states": "npx --yes tsx ./scripts/tests/test-admin-states-mock-data.ts",
     "seed:fixed-passwords": "node ./scripts/db/update-fixed-account-passwords.mjs",
     "seed:semester-usage": "node ./scripts/db/seed-semester-usage-for-test-students.mjs",
