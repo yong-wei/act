@@ -216,7 +216,13 @@ describe('structured associative retrieval contract', () => {
       metadata: { CitationChip: { label: 'verified citation' } },
     })).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
 
-    for (const key of ['citationChip', 'citation_chip'] as const) {
+    for (const key of [
+      'citationChip',
+      'citation_chip',
+      'citationAddress',
+      'verifiedCitationRefs',
+      'citationRefs',
+    ] as const) {
       expect(validateSarEvent(event({
         metadata: { [key]: { label: 'verified citation' } },
       })).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');

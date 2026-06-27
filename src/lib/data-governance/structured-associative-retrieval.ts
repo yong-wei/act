@@ -155,12 +155,18 @@ const RESTRICTED_TEXT = [
 // address resolution, and CitationChip payload construction stay in the governed
 // LearningEvidence or Source Pack citation layer.
 const CITATION_PAYLOAD_KEYS = new Set([
+  'citationAddress',
+  'citationAddresses',
   'citationChip',
   'CitationChip',
   'citation_chip',
   'citationPayload',
+  'citationRef',
+  'citationRefs',
   'verifiedCitation',
   'verifiedCitations',
+  'verifiedCitationRef',
+  'verifiedCitationRefs',
 ]);
 
 export function validateSarEvent(event: unknown): SarValidationResult {
