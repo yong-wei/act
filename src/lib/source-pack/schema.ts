@@ -137,7 +137,7 @@ export const sourcePackItemSchema = z.object({
   citation: sourcePackCitationSchema.optional(),
   metadata: z.record(z.union([z.string(), z.number(), z.boolean(), z.array(z.string())])).optional(),
 }).strict().superRefine((item, context) => {
-  if (!item.retrievalChunkId && !item.citationTargetId && !item.resourceNodeId && !item.planningUnitId) {
+  if (!item.retrievalChunkId && !item.citationTargetId && !item.citation?.citationTargetId && !item.resourceNodeId && !item.planningUnitId) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'Source Pack items require at least one stable source identifier.',

@@ -86,6 +86,30 @@ describe('source pack contract', () => {
     expect(markdown).not.toContain('#L42');
   });
 
+  it('accepts nested citation target ids as stable item identifiers', () => {
+    const nestedOnlyItem: SourcePackItem = {
+      ...sampleItem,
+      resourceNodeId: undefined,
+      planningUnitId: undefined,
+      retrievalChunkId: undefined,
+      citationTargetId: undefined,
+      citation: {
+        ...sampleItem.citation,
+        citationTargetId: 'citation:textbook:dorf:ch08:nested-only',
+      },
+    };
+    const pack = buildSourcePack({
+      query: 'nested citation target fixture',
+      profile: 'generic',
+      items: [nestedOnlyItem],
+      now: new Date('2026-06-28T00:00:00.000Z'),
+    });
+
+    expect(validateSourcePack(pack).items[0].citation?.citationTargetId).toBe('citation:textbook:dorf:ch08:nested-only');
+    expect(pack.audit.citationTargetIds).toEqual(['citation:textbook:dorf:ch08:nested-only']);
+    expect(pack.audit.retrievalChunkIds).toEqual([]);
+  });
+
   it('rejects items without stable governed identifiers or with raw citation fields', () => {
     const invalidItem = {
       ...sampleItem,
