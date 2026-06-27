@@ -119,12 +119,8 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
   };
 }
 
-export function shouldRenderPortfolioFeedbackTask(query: Pick<FeedbackTaskQuery, 'assignment' | 'intent'>): boolean {
-  return firstQueryValue(query.intent) === 'collect' && isKnownPortfolioFeedbackAssignment(firstQueryValue(query.assignment));
-}
-
-function isKnownPortfolioFeedbackAssignment(assignmentId: string | null): boolean {
-  return assignmentId === REPORT_CONTROL_DESIGN.assignmentId;
+export function shouldRenderPortfolioFeedbackTask(query: FeedbackTaskQuery): boolean {
+  return firstQueryValue(query.intent) === 'collect' && Boolean(buildFeedbackTaskContext(query)?.supported);
 }
 
 export function buildFeedbackTaskHref(

@@ -135,7 +135,7 @@ describe('ai task boundary UI source contracts', () => {
     expect(portfolio).toContain('buildPortfolioReflectionDraft');
     expect(portfolio).toContain('shouldRenderPortfolioFeedbackTask');
     expect(portfolio).toContain('const feedbackContext = shouldRenderPortfolioFeedbackTask(feedbackQuery)');
-    expect(readSource('src/lib/student-feedback-task-contract.ts')).toContain('isKnownPortfolioFeedbackAssignment');
+    expect(readSource('src/lib/student-feedback-task-contract.ts')).toContain('Boolean(buildFeedbackTaskContext(query)?.supported)');
     expect(portfolio).toContain('const hasLocalPortfolioTask = Boolean(reflectionDraft || feedbackPortfolioDraft)');
     expect(portfolio).toContain("hasLocalPortfolioTask ? 'reflections' : 'works'");
     expect(portfolio).toContain("if (status === 'loading' || (loading && !hasLocalPortfolioTask))");

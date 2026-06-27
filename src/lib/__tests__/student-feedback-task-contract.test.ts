@@ -282,5 +282,11 @@ describe('student feedback task contract', () => {
       assignment: 'report-control-design',
       intent: 'collect',
     })).toBe(true);
+    expect(shouldRenderPortfolioFeedbackTask({
+      assignment: 'report-1',
+      criterion: 'validation',
+      source: 'document-feedback',
+      intent: 'collect',
+    })).toBe(true);
   });
 });
