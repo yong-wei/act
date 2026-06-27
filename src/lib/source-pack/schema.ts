@@ -4,6 +4,7 @@ import { SOURCE_PACK_SCHEMA_VERSION, type SourcePack } from './types';
 
 const governedIdPattern = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*:[^\s]+$/u;
 const rawCitationTargetPattern = /(https?:\/\/|:\/\/|course-content\/authoring|#L\d+\b)/i;
+const rawVerifiedHrefPattern = /(course-content\/authoring|#L\d+\b)/i;
 
 const governedIdSchema = z.string().min(1)
   .refine((value) => governedIdPattern.test(value), {
@@ -13,8 +14,8 @@ const governedIdSchema = z.string().min(1)
     message: 'Governed source ids must not point to raw authoring files or line numbers.',
   });
 
-const verifiedHrefSchema = z.string().min(1).refine((value) => !rawCitationTargetPattern.test(value), {
-  message: 'Verified citation href must not be a model-authored URL or raw authoring-file line target.',
+const verifiedHrefSchema = z.string().min(1).refine((value) => !rawVerifiedHrefPattern.test(value), {
+  message: 'Verified citation href must not point to raw authoring files or line targets.',
 });
 
 export const sourcePackProfileSchema = z.enum([

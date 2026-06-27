@@ -155,6 +155,29 @@ describe('source pack contract', () => {
       ...pack,
       items: [{
         ...sampleItem,
+        citation: {
+          ...sampleItem.citation,
+          href: 'course-content/authoring/unit-1/raw.md',
+        },
+      }],
+    }).success).toBe(false);
+
+    expect(safeValidateSourcePack({
+      ...pack,
+      items: [{
+        ...sampleItem,
+        citation: {
+          ...sampleItem.citation,
+          href: 'https://doi.org/10.1000/source-pack-reference',
+          resolver: 'verified-external-reference',
+        },
+      }],
+    }).success).toBe(true);
+
+    expect(safeValidateSourcePack({
+      ...pack,
+      items: [{
+        ...sampleItem,
         citationTargetId: 'citation:https://model.example/raw.md',
         citation: {
           ...sampleItem.citation,
