@@ -123,6 +123,7 @@ const RESTRICTED_KEYS = new Set([
   'rawAnswerBody',
   'rawAnswerBodies',
   'rawTrace',
+  'rawTraceJson',
   'rawTraces',
   'rawTracePayload',
   'learnerSubmission',
@@ -139,6 +140,9 @@ const RESTRICTED_KEY_PREFIXES = new Set([
   'rawLearnerSubmissions',
   'rawSubmission',
   'rawSubmissions',
+  'rawAnswer',
+  'rawAnswers',
+  'rawEvidence',
   'hiddenArenaInternals',
 ]);
 

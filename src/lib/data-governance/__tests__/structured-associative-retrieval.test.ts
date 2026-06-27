@@ -212,10 +212,23 @@ describe('structured associative retrieval contract', () => {
       })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
     }
 
-    for (const key of ['rawLearnerSubmissionText', 'rawSubmissionsByStudent', 'hiddenArenaInternalsPayload'] as const) {
+    for (const key of [
+      'rawLearnerSubmissionText',
+      'rawSubmissionsByStudent',
+      'rawAnswerText',
+      'rawTraceJson',
+      'rawEvidencePayload',
+      'hiddenArenaInternalsPayload',
+    ] as const) {
       expect(validateSarEvent(event({
         metadata: { [key]: { value: 'summarized value' } },
       })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+    }
+
+    for (const key of ['rawTraceAllowed', 'rawTraceIncluded'] as const) {
+      expect(validateSarEvent(event({
+        metadata: { [key]: true },
+      })).issues).toEqual([]);
     }
 
     expect(validateSarEvent(event({
