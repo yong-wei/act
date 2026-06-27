@@ -411,26 +411,29 @@ describe('hydrateCitationFromTarget', () => {
   });
 
   it('flags stale targets', () => {
-    const { limitations } = hydrateCitationFromTarget(
+    const { citation, limitations } = hydrateCitationFromTarget(
       'ct-002', 'src-002',
-      { id: 'ct-002', label: 'Stale', stale: true, href: '/path' },
+      { id: 'ct-002', label: 'Stale', stale: true, href: '/course-runtime/path', verified: true },
     );
+    expect(citation.verified).toBe(false);
     expect(limitations.some((l) => l.code === 'citation-stale')).toBe(true);
   });
 
   it('flags restricted targets', () => {
-    const { limitations } = hydrateCitationFromTarget(
+    const { citation, limitations } = hydrateCitationFromTarget(
       'ct-003', 'src-003',
-      { id: 'ct-003', label: 'Restricted', restricted: true, href: '/path' },
+      { id: 'ct-003', label: 'Restricted', restricted: true, href: '/course-runtime/path', verified: true },
     );
+    expect(citation.verified).toBe(false);
     expect(limitations.some((l) => l.code === 'citation-restricted')).toBe(true);
   });
 
   it('flags provisional targets', () => {
-    const { limitations } = hydrateCitationFromTarget(
+    const { citation, limitations } = hydrateCitationFromTarget(
       'ct-004', 'src-004',
-      { id: 'ct-004', label: 'Provisional', provisional: true, href: '/path' },
+      { id: 'ct-004', label: 'Provisional', provisional: true, href: '/course-runtime/path', verified: true },
     );
+    expect(citation.verified).toBe(false);
     expect(limitations.some((l) => l.code === 'citation-provisional')).toBe(true);
   });
 });
@@ -654,6 +657,21 @@ describe('retrieval chunk not path eligible', () => {
     const { item } = adaptResourceProjectionRow(row);
     expect(item.resourceNodeId).toBe('res-001');
     expect(item.retrievalChunkId).toBe('resource-projection-chunk:rc-001');
+  });
+
+  it('assigns planningUnitId for path-eligible PlanningUnit projection', () => {
+    const row = makeProjectionRow({
+      projectionLevel: 'PlanningUnit' as 'PlanningUnit',
+      pathEligibility: {
+        current: true,
+        afterCompletion: true,
+        masteryAffecting: true,
+        blockedBy: [],
+      },
+    });
+    const { item } = adaptResourceProjectionRow(row);
+    expect(item.resourceNodeId).toBe('res-001');
+    expect(item.planningUnitId).toBe('planning-unit:res-001');
   });
 
   it('retrieval chunk is carried even when not path eligible', () => {

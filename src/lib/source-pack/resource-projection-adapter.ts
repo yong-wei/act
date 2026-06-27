@@ -148,6 +148,9 @@ export function adaptResourceProjectionRow(
   const canAssignResourceNode =
     pathEligible
     && (projectionLevel === 'ResourceNode' || projectionLevel === 'PlanningUnit');
+  const planningUnitId = pathEligible && projectionLevel === 'PlanningUnit' && row.resourceNodeId
+    ? `planning-unit:${row.resourceNodeId}`
+    : undefined;
   if (!pathEligible && row.retrievalChunk?.id) {
     limitations.push({
       code: 'retrieval-only-not-path-eligible',
@@ -210,7 +213,7 @@ export function adaptResourceProjectionRow(
     resourceNodeId: canAssignResourceNode
       ? row.resourceNodeId ?? undefined
       : undefined,
-    planningUnitId: undefined,
+    planningUnitId,
     citationTargetId,
     scores,
     access,

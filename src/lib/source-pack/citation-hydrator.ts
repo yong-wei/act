@@ -327,7 +327,10 @@ export function hydrateCitationFromTarget(
     });
   }
 
-  const externallyVerified = target.verified === true;
+  const externallyVerified = target.verified === true &&
+    !target.stale &&
+    !target.restricted &&
+    !target.provisional;
   const hrefSafe = rawHref !== null && isSerializableCitationHref(rawHref);
   const notBlocked = limitations.every((l) => l.severity !== 'blocking');
 
