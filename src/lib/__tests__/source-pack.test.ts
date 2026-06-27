@@ -221,6 +221,38 @@ describe('source pack contract', () => {
     }).success).toBe(false);
   });
 
+  it('accepts existing bare ResourceNode ids without allowing raw targets', () => {
+    const pack = buildSourcePack({
+      query: 'resource node fixture',
+      profile: 'generic',
+      items: [{
+        ...sampleItem,
+        resourceNodeId: 'frequency-precheck',
+        planningUnitId: 'planning-unit:frequency-precheck',
+        retrievalChunkId: undefined,
+        citationTargetId: undefined,
+        citation: undefined,
+      }],
+      now: new Date('2026-06-28T00:00:00.000Z'),
+    });
+
+    expect(validateSourcePack(pack).items[0].resourceNodeId).toBe('frequency-precheck');
+    expect(safeValidateSourcePack({
+      ...pack,
+      items: [{
+        ...pack.items[0],
+        resourceNodeId: 'course-content/authoring/unit-1/raw.md',
+      }],
+    }).success).toBe(false);
+    expect(safeValidateSourcePack({
+      ...pack,
+      items: [{
+        ...pack.items[0],
+        resourceNodeId: 'https://model.example/raw',
+      }],
+    }).success).toBe(false);
+  });
+
   it('requires audit id arrays to match item ids', () => {
     const pack = buildSourcePack({
       query: 'audit consistency fixture',

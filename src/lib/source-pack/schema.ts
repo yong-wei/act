@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { SOURCE_PACK_SCHEMA_VERSION, type SourcePack } from './types';
 
 const governedIdPattern = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*:[^\s]+$/u;
+const barePlatformRefPattern = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*(?:\/[\p{L}\p{N}_.-]+)*$/u;
 const rawCitationTargetPattern = /(https?:\/\/|:\/\/|course-content\/authoring|#L\d+\b)/i;
 const rawVerifiedHrefPattern = /(course-content\/authoring|#L\d+\b)/i;
 
@@ -12,6 +13,14 @@ const governedIdSchema = z.string().min(1)
   })
   .refine((value) => !rawCitationTargetPattern.test(value), {
     message: 'Governed source ids must not point to raw authoring files or line numbers.',
+  });
+
+const platformNodeRefSchema = z.string().min(1)
+  .refine((value) => governedIdPattern.test(value) || barePlatformRefPattern.test(value), {
+    message: 'Expected a stable platform node reference.',
+  })
+  .refine((value) => !rawCitationTargetPattern.test(value), {
+    message: 'Platform node references must not point to raw authoring files or line numbers.',
   });
 
 const verifiedHrefSchema = z.string().min(1).refine((value) => !rawVerifiedHrefPattern.test(value), {
@@ -84,8 +93,8 @@ export const sourcePackItemSchema = z.object({
   modality: z.enum(['text', 'image', 'video', 'audio', 'interactive', 'mixed']),
   excerpt: z.string().min(1),
   inclusionRationale: z.string().min(1),
-  resourceNodeId: governedIdSchema.optional(),
-  planningUnitId: governedIdSchema.optional(),
+  resourceNodeId: platformNodeRefSchema.optional(),
+  planningUnitId: platformNodeRefSchema.optional(),
   retrievalChunkId: governedIdSchema.optional(),
   citationTargetId: governedIdSchema.optional(),
   scores: sourcePackScoresSchema,
