@@ -21,6 +21,7 @@ import {
 import { getClassExtracurricularAnalytics } from '@/lib/extracurricular-analytics'
 import { normalizeInteractiveRuntimeManifest, type InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest'
 import { prisma } from '@/lib/prisma'
+import { buildTeacherReportDeliveryHref } from '@/lib/teacher-report-grading-contracts'
 
 interface PageProps {
   params: Promise<{ sessionId: string }>
@@ -742,6 +743,14 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
     reportData: session.classSessionReports[0]?.reportData,
   })
   const governanceSummary = sessionStatistics.governanceSummary
+  const reportDeliveryHref = buildTeacherReportDeliveryHref({
+    classId: classContext.class.id,
+    action: 'export',
+    sessionId: session.id,
+    lessonId: lessonIds[0] ?? session.plan.id,
+    surface: 'classroom-review',
+    returnTo: `/classroom/teacher/${session.id}/review`,
+  })
 
   return (
     <main className="surface-page mx-auto max-w-[1300px] px-6 py-8">
@@ -784,6 +793,32 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
           <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-sky-300">
             课程聚焦：{focusDimensionLabels.length > 0 ? focusDimensionLabels.join('、') : '未标注'}
           </span>
+        </div>
+      </section>
+
+      <section
+        className="surface-card mb-6 p-6"
+        data-report-ledger-surface="classroom-review-report-delivery"
+        data-report-ledger-session-id={session.id}
+        data-report-ledger-delivery-state="ready"
+        data-report-ledger-redaction-policy="student-safe-summary-only"
+      >
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-medium text-subtle">教师报告交付账本</p>
+            <h2 className="mt-2 text-lg font-semibold text-foreground">课堂复盘已连接班级报告交付</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">
+              当前课堂、班级和课程上下文会带入报告交付页；导出、摘要复制和后续学生交付只展示学生安全摘要，不暴露内部分析 JSON。
+            </p>
+          </div>
+          <Link
+            href={reportDeliveryHref}
+            className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm"
+            data-teacher-report-delivery-link="classroom-review"
+          >
+            打开报告交付
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 
@@ -905,10 +940,11 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
       </section>
 
       <Link
-        href="/review/extracurricular-showcase"
+        href={reportDeliveryHref}
         className="inline-flex items-center gap-2 rounded-lg border border-primary/45 bg-primary/10 px-4 py-2 text-sm text-primary transition hover:bg-primary/20"
+        data-teacher-report-delivery-link="classroom-review-footer"
       >
-        前往评审聚合入口
+        前往教师报告交付
         <ArrowUpRight className="h-4 w-4" />
       </Link>
     </main>
