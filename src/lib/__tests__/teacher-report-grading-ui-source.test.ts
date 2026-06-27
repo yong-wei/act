@@ -13,7 +13,10 @@ describe('teacher report and grading UI source contracts', () => {
     const source = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
 
     expect(source).toContain('setDeliveryState(null);');
-    expect(source).toContain('[deliveryQuery.action, deliveryQuery.reportId, deliveryQuery.studentId, deliveryQuery.versionId]');
+    expect(source).toContain('deliveryQuery.sessionId');
+    expect(source).toContain('deliveryQuery.lessonId');
+    expect(source).toContain('deliveryQuery.surface');
+    expect(source).toContain('deliveryQuery.returnTo');
     expect(source).toContain('md:hidden');
     expect(source).toContain('data-report-ledger-action-id={ledgerEntry.actionId}');
     expect(source).toContain('data-report-ledger-idempotency-key={ledgerEntry.idempotencyKey}');
@@ -44,6 +47,7 @@ describe('teacher report and grading UI source contracts', () => {
     const reportBookLayout = readSource('src/app/(teacher-report-ledger)/teacher/layout.tsx');
 
     expect(dashboard).toContain("data-report-ledger-surface={item.id === 'analytics' || item.id === 'history-report' ? 'teacher-home-report-delivery' : undefined}");
+    expect(dashboard).toContain('activeSessions.find((sessionItem) => sessionItem.classId)?.classId');
     expect(dashboard).toContain('data-report-ledger-delivery-state="degraded"');
     expect(dashboard).toContain('data-report-ledger-export="deferred"');
     expect(history).toContain('data-report-ledger-surface="teacher-history-report-delivery"');

@@ -124,7 +124,7 @@ export function TeacherDashboard({
   }, [mode, router]);
 
   const activeClassHref = resolveTeacherOperationsClassHref(activeSessions, recentClasses);
-  const deliveryClassId = activeSessions[0]?.classId ?? recentClasses[0]?.id ?? null;
+  const deliveryClassId = activeSessions.find((sessionItem) => sessionItem.classId)?.classId ?? recentClasses[0]?.id ?? null;
   const analyticsHref = deliveryClassId
     ? buildTeacherReportDeliveryHref({
       classId: deliveryClassId,

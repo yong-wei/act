@@ -147,7 +147,21 @@ export default function ClassAnalyticsV2Page() {
 
   useEffect(() => {
     setDeliveryState(null);
-  }, [deliveryQuery.action, deliveryQuery.reportId, deliveryQuery.studentId, deliveryQuery.versionId]);
+  }, [
+    deliveryQuery.action,
+    deliveryQuery.actorId,
+    deliveryQuery.actorRole,
+    deliveryQuery.classId,
+    deliveryQuery.format,
+    deliveryQuery.lessonId,
+    deliveryQuery.recipientScope,
+    deliveryQuery.reportId,
+    deliveryQuery.returnTo,
+    deliveryQuery.sessionId,
+    deliveryQuery.studentId,
+    deliveryQuery.surface,
+    deliveryQuery.versionId,
+  ]);
 
   const activeDeliveryState = deliveryState ?? routeDeliveryState;
 
