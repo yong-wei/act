@@ -119,6 +119,14 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
   };
 }
 
+export function shouldRenderPortfolioFeedbackTask(query: Pick<FeedbackTaskQuery, 'assignment' | 'intent'>): boolean {
+  return firstQueryValue(query.intent) === 'collect' && isKnownPortfolioFeedbackAssignment(firstQueryValue(query.assignment));
+}
+
+function isKnownPortfolioFeedbackAssignment(assignmentId: string | null): boolean {
+  return assignmentId === REPORT_CONTROL_DESIGN.assignmentId;
+}
+
 export function buildFeedbackTaskHref(
   baseHref: string,
   context: Pick<StudentFeedbackTaskContext, 'assignmentId' | 'criterionId' | 'source' | 'lifecycleState' | 'returnTo'>,

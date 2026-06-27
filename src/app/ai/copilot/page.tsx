@@ -8,7 +8,7 @@
  */
 
 import { useChat } from '@/hooks/useLegacyChat';
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 import { KonlingAvatar } from '@/components/ai/konling-avatar';
@@ -29,6 +29,9 @@ export default function CopilotPage() {
   const searchParams = useSearchParams();
   const context = searchParams.get('context');
   const source = searchParams.get('source') ?? '当前学习证据';
+  const assignment = searchParams.get('assignment') ?? undefined;
+  const taskIntent = searchParams.get('intent') ?? context ?? undefined;
+  const localTaskMode = context === 'portfolio-reflection' || context === 'evidence';
   const evidenceSummary = useMemo(() => (
     context === 'evidence'
       ? {
@@ -40,9 +43,21 @@ export default function CopilotPage() {
       : null
   ), [context, source]);
   const reflectionDraft = useMemo(
-    () => context === 'portfolio-reflection' ? buildPortfolioReflectionDraft(source) : null,
-    [context, source]
+    () => context === 'portfolio-reflection'
+      ? buildPortfolioReflectionDraft(source, { assignment, intent: taskIntent })
+      : null,
+    [assignment, context, source, taskIntent]
   );
+  const portfolioReflectionHref = useMemo(() => {
+    const params = new URLSearchParams({
+      category: 'reflection',
+      intent: 'create',
+      source,
+    });
+    if (assignment) params.set('assignment', assignment);
+    if (taskIntent) params.set('taskIntent', taskIntent);
+    return `/profile/portfolio?${params.toString()}`;
+  }, [assignment, source, taskIntent]);
   const taskState = useMemo(() => {
     if (context === 'portfolio-reflection') {
       return buildAiAuditTaskState({
@@ -100,6 +115,7 @@ export default function CopilotPage() {
     reload,
     stop,
     append,
+    setMessages,
   } = useChat({
     api: '/api/ai/chat',
     body: {
@@ -114,18 +130,43 @@ export default function CopilotPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const clearLocalConversation = useCallback(() => {
+    setMessages([]);
+  }, [setMessages]);
+
   // 快捷问题
-  const quickQuestions = [
-    { label: '仿真状态', question: '请获取当前的仿真状态' },
-    { label: 'PID原理', question: '请解释PID控制器的工作原理' },
-    { label: '诺莫托模型', question: '什么是诺莫托船舶模型？参数K和T代表什么？' },
-    { label: '调参建议', question: '我的航迹误差较大，应该如何调整PID参数？' },
-    { label: '安全规范', question: '根据CCS规范，舵角速度的安全限制是多少？' },
-    { label: '海况影响', question: '不同海况等级对船舶控制有什么影响？' },
-  ];
+  const quickQuestions = useMemo(() => {
+    if (context === 'portfolio-reflection') {
+      return [
+        { label: '整理目标', question: '请把本次 AI 协作的任务目标和输出对象整理成反思草稿。' },
+        { label: '保留疑问', question: '请列出本次 AI 建议中仍需要我验证的疑问。' },
+        { label: '下一步', question: '请把下一步验证行动写成作品集反思候选。' },
+      ];
+    }
+    if (context === 'evidence') {
+      return [
+        { label: '证据来源', question: '请先说明当前证据来源，再给出下一步练习建议。' },
+        { label: '薄弱点', question: '请根据当前证据摘要指出一个最需要补强的薄弱点。' },
+        { label: '练习计划', question: '请把补强建议转成一个候选练习计划，不要写入档案。' },
+      ];
+    }
+    return [
+      { label: '仿真状态', question: '请获取当前的仿真状态' },
+      { label: 'PID原理', question: '请解释PID控制器的工作原理' },
+      { label: '诺莫托模型', question: '什么是诺莫托船舶模型？参数K和T代表什么？' },
+      { label: '调参建议', question: '我的航迹误差较大，应该如何调整PID参数？' },
+      { label: '安全规范', question: '根据CCS规范，舵角速度的安全限制是多少？' },
+      { label: '海况影响', question: '不同海况等级对船舶控制有什么影响？' },
+    ];
+  }, [context]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-slate-950 to-slate-900">
+    <div
+      className="flex min-h-screen flex-col bg-gradient-to-b from-slate-950 to-slate-900"
+      data-ai-local-task-surface={localTaskMode ? `copilot-${context}` : undefined}
+      data-ai-task-focus-mode={localTaskMode ? 'local-first' : undefined}
+      data-task-workspace-archetype={localTaskMode ? 'ai-local-task' : undefined}
+    >
       <FeaturePageNav title={KONLING_BRAND.name} backHref="/ai" backLabel="返回AI工坊" />
       {/* 头部 */}
       <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
@@ -144,7 +185,7 @@ export default function CopilotPage() {
 
       {/* 主内容区 */}
       <main className="flex-1 overflow-hidden">
-        <div className="mx-auto flex h-full max-w-4xl flex-col p-6">
+        <div className="mx-auto flex h-full max-w-4xl flex-col p-6 pb-[calc(env(safe-area-inset-bottom,0px)+8rem)] md:pb-6">
           {/* 消息列表 */}
           <div className="flex-1 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
             {taskState ? <ActionStatusPanel state={taskState} className="mb-4" /> : null}
@@ -166,8 +207,11 @@ export default function CopilotPage() {
               <div className="mb-4 rounded-xl border border-violet-500/40 bg-violet-500/10 p-4 text-sm text-violet-100">
                 <div className="font-medium">{reflectionDraft.title}</div>
                 <p className="mt-1 text-violet-100/80">{reflectionDraft.detail}</p>
+                <div className="mt-2 rounded border border-violet-400/40 px-2 py-1 text-xs text-violet-100/70">
+                  来源：{reflectionDraft.source} · 任务：{reflectionDraft.assignment ?? 'portfolio-reflection'} · 意图：{reflectionDraft.intent} · 输出：{reflectionDraft.outputTarget}
+                </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <a href="/profile/portfolio?category=reflection&intent=create&source=copilot" className="rounded bg-violet-500 px-3 py-1.5 text-xs text-white">
+                  <a href={portfolioReflectionHref} className="rounded bg-violet-500 px-3 py-1.5 text-xs text-white">
                     打开作品集候选预览
                   </a>
                   <span className="rounded border border-violet-400/50 px-3 py-1.5 text-xs">状态：{reflectionDraft.status}</span>
@@ -282,16 +326,22 @@ export default function CopilotPage() {
           </div>
 
           {/* 输入区 */}
-          <form onSubmit={handleSubmit} className="mt-4">
+          <form onSubmit={handleSubmit} className="mt-4" data-task-workspace-zone="local-primary-input">
             <div className="flex gap-3">
               <input aria-label="请输入您的问题，例如：如何减少航迹误差？"
                 type="text"
                 value={input}
                 onChange={handleInputChange}
                 placeholder="请输入您的问题，例如：如何减少航迹误差？"
+                data-primary-task-input={localTaskMode ? 'copilot-local-task' : undefined}
                 className="flex-1 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                 disabled={isLoading}
               />
+              {messages.length > 0 ? (
+                <Button type="button" onClick={clearLocalConversation} size="lg" variant="outline" className="px-4">
+                  清空
+                </Button>
+              ) : null}
               {isLoading ? (
                 <Button type="button" onClick={stop} size="lg" variant="secondary" className="px-6">
                   停止

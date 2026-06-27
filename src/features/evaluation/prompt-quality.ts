@@ -3,10 +3,18 @@ export interface AssessPromptRequest {
   sessionId?: string;
   prompt: string;
   structuredData?: Record<string, string>;
+  auditTaskContext?: PromptAuditTaskContext;
   context: {
     taskType: 'pid-tuning' | 'controller-design' | 'system-analysis';
     difficulty: 'beginner' | 'intermediate' | 'advanced';
   };
+}
+
+export interface PromptAuditTaskContext {
+  source?: string;
+  assignment?: string;
+  intent?: string;
+  outputTarget?: 'answer' | 'prompt-history' | 'practice-candidate' | 'portfolio-draft';
 }
 
 export interface AssessPromptResponse {
@@ -35,6 +43,7 @@ export interface TrackConsistencyRequest {
   designSessionId: string;
   promptVersion: number;
   promptContent: string;
+  auditTaskContext?: PromptAuditTaskContext;
   designActions: Array<{
     timestamp: number;
     action: string;
@@ -68,6 +77,7 @@ interface PromptHistoryRecord {
   userId: string;
   sessionId: string;
   promptContent: string;
+  auditTaskContext?: PromptAuditTaskContext;
   assessment: AssessPromptResponse;
   consistency?: TrackConsistencyResponse;
   version: number;
@@ -247,6 +257,7 @@ export function assessPromptQuality(request: AssessPromptRequest): AssessPromptR
     userId,
     sessionId,
     promptContent: prompt,
+    auditTaskContext: request.auditTaskContext,
     assessment: result,
     version: current.length + 1,
     createdAt: Date.now(),
@@ -341,6 +352,7 @@ export function trackConsistency(request: TrackConsistencyRequest): TrackConsist
   const current = existing[existing.length - 1];
   if (current) {
     current.consistency = result;
+    current.auditTaskContext = request.auditTaskContext ?? current.auditTaskContext;
   }
 
   return result;
