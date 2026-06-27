@@ -231,7 +231,10 @@ export function buildTeacherReportDeliveryLedgerEntry(input: {
     query.sessionId || 'missing-session',
     query.lessonId || 'missing-lesson',
     query.reportId,
+    query.versionId,
     action,
+    query.recipientScope,
+    query.studentId || 'class-recipient',
   ].join(':'))}`;
   const fallbackSummary = missingContext
     ? `无法交付报告：${query.studentId ? `学生 ${query.studentId}` : '班级或课堂'} 不存在或不在当前教师可见范围。`

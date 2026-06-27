@@ -182,6 +182,38 @@ describe('teacher report and grading audit contracts', () => {
     });
   });
 
+  it('separates idempotency keys by version and recipient scope', () => {
+    const firstVersion = normalizeTeacherReportDeliveryQuery({
+      action: 'export',
+      version: 'version-1',
+    }, 'class-1');
+    const secondVersion = normalizeTeacherReportDeliveryQuery({
+      action: 'export',
+      version: 'version-2',
+    }, 'class-1');
+    const firstStudent = normalizeTeacherReportDeliveryQuery({
+      action: 'send',
+      studentId: 'student-1',
+      recipientScope: 'student',
+      version: 'version-2',
+    }, 'class-1');
+    const secondStudent = normalizeTeacherReportDeliveryQuery({
+      action: 'send',
+      studentId: 'student-2',
+      recipientScope: 'student',
+      version: 'version-2',
+    }, 'class-1');
+
+    const keys = new Set([
+      buildTeacherReportDeliveryLedgerEntry({ query: firstVersion, surface: firstVersion.surface }).idempotencyKey,
+      buildTeacherReportDeliveryLedgerEntry({ query: secondVersion, surface: secondVersion.surface }).idempotencyKey,
+      buildTeacherReportDeliveryLedgerEntry({ query: firstStudent, surface: firstStudent.surface }).idempotencyKey,
+      buildTeacherReportDeliveryLedgerEntry({ query: secondStudent, surface: secondStudent.surface }).idempotencyKey,
+    ]);
+
+    expect(keys.size).toBe(4);
+  });
+
   it('keeps lock action recovery separate from missing-context recovery', () => {
     const lockQuery = normalizeTeacherReportDeliveryQuery({
       action: 'lock',
