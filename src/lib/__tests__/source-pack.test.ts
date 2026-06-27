@@ -238,6 +238,59 @@ describe('source pack contract', () => {
         citationTargetIds: ['citation:https://model.example/raw.md'],
       },
     }).success).toBe(false);
+
+    expect(safeValidateSourcePack({
+      ...pack,
+      items: [{
+        ...sampleItem,
+        citationTargetId: 'citation:course-content%2Fauthoring%2Funit.md%23L42',
+        citation: {
+          ...sampleItem.citation,
+          citationTargetId: 'citation:course-content%2Fauthoring%2Funit.md%23L42',
+        },
+      }],
+      audit: {
+        ...pack.audit,
+        citationTargetIds: ['citation:course-content%2Fauthoring%2Funit.md%23L42'],
+      },
+    }).success).toBe(false);
+
+    expect(safeValidateSourcePack({
+      ...pack,
+      items: [{
+        ...sampleItem,
+        citationTargetId: 'citation:course-content%252Fauthoring%252Funit.md%2523L42',
+        citation: {
+          ...sampleItem.citation,
+          citationTargetId: 'citation:course-content%252Fauthoring%252Funit.md%2523L42',
+        },
+      }],
+      audit: {
+        ...pack.audit,
+        citationTargetIds: ['citation:course-content%252Fauthoring%252Funit.md%2523L42'],
+      },
+    }).success).toBe(false);
+
+    for (const citationTargetId of [
+      'citation:course-content%2525252Fauthoring%2525252Funit.md%25252523L42',
+      'citation:course-content%2Fauthoring%2Funit.md%23L42%ZZ',
+    ] as const) {
+      expect(safeValidateSourcePack({
+        ...pack,
+        items: [{
+          ...sampleItem,
+          citationTargetId,
+          citation: {
+            ...sampleItem.citation,
+            citationTargetId,
+          },
+        }],
+        audit: {
+          ...pack.audit,
+          citationTargetIds: [citationTargetId],
+        },
+      }).success).toBe(false);
+    }
   });
 
   it('requires governed resolvers for verified URI-scheme citation hrefs', () => {
@@ -270,6 +323,10 @@ describe('source pack contract', () => {
       ['/resources/%2E%2E/model/raw.md', 'course-runtime'],
       ['/resources/%2e./model/raw.md', 'course-runtime'],
       ['/resources/.%2e/model/raw.md', 'course-runtime'],
+      ['/resources/course-content%2Fauthoring%2Funit.md%23L42', 'course-runtime'],
+      ['/resources/course-content%252Fauthoring%252Funit.md%2523L42', 'course-runtime'],
+      ['/resources/course-content%2525252Fauthoring%2525252Funit.md%25252523L42', 'course-runtime'],
+      ['/resources/course-content%2Fauthoring%2Funit.md%23L42%ZZ', 'course-runtime'],
     ] as const) {
       expect(safeValidateSourcePack({
         ...pack,

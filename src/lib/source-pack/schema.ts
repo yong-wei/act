@@ -25,7 +25,7 @@ const governedIdSchema = z.string().min(1)
   .refine((value) => governedIdPattern.test(value), {
     message: 'Expected a stable governed source id.',
   })
-  .refine((value) => !rawCitationTargetPattern.test(value), {
+  .refine((value) => !hasRawCitationTarget(value), {
     message: 'Governed source ids must not point to raw authoring files or line numbers.',
   });
 
@@ -33,11 +33,11 @@ const platformNodeRefSchema = z.string().min(1)
   .refine((value) => governedIdPattern.test(value) || barePlatformRefPattern.test(value), {
     message: 'Expected a stable platform node reference.',
   })
-  .refine((value) => !rawCitationTargetPattern.test(value), {
+  .refine((value) => !hasRawCitationTarget(value), {
     message: 'Platform node references must not point to raw authoring files or line numbers.',
   });
 
-const verifiedHrefSchema = z.string().min(1).refine((value) => !rawVerifiedHrefPattern.test(value), {
+const verifiedHrefSchema = z.string().min(1).refine((value) => !hasRawVerifiedHref(value), {
   message: 'Verified citation href must not point to raw authoring files or line targets.',
 });
 
@@ -148,6 +148,29 @@ function isGovernedRelativeHref(href: string): boolean {
   } catch {
     return false;
   }
+}
+
+function hasRawCitationTarget(value: string): boolean {
+  return testsRawPattern(value, rawCitationTargetPattern);
+}
+
+function hasRawVerifiedHref(value: string): boolean {
+  return testsRawPattern(value, rawVerifiedHrefPattern);
+}
+
+function testsRawPattern(value: string, pattern: RegExp): boolean {
+  let current = value;
+  for (let index = 0; index < 32; index += 1) {
+    if (pattern.test(current)) return true;
+    const decoded = decodePercentEncodingLenient(current);
+    if (decoded === current) return false;
+    current = decoded;
+  }
+  return true;
+}
+
+function decodePercentEncodingLenient(value: string): string {
+  return value.replace(/%([0-9A-Fa-f]{2})/g, (_, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)));
 }
 
 export const sourcePackItemSchema = z.object({
