@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { SOURCE_PACK_SCHEMA_VERSION, type SourcePack } from './types';
 
-const governedIdPattern = /^(citation|resource|planning|chunk|textbook|reference|runtime|knowledge|exercise|simulation|learner-evidence):[A-Za-z0-9_.:#/-]+$/;
+const governedIdPattern = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*:[^\s]+$/u;
 const rawCitationTargetPattern = /(https?:\/\/|:\/\/|course-content\/authoring|#L\d+\b)/i;
 
 const governedIdSchema = z.string().min(1)

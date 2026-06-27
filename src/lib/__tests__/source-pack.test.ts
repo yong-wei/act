@@ -169,6 +169,35 @@ describe('source pack contract', () => {
     }).success).toBe(false);
   });
 
+  it('accepts existing knowledge-card governed identifiers without allowing raw targets', () => {
+    const pack = buildSourcePack({
+      query: 'knowledge card fixture',
+      profile: 'generic',
+      items: [{
+        ...sampleItem,
+        sourceKind: 'knowledge-card',
+        resourceNodeId: 'knowledge-card:Bode首轮骨架_5_1e07d9da',
+        retrievalChunkId: 'chunk:knowledge-card:Bode首轮骨架_5_1e07d9da',
+        citationTargetId: 'citation:knowledge-card:Bode首轮骨架_5_1e07d9da',
+        citation: {
+          ...sampleItem.citation,
+          citationTargetId: 'citation:knowledge-card:Bode首轮骨架_5_1e07d9da',
+          sourceId: 'knowledge-card:Bode首轮骨架_5_1e07d9da',
+        },
+      }],
+      now: new Date('2026-06-28T00:00:00.000Z'),
+    });
+
+    expect(validateSourcePack(pack).items[0].resourceNodeId).toBe('knowledge-card:Bode首轮骨架_5_1e07d9da');
+    expect(safeValidateSourcePack({
+      ...pack,
+      items: [{
+        ...pack.items[0],
+        resourceNodeId: 'knowledge-card:https://model.example/raw',
+      }],
+    }).success).toBe(false);
+  });
+
   it('requires audit id arrays to match item ids', () => {
     const pack = buildSourcePack({
       query: 'audit consistency fixture',
