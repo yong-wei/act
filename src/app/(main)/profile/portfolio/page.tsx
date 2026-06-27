@@ -171,6 +171,17 @@ export default function PortfolioPage() {
     }
   }, [feedbackPortfolioDraft, searchParams]);
 
+  if (status === 'authenticated' && session?.user?.role !== 'STUDENT') {
+    return (
+      <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+          <p className="text-subtle">正在返回教师工作台...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (status === 'loading' || (loading && !hasLocalPortfolioTask)) {
     return (
       <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">

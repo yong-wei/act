@@ -45,6 +45,10 @@ describe('student feedback task UI source contracts', () => {
     expect(growth).toContain('surface="growth"');
     expect(portfolio).toContain('buildPortfolioFeedbackDraft');
     expect(portfolio).toContain('surface="portfolio"');
+    expect(portfolio).toContain("status === 'authenticated' && session?.user?.role !== 'STUDENT'");
+    expect(portfolio.indexOf("status === 'authenticated' && session?.user?.role !== 'STUDENT'")).toBeLessThan(
+      portfolio.indexOf("status === 'loading' || (loading && !hasLocalPortfolioTask)")
+    );
     expect(resource).toContain('buildFeedbackTaskContext');
     expect(resource).toContain('buildFeedbackTaskHref(feedbackContext.returnHref');
     expect(resource).toContain("status: 'completed'");
