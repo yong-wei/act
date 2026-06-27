@@ -323,6 +323,10 @@ function validateTraceReferences(resultRecord: Partial<SarRetrievalResult>): Sar
   const trace = resultRecord.trace;
   const eventIds = idSet(resultRecord.events);
   const entityIds = idSet(resultRecord.entities);
+  const candidateRefs = new Set([
+    ...stringsOf(resultRecord.citationTargetRefs),
+    ...stringsOf(resultRecord.retrievalChunkRefs),
+  ]);
   const issues: SarValidationIssue[] = [];
 
   if (Array.isArray(trace.seedEntityIds)) {
@@ -335,8 +339,8 @@ function validateTraceReferences(resultRecord: Partial<SarRetrievalResult>): Sar
 
   if (Array.isArray(trace.selectedRefs)) {
     trace.selectedRefs.forEach((ref, index) => {
-      if (typeof ref === 'string' && !eventIds.has(ref) && !entityIds.has(ref)) {
-        issues.push(issue('invalid-reference', `trace.selectedRefs.${index}`, 'Selected ref must reference a result event or entity.'));
+      if (typeof ref === 'string' && !eventIds.has(ref) && !entityIds.has(ref) && !candidateRefs.has(ref)) {
+        issues.push(issue('invalid-reference', `trace.selectedRefs.${index}`, 'Selected ref must reference a result event, entity, citation target, or retrieval chunk.'));
       }
     });
   }
@@ -369,6 +373,10 @@ function safeEntities(value: unknown): Array<Pick<SarRetrievalEntity, 'id' | 'ex
       ? [{ id: item.id, extraction: item.extraction }]
       : []
   ));
+}
+
+function stringsOf(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
 function safeRecords(value: unknown): Record<string, unknown>[] {

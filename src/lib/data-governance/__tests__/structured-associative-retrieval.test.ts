@@ -250,6 +250,24 @@ describe('structured associative retrieval contract', () => {
       trace: trace({
         expansionHops: [{
           ...trace().expansionHops[0],
+          fromEntityId: 'sar:entity:missing',
+        }],
+      }),
+    })).issues.map((issue) => issue.code)).toContain('invalid-reference');
+
+    expect(validateSarResult(sarResult({
+      trace: trace({
+        expansionHops: [{
+          ...trace().expansionHops[0],
+          toEntityId: 'sar:entity:missing',
+        }],
+      }),
+    })).issues.map((issue) => issue.code)).toContain('invalid-reference');
+
+    expect(validateSarResult(sarResult({
+      trace: trace({
+        expansionHops: [{
+          ...trace().expansionHops[0],
           viaEventId: 'sar:event:missing',
         }],
       }),
@@ -258,5 +276,16 @@ describe('structured associative retrieval contract', () => {
     expect(validateSarResult(sarResult({
       trace: trace({ selectedRefs: ['sar:event:missing'] }),
     })).issues.map((issue) => issue.code)).toContain('invalid-reference');
+  });
+
+  it('allows selected refs to point at result citation targets and retrieval chunks', () => {
+    expect(validateSarResult(sarResult({
+      trace: trace({
+        selectedRefs: [
+          'citation-target:kaq:root-locus',
+          'learning-evidence:chunk:root-locus',
+        ],
+      }),
+    })).issues).toEqual([]);
   });
 });
