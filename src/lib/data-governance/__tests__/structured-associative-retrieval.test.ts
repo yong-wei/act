@@ -187,9 +187,28 @@ describe('structured associative retrieval contract', () => {
       metadata: { rawLearnerSubmission: { answer: 'student answer dump' } },
     })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
 
-    for (const key of ['rawContent', 'raw_submission', 'rawSubmission'] as const) {
+    for (const key of [
+      'rawContent',
+      'raw_submission',
+      'rawSubmission',
+      'rawTrace',
+      'rawTracePayload',
+      'rawAnswers',
+      'rawAnswerBody',
+      'hiddenArenaEvaluationInternals',
+    ] as const) {
       expect(validateSarEvent(event({
         metadata: { [key]: { answer: 'student answer dump' } },
+      })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+    }
+
+    for (const note of [
+      'raw trace payload',
+      'raw answer body',
+      'hidden arena evaluation internals',
+    ] as const) {
+      expect(validateSarEvent(event({
+        metadata: { note },
       })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
     }
 
