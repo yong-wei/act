@@ -202,6 +202,8 @@ function makeProjectionRow(overrides?: Partial<RuntimeResourceProjectionArtifact
       status: 'human-confirmed',
       reviewedBy: 'teacher-001',
       reviewedAt: '2026-06-28T00:00:00Z',
+      reviewedSourceHash: 'sha256:source',
+      reviewedVersionRef: 'runtime.v1',
       findings: [],
     },
     segmentRefs: ['seg-001'],
@@ -745,6 +747,20 @@ describe('stale and provisional limitations', () => {
     } as Partial<RuntimeResourceProjectionArtifactRow> as RuntimeResourceProjectionArtifactRow);
     const { limitations } = adaptResourceProjectionRow(row);
     expect(limitations.some((l) => l.code === 'projection-provisional')).toBe(true);
+  });
+
+  it('flags stale human-confirmed projection rows when reviewed source changed', () => {
+    const row = makeProjectionRow({
+      reviewAudit: {
+        ...makeProjectionRow().reviewAudit,
+        status: 'human-confirmed',
+        reviewedSourceHash: 'sha256:old-source',
+        reviewedVersionRef: 'runtime.old',
+      },
+    });
+    const { item, limitations } = adaptResourceProjectionRow(row);
+    expect(limitations.some((limitation) => limitation.code === 'projection-stale')).toBe(true);
+    expect(item.scores.freshness).toBe(0.3);
   });
 });
 

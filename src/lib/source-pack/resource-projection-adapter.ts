@@ -237,10 +237,10 @@ function detectProjectionLevel(row: RuntimeResourceProjectionArtifactRow): strin
   return 'ResourceSegment';
 }
 
-function detectProjectionStaleness(_row: RuntimeResourceProjectionArtifactRow): boolean {
-  // Stub: in a full implementation this would compare row.versionRefs
-  // against current registry versions. For now, treat all rows as fresh.
-  return false;
+function detectProjectionStaleness(row: RuntimeResourceProjectionArtifactRow): boolean {
+  return row.reviewAudit.status === 'human-confirmed' &&
+    (row.reviewAudit.reviewedSourceHash !== row.sourceHash ||
+      row.reviewAudit.reviewedVersionRef !== row.sourceVersionRef);
 }
 
 function isGovernedId(value: string): boolean {
