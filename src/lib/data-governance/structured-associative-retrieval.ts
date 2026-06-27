@@ -112,17 +112,21 @@ const RESTRICTED_KEYS = new Set([
   'rawContent',
   'raw_content',
   'rawLearnerSubmission',
+  'rawLearnerSubmissions',
   'rawSubmission',
+  'rawSubmissions',
   'raw_submission',
+  'raw_submissions',
   'learnerSubmission',
+  'learnerSubmissions',
   'hiddenArenaInternals',
   'privateKonlingMemory',
   'auditOnlyTrace',
 ]);
 
 const RESTRICTED_TEXT = [
-  /\braw[_ -]?learner[_ -]?submission\b/i,
-  /\braw[_ -]?submission\b/i,
+  /\braw[_ -]?learner[_ -]?submissions?\b/i,
+  /\braw[_ -]?submissions?\b/i,
   /\bhidden[_ -]?arena[_ -]?internals?\b/i,
   /\barena[_ -]?internal\b/i,
   /\bprivate[_ -]?konling[_ -]?memory\b/i,
@@ -436,6 +440,12 @@ function requireStringArray(
 ): void {
   if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
     issues.push(issue(code, path, `${path} must be a string array.`));
+    return;
+  }
+  for (let i = 0; i < value.length; i++) {
+    if ((value[i] as string).trim() === '') {
+      issues.push(issue(code, `${path}.${i}`, `${path}[${i}] must not be blank.`));
+    }
   }
 }
 

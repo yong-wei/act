@@ -288,4 +288,51 @@ describe('structured associative retrieval contract', () => {
       }),
     })).issues).toEqual([]);
   });
+
+  it('rejects blank or whitespace-only strings in ref/id string arrays', () => {
+    const r1 = validateSarResult(sarResult({
+      citationTargetRefs: [''],
+    }));
+    expect(r1.issues.map((i) => i.code)).toContain('missing-required-field');
+    expect(r1.issues.find((i) => i.path === 'citationTargetRefs.0')).toBeTruthy();
+
+    const r2 = validateSarResult(sarResult({
+      retrievalChunkRefs: ['  ', '\t'],
+    }));
+    expect(r2.issues.map((i) => i.code)).toContain('missing-required-field');
+    expect(r2.issues.find((i) => i.path === 'retrievalChunkRefs.0')).toBeTruthy();
+    expect(r2.issues.find((i) => i.path === 'retrievalChunkRefs.1')).toBeTruthy();
+
+    const r3 = validateSarResult(sarResult({
+      trace: trace({ seedEntityIds: [''] }),
+    }));
+    expect(r3.issues.map((i) => i.code)).toContain('invalid-trace');
+    expect(r3.issues.find((i) => i.path === 'trace.seedEntityIds.0')).toBeTruthy();
+
+    const r4 = validateSarResult(sarResult({
+      trace: trace({ selectedRefs: ['  '] }),
+    }));
+    expect(r4.issues.map((i) => i.code)).toContain('invalid-trace');
+    expect(r4.issues.find((i) => i.path === 'trace.selectedRefs.0')).toBeTruthy();
+
+    const r5 = validateSarTrace(trace({ versionRefs: [''] }));
+    expect(r5.issues.map((i) => i.code)).toContain('invalid-trace');
+    expect(r5.issues.find((i) => i.path === 'versionRefs.0')).toBeTruthy();
+  });
+
+  it('rejects rawLearnerSubmissions and rawSubmissions metadata keys as restricted raw content', () => {
+    for (const key of ['rawLearnerSubmissions', 'rawSubmissions', 'raw_submissions', 'learnerSubmissions']) {
+      const r = validateSarEvent(event({
+        metadata: { [key]: { entries: ['some data'] } },
+      }));
+      expect(r.issues.map((i) => i.code)).toContain('restricted-raw-content');
+      expect(r.issues.find((i) => i.path.includes(key))).toBeTruthy();
+    }
+
+    const text = validateSarEvent(event({
+      metadata: { note: 'raw learner submissions must stay outside SAR metadata' },
+    }));
+    expect(text.issues.map((i) => i.code)).toContain('restricted-raw-content');
+    expect(text.issues.find((i) => i.path === 'metadata.note')).toBeTruthy();
+  });
 });
