@@ -216,6 +216,56 @@ describe('source pack contract', () => {
     }).success).toBe(false);
   });
 
+  it('requires governed resolvers for verified URI-scheme citation hrefs', () => {
+    const pack = buildSourcePack({
+      query: 'external scheme fixture',
+      profile: 'generic',
+      items: [sampleItem],
+      now: new Date('2026-06-28T00:00:00.000Z'),
+    });
+
+    for (const [href, resolver] of [
+      ['javascript:alert(1)', undefined],
+      ['javascript:alert(1)', 'course-runtime'],
+      ['javascript:alert(1)', 'verified-external-reference'],
+      ['data:text/html,<script>alert(1)</script>', undefined],
+      ['data:text/html,<script>alert(1)</script>', 'official-reference'],
+      ['mailto:test@example.com', undefined],
+      ['mailto:test@example.com', 'course-runtime'],
+      ['mailto:test@example.com', 'doi'],
+    ] as const) {
+      expect(safeValidateSourcePack({
+        ...pack,
+        items: [{
+          ...sampleItem,
+          citation: {
+            ...sampleItem.citation,
+            href,
+            resolver,
+          },
+        }],
+      }).success).toBe(false);
+    }
+
+    for (const [href, resolver] of [
+      ['https://doi.org/10.1000/source-pack-reference', 'verified-external-reference'],
+      ['/resources/source-pack/item', 'course-runtime'],
+      ['#local-anchor', 'course-runtime'],
+    ] as const) {
+      expect(safeValidateSourcePack({
+        ...pack,
+        items: [{
+          ...sampleItem,
+          citation: {
+            ...sampleItem.citation,
+            href,
+            resolver,
+          },
+        }],
+      }).success).toBe(true);
+    }
+  });
+
   it('accepts existing knowledge-card governed identifiers without allowing raw targets', () => {
     const pack = buildSourcePack({
       query: 'knowledge card fixture',

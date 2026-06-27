@@ -6,7 +6,8 @@ const governedIdPattern = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*:[^\s]+$/u;
 const barePlatformRefPattern = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*(?:\/[\p{L}\p{N}_.-]+)*$/u;
 const rawCitationTargetPattern = /(https?:\/\/|:\/\/|course-content\/authoring|#L\d+\b)/i;
 const rawVerifiedHrefPattern = /(course-content\/authoring|#L\d+\b)/i;
-const externalHrefPattern = /^[A-Za-z][A-Za-z0-9+.-]*:\/\//;
+const externalHrefPattern = /^([A-Za-z][A-Za-z0-9+.-]*):/;
+const governedExternalCitationSchemes = new Set(['https', 'doi']);
 const governedExternalCitationResolvers = new Set([
   'verified-external-reference',
   'server-owned-runtime',
@@ -83,12 +84,16 @@ export const sourcePackCitationSchema = z.object({
   resolver: z.string().min(1).optional(),
   verified: z.boolean(),
 }).strict().superRefine((citation, context) => {
-  if (
-    citation.verified
-    && citation.href
-    && externalHrefPattern.test(citation.href)
-    && !governedExternalCitationResolvers.has(citation.resolver || '')
-  ) {
+  const hrefScheme = citation.href?.match(externalHrefPattern)?.[1]?.toLowerCase();
+  if (!citation.verified || !hrefScheme) return;
+  if (!governedExternalCitationSchemes.has(hrefScheme)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Verified external citation hrefs require an allowed scheme.',
+      path: ['href'],
+    });
+  }
+  if (!governedExternalCitationResolvers.has(citation.resolver || '')) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'Verified external citation hrefs require a governed resolver.',
