@@ -176,7 +176,9 @@ export function projectLearningGoalToSar(input: LearningGoalSarProjectionInput):
       aliases: objective ? [objective.id, objective.domain, objective.level] : [objectiveId],
     });
   });
-  const expectedGraphCatalogVersion = input.versionRefs?.graphCatalogVersion ?? null;
+  const expectedGraphCatalogVersion = input.versionRefs?.graphCatalogVersion
+    ?? buildKaqArtifactVersionRefs().graphCatalogVersion
+    ?? null;
   const expandedSubgraph = input.expandedSubgraph?.learningGoalId === goal.id
     && input.expandedSubgraph.learningGoalVersion === goal.version
     && (
@@ -301,7 +303,7 @@ export function projectLearningGoalToSar(input: LearningGoalSarProjectionInput):
     versionRefs: versionRefs({
       ...input.versionRefs,
       learningGoalPackageVersion: input.versionRefs?.learningGoalPackageVersion ?? goal.version,
-      graphCatalogVersion: expandedSubgraph?.graphVersion ?? input.versionRefs?.graphCatalogVersion,
+      graphCatalogVersion: expandedSubgraph?.graphVersion ?? expectedGraphCatalogVersion,
     }),
   });
 }

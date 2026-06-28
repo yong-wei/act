@@ -100,6 +100,7 @@ describe('SAR platform source projections', () => {
   it('projects expanded learning-goal subgraph bindings into path-boundary entities', () => {
     const goal = learningGoalDefinition();
     const expandedSubgraph = expandedGoalSubgraph(goal);
+    const currentGraphVersion = buildKaqArtifactVersionRefs().graphCatalogVersion;
 
     const result = projectLearningGoalToSar({
       goal,
@@ -109,12 +110,13 @@ describe('SAR platform source projections', () => {
     expect(validateSarResult(result).issues).toEqual([]);
     expect(result.events[0].metadata).toMatchObject({
       expandedSubgraph: {
-        graphVersion: 'kaq-graph.test',
+        graphVersion: buildKaqArtifactVersionRefs().graphCatalogVersion,
         prerequisiteEdgeIds: ['edge:root-locus-foundation'],
         checkpointSuggestionIds: ['checkpoint:goal:root-locus:capability:interpret-locus'],
         terminalValidationCandidateIds: ['terminal:goal:root-locus:capability:interpret-locus'],
       },
     });
+    expect(result.trace.versionRefs).toContain(currentGraphVersion);
     expect(result.entities).toContainEqual(expect.objectContaining({
       entityType: 'graph-node',
       canonicalRef: 'knowledge:root-locus-foundation',
@@ -209,6 +211,30 @@ describe('SAR platform source projections', () => {
     }));
     expect(result.limitations).toContain('goal-subgraph-mismatch:graphCatalogVersion:stale-graph.test');
     expect(result.trace.versionRefs).toContain('kaq-graph.current');
+    expect(result.trace.versionRefs).not.toContain('stale-graph.test');
+  });
+
+  it('uses the current graph version when validating expanded learning-goal subgraphs without caller version refs', () => {
+    const goal = learningGoalDefinition();
+    const staleGraphSubgraph = expandedGoalSubgraph(goal, {
+      graphVersion: 'stale-graph.test',
+    });
+    const currentGraphVersion = buildKaqArtifactVersionRefs().graphCatalogVersion;
+
+    const result = projectLearningGoalToSar({
+      goal,
+      expandedSubgraph: staleGraphSubgraph,
+    });
+
+    expect(validateSarResult(result).issues).toEqual([]);
+    expect(result.events[0].metadata).toMatchObject({
+      expandedSubgraph: null,
+    });
+    expect(result.entities).not.toContainEqual(expect.objectContaining({
+      canonicalRef: 'knowledge:root-locus-foundation',
+    }));
+    expect(result.limitations).toContain('goal-subgraph-mismatch:graphCatalogVersion:stale-graph.test');
+    expect(result.trace.versionRefs).toContain(currentGraphVersion);
     expect(result.trace.versionRefs).not.toContain('stale-graph.test');
   });
 
@@ -432,7 +458,7 @@ function expandedGoalSubgraph(
     status: 'expanded',
     learningGoalId: goal.id,
     learningGoalVersion: goal.version,
-    graphVersion: 'kaq-graph.test',
+    graphVersion: buildKaqArtifactVersionRefs().graphCatalogVersion ?? 'kaq-graph.test',
     graphNodeIds: {
       knowledge: ['knowledge:root-locus'],
       capability: ['capability:interpret-locus'],
