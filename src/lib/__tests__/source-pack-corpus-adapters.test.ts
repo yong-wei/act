@@ -343,6 +343,22 @@ describe('hydrateCitationFromAddress', () => {
     expect(limitations).toHaveLength(0);
   });
 
+  it('does not verify normalized relative hrefs outside governed paths', () => {
+    const { citation } = hydrateCitationFromAddress(
+      'source-pack-citation:path-traversal',
+      'source-pack-source:path-traversal',
+      {
+        kind: 'text',
+        sourceRefId: 'path-traversal',
+        href: '/course-runtime/%2e%2e/admin',
+      },
+      'Path traversal',
+    );
+    expect(citation.href).toBe('/course-runtime/%2e%2e/admin');
+    expect(citation.verified).toBe(false);
+    expect(isVerifiedCitationHref('/course-runtime/../../admin', 'course-runtime')).toBe(false);
+  });
+
   it('does not serialize encoded raw authoring hrefs', () => {
     const rawHref = '/resources/course-content%2Fauthoring%2Funit.md%23L42';
     const { citation, limitations } = hydrateCitationFromAddress(
@@ -806,6 +822,18 @@ describe('stale and provisional limitations', () => {
         status: 'human-confirmed',
         reviewedSourceHash: 'sha256:old-source',
         reviewedVersionRef: 'runtime.old',
+      },
+    });
+    const { item, limitations } = adaptResourceProjectionRow(row);
+    expect(limitations.some((limitation) => limitation.code === 'projection-stale')).toBe(true);
+    expect(item.scores.freshness).toBe(0.3);
+  });
+
+  it('flags projection rows with explicit stale review status', () => {
+    const row = makeProjectionRow({
+      reviewAudit: {
+        ...makeProjectionRow().reviewAudit,
+        status: 'stale',
       },
     });
     const { item, limitations } = adaptResourceProjectionRow(row);

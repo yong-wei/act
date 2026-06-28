@@ -145,12 +145,8 @@ export function isVerifiedCitationHref(href: string | null | undefined, resolver
   if (protocolRelativeHrefPattern.test(href)) return false;
   const hrefScheme = href.match(externalHrefPattern)?.[1]?.toLowerCase();
   if (!hrefScheme) {
-    const governedRelative = localAnchorHrefPattern.test(href) ||
-      href === '/course-runtime' ||
-      href.startsWith('/course-runtime/') ||
-      href === '/resources' ||
-      href.startsWith('/resources/');
-    return governedRelative && governedRelativeCitationResolvers.has(resolver || '');
+    return isGovernedRelativeCitationHref(href) &&
+      governedRelativeCitationResolvers.has(resolver || '');
   }
   return governedExternalCitationSchemes.has(hrefScheme) &&
     governedExternalCitationResolvers.has(resolver || '');
@@ -167,6 +163,21 @@ function resolverForAddress(address: HydratorCitationAddressInput): string {
   if (href.startsWith('doi:')) return 'doi';
   if (href.startsWith('https://')) return 'official-reference';
   return 'server-owned-runtime';
+}
+
+function isGovernedRelativeCitationHref(href: string): boolean {
+  if (localAnchorHrefPattern.test(href)) return true;
+  if (/\s/.test(href) || !href.startsWith('/')) return false;
+  try {
+    const parsed = new URL(href, 'https://act.local');
+    if (parsed.origin !== 'https://act.local') return false;
+    return parsed.pathname === '/course-runtime' ||
+      parsed.pathname.startsWith('/course-runtime/') ||
+      parsed.pathname === '/resources' ||
+      parsed.pathname.startsWith('/resources/');
+  } catch {
+    return false;
+  }
 }
 
 /**

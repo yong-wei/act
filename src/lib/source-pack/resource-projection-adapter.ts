@@ -116,7 +116,8 @@ export function adaptResourceProjectionRow(
   const limitations: SourcePackLimitation[] = [];
 
   // ── staleness ──────────────────────────────────────────────────────────
-  const stale = row.versionRefs ? detectProjectionStaleness(row) : false;
+  const stale = row.reviewAudit?.status === 'stale' ||
+    (row.versionRefs ? detectProjectionStaleness(row) : false);
   if (stale) {
     limitations.push({
       code: 'projection-stale',
