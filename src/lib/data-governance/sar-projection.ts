@@ -386,9 +386,10 @@ export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSa
   const { chunk } = input;
   const privacyScope = strictestPrivacyScope(evidencePrivacyScope(chunk.privacyClass), input.privacyScope);
   const sarEventId = makeEventId('corpus-chunk-summary', chunk.id);
-  const sourceEntity = entity('resource-node', chunk.sourceRef.resourceId ?? chunk.sourceRef.id, chunk.display.title, {
-    privacyScope,
-  });
+  const resourceRef = chunk.sourceRef.resourceId ?? chunk.resourceProjection?.resourceId ?? null;
+  const sourceEntity = resourceRef
+    ? entity('resource-node', resourceRef, chunk.display.title, { privacyScope })
+    : null;
   const graphEntities = learningEvidenceProjectionGraphRefs(chunk.resourceProjection)
     .map((ref) => entity('graph-node', ref, ref, { privacyScope }));
   const citationTargetRef = chunk.resourceProjection?.citationTargetRef ?? null;
@@ -428,9 +429,13 @@ export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSa
         graphCoverageRefs: uniqueSorted(input.coverageRefs ?? []),
       },
     }],
-    entities: [sourceEntity, ...graphEntities, ...citationEntities],
+    entities: [
+      ...(sourceEntity ? [sourceEntity] : []),
+      ...graphEntities,
+      ...citationEntities,
+    ],
     relations: [
-      relation(sarEventId, sourceEntity.id, 'generated-from', 'learning-evidence-source-ref'),
+      ...(sourceEntity ? [relation(sarEventId, sourceEntity.id, 'generated-from', 'learning-evidence-source-ref')] : []),
       ...graphEntities.map((graphEntity) => relation(sarEventId, graphEntity.id, 'evidence-for', 'learning-evidence-graph-ref')),
       ...citationEntities.map((citationEntity) => relation(sarEventId, citationEntity.id, 'generated-from', 'learning-evidence-citation-target')),
     ],
