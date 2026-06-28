@@ -4,6 +4,35 @@ export {
   type BuildSourcePackInput,
 } from './builder';
 export {
+  retrieveSourcePack,
+  type RetrieveSourcePackInput,
+  type RetrieveSourcePackResult,
+} from './hybrid-retriever';
+export {
+  diversifyRankedSourcePackItems,
+  type DiversifySourcePackInput,
+  type DiversifySourcePackResult,
+} from './pack-diversifier';
+export {
+  rankSourcePackCandidates,
+  type RankedSourcePackCandidate,
+  type SourcePackRankingContext,
+  type SourcePackRankingSignals,
+} from './pack-ranker';
+export {
+  getSourcePackRetrievalProfile,
+  listSourcePackRetrievalProfiles,
+  type SourcePackCallerRole,
+  type SourcePackRetrievalProfile,
+  type SourcePackRetrievalProfileName,
+} from './retrieval-profiles';
+export {
+  evaluateSourcePackRetrieval,
+  sourcePackEvaluationFixtures,
+  type SourcePackEvaluationCase,
+  type SourcePackEvaluationResult,
+} from './source-pack-eval';
+export {
   buildSourcePackAuditOutput,
   serializeSourcePackAudit,
   serializeSourcePackJson,

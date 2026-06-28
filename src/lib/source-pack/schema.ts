@@ -42,7 +42,11 @@ const verifiedHrefSchema = z.string().min(1).refine((value) => !hasRawVerifiedHr
 });
 
 export const sourcePackProfileSchema = z.enum([
+  'handout-authoring',
+  'assessment-item',
+  'konling-answer',
   'lesson-authoring',
+  'lesson-design',
   'homework-authoring',
   'konling',
   'path-planning',

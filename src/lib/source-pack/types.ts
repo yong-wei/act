@@ -1,7 +1,11 @@
 export const SOURCE_PACK_SCHEMA_VERSION = 'source-pack.v1';
 
 export type SourcePackProfile =
+  | 'handout-authoring'
+  | 'assessment-item'
+  | 'konling-answer'
   | 'lesson-authoring'
+  | 'lesson-design'
   | 'homework-authoring'
   | 'konling'
   | 'path-planning'
