@@ -31,7 +31,6 @@ import {
 import {
   loadAllTextbookRuntimeResourceCatalogEntries,
   loadAllTextbookRuntimeSearchDocuments,
-  type TextbookRuntimeSearchDocument,
 } from '@/lib/textbook-runtime-resources';
 import {
   buildAdaptiveLearningPathPlan,
@@ -49,9 +48,22 @@ import {
   resolveKonlingGraphContextLearningGoalId,
   type KonlingKaqGraphContext,
 } from '@/lib/konling-kaq-graph-context';
+import {
+  adaptTextbookSearchDocument,
+  retrieveSourcePack,
+  type SourcePack,
+  type SourcePackCallerRole,
+  type SourcePackItem,
+  type SourcePackModality,
+  type SourcePackSourceKind,
+} from '@/lib/source-pack';
 import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-resource-baseline-runtime';
 import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-center';
-import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
+import {
+  buildResourceNodeRegistry,
+  type ResourceNode,
+  type ResourceNodeRegistry,
+} from '@/lib/resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
@@ -978,6 +990,7 @@ export interface KonlingCitationContext {
   required: boolean;
   contentCitations: KonlingCitation[];
   evidenceCitations: KonlingCitation[];
+  sourcePacks?: KonlingSourcePackCitationSummary[];
   missingCitationClasses: string[];
   lowConfidenceReasons: string[];
   responseProtocol: {
@@ -988,6 +1001,15 @@ export interface KonlingCitationContext {
     };
     fallbackWhenMissing: 'low-confidence';
   };
+}
+
+export interface KonlingSourcePackCitationSummary {
+  packId: string;
+  profile: SourcePack['profile'];
+  queryText: string;
+  citationTargetIds: string[];
+  retrievalChunkIds: string[];
+  limitationCodes: string[];
 }
 
 export interface KonlingCitationGuard {
@@ -1093,6 +1115,7 @@ interface KonlingRuntimeInput {
   pathNodeId?: string | null;
   pageContextHint?: Partial<PageContext> | null;
   knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
+  currentUserQuery?: string | null;
   trustedContentContext?: boolean;
   now?: Date;
 }
@@ -1681,6 +1704,7 @@ export async function buildKonlingRuntimeContext(
     planContext,
     memory,
     knowledgeWorkspace,
+    currentUserQuery: input.currentUserQuery,
     trustedContentContext: input.trustedContentContext === true,
   });
   const baseRuntimeContext: KonlingRuntimeContext = {
@@ -1922,6 +1946,7 @@ async function buildAdaptivePathToolOutput(
     ? buildAdaptivePathRevisionPlannerPreference(args)
     : {};
   const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId, args.graphNodeId);
+  const sourcePackCandidates = await buildAdaptivePathSourcePackCandidates(registry);
   const plan = buildAdaptiveLearningPathPlan({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
@@ -1939,6 +1964,8 @@ async function buildAdaptivePathToolOutput(
     resourcePreferences,
     checkpointPreference: args.checkpointPreference ?? 'standard',
     allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
+    sourcePackCandidates,
+    sourcePackRole: 'student',
     ...plannerRevisionPreference,
     excludedNodeIds: args.excludedNodeIds,
     preferredStyleId: args.preferredStyleId,
@@ -2415,6 +2442,112 @@ async function resolveAdaptivePathGenerationRegistry(goalId: string) {
     });
   }
   throw new KonlingRuntimeScopeError(403, '当前学习目标还没有可生成的路径资源注册表。');
+}
+
+async function buildAdaptivePathSourcePackCandidates(registry: ResourceNodeRegistry): Promise<SourcePackItem[]> {
+  const resourceNodeCandidates = registry.nodes.map(buildResourceNodeSourcePackCandidate);
+  const textbookCandidates = await loadAllTextbookRuntimeSearchDocuments()
+    .then((documents) => documents.map(adaptTextbookSearchDocument).map((entry) => entry.item))
+    .catch(() => []);
+  return [...resourceNodeCandidates, ...textbookCandidates];
+}
+
+function buildResourceNodeSourcePackCandidate(node: ResourceNode): SourcePackItem {
+  const pathEligible = node.eligibility.pathEligible === true;
+  const citationTargetId = `citation-target:${node.id}:primary`;
+  const citationHref = sourcePackCitationHrefForResourceNode(node);
+  return {
+    id: `resource-node:${node.id}`,
+    title: node.title,
+    sourceKind: sourcePackSourceKindForResourceNode(node),
+    modality: sourcePackModalityForResourceNode(node),
+    excerpt: node.description || node.title,
+    inclusionRationale: pathEligible
+      ? 'Path-eligible ResourceNode from the governed adaptive planning registry.'
+      : 'ResourceNode citation context without current path eligibility.',
+    resourceNodeId: pathEligible ? node.id : undefined,
+    planningUnitId: pathEligible ? `planning-unit:${node.id}` : undefined,
+    retrievalChunkId: `resource-node:${node.id}`,
+    citationTargetId,
+    scores: {
+      relevance: pathEligible ? 0.82 : 0.48,
+      graphAlignment: node.planningMetadata.knowledgeCoverage.length > 0 ? 0.8 : 0.45,
+      authority: node.planningMetadata.availability === 'available' ? 0.82 : 0.45,
+      eligibility: pathEligible ? 0.9 : 0.25,
+      freshness: node.runtimeProjection?.reviewAudit?.status === 'stale' ? 0.35 : 0.75,
+      final: 0,
+    },
+    access: {
+      visibility: sourcePackVisibilityForResourceNode(node),
+      aiUseAllowed: node.planningMetadata.teacherPolicy !== 'blocked',
+    },
+    citation: {
+      citationTargetId,
+      sourceId: `resource-node-source:${node.id}`,
+      displayTitle: node.title,
+      href: citationHref,
+      resolver: citationHref ? 'course-runtime' : undefined,
+      verified: true,
+    },
+    metadata: {
+      reviewStatus: node.runtimeProjection?.reviewAudit?.status ?? 'current',
+      resourceId: node.id,
+      resourceIds: [node.id, node.sourceRef],
+      knowledgeNodeRefs: node.planningMetadata.knowledgeCoverage,
+      capabilityTargetRefs: Object.keys(node.planningMetadata.abilityImpact).sort((left, right) => left.localeCompare(right)),
+      resourceType: node.type,
+      sourceKind: node.sourceKind,
+      pathEligible: String(pathEligible),
+      teacherPolicy: node.planningMetadata.teacherPolicy,
+    },
+  };
+}
+
+function sourcePackCitationHrefForResourceNode(node: ResourceNode): string | undefined {
+  const href = node.launchTarget ?? node.renderTarget ?? undefined;
+  if (!href) return undefined;
+  if (href.startsWith('/course-runtime/') || href.startsWith('/resources/') || href === '/course-runtime' || href === '/resources') {
+    return href;
+  }
+  if (href.startsWith('#')) return href;
+  return undefined;
+}
+
+function sourcePackSourceKindForResourceNode(node: ResourceNode): SourcePackSourceKind {
+  if (node.type === 'textbook' || node.type === 'textbook_section' || node.sourceKind === 'textbook' || node.sourceKind === 'textbook_section') {
+    return 'textbook';
+  }
+  if (node.type === 'quiz' || node.type === 'adaptive_quiz' || node.type === 'checkpoint') return 'exercise';
+  if (node.type === 'simulation' || node.type === 'control_workbench' || node.type === 'arena_task') return 'simulation';
+  if (node.type === 'external_resource') return 'reference';
+  if (node.type === 'lesson_step' || node.type === 'slides' || node.type === 'handout' || node.sourceKind.startsWith('runtime_')) {
+    return 'runtime-lesson';
+  }
+  if (node.type === 'knowledge_node' || node.type === 'knowledge_card' || node.sourceKind === 'knowledge_graph') return 'knowledge-card';
+  return 'other';
+}
+
+function sourcePackModalityForResourceNode(node: ResourceNode): SourcePackModality {
+  if (node.type === 'video') return 'video';
+  if (node.type === 'audio') return 'audio';
+  if (
+    node.type === 'slides' ||
+    node.type === 'simulation' ||
+    node.type === 'control_workbench' ||
+    node.type === 'arena_task' ||
+    node.type === 'adaptive_quiz' ||
+    node.type === 'checkpoint' ||
+    node.type === 'konling'
+  ) {
+    return 'interactive';
+  }
+  return 'text';
+}
+
+function sourcePackVisibilityForResourceNode(node: ResourceNode): SourcePackItem['access']['visibility'] {
+  if (node.planningMetadata.privacyLevel === 'student-visible') return 'student';
+  if (node.planningMetadata.privacyLevel === 'teacher-scoped') return 'teacher';
+  return 'admin';
 }
 
 async function assertScopedAdaptivePathToolPath(
@@ -4869,13 +5002,22 @@ async function buildKonlingCitationContext(
     memory: KonlingMemoryView[];
     knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
     trustedContentContext: boolean;
+    currentUserQuery?: string | null;
   },
 ): Promise<KonlingCitationContext> {
+  const sourcePackContent = input.trustedContentContext
+    ? await buildKonlingSourcePackContentCitations({
+        scope: input.scope,
+        pageContext: input.pageContext,
+        knowledgeWorkspace: input.knowledgeWorkspace,
+        currentUserQuery: input.currentUserQuery,
+      })
+    : { citations: [], sourcePack: null };
   const contentCitations = input.trustedContentContext
     ? [
         ...buildContentCitations(input.pageContext),
         ...buildKnowledgeWorkspaceContentCitations(input.knowledgeWorkspace),
-        ...await buildTextbookRuntimeContentCitations(),
+        ...sourcePackContent.citations,
       ]
     : [];
   const evidenceCitations: KonlingCitation[] = [];
@@ -4963,6 +5105,7 @@ async function buildKonlingCitationContext(
     required: true,
     contentCitations,
     evidenceCitations,
+    sourcePacks: sourcePackContent.sourcePack ? [sourcePackContent.sourcePack] : [],
     missingCitationClasses,
     lowConfidenceReasons: [...new Set(lowConfidenceReasons)],
     responseProtocol: {
@@ -5044,63 +5187,112 @@ function buildKnowledgeWorkspaceContentCitations(
   }];
 }
 
-async function buildTextbookRuntimeContentCitations(): Promise<KonlingCitation[]> {
+async function buildKonlingSourcePackContentCitations(input: {
+  scope: KonlingRuntimeScope;
+  pageContext: PageContext;
+  knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
+  currentUserQuery?: string | null;
+}): Promise<{ citations: KonlingCitation[]; sourcePack: KonlingSourcePackCitationSummary | null }> {
   const documents = await loadAllTextbookRuntimeSearchDocuments().catch(() => []);
-  const selectedDocuments = selectTextbookRuntimeCitationDocuments(documents);
-  return selectedDocuments.map((document) => buildTextbookRuntimeContentCitation(document));
-}
-
-function selectTextbookRuntimeCitationDocuments(
-  documents: TextbookRuntimeSearchDocument[],
-): TextbookRuntimeSearchDocument[] {
-  const documentsByBookId = new Map<string, TextbookRuntimeSearchDocument[]>();
-  for (const document of documents) {
-    const bookId = document.metadata.bookId || 'unknown';
-    const bookDocuments = documentsByBookId.get(bookId) ?? [];
-    bookDocuments.push(document);
-    documentsByBookId.set(bookId, bookDocuments);
-  }
-
-  const sortedBookEntries = Array.from(documentsByBookId.entries())
-    .sort(([leftBookId], [rightBookId]) => leftBookId.localeCompare(rightBookId));
-  const selectedDocuments = sortedBookEntries
-    .map(([, bookDocuments]) => bookDocuments.find((document) => document.kind === 'chunk'))
-    .filter((document): document is TextbookRuntimeSearchDocument => Boolean(document));
-  selectedDocuments.push(
-    ...sortedBookEntries
-      .map(([, bookDocuments]) => bookDocuments.find((document) => document.kind === 'figure'))
-      .filter((document): document is TextbookRuntimeSearchDocument => Boolean(document))
+  const adapted = documents.map(adaptTextbookSearchDocument);
+  const query = buildKonlingSourcePackQuery(
+    input.pageContext,
+    input.knowledgeWorkspace,
+    input.currentUserQuery,
   );
-  return selectedDocuments.slice(0, 8);
+  const result = retrieveSourcePack({
+    query,
+    profile: 'konling-answer',
+    role: sourcePackRoleForKonling(input.scope.role),
+    caller: 'konling-agent-runtime',
+    topK: 6,
+    graphNodeRefs: buildKonlingSourcePackGraphRefs(input.pageContext, input.knowledgeWorkspace),
+    capabilityTargetRefs: buildKonlingSourcePackCapabilityRefs(input.knowledgeWorkspace),
+    candidates: adapted.map((entry) => entry.item),
+    limitations: adapted.flatMap((entry) => entry.limitations),
+  });
+  return {
+    citations: result.pack.items.map((item) => buildSourcePackContentCitation(result.pack, item)),
+    sourcePack: {
+      packId: result.pack.packId,
+      profile: result.pack.profile,
+      queryText: result.pack.query.text,
+      citationTargetIds: result.pack.audit.citationTargetIds,
+      retrievalChunkIds: result.pack.audit.retrievalChunkIds,
+      limitationCodes: result.pack.limitations.map((limitation) => limitation.code),
+    },
+  };
 }
 
-function buildTextbookRuntimeContentCitation(
-  document: TextbookRuntimeSearchDocument,
-): KonlingCitation {
-  const citationTargetRef = document.resourceProjection.citationTargetRef ?? document.id;
-  const href = document.citationAddress?.href ?? document.href;
-  const evidenceBasis = document.kind === 'figure'
-    ? 'textbook-figure-description'
-    : 'textbook-section';
-  const id = `content:${document.resourceProjection.resourceId}:${citationTargetRef}`;
-  const title = document.kind === 'figure'
-    ? `${document.title} 图像描述`
-    : document.title;
+function buildKonlingSourcePackQuery(
+  pageContext: PageContext,
+  knowledgeWorkspace: KonlingKnowledgeWorkspaceContext | null | undefined,
+  currentUserQuery?: string | null,
+): string {
+  const selectedNode = knowledgeWorkspace?.selected_node;
+  return [
+    normalizeSourcePackQueryText(currentUserQuery),
+    pageContext.topic,
+    pageContext.courseTitle,
+    selectedNode?.name,
+    selectedNode?.description,
+    ...(selectedNode?.tags ?? []),
+  ]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .join(' ');
+}
+
+function normalizeSourcePackQueryText(value: string | null | undefined): string | null {
+  const normalized = value?.replace(/\s+/g, ' ').trim();
+  if (!normalized) return null;
+  return normalized.slice(0, 500);
+}
+
+function buildKonlingSourcePackGraphRefs(
+  pageContext: PageContext,
+  knowledgeWorkspace: KonlingKnowledgeWorkspaceContext | null | undefined,
+): string[] {
+  return uniqueStrings([
+    pageContext.courseId,
+    pageContext.stepId,
+    knowledgeWorkspace?.selected_node?.id,
+  ]);
+}
+
+function buildKonlingSourcePackCapabilityRefs(
+  knowledgeWorkspace: KonlingKnowledgeWorkspaceContext | null | undefined,
+): string[] {
+  return uniqueStrings(knowledgeWorkspace?.selected_node?.capability_target_refs ?? []);
+}
+
+function uniqueStrings(values: readonly (string | null | undefined)[]): string[] {
+  return [...new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)))];
+}
+
+function sourcePackRoleForKonling(role: AdaptiveLearnerStateRole): SourcePackCallerRole {
+  if (role === 'admin' || role === 'teacher' || role === 'student') return role;
+  return 'student';
+}
+
+function buildSourcePackContentCitation(pack: SourcePack, item: SourcePackItem): KonlingCitation {
+  const citation = item.citation;
+  const citationTargetRef = citation?.citationTargetId ?? item.citationTargetId ?? item.id;
+  const id = `content:${citationTargetRef}`;
+  const title = citation?.displayTitle ?? item.title;
+  const href = citation?.href ?? null;
   return {
     id,
     sourceType: 'content',
     displayTitle: title,
     href,
     confidence: 'high',
-    evidenceBasis,
+    evidenceBasis: `source-pack:${pack.profile}:${pack.packId}`,
     owner: 'answer',
     citationChip: {
       chunkId: id,
       displayTitle: title,
       displayHref: href,
       sourceType: 'course-content',
-      addressKind: document.citationAddress?.kind,
-      citationAddress: document.citationAddress,
       authorityLevel: 'canonical',
       confidence: 'high',
       freshnessBucket: 'current',

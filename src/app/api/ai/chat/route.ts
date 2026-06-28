@@ -266,6 +266,7 @@ export async function POST(request: Request) {
         pathNodeId,
         pageContextHint: pageContext,
         knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
+        currentUserQuery: messages.at(-1)?.role === 'user' ? messages.at(-1)?.content : null,
         trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId),
       });
       const modeContract = buildKonlingTeachingAssistantRuntimeContract({

@@ -42,6 +42,11 @@ import {
   type KaqArtifactVersionRefs,
   type KaqVersionedArtifactMetadata,
 } from './kaq-artifact-versioning';
+import {
+  retrieveSourcePack,
+  type SourcePackCallerRole,
+  type SourcePackItem,
+} from './source-pack';
 
 export type AdaptiveLearningPathStatus = 'ready' | 'fallback';
 export type AdaptiveLearningPathPolicyFamily =
@@ -354,6 +359,8 @@ export interface AdaptiveLearningPathPlannerInput {
   allowExternalResources?: boolean;
   excludedNodeIds?: string[];
   preferredStyleId?: string;
+  sourcePackCandidates?: readonly SourcePackItem[];
+  sourcePackRole?: SourcePackCallerRole;
   requestedAt?: string;
   now?: Date;
 }
@@ -450,6 +457,25 @@ export interface AdaptiveLearningPathEvidencePayload {
   prerequisiteReasons: Array<{ nodeId: string; prerequisiteNodeIds: string[] }>;
   teacherPolicy: Array<{ nodeId: string; policy: ResourceNode['planningMetadata']['teacherPolicy'] }>;
   alternatives: AdaptiveLearningPathAlternative[];
+  sourcePackEvidence?: AdaptiveLearningPathSourcePackEvidence | null;
+}
+
+export interface AdaptiveLearningPathSourcePackEvidence {
+  packId: string;
+  profile: 'path-planning';
+  queryText: string;
+  itemRefs: string[];
+  pathEligibleItemRefs: string[];
+  citationOnlyItemRefs: string[];
+  capabilityTargetRefs: string[];
+  citationTargetIds: string[];
+  retrievalChunkIds: string[];
+  limitationCodes: string[];
+  coverage: {
+    eligibleItems: number;
+    returnedItems: number;
+    omittedItems: number;
+  };
 }
 
 export interface AdaptiveLearningPathVisualization {
@@ -1896,6 +1922,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const policyBundleRequest = resolvePolicyBundleRequest(input, confidence, registeredGoal);
   const capabilityTargets = resolveCapabilityTargets(input.goal, registeredGoal);
   const goal = attachLearningGoal(input.goal, registeredGoal);
+  const sourcePackEvidence = buildPathPlanningSourcePackEvidence(input, mainPath, goal);
 
   return {
     id: `adaptive-path:${input.studentId}:${input.goal.id}`,
@@ -1938,6 +1965,7 @@ function buildAdaptiveLearningPathPlanInternal(
       confidence,
       status,
       hasUsablePath: mainPath.length > 0,
+      sourcePackEvidence,
       generatedAt: now,
     }),
     graphContext,
@@ -4186,6 +4214,7 @@ function buildVisualization(input: {
   confidence: AdaptiveLearningPathPlan['confidence'];
   status: AdaptiveLearningPathStatus;
   hasUsablePath: boolean;
+  sourcePackEvidence: AdaptiveLearningPathSourcePackEvidence | null;
   generatedAt: string;
 }): AdaptiveLearningPathVisualization {
   const mainPathNodeIds = input.mainPath.map((node) => node.nodeId);
@@ -4217,8 +4246,73 @@ function buildVisualization(input: {
         .map((node) => ({ nodeId: node.nodeId, prerequisiteNodeIds: node.prerequisiteNodeIds })),
       teacherPolicy: input.mainPath.map((node) => ({ nodeId: node.nodeId, policy: node.teacherPolicy })),
       alternatives: input.alternatives,
+      sourcePackEvidence: input.sourcePackEvidence,
     },
   };
+}
+
+function buildPathPlanningSourcePackEvidence(
+  input: AdaptiveLearningPathPlannerInput,
+  mainPath: AdaptiveLearningPathPlanNode[],
+  goal: AdaptiveLearningPathGoal,
+): AdaptiveLearningPathSourcePackEvidence | null {
+  const candidates = input.sourcePackCandidates ?? [];
+  if (candidates.length === 0) return null;
+  const capabilityTargetRefs = uniqueNonEmptyStrings([
+    ...(goal.competencyTargets ?? []),
+    ...(goal.capabilityTargets?.map((target) => target.id) ?? []),
+  ]);
+  const query = `${goal.title} ${goal.knowledgeTargets.join(' ')} ${(goal.competencyTargets ?? []).join(' ')} ${goal.capabilityTargets?.map((target) => `${target.id} ${target.behaviorVerb}`).join(' ') ?? ''}`.trim();
+
+  const result = retrieveSourcePack({
+    query,
+    profile: 'path-planning',
+    role: input.sourcePackRole ?? 'student',
+    caller: 'adaptive-learning-path-planner',
+    topK: 6,
+    graphNodeRefs: uniqueNonEmptyStrings([
+      ...goal.knowledgeTargets,
+      ...(input.graphContext?.selectedGraphNodeIds ?? []),
+      ...Object.values(input.graphContext?.expandedSubgraph.graphNodeIds ?? {}).flat(),
+    ]),
+    capabilityTargetRefs,
+    learningGoalIds: uniqueNonEmptyStrings([
+      goal.id,
+      input.graphContext?.learningGoalId,
+      goal.learningGoal?.id,
+    ]),
+    resourceIds: uniqueNonEmptyStrings(mainPath.flatMap((node) => [
+      node.resourceNodeId,
+      node.resourceId,
+      node.planningUnitId,
+    ])),
+    candidates,
+  });
+  const itemRefs = result.pack.items.map((item) => item.id);
+  const pathEligibleItemRefs = result.pack.items
+    .filter((item) => Boolean(item.resourceNodeId || item.planningUnitId))
+    .map((item) => item.id);
+  return {
+    packId: result.pack.packId,
+    profile: 'path-planning',
+    queryText: result.pack.query.text,
+    itemRefs,
+    pathEligibleItemRefs,
+    citationOnlyItemRefs: itemRefs.filter((itemRef) => !pathEligibleItemRefs.includes(itemRef)),
+    capabilityTargetRefs,
+    citationTargetIds: result.pack.audit.citationTargetIds,
+    retrievalChunkIds: result.pack.audit.retrievalChunkIds,
+    limitationCodes: result.pack.limitations.map((limitation) => limitation.code),
+    coverage: {
+      eligibleItems: result.pack.coverage.eligibleItems ?? 0,
+      returnedItems: result.pack.coverage.returnedItems,
+      omittedItems: result.pack.coverage.omittedItems ?? 0,
+    },
+  };
+}
+
+function uniqueNonEmptyStrings(values: readonly (string | null | undefined)[]): string[] {
+  return [...new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)))];
 }
 
 function buildTimelinePayload(
