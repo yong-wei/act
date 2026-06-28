@@ -65,11 +65,24 @@ function mapPrivacyToVisibility(
 }
 
 /**
- * Map RuntimeResourceProjectionLevel to SourcePackSourceKind.
+ * Map RuntimeResourceProjectionArtifactRow to SourcePackSourceKind.
  */
-function mapProjectionLevelToSourceKind(
+function mapProjectionToSourceKind(
+  row: RuntimeResourceProjectionArtifactRow,
   level?: string,
 ): SourcePackSourceKind {
+  switch (row.family) {
+    case 'knowledge-card':
+    case 'knowledge-infograph':
+      return 'knowledge-card';
+    case 'runtime-lesson-step':
+    case 'runtime-lesson-module':
+    case 'runtime-lesson-media':
+    case 'runtime-handout':
+      return 'runtime-lesson';
+    default:
+      break;
+  }
   switch (level) {
     case 'ResourceNode':
     case 'PlanningUnit':
@@ -194,7 +207,7 @@ export function adaptResourceProjectionRow(
   };
 
   // ── source kind & modality ─────────────────────────────────────────────
-  const sourceKind: SourcePackSourceKind = mapProjectionLevelToSourceKind(projectionLevel);
+  const sourceKind: SourcePackSourceKind = mapProjectionToSourceKind(row, projectionLevel);
   const modality: SourcePackModality = projectionLevel === 'RetrievalChunk' ? 'text' : 'mixed';
 
   // ── excerpt ────────────────────────────────────────────────────────────

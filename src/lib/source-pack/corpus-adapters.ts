@@ -458,7 +458,7 @@ export function adaptLearningEvidenceBatch(
       items.push(result.item);
     } else {
       // Count exclusion categories
-      if (result.limitations.some((l) => l.code === 'scope-excluded')) {
+      if (result.limitations.some((l) => l.code === 'scope-excluded') && isPrivacyScopeExcluded(chunk, opts)) {
         privacyExcluded += 1;
       }
       if (opts.allowedSourceTypes?.length && !opts.allowedSourceTypes.includes(chunk.sourceType)) {
@@ -507,6 +507,16 @@ function isLearningEvidenceChunkInScope(
     (!scope.useCase || USE_CASE_SOURCE_TYPES[scope.useCase]?.has(chunk.sourceType) === true) &&
     matchesResourceProjectionSceneAvailability(chunk, scope.useCase) &&
     isChunkVisible(chunk, scope);
+}
+
+function isPrivacyScopeExcluded(
+  chunk: LearningEvidenceCorpusChunk,
+  scope: LearningEvidenceRetrievalScope,
+): boolean {
+  if (validateLearningEvidenceCorpusChunk(chunk).length > 0) return false;
+  return !matchesOwnerScope(chunk, scope) ||
+    !matchesAuthorityScopeRule(chunk, scope) ||
+    !isChunkVisible(chunk, scope);
 }
 
 function matchesGoalScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope): boolean {

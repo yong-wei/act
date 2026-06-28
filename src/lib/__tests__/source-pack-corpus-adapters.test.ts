@@ -843,6 +843,17 @@ describe('retrieval chunk not path eligible', () => {
     const { item } = adaptResourceProjectionRow(row);
     expect(item.resourceNodeId).toBe('res-001');
     expect(item.retrievalChunkId).toBe('resource-projection-chunk:rc-001');
+    expect(item.sourceKind).toBe('runtime-lesson');
+  });
+
+  it('keeps knowledge-card resource projections as knowledge-card source kind', () => {
+    const row = makeProjectionRow({
+      family: 'knowledge-card',
+      sourceKind: 'knowledge_card',
+      projectionLevel: 'ResourceNode' as 'ResourceNode',
+    });
+    const { item } = adaptResourceProjectionRow(row);
+    expect(item.sourceKind).toBe('knowledge-card');
   });
 
   it('assigns planningUnitId for path-eligible PlanningUnit projection', () => {
@@ -1025,6 +1036,37 @@ describe('adaptLearningEvidenceBatch', () => {
     // Teacher should see public + teacher-visible = 2
     expect(result.items).toHaveLength(2);
     expect(result.summary.privacyExcluded).toBeGreaterThanOrEqual(1);
+  });
+
+  it('does not count non-privacy scope exclusions as privacyExcluded', () => {
+    const result = adaptLearningEvidenceBatch([
+      makeChunk({
+        id: 'chunk-usecase-excluded',
+        retrieval: {
+          ...makeChunk().retrieval,
+          useCases: ['diagnosis'],
+        },
+      }),
+    ], { role: 'teacher', useCase: 'konling' });
+    expect(result.items).toHaveLength(0);
+    expect(result.limitations.some((limitation) => limitation.code === 'scope-excluded')).toBe(true);
+    expect(result.summary.privacyExcluded).toBe(0);
+    expect(result.summary.sourceTypeExcluded).toBe(0);
+  });
+
+  it('counts cross-owner student-visible exclusions as privacyExcluded', () => {
+    const result = adaptLearningEvidenceBatch([
+      makeScopedChunk('student-visible', ['student'], {
+        id: 'chunk-other-student',
+        sourceRef: {
+          ...makeChunk().sourceRef,
+          ownerUserId: 'student-2',
+        },
+      }),
+    ], { role: 'student', userId: 'student-1' });
+    expect(result.items).toHaveLength(0);
+    expect(result.limitations.some((limitation) => limitation.code === 'scope-excluded')).toBe(true);
+    expect(result.summary.privacyExcluded).toBe(1);
   });
 });
 
