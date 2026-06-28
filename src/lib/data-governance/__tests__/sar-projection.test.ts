@@ -455,6 +455,51 @@ describe('SAR platform source projections', () => {
     expect(result.retrievalChunkRefs).toEqual(['chunk:learner-root-locus']);
     expect(chunkMatchesGraphCoverageRefs(chunk, ['root-locus'], [])).toBe(true);
 
+    const privateEvidenceWithoutRedactedSummary = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        privacyClass: 'teacher-visible',
+        display: {
+          ...chunk.display,
+          capsule: 'Private teacher diagnosis capsule should not be exposed.',
+        },
+        content: {
+          ...chunk.content,
+          redactedSummary: null,
+        },
+      }),
+    });
+    expect(privateEvidenceWithoutRedactedSummary.events[0].safeSummary).toBe('Root locus diagnosis');
+    expect(privateEvidenceWithoutRedactedSummary.limitations).toContain('missing-redacted-summary:chunk:learner-root-locus');
+    expect(JSON.stringify(privateEvidenceWithoutRedactedSummary)).not.toContain('Private teacher diagnosis capsule');
+
+    const privateEvidenceWithBlankRedactedSummary = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        privacyClass: 'admin-only',
+        content: {
+          ...chunk.content,
+          redactedSummary: '   ',
+        },
+      }),
+    });
+    expect(privateEvidenceWithBlankRedactedSummary.events[0].safeSummary).toBe('Root locus diagnosis');
+    expect(privateEvidenceWithBlankRedactedSummary.limitations).toContain('missing-redacted-summary:chunk:learner-root-locus');
+
+    const studentVisibleWithoutRedactedSummary = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        privacyClass: 'student-visible',
+        display: {
+          ...chunk.display,
+          capsule: 'Student-visible capsule can remain visible.',
+        },
+        content: {
+          ...chunk.content,
+          redactedSummary: null,
+        },
+      }),
+    });
+    expect(studentVisibleWithoutRedactedSummary.events[0].safeSummary).toBe('Student-visible capsule can remain visible.');
+    expect(studentVisibleWithoutRedactedSummary.limitations).not.toContain('missing-redacted-summary:chunk:learner-root-locus');
+
     const semanticResourceIdEvidence = projectLearningEvidenceChunkToSar({
       chunk: learningEvidenceChunk({
         sourceRef: {

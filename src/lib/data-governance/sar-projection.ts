@@ -640,14 +640,20 @@ function goalSubgraphMismatchLimitations(
 }
 
 function safeEvidenceSummary(chunk: LearningEvidenceCorpusChunk): string {
-  if (chunk.privacyClass === 'public' && chunk.content.redactedSummary) return chunk.content.redactedSummary;
-  return safeText(chunk.content.redactedSummary ?? chunk.display.capsule, chunk.display.title);
+  if (chunk.content.redactedSummary?.trim()) return safeText(chunk.content.redactedSummary, chunk.display.title);
+  if (chunk.privacyClass === 'public' || chunk.privacyClass === 'student-visible') {
+    return safeText(chunk.display.capsule, chunk.display.title);
+  }
+  return safeText(chunk.display.title, chunk.id);
 }
 
 function evidenceLimitations(chunk: LearningEvidenceCorpusChunk): string[] {
   const limitations: string[] = [];
   if (chunk.privacyClass !== 'public' && chunk.privacyClass !== 'student-visible') {
     limitations.push(`privacy-scope-withheld:${chunk.privacyClass}`);
+    if (!chunk.content.redactedSummary?.trim()) {
+      limitations.push(`missing-redacted-summary:${chunk.id}`);
+    }
   }
   if (!chunk.resourceProjection?.citationTargetRef) limitations.push(`missing-citation-target:${chunk.id}`);
   if (chunk.resourceProjection?.citationReadiness) {
