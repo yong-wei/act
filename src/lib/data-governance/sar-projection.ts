@@ -392,9 +392,18 @@ export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSa
   const { chunk } = input;
   const privacyScope = strictestPrivacyScope(evidencePrivacyScope(chunk.privacyClass), input.privacyScope);
   const sarEventId = makeEventId('corpus-chunk-summary', chunk.id);
-  const resourceRef = chunk.sourceRef.resourceId ?? chunk.resourceProjection?.resourceId ?? null;
+  const resourceRefs = [
+    chunk.sourceRef.resourceId,
+    chunk.resourceProjection?.resourceId,
+  ].filter(isNonEmptyString);
+  const semanticResourceIds = uniqueSorted(resourceRefs);
+  const rawResourceRef = resourceRefs[0] ?? null;
+  const resourceRef = rawResourceRef ? canonicalResourceNodeRef(rawResourceRef) : null;
   const sourceEntity = resourceRef
-    ? entity('resource-node', resourceRef, chunk.display.title, { privacyScope })
+    ? entity('resource-node', resourceRef, chunk.display.title, {
+        aliases: uniqueSorted([resourceRef, ...semanticResourceIds]),
+        privacyScope,
+      })
     : null;
   const graphEntities = learningEvidenceProjectionGraphRefs(chunk.resourceProjection)
     .map((ref) => entity('graph-node', ref, ref, { privacyScope }));
@@ -425,7 +434,7 @@ export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSa
         spanKind: chunk.spanRef.kind,
         confidence: chunk.confidence,
         freshnessBucket: chunk.authority.freshnessBucket,
-        resourceId: chunk.sourceRef.resourceId ?? chunk.resourceProjection?.resourceId ?? null,
+        resourceId: rawResourceRef,
         segmentRef: chunk.resourceProjection?.segmentRef ?? null,
         citationTargetId: citationTargetRef,
         pathEligibility: chunk.resourceProjection?.pathEligibility ?? null,
@@ -740,4 +749,14 @@ function uniqueRelations(items: readonly SarRetrievalEventEntity[]): SarRetrieva
 function uniqueSorted(values: readonly string[]): string[] {
   return Array.from(new Set(values.filter((value) => value.trim().length > 0)))
     .sort((left, right) => left.localeCompare(right));
+}
+
+function isNonEmptyString(value: string | null | undefined): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function canonicalResourceNodeRef(resourceRef: string): string {
+  const semanticPrefix = 'resource:';
+  if (!resourceRef.startsWith(semanticPrefix)) return resourceRef;
+  return resourceRef.slice(semanticPrefix.length) || resourceRef;
 }

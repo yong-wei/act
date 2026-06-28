@@ -455,6 +455,57 @@ describe('SAR platform source projections', () => {
     expect(result.retrievalChunkRefs).toEqual(['chunk:learner-root-locus']);
     expect(chunkMatchesGraphCoverageRefs(chunk, ['root-locus'], [])).toBe(true);
 
+    const semanticResourceIdEvidence = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        sourceRef: {
+          ...chunk.sourceRef,
+          resourceId: chunk.resourceProjection!.resourceId,
+        },
+      }),
+    });
+    expect(semanticResourceIdEvidence.events[0].metadata).toMatchObject({
+      resourceId: 'resource:root-locus-video',
+    });
+    expect(semanticResourceIdEvidence.entities).toContainEqual(expect.objectContaining({
+      entityType: 'resource-node',
+      id: 'sar:entity:resource-node:root-locus-video',
+      canonicalRef: 'root-locus-video',
+      aliases: ['resource:root-locus-video', 'root-locus-video'],
+    }));
+    expect(semanticResourceIdEvidence.entities).not.toContainEqual(expect.objectContaining({
+      entityType: 'resource-node',
+      canonicalRef: 'resource:root-locus-video',
+    }));
+
+    const projectionOnlySemanticResourceIdEvidence = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        sourceRef: {
+          ...chunk.sourceRef,
+          resourceId: null,
+        },
+      }),
+    });
+    expect(projectionOnlySemanticResourceIdEvidence.entities).toContainEqual(expect.objectContaining({
+      entityType: 'resource-node',
+      canonicalRef: 'root-locus-video',
+      aliases: ['resource:root-locus-video', 'root-locus-video'],
+    }));
+
+    const externalResourceIdEvidence = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        sourceRef: {
+          ...chunk.sourceRef,
+          resourceId: 'external-resource:root-locus-video',
+        },
+        resourceProjection: undefined,
+      }),
+    });
+    expect(externalResourceIdEvidence.entities).toContainEqual(expect.objectContaining({
+      entityType: 'resource-node',
+      canonicalRef: 'external-resource:root-locus-video',
+      aliases: ['external-resource:root-locus-video'],
+    }));
+
     const missingTarget = projectLearningEvidenceChunkToSar({
       chunk: learningEvidenceChunk({
         resourceProjection: {
