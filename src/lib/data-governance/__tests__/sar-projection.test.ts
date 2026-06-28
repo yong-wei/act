@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 import {
   buildResourceNodeRegistry,
+  buildResourceSemanticProjection,
 } from '../../resource-node-registry';
 import type { LearningGoalDefinition } from '../../adaptive-learning-path-planner';
 import type { ExpandedGoalSubgraph } from '../../graphs/goal-subgraph-expansion-service';
@@ -273,6 +274,90 @@ describe('SAR platform source projections', () => {
     expect(result.retrievalChunkRefs).toEqual(['retrieval-chunk:registry:root-locus-resource:primary']);
     expect(result.entities.filter((entity) => entity.entityType === 'path-node')).toEqual([]);
     expect(result.entities.map((entity) => entity.entityType)).toContain('planning-unit');
+  });
+
+  it('matches resource graph coverage against the supplied semantic projection', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'runtime-media-resource',
+        label: 'Runtime media',
+        type: 'video',
+        renderTarget: '/course-runtime/media/runtime-media-resource',
+        knowledgeNodeIds: ['node-only-knowledge'],
+      }],
+    });
+    const node = registry.nodes[0];
+    const baseProjection = buildResourceSemanticProjection(node);
+    const projection = {
+      ...baseProjection,
+      resource: {
+        ...baseProjection.resource,
+        knowledgeNodeIds: ['projection-only-knowledge'],
+        graphProfile: {
+          ...baseProjection.resource.graphProfile,
+          graphNodeRefs: {
+            ...baseProjection.resource.graphProfile.graphNodeRefs,
+            knowledge: ['projection-only-knowledge'],
+          },
+        },
+      },
+    };
+
+    const result = projectResourceNodeToSar({
+      node,
+      projection,
+      coverageRefs: ['projection-only-knowledge'],
+    });
+
+    expect(validateSarResult(result).issues).toEqual([]);
+    expect(resourceMatchesGraphCoverageRefs(node, ['projection-only-knowledge'])).toBe(false);
+    expect(result.events[0].metadata).toMatchObject({
+      graphCoverageMatched: true,
+      graphCoverageRefs: ['projection-only-knowledge'],
+    });
+    expect(result.entities).toContainEqual(expect.objectContaining({
+      entityType: 'graph-node',
+      canonicalRef: 'projection-only-knowledge',
+    }));
+
+    const unrelated = projectResourceNodeToSar({
+      node,
+      projection,
+      coverageRefs: ['unrelated-ref'],
+    });
+    expect(unrelated.events[0].metadata).toMatchObject({
+      graphCoverageMatched: false,
+      graphCoverageRefs: ['unrelated-ref'],
+    });
+  });
+
+  it('matches non-path resource coverage through projection evidence instrumentation', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'reference-only-resource',
+        label: 'Reference only resource',
+        type: 'video',
+        knowledgeNodeIds: ['node-only-knowledge'],
+        planningOverride: {
+          evidenceInstrumentation: ['view:reference-only-resource'],
+        },
+      }],
+    });
+    const node = registry.nodes[0];
+    const projection = buildResourceSemanticProjection(node);
+
+    const result = projectResourceNodeToSar({
+      node,
+      projection,
+      coverageRefs: ['view:reference-only-resource'],
+    });
+
+    expect(projection.planningUnit).toBeNull();
+    expect(resourceMatchesGraphCoverageRefs(node, ['view:reference-only-resource'])).toBe(true);
+    expect(result.events[0].metadata).toMatchObject({
+      graphCoverageMatched: true,
+      graphCoverageRefs: ['view:reference-only-resource'],
+    });
   });
 
   it('projects LearningEvidence chunks with redacted summaries and citation target refs', () => {

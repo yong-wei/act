@@ -32,7 +32,7 @@ import type {
 import {
   chunkMatchesGraphCoverageRefs,
   learningEvidenceProjectionGraphRefs,
-  resourceMatchesGraphCoverageRefs,
+  resourceProjectionMatchesGraphCoverageRefs,
 } from './resource-coverage-matching';
 
 export interface SarProjection {
@@ -355,7 +355,7 @@ export function projectResourceNodeToSar(input: ResourceNodeSarProjectionInput):
         governance: resource.governance,
         pathEligible: Boolean(projection.planningUnit),
         graphCoverageMatched: input.coverageRefs
-          ? resourceMatchesGraphCoverageRefs(input.node, input.coverageRefs)
+          ? resourceProjectionMatchesGraphCoverageRefs(projection, input.coverageRefs)
           : null,
         graphCoverageRefs: uniqueSorted(input.coverageRefs ?? []),
         citationTargetIds: projection.citationTargets.map((target) => target.id),
