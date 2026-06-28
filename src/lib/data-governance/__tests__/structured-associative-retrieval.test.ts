@@ -389,6 +389,12 @@ describe('structured associative retrieval contract', () => {
     expect(validateSarResult(sarResult({
       limitations: ['raw learner submission text must stay outside SAR result limitations'],
     })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarResult(sarResult({
+      trace: trace({
+        limitations: ['raw learner submission text must stay outside SAR trace limitations'],
+      }),
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
   });
 
   it('validates rejected refs and relation references inside result traces', () => {

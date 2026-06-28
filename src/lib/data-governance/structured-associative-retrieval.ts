@@ -370,6 +370,7 @@ export function validateSarTrace(trace: unknown): SarValidationResult {
   requireStringArray(trace.seedEntityIds, 'seedEntityIds', issues, 'invalid-trace');
   requireStringArray(trace.selectedRefs, 'selectedRefs', issues, 'invalid-trace');
   requireStringArray(trace.limitations, 'limitations', issues, 'invalid-trace');
+  scanStringArrayRestricted(trace.limitations, 'limitations', issues);
   requireStringArray(trace.versionRefs, 'versionRefs', issues, 'invalid-trace');
   if (!Array.isArray(trace.expansionHops)) {
     issues.push(issue('invalid-trace', 'expansionHops', 'expansionHops must be an array.'));
