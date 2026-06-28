@@ -206,12 +206,15 @@ function coverageLimitations(
   profile: ReturnType<typeof getSourcePackRetrievalProfile>,
 ): SourcePackLimitation[] {
   const limitations: SourcePackLimitation[] = [];
+  const coversRequestedResource = profile.name === 'path-planning'
+    ? coversPathResourceRef
+    : coversResourceRef;
   const checks = [
     { refs: input.graphNodeRefs, covers: coversMetadataRef('knowledgeNodeRefs'), code: 'coverage-missing-knowledge-node', label: 'knowledge node' },
     { refs: input.capabilityTargetRefs, covers: coversMetadataRef('capabilityTargetRefs'), code: 'coverage-missing-capability-target', label: 'capability target' },
     { refs: input.qualityTargetRefs, covers: coversMetadataRef('qualityTargetRefs'), code: 'coverage-missing-quality-target', label: 'quality target' },
     { refs: input.learningGoalIds, covers: coversMetadataRef('learningGoalIds'), code: 'coverage-missing-learning-goal', label: 'learning goal' },
-    { refs: input.resourceIds, covers: coversResourceRef, code: 'coverage-missing-resource', label: 'resource' },
+    { refs: input.resourceIds, covers: coversRequestedResource, code: 'coverage-missing-resource', label: 'resource' },
   ] as const;
   for (const check of checks) {
     for (const ref of check.refs ?? []) {
@@ -240,6 +243,20 @@ function coversResourceRef(item: SourcePackItem, ref: string): boolean {
     || item.planningUnitId === ref
     || metadataIncludes(item, 'resourceId', ref)
     || metadataIncludes(item, 'resourceIds', ref);
+}
+
+function coversPathResourceRef(item: SourcePackItem, ref: string): boolean {
+  return item.resourceNodeId === ref
+    || item.planningUnitId === ref
+    || (hasExplicitPathEligibility(item) && (
+      metadataIncludes(item, 'resourceId', ref)
+      || metadataIncludes(item, 'resourceIds', ref)
+    ));
+}
+
+function hasExplicitPathEligibility(item: SourcePackItem): boolean {
+  return item.metadata?.pathEligible === true
+    || item.metadata?.pathEligible === 'true';
 }
 
 function normalizeRetrievalInput(input: RetrieveSourcePackInput): RetrieveSourcePackInput {

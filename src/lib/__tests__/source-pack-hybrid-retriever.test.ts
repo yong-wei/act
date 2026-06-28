@@ -537,6 +537,7 @@ describe('source pack retrieval profiles', () => {
       profile: 'path-planning',
       role: 'teacher',
       graphNodeRefs: ['kn-root-locus'],
+      resourceIds: ['resource:root-locus'],
       candidates: [adapted.item],
       now: new Date('2026-06-28T00:00:00Z'),
     });
@@ -545,6 +546,7 @@ describe('source pack retrieval profiles', () => {
     expect(result.pack.items[0].sourceKind).toBe('reference');
     expect(result.pack.items[0].resourceNodeId).toBeUndefined();
     expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('path-planning-citation-only-evidence');
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('coverage-missing-resource');
     expect(result.pack.limitations.map((limitation) => limitation.code)).not.toContain('profile-filtered-source-kind');
   });
 });
