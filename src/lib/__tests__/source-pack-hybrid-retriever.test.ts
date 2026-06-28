@@ -487,7 +487,42 @@ describe('source pack hybrid ranking', () => {
       'coverage-missing-resource',
       'coverage-missing-learning-goal',
       'coverage-missing-quality-target',
+      'coverage-missing-modality',
     ]));
+  });
+
+  it('reports missing modality coverage declared by the retrieval profile', () => {
+    const textOnly = retrieveSourcePack({
+      query: 'stability',
+      profile: 'lesson-design',
+      role: 'teacher',
+      candidates: [
+        item({
+          id: 'text-stability',
+          title: 'Text stability concept',
+          modality: 'text',
+          metadata: { reviewStatus: 'human-confirmed' },
+        }),
+      ],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(textOnly.pack.limitations.filter((limitation) => limitation.code === 'coverage-missing-modality').map((limitation) => limitation.message)).toEqual([
+      'No selected Source Pack item covers modality image.',
+      'No selected Source Pack item covers modality interactive.',
+    ]);
+
+    const complete = retrieveSourcePack({
+      query: 'stability',
+      profile: 'lesson-design',
+      role: 'teacher',
+      candidates: [
+        item({ id: 'text-stability', modality: 'text', retrievalChunkId: 'chunk:text', citationTargetId: 'citation:text' }),
+        item({ id: 'image-stability', modality: 'image', sourceKind: 'runtime-lesson', retrievalChunkId: 'chunk:image', citationTargetId: 'citation:image' }),
+        item({ id: 'interactive-stability', modality: 'interactive', sourceKind: 'simulation', retrievalChunkId: 'chunk:interactive', citationTargetId: 'citation:interactive' }),
+      ],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(complete.pack.limitations.map((limitation) => limitation.code)).not.toContain('coverage-missing-modality');
   });
 
   it('does not report resource coverage missing when selected items carry resource refs', () => {

@@ -50,7 +50,7 @@ export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSour
     ...inputLimitationsForPack(input.limitations ?? [], role),
     ...filtered.limitations,
     ...diversified.limitations,
-    ...coverageLimitations(diversified.items, normalizedInput),
+    ...coverageLimitations(diversified.items, normalizedInput, profile),
   ];
   if (filtered.eligible.length === 0) {
     limitations.push(buildLimitation('source-pack-no-eligible-candidates', 'No candidates remained after profile policy filtering.', 'warning'));
@@ -195,7 +195,11 @@ function answerLeakageText(item: SourcePackItem): string {
   return `${item.id} ${item.title} ${item.excerpt} ${metadataText}`.toLowerCase();
 }
 
-function coverageLimitations(items: readonly SourcePackItem[], input: RetrieveSourcePackInput): SourcePackLimitation[] {
+function coverageLimitations(
+  items: readonly SourcePackItem[],
+  input: RetrieveSourcePackInput,
+  profile: ReturnType<typeof getSourcePackRetrievalProfile>,
+): SourcePackLimitation[] {
   const limitations: SourcePackLimitation[] = [];
   const checks = [
     { refs: input.graphNodeRefs, covers: coversMetadataRef('knowledgeNodeRefs'), code: 'coverage-missing-knowledge-node', label: 'knowledge node' },
@@ -209,6 +213,11 @@ function coverageLimitations(items: readonly SourcePackItem[], input: RetrieveSo
       if (!items.some((item) => check.covers(item, ref))) {
         limitations.push(buildLimitation(check.code, `No selected Source Pack item covers ${check.label} ${ref}.`));
       }
+    }
+  }
+  for (const modality of profile.modalityCoverage ?? []) {
+    if (!items.some((item) => item.modality === modality)) {
+      limitations.push(buildLimitation('coverage-missing-modality', `No selected Source Pack item covers modality ${modality}.`));
     }
   }
   return limitations;
