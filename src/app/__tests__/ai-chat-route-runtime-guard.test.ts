@@ -23,6 +23,10 @@ const streamingCitationFallbackSource = readFileSync(
   join(process.cwd(), 'src/lib/konling-streaming-citation-fallback.ts'),
   'utf8',
 );
+const finalCitationMetadataStreamSource = readFileSync(
+  join(process.cwd(), 'src/lib/konling-final-citation-metadata-stream.ts'),
+  'utf8',
+);
 const globalAISidebarSource = readFileSync(
   join(process.cwd(), 'src/components/ai/global-ai-sidebar.tsx'),
   'utf8',
@@ -234,6 +238,12 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).not.toContain('actorUserId: scope.scope.authenticatedUserId');
     expect(chatRouteSource).toContain('messageMetadata: ({ part })');
     expect(chatRouteSource).toContain('konlingCitationGuard');
+    expect(chatRouteSource).toContain('appendFinalCitationGuardMetadata');
+    expect(chatRouteSource).toContain('buildFinalCitationGuardMetadataPayload');
+    expect(chatRouteSource).toContain('buildKonlingCitationGuard(modeRuntimeContext, assistantContent)');
+    expect(finalCitationMetadataStreamSource).toContain("chunk.type === 'text-delta'");
+    expect(finalCitationMetadataStreamSource).toContain("type: 'message-metadata'");
+    expect(finalCitationMetadataStreamSource).toContain('konlingCitationGuard: buildFinalMetadata(assistantContent)');
     expect(chatRouteSource).toContain('function buildCitationGuardMetadataPayload');
     expect(chatRouteSource).toContain('diagnosticReasons: citationGuardMetadata.diagnosticReasons ?? []');
     expect(chatRouteSource).toContain('personalizationAvailability: citationGuardMetadata.personalizationAvailability');

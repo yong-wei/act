@@ -18,6 +18,7 @@ import {
   buildStreamingCitationFallbackNotice,
   insertStreamingCitationFallbackNotice,
 } from '@/lib/konling-streaming-citation-fallback';
+import { appendFinalCitationGuardMetadata } from '@/lib/konling-final-citation-metadata-stream';
 import {
   resolveKonlingTeachingAssistantScopeOverride,
   resolveKonlingTeachingAssistantServerModeContext,
@@ -230,6 +231,7 @@ export async function POST(request: Request) {
     let citationGuardMetadata: ReturnType<typeof buildKonlingCitationGuard> | null = null;
     let citationGuardMetadataContext: { missingContext: string[] } | null = null;
     let citationGuardMetadataPayload: ReturnType<typeof buildCitationGuardMetadataPayload> | null = null;
+    let buildFinalCitationGuardMetadataPayload: ((assistantContent: string) => ReturnType<typeof buildCitationGuardMetadataPayload>) | null = null;
     let modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
       streaming: true,
@@ -328,6 +330,10 @@ export async function POST(request: Request) {
       citationGuardMetadataPayload = buildCitationGuardMetadataPayload(
         citationGuardMetadata,
         citationGuardMetadataContext.missingContext,
+      );
+      buildFinalCitationGuardMetadataPayload = (assistantContent: string) => buildCitationGuardMetadataPayload(
+        buildKonlingCitationGuard(modeRuntimeContext, assistantContent),
+        citationGuardMetadataContext?.missingContext ?? [],
       );
       modelRequirements = {
         ...modelRequirements,
@@ -447,8 +453,11 @@ export async function POST(request: Request) {
       },
       onError: getAIStreamErrorMessage,
     });
+    const finalCitationUiMessageStream = buildFinalCitationGuardMetadataPayload
+      ? appendFinalCitationGuardMetadata(uiMessageStream, buildFinalCitationGuardMetadataPayload)
+      : uiMessageStream;
     const guardedUiMessageStream = insertStreamingCitationFallbackNotice(
-      uiMessageStream,
+      finalCitationUiMessageStream,
       buildStreamingCitationFallbackNotice(citationGuardMetadataPayload),
     );
 
