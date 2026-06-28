@@ -150,13 +150,23 @@ function limitationLabel(value: string | null) {
   return value.replace(/-/g, ' ');
 }
 
+function citationPanelTitle(status: 'verified' | 'low-confidence' | 'missing') {
+  if (status === 'verified') return '已验证引用';
+  if (status === 'low-confidence') return '引用核验有限';
+  return '未找到可验证引用';
+}
+
 export function KonlingCitationPanel({ metadata }: { metadata: unknown }) {
   const presentation = normalizeKonlingCitationPresentation(metadata);
   if (presentation.status === 'missing' && presentation.missingReasons.length === 0) return null;
 
   return (
-    <div className="mt-3 border-t border-slate-700/70 pt-2" data-konling-citation-panel>
-      <div className="mb-1 text-[11px] font-medium text-slate-400">已验证引用</div>
+    <div
+      className="mt-3 border-t border-slate-700/70 pt-2"
+      data-konling-citation-panel
+      data-konling-citation-status={presentation.status}
+    >
+      <div className="mb-1 text-[11px] font-medium text-slate-400">{citationPanelTitle(presentation.status)}</div>
       {presentation.citations.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
           {presentation.citations.map((citation, index) => {

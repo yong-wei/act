@@ -43,6 +43,8 @@ describe('Konling verified citation presentation', () => {
     );
 
     expect(html).toContain('data-konling-citation-panel');
+    expect(html).toContain('data-konling-citation-status="verified"');
+    expect(html).toContain('已验证引用');
     expect(html).toContain('时间常数教材片段');
     expect(html).toContain('data-citation-target="/course-runtime/resources/textbooks/control/ch02.md#time-constant"');
     expect(html).not.toContain('user-content-fn');
@@ -107,6 +109,9 @@ describe('Konling verified citation presentation', () => {
       }),
     );
 
+    expect(html).toContain('data-konling-citation-status="low-confidence"');
+    expect(html).toContain('引用核验有限');
+    expect(html).not.toContain('已验证引用');
     expect(html).toContain('data-citation-limited="guard-low-confidence"');
     expect(html).not.toContain('data-citation-target=');
   });
@@ -126,6 +131,7 @@ describe('Konling verified citation presentation', () => {
     );
 
     expect(html).toContain('data-konling-citation-missing');
+    expect(html).toContain('data-konling-citation-status="missing"');
     expect(html).toContain('content');
     expect(html).not.toContain('href=');
   });
