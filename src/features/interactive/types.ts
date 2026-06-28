@@ -97,6 +97,7 @@ export interface AIMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  metadata?: unknown;
 }
 
 /** 追踪上下文值 */

@@ -25,7 +25,7 @@ describe('ai task boundary UI source contracts', () => {
     const copilotPanel = readSource('src/features/ai/copilot-panel.tsx');
     const interactiveAiPanel = readSource('src/features/interactive/InteractiveAIPanel.tsx');
 
-    expect(messageContent).toContain('sanitizeContent ? sanitizeAiVisibleContent(content) : content');
+    expect(messageContent).toContain('sanitizeVerifiedCitationMarkdown(sanitizeAiVisibleContent(content))');
     expect(globalSidebar).toContain("role={isOpen ? 'dialog' : undefined}");
     expect(globalSidebar).toContain("aria-modal={isOpen ? 'true' : undefined}");
     expect(globalSidebar).toContain("aria-hidden={isOpen ? undefined : 'true'}");
@@ -34,6 +34,7 @@ describe('ai task boundary UI source contracts', () => {
     expect(globalSidebar).toContain('summarizeAiToolResult(tool.toolName)');
     expect(globalSidebar).toContain('发送 AI 问题');
     expect(globalSidebar).toContain('sanitizeContent={!isUser}');
+    expect(globalSidebar).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
     expect(copilot).toContain('summarizeAiToolResult(tool.toolName)');
     expect(copilot).toContain("sanitizeContent={message.role !== 'user'}");
     expect(copilot).toContain("context === 'portfolio-reflection'");
@@ -44,8 +45,11 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).toContain('taskContext: evidenceSummary');
     expect(copilot).toContain('证据来源：${evidenceSummary.source}');
     expect(konlingSidebar).toContain('sanitizeContent={!isUser}');
+    expect(konlingSidebar).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
     expect(copilotPanel).toContain('sanitizeContent={!isUser}');
+    expect(copilotPanel).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
     expect(interactiveAiPanel).toContain('sanitizeContent={!isUser}');
+    expect(interactiveAiPanel).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
 
     [
       globalSidebar,

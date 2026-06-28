@@ -18,6 +18,7 @@ import {
   buildStreamingCitationFallbackNotice,
   insertStreamingCitationFallbackNotice,
 } from '@/lib/konling-streaming-citation-fallback';
+import { appendFinalCitationGuardMetadata } from '@/lib/konling-final-citation-metadata-stream';
 import {
   resolveKonlingTeachingAssistantScopeOverride,
   resolveKonlingTeachingAssistantServerModeContext,
@@ -38,6 +39,7 @@ import {
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
 import { redactProviderError, type ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
+import type { Prisma } from '@prisma/client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -103,13 +105,20 @@ function buildCitationGuardMetadataPayload(
     missingContext,
     retrievalSources: buildKonlingCitationRetrievalSources(citationGuardMetadata),
     citations: citationGuardMetadata.citations.map((citation) => ({
+      id: citation.id,
       sourceType: citation.sourceType,
       displayTitle: citation.displayTitle,
       href: citation.href,
       confidence: citation.confidence,
       evidenceBasis: citation.evidenceBasis,
+      citationChip: jsonSafe(citation.citationChip),
     })),
   };
+}
+
+function jsonSafe(value: unknown): unknown | null {
+  if (value === undefined) return null;
+  return JSON.parse(JSON.stringify(value)) as unknown;
 }
 
 export async function POST(request: Request) {
@@ -222,6 +231,7 @@ export async function POST(request: Request) {
     let citationGuardMetadata: ReturnType<typeof buildKonlingCitationGuard> | null = null;
     let citationGuardMetadataContext: { missingContext: string[] } | null = null;
     let citationGuardMetadataPayload: ReturnType<typeof buildCitationGuardMetadataPayload> | null = null;
+    let buildFinalCitationGuardMetadataPayload: ((assistantContent: string) => ReturnType<typeof buildCitationGuardMetadataPayload>) | null = null;
     let modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
       streaming: true,
@@ -321,6 +331,10 @@ export async function POST(request: Request) {
         citationGuardMetadata,
         citationGuardMetadataContext.missingContext,
       );
+      buildFinalCitationGuardMetadataPayload = (assistantContent: string) => buildCitationGuardMetadataPayload(
+        buildKonlingCitationGuard(modeRuntimeContext, assistantContent),
+        citationGuardMetadataContext?.missingContext ?? [],
+      );
       modelRequirements = {
         ...modelRequirements,
         tools: true,
@@ -369,7 +383,7 @@ export async function POST(request: Request) {
             teachingAssistantMode: modeContract.mode.id,
             modeStatus: modeContract.status,
             konlingCitationGuard: citationGuardMetadataPayload,
-          },
+          } as Prisma.InputJsonObject,
         },
       });
       if (agentSessionStateUpdate.count !== 1) {
@@ -439,8 +453,11 @@ export async function POST(request: Request) {
       },
       onError: getAIStreamErrorMessage,
     });
+    const finalCitationUiMessageStream = buildFinalCitationGuardMetadataPayload
+      ? appendFinalCitationGuardMetadata(uiMessageStream, buildFinalCitationGuardMetadataPayload)
+      : uiMessageStream;
     const guardedUiMessageStream = insertStreamingCitationFallbackNotice(
-      uiMessageStream,
+      finalCitationUiMessageStream,
       buildStreamingCitationFallbackNotice(citationGuardMetadataPayload),
     );
 
