@@ -400,6 +400,7 @@ export function validateSarTrace(trace: unknown): SarValidationResult {
       }
       requireString(ref, 'ref', issues, `rejectedRefs.${index}.ref`, 'invalid-trace');
       requireString(ref, 'reason', issues, `rejectedRefs.${index}.reason`, 'invalid-trace');
+      scanRestricted(ref.reason, `rejectedRefs.${index}.reason`, issues);
       scanObjectExtensionFields(ref, REJECTED_REF_KEYS, `rejectedRefs.${index}`, issues);
     });
   }

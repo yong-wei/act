@@ -395,6 +395,22 @@ describe('structured associative retrieval contract', () => {
         limitations: ['raw learner submission text must stay outside SAR trace limitations'],
       }),
     })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarTrace(trace({
+      rejectedRefs: [{
+        ref: 'sar:event:private-memory',
+        reason: 'raw learner submission text must stay outside SAR rejected ref reasons',
+      }],
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarResult(sarResult({
+      trace: trace({
+        rejectedRefs: [{
+          ref: 'sar:event:private-memory',
+          reason: 'audit trace details must stay outside SAR rejected ref reasons',
+        }],
+      }),
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
   });
 
   it('validates rejected refs and relation references inside result traces', () => {
