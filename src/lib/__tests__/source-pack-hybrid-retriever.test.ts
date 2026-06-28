@@ -465,6 +465,128 @@ describe('source pack hybrid ranking', () => {
     });
     expect(result.ranked[0].item.id).toBe('graph-aligned');
   });
+
+  it('reports missing resource, learning goal, and quality target coverage', () => {
+    const result = retrieveSourcePack({
+      query: 'stability',
+      profile: 'lesson-design',
+      role: 'teacher',
+      resourceIds: ['resource-missing'],
+      learningGoalIds: ['goal-missing'],
+      qualityTargetRefs: ['quality-missing'],
+      candidates: [
+        item({
+          id: 'general-stability',
+          title: 'Stability concept',
+          metadata: { reviewStatus: 'human-confirmed', resourceIds: ['resource-present'] },
+        }),
+      ],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toEqual(expect.arrayContaining([
+      'coverage-missing-resource',
+      'coverage-missing-learning-goal',
+      'coverage-missing-quality-target',
+    ]));
+  });
+
+  it('does not report resource coverage missing when selected items carry resource refs', () => {
+    const result = retrieveSourcePack({
+      query: 'stability',
+      profile: 'lesson-design',
+      role: 'teacher',
+      resourceIds: [
+        'resource-node-present',
+        'planning-unit-present',
+        'resource-metadata-single',
+        'resource-metadata-array',
+      ],
+      candidates: [
+        item({
+          id: 'resource-node-item',
+          title: 'Stability resource node',
+          retrievalChunkId: 'chunk:resource-node',
+          citationTargetId: 'citation:resource-node',
+          resourceNodeId: 'resource-node-present',
+          metadata: { reviewStatus: 'human-confirmed' },
+        }),
+        item({
+          id: 'planning-unit-item',
+          title: 'Stability planning unit',
+          sourceKind: 'runtime-lesson',
+          retrievalChunkId: 'chunk:planning-unit',
+          citationTargetId: 'citation:planning-unit',
+          planningUnitId: 'planning-unit-present',
+          metadata: { reviewStatus: 'human-confirmed' },
+        }),
+        item({
+          id: 'resource-metadata-single-item',
+          title: 'Stability single metadata resource',
+          sourceKind: 'knowledge-card',
+          retrievalChunkId: 'chunk:metadata-single',
+          citationTargetId: 'citation:metadata-single',
+          metadata: { reviewStatus: 'human-confirmed', resourceId: 'resource-metadata-single' },
+        }),
+        item({
+          id: 'resource-metadata-array-item',
+          title: 'Stability array metadata resource',
+          sourceKind: 'exercise',
+          retrievalChunkId: 'chunk:metadata-array',
+          citationTargetId: 'citation:metadata-array',
+          metadata: { reviewStatus: 'human-confirmed', resourceIds: ['resource-metadata-array'] },
+        }),
+      ],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(result.pack.limitations.map((limitation) => limitation.code)).not.toContain('coverage-missing-resource');
+  });
+
+  it('reranks single resourceId metadata into selected coverage', () => {
+    const competitors = Array.from({ length: 8 }, (_, index) => item({
+      id: `competitor-${index}`,
+      title: `General candidate ${index}`,
+      excerpt: 'General course material.',
+      sourceKind: 'reference',
+      retrievalChunkId: `chunk:competitor-${index}`,
+      citationTargetId: `citation:competitor-${index}`,
+      scores: { ...item().scores, relevance: 0.45, graphAlignment: 0, authority: 0.45, freshness: 0.45, eligibility: 0.45, final: 0.45 },
+      metadata: { reviewStatus: 'human-confirmed' },
+    }));
+    const candidates = [
+      ...competitors,
+      item({
+        id: 'resource-metadata-single-item',
+        title: 'Target resource metadata',
+        excerpt: 'Target course material.',
+        sourceKind: 'textbook',
+        retrievalChunkId: 'chunk:metadata-single',
+        citationTargetId: 'citation:metadata-single',
+        scores: { ...item().scores, relevance: 0.05, graphAlignment: 0, authority: 0.05, freshness: 0.05, eligibility: 0.05, final: 0.05 },
+        metadata: { reviewStatus: 'human-confirmed', resourceId: 'resource-metadata-single' },
+      }),
+    ];
+    const withoutResourceContext = retrieveSourcePack({
+      query: 'neutral topic',
+      profile: 'lesson-design',
+      role: 'teacher',
+      topK: 3,
+      candidates,
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(withoutResourceContext.pack.items.map((packItem) => packItem.id)).not.toContain('resource-metadata-single-item');
+
+    const result = retrieveSourcePack({
+      query: 'neutral topic',
+      profile: 'lesson-design',
+      role: 'teacher',
+      topK: 3,
+      resourceIds: ['resource-metadata-single'],
+      candidates,
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(result.pack.items.map((packItem) => packItem.id)).toContain('resource-metadata-single-item');
+    expect(result.pack.limitations.map((limitation) => limitation.code)).not.toContain('coverage-missing-resource');
+  });
 });
 
 describe('source pack assembly and evaluation', () => {

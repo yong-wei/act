@@ -199,17 +199,35 @@ function answerLeakageText(item: SourcePackItem): string {
 
 function coverageLimitations(items: readonly SourcePackItem[], input: RetrieveSourcePackInput): SourcePackLimitation[] {
   const limitations: SourcePackLimitation[] = [];
-  for (const ref of input.graphNodeRefs ?? []) {
-    if (!items.some((item) => metadataIncludes(item, 'knowledgeNodeRefs', ref))) {
-      limitations.push(buildLimitation('coverage-missing-knowledge-node', `No selected Source Pack item covers knowledge node ${ref}.`));
-    }
-  }
-  for (const ref of input.capabilityTargetRefs ?? []) {
-    if (!items.some((item) => metadataIncludes(item, 'capabilityTargetRefs', ref))) {
-      limitations.push(buildLimitation('coverage-missing-capability-target', `No selected Source Pack item covers capability target ${ref}.`));
+  const checks = [
+    { refs: input.graphNodeRefs, covers: coversMetadataRef('knowledgeNodeRefs'), code: 'coverage-missing-knowledge-node', label: 'knowledge node' },
+    { refs: input.capabilityTargetRefs, covers: coversMetadataRef('capabilityTargetRefs'), code: 'coverage-missing-capability-target', label: 'capability target' },
+    { refs: input.qualityTargetRefs, covers: coversMetadataRef('qualityTargetRefs'), code: 'coverage-missing-quality-target', label: 'quality target' },
+    { refs: input.learningGoalIds, covers: coversMetadataRef('learningGoalIds'), code: 'coverage-missing-learning-goal', label: 'learning goal' },
+    { refs: input.resourceIds, covers: coversResourceRef, code: 'coverage-missing-resource', label: 'resource' },
+  ] as const;
+  for (const check of checks) {
+    for (const ref of check.refs ?? []) {
+      if (!items.some((item) => check.covers(item, ref))) {
+        limitations.push(buildLimitation(check.code, `No selected Source Pack item covers ${check.label} ${ref}.`));
+      }
     }
   }
   return limitations;
+}
+
+function coversMetadataRef(key: string): (item: SourcePackItem, ref: string) => boolean {
+  return (item, ref) => metadataIncludes(item, key, ref);
+}
+
+function coversResourceRef(item: SourcePackItem, ref: string): boolean {
+  return item.id === ref
+    || item.retrievalChunkId === ref
+    || item.citationTargetId === ref
+    || item.resourceNodeId === ref
+    || item.planningUnitId === ref
+    || metadataIncludes(item, 'resourceId', ref)
+    || metadataIncludes(item, 'resourceIds', ref);
 }
 
 function metadataIncludes(item: SourcePackItem, key: string, ref: string): boolean {

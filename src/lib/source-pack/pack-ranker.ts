@@ -132,6 +132,7 @@ function contextRefScore(item: SourcePackItem, refs: readonly string[]): number 
     ...metadataStringArray(item.metadata?.capabilityTargetRefs),
     ...metadataStringArray(item.metadata?.qualityTargetRefs),
     ...metadataStringArray(item.metadata?.learningGoalIds),
+    ...metadataStringArray(item.metadata?.resourceId),
     ...metadataStringArray(item.metadata?.resourceIds),
     ...metadataStringArray(item.metadata?.learnerContextRefs),
   ].filter((value): value is string => Boolean(value)));
