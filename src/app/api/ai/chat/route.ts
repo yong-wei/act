@@ -38,6 +38,7 @@ import {
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
 import { redactProviderError, type ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
+import type { Prisma } from '@prisma/client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -103,13 +104,20 @@ function buildCitationGuardMetadataPayload(
     missingContext,
     retrievalSources: buildKonlingCitationRetrievalSources(citationGuardMetadata),
     citations: citationGuardMetadata.citations.map((citation) => ({
+      id: citation.id,
       sourceType: citation.sourceType,
       displayTitle: citation.displayTitle,
       href: citation.href,
       confidence: citation.confidence,
       evidenceBasis: citation.evidenceBasis,
+      citationChip: jsonSafe(citation.citationChip),
     })),
   };
+}
+
+function jsonSafe(value: unknown): unknown | null {
+  if (value === undefined) return null;
+  return JSON.parse(JSON.stringify(value)) as unknown;
 }
 
 export async function POST(request: Request) {
@@ -369,7 +377,7 @@ export async function POST(request: Request) {
             teachingAssistantMode: modeContract.mode.id,
             modeStatus: modeContract.status,
             konlingCitationGuard: citationGuardMetadataPayload,
-          },
+          } as Prisma.InputJsonObject,
         },
       });
       if (agentSessionStateUpdate.count !== 1) {

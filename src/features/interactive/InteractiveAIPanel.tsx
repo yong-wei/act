@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, User, Loader2, X, Sparkles } from 'lucide-react';
 import { AIMessageContent } from '@/components/ai/ai-message-content';
+import { KonlingCitationPanel, extractKonlingCitationMetadata } from '@/components/ai/konling-citation-presentation';
 import { KonlingAvatar } from '@/components/ai/konling-avatar';
 import type { AIMessage, InteractiveAIContextValue } from './types';
 
@@ -165,6 +166,7 @@ function MessageBubble({ message }: { message: AIMessage }) {
         }`}
       >
         <AIMessageContent content={message.content} sanitizeContent={!isUser} />
+        {!isUser ? <KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} /> : null}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { X, Send, Sparkles, MessageSquare, Trash2 } from 'lucide-react';
 import { KonlingAvatar } from './konling-avatar';
 import { AIMessageContent } from './ai-message-content';
+import { KonlingCitationPanel, extractKonlingCitationMetadata } from './konling-citation-presentation';
 import { KONLING_BRAND, getQuickQuestions } from '@/lib/ai-branding';
 import { useAIThemeStyles, TRANSITION_CLASSES } from '@/lib/ai-theme-styles';
 import type { PageContext, UserProfile } from '@/types/ai-context';
@@ -339,7 +340,10 @@ function MessageBubble({
           ))}
           {/* 文本消息 */}
           {message.content && (
-            <AIMessageContent content={message.content} sanitizeContent={!isUser} />
+            <>
+              <AIMessageContent content={message.content} sanitizeContent={!isUser} />
+              {!isUser ? <KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} /> : null}
+            </>
           )}
         </div>
       </div>

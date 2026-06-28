@@ -239,6 +239,9 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('personalizationAvailability: citationGuardMetadata.personalizationAvailability');
     expect(chatRouteSource).toContain('missingContext,');
     expect(chatRouteSource).toContain('retrievalSources: buildKonlingCitationRetrievalSources(citationGuardMetadata)');
+    expect(chatRouteSource).toContain('citations: citationGuardMetadata.citations.map');
+    expect(chatRouteSource).toContain('id: citation.id');
+    expect(chatRouteSource).toContain('citationChip: jsonSafe(citation.citationChip)');
     expect(chatRouteSource).toContain('buildStreamingCitationFallbackNotice(citationGuardMetadataPayload)');
     expect(chatRouteSource).toContain('insertStreamingCitationFallbackNotice');
     expect(streamingCitationFallbackSource).toContain('KONLING_STREAMING_CITATION_DEBUG_INJECTION');
@@ -260,6 +263,8 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('personalizationAvailability: citationGuard.personalizationAvailability');
     expect(sessionMessagesRouteSource).toContain('missingContext: modeContract.groundingContext.missingContext');
     expect(sessionMessagesRouteSource).toContain('retrievalSources: buildKonlingCitationRetrievalSources(citationGuard)');
+    expect(sessionMessagesRouteSource).toContain('citations: citationGuard.citations.map');
+    expect(sessionMessagesRouteSource).toContain('id: citation.id');
     expect(sessionMessagesRouteSource).toContain('citationGuard,');
     const sessionRuntimeContextIndex = sessionMessagesRouteSource.indexOf('const runtimeContext = await buildKonlingRuntimeContext');
     const sessionTrustedIndex = sessionMessagesRouteSource.indexOf('trustedContentContext: true', sessionRuntimeContextIndex);
