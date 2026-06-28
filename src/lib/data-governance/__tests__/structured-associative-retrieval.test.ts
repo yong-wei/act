@@ -385,6 +385,10 @@ describe('structured associative retrieval contract', () => {
         citationChip: { label: 'verified citation' },
       } as unknown as SarRetrievalEventEntity],
     })).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
+
+    expect(validateSarResult(sarResult({
+      limitations: ['raw learner submission text must stay outside SAR result limitations'],
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
   });
 
   it('validates rejected refs and relation references inside result traces', () => {
@@ -395,6 +399,32 @@ describe('structured associative retrieval contract', () => {
     expect(validateSarResult(sarResult({
       relations: [relation({ entityId: 'sar:entity:missing' })],
     })).issues.map((issue) => issue.code)).toContain('invalid-reference');
+  });
+
+  it('rejects duplicate result event and entity ids before building reference sets', () => {
+    const duplicateEventResult = validateSarResult(sarResult({
+      events: [
+        event(),
+        event({
+          title: 'Conflicting duplicate event',
+          safeSummary: 'Different summary behind the same id.',
+        }),
+      ],
+    }));
+    expect(duplicateEventResult.issues.map((issue) => issue.code)).toContain('invalid-reference');
+    expect(duplicateEventResult.issues.find((issue) => issue.path === 'events.1.id')).toBeTruthy();
+
+    const duplicateEntityResult = validateSarResult(sarResult({
+      entities: [
+        entity(),
+        entity({
+          label: 'Conflicting duplicate entity',
+          extraction: 'llm-candidate',
+        }),
+      ],
+    }));
+    expect(duplicateEntityResult.issues.map((issue) => issue.code)).toContain('invalid-reference');
+    expect(duplicateEntityResult.issues.find((issue) => issue.path === 'entities.1.id')).toBeTruthy();
   });
 
   it('returns issues instead of throwing for malformed nested result arrays', () => {

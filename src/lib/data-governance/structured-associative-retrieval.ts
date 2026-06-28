@@ -416,6 +416,8 @@ export function validateSarResult(resultValue: unknown): SarValidationResult {
   issues.push(...validateSarTrace(resultRecord.trace).issues.map(prefixIssue('trace')));
   issues.push(...validateArray(resultRecord.events, 'events', validateSarEvent));
   issues.push(...validateArray(resultRecord.entities, 'entities', validateSarEntity));
+  issues.push(...validateUniqueRecordIds(resultRecord.events, 'events'));
+  issues.push(...validateUniqueRecordIds(resultRecord.entities, 'entities'));
 
   const entities = safeEntities(resultRecord.entities);
   issues.push(...validateArray(resultRecord.relations, 'relations', (relation) => validateSarRelation(relation, entities)));
@@ -424,11 +426,32 @@ export function validateSarResult(resultValue: unknown): SarValidationResult {
   requireStringArray(resultRecord.citationTargetRefs, 'citationTargetRefs', issues);
   requireStringArray(resultRecord.retrievalChunkRefs, 'retrievalChunkRefs', issues);
   requireStringArray(resultRecord.limitations, 'limitations', issues);
+  scanStringArrayRestricted(resultRecord.limitations, 'limitations', issues);
   enforceUnverifiedRefs(resultRecord.citationTargetRefs, 'citationTargetRefs', issues);
   enforceUnverifiedRefs(resultRecord.retrievalChunkRefs, 'retrievalChunkRefs', issues);
   scanBoundaryKeys(resultValue, 'result', issues, RESULT_TOP_LEVEL_KEYS);
 
   return result(...issues);
+}
+
+function validateUniqueRecordIds(value: unknown, path: string): SarValidationIssue[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Map<string, number>();
+  const issues: SarValidationIssue[] = [];
+  safeRecordsWithIndex(value).forEach(({ item, index }) => {
+    if (typeof item.id !== 'string') return;
+    const firstIndex = seen.get(item.id);
+    if (firstIndex !== undefined) {
+      issues.push(issue(
+        'invalid-reference',
+        `${path}.${index}.id`,
+        `${path}.${index}.id duplicates ${path}.${firstIndex}.id and would make SAR references ambiguous.`,
+      ));
+      return;
+    }
+    seen.set(item.id, index);
+  });
+  return issues;
 }
 
 function validateRelationReferences(resultRecord: Partial<SarRetrievalResult>): SarValidationIssue[] {
@@ -529,6 +552,13 @@ function safeRecords(value: unknown): Record<string, unknown>[] {
 function safeRecordsWithIndex(value: unknown): Array<{ item: Record<string, unknown>; index: number }> {
   if (!Array.isArray(value)) return [];
   return value.flatMap((item, index) => (isRecord(item) ? [{ item, index }] : []));
+}
+
+function scanStringArrayRestricted(value: unknown, path: string, issues: SarValidationIssue[]): void {
+  if (!Array.isArray(value)) return;
+  value.forEach((item, index) => {
+    if (typeof item === 'string') scanRestricted(item, `${path}.${index}`, issues);
+  });
 }
 
 function enforceUnverifiedRefs(value: unknown, path: string, issues: SarValidationIssue[]): void {
