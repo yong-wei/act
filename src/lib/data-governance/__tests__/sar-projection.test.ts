@@ -331,6 +331,65 @@ describe('SAR platform source projections', () => {
     });
   });
 
+  it('projects segment and retrieval chunk graph refs as resource graph entities', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'runtime-media-resource',
+        label: 'Runtime media',
+        type: 'video',
+        renderTarget: '/course-runtime/media/runtime-media-resource',
+        knowledgeNodeIds: ['node-only-knowledge'],
+      }],
+    });
+    const node = registry.nodes[0];
+    const baseProjection = buildResourceSemanticProjection(node);
+    const projection = {
+      ...baseProjection,
+      segments: baseProjection.segments.map((segment) => ({
+        ...segment,
+        graphNodeRefs: {
+          ...segment.graphNodeRefs,
+          quality: ['segment-quality-ref'],
+        },
+      })),
+      retrievalChunks: baseProjection.retrievalChunks.map((chunk) => ({
+        ...chunk,
+        graphNodeRefs: {
+          ...chunk.graphNodeRefs,
+          capability: ['chunk-capability-ref'],
+        },
+      })),
+    };
+
+    const result = projectResourceNodeToSar({
+      node,
+      projection,
+      coverageRefs: ['segment-quality-ref', 'chunk-capability-ref'],
+    });
+
+    expect(validateSarResult(result).issues).toEqual([]);
+    expect(result.events[0].metadata).toMatchObject({
+      graphCoverageMatched: true,
+      graphCoverageRefs: ['chunk-capability-ref', 'segment-quality-ref'],
+    });
+    expect(result.entities).toContainEqual(expect.objectContaining({
+      entityType: 'graph-node',
+      canonicalRef: 'segment-quality-ref',
+    }));
+    expect(result.entities).toContainEqual(expect.objectContaining({
+      entityType: 'graph-node',
+      canonicalRef: 'chunk-capability-ref',
+    }));
+    expect(result.relations).toContainEqual(expect.objectContaining({
+      entityId: 'sar:entity:graph-node:segment-quality-ref',
+      role: 'supports',
+    }));
+    expect(result.relations).toContainEqual(expect.objectContaining({
+      entityId: 'sar:entity:graph-node:chunk-capability-ref',
+      role: 'supports',
+    }));
+  });
+
   it('matches non-path resource coverage through projection evidence instrumentation', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [{

@@ -33,6 +33,7 @@ import {
   chunkMatchesGraphCoverageRefs,
   learningEvidenceProjectionGraphRefs,
   resourceProjectionMatchesGraphCoverageRefs,
+  resourceProjectionGraphRefs,
 } from './resource-coverage-matching';
 
 export interface SarProjection {
@@ -317,11 +318,8 @@ export function projectResourceNodeToSar(input: ResourceNodeSarProjectionInput):
     privacyScope: resource.governance.privacyLevel,
     aliases: uniqueSorted([resource.id, input.node.sourceRef, ...input.node.sourceRefs.map((ref) => ref.ref)]),
   });
-  const graphEntities = uniqueSorted([
-    ...resource.knowledgeNodeIds,
-    ...resource.capabilityTargetIds,
-    ...resource.graphProfile.graphNodeRefs.quality,
-  ]).map((ref) => entity('graph-node', ref, ref, { privacyScope: resource.governance.privacyLevel }));
+  const graphEntities = resourceProjectionGraphRefs(projection)
+    .map((ref) => entity('graph-node', ref, ref, { privacyScope: resource.governance.privacyLevel }));
   const citationEntities = projection.citationTargets.map((target) => entity('citation-target', target.id, target.id, {
     privacyScope: target.privacyScope,
   }));
