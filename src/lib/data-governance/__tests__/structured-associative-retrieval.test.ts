@@ -187,6 +187,18 @@ describe('structured associative retrieval contract', () => {
       metadata: { rawLearnerSubmission: { answer: 'student answer dump' } },
     })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
 
+    expect(validateSarEvent(event({
+      rawContentPayload: { value: 'summarized value' },
+    } as unknown as Partial<SarRetrievalEvent>)).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarEvent(event({
+      rawTracePayload: { trace: 'private raw trace' },
+    } as unknown as Partial<SarRetrievalEvent>)).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarEvent(event({
+      hiddenEvaluationInternalsPayload: { rubric: 'private' },
+    } as unknown as Partial<SarRetrievalEvent>)).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
     for (const key of [
       'rawContent',
       'raw_submission',
@@ -240,6 +252,14 @@ describe('structured associative retrieval contract', () => {
     expect(validateSarEvent(event({
       metadata: { CitationChip: { label: 'verified citation' } },
     })).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
+
+    expect(validateSarEvent(event({
+      citationChip: { label: 'verified citation' },
+    } as unknown as Partial<SarRetrievalEvent>)).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
+
+    expect(validateSarEvent(event({
+      rawTraceAllowed: true,
+    } as unknown as Partial<SarRetrievalEvent>)).issues).toEqual([]);
 
     for (const key of [
       'citationChip',

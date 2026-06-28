@@ -228,6 +228,7 @@ export function validateSarEvent(event: unknown): SarValidationResult {
 
   scanRestricted(event.safeSummary, 'safeSummary', issues);
   scanRestricted(event.title, 'title', issues);
+  scanBoundaryKeys(event, 'event', issues);
   if (event.metadata !== undefined) scanMetadata(event.metadata, 'metadata', issues);
 
   return result(...issues);
@@ -541,6 +542,22 @@ function scanMetadata(value: unknown, path: string, issues: SarValidationIssue[]
       ));
     }
     scanMetadata(child, childPath, issues);
+  }
+}
+
+function scanBoundaryKeys(value: Record<string, unknown>, path: string, issues: SarValidationIssue[]): void {
+  for (const [key, child] of Object.entries(value)) {
+    const childPath = `${path}.${key}`;
+    const normalizedKey = normalizeMetadataKey(key);
+    const restrictedKey = hasNormalizedKey(RESTRICTED_KEYS, normalizedKey, RESTRICTED_KEY_PREFIXES);
+    const citationKey = hasNormalizedKey(CITATION_PAYLOAD_KEYS, normalizedKey, CITATION_PAYLOAD_KEY_PREFIXES);
+    if (restrictedKey || citationKey) {
+      issues.push(issue(
+        citationKey ? 'citation-boundary-violation' : 'restricted-raw-content',
+        childPath,
+        `${childPath} is outside the SAR boundary.`,
+      ));
+    }
   }
 }
 
