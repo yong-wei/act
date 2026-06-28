@@ -134,6 +134,7 @@ const PROVISIONAL_STATUSES: ReadonlySet<string> = new Set([
   'external-tool-provisional',
 ]);
 const GOVERNED_ID_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*:[^\s]+$/u;
+const RAW_CITATION_TARGET_PATTERN = /(https?:\/\/|:\/\/|course-content\/authoring|#L\d+\b)/i;
 
 /**
  * Check if a review status is provisional (not yet human confirmed).
@@ -203,11 +204,20 @@ export function adaptResourceProjectionRow(
     });
   }
 
+  const hasRawCitationTargetRef = row.citationTargets.some(hasRawCitationTarget);
   const citationTargetId = row.citationTargets.find(isGovernedId);
   const retrievalChunkId = row.retrievalChunk?.id
     ? toGovernedId('resource-projection-chunk', row.retrievalChunk.id)
     : undefined;
-  if (row.citationTargets.length > 0 && !citationTargetId) {
+  if (hasRawCitationTargetRef) {
+    limitations.push({
+      code: 'citation-target-raw-ref',
+      severity: 'warning',
+      message: `Row ${row.id} has raw citation target refs; using only governed citation target ids.`,
+      source: 'resource-projection-adapter',
+      recoverable: true,
+    });
+  } else if (row.citationTargets.length > 0 && !citationTargetId) {
     limitations.push({
       code: 'citation-target-not-governed-id',
       severity: 'warning',
@@ -286,7 +296,22 @@ function detectProjectionStaleness(row: RuntimeResourceProjectionArtifactRow): b
 }
 
 function isGovernedId(value: string): boolean {
-  return GOVERNED_ID_PATTERN.test(value) && !/(https?:\/\/|:\/\/|course-content\/authoring|#L\d+\b)/i.test(value);
+  return GOVERNED_ID_PATTERN.test(value) && !hasRawCitationTarget(value);
+}
+
+function hasRawCitationTarget(value: string): boolean {
+  let current = value;
+  for (let index = 0; index < 32; index += 1) {
+    if (RAW_CITATION_TARGET_PATTERN.test(current)) return true;
+    const decoded = decodePercentEncodingLenient(current);
+    if (decoded === current) return false;
+    current = decoded;
+  }
+  return true;
+}
+
+function decodePercentEncodingLenient(value: string): string {
+  return value.replace(/%([0-9A-Fa-f]{2})/g, (_, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)));
 }
 
 function toGovernedId(prefix: string, value: string): string {

@@ -1196,6 +1196,42 @@ describe('path eligibility separation', () => {
     expect(item.metadata?.citationTargetRefs).toEqual(['/course-runtime/lessons/3-4#root-locus']);
     expect(limitations.some((limitation) => limitation.code === 'citation-target-not-governed-id')).toBe(true);
   });
+
+  it('decodes projection citation refs before accepting governed ids', () => {
+    const row = makeProjectionRow({
+      citationTargets: [
+        'external:https%3A%2F%2Fexample.com%2Funit-3-4.md',
+        'raw:course-content%252Fauthoring%252Funit-3-4.md%2523L42',
+      ],
+    });
+    const { item, limitations } = adaptResourceProjectionRow(row);
+    expect(item.citationTargetId).toBeUndefined();
+    expect(item.metadata?.citationTargetRefs).toEqual([
+      'external:https%3A%2F%2Fexample.com%2Funit-3-4.md',
+      'raw:course-content%252Fauthoring%252Funit-3-4.md%2523L42',
+    ]);
+    expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
+    expect(() => buildSourcePack({
+      query: 'root locus',
+      profile: 'lesson-authoring',
+      items: [item],
+      limitations,
+      now: new Date('2026-06-28T00:00:00Z'),
+    })).not.toThrow();
+  });
+
+  it('keeps governed projection citation ids when raw refs are also present', () => {
+    const row = makeProjectionRow({
+      citationTargets: [
+        'source-pack-citation:ct-001',
+        'external:https%3A%2F%2Fexample.com%2Funit-3-4.md',
+      ],
+    });
+    const { item, limitations } = adaptResourceProjectionRow(row);
+    expect(item.citationTargetId).toBe('source-pack-citation:ct-001');
+    expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
+    expect(limitations.some((limitation) => limitation.code === 'citation-target-not-governed-id')).toBe(false);
+  });
 });
 
 describe('adapter output validates through buildSourcePack', () => {
