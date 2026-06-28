@@ -263,11 +263,39 @@ describe('SAR platform source projections', () => {
       chunk: learningEvidenceChunk({
         resourceProjection: {
           ...chunk.resourceProjection!,
+          graphNodeRefs: {
+            knowledge: [],
+            capability: [],
+            quality: ['quality:root-locus-interpretation'],
+          },
           citationTargetRef: null,
         },
       }),
     });
     expect(missingTarget.limitations).toContain('missing-citation-target:chunk:learner-root-locus');
+
+    const qualityGraphResult = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        resourceProjection: {
+          ...chunk.resourceProjection!,
+          knowledgeNodeRefs: [],
+          capabilityTargetRefs: [],
+          graphNodeRefs: {
+            knowledge: [],
+            capability: [],
+            quality: ['quality:root-locus-interpretation'],
+          },
+        },
+      }),
+      coverageRefs: ['quality:root-locus-interpretation'],
+    });
+    expect(qualityGraphResult.entities).toContainEqual(expect.objectContaining({
+      entityType: 'graph-node',
+      canonicalRef: 'quality:root-locus-interpretation',
+    }));
+    expect(qualityGraphResult.events[0].metadata).toMatchObject({
+      graphCoverageMatched: true,
+    });
   });
 
   it('projects governed learning-fact summaries through stable refs only', () => {

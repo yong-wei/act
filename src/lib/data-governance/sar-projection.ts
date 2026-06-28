@@ -30,6 +30,7 @@ import type {
 } from './structured-associative-retrieval';
 import {
   chunkMatchesGraphCoverageRefs,
+  learningEvidenceProjectionGraphRefs,
   resourceMatchesGraphCoverageRefs,
 } from './resource-coverage-matching';
 
@@ -388,10 +389,8 @@ export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSa
   const sourceEntity = entity('resource-node', chunk.sourceRef.resourceId ?? chunk.sourceRef.id, chunk.display.title, {
     privacyScope,
   });
-  const graphEntities = uniqueSorted([
-    ...(chunk.resourceProjection?.knowledgeNodeRefs ?? []),
-    ...(chunk.resourceProjection?.capabilityTargetRefs ?? []),
-  ]).map((ref) => entity('graph-node', ref, ref, { privacyScope }));
+  const graphEntities = learningEvidenceProjectionGraphRefs(chunk.resourceProjection)
+    .map((ref) => entity('graph-node', ref, ref, { privacyScope }));
   const citationTargetRef = chunk.resourceProjection?.citationTargetRef ?? null;
   const citationEntities = citationTargetRef
     ? [entity('citation-target', citationTargetRef, citationTargetRef, { privacyScope })]

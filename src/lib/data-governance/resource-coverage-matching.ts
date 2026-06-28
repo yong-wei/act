@@ -1,4 +1,7 @@
-import type { LearningEvidenceCorpusChunk } from './learning-evidence-rag-corpus';
+import type {
+  LearningEvidenceCorpusChunk,
+  LearningEvidenceResourceProjectionMetadata,
+} from './learning-evidence-rag-corpus';
 import type { ResourceNode } from '../resource-node-registry';
 
 export function resourceMatchesGraphCoverageRefs(
@@ -23,8 +26,7 @@ export function chunkMatchesGraphCoverageRefs(
 ): boolean {
   const refSet = toRefSet(refs);
   const projectionRefs = [
-    ...(chunk.resourceProjection?.knowledgeNodeRefs ?? []),
-    ...(chunk.resourceProjection?.capabilityTargetRefs ?? []),
+    ...learningEvidenceProjectionGraphRefs(chunk.resourceProjection),
     ...chunk.retrieval.tags,
     ...chunk.retrieval.goals,
   ];
@@ -46,4 +48,21 @@ export function chunkMatchesGraphCoverageRefs(
 
 function toRefSet(refs: ReadonlySet<string> | readonly string[]): ReadonlySet<string> {
   return refs instanceof Set ? refs : new Set(refs);
+}
+
+export function learningEvidenceProjectionGraphRefs(
+  projection: LearningEvidenceResourceProjectionMetadata | null | undefined,
+): string[] {
+  return uniqueSorted([
+    ...(projection?.knowledgeNodeRefs ?? []),
+    ...(projection?.capabilityTargetRefs ?? []),
+    ...(projection?.graphNodeRefs?.knowledge ?? []),
+    ...(projection?.graphNodeRefs?.capability ?? []),
+    ...(projection?.graphNodeRefs?.quality ?? []),
+  ]);
+}
+
+function uniqueSorted(values: readonly string[]): string[] {
+  return Array.from(new Set(values.filter((value) => value.trim().length > 0)))
+    .sort((left, right) => left.localeCompare(right));
 }
