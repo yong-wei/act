@@ -587,6 +587,39 @@ describe('source pack hybrid ranking', () => {
     expect(result.pack.items.map((packItem) => packItem.id)).toContain('resource-metadata-single-item');
     expect(result.pack.limitations.map((limitation) => limitation.code)).not.toContain('coverage-missing-resource');
   });
+
+  it('persists fused rank score into selected pack items', () => {
+    const result = retrieveSourcePack({
+      query: 'rare exact stability phrase',
+      profile: 'lesson-design',
+      role: 'teacher',
+      topK: 1,
+      candidates: [
+        item({
+          id: 'high-raw-final',
+          title: 'General stability reference',
+          excerpt: 'General course material.',
+          scores: { ...item().scores, relevance: 0.95, graphAlignment: 0, authority: 0.95, freshness: 0.95, eligibility: 0.95, final: 0.95 },
+          metadata: { reviewStatus: 'human-confirmed' },
+        }),
+        item({
+          id: 'exact-low-raw-final',
+          title: 'Rare exact stability phrase',
+          excerpt: 'The rare exact stability phrase is explained here.',
+          sourceKind: 'reference',
+          retrievalChunkId: 'chunk:exact-low-final',
+          citationTargetId: 'citation:exact-low-final',
+          scores: { ...item().scores, relevance: 0.05, graphAlignment: 0, authority: 0.05, freshness: 0.05, eligibility: 0.05, final: 0.05 },
+          metadata: { reviewStatus: 'human-confirmed' },
+        }),
+      ],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['exact-low-raw-final']);
+    expect(result.pack.items[0].scores.final).toBe(result.ranked[0].score);
+    expect(result.pack.items[0].scores.final).toBeGreaterThan(0.05);
+  });
 });
 
 describe('source pack assembly and evaluation', () => {

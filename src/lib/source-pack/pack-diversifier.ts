@@ -34,7 +34,13 @@ export function diversifyRankedSourcePackItems(input: DiversifySourcePackInput):
       omittedCount += 1;
       continue;
     }
-    const item = truncateItemExcerpt(candidate.item, input.profile.budgets.maxExcerptChars, limitations);
+    const item = truncateItemExcerpt({
+      ...candidate.item,
+      scores: {
+        ...candidate.item.scores,
+        final: candidate.score,
+      },
+    }, input.profile.budgets.maxExcerptChars, limitations);
     const resourceKey = item.resourceNodeId ?? item.planningUnitId ?? item.retrievalChunkId ?? item.id;
     const citationKey = item.citationTargetId ?? item.citation?.citationTargetId;
     const blockedReason = firstDiversityBlock({
