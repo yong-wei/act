@@ -9,6 +9,10 @@ import {
   type LearningEvidenceCorpusChunk,
 } from './learning-evidence-rag-corpus';
 import {
+  chunkMatchesGraphCoverageRefs,
+  resourceMatchesGraphCoverageRefs,
+} from './resource-coverage-matching';
+import {
   PORTRAIT_V2_DIMENSIONS,
   type KaqObjective,
   type KaqObjectiveDomain,
@@ -1502,9 +1506,9 @@ function buildResourceCoverage(
   }
 
   const coverageRefSet = new Set(coverageRefs);
-  const linkedResources = resourceNodes.filter((resource) => resourceMatchesRefs(resource, coverageRefSet));
+  const linkedResources = resourceNodes.filter((resource) => resourceMatchesGraphCoverageRefs(resource, coverageRefSet));
   const pathEligibleResources = linkedResources.filter((resource) => resource.eligibility.pathEligible);
-  const indexedChunks = evidenceCorpus.filter((chunk) => chunkMatchesRefs(chunk, coverageRefSet, linkedResources));
+  const indexedChunks = evidenceCorpus.filter((chunk) => chunkMatchesGraphCoverageRefs(chunk, coverageRefSet, linkedResources));
   const citationReadyChunks = indexedChunks.filter(isCitationReadyChunk);
   const verifiedCitationChunks = citationReadyChunks.filter((chunk) => isVerifiedCitationChunk(chunk, evidenceCorpus));
   const missingCoverageTypes = buildMissingCoverageTypes({
@@ -1658,44 +1662,6 @@ function buildCapabilityTargetRefs(node: KaqGraphNode): string[] {
     .filter((target) => explicitRefs.includes(target.id) || explicitRefs.includes(target.knowledgeNodeRef))
     .flatMap((target) => [target.id, target.knowledgeNodeRef]);
   return uniqueSorted([...explicitRefs, ...registeredRefs]);
-}
-
-function resourceMatchesRefs(resource: ResourceNode, refs: Set<string>): boolean {
-  return [
-    resource.id,
-    resource.sourceRef,
-    ...resource.sourceRefs.map((ref) => ref.ref),
-    ...resource.planningMetadata.knowledgeCoverage,
-    ...Object.keys(resource.planningMetadata.abilityImpact),
-    ...resource.planningMetadata.evidenceInstrumentation,
-  ].some((ref) => refs.has(ref));
-}
-
-function chunkMatchesRefs(
-  chunk: LearningEvidenceCorpusChunk,
-  refs: Set<string>,
-  linkedResources: ResourceNode[],
-): boolean {
-  const projectionRefs = [
-    ...(chunk.resourceProjection?.knowledgeNodeRefs ?? []),
-    ...(chunk.resourceProjection?.capabilityTargetRefs ?? []),
-    ...chunk.retrieval.tags,
-    ...chunk.retrieval.goals,
-  ];
-  if (chunk.resourceProjection) {
-    return projectionRefs.some((ref) => refs.has(ref));
-  }
-
-  const linkedResourceIds = new Set(linkedResources.flatMap((resource) => [
-    resource.id,
-    `resource:${resource.id}`,
-    resource.sourceRef,
-  ]));
-  return [
-    chunk.id,
-    chunk.sourceRef.id,
-    chunk.sourceRef.resourceId ?? '',
-  ].some((ref) => refs.has(ref) || linkedResourceIds.has(ref));
 }
 
 function isCitationReadyChunk(chunk: LearningEvidenceCorpusChunk): boolean {
