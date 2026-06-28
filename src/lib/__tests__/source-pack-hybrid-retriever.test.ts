@@ -620,6 +620,138 @@ describe('source pack hybrid ranking', () => {
     expect(result.pack.items[0].scores.final).toBe(result.ranked[0].score);
     expect(result.pack.items[0].scores.final).toBeGreaterThan(0.05);
   });
+
+  it('includes ranking and coverage context in Source Pack query filters', () => {
+    const candidates = [
+      item({
+        id: 'context-resource-a',
+        metadata: {
+          reviewStatus: 'human-confirmed',
+          resourceId: 'resource-a',
+          learningGoalIds: ['goal-a'],
+          qualityTargetRefs: ['quality-a'],
+        },
+      }),
+      item({
+        id: 'context-resource-b',
+        title: 'Alternate context resource',
+        retrievalChunkId: 'chunk:context-b',
+        citationTargetId: 'citation:context-b',
+        metadata: {
+          reviewStatus: 'human-confirmed',
+          resourceId: 'resource-b',
+          learningGoalIds: ['goal-b'],
+          qualityTargetRefs: ['quality-b'],
+        },
+      }),
+    ];
+    const first = retrieveSourcePack({
+      query: 'context',
+      profile: 'lesson-design',
+      role: 'teacher',
+      topK: 1,
+      resourceIds: ['resource-a'],
+      learningGoalIds: ['goal-a'],
+      qualityTargetRefs: ['quality-a'],
+      semanticScores: { 'context-resource-a': 0.8 },
+      candidates,
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    const sameContextDifferentOrder = retrieveSourcePack({
+      query: 'context',
+      profile: 'lesson-design',
+      role: 'teacher',
+      topK: 1,
+      resourceIds: ['resource-a'],
+      learningGoalIds: ['goal-a'],
+      qualityTargetRefs: ['quality-a'],
+      semanticScores: { 'context-resource-a': 0.8 },
+      candidates: [...candidates].reverse(),
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    const second = retrieveSourcePack({
+      query: 'context',
+      profile: 'lesson-design',
+      role: 'teacher',
+      topK: 1,
+      resourceIds: ['resource-b'],
+      learningGoalIds: ['goal-b'],
+      qualityTargetRefs: ['quality-b'],
+      semanticScores: { 'context-resource-b': 0.8 },
+      candidates,
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+
+    expect(first.pack.query.filters).toMatchObject({
+      resourceIds: ['resource-a'],
+      learningGoalIds: ['goal-a'],
+      qualityTargetRefs: ['quality-a'],
+      'semanticScore:context-resource-a': 0.8,
+    });
+    expect(first.pack.audit.queryHash).toBe(sameContextDifferentOrder.pack.audit.queryHash);
+    expect(first.pack.packId).toBe(sameContextDifferentOrder.pack.packId);
+    expect(first.pack.audit.queryHash).not.toBe(second.pack.audit.queryHash);
+    expect(first.pack.packId).not.toBe(second.pack.packId);
+  });
+
+  it('normalizes duplicated context refs before ranking and coverage', () => {
+    const candidates = [
+      item({
+        id: 'dedupe-context-a',
+        metadata: {
+          reviewStatus: 'human-confirmed',
+          resourceId: 'resource-a',
+          knowledgeNodeRefs: ['kn-a'],
+          capabilityTargetRefs: ['cap-a'],
+          qualityTargetRefs: ['quality-a'],
+          learningGoalIds: ['goal-a'],
+        },
+      }),
+    ];
+    const deduped = retrieveSourcePack({
+      query: 'context',
+      profile: 'lesson-design',
+      role: 'teacher',
+      topK: 1,
+      graphNodeRefs: ['kn-a', 'kn-missing'],
+      capabilityTargetRefs: ['cap-a'],
+      qualityTargetRefs: ['quality-a'],
+      learningGoalIds: ['goal-a'],
+      resourceIds: ['resource-a', 'resource-missing'],
+      learnerContextRefs: ['learner-a'],
+      semanticScores: { 'dedupe-context-a': 0.8054 },
+      candidates,
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    const duplicated = retrieveSourcePack({
+      query: 'context',
+      profile: 'lesson-design',
+      role: 'teacher',
+      topK: 1,
+      graphNodeRefs: ['kn-missing', 'kn-a', 'kn-a'],
+      capabilityTargetRefs: ['cap-a', 'cap-a'],
+      qualityTargetRefs: ['quality-a', 'quality-a'],
+      learningGoalIds: ['goal-a', 'goal-a'],
+      resourceIds: ['resource-missing', 'resource-a', 'resource-a'],
+      learnerContextRefs: ['learner-a', 'learner-a'],
+      semanticScores: { 'dedupe-context-a': 0.80544, ignored: Number.NaN },
+      candidates,
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+
+    expect(deduped.pack.query.filters).toMatchObject({
+      graphNodeRefs: ['kn-a', 'kn-missing'],
+      resourceIds: ['resource-a', 'resource-missing'],
+      learnerContextRefs: ['learner-a'],
+      'semanticScore:dedupe-context-a': 0.805,
+    });
+    expect(deduped.pack.query.filters).toEqual(duplicated.pack.query.filters);
+    expect(deduped.pack.audit.queryHash).toBe(duplicated.pack.audit.queryHash);
+    expect(deduped.pack.items[0].scores.final).toBe(duplicated.pack.items[0].scores.final);
+    expect(deduped.pack.limitations.map((limitation) => limitation.code)).toEqual(
+      duplicated.pack.limitations.map((limitation) => limitation.code),
+    );
+  });
 });
 
 describe('source pack assembly and evaluation', () => {

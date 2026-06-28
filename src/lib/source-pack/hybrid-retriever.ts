@@ -36,10 +36,11 @@ interface FilterResult {
 }
 
 export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSourcePackResult {
+  const normalizedInput = normalizeRetrievalInput(input);
   const profile = getSourcePackRetrievalProfile(input.profile);
   const role = normalizeCallerRole(input.role ?? profile.defaultRole);
   const filtered = filterCandidates(input.candidates, input, role);
-  const ranked = rankSourcePackCandidates(filtered.eligible, input, profile);
+  const ranked = rankSourcePackCandidates(filtered.eligible, normalizedInput, profile);
   const diversified = diversifyRankedSourcePackItems({
     ranked,
     profile,
@@ -49,7 +50,7 @@ export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSour
     ...inputLimitationsForPack(input.limitations ?? [], role),
     ...filtered.limitations,
     ...diversified.limitations,
-    ...coverageLimitations(diversified.items, input),
+    ...coverageLimitations(diversified.items, normalizedInput),
   ];
   if (filtered.eligible.length === 0) {
     limitations.push(buildLimitation('source-pack-no-eligible-candidates', 'No candidates remained after profile policy filtering.', 'warning'));
@@ -60,10 +61,7 @@ export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSour
     profile: input.profile,
     caller: input.caller,
     topK: input.topK ?? profile.budgets.maxItems,
-    filters: {
-      role,
-      requestedProfile: input.profile,
-    },
+    filters: queryFilters(normalizedInput, role),
   };
   const pack = buildSourcePack({
     query,
@@ -228,6 +226,65 @@ function coversResourceRef(item: SourcePackItem, ref: string): boolean {
     || item.planningUnitId === ref
     || metadataIncludes(item, 'resourceId', ref)
     || metadataIncludes(item, 'resourceIds', ref);
+}
+
+function normalizeRetrievalInput(input: RetrieveSourcePackInput): RetrieveSourcePackInput {
+  return {
+    ...input,
+    graphNodeRefs: normalizeStringRefs(input.graphNodeRefs),
+    capabilityTargetRefs: normalizeStringRefs(input.capabilityTargetRefs),
+    qualityTargetRefs: normalizeStringRefs(input.qualityTargetRefs),
+    learningGoalIds: normalizeStringRefs(input.learningGoalIds),
+    resourceIds: normalizeStringRefs(input.resourceIds),
+    learnerContextRefs: normalizeStringRefs(input.learnerContextRefs),
+    semanticScores: normalizeSemanticScores(input.semanticScores),
+  };
+}
+
+function queryFilters(input: RetrieveSourcePackInput, role: SourcePackCallerRole): SourcePackQuery['filters'] {
+  const filters: NonNullable<SourcePackQuery['filters']> = {
+    role,
+    requestedProfile: input.profile,
+  };
+  addStringArrayFilter(filters, 'graphNodeRefs', input.graphNodeRefs);
+  addStringArrayFilter(filters, 'capabilityTargetRefs', input.capabilityTargetRefs);
+  addStringArrayFilter(filters, 'qualityTargetRefs', input.qualityTargetRefs);
+  addStringArrayFilter(filters, 'learningGoalIds', input.learningGoalIds);
+  addStringArrayFilter(filters, 'resourceIds', input.resourceIds);
+  addStringArrayFilter(filters, 'learnerContextRefs', input.learnerContextRefs);
+  if (input.semanticScores) {
+    for (const [id, score] of Object.entries(input.semanticScores).sort(([left], [right]) => compareCodeUnit(left, right))) {
+      filters[`semanticScore:${id}`] = score;
+    }
+  }
+  return filters;
+}
+
+function addStringArrayFilter(
+  filters: NonNullable<SourcePackQuery['filters']>,
+  key: string,
+  values: readonly string[] | undefined,
+): void {
+  const normalized = normalizeStringRefs(values);
+  if (normalized) filters[key] = normalized;
+}
+
+function normalizeStringRefs(values: readonly string[] | undefined): string[] | undefined {
+  const normalized = Array.from(new Set((values ?? []).filter((value) => value.length > 0))).sort(compareCodeUnit);
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeSemanticScores(scores: Record<string, number> | undefined): Record<string, number> | undefined {
+  if (!scores) return undefined;
+  const entries = Object.entries(scores)
+    .filter(([id, score]) => id.length > 0 && Number.isFinite(score))
+    .sort(([left], [right]) => compareCodeUnit(left, right))
+    .map(([id, score]) => [id, Math.round(score * 1000) / 1000] as const);
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
+function compareCodeUnit(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 function metadataIncludes(item: SourcePackItem, key: string, ref: string): boolean {
