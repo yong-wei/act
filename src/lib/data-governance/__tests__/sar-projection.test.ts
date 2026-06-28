@@ -476,6 +476,14 @@ describe('SAR platform source projections', () => {
       entityType: 'graph-node',
       canonicalRef: 'goal:root-locus',
     }));
+    expect(result.entities).not.toContainEqual(expect.objectContaining({
+      entityType: 'graph-node',
+      canonicalRef: 'root-locus',
+    }));
+    expect(result.entities).not.toContainEqual(expect.objectContaining({
+      entityType: 'graph-node',
+      canonicalRef: 'cap:interpret-locus',
+    }));
     expect(JSON.stringify(result)).not.toContain('rawAnswerBody');
     expect(result.citationTargetRefs).toEqual(['citation-target:root-locus-video:primary']);
     expect(result.retrievalChunkRefs).toEqual(['chunk:learner-root-locus']);

@@ -46,7 +46,7 @@ export function chunkMatchesGraphCoverageRefs(
 ): boolean {
   const refSet = toRefSet(refs);
   const projectionRefs = [
-    ...learningEvidenceProjectionGraphRefs(chunk.resourceProjection),
+    ...learningEvidenceProjectionCoverageRefs(chunk.resourceProjection),
     ...chunk.retrieval.tags,
     ...chunk.retrieval.goals,
   ];
@@ -71,6 +71,16 @@ function toRefSet(refs: ReadonlySet<string> | readonly string[]): ReadonlySet<st
 }
 
 export function learningEvidenceProjectionGraphRefs(
+  projection: LearningEvidenceResourceProjectionMetadata | null | undefined,
+): string[] {
+  return canonicalGraphNodeRefs([
+    ...(projection?.graphNodeRefs?.knowledge ?? []),
+    ...(projection?.graphNodeRefs?.capability ?? []),
+    ...(projection?.graphNodeRefs?.quality ?? []),
+  ]);
+}
+
+function learningEvidenceProjectionCoverageRefs(
   projection: LearningEvidenceResourceProjectionMetadata | null | undefined,
 ): string[] {
   return uniqueSorted([
