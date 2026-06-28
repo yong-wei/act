@@ -144,6 +144,8 @@ const RESTRICTED_KEY_PREFIXES = new Set([
   'rawAnswers',
   'rawEvidence',
   'hiddenArenaInternals',
+  'privateKonlingMemory',
+  'auditOnlyTrace',
 ]);
 
 const RESTRICTED_TEXT = [
@@ -182,7 +184,16 @@ const CITATION_PAYLOAD_KEYS = new Set([
 ]);
 
 const CITATION_PAYLOAD_KEY_PREFIXES = new Set([
+  'citationAddress',
+  'citationAddresses',
   'citationChip',
+  'citationPayload',
+  'citationRef',
+  'citationRefs',
+  'verifiedCitation',
+  'verifiedCitations',
+  'verifiedCitationRef',
+  'verifiedCitationRefs',
 ]);
 
 export function validateSarEvent(event: unknown): SarValidationResult {

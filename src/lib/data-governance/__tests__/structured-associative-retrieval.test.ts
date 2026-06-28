@@ -219,6 +219,8 @@ describe('structured associative retrieval contract', () => {
       'rawTraceJson',
       'rawEvidencePayload',
       'hiddenArenaInternalsPayload',
+      'privateKonlingMemoryPayload',
+      'auditOnlyTracePayload',
     ] as const) {
       expect(validateSarEvent(event({
         metadata: { [key]: { value: 'summarized value' } },
@@ -241,6 +243,9 @@ describe('structured associative retrieval contract', () => {
       'citationAddress',
       'verifiedCitationRefs',
       'citationRefs',
+      'citationAddressPayload',
+      'verifiedCitationPayload',
+      'citationRefsPayload',
       'citationChipPayload',
     ] as const) {
       expect(validateSarEvent(event({
