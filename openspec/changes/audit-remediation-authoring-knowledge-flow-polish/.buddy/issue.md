@@ -7,9 +7,10 @@ execution_mode: isolated
 base_branch: integration
 required_branch:
 depends_on: []
-parent_issue:
+parent_issue: 722
 blocked_by: []
-blocking: []
+blocking:
+  - 729
 openspec_path: openspec/changes/audit-remediation-authoring-knowledge-flow-polish
 risk: medium
 area: authoring-resources

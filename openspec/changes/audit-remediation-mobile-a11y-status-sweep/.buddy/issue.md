@@ -13,8 +13,14 @@ depends_on:
   - audit-remediation-arena-submission-report-evidence-closure
   - audit-remediation-platform-recovery-deeplink-contracts
   - audit-remediation-authoring-knowledge-flow-polish
-parent_issue:
-blocked_by: []
+parent_issue: 722
+blocked_by:
+  - 724
+  - 725
+  - 726
+  - 727
+  - 728
+  - 730
 blocking: []
 openspec_path: openspec/changes/audit-remediation-mobile-a11y-status-sweep
 risk: medium
