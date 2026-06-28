@@ -506,6 +506,13 @@ describe('adaptive learning path planner', () => {
         }],
       },
       sourcePackCandidates: [citationOnlyItem],
+      sourcePackLimitations: [{
+        code: 'citation-target-raw-ref',
+        severity: 'warning',
+        message: 'Textbook adapter preserved a raw citation target limitation.',
+        source: 'corpus-adapters',
+        recoverable: true,
+      }],
     });
 
     expect(plan.mainPath.map((node) => node.nodeId)).not.toContain(citationOnlyItem.id);
@@ -518,7 +525,7 @@ describe('adaptive learning path planner', () => {
       pathEligibleItemRefs: [],
       citationTargetIds: ['citation-target:bode-reference'],
       retrievalChunkIds: ['retrieval-chunk:bode-reference'],
-      limitationCodes: expect.arrayContaining(['path-planning-citation-only-evidence']),
+      limitationCodes: expect.arrayContaining(['upstream-limitations-redacted', 'path-planning-citation-only-evidence']),
     });
   });
 

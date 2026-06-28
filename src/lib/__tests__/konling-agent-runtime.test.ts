@@ -7751,6 +7751,21 @@ describe('konling agent runtime', () => {
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
       },
     };
+    const [safeTextbookDocument] = textbookRuntimeSearchDocumentFixture();
+    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+      ...textbookRuntimeSearchDocumentFixture(),
+      {
+        ...safeTextbookDocument,
+        id: 'unsafe-path-planning-doc',
+        title: 'Unsafe path planning citation fixture',
+        href: 'javascript:alert(1)',
+        citationAddress: {
+          ...safeTextbookDocument.citationAddress,
+          sourceRefId: 'unsafe-path-planning-doc',
+          href: 'javascript:alert(1)',
+        },
+      },
+    ]);
     const runtime = buildKonlingToolRuntime({
       db,
       scope: createScope({ pageId: 'adaptive-path-center' }),
@@ -7795,6 +7810,7 @@ describe('konling agent runtime', () => {
     });
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.itemRefs.length).toBeGreaterThan(0);
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.citationOnlyItemRefs).toContain('fig-08-01__figure');
+    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.limitationCodes).toContain('upstream-limitations-redacted');
     expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
       db.learningPath.upsert.mock.invocationCallOrder[0],
     );

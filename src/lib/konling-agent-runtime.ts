@@ -54,6 +54,7 @@ import {
   type SourcePack,
   type SourcePackCallerRole,
   type SourcePackItem,
+  type SourcePackLimitation,
   type SourcePackModality,
   type SourcePackSourceKind,
 } from '@/lib/source-pack';
@@ -1946,7 +1947,7 @@ async function buildAdaptivePathToolOutput(
     ? buildAdaptivePathRevisionPlannerPreference(args)
     : {};
   const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId, args.graphNodeId);
-  const sourcePackCandidates = await buildAdaptivePathSourcePackCandidates(registry);
+  const sourcePackInput = await buildAdaptivePathSourcePackCandidates(registry);
   const plan = buildAdaptiveLearningPathPlan({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
@@ -1964,7 +1965,8 @@ async function buildAdaptivePathToolOutput(
     resourcePreferences,
     checkpointPreference: args.checkpointPreference ?? 'standard',
     allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
-    sourcePackCandidates,
+    sourcePackCandidates: sourcePackInput.items,
+    sourcePackLimitations: sourcePackInput.limitations,
     sourcePackRole: 'student',
     ...plannerRevisionPreference,
     excludedNodeIds: args.excludedNodeIds,
@@ -2444,12 +2446,20 @@ async function resolveAdaptivePathGenerationRegistry(goalId: string) {
   throw new KonlingRuntimeScopeError(403, '当前学习目标还没有可生成的路径资源注册表。');
 }
 
-async function buildAdaptivePathSourcePackCandidates(registry: ResourceNodeRegistry): Promise<SourcePackItem[]> {
+async function buildAdaptivePathSourcePackCandidates(
+  registry: ResourceNodeRegistry,
+): Promise<{ items: SourcePackItem[]; limitations: SourcePackLimitation[] }> {
   const resourceNodeCandidates = registry.nodes.map(buildResourceNodeSourcePackCandidate);
-  const textbookCandidates = await loadAllTextbookRuntimeSearchDocuments()
-    .then((documents) => documents.map(adaptTextbookSearchDocument).map((entry) => entry.item))
+  const textbookAdapted = await loadAllTextbookRuntimeSearchDocuments()
+    .then((documents) => documents.map(adaptTextbookSearchDocument))
     .catch(() => []);
-  return [...resourceNodeCandidates, ...textbookCandidates];
+  return {
+    items: [
+      ...resourceNodeCandidates,
+      ...textbookAdapted.map((entry) => entry.item),
+    ],
+    limitations: textbookAdapted.flatMap((entry) => entry.limitations),
+  };
 }
 
 function buildResourceNodeSourcePackCandidate(node: ResourceNode): SourcePackItem {

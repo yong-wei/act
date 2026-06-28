@@ -46,6 +46,7 @@ import {
   retrieveSourcePack,
   type SourcePackCallerRole,
   type SourcePackItem,
+  type SourcePackLimitation,
 } from './source-pack';
 
 export type AdaptiveLearningPathStatus = 'ready' | 'fallback';
@@ -360,6 +361,7 @@ export interface AdaptiveLearningPathPlannerInput {
   excludedNodeIds?: string[];
   preferredStyleId?: string;
   sourcePackCandidates?: readonly SourcePackItem[];
+  sourcePackLimitations?: readonly SourcePackLimitation[];
   sourcePackRole?: SourcePackCallerRole;
   requestedAt?: string;
   now?: Date;
@@ -4287,6 +4289,7 @@ function buildPathPlanningSourcePackEvidence(
       node.planningUnitId,
     ])),
     candidates,
+    limitations: input.sourcePackLimitations ?? [],
   });
   const itemRefs = result.pack.items.map((item) => item.id);
   const pathEligibleItemRefs = result.pack.items
