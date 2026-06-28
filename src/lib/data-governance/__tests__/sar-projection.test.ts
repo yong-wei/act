@@ -319,7 +319,8 @@ describe('SAR platform source projections', () => {
           ...baseProjection.resource.graphProfile,
           graphNodeRefs: {
             ...baseProjection.resource.graphProfile.graphNodeRefs,
-            knowledge: ['knowledge:projection-only-knowledge'],
+            knowledge: ['projection-only-knowledge'],
+            capability: ['controlModeling'],
           },
         },
       },
@@ -337,13 +338,13 @@ describe('SAR platform source projections', () => {
       graphCoverageMatched: true,
       graphCoverageRefs: ['projection-only-knowledge'],
     });
-    expect(result.entities).not.toContainEqual(expect.objectContaining({
+    expect(result.entities).toContainEqual(expect.objectContaining({
       entityType: 'graph-node',
       canonicalRef: 'projection-only-knowledge',
     }));
-    expect(result.entities).toContainEqual(expect.objectContaining({
+    expect(result.entities).not.toContainEqual(expect.objectContaining({
       entityType: 'graph-node',
-      canonicalRef: 'knowledge:projection-only-knowledge',
+      canonicalRef: 'controlModeling',
     }));
 
     const unrelated = projectResourceNodeToSar({

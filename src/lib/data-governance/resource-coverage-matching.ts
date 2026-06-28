@@ -73,11 +73,11 @@ function toRefSet(refs: ReadonlySet<string> | readonly string[]): ReadonlySet<st
 export function learningEvidenceProjectionGraphRefs(
   projection: LearningEvidenceResourceProjectionMetadata | null | undefined,
 ): string[] {
-  return canonicalGraphNodeRefs([
-    ...(projection?.graphNodeRefs?.knowledge ?? []),
-    ...(projection?.graphNodeRefs?.capability ?? []),
-    ...(projection?.graphNodeRefs?.quality ?? []),
-  ]);
+  return graphNodeRefsByDomain({
+    knowledge: projection?.graphNodeRefs?.knowledge ?? [],
+    capability: projection?.graphNodeRefs?.capability ?? [],
+    quality: projection?.graphNodeRefs?.quality ?? [],
+  });
 }
 
 function learningEvidenceProjectionCoverageRefs(
@@ -100,31 +100,44 @@ function uniqueSorted(values: readonly string[]): string[] {
 export function resourceProjectionGraphRefs(
   projection: ResourceSemanticProjection | null | undefined,
 ): string[] {
-  return canonicalGraphNodeRefs([
-    ...(projection?.resource.graphProfile.graphNodeRefs.knowledge ?? []),
-    ...(projection?.resource.graphProfile.graphNodeRefs.capability ?? []),
-    ...(projection?.resource.graphProfile.graphNodeRefs.quality ?? []),
-    ...(projection?.planningUnit?.graphNodeRefs.knowledge ?? []),
-    ...(projection?.planningUnit?.graphNodeRefs.capability ?? []),
-    ...(projection?.planningUnit?.graphNodeRefs.quality ?? []),
-    ...(projection?.segments.flatMap((segment) => [
-      ...segment.graphNodeRefs.knowledge,
-      ...segment.graphNodeRefs.capability,
-      ...segment.graphNodeRefs.quality,
-    ]) ?? []),
-    ...(projection?.retrievalChunks.flatMap((chunk) => [
-      ...chunk.graphNodeRefs.knowledge,
-      ...chunk.graphNodeRefs.capability,
-      ...chunk.graphNodeRefs.quality,
-    ]) ?? []),
+  return graphNodeRefsByDomain({
+    knowledge: [
+      ...(projection?.resource.graphProfile.graphNodeRefs.knowledge ?? []),
+      ...(projection?.planningUnit?.graphNodeRefs.knowledge ?? []),
+      ...(projection?.segments.flatMap((segment) => segment.graphNodeRefs.knowledge) ?? []),
+      ...(projection?.retrievalChunks.flatMap((chunk) => chunk.graphNodeRefs.knowledge) ?? []),
+    ],
+    capability: [
+      ...(projection?.resource.graphProfile.graphNodeRefs.capability ?? []),
+      ...(projection?.planningUnit?.graphNodeRefs.capability ?? []),
+      ...(projection?.segments.flatMap((segment) => segment.graphNodeRefs.capability) ?? []),
+      ...(projection?.retrievalChunks.flatMap((chunk) => chunk.graphNodeRefs.capability) ?? []),
+    ],
+    quality: [
+      ...(projection?.resource.graphProfile.graphNodeRefs.quality ?? []),
+      ...(projection?.planningUnit?.graphNodeRefs.quality ?? []),
+      ...(projection?.segments.flatMap((segment) => segment.graphNodeRefs.quality) ?? []),
+      ...(projection?.retrievalChunks.flatMap((chunk) => chunk.graphNodeRefs.quality) ?? []),
+    ],
+  });
+}
+
+function graphNodeRefsByDomain(refs: {
+  knowledge: readonly string[];
+  capability: readonly string[];
+  quality: readonly string[];
+}): string[] {
+  return uniqueSorted([
+    ...refs.knowledge,
+    ...refs.capability.filter(isCapabilityGraphNodeRef),
+    ...refs.quality.filter(isQualityGraphNodeRef),
   ]);
 }
 
-function canonicalGraphNodeRefs(values: readonly string[]): string[] {
-  return uniqueSorted(values.filter(isCanonicalGraphNodeRef));
+function isCapabilityGraphNodeRef(value: string): boolean {
+  return /^(capability|cap):/.test(value);
 }
 
-function isCanonicalGraphNodeRef(value: string): boolean {
-  return /^(knowledge|capability|quality):/.test(value)
-    || /^(kn|cap|qual):/.test(value);
+function isQualityGraphNodeRef(value: string): boolean {
+  return /^(quality|qual):/.test(value);
 }
