@@ -213,10 +213,12 @@ describe('structured associative retrieval contract', () => {
     }
 
     for (const key of [
+      'rawContentPayload',
       'rawLearnerSubmissionText',
       'rawSubmissionsByStudent',
       'rawAnswerText',
       'rawTraceJson',
+      'rawTracePayloadJson',
       'rawEvidencePayload',
       'hiddenArenaInternalsPayload',
       'hiddenArenaEvaluationInternalsPayload',
