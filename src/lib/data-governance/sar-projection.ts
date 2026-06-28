@@ -15,6 +15,7 @@ import type {
   LearningEvidenceCorpusChunk,
   LearningEvidenceCorpusPrivacyClass,
 } from './learning-evidence-rag-corpus';
+import type { ExpandedGoalSubgraph } from '../graphs/goal-subgraph-expansion-service';
 import type {
   SarAuthorityLevel,
   SarEntityType,
@@ -54,6 +55,7 @@ export interface LearningGoalSarProjectionInput {
   goal: LearningGoalDefinition;
   graphNodes?: readonly KaqGraphNode[];
   objectives?: readonly KaqObjective[];
+  expandedSubgraph?: ExpandedGoalSubgraph;
   versionRefs?: Partial<KaqArtifactVersionRefs>;
 }
 
@@ -172,6 +174,65 @@ export function projectLearningGoalToSar(input: LearningGoalSarProjectionInput):
       aliases: objective ? [objective.id, objective.domain, objective.level] : [objectiveId],
     });
   });
+  const expandedSubgraph = input.expandedSubgraph?.learningGoalId === goal.id
+    && input.expandedSubgraph.learningGoalVersion === goal.version
+    ? input.expandedSubgraph
+    : null;
+  const subgraphMismatchLimitation = input.expandedSubgraph && !expandedSubgraph
+    ? goalSubgraphMismatchLimitations(input.expandedSubgraph, goal)
+    : [];
+  const subgraphGraphBoundaries: Array<{
+    nodeId: string;
+    role: SarRelationRole;
+    source: string;
+  }> = expandedSubgraph ? [
+      ...expandedSubgraph.prerequisitePolicy.flatMap((entry) => [
+        {
+          nodeId: entry.sourceNodeId,
+          role: 'requires' as const,
+          source: `expanded-goal-subgraph-prerequisite:${entry.semantics}`,
+        },
+        {
+          nodeId: entry.targetNodeId,
+          role: 'requires' as const,
+          source: `expanded-goal-subgraph-prerequisite-target:${entry.semantics}`,
+        },
+      ]),
+      ...expandedSubgraph.remediationCandidates.map((nodeId) => ({
+        nodeId,
+        role: 'candidate-for' as const,
+        source: 'expanded-goal-subgraph-remediation-candidate',
+      })),
+      ...expandedSubgraph.extensionCandidates.map((nodeId) => ({
+        nodeId,
+        role: 'candidate-for' as const,
+        source: 'expanded-goal-subgraph-extension-candidate',
+      })),
+      ...expandedSubgraph.transferCandidates.map((nodeId) => ({
+        nodeId,
+        role: 'candidate-for' as const,
+        source: 'expanded-goal-subgraph-transfer-candidate',
+      })),
+    ]
+    : [];
+  const subgraphGraphEntities = uniqueSorted(subgraphGraphBoundaries.map((boundary) => boundary.nodeId)).map((nodeId) => {
+    const node = graphNodeById.get(nodeId);
+    return entity('graph-node', nodeId, node?.title ?? nodeId, {
+      aliases: node ? graphNodeAliases(node) : [nodeId],
+    });
+  });
+  const checkpointEntities = (expandedSubgraph?.checkpointSuggestions ?? []).map((checkpoint) => entity(
+    'path-node',
+    checkpoint.id,
+    `Checkpoint ${checkpoint.graphNodeId}`,
+    { aliases: uniqueSorted([checkpoint.id, checkpoint.graphNodeId, ...checkpoint.evidenceTypes]) },
+  ));
+  const terminalValidationEntities = (expandedSubgraph?.terminalValidationCandidates ?? []).map((candidate) => entity(
+    'path-node',
+    candidate.id,
+    `Terminal validation ${candidate.graphNodeId}`,
+    { aliases: uniqueSorted([candidate.id, candidate.graphNodeId, ...candidate.acceptedEvidenceTypes]) },
+  ));
   return assembleSarResult({
     id: `sar:result:learning-goal:${goal.id}`,
     events: [{
@@ -192,16 +253,49 @@ export function projectLearningGoalToSar(input: LearningGoalSarProjectionInput):
         status: goal.status,
         goalSliceId: goal.goalSliceId,
         targetGraphNodeIds: goal.targetGraphNodeIds,
+        expandedSubgraph: expandedSubgraph ? {
+          status: expandedSubgraph.status,
+          graphVersion: expandedSubgraph.graphVersion,
+          prerequisiteEdgeIds: expandedSubgraph.prerequisitePolicy.map((entry) => entry.edgeId),
+          remediationCandidates: expandedSubgraph.remediationCandidates,
+          extensionCandidates: expandedSubgraph.extensionCandidates,
+          transferCandidates: expandedSubgraph.transferCandidates,
+          checkpointSuggestionIds: expandedSubgraph.checkpointSuggestions.map((checkpoint) => checkpoint.id),
+          terminalValidationCandidateIds: expandedSubgraph.terminalValidationCandidates.map((candidate) => candidate.id),
+        } : null,
       },
     }],
-    entities: [goalEntity, ...graphEntities, ...objectiveEntities],
+    entities: [
+      goalEntity,
+      ...graphEntities,
+      ...objectiveEntities,
+      ...subgraphGraphEntities,
+      ...checkpointEntities,
+      ...terminalValidationEntities,
+    ],
     relations: [
       relation(sarEventId, goalEntity.id, 'about', 'learning-goal-stable-id'),
       ...graphEntities.map((graphEntity) => relation(sarEventId, graphEntity.id, 'supports', 'learning-goal-target-graph-node')),
       ...objectiveEntities.map((objectiveEntity) => relation(sarEventId, objectiveEntity.id, 'requires', 'learning-goal-objective-boundary')),
+      ...subgraphGraphBoundaries.map((boundary) => relation(
+        sarEventId,
+        entityId('graph-node', boundary.nodeId),
+        boundary.role,
+        boundary.source,
+      )),
+      ...checkpointEntities.map((checkpointEntity) => relation(sarEventId, checkpointEntity.id, 'candidate-for', 'expanded-goal-subgraph-checkpoint')),
+      ...terminalValidationEntities.map((terminalEntity) => relation(sarEventId, terminalEntity.id, 'candidate-for', 'expanded-goal-subgraph-terminal-validation')),
     ],
-    limitations: goal.limitations,
-    versionRefs: versionRefs(input.versionRefs),
+    limitations: [
+      ...goal.limitations,
+      ...(expandedSubgraph?.limitations.map((limitation) => `goal-subgraph:${limitation.code}:${limitation.message}`) ?? []),
+      ...subgraphMismatchLimitation,
+    ],
+    versionRefs: versionRefs({
+      ...input.versionRefs,
+      learningGoalPackageVersion: input.versionRefs?.learningGoalPackageVersion ?? goal.version,
+      graphCatalogVersion: expandedSubgraph?.graphVersion ?? input.versionRefs?.graphCatalogVersion,
+    }),
   });
 }
 
@@ -504,6 +598,20 @@ function graphNodeAliases(node: KaqGraphNode): string[] {
   if (node.domain === 'knowledge') return uniqueSorted([node.id, ...node.knowledgeRefs]);
   if (node.domain === 'capability') return uniqueSorted([node.id, ...node.knowledgeNodeIds, node.bloomLevel]);
   return uniqueSorted([node.id, node.scenario]);
+}
+
+function goalSubgraphMismatchLimitations(
+  expandedSubgraph: ExpandedGoalSubgraph,
+  goal: LearningGoalDefinition,
+): string[] {
+  const limitations: string[] = [];
+  if (expandedSubgraph.learningGoalId !== goal.id) {
+    limitations.push(`goal-subgraph-mismatch:learningGoalId:${expandedSubgraph.learningGoalId}`);
+  }
+  if (expandedSubgraph.learningGoalVersion !== goal.version) {
+    limitations.push(`goal-subgraph-mismatch:learningGoalVersion:${expandedSubgraph.learningGoalVersion}`);
+  }
+  return limitations;
 }
 
 function safeEvidenceSummary(chunk: LearningEvidenceCorpusChunk): string {

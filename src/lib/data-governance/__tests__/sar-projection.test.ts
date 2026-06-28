@@ -4,6 +4,8 @@ import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 import {
   buildResourceNodeRegistry,
 } from '../../resource-node-registry';
+import type { LearningGoalDefinition } from '../../adaptive-learning-path-planner';
+import type { ExpandedGoalSubgraph } from '../../graphs/goal-subgraph-expansion-service';
 import type { KaqKnowledgeGraphNode } from '../kaq-graph-schema';
 import type { KaqObjective, PortraitV2DimensionDefinition } from '../kaq-objective-taxonomy';
 import type { LearningEvidenceCorpusChunk } from '../learning-evidence-rag-corpus';
@@ -74,41 +76,7 @@ describe('SAR platform source projections', () => {
 
   it('projects learning goals as path summaries while preserving objective and graph refs', () => {
     const result = projectLearningGoalToSar({
-      goal: {
-        id: 'goal:root-locus',
-        title: 'Master root locus',
-        description: 'Plan a path through root locus analysis.',
-        completionMeaning: 'Learner can interpret root locus movement.',
-        intentType: 'analysis',
-        recommendedPhase: 'practice',
-        knowledgeObjectiveIds: ['obj:root-locus'],
-        capabilityObjectiveIds: ['cap:interpret-locus'],
-        qualityObjectiveIds: [],
-        targetGraphNodeIds: ['knowledge:root-locus'],
-        goalSliceId: 'slice:root-locus',
-        resourceMix: {
-          required: ['knowledge_card'],
-          preferred: ['simulation'],
-          optional: [],
-        },
-        evidencePolicy: {
-          requiredEvidenceTypes: ['question'],
-          minimumEvidenceCount: 1,
-          confidenceFloor: 0.6,
-          qualityEvidenceGoverned: true,
-          limitations: [],
-        },
-        terminalValidationPolicy: {
-          required: false,
-          acceptedEvidenceTypes: ['question'],
-          terminalNodeTypes: ['knowledge_card'],
-          summary: 'No terminal validation required.',
-        },
-        pathPolicyFamily: 'foundation-remediation',
-        status: 'path-ready',
-        version: 'learning-goal.v1',
-        limitations: [],
-      },
+      goal: learningGoalDefinition(),
     });
 
     expect(validateSarResult(result).issues).toEqual([]);
@@ -127,6 +95,95 @@ describe('SAR platform source projections', () => {
       'graph-node',
       'kaq-objective',
     ]));
+  });
+
+  it('projects expanded learning-goal subgraph bindings into path-boundary entities', () => {
+    const goal = learningGoalDefinition();
+    const expandedSubgraph = expandedGoalSubgraph(goal);
+
+    const result = projectLearningGoalToSar({
+      goal,
+      expandedSubgraph,
+    });
+
+    expect(validateSarResult(result).issues).toEqual([]);
+    expect(result.events[0].metadata).toMatchObject({
+      expandedSubgraph: {
+        graphVersion: 'kaq-graph.test',
+        prerequisiteEdgeIds: ['edge:root-locus-foundation'],
+        checkpointSuggestionIds: ['checkpoint:goal:root-locus:capability:interpret-locus'],
+        terminalValidationCandidateIds: ['terminal:goal:root-locus:capability:interpret-locus'],
+      },
+    });
+    expect(result.entities).toContainEqual(expect.objectContaining({
+      entityType: 'graph-node',
+      canonicalRef: 'knowledge:root-locus-foundation',
+    }));
+    expect(result.entities).toContainEqual(expect.objectContaining({
+      entityType: 'path-node',
+      canonicalRef: 'checkpoint:goal:root-locus:capability:interpret-locus',
+    }));
+    expect(result.entities).toContainEqual(expect.objectContaining({
+      entityType: 'path-node',
+      canonicalRef: 'terminal:goal:root-locus:capability:interpret-locus',
+    }));
+    expect(result.relations).toContainEqual(expect.objectContaining({
+      entityId: 'sar:entity:graph-node:knowledge:root-locus-foundation',
+      role: 'requires',
+      source: 'expanded-goal-subgraph-prerequisite:hard_prerequisite',
+    }));
+    expect(result.relations).toContainEqual(expect.objectContaining({
+      entityId: 'sar:entity:graph-node:knowledge:advanced-root-locus',
+      role: 'candidate-for',
+      source: 'expanded-goal-subgraph-extension-candidate',
+    }));
+    expect(result.relations).toContainEqual(expect.objectContaining({
+      entityId: 'sar:entity:graph-node:knowledge:transfer-root-locus',
+      role: 'candidate-for',
+      source: 'expanded-goal-subgraph-transfer-candidate',
+    }));
+    expect(result.relations).toContainEqual(expect.objectContaining({
+      entityId: 'sar:entity:path-node:checkpoint:goal:root-locus:capability:interpret-locus',
+      role: 'candidate-for',
+      source: 'expanded-goal-subgraph-checkpoint',
+    }));
+    expect(result.relations).toContainEqual(expect.objectContaining({
+      entityId: 'sar:entity:path-node:terminal:goal:root-locus:capability:interpret-locus',
+      role: 'candidate-for',
+      source: 'expanded-goal-subgraph-terminal-validation',
+    }));
+    expect(result.limitations).toContain('goal-subgraph:weak-relation-evidence:Weak relation evidence retained as a limitation.');
+  });
+
+  it('rejects stale expanded learning-goal subgraphs before projecting path-boundary entities', () => {
+    const goal = learningGoalDefinition();
+    const staleSubgraph = expandedGoalSubgraph(goal, {
+      learningGoalVersion: 'learning-goal.v0',
+      graphVersion: 'stale-graph.test',
+    });
+
+    const result = projectLearningGoalToSar({
+      goal,
+      expandedSubgraph: staleSubgraph,
+      versionRefs: {
+        graphCatalogVersion: 'caller-graph.test',
+      },
+    });
+
+    expect(validateSarResult(result).issues).toEqual([]);
+    expect(result.events[0].metadata).toMatchObject({
+      expandedSubgraph: null,
+    });
+    expect(result.entities).not.toContainEqual(expect.objectContaining({
+      canonicalRef: 'knowledge:root-locus-foundation',
+    }));
+    expect(result.relations).not.toContainEqual(expect.objectContaining({
+      source: expect.stringContaining('expanded-goal-subgraph'),
+    }));
+    expect(result.limitations).toContain('goal-subgraph-mismatch:learningGoalVersion:learning-goal.v0');
+    expect(result.trace.versionRefs).toContain('learning-goal.v1');
+    expect(result.trace.versionRefs).toContain('caller-graph.test');
+    expect(result.trace.versionRefs).not.toContain('stale-graph.test');
   });
 
   it('projects resource nodes without making retrieval chunks path-plannable', () => {
@@ -241,6 +298,147 @@ describe('SAR platform source projections', () => {
     ]));
   });
 });
+
+function learningGoalDefinition(): LearningGoalDefinition {
+  return {
+    id: 'goal:root-locus',
+    title: 'Master root locus',
+    description: 'Plan a path through root locus analysis.',
+    completionMeaning: 'Learner can interpret root locus movement.',
+    intentType: 'analysis',
+    recommendedPhase: 'practice',
+    knowledgeObjectiveIds: ['obj:root-locus'],
+    capabilityObjectiveIds: ['cap:interpret-locus'],
+    qualityObjectiveIds: [],
+    targetGraphNodeIds: ['knowledge:root-locus'],
+    goalSliceId: 'slice:root-locus',
+    resourceMix: {
+      required: ['knowledge_card'],
+      preferred: ['simulation'],
+      optional: [],
+    },
+    evidencePolicy: {
+      requiredEvidenceTypes: ['question'],
+      minimumEvidenceCount: 1,
+      confidenceFloor: 0.6,
+      qualityEvidenceGoverned: true,
+      limitations: [],
+    },
+    terminalValidationPolicy: {
+      required: false,
+      acceptedEvidenceTypes: ['question'],
+      terminalNodeTypes: ['knowledge_card'],
+      summary: 'No terminal validation required.',
+    },
+    pathPolicyFamily: 'foundation-remediation',
+    status: 'path-ready',
+    version: 'learning-goal.v1',
+    limitations: [],
+  };
+}
+
+function expandedGoalSubgraph(
+  goal: LearningGoalDefinition,
+  overrides: Partial<ExpandedGoalSubgraph> = {},
+): ExpandedGoalSubgraph {
+  return {
+    expansionVersion: 'goal-subgraph-expansion.v1',
+    status: 'expanded',
+    learningGoalId: goal.id,
+    learningGoalVersion: goal.version,
+    graphVersion: 'kaq-graph.test',
+    graphNodeIds: {
+      knowledge: ['knowledge:root-locus'],
+      capability: ['capability:interpret-locus'],
+      quality: [],
+    },
+    requiredEdges: [{
+      edgeId: 'edge:root-locus-foundation',
+      sourceNodeId: 'knowledge:root-locus-foundation',
+      targetNodeId: 'knowledge:root-locus',
+      domain: 'knowledge',
+      relation: 'supports',
+      strength: 'strong',
+      semantics: 'hard_prerequisite',
+      direction: 'incoming',
+      required: true,
+      rationale: 'Root locus construction requires foundation vocabulary.',
+    }],
+    recommendedEdges: [],
+    prerequisitePolicy: [{
+      edgeId: 'edge:root-locus-foundation',
+      sourceNodeId: 'knowledge:root-locus-foundation',
+      targetNodeId: 'knowledge:root-locus',
+      domain: 'knowledge',
+      relation: 'supports',
+      strength: 'strong',
+      semantics: 'hard_prerequisite',
+      direction: 'incoming',
+      required: true,
+      rationale: 'Root locus construction requires foundation vocabulary.',
+    }],
+    remediationCandidates: ['knowledge:root-locus-foundation'],
+    extensionCandidates: ['knowledge:advanced-root-locus'],
+    transferCandidates: ['knowledge:transfer-root-locus'],
+    terminalValidationCandidates: [{
+      id: 'terminal:goal:root-locus:capability:interpret-locus',
+      graphNodeId: 'capability:interpret-locus',
+      acceptedEvidenceTypes: ['question'],
+      required: true,
+      summary: 'Validate root locus interpretation with a question.',
+    }],
+    checkpointSuggestions: [{
+      id: 'checkpoint:goal:root-locus:capability:interpret-locus',
+      graphNodeId: 'capability:interpret-locus',
+      evidenceTypes: ['question'],
+      reason: 'Checkpoint root locus interpretation before terminal validation.',
+    }],
+    limitations: [{
+      code: 'weak-relation-evidence',
+      edgeId: 'edge:root-locus-foundation',
+      severity: 'warning',
+      message: 'Weak relation evidence retained as a limitation.',
+    }],
+    fixtures: {
+      planner: {
+        learningGoalId: goal.id,
+        graphVersion: 'kaq-graph.test',
+        targetGraphNodeIds: ['knowledge:root-locus', 'capability:interpret-locus'],
+        prerequisitePolicy: [],
+        terminalValidationCandidates: [],
+        checkpointSuggestions: [],
+        limitationCodes: ['weak-relation-evidence'],
+      },
+      konling: {
+        learningGoalId: goal.id,
+        graphVersion: 'kaq-graph.test',
+        versionRefs: buildKaqArtifactVersionRefs({
+          graphCatalogVersion: 'kaq-graph.test',
+          learningGoalPackageVersion: goal.version,
+        }),
+        groundingNodeIds: ['knowledge:root-locus', 'capability:interpret-locus'],
+        prerequisitePolicySummaries: [],
+        limitations: [],
+      },
+      graphCenter: {
+        learningGoalId: goal.id,
+        graphVersion: 'kaq-graph.test',
+        versionRefs: buildKaqArtifactVersionRefs({
+          graphCatalogVersion: 'kaq-graph.test',
+          learningGoalPackageVersion: goal.version,
+        }),
+        domains: [
+          { domain: 'knowledge', nodeIds: ['knowledge:root-locus'] },
+          { domain: 'capability', nodeIds: ['capability:interpret-locus'] },
+          { domain: 'quality', nodeIds: [] },
+        ],
+        relationIds: ['edge:root-locus-foundation'],
+        actionable: false,
+      },
+    },
+    ...overrides,
+  };
+}
 
 function learningEvidenceChunk(overrides: Partial<LearningEvidenceCorpusChunk> = {}): LearningEvidenceCorpusChunk {
   return {
