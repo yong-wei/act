@@ -319,6 +319,56 @@ describe('structured associative retrieval contract', () => {
     expect(validateSarResult(sarResult({
       retrievalChunkRefs: ['verified:learning-evidence:chunk:root-locus'],
     })).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
+
+    expect(validateSarResult(sarResult({
+      payload: { rawSubmission: 'student answer dump' },
+    } as unknown as Partial<SarRetrievalResult>)).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarResult(sarResult({
+      citationChip: { label: 'verified citation' },
+    } as unknown as Partial<SarRetrievalResult>)).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
+
+    expect(validateSarResult(sarResult({
+      trace: {
+        ...trace(),
+        payload: { rawSubmission: 'student answer dump' },
+      },
+    } as unknown as Partial<SarRetrievalResult>)).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarResult(sarResult({
+      trace: {
+        ...trace(),
+        citationChip: { label: 'verified citation' },
+      },
+    } as unknown as Partial<SarRetrievalResult>)).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
+
+    expect(validateSarResult(sarResult({
+      entities: [{
+        ...entity(),
+        payload: { rawSubmission: 'student answer dump' },
+      } as unknown as SarRetrievalEntity],
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarResult(sarResult({
+      entities: [{
+        ...entity(),
+        citationChip: { label: 'verified citation' },
+      } as unknown as SarRetrievalEntity],
+    })).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
+
+    expect(validateSarResult(sarResult({
+      relations: [{
+        ...relation(),
+        payload: { rawSubmission: 'student answer dump' },
+      } as unknown as SarRetrievalEventEntity],
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarResult(sarResult({
+      relations: [{
+        ...relation(),
+        citationChip: { label: 'verified citation' },
+      } as unknown as SarRetrievalEventEntity],
+    })).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
   });
 
   it('validates rejected refs and relation references inside result traces', () => {

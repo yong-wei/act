@@ -87,6 +87,59 @@ const SOURCE_REF_KEYS = new Set([
   'contentHash',
 ]);
 
+const RESULT_TOP_LEVEL_KEYS = new Set([
+  'id',
+  'trace',
+  'events',
+  'entities',
+  'relations',
+  'citationTargetRefs',
+  'retrievalChunkRefs',
+  'limitations',
+]);
+
+const ENTITY_TOP_LEVEL_KEYS = new Set([
+  'id',
+  'entityType',
+  'canonicalRef',
+  'label',
+  'aliases',
+  'privacyScope',
+  'extraction',
+]);
+
+const RELATION_TOP_LEVEL_KEYS = new Set([
+  'eventId',
+  'entityId',
+  'role',
+  'confidence',
+  'provenance',
+  'source',
+]);
+
+const TRACE_TOP_LEVEL_KEYS = new Set([
+  'id',
+  'seedEntityIds',
+  'expansionHops',
+  'selectedRefs',
+  'rejectedRefs',
+  'limitations',
+  'versionRefs',
+]);
+
+const TRACE_HOP_KEYS = new Set([
+  'fromEntityId',
+  'toEntityId',
+  'viaEventId',
+  'relationRole',
+  'confidence',
+]);
+
+const REJECTED_REF_KEYS = new Set([
+  'ref',
+  'reason',
+]);
+
 const ENTITY_TYPES = new Set([
   'learning-goal',
   'kaq-objective',
@@ -247,7 +300,7 @@ export function validateSarEvent(event: unknown): SarValidationResult {
 
   scanRestricted(event.safeSummary, 'safeSummary', issues);
   scanRestricted(event.title, 'title', issues);
-  scanBoundaryKeys(event, 'event', issues);
+  scanBoundaryKeys(event, 'event', issues, EVENT_TOP_LEVEL_KEYS);
   if (event.metadata !== undefined) scanMetadata(event.metadata, 'metadata', issues);
 
   return result(...issues);
@@ -270,6 +323,7 @@ export function validateSarEntity(entity: unknown): SarValidationResult {
   if (entity.extraction !== 'platform-stable-id' && entity.extraction !== 'llm-candidate') {
     issues.push(issue('missing-required-field', 'extraction', 'extraction must identify platform-stable-id or llm-candidate.'));
   }
+  scanObjectExtensionFields(entity, ENTITY_TOP_LEVEL_KEYS, 'entity', issues);
 
   return result(...issues);
 }
@@ -300,6 +354,7 @@ export function validateSarRelation(
       'LLM candidate relations must remain low-confidence until canonicalized.',
     ));
   }
+  scanObjectExtensionFields(relation, RELATION_TOP_LEVEL_KEYS, 'relation', issues);
 
   return result(...issues);
 }
@@ -328,6 +383,7 @@ export function validateSarTrace(trace: unknown): SarValidationResult {
       }
       requireEnum(hop.relationRole, RELATION_ROLES, `expansionHops.${index}.relationRole`, issues, 'invalid-trace');
       validateConfidence(hop.confidence, `expansionHops.${index}.confidence`, issues);
+      scanObjectExtensionFields(hop, TRACE_HOP_KEYS, `expansionHops.${index}`, issues);
     });
   }
   if (!Array.isArray(trace.rejectedRefs)) {
@@ -340,8 +396,10 @@ export function validateSarTrace(trace: unknown): SarValidationResult {
       }
       requireString(ref, 'ref', issues, `rejectedRefs.${index}.ref`, 'invalid-trace');
       requireString(ref, 'reason', issues, `rejectedRefs.${index}.reason`, 'invalid-trace');
+      scanObjectExtensionFields(ref, REJECTED_REF_KEYS, `rejectedRefs.${index}`, issues);
     });
   }
+  scanObjectExtensionFields(trace, TRACE_TOP_LEVEL_KEYS, 'trace', issues);
 
   return result(...issues);
 }
@@ -365,6 +423,7 @@ export function validateSarResult(resultValue: unknown): SarValidationResult {
   requireStringArray(resultRecord.limitations, 'limitations', issues);
   enforceUnverifiedRefs(resultRecord.citationTargetRefs, 'citationTargetRefs', issues);
   enforceUnverifiedRefs(resultRecord.retrievalChunkRefs, 'retrievalChunkRefs', issues);
+  scanBoundaryKeys(resultValue, 'result', issues, RESULT_TOP_LEVEL_KEYS);
 
   return result(...issues);
 }
@@ -564,10 +623,15 @@ function scanMetadata(value: unknown, path: string, issues: SarValidationIssue[]
   }
 }
 
-function scanBoundaryKeys(value: Record<string, unknown>, path: string, issues: SarValidationIssue[]): void {
+function scanBoundaryKeys(
+  value: Record<string, unknown>,
+  path: string,
+  issues: SarValidationIssue[],
+  allowedExtensionKeys?: ReadonlySet<string>,
+): void {
   for (const [key, child] of Object.entries(value)) {
     const { restrictedKey, citationKey } = scanBoundaryField(key, `${path}.${key}`, issues);
-    if (path === 'event' && !EVENT_TOP_LEVEL_KEYS.has(key) && !restrictedKey && !citationKey) {
+    if (allowedExtensionKeys && !allowedExtensionKeys.has(key) && !restrictedKey && !citationKey) {
       scanMetadata(child, `${path}.${key}`, issues);
     }
   }
