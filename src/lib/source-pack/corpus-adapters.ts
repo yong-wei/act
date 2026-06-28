@@ -421,6 +421,8 @@ export function adaptTextbookSearchDocument(
       capabilityTargetRefs: doc.resourceProjection?.capabilityTargetRefs ?? [],
       contentHash: doc.contentHash ?? doc.resourceProjection?.contentHash ?? '',
       kind: doc.kind,
+      reviewStatus: 'canonical',
+      authorityLevel: 'canonical',
     },
   };
 

@@ -37,7 +37,7 @@ interface FilterResult {
 
 export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSourcePackResult {
   const profile = getSourcePackRetrievalProfile(input.profile);
-  const role = input.role ?? profile.defaultRole;
+  const role = normalizeCallerRole(input.role ?? profile.defaultRole);
   const filtered = filterCandidates(input.candidates, input, role);
   const ranked = rankSourcePackCandidates(filtered.eligible, input, profile);
   const diversified = diversifyRankedSourcePackItems({
@@ -46,7 +46,7 @@ export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSour
     topK: input.topK,
   });
   const limitations = [
-    ...(input.limitations ?? []),
+    ...inputLimitationsForPack(input.limitations ?? [], role),
     ...filtered.limitations,
     ...diversified.limitations,
     ...coverageLimitations(diversified.items, input),
@@ -144,6 +144,30 @@ function visibilityForRole(role: SourcePackCallerRole): ReadonlySet<SourcePackAc
   if (role === 'admin' || role === 'service') return new Set(['public', 'student', 'teacher', 'admin', 'restricted']);
   if (role === 'teacher') return new Set(['public', 'student', 'teacher']);
   return new Set(['public', 'student']);
+}
+
+function normalizeCallerRole(role: SourcePackCallerRole): SourcePackCallerRole {
+  if (role === 'admin' || role === 'service' || role === 'teacher') return role;
+  return 'student';
+}
+
+function inputLimitationsForPack(
+  limitations: readonly SourcePackLimitation[],
+  role: SourcePackCallerRole,
+): SourcePackLimitation[] {
+  if (role !== 'student') return [...limitations];
+  if (limitations.length === 0) return [];
+  return [buildLimitation(
+    'upstream-limitations-redacted',
+    `${limitations.length} upstream limitation(s) were withheld from this student-visible Source Pack.`,
+    highestSeverity(limitations),
+  )];
+}
+
+function highestSeverity(limitations: readonly SourcePackLimitation[]): SourcePackLimitation['severity'] {
+  if (limitations.some((limitation) => limitation.severity === 'blocking')) return 'blocking';
+  if (limitations.some((limitation) => limitation.severity === 'warning')) return 'warning';
+  return 'info';
 }
 
 function reviewStatus(item: SourcePackItem): string {

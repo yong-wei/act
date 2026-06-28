@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   adaptLearningEvidenceChunk,
+  adaptTextbookSearchDocument,
   evaluateSourcePackRetrieval,
   getSourcePackRetrievalProfile,
   retrieveSourcePack,
@@ -9,6 +10,7 @@ import {
   type SourcePackItem,
 } from '../source-pack';
 import type { LearningEvidenceCorpusChunk } from '../data-governance/learning-evidence-rag-corpus';
+import type { TextbookRuntimeSearchDocument } from '../textbook-runtime-resources';
 
 function item(overrides: Partial<SourcePackItem> = {}): SourcePackItem {
   return {
@@ -117,6 +119,37 @@ function canonicalChunk(): LearningEvidenceCorpusChunk {
   };
 }
 
+function textbookDoc(): TextbookRuntimeSearchDocument {
+  return {
+    id: 'textbook-root-locus',
+    kind: 'chunk',
+    title: 'Root locus textbook section',
+    href: '/course-runtime/textbook/ch02/root-locus',
+    text: 'Root locus explains closed-loop pole movement.',
+    contentHash: 'sha256:textbook-root-locus',
+    resourceProjection: {
+      resourceId: 'res-textbook-root-locus',
+      segmentRef: 'seg-textbook-root-locus',
+      citationTargetRef: 'textbook:root-locus:citation',
+      knowledgeNodeRefs: ['kn-root-locus'],
+      capabilityTargetRefs: ['cap-analysis'],
+    },
+    citationAddress: {
+      kind: 'text',
+      sourceRefId: 'textbook:root-locus',
+      href: '/course-runtime/textbook/ch02/root-locus#section',
+      locator: '#section',
+      contentHash: 'sha256:textbook-root-locus',
+    },
+    metadata: {
+      bookId: 'dorf-modern-control-systems',
+      sectionId: 'ch02-sec-root-locus',
+      chapterId: 'ch02',
+      chapterNumber: 2,
+    },
+  };
+}
+
 describe('source pack retrieval profiles', () => {
   it('defines requested profiles and aliases existing profile names', () => {
     expect(getSourcePackRetrievalProfile('handout-authoring').budgets.maxItems).toBeGreaterThan(4);
@@ -192,6 +225,95 @@ describe('source pack retrieval profiles', () => {
     expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['reviewed']);
     expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('profile-filtered-review-state');
     expect(JSON.stringify(result.pack.limitations)).not.toContain('missing-review-state');
+  });
+
+  it('redacts upstream limitation details from student-visible packs', () => {
+    const result = retrieveSourcePack({
+      query: 'root locus',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [item({ id: 'eligible', citationTargetId: 'citation:eligible' })],
+      limitations: [{
+        code: 'scope-excluded',
+        severity: 'warning',
+        message: 'Chunk teacher-only-raw-source was excluded from class scope.',
+        source: 'corpus-adapters',
+        recoverable: true,
+      }, {
+        code: 'upstream-blocking-internal',
+        severity: 'blocking',
+        message: 'Blocking internal-source-id should not be serialized.',
+        source: 'corpus-adapters',
+        recoverable: false,
+      }],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(result.pack.limitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'upstream-limitations-redacted',
+        severity: 'blocking',
+      }),
+    ]));
+    expect(JSON.stringify(result.pack.limitations)).not.toContain('teacher-only-raw-source');
+    expect(JSON.stringify(result.pack.limitations)).not.toContain('scope-excluded');
+    expect(JSON.stringify(result.pack.limitations)).not.toContain('internal-source-id');
+    expect(JSON.stringify(result.pack.limitations)).not.toContain('upstream-blocking-internal');
+  });
+
+  it('preserves upstream limitation details for teacher packs', () => {
+    const result = retrieveSourcePack({
+      query: 'root locus',
+      profile: 'handout-authoring',
+      role: 'teacher',
+      candidates: [item({ id: 'eligible', citationTargetId: 'citation:eligible' })],
+      limitations: [{
+        code: 'scope-excluded',
+        severity: 'warning',
+        message: 'Chunk teacher-only-source was excluded from class scope.',
+        source: 'corpus-adapters',
+        recoverable: true,
+      }],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('scope-excluded');
+    expect(JSON.stringify(result.pack.limitations)).toContain('teacher-only-source');
+  });
+
+  it('treats unknown runtime roles as student-visible for upstream limitation redaction', () => {
+    const result = retrieveSourcePack({
+      query: 'root locus',
+      profile: 'konling-answer',
+      role: 'assistant' as never,
+      candidates: [item({ id: 'eligible', citationTargetId: 'citation:eligible' })],
+      limitations: [{
+        code: 'scope-excluded',
+        severity: 'info',
+        message: 'Chunk runtime-unknown-role-source was excluded from class scope.',
+        source: 'corpus-adapters',
+        recoverable: true,
+      }],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(result.pack.limitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'upstream-limitations-redacted',
+        severity: 'info',
+      }),
+    ]));
+    expect(JSON.stringify(result.pack.limitations)).not.toContain('runtime-unknown-role-source');
+  });
+
+  it('keeps adapted textbook candidates eligible for controlled answer profiles', () => {
+    const adapted = adaptTextbookSearchDocument(textbookDoc());
+    const result = retrieveSourcePack({
+      query: 'root locus',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [adapted.item],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['textbook-root-locus']);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).not.toContain('profile-filtered-review-state');
   });
 
   it('keeps canonical LearningEvidence adapter output eligible for authoring retrieval', () => {

@@ -732,6 +732,8 @@ describe('textbook citation preservation', () => {
     expect(item.metadata?.citationVersion).toBe('citation.v1');
     expect(item.metadata?.knowledgeNodeRefs).toEqual(['kn-002']);
     expect(item.metadata?.capabilityTargetRefs).toEqual(['cap-002']);
+    expect(item.metadata?.reviewStatus).toBe('canonical');
+    expect(item.metadata?.authorityLevel).toBe('canonical');
   });
 
   it('derives textbook citation locator from href when locator is missing', () => {
