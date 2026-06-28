@@ -291,6 +291,21 @@ export function adaptLearningEvidenceChunk(
       authorityLevel: chunk.authority?.level ?? 'contextual',
       freshnessBucket: chunk.authority?.freshnessBucket ?? 'recent',
       contentHash: chunk.content?.hash ?? '',
+      spanKind: chunk.spanRef.kind,
+      spanStart: chunk.spanRef.start ?? '',
+      spanEnd: chunk.spanRef.end ?? '',
+      spanLocator: chunk.spanRef.locator ?? '',
+      citationAddressKind: chunk.citationAddress?.kind ?? '',
+      citationLocator: chunk.citationAddress?.locator ?? '',
+      citationMediaStartSeconds: chunk.citationAddress?.mediaStartSeconds ?? '',
+      citationMediaEndSeconds: chunk.citationAddress?.mediaEndSeconds ?? '',
+      citationImageRegionX: chunk.citationAddress?.imageRegion?.x ?? '',
+      citationImageRegionY: chunk.citationAddress?.imageRegion?.y ?? '',
+      citationImageRegionWidth: chunk.citationAddress?.imageRegion?.width ?? '',
+      citationImageRegionHeight: chunk.citationAddress?.imageRegion?.height ?? '',
+      knowledgeNodeRefs: chunk.resourceProjection?.knowledgeNodeRefs ?? [],
+      capabilityTargetRefs: chunk.resourceProjection?.capabilityTargetRefs ?? [],
+      ...versionRefsMetadata(chunk.resourceProjection?.versionRefs),
     },
   };
 
@@ -600,7 +615,7 @@ function toGovernedId(prefix: string, value: string): string {
 }
 
 function isUsableGovernedId(value: string): boolean {
-  return GOVERNED_ID_PATTERN.test(value) && !RAW_CITATION_TARGET_PATTERN.test(value);
+  return GOVERNED_ID_PATTERN.test(value) && !hasRawCitationTarget(value);
 }
 
 function addRawCitationTargetLimitations(
@@ -608,7 +623,7 @@ function addRawCitationTargetLimitations(
   values: Array<string | null | undefined>,
   source: string,
 ): void {
-  if (!values.some((value) => typeof value === 'string' && RAW_CITATION_TARGET_PATTERN.test(value))) return;
+  if (!values.some((value) => typeof value === 'string' && hasRawCitationTarget(value))) return;
   limitations.push({
     code: 'citation-target-raw-ref',
     severity: 'warning',
@@ -618,8 +633,23 @@ function addRawCitationTargetLimitations(
   });
 }
 
+function hasRawCitationTarget(value: string): boolean {
+  let current = value;
+  for (let index = 0; index < 32; index += 1) {
+    if (RAW_CITATION_TARGET_PATTERN.test(current)) return true;
+    const decoded = decodePercentEncodingLenient(current);
+    if (decoded === current) return false;
+    current = decoded;
+  }
+  return true;
+}
+
+function decodePercentEncodingLenient(value: string): string {
+  return value.replace(/%([0-9A-Fa-f]{2})/g, (_, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)));
+}
+
 function versionRefsMetadata(
-  refs: TextbookRuntimeSearchDocument['resourceProjection']['versionRefs'],
+  refs: TextbookRuntimeSearchDocument['resourceProjection']['versionRefs'] | NonNullable<LearningEvidenceCorpusChunk['resourceProjection']>['versionRefs'],
 ): Record<string, string> {
   const metadata: Record<string, string> = {};
   for (const key of VERSION_REF_KEYS) {

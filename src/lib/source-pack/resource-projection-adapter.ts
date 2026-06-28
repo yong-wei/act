@@ -98,6 +98,34 @@ function mapProjectionToSourceKind(
   }
 }
 
+function mapProjectionToModality(
+  row: RuntimeResourceProjectionArtifactRow,
+  level?: string,
+): SourcePackModality {
+  if (level === 'RetrievalChunk') return 'text';
+  const resourceType = row.resourceType as string;
+  if (row.family === 'runtime-lesson-media') {
+    switch (resourceType) {
+      case 'image':
+        return 'image';
+      case 'video':
+        return 'video';
+      case 'audio':
+        return 'audio';
+      case 'simulation':
+      case 'slides':
+        return 'interactive';
+      default:
+        return 'mixed';
+    }
+  }
+  if (resourceType === 'image') return 'image';
+  if (resourceType === 'video') return 'video';
+  if (resourceType === 'audio') return 'audio';
+  if (resourceType === 'simulation' || resourceType === 'slides') return 'interactive';
+  return 'mixed';
+}
+
 // ─── Review Status → Score Adjustment ────────────────────────────────────────
 
 const PROVISIONAL_STATUSES: ReadonlySet<string> = new Set([
@@ -208,7 +236,7 @@ export function adaptResourceProjectionRow(
 
   // ── source kind & modality ─────────────────────────────────────────────
   const sourceKind: SourcePackSourceKind = mapProjectionToSourceKind(row, projectionLevel);
-  const modality: SourcePackModality = projectionLevel === 'RetrievalChunk' ? 'text' : 'mixed';
+  const modality: SourcePackModality = mapProjectionToModality(row, projectionLevel);
 
   // ── excerpt ────────────────────────────────────────────────────────────
   const excerpt = buildExcerpt(row);

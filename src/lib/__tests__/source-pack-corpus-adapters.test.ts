@@ -657,6 +657,24 @@ describe('privacy filtering', () => {
     expect(item?.citationTargetId).not.toContain('#L42');
     expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
   });
+
+  it('decodes encoded raw refs before accepting learning evidence citation target ids', () => {
+    const chunk = makeChunk({
+      resourceProjection: {
+        ...makeChunk().resourceProjection!,
+        citationTargetRef: 'raw:https%2525253A%2525252F%2525252Fexample.com%2525252Funit-3-4.md',
+      },
+      citationAddress: {
+        ...makeChunk().citationAddress!,
+        sourceRefId: 'raw:course-content%2Fauthoring%2Funit-3-4.md%23L42',
+      },
+    });
+    const { item, limitations } = adaptLearningEvidenceChunk(chunk, { role: 'teacher' });
+    expect(item?.citationTargetId).toBe('learning-evidence-citation:raw-https-2525253A-2525252F-2525252Fexample.com-2525252Funit-3-4.md');
+    expect(item?.citationTargetId).not.toContain('course-content/authoring');
+    expect(item?.citationTargetId).not.toContain('https://');
+    expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
+  });
 });
 
 // ─── Unsafe Href Rejection ──────────────────────────────────────────────────
@@ -856,6 +874,29 @@ describe('retrieval chunk not path eligible', () => {
     expect(item.sourceKind).toBe('knowledge-card');
   });
 
+  it('preserves runtime media projection modality', () => {
+    const row = makeProjectionRow({
+      family: 'runtime-lesson-media',
+      sourceKind: 'runtime_lesson_media',
+      resourceType: 'video',
+      projectionLevel: 'ResourceNode' as 'ResourceNode',
+    });
+    const { item } = adaptResourceProjectionRow(row);
+    expect(item.sourceKind).toBe('runtime-lesson');
+    expect(item.modality).toBe('video');
+  });
+
+  it('maps runtime media slides to interactive modality', () => {
+    const row = makeProjectionRow({
+      family: 'runtime-lesson-media',
+      sourceKind: 'runtime_lesson_media',
+      resourceType: 'slides' as 'image',
+      projectionLevel: 'ResourceNode' as 'ResourceNode',
+    });
+    const { item } = adaptResourceProjectionRow(row);
+    expect(item.modality).toBe('interactive');
+  });
+
   it('assigns planningUnitId for path-eligible PlanningUnit projection', () => {
     const row = makeProjectionRow({
       projectionLevel: 'PlanningUnit' as 'PlanningUnit',
@@ -892,6 +933,10 @@ describe('retrieval chunk not path eligible', () => {
       resourceProjection: {
         ...makeChunk().resourceProjection!,
         pathEligibility: { eligible: false, reason: 'resource-node-planning-audit-required' },
+      },
+      citationAddress: {
+        ...makeChunk().citationAddress!,
+        imageRegion: { x: 10, y: 20, width: 120, height: 80 },
       },
     });
     const { item, limitations } = adaptLearningEvidenceChunk(chunk, { role: 'teacher' });
@@ -975,7 +1020,28 @@ describe('stale and provisional limitations', () => {
 
 describe('adapted SourcePackItem structure', () => {
   it('learning evidence chunk produces valid SourcePackItem fields', () => {
-    const chunk = makeChunk();
+    const chunk = makeChunk({
+      citationAddress: {
+        ...makeChunk().citationAddress!,
+        imageRegion: {
+          x: 10,
+          y: 20,
+          width: 120,
+          height: 80,
+        },
+      },
+      resourceProjection: {
+        ...makeChunk().resourceProjection!,
+        versionRefs: {
+          artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+          graphCatalogVersion: 'graph-catalog.v1',
+          resourceRegistryVersion: 'resource-registry.v1',
+          resourceProjectionVersion: 'resource-projection.v1',
+          groundingVersion: 'grounding.v1',
+          citationVersion: 'citation.v1',
+        },
+      },
+    });
     const { item } = adaptLearningEvidenceChunk(chunk, { role: 'teacher' });
     expect(item).not.toBeNull();
     if (!item) return;
@@ -995,6 +1061,19 @@ describe('adapted SourcePackItem structure', () => {
     expect(item.resourceNodeId).toBeUndefined();
     expect(item.retrievalChunkId).toBe('learning-evidence:chunk-001');
     expect(item.citationTargetId).toBe('source-pack-citation:ct-001');
+    expect(item.metadata?.spanKind).toBe('text-range');
+    expect(item.metadata?.spanStart).toBe(0);
+    expect(item.metadata?.spanEnd).toBe(100);
+    expect(item.metadata?.citationAddressKind).toBe('text');
+    expect(item.metadata?.citationLocator).toBe('#pole-placement');
+    expect(item.metadata?.citationImageRegionX).toBe(10);
+    expect(item.metadata?.citationImageRegionY).toBe(20);
+    expect(item.metadata?.citationImageRegionWidth).toBe(120);
+    expect(item.metadata?.citationImageRegionHeight).toBe(80);
+    expect(item.metadata?.knowledgeNodeRefs).toEqual(['kn-001']);
+    expect(item.metadata?.capabilityTargetRefs).toEqual(['cap-001']);
+    expect(item.metadata?.artifactVersioningVersion).toBe('kaq-artifact-versioning.v1');
+    expect(item.metadata?.resourceProjectionVersion).toBe('resource-projection.v1');
   });
 
   it('textbook doc produces valid SourcePackItem', () => {
