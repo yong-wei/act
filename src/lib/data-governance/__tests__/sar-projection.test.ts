@@ -319,7 +319,7 @@ describe('SAR platform source projections', () => {
           ...baseProjection.resource.graphProfile,
           graphNodeRefs: {
             ...baseProjection.resource.graphProfile.graphNodeRefs,
-            knowledge: ['projection-only-knowledge'],
+            knowledge: ['knowledge:projection-only-knowledge'],
           },
         },
       },
@@ -337,9 +337,13 @@ describe('SAR platform source projections', () => {
       graphCoverageMatched: true,
       graphCoverageRefs: ['projection-only-knowledge'],
     });
-    expect(result.entities).toContainEqual(expect.objectContaining({
+    expect(result.entities).not.toContainEqual(expect.objectContaining({
       entityType: 'graph-node',
       canonicalRef: 'projection-only-knowledge',
+    }));
+    expect(result.entities).toContainEqual(expect.objectContaining({
+      entityType: 'graph-node',
+      canonicalRef: 'knowledge:projection-only-knowledge',
     }));
 
     const unrelated = projectResourceNodeToSar({
@@ -371,14 +375,14 @@ describe('SAR platform source projections', () => {
         ...segment,
         graphNodeRefs: {
           ...segment.graphNodeRefs,
-          quality: ['segment-quality-ref'],
+          quality: ['quality:segment-quality-ref'],
         },
       })),
       retrievalChunks: baseProjection.retrievalChunks.map((chunk) => ({
         ...chunk,
         graphNodeRefs: {
           ...chunk.graphNodeRefs,
-          capability: ['chunk-capability-ref'],
+          capability: ['capability:chunk-capability-ref'],
         },
       })),
     };
@@ -386,28 +390,28 @@ describe('SAR platform source projections', () => {
     const result = projectResourceNodeToSar({
       node,
       projection,
-      coverageRefs: ['segment-quality-ref', 'chunk-capability-ref'],
+      coverageRefs: ['quality:segment-quality-ref', 'capability:chunk-capability-ref'],
     });
 
     expect(validateSarResult(result).issues).toEqual([]);
     expect(result.events[0].metadata).toMatchObject({
       graphCoverageMatched: true,
-      graphCoverageRefs: ['chunk-capability-ref', 'segment-quality-ref'],
+      graphCoverageRefs: ['capability:chunk-capability-ref', 'quality:segment-quality-ref'],
     });
     expect(result.entities).toContainEqual(expect.objectContaining({
       entityType: 'graph-node',
-      canonicalRef: 'segment-quality-ref',
+      canonicalRef: 'quality:segment-quality-ref',
     }));
     expect(result.entities).toContainEqual(expect.objectContaining({
       entityType: 'graph-node',
-      canonicalRef: 'chunk-capability-ref',
+      canonicalRef: 'capability:chunk-capability-ref',
     }));
     expect(result.relations).toContainEqual(expect.objectContaining({
-      entityId: 'sar:entity:graph-node:segment-quality-ref',
+      entityId: 'sar:entity:graph-node:quality:segment-quality-ref',
       role: 'supports',
     }));
     expect(result.relations).toContainEqual(expect.objectContaining({
-      entityId: 'sar:entity:graph-node:chunk-capability-ref',
+      entityId: 'sar:entity:graph-node:capability:chunk-capability-ref',
       role: 'supports',
     }));
   });

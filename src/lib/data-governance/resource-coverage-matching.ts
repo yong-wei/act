@@ -28,6 +28,8 @@ export function resourceProjectionMatchesGraphCoverageRefs(
     projection.resource.id,
     projection.resource.resourceNodeId,
     ...projection.resource.sourceRefs.map((ref) => ref.ref),
+    ...projection.resource.knowledgeNodeIds,
+    ...projection.resource.capabilityTargetIds,
     ...(projection.planningUnit?.knowledgeCoverage ?? []),
     ...Object.keys(projection.planningUnit?.abilityImpact ?? {}),
     ...(projection.planningUnit?.evidenceInstrumentation ?? []),
@@ -88,9 +90,7 @@ function uniqueSorted(values: readonly string[]): string[] {
 export function resourceProjectionGraphRefs(
   projection: ResourceSemanticProjection | null | undefined,
 ): string[] {
-  return uniqueSorted([
-    ...(projection?.resource.knowledgeNodeIds ?? []),
-    ...(projection?.resource.capabilityTargetIds ?? []),
+  return canonicalGraphNodeRefs([
     ...(projection?.resource.graphProfile.graphNodeRefs.knowledge ?? []),
     ...(projection?.resource.graphProfile.graphNodeRefs.capability ?? []),
     ...(projection?.resource.graphProfile.graphNodeRefs.quality ?? []),
@@ -108,4 +108,13 @@ export function resourceProjectionGraphRefs(
       ...chunk.graphNodeRefs.quality,
     ]) ?? []),
   ]);
+}
+
+function canonicalGraphNodeRefs(values: readonly string[]): string[] {
+  return uniqueSorted(values.filter(isCanonicalGraphNodeRef));
+}
+
+function isCanonicalGraphNodeRef(value: string): boolean {
+  return /^(knowledge|capability|quality):/.test(value)
+    || /^(kn|cap|qual):/.test(value);
 }
