@@ -68,7 +68,7 @@ export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSour
   };
   const pack = buildSourcePack({
     query,
-    items: diversified.items,
+    items: itemsForPack(diversified.items, role),
     limitations,
     coverage: {
       eligibleItems: filtered.eligible.length,
@@ -92,6 +92,17 @@ export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSour
     excludedCount: filtered.excludedCount,
     limitations,
   };
+}
+
+function itemsForPack(items: readonly SourcePackItem[], role: SourcePackCallerRole): SourcePackItem[] {
+  if (role !== 'student') return [...items];
+  return items.map(redactStudentItemMetadata);
+}
+
+function redactStudentItemMetadata(item: SourcePackItem): SourcePackItem {
+  if (!item.metadata || !Object.hasOwn(item.metadata, 'learnerContextRefs')) return item;
+  const { learnerContextRefs: _learnerContextRefs, ...metadata } = item.metadata;
+  return { ...item, metadata };
 }
 
 function filterCandidates(
@@ -282,7 +293,9 @@ function queryFilters(input: RetrieveSourcePackInput, role: SourcePackCallerRole
   addStringArrayFilter(filters, 'qualityTargetRefs', input.qualityTargetRefs);
   addStringArrayFilter(filters, 'learningGoalIds', input.learningGoalIds);
   addStringArrayFilter(filters, 'resourceIds', input.resourceIds);
-  addStringArrayFilter(filters, 'learnerContextRefs', input.learnerContextRefs);
+  if (role !== 'student') {
+    addStringArrayFilter(filters, 'learnerContextRefs', input.learnerContextRefs);
+  }
   if (input.semanticScores) {
     for (const [id, score] of Object.entries(input.semanticScores).sort(([left], [right]) => compareCodeUnit(left, right))) {
       filters[`semanticScore:${id}`] = score;

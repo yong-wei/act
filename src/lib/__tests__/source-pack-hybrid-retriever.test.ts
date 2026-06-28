@@ -7,6 +7,7 @@ import {
   evaluateSourcePackRetrieval,
   getSourcePackRetrievalProfile,
   retrieveSourcePack,
+  serializeSourcePackJson,
   sourcePackEvaluationFixtures,
   type SourcePackItem,
 } from '../source-pack';
@@ -975,6 +976,40 @@ describe('source pack hybrid ranking', () => {
     expect(deduped.pack.limitations.map((limitation) => limitation.code)).toEqual(
       duplicated.pack.limitations.map((limitation) => limitation.code),
     );
+  });
+
+  it('does not serialize learner context refs into student-visible query filters', () => {
+    const result = retrieveSourcePack({
+      query: 'root locus answer',
+      profile: 'konling-answer',
+      role: 'student',
+      learnerContextRefs: ['diagnosis:learner-1:root-locus', 'personalization:learner-1'],
+      candidates: [
+        item({
+          id: 'student-safe-citation',
+          title: 'Root locus citation',
+          sourceKind: 'textbook',
+          citation: {
+            citationTargetId: 'citation:root-locus',
+            sourceId: 'textbook:root-locus',
+            displayTitle: 'Root locus citation',
+            href: '/course-runtime/textbook/root-locus',
+            resolver: 'course-runtime',
+            verified: true,
+          },
+          metadata: {
+            reviewStatus: 'human-confirmed',
+            learnerContextRefs: ['diagnosis:learner-1:root-locus'],
+          },
+        }),
+      ],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['student-safe-citation']);
+    expect(result.pack.query.filters).not.toHaveProperty('learnerContextRefs');
+    expect(result.pack.items[0].metadata).not.toHaveProperty('learnerContextRefs');
+    expect(serializeSourcePackJson(result.pack)).not.toContain('learner-1');
   });
 });
 
