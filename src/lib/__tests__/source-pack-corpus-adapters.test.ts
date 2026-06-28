@@ -589,6 +589,42 @@ describe('privacy filtering', () => {
     expect(item).toBeNull();
     expect(limitations.some((limitation) => limitation.code === 'scope-excluded')).toBe(true);
   });
+
+  it('does not use raw URL refs as learning evidence citation target ids', () => {
+    const chunk = makeChunk({
+      resourceProjection: {
+        ...makeChunk().resourceProjection!,
+        citationTargetRef: 'external:https://example.com/citation',
+      },
+      citationAddress: {
+        ...makeChunk().citationAddress!,
+        sourceRefId: 'https://example.com/source',
+      },
+    });
+    const { item, limitations } = adaptLearningEvidenceChunk(chunk, { role: 'teacher' });
+    expect(item?.citationTargetId).toBe('learning-evidence-citation:external-https-example.com-citation');
+    expect(item?.citation?.citationTargetId).toBe(item?.citationTargetId);
+    expect(item?.citationTargetId).not.toContain('https://');
+    expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
+  });
+
+  it('does not use authoring paths or line targets as learning evidence citation target ids', () => {
+    const chunk = makeChunk({
+      resourceProjection: {
+        ...makeChunk().resourceProjection!,
+        citationTargetRef: 'course-content/authoring/unit-3-4.md',
+      },
+      citationAddress: {
+        ...makeChunk().citationAddress!,
+        sourceRefId: 'kaq:unit-3-4#L42',
+      },
+    });
+    const { item, limitations } = adaptLearningEvidenceChunk(chunk, { role: 'teacher' });
+    expect(item?.citationTargetId).toBe('learning-evidence-citation:course-content-authoring-unit-3-4.md');
+    expect(item?.citationTargetId).not.toContain('course-content/authoring');
+    expect(item?.citationTargetId).not.toContain('#L42');
+    expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
+  });
 });
 
 // ─── Unsafe Href Rejection ──────────────────────────────────────────────────
@@ -670,6 +706,42 @@ describe('textbook citation preservation', () => {
     });
     const { item } = adaptTextbookSearchDocument(doc);
     expect(item.metadata?.citationLocator).toBe('doc-sec1');
+  });
+
+  it('does not use raw URL refs as textbook citation target ids', () => {
+    const doc = makeTextbookDoc({
+      resourceProjection: {
+        ...makeTextbookDoc().resourceProjection,
+        citationTargetRef: 'external:https://example.com/textbook-citation',
+      },
+      citationAddress: {
+        ...makeTextbookDoc().citationAddress!,
+        sourceRefId: 'https://example.com/textbook-source',
+      },
+    });
+    const { item, limitations } = adaptTextbookSearchDocument(doc);
+    expect(item.citationTargetId).toBe('textbook-citation:external-https-example.com-textbook-citation');
+    expect(item.citation?.citationTargetId).toBe(item.citationTargetId);
+    expect(item.citationTargetId).not.toContain('https://');
+    expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
+  });
+
+  it('does not use authoring paths or line targets as textbook citation target ids', () => {
+    const doc = makeTextbookDoc({
+      resourceProjection: {
+        ...makeTextbookDoc().resourceProjection,
+        citationTargetRef: 'course-content/authoring/textbook/ch02.md',
+      },
+      citationAddress: {
+        ...makeTextbookDoc().citationAddress!,
+        sourceRefId: 'textbook:ch02#L100',
+      },
+    });
+    const { item, limitations } = adaptTextbookSearchDocument(doc);
+    expect(item.citationTargetId).toBe('textbook-citation:course-content-authoring-textbook-ch02.md');
+    expect(item.citationTargetId).not.toContain('course-content/authoring');
+    expect(item.citationTargetId).not.toContain('#L100');
+    expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
   });
 
   it('preserves citation address in textbook output', () => {

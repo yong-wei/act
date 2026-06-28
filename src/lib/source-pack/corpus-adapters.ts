@@ -69,6 +69,7 @@ export type {
 };
 
 const GOVERNED_ID_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}_.-]*:[^\s]+$/u;
+const RAW_CITATION_TARGET_PATTERN = /(https?:\/\/|:\/\/|course-content\/authoring|#L\d+\b)/i;
 const VERSION_REF_KEYS = [
   'artifactVersioningVersion',
   'learningGoalPackageVersion',
@@ -206,10 +207,13 @@ export function adaptLearningEvidenceChunk(
   }
 
   const retrievalChunkId = toGovernedId('learning-evidence', chunk.id);
-  const citationTargetId = firstGovernedId([
+  const citationTargetRefs = [
     chunk.resourceProjection?.citationTargetRef,
     chunk.citationAddress?.sourceRefId,
-  ]) ?? toGovernedId('learning-evidence-citation', chunk.resourceProjection?.citationTargetRef ?? chunk.id);
+  ];
+  addRawCitationTargetLimitations(limitations, citationTargetRefs, 'corpus-adapters');
+  const citationTargetId = firstGovernedId(citationTargetRefs) ??
+    toGovernedId('learning-evidence-citation', chunk.resourceProjection?.citationTargetRef ?? chunk.id);
 
   // ── Citation hydration ────────────────────────────────────────────────
   let citation = undefined;
@@ -328,10 +332,13 @@ export function adaptTextbookSearchDocument(
   // ── Citation preservation ─────────────────────────────────────────────
   let citation = undefined;
   const retrievalChunkId = toGovernedId('textbook-search', doc.resourceProjection?.segmentRef ?? doc.id);
-  const citationTargetId = firstGovernedId([
+  const citationTargetRefs = [
     doc.resourceProjection?.citationTargetRef,
     doc.citationAddress?.sourceRefId,
-  ]) ?? toGovernedId('textbook-citation', doc.resourceProjection?.citationTargetRef ?? doc.id);
+  ];
+  addRawCitationTargetLimitations(limitations, citationTargetRefs, 'corpus-adapters');
+  const citationTargetId = firstGovernedId(citationTargetRefs) ??
+    toGovernedId('textbook-citation', doc.resourceProjection?.citationTargetRef ?? doc.id);
   if (doc.citationAddress) {
     const addr: HydratorCitationAddressInput = {
       kind: doc.citationAddress.kind,
@@ -569,17 +576,36 @@ function resourceProjectionSceneForUseCase(
 }
 
 function firstGovernedId(values: Array<string | null | undefined>): string | undefined {
-  return values.find((value): value is string => Boolean(value && GOVERNED_ID_PATTERN.test(value)));
+  return values.find((value): value is string => Boolean(value && isUsableGovernedId(value)));
 }
 
 function toGovernedId(prefix: string, value: string): string {
-  if (GOVERNED_ID_PATTERN.test(value)) return value;
+  if (isUsableGovernedId(value)) return value;
   const normalized = value
     .trim()
     .replace(/[^A-Za-z0-9_.-]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 96);
   return `${prefix}:${normalized || 'unknown'}`;
+}
+
+function isUsableGovernedId(value: string): boolean {
+  return GOVERNED_ID_PATTERN.test(value) && !RAW_CITATION_TARGET_PATTERN.test(value);
+}
+
+function addRawCitationTargetLimitations(
+  limitations: SourcePackLimitation[],
+  values: Array<string | null | undefined>,
+  source: string,
+): void {
+  if (!values.some((value) => typeof value === 'string' && RAW_CITATION_TARGET_PATTERN.test(value))) return;
+  limitations.push({
+    code: 'citation-target-raw-ref',
+    severity: 'warning',
+    message: 'Citation target refs containing raw URLs, authoring paths, or source line targets were not used as governed ids.',
+    source,
+    recoverable: true,
+  });
 }
 
 function versionRefsMetadata(
