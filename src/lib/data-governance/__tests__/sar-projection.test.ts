@@ -624,6 +624,24 @@ describe('SAR platform source projections', () => {
     );
     expect(unversionedProjection.trace.versionRefs).toEqual(['sar-projection.v1']);
 
+    const partiallyVersionedProjection = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        resourceProjection: {
+          ...chunk.resourceProjection!,
+          versionRefs: {
+            resourceProjectionVersion: 'resource-projection.legacy',
+          } as NonNullable<LearningEvidenceCorpusChunk['resourceProjection']>['versionRefs'],
+        },
+      }),
+    });
+    expect(partiallyVersionedProjection.limitations).toContain(
+      'missing-version-ref:graphCatalogVersion:Required artifact version ref is missing: graphCatalogVersion.',
+    );
+    expect(partiallyVersionedProjection.trace.versionRefs).toEqual(['resource-projection.legacy']);
+    expect(partiallyVersionedProjection.trace.versionRefs).not.toContain(
+      buildKaqArtifactVersionRefs().graphCatalogVersion,
+    );
+
     const nonResourceEvidence = projectLearningEvidenceChunkToSar({
       chunk: learningEvidenceChunk({
         sourceRef: {

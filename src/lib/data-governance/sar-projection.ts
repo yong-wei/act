@@ -458,7 +458,7 @@ export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSa
     retrievalChunkRefs: [chunk.id],
     limitations: evidenceLimitations(chunk),
     versionRefs: chunk.resourceProjection?.versionRefs
-      ? versionRefs(chunk.resourceProjection.versionRefs)
+      ? explicitVersionRefs(chunk.resourceProjection.versionRefs)
       : undefined,
   });
 }
@@ -725,6 +725,12 @@ function evidenceAuthority(level: LearningEvidenceAuthorityLevel): SarAuthorityL
 
 function versionRefs(refs?: Partial<KaqArtifactVersionRefs> | null): string[] {
   return Object.values(buildKaqArtifactVersionRefs(refs ?? {}))
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    .sort((left, right) => left.localeCompare(right));
+}
+
+function explicitVersionRefs(refs: Partial<KaqArtifactVersionRefs>): string[] {
+  return Object.values(refs)
     .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
     .sort((left, right) => left.localeCompare(right));
 }
