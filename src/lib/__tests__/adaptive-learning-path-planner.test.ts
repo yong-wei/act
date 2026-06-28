@@ -26,6 +26,7 @@ import { expandLearningGoalSubgraph } from '../graphs/goal-subgraph-expansion-se
 import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
 import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '../resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
+import type { SourcePackItem } from '../source-pack';
 
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
   const registry = buildResourceNodeRegistry({
@@ -450,6 +451,133 @@ describe('adaptive learning path planner', () => {
         evidenceBehavior: projection.planningUnit!.pathSemantics.evidenceBehavior,
       }),
     ]));
+  });
+
+  it('uses path-planning Source Packs as evidence without promoting citation-only items', () => {
+    const citationOnlyItem: SourcePackItem = {
+      id: 'source-pack:citation-only:bode-reference',
+      title: 'Bode reference citation',
+      sourceKind: 'textbook',
+      modality: 'text',
+      excerpt: 'Bode plots support frequency-domain correction decisions.',
+      inclusionRationale: 'Supports the target knowledge node but has no ResourceNode or PlanningUnit audit.',
+      retrievalChunkId: 'retrieval-chunk:bode-reference',
+      citationTargetId: 'citation-target:bode-reference',
+      scores: {
+        relevance: 0.9,
+        graphAlignment: 0.8,
+        authority: 0.9,
+        eligibility: 0.2,
+        freshness: 0.8,
+        final: 0.74,
+      },
+      access: {
+        visibility: 'student',
+        aiUseAllowed: true,
+      },
+      citation: {
+        citationTargetId: 'citation-target:bode-reference',
+        sourceId: 'textbook:bode-reference',
+        displayTitle: 'Bode reference citation',
+        href: '/course-runtime/resources/textbooks/bode-reference.md#chunk-1',
+        resolver: 'course-runtime',
+        verified: true,
+      },
+      metadata: {
+        reviewStatus: 'human-confirmed',
+        knowledgeNodeRefs: ['kn-bode'],
+        capabilityTargetRefs: ['parameterDesign'],
+      },
+    };
+
+    const input = plannerInput();
+    const plan = buildAdaptiveLearningPathPlan({
+      ...input,
+      goal: {
+        ...input.goal,
+        capabilityTargets: [{
+          id: 'capability:nyquist-stability',
+          knowledgeNodeRef: 'kn-bode',
+          competencyDimensions: ['parameterDesign'],
+          capabilityLevel: 'analyze',
+          behaviorVerb: '判别',
+          successCriteria: ['能够依据频域曲线判断稳定裕度'],
+          observableEvidenceType: 'question',
+        }],
+      },
+      sourcePackCandidates: [citationOnlyItem],
+      sourcePackLimitations: [{
+        code: 'citation-target-raw-ref',
+        severity: 'warning',
+        message: 'Textbook adapter preserved a raw citation target limitation.',
+        source: 'corpus-adapters',
+        recoverable: true,
+      }],
+    });
+
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain(citationOnlyItem.id);
+    expect(plan.visualization.evidence.sourcePackEvidence).toMatchObject({
+      profile: 'path-planning',
+      queryText: expect.stringContaining('capability:nyquist-stability 判别'),
+      capabilityTargetRefs: expect.arrayContaining(['parameterDesign', 'capability:nyquist-stability']),
+      itemRefs: [citationOnlyItem.id],
+      citationOnlyItemRefs: [citationOnlyItem.id],
+      pathEligibleItemRefs: [],
+      citationTargetIds: ['citation-target:bode-reference'],
+      retrievalChunkIds: ['retrieval-chunk:bode-reference'],
+      limitationCodes: expect.arrayContaining(['upstream-limitations-redacted', 'path-planning-citation-only-evidence']),
+    });
+  });
+
+  it('filters teacher-scoped Source Pack evidence from student-visible path payloads', () => {
+    const teacherOnlyItem: SourcePackItem = {
+      id: 'source-pack:teacher-only:private-planning-note',
+      title: 'Teacher-only planning note',
+      sourceKind: 'reference',
+      modality: 'text',
+      excerpt: 'Teacher-only planning rationale.',
+      inclusionRationale: 'Teacher-only citation evidence must not persist into student paths.',
+      retrievalChunkId: 'retrieval-chunk:teacher-private-note',
+      citationTargetId: 'citation-target:teacher-private-note',
+      scores: {
+        relevance: 0.95,
+        graphAlignment: 0.85,
+        authority: 0.9,
+        eligibility: 0.1,
+        freshness: 0.8,
+        final: 0.75,
+      },
+      access: {
+        visibility: 'teacher',
+        aiUseAllowed: true,
+      },
+      citation: {
+        citationTargetId: 'citation-target:teacher-private-note',
+        sourceId: 'teacher-note:private-planning-note',
+        displayTitle: 'Teacher-only planning note',
+        resolver: 'course-runtime',
+        verified: true,
+      },
+      metadata: {
+        reviewStatus: 'teacher-approved',
+        knowledgeNodeRefs: ['kn-bode'],
+        capabilityTargetRefs: ['parameterDesign'],
+      },
+    };
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      sourcePackRole: 'student',
+      sourcePackCandidates: [teacherOnlyItem],
+    }));
+
+    expect(plan.visualization.evidence.sourcePackEvidence).toMatchObject({
+      profile: 'path-planning',
+      itemRefs: [],
+      pathEligibleItemRefs: [],
+      citationOnlyItemRefs: [],
+      limitationCodes: expect.arrayContaining(['profile-filtered-visibility', 'source-pack-no-eligible-candidates']),
+    });
+    expect(JSON.stringify(plan.visualization.evidence.sourcePackEvidence)).not.toContain('teacher-private-note');
   });
 
   it('uses resource ranker scores when selecting the primary path candidate', () => {

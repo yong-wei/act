@@ -83,6 +83,7 @@ description: 面向"自动控制原理"课程创作讲义、知识图谱节点�
 - 以教育学家与自动控制原理教学专家的双重身份工作，不机械迎合用户提案。
 - 讲义必须服务零基础工科生的理解链，不用课程位置说明取代当前问题。
 - 资源库只提供候选素材，不直接拼贴为新课。
+- 当讲义、教师讲义、BOPPPS 或媒体规格需要大型教材、参考书或多媒体转录材料支撑时，先通过 Source Pack 获取可审计证据，不得把整本书、整份参考资料或大段转录直接塞入模型上下文。默认命令为 `npm run source:pack -- build --profile lesson-authoring --query "<主题/图谱节点/能力目标>" --candidates <reviewed-source-pack-items.json> --out course-content/authoring/source-packs/<单元编号>/<用途> --format both --top-k 6`；交付前保留 `source-pack.md`、`source-pack.json` 与 `source-pack.audit.json`，正文引用时保留 citation target id 或 retrieval chunk id。
 - 标题 = 知识骨架：学生版讲义的标题必须直接概括对象、方法、比较关系或归纳后的知识点；正文可以用问题引导，但问题不进入标题。
 - 术语、符号和命名以 `course-content/authoring/terminology.md` 为唯一真源。创作、续写或修订讲义前必须读取该文件；引入新术语或改动符号记法时，必须同步更新该文件，不得只在单元讲义里维护临时术语表。
 

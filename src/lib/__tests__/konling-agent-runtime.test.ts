@@ -3448,7 +3448,7 @@ describe('konling agent runtime', () => {
     });
   });
 
-  it('builds Konling content citations from real textbook runtime search documents', async () => {
+  it('builds Konling content citations through verified konling-answer Source Packs', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -3458,19 +3458,12 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    const textbookCitations = runtime.citationContext?.contentCitations.filter((citation) =>
-      citation.id.startsWith('content:textbook-section:dorf-modern-control-systems:')
+    const sourcePackCitations = runtime.citationContext?.contentCitations.filter((citation) =>
+      citation.evidenceBasis.startsWith('source-pack:konling-answer:')
     ) ?? [];
-    const textbookText = textbookCitations.find((citation) =>
-      citation.evidenceBasis === 'textbook-section' &&
-      citation.citationChip?.citationAddress?.kind === 'text'
-    );
-    const textbookFigure = textbookCitations.find((citation) =>
-      citation.evidenceBasis === 'textbook-figure-description' &&
-      citation.citationChip?.citationAddress?.kind === 'image'
-    );
 
-    expect(textbookText).toMatchObject({
+    expect(sourcePackCitations.length).toBeGreaterThan(0);
+    expect(sourcePackCitations[0]).toMatchObject({
       sourceType: 'content',
       href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
       confidence: 'high',
@@ -3481,236 +3474,52 @@ describe('konling agent runtime', () => {
         privacyVisibility: 'public',
       }),
     });
-    expect(textbookFigure).toMatchObject({
-      sourceType: 'content',
-      href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
-      confidence: 'high',
-      owner: 'answer',
-      citationChip: expect.objectContaining({
-        addressKind: 'image',
+    expect(runtime.citationContext?.sourcePacks).toEqual([
+      expect.objectContaining({
+        profile: 'konling-answer',
+        citationTargetIds: expect.arrayContaining(['textbook-citation:ch08-example-0801']),
+        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
       }),
-    });
-    expect(textbookCitations.every((citation) => !citation.id.includes('content:textbook:dorf-modern-control-systems:')))
-      .toBe(true);
+    ]);
+    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
   });
 
-  it('keeps content citations balanced across registered textbook runtime books', async () => {
-    const [dorfChunk, dorfFigure] = textbookRuntimeSearchDocumentFixture();
-    const dorfChunks = Array.from({ length: 4 }, (_, index) => ({
-      ...dorfChunk,
-      id: `dorf-chunk-${index + 1}`,
-      href: `${dorfChunk.href}-extra-${index + 1}`,
-      resourceProjection: {
-        ...dorfChunk.resourceProjection,
-        citationTargetRef: `dorf-chunk-${index + 1}`,
-      },
-      citationAddress: {
-        ...dorfChunk.citationAddress,
-        sourceRefId: `dorf-chunk-${index + 1}`,
-        href: `${dorfChunk.citationAddress.href}-extra-${index + 1}`,
-      },
-    }));
-    const dorfFigures = Array.from({ length: 4 }, (_, index) => ({
-      ...dorfFigure,
-      id: `dorf-figure-${index + 1}`,
-      href: `${dorfFigure.href}-extra-${index + 1}`,
-      resourceProjection: {
-        ...dorfFigure.resourceProjection,
-        citationTargetRef: `dorf-figure-${index + 1}`,
-      },
-      citationAddress: {
-        ...dorfFigure.citationAddress,
-        sourceRefId: `dorf-figure-${index + 1}`,
-        href: `${dorfFigure.citationAddress.href}-extra-${index + 1}`,
-      },
-    }));
-    const huChunk = {
-      ...dorfChunk,
-      id: 'ch05-sec01__chunk-001',
-      title: '5－1 频率特性',
-      href: '/course-runtime/resources/textbooks/hu-shousong-auto-control-7th/sections/ch05-sec01.md#chunk-001',
-      resourceProjection: {
-        resourceId: 'textbook-section:hu-shousong-auto-control-7th:ch05-sec01',
-        segmentRef: 'ch05-sec01',
-        citationTargetRef: 'ch05-sec01__chunk-001',
-        knowledgeNodeRefs: ['Bode图_1_1', '频域响应_1_1'],
-        capabilityTargetRefs: ['controlModeling', 'parameterDesign'],
-      },
-      citationAddress: {
-        ...dorfChunk.citationAddress,
-        sourceRefId: 'ch05-sec01__chunk-001',
-        href: '/course-runtime/resources/textbooks/hu-shousong-auto-control-7th/sections/ch05-sec01.md#chunk-001',
-        locator: 'chunk-001',
-        contentHash: 'sha-hu-chunk',
-      },
-      metadata: {
-        bookId: 'hu-shousong-auto-control-7th',
-        sectionId: 'ch05-sec01',
-        chapterId: 'ch05',
-        chapterNumber: 5,
-      },
-    };
-    const huFigure = {
-      ...dorfFigure,
-      id: 'fig-05-01__figure',
-      title: '频率特性示意图',
-      href: '/course-runtime/resources/textbooks/hu-shousong-auto-control-7th/sections/ch05-sec01.md#fig-05-01',
-      resourceProjection: {
-        resourceId: 'textbook-section:hu-shousong-auto-control-7th:ch05-sec01',
-        segmentRef: 'ch05-sec01',
-        citationTargetRef: 'fig-05-01',
-        knowledgeNodeRefs: ['Bode图_1_1'],
-        capabilityTargetRefs: ['controlModeling'],
-      },
-      citationAddress: {
-        ...dorfFigure.citationAddress,
-        sourceRefId: 'fig-05-01',
-        href: '/course-runtime/resources/textbooks/hu-shousong-auto-control-7th/sections/ch05-sec01.md#fig-05-01',
-        locator: 'fig-05-01',
-        contentHash: 'sha-hu-figure',
-      },
-      metadata: {
-        bookId: 'hu-shousong-auto-control-7th',
-        sectionId: 'ch05-sec01',
-        chapterId: 'ch05',
-        chapterNumber: 5,
-      },
-    };
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
-      ...dorfChunks,
-      huChunk,
-      ...dorfFigures,
-      huFigure,
-    ]);
-
+  it('uses the current user question in konling-answer Source Pack retrieval', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
       role: 'STUDENT',
       courseId: 'control-correction',
       pageId: 'student-path-center',
+      currentUserQuery: '我现在想问 Nyquist 判稳，而不是继续讨论 Bode 图。',
       trustedContentContext: true,
     });
 
-    const huCitations = runtime.citationContext?.contentCitations.filter((citation) =>
-      citation.id.startsWith('content:textbook-section:hu-shousong-auto-control-7th:')
-    ) ?? [];
-    const dorfCitations = runtime.citationContext?.contentCitations.filter((citation) =>
-      citation.id.startsWith('content:textbook-section:dorf-modern-control-systems:')
-    ) ?? [];
-    const textbookCitations = runtime.citationContext?.contentCitations.filter((citation) =>
-      citation.id.startsWith('content:textbook-section:')
-    ) ?? [];
-
-    expect(textbookCitations).toHaveLength(4);
-    expect(dorfCitations).toEqual(expect.arrayContaining([
+    expect(runtime.citationContext?.sourcePacks).toEqual([
       expect.objectContaining({
-        displayTitle: 'Bode 图频域响应示例',
-        evidenceBasis: 'textbook-section',
+        profile: 'konling-answer',
+        queryText: expect.stringContaining('Nyquist 判稳'),
       }),
-      expect.objectContaining({
-        displayTitle: 'Bode 图示意图 图像描述',
-        evidenceBasis: 'textbook-figure-description',
-      }),
-    ]));
-    expect(huCitations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        displayTitle: '5－1 频率特性',
-        evidenceBasis: 'textbook-section',
-        href: '/course-runtime/resources/textbooks/hu-shousong-auto-control-7th/sections/ch05-sec01.md#chunk-001',
-      }),
-      expect.objectContaining({
-        displayTitle: '频率特性示意图 图像描述',
-        evidenceBasis: 'textbook-figure-description',
-        href: '/course-runtime/resources/textbooks/hu-shousong-auto-control-7th/sections/ch05-sec01.md#fig-05-01',
-      }),
-    ]));
+    ]);
   });
 
-  it('prioritizes one text citation from each textbook before filling figure citations', async () => {
-    const [baseChunk, baseFigure] = textbookRuntimeSearchDocumentFixture();
-    const documents = ['book-a', 'book-b', 'book-c', 'book-d', 'book-e'].flatMap((bookId, index) => {
-      const sectionId = `ch0${index + 1}-sec01`;
-      const resourceId = `textbook-section:${bookId}:${sectionId}`;
-      return [
-        {
-          ...baseChunk,
-          id: `${bookId}__chunk-001`,
-          title: `${bookId} 文本`,
-          href: `/course-runtime/resources/textbooks/${bookId}/sections/${sectionId}.md#chunk-001`,
-          resourceProjection: {
-            ...baseChunk.resourceProjection,
-            resourceId,
-            segmentRef: sectionId,
-            citationTargetRef: `${bookId}__chunk-001`,
-          },
-          citationAddress: {
-            ...baseChunk.citationAddress,
-            sourceRefId: `${bookId}__chunk-001`,
-            href: `/course-runtime/resources/textbooks/${bookId}/sections/${sectionId}.md#chunk-001`,
-          },
-          metadata: {
-            bookId,
-            sectionId,
-            chapterId: `ch0${index + 1}`,
-            chapterNumber: index + 1,
-          },
-        },
-        {
-          ...baseFigure,
-          id: `${bookId}__figure-001`,
-          title: `${bookId} 图`,
-          href: `/course-runtime/resources/textbooks/${bookId}/sections/${sectionId}.md#fig-001`,
-          resourceProjection: {
-            ...baseFigure.resourceProjection,
-            resourceId,
-            segmentRef: sectionId,
-            citationTargetRef: `${bookId}__figure-001`,
-          },
-          citationAddress: {
-            ...baseFigure.citationAddress,
-            sourceRefId: `${bookId}__figure-001`,
-            href: `/course-runtime/resources/textbooks/${bookId}/sections/${sectionId}.md#fig-001`,
-          },
-          metadata: {
-            bookId,
-            sectionId,
-            chapterId: `ch0${index + 1}`,
-            chapterNumber: index + 1,
-          },
-        },
-      ];
-    });
-    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue(documents);
-
+  it('keeps Source Pack content citations when learner personalization evidence is missing', async () => {
+    mocks.readAdaptiveLearnerState.mockResolvedValue(null);
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
       role: 'STUDENT',
       courseId: 'control-correction',
-      pageId: 'student-path-center',
+      pageId: 'step-03',
       trustedContentContext: true,
     });
 
-    const textbookCitations = runtime.citationContext?.contentCitations.filter((citation) =>
-      citation.id.startsWith('content:textbook-section:')
-    ) ?? [];
-    const textCitations = textbookCitations.filter((citation) => citation.evidenceBasis === 'textbook-section');
-    const figureCitations = textbookCitations.filter((citation) => citation.evidenceBasis === 'textbook-figure-description');
-
-    expect(textbookCitations).toHaveLength(8);
-    expect(textCitations.map((citation) => citation.displayTitle)).toEqual([
-      'book-a 文本',
-      'book-b 文本',
-      'book-c 文本',
-      'book-d 文本',
-      'book-e 文本',
-    ]);
-    expect(figureCitations.map((citation) => citation.displayTitle)).toEqual([
-      'book-a 图 图像描述',
-      'book-b 图 图像描述',
-      'book-c 图 图像描述',
-    ]);
+    expect(runtime.learnerState).toBeNull();
+    expect(runtime.citationContext?.contentCitations.some((citation) =>
+      citation.evidenceBasis.startsWith('source-pack:konling-answer:')
+    )).toBe(true);
+    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+    expect(runtime.citationContext?.missingCitationClasses).toContain('learner-state');
   });
 
   it('verifies Konling answers against textbook, figure, video timestamp, and slides citations', () => {
@@ -7942,6 +7751,21 @@ describe('konling agent runtime', () => {
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
       },
     };
+    const [safeTextbookDocument] = textbookRuntimeSearchDocumentFixture();
+    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+      ...textbookRuntimeSearchDocumentFixture(),
+      {
+        ...safeTextbookDocument,
+        id: 'unsafe-path-planning-doc',
+        title: 'Unsafe path planning citation fixture',
+        href: 'javascript:alert(1)',
+        citationAddress: {
+          ...safeTextbookDocument.citationAddress,
+          sourceRefId: 'unsafe-path-planning-doc',
+          href: 'javascript:alert(1)',
+        },
+      },
+    ]);
     const runtime = buildKonlingToolRuntime({
       db,
       scope: createScope({ pageId: 'adaptive-path-center' }),
@@ -7977,6 +7801,16 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
+    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence).toMatchObject({
+      profile: 'path-planning',
+      pathEligibleItemRefs: expect.arrayContaining([
+        expect.stringContaining('resource-node:'),
+      ]),
+    });
+    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.itemRefs.length).toBeGreaterThan(0);
+    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.citationOnlyItemRefs).toContain('fig-08-01__figure');
+    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.limitationCodes).toContain('upstream-limitations-redacted');
     expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
       db.learningPath.upsert.mock.invocationCallOrder[0],
     );

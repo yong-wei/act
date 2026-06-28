@@ -135,6 +135,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       pathNodeId,
       pageContextHint: pageContext,
       knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
+      currentUserQuery: userMessage.content,
       trustedContentContext: true,
     });
     const modeContract = buildKonlingTeachingAssistantRuntimeContract({

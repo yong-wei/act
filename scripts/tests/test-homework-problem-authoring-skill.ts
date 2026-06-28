@@ -53,4 +53,15 @@ assert.equal(
   '出题技能应引用新的作业框架真值文件、题号提取脚本，并在参考文件中给出临时产物约定',
 );
 
+assert.equal(
+  skill.includes('npm run source:pack') &&
+    skill.includes('--profile homework-authoring') &&
+    skill.includes('--candidates') &&
+    skill.includes('source-pack.md') &&
+    skill.includes('source-pack.json') &&
+    skill.includes('source-pack.audit.json'),
+  true,
+  '出题技能应要求大型参考资料先生成 homework-authoring Source Pack，并保留 Markdown、JSON 和 audit 输出',
+);
+
 console.log('homework problem authoring skill test passed');

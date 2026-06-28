@@ -1,11 +1,14 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
+  retrieveSourcePack,
   buildSourcePack,
   serializeSourcePackAudit,
   serializeSourcePackJson,
   serializeSourcePackMarkdown,
+  validateSourcePack,
+  type SourcePackItem,
   type SourcePackProfile,
 } from '../../src/lib/source-pack';
 
@@ -23,6 +26,7 @@ interface BuildArgs {
   outDir: string;
   format: SourcePackFormat;
   topK: number;
+  candidatesFile?: string;
 }
 
 export async function runSourcePackCli(argv: string[], cwd = process.cwd()): Promise<CliResult> {
@@ -49,12 +53,24 @@ export async function runSourcePackCli(argv: string[], cwd = process.cwd()): Pro
 }
 
 async function buildCommand(args: BuildArgs, cwd: string): Promise<CliResult> {
-  const pack = buildSourcePack({
-    query: args.query,
-    profile: args.profile,
-    topK: args.topK,
-    caller: 'source-pack-cli',
-  });
+  const candidates = args.candidatesFile
+    ? await readCandidatesFile(path.resolve(cwd, args.candidatesFile))
+    : [];
+  const pack = candidates.length > 0
+    ? retrieveSourcePack({
+        query: args.query,
+        profile: args.profile,
+        role: args.profile === 'konling-answer' || args.profile === 'konling' ? 'student' : 'teacher',
+        topK: args.topK,
+        caller: 'source-pack-cli',
+        candidates,
+      }).pack
+    : buildSourcePack({
+        query: args.query,
+        profile: args.profile,
+        topK: args.topK,
+        caller: 'source-pack-cli',
+      });
   const outDir = path.resolve(cwd, args.outDir);
   await mkdir(outDir, { recursive: true });
   const files: string[] = [];
@@ -130,6 +146,7 @@ function parseBuildArgs(argv: string[]): BuildArgs {
   const profile = parseProfile(readOption(argv, '--profile') ?? 'generic');
   const format = parseFormat(readOption(argv, '--format') ?? 'both');
   const topK = Number(readOption(argv, '--top-k') ?? '5');
+  const candidatesFile = readOption(argv, '--candidates');
   if (!query) throw new Error('build requires --query <text>.');
   if (!Number.isInteger(topK) || topK <= 0) throw new Error('--top-k must be a positive integer.');
   return {
@@ -138,7 +155,23 @@ function parseBuildArgs(argv: string[]): BuildArgs {
     outDir,
     format,
     topK,
+    candidatesFile,
   };
+}
+
+async function readCandidatesFile(file: string): Promise<SourcePackItem[]> {
+  const value = JSON.parse(await readFile(file, 'utf-8')) as unknown;
+  const candidates = Array.isArray(value)
+    ? value
+    : Array.isArray((value as { items?: unknown })?.items)
+      ? (value as { items: unknown[] }).items
+      : null;
+  if (!candidates) throw new Error('--candidates must point to a JSON array or an object with an items array.');
+  return validateSourcePack(buildSourcePack({
+    query: 'candidate validation',
+    profile: 'generic',
+    items: candidates as SourcePackItem[],
+  })).items;
 }
 
 function readOption(argv: string[], name: string): string | undefined {
@@ -174,7 +207,7 @@ function parseProfile(value: string): SourcePackProfile {
 function usage(): string {
   return [
     'Usage:',
-    '  source:pack build --query <text> --profile <profile> --out <dir> --format json|markdown|both --top-k <n>',
+    '  source:pack build --query <text> --profile <profile> --out <dir> --format json|markdown|both --top-k <n> [--candidates <source-pack-items.json>]',
     '  supported profiles: handout-authoring, assessment-item, konling-answer, lesson-design, lesson-authoring, homework-authoring, konling, path-planning, generic',
     '  source:pack show --citation-target <id>',
     '  source:pack index status',

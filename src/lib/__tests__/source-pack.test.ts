@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -518,6 +518,41 @@ describe('source pack contract', () => {
       expect(JSON.parse(readFileSync(path.join(cwd, 'pack/source-pack.audit.json'), 'utf-8'))).toMatchObject({
         itemCount: 0,
         limitationCount: 1,
+      });
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('builds authoring Source Packs from reviewed candidate fixtures through the CLI', async () => {
+    const cwd = mkdtempSync(path.join(tmpdir(), 'source-pack-cli-candidates-'));
+    try {
+      writeFileSync(path.join(cwd, 'candidates.json'), JSON.stringify([sampleItem], null, 2));
+      const result = await runSourcePackCli([
+        'build',
+        '--query',
+        'PID 参数整定教材证据',
+        '--profile',
+        'lesson-authoring',
+        '--candidates',
+        'candidates.json',
+        '--out',
+        'pack',
+        '--format',
+        'both',
+        '--top-k',
+        '1',
+      ], cwd);
+
+      expect(result.ok).toBe(true);
+      const json = validateSourcePack(JSON.parse(readFileSync(path.join(cwd, 'pack/source-pack.json'), 'utf-8')));
+      expect(json.items.map((item) => item.id)).toEqual([sampleItem.id]);
+      expect(json.query.caller).toBe('source-pack-cli');
+      const markdown = readFileSync(path.join(cwd, 'pack/source-pack.md'), 'utf-8');
+      expect(markdown).toContain('Citation target: citation:textbook:dorf:ch08:001');
+      expect(JSON.parse(readFileSync(path.join(cwd, 'pack/source-pack.audit.json'), 'utf-8'))).toMatchObject({
+        itemCount: 1,
+        citationTargetIds: ['citation:textbook:dorf:ch08:001'],
       });
     } finally {
       rmSync(cwd, { recursive: true, force: true });

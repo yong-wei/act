@@ -35,12 +35,13 @@ description: >
 ## Quick Start（出题）
 
 1. 运行 `python3 .agents/skills/homework/scripts/extract_homework_question.py --framework course-content/syllabus-refactor/homework-framework.md --question-id T3-2` 抽取题号对应的最小题目规范。
-2. 临时目录固定为 `.tmp/homework-problem-authoring/<QUESTION_ID>/`（如 `.tmp/homework-problem-authoring/T3-2/`）。目录结构详见 `references/output-contract.md`。
-3. 启动 3 个独立出题智能体，各自在 `drafts/draft-N/` 下写题面和图片。
-4. 裁判智能体选出备选题，核验图片和公式后写入 `selected/`。
-5. 3 个独立的作答智能体对 `selected/stem.md` 进行作答，结果写入 `solvers/`。
-6. 按题型（C/X/D）执行一致性判定；不一致时再开第二轮。
-7. 输出 `final/final-package.md`（含图片资源清单）。
+2. 若题目需要教材、参考书或大型资料支撑，先运行 `npm run source:pack -- build --profile homework-authoring --query "<题号/能力目标/知识点>" --candidates <reviewed-source-pack-items.json> --out .tmp/homework-problem-authoring/<QUESTION_ID>/source-pack --format both --top-k 6`，只把 `source-pack.md` 与必要 citation target id / retrieval chunk id 下发给出题智能体，并保留 `source-pack.json` 与 `source-pack.audit.json` 供裁判复核。
+3. 临时目录固定为 `.tmp/homework-problem-authoring/<QUESTION_ID>/`（如 `.tmp/homework-problem-authoring/T3-2/`）。目录结构详见 `references/output-contract.md`。
+4. 启动 3 个独立出题智能体，各自在 `drafts/draft-N/` 下写题面和图片。
+5. 裁判智能体选出备选题，核验图片和公式后写入 `selected/`。
+6. 3 个独立的作答智能体对 `selected/stem.md` 进行作答，结果写入 `solvers/`。
+7. 按题型（C/X/D）执行一致性判定；不一致时再开第二轮。
+8. 输出 `final/final-package.md`（含图片资源清单）。
 
 如果用户一次给出多个题号，对每个题号分别跑完整流程，不要把多题混在同一目录里。
 
