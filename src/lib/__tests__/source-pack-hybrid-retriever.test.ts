@@ -268,6 +268,44 @@ describe('source pack retrieval profiles', () => {
     expect(result.pack.coverage.notes).toEqual(['3 candidate(s) were excluded by profile policy before ranking.']);
   });
 
+  it('requires verified hydrated citations for citation-ready profiles', () => {
+    const result = retrieveSourcePack({
+      query: 'root locus',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({
+          id: 'verified-citation',
+          citationTargetId: 'citation:verified',
+          citation: {
+            citationTargetId: 'citation:verified',
+            sourceId: 'source:verified',
+            displayTitle: 'Verified source',
+            href: '/course-runtime/verified',
+            resolver: 'course-runtime',
+            verified: true,
+          },
+        }),
+        item({
+          id: 'unverified-citation',
+          citationTargetId: 'citation:unverified',
+          citation: {
+            citationTargetId: 'citation:unverified',
+            sourceId: 'source:unverified',
+            displayTitle: 'Unverified source',
+            href: undefined,
+            verified: false,
+          },
+        }),
+      ],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['verified-citation']);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('profile-filtered-citation-readiness');
+    expect(JSON.stringify(result.pack.limitations)).not.toContain('unverified-citation');
+  });
+
   it('omits filtered candidate semantic scores from student-visible query filters', () => {
     const result = retrieveSourcePack({
       query: 'root locus',
@@ -372,6 +410,7 @@ describe('source pack retrieval profiles', () => {
       expect.objectContaining({
         code: 'upstream-limitations-redacted',
         severity: 'blocking',
+        recoverable: false,
       }),
     ]));
     expect(JSON.stringify(result.pack.limitations)).not.toContain('teacher-only-raw-source');

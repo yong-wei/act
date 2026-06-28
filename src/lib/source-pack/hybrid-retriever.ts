@@ -162,6 +162,7 @@ function inputLimitationsForPack(
     'upstream-limitations-redacted',
     `${limitations.length} upstream limitation(s) were withheld from this student-visible Source Pack.`,
     highestSeverity(limitations),
+    limitations.every((limitation) => limitation.recoverable),
   )];
 }
 
@@ -185,7 +186,8 @@ function hasAnswerLeakage(item: SourcePackItem): boolean {
 }
 
 function hasCitationReadyIdentifier(item: SourcePackItem): boolean {
-  return Boolean(item.citationTargetId || item.citation?.citationTargetId);
+  if (item.citation) return Boolean(item.citation.citationTargetId && item.citation.verified);
+  return Boolean(item.citationTargetId);
 }
 
 function answerLeakageText(item: SourcePackItem): string {
@@ -333,12 +335,17 @@ function hashString(value: string): string {
   return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
-function buildLimitation(code: string, message: string, severity: SourcePackLimitation['severity'] = 'warning'): SourcePackLimitation {
+function buildLimitation(
+  code: string,
+  message: string,
+  severity: SourcePackLimitation['severity'] = 'warning',
+  recoverable = true,
+): SourcePackLimitation {
   return {
     code,
     severity,
     message,
     source: 'source-pack.hybrid-retriever',
-    recoverable: true,
+    recoverable,
   };
 }
