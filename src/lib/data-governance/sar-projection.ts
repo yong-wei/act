@@ -744,7 +744,7 @@ function uniqueRelations(items: readonly SarRetrievalEventEntity[]): SarRetrieva
   const seen = new Set<string>();
   const result: SarRetrievalEventEntity[] = [];
   for (const item of items) {
-    const key = `${item.eventId}|${item.entityId}|${item.role}`;
+    const key = `${item.eventId}|${item.entityId}|${item.role}|${item.source}`;
     if (seen.has(key)) continue;
     seen.add(key);
     result.push(item);

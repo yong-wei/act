@@ -158,6 +158,28 @@ describe('SAR platform source projections', () => {
     expect(result.limitations).toContain('goal-subgraph:weak-relation-evidence:Weak relation evidence retained as a limitation.');
   });
 
+  it('preserves distinct SAR relation sources for the same event entity and role', () => {
+    const goal = learningGoalDefinition();
+    const result = projectLearningGoalToSar({
+      goal,
+      expandedSubgraph: expandedGoalSubgraph(goal, {
+        remediationCandidates: ['knowledge:shared-boundary'],
+        extensionCandidates: ['knowledge:shared-boundary'],
+        transferCandidates: ['knowledge:shared-boundary'],
+      }),
+    });
+
+    const sharedBoundaryRelations = result.relations.filter((item) => (
+      item.entityId === 'sar:entity:graph-node:knowledge:shared-boundary'
+      && item.role === 'candidate-for'
+    ));
+    expect(sharedBoundaryRelations.map((item) => item.source).sort()).toEqual([
+      'expanded-goal-subgraph-extension-candidate',
+      'expanded-goal-subgraph-remediation-candidate',
+      'expanded-goal-subgraph-transfer-candidate',
+    ]);
+  });
+
   it('rejects stale expanded learning-goal subgraphs before projecting path-boundary entities', () => {
     const goal = learningGoalDefinition();
     const staleSubgraph = expandedGoalSubgraph(goal, {
