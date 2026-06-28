@@ -258,6 +258,35 @@ describe('structured associative retrieval contract', () => {
     } as unknown as Partial<SarRetrievalEvent>)).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
 
     expect(validateSarEvent(event({
+      payload: { rawSubmission: 'student answer dump' },
+    } as unknown as Partial<SarRetrievalEvent>)).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarEvent(event({
+      payload: { citationChip: { label: 'verified citation' } },
+    } as unknown as Partial<SarRetrievalEvent>)).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
+
+    expect(validateSarEvent(event({
+      sourceRef: {
+        ...event().sourceRef,
+        payload: { rawSubmission: 'student answer dump' },
+      },
+    } as unknown as Partial<SarRetrievalEvent>)).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarEvent(event({
+      sourceRef: {
+        ...event().sourceRef,
+        rawSubmission: 'student answer dump',
+      },
+    } as unknown as Partial<SarRetrievalEvent>)).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarEvent(event({
+      sourceRef: {
+        ...event().sourceRef,
+        citationChip: { label: 'verified citation' },
+      },
+    } as unknown as Partial<SarRetrievalEvent>)).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
+
+    expect(validateSarEvent(event({
       rawTraceAllowed: true,
     } as unknown as Partial<SarRetrievalEvent>)).issues).toEqual([]);
 

@@ -69,6 +69,24 @@ const EVENT_TYPES = new Set([
   'prep-pack-item',
 ]);
 
+const EVENT_TOP_LEVEL_KEYS = new Set([
+  'id',
+  'eventType',
+  'title',
+  'safeSummary',
+  'sourceRef',
+  'privacyScope',
+  'metadata',
+]);
+
+const SOURCE_REF_KEYS = new Set([
+  'id',
+  'owner',
+  'authorityLevel',
+  'freshness',
+  'contentHash',
+]);
+
 const ENTITY_TYPES = new Set([
   'learning-goal',
   'kaq-objective',
@@ -224,6 +242,7 @@ export function validateSarEvent(event: unknown): SarValidationResult {
     ) {
       issues.push(issue('missing-required-field', 'sourceRef.contentHash', 'contentHash must be non-empty when provided.'));
     }
+    scanObjectExtensionFields(event.sourceRef, SOURCE_REF_KEYS, 'sourceRef', issues);
   }
 
   scanRestricted(event.safeSummary, 'safeSummary', issues);
@@ -547,18 +566,44 @@ function scanMetadata(value: unknown, path: string, issues: SarValidationIssue[]
 
 function scanBoundaryKeys(value: Record<string, unknown>, path: string, issues: SarValidationIssue[]): void {
   for (const [key, child] of Object.entries(value)) {
-    const childPath = `${path}.${key}`;
-    const normalizedKey = normalizeMetadataKey(key);
-    const restrictedKey = hasNormalizedKey(RESTRICTED_KEYS, normalizedKey, RESTRICTED_KEY_PREFIXES);
-    const citationKey = hasNormalizedKey(CITATION_PAYLOAD_KEYS, normalizedKey, CITATION_PAYLOAD_KEY_PREFIXES);
-    if (restrictedKey || citationKey) {
-      issues.push(issue(
-        citationKey ? 'citation-boundary-violation' : 'restricted-raw-content',
-        childPath,
-        `${childPath} is outside the SAR boundary.`,
-      ));
+    const { restrictedKey, citationKey } = scanBoundaryField(key, `${path}.${key}`, issues);
+    if (path === 'event' && !EVENT_TOP_LEVEL_KEYS.has(key) && !restrictedKey && !citationKey) {
+      scanMetadata(child, `${path}.${key}`, issues);
     }
   }
+}
+
+function scanObjectExtensionFields(
+  value: Record<string, unknown>,
+  allowedKeys: ReadonlySet<string>,
+  path: string,
+  issues: SarValidationIssue[],
+): void {
+  for (const [key, child] of Object.entries(value)) {
+    if (!allowedKeys.has(key)) {
+      const childPath = `${path}.${key}`;
+      scanBoundaryField(key, childPath, issues);
+      scanMetadata(child, childPath, issues);
+    }
+  }
+}
+
+function scanBoundaryField(
+  key: string,
+  path: string,
+  issues: SarValidationIssue[],
+): { restrictedKey: boolean; citationKey: boolean } {
+  const normalizedKey = normalizeMetadataKey(key);
+  const restrictedKey = hasNormalizedKey(RESTRICTED_KEYS, normalizedKey, RESTRICTED_KEY_PREFIXES);
+  const citationKey = hasNormalizedKey(CITATION_PAYLOAD_KEYS, normalizedKey, CITATION_PAYLOAD_KEY_PREFIXES);
+  if (restrictedKey || citationKey) {
+    issues.push(issue(
+      citationKey ? 'citation-boundary-violation' : 'restricted-raw-content',
+      path,
+      `${path} is outside the SAR boundary.`,
+    ));
+  }
+  return { restrictedKey, citationKey };
 }
 
 function scanRestricted(value: unknown, path: string, issues: SarValidationIssue[]): void {
