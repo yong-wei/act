@@ -187,6 +187,42 @@ describe('source pack retrieval profiles', () => {
     expect(result.pack.coverage.notes).toEqual(['3 candidate(s) were excluded by profile policy before ranking.']);
   });
 
+  it('omits filtered candidate semantic scores from student-visible query filters', () => {
+    const result = retrieveSourcePack({
+      query: 'root locus',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({ id: 'eligible', title: 'Root locus citation', citationTargetId: 'citation:eligible' }),
+        item({
+          id: 'teacher-only',
+          title: 'Teacher only source',
+          citationTargetId: 'citation:teacher-only',
+          access: { visibility: 'teacher', aiUseAllowed: true },
+        }),
+        item({
+          id: 'restricted-source',
+          title: 'Restricted source',
+          citationTargetId: 'citation:restricted-source',
+          access: { visibility: 'restricted', aiUseAllowed: true },
+        }),
+      ],
+      semanticScores: {
+        eligible: 0.7,
+        'teacher-only': 0.99,
+        'restricted-source': 0.98,
+      },
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(result.pack.query.filters).toMatchObject({
+      'semanticScore:eligible': 0.7,
+    });
+    expect(result.pack.query.filters).not.toHaveProperty('semanticScore:teacher-only');
+    expect(result.pack.query.filters).not.toHaveProperty('semanticScore:restricted-source');
+    expect(JSON.stringify(result.pack)).not.toContain('teacher-only');
+    expect(JSON.stringify(result.pack)).not.toContain('restricted-source');
+  });
+
   it('filters assessment evidence by review state, source type, AI use, and answer leakage', () => {
     const result = retrieveSourcePack({
       query: 'phase margin',
@@ -516,9 +552,9 @@ describe('source pack hybrid ranking', () => {
       profile: 'lesson-design',
       role: 'teacher',
       candidates: [
-        item({ id: 'text-stability', modality: 'text', retrievalChunkId: 'chunk:text', citationTargetId: 'citation:text' }),
-        item({ id: 'image-stability', modality: 'image', sourceKind: 'runtime-lesson', retrievalChunkId: 'chunk:image', citationTargetId: 'citation:image' }),
-        item({ id: 'interactive-stability', modality: 'interactive', sourceKind: 'simulation', retrievalChunkId: 'chunk:interactive', citationTargetId: 'citation:interactive' }),
+        item({ id: 'text-stability', modality: 'text', retrievalChunkId: 'chunk:text', citationTargetId: 'citation:text', metadata: { reviewStatus: 'human-confirmed', resourceId: 'resource:text' } }),
+        item({ id: 'image-stability', modality: 'image', sourceKind: 'runtime-lesson', retrievalChunkId: 'chunk:image', citationTargetId: 'citation:image', metadata: { reviewStatus: 'human-confirmed', resourceId: 'resource:image' } }),
+        item({ id: 'interactive-stability', modality: 'interactive', sourceKind: 'simulation', retrievalChunkId: 'chunk:interactive', citationTargetId: 'citation:interactive', metadata: { reviewStatus: 'human-confirmed', resourceId: 'resource:interactive' } }),
       ],
       now: new Date('2026-06-28T00:00:00Z'),
     });
@@ -815,6 +851,33 @@ describe('source pack assembly and evaluation', () => {
       'diversity-resource',
       'coverage-missing-knowledge-node',
     ]));
+  });
+
+  it('uses metadata resource ids for resource diversity budgets', () => {
+    const result = retrieveSourcePack({
+      query: 'root locus',
+      profile: 'konling-answer',
+      role: 'student',
+      topK: 3,
+      candidates: [
+        item({
+          id: 'same-resource-chunk-1',
+          retrievalChunkId: 'chunk:same:1',
+          citationTargetId: 'citation:same:1',
+          metadata: { reviewStatus: 'human-confirmed', resourceId: 'resource:same' },
+        }),
+        item({
+          id: 'same-resource-chunk-2',
+          retrievalChunkId: 'chunk:same:2',
+          citationTargetId: 'citation:same:2',
+          metadata: { reviewStatus: 'human-confirmed', resourceIds: ['resource:same'] },
+        }),
+      ],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(result.pack.items).toHaveLength(1);
+    expect(result.pack.items[0].id).toMatch(/^same-resource-chunk-/);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('diversity-resource');
   });
 
   it('evaluates representative query fixtures and citation readiness', () => {

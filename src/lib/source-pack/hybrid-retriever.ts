@@ -61,7 +61,10 @@ export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSour
     profile: input.profile,
     caller: input.caller,
     topK: input.topK ?? profile.budgets.maxItems,
-    filters: queryFilters(normalizedInput, role),
+    filters: queryFilters({
+      ...normalizedInput,
+      semanticScores: semanticScoresForEligibleItems(normalizedInput.semanticScores, filtered.eligible),
+    }, role),
   };
   const pack = buildSourcePack({
     query,
@@ -289,6 +292,16 @@ function normalizeSemanticScores(scores: Record<string, number> | undefined): Re
     .filter(([id, score]) => id.length > 0 && Number.isFinite(score))
     .sort(([left], [right]) => compareCodeUnit(left, right))
     .map(([id, score]) => [id, Math.round(score * 1000) / 1000] as const);
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
+function semanticScoresForEligibleItems(
+  scores: Record<string, number> | undefined,
+  eligibleItems: readonly SourcePackItem[],
+): Record<string, number> | undefined {
+  if (!scores) return undefined;
+  const eligibleIds = new Set(eligibleItems.map((item) => item.id));
+  const entries = Object.entries(scores).filter(([id]) => eligibleIds.has(id));
   return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }
 

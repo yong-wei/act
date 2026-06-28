@@ -41,7 +41,7 @@ export function diversifyRankedSourcePackItems(input: DiversifySourcePackInput):
         final: candidate.score,
       },
     }, input.profile.budgets.maxExcerptChars, limitations);
-    const resourceKey = item.resourceNodeId ?? item.planningUnitId ?? item.retrievalChunkId ?? item.id;
+    const resourceKeys = resourceDiversityKeys(item);
     const citationKey = item.citationTargetId ?? item.citation?.citationTargetId;
     const blockedReason = firstDiversityBlock({
       item,
@@ -49,7 +49,7 @@ export function diversifyRankedSourcePackItems(input: DiversifySourcePackInput):
       modalityCounts,
       resourceCounts,
       citationCounts,
-      resourceKey,
+      resourceKeys,
       citationKey,
       profile: input.profile,
     });
@@ -60,7 +60,7 @@ export function diversifyRankedSourcePackItems(input: DiversifySourcePackInput):
     }
     increment(sourceKindCounts, item.sourceKind);
     increment(modalityCounts, item.modality);
-    increment(resourceCounts, resourceKey);
+    for (const resourceKey of resourceKeys) increment(resourceCounts, resourceKey);
     if (citationKey) increment(citationCounts, citationKey);
     items.push(item);
   }
@@ -77,16 +77,35 @@ function firstDiversityBlock(input: {
   modalityCounts: Map<SourcePackModality, number>;
   resourceCounts: Map<string, number>;
   citationCounts: Map<string, number>;
-  resourceKey: string;
+  resourceKeys: readonly string[];
   citationKey?: string;
   profile: SourcePackRetrievalProfile;
 }): string | null {
   const budgets = input.profile.budgets;
   if ((input.sourceKindCounts.get(input.item.sourceKind) ?? 0) >= budgets.maxPerSourceKind) return 'source-kind';
   if ((input.modalityCounts.get(input.item.modality) ?? 0) >= budgets.maxPerModality) return 'modality';
-  if ((input.resourceCounts.get(input.resourceKey) ?? 0) >= budgets.maxPerResource) return 'resource';
+  if (input.resourceKeys.some((resourceKey) => (input.resourceCounts.get(resourceKey) ?? 0) >= budgets.maxPerResource)) return 'resource';
   if (input.citationKey && (input.citationCounts.get(input.citationKey) ?? 0) >= budgets.maxPerCitationTarget) return 'citation-target';
   return null;
+}
+
+function resourceDiversityKeys(item: SourcePackItem): string[] {
+  if (item.resourceNodeId) return [item.resourceNodeId];
+  if (item.planningUnitId) return [item.planningUnitId];
+  const metadataResourceKeys = metadataStringRefs(item, 'resourceId', 'resourceIds');
+  if (metadataResourceKeys.length > 0) return metadataResourceKeys;
+  return [
+    item.retrievalChunkId ?? item.id,
+  ];
+}
+
+function metadataStringRefs(item: SourcePackItem, ...keys: string[]): string[] {
+  const refs = keys.flatMap((key) => {
+    const value = item.metadata?.[key];
+    if (Array.isArray(value)) return value.filter((entry): entry is string => typeof entry === 'string' && entry.length > 0);
+    return typeof value === 'string' && value.length > 0 ? [value] : [];
+  });
+  return Array.from(new Set(refs));
 }
 
 function truncateItemExcerpt(
