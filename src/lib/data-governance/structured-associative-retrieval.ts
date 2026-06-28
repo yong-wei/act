@@ -316,6 +316,8 @@ export function validateSarEntity(entity: unknown): SarValidationResult {
   requirePrivacyScope(entity.privacyScope, 'privacyScope', issues);
   if (!Array.isArray(entity.aliases) || entity.aliases.some((item) => typeof item !== 'string')) {
     issues.push(issue('missing-required-field', 'aliases', 'aliases must be a string array.'));
+  } else {
+    entity.aliases.forEach((alias, index) => scanRestricted(alias, `aliases.${index}`, issues));
   }
   if (typeof entity.canonicalRef !== 'string' || entity.canonicalRef.trim() === '') {
     issues.push(issue('missing-entity-canonical-ref', 'canonicalRef', 'Entity canonicalRef is required.'));
@@ -323,6 +325,7 @@ export function validateSarEntity(entity: unknown): SarValidationResult {
   if (entity.extraction !== 'platform-stable-id' && entity.extraction !== 'llm-candidate') {
     issues.push(issue('missing-required-field', 'extraction', 'extraction must identify platform-stable-id or llm-candidate.'));
   }
+  scanRestricted(entity.label, 'label', issues);
   scanObjectExtensionFields(entity, ENTITY_TOP_LEVEL_KEYS, 'entity', issues);
 
   return result(...issues);

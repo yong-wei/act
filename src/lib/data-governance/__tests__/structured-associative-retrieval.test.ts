@@ -101,6 +101,22 @@ describe('structured associative retrieval contract', () => {
     expect(result.issues.map((issue) => issue.code)).toContain('missing-entity-canonical-ref');
   });
 
+  it('rejects restricted raw content in entity labels and aliases', () => {
+    expect(validateSarEntity(entity({
+      label: 'raw learner submission text',
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarEntity(entity({
+      aliases: ['root locus', 'audit trace details'],
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarResult(sarResult({
+      entities: [entity({
+        aliases: ['raw answer body'],
+      })],
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+  });
+
   it('rejects unsupported contract enum values', () => {
     expect(validateSarEvent(event({
       eventType: 'unknown-event' as SarRetrievalEvent['eventType'],
