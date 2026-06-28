@@ -153,9 +153,13 @@ export function projectLearningGoalToSar(input: LearningGoalSarProjectionInput):
   const { goal } = input;
   const sarEventId = makeEventId('learning-goal', goal.id);
   const goalEntity = entity('learning-goal', goal.id, goal.title, { aliases: [goal.id] });
-  const graphEntities = (input.graphNodes ?? [])
-    .filter((node) => goal.targetGraphNodeIds.includes(node.id))
-    .map((node) => entity('graph-node', node.id, node.title, { aliases: [node.id, node.domain] }));
+  const graphNodeById = new Map((input.graphNodes ?? []).map((node) => [node.id, node]));
+  const graphEntities = goal.targetGraphNodeIds.map((nodeId) => {
+    const node = graphNodeById.get(nodeId);
+    return entity('graph-node', nodeId, node?.title ?? nodeId, {
+      aliases: node ? [node.id, node.domain] : [nodeId],
+    });
+  });
   const objectiveIds = uniqueSorted([
     ...goal.knowledgeObjectiveIds,
     ...goal.capabilityObjectiveIds,

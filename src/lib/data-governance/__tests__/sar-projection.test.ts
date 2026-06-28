@@ -109,21 +109,19 @@ describe('SAR platform source projections', () => {
         version: 'learning-goal.v1',
         limitations: [],
       },
-      graphNodes: [{
-        id: 'knowledge:root-locus',
-        domain: 'knowledge',
-        title: 'Root locus',
-        description: 'Root locus node.',
-        objectiveIds: ['obj:root-locus'],
-        portraitDimensions: [],
-        status: 'active',
-        kind: 'method',
-        knowledgeRefs: ['root-locus'],
-      }],
     });
 
     expect(validateSarResult(result).issues).toEqual([]);
     expect(result.events[0].eventType).toBe('path-summary');
+    expect(result.entities).toContainEqual(expect.objectContaining({
+      entityType: 'graph-node',
+      canonicalRef: 'knowledge:root-locus',
+      label: 'knowledge:root-locus',
+    }));
+    expect(result.relations).toContainEqual(expect.objectContaining({
+      entityId: 'sar:entity:graph-node:knowledge:root-locus',
+      role: 'supports',
+    }));
     expect(result.entities.map((entity) => entity.entityType)).toEqual(expect.arrayContaining([
       'learning-goal',
       'graph-node',
