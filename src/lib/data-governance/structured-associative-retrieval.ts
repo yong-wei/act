@@ -144,6 +144,8 @@ const RESTRICTED_KEY_PREFIXES = new Set([
   'rawAnswers',
   'rawEvidence',
   'hiddenArenaInternals',
+  'hiddenArenaEvaluationInternals',
+  'hiddenEvaluationInternals',
   'privateKonlingMemory',
   'auditOnlyTrace',
 ]);

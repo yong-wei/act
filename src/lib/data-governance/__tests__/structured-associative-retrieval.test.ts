@@ -219,6 +219,8 @@ describe('structured associative retrieval contract', () => {
       'rawTraceJson',
       'rawEvidencePayload',
       'hiddenArenaInternalsPayload',
+      'hiddenArenaEvaluationInternalsPayload',
+      'hiddenEvaluationInternalsPayload',
       'privateKonlingMemoryPayload',
       'auditOnlyTracePayload',
     ] as const) {
