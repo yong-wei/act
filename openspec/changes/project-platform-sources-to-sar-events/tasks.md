@@ -1,5 +1,0 @@
-- [ ] Add deterministic SAR projection builders for K/A/Q graph, LearningGoal, ResourceNode, LearningEvidence corpus, and governed summary sources.
-- [ ] Extract or reuse shared graph/resource coverage matching used by Graph Center.
-- [ ] Add diagnostics for unbound events, provisional metadata, privacy-scoped omissions, and missing citation refs.
-- [ ] Add tests for graph/resource/rag/learning-fact projection and privacy redaction.
-- [ ] Run `openspec validate project-platform-sources-to-sar-events --strict`.

@@ -22,6 +22,24 @@ export type {
   SarTraceHop,
 } from './structured-associative-retrieval-types';
 
+export {
+  projectGovernedSummaryToSar,
+  projectKaqGraphNodeToSar,
+  projectLearningEvidenceChunkToSar,
+  projectLearningGoalToSar,
+  projectResourceNodeToSar,
+} from './sar-projection';
+
+export type {
+  GovernedSummaryEntityRef,
+  GovernedSummarySarProjectionInput,
+  KaqGraphNodeSarProjectionInput,
+  LearningEvidenceChunkSarProjectionInput,
+  LearningGoalSarProjectionInput,
+  ResourceNodeSarProjectionInput,
+  SarProjection,
+} from './sar-projection';
+
 export type SarValidationIssueCode =
   | 'invalid-object'
   | 'missing-event-source-ref'
