@@ -11,7 +11,7 @@ SAR is a governed associative layer over existing platform truth. It stores refe
 
 ## Boundaries
 
-- SAR events must include `sourceRef`, `sourceOwner`, authority, privacy scope, freshness, and content hash where available.
+- SAR events must include `sourceRef.id`, `sourceRef.owner`, authority, privacy scope, freshness, and content hash where available.
 - SAR entities must prefer platform stable ids; LLM-extracted entities are allowed only as lower-confidence, explicitly marked candidates.
 - Restricted raw content, hidden Arena internals, private Konling memory, and raw learner submissions must not be embedded in SAR events.
 - Citation verification and CitationChip payload construction remain owned by LearningEvidence/Source Pack citation layers.
