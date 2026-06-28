@@ -156,7 +156,11 @@ function parseFormat(value: string): SourcePackFormat {
 
 function parseProfile(value: string): SourcePackProfile {
   if (
+    value === 'handout-authoring' ||
+    value === 'assessment-item' ||
+    value === 'konling-answer' ||
     value === 'lesson-authoring' ||
+    value === 'lesson-design' ||
     value === 'homework-authoring' ||
     value === 'konling' ||
     value === 'path-planning' ||
@@ -171,6 +175,7 @@ function usage(): string {
   return [
     'Usage:',
     '  source:pack build --query <text> --profile <profile> --out <dir> --format json|markdown|both --top-k <n>',
+    '  supported profiles: handout-authoring, assessment-item, konling-answer, lesson-design, lesson-authoring, homework-authoring, konling, path-planning, generic',
     '  source:pack show --citation-target <id>',
     '  source:pack index status',
   ].join('\n');

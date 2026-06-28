@@ -162,6 +162,7 @@ describe('source pack retrieval profiles', () => {
       candidates: [
         item({ id: 'eligible-assessment', title: 'Phase margin prompt source' }),
         item({ id: 'provisional', metadata: { reviewStatus: 'generated-provisional' } }),
+        item({ id: 'unknown-review-state', metadata: {} }),
         item({ id: 'learner-answer', sourceKind: 'learner-evidence' }),
         item({ id: 'answer-leakage', metadata: { reviewStatus: 'human-confirmed', answerLeakage: true } }),
         item({ id: 'ai-disallowed', access: { visibility: 'student', aiUseAllowed: false } }),
@@ -175,6 +176,22 @@ describe('source pack retrieval profiles', () => {
       'profile-filtered-answer-leakage',
       'profile-filtered-ai-use',
     ]));
+  });
+
+  it('filters missing review state from controlled answer profiles', () => {
+    const result = retrieveSourcePack({
+      query: 'root locus',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({ id: 'reviewed', citationTargetId: 'citation:reviewed' }),
+        item({ id: 'missing-review-state', citationTargetId: 'citation:missing-review-state', metadata: {} }),
+      ],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['reviewed']);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('profile-filtered-review-state');
+    expect(JSON.stringify(result.pack.limitations)).not.toContain('missing-review-state');
   });
 
   it('keeps canonical LearningEvidence adapter output eligible for authoring retrieval', () => {
@@ -370,6 +387,26 @@ describe('source pack assembly and evaluation', () => {
     });
     expect(evaluation.passed).toBe(true);
     expect(evaluation.failures).toEqual([]);
+  });
+
+  it('keeps non-ASCII course queries distinct in query ids', () => {
+    const rootLocus = retrieveSourcePack({
+      query: '根轨迹',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [item({ id: 'root-locus-cn', citationTargetId: 'citation:root-locus-cn' })],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    const phaseMargin = retrieveSourcePack({
+      query: '相位裕度',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [item({ id: 'phase-margin-cn', citationTargetId: 'citation:phase-margin-cn' })],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    expect(rootLocus.pack.query.queryId).not.toBe(phaseMargin.pack.query.queryId);
+    expect(rootLocus.pack.query.queryId).toContain('根轨迹');
+    expect(phaseMargin.pack.query.queryId).toContain('相位裕度');
   });
 
   it('evaluates no-result failure modes with limitation evidence', () => {

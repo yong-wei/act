@@ -184,8 +184,22 @@ function metadataIncludes(item: SourcePackItem, key: string, ref: string): boole
 }
 
 function stableQueryId(profile: SourcePackProfile, query: string): string {
-  const normalized = `${profile}:${query}`.toLowerCase().replace(/[^a-z0-9_.:-]+/g, '-').replace(/^-+|-+$/g, '');
-  return `query:${normalized.slice(0, 80) || 'source-pack'}`;
+  const normalized = `${profile}:${query}`
+    .toLowerCase()
+    .normalize('NFKC')
+    .replace(/[^\p{L}\p{N}_.:-]+/gu, '-')
+    .replace(/^-+|-+$/g, '');
+  const base = normalized.slice(0, 72) || `${profile}:source-pack`;
+  return `query:${base}:${hashString(query).slice(0, 8)}`;
+}
+
+function hashString(value: string): string {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index++) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 function buildLimitation(code: string, message: string, severity: SourcePackLimitation['severity'] = 'warning'): SourcePackLimitation {

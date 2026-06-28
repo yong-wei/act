@@ -69,6 +69,10 @@ const REVIEWED_STATUSES = [
   'teacher-authored',
   'approved',
   'current',
+];
+
+const COMPATIBLE_REVIEW_STATUSES = [
+  ...REVIEWED_STATUSES,
   'unknown',
 ];
 
@@ -78,7 +82,7 @@ const handoutAuthoring: SourcePackRetrievalProfile = {
   defaultRole: 'teacher',
   allowedVisibility: ['public', 'student', 'teacher'],
   allowedSourceKinds: AUTHORING_SOURCE_KINDS,
-  allowedReviewStatuses: REVIEWED_STATUSES,
+  allowedReviewStatuses: COMPATIBLE_REVIEW_STATUSES,
   requireAiUseAllowed: true,
   requireCitationReady: false,
   rejectAnswerLeakage: false,
@@ -123,7 +127,7 @@ const pathPlanning: SourcePackRetrievalProfile = {
   defaultRole: 'teacher',
   allowedVisibility: ['public', 'student', 'teacher'],
   allowedSourceKinds: ['runtime-lesson', 'knowledge-card', 'simulation', 'exercise', 'textbook'],
-  allowedReviewStatuses: REVIEWED_STATUSES,
+  allowedReviewStatuses: COMPATIBLE_REVIEW_STATUSES,
   requireAiUseAllowed: true,
   requireCitationReady: false,
   rejectAnswerLeakage: true,
@@ -138,7 +142,7 @@ const lessonDesign: SourcePackRetrievalProfile = {
   defaultRole: 'teacher',
   allowedVisibility: ['public', 'student', 'teacher'],
   allowedSourceKinds: AUTHORING_SOURCE_KINDS,
-  allowedReviewStatuses: REVIEWED_STATUSES,
+  allowedReviewStatuses: COMPATIBLE_REVIEW_STATUSES,
   requireAiUseAllowed: true,
   requireCitationReady: false,
   rejectAnswerLeakage: false,
