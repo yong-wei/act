@@ -15,6 +15,7 @@ import type {
   LearningEvidenceCorpusChunk,
   LearningEvidenceCorpusPrivacyClass,
 } from './learning-evidence-rag-corpus';
+import { citationVersionLimitations } from './learning-evidence-rag-corpus';
 import type { ExpandedGoalSubgraph } from '../graphs/goal-subgraph-expansion-service';
 import type {
   SarAuthorityLevel,
@@ -175,12 +176,17 @@ export function projectLearningGoalToSar(input: LearningGoalSarProjectionInput):
       aliases: objective ? [objective.id, objective.domain, objective.level] : [objectiveId],
     });
   });
+  const expectedGraphCatalogVersion = input.versionRefs?.graphCatalogVersion ?? null;
   const expandedSubgraph = input.expandedSubgraph?.learningGoalId === goal.id
     && input.expandedSubgraph.learningGoalVersion === goal.version
+    && (
+      !expectedGraphCatalogVersion
+      || input.expandedSubgraph.graphVersion === expectedGraphCatalogVersion
+    )
     ? input.expandedSubgraph
     : null;
   const subgraphMismatchLimitation = input.expandedSubgraph && !expandedSubgraph
-    ? goalSubgraphMismatchLimitations(input.expandedSubgraph, goal)
+    ? goalSubgraphMismatchLimitations(input.expandedSubgraph, goal, expectedGraphCatalogVersion)
     : [];
   const subgraphGraphBoundaries: Array<{
     nodeId: string;
@@ -442,7 +448,9 @@ export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSa
     citationTargetRefs: citationTargetRef ? [citationTargetRef] : [],
     retrievalChunkRefs: [chunk.id],
     limitations: evidenceLimitations(chunk),
-    versionRefs: versionRefs(chunk.resourceProjection?.versionRefs),
+    versionRefs: chunk.resourceProjection?.versionRefs
+      ? versionRefs(chunk.resourceProjection.versionRefs)
+      : undefined,
   });
 }
 
@@ -607,6 +615,7 @@ function graphNodeAliases(node: KaqGraphNode): string[] {
 function goalSubgraphMismatchLimitations(
   expandedSubgraph: ExpandedGoalSubgraph,
   goal: LearningGoalDefinition,
+  expectedGraphCatalogVersion?: string | null,
 ): string[] {
   const limitations: string[] = [];
   if (expandedSubgraph.learningGoalId !== goal.id) {
@@ -614,6 +623,9 @@ function goalSubgraphMismatchLimitations(
   }
   if (expandedSubgraph.learningGoalVersion !== goal.version) {
     limitations.push(`goal-subgraph-mismatch:learningGoalVersion:${expandedSubgraph.learningGoalVersion}`);
+  }
+  if (expectedGraphCatalogVersion && expandedSubgraph.graphVersion !== expectedGraphCatalogVersion) {
+    limitations.push(`goal-subgraph-mismatch:graphCatalogVersion:${expandedSubgraph.graphVersion}`);
   }
   return limitations;
 }
@@ -630,6 +642,7 @@ function evidenceLimitations(chunk: LearningEvidenceCorpusChunk): string[] {
   if (chunk.resourceProjection?.citationReadiness) {
     limitations.push(...chunk.resourceProjection.citationReadiness.limitations);
   }
+  limitations.push(...citationVersionLimitations(chunk).map((limitation) => `${limitation.code}:${limitation.ref}:${limitation.message}`));
   if (chunk.resourceProjection?.pathEligibility && !chunk.resourceProjection.pathEligibility.eligible) {
     limitations.push(`path-omitted:${chunk.resourceProjection.pathEligibility.reason ?? chunk.id}`);
   }

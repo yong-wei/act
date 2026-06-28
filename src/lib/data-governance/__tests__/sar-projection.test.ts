@@ -186,6 +186,32 @@ describe('SAR platform source projections', () => {
     expect(result.trace.versionRefs).not.toContain('stale-graph.test');
   });
 
+  it('rejects graph-version mismatched expanded learning-goal subgraphs', () => {
+    const goal = learningGoalDefinition();
+    const staleGraphSubgraph = expandedGoalSubgraph(goal, {
+      graphVersion: 'stale-graph.test',
+    });
+
+    const result = projectLearningGoalToSar({
+      goal,
+      expandedSubgraph: staleGraphSubgraph,
+      versionRefs: {
+        graphCatalogVersion: 'kaq-graph.current',
+      },
+    });
+
+    expect(validateSarResult(result).issues).toEqual([]);
+    expect(result.events[0].metadata).toMatchObject({
+      expandedSubgraph: null,
+    });
+    expect(result.entities).not.toContainEqual(expect.objectContaining({
+      canonicalRef: 'knowledge:root-locus-foundation',
+    }));
+    expect(result.limitations).toContain('goal-subgraph-mismatch:graphCatalogVersion:stale-graph.test');
+    expect(result.trace.versionRefs).toContain('kaq-graph.current');
+    expect(result.trace.versionRefs).not.toContain('stale-graph.test');
+  });
+
   it('projects resource nodes without making retrieval chunks path-plannable', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [{
@@ -296,6 +322,19 @@ describe('SAR platform source projections', () => {
     expect(qualityGraphResult.events[0].metadata).toMatchObject({
       graphCoverageMatched: true,
     });
+
+    const unversionedProjection = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        resourceProjection: {
+          ...chunk.resourceProjection!,
+          versionRefs: undefined,
+        },
+      }),
+    });
+    expect(unversionedProjection.limitations).toContain(
+      'legacy-artifact-unversioned:resourceProjectionVersion:Resource projection citation is missing artifact version refs.',
+    );
+    expect(unversionedProjection.trace.versionRefs).toEqual(['sar-projection.v1']);
 
     const nonResourceEvidence = projectLearningEvidenceChunkToSar({
       chunk: learningEvidenceChunk({
