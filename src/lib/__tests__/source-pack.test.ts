@@ -523,4 +523,29 @@ describe('source pack contract', () => {
       rmSync(cwd, { recursive: true, force: true });
     }
   });
+
+  it('accepts newly added retrieval profiles through the CLI shell', async () => {
+    const cwd = mkdtempSync(path.join(tmpdir(), 'source-pack-cli-profile-'));
+    try {
+      const result = await runSourcePackCli([
+        'build',
+        '--query',
+        '根轨迹',
+        '--profile',
+        'handout-authoring',
+        '--out',
+        'pack',
+        '--format',
+        'json',
+        '--top-k',
+        '1',
+      ], cwd);
+
+      expect(result.ok).toBe(true);
+      const json = JSON.parse(readFileSync(path.join(cwd, 'pack/source-pack.json'), 'utf-8'));
+      expect(validateSourcePack(json).profile).toBe('handout-authoring');
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
 });

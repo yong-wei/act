@@ -11,6 +11,8 @@ import {
   type SourcePackQuery,
 } from './types';
 
+export type BuildSourcePackCoverageInput = Pick<SourcePack['coverage'], 'eligibleItems' | 'omittedItems' | 'coverageRatio' | 'notes'>;
+
 export interface BuildSourcePackInput {
   query: string | SourcePackQuery;
   profile?: SourcePackProfile;
@@ -19,6 +21,7 @@ export interface BuildSourcePackInput {
   items?: SourcePackItem[];
   limitations?: SourcePackLimitation[];
   indexRefs?: Partial<SourcePackIndexRefs>;
+  coverage?: Partial<BuildSourcePackCoverageInput>;
   now?: Date;
 }
 
@@ -67,11 +70,12 @@ export function buildSourcePack(input: BuildSourcePackInput): SourcePack {
     indexRefs,
     coverage: {
       requestedTopK: topK,
-      returnedItems: items.length,
       eligibleItems: items.length,
       omittedItems: Math.max(0, topK - items.length),
       coverageRatio: topK > 0 ? Math.min(1, items.length / topK) : 0,
       notes: items.length === 0 ? ['No governed adapter output was available for this Source Pack shell.'] : undefined,
+      ...input.coverage,
+      returnedItems: items.length,
     },
     items,
     limitations,

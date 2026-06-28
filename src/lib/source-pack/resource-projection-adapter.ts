@@ -71,6 +71,7 @@ function mapProjectionToSourceKind(
   row: RuntimeResourceProjectionArtifactRow,
   level?: string,
 ): SourcePackSourceKind {
+  if (level === 'CitationTarget') return 'reference';
   switch (row.family) {
     case 'knowledge-card':
     case 'knowledge-infograph':
@@ -273,6 +274,11 @@ export function adaptResourceProjectionRow(
       projectionLevel: projectionLevel ?? 'unknown',
       pathEligible: String(pathEligible),
       reviewStatus: reviewStatus ?? 'unknown',
+      resourceId: row.resourceNodeId ?? row.id,
+      resourceIds: stringRefs([row.resourceNodeId, row.id]),
+      knowledgeNodeRefs: row.graphNodeRefs?.knowledge ?? [],
+      capabilityTargetRefs: row.graphNodeRefs?.capability ?? [],
+      qualityTargetRefs: row.graphNodeRefs?.quality ?? [],
       citationTargetRefs: row.citationTargets,
     },
   };
@@ -341,4 +347,8 @@ function buildExcerpt(row: RuntimeResourceProjectionArtifactRow): string {
   if (row.citationTargets?.length) parts.push(`Citation targets: ${row.citationTargets.join(', ')}`);
   if (row.reviewAudit?.status) parts.push(`Review: ${row.reviewAudit.status}`);
   return parts.join(' | ') || 'No excerpt available.';
+}
+
+function stringRefs(values: Array<string | null | undefined>): string[] {
+  return Array.from(new Set(values.filter((value): value is string => typeof value === 'string' && value.length > 0)));
 }

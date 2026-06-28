@@ -303,8 +303,12 @@ export function adaptLearningEvidenceChunk(
       citationImageRegionY: chunk.citationAddress?.imageRegion?.y ?? '',
       citationImageRegionWidth: chunk.citationAddress?.imageRegion?.width ?? '',
       citationImageRegionHeight: chunk.citationAddress?.imageRegion?.height ?? '',
+      resourceId: chunk.resourceProjection?.resourceId ?? chunk.sourceRef.resourceId ?? '',
+      resourceIds: stringRefs([chunk.resourceProjection?.resourceId, chunk.sourceRef.resourceId]),
       knowledgeNodeRefs: chunk.resourceProjection?.knowledgeNodeRefs ?? [],
       capabilityTargetRefs: chunk.resourceProjection?.capabilityTargetRefs ?? [],
+      qualityTargetRefs: chunk.resourceProjection?.graphNodeRefs?.quality ?? [],
+      learningGoalIds: stringRefs([...(chunk.retrieval.goals ?? []), chunk.sourceRef.goalId]),
       ...versionRefsMetadata(chunk.resourceProjection?.versionRefs),
     },
   };
@@ -421,6 +425,8 @@ export function adaptTextbookSearchDocument(
       capabilityTargetRefs: doc.resourceProjection?.capabilityTargetRefs ?? [],
       contentHash: doc.contentHash ?? doc.resourceProjection?.contentHash ?? '',
       kind: doc.kind,
+      reviewStatus: 'canonical',
+      authorityLevel: 'canonical',
     },
   };
 
@@ -659,6 +665,10 @@ function versionRefsMetadata(
     }
   }
   return metadata;
+}
+
+function stringRefs(values: Array<string | null | undefined>): string[] {
+  return Array.from(new Set(values.filter((value): value is string => typeof value === 'string' && value.length > 0)));
 }
 
 function anchorFromHref(href: string | null): string | null {

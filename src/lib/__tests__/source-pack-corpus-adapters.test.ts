@@ -32,6 +32,7 @@ import {
   adaptResourceProjectionRow,
   isProvisionalReview,
 } from '../source-pack/resource-projection-adapter';
+import { retrieveSourcePack } from '../source-pack/hybrid-retriever';
 
 import type {
   LearningEvidenceCorpusChunk,
@@ -640,6 +641,54 @@ describe('privacy filtering', () => {
     expect(item?.citation?.verified).toBe(false);
   });
 
+  it('feeds learning evidence resource, goal, and quality metadata into hybrid coverage', () => {
+    const chunk = makeChunk({
+      sourceRef: {
+        ...makeChunk().sourceRef,
+        goalId: 'goal-from-source',
+        resourceId: 'resource-from-source',
+      },
+      resourceProjection: {
+        ...makeChunk().resourceProjection!,
+        resourceId: 'res-001',
+        graphNodeRefs: {
+          knowledge: ['kn-001'],
+          capability: ['cap-001'],
+          quality: ['quality-001'],
+        },
+      },
+      retrieval: {
+        ...makeChunk().retrieval,
+        goals: ['goal-001'],
+      },
+    });
+    const { item } = adaptLearningEvidenceChunk(chunk, { role: 'teacher' });
+    expect(item).not.toBeNull();
+    if (!item) return;
+
+    expect(item.metadata?.resourceId).toBe('res-001');
+    expect(item.metadata?.resourceIds).toEqual(['res-001', 'resource-from-source']);
+    expect(item.metadata?.learningGoalIds).toEqual(['goal-001', 'goal-from-source']);
+    expect(item.metadata?.qualityTargetRefs).toEqual(['quality-001']);
+
+    const result = retrieveSourcePack({
+      query: '闭环极点配置',
+      profile: 'lesson-design',
+      role: 'teacher',
+      topK: 1,
+      resourceIds: ['res-001'],
+      learningGoalIds: ['goal-001'],
+      qualityTargetRefs: ['quality-001'],
+      candidates: [item],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    const codes = result.pack.limitations.map((limitation) => limitation.code);
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['chunk-001']);
+    expect(codes).not.toContain('coverage-missing-resource');
+    expect(codes).not.toContain('coverage-missing-learning-goal');
+    expect(codes).not.toContain('coverage-missing-quality-target');
+  });
+
   it('does not use authoring paths or line targets as learning evidence citation target ids', () => {
     const chunk = makeChunk({
       resourceProjection: {
@@ -732,6 +781,8 @@ describe('textbook citation preservation', () => {
     expect(item.metadata?.citationVersion).toBe('citation.v1');
     expect(item.metadata?.knowledgeNodeRefs).toEqual(['kn-002']);
     expect(item.metadata?.capabilityTargetRefs).toEqual(['cap-002']);
+    expect(item.metadata?.reviewStatus).toBe('canonical');
+    expect(item.metadata?.authorityLevel).toBe('canonical');
   });
 
   it('derives textbook citation locator from href when locator is missing', () => {
@@ -862,6 +913,45 @@ describe('retrieval chunk not path eligible', () => {
     expect(item.resourceNodeId).toBe('res-001');
     expect(item.retrievalChunkId).toBe('resource-projection-chunk:rc-001');
     expect(item.sourceKind).toBe('runtime-lesson');
+  });
+
+  it('feeds resource projection graph metadata into hybrid coverage', () => {
+    const row = makeProjectionRow({
+      graphNodeRefs: {
+        knowledge: ['kn-001'],
+        capability: ['cap-001'],
+        quality: ['quality-001'],
+      },
+      pathEligibility: {
+        current: true,
+        afterCompletion: true,
+        masteryAffecting: true,
+        blockedBy: [],
+      },
+      projectionLevel: 'ResourceNode' as 'ResourceNode',
+    });
+    const { item } = adaptResourceProjectionRow(row);
+
+    expect(item.metadata?.resourceId).toBe('res-001');
+    expect(item.metadata?.resourceIds).toEqual(['res-001', 'proj-001']);
+    expect(item.metadata?.knowledgeNodeRefs).toEqual(['kn-001']);
+    expect(item.metadata?.capabilityTargetRefs).toEqual(['cap-001']);
+    expect(item.metadata?.qualityTargetRefs).toEqual(['quality-001']);
+
+    const result = retrieveSourcePack({
+      query: 'Runtime handout',
+      profile: 'lesson-design',
+      role: 'teacher',
+      topK: 1,
+      resourceIds: ['res-001'],
+      qualityTargetRefs: ['quality-001'],
+      candidates: [item],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+    const codes = result.pack.limitations.map((limitation) => limitation.code);
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['proj-001']);
+    expect(codes).not.toContain('coverage-missing-resource');
+    expect(codes).not.toContain('coverage-missing-quality-target');
   });
 
   it('keeps knowledge-card resource projections as knowledge-card source kind', () => {
