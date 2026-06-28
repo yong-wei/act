@@ -655,7 +655,9 @@ function evidenceLimitations(chunk: LearningEvidenceCorpusChunk): string[] {
       limitations.push(`missing-redacted-summary:${chunk.id}`);
     }
   }
-  if (!chunk.resourceProjection?.citationTargetRef) limitations.push(`missing-citation-target:${chunk.id}`);
+  if (chunk.resourceProjection && !chunk.resourceProjection.citationTargetRef) {
+    limitations.push(`missing-citation-target:${chunk.id}`);
+  }
   if (chunk.resourceProjection?.citationReadiness) {
     limitations.push(...chunk.resourceProjection.citationReadiness.limitations);
   }

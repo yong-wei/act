@@ -664,6 +664,7 @@ describe('SAR platform source projections', () => {
     expect(nonResourceEvidence.relations).not.toContainEqual(expect.objectContaining({
       source: 'learning-evidence-source-ref',
     }));
+    expect(nonResourceEvidence.limitations).not.toContain('missing-citation-target:chunk:learner-root-locus');
 
     const studentVisibleEvidence = projectLearningEvidenceChunkToSar({
       chunk: learningEvidenceChunk({
