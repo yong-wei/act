@@ -465,6 +465,23 @@ describe('SAR platform source projections', () => {
     expect(nonResourceEvidence.relations).not.toContainEqual(expect.objectContaining({
       source: 'learning-evidence-source-ref',
     }));
+
+    const studentVisibleEvidence = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        privacyClass: 'student-visible',
+      }),
+    });
+    expect(studentVisibleEvidence.events[0].privacyScope).toBe('student-visible');
+    expect(studentVisibleEvidence.limitations).not.toContain('privacy-scope-withheld:student-visible');
+
+    for (const privacyClass of ['teacher-visible', 'admin-only', 'service-only'] as const) {
+      const restrictedEvidence = projectLearningEvidenceChunkToSar({
+        chunk: learningEvidenceChunk({
+          privacyClass,
+        }),
+      });
+      expect(restrictedEvidence.limitations).toContain(`privacy-scope-withheld:${privacyClass}`);
+    }
   });
 
   it('projects governed learning-fact summaries through stable refs only', () => {

@@ -639,7 +639,9 @@ function safeEvidenceSummary(chunk: LearningEvidenceCorpusChunk): string {
 
 function evidenceLimitations(chunk: LearningEvidenceCorpusChunk): string[] {
   const limitations: string[] = [];
-  if (chunk.privacyClass !== 'public') limitations.push(`privacy-scope-withheld:${chunk.privacyClass}`);
+  if (chunk.privacyClass !== 'public' && chunk.privacyClass !== 'student-visible') {
+    limitations.push(`privacy-scope-withheld:${chunk.privacyClass}`);
+  }
   if (!chunk.resourceProjection?.citationTargetRef) limitations.push(`missing-citation-target:${chunk.id}`);
   if (chunk.resourceProjection?.citationReadiness) {
     limitations.push(...chunk.resourceProjection.citationReadiness.limitations);
