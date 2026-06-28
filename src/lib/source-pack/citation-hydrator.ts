@@ -161,7 +161,6 @@ function resolverForAddress(address: HydratorCitationAddressInput): string {
   if (href.startsWith('/course-runtime') || href.startsWith('#')) return 'course-runtime';
   if (href.startsWith('/resources')) return 'server-owned-runtime';
   if (href.startsWith('doi:')) return 'doi';
-  if (href.startsWith('https://')) return 'official-reference';
   return 'server-owned-runtime';
 }
 
@@ -248,7 +247,9 @@ export function hydrateCitationFromAddress(
     });
   }
 
-  const verified = isVerifiedCitationHref(rawHref, resolver)
+  const hrefScheme = rawHref?.match(externalHrefPattern)?.[1]?.toLowerCase();
+  const verified = hrefScheme !== 'https'
+    && isVerifiedCitationHref(rawHref, resolver)
     && Boolean(address.sourceRefId)
     && limitations.every((limitation) => limitation.severity !== 'blocking');
 

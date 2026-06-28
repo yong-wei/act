@@ -343,6 +343,23 @@ describe('hydrateCitationFromAddress', () => {
     expect(limitations).toHaveLength(0);
   });
 
+  it('keeps generic https citation href from CitationAddress unverified', () => {
+    const { citation, limitations } = hydrateCitationFromAddress(
+      'source-pack-citation:https',
+      'source-pack-source:https',
+      {
+        kind: 'external',
+        sourceRefId: 'model-authored-source',
+        href: 'https://model.example/raw.md',
+      },
+      'HTTPS reference',
+    );
+    expect(citation.href).toBe('https://model.example/raw.md');
+    expect(citation.resolver).toBe('server-owned-runtime');
+    expect(citation.verified).toBe(false);
+    expect(limitations).toHaveLength(0);
+  });
+
   it('does not verify normalized relative hrefs outside governed paths', () => {
     const { citation } = hydrateCitationFromAddress(
       'source-pack-citation:path-traversal',
@@ -608,6 +625,21 @@ describe('privacy filtering', () => {
     expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
   });
 
+  it('keeps learning evidence https citation addresses unverified', () => {
+    const chunk = makeChunk({
+      citationAddress: {
+        ...makeChunk().citationAddress!,
+        sourceRefId: 'kaq:unit-3-4:model-authored',
+        href: 'https://model.example/raw.md',
+        externalUrl: 'https://model.example/raw.md',
+      },
+    });
+    const { item } = adaptLearningEvidenceChunk(chunk, { role: 'teacher' });
+    expect(item?.citation?.href).toBe('https://model.example/raw.md');
+    expect(item?.citation?.resolver).toBe('server-owned-runtime');
+    expect(item?.citation?.verified).toBe(false);
+  });
+
   it('does not use authoring paths or line targets as learning evidence citation target ids', () => {
     const chunk = makeChunk({
       resourceProjection: {
@@ -724,6 +756,20 @@ describe('textbook citation preservation', () => {
     expect(item.citation?.citationTargetId).toBe(item.citationTargetId);
     expect(item.citationTargetId).not.toContain('https://');
     expect(limitations.some((limitation) => limitation.code === 'citation-target-raw-ref')).toBe(true);
+  });
+
+  it('keeps textbook https citation addresses unverified', () => {
+    const doc = makeTextbookDoc({
+      citationAddress: {
+        ...makeTextbookDoc().citationAddress!,
+        sourceRefId: 'textbook:ch02:model-authored',
+        href: 'https://model.example/textbook.md',
+      },
+    });
+    const { item } = adaptTextbookSearchDocument(doc);
+    expect(item.citation?.href).toBe('https://model.example/textbook.md');
+    expect(item.citation?.resolver).toBe('server-owned-runtime');
+    expect(item.citation?.verified).toBe(false);
   });
 
   it('does not use authoring paths or line targets as textbook citation target ids', () => {
