@@ -180,11 +180,21 @@ function hasAnswerLeakage(item: SourcePackItem): boolean {
   return metadata.answerLeakage === true
     || metadata.containsAnswer === true
     || metadata.sourceType === 'raw-answer'
-    || /raw answer|answer key|\u7b54\u6848/.test(`${item.title} ${item.excerpt}`.toLowerCase());
+    || /raw answer|answer key|answers?\s+to\s+(?:skills?\s+)?check|answers?-to-skills?-check|\u7b54\u6848/.test(answerLeakageText(item));
 }
 
 function hasCitationReadyIdentifier(item: SourcePackItem): boolean {
   return Boolean(item.citationTargetId || item.citation?.citationTargetId);
+}
+
+function answerLeakageText(item: SourcePackItem): string {
+  const metadataText = Object.values(item.metadata ?? {})
+    .flatMap((value) => (Array.isArray(value) ? value : [value]))
+    .filter((value): value is string | number | boolean => (
+      typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+    ))
+    .join(' ');
+  return `${item.id} ${item.title} ${item.excerpt} ${metadataText}`.toLowerCase();
 }
 
 function coverageLimitations(items: readonly SourcePackItem[], input: RetrieveSourcePackInput): SourcePackLimitation[] {
