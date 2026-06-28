@@ -91,7 +91,9 @@ export function normalizeKonlingCitationPresentation(metadata: unknown): {
     : Array.isArray(guard.retrievalSources)
       ? guard.retrievalSources
       : [];
-  const status = guard.status === 'verified' ? 'verified' : 'low-confidence';
+  const status = guard.status === 'verified' && !hasUnverifiedStreamingDiagnostic(guard)
+    ? 'verified'
+    : 'low-confidence';
   const guardLimitation = status === 'verified' ? null : 'guard-low-confidence';
   const citations = rawCitations.map((citation, index): PresentationCitation => {
     const confidence = confidenceValue(citation.confidence);
@@ -117,6 +119,11 @@ export function normalizeKonlingCitationPresentation(metadata: unknown): {
     diagnostics: Array.isArray(guard.diagnosticReasons) ? guard.diagnosticReasons : [],
     missingReasons,
   };
+}
+
+function hasUnverifiedStreamingDiagnostic(guard: KonlingCitationGuardLike) {
+  return Array.isArray(guard.diagnosticReasons)
+    && guard.diagnosticReasons.includes('assistant-citations-unverified-stream');
 }
 
 function sourceTypeLabel(sourceType: string) {

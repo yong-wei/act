@@ -116,6 +116,32 @@ describe('Konling verified citation presentation', () => {
     expect(html).not.toContain('data-citation-target=');
   });
 
+  it('downgrades streaming preflight citation metadata before final verification', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(KonlingCitationPanel, {
+        metadata: {
+          konlingCitationGuard: {
+            status: 'verified',
+            diagnosticReasons: ['assistant-citations-unverified-stream'],
+            citations: [{
+              sourceType: 'content',
+              displayTitle: '流式预检来源',
+              href: '/course-runtime/resources/textbooks/control/ch02.md#time-constant',
+              confidence: 'high',
+              evidenceBasis: 'source-pack',
+            }],
+          },
+        },
+      }),
+    );
+
+    expect(html).toContain('data-konling-citation-status="low-confidence"');
+    expect(html).toContain('引用核验有限');
+    expect(html).not.toContain('已验证引用');
+    expect(html).toContain('data-citation-limited="guard-low-confidence"');
+    expect(html).not.toContain('data-citation-target=');
+  });
+
   it('renders a missing verified citation state separately from diagnostics', () => {
     const html = renderToStaticMarkup(
       React.createElement(KonlingCitationPanel, {
