@@ -522,6 +522,17 @@ describe('SAR platform source projections', () => {
     const studentVisibleWithoutRedactedSummary = projectLearningEvidenceChunkToSar({
       chunk: learningEvidenceChunk({
         privacyClass: 'student-visible',
+        resourceProjection: {
+          ...chunk.resourceProjection!,
+          privacyScope: 'student-visible',
+        },
+        authority: {
+          ...chunk.authority,
+          scopeRule: {
+            ...chunk.authority.scopeRule,
+            visibility: 'student-visible',
+          },
+        },
         display: {
           ...chunk.display,
           capsule: 'Student-visible capsule can remain visible.',
@@ -534,6 +545,32 @@ describe('SAR platform source projections', () => {
     });
     expect(studentVisibleWithoutRedactedSummary.events[0].safeSummary).toBe('Student-visible capsule can remain visible.');
     expect(studentVisibleWithoutRedactedSummary.limitations).not.toContain('missing-redacted-summary:chunk:learner-root-locus');
+
+    const mismatchedStudentVisibleEvidence = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        privacyClass: 'student-visible',
+      }),
+    });
+    expect(mismatchedStudentVisibleEvidence.events[0].privacyScope).toBe('teacher-scoped');
+    expect(mismatchedStudentVisibleEvidence.limitations).toContain('privacy-scope-withheld:teacher-scoped');
+
+    const mismatchedStudentVisibleWithoutRedactedSummary = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        privacyClass: 'student-visible',
+        display: {
+          ...chunk.display,
+          capsule: 'Private mismatch capsule should not be exposed.',
+        },
+        content: {
+          ...chunk.content,
+          redactedSummary: null,
+        },
+      }),
+    });
+    expect(mismatchedStudentVisibleWithoutRedactedSummary.events[0].privacyScope).toBe('teacher-scoped');
+    expect(mismatchedStudentVisibleWithoutRedactedSummary.events[0].safeSummary).toBe('Root locus diagnosis');
+    expect(mismatchedStudentVisibleWithoutRedactedSummary.limitations).toContain('missing-redacted-summary:chunk:learner-root-locus');
+    expect(JSON.stringify(mismatchedStudentVisibleWithoutRedactedSummary)).not.toContain('Private mismatch capsule should not be exposed.');
 
     const semanticResourceIdEvidence = projectLearningEvidenceChunkToSar({
       chunk: learningEvidenceChunk({
@@ -678,18 +715,33 @@ describe('SAR platform source projections', () => {
     const studentVisibleEvidence = projectLearningEvidenceChunkToSar({
       chunk: learningEvidenceChunk({
         privacyClass: 'student-visible',
+        resourceProjection: {
+          ...chunk.resourceProjection!,
+          privacyScope: 'student-visible',
+        },
+        authority: {
+          ...chunk.authority,
+          scopeRule: {
+            ...chunk.authority.scopeRule,
+            visibility: 'student-visible',
+          },
+        },
       }),
     });
     expect(studentVisibleEvidence.events[0].privacyScope).toBe('student-visible');
     expect(studentVisibleEvidence.limitations).not.toContain('privacy-scope-withheld:student-visible');
 
-    for (const privacyClass of ['teacher-visible', 'admin-only', 'service-only'] as const) {
+    for (const [privacyClass, expectedScope] of [
+      ['teacher-visible', 'teacher-scoped'],
+      ['admin-only', 'admin-scoped'],
+      ['service-only', 'system-internal'],
+    ] as const) {
       const restrictedEvidence = projectLearningEvidenceChunkToSar({
         chunk: learningEvidenceChunk({
           privacyClass,
         }),
       });
-      expect(restrictedEvidence.limitations).toContain(`privacy-scope-withheld:${privacyClass}`);
+      expect(restrictedEvidence.limitations).toContain(`privacy-scope-withheld:${expectedScope}`);
     }
   });
 

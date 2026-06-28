@@ -390,7 +390,7 @@ export function projectResourceNodeToSar(input: ResourceNodeSarProjectionInput):
 
 export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSarProjectionInput): SarRetrievalResult {
   const { chunk } = input;
-  const privacyScope = strictestPrivacyScope(evidencePrivacyScope(chunk.privacyClass), input.privacyScope);
+  const privacyScope = evidenceChunkPrivacyScope(chunk, input.privacyScope);
   const sarEventId = makeEventId('corpus-chunk-summary', chunk.id);
   const resourceRefs = [
     chunk.sourceRef.resourceId,
@@ -411,7 +411,7 @@ export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSa
   const citationEntities = citationTargetRef
     ? [entity('citation-target', citationTargetRef, citationTargetRef, { privacyScope })]
     : [];
-  const safeSummary = safeEvidenceSummary(chunk);
+  const safeSummary = safeEvidenceSummary(chunk, privacyScope);
   return assembleSarResult({
     id: `sar:result:corpus-chunk:${chunk.id}`,
     events: [{
@@ -456,7 +456,7 @@ export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSa
     ],
     citationTargetRefs: citationTargetRef ? [citationTargetRef] : [],
     retrievalChunkRefs: [chunk.id],
-    limitations: evidenceLimitations(chunk),
+    limitations: evidenceLimitations(chunk, privacyScope),
     versionRefs: chunk.resourceProjection?.versionRefs
       ? explicitVersionRefs(chunk.resourceProjection.versionRefs)
       : undefined,
@@ -639,18 +639,18 @@ function goalSubgraphMismatchLimitations(
   return limitations;
 }
 
-function safeEvidenceSummary(chunk: LearningEvidenceCorpusChunk): string {
+function safeEvidenceSummary(chunk: LearningEvidenceCorpusChunk, privacyScope: SarPrivacyScope): string {
   if (chunk.content.redactedSummary?.trim()) return safeText(chunk.content.redactedSummary, chunk.display.title);
-  if (chunk.privacyClass === 'public' || chunk.privacyClass === 'student-visible') {
+  if (privacyScope === 'student-visible') {
     return safeText(chunk.display.capsule, chunk.display.title);
   }
   return safeText(chunk.display.title, chunk.id);
 }
 
-function evidenceLimitations(chunk: LearningEvidenceCorpusChunk): string[] {
+function evidenceLimitations(chunk: LearningEvidenceCorpusChunk, privacyScope: SarPrivacyScope): string[] {
   const limitations: string[] = [];
-  if (chunk.privacyClass !== 'public' && chunk.privacyClass !== 'student-visible') {
-    limitations.push(`privacy-scope-withheld:${chunk.privacyClass}`);
+  if (privacyScope !== 'student-visible') {
+    limitations.push(`privacy-scope-withheld:${privacyScope}`);
     if (!chunk.content.redactedSummary?.trim()) {
       limitations.push(`missing-redacted-summary:${chunk.id}`);
     }
@@ -691,9 +691,28 @@ function evidencePrivacyScope(privacyClass: LearningEvidenceCorpusPrivacyClass):
   }
 }
 
+function evidenceChunkPrivacyScope(
+  chunk: LearningEvidenceCorpusChunk,
+  requestedScope?: SarPrivacyScope,
+): SarPrivacyScope {
+  return strictestPrivacyScopes([
+    evidencePrivacyScope(chunk.privacyClass),
+    evidencePrivacyScope(chunk.authority.scopeRule.visibility),
+    chunk.resourceProjection?.privacyScope ? evidencePrivacyScope(chunk.resourceProjection.privacyScope) : undefined,
+    requestedScope,
+  ]);
+}
+
 function strictestPrivacyScope(defaultScope: SarPrivacyScope, requestedScope?: SarPrivacyScope): SarPrivacyScope {
   if (!requestedScope) return defaultScope;
   return privacyScopeRank(requestedScope) > privacyScopeRank(defaultScope) ? requestedScope : defaultScope;
+}
+
+function strictestPrivacyScopes(scopes: ReadonlyArray<SarPrivacyScope | undefined>): SarPrivacyScope {
+  return scopes.reduce<SarPrivacyScope>(
+    (current, scope) => strictestPrivacyScope(current, scope),
+    'student-visible',
+  );
 }
 
 function privacyScopeRank(scope: SarPrivacyScope): number {
