@@ -343,6 +343,7 @@ export function validateSarRelation(
   requireEnum(relation.role, RELATION_ROLES, 'role', issues);
   requireEnum(relation.provenance, RELATION_PROVENANCE, 'provenance', issues);
   requireString(relation, 'source', issues);
+  scanRestricted(relation.source, 'source', issues);
   validateConfidence(relation.confidence, 'confidence', issues);
 
   const targetEntity = entities.find((entity) => entity.id === relation.entityId);

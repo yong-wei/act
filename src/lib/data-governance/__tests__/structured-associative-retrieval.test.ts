@@ -386,6 +386,16 @@ describe('structured associative retrieval contract', () => {
       } as unknown as SarRetrievalEventEntity],
     })).issues.map((issue) => issue.code)).toContain('citation-boundary-violation');
 
+    expect(validateSarRelation(relation({
+      source: 'raw learner submission text must stay outside SAR relation sources',
+    }), [entity()]).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
+    expect(validateSarResult(sarResult({
+      relations: [relation({
+        source: 'audit trace details must stay outside SAR relation sources',
+      })],
+    })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
+
     expect(validateSarResult(sarResult({
       limitations: ['raw learner submission text must stay outside SAR result limitations'],
     })).issues.map((issue) => issue.code)).toContain('restricted-raw-content');
