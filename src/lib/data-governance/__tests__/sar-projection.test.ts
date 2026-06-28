@@ -522,6 +522,11 @@ describe('SAR platform source projections', () => {
     const studentVisibleWithoutRedactedSummary = projectLearningEvidenceChunkToSar({
       chunk: learningEvidenceChunk({
         privacyClass: 'student-visible',
+        sourceRef: {
+          ...chunk.sourceRef,
+          ownerUserId: null,
+          classId: null,
+        },
         resourceProjection: {
           ...chunk.resourceProjection!,
           privacyScope: 'student-visible',
@@ -531,6 +536,8 @@ describe('SAR platform source projections', () => {
           scopeRule: {
             ...chunk.authority.scopeRule,
             visibility: 'student-visible',
+            ownerRequired: false,
+            classRequired: false,
           },
         },
         display: {
@@ -715,6 +722,11 @@ describe('SAR platform source projections', () => {
     const studentVisibleEvidence = projectLearningEvidenceChunkToSar({
       chunk: learningEvidenceChunk({
         privacyClass: 'student-visible',
+        sourceRef: {
+          ...chunk.sourceRef,
+          ownerUserId: null,
+          classId: null,
+        },
         resourceProjection: {
           ...chunk.resourceProjection!,
           privacyScope: 'student-visible',
@@ -724,12 +736,83 @@ describe('SAR platform source projections', () => {
           scopeRule: {
             ...chunk.authority.scopeRule,
             visibility: 'student-visible',
+            ownerRequired: false,
+            classRequired: false,
           },
         },
       }),
     });
     expect(studentVisibleEvidence.events[0].privacyScope).toBe('student-visible');
     expect(studentVisibleEvidence.limitations).not.toContain('privacy-scope-withheld:student-visible');
+
+    const personalizedStudentVisibleEvidence = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        privacyClass: 'student-visible',
+        resourceProjection: {
+          ...chunk.resourceProjection!,
+          privacyScope: 'student-visible',
+        },
+        authority: {
+          ...chunk.authority,
+          scopeRule: {
+            ...chunk.authority.scopeRule,
+            visibility: 'student-visible',
+            ownerRequired: true,
+          },
+        },
+      }),
+    });
+    expect(personalizedStudentVisibleEvidence.events[0].privacyScope).toBe('teacher-scoped');
+    expect(personalizedStudentVisibleEvidence.limitations).toContain('privacy-scope-withheld:teacher-scoped');
+
+    const ownerScopedStudentVisibleEvidence = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        privacyClass: 'student-visible',
+        sourceRef: {
+          ...chunk.sourceRef,
+          classId: null,
+        },
+        resourceProjection: {
+          ...chunk.resourceProjection!,
+          privacyScope: 'student-visible',
+        },
+        authority: {
+          ...chunk.authority,
+          scopeRule: {
+            ...chunk.authority.scopeRule,
+            visibility: 'student-visible',
+            ownerRequired: false,
+            classRequired: false,
+          },
+        },
+      }),
+    });
+    expect(ownerScopedStudentVisibleEvidence.events[0].privacyScope).toBe('teacher-scoped');
+
+    const classScopedStudentVisibleEvidence = projectLearningEvidenceChunkToSar({
+      chunk: learningEvidenceChunk({
+        privacyClass: 'student-visible',
+        sourceRef: {
+          ...chunk.sourceRef,
+          ownerUserId: null,
+          classId: null,
+        },
+        resourceProjection: {
+          ...chunk.resourceProjection!,
+          privacyScope: 'student-visible',
+        },
+        authority: {
+          ...chunk.authority,
+          scopeRule: {
+            ...chunk.authority.scopeRule,
+            visibility: 'student-visible',
+            ownerRequired: false,
+            classRequired: true,
+          },
+        },
+      }),
+    });
+    expect(classScopedStudentVisibleEvidence.events[0].privacyScope).toBe('teacher-scoped');
 
     for (const [privacyClass, expectedScope] of [
       ['teacher-visible', 'teacher-scoped'],

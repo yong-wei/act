@@ -699,8 +699,18 @@ function evidenceChunkPrivacyScope(
     evidencePrivacyScope(chunk.privacyClass),
     evidencePrivacyScope(chunk.authority.scopeRule.visibility),
     chunk.resourceProjection?.privacyScope ? evidencePrivacyScope(chunk.resourceProjection.privacyScope) : undefined,
+    learnerScopedEvidencePrivacyScope(chunk),
     requestedScope,
   ]);
+}
+
+function learnerScopedEvidencePrivacyScope(chunk: LearningEvidenceCorpusChunk): SarPrivacyScope | undefined {
+  return chunk.sourceRef.ownerUserId
+    || chunk.sourceRef.classId
+    || chunk.authority.scopeRule.ownerRequired
+    || chunk.authority.scopeRule.classRequired
+    ? 'teacher-scoped'
+    : undefined;
 }
 
 function strictestPrivacyScope(defaultScope: SarPrivacyScope, requestedScope?: SarPrivacyScope): SarPrivacyScope {
