@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   adaptLearningEvidenceChunk,
+  adaptResourceProjectionRow,
   adaptTextbookSearchDocument,
   evaluateSourcePackRetrieval,
   getSourcePackRetrievalProfile,
@@ -10,6 +11,7 @@ import {
   type SourcePackItem,
 } from '../source-pack';
 import type { LearningEvidenceCorpusChunk } from '../data-governance/learning-evidence-rag-corpus';
+import type { RuntimeResourceProjectionArtifactRow } from '../runtime-resource-projections';
 import type { TextbookRuntimeSearchDocument } from '../textbook-runtime-resources';
 
 function item(overrides: Partial<SourcePackItem> = {}): SourcePackItem {
@@ -116,6 +118,85 @@ function canonicalChunk(): LearningEvidenceCorpusChunk {
       goals: ['goal:root-locus'],
       useCases: ['konling'],
     },
+  };
+}
+
+function projectionRow(overrides: Partial<RuntimeResourceProjectionArtifactRow> = {}): RuntimeResourceProjectionArtifactRow {
+  return {
+    artifactVersion: 'runtime-resource-projections.v1',
+    id: 'projection:citation-target:root-locus',
+    resourceNodeId: 'resource:root-locus',
+    family: 'runtime-handout',
+    resourceType: 'textbook_section',
+    sourceKind: 'runtime_handout',
+    sourceRef: 'runtime-handout:root-locus',
+    sourcePathOrUrl: '/course-runtime/root-locus',
+    sourceRecord: 'runtime-handout:root-locus',
+    sourceHash: 'sha256:root-locus',
+    sourceVersionRef: 'runtime.v1',
+    projectionLevel: 'CitationTarget',
+    routeTarget: '/course-runtime/root-locus',
+    renderTarget: '/course-runtime/root-locus',
+    title: 'Root locus citation target',
+    graphNodeRefs: {
+      knowledge: ['kn-root-locus'],
+      capability: ['cap-analysis'],
+      quality: [],
+    },
+    estimatedTimeMinutes: 4,
+    evidenceInstrumentation: ['view:root-locus'],
+    privacyScope: 'student-visible',
+    teacherPolicy: 'allowed',
+    evidenceContract: {
+      eventSource: true,
+      eventType: true,
+      clientEventIdPolicy: true,
+      attemptKey: true,
+      sourceLogId: true,
+      dedupeKey: true,
+      timestamps: true,
+      learningFactPolicy: true,
+      confidencePolicy: true,
+      privacyScope: true,
+      complete: true,
+    },
+    reviewAudit: {
+      status: 'human-confirmed',
+      reviewerId: 'teacher-001',
+      reviewerRole: 'teacher',
+      reviewedAt: '2026-06-28T00:00:00.000Z',
+      reviewBatchId: 'review-batch:root-locus',
+      reviewedSourceHash: 'sha256:root-locus',
+      reviewedVersionRef: 'runtime.v1',
+      generationToolOrModel: null,
+      promptOrManifestHash: null,
+      confidence: 0.95,
+      staleInvalidationRule: 'source-hash-change',
+    },
+    segmentRefs: ['segment:root-locus'],
+    citationTargets: ['source-pack-citation:root-locus'],
+    retrievalChunk: {
+      id: 'retrieval-chunk:root-locus',
+      pathEligible: false,
+      reason: 'resource-node-planning-audit-required',
+    },
+    pathEligibility: {
+      current: false,
+      afterCompletion: false,
+      masteryAffecting: false,
+      blockedBy: ['missing-path-target'],
+    },
+    groundingEligibility: {
+      retrievalReady: true,
+      citationReady: true,
+      authoringTriageReady: true,
+    },
+    versionRefs: {
+      artifactVersioningVersion: 'kaq-artifact-versioning.v1',
+      resourceRegistryVersion: 'resource-node-registry.v1',
+      resourceProjectionVersion: 'resource-semantic-projection.v1',
+    },
+    ...overrides,
   };
 }
 
@@ -395,6 +476,37 @@ describe('source pack retrieval profiles', () => {
     expect(result.pack.items.map((packItem) => packItem.id)).toContain('path-resource');
     expect(result.pack.items.map((packItem) => packItem.id)).toContain('citation-support');
     expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('path-planning-citation-only-evidence');
+  });
+
+  it('allows CitationTarget projection rows as citation-only path-planning evidence', () => {
+    const adapted = adaptResourceProjectionRow(projectionRow({
+      projectionLevel: 'CitationTarget',
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-path-target'],
+      },
+    }));
+
+    expect(adapted.item.sourceKind).toBe('reference');
+    expect(adapted.item.resourceNodeId).toBeUndefined();
+    expect(adapted.item.planningUnitId).toBeUndefined();
+
+    const result = retrieveSourcePack({
+      query: 'root locus path',
+      profile: 'path-planning',
+      role: 'teacher',
+      graphNodeRefs: ['kn-root-locus'],
+      candidates: [adapted.item],
+      now: new Date('2026-06-28T00:00:00Z'),
+    });
+
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['projection:citation-target:root-locus']);
+    expect(result.pack.items[0].sourceKind).toBe('reference');
+    expect(result.pack.items[0].resourceNodeId).toBeUndefined();
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('path-planning-citation-only-evidence');
+    expect(result.pack.limitations.map((limitation) => limitation.code)).not.toContain('profile-filtered-source-kind');
   });
 });
 

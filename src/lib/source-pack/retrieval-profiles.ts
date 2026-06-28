@@ -126,7 +126,7 @@ const pathPlanning: SourcePackRetrievalProfile = {
   description: 'Goal-aligned resource retrieval that preserves path eligibility boundaries.',
   defaultRole: 'teacher',
   allowedVisibility: ['public', 'student', 'teacher'],
-  allowedSourceKinds: ['runtime-lesson', 'knowledge-card', 'simulation', 'exercise', 'textbook'],
+  allowedSourceKinds: ['runtime-lesson', 'knowledge-card', 'simulation', 'exercise', 'textbook', 'reference'],
   allowedReviewStatuses: COMPATIBLE_REVIEW_STATUSES,
   requireAiUseAllowed: true,
   requireCitationReady: false,

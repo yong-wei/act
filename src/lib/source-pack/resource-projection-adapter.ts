@@ -71,6 +71,7 @@ function mapProjectionToSourceKind(
   row: RuntimeResourceProjectionArtifactRow,
   level?: string,
 ): SourcePackSourceKind {
+  if (level === 'CitationTarget') return 'reference';
   switch (row.family) {
     case 'knowledge-card':
     case 'knowledge-infograph':
