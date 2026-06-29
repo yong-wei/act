@@ -612,7 +612,12 @@ function buildNodeDetails(
         evidenceCorpus,
         viewerRole: actionContext.viewerRole,
         sarAssociation: actionContext.sarAssociation,
-        authorizedScope: sarAuthorizedScope(actionContext.learnerOverlay, actionContext.classOverlay, actionContext.sarAssociation?.studentId ?? null),
+        authorizedScope: sarAuthorizedScope({
+          learnerOverlay: actionContext.learnerOverlay,
+          classOverlay: actionContext.classOverlay,
+          nodeId: node.id,
+          requestedStudentId: actionContext.sarAssociation?.studentId ?? null,
+        }),
       }),
       actions: buildGraphCenterActions({
         node,
@@ -744,11 +749,13 @@ interface GraphCenterSarAuthorizedScope {
   learnerId: string | null;
 }
 
-function sarAuthorizedScope(
-  learnerOverlay: GraphCenterLearnerOverlay,
-  classOverlay: GraphCenterClassOverlay,
-  requestedStudentId: string | null,
-): GraphCenterSarAuthorizedScope {
+function sarAuthorizedScope(input: {
+  learnerOverlay: GraphCenterLearnerOverlay;
+  classOverlay: GraphCenterClassOverlay;
+  nodeId: string;
+  requestedStudentId: string | null;
+}): GraphCenterSarAuthorizedScope {
+  const { learnerOverlay, classOverlay, requestedStudentId } = input;
   if (
     requestedStudentId &&
     learnerOverlay.status !== 'unauthorized' &&
@@ -756,16 +763,20 @@ function sarAuthorizedScope(
     learnerOverlay.learnerId === requestedStudentId
   ) {
     const classId = learnerOverlay.classId
-      ?? (classOverlay.status !== 'unauthorized' && classOverlay.status !== 'unavailable' ? classOverlay.classId : null);
+      ?? (canUseClassOverlayForSarScope(classOverlay, input.nodeId) ? classOverlay.classId : null);
     return { classId, learnerId: learnerOverlay.learnerId };
   }
-  if (classOverlay.status !== 'unauthorized' && classOverlay.status !== 'unavailable' && classOverlay.classId) {
+  if (canUseClassOverlayForSarScope(classOverlay, input.nodeId) && classOverlay.classId) {
     return { classId: classOverlay.classId, learnerId: null };
   }
   if (learnerOverlay.status !== 'unauthorized' && learnerOverlay.status !== 'unavailable' && learnerOverlay.classId) {
     return { classId: learnerOverlay.classId, learnerId: learnerOverlay.learnerId };
   }
   return { classId: null, learnerId: null };
+}
+
+function canUseClassOverlayForSarScope(classOverlay: GraphCenterClassOverlay, nodeId: string): boolean {
+  return classOverlay.status === 'available' && classOverlay.items[nodeId]?.suppressionReason === 'none';
 }
 
 function canProjectEvidenceChunkToGraphCenterSar(input: {

@@ -480,7 +480,13 @@ describe('graph center payload service', () => {
         classId: 'class-1',
         viewerRole: 'teacher',
         authorized: true,
-        learnerStates: [],
+        learnerStates: [
+          learnerState({ userId: 'learner-1', targetId: 'kn:autocontrol:simulation-validation', score: 0.9, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-2', targetId: 'kn:autocontrol:simulation-validation', score: 0.7, confidence: 0.7, evidenceCount: 3, classId: 'class-1' }),
+          learnerState({ userId: 'learner-3', targetId: 'kn:autocontrol:simulation-validation', score: 0.5, confidence: 0.7, evidenceCount: 3, classId: 'class-1' }),
+          learnerState({ userId: 'learner-4', targetId: 'kn:autocontrol:simulation-validation', score: 0.3, confidence: 0.7, evidenceCount: 3, classId: 'class-1' }),
+          learnerState({ userId: 'learner-5', targetId: 'kn:autocontrol:simulation-validation', score: 0.2, confidence: 0.7, evidenceCount: 3, classId: 'class-1' }),
+        ],
       },
       sarAssociation: {
         enabled: true,
@@ -495,7 +501,7 @@ describe('graph center payload service', () => {
     expect(JSON.stringify(unauthorizedPayload.selectedNode?.associatedEvidence)).not.toContain('secret-resource-class-2');
     expect(JSON.stringify(unauthorizedPayload.selectedNode?.associatedEvidence)).not.toContain('chunk-sar-unowned-class-gap');
 
-    expect(authorizedPayload.classOverlay.status).toBe('empty');
+    expect(authorizedPayload.classOverlay.status).toBe('available');
     expect(authorizedPayload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-owned-class-gap');
     expect(authorizedPayload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual(expect.arrayContaining([
       expect.objectContaining({
@@ -1816,6 +1822,120 @@ describe('graph center payload service', () => {
       'evidence-needed': 0,
     });
     expect(payload.limitations.map((limitation) => limitation.code)).toContain('class-overlay-suppressed');
+  });
+
+  it('does not grant SAR class scope from a suppressed class overlay', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-suppressed-class',
+          knowledgeNodeRefs: ['PID控制器_6_656b8b52'],
+          resourceId: 'suppressed-class-resource',
+          classId: 'class-small',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      classOverlay: {
+        classId: 'class-small',
+        viewerRole: 'teacher',
+        authorized: true,
+        minimumDenominator: 3,
+        learnerStates: [
+          learnerState({ userId: 'learner-1', targetId: 'kn:autocontrol:controller-correction', score: 0.9, confidence: 0.8, evidenceCount: 4, classId: 'class-small' }),
+        ],
+      },
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-small',
+      },
+    });
+    const serialized = JSON.stringify(payload.selectedNode?.associatedEvidence);
+
+    expect(payload.overlays.class).toBe('suppressed');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).not.toContain('chunk-sar-suppressed-class');
+    expect(payload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual([]);
+    expect(serialized).not.toContain('chunk-sar-suppressed-class');
+    expect(serialized).not.toContain('suppressed-class-resource');
+  });
+
+  it('does not grant SAR class scope when the selected class overlay item is suppressed', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-node-suppressed-class',
+          knowledgeNodeRefs: ['PID控制器_6_656b8b52'],
+          resourceId: 'node-suppressed-class-resource',
+          classId: 'class-mixed',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      classOverlay: {
+        classId: 'class-mixed',
+        viewerRole: 'teacher',
+        authorized: true,
+        learnerStates: [
+          learnerState({ userId: 'learner-1', targetId: 'kn:autocontrol:controller-correction', score: 0.9, confidence: 0.8, evidenceCount: 4, classId: 'class-mixed' }),
+          learnerState({ userId: 'learner-2', targetId: 'kn:autocontrol:feedback-loop', score: 0.7, confidence: 0.7, evidenceCount: 3, classId: 'class-mixed' }),
+          learnerState({ userId: 'learner-3', targetId: 'kn:autocontrol:feedback-loop', score: 0.6, confidence: 0.7, evidenceCount: 3, classId: 'class-mixed' }),
+          learnerState({ userId: 'learner-4', targetId: 'kn:autocontrol:feedback-loop', score: 0.5, confidence: 0.7, evidenceCount: 3, classId: 'class-mixed' }),
+          learnerState({ userId: 'learner-5', targetId: 'kn:autocontrol:feedback-loop', score: 0.4, confidence: 0.7, evidenceCount: 3, classId: 'class-mixed' }),
+          learnerState({ userId: 'learner-6', targetId: 'kn:autocontrol:feedback-loop', score: 0.3, confidence: 0.7, evidenceCount: 3, classId: 'class-mixed' }),
+        ],
+      },
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-mixed',
+      },
+    });
+    const selectedItem = payload.classOverlay.items['kn:autocontrol:controller-correction'];
+    const serialized = JSON.stringify(payload.selectedNode?.associatedEvidence);
+
+    expect(payload.overlays.class).toBe('available');
+    expect(selectedItem.suppressionReason).toBe('low-denominator');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).not.toContain('chunk-sar-node-suppressed-class');
+    expect(payload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual([]);
+    expect(serialized).not.toContain('chunk-sar-node-suppressed-class');
+    expect(serialized).not.toContain('node-suppressed-class-resource');
+  });
+
+  it('does not grant SAR class scope from an empty class overlay', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-empty-class',
+          knowledgeNodeRefs: ['PID控制器_6_656b8b52'],
+          resourceId: 'empty-class-resource',
+          classId: 'class-empty',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      classOverlay: {
+        classId: 'class-empty',
+        viewerRole: 'teacher',
+        authorized: true,
+        learnerStates: [],
+      },
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-empty',
+      },
+    });
+    const serialized = JSON.stringify(payload.selectedNode?.associatedEvidence);
+
+    expect(payload.overlays.class).toBe('empty');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).not.toContain('chunk-sar-empty-class');
+    expect(payload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual([]);
+    expect(serialized).not.toContain('chunk-sar-empty-class');
+    expect(serialized).not.toContain('empty-class-resource');
   });
 
   it('suppresses class distributions when node-visible evidence count is below the minimum denominator', () => {
