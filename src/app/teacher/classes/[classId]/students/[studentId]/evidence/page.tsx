@@ -30,11 +30,32 @@ export default async function TeacherClassStudentEvidencePage(
     reportId: searchParams?.reportId,
     source: searchParams?.source,
   });
-  const missingContext = [
+  const providedReportContext = [
+    searchParams?.gradingRunId,
+    searchParams?.reportId,
+    searchParams?.source,
+  ].filter((item): item is string => Boolean(item));
+  const hasReportContext = providedReportContext.length > 0;
+  const missingContext = hasReportContext ? [
     searchParams?.gradingRunId ? null : 'gradingRunId',
     searchParams?.reportId ? null : 'reportId',
     searchParams?.source ? null : 'source',
-  ].filter((item): item is string => Boolean(item));
+  ].filter((item): item is string => Boolean(item)) : [];
+  const contextState = missingContext.length > 0 ? 'blocked' : 'ready';
+  const hasCompleteReportContext = hasReportContext && missingContext.length === 0;
+  const primaryActionHref = hasCompleteReportContext
+    ? buildTeacherReportDeliveryHref({
+      classId: params.classId,
+      action: 'summary',
+      reportId: searchParams?.reportId ?? 'control-correction',
+      studentId: params.studentId,
+      gradingRunId: searchParams?.gradingRunId,
+      source: searchParams?.source ?? 'teacher-evidence',
+      surface: 'report-book',
+      returnTo: backHref,
+    })
+    : backHref;
+  const primaryActionLabel = hasCompleteReportContext ? '回到报告交付' : '返回学生详情';
   const evidenceState = createAuditedActionState({
     identity: {
       id: `teacher-evidence:${params.classId}:${params.studentId}:${searchParams?.gradingRunId ?? 'missing-grading'}`,
@@ -47,27 +68,19 @@ export default async function TeacherClassStudentEvidencePage(
     status: missingContext.length > 0 ? 'blocked' : 'succeeded',
     message: missingContext.length > 0
       ? `证据页缺少 ${missingContext.join('、')}，仍可浏览证据，但不能完成报告评分处置闭环。`
-      : '证据页已保留评分运行、报告和来源上下文，可回到报告交付或评分链路继续处置。',
+      : hasReportContext
+        ? '证据页已保留评分运行、报告和来源上下文，可回到报告交付或评分链路继续处置。'
+        : '证据页以普通浏览模式打开，可按时间查看该学生的学习事实和作答摘要。',
     recoveryAction: missingContext.length > 0 ? '从报告账本或评分工作台重新进入学生证据页' : undefined,
-    nextAction: missingContext.length === 0 ? '核验证据后回到报告交付或评分工作台' : undefined,
+    nextAction: hasCompleteReportContext ? '核验证据后回到报告交付或评分工作台' : undefined,
     displayReference: searchParams?.reportId ?? undefined,
-  });
-  const reportDeliveryHref = buildTeacherReportDeliveryHref({
-    classId: params.classId,
-    action: 'summary',
-    reportId: searchParams?.reportId ?? 'control-correction',
-    studentId: params.studentId,
-    gradingRunId: searchParams?.gradingRunId,
-    source: searchParams?.source ?? 'teacher-evidence',
-    surface: 'report-book',
-    returnTo: backHref,
   });
   return (
     <>
       <section
         className="surface-page px-6 pt-6"
         data-teacher-evidence-remediation="context-status"
-        data-teacher-evidence-context-state={missingContext.length > 0 ? 'blocked' : 'ready'}
+        data-teacher-evidence-context-state={contextState}
         data-teacher-evidence-grading-run-id={searchParams?.gradingRunId ?? undefined}
         data-teacher-evidence-report-id={searchParams?.reportId ?? undefined}
         data-teacher-evidence-source={searchParams?.source ?? undefined}
@@ -76,17 +89,24 @@ export default async function TeacherClassStudentEvidencePage(
           state={evidenceState}
           action={(
             <Link
-              href={reportDeliveryHref}
+              href={primaryActionHref}
               className="btn-ghost-themed inline-flex rounded-lg px-3 py-2 text-xs"
-              data-teacher-evidence-report-handoff="available"
+              data-teacher-evidence-report-handoff={hasCompleteReportContext ? 'available' : undefined}
+              data-teacher-evidence-browse-return={hasCompleteReportContext ? undefined : 'available'}
             >
-              回到报告交付
+              {primaryActionLabel}
             </Link>
           )}
         />
         <div className="mt-4 rounded-lg border border-border bg-card/70 p-4 text-sm" data-teacher-evidence-next-steps>
           <p className="font-medium text-foreground">证据处置下一步</p>
-          <p className="mt-1 text-subtle">当前页面展示选中证据基础、报告来源和评分上下文；补强任务创建保持禁用状态，避免在缺少写入 API 时产生伪操作。</p>
+          <p className="mt-1 text-subtle">
+            {hasCompleteReportContext
+              ? '当前页面展示选中证据基础、报告来源和评分上下文；补强任务创建保持禁用状态，避免在缺少写入 API 时产生伪操作。'
+              : hasReportContext
+                ? '当前页面保留了部分报告或评分上下文；补强任务创建保持禁用状态，避免在缺少完整处置上下文时产生伪操作。'
+              : '当前页面展示该学生的证据时间线；补强任务创建保持禁用状态，避免在缺少写入 API 时产生伪操作。'}
+          </p>
           <button
             type="button"
             disabled
@@ -111,19 +131,22 @@ export default async function TeacherClassStudentEvidencePage(
       <div
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur md:hidden"
         data-teacher-evidence-mobile-actions="fixed"
-        data-teacher-evidence-context-state={missingContext.length > 0 ? 'blocked' : 'ready'}
+        data-teacher-evidence-context-state={contextState}
       >
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-foreground">学生证据处置</p>
-            <p className="text-xs text-subtle">长证据时间线中保持报告交付入口可达。</p>
+            <p className="text-xs text-subtle">
+              {hasCompleteReportContext ? '长证据时间线中保持报告交付入口可达。' : '长证据时间线中保持返回学生详情可达。'}
+            </p>
           </div>
           <Link
-            href={reportDeliveryHref}
+            href={primaryActionHref}
             className="btn-ghost-themed inline-flex shrink-0 rounded-lg px-3 py-2 text-xs"
-            data-teacher-evidence-mobile-report-handoff="available"
+            data-teacher-evidence-mobile-report-handoff={hasCompleteReportContext ? 'available' : undefined}
+            data-teacher-evidence-mobile-browse-return={hasCompleteReportContext ? undefined : 'available'}
           >
-            回到报告交付
+            {primaryActionLabel}
           </Link>
         </div>
       </div>
