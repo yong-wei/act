@@ -300,6 +300,7 @@ export interface GraphCenterLearnerOverlay {
 export interface GraphCenterLearnerOverlayInput {
   state: AdaptiveLearnerState | null;
   requestedLearnerId: string;
+  classId?: string | null;
   viewerRole: AdaptiveLearnerStateRole;
   authorized: boolean;
   evidenceWindow?: Partial<GraphCenterEvidenceWindow>;
@@ -1401,7 +1402,7 @@ function buildLearnerGraphOverlay(
     return {
       status: 'empty',
       learnerId: input.requestedLearnerId,
-      classId: null,
+      classId: input.classId ?? null,
       generatedAt: null,
       items: {},
       limitations: [{
@@ -1440,7 +1441,7 @@ function buildLearnerGraphOverlay(
   return {
     status,
     learnerId: input.requestedLearnerId,
-    classId: state.roleScope.classId,
+    classId: state.roleScope.classId ?? input.classId ?? null,
     generatedAt: state.generatedAt,
     items,
     limitations,

@@ -707,7 +707,7 @@ describe('graph center payload service', () => {
     expect(serialized).not.toContain('learner-2');
   });
 
-  it('keeps empty teacher personal-view SAR scoped to the requested learner when class overlay is also present', () => {
+  it('keeps empty teacher personal-view SAR scoped to the requested learner class without class overlay', () => {
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',
       selectedNodeId: 'kn:autocontrol:simulation-validation',
@@ -733,14 +733,9 @@ describe('graph center payload service', () => {
       learnerOverlay: {
         state: null,
         requestedLearnerId: 'learner-1',
-        viewerRole: 'teacher',
-        authorized: true,
-      },
-      classOverlay: {
         classId: 'class-1',
         viewerRole: 'teacher',
         authorized: true,
-        learnerStates: [],
       },
       sarAssociation: {
         enabled: true,
@@ -750,8 +745,8 @@ describe('graph center payload service', () => {
     const serialized = JSON.stringify(payload.selectedNode?.associatedEvidence);
 
     expect(payload.learnerOverlay.status).toBe('empty');
-    expect(payload.learnerOverlay.classId).toBeNull();
-    expect(payload.classOverlay.classId).toBe('class-1');
+    expect(payload.learnerOverlay.classId).toBe('class-1');
+    expect(payload.classOverlay.status).toBe('unavailable');
     expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-empty-own-learner');
     expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).not.toContain('chunk-sar-empty-other-learner');
     expect(serialized).not.toContain('chunk-sar-empty-other-learner');
