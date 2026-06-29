@@ -657,6 +657,74 @@ describe('SAR association expansion provider', () => {
     expect(oneHopBudgeted.trace.expansionHops).toEqual([]);
   });
 
+  it('keeps unbound zero-hop event seeds without requiring selected entities', () => {
+    const unboundEvent = event({
+      id: 'sar:event:learning-fact-summary:unbound',
+      eventType: 'learning-fact-summary',
+    });
+    const result = expandSarAssociations({
+      id: 'unbound-event-seed',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: [unboundEvent.id],
+      projection: projection({
+        events: [unboundEvent],
+        entities: [],
+        relations: [],
+        citationTargetRefs: ['citation-target:unbound-summary'],
+        retrievalChunkRefs: ['retrieval-chunk:unbound-summary'],
+      }),
+      maxHops: 0,
+    });
+
+    expect(result.candidateRefs.eventIds).toEqual([unboundEvent.id]);
+    expect(result.candidateRefs.entityIds).toEqual([]);
+    expect(result.candidateRefs.citationTargetIds).toEqual(['citation-target:unbound-summary']);
+    expect(result.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:unbound-summary']);
+    expect(result.sourcePackSeedRefs).toEqual(expect.arrayContaining([
+      unboundEvent.id,
+      'citation-target:unbound-summary',
+      'retrieval-chunk:unbound-summary',
+    ]));
+    expect(result.trace.expansionHops).toEqual([]);
+  });
+
+  it('does not keep related event seeds when the entity budget excludes their entities', () => {
+    const seededEvent = event({
+      id: 'sar:event:learning-fact-summary:budgeted-related',
+      eventType: 'learning-fact-summary',
+    });
+    const relatedEntity = entity({
+      id: 'sar:entity:learning-goal:budgeted-related',
+      entityType: 'learning-goal',
+      canonicalRef: 'goal:budgeted-related',
+      label: 'Budgeted related goal',
+    });
+    const result = expandSarAssociations({
+      id: 'budgeted-related-event-seed',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: [seededEvent.id],
+      projection: projection({
+        events: [seededEvent],
+        entities: [relatedEntity],
+        relations: [
+          relation({ eventId: seededEvent.id, entityId: relatedEntity.id }),
+        ],
+        citationTargetRefs: ['citation-target:budgeted-related'],
+        retrievalChunkRefs: ['retrieval-chunk:budgeted-related'],
+      }),
+      maxHops: 0,
+      maxEntities: 0,
+    });
+
+    expect(result.candidateRefs.eventIds).toEqual([]);
+    expect(result.candidateRefs.entityIds).toEqual([]);
+    expect(result.candidateRefs.citationTargetIds).toEqual([]);
+    expect(result.candidateRefs.retrievalChunkIds).toEqual([]);
+    expect(result.sourcePackSeedRefs).toEqual([]);
+  });
+
   it('applies minConfidence to entities linked from event seeds', () => {
     const seededEvent = event({
       id: 'sar:event:diagnosis-summary:confidence-seed',

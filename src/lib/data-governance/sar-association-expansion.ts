@@ -382,7 +382,7 @@ function buildCandidateRefs(
   const hasConnectedEvidence = hops.length > 0 || entities.some((entity) => hopEntityIds.has(entity.id));
   const includeProjectionRefs = projection.events.length > 0
     && projection.events.every((event) => eventIds.has(event.id))
-    && hasConnectedEvidence;
+    && (hasConnectedEvidence || entities.length === 0);
   return {
     eventIds: events.map((event) => event.id),
     entityIds: entities.map((entity) => entity.id),
@@ -651,10 +651,12 @@ function budgetConnectedSelection(input: {
   const selectedEventIds = new Set(input.expandedEvents
     .filter((event) => eventBudgetIds.has(event.id))
     .filter((event) => {
-      if (selectedEntityIds.size === 0) return false;
+      const relations = input.relationsByEvent.get(event.id) ?? [];
+      if (selectedEntityIds.size === 0) {
+        return relations.length === 0 && (input.eventDepth.get(event.id) ?? Number.MAX_SAFE_INTEGER) === 0;
+      }
       if ((input.eventDepth.get(event.id) ?? Number.MAX_SAFE_INTEGER) === 0) return true;
       if (eventsNeededByHops.has(event.id)) return true;
-      const relations = input.relationsByEvent.get(event.id) ?? [];
       return relations.length > 0 && relations.every((relation) => selectedEntityIds.has(relation.entityId));
     })
     .map((event) => event.id));
