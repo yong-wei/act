@@ -796,6 +796,7 @@ function buildReportDeliveryGradingHref(entry: TeacherReportDeliveryLedgerEntry)
   if (entry.sessionId) params.set('sessionId', entry.sessionId);
   if (entry.lessonId) params.set('lessonId', entry.lessonId);
   if (entry.gradingRunId) params.set('gradingRunId', entry.gradingRunId);
+  if (entry.studentId) params.set('studentId', entry.studentId);
   return `/teacher/grading-workbench?${params.toString()}`;
 }
 

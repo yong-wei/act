@@ -53,6 +53,7 @@ export interface TeacherReportDeliveryLedgerEntry {
   reportId: string;
   reportType: string;
   classId: string | null;
+  studentId: string | null;
   sessionId: string | null;
   lessonId: string | null;
   gradingRunId: string | null;
@@ -259,6 +260,7 @@ export function buildTeacherReportDeliveryLedgerEntry(input: {
     reportId: query.reportId,
     reportType,
     classId: query.classId || null,
+    studentId: query.studentId,
     sessionId: query.sessionId,
     lessonId: query.lessonId,
     gradingRunId: query.gradingRunId,

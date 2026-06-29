@@ -64,6 +64,8 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('data-teacher-evidence-next-steps');
     expect(source).toContain('data-teacher-evidence-remediation-task="disabled"');
     expect(source).toContain('data-teacher-evidence-report-handoff="available"');
+    expect(source).toContain('data-teacher-evidence-mobile-actions="fixed"');
+    expect(source).toContain('data-teacher-evidence-mobile-report-handoff="available"');
     expect(source).toContain("url.searchParams.set('gradingRunId', context.gradingRunId)");
     expect(source).toContain("url.searchParams.set('reportId', context.reportId)");
     expect(source).toContain("url.searchParams.set('source', context.source)");

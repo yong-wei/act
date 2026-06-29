@@ -107,6 +107,26 @@ export default async function TeacherClassStudentEvidencePage(
           ? `保留教师上下文：${contextParts.join(' · ')}`
           : '按时间查看该学生的学习事实和作答摘要'}
       />
+      <div className="h-24 md:hidden" aria-hidden="true" />
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur md:hidden"
+        data-teacher-evidence-mobile-actions="fixed"
+        data-teacher-evidence-context-state={missingContext.length > 0 ? 'blocked' : 'ready'}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-foreground">学生证据处置</p>
+            <p className="text-xs text-subtle">长证据时间线中保持报告交付入口可达。</p>
+          </div>
+          <Link
+            href={reportDeliveryHref}
+            className="btn-ghost-themed inline-flex shrink-0 rounded-lg px-3 py-2 text-xs"
+            data-teacher-evidence-mobile-report-handoff="available"
+          >
+            回到报告交付
+          </Link>
+        </div>
+      </div>
     </>
   );
 }

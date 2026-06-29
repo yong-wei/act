@@ -156,6 +156,7 @@ describe('teacher-insights helpers', () => {
     expect(classAnalyticsSource).toContain('data-report-ledger-grading-context={entry.contextState}');
     expect(classAnalyticsSource).toContain("source: 'report-ledger'");
     expect(classAnalyticsSource).toContain("params.set('sessionId', entry.sessionId)");
+    expect(classAnalyticsSource).toContain("params.set('studentId', entry.studentId)");
     expect(classAnalyticsSource).toContain('aria-label="导出教师报告 JSON 文件"');
     expect(classAnalyticsSource).toContain('aria-pressed={heatmapView === view.key}');
     expect(classDetailSource).toContain('data-teacher-class-detail-status');

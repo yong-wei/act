@@ -200,6 +200,7 @@ describe('teacher report and grading audit contracts', () => {
       surface: sendQuery.surface,
       now: new Date('2026-06-27T00:00:00.000Z'),
     })).toMatchObject({
+      studentId: 'student-1',
       deliveryStatus: 'ready',
       sendState: 'ready',
       copySummaryState: 'ready',
