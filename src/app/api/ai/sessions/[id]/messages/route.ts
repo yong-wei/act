@@ -20,6 +20,7 @@ import {
   buildKonlingCitationGuard,
   buildKonlingCitationRetrievalSources,
   buildKonlingRuntimeContext,
+  buildKonlingSarAssociatedGroundingMetadataPayload,
   buildKonlingTeachingAssistantRuntimeContract,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
@@ -233,6 +234,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
     const citationGuard = buildKonlingCitationGuard(modeRuntimeContext, assistantContent);
     const guardedAssistantContent = applyKonlingCitationFallback(assistantContent, citationGuard);
+    const sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload(
+      modeContract.groundingContext.sarAssociatedGrounding,
+    );
 
     // 添加助手回复
     const assistantMessage: Message = toLegacyMessage({
@@ -258,6 +262,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
             citationChip: jsonSafe(citation.citationChip),
           })),
         },
+        konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
       },
     });
 

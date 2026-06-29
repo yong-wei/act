@@ -241,6 +241,10 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain("'X-Konling-Citation-Guard': citationGuardMetadata.status");
     expect(chatRouteSource).toContain('const agentSessionStateUpdate = await prisma.agentSession.updateMany');
     expect(chatRouteSource).toContain('konlingCitationGuard: citationGuardMetadataPayload');
+    expect(chatRouteSource).toContain('buildKonlingSarAssociatedGroundingMetadataPayload(');
+    expect(chatRouteSource).toContain('konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload');
+    expect(chatRouteSource).toContain('{ konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload }');
+    expect(chatRouteSource).not.toContain('konlingSarAssociatedGrounding: modeContract.groundingContext.sarAssociatedGrounding');
     expect(chatRouteSource).toContain('AgentSession citation metadata persistence failed');
     expect(chatRouteSource).toContain('ownerUserId: scope.scope.targetUserId');
     expect(chatRouteSource).not.toContain('actorUserId: scope.scope.authenticatedUserId');
@@ -277,6 +281,9 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('assistantMessage: guardedAssistantContent');
     expect(sessionMessagesRouteSource).toContain('metadata: {');
     expect(sessionMessagesRouteSource).toContain('konlingCitationGuard: {');
+    expect(sessionMessagesRouteSource).toContain('const sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload');
+    expect(sessionMessagesRouteSource).toContain('konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload');
+    expect(sessionMessagesRouteSource).not.toContain('konlingSarAssociatedGrounding: modeContract.groundingContext.sarAssociatedGrounding');
     expect(sessionMessagesRouteSource).toContain('diagnosticReasons: citationGuard.diagnosticReasons ?? []');
     expect(sessionMessagesRouteSource).toContain('personalizationAvailability: citationGuard.personalizationAvailability');
     expect(sessionMessagesRouteSource).toContain('missingContext: modeContract.groundingContext.missingContext');

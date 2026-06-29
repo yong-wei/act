@@ -28,6 +28,7 @@ import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
+  buildKonlingSarAssociatedGroundingMetadataPayload,
   buildKonlingStreamingCitationGuard,
   buildScopedKonlingAiTools,
   buildStudentSafePathOptions,
@@ -3670,6 +3671,51 @@ describe('konling agent runtime', () => {
       }),
     });
     expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+  });
+
+  it('serializes SAR assistant metadata without raw candidate refs', () => {
+    const metadata = buildKonlingSarAssociatedGroundingMetadataPayload({
+      source: 'sar-association-expansion',
+      useCase: 'path-planning',
+      seedRefs: ['knowledge-node:root-locus'],
+      associatedEventRefs: ['sar:event:private-student-attempt'],
+      associatedEntityRefs: ['sar:entity:student:private-student'],
+      candidateRefs: {
+        eventIds: ['sar:event:private-student-attempt'],
+        entityIds: ['sar:entity:student:private-student'],
+        citationTargetIds: ['citation-target:unverified'],
+        retrievalChunkIds: ['retrieval-chunk:unverified'],
+        resourceNodeIds: ['resource:reviewed'],
+        planningUnitIds: ['planning-unit:hidden'],
+      },
+      sourcePackSeedRefs: ['retrieval-chunk:unverified'],
+      traceSummary: {
+        hopCount: 1,
+        selectedRefCount: 2,
+        rejectedRefCount: 4,
+        safeEventSummaries: ['已脱敏的诊断摘要'],
+        limitationCodes: ['source-pack-ranking-required'],
+      },
+      limitations: ['source-pack-ranking-required'],
+    });
+
+    expect(metadata).toEqual({
+      source: 'sar-association-expansion',
+      useCase: 'path-planning',
+      seedRefs: ['knowledge-node:root-locus'],
+      traceSummary: {
+        hopCount: 1,
+        selectedRefCount: 2,
+        rejectedRefCount: 4,
+        safeEventSummaries: ['已脱敏的诊断摘要'],
+        limitationCodes: ['source-pack-ranking-required'],
+      },
+      limitations: ['source-pack-ranking-required'],
+    });
+    expect(JSON.stringify(metadata)).not.toContain('candidateRefs');
+    expect(JSON.stringify(metadata)).not.toContain('retrieval-chunk:unverified');
+    expect(JSON.stringify(metadata)).not.toContain('citation-target:unverified');
+    expect(buildKonlingSarAssociatedGroundingMetadataPayload(null)).toBeNull();
   });
 
   it('redacts SAR trace identifiers from student page-context tool output', async () => {

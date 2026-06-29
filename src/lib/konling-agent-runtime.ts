@@ -385,6 +385,33 @@ export interface KonlingSarAssociatedGroundingContext {
   limitations: string[];
 }
 
+export interface KonlingSarAssociatedGroundingMetadataPayload {
+  source: 'sar-association-expansion';
+  useCase: SarAssociationExpansionUseCase;
+  seedRefs: string[];
+  traceSummary: KonlingSarAssociatedGroundingContext['traceSummary'];
+  limitations: string[];
+}
+
+export function buildKonlingSarAssociatedGroundingMetadataPayload(
+  grounding: KonlingSarAssociatedGroundingContext | null | undefined,
+): KonlingSarAssociatedGroundingMetadataPayload | null {
+  if (!grounding) return null;
+  return {
+    source: grounding.source,
+    useCase: grounding.useCase,
+    seedRefs: [...grounding.seedRefs],
+    traceSummary: {
+      hopCount: grounding.traceSummary.hopCount,
+      selectedRefCount: grounding.traceSummary.selectedRefCount,
+      rejectedRefCount: grounding.traceSummary.rejectedRefCount,
+      safeEventSummaries: [...grounding.traceSummary.safeEventSummaries],
+      limitationCodes: [...grounding.traceSummary.limitationCodes],
+    },
+    limitations: [...grounding.limitations],
+  };
+}
+
 interface KonlingKnowledgeCapabilityToolContext extends Omit<KonlingKnowledgeCapabilityContext, 'scope'> {
   scope: {
     role: AdaptiveLearnerStateRole;

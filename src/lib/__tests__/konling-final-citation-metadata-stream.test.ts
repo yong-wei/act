@@ -50,4 +50,44 @@ describe('appendFinalCitationGuardMetadata', () => {
       },
     });
   });
+
+  it('preserves extra final message metadata beside the citation guard', async () => {
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue({ type: 'text-delta', id: 'text-1', delta: '解释路径建议' });
+        controller.enqueue({ type: 'finish', finishReason: 'stop' });
+        controller.close();
+      },
+    });
+
+    const chunks = await readStream(appendFinalCitationGuardMetadata(
+      stream,
+      (assistantContent) => ({
+        status: 'verified',
+        assistantContent,
+      }),
+      {
+        konlingSarAssociatedGrounding: {
+          source: 'sar-association-expansion',
+          seedRefs: ['knowledge-node:root-locus'],
+          limitations: ['source-pack-ranking-required'],
+        },
+      },
+    ));
+
+    expect(chunks.at(-1)).toEqual({
+      type: 'message-metadata',
+      messageMetadata: {
+        konlingSarAssociatedGrounding: {
+          source: 'sar-association-expansion',
+          seedRefs: ['knowledge-node:root-locus'],
+          limitations: ['source-pack-ranking-required'],
+        },
+        konlingCitationGuard: {
+          status: 'verified',
+          assistantContent: '解释路径建议',
+        },
+      },
+    });
+  });
 });

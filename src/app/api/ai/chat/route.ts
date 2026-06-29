@@ -28,6 +28,7 @@ import {
   buildKonlingCitationRetrievalSources,
   buildKonlingStreamingCitationGuard,
   buildKonlingRuntimeContext,
+  buildKonlingSarAssociatedGroundingMetadataPayload,
   buildKonlingTeachingAssistantRuntimeContract,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
@@ -231,6 +232,7 @@ export async function POST(request: Request) {
     let citationGuardMetadata: ReturnType<typeof buildKonlingCitationGuard> | null = null;
     let citationGuardMetadataContext: { missingContext: string[] } | null = null;
     let citationGuardMetadataPayload: ReturnType<typeof buildCitationGuardMetadataPayload> | null = null;
+    let sarAssociatedGroundingMetadataPayload: ReturnType<typeof buildKonlingSarAssociatedGroundingMetadataPayload> | null = null;
     let buildFinalCitationGuardMetadataPayload: ((assistantContent: string) => ReturnType<typeof buildCitationGuardMetadataPayload>) | null = null;
     let modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
@@ -336,6 +338,9 @@ export async function POST(request: Request) {
         citationGuardMetadata,
         citationGuardMetadataContext.missingContext,
       );
+      sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload(
+        modeContract.groundingContext.sarAssociatedGrounding,
+      );
       buildFinalCitationGuardMetadataPayload = (assistantContent: string) => buildCitationGuardMetadataPayload(
         buildKonlingCitationGuard(modeRuntimeContext, assistantContent),
         citationGuardMetadataContext?.missingContext ?? [],
@@ -368,6 +373,7 @@ export async function POST(request: Request) {
           teachingAssistantMode: modeContract.mode.id,
           modeStatus: modeContract.status,
           konlingCitationGuard: citationGuardMetadataPayload,
+          konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
         },
         permittedTools: modeContract.permittedTools,
       });
@@ -388,6 +394,7 @@ export async function POST(request: Request) {
             teachingAssistantMode: modeContract.mode.id,
             modeStatus: modeContract.status,
             konlingCitationGuard: citationGuardMetadataPayload,
+            konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
           } as Prisma.InputJsonObject,
         },
       });
@@ -454,12 +461,17 @@ export async function POST(request: Request) {
         if (!citationGuardMetadataPayload || (part.type !== 'start' && part.type !== 'finish')) return undefined;
         return {
           konlingCitationGuard: citationGuardMetadataPayload,
+          konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
         };
       },
       onError: getAIStreamErrorMessage,
     });
     const finalCitationUiMessageStream = buildFinalCitationGuardMetadataPayload
-      ? appendFinalCitationGuardMetadata(uiMessageStream, buildFinalCitationGuardMetadataPayload)
+      ? appendFinalCitationGuardMetadata(
+        uiMessageStream,
+        buildFinalCitationGuardMetadataPayload,
+        { konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload },
+      )
       : uiMessageStream;
     const guardedUiMessageStream = insertStreamingCitationFallbackNotice(
       finalCitationUiMessageStream,
