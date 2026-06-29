@@ -553,8 +553,13 @@ describe('adaptive learning path planner', () => {
           {
             ref: 'retrieval-chunk:bode-reference',
             kind: 'retrievalChunk',
-            resourceNodeId: 'registry:hidden-admin',
             retrievalChunkId: 'retrieval-chunk:bode-reference',
+          },
+          {
+            ref: 'registry:hidden-admin',
+            kind: 'retrievalChunk',
+            resourceNodeId: 'registry:hidden-admin',
+            retrievalChunkId: 'retrieval-chunk:teacher-private',
           },
           {
             ref: 'citation-target:bode-reference',

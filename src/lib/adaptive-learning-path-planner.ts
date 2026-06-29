@@ -2520,11 +2520,15 @@ function evaluateSarCandidates(input: {
       ? resolveSarCandidateNode(candidate, nodeById, nodeByResourceId, nodeByPlanningUnitId)
       : null;
     if (!node) {
-      rejectedCandidates.push({
-        ref: candidate.ref,
+      rejectedCandidates.push(toUnmappedRejectedSarCandidate(
+        candidate,
         kind,
-        reasonCodes: ['missing-resource-node-mapping'],
-      });
+        nodeById,
+        nodeByResourceId,
+        nodeByPlanningUnitId,
+        input.input.constraints,
+        rejectedCandidates.length,
+      ));
       continue;
     }
 
@@ -2564,6 +2568,35 @@ function sarCandidateCanMapToPathNode(kind: AdaptiveLearningPathSarCandidateKind
     kind === 'planningUnit' ||
     kind === 'resource' ||
     kind === 'unknown';
+}
+
+function toUnmappedRejectedSarCandidate(
+  candidate: AdaptiveLearningPathSarCandidateRef,
+  kind: AdaptiveLearningPathSarCandidateKind,
+  nodeById: Map<string, ResourceNode>,
+  nodeByResourceId: Map<string, ResourceNode>,
+  nodeByPlanningUnitId: Map<string, ResourceNode>,
+  constraints: AdaptiveLearningPathConstraints,
+  index: number,
+): AdaptiveLearningPathRejectedSarCandidate {
+  const possibleNode = resolveSarCandidateNode(candidate, nodeById, nodeByResourceId, nodeByPlanningUnitId);
+  const possibleReasons = possibleNode ? blockingReasonCodes(possibleNode, constraints) : [];
+  const reasonCodes = unique(['missing-resource-node-mapping', ...possibleReasons]);
+  if (
+    (possibleNode && shouldRedactBlockedNode(possibleNode, reasonCodes)) ||
+    (!possibleNode && Boolean(candidate.resourceNodeId || candidate.planningUnitId || candidate.resourceId))
+  ) {
+    return {
+      ref: `restricted:${index + 1}`,
+      kind,
+      reasonCodes,
+    };
+  }
+  return {
+    ref: candidate.ref,
+    kind,
+    reasonCodes,
+  };
 }
 
 function toRejectedSarCandidate(
