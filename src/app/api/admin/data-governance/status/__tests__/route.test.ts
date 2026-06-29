@@ -397,6 +397,28 @@ describe('GET /api/admin/data-governance/status', () => {
       totalSourceFacts: 4,
       payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
     });
+    expect(payload.sarDiagnostics).toMatchObject({
+      totals: {
+        eventCount: 5,
+        entityCount: 6,
+        relationCount: 10,
+        queryCount: 1,
+        privacyRejectionCount: 1,
+        verifiedCitationRate: 0.5,
+      },
+      eventTypeCounts: expect.objectContaining({
+        'learning-fact-summary': 1,
+        'simulation-summary': 1,
+        'arena-summary': 1,
+      }),
+      demoFixtureStatus: expect.objectContaining({
+        id: 'control-correction-demo',
+        deterministic: true,
+        sourcePackHandoff: true,
+      }),
+    });
+    expect(JSON.stringify(payload.sarDiagnostics)).not.toContain('private raw answer');
+    expect(JSON.stringify(payload.sarDiagnostics)).not.toContain('hiddenArenaEvaluationInternalsPayload');
     expect(payload.sessionQuality).toEqual({
       recentSessions: 3,
       green: 1,
