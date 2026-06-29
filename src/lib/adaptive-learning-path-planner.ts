@@ -2516,8 +2516,8 @@ function evaluateSarCandidates(input: {
 
   for (const candidate of candidateRefs) {
     const kind = candidate.kind ?? 'unknown';
-    const node = sarCandidateCanMapToPathNode(kind)
-      ? resolveSarCandidateNode(candidate, nodeById, nodeByResourceId, nodeByPlanningUnitId)
+    const node = sarCandidateCanMapToPathNode(kind, candidate)
+      ? resolveSarCandidateNodeForPath(candidate, kind, nodeById, nodeByResourceId, nodeByPlanningUnitId)
       : null;
     if (!node) {
       rejectedCandidates.push(toUnmappedRejectedSarCandidate(
@@ -2563,11 +2563,14 @@ function evaluateSarCandidates(input: {
   };
 }
 
-function sarCandidateCanMapToPathNode(kind: AdaptiveLearningPathSarCandidateKind): boolean {
-  return kind === 'resourceNode' ||
-    kind === 'planningUnit' ||
-    kind === 'resource' ||
-    kind === 'unknown';
+function sarCandidateCanMapToPathNode(
+  kind: AdaptiveLearningPathSarCandidateKind,
+  candidate: AdaptiveLearningPathSarCandidateRef,
+): boolean {
+  if (kind === 'retrievalChunk' || kind === 'citationTarget') {
+    return Boolean(candidate.resourceNodeId || candidate.planningUnitId || candidate.resourceId);
+  }
+  return kind === 'resourceNode' || kind === 'planningUnit' || kind === 'resource' || kind === 'unknown';
 }
 
 function toUnmappedRejectedSarCandidate(
@@ -2635,6 +2638,22 @@ function resolveSarCandidateNode(
     nodeByPlanningUnitId.get(candidate.ref) ??
     nodeByResourceId.get(candidate.ref) ??
     null;
+}
+
+function resolveSarCandidateNodeForPath(
+  candidate: AdaptiveLearningPathSarCandidateRef,
+  kind: AdaptiveLearningPathSarCandidateKind,
+  nodeById: Map<string, ResourceNode>,
+  nodeByResourceId: Map<string, ResourceNode>,
+  nodeByPlanningUnitId: Map<string, ResourceNode>,
+): ResourceNode | null {
+  if (kind === 'retrievalChunk' || kind === 'citationTarget') {
+    return (candidate.resourceNodeId ? nodeById.get(candidate.resourceNodeId) : undefined) ??
+      (candidate.planningUnitId ? nodeByPlanningUnitId.get(candidate.planningUnitId) : undefined) ??
+      (candidate.resourceId ? nodeByResourceId.get(candidate.resourceId) : undefined) ??
+      null;
+  }
+  return resolveSarCandidateNode(candidate, nodeById, nodeByResourceId, nodeByPlanningUnitId);
 }
 
 function sarReadinessReasonCodes(

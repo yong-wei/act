@@ -551,9 +551,20 @@ describe('adaptive learning path planner', () => {
             kind: 'retrievalChunk',
           },
           {
+            ref: 'registry:bode-card',
+            kind: 'retrievalChunk',
+            resourceNodeId: 'missing-resource-node',
+          },
+          {
             ref: 'retrieval-chunk:bode-reference',
             kind: 'retrievalChunk',
             retrievalChunkId: 'retrieval-chunk:bode-reference',
+          },
+          {
+            ref: 'retrieval-chunk:cruise-simulation',
+            kind: 'retrievalChunk',
+            resourceNodeId: 'simulation:cruise',
+            retrievalChunkId: 'retrieval-chunk:cruise-simulation',
           },
           {
             ref: 'registry:hidden-admin',
@@ -588,8 +599,8 @@ describe('adaptive learning path planner', () => {
     expect(sarBasis).toMatchObject({
       traceId: 'sar-trace:path-bode',
       seedEntityRefs: ['LearningGoal:goal-bode', 'GraphNode:kn-bode'],
-      candidateResourceNodeIds: ['registry:bode-card'],
-      selectedCandidateNodeIds: ['registry:bode-card'],
+      candidateResourceNodeIds: ['registry:bode-card', 'simulation:cruise'],
+      selectedCandidateNodeIds: ['registry:bode-card', 'simulation:cruise'],
     });
     expect(sarBasis?.rejectedCandidates).toEqual(expect.arrayContaining([
       expect.objectContaining({
