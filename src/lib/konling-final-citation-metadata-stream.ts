@@ -6,6 +6,7 @@ type UIMessageChunkLike = {
 export function appendFinalCitationGuardMetadata(
   stream: ReadableStream,
   buildFinalMetadata: (assistantContent: string) => unknown,
+  extraMessageMetadata?: Record<string, unknown>,
 ) {
   let assistantContent = '';
   return stream.pipeThrough(new TransformStream({
@@ -18,6 +19,7 @@ export function appendFinalCitationGuardMetadata(
         controller.enqueue({
           type: 'message-metadata',
           messageMetadata: {
+            ...extraMessageMetadata,
             konlingCitationGuard: buildFinalMetadata(assistantContent),
           },
         });

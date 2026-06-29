@@ -50,6 +50,23 @@ interface KonlingPromptRuntimeContext {
     resourceRefs?: string[];
     pathNodeRefs?: string[];
     citationRefs?: string[];
+    sarAssociatedGrounding?: {
+      useCase?: string;
+      seedRefs?: string[];
+      associatedEventRefs?: string[];
+      candidateRefs?: {
+        citationTargetIds?: string[];
+        retrievalChunkIds?: string[];
+        resourceNodeIds?: string[];
+        planningUnitIds?: string[];
+      };
+      traceSummary?: {
+        hopCount?: number;
+        safeEventSummaries?: string[];
+        limitationCodes?: string[];
+      };
+      limitations?: string[];
+    } | null;
     missingContext?: string[];
   };
   graphContext?: {
@@ -209,6 +226,22 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     }
     if (grounding.citationRefs?.length) {
       lines.push(`  - 引用锚点: ${grounding.citationRefs.slice(0, 6).join(', ')}`);
+    }
+    if (grounding.sarAssociatedGrounding) {
+      const sar = grounding.sarAssociatedGrounding;
+      lines.push(`  - SAR 关联上下文: ${sar.useCase ?? 'unknown'}`);
+      if (sar.candidateRefs?.retrievalChunkIds?.length || sar.candidateRefs?.citationTargetIds?.length) {
+        lines.push(`  - SAR Source Pack 候选: ${[
+          ...(sar.candidateRefs?.retrievalChunkIds ?? []),
+          ...(sar.candidateRefs?.citationTargetIds ?? []),
+        ].slice(0, 6).join(', ')}`);
+      }
+      if (sar.traceSummary?.safeEventSummaries?.length) {
+        lines.push(`  - SAR trace 摘要: ${sar.traceSummary.safeEventSummaries.slice(0, 3).join('；')}`);
+      }
+      if (sar.traceSummary?.limitationCodes?.length) {
+        lines.push(`  - SAR 限制: ${sar.traceSummary.limitationCodes.slice(0, 5).join(', ')}`);
+      }
     }
     if (grounding.missingContext?.length) {
       lines.push(`  - grounding 限制: ${grounding.missingContext.join(', ')}`);

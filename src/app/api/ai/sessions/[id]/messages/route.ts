@@ -20,6 +20,7 @@ import {
   buildKonlingCitationGuard,
   buildKonlingCitationRetrievalSources,
   buildKonlingRuntimeContext,
+  buildKonlingSarAssociatedGroundingMetadataPayload,
   buildKonlingTeachingAssistantRuntimeContract,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!scope.ok) {
       return NextResponse.json({ error: scope.error }, { status: scope.status });
     }
-    const runtimeContext = await buildKonlingRuntimeContext(prisma, {
+    const runtimeInput = {
       authenticatedUserId: session.user.id,
       authenticatedUserName: session.user.name,
       role: session.user.role,
@@ -135,20 +136,25 @@ export async function POST(request: NextRequest, context: RouteContext) {
       pathNodeId,
       pageContextHint: pageContext,
       knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
+      teachingAssistantModeId,
       currentUserQuery: userMessage.content,
       trustedContentContext: true,
+    };
+    const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext({
+      db: prisma,
+      modeId: teachingAssistantModeId,
+      scope: scope.scope,
+      clientContextHints: modeClientContextHints,
+    });
+    const runtimeContext = await buildKonlingRuntimeContext(prisma, {
+      ...runtimeInput,
+      teachingAssistantServerModeContext: serverModeContext,
     });
     const modeContract = buildKonlingTeachingAssistantRuntimeContract({
       modeId: teachingAssistantModeId,
       runtimeContext,
       scope: scope.scope,
-      serverModeContext: await resolveKonlingTeachingAssistantServerModeContext({
-        db: prisma,
-        modeId: teachingAssistantModeId,
-        runtimeContext,
-        scope: scope.scope,
-        clientContextHints: modeClientContextHints,
-      }),
+      serverModeContext,
       clientContextHints: modeClientContextHints,
     });
     if (modeContract.status === 'unavailable') {
@@ -228,6 +234,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
     const citationGuard = buildKonlingCitationGuard(modeRuntimeContext, assistantContent);
     const guardedAssistantContent = applyKonlingCitationFallback(assistantContent, citationGuard);
+    const sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload(
+      modeContract.groundingContext.sarAssociatedGrounding,
+    );
 
     // 添加助手回复
     const assistantMessage: Message = toLegacyMessage({
@@ -253,6 +262,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
             citationChip: jsonSafe(citation.citationChip),
           })),
         },
+        konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
       },
     });
 

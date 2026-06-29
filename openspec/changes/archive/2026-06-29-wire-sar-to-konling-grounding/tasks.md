@@ -1,0 +1,6 @@
+- [x] Add Konling SAR-associated context shape.
+- [x] Wire Konling seed refs to SAR association expansion for eligible modes.
+- [x] Feed SAR candidate refs into Source Pack retrieval when verified evidence is needed.
+- [x] Persist simplified trace and limitations in assistant metadata.
+- [x] Add tests for path-advisor, diagnosis explainer, missing citation fallback, and student privacy redaction.
+- [x] Run `openspec validate wire-sar-to-konling-grounding --strict`.

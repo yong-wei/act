@@ -88,6 +88,27 @@ SAR SHALL return candidate refs and trace suitable for downstream Source Pack re
 - **THEN** SAR SHALL provide candidate `eventId`, `entityId`, `retrievalChunkId`, `citationTargetId`, `resourceNodeId`, or `planningUnitId` refs
 - **AND** Source Pack or the governed citation layer SHALL own ranking, excerpt budgets, citation verification, and CitationChip payloads.
 
+### Requirement: Konling consumes SAR as grounding association context
+Konling SHALL use SAR association expansion as a server-owned grounding enhancement when scoped seed refs are available.
+
+#### Scenario: Konling has graph or path seed refs
+- **WHEN** a Konling mode receives LearningGoal, graph node, capability target, resource, path node, citation, learner, or class seed refs
+- **THEN** it MAY request SAR association expansion within the mode's role and privacy scope
+- **AND** it SHALL receive associated event refs, entity refs, candidate refs, limitations, and trace metadata.
+
+#### Scenario: Konling needs verified evidence
+- **WHEN** SAR returns candidate retrieval or citation refs for a factual or personalized answer
+- **THEN** Konling SHALL pass those refs to Source Pack or the governed citation layer for verified evidence
+- **AND** it SHALL NOT present SAR candidates themselves as verified citations.
+
+### Requirement: Konling SAR trace is privacy-redacted
+Konling SHALL expose only safe SAR trace summaries to student-visible responses.
+
+#### Scenario: Student-visible answer uses SAR
+- **WHEN** a student-visible Konling answer uses SAR associations
+- **THEN** the response metadata or diagnostics SHALL omit raw private evidence, teacher-scoped internals, and audit-only trace details
+- **AND** limitations SHALL describe missing or restricted context without revealing private data.
+
 ### Requirement: Graph Center consumes SAR associated evidence
 Graph Center SHALL expose SAR-associated evidence for selected graph nodes when scoped association data is available.
 
@@ -116,4 +137,3 @@ Adaptive path planning SHALL consume SAR candidates only as supplemental candida
 - **WHEN** a SAR candidate lacks an audited ResourceNode, PlanningUnit, privacy permission, teacher policy permission, readiness, or terminal validation capability required by the LearningGoal
 - **THEN** the planner SHALL reject it as a PathNode candidate and record a reason
 - **AND** it MAY keep it only as supporting evidence when allowed.
-
