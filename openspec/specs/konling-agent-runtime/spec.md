@@ -444,3 +444,11 @@ Konling SHALL keep development diagnostics separate from the final user-facing c
 - **WHEN** final message metadata is available
 - **THEN** the UI SHALL render the final verified, limited, or missing citation state from metadata
 - **AND** it SHALL not rely on diagnostic text embedded in the prose as the citation UI.
+
+### Requirement: Konling grounding includes structured associative context
+Konling runtime SHALL include structured associative context when SAR association expansion is available for the current mode and scope.
+
+#### Scenario: Scoped learning question is answered
+- **WHEN** Konling answers a graph, path, resource, diagnosis, grading, or prep-pack question with available SAR context
+- **THEN** the runtime SHALL include SAR seed refs, associated event refs, trace summary, candidate evidence refs, and limitations in server-owned metadata
+- **AND** final citations SHALL still be rendered from verified CitationChip or Source Pack citation metadata.
