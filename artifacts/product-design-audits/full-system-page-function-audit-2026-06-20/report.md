@@ -876,12 +876,14 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 334. P1：真实学习路径 API 为空时 UI 仍展示进度和执行入口
    真实 latest path 返回 `path:null`，learner-state 返回 503，path-advisor-context 返回 403，但页面仍显示 24% 进度、入门诊断和路径执行入口。
+   台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed for path-context recovery。真实空路径和坏 pathId 不再进入 selection/execution/evidence-review 的正常路径内容；学习者状态 503 与路径顾问 403 的前置条件说明仍归路径顾问/服务错误状态后续处理。
 
 335. P1：路径生成动作没有解决前置条件
    路径生成设置可见，点击后只提示“路径生成上下文还在准备，请稍后重试”，没有解释缺少班级信息、服务不可用或需要教师绑定。
 
 336. P1：path-selection、path-execution 和坏 pathId 状态仍被普通页面吞掉
    无真实 path 时，选择和执行 intent 仍显示路径/练习资源；坏 pathId 也没有“路径不存在/已过期/重新生成”状态。
+   台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed by implementation。selection/execution/evidence-review 对无活动路径和坏 pathId 渲染统一恢复态，保留 intent/pathId/source 上下文并提供生成路径、查看证据和返回来源动作。
 
 337. P1：教师报告 surface query 没有切换到报告账本
    `analytics-v2?surface=report-ledger` 仍展示完整班级分析页。旧 `/analytics` 入口也静默落到 v2，没有提示兼容跳转。
@@ -1591,9 +1593,11 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 123. P1：路径生成空状态与进度文案冲突。
    `/api/learning-paths/latest?goal=control-correction` 返回 `path=null`，页面仍显示“当前节点 入门诊断”和“本周完成 24%”。
+   台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed by implementation。路径上下文加载失败或真实空路径时，`/assessment/adaptive-practice` 的 selection/execution/evidence-review intent 进入显式恢复态，不再展示进度或执行入口；证据见 `remediation/audit-remediation-student-path-evidence-loop-closure/evidence.md`。
 
 124. P1：evidence-review intent 未形成证据复盘视图。
    `/assessment/adaptive-practice?intent=evidence-review&goal=control-correction` 仍是泛化路径中心，没有证据摘要和错题上下文。
+   台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed for missing-path recovery。空路径或坏 pathId 下先展示证据恢复动作和来源保留，不再退回泛化路径中心；题目级错题上下文继续由学生证据/补练链路处理。
 
 125. P2：学生证据移动端受浮层和长字段影响。
    课次字段截断，控灵浮层压住第一张证据卡局部。
@@ -1915,12 +1919,15 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 229. P1：`evidence-review` 意图在空路径下没有形成证据回看视图。
      页面识别 `workspaceIntent=evidence-review`，但真实空路径下 `evidenceSurface=false`，只显示选择历史。
+     台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed for empty-path recovery。空路径 evidence-review 渲染 `data-adaptive-path-recovery-state` 并提供证据页恢复动作，不再只显示选择历史。
 
 230. P1：`path-selection` 在真实 `path:null` 下仍展示 3 条可比较路径。
      空路径真实会话仍展示 3 条方案和选择/调整/解释差异等动作，容易被误解为已经生成了可执行路径。
+     台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed by implementation。selection intent 在无已加载路径上下文时关闭路径方案列表，改为生成路径/查看证据/返回来源。
 
 231. P1：`path-execution` 无活动路径时降级为练习资源入口。
      无路线、无节点、无证据记录时仍显示“路径资源入口”和“检查节点练习已准备”，没有解释当前没有活动路径。
+     台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed by implementation。execution intent 在无活动路径时关闭路径资源入口，改为说明当前没有可执行路径。
 
 232. P2：无显式 goal 的生成入口缺少目标选择上下文。
      `/assessment/adaptive-practice?intent=contextual-recommendation` 打开生成面板，但 `controlCorrectionGoal` 为空，目标绑定不清。

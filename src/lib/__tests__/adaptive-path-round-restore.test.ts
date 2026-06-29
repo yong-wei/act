@@ -54,4 +54,58 @@ describe('adaptive path round restore', () => {
       goalId: 'unknown-learning-goal',
     })).toBeNull();
   });
+
+  it('unwraps persisted explanation payloads so SAR basis survives restore', () => {
+    const plan = restoreAdaptiveLearningPathPlanFromRound({
+      id: 'round-sar-path',
+      userId: 'student-1',
+      title: 'SAR 路径',
+      goalId: 'simulation-validation-practice',
+      pathStatus: 'active',
+      currentNodeId: 'simulation-checkpoint',
+      pathPayload: {
+        planNodes: [
+          {
+            nodeId: 'simulation-checkpoint',
+            title: '提交仿真验证记录',
+            type: 'simulation',
+            target: '/simulations/control-workbench',
+          },
+        ],
+        alternatives: [],
+      },
+      explanationPayload: {
+        explanations: {
+          selectedReasons: ['sar-associated-candidate'],
+          rejectedAlternatives: [],
+          fallbackReasons: [],
+          associativeRetrieval: {
+            traceId: 'sar-trace:path',
+            seedEntityRefs: ['LearningGoal:simulation-validation-practice'],
+            candidateResourceNodeIds: ['simulation:control-workbench'],
+            selectedCandidateNodeIds: ['simulation:control-workbench'],
+            rejectedCandidates: [
+              {
+                ref: 'restricted:1',
+                kind: 'retrievalChunk',
+                reasonCodes: ['missing-resource-node-mapping', 'privacy-scope-blocked'],
+              },
+            ],
+            limitations: [],
+          },
+        },
+        selectedReasons: ['sar-associated-candidate'],
+        fallbackReasons: [],
+      },
+    });
+
+    expect(plan?.explanations).toMatchObject({
+      selectedReasons: ['sar-associated-candidate'],
+      associativeRetrieval: {
+        traceId: 'sar-trace:path',
+        selectedCandidateNodeIds: ['simulation:control-workbench'],
+      },
+    });
+    expect(plan?.explanations).not.toHaveProperty('explanations');
+  });
 });
