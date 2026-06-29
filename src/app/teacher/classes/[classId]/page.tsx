@@ -112,6 +112,7 @@ export default function ClassDetailPage() {
   const [starting, setStarting] = useState(false);
   const [regeneratingJoinCode, setRegeneratingJoinCode] = useState(false);
   const [endingSessionId, setEndingSessionId] = useState<string | null>(null);
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
 
   // 历史筛选
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -388,6 +389,37 @@ export default function ClassDetailPage() {
     }
   };
 
+  const handleDeleteFinishedSession = async (session: ClassSession) => {
+    if (session.status !== 'FINISHED') {
+      setAnnouncement('仅可删除已结束课堂。');
+      return;
+    }
+    const impact = [
+      `${session.studentCount} 名学生的课堂状态`,
+      '课堂作答与步进响应',
+      '课堂复盘报告与学生报告',
+    ].join('、');
+    if (!confirm(`确定删除《${session.plan.title}》这节已结束课堂吗？将同步删除：${impact}。`)) return;
+
+    setDeletingSessionId(session.id);
+    try {
+      const res = await fetch(`/api/teacher/sessions?id=${encodeURIComponent(session.id)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload?.error || '删除课堂失败');
+      }
+      await Promise.all([fetchSessions(), fetchInsights()]);
+      setAnnouncement(`已删除课堂《${session.plan.title}》，关联课堂状态与报告已按审计边界清理。`);
+    } catch (error) {
+      console.error('Delete finished session error:', error);
+      setAnnouncement(error instanceof Error ? error.message : '删除课堂失败');
+    } finally {
+      setDeletingSessionId(null);
+    }
+  };
+
   // 当前进行中的课堂
   const activeSession = sessions.find(s => s.status === 'ACTIVE');
   const displayedSessions = statusFilter === 'ACTIVE' ? sessions.filter(s => s.status === 'ACTIVE') : sessions.filter(s => s.status === 'FINISHED');
@@ -645,6 +677,21 @@ export default function ClassDetailPage() {
             <ShieldAlert className="h-5 w-5 text-rose-500" />
           </div>
         </div>
+        <Link
+          href={`/teacher/prep-packs?classId=${encodeURIComponent(classId)}`}
+          className="teacher-insight-entry"
+          data-teacher-prep-pack-entry="class-detail"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">课前包复核</p>
+              <p className="mt-2 text-sm text-subtle">
+                从班级诊断进入候选课前包，复核证据、插入点与 overlay 生命周期。
+              </p>
+            </div>
+            <BookOpen className="h-5 w-5 text-violet-500" />
+          </div>
+        </Link>
       </section>
 
       {insights && (
@@ -838,12 +885,24 @@ export default function ClassDetailPage() {
                       </button>
                     </>
                   ) : (
-                    <Link
-                      href={`/classroom/teacher/${session.id}/review`}
-                      className="btn-ghost-themed rounded-lg px-3 py-1.5 text-sm transition"
-                    >
-                      课堂统计
-                    </Link>
+                    <>
+                      <Link
+                        href={`/classroom/teacher/${session.id}/review`}
+                        className="btn-ghost-themed rounded-lg px-3 py-1.5 text-sm transition"
+                      >
+                        课堂统计
+                      </Link>
+                      <button type="button"
+                        onClick={() => void handleDeleteFinishedSession(session)}
+                        disabled={deletingSessionId === session.id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 px-3 py-1.5 text-sm text-rose-600 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:text-rose-300"
+                        data-teacher-finished-session-delete="available"
+                        aria-label={`删除已结束课堂 ${session.plan.title}`}
+                      >
+                        {deletingSessionId === session.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                        删除课堂
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

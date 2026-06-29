@@ -33,6 +33,10 @@ export default async function TeacherGradingWorkbenchPage({
     classId?: string;
     studentId?: string;
     assignment?: string;
+    sessionId?: string;
+    lessonId?: string;
+    reportId?: string;
+    source?: string;
     returnTo?: string;
   }>;
 }) {

@@ -1,16 +1,28 @@
 import Link from 'next/link';
 import { ArrowLeft, Archive, CheckCircle2, RotateCcw, ShieldCheck, TrendingUp } from 'lucide-react';
 
+import { ActionStatusPanel } from '@/components/platform/action-status';
 import type {
   CourseEnhancementPack,
   CourseEnhancementPackItem,
   TeacherPrepPackInsertionTarget,
 } from '@/lib/data-governance/teacher-prep-pack-generation';
+import type { AuditedActionState } from '@/lib/action-status-contract';
 
 export interface PrepPackReviewActionContext {
   packId: string;
   status: CourseEnhancementPack['status'];
   itemIds: string[];
+  classId: string;
+  lessonId: string;
+}
+
+export interface PrepPackReviewEntryContext {
+  classId?: string | null;
+  clusterId?: string | null;
+  graphNodeId?: string | null;
+  learningGoalId?: string | null;
+  resourceGapStatus?: string | null;
 }
 
 const LIFECYCLE_ACTIONS = [
@@ -24,16 +36,23 @@ const LIFECYCLE_ACTIONS = [
 export function TeacherPrepPackReviewSurface({
   pack,
   recovery,
+  entryContext,
+  actionReceipt,
 }: {
   pack?: CourseEnhancementPack | null;
   recovery?: { reason: 'storage-missing' } | null;
+  entryContext?: PrepPackReviewEntryContext;
+  actionReceipt?: AuditedActionState | null;
 }) {
   const actionContext = pack ? {
     packId: pack.id,
     status: pack.status,
     itemIds: pack.items.map((item) => item.id),
+    classId: pack.classId,
+    lessonId: pack.lessonId,
   } satisfies PrepPackReviewActionContext : undefined;
   const actionItemId = actionContext?.itemIds[0] ?? '';
+  const effectiveEntryContext = normalizePrepPackEntryContext(entryContext, pack);
 
   return (
     <main
@@ -42,6 +61,11 @@ export function TeacherPrepPackReviewSurface({
       data-commercial-workspace-zone="instrument-area"
       data-report-ledger-surface="teacher-prep-pack-review"
       data-report-ledger-privacy-scope="teacher-review"
+      data-prep-pack-entry-class-id={effectiveEntryContext.classId ?? undefined}
+      data-prep-pack-entry-cluster-id={effectiveEntryContext.clusterId ?? undefined}
+      data-prep-pack-entry-graph-node-id={effectiveEntryContext.graphNodeId ?? undefined}
+      data-prep-pack-entry-learning-goal-id={effectiveEntryContext.learningGoalId ?? undefined}
+      data-prep-pack-entry-resource-gap-status={effectiveEntryContext.resourceGapStatus ?? undefined}
       data-operations-overlay-lifecycle="preview review activate archive rollback"
       data-operations-mutates-base-manifest="false"
     >
@@ -51,6 +75,8 @@ export function TeacherPrepPackReviewSurface({
           返回教师工作台
         </Link>
       </div>
+
+      {actionReceipt ? <ActionStatusPanel state={actionReceipt} className="mb-6" /> : null}
 
       <section className="surface-card p-6" data-teacher-prep-pack-entry="class-diagnosis">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -100,7 +126,7 @@ export function TeacherPrepPackReviewSurface({
           </p>
           {actionContext ? (
             <p className="mt-3 rounded-lg border border-border bg-muted/20 px-3 py-2 text-xs text-subtle" data-prep-pack-action-context={actionContext.packId}>
-              当前包 {actionContext.packId}；状态 {actionContext.status}
+              当前包 {actionContext.packId}；状态 {actionContext.status}；班级 {actionContext.classId}
             </p>
           ) : (
             <p className="mt-3 rounded-lg border border-border bg-muted/20 px-3 py-2 text-xs text-subtle" data-prep-pack-action-state="read-only">
@@ -115,6 +141,11 @@ export function TeacherPrepPackReviewSurface({
                 <form key={action.id} action="/teacher/prep-packs/actions" method="post">
                   <input type="hidden" name="packId" value={actionContext?.packId ?? ''} />
                   <input type="hidden" name="itemId" value={actionItemId} />
+                  <input type="hidden" name="classId" value={effectiveEntryContext.classId ?? ''} />
+                  <input type="hidden" name="clusterId" value={effectiveEntryContext.clusterId ?? ''} />
+                  <input type="hidden" name="graphNodeId" value={effectiveEntryContext.graphNodeId ?? ''} />
+                  <input type="hidden" name="learningGoalId" value={effectiveEntryContext.learningGoalId ?? ''} />
+                  <input type="hidden" name="resourceGapStatus" value={effectiveEntryContext.resourceGapStatus ?? ''} />
                   <input type="hidden" name="reason" value={`${action.label} by teacher review surface`} />
                   <button
                     type="submit"
@@ -136,6 +167,19 @@ export function TeacherPrepPackReviewSurface({
       </section>
     </main>
   );
+}
+
+function normalizePrepPackEntryContext(
+  entryContext: PrepPackReviewEntryContext | undefined,
+  pack: CourseEnhancementPack | null | undefined,
+): Required<PrepPackReviewEntryContext> {
+  return {
+    classId: entryContext?.classId ?? pack?.classId ?? null,
+    clusterId: entryContext?.clusterId ?? null,
+    graphNodeId: entryContext?.graphNodeId ?? pack?.items[0]?.resourceCoverageGaps?.[0]?.graphNodeId ?? null,
+    learningGoalId: entryContext?.learningGoalId ?? pack?.goalId ?? null,
+    resourceGapStatus: entryContext?.resourceGapStatus ?? pack?.items[0]?.resourceCoverageGaps?.[0]?.coverageState ?? null,
+  };
 }
 
 function PrepPackReviewItem({

@@ -126,4 +126,74 @@ describe('TeacherPrepPacksPage', () => {
     });
     expect(mocks.loadCourseEnhancementPack).not.toHaveBeenCalled();
   });
+
+  it('passes lifecycle action receipts to the review surface', async () => {
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({
+        packId: 'enhancement-pack-1',
+        status: 'activate',
+      }),
+    });
+
+    expect(element).toMatchObject({
+      props: {
+        actionReceipt: expect.objectContaining({
+          status: 'succeeded',
+          message: expect.stringContaining('overlay 已激活'),
+          displayReference: 'enhancement-pack-1',
+        }),
+      },
+    });
+  });
+
+  it('passes failed lifecycle action receipts with recovery evidence', async () => {
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({
+        packId: 'enhancement-pack-1',
+        status: 'action-failed',
+        error: 'overlay write failed',
+      }),
+    });
+
+    expect(element).toMatchObject({
+      props: {
+        actionReceipt: expect.objectContaining({
+          status: 'failed',
+          message: expect.stringContaining('overlay write failed'),
+          recoveryAction: expect.stringContaining('重新执行动作'),
+        }),
+      },
+    });
+  });
+
+  it('does not pass an action receipt when no lifecycle status is present', async () => {
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({ packId: 'enhancement-pack-1' }),
+    });
+
+    expect(element).toMatchObject({
+      props: {
+        actionReceipt: null,
+      },
+    });
+  });
+
+  it('passes blocked lifecycle action receipts for invalid states', async () => {
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({
+        packId: 'enhancement-pack-1',
+        status: 'invalid-lifecycle',
+      }),
+    });
+
+    expect(element).toMatchObject({
+      props: {
+        actionReceipt: expect.objectContaining({
+          status: 'blocked',
+          message: expect.stringContaining('生命周期状态不允许'),
+          recoveryAction: expect.stringContaining('重新执行动作'),
+        }),
+      },
+    });
+  });
 });

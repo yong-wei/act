@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import { TeacherPrepPackReviewSurface } from '@/features/teacher/teacher-prep-pack-review-surface';
+import { createAuditedActionState } from '@/lib/action-status-contract';
 import type { CourseEnhancementPack } from '@/lib/data-governance/teacher-prep-pack-generation';
 import type { RoleBasedLearningDiagnosis } from '@/lib/data-governance/role-based-learning-diagnosis';
 
@@ -281,6 +282,13 @@ describe('DiagnosisSurfacePanel', () => {
     const html = renderToStaticMarkup(
       React.createElement(TeacherPrepPackReviewSurface, {
         pack: prepPackFixture,
+        entryContext: {
+          classId: 'class-1',
+          clusterId: 'cluster-terminal-validation',
+          graphNodeId: 'kn:autocontrol:terminal-validation',
+          learningGoalId: 'control-correction',
+          resourceGapStatus: 'partial',
+        },
       })
     );
 
@@ -305,11 +313,43 @@ describe('DiagnosisSurfacePanel', () => {
     expect(html).toContain('data-prep-pack-action="rollback"');
     expect(html).toContain('data-prep-pack-action="impact-evidence"');
     expect(html).toContain('data-prep-pack-action-disabled="false"');
+    expect(html).toContain('data-prep-pack-entry-class-id="class-1"');
+    expect(html).toContain('data-prep-pack-entry-cluster-id="cluster-terminal-validation"');
+    expect(html).toContain('data-prep-pack-entry-graph-node-id="kn:autocontrol:terminal-validation"');
     expect(html).toContain('action="/teacher/prep-packs/actions"');
     expect(html).toContain('method="post"');
     expect(html).toContain('name="packId" value="enhancement-pack-1"');
     expect(html).toContain('name="itemId" value="item-1"');
+    expect(html).toContain('name="clusterId" value="cluster-terminal-validation"');
+    expect(html).toContain('name="resourceGapStatus" value="partial"');
     expect(html).toContain('data-operations-mutates-base-manifest="false"');
+  });
+
+  it('renders prep-pack lifecycle action receipts on the review surface', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(TeacherPrepPackReviewSurface, {
+        pack: prepPackFixture,
+        actionReceipt: createAuditedActionState({
+          identity: {
+            id: 'teacher-prep-pack:enhancement-pack-1:activate',
+            category: 'governance-resolve',
+            label: '课前包动作回执',
+            sourceRoute: '/teacher/prep-packs',
+            targetId: 'enhancement-pack-1',
+            requestedAction: 'activate',
+          },
+          status: 'succeeded',
+          message: '课前包 overlay 已激活，复核页已刷新当前包状态。',
+          nextAction: '继续复核课前包或返回教师工作台',
+          displayReference: 'enhancement-pack-1',
+        }),
+      })
+    );
+
+    expect(html).toContain('data-audited-action-id="teacher-prep-pack:enhancement-pack-1:activate"');
+    expect(html).toContain('data-audited-action-status="succeeded"');
+    expect(html).toContain('课前包 overlay 已激活');
+    expect(html).toContain('继续复核课前包或返回教师工作台');
   });
 
   it('does not render reversible low-denominator evidence distributions in prep-pack review surface', () => {

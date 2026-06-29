@@ -192,9 +192,22 @@ describe('teacher prep-pack lifecycle actions route', () => {
   });
 
   it('activates a teacher owned pack through the persisted enhancement function', async () => {
-    const response = await POST(postForm({ packId: 'enhancement-pack-1', action: 'activate' }) as never);
+    const response = await POST(postForm({
+      packId: 'enhancement-pack-1',
+      action: 'activate',
+      classId: 'class-1',
+      clusterId: 'cluster-terminal-validation',
+      graphNodeId: 'kn:autocontrol:terminal-validation',
+      learningGoalId: 'control-correction',
+      resourceGapStatus: 'partial',
+    }) as never);
 
     expect(response.headers.get('location')).toContain('status=activate');
+    expect(response.headers.get('location')).toContain('classId=class-1');
+    expect(response.headers.get('location')).toContain('cluster=cluster-terminal-validation');
+    expect(response.headers.get('location')).toContain('graphNodeId=kn%3Aautocontrol%3Aterminal-validation');
+    expect(response.headers.get('location')).toContain('learningGoalId=control-correction');
+    expect(response.headers.get('location')).toContain('resourceGapStatus=partial');
     expect(mocks.prisma.courseEnhancementPack.upsert).toHaveBeenCalledTimes(1);
     const upsertArg = mocks.prisma.courseEnhancementPack.upsert.mock.calls[0][0];
     expect(upsertArg.where).toEqual({ sourcePrepPackId: 'prep-pack-1' });

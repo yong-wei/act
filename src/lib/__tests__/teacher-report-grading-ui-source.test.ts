@@ -26,11 +26,17 @@ describe('teacher report and grading UI source contracts', () => {
     expect(source).toContain('surface: deliveryQuery.surface');
     expect(source).toContain("identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告导出', 'export')");
     expect(source).toContain("identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告摘要', 'summary')");
+    expect(source).toContain("const canDeliverReport = deliveryLedgerEntry.contextState === 'ready';");
+    expect(source).toContain('导出、摘要复制和评分交接暂不可执行');
+    expect(source).toContain("status: 'blocked',");
+    expect(source).toContain('disabled={!canDeliver}');
+    expect(source).toContain("data-report-ledger-action-disabled={canDeliver ? 'false' : 'missing-context'}");
     expect(source).toContain('entry.actionId.replace(`:${entry.action}:`, `:${requestedAction}:`)');
     expect(source).toContain('targetId: entry.artifactRef');
     expect(source).toContain('data-teacher-report-handoff-states="delivery-status-contract"');
     expect(source).toContain('data-report-ledger-send-publish-state="degraded"');
     expect(source).toContain('data-report-ledger-grading-handoff-state="ready"');
+    expect(source).toContain('data-report-ledger-grading-handoff-state="blocked"');
     expect(source).not.toContain('action=lock&report=control-correction');
   });
 
@@ -55,6 +61,9 @@ describe('teacher report and grading UI source contracts', () => {
     expect(history).toContain('data-teacher-report-delivery-link="history"');
     expect(classroomReview).toContain('data-report-ledger-surface="classroom-review-report-delivery"');
     expect(classroomReview).toContain('data-teacher-report-delivery-link="classroom-review-footer"');
+    expect(classroomReview).toContain('plan: {');
+    expect(classroomReview).toContain('id: true,');
+    expect(classroomReview).toContain('const reviewLessonId = lessonIds[0] ?? session.plan.id');
     expect(classroomReview).not.toContain('href="/review/extracurricular-showcase"');
     expect(reportBookLayout).toContain('buildTeacherReportDeliveryLedgerEntry');
     expect(reportBookLayout).toContain('buildTeacherReportDeliveryState');

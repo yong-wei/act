@@ -40,6 +40,8 @@ export interface TeacherReportDeliveryQuery {
   classId: string;
   sessionId: string | null;
   lessonId: string | null;
+  gradingRunId: string | null;
+  source: string | null;
   actorId: string | null;
   actorRole: string;
   recipientScope: TeacherReportDeliveryRecipientScope;
@@ -51,8 +53,12 @@ export interface TeacherReportDeliveryLedgerEntry {
   reportId: string;
   reportType: string;
   classId: string | null;
+  studentId: string | null;
   sessionId: string | null;
   lessonId: string | null;
+  gradingRunId: string | null;
+  source: string | null;
+  contextState: 'ready' | 'missing-class' | 'missing-session' | 'missing-lesson' | 'missing-student';
   actorId: string | null;
   actorRole: string;
   action: TeacherReportDeliveryAction | 'unsupported';
@@ -80,6 +86,10 @@ export interface TeacherGradingRouteQuery {
   classId: string | null;
   studentId: string | null;
   assignment: string | null;
+  sessionId: string | null;
+  lessonId: string | null;
+  reportId: string | null;
+  source: string | null;
   returnTo: string;
 }
 
@@ -102,6 +112,8 @@ export function normalizeTeacherReportDeliveryQuery(input: {
   studentId?: string | string[] | null;
   sessionId?: string | string[] | null;
   lessonId?: string | string[] | null;
+  gradingRunId?: string | string[] | null;
+  source?: string | string[] | null;
   actorId?: string | string[] | null;
   actorRole?: string | string[] | null;
   recipientScope?: string | string[] | null;
@@ -127,6 +139,8 @@ export function normalizeTeacherReportDeliveryQuery(input: {
     classId,
     sessionId: firstQueryValue(input.sessionId),
     lessonId: firstQueryValue(input.lessonId),
+    gradingRunId: firstQueryValue(input.gradingRunId),
+    source: firstQueryValue(input.source),
     actorId: firstQueryValue(input.actorId),
     actorRole: firstQueryValue(input.actorRole) ?? 'teacher',
     recipientScope: normalizeRecipientScope(firstQueryValue(input.recipientScope), firstQueryValue(input.studentId)),
@@ -216,9 +230,8 @@ export function buildTeacherReportDeliveryLedgerEntry(input: {
   const surface = input.surface ?? query.surface;
   const reportType = input.reportType ?? 'class-session-summary';
   const timestamp = (input.now ?? new Date()).toISOString();
-  const missingContext = !query.classId || isMissingIdentifier(query.classId) || (
-    (action === 'send' || action === 'deliver') && isMissingIdentifier(query.studentId)
-  );
+  const contextState = getDeliveryContextState(query, action, surface);
+  const missingContext = contextState !== 'ready';
   const deliveryStatus = getDeliveryLedgerStatus(action, missingContext);
   const deliveryScope = query.studentId
     ? `student:${opaqueRef(query.studentId)}`
@@ -230,6 +243,8 @@ export function buildTeacherReportDeliveryLedgerEntry(input: {
     query.classId || 'missing-class',
     query.sessionId || 'missing-session',
     query.lessonId || 'missing-lesson',
+    query.gradingRunId || 'missing-grading-run',
+    query.source || surface,
     query.reportId,
     query.versionId,
     action,
@@ -237,7 +252,7 @@ export function buildTeacherReportDeliveryLedgerEntry(input: {
     query.studentId || 'class-recipient',
   ].join(':'))}`;
   const fallbackSummary = missingContext
-    ? `无法交付报告：${query.studentId ? `学生 ${query.studentId}` : '班级或课堂'} 不存在或不在当前教师可见范围。`
+    ? getDeliveryMissingContextSummary(query, contextState)
     : `教师报告 ${query.reportId} 已进入 ${action} 交付账本，范围为 ${query.recipientScope}。`;
 
   return {
@@ -245,8 +260,12 @@ export function buildTeacherReportDeliveryLedgerEntry(input: {
     reportId: query.reportId,
     reportType,
     classId: query.classId || null,
+    studentId: query.studentId,
     sessionId: query.sessionId,
     lessonId: query.lessonId,
+    gradingRunId: query.gradingRunId,
+    source: query.source,
+    contextState,
     actorId: query.actorId,
     actorRole: query.actorRole,
     action,
@@ -263,7 +282,7 @@ export function buildTeacherReportDeliveryLedgerEntry(input: {
     artifactRef,
     redactionPolicy: 'student-safe-summary-only',
     studentSafeSummary: input.studentSafeSummary ?? fallbackSummary,
-    recoveryAction: missingContext ? '回到班级、课堂历史或学生列表选择有效上下文' : undefined,
+    recoveryAction: missingContext ? getDeliveryRecoveryAction(contextState) : undefined,
   };
 }
 
@@ -273,6 +292,8 @@ export function buildTeacherReportDeliveryHref(input: {
   reportId?: string;
   sessionId?: string | null;
   lessonId?: string | null;
+  gradingRunId?: string | null;
+  source?: string | null;
   studentId?: string | null;
   surface?: TeacherReportDeliverySurface;
   returnTo?: string;
@@ -287,6 +308,8 @@ export function buildTeacherReportDeliveryHref(input: {
   });
   if (input.sessionId) params.set('sessionId', input.sessionId);
   if (input.lessonId) params.set('lessonId', input.lessonId);
+  if (input.gradingRunId) params.set('gradingRunId', input.gradingRunId);
+  if (input.source) params.set('source', input.source);
   if (input.studentId) params.set('studentId', input.studentId);
   return `/teacher/classes/${classId}/analytics-v2?${params.toString()}`;
 }
@@ -299,6 +322,10 @@ export function normalizeTeacherGradingRouteQuery(input: {
   classId?: string | string[] | null;
   studentId?: string | string[] | null;
   assignment?: string | string[] | null;
+  sessionId?: string | string[] | null;
+  lessonId?: string | string[] | null;
+  reportId?: string | string[] | null;
+  source?: string | string[] | null;
   returnTo?: ReturnTargetParam | null;
 }): TeacherGradingRouteQuery {
   return {
@@ -309,6 +336,10 @@ export function normalizeTeacherGradingRouteQuery(input: {
     classId: firstQueryValue(input.classId),
     studentId: firstQueryValue(input.studentId),
     assignment: firstQueryValue(input.assignment),
+    sessionId: firstQueryValue(input.sessionId),
+    lessonId: firstQueryValue(input.lessonId),
+    reportId: firstQueryValue(input.reportId),
+    source: firstQueryValue(input.source),
     returnTo: resolveTeacherReturnTo(input.returnTo, '/teacher/grading-workbench'),
   };
 }
@@ -321,7 +352,7 @@ export function buildTeacherGradingRouteState(query: TeacherGradingRouteQuery): 
     category: getGradingActionCategory(requestedAction),
     label: '报告评分工作台',
     sourceRoute: query.returnTo,
-    targetId: query.gradingRunId ?? query.studentId ?? query.assignment,
+    targetId: query.gradingRunId ?? query.studentId ?? query.assignment ?? query.reportId,
     requestedAction,
   };
   if (query.method && query.method.toLowerCase() === 'get') {
@@ -357,7 +388,9 @@ export function buildTeacherGradingRouteState(query: TeacherGradingRouteQuery): 
       status: 'pending',
       message: query.assignment
         ? `正在等待 ${query.assignment} 的评分草稿。`
-        : '当前评分草稿处于待审批状态。',
+        : query.source === 'report-ledger'
+          ? `当前评分草稿处于待审批状态，已保留报告 ${query.reportId ?? 'control-correction'} 与课堂上下文。`
+          : '当前评分草稿处于待审批状态。',
       nextAction: '打开有效 gradingRunId 后审批或返回学生修改',
     });
   }
@@ -382,7 +415,7 @@ export function buildTeacherGradingMissingRunState(query: TeacherGradingRouteQue
 }
 
 export function resolveTeacherReturnTo(value: ReturnTargetParam | null | undefined, fallback: string) {
-  return resolveScopedReturnTarget(value ?? undefined, fallback, ['/teacher']);
+  return resolveScopedReturnTarget(value ?? undefined, fallback, ['/teacher', '/classroom/teacher']);
 }
 
 function firstQueryValue(value: string | string[] | null | undefined): string | null {
@@ -392,6 +425,41 @@ function firstQueryValue(value: string | string[] | null | undefined): string | 
 
 function isMissingIdentifier(value: string | null | undefined) {
   return typeof value === 'string' && value.toLowerCase().startsWith('missing');
+}
+
+function getDeliveryContextState(
+  query: TeacherReportDeliveryQuery,
+  action: TeacherReportDeliveryAction | 'unsupported',
+  surface: TeacherReportDeliverySurface,
+): TeacherReportDeliveryLedgerEntry['contextState'] {
+  if (!query.classId || isMissingIdentifier(query.classId)) return 'missing-class';
+  if (surface === 'classroom-review' && (!query.sessionId || isMissingIdentifier(query.sessionId))) return 'missing-session';
+  if (surface === 'classroom-review' && (!query.lessonId || isMissingIdentifier(query.lessonId))) return 'missing-lesson';
+  if ((action === 'send' || action === 'deliver') && isMissingIdentifier(query.studentId)) return 'missing-student';
+  return 'ready';
+}
+
+function getDeliveryMissingContextSummary(
+  query: TeacherReportDeliveryQuery,
+  contextState: TeacherReportDeliveryLedgerEntry['contextState'],
+) {
+  if (contextState === 'missing-session') {
+    return `无法交付报告：课堂复盘缺少有效 sessionId，报告 ${query.reportId} 不能脱离课堂上下文继续。`;
+  }
+  if (contextState === 'missing-lesson') {
+    return `无法交付报告：课堂复盘缺少有效 lessonId，报告 ${query.reportId} 不能脱离教案上下文继续。`;
+  }
+  if (contextState === 'missing-student') {
+    return `无法交付报告：学生 ${query.studentId} 不存在或不在当前教师可见范围。`;
+  }
+  return '无法交付报告：班级不存在或不在当前教师可见范围。';
+}
+
+function getDeliveryRecoveryAction(contextState: TeacherReportDeliveryLedgerEntry['contextState']) {
+  if (contextState === 'missing-session') return '回到课堂历史选择有效课堂复盘后再进入报告交付';
+  if (contextState === 'missing-lesson') return '回到课堂历史选择带有有效教案的课堂复盘后再进入报告交付';
+  if (contextState === 'missing-student') return '回到班级学生列表选择有效学生后再发送报告';
+  return '回到班级、课堂历史或学生列表选择有效上下文';
 }
 
 function normalizeRecipientScope(
