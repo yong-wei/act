@@ -164,6 +164,9 @@ describe('admin governance action contract', () => {
     expect(dataGovernanceDashboardSource).toContain('const [refreshActionState, setRefreshActionState]');
     expect(dataGovernanceDashboardSource).toContain("category: 'refresh'");
     expect(dataGovernanceDashboardSource).toContain('<ActionStatusPanel state={refreshActionState} />');
+    expect(dataGovernanceDashboardSource).toContain('function governanceActionStateFromLedger');
+    expect(dataGovernanceDashboardSource).toContain('operationLedger?: AdminOperationLedgerEntry');
+    expect(dataGovernanceDashboardSource).toContain('payload?.operationLedger');
     expect(dataGovernanceDashboardSource).toContain('去重键：{visibleAuditRecord.idempotencyKey ??');
     expect(dataGovernanceDashboardSource).toContain('保留策略：{visibleAuditRecord.retentionPolicy ??');
     expect(dataGovernanceDashboardSource).toContain("params.set('graphNodeId', initialActionQuery.graphNodeId.trim())");

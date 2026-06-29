@@ -8,6 +8,12 @@ const mocks = vi.hoisted(() => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
+    adminOperationArtifact: {
+      upsert: vi.fn(),
+    },
     user: {
       findUnique: vi.fn(),
     },
@@ -50,6 +56,8 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
       resolutionNote: '管理员从数据治理工作台标记处理',
       evidenceJson: {},
     });
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
+    mocks.prisma.adminOperationArtifact.upsert.mockResolvedValue({});
     mocks.prisma.user.findUnique.mockResolvedValue({ id: 'admin-1' });
   });
 
@@ -70,7 +78,28 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
       riskId: 'risk-1',
       outcome: 'resolved',
       undoAvailable: false,
+      retentionPolicy: 'admin-operation-ledger-30d',
     });
+    expect(payload.operationLedger).toMatchObject({
+      kind: 'admin-governance-resolve',
+      actorId: 'admin-1',
+      scope: 'admin-governance-resolve:risk-1',
+      outcome: 'completed',
+      auditSummary: '治理风险 risk-1 已由管理员标记处理。',
+    });
+    expect(payload.auditRecord.operationId).toBe(payload.operationLedger.operationId);
+    expect(payload.auditRecord.idempotencyKey).toBe(payload.operationLedger.idempotencyKey);
+    expect(response.headers.get('x-admin-operation-id')).toBe(payload.operationLedger.operationId);
+    expect(response.headers.get('x-admin-operation-outcome')).toBe('completed');
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { idempotencyKey: payload.operationLedger.idempotencyKey },
+      create: expect.objectContaining({
+        operationId: payload.operationLedger.operationId,
+        kind: 'admin-governance-resolve',
+        scope: 'admin-governance-resolve:risk-1',
+        outcome: 'completed',
+      }),
+    }));
     expect(mocks.prisma.studentRiskFlag.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'risk-1' },
       data: expect.objectContaining({
@@ -92,6 +121,7 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     const response = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
       params: Promise.resolve({ riskId: 'risk-1' }),
     });
+    const payload = await response.json();
 
     expect(response.status).toBe(200);
     expect(mocks.prisma.$transaction).toHaveBeenCalledWith(
@@ -102,6 +132,13 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
       where: { id: 'admin-1' },
       select: { id: true },
     });
+    expect(payload.operationLedger).toMatchObject({
+      kind: 'admin-governance-assign',
+      scope: 'admin-governance-assign:risk-1',
+      outcome: 'completed',
+      auditSummary: '治理风险 risk-1 已分派给 admin-1。',
+    });
+    expect(response.headers.get('x-admin-operation-id')).toBe(payload.operationLedger.operationId);
     expect(mocks.prisma.studentRiskFlag.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         evidenceJson: expect.objectContaining({
@@ -174,6 +211,7 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     expect(payload).toEqual({ error: '治理风险已解决，不能继续提交治理动作' });
     expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
     expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
   });
 
   it('rejects stale governance actions when the risk resolves before the transaction update', async () => {
@@ -198,6 +236,7 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     expect(payload).toEqual({ error: '治理风险已解决，不能继续提交治理动作' });
     expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
   });
 
   it('returns 404 for missing risks before mutating data', async () => {
@@ -211,5 +250,6 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     expect(response.status).toBe(404);
     expect(payload).toEqual({ error: '治理风险不存在' });
     expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
   });
 });

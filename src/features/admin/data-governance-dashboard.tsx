@@ -74,6 +74,28 @@ function governanceRefreshStateFromLedger(ledger: AdminOperationLedgerEntry) {
   });
 }
 
+function governanceActionStateFromLedger(
+  ledger: AdminOperationLedgerEntry,
+  input: { action: 'resolve' | 'assign'; riskId: string },
+) {
+  return createAuditedActionState({
+    identity: {
+      id: ledger.operationId,
+      category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
+      label: input.action === 'assign' ? '治理分派' : '治理处置',
+      sourceRoute: '/admin/data-governance',
+      targetId: input.riskId,
+      requestedAction: input.action,
+    },
+    status: ledger.outcome === 'failed' ? 'failed' : 'succeeded',
+    message: ledger.auditSummary,
+    nextAction: '刷新治理列表并复核风险状态',
+    recoveryAction: ledger.recoveryState.action,
+    recoveryKind: ledger.recoveryState.status,
+    displayReference: ledger.idempotencyKey,
+  });
+}
+
 export function DataGovernanceDashboard({ currentUser, initialActionQuery }: DataGovernanceDashboardProps) {
   const [status, setStatus] = useState<GovernanceStatusPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -279,25 +301,28 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
       });
       const payload = await response.json().catch(() => null) as {
         auditRecord?: GovernanceActionAuditRecord;
+        operationLedger?: AdminOperationLedgerEntry;
         error?: string;
       } | null;
       if (!response.ok) {
         throw new Error(payload?.error || '治理动作失败');
       }
       setExecutedAuditRecord(payload?.auditRecord ?? null);
-      setExecutedActionState(createAuditedActionState({
-        identity: {
-          id: `admin-governance-${input.action}:${input.riskId}`,
-          category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
-          label: input.action === 'assign' ? '治理分派' : '治理处置',
-          sourceRoute: '/admin/data-governance',
-          targetId: input.riskId,
-          requestedAction: input.action,
-        },
-        status: 'succeeded',
-        message: input.action === 'assign' ? '治理风险已保存分派审计记录。' : '治理风险已标记处理并保存审计记录。',
-        nextAction: '刷新治理列表并复核风险状态',
-      }));
+      setExecutedActionState(payload?.operationLedger
+        ? governanceActionStateFromLedger(payload.operationLedger, input)
+        : createAuditedActionState({
+            identity: {
+              id: `admin-governance-${input.action}:${input.riskId}`,
+              category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
+              label: input.action === 'assign' ? '治理分派' : '治理处置',
+              sourceRoute: '/admin/data-governance',
+              targetId: input.riskId,
+              requestedAction: input.action,
+            },
+            status: 'succeeded',
+            message: input.action === 'assign' ? '治理风险已保存分派审计记录。' : '治理风险已标记处理并保存审计记录。',
+            nextAction: '刷新治理列表并复核风险状态',
+          }));
       fetchStatus();
     } catch (err) {
       setExecutedActionState(createAuditedActionState({

@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 
 import { requireAdminSession } from '@/lib/admin';
+import {
+  buildAdminOperationIdempotencyKey,
+  buildAdminOperationLedgerEntry,
+  operationLedgerHeaders,
+} from '@/lib/admin-operation-ledger';
+import { persistAdminOperationLedger } from '@/lib/admin-operation-ledger-runtime';
 import { prisma } from '@/lib/prisma';
 
 type GovernanceAction = 'resolve' | 'assign';
@@ -13,6 +19,9 @@ type GovernanceAuditRecord = {
   assignee: string | null;
   outcome: 'resolved' | 'assigned';
   undoAvailable: boolean;
+  operationId?: string;
+  idempotencyKey?: string;
+  retentionPolicy?: string;
   recordedAt: string;
 };
 
@@ -80,6 +89,37 @@ export async function POST(
     undoAvailable: false,
     recordedAt: now.toISOString(),
   };
+  const operationLedger = buildAdminOperationLedgerEntry({
+    kind: action === 'resolve' ? 'admin-governance-resolve' : 'admin-governance-assign',
+    actorId: session.user.id,
+    actorRole: session.user.role,
+    scope: `admin-governance-${action}:${riskId}`,
+    startedAt: auditRecord.recordedAt,
+    completedAt: auditRecord.recordedAt,
+    outcome: 'completed',
+    idempotencyKey: buildAdminOperationIdempotencyKey([
+      'admin-governance-action',
+      action,
+      riskId,
+      session.user.id,
+      assignee ?? '',
+      auditRecord.recordedAt,
+    ]),
+    rollback: {
+      available: false,
+      rationale: '治理风险处置当前通过后续人工复核修正，不提供自动回滚。',
+    },
+    auditSummary: action === 'resolve'
+      ? `治理风险 ${riskId} 已由管理员标记处理。`
+      : `治理风险 ${riskId} 已分派给 ${assignee}。`,
+    recoveryState: {
+      status: 'available',
+      action: '刷新治理列表并复核风险状态',
+    },
+  });
+  auditRecord.operationId = operationLedger.operationId;
+  auditRecord.idempotencyKey = operationLedger.idempotencyKey;
+  auditRecord.retentionPolicy = operationLedger.retentionPolicy.policy;
   try {
     const updated = await withGovernanceAuditRetry(() => prisma.$transaction(async (tx) => {
       const currentRisk = await tx.studentRiskFlag.findUnique({
@@ -97,7 +137,7 @@ export async function POST(
       }
       const evidenceJson = appendGovernanceAudit(currentRisk.evidenceJson, auditRecord);
 
-      return tx.studentRiskFlag.update({
+      const updatedRisk = await tx.studentRiskFlag.update({
         where: { id: riskId },
         data: action === 'resolve'
           ? {
@@ -118,6 +158,9 @@ export async function POST(
           evidenceJson: true,
         },
       });
+      await persistAdminOperationLedger(operationLedger, [], tx);
+
+      return updatedRisk;
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     }));
@@ -126,6 +169,9 @@ export async function POST(
       ok: true,
       risk: updated,
       auditRecord,
+      operationLedger,
+    }, {
+      headers: operationLedgerHeaders(operationLedger),
     });
   } catch (error) {
     if (error instanceof GovernanceActionConflictError) {

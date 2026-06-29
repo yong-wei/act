@@ -135,10 +135,18 @@ describe('AdminDashboard API/UI query contract states', () => {
   });
 
   it('uses the shared CSV serializer for failed import row downloads', () => {
-    const start = adminDashboardSource.indexOf('const downloadFailedImportRows = () => {');
+    const start = adminDashboardSource.indexOf('const downloadFailedImportRows = async () => {');
     const end = adminDashboardSource.indexOf('const handleImport = async', start);
     const downloadFailedRowsSource = adminDashboardSource.slice(start, end);
 
+    expect(adminDashboardSource).toContain('const [failedRowsDownloadState, setFailedRowsDownloadState]');
+    expect(adminDashboardSource).toContain('<ActionStatusPanel state={failedRowsDownloadState} className="mt-4" />');
+    expect(adminDashboardSource).toContain('const downloadFailedImportRows = async () => {');
+    expect(downloadFailedRowsSource).toContain('setFailedRowsDownloadState(createAuditedActionState');
+    expect(downloadFailedRowsSource).toContain("requestedAction: 'download-failed-rows'");
+    expect(downloadFailedRowsSource).toContain("const res = await fetch(importResult.failedRowArtifact.downloadUrl, { cache: 'no-store' });");
+    expect(downloadFailedRowsSource).toContain("res.headers.get('x-admin-operation-id')");
+    expect(downloadFailedRowsSource).toContain('下载操作已写入管理员操作账本');
     expect(downloadFailedRowsSource).toContain('toCsv(csv)');
     expect(downloadFailedRowsSource).toContain("['row', 'accountFingerprint', 'reason']");
     expect(downloadFailedRowsSource).toContain('failedRows.map');
