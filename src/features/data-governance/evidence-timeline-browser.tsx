@@ -24,6 +24,7 @@ interface EvidenceTimelineBrowserProps {
   apiPath: string;
   backHref: string;
   chrome?: 'standalone' | 'embedded';
+  emptyBackHref?: string;
   emptyBackLabel?: string;
   contextBadges?: string[];
   initialLessonId?: string;
@@ -71,6 +72,7 @@ export function EvidenceTimelineBrowser({
   apiPath,
   backHref,
   chrome = 'standalone',
+  emptyBackHref,
   emptyBackLabel = '返回成长中心',
   contextBadges = [],
   initialLessonId,
@@ -296,7 +298,7 @@ export function EvidenceTimelineBrowser({
                   重置筛选条件
                 </button>
                 <Link
-                  href={backHref}
+                  href={emptyBackHref ?? backHref}
                   className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm"
                 >
                   {emptyBackLabel}

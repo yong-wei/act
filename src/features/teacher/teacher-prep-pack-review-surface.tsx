@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { ArrowLeft, Archive, CheckCircle2, RotateCcw, ShieldCheck, TrendingUp } from 'lucide-react';
 
+import { ActionStatusPanel } from '@/components/platform/action-status';
 import type {
   CourseEnhancementPack,
   CourseEnhancementPackItem,
   TeacherPrepPackInsertionTarget,
 } from '@/lib/data-governance/teacher-prep-pack-generation';
+import type { AuditedActionState } from '@/lib/action-status-contract';
 
 export interface PrepPackReviewActionContext {
   packId: string;
@@ -35,10 +37,12 @@ export function TeacherPrepPackReviewSurface({
   pack,
   recovery,
   entryContext,
+  actionReceipt,
 }: {
   pack?: CourseEnhancementPack | null;
   recovery?: { reason: 'storage-missing' } | null;
   entryContext?: PrepPackReviewEntryContext;
+  actionReceipt?: AuditedActionState | null;
 }) {
   const actionContext = pack ? {
     packId: pack.id,
@@ -71,6 +75,8 @@ export function TeacherPrepPackReviewSurface({
           返回教师工作台
         </Link>
       </div>
+
+      {actionReceipt ? <ActionStatusPanel state={actionReceipt} className="mb-6" /> : null}
 
       <section className="surface-card p-6" data-teacher-prep-pack-entry="class-diagnosis">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

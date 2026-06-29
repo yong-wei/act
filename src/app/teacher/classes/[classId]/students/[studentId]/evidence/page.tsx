@@ -16,9 +16,10 @@ export default async function TeacherClassStudentEvidencePage(
 ) {
   const params = await props.params;
   const searchParams = await props.searchParams;
+  const studentDetailHref = `/teacher/classes/${params.classId}/students/${params.studentId}`;
   const safeBackHref = resolveTeacherReturnTo(
     searchParams?.returnTo,
-    `/teacher/classes/${params.classId}/students/${params.studentId}`,
+    studentDetailHref,
   );
   const contextParts = [
     searchParams?.gradingRunId ? `评分运行 ${searchParams.gradingRunId}` : null,
@@ -54,7 +55,7 @@ export default async function TeacherClassStudentEvidencePage(
       surface: 'report-book',
       returnTo: backHref,
     })
-    : backHref;
+    : studentDetailHref;
   const primaryActionLabel = hasCompleteReportContext ? '回到报告交付' : '返回学生详情';
   const evidenceState = createAuditedActionState({
     identity: {
@@ -121,6 +122,7 @@ export default async function TeacherClassStudentEvidencePage(
         apiPath={`/api/teacher/classes/${params.classId}/students/${params.studentId}/evidence`}
         backHref={backHref}
         contextBadges={contextParts}
+        emptyBackHref={hasCompleteReportContext ? undefined : studentDetailHref}
         emptyBackLabel="返回学生详情"
         title="学生证据"
         subtitle={contextParts.length > 0
