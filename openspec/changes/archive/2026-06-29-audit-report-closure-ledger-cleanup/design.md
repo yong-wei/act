@@ -4,7 +4,7 @@ This change is part of the Product Design audit leftover closure series. Archive
 
 ## Approach
 
-本变更只处理审计台账卫生。实现时应读取 `chapters/38-function-state-flows-batch30.md` 中 132/133 的内联整改状态、`audit-remediation-p0-stability` 的归档 proposal/tasks/spec 和 `remediation/audit-remediation-p0-stability/evidence.md`，然后更新主报告的关闭列表、未关闭数量和说明。不得重新审查已经归档的实现证据，也不得借本变更修改课前包功能代码。
+本变更只处理审计台账卫生。实现时应读取 `chapters/38-function-state-flows-batch30.md` 中 132/133 的内联整改状态、`chapters/57-function-state-flows-batch49.md` 中 328 的内联整改状态、`audit-remediation-p0-stability` 的归档 proposal/tasks/spec 和 `remediation/audit-remediation-p0-stability/evidence.md`，然后更新主报告的关闭列表、未关闭数量和说明。不得重新审查已经归档的实现证据，也不得借本变更修改课前包功能代码。
 
 ## Boundaries
 

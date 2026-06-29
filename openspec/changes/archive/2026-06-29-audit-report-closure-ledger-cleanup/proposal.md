@@ -1,6 +1,6 @@
 ## Why
 
-最新审计状态台账仍把课前包 P0 finding 132/133 留在未关闭集合中，但归档的 `audit-remediation-p0-stability` 已经覆盖并验证这些阻断。需要先清理报告映射，否则后续整改会重复开工。
+最新审计状态台账仍把课前包 P0 finding 132/133/328 留在未关闭集合中，但归档的 `audit-remediation-p0-stability` 已经覆盖并验证这些阻断。需要先清理报告映射，否则后续整改会重复开工。
 
 ## What Changes
 
