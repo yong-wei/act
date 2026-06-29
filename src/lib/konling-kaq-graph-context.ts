@@ -388,6 +388,7 @@ function mergeLearnerOverlays(
   const filtered = filterLearnerOverlay({
     status: first.status,
     learnerId: first.learnerId,
+    classId: first.classId,
     generatedAt: first.generatedAt,
     items: Object.assign({}, ...overlays.map((overlay) => overlay.items)),
     limitations: overlays.flatMap((overlay) => overlay.limitations),
