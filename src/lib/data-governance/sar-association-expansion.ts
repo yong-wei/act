@@ -149,6 +149,10 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
       seedEventIds.add(seedRef);
       setMinDepth(eventDepth, seedRef, 0);
       for (const relation of relationsByEvent.get(seedRef) ?? []) {
+        if (relation.confidence < minConfidence) {
+          reject(rejectedRefs, relation.entityId, 'low-confidence-relation');
+          continue;
+        }
         const relatedEntity = entityById.get(relation.entityId);
         const entityDecision = entityScopeDecision(relatedEntity, input.callerScope);
         if (entityDecision.allowed) {
@@ -286,7 +290,7 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
     && (!hop.viaEventId || !rejectedRefSet.has(hop.viaEventId))
   ));
   const seedEntityIdsForTrace = selection.seedEntityIds.filter((entityId) => !rejectedRefSet.has(entityId));
-  const candidateRefs = buildCandidateRefs(events, entities, hops, input.projection, maxHops);
+  const candidateRefs = buildCandidateRefs(events, entities, hops, input.projection);
   if (expandedEvents.length > maxEvents) limitations.add(`event-budget:${maxEvents}`);
   if (expandedEntities.length > maxEntities) limitations.add(`entity-budget:${maxEntities}`);
   if (expansionHops.length === 0 && maxHops > 0) limitations.add('no-expansion-hop-selected');
@@ -371,48 +375,38 @@ function buildCandidateRefs(
   entities: SarRetrievalEntity[],
   hops: SarTraceHop[],
   projection: Pick<SarRetrievalResult, 'events' | 'citationTargetRefs' | 'retrievalChunkRefs'>,
-  maxHops: 0 | 1 | 2,
 ): SarAssociationCandidateRefs {
   const eventIds = new Set(events.map((event) => event.id));
   const hopEntityIds = new Set(hops.flatMap((hop) => [hop.fromEntityId, hop.toEntityId]));
-  const hopEventIds = new Set(hops.map((hop) => hop.viaEventId).filter(isPresent));
   const hasConnectedEvidence = hops.length > 0 || entities.some((entity) => hopEntityIds.has(entity.id));
   const includeProjectionRefs = projection.events.length > 0
     && projection.events.every((event) => eventIds.has(event.id))
     && hasConnectedEvidence;
-  const connectedEvents = events.filter((event) => maxHops === 0 || hopEventIds.has(event.id));
-  const connectedEntities = maxHops === 0
-    ? entities
-    : entities.filter((entity) => (
-        entity.entityType !== 'resource-node'
-        && entity.entityType !== 'planning-unit'
-        && entity.entityType !== 'citation-target'
-      ) || hopEntityIds.has(entity.id));
   return {
     eventIds: events.map((event) => event.id),
     entityIds: entities.map((entity) => entity.id),
     citationTargetIds: uniqueSorted([
       ...(includeProjectionRefs ? projection.citationTargetRefs : []),
-      ...connectedEvents.map((event) => stringMetadata(event, 'citationTargetId')).filter(isPresent),
-      ...connectedEvents.flatMap((event) => stringArrayMetadata(event, 'citationTargetIds')),
-      ...connectedEntities.map((entity) => entity.entityType === 'citation-target' ? entity.canonicalRef : '').filter(Boolean),
+      ...events.map((event) => stringMetadata(event, 'citationTargetId')).filter(isPresent),
+      ...events.flatMap((event) => stringArrayMetadata(event, 'citationTargetIds')),
+      ...entities.map((entity) => entity.entityType === 'citation-target' ? entity.canonicalRef : '').filter(Boolean),
     ]),
     retrievalChunkIds: uniqueSorted([
       ...(includeProjectionRefs ? projection.retrievalChunkRefs : []),
-      ...connectedEvents.map((event) => stringMetadata(event, 'retrievalChunkId')).filter(isPresent),
-      ...connectedEvents.map((event) => stringMetadata(event, 'chunkId')).filter(isPresent),
-      ...connectedEvents.flatMap((event) => stringArrayMetadata(event, 'retrievalChunkIds')),
-      ...connectedEvents.flatMap((event) => stringArrayMetadata(event, 'chunkIds')),
+      ...events.map((event) => stringMetadata(event, 'retrievalChunkId')).filter(isPresent),
+      ...events.map((event) => stringMetadata(event, 'chunkId')).filter(isPresent),
+      ...events.flatMap((event) => stringArrayMetadata(event, 'retrievalChunkIds')),
+      ...events.flatMap((event) => stringArrayMetadata(event, 'chunkIds')),
     ]),
     resourceNodeIds: uniqueSorted([
-      ...connectedEvents.map((event) => stringMetadata(event, 'resourceNodeId')).filter(isPresent),
-      ...connectedEvents.flatMap((event) => stringArrayMetadata(event, 'resourceNodeIds')),
-      ...connectedEntities.map((entity) => entity.entityType === 'resource-node' ? entity.canonicalRef : '').filter(Boolean),
+      ...events.map((event) => stringMetadata(event, 'resourceNodeId')).filter(isPresent),
+      ...events.flatMap((event) => stringArrayMetadata(event, 'resourceNodeIds')),
+      ...entities.map((entity) => entity.entityType === 'resource-node' ? entity.canonicalRef : '').filter(Boolean),
     ]),
     planningUnitIds: uniqueSorted([
-      ...connectedEvents.map((event) => stringMetadata(event, 'planningUnitId')).filter(isPresent),
-      ...connectedEvents.flatMap((event) => stringArrayMetadata(event, 'planningUnitIds')),
-      ...connectedEntities.map((entity) => entity.entityType === 'planning-unit' ? entity.canonicalRef : '').filter(Boolean),
+      ...events.map((event) => stringMetadata(event, 'planningUnitId')).filter(isPresent),
+      ...events.flatMap((event) => stringArrayMetadata(event, 'planningUnitIds')),
+      ...entities.map((entity) => entity.entityType === 'planning-unit' ? entity.canonicalRef : '').filter(Boolean),
     ]),
   };
 }

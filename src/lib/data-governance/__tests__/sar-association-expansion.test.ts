@@ -149,6 +149,34 @@ describe('SAR association expansion provider', () => {
     expect(result.trace.expansionHops).toEqual([]);
   });
 
+  it('keeps direct event refs when the default hop budget has no expansion hops', () => {
+    const directEvent = event({
+      id: 'sar:event:graph-node:direct-only',
+      metadata: {
+        citationTargetId: 'citation-target:direct-only',
+        retrievalChunkId: 'retrieval-chunk:direct-only',
+      },
+    });
+    const result = expandSarAssociations({
+      id: 'default-direct-only',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: ['sar:entity:graph-node:knowledge:bode-margin'],
+      projection: projection({
+        events: [directEvent],
+        entities: [entity({ id: 'sar:entity:graph-node:knowledge:bode-margin' })],
+        relations: [
+          relation({ eventId: directEvent.id, entityId: 'sar:entity:graph-node:knowledge:bode-margin' }),
+        ],
+      }),
+    });
+
+    expect(result.candidateRefs.eventIds).toEqual([directEvent.id]);
+    expect(result.candidateRefs.citationTargetIds).toEqual(['citation-target:direct-only']);
+    expect(result.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:direct-only']);
+    expect(result.trace.expansionHops).toEqual([]);
+  });
+
   it('expands deterministic one-hop and two-hop association paths', () => {
     const oneHop = expandSarAssociations({
       id: 'one-hop',
@@ -578,6 +606,48 @@ describe('SAR association expansion provider', () => {
     expect(oneHopBudgeted.trace.expansionHops).toEqual([]);
   });
 
+  it('applies minConfidence to entities linked from event seeds', () => {
+    const seededEvent = event({
+      id: 'sar:event:diagnosis-summary:confidence-seed',
+      eventType: 'diagnosis-summary',
+    });
+    const strongEntity = entity({
+      id: 'sar:entity:learning-goal:strong',
+      entityType: 'learning-goal',
+      canonicalRef: 'goal:strong',
+      label: 'Strong goal',
+    });
+    const weakEntity = entity({
+      id: 'sar:entity:learning-goal:weak',
+      entityType: 'learning-goal',
+      canonicalRef: 'goal:weak',
+      label: 'Weak goal',
+    });
+    const result = expandSarAssociations({
+      id: 'event-seed-confidence',
+      useCase: 'diagnostic-trace',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: [seededEvent.id],
+      projection: projection({
+        events: [seededEvent],
+        entities: [strongEntity, weakEntity],
+        relations: [
+          relation({ eventId: seededEvent.id, entityId: strongEntity.id, confidence: 0.9 }),
+          relation({ eventId: seededEvent.id, entityId: weakEntity.id, confidence: 0.2 }),
+        ],
+      }),
+      maxHops: 0,
+      minConfidence: 0.5,
+    });
+
+    expect(result.candidateRefs.entityIds).toEqual([strongEntity.id]);
+    expect(result.candidateRefs.entityIds).not.toContain(weakEntity.id);
+    expect(result.trace.rejectedRefs).toContainEqual({
+      ref: weakEntity.id,
+      reason: 'low-confidence-relation',
+    });
+  });
+
   it('honors admin and audit privacy scopes', () => {
     const adminEvent = event({
       id: 'sar:event:diagnosis-summary:admin',
@@ -733,7 +803,7 @@ describe('SAR association expansion provider', () => {
     ]));
   });
 
-  it('removes budget-disconnected events and their source-pack refs', () => {
+  it('removes budget-disconnected top-level and nonselected source-pack refs', () => {
     const result = expandSarAssociations({
       id: 'budget-disconnected',
       useCase: 'source-pack-seeding',
@@ -749,8 +819,8 @@ describe('SAR association expansion provider', () => {
     expect(result.trace.expansionHops).toEqual([]);
     expect(result.candidateRefs.resourceNodeIds).toEqual([]);
     expect(result.candidateRefs.planningUnitIds).toEqual([]);
-    expect(result.candidateRefs.citationTargetIds).toEqual([]);
-    expect(result.candidateRefs.retrievalChunkIds).toEqual([]);
+    expect(result.candidateRefs.citationTargetIds).toEqual(['citation-target:bode-margin']);
+    expect(result.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:bode-margin']);
     expect(result.trace.selectedRefs).not.toContain('citation-target:projection-top');
     expect(result.trace.selectedRefs).not.toContain('retrieval-chunk:projection-top');
     expect(result.sourcePackSeedRefs).not.toContain('retrieval-chunk:projection-top');
