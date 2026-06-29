@@ -529,6 +529,154 @@ describe('adaptive learning path planner', () => {
     });
   });
 
+  it('uses SAR candidates only after ResourceNode and PlanningUnit mapping gates', () => {
+    const input = plannerInput();
+    const teacherOnlyNode = input.registry.nodes.find((node) => node.id === 'reflection_prompt:reflection-bode');
+    expect(teacherOnlyNode).toBeDefined();
+    teacherOnlyNode!.planningMetadata.teacherPolicy = 'teacher-only';
+    const plan = buildAdaptiveLearningPathPlan({
+      ...input,
+      sarCandidateContext: {
+        enabled: true,
+        traceId: 'sar-trace:path-bode',
+        seedEntityRefs: ['LearningGoal:goal-bode', 'GraphNode:kn-bode'],
+        candidates: [
+          {
+            ref: 'sar-candidate:bode-card',
+            kind: 'resourceNode',
+            resourceNodeId: 'registry:bode-card',
+          },
+          {
+            ref: 'registry:bode-card',
+            kind: 'retrievalChunk',
+          },
+          {
+            ref: 'retrieval-chunk:bode-reference',
+            kind: 'retrievalChunk',
+            resourceNodeId: 'registry:hidden-admin',
+            retrievalChunkId: 'retrieval-chunk:bode-reference',
+          },
+          {
+            ref: 'citation-target:bode-reference',
+            kind: 'citationTarget',
+            citationTargetId: 'citation-target:bode-reference',
+          },
+          {
+            ref: 'sar-candidate:hidden-admin',
+            kind: 'resourceNode',
+            resourceNodeId: 'registry:hidden-admin',
+          },
+          {
+            ref: 'sar-candidate:teacher-only-reflection',
+            kind: 'resourceNode',
+            resourceNodeId: 'reflection_prompt:reflection-bode',
+          },
+        ],
+      },
+    });
+
+    const sarBasis = plan.explanations.associativeRetrieval;
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('registry:bode-card');
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('retrieval-chunk:bode-reference');
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('citation-target:bode-reference');
+    expect(sarBasis).toMatchObject({
+      traceId: 'sar-trace:path-bode',
+      seedEntityRefs: ['LearningGoal:goal-bode', 'GraphNode:kn-bode'],
+      candidateResourceNodeIds: ['registry:bode-card'],
+      selectedCandidateNodeIds: ['registry:bode-card'],
+    });
+    expect(sarBasis?.rejectedCandidates).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        ref: 'retrieval-chunk:bode-reference',
+        reasonCodes: ['missing-resource-node-mapping'],
+      }),
+      expect.objectContaining({
+        ref: 'registry:bode-card',
+        reasonCodes: ['missing-resource-node-mapping'],
+      }),
+      expect.objectContaining({
+        ref: 'citation-target:bode-reference',
+        reasonCodes: ['missing-resource-node-mapping'],
+      }),
+      expect.objectContaining({
+        ref: expect.stringMatching(/^restricted:/),
+        reasonCodes: expect.arrayContaining(['privacy-scope-blocked', 'path-ineligible']),
+      }),
+      expect.objectContaining({
+        ref: expect.stringMatching(/^restricted:/),
+        reasonCodes: expect.arrayContaining(['teacher-policy-teacher-only']),
+      }),
+    ]));
+    expect(JSON.stringify(sarBasis)).not.toContain('registry:hidden-admin');
+    expect(JSON.stringify(sarBasis)).not.toContain('reflection_prompt:reflection-bode');
+    expect(plan.visualization.evidence.associativeRetrieval).toEqual(sarBasis);
+  });
+
+  it('rejects SAR candidates that fail readiness or terminal validation gates', () => {
+    const input = plannerInput({
+      constraints: {
+        ...plannerInput().constraints,
+        completedNodeIds: [],
+      },
+      sarCandidateContext: {
+        enabled: true,
+        traceId: 'sar-trace:path-locked',
+        seedEntityRefs: ['LearningGoal:goal-bode'],
+        candidates: [
+          {
+            ref: 'sar-candidate:cruise',
+            kind: 'resourceNode',
+            resourceNodeId: 'simulation:cruise',
+          },
+          {
+            ref: 'sar-candidate:bode-card-terminal',
+            kind: 'resourceNode',
+            resourceNodeId: 'registry:bode-card',
+            requiredUse: 'terminal-validation',
+          },
+        ],
+      },
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(input);
+
+    expect(plan.explanations.associativeRetrieval?.rejectedCandidates).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceNodeId: 'simulation:cruise',
+        reasonCodes: expect.arrayContaining(['readiness-required-completion']),
+      }),
+      expect.objectContaining({
+        resourceNodeId: 'registry:bode-card',
+        reasonCodes: expect.arrayContaining(['terminal-validation-insufficient']),
+      }),
+    ]));
+    expect(plan.explanations.associativeRetrieval?.selectedCandidateNodeIds).not.toContain('simulation:cruise');
+  });
+
+  it('keeps planner output stable when SAR candidates are disabled', () => {
+    const input = plannerInput();
+    const baseline = buildAdaptiveLearningPathPlan(input);
+    const disabled = buildAdaptiveLearningPathPlan({
+      ...input,
+      sarCandidateContext: {
+        enabled: false,
+        traceId: 'sar-trace:disabled',
+        seedEntityRefs: ['LearningGoal:goal-bode'],
+        candidates: [{
+          ref: 'sar-candidate:bode-card',
+          kind: 'resourceNode',
+          resourceNodeId: 'registry:bode-card',
+        }],
+      },
+    });
+
+    expect(disabled.mainPath).toEqual(baseline.mainPath);
+    expect(disabled.alternatives).toEqual(baseline.alternatives);
+    expect(disabled.explanations.associativeRetrieval).toBeUndefined();
+    expect(disabled.visualization.evidence.associativeRetrieval).toBeUndefined();
+  });
+
   it('filters teacher-scoped Source Pack evidence from student-visible path payloads', () => {
     const teacherOnlyItem: SourcePackItem = {
       id: 'source-pack:teacher-only:private-planning-note',

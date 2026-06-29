@@ -1,6 +1,6 @@
-- [ ] Add optional SAR candidate input to planner contracts.
-- [ ] Map SAR refs to ResourceNode/PlanningUnit candidates through existing registry data.
-- [ ] Apply privacy, teacher policy, readiness, path eligibility, and terminal validation gates.
-- [ ] Add associative retrieval basis to path explanations.
-- [ ] Add tests for accepted, rejected, privacy-blocked, path-ineligible, terminal-validation-blocked, and SAR-disabled cases.
-- [ ] Run `openspec validate extend-path-planner-with-sar-candidates --strict`.
+- [x] Add optional SAR candidate input to planner contracts.
+- [x] Map SAR refs to ResourceNode/PlanningUnit candidates through existing registry data.
+- [x] Apply privacy, teacher policy, readiness, path eligibility, and terminal validation gates.
+- [x] Add associative retrieval basis to path explanations.
+- [x] Add tests for accepted, rejected, privacy-blocked, path-ineligible, terminal-validation-blocked, and SAR-disabled cases.
+- [x] Run `openspec validate extend-path-planner-with-sar-candidates --strict`.
