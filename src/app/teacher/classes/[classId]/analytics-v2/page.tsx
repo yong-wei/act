@@ -125,6 +125,8 @@ export default function ClassAnalyticsV2Page() {
     studentId: searchParams.get('studentId'),
     sessionId: searchParams.get('sessionId'),
     lessonId: searchParams.get('lessonId'),
+    gradingRunId: searchParams.get('gradingRunId'),
+    source: searchParams.get('source'),
     actorId: session?.user?.id ?? null,
     actorRole: session?.user?.role ?? 'teacher',
     recipientScope: searchParams.get('recipientScope'),
@@ -153,11 +155,13 @@ export default function ClassAnalyticsV2Page() {
     deliveryQuery.actorRole,
     deliveryQuery.classId,
     deliveryQuery.format,
+    deliveryQuery.gradingRunId,
     deliveryQuery.lessonId,
     deliveryQuery.recipientScope,
     deliveryQuery.reportId,
     deliveryQuery.returnTo,
     deliveryQuery.sessionId,
+    deliveryQuery.source,
     deliveryQuery.studentId,
     deliveryQuery.surface,
     deliveryQuery.versionId,
@@ -616,6 +620,12 @@ function ReportDeliveryPanel({
       data-report-ledger-artifact-ref={ledgerEntry.artifactRef}
       data-report-ledger-redaction-policy={ledgerEntry.redactionPolicy}
       data-report-ledger-delivery-status={ledgerEntry.deliveryStatus}
+      data-report-ledger-context-state={ledgerEntry.contextState}
+      data-report-ledger-class-id={ledgerEntry.classId ?? undefined}
+      data-report-ledger-session-id={ledgerEntry.sessionId ?? undefined}
+      data-report-ledger-lesson-id={ledgerEntry.lessonId ?? undefined}
+      data-report-ledger-grading-run-id={ledgerEntry.gradingRunId ?? undefined}
+      data-report-ledger-source={ledgerEntry.source ?? undefined}
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
@@ -629,7 +639,7 @@ function ReportDeliveryPanel({
         />
       </div>
       <ReportDeliveryCapabilityNote />
-      <ReportDeliveryHandoffStates />
+      <ReportDeliveryHandoffStates entry={ledgerEntry} />
       <ReportDeliveryLedgerDetails entry={ledgerEntry} />
       {state ? <ActionStatusPanel state={state} className="mt-4" /> : null}
     </section>
@@ -671,6 +681,8 @@ function ReportDeliveryDock({
       data-teacher-report-delivery="mobile-fixed-actions"
       data-report-ledger-action-id={ledgerEntry.actionId}
       data-report-ledger-delivery-status={ledgerEntry.deliveryStatus}
+      data-report-ledger-context-state={ledgerEntry.contextState}
+      data-report-ledger-session-id={ledgerEntry.sessionId ?? undefined}
     >
       <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
@@ -696,6 +708,8 @@ function ReportDeliveryLedgerDetails({ entry }: { entry: TeacherReportDeliveryLe
       <span className="rounded border border-border/70 px-3 py-2">范围：{entry.deliveryScope}</span>
       <span className="rounded border border-border/70 px-3 py-2">产物：{entry.artifactRef}</span>
       <span className="rounded border border-border/70 px-3 py-2">脱敏：{entry.redactionPolicy}</span>
+      <span className="rounded border border-border/70 px-3 py-2">上下文：{entry.contextState}</span>
+      <span className="rounded border border-border/70 px-3 py-2">课堂：{entry.sessionId ?? '未指定'}</span>
     </div>
   );
 }
@@ -736,7 +750,9 @@ function ReportDeliveryCapabilityNote() {
   );
 }
 
-function ReportDeliveryHandoffStates() {
+function ReportDeliveryHandoffStates({ entry }: { entry: TeacherReportDeliveryLedgerEntry }) {
+  const gradingHref = buildReportDeliveryGradingHref(entry);
+
   return (
     <div
       className="mt-4 grid gap-2 text-xs text-subtle sm:grid-cols-3"
@@ -749,9 +765,10 @@ function ReportDeliveryHandoffStates() {
         发送/发布：需选择有效学生或班级交付范围后继续。
       </div>
       <Link
-        href="/teacher/grading-workbench?status=draft&returnTo=/teacher/classes"
+        href={gradingHref}
         className="rounded border border-border/70 px-3 py-2 transition hover:border-primary/40 hover:text-foreground"
         data-report-ledger-grading-handoff-state="ready"
+        data-report-ledger-grading-context={entry.contextState}
       >
         评分交接：进入报告评分工作台处理草稿。
       </Link>
@@ -763,6 +780,23 @@ function ReportDeliveryHandoffStates() {
       </div>
     </div>
   );
+}
+
+function buildReportDeliveryGradingHref(entry: TeacherReportDeliveryLedgerEntry) {
+  const returnTo = entry.classId
+    ? `/teacher/classes/${entry.classId}/analytics-v2`
+    : '/teacher/classes';
+  const params = new URLSearchParams({
+    status: 'draft',
+    source: 'report-ledger',
+    reportId: entry.reportId,
+    returnTo,
+  });
+  if (entry.classId) params.set('classId', entry.classId);
+  if (entry.sessionId) params.set('sessionId', entry.sessionId);
+  if (entry.lessonId) params.set('lessonId', entry.lessonId);
+  if (entry.gradingRunId) params.set('gradingRunId', entry.gradingRunId);
+  return `/teacher/grading-workbench?${params.toString()}`;
 }
 
 function MetricCard({

@@ -34,7 +34,7 @@ describe('teacher report and grading audit contracts', () => {
     expect(buildTeacherReportDeliveryState(missingStudent)).toMatchObject({
       status: 'blocked',
       httpStatus: 404,
-      recoveryAction: '回到班级、课堂历史或学生列表选择有效上下文',
+      recoveryAction: '回到班级学生列表选择有效学生后再发送报告',
     });
   });
 
@@ -107,14 +107,51 @@ describe('teacher report and grading audit contracts', () => {
       action: 'summary',
       sessionId: 'session-1',
       lessonId: 'lesson-1',
+      gradingRunId: 'grading-run-1',
+      source: 'classroom-review',
       surface: 'history',
       returnTo: '/teacher/history',
-    })).toBe('/teacher/classes/class-1/analytics-v2?action=summary&report=control-correction&surface=history&returnTo=%2Fteacher%2Fhistory&sessionId=session-1&lessonId=lesson-1');
+    })).toBe('/teacher/classes/class-1/analytics-v2?action=summary&report=control-correction&surface=history&returnTo=%2Fteacher%2Fhistory&sessionId=session-1&lessonId=lesson-1&gradingRunId=grading-run-1&source=classroom-review');
+
+    expect(buildTeacherReportDeliveryHref({
+      classId: 'class-1',
+      action: 'export',
+      sessionId: 'session-2',
+      lessonId: 'lesson-2',
+      source: 'classroom-review',
+      surface: 'classroom-review',
+      returnTo: '/classroom/teacher/session-2/review',
+    })).toBe('/teacher/classes/class-1/analytics-v2?action=export&report=control-correction&surface=classroom-review&returnTo=%2Fclassroom%2Fteacher%2Fsession-2%2Freview&sessionId=session-2&lessonId=lesson-2&source=classroom-review');
 
     expect(buildTeacherReportDeliveryHref({
       classId: null,
       surface: 'history',
     })).toBe('/teacher/classes');
+  });
+
+  it('blocks classroom-review report delivery when the session context is missing', () => {
+    const query = normalizeTeacherReportDeliveryQuery({
+      action: 'export',
+      report: 'control-correction',
+      surface: 'classroom-review',
+      returnTo: '/classroom/teacher/missing-session/review',
+    }, 'class-1');
+    const entry = buildTeacherReportDeliveryLedgerEntry({
+      query,
+      surface: query.surface,
+      now: new Date('2026-06-27T00:00:00.000Z'),
+    });
+
+    expect(entry).toMatchObject({
+      contextState: 'missing-session',
+      deliveryStatus: 'missing-context',
+      recoveryAction: '回到课堂历史选择有效课堂复盘后再进入报告交付',
+    });
+    expect(buildTeacherReportDeliveryState(query)).toMatchObject({
+      status: 'blocked',
+      httpStatus: 404,
+      recoveryAction: '回到课堂历史选择有效课堂复盘后再进入报告交付',
+    });
   });
 
   it('maps every report delivery action to supported teacher states', () => {
@@ -281,9 +318,22 @@ describe('teacher report and grading audit contracts', () => {
     const draft = normalizeTeacherGradingRouteQuery({
       gradingRunId: 'run-1',
       status: 'draft',
+      source: 'report-ledger',
+      reportId: 'control-correction',
+      sessionId: 'session-1',
+      lessonId: 'lesson-1',
+      classId: 'class-1',
+    });
+    expect(draft).toMatchObject({
+      source: 'report-ledger',
+      reportId: 'control-correction',
+      sessionId: 'session-1',
+      lessonId: 'lesson-1',
+      classId: 'class-1',
     });
     expect(buildTeacherGradingRouteState(draft)).toMatchObject({
       status: 'pending',
+      message: '当前评分草稿处于待审批状态，已保留报告 control-correction 与课堂上下文。',
       nextAction: '打开有效 gradingRunId 后审批或返回学生修改',
     });
 
@@ -302,6 +352,10 @@ describe('teacher report and grading audit contracts', () => {
     expect(resolveTeacherReturnTo('/teacher/grading-workbench?gradingRunId=run-1', '/teacher/classes')).toBe(
       '/teacher/grading-workbench?gradingRunId=run-1',
     );
+    expect(resolveTeacherReturnTo('/classroom/teacher/session-1/review', '/teacher/classes')).toBe(
+      '/classroom/teacher/session-1/review',
+    );
+    expect(resolveTeacherReturnTo('/classroom/student/session-1', '/teacher/classes')).toBe('/teacher/classes');
     expect(resolveTeacherReturnTo('/admin/users', '/teacher/classes')).toBe('/teacher/classes');
     expect(resolveTeacherReturnTo('https://evil.example', '/teacher/classes')).toBe('/teacher/classes');
   });

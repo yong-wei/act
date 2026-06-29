@@ -9,17 +9,20 @@ import { TeacherPrepPackReviewSurface } from '@/features/teacher/teacher-prep-pa
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+type TeacherPrepPacksSearchParams = {
+  packId?: string;
+  cluster?: string;
+  classId?: string;
+  graphNodeId?: string;
+  learningGoalId?: string;
+  resourceGapStatus?: string;
+  status?: string;
+};
+
 export default async function TeacherPrepPacksPage({
   searchParams,
 }: {
-  searchParams?: Promise<{
-    packId?: string;
-    cluster?: string;
-    classId?: string;
-    graphNodeId?: string;
-    learningGoalId?: string;
-    resourceGapStatus?: string;
-  }>;
+  searchParams?: Promise<TeacherPrepPacksSearchParams>;
 }) {
   const session = await getServerAuthSession();
   if (!session?.user) {
@@ -75,12 +78,22 @@ export default async function TeacherPrepPacksPage({
     pack = recordRef ? await loadCourseEnhancementPack(prisma, recordRef.id) : null;
   } catch (error) {
     if (isMissingCourseEnhancementPackStorage(error)) {
-      return <TeacherPrepPackReviewSurface pack={null} recovery={{ reason: 'storage-missing' }} />;
+      return <TeacherPrepPackReviewSurface pack={null} recovery={{ reason: 'storage-missing' }} entryContext={buildPrepPackEntryContext(params)} />;
     }
     throw error;
   }
 
-  return <TeacherPrepPackReviewSurface pack={pack} />;
+  return <TeacherPrepPackReviewSurface pack={pack} entryContext={buildPrepPackEntryContext(params)} />;
+}
+
+function buildPrepPackEntryContext(params: TeacherPrepPacksSearchParams | undefined) {
+  return {
+    classId: params?.classId ?? null,
+    clusterId: params?.cluster ?? null,
+    graphNodeId: params?.graphNodeId ?? null,
+    learningGoalId: params?.learningGoalId ?? null,
+    resourceGapStatus: params?.resourceGapStatus ?? null,
+  };
 }
 
 function isMissingCourseEnhancementPackStorage(error: unknown): boolean {

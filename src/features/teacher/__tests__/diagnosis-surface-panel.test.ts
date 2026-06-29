@@ -281,6 +281,13 @@ describe('DiagnosisSurfacePanel', () => {
     const html = renderToStaticMarkup(
       React.createElement(TeacherPrepPackReviewSurface, {
         pack: prepPackFixture,
+        entryContext: {
+          classId: 'class-1',
+          clusterId: 'cluster-terminal-validation',
+          graphNodeId: 'kn:autocontrol:terminal-validation',
+          learningGoalId: 'control-correction',
+          resourceGapStatus: 'partial',
+        },
       })
     );
 
@@ -305,10 +312,15 @@ describe('DiagnosisSurfacePanel', () => {
     expect(html).toContain('data-prep-pack-action="rollback"');
     expect(html).toContain('data-prep-pack-action="impact-evidence"');
     expect(html).toContain('data-prep-pack-action-disabled="false"');
+    expect(html).toContain('data-prep-pack-entry-class-id="class-1"');
+    expect(html).toContain('data-prep-pack-entry-cluster-id="cluster-terminal-validation"');
+    expect(html).toContain('data-prep-pack-entry-graph-node-id="kn:autocontrol:terminal-validation"');
     expect(html).toContain('action="/teacher/prep-packs/actions"');
     expect(html).toContain('method="post"');
     expect(html).toContain('name="packId" value="enhancement-pack-1"');
     expect(html).toContain('name="itemId" value="item-1"');
+    expect(html).toContain('name="clusterId" value="cluster-terminal-validation"');
+    expect(html).toContain('name="resourceGapStatus" value="partial"');
     expect(html).toContain('data-operations-mutates-base-manifest="false"');
   });
 

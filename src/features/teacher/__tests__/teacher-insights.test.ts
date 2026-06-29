@@ -21,6 +21,10 @@ const classAnalyticsSource = readFileSync(
   join(process.cwd(), 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx'),
   'utf8',
 );
+const classroomReviewSource = readFileSync(
+  join(process.cwd(), 'src/app/classroom/teacher/[sessionId]/review/page.tsx'),
+  'utf8',
+);
 const globalsSource = readFileSync(
   join(process.cwd(), 'src/app/globals.css'),
   'utf8',
@@ -146,11 +150,23 @@ describe('teacher-insights helpers', () => {
   it('keeps teacher mobile report and class detail actions announced and named', () => {
     expect(classAnalyticsSource).toContain('data-teacher-report-delivery-status');
     expect(classAnalyticsSource).toContain('data-teacher-report-delivery="mobile-fixed-actions"');
+    expect(classAnalyticsSource).toContain("gradingRunId: searchParams.get('gradingRunId')");
+    expect(classAnalyticsSource).toContain("source: searchParams.get('source')");
+    expect(classAnalyticsSource).toContain('data-report-ledger-context-state={ledgerEntry.contextState}');
+    expect(classAnalyticsSource).toContain('data-report-ledger-grading-context={entry.contextState}');
+    expect(classAnalyticsSource).toContain("source: 'report-ledger'");
+    expect(classAnalyticsSource).toContain("params.set('sessionId', entry.sessionId)");
     expect(classAnalyticsSource).toContain('aria-label="导出教师报告 JSON 文件"');
     expect(classAnalyticsSource).toContain('aria-pressed={heatmapView === view.key}');
     expect(classDetailSource).toContain('data-teacher-class-detail-status');
     expect(classDetailSource).toContain('data-teacher-class-visible-status');
     expect(classDetailSource).toContain('data-teacher-mobile-cards="true"');
+    expect(classDetailSource).toContain('data-teacher-finished-session-delete="available"');
+    expect(classDetailSource).toContain('/api/teacher/sessions?id=');
+    expect(classDetailSource).toContain('data-teacher-prep-pack-entry="class-detail"');
+    expect(classroomReviewSource).toContain('data-teacher-report-delivery="mobile-fixed-actions"');
+    expect(classroomReviewSource).toContain('data-teacher-grading-handoff-link="classroom-review"');
+    expect(classroomReviewSource).toContain("source: 'classroom-review'");
     expect(classDetailSource).toContain('role="dialog" aria-modal="true"');
     expect(classDetailSource).toContain('ref={startDialogRef}');
     expect(classDetailSource).toContain(`event.key === 'Escape'`);
