@@ -1938,8 +1938,11 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("goalToLoad === 'control-correction'");
     expect(source).toContain('learnerState?.pathContext.activeControlCorrectionPath.pathId');
     expect(source).toContain('learnerState?.pathContext.recentPathIds ?? []');
-    expect(source).toContain('uniquePathIds([activePathId, ...fallbackPathIds])');
+    expect(source).toContain('const pathIdsToTry = activePathId');
+    expect(source).toContain('? uniquePathIds([activePathId])');
     expect(source).toContain('uniquePathIds(fallbackPathIds)');
+    expect(source).toContain('loadedPathContextKey === requestedPathContextKey');
+    expect(source).toContain('setLoadedPathContextKey(null)');
     expect(source).toContain('fetchLearningPathRound(pathIdToLoad, goalToLoad)');
     expect(source).toContain('fetchLatestLearningPathRound(goalToLoad)');
     expect(source).toContain('showRecoveredExecutionWorkspace');
