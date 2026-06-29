@@ -28,9 +28,7 @@ export function restoreAdaptiveLearningPathPlanFromRound(
     : Array.isArray(round.alternativePayload)
       ? round.alternativePayload
       : [];
-  const explanations = typeof round.explanationPayload === 'object' && round.explanationPayload
-    ? round.explanationPayload
-    : payload.explanations;
+  const explanations = restoreExplanations(round.explanationPayload, payload.explanations);
 
   return {
     id: round.id,
@@ -57,17 +55,33 @@ export function restoreAdaptiveLearningPathPlanFromRound(
       score: 0,
       sourceCoverage: 0,
     },
-    explanations: (explanations as AdaptiveLearningPathPlan['explanations']) ?? {
-      selectedReasons: [],
-      rejectedAlternatives: [],
-      fallbackReasons: [],
-    },
+    explanations,
     executionStatus: payload.executionStatus as AdaptiveLearningPathPlan['executionStatus'],
     deviations: payload.deviations as AdaptiveLearningPathPlan['deviations'] ?? [],
     corrections: payload.corrections as AdaptiveLearningPathPlan['corrections'] ?? [],
     feedbackEvents: restoreFeedbackEvents(payload),
     visualization: payload.visualization as AdaptiveLearningPathPlan['visualization'],
   };
+}
+
+function restoreExplanations(
+  explanationPayload: Record<string, unknown> | null | undefined,
+  payloadExplanations: unknown,
+): AdaptiveLearningPathPlan['explanations'] {
+  const wrapper = getRecord(explanationPayload);
+  const nested = getRecord(wrapper.explanations);
+  const candidate = Object.keys(nested).length > 0
+    ? nested
+    : Object.keys(wrapper).length > 0
+      ? wrapper
+      : getRecord(payloadExplanations);
+  return Object.keys(candidate).length > 0
+    ? candidate as unknown as AdaptiveLearningPathPlan['explanations']
+    : {
+      selectedReasons: [],
+      rejectedAlternatives: [],
+      fallbackReasons: [],
+    };
 }
 
 function restoreFeedbackEvents(payload: Record<string, unknown>): AdaptiveLearningPathPlan['feedbackEvents'] {
