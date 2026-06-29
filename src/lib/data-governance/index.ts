@@ -49,3 +49,4 @@ export * from './interactive-session-finalization';
 // Structured Associative Retrieval (SAR)
 export * from './structured-associative-retrieval-types';
 export * from './structured-associative-retrieval';
+export * from './sar-association-expansion';

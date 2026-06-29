@@ -1,0 +1,6 @@
+- [x] Implement SAR association expansion input/output and trace contracts.
+- [x] Implement 0-hop, 1-hop, and 2-hop deterministic expansion.
+- [x] Add role/student/class/privacy filtering and rejected-ref reasons.
+- [x] Add candidate-ref output suitable for Source Pack and consumers.
+- [x] Add multi-hop fixture tests, including a Bode margin to controller correction to simulation/Arena chain.
+- [x] Run `openspec validate implement-sar-association-expansion-provider --strict`.
