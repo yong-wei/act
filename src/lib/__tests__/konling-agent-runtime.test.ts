@@ -1905,6 +1905,7 @@ describe('konling agent runtime', () => {
       capabilityTargetRefs: ['capability:root-locus-design'],
       resourceRefs: [],
       pathNodeRefs: [],
+      sarAssociatedGrounding: null,
     });
     expect(contract.groundingContext.missingContext).toEqual([]);
     expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
@@ -3501,6 +3502,283 @@ describe('konling agent runtime', () => {
         queryText: expect.stringContaining('Nyquist 判稳'),
       }),
     ]);
+  });
+
+  it('uses path-advisor SAR candidate refs to guide verified Source Pack retrieval', async () => {
+    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+      {
+        id: 'generic-context',
+        kind: 'chunk',
+        title: '泛化学习建议',
+        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/generic.md#chunk-001',
+        text: '路径建议需要先确认学习目标。',
+        contentHash: 'sha-generic',
+        resourceProjection: {
+          resourceId: 'resource:generic',
+          segmentRef: 'generic-context',
+          citationTargetRef: 'generic-context',
+          knowledgeNodeRefs: ['generic-node'],
+          capabilityTargetRefs: ['generic-capability'],
+        },
+        citationAddress: {
+          kind: 'text',
+          sourceRefId: 'generic-context',
+          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/generic.md#chunk-001',
+          locator: 'chunk-001',
+          contentHash: 'sha-generic',
+        },
+        metadata: {
+          bookId: 'dorf-modern-control-systems',
+          sectionId: 'generic',
+        },
+      },
+      {
+        id: 'sar-path-resource',
+        kind: 'chunk',
+        title: 'SAR 路径资源',
+        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/sar-path.md#chunk-001',
+        text: '这个资源用于解释当前路径节点。',
+        contentHash: 'sha-sar-path',
+        resourceProjection: {
+          resourceId: 'resource:path-sar',
+          segmentRef: 'sar-path-resource',
+          citationTargetRef: 'sar-path-resource',
+          knowledgeNodeRefs: ['path-node'],
+          capabilityTargetRefs: ['path-capability'],
+        },
+        citationAddress: {
+          kind: 'text',
+          sourceRefId: 'sar-path-resource',
+          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/sar-path.md#chunk-001',
+          locator: 'chunk-001',
+          contentHash: 'sha-sar-path',
+        },
+        metadata: {
+          bookId: 'dorf-modern-control-systems',
+          sectionId: 'sar-path',
+        },
+      },
+    ]);
+
+    const runtime = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'control-correction',
+      pageId: 'student-path-center',
+      resourceId: 'resource:path-sar',
+      pathNodeId: 'path-node-1',
+      teachingAssistantModeId: 'path-advisor',
+      currentUserQuery: '我需要一个路径建议。',
+      trustedContentContext: true,
+    });
+
+    expect(runtime.knowledgeCapabilityContext?.sarAssociatedGrounding).toMatchObject({
+      useCase: 'path-planning',
+      candidateRefs: expect.objectContaining({
+        resourceNodeIds: expect.arrayContaining(['resource:path-sar']),
+      }),
+    });
+    expect(runtime.citationContext?.sourcePacks).toEqual([
+      expect.objectContaining({
+        profile: 'konling-answer',
+        retrievalChunkIds: expect.arrayContaining(['textbook-search:sar-path-resource']),
+        citationTargetIds: expect.arrayContaining(['textbook-citation:sar-path-resource']),
+      }),
+    ]);
+    expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'content:textbook-citation:sar-path-resource',
+        evidenceBasis: expect.stringMatching(/^source-pack:konling-answer:/),
+      }),
+    ]));
+  });
+
+  it('builds diagnostic SAR trace metadata for diagnosis explainer scope', async () => {
+    const runtime = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'control-correction',
+      pageId: 'student-learning-overview',
+      pathNodeId: 'diagnosis-node-1',
+      teachingAssistantModeId: 'diagnosis-explainer',
+      currentUserQuery: '为什么当前诊断认为我需要补根轨迹？',
+      trustedContentContext: true,
+    });
+
+    expect(runtime.knowledgeCapabilityContext?.answerIntent).toBe('personalized-diagnosis');
+    expect(runtime.knowledgeCapabilityContext?.sarAssociatedGrounding).toMatchObject({
+      useCase: 'diagnostic-trace',
+      traceSummary: expect.objectContaining({
+        hopCount: expect.any(Number),
+        safeEventSummaries: expect.arrayContaining([
+          expect.stringContaining('personalized-diagnosis'),
+        ]),
+      }),
+    });
+  });
+
+  it('uses resource-coach server mode context for pre-citation SAR seeding', async () => {
+    const runtime = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'control-correction',
+      pageId: 'resource-node-launch',
+      resourceId: 'media-resource-1',
+      teachingAssistantModeId: 'resource-coach',
+      teachingAssistantServerModeContext: {
+        'resource-node': true,
+        'media-resource': true,
+      },
+      currentUserQuery: '这个视频资源该怎么看？',
+      trustedContentContext: true,
+    });
+
+    expect(runtime.knowledgeCapabilityContext?.answerIntent).toBe('media-guidance');
+    expect(runtime.knowledgeCapabilityContext?.sarAssociatedGrounding).toMatchObject({
+      useCase: 'source-pack-seeding',
+      candidateRefs: expect.objectContaining({
+        resourceNodeIds: expect.arrayContaining(['media-resource-1']),
+      }),
+    });
+  });
+
+  it('keeps Source Pack retrieval available when pre-citation SAR has no scope seed refs', async () => {
+    const runtime = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'control-correction',
+      pageId: 'student-path-center',
+      teachingAssistantModeId: 'path-advisor',
+      currentUserQuery: '我需要路径建议。',
+      trustedContentContext: true,
+    });
+
+    expect(runtime.citationContext?.sourcePacks).toEqual([
+      expect.objectContaining({
+        profile: 'konling-answer',
+        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
+      }),
+    ]);
+    expect(runtime.knowledgeCapabilityContext?.sarAssociatedGrounding).toMatchObject({
+      useCase: 'path-planning',
+      candidateRefs: expect.objectContaining({
+        citationTargetIds: expect.arrayContaining(['content:1']),
+      }),
+    });
+    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+  });
+
+  it('redacts SAR trace identifiers from student page-context tool output', async () => {
+    const runtime = createRuntimeContext({
+      permittedTools: ['get_page_context'],
+      knowledgeCapabilityContext: {
+        source: 'server-owned',
+        answerIntent: 'path-advice',
+        knowledgeNodeRefs: [],
+        capabilityTargetRefs: [],
+        resourceRefs: ['resource:student-path'],
+        pathNodeRefs: ['path-node:student-1:private'],
+        citationRefs: [],
+        sarAssociatedGrounding: {
+          source: 'sar-association-expansion',
+          useCase: 'path-planning',
+          seedRefs: ['sar:entity:student:student-1'],
+          associatedEventRefs: ['sar:event:diagnosis-summary:student-1:class-1'],
+          associatedEntityRefs: ['sar:entity:student:student-1'],
+          candidateRefs: {
+            eventIds: ['sar:event:diagnosis-summary:student-1:class-1'],
+            entityIds: ['sar:entity:student:student-1'],
+            citationTargetIds: ['textbook-citation:safe'],
+            retrievalChunkIds: ['textbook-search:safe'],
+            resourceNodeIds: ['resource:student-path'],
+            planningUnitIds: [],
+          },
+          sourcePackSeedRefs: ['sar:event:diagnosis-summary:student-1:class-1', 'textbook-search:safe'],
+          traceSummary: {
+            hopCount: 1,
+            selectedRefCount: 3,
+            rejectedRefCount: 1,
+            safeEventSummaries: ['已脱敏的路径诊断摘要'],
+            limitationCodes: ['source-pack-ranking-required', 'privacy-scope-withheld:teacher-scoped'],
+          },
+          limitations: ['source-pack-ranking-required', 'privacy-scope-withheld:teacher-scoped'],
+        },
+        scope: createScope({ role: 'student', pageId: 'student-path-center' }),
+        missingContext: [],
+      },
+    });
+    const toolRuntime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope({ role: 'student', pageId: 'student-path-center' }),
+      context: runtime,
+    });
+
+    const pageContext = await toolRuntime.getPageContext() as {
+      knowledgeCapabilityContext: NonNullable<KonlingRuntimeContext['knowledgeCapabilityContext']>;
+    };
+    const sar = pageContext.knowledgeCapabilityContext.sarAssociatedGrounding;
+    expect(JSON.stringify(sar)).not.toContain('student-1');
+    expect(JSON.stringify(sar)).not.toContain('class-1');
+    expect(sar?.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:redacted-1']);
+    expect(sar?.traceSummary.safeEventSummaries).toEqual(['已脱敏的路径诊断摘要']);
+    expect(sar?.traceSummary.limitationCodes).toEqual(['source-pack-ranking-required']);
+  });
+
+  it('keeps SAR limitation detail for teacher page-context tool output', async () => {
+    const runtime = createRuntimeContext({
+      permittedTools: ['get_page_context'],
+      knowledgeCapabilityContext: {
+        source: 'server-owned',
+        answerIntent: 'personalized-diagnosis',
+        knowledgeNodeRefs: [],
+        capabilityTargetRefs: [],
+        resourceRefs: ['resource:teacher-report'],
+        pathNodeRefs: [],
+        citationRefs: [],
+        sarAssociatedGrounding: {
+          source: 'sar-association-expansion',
+          useCase: 'diagnostic-trace',
+          seedRefs: ['sar:entity:class:class-1'],
+          associatedEventRefs: ['sar:event:diagnosis-summary:class-1'],
+          associatedEntityRefs: ['sar:entity:class:class-1'],
+          candidateRefs: {
+            eventIds: ['sar:event:diagnosis-summary:class-1'],
+            entityIds: ['sar:entity:class:class-1'],
+            citationTargetIds: [],
+            retrievalChunkIds: [],
+            resourceNodeIds: ['resource:teacher-report'],
+            planningUnitIds: [],
+          },
+          sourcePackSeedRefs: ['sar:event:diagnosis-summary:class-1'],
+          traceSummary: {
+            hopCount: 0,
+            selectedRefCount: 2,
+            rejectedRefCount: 0,
+            safeEventSummaries: ['班级诊断摘要'],
+            limitationCodes: ['no-expansion-hop-selected', 'event-budget:12'],
+          },
+          limitations: ['no-expansion-hop-selected', 'event-budget:12'],
+        },
+        scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', targetUserId: 'teacher-1' }),
+        missingContext: [],
+      },
+    });
+    const toolRuntime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', targetUserId: 'teacher-1' }),
+      context: runtime,
+    });
+
+    const pageContext = await toolRuntime.getPageContext() as {
+      knowledgeCapabilityContext: NonNullable<KonlingRuntimeContext['knowledgeCapabilityContext']>;
+    };
+    const sar = pageContext.knowledgeCapabilityContext.sarAssociatedGrounding;
+    expect(sar?.candidateRefs.resourceNodeIds).toEqual(['resource:teacher-report']);
+    expect(sar?.traceSummary.limitationCodes).toEqual(['no-expansion-hop-selected', 'event-budget:12']);
   });
 
   it('keeps Source Pack content citations when learner personalization evidence is missing', async () => {

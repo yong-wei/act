@@ -264,7 +264,7 @@ export async function POST(request: Request) {
           headers: { 'Content-Type': 'application/json' },
         });
       }
-      const runtimeContext = await buildKonlingRuntimeContext(prisma, {
+      const runtimeInput = {
         authenticatedUserId: session.user.id,
         authenticatedUserName: session.user.name,
         role: session.user.role,
@@ -276,20 +276,27 @@ export async function POST(request: Request) {
         pathNodeId,
         pageContextHint: pageContext,
         knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
+        teachingAssistantModeId,
         currentUserQuery: messages.at(-1)?.role === 'user' ? messages.at(-1)?.content : null,
         trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId),
+      };
+      const preliminaryRuntimeContext = await buildKonlingRuntimeContext(prisma, runtimeInput);
+      const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext({
+        db: prisma,
+        modeId: teachingAssistantModeId,
+        runtimeContext: preliminaryRuntimeContext,
+        scope: scope.scope,
+        clientContextHints: modeClientContextHints,
+      });
+      const runtimeContext = await buildKonlingRuntimeContext(prisma, {
+        ...runtimeInput,
+        teachingAssistantServerModeContext: serverModeContext,
       });
       const modeContract = buildKonlingTeachingAssistantRuntimeContract({
         modeId: teachingAssistantModeId,
         runtimeContext,
         scope: scope.scope,
-        serverModeContext: await resolveKonlingTeachingAssistantServerModeContext({
-          db: prisma,
-          modeId: teachingAssistantModeId,
-          runtimeContext,
-          scope: scope.scope,
-          clientContextHints: modeClientContextHints,
-        }),
+        serverModeContext,
         clientContextHints: modeClientContextHints,
       });
       if (modeContract.status === 'unavailable') {
