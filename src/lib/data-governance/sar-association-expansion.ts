@@ -282,7 +282,7 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
     && (!hop.viaEventId || !rejectedRefSet.has(hop.viaEventId))
   ));
   const seedEntityIdsForTrace = selection.seedEntityIds.filter((entityId) => !rejectedRefSet.has(entityId));
-  const candidateRefs = buildCandidateRefs(events, entities, hops, input.projection);
+  const candidateRefs = buildCandidateRefs(events, entities, hops, input.projection, maxHops);
   if (expandedEvents.length > maxEvents) limitations.add(`event-budget:${maxEvents}`);
   if (expandedEntities.length > maxEntities) limitations.add(`entity-budget:${maxEntities}`);
   if (expansionHops.length === 0 && maxHops > 0) limitations.add('no-expansion-hop-selected');
@@ -367,6 +367,7 @@ function buildCandidateRefs(
   entities: SarRetrievalEntity[],
   hops: SarTraceHop[],
   projection: Pick<SarRetrievalResult, 'events' | 'citationTargetRefs' | 'retrievalChunkRefs'>,
+  maxHops: 0 | 1 | 2,
 ): SarAssociationCandidateRefs {
   const eventIds = new Set(events.map((event) => event.id));
   const hopEntityIds = new Set(hops.flatMap((hop) => [hop.fromEntityId, hop.toEntityId]));
@@ -375,12 +376,14 @@ function buildCandidateRefs(
   const includeProjectionRefs = projection.events.length > 0
     && projection.events.every((event) => eventIds.has(event.id))
     && hasConnectedEvidence;
-  const connectedEvents = events.filter((event) => hopEventIds.has(event.id));
-  const connectedEntities = entities.filter((entity) => (
-    entity.entityType !== 'resource-node'
-    && entity.entityType !== 'planning-unit'
-    && entity.entityType !== 'citation-target'
-  ) || hopEntityIds.has(entity.id));
+  const connectedEvents = events.filter((event) => maxHops === 0 || hopEventIds.has(event.id));
+  const connectedEntities = maxHops === 0
+    ? entities
+    : entities.filter((entity) => (
+        entity.entityType !== 'resource-node'
+        && entity.entityType !== 'planning-unit'
+        && entity.entityType !== 'citation-target'
+      ) || hopEntityIds.has(entity.id));
   return {
     eventIds: events.map((event) => event.id),
     entityIds: entities.map((entity) => entity.id),
@@ -422,17 +425,31 @@ function eventScopeDecision(
   if (!authorityScopeDecision.allowed) return authorityScopeDecision;
   const useCaseScopeDecision = eventUseCaseDecision(event, input.useCase);
   if (!useCaseScopeDecision.allowed) return useCaseScopeDecision;
-  const studentId = stringMetadata(event, 'studentId') ?? stringMetadata(event, 'ownerUserId');
+  const studentId = eventStudentId(event);
   if (studentId && callerScope.role === 'student') {
     if (!callerScope.studentId) return { allowed: false, reason: 'student-scope-required' };
     if (callerScope.studentId !== studentId) return { allowed: false, reason: 'student-scope-mismatch' };
   }
-  const classId = stringMetadata(event, 'classId');
+  const classId = eventClassId(event);
+  if (studentId && callerScope.role === 'teacher' && !classId) {
+    return { allowed: false, reason: 'class-scope-required' };
+  }
   if (classId && (callerScope.role === 'student' || callerScope.role === 'teacher')) {
     if (!callerScope.classId) return { allowed: false, reason: 'class-scope-required' };
     if (callerScope.classId !== classId) return { allowed: false, reason: 'class-scope-mismatch' };
   }
   return { allowed: true };
+}
+
+function eventStudentId(event: SarRetrievalEvent): string | null {
+  return stringMetadata(event, 'studentId')
+    ?? stringMetadata(event, 'ownerUserId')
+    ?? stringSourceRef(event, 'studentId')
+    ?? stringSourceRef(event, 'ownerUserId');
+}
+
+function eventClassId(event: SarRetrievalEvent): string | null {
+  return stringMetadata(event, 'classId') ?? stringSourceRef(event, 'classId');
 }
 
 function entityScopeDecision(
@@ -653,6 +670,11 @@ function roleOrder(role: SarRelationRole): number {
 
 function stringMetadata(event: SarRetrievalEvent, key: string): string | null {
   const value = event.metadata?.[key];
+  return typeof value === 'string' && value.trim() ? value : null;
+}
+
+function stringSourceRef(event: SarRetrievalEvent, key: string): string | null {
+  const value = (event.sourceRef as Record<string, unknown>)[key];
   return typeof value === 'string' && value.trim() ? value : null;
 }
 

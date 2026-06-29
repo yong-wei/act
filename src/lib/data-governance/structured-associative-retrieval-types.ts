@@ -58,6 +58,8 @@ export interface SarSourceRef {
   id: string;
   /** Source owner required by the SAR contract, nested with the source ref. */
   owner: string;
+  ownerUserId?: string | null;
+  classId?: string | null;
   authorityLevel: SarAuthorityLevel;
   freshness: string;
   contentHash?: string;

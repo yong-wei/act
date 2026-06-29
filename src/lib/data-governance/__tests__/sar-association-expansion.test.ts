@@ -140,6 +140,12 @@ describe('SAR association expansion provider', () => {
 
     expect(result.candidateRefs.entityIds).toEqual(['sar:entity:graph-node:knowledge:bode-margin']);
     expect(result.candidateRefs.eventIds).toEqual(['sar:event:graph-node:bode-margin']);
+    expect(result.candidateRefs.citationTargetIds).toEqual(['citation-target:bode-margin']);
+    expect(result.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:bode-margin']);
+    expect(result.sourcePackSeedRefs).toEqual(expect.arrayContaining([
+      'citation-target:bode-margin',
+      'retrieval-chunk:bode-margin',
+    ]));
     expect(result.trace.expansionHops).toEqual([]);
   });
 
@@ -224,6 +230,45 @@ describe('SAR association expansion provider', () => {
     expect(result.trace.rejectedRefs).toContainEqual({
       ref: 'sar:event:learning-fact-summary:private-student',
       reason: 'teacher-scope-required',
+    });
+  });
+
+  it('applies teacher class scope from learner source refs before exposing evidence refs', () => {
+    const restrictedEvent = event({
+      id: 'sar:event:corpus-chunk-summary:private-source-ref',
+      eventType: 'corpus-chunk-summary',
+      privacyScope: 'teacher-scoped',
+      sourceRef: {
+        id: 'chunk:private-source-ref',
+        owner: 'learning-evidence',
+        authorityLevel: 'platform-verified',
+        freshness: 'test',
+        ownerUserId: 'stu-2',
+        classId: 'class-b',
+      } as SarRetrievalEvent['sourceRef'] & { ownerUserId: string; classId: string },
+      metadata: { retrievalChunkId: 'retrieval-chunk:private-source-ref' },
+    });
+    const result = expandSarAssociations({
+      id: 'source-ref-scope',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher' },
+      seedRefs: ['sar:entity:graph-node:knowledge:bode-margin'],
+      projection: projection({
+        events: [restrictedEvent],
+        entities: [entity({ id: 'sar:entity:graph-node:knowledge:bode-margin' })],
+        relations: [
+          relation({ eventId: restrictedEvent.id, entityId: 'sar:entity:graph-node:knowledge:bode-margin' }),
+        ],
+      }),
+      maxHops: 0,
+    });
+
+    expect(result.candidateRefs.eventIds).toEqual([]);
+    expect(result.candidateRefs.retrievalChunkIds).toEqual([]);
+    expect(result.sourcePackSeedRefs).not.toContain('retrieval-chunk:private-source-ref');
+    expect(result.trace.rejectedRefs).toContainEqual({
+      ref: restrictedEvent.id,
+      reason: 'class-scope-required',
     });
   });
 

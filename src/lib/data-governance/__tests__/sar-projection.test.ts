@@ -467,6 +467,10 @@ describe('SAR platform source projections', () => {
       eventType: 'corpus-chunk-summary',
       safeSummary: 'Learner needs support interpreting root-locus breakaway behavior.',
       privacyScope: 'teacher-scoped',
+      sourceRef: {
+        ownerUserId: 'learner-1',
+        classId: 'class-1',
+      },
     });
     expect(result.entities.every((entity) => entity.privacyScope !== 'student-visible')).toBe(true);
     expect(result.events[0].metadata).toMatchObject({
