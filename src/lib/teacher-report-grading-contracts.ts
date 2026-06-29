@@ -58,7 +58,7 @@ export interface TeacherReportDeliveryLedgerEntry {
   lessonId: string | null;
   gradingRunId: string | null;
   source: string | null;
-  contextState: 'ready' | 'missing-class' | 'missing-session' | 'missing-student';
+  contextState: 'ready' | 'missing-class' | 'missing-session' | 'missing-lesson' | 'missing-student';
   actorId: string | null;
   actorRole: string;
   action: TeacherReportDeliveryAction | 'unsupported';
@@ -434,6 +434,7 @@ function getDeliveryContextState(
 ): TeacherReportDeliveryLedgerEntry['contextState'] {
   if (!query.classId || isMissingIdentifier(query.classId)) return 'missing-class';
   if (surface === 'classroom-review' && (!query.sessionId || isMissingIdentifier(query.sessionId))) return 'missing-session';
+  if (surface === 'classroom-review' && (!query.lessonId || isMissingIdentifier(query.lessonId))) return 'missing-lesson';
   if ((action === 'send' || action === 'deliver') && isMissingIdentifier(query.studentId)) return 'missing-student';
   return 'ready';
 }
@@ -445,6 +446,9 @@ function getDeliveryMissingContextSummary(
   if (contextState === 'missing-session') {
     return `无法交付报告：课堂复盘缺少有效 sessionId，报告 ${query.reportId} 不能脱离课堂上下文继续。`;
   }
+  if (contextState === 'missing-lesson') {
+    return `无法交付报告：课堂复盘缺少有效 lessonId，报告 ${query.reportId} 不能脱离教案上下文继续。`;
+  }
   if (contextState === 'missing-student') {
     return `无法交付报告：学生 ${query.studentId} 不存在或不在当前教师可见范围。`;
   }
@@ -453,6 +457,7 @@ function getDeliveryMissingContextSummary(
 
 function getDeliveryRecoveryAction(contextState: TeacherReportDeliveryLedgerEntry['contextState']) {
   if (contextState === 'missing-session') return '回到课堂历史选择有效课堂复盘后再进入报告交付';
+  if (contextState === 'missing-lesson') return '回到课堂历史选择带有有效教案的课堂复盘后再进入报告交付';
   if (contextState === 'missing-student') return '回到班级学生列表选择有效学生后再发送报告';
   return '回到班级、课堂历史或学生列表选择有效上下文';
 }

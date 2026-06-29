@@ -154,6 +154,48 @@ describe('teacher report and grading audit contracts', () => {
     });
   });
 
+  it('blocks classroom-review report delivery when the lesson context is missing', () => {
+    const query = normalizeTeacherReportDeliveryQuery({
+      action: 'export',
+      report: 'control-correction',
+      surface: 'classroom-review',
+      sessionId: 'session-2',
+      returnTo: '/classroom/teacher/session-2/review',
+    }, 'class-1');
+    const entry = buildTeacherReportDeliveryLedgerEntry({
+      query,
+      surface: query.surface,
+      now: new Date('2026-06-27T00:00:00.000Z'),
+    });
+
+    expect(entry).toMatchObject({
+      contextState: 'missing-lesson',
+      deliveryStatus: 'missing-context',
+      recoveryAction: '回到课堂历史选择带有有效教案的课堂复盘后再进入报告交付',
+    });
+    expect(buildTeacherReportDeliveryState(query)).toMatchObject({
+      status: 'blocked',
+      httpStatus: 404,
+      recoveryAction: '回到课堂历史选择带有有效教案的课堂复盘后再进入报告交付',
+    });
+
+    const missingLessonQuery = normalizeTeacherReportDeliveryQuery({
+      action: 'summary',
+      report: 'control-correction',
+      surface: 'classroom-review',
+      sessionId: 'session-2',
+      lessonId: 'missing-lesson',
+    }, 'class-1');
+
+    expect(buildTeacherReportDeliveryLedgerEntry({
+      query: missingLessonQuery,
+      surface: missingLessonQuery.surface,
+    })).toMatchObject({
+      contextState: 'missing-lesson',
+      deliveryStatus: 'missing-context',
+    });
+  });
+
   it('maps every report delivery action to supported teacher states', () => {
     const cases = [
       ['download', 'export', 'pending'],
