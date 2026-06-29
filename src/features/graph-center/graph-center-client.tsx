@@ -10,6 +10,7 @@ import {
   type GraphCenterLearnerOverlayState,
   type GraphCenterOverlayStatus,
   type GraphCenterPayload,
+  type GraphCenterSelectedNodeDetail,
   type GraphCenterResourceCoverageMissingType,
   type GraphCenterResourceCoverageState,
 } from '@/lib/data-governance/graph-center';
@@ -310,6 +311,9 @@ export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplay
                   ))}
                 </DetailGroup>
               )}
+              {payload.selectedNode.associatedEvidence && (
+                <AssociatedEvidenceDetail selectedNode={payload.selectedNode} />
+              )}
               {displayMode === 'learner' && (
                 <LearnerOverlayDetail payload={payload} nodeId={payload.selectedNode.node.id} />
               )}
@@ -335,6 +339,55 @@ export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplay
         </aside>
       </div>
     </section>
+  );
+}
+
+function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterSelectedNodeDetail }) {
+  const associated = selectedNode.associatedEvidence;
+  if (!associated) return null;
+  const hasDraftCandidates = associated.resourceGapSuggestions.length > 0;
+
+  return (
+    <div
+      className="space-y-2 rounded-md border border-platform-border bg-platform-canvas-muted p-2"
+      data-graph-center-sar-association="true"
+      data-graph-center-sar-status={associated.status}
+    >
+      <DetailGroup label="关联证据">
+        <span>事件 {associated.eventCount}</span>
+        <span>候选 {associated.resourceGapSuggestions.length}</span>
+        <span>选中引用 {associated.traceSummary.selectedRefCount}</span>
+      </DetailGroup>
+      {associated.topEvents.length > 0 && (
+        <DetailGroup label="证据摘要">
+          {associated.topEvents.map((event) => (
+            <span key={event.id}>{event.safeSummary}</span>
+          ))}
+        </DetailGroup>
+      )}
+      {hasDraftCandidates && (
+        <DetailGroup label="候选资源缺口">
+          {associated.resourceGapSuggestions.slice(0, 4).map((candidate) => (
+            <span
+              key={`${candidate.refType}:${candidate.ref}`}
+              data-graph-center-sar-candidate="suggested"
+              data-graph-center-sar-candidate-type={candidate.refType}
+            >
+              {candidate.refType} · 建议/草稿
+            </span>
+          ))}
+        </DetailGroup>
+      )}
+      {(associated.traceSummary.expansionHopCount > 0 || associated.limitations.length > 0) && (
+        <DetailGroup label="关联依据">
+          <span>trace hops {associated.traceSummary.expansionHopCount}</span>
+          <span>rejected refs {associated.traceSummary.rejectedRefCount}</span>
+          {associated.limitations.slice(0, 3).map((limitation) => (
+            <span key={limitation}>{limitation}</span>
+          ))}
+        </DetailGroup>
+      )}
+    </div>
   );
 }
 

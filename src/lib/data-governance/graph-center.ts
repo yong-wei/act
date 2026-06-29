@@ -13,11 +13,23 @@ import {
   resourceMatchesGraphCoverageRefs,
 } from './resource-coverage-matching';
 import {
+  projectKaqGraphNodeToSar,
+  projectLearningEvidenceChunkToSar,
+} from './sar-projection';
+import {
+  expandSarAssociations,
+  type SarAssociationCandidateRefs,
+  type SarAssociationExpansionResult,
+} from './sar-association-expansion';
+import {
   PORTRAIT_V2_DIMENSIONS,
   type KaqObjective,
   type KaqObjectiveDomain,
   type PortraitV2DimensionId,
 } from './kaq-objective-taxonomy';
+import type {
+  SarRetrievalResult,
+} from './structured-associative-retrieval';
 import type {
   AdaptiveLearnerState,
   AdaptiveLearnerStateRole,
@@ -107,6 +119,7 @@ export interface GraphCenterPayloadInput {
   classOverlay?: GraphCenterClassOverlayInput;
   viewerRole?: GraphCenterViewerRole;
   resourceFieldCompletionSummary?: ResourceFieldCompletionGraphSummary;
+  sarAssociation?: GraphCenterSarAssociationInput;
 }
 
 export interface GraphCenterDomainOption {
@@ -160,6 +173,55 @@ export interface GraphCenterResourceCoverage {
 }
 
 export type ResourceFieldCompletionGraphSummary = Pick<ResourceFieldCompletionAuditSummary, 'graphCoverageDiagnostics'>;
+
+export interface GraphCenterSarAssociationInput {
+  enabled?: boolean;
+  studentId?: string | null;
+  classId?: string | null;
+  maxEvents?: number;
+  maxEntities?: number;
+  minConfidence?: number;
+}
+
+export interface GraphCenterAssociatedEventSummary {
+  id: string;
+  title: string;
+  safeSummary: string;
+  authorityLevel: string;
+  privacyScope: string;
+}
+
+export interface GraphCenterSarTraceSummary {
+  seedEntityIds: string[];
+  expansionHopCount: number;
+  selectedRefCount: number;
+  rejectedRefCount: number;
+  limitations: string[];
+}
+
+export interface GraphCenterSarResourceGapSuggestion {
+  id: string;
+  ref: string;
+  refType: 'resource-node' | 'retrieval-chunk' | 'citation-target' | 'planning-unit';
+  status: 'suggested';
+  draft: true;
+  suggestedForMissingCoverageTypes: GraphCenterResourceCoverageMissingType[];
+  rationale: {
+    basisEventIds: string[];
+    traceHopCount: number;
+    reason: string;
+  };
+}
+
+export interface GraphCenterAssociatedEvidence {
+  status: 'available' | 'unavailable';
+  eventCount: number;
+  topEvents: GraphCenterAssociatedEventSummary[];
+  traceSummary: GraphCenterSarTraceSummary;
+  candidateRefs: SarAssociationCandidateRefs;
+  resourceGapSuggestions: GraphCenterSarResourceGapSuggestion[];
+  limitations: string[];
+}
 
 export interface GraphCenterActionTarget {
   route: GraphCenterActionRoute;
@@ -294,6 +356,7 @@ export interface GraphCenterSelectedNodeDetail {
   outgoingEdges: KaqGraphEdge[];
   boundResourceRefs: string[];
   resourceCoverage: GraphCenterResourceCoverage;
+  associatedEvidence: GraphCenterAssociatedEvidence | null;
   actions: GraphCenterAction[];
   limitations: GraphCenterLimitation[];
 }
@@ -415,11 +478,14 @@ export function buildGraphCenterPayload(input: GraphCenterPayloadInput = {}): Gr
     filteredNodes,
     filteredEdges,
     resourceCoverage,
+    resourceRegistry,
+    evidenceCorpus,
     limitations,
     {
       viewerRole: input.viewerRole,
       learnerOverlay,
       classOverlay,
+      sarAssociation: input.sarAssociation,
     },
   );
 
@@ -511,11 +577,14 @@ function buildNodeDetails(
   nodes: KaqGraphNode[],
   edges: KaqGraphEdge[],
   resourceCoverage: Record<string, GraphCenterResourceCoverage>,
+  resourceRegistry: ResourceNodeRegistry,
+  evidenceCorpus: LearningEvidenceCorpusChunk[],
   limitations: GraphCenterLimitation[],
   actionContext: {
     viewerRole: GraphCenterViewerRole;
     learnerOverlay: GraphCenterLearnerOverlay;
     classOverlay: GraphCenterClassOverlay;
+    sarAssociation?: GraphCenterSarAssociationInput;
   },
 ): Record<string, GraphCenterSelectedNodeDetail> {
   return Object.fromEntries(nodes.map((node) => {
@@ -533,6 +602,16 @@ function buildNodeDetails(
       outgoingEdges: edges.filter((edge) => edge.sourceNodeId === node.id),
       boundResourceRefs: buildBoundResourceRefs(node),
       resourceCoverage: coverage,
+      associatedEvidence: buildGraphCenterAssociatedEvidence({
+        node,
+        objectives,
+        resourceCoverage: coverage,
+        resourceRegistry,
+        evidenceCorpus,
+        viewerRole: actionContext.viewerRole,
+        sarAssociation: actionContext.sarAssociation,
+        authorizedClassId: sarAuthorizedClassId(actionContext.classOverlay),
+      }),
       actions: buildGraphCenterActions({
         node,
         objectives,
@@ -543,6 +622,311 @@ function buildNodeDetails(
       limitations: nodeLimitations,
     }];
   }));
+}
+
+function buildGraphCenterAssociatedEvidence(input: {
+  node: KaqGraphNode;
+  objectives: KaqObjective[];
+  resourceCoverage: GraphCenterResourceCoverage;
+  resourceRegistry: ResourceNodeRegistry;
+  evidenceCorpus: LearningEvidenceCorpusChunk[];
+  viewerRole: GraphCenterViewerRole;
+  sarAssociation?: GraphCenterSarAssociationInput;
+  authorizedClassId: string | null;
+}): GraphCenterAssociatedEvidence | null {
+  if (!input.sarAssociation?.enabled) return null;
+  const callerRole = graphCenterSarCallerRole(input.viewerRole);
+  if (!callerRole) return null;
+
+  const coverageRefs = buildCoverageRefs(input.node);
+  if (coverageRefs.length === 0) {
+    return {
+      status: 'unavailable',
+      eventCount: 0,
+      topEvents: [],
+      traceSummary: emptySarTraceSummary(['no-graph-coverage-refs']),
+      candidateRefs: emptySarCandidateRefs(),
+      resourceGapSuggestions: [],
+      limitations: ['no-graph-coverage-refs'],
+    };
+  }
+
+  const linkedResourceIdSet = new Set(input.resourceCoverage.linkedResourceIds);
+  const pathEligibleResourceIdSet = new Set(input.resourceCoverage.pathEligibleResourceIds);
+  const coverageRefSet = new Set([input.node.id, ...coverageRefs]);
+  const graphProjection = projectKaqGraphNodeToSar({
+    node: input.node,
+    objectives: input.objectives,
+    portraitDimensions: PORTRAIT_V2_DIMENSIONS,
+    coverageRefs,
+  });
+  const linkedResources = input.resourceRegistry.nodes.filter((resource) => linkedResourceIdSet.has(resource.id));
+  const evidenceProjections = input.evidenceCorpus
+    .filter((chunk) => (
+      chunkMatchesGraphCoverageRefs(chunk, coverageRefs, linkedResources) &&
+      canProjectEvidenceChunkToGraphCenterSar({
+        chunk,
+        callerRole,
+        studentId: input.sarAssociation?.studentId ?? null,
+        classId: input.authorizedClassId,
+      })
+    ))
+    .map((chunk) => ({
+      chunk,
+      projection: projectLearningEvidenceChunkToSar({
+        chunk,
+        coverageRefs,
+        linkedResources,
+      }),
+    }));
+  const projection = mergeSarResults([
+    graphProjection,
+    ...evidenceProjections.map((entry) => entry.projection),
+  ]);
+  const seedRefs = projection.entities
+    .filter((entity) => entity.entityType === 'graph-node' && coverageRefSet.has(entity.canonicalRef))
+    .map((entity) => entity.id);
+  const matchedEvidenceSeedRefs = evidenceProjections
+    .flatMap((entry) => entry.projection.events.map((event) => event.id));
+  const expansion = expandSarAssociations({
+    id: `graph-center:${input.node.id}`,
+    query: input.node.title,
+    useCase: 'graph-context',
+    callerScope: {
+      role: callerRole,
+      ...(input.sarAssociation.studentId ? { studentId: input.sarAssociation.studentId } : {}),
+      ...(input.authorizedClassId && callerRole !== 'student' ? { classId: input.authorizedClassId } : {}),
+    },
+    seedRefs: uniqueSorted([...seedRefs, ...matchedEvidenceSeedRefs]),
+    projection,
+    maxHops: 1,
+    maxEvents: input.sarAssociation.maxEvents ?? 8,
+    maxEntities: input.sarAssociation.maxEntities ?? 12,
+    minConfidence: input.sarAssociation.minConfidence ?? 0.5,
+  });
+  const safeExpansion = projectGraphCenterAssociatedEvidenceForRole(expansion, input.viewerRole);
+  const resourceGapSuggestions = buildSarResourceGapSuggestions({
+    expansion: safeExpansion,
+    missingCoverageTypes: input.resourceCoverage.missingCoverageTypes,
+    linkedResourceIdSet,
+    pathEligibleResourceIdSet,
+  });
+  return {
+    status: safeExpansion.events.length > 0 || resourceGapSuggestions.length > 0
+      ? 'available'
+      : 'unavailable',
+    eventCount: safeExpansion.events.length,
+    topEvents: safeExpansion.events.slice(0, 3).map((event) => ({
+      id: event.id,
+      title: event.title,
+      safeSummary: event.safeSummary,
+      authorityLevel: event.sourceRef.authorityLevel,
+      privacyScope: event.privacyScope,
+    })),
+    traceSummary: {
+      seedEntityIds: safeExpansion.trace.seedEntityIds,
+      expansionHopCount: safeExpansion.trace.expansionHops.length,
+      selectedRefCount: safeExpansion.trace.selectedRefs.length,
+      rejectedRefCount: safeExpansion.trace.rejectedRefs.length,
+      limitations: safeExpansion.limitations,
+    },
+    candidateRefs: safeExpansion.candidateRefs,
+    resourceGapSuggestions,
+    limitations: safeExpansion.limitations,
+  };
+}
+
+function sarAuthorizedClassId(classOverlay: GraphCenterClassOverlay): string | null {
+  if (classOverlay.status === 'unauthorized' || classOverlay.status === 'unavailable') return null;
+  return classOverlay.classId;
+}
+
+function canProjectEvidenceChunkToGraphCenterSar(input: {
+  chunk: LearningEvidenceCorpusChunk;
+  callerRole: 'student' | 'teacher' | 'admin';
+  studentId: string | null;
+  classId: string | null;
+}): boolean {
+  const { chunk, callerRole, studentId, classId } = input;
+  if (!chunk.authority.scopeRule.allowedRoles.includes(callerRole)) return false;
+  if (chunk.authority.scopeRule.visibility !== chunk.privacyClass) return false;
+  if (chunk.privacyClass === 'service-only') return false;
+  if (chunk.privacyClass === 'admin-only') return callerRole === 'admin';
+  if (chunk.authority.scopeRule.classRequired && (!chunk.sourceRef.classId || chunk.sourceRef.classId !== classId)) {
+    return false;
+  }
+  if (chunk.authority.scopeRule.ownerRequired && !chunk.sourceRef.ownerUserId) return false;
+  if (chunk.sourceRef.ownerUserId) {
+    if (callerRole === 'student') return Boolean(studentId && chunk.sourceRef.ownerUserId === studentId);
+    if (callerRole === 'teacher') return Boolean(chunk.sourceRef.classId && chunk.sourceRef.classId === classId);
+    return callerRole === 'admin';
+  }
+  if (chunk.sourceRef.classId && (callerRole === 'student' || callerRole === 'teacher')) {
+    return chunk.sourceRef.classId === classId;
+  }
+  if (chunk.privacyClass === 'teacher-visible') return callerRole === 'teacher' || callerRole === 'admin';
+  if (chunk.privacyClass === 'student-visible') {
+    if (callerRole === 'admin') return true;
+    if (callerRole === 'teacher') return Boolean(classId);
+    return !chunk.sourceRef.ownerUserId || chunk.sourceRef.ownerUserId === studentId;
+  }
+  return chunk.privacyClass === 'public';
+}
+
+function graphCenterSarCallerRole(viewerRole: GraphCenterViewerRole): 'student' | 'teacher' | 'admin' | null {
+  if (viewerRole === 'STUDENT') return 'student';
+  if (viewerRole === 'TEACHER') return 'teacher';
+  if (viewerRole === 'ADMIN') return 'admin';
+  return null;
+}
+
+function projectGraphCenterAssociatedEvidenceForRole(
+  expansion: SarAssociationExpansionResult,
+  viewerRole: GraphCenterViewerRole,
+): SarAssociationExpansionResult {
+  if (viewerRole !== 'STUDENT') return expansion;
+  const eventIdMap = new Map(expansion.events.map((event, index) => [event.id, `sar-event:${index + 1}`]));
+  const entityIdMap = new Map(expansion.entities.map((entity, index) => [entity.id, `sar-entity:${index + 1}`]));
+  return {
+    ...expansion,
+    candidateRefs: {
+      eventIds: expansion.candidateRefs.eventIds.map((id) => eventIdMap.get(id) ?? 'sar-event:redacted'),
+      entityIds: expansion.candidateRefs.entityIds.map((id) => entityIdMap.get(id) ?? 'sar-entity:redacted'),
+      citationTargetIds: expansion.candidateRefs.citationTargetIds.map((_, index) => `citation-target:${index + 1}`),
+      retrievalChunkIds: expansion.candidateRefs.retrievalChunkIds.map((_, index) => `retrieval-chunk:${index + 1}`),
+      resourceNodeIds: expansion.candidateRefs.resourceNodeIds.map((_, index) => `resource-candidate:${index + 1}`),
+      planningUnitIds: expansion.candidateRefs.planningUnitIds.map((_, index) => `planning-unit:${index + 1}`),
+    },
+    events: expansion.events.map((event, index) => ({
+      ...event,
+      id: eventIdMap.get(event.id) ?? `sar-event:${index + 1}`,
+      title: `Associated evidence ${index + 1}`,
+      sourceRef: {
+        ...event.sourceRef,
+        id: `source:${index + 1}`,
+        ownerUserId: undefined,
+        classId: undefined,
+        contentHash: undefined,
+      },
+      metadata: undefined,
+    })),
+    entities: expansion.entities.map((entity, index) => ({
+      ...entity,
+      id: entityIdMap.get(entity.id) ?? `sar-entity:${index + 1}`,
+      canonicalRef: `entity:${index + 1}`,
+      aliases: [],
+    })),
+    trace: {
+      ...expansion.trace,
+      seedEntityIds: expansion.trace.seedEntityIds.map((id) => entityIdMap.get(id) ?? 'sar-entity:redacted'),
+      expansionHops: expansion.trace.expansionHops.map((hop) => ({
+        ...hop,
+        fromEntityId: entityIdMap.get(hop.fromEntityId) ?? 'sar-entity:redacted',
+        toEntityId: entityIdMap.get(hop.toEntityId) ?? 'sar-entity:redacted',
+        ...(hop.viaEventId ? { viaEventId: eventIdMap.get(hop.viaEventId) ?? 'sar-event:redacted' } : {}),
+      })),
+      selectedRefs: expansion.trace.selectedRefs.map((_, index) => `sar-ref:${index + 1}`),
+      rejectedRefs: expansion.trace.rejectedRefs.map((item, index) => ({
+        ref: `sar-rejected:${index + 1}`,
+        reason: item.reason,
+      })),
+    },
+    limitations: expansion.limitations.filter(isStudentVisibleSarLimitation),
+    sourcePackSeedRefs: expansion.sourcePackSeedRefs.map((_, index) => `sar-ref:${index + 1}`),
+  };
+}
+
+function isStudentVisibleSarLimitation(limitation: string): boolean {
+  return [
+    'source-pack-ranking-required',
+    'citation-hydration-required',
+    'no-resolved-seed-refs',
+    'no-expansion-hop-selected',
+  ].includes(limitation) || /^event-budget:\d+$/.test(limitation) || /^entity-budget:\d+$/.test(limitation);
+}
+
+function buildSarResourceGapSuggestions(input: {
+  expansion: SarAssociationExpansionResult;
+  missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
+  linkedResourceIdSet: ReadonlySet<string>;
+  pathEligibleResourceIdSet: ReadonlySet<string>;
+}): GraphCenterSarResourceGapSuggestion[] {
+  if (input.missingCoverageTypes.length === 0) return [];
+  const refs: Array<{ ref: string; refType: GraphCenterSarResourceGapSuggestion['refType'] }> = [
+    ...input.expansion.candidateRefs.resourceNodeIds
+      .filter((ref) => !input.linkedResourceIdSet.has(ref) && !input.pathEligibleResourceIdSet.has(ref))
+      .map((ref) => ({ ref, refType: 'resource-node' as const })),
+    ...input.expansion.candidateRefs.retrievalChunkIds.map((ref) => ({ ref, refType: 'retrieval-chunk' as const })),
+    ...input.expansion.candidateRefs.citationTargetIds.map((ref) => ({ ref, refType: 'citation-target' as const })),
+    ...input.expansion.candidateRefs.planningUnitIds.map((ref) => ({ ref, refType: 'planning-unit' as const })),
+  ];
+  return refs.map(({ ref, refType }, index) => ({
+    id: `sar-gap:${index + 1}`,
+    ref,
+    refType,
+    status: 'suggested',
+    draft: true,
+    suggestedForMissingCoverageTypes: input.missingCoverageTypes,
+    rationale: {
+      basisEventIds: input.expansion.candidateRefs.eventIds,
+      traceHopCount: input.expansion.trace.expansionHops.length,
+      reason: 'SAR associated this candidate with the selected graph node; ResourceNode governance review is still required.',
+    },
+  }));
+}
+
+function mergeSarResults(results: SarRetrievalResult[]): Pick<
+  SarRetrievalResult,
+  'events' | 'entities' | 'relations' | 'citationTargetRefs' | 'retrievalChunkRefs' | 'limitations'
+> & { trace: SarRetrievalResult['trace'] } {
+  const events = uniqueBy(results.flatMap((result) => result.events), (event) => event.id);
+  const entities = uniqueBy(results.flatMap((result) => result.entities), (entity) => entity.id);
+  const relations = uniqueBy(
+    results.flatMap((result) => result.relations),
+    (relation) => `${relation.eventId}:${relation.entityId}:${relation.role}:${relation.source}`,
+  );
+  const limitations = uniqueSorted(results.flatMap((result) => [
+    ...result.limitations,
+    ...result.trace.limitations,
+  ]));
+  return {
+    events,
+    entities,
+    relations,
+    citationTargetRefs: uniqueSorted(results.flatMap((result) => result.citationTargetRefs)),
+    retrievalChunkRefs: uniqueSorted(results.flatMap((result) => result.retrievalChunkRefs)),
+    limitations,
+    trace: {
+      id: 'sar:trace:graph-center',
+      seedEntityIds: uniqueSorted(results.flatMap((result) => result.trace.seedEntityIds)),
+      expansionHops: results.flatMap((result) => result.trace.expansionHops),
+      selectedRefs: uniqueSorted(results.flatMap((result) => result.trace.selectedRefs)),
+      rejectedRefs: results.flatMap((result) => result.trace.rejectedRefs),
+      versionRefs: uniqueSorted(results.flatMap((result) => result.trace.versionRefs)),
+      limitations,
+    },
+  };
+}
+
+function emptySarCandidateRefs(): SarAssociationCandidateRefs {
+  return {
+    eventIds: [],
+    entityIds: [],
+    citationTargetIds: [],
+    retrievalChunkIds: [],
+    resourceNodeIds: [],
+    planningUnitIds: [],
+  };
+}
+
+function emptySarTraceSummary(limitations: string[]): GraphCenterSarTraceSummary {
+  return {
+    seedEntityIds: [],
+    expansionHopCount: 0,
+    selectedRefCount: 0,
+    rejectedRefCount: 0,
+    limitations,
+  };
 }
 
 function buildGraphCenterActions(input: {
@@ -762,7 +1146,7 @@ function buildTeacherGraphCenterActions(input: {
           : '缺少班级上下文，备课包只能进入通用复核入口。',
       target: hasClassContext
         ? buildGraphCenterActionTarget('/teacher/prep-packs', {
-            classId,
+            classId: classRouteId ?? '',
             graphNodeId: input.node.id,
             ...(learningGoalId ? { learningGoalId } : {}),
             resourceGapStatus: input.resourceCoverage.coverageState,
@@ -1471,6 +1855,18 @@ function buildBoundResourceRefs(node: KaqGraphNode): string[] {
 
 function uniqueSorted(values: string[]): string[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+}
+
+function uniqueBy<T>(values: T[], keyFor: (value: T) => string): T[] {
+  const seen = new Set<string>();
+  const result: T[] = [];
+  for (const value of values) {
+    const key = keyFor(value);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(value);
+  }
+  return result;
 }
 
 function nodeMatchesObjective(node: KaqGraphNode, objective: KaqObjective): boolean {

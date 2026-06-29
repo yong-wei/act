@@ -6,6 +6,7 @@ import {
   canReadGraphCenterClassOverlay,
   canReadGraphCenterLearnerOverlay,
 } from '../graph-center';
+import { filterGraphCenterPayload } from '../../../features/graph-center/graph-center-client';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '../../platform-role-navigation';
 import type { AdaptiveLearnerState, MasteryEvidenceReference } from '../adaptive-learner-state-service';
 import {
@@ -50,6 +51,14 @@ const adminDataGovernanceStatusRouteSource = readFileSync(
 );
 const teacherPrepPacksPageSource = readFileSync(
   join(process.cwd(), 'src/app/teacher/prep-packs/page.tsx'),
+  'utf8',
+);
+const graphCenterPageSource = readFileSync(
+  join(process.cwd(), 'src/app/graph-center/page.tsx'),
+  'utf8',
+);
+const graphCenterClientSource = readFileSync(
+  join(process.cwd(), 'src/features/graph-center/graph-center-client.tsx'),
   'utf8',
 );
 
@@ -343,6 +352,230 @@ describe('graph center payload service', () => {
     ]));
     expect(notAuditedPayload.selectedNode?.resourceCoverage.coverageState).toBe('not-audited');
     expect(notAuditedPayload.selectedNode?.resourceCoverage.missingCoverageTypes).toEqual([]);
+  });
+
+  it('shows SAR resource gap suggestions without promoting candidates into official coverage', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-simulation-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'external:sar-simulation-gap',
+        }),
+        ragChunk({
+          id: 'chunk-sar-unrelated-gap',
+          knowledgeNodeRefs: ['unrelated-knowledge-node'],
+          resourceId: 'external:sar-unrelated-gap',
+        }),
+      ],
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-1',
+      },
+    });
+    const coverage = payload.selectedNode?.resourceCoverage;
+    const associated = payload.selectedNode?.associatedEvidence;
+
+    expect(coverage?.linkedResourceCount).toBe(0);
+    expect(coverage?.pathEligibleResourceCount).toBe(0);
+    expect(coverage?.citationReadyCount).toBe(0);
+    expect(coverage?.verifiedCitationCount).toBe(0);
+    expect(coverage?.ragIndexedCount).toBe(1);
+    expect(associated?.status).toBe('available');
+    expect(associated?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-simulation-gap');
+    expect(JSON.stringify(associated)).not.toContain('chunk-sar-unrelated-gap');
+    expect(JSON.stringify(associated)).not.toContain('external:sar-unrelated-gap');
+    expect(associated?.resourceGapSuggestions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        ref: 'chunk-sar-simulation-gap',
+        refType: 'retrieval-chunk',
+        status: 'suggested',
+        draft: true,
+        suggestedForMissingCoverageTypes: expect.arrayContaining([
+          'linked-resource',
+          'path-eligible-resource',
+        ]),
+      }),
+    ]));
+    expect(associated?.resourceGapSuggestions[0]?.rationale.reason).toContain('ResourceNode governance review');
+  });
+
+  it('keeps SAR associated evidence when the client switches from a root payload to another node', () => {
+    const rootPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-switch-target-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'external:sar-switch-target-gap',
+        }),
+      ],
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-1',
+      },
+    });
+    const filtered = filterGraphCenterPayload(rootPayload, {
+      objectiveId: null,
+      portraitDimension: null,
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+    });
+    const associated = filtered.selectedNode?.associatedEvidence;
+
+    expect(filtered.selectedNode?.node.id).toBe('kn:autocontrol:simulation-validation');
+    expect(associated?.status).toBe('available');
+    expect(associated?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-switch-target-gap');
+    expect(associated?.resourceGapSuggestions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        ref: 'chunk-sar-switch-target-gap',
+        status: 'suggested',
+        draft: true,
+      }),
+    ]));
+  });
+
+  it('does not trust raw SAR classId without an authorized class overlay', () => {
+    const unauthorizedPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-unowned-class-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'secret-resource-class-2',
+          classId: 'class-2',
+          privacyClass: 'teacher-visible',
+        }),
+      ],
+      classOverlay: {
+        classId: 'class-2',
+        viewerRole: 'teacher',
+        authorized: false,
+        learnerStates: [],
+      },
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-2',
+      },
+    });
+    const authorizedPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-owned-class-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'owned-resource-class-1',
+          classId: 'class-1',
+          privacyClass: 'teacher-visible',
+        }),
+      ],
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: true,
+        learnerStates: [],
+      },
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-2',
+      },
+    });
+
+    expect(unauthorizedPayload.classOverlay.status).toBe('unauthorized');
+    expect(unauthorizedPayload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).not.toContain('chunk-sar-unowned-class-gap');
+    expect(unauthorizedPayload.selectedNode?.associatedEvidence?.candidateRefs.resourceNodeIds).not.toContain('secret-resource-class-2');
+    expect(unauthorizedPayload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual([]);
+    expect(JSON.stringify(unauthorizedPayload.selectedNode?.associatedEvidence)).not.toContain('secret-resource-class-2');
+    expect(JSON.stringify(unauthorizedPayload.selectedNode?.associatedEvidence)).not.toContain('chunk-sar-unowned-class-gap');
+
+    expect(authorizedPayload.classOverlay.status).toBe('empty');
+    expect(authorizedPayload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-owned-class-gap');
+    expect(authorizedPayload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        ref: 'chunk-sar-owned-class-gap',
+        status: 'suggested',
+        draft: true,
+      }),
+    ]));
+  });
+
+  it('does not expose owner-scoped SAR limitations from a raw teacher learnerId without authorized class scope', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-unowned-learner-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'secret-resource-learner-2',
+          ownerUserId: 'learner-2',
+          classId: 'class-2',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      sarAssociation: {
+        enabled: true,
+        studentId: 'learner-2',
+      },
+    });
+    const serialized = JSON.stringify(payload.selectedNode?.associatedEvidence);
+
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).not.toContain('chunk-sar-unowned-learner-gap');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.resourceNodeIds).not.toContain('secret-resource-learner-2');
+    expect(payload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual([]);
+    expect(serialized).not.toContain('chunk-sar-unowned-learner-gap');
+    expect(serialized).not.toContain('secret-resource-learner-2');
+    expect(serialized).not.toContain('learner-2');
+    expect(serialized).not.toContain('class-2');
+  });
+
+  it('redacts student SAR associated evidence refs while preserving safe summaries', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'STUDENT',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-student-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'private-teacher-resource',
+        }),
+      ],
+      sarAssociation: {
+        enabled: true,
+        studentId: 'learner-1',
+        classId: 'class-1',
+      },
+    });
+    const associated = payload.selectedNode?.associatedEvidence;
+    const serialized = JSON.stringify(associated);
+
+    expect(associated?.status).toBe('available');
+    expect(associated?.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:1']);
+    expect(associated?.candidateRefs.resourceNodeIds).toEqual(['resource-candidate:1']);
+    expect(associated?.topEvents[0]?.safeSummary).toBeTruthy();
+    expect(serialized).not.toContain('chunk-sar-student-gap');
+    expect(serialized).not.toContain('private-teacher-resource');
+    expect(serialized).not.toContain('external:sar-simulation-gap');
+  });
+
+  it('wires Graph Center SAR associated evidence into the page and detail panel', () => {
+    expect(graphCenterPageSource).toContain('sarAssociation');
+    expect(graphCenterPageSource).toContain('enabled: true');
+    expect(graphCenterPageSource).toContain("session.user.role === 'STUDENT' ? session.user.id : params?.learnerId ?? null");
+    expect(graphCenterPageSource).toContain("session.user.role === 'STUDENT' ? null : params?.classId ?? null");
+    expect(graphCenterClientSource).toContain('payload.selectedNode.associatedEvidence');
+    expect(graphCenterClientSource).toContain('data-graph-center-sar-association="true"');
+    expect(graphCenterClientSource).toContain('data-graph-center-sar-candidate="suggested"');
+    expect(graphCenterClientSource).toContain('建议/草稿');
   });
 
   it('projects textbook runtime search documents into citation-verifiable coverage corpus without raw text', () => {
@@ -1295,17 +1528,21 @@ function ragChunk(input: {
   citationAddress?: LearningEvidenceCorpusChunk['citationAddress'];
   contentHash?: string;
   resourceId?: string;
+  ownerUserId?: string | null;
+  classId?: string | null;
+  privacyClass?: LearningEvidenceCorpusChunk['privacyClass'];
 }): LearningEvidenceCorpusChunk {
   const contentHash = input.contentHash ?? `${input.id}:hash`;
   const resourceId = input.resourceId ?? input.id;
+  const privacyClass = input.privacyClass ?? 'public';
   return createLearningEvidenceCorpusChunk({
     id: input.id,
     family: 'course-content',
     sourceType: 'course-content',
     sourceRef: {
       id: input.id,
-      ownerUserId: null,
-      classId: null,
+      ownerUserId: input.ownerUserId ?? null,
+      classId: input.classId ?? null,
       goalId: 'graph-resource-coverage',
       resourceId,
     },
@@ -1330,7 +1567,7 @@ function ragChunk(input: {
       contentHash,
       versionRefs: buildKaqArtifactVersionRefs(),
     },
-    privacyClass: 'public',
+    privacyClass,
     confidence: 'high',
     freshness: {
       indexedAt: '2026-06-21T00:00:00.000Z',
@@ -1344,8 +1581,10 @@ function ragChunk(input: {
       pageAnchor: 'section#coverage',
       freshnessBucket: 'current',
       scopeRule: {
-        visibility: 'public',
+        visibility: privacyClass,
         allowedRoles: ['student', 'teacher', 'admin', 'service'],
+        ownerRequired: Boolean(input.ownerUserId),
+        classRequired: Boolean(input.classId),
       },
       conflictGroup: null,
       conflictSignal: null,
