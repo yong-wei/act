@@ -41,7 +41,7 @@ describe('adaptive practice page entry states', () => {
     expect(refreshBlock).toContain('Keep the explicit URL path stable instead of switching to latest.');
     expect(refreshBlock.indexOf('if (activePathId)')).toBeLessThan(refreshBlock.indexOf('fetchLatestLearningPathRound(activeGoal)'));
     expect(refreshBlock.indexOf('fetchLearningPathRound(activePathId, activeGoal)')).toBeLessThan(refreshBlock.indexOf('fetchLatestLearningPathRound(activeGoal)'));
-    expect(refreshBlock).toContain('}, [activeGoal, activePathId, authStatus, isDemoMode]);');
+    expect(refreshBlock).toContain('}, [activeGoal, activePathId, authStatus, isDemoMode, requestedPathContextKey]);');
   });
 
   it('binds adaptive quiz outcomes into path result cards', () => {
@@ -81,9 +81,9 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("data-adaptive-path-workspace-intent={workspaceIntent}");
     expect(source).toContain("const showPracticeWorkspace = workspaceIntent === 'practice'");
     expect(source).toContain('const showPresetGoalCards = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;');
-    expect(source).toContain("showSelectionWorkspace ? (");
-    expect(source).toContain("(showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
-    expect(source).toContain("showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace");
+    expect(source).toContain("showSelectionWorkspace && !showPathContextRecovery ? (");
+    expect(source).toContain("!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
+    expect(source).toContain("!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)");
     expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (");
     expect(source).toContain("showSelectionWorkspace || showEvidenceWorkspace ? (");
     expect(source).toContain("pathChoiceMessage && (showGenerationWorkspace || showSelectionWorkspace)");
@@ -102,6 +102,28 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("option.activeNodeIds?.[0] ?? option.nodeIds?.[0]");
   });
 
+  it('renders explicit path recovery instead of fake progress for missing path contexts', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain('resolveAdaptivePathContextRecoveryState({');
+    expect(source).toContain('const [pathContextLoadState, setPathContextLoadState]');
+    expect(source).toContain('const [loadedPathContextKey, setLoadedPathContextKey]');
+    expect(source).toContain("const requestedPathContextKey = activeGoal");
+    expect(source).toContain('loadedPathContextKey === requestedPathContextKey');
+    expect(source).toContain('const pathIdsToTry = activePathId');
+    expect(source).toContain('? uniquePathIds([activePathId])');
+    expect(source).toContain(': uniquePathIds(fallbackPathIds)');
+    expect(source).toContain('setActivePathPlan(null);\n        setActivePathRound(null);');
+    expect(source).toContain('const showPathContextRecovery = pathContextRecoveryState.shouldRecover;');
+    expect(source).toContain('data-adaptive-path-recovery-state={pathContextRecoveryState.reason}');
+    expect(source).toContain('data-adaptive-path-recovery-intent={workspaceIntent}');
+    expect(source).toContain("data-adaptive-path-recovery-path-id={activePathId ?? 'missing'}");
+    expect(source).toContain('暂不展示进度或执行入口');
+    expect(source).toContain('data-adaptive-path-recovery-action="generate-path"');
+    expect(source).toContain('data-adaptive-path-recovery-action="review-evidence"');
+    expect(source).toContain('data-adaptive-path-recovery-action="return-to-task"');
+  });
+
   it('keeps demo path state available for execution and visual QA routes', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
@@ -112,7 +134,7 @@ describe('adaptive practice page entry states', () => {
     );
 
     expect(learnerStateEffectStart).toBeGreaterThan(-1);
-    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setActiveLearnerState(null);\n      return;\n    }');
+    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setActiveLearnerState(null);\n      setPathContextLoadState(\'ready\');\n      setLoadedPathContextKey(requestedPathContextKey);\n      return;\n    }');
     expect(source).not.toContain('if (!activeGoal || isDemoMode) {\n      setActiveLearnerState(null);');
     expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setActivePathPlan(null);');
     expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setActivePathRound(null);');

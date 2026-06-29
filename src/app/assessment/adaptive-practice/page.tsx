@@ -62,7 +62,11 @@ import {
   type AdaptivePathAdvisorQuickPrompt,
   type AdaptivePracticeGoalId,
 } from '@/lib/adaptive-path-goal-options';
-import { resolveAdaptivePathExecutionNodeStatus } from '@/lib/adaptive-path-execution-state';
+import {
+  resolveAdaptivePathContextRecoveryState,
+  resolveAdaptivePathExecutionNodeStatus,
+  type AdaptivePathContextLoadState,
+} from '@/lib/adaptive-path-execution-state';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 
@@ -1335,6 +1339,8 @@ export default function AdaptivePracticePage() {
   const [activeLearnerState, setActiveLearnerState] = useState<AdaptiveLearnerState | null>(null);
   const [activePathPlan, setActivePathPlan] = useState<AdaptiveLearningPathPlan | null>(null);
   const [activePathRound, setActivePathRound] = useState<LearningPathRoundView | null>(null);
+  const [pathContextLoadState, setPathContextLoadState] = useState<AdaptivePathContextLoadState>('idle');
+  const [loadedPathContextKey, setLoadedPathContextKey] = useState<string | null>(null);
   const [pathChoicePending, setPathChoicePending] = useState<string | null>(null);
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
@@ -1380,6 +1386,34 @@ export default function AdaptivePracticePage() {
     () => getPathExecutionNodes(activePathPlan, activePathRound, selectedExecutionOption),
     [activePathPlan, activePathRound, selectedExecutionOption],
   );
+  const requestedPathContextKey = activeGoal
+    ? `${activeGoal}:${activePathId ? `path:${activePathId}` : 'implicit'}`
+    : null;
+  const hasLoadedCurrentPathContext = Boolean(
+    (activePathPlan || activePathRound) &&
+    requestedPathContextKey &&
+    loadedPathContextKey === requestedPathContextKey,
+  );
+  const pathContextRecoveryState = useMemo(() => resolveAdaptivePathContextRecoveryState({
+    workspaceIntent,
+    activeGoal: Boolean(activeGoal),
+    authStatus,
+    isDemoMode,
+    requestedPathId: activePathId,
+    hasLoadedPathContext: hasLoadedCurrentPathContext,
+    loadState: pathContextLoadState,
+  }), [activeGoal, activePathId, authStatus, hasLoadedCurrentPathContext, isDemoMode, pathContextLoadState, workspaceIntent]);
+  const showPathContextRecovery = pathContextRecoveryState.shouldRecover;
+  const pathContextRecoveryEvidenceHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (activeGoal) params.set('goal', activeGoal);
+    if (activePathId) params.set('pathId', activePathId);
+    if (activeNodeId) params.set('nodeId', activeNodeId);
+    params.set('source', 'adaptive-path-center');
+    const query = params.toString();
+    return withFeedbackTaskHref(`/profile/evidence${query ? `?${query}` : ''}`);
+  }, [activeGoal, activeNodeId, activePathId, withFeedbackTaskHref]);
+  const pathContextRecoveryReturnHref = feedbackContext?.returnHref ?? withFeedbackTaskHref('/assessment/adaptive-practice');
   useEffect(() => {
     if (activeNodeId) setSelectedPathNodeId(activeNodeId);
   }, [activeNodeId]);
@@ -1591,15 +1625,20 @@ export default function AdaptivePracticePage() {
       setActiveLearnerState(null);
       setActivePathPlan(null);
       setActivePathRound(null);
+      setPathContextLoadState('idle');
+      setLoadedPathContextKey(null);
       return;
     }
 
     if (isDemoMode) {
       setActiveLearnerState(null);
+      setPathContextLoadState('ready');
+      setLoadedPathContextKey(requestedPathContextKey);
       return;
     }
 
     if (authStatus === 'loading') {
+      setPathContextLoadState('loading');
       return;
     }
 
@@ -1607,12 +1646,22 @@ export default function AdaptivePracticePage() {
       setActiveLearnerState(null);
       setActivePathPlan(null);
       setActivePathRound(null);
+      setPathContextLoadState('missing');
+      setLoadedPathContextKey(null);
       return;
     }
 
     const goalToLoad = activeGoal;
+    const requestContextKey = requestedPathContextKey;
     let cancelled = false;
     async function loadAdaptivePathCenterData() {
+      const requiresRoutePathContext = showSelectionWorkspace || showExecutionWorkspace || showEvidenceWorkspace;
+      setPathContextLoadState(requiresRoutePathContext || activePathId ? 'loading' : 'idle');
+      setLoadedPathContextKey(null);
+      if (requiresRoutePathContext || activePathId) {
+        setActivePathPlan(null);
+        setActivePathRound(null);
+      }
       let learnerState: AdaptiveLearnerState | null = null;
       try {
         const learnerResponse = await fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(goalToLoad)}`);
@@ -1634,7 +1683,9 @@ export default function AdaptivePracticePage() {
           : []),
         ...(learnerState?.pathContext.recentPathIds ?? []),
       ];
-      const pathIdsToTry = uniquePathIds([activePathId, ...fallbackPathIds]);
+      const pathIdsToTry = activePathId
+        ? uniquePathIds([activePathId])
+        : uniquePathIds(fallbackPathIds);
       let loadedMatchingPath = false;
       for (const pathIdToLoad of pathIdsToTry) {
         if (cancelled) return;
@@ -1643,6 +1694,8 @@ export default function AdaptivePracticePage() {
           if (!cancelled && loaded) {
             setActivePathRound(loaded.round);
             setActivePathPlan(loaded.plan);
+            setPathContextLoadState('ready');
+            setLoadedPathContextKey(requestContextKey);
             loadedMatchingPath = true;
             break;
           }
@@ -1656,6 +1709,8 @@ export default function AdaptivePracticePage() {
           if (!cancelled && latest) {
             setActivePathRound(latest.round);
             setActivePathPlan(latest.plan);
+            setPathContextLoadState('ready');
+            setLoadedPathContextKey(requestContextKey);
             loadedMatchingPath = true;
           }
         } catch {
@@ -1665,14 +1720,17 @@ export default function AdaptivePracticePage() {
       if (!loadedMatchingPath && !cancelled) {
         setActivePathPlan(null);
         setActivePathRound(null);
+        setPathContextLoadState(requiresRoutePathContext || activePathId ? 'missing' : 'idle');
+        setLoadedPathContextKey(null);
       }
+      if (cancelled) return;
     }
 
     void loadAdaptivePathCenterData();
     return () => {
       cancelled = true;
     };
-  }, [activeGoal, activeGoalLabel, activePathId, authStatus, isDemoMode]);
+  }, [activeGoal, activeGoalLabel, activePathId, authStatus, isDemoMode, requestedPathContextKey, showEvidenceWorkspace, showExecutionWorkspace, showSelectionWorkspace]);
 
   const reloadActiveLearningPath = useCallback(async () => {
     const pathIdToLoad = activePathRound?.id ??
@@ -1687,7 +1745,8 @@ export default function AdaptivePracticePage() {
     const payload = (await pathResponse.json()) as LearningPathRoundResponse;
     setActivePathRound(payload.path ?? null);
     setActivePathPlan(restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null));
-  }, [activeGoal, activePathId, activeLearnerState, activePathRound]);
+    setLoadedPathContextKey(payload.path ? requestedPathContextKey : null);
+  }, [activeGoal, activePathId, activeLearnerState, activePathRound, requestedPathContextKey]);
 
   const refreshLatestLearningPathAfterKonling = useCallback(async () => {
     if (!activeGoal || isDemoMode || authStatus !== 'authenticated') return;
@@ -1709,6 +1768,7 @@ export default function AdaptivePracticePage() {
         if (loaded) {
           setActivePathRound(loaded.round);
           setActivePathPlan(loaded.plan);
+          setLoadedPathContextKey(requestedPathContextKey);
         }
       } catch {
         // Keep the explicit URL path stable instead of switching to latest.
@@ -1721,6 +1781,7 @@ export default function AdaptivePracticePage() {
       if (latest) {
         setActivePathRound(latest.round);
         setActivePathPlan(latest.plan);
+        setLoadedPathContextKey(requestedPathContextKey);
         setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
         return;
       }
@@ -1741,6 +1802,7 @@ export default function AdaptivePracticePage() {
         if (loaded) {
           setActivePathRound(loaded.round);
           setActivePathPlan(loaded.plan);
+          setLoadedPathContextKey(requestedPathContextKey);
           setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
           return;
         }
@@ -1748,7 +1810,7 @@ export default function AdaptivePracticePage() {
         // Try the next path id.
       }
     }
-  }, [activeGoal, activePathId, authStatus, isDemoMode]);
+  }, [activeGoal, activePathId, authStatus, isDemoMode, requestedPathContextKey]);
 
   useEffect(() => {
     const handleAdaptivePathUpdated = () => {
@@ -2722,7 +2784,89 @@ export default function AdaptivePracticePage() {
             </p>
           ) : null}
 
-          {showSelectionWorkspace ? (
+          {showPathContextRecovery ? (
+            <section
+              className="surface-card p-5"
+              role="status"
+              aria-live="polite"
+              data-adaptive-path-recovery-state={pathContextRecoveryState.reason}
+              data-adaptive-path-recovery-intent={workspaceIntent}
+              data-adaptive-path-recovery-path-id={activePathId ?? 'missing'}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium text-primary">路径恢复</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">{pathContextRecoveryState.title}</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-subtle">{pathContextRecoveryState.detail}</p>
+                </div>
+                <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
+                  {workspaceIntent === 'evidence-review'
+                    ? '证据复核'
+                    : workspaceIntent === 'execution'
+                      ? '路径执行'
+                      : '路径选择'}
+                </span>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <div className="rounded-lg border border-border bg-muted/30 p-3">
+                  <p className="text-xs text-subtle">请求动作</p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">
+                    {workspaceIntent === 'evidence-review'
+                      ? '复核路径证据'
+                      : workspaceIntent === 'execution'
+                        ? '继续执行路径'
+                        : '选择学习路径'}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/30 p-3">
+                  <p className="text-xs text-subtle">路径来源</p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">{activePathId ? '链接中的路径不可用' : '当前目标尚未生成路径'}</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/30 p-3">
+                  <p className="text-xs text-subtle">当前状态</p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">暂不展示进度或执行入口</p>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {pathContextRecoveryState.reason === 'auth-required' ? (
+                  <Link
+                    href={loginHref}
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                  >
+                    <ExternalLink className="size-4" aria-hidden="true" />
+                    登录后继续
+                  </Link>
+                ) : (
+                  <Link
+                    href={activeGoal ? withFeedbackTaskHref(buildPathGenerationGoalHref(activeGoal, pathGenerationPanel)) : feedbackGenericPathGenerationHref}
+                    data-adaptive-path-recovery-action="generate-path"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                  >
+                    <Sparkles className="size-4" aria-hidden="true" />
+                    生成学习路径
+                  </Link>
+                )}
+                <Link
+                  href={pathContextRecoveryEvidenceHref}
+                  data-adaptive-path-recovery-action="review-evidence"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+                >
+                  <History className="size-4" aria-hidden="true" />
+                  查看学习证据
+                </Link>
+                <Link
+                  href={pathContextRecoveryReturnHref}
+                  data-adaptive-path-recovery-action="return-to-task"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+                >
+                  <ExternalLink className="size-4" aria-hidden="true" />
+                  返回来源
+                </Link>
+              </div>
+            </section>
+          ) : null}
+
+          {showSelectionWorkspace && !showPathContextRecovery ? (
             <section
               className="surface-card p-5"
               data-learning-path-product-surface="path-options-selection-history-terminal-validation"
@@ -3052,7 +3196,7 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          {(showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
+          {!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
             <section className="grid gap-4">
               {showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
               <div className="surface-card p-5" data-adaptive-path-execution-surface="active-route">
@@ -3356,7 +3500,7 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          {showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace ? (
+          {!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) ? (
           <section className="grid gap-4">
             {showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
             <div className="surface-card p-5" data-adaptive-practice-resource="path-node">
