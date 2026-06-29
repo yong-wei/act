@@ -14,7 +14,7 @@
 
 | Change | 范围 | 主要审计证据 | 当前状态 |
 | --- | --- | --- | --- |
-| `audit-remediation-p0-stability` | 注册、空教案发课、教师投影、课前包 500 | `chapters/09-function-state-flows.md`、`chapters/10-function-state-flows-batch2.md`、`chapters/06-course-teacher-waiting-runtime-demo-all.md`、`chapters/02-authenticated-role-flows.md`、`chapters/38-function-state-flows-batch30.md`、`chapters/57-function-state-flows-batch49.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-p0-stability/evidence.md`；2026-06-29 台账映射清理：finding 132/133 已从未标记阻断集合移出，证据：`remediation/audit-report-closure-ledger-cleanup/evidence.md` |
+| `audit-remediation-p0-stability` | 注册、空教案发课、教师投影、课前包 500 | `chapters/09-function-state-flows.md`、`chapters/10-function-state-flows-batch2.md`、`chapters/06-course-teacher-waiting-runtime-demo-all.md`、`chapters/02-authenticated-role-flows.md`、`chapters/38-function-state-flows-batch30.md`、`chapters/57-function-state-flows-batch49.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-p0-stability/evidence.md`；2026-06-29 台账映射清理：finding 132/133/328 已从未标记阻断集合移出，证据：`remediation/audit-report-closure-ledger-cleanup/evidence.md` |
 | `audit-remediation-action-status-contract` | 全站动作状态、下载/导出、提交/审批/写回、`alert/live` | `chapters/49-function-state-flows-batch41.md`、`chapters/50-function-state-flows-batch42.md`、`chapters/51-function-state-flows-batch43.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | foundation remediated 2026-06-21；证据：`remediation/audit-remediation-action-status-contract/evidence.md`；具体页面缺陷待后续垂直变更关闭 |
 | `audit-remediation-api-ui-contracts` | URL 参数、搜索筛选、分页、坏 ID、API/UI 口径 | `chapters/52-function-state-flows-batch44.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | foundation + admin users no-match remediated 2026-06-21；证据：`remediation/audit-remediation-api-ui-contracts/evidence.md`；其余 deep link 页面待后续垂直变更关闭 |
 | `audit-remediation-student-learning-closure` | 学生报告反馈、任务、自适应练习、证据、成长、作品集写回 | `chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | proposed |
@@ -856,6 +856,7 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 328. P0：教师课前包真实班级路由返回 500。
    `/teacher/prep-packs?classId=cmma7g0590004g9q2nl2jyzdf` 在桌面和移动都返回 500，只剩 Next 错误页和 Reload。
+   台账状态（2026-06-29，`audit-report-closure-ledger-cleanup`）：mapping-cleaned / closed by archived evidence。`audit-remediation-p0-stability` 任务 3.2 已覆盖 class-scoped 课前包恢复态，`chapters/57-function-state-flows-batch49.md` 已在 2026-06-21 标记该 finding 已修复；本次同步主报告映射，证据见 `remediation/audit-remediation-p0-stability/evidence.md` 与 `remediation/audit-report-closure-ledger-cleanup/evidence.md`。
 
 329. P1：管理员治理风险仍不可处置。
    治理页和 API 都能展示 170 个风险，但 drilldown 后没有进入证据、分派、标记处理、批量处置、撤销或审计记录。
