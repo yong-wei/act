@@ -55,6 +55,9 @@ describe('teacher report and grading UI source contracts', () => {
     expect(history).toContain('data-teacher-report-delivery-link="history"');
     expect(classroomReview).toContain('data-report-ledger-surface="classroom-review-report-delivery"');
     expect(classroomReview).toContain('data-teacher-report-delivery-link="classroom-review-footer"');
+    expect(classroomReview).toContain('plan: {');
+    expect(classroomReview).toContain('id: true,');
+    expect(classroomReview).toContain('const reviewLessonId = lessonIds[0] ?? session.plan.id');
     expect(classroomReview).not.toContain('href="/review/extracurricular-showcase"');
     expect(reportBookLayout).toContain('buildTeacherReportDeliveryLedgerEntry');
     expect(reportBookLayout).toContain('buildTeacherReportDeliveryState');

@@ -507,6 +507,7 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
       status: true,
       plan: {
         select: {
+          id: true,
           title: true,
         },
       },
@@ -743,7 +744,7 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
     reportData: session.classSessionReports[0]?.reportData,
   })
   const governanceSummary = sessionStatistics.governanceSummary
-  const reviewLessonId = lessonIds[0] ?? session.id
+  const reviewLessonId = lessonIds[0] ?? session.plan.id
   const reportDeliveryHref = buildTeacherReportDeliveryHref({
     classId: classContext.class.id,
     action: 'export',
