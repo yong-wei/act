@@ -275,6 +275,7 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
     expandedEvents,
     expandedEntities,
     expansionHops,
+    relationsByEvent,
     seedEntityIds,
     eventDepth,
     maxEvents,
@@ -607,6 +608,7 @@ function budgetConnectedSelection(input: {
   expandedEvents: SarRetrievalEvent[];
   expandedEntities: SarRetrievalEntity[];
   expansionHops: SarTraceHop[];
+  relationsByEvent: ReadonlyMap<string, SarRetrievalEventEntity[]>;
   seedEntityIds: ReadonlySet<string>;
   eventDepth: ReadonlyMap<string, number>;
   maxEvents: number;
@@ -646,12 +648,16 @@ function budgetConnectedSelection(input: {
     && (!hop.viaEventId || eventBudgetIds.has(hop.viaEventId))
   ));
   const eventsNeededByHops = new Set(selectedHops.map((hop) => hop.viaEventId).filter(isPresent));
-  const directEventIds = new Set(input.expandedEvents
+  const selectedEventIds = new Set(input.expandedEvents
     .filter((event) => eventBudgetIds.has(event.id))
-    .filter((event) => (input.eventDepth.get(event.id) ?? Number.MAX_SAFE_INTEGER) === 0)
-    .filter(() => selectedEntityIds.size > 0)
+    .filter((event) => {
+      if (selectedEntityIds.size === 0) return false;
+      if ((input.eventDepth.get(event.id) ?? Number.MAX_SAFE_INTEGER) === 0) return true;
+      if (eventsNeededByHops.has(event.id)) return true;
+      const relations = input.relationsByEvent.get(event.id) ?? [];
+      return relations.length > 0 && relations.every((relation) => selectedEntityIds.has(relation.entityId));
+    })
     .map((event) => event.id));
-  const selectedEventIds = new Set([...eventsNeededByHops, ...directEventIds]);
   const selectedEvents = input.expandedEvents.filter((event) => selectedEventIds.has(event.id));
 
   return {

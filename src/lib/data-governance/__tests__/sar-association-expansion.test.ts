@@ -220,6 +220,57 @@ describe('SAR association expansion provider', () => {
     expect(twoHop.trace.expansionHops).toHaveLength(3);
   });
 
+  it('keeps terminal events reached within the hop budget', () => {
+    const seedEntity = entity({ id: 'sar:entity:graph-node:knowledge:bode-margin' });
+    const expandedEntity = entity({
+      id: 'sar:entity:learning-goal:terminal-evidence',
+      entityType: 'learning-goal',
+      canonicalRef: 'terminal-evidence',
+      label: 'Terminal evidence',
+    });
+    const bridgeEvent = event({ id: 'sar:event:graph-node:terminal-bridge' });
+    const terminalEvent = event({
+      id: 'sar:event:simulation-summary:terminal-evidence',
+      eventType: 'simulation-summary',
+      metadata: {
+        citationTargetId: 'citation-target:terminal-evidence',
+        retrievalChunkId: 'retrieval-chunk:terminal-evidence',
+      },
+    });
+
+    const result = expandSarAssociations({
+      id: 'terminal-event',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: [seedEntity.id],
+      projection: projection({
+        events: [bridgeEvent, terminalEvent],
+        entities: [seedEntity, expandedEntity],
+        relations: [
+          relation({ eventId: bridgeEvent.id, entityId: seedEntity.id }),
+          relation({ eventId: bridgeEvent.id, entityId: expandedEntity.id }),
+          relation({ eventId: terminalEvent.id, entityId: expandedEntity.id }),
+        ],
+      }),
+      maxHops: 2,
+    });
+
+    expect(result.candidateRefs.entityIds).toEqual([seedEntity.id, expandedEntity.id]);
+    expect(result.candidateRefs.eventIds).toEqual([bridgeEvent.id, terminalEvent.id]);
+    expect(result.candidateRefs.citationTargetIds).toEqual(['citation-target:terminal-evidence']);
+    expect(result.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:terminal-evidence']);
+    expect(result.sourcePackSeedRefs).toEqual(expect.arrayContaining([
+      'citation-target:terminal-evidence',
+      'retrieval-chunk:terminal-evidence',
+      terminalEvent.id,
+    ]));
+    expect(result.trace.expansionHops).toEqual([expect.objectContaining({
+      fromEntityId: seedEntity.id,
+      toEntityId: expandedEntity.id,
+      viaEventId: bridgeEvent.id,
+    })]);
+  });
+
   it('filters restricted caller scope before exposing candidates', () => {
     const restrictedEvent = event({
       id: 'sar:event:learning-fact-summary:private-student',
@@ -824,6 +875,31 @@ describe('SAR association expansion provider', () => {
     expect(result.trace.selectedRefs).not.toContain('citation-target:projection-top');
     expect(result.trace.selectedRefs).not.toContain('retrieval-chunk:projection-top');
     expect(result.sourcePackSeedRefs).not.toContain('retrieval-chunk:projection-top');
+  });
+
+  it('keeps refs from entity-budgeted terminal events out of source-pack refs', () => {
+    const result = expandSarAssociations({
+      id: 'budgeted-terminal-event',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: ['sar:entity:graph-node:knowledge:bode-margin'],
+      projection: teachingFixture(),
+      maxHops: 2,
+      maxEvents: 2,
+      maxEntities: 2,
+    });
+
+    expect(result.candidateRefs.entityIds).toEqual([
+      'sar:entity:graph-node:knowledge:bode-margin',
+      'sar:entity:learning-goal:control-correction',
+    ]);
+    expect(result.candidateRefs.eventIds).toEqual(['sar:event:graph-node:bode-margin']);
+    expect(result.candidateRefs.resourceNodeIds).toEqual([]);
+    expect(result.candidateRefs.planningUnitIds).toEqual([]);
+    expect(result.trace.selectedRefs).not.toContain('citation-target:projection-top');
+    expect(result.trace.selectedRefs).not.toContain('retrieval-chunk:projection-top');
+    expect(result.sourcePackSeedRefs).not.toContain('simulation:control-correction');
+    expect(result.sourcePackSeedRefs).not.toContain('planning-unit:control-correction');
   });
 
   it('keeps rejected events out of candidate and source-pack refs', () => {
