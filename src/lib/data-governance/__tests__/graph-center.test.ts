@@ -537,6 +537,228 @@ describe('graph center payload service', () => {
     expect(serialized).not.toContain('class-2');
   });
 
+  it('uses authorized learner overlay class scope for teacher personal-view SAR candidates', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-owned-learner-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'owned-resource-learner-1',
+          ownerUserId: 'learner-1',
+          classId: 'class-1',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-1',
+          targetId: 'kn:autocontrol:simulation-validation',
+          score: 0.42,
+          confidence: 0.7,
+          evidenceCount: 2,
+          classId: 'class-1',
+        }),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'teacher',
+        authorized: true,
+      },
+      sarAssociation: {
+        enabled: true,
+        studentId: 'learner-1',
+      },
+    });
+
+    expect(payload.learnerOverlay.classId).toBe('class-1');
+    expect(payload.classOverlay.status).toBe('unavailable');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-owned-learner-gap');
+    expect(payload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        ref: 'chunk-sar-owned-learner-gap',
+        status: 'suggested',
+        draft: true,
+      }),
+    ]));
+  });
+
+  it('does not include same-class owner-scoped SAR candidates for another learner in teacher personal view', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-other-learner-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'other-learner-resource',
+          ownerUserId: 'learner-2',
+          classId: 'class-1',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-1',
+          targetId: 'kn:autocontrol:simulation-validation',
+          score: 0.42,
+          confidence: 0.7,
+          evidenceCount: 2,
+          classId: 'class-1',
+        }),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'teacher',
+        authorized: true,
+      },
+      sarAssociation: {
+        enabled: true,
+        studentId: 'learner-1',
+      },
+    });
+    const serialized = JSON.stringify(payload.selectedNode?.associatedEvidence);
+
+    expect(payload.learnerOverlay.classId).toBe('class-1');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).not.toContain('chunk-sar-other-learner-gap');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.resourceNodeIds).not.toContain('other-learner-resource');
+    expect(payload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual([]);
+    expect(serialized).not.toContain('chunk-sar-other-learner-gap');
+    expect(serialized).not.toContain('other-learner-resource');
+    expect(serialized).not.toContain('learner-2');
+  });
+
+  it('keeps teacher personal-view SAR scoped to the authorized learner when class overlay is also present', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-own-learner-with-class-overlay',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'own-learner-resource',
+          ownerUserId: 'learner-1',
+          classId: 'class-1',
+          privacyClass: 'student-visible',
+        }),
+        ragChunk({
+          id: 'chunk-sar-other-learner-with-class-overlay',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'other-learner-resource-with-class-overlay',
+          ownerUserId: 'learner-2',
+          classId: 'class-1',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-1',
+          targetId: 'kn:autocontrol:simulation-validation',
+          score: 0.42,
+          confidence: 0.7,
+          evidenceCount: 2,
+          classId: 'class-1',
+        }),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'teacher',
+        authorized: true,
+      },
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: true,
+        learnerStates: [
+          learnerState({
+            userId: 'learner-1',
+            targetId: 'kn:autocontrol:simulation-validation',
+            score: 0.42,
+            confidence: 0.7,
+            evidenceCount: 2,
+            classId: 'class-1',
+          }),
+          learnerState({
+            userId: 'learner-2',
+            targetId: 'kn:autocontrol:simulation-validation',
+            score: 0.2,
+            confidence: 0.6,
+            evidenceCount: 1,
+            classId: 'class-1',
+          }),
+        ],
+      },
+      sarAssociation: {
+        enabled: true,
+        studentId: 'learner-1',
+      },
+    });
+    const serialized = JSON.stringify(payload.selectedNode?.associatedEvidence);
+
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-own-learner-with-class-overlay');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).not.toContain('chunk-sar-other-learner-with-class-overlay');
+    expect(payload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        ref: 'chunk-sar-own-learner-with-class-overlay',
+        status: 'suggested',
+        draft: true,
+      }),
+    ]));
+    expect(serialized).not.toContain('chunk-sar-other-learner-with-class-overlay');
+    expect(serialized).not.toContain('other-learner-resource-with-class-overlay');
+    expect(serialized).not.toContain('learner-2');
+  });
+
+  it('keeps empty teacher personal-view SAR scoped to the requested learner when class overlay is also present', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-empty-own-learner',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'empty-own-learner-resource',
+          ownerUserId: 'learner-1',
+          classId: 'class-1',
+          privacyClass: 'student-visible',
+        }),
+        ragChunk({
+          id: 'chunk-sar-empty-other-learner',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'empty-other-learner-resource',
+          ownerUserId: 'learner-2',
+          classId: 'class-1',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      learnerOverlay: {
+        state: null,
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'teacher',
+        authorized: true,
+      },
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: true,
+        learnerStates: [],
+      },
+      sarAssociation: {
+        enabled: true,
+        studentId: 'learner-1',
+      },
+    });
+    const serialized = JSON.stringify(payload.selectedNode?.associatedEvidence);
+
+    expect(payload.learnerOverlay.status).toBe('empty');
+    expect(payload.learnerOverlay.classId).toBeNull();
+    expect(payload.classOverlay.classId).toBe('class-1');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-empty-own-learner');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).not.toContain('chunk-sar-empty-other-learner');
+    expect(serialized).not.toContain('chunk-sar-empty-other-learner');
+    expect(serialized).not.toContain('empty-other-learner-resource');
+    expect(serialized).not.toContain('learner-2');
+  });
+
   it('redacts student SAR associated evidence refs while preserving safe summaries', () => {
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',

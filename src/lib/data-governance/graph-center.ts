@@ -291,6 +291,7 @@ export interface GraphCenterLearnerOverlayItem {
 export interface GraphCenterLearnerOverlay {
   status: GraphCenterOverlayStatus;
   learnerId: string | null;
+  classId: string | null;
   generatedAt: string | null;
   items: Record<string, GraphCenterLearnerOverlayItem>;
   limitations: GraphCenterLimitation[];
@@ -610,7 +611,7 @@ function buildNodeDetails(
         evidenceCorpus,
         viewerRole: actionContext.viewerRole,
         sarAssociation: actionContext.sarAssociation,
-        authorizedClassId: sarAuthorizedClassId(actionContext.classOverlay),
+        authorizedScope: sarAuthorizedScope(actionContext.learnerOverlay, actionContext.classOverlay, actionContext.sarAssociation?.studentId ?? null),
       }),
       actions: buildGraphCenterActions({
         node,
@@ -632,7 +633,7 @@ function buildGraphCenterAssociatedEvidence(input: {
   evidenceCorpus: LearningEvidenceCorpusChunk[];
   viewerRole: GraphCenterViewerRole;
   sarAssociation?: GraphCenterSarAssociationInput;
-  authorizedClassId: string | null;
+  authorizedScope: GraphCenterSarAuthorizedScope;
 }): GraphCenterAssociatedEvidence | null {
   if (!input.sarAssociation?.enabled) return null;
   const callerRole = graphCenterSarCallerRole(input.viewerRole);
@@ -668,7 +669,7 @@ function buildGraphCenterAssociatedEvidence(input: {
         chunk,
         callerRole,
         studentId: input.sarAssociation?.studentId ?? null,
-        classId: input.authorizedClassId,
+        authorizedScope: input.authorizedScope,
       })
     ))
     .map((chunk) => ({
@@ -695,7 +696,7 @@ function buildGraphCenterAssociatedEvidence(input: {
     callerScope: {
       role: callerRole,
       ...(input.sarAssociation.studentId ? { studentId: input.sarAssociation.studentId } : {}),
-      ...(input.authorizedClassId && callerRole !== 'student' ? { classId: input.authorizedClassId } : {}),
+      ...(input.authorizedScope.classId && callerRole !== 'student' ? { classId: input.authorizedScope.classId } : {}),
     },
     seedRefs: uniqueSorted([...seedRefs, ...matchedEvidenceSeedRefs]),
     projection,
@@ -736,18 +737,43 @@ function buildGraphCenterAssociatedEvidence(input: {
   };
 }
 
-function sarAuthorizedClassId(classOverlay: GraphCenterClassOverlay): string | null {
-  if (classOverlay.status === 'unauthorized' || classOverlay.status === 'unavailable') return null;
-  return classOverlay.classId;
+interface GraphCenterSarAuthorizedScope {
+  classId: string | null;
+  learnerId: string | null;
+}
+
+function sarAuthorizedScope(
+  learnerOverlay: GraphCenterLearnerOverlay,
+  classOverlay: GraphCenterClassOverlay,
+  requestedStudentId: string | null,
+): GraphCenterSarAuthorizedScope {
+  if (
+    requestedStudentId &&
+    learnerOverlay.status !== 'unauthorized' &&
+    learnerOverlay.status !== 'unavailable' &&
+    learnerOverlay.learnerId === requestedStudentId
+  ) {
+    const classId = learnerOverlay.classId
+      ?? (classOverlay.status !== 'unauthorized' && classOverlay.status !== 'unavailable' ? classOverlay.classId : null);
+    return { classId, learnerId: learnerOverlay.learnerId };
+  }
+  if (classOverlay.status !== 'unauthorized' && classOverlay.status !== 'unavailable' && classOverlay.classId) {
+    return { classId: classOverlay.classId, learnerId: null };
+  }
+  if (learnerOverlay.status !== 'unauthorized' && learnerOverlay.status !== 'unavailable' && learnerOverlay.classId) {
+    return { classId: learnerOverlay.classId, learnerId: learnerOverlay.learnerId };
+  }
+  return { classId: null, learnerId: null };
 }
 
 function canProjectEvidenceChunkToGraphCenterSar(input: {
   chunk: LearningEvidenceCorpusChunk;
   callerRole: 'student' | 'teacher' | 'admin';
   studentId: string | null;
-  classId: string | null;
+  authorizedScope: GraphCenterSarAuthorizedScope;
 }): boolean {
-  const { chunk, callerRole, studentId, classId } = input;
+  const { chunk, callerRole, studentId, authorizedScope } = input;
+  const classId = authorizedScope.classId;
   if (!chunk.authority.scopeRule.allowedRoles.includes(callerRole)) return false;
   if (chunk.authority.scopeRule.visibility !== chunk.privacyClass) return false;
   if (chunk.privacyClass === 'service-only') return false;
@@ -758,7 +784,10 @@ function canProjectEvidenceChunkToGraphCenterSar(input: {
   if (chunk.authority.scopeRule.ownerRequired && !chunk.sourceRef.ownerUserId) return false;
   if (chunk.sourceRef.ownerUserId) {
     if (callerRole === 'student') return Boolean(studentId && chunk.sourceRef.ownerUserId === studentId);
-    if (callerRole === 'teacher') return Boolean(chunk.sourceRef.classId && chunk.sourceRef.classId === classId);
+    if (callerRole === 'teacher') {
+      if (!chunk.sourceRef.classId || chunk.sourceRef.classId !== classId) return false;
+      return !authorizedScope.learnerId || chunk.sourceRef.ownerUserId === authorizedScope.learnerId;
+    }
     return callerRole === 'admin';
   }
   if (chunk.sourceRef.classId && (callerRole === 'student' || callerRole === 'teacher')) {
@@ -1314,6 +1343,7 @@ function buildLearnerGraphOverlay(
     return {
       status: 'unavailable',
       learnerId: null,
+      classId: null,
       generatedAt: null,
       items: {},
       limitations: [{
@@ -1327,6 +1357,7 @@ function buildLearnerGraphOverlay(
     return {
       status: 'unauthorized',
       learnerId: null,
+      classId: null,
       generatedAt: null,
       items: {},
       limitations: [{
@@ -1340,6 +1371,7 @@ function buildLearnerGraphOverlay(
     return {
       status: 'empty',
       learnerId: input.requestedLearnerId,
+      classId: null,
       generatedAt: null,
       items: {},
       limitations: [{
@@ -1378,6 +1410,7 @@ function buildLearnerGraphOverlay(
   return {
     status,
     learnerId: input.requestedLearnerId,
+    classId: state.roleScope.classId,
     generatedAt: state.generatedAt,
     items,
     limitations,
