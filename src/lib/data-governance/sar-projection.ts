@@ -422,6 +422,8 @@ export function projectLearningEvidenceChunkToSar(input: LearningEvidenceChunkSa
       sourceRef: {
         id: chunk.sourceRef.id,
         owner: chunk.sourceType,
+        ownerUserId: chunk.sourceRef.ownerUserId ?? null,
+        classId: chunk.sourceRef.classId ?? null,
         authorityLevel: evidenceAuthority(chunk.authority.level),
         freshness: chunk.freshness.indexedAt,
         contentHash: chunk.content.hash,
