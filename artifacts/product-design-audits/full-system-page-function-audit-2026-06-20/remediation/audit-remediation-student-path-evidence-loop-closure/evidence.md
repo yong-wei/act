@@ -27,5 +27,6 @@
 ## 本地验证
 
 - `rtk npx vitest run src/lib/__tests__/adaptive-path-execution-state.test.ts src/features/assessment/__tests__/adaptive-practice-page.test.ts`
+- `rtk npx vitest run src/lib/__tests__/adaptive-learning-center-ui.test.ts`
 - `rtk npx vitest run src/lib/__tests__/student-feedback-task-contract.test.ts src/lib/__tests__/student-feedback-task-ui-source.test.ts`
 - `rtk npx eslint src/app/assessment/adaptive-practice/page.tsx src/lib/adaptive-path-execution-state.ts src/lib/__tests__/adaptive-path-execution-state.test.ts src/features/assessment/__tests__/adaptive-practice-page.test.ts --max-warnings=0`

@@ -38,10 +38,10 @@ describe('adaptive practice page entry states', () => {
 
     expect(refreshBlock).toContain('if (activePathId)');
     expect(refreshBlock).toContain('fetchLearningPathRound(activePathId, activeGoal)');
-    expect(refreshBlock).toContain('Keep the explicit URL path stable instead of switching to latest.');
+    expect(refreshBlock).toContain("clearLoadedPathContext(loaded.status === 'failed' ? 'failed' : 'missing');");
     expect(refreshBlock.indexOf('if (activePathId)')).toBeLessThan(refreshBlock.indexOf('fetchLatestLearningPathRound(activeGoal)'));
     expect(refreshBlock.indexOf('fetchLearningPathRound(activePathId, activeGoal)')).toBeLessThan(refreshBlock.indexOf('fetchLatestLearningPathRound(activeGoal)'));
-    expect(refreshBlock).toContain('}, [activeGoal, activePathId, authStatus, isDemoMode, requestedPathContextKey]);');
+    expect(refreshBlock).toContain('}, [activeGoal, activePathId, authStatus, clearLoadedPathContext, isDemoMode, requestedPathContextKey]);');
   });
 
   it('binds adaptive quiz outcomes into path result cards', () => {
@@ -110,6 +110,8 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('const [loadedPathContextKey, setLoadedPathContextKey]');
     expect(source).toContain("const requestedPathContextKey = activeGoal");
     expect(source).toContain('loadedPathContextKey === requestedPathContextKey');
+    expect(source).toContain('const clearLoadedPathContext = useCallback');
+    expect(source).toContain("clearLoadedPathContext(pathLoadFailed ? 'failed' : 'missing');");
     expect(source).toContain('const pathIdsToTry = activePathId');
     expect(source).toContain('? uniquePathIds([activePathId])');
     expect(source).toContain(': uniquePathIds(fallbackPathIds)');
@@ -119,6 +121,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('data-adaptive-path-recovery-intent={workspaceIntent}');
     expect(source).toContain("data-adaptive-path-recovery-path-id={activePathId ?? 'missing'}");
     expect(source).toContain('暂不展示进度或执行入口');
+    expect(source).toContain('路径服务暂时不可用');
     expect(source).toContain('data-adaptive-path-recovery-action="generate-path"');
     expect(source).toContain('data-adaptive-path-recovery-action="review-evidence"');
     expect(source).toContain('data-adaptive-path-recovery-action="return-to-task"');

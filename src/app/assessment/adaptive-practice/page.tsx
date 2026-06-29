@@ -673,27 +673,40 @@ function compactPathNodeTitle(title?: string): string {
   return title.length > 12 ? '入门诊断' : title;
 }
 
+type LearningPathRoundLoadResult =
+  | { status: 'loaded'; round: LearningPathRoundView; plan: AdaptiveLearningPathPlan }
+  | { status: 'missing' }
+  | { status: 'failed' };
+
 async function fetchLearningPathRound(
   pathId: string,
   goalId: AdaptivePracticeGoalId,
-): Promise<{ round: LearningPathRoundView; plan: AdaptiveLearningPathPlan } | null> {
-  const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}`);
-  if (!pathResponse.ok) return null;
-  const payload = (await pathResponse.json()) as LearningPathRoundResponse;
-  const restoredPlan = restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null);
-  if (payload.path?.goalId !== goalId || !restoredPlan) return null;
-  return { round: payload.path, plan: restoredPlan };
+): Promise<LearningPathRoundLoadResult> {
+  try {
+    const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}`);
+    if (!pathResponse.ok) return pathResponse.status === 404 ? { status: 'missing' } : { status: 'failed' };
+    const payload = (await pathResponse.json()) as LearningPathRoundResponse;
+    const restoredPlan = restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null);
+    if (payload.path?.goalId !== goalId || !restoredPlan) return { status: 'missing' };
+    return { status: 'loaded', round: payload.path, plan: restoredPlan };
+  } catch {
+    return { status: 'failed' };
+  }
 }
 
 async function fetchLatestLearningPathRound(
   goalId: AdaptivePracticeGoalId,
-): Promise<{ round: LearningPathRoundView; plan: AdaptiveLearningPathPlan } | null> {
-  const pathResponse = await fetch(`/api/learning-paths/latest?goal=${encodeURIComponent(goalId)}`);
-  if (!pathResponse.ok) return null;
-  const payload = (await pathResponse.json()) as LearningPathRoundResponse;
-  const restoredPlan = restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null);
-  if (payload.path?.goalId !== goalId || !restoredPlan) return null;
-  return { round: payload.path, plan: restoredPlan };
+): Promise<LearningPathRoundLoadResult> {
+  try {
+    const pathResponse = await fetch(`/api/learning-paths/latest?goal=${encodeURIComponent(goalId)}`);
+    if (!pathResponse.ok) return { status: 'failed' };
+    const payload = (await pathResponse.json()) as LearningPathRoundResponse;
+    const restoredPlan = restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null);
+    if (payload.path?.goalId !== goalId || !restoredPlan) return { status: 'missing' };
+    return { status: 'loaded', round: payload.path, plan: restoredPlan };
+  } catch {
+    return { status: 'failed' };
+  }
 }
 
 function controlCorrectionAlternativeCount(view: ControlCorrectionLearningCenterView): number {
@@ -1479,6 +1492,13 @@ export default function AdaptivePracticePage() {
     setPathChoiceMessage('请先登录并生成路径后再记录选择。');
   }, []);
 
+  const clearLoadedPathContext = useCallback((loadState: AdaptivePathContextLoadState) => {
+    setActivePathRound(null);
+    setActivePathPlan(null);
+    setLoadedPathContextKey(null);
+    setPathContextLoadState(loadState);
+  }, []);
+
   const openPathGenerationAdvisor = useCallback(() => {
     if (!assistantEntryPoint || assistantEntryPoint.mode !== 'path-advisor') return;
     openAssistantEntryPoint(assistantEntryPoint);
@@ -1687,40 +1707,40 @@ export default function AdaptivePracticePage() {
         ? uniquePathIds([activePathId])
         : uniquePathIds(fallbackPathIds);
       let loadedMatchingPath = false;
+      let pathLoadFailed = false;
       for (const pathIdToLoad of pathIdsToTry) {
         if (cancelled) return;
-        try {
-          const loaded = await fetchLearningPathRound(pathIdToLoad, goalToLoad);
-          if (!cancelled && loaded) {
-            setActivePathRound(loaded.round);
-            setActivePathPlan(loaded.plan);
-            setPathContextLoadState('ready');
-            setLoadedPathContextKey(requestContextKey);
-            loadedMatchingPath = true;
-            break;
-          }
-        } catch {
-          // Try the next recent path before falling back to an empty center.
+        const loaded = await fetchLearningPathRound(pathIdToLoad, goalToLoad);
+        if (loaded.status === 'failed') {
+          pathLoadFailed = true;
+          continue;
+        }
+        if (!cancelled && loaded.status === 'loaded') {
+          setActivePathRound(loaded.round);
+          setActivePathPlan(loaded.plan);
+          setPathContextLoadState('ready');
+          setLoadedPathContextKey(requestContextKey);
+          loadedMatchingPath = true;
+          break;
         }
       }
       if (!loadedMatchingPath && !activePathId && !cancelled) {
-        try {
-          const latest = await fetchLatestLearningPathRound(goalToLoad);
-          if (!cancelled && latest) {
-            setActivePathRound(latest.round);
-            setActivePathPlan(latest.plan);
-            setPathContextLoadState('ready');
-            setLoadedPathContextKey(requestContextKey);
-            loadedMatchingPath = true;
-          }
-        } catch {
-          // Keep the center in cold-start mode when no latest path is available.
+        const latest = await fetchLatestLearningPathRound(goalToLoad);
+        if (latest.status === 'failed') {
+          pathLoadFailed = true;
+        }
+        if (!cancelled && latest.status === 'loaded') {
+          setActivePathRound(latest.round);
+          setActivePathPlan(latest.plan);
+          setPathContextLoadState('ready');
+          setLoadedPathContextKey(requestContextKey);
+          loadedMatchingPath = true;
         }
       }
       if (!loadedMatchingPath && !cancelled) {
         setActivePathPlan(null);
         setActivePathRound(null);
-        setPathContextLoadState(requiresRoutePathContext || activePathId ? 'missing' : 'idle');
+        setPathContextLoadState(pathLoadFailed ? 'failed' : requiresRoutePathContext || activePathId ? 'missing' : 'idle');
         setLoadedPathContextKey(null);
       }
       if (cancelled) return;
@@ -1763,30 +1783,26 @@ export default function AdaptivePracticePage() {
     }
 
     if (activePathId) {
-      try {
-        const loaded = await fetchLearningPathRound(activePathId, activeGoal);
-        if (loaded) {
-          setActivePathRound(loaded.round);
-          setActivePathPlan(loaded.plan);
-          setLoadedPathContextKey(requestedPathContextKey);
-        }
-      } catch {
-        // Keep the explicit URL path stable instead of switching to latest.
+      const loaded = await fetchLearningPathRound(activePathId, activeGoal);
+      if (loaded.status === 'loaded') {
+        setActivePathRound(loaded.round);
+        setActivePathPlan(loaded.plan);
+        setLoadedPathContextKey(requestedPathContextKey);
+        setPathContextLoadState('ready');
+      } else {
+        clearLoadedPathContext(loaded.status === 'failed' ? 'failed' : 'missing');
       }
       return;
     }
 
-    try {
-      const latest = await fetchLatestLearningPathRound(activeGoal);
-      if (latest) {
-        setActivePathRound(latest.round);
-        setActivePathPlan(latest.plan);
-        setLoadedPathContextKey(requestedPathContextKey);
-        setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
-        return;
-      }
-    } catch {
-      // Fall back to learner-state hints when the latest path is not readable yet.
+    const latest = await fetchLatestLearningPathRound(activeGoal);
+    if (latest.status === 'loaded') {
+      setActivePathRound(latest.round);
+      setActivePathPlan(latest.plan);
+      setLoadedPathContextKey(requestedPathContextKey);
+      setPathContextLoadState('ready');
+      setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
+      return;
     }
 
     const fallbackPathIds = [
@@ -1796,21 +1812,24 @@ export default function AdaptivePracticePage() {
       ...(learnerState?.pathContext.recentPathIds ?? []),
     ];
     const pathIdsToTry = uniquePathIds(fallbackPathIds);
+    let pathLoadFailed = latest.status === 'failed';
     for (const pathIdToLoad of pathIdsToTry) {
-      try {
-        const loaded = await fetchLearningPathRound(pathIdToLoad, activeGoal);
-        if (loaded) {
-          setActivePathRound(loaded.round);
-          setActivePathPlan(loaded.plan);
-          setLoadedPathContextKey(requestedPathContextKey);
-          setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
-          return;
-        }
-      } catch {
-        // Try the next path id.
+      const loaded = await fetchLearningPathRound(pathIdToLoad, activeGoal);
+      if (loaded.status === 'failed') {
+        pathLoadFailed = true;
+        continue;
+      }
+      if (loaded.status === 'loaded') {
+        setActivePathRound(loaded.round);
+        setActivePathPlan(loaded.plan);
+        setLoadedPathContextKey(requestedPathContextKey);
+        setPathContextLoadState('ready');
+        setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
+        return;
       }
     }
-  }, [activeGoal, activePathId, authStatus, isDemoMode, requestedPathContextKey]);
+    clearLoadedPathContext(pathLoadFailed ? 'failed' : 'missing');
+  }, [activeGoal, activePathId, authStatus, clearLoadedPathContext, isDemoMode, requestedPathContextKey]);
 
   useEffect(() => {
     const handleAdaptivePathUpdated = () => {
@@ -2820,7 +2839,13 @@ export default function AdaptivePracticePage() {
                 </div>
                 <div className="rounded-lg border border-border bg-muted/30 p-3">
                   <p className="text-xs text-subtle">路径来源</p>
-                  <p className="mt-1 text-sm font-semibold text-foreground">{activePathId ? '链接中的路径不可用' : '当前目标尚未生成路径'}</p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">
+                    {pathContextRecoveryState.reason === 'path-load-failed'
+                      ? '路径服务暂时不可用'
+                      : activePathId
+                        ? '链接中的路径不可用'
+                        : '当前目标尚未生成路径'}
+                  </p>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/30 p-3">
                   <p className="text-xs text-subtle">当前状态</p>
