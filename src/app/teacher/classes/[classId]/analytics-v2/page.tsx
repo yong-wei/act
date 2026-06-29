@@ -168,6 +168,7 @@ export default function ClassAnalyticsV2Page() {
   ]);
 
   const activeDeliveryState = deliveryState ?? routeDeliveryState;
+  const canDeliverReport = deliveryLedgerEntry.contextState === 'ready';
 
   const reportVersionLabel = useMemo(
     () => `${deliveryQuery.reportId} · ${insights?.governance.lastUpdatedLabel ?? '等待刷新'}`,
@@ -175,6 +176,16 @@ export default function ClassAnalyticsV2Page() {
   );
 
   const handleReportDownload = useCallback(async () => {
+    if (!canDeliverReport) {
+      setDeliveryState(createAuditedActionState({
+        identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告导出', 'export'),
+        status: 'blocked',
+        message: '报告交付缺少课堂、课次或学生上下文，暂不能导出。',
+        recoveryAction: '从课堂复盘、学生证据或班级报告入口重新进入',
+        displayReference: deliveryLedgerEntry.artifactRef,
+      }));
+      return;
+    }
     try {
       setDeliveryState(createAuditedActionState({
         identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告导出', 'export'),
@@ -217,9 +228,19 @@ export default function ClassAnalyticsV2Page() {
         displayReference: deliveryLedgerEntry.artifactRef,
       }));
     }
-  }, [classId, deliveryLedgerEntry]);
+  }, [canDeliverReport, classId, deliveryLedgerEntry]);
 
   const handleCopySummary = useCallback(async () => {
+    if (!canDeliverReport) {
+      setDeliveryState(createAuditedActionState({
+        identity: buildDeliveryActionIdentity(deliveryLedgerEntry, '教师报告摘要', 'summary'),
+        status: 'blocked',
+        message: '报告交付缺少课堂、课次或学生上下文，暂不能复制交付摘要。',
+        recoveryAction: '从课堂复盘、学生证据或班级报告入口重新进入',
+        displayReference: deliveryLedgerEntry.artifactRef,
+      }));
+      return;
+    }
     const summary = `${insights?.classInfo.name ?? '班级'}：${insights?.governance.detail ?? '报告暂未生成'}。重点关注 ${insights?.overview.attentionStudents ?? 0} 人。`;
     try {
       await navigator.clipboard.writeText(summary);
@@ -239,7 +260,7 @@ export default function ClassAnalyticsV2Page() {
         displayReference: deliveryLedgerEntry.artifactRef,
       }));
     }
-  }, [deliveryLedgerEntry, insights]);
+  }, [canDeliverReport, deliveryLedgerEntry, insights]);
 
   if (status === 'loading' || loading) {
     return (
@@ -329,6 +350,7 @@ export default function ClassAnalyticsV2Page() {
         <ReportDeliveryPanel
           state={activeDeliveryState}
           ledgerEntry={deliveryLedgerEntry}
+          canDeliver={canDeliverReport}
           versionLabel={reportVersionLabel}
           onDownload={handleReportDownload}
           onCopySummary={handleCopySummary}
@@ -589,6 +611,7 @@ export default function ClassAnalyticsV2Page() {
       <ReportDeliveryDock
         state={activeDeliveryState}
         ledgerEntry={deliveryLedgerEntry}
+        canDeliver={canDeliverReport}
         versionLabel={reportVersionLabel}
         onDownload={handleReportDownload}
         onCopySummary={handleCopySummary}
@@ -600,12 +623,14 @@ export default function ClassAnalyticsV2Page() {
 function ReportDeliveryPanel({
   state,
   ledgerEntry,
+  canDeliver,
   versionLabel,
   onDownload,
   onCopySummary,
 }: {
   state: AuditedActionState | null;
   ledgerEntry: TeacherReportDeliveryLedgerEntry;
+  canDeliver: boolean;
   versionLabel: string;
   onDownload: () => void;
   onCopySummary: () => void;
@@ -631,15 +656,20 @@ function ReportDeliveryPanel({
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-primary">Report delivery</p>
           <h2 className="mt-2 text-lg font-semibold text-foreground">教师报告交付</h2>
-          <p className="mt-1 text-sm text-subtle">版本 {versionLabel} · 当前可导出报告和复制摘要；发送对象、版本锁定和补强任务保留为可恢复状态。</p>
+          <p className="mt-1 text-sm text-subtle">
+            版本 {versionLabel} · {canDeliver
+              ? '当前可导出报告和复制摘要；发送对象、版本锁定和补强任务保留为可恢复状态。'
+              : '缺少课堂、课次或学生上下文，导出、摘要复制和评分交接暂不可执行。'}
+          </p>
         </div>
         <ReportDeliveryActions
+          canDeliver={canDeliver}
           onDownload={onDownload}
           onCopySummary={onCopySummary}
         />
       </div>
       <ReportDeliveryCapabilityNote />
-      <ReportDeliveryHandoffStates entry={ledgerEntry} />
+      <ReportDeliveryHandoffStates entry={ledgerEntry} canDeliver={canDeliver} />
       <ReportDeliveryLedgerDetails entry={ledgerEntry} />
       {state ? <ActionStatusPanel state={state} className="mt-4" /> : null}
     </section>
@@ -665,12 +695,14 @@ function buildDeliveryActionIdentity(
 function ReportDeliveryDock({
   state,
   ledgerEntry,
+  canDeliver,
   versionLabel,
   onDownload,
   onCopySummary,
 }: {
   state: AuditedActionState | null;
   ledgerEntry: TeacherReportDeliveryLedgerEntry;
+  canDeliver: boolean;
   versionLabel: string;
   onDownload: () => void;
   onCopySummary: () => void;
@@ -690,6 +722,7 @@ function ReportDeliveryDock({
           <p className="text-xs text-subtle">{state ? state.message : '固定动作区可在长报告任意位置完成导出和摘要复制。'}</p>
         </div>
         <ReportDeliveryActions
+          canDeliver={canDeliver}
           onDownload={onDownload}
           onCopySummary={onCopySummary}
         />
@@ -715,19 +748,35 @@ function ReportDeliveryLedgerDetails({ entry }: { entry: TeacherReportDeliveryLe
 }
 
 function ReportDeliveryActions({
+  canDeliver,
   onDownload,
   onCopySummary,
 }: {
+  canDeliver: boolean;
   onDownload: () => void;
   onCopySummary: () => void;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      <button type="button" onClick={onDownload} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm" aria-label="导出教师报告 JSON 文件">
+      <button
+        type="button"
+        onClick={onDownload}
+        disabled={!canDeliver}
+        className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label="导出教师报告 JSON 文件"
+        data-report-ledger-action-disabled={canDeliver ? 'false' : 'missing-context'}
+      >
         <Download className="h-4 w-4" />
         导出 JSON
       </button>
-      <button type="button" onClick={onCopySummary} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm" aria-label="复制教师报告摘要">
+      <button
+        type="button"
+        onClick={onCopySummary}
+        disabled={!canDeliver}
+        className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label="复制教师报告摘要"
+        data-report-ledger-action-disabled={canDeliver ? 'false' : 'missing-context'}
+      >
         <Clipboard className="h-4 w-4" />
         复制摘要
       </button>
@@ -750,7 +799,7 @@ function ReportDeliveryCapabilityNote() {
   );
 }
 
-function ReportDeliveryHandoffStates({ entry }: { entry: TeacherReportDeliveryLedgerEntry }) {
+function ReportDeliveryHandoffStates({ entry, canDeliver }: { entry: TeacherReportDeliveryLedgerEntry; canDeliver: boolean }) {
   const gradingHref = buildReportDeliveryGradingHref(entry);
 
   return (
@@ -764,14 +813,24 @@ function ReportDeliveryHandoffStates({ entry }: { entry: TeacherReportDeliveryLe
       >
         发送/发布：需选择有效学生或班级交付范围后继续。
       </div>
-      <Link
-        href={gradingHref}
-        className="rounded border border-border/70 px-3 py-2 transition hover:border-primary/40 hover:text-foreground"
-        data-report-ledger-grading-handoff-state="ready"
-        data-report-ledger-grading-context={entry.contextState}
-      >
-        评分交接：进入报告评分工作台处理草稿。
-      </Link>
+      {canDeliver ? (
+        <Link
+          href={gradingHref}
+          className="rounded border border-border/70 px-3 py-2 transition hover:border-primary/40 hover:text-foreground"
+          data-report-ledger-grading-handoff-state="ready"
+          data-report-ledger-grading-context={entry.contextState}
+        >
+          评分交接：进入报告评分工作台处理草稿。
+        </Link>
+      ) : (
+        <div
+          className="rounded border border-border/70 px-3 py-2"
+          data-report-ledger-grading-handoff-state="blocked"
+          data-report-ledger-grading-context={entry.contextState}
+        >
+          评分交接：缺少课堂、课次或学生上下文后暂不可进入。
+        </div>
+      )}
       <div
         className="rounded border border-border/70 px-3 py-2"
         data-report-ledger-retry-state="available"
