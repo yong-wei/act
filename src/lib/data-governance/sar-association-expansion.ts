@@ -130,7 +130,8 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
       continue;
     }
     if (eventById.has(seedRef)) {
-      const decision = eventScopeDecision(eventById.get(seedRef), input);
+      const seedEvent = eventById.get(seedRef);
+      const decision = eventScopeDecision(seedEvent, input);
       if (!decision.allowed) {
         reject(rejectedRefs, seedRef, decision.reason ?? 'event-scope-filtered');
         continue;
@@ -141,6 +142,7 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
         input.callerScope,
         '',
         rejectedRefs,
+        seedEvent,
       );
       if (!relationEntityDecision.allowed) {
         reject(rejectedRefs, seedRef, relationEntityDecision.reason ?? 'event-entity-scope-filtered');
@@ -155,7 +157,10 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
         }
         const relatedEntity = entityById.get(relation.entityId);
         const entityDecision = entityScopeDecision(relatedEntity, input.callerScope);
-        if (entityDecision.allowed) {
+        if (
+          entityDecision.allowed
+          || allowsTeacherClassLinkedStudentEntity(relatedEntity, input.callerScope, seedEvent, entityDecision)
+        ) {
           seedEntityIds.add(relation.entityId);
           setMinDepth(entityDepth, relation.entityId, 0);
         } else {
@@ -223,6 +228,7 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
           input.callerScope,
           item.entityId,
           rejectedRefs,
+          event,
         );
         if (!connectedEntityDecision.allowed) {
           reject(rejectedRefs, sourceRelation.eventId, connectedEntityDecision.reason ?? 'event-entity-scope-filtered');
@@ -238,7 +244,10 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
           }
           const entity = entityById.get(connectedRelation.entityId);
           const entityDecision = entityScopeDecision(entity, input.callerScope);
-          if (!entityDecision.allowed) {
+          if (
+            !entityDecision.allowed
+            && !allowsTeacherClassLinkedStudentEntity(entity, input.callerScope, event, entityDecision)
+          ) {
             reject(rejectedRefs, connectedRelation.entityId, entityDecision.reason ?? 'entity-scope-filtered');
             continue;
           }
@@ -361,6 +370,7 @@ function collectDirectEvents(input: {
       input.input.callerScope,
       input.entityId,
       input.rejectedRefs,
+      event,
     );
     if (!connectedEntityDecision.allowed) {
       reject(input.rejectedRefs, relation.eventId, connectedEntityDecision.reason ?? 'event-entity-scope-filtered');
@@ -382,7 +392,7 @@ function buildCandidateRefs(
   const hasConnectedEvidence = hops.length > 0 || entities.some((entity) => hopEntityIds.has(entity.id));
   const includeProjectionRefs = projection.events.length > 0
     && projection.events.every((event) => eventIds.has(event.id))
-    && (hasConnectedEvidence || entities.length === 0);
+    && (hasConnectedEvidence || entities.length === 0 || events.length === projection.events.length);
   return {
     eventIds: events.map((event) => event.id),
     entityIds: entities.map((entity) => entity.id),
@@ -447,7 +457,8 @@ function eventStudentId(event: SarRetrievalEvent): string | null {
     ?? stringSourceRef(event, 'ownerUserId');
 }
 
-function eventClassId(event: SarRetrievalEvent): string | null {
+function eventClassId(event: SarRetrievalEvent | undefined): string | null {
+  if (!event) return null;
   return stringMetadata(event, 'classId') ?? stringSourceRef(event, 'classId');
 }
 
@@ -481,16 +492,33 @@ function relationEntitiesScopeDecision(
   callerScope: SarAssociationCallerScope,
   sourceEntityId: string,
   rejectedRefs: Map<string, SarAssociationRejectedRef>,
+  event?: SarRetrievalEvent,
 ): ScopeDecision {
   for (const relation of relations) {
     if (relation.entityId === sourceEntityId) continue;
     const entity = entityById.get(relation.entityId);
     const decision = entityScopeDecision(entity, callerScope);
+    if (allowsTeacherClassLinkedStudentEntity(entity, callerScope, event, decision)) continue;
     if (decision.allowed) continue;
     reject(rejectedRefs, relation.entityId, decision.reason ?? 'entity-scope-filtered');
     return { allowed: false, reason: `event-linked-${decision.reason ?? 'entity-scope-filtered'}` };
   }
   return { allowed: true };
+}
+
+function allowsTeacherClassLinkedStudentEntity(
+  entity: SarRetrievalEntity | undefined,
+  callerScope: SarAssociationCallerScope,
+  event: SarRetrievalEvent | undefined,
+  entityDecision: ScopeDecision,
+): boolean {
+  return entity?.entityType === 'student'
+    && !entityDecision.allowed
+    && (entityDecision.reason === 'student-scope-required' || entityDecision.reason === 'student-scope-mismatch')
+    && callerScope.role === 'teacher'
+    && typeof callerScope.classId === 'string'
+    && callerScope.classId.length > 0
+    && eventClassId(event) === callerScope.classId;
 }
 
 function privacyDecision(privacyScope: SarPrivacyScope, role: SarAssociationCallerRole): ScopeDecision {
@@ -680,7 +708,7 @@ function stringMetadata(event: SarRetrievalEvent, key: string): string | null {
 }
 
 function stringSourceRef(event: SarRetrievalEvent, key: string): string | null {
-  const value = (event.sourceRef as Record<string, unknown>)[key];
+  const value = (event.sourceRef as unknown as Record<string, unknown>)[key];
   return typeof value === 'string' && value.trim() ? value : null;
 }
 

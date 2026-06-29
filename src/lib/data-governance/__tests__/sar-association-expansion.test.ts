@@ -351,6 +351,154 @@ describe('SAR association expansion provider', () => {
     });
   });
 
+  it('allows teachers to expand student entities from events scoped to their class', () => {
+    const classScopedEvent = event({
+      id: 'sar:event:diagnosis-summary:class-a-student',
+      eventType: 'diagnosis-summary',
+      privacyScope: 'teacher-scoped',
+      metadata: {
+        classId: 'class-a',
+        retrievalChunkId: 'retrieval-chunk:class-a-student',
+      },
+    });
+    const studentEntity = entity({
+      id: 'sar:entity:student:stu-1',
+      entityType: 'student',
+      canonicalRef: 'stu-1',
+      label: 'Student 1',
+      privacyScope: 'teacher-scoped',
+    });
+    const result = expandSarAssociations({
+      id: 'teacher-class-student-entity',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: ['sar:entity:graph-node:knowledge:bode-margin'],
+      projection: projection({
+        events: [classScopedEvent],
+        entities: [
+          entity({ id: 'sar:entity:graph-node:knowledge:bode-margin' }),
+          studentEntity,
+        ],
+        relations: [
+          relation({ eventId: classScopedEvent.id, entityId: 'sar:entity:graph-node:knowledge:bode-margin' }),
+          relation({ eventId: classScopedEvent.id, entityId: studentEntity.id }),
+        ],
+      }),
+      maxHops: 1,
+    });
+
+    expect(result.candidateRefs.eventIds).toEqual([classScopedEvent.id]);
+    expect(result.candidateRefs.entityIds).toEqual([
+      'sar:entity:graph-node:knowledge:bode-margin',
+      studentEntity.id,
+    ]);
+    expect(result.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:class-a-student']);
+    expect(result.trace.rejectedRefs).not.toContainEqual({
+      ref: studentEntity.id,
+      reason: 'student-scope-required',
+    });
+  });
+
+  it('does not apply class-linked student access to direct student seeds or other classes', () => {
+    const studentEntity = entity({
+      id: 'sar:entity:student:stu-1',
+      entityType: 'student',
+      canonicalRef: 'stu-1',
+      label: 'Student 1',
+      privacyScope: 'teacher-scoped',
+    });
+    const directSeed = expandSarAssociations({
+      id: 'teacher-class-direct-student-seed',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: [studentEntity.id],
+      projection: projection({
+        entities: [studentEntity],
+      }),
+      maxHops: 0,
+    });
+    expect(directSeed.candidateRefs.entityIds).toEqual([]);
+    expect(directSeed.trace.rejectedRefs).toContainEqual({
+      ref: studentEntity.id,
+      reason: 'student-scope-required',
+    });
+
+    const otherClassEvent = event({
+      id: 'sar:event:diagnosis-summary:class-b-student',
+      eventType: 'diagnosis-summary',
+      privacyScope: 'teacher-scoped',
+      metadata: {
+        classId: 'class-b',
+        retrievalChunkId: 'retrieval-chunk:class-b-student',
+      },
+    });
+    const linkedOtherClass = expandSarAssociations({
+      id: 'teacher-class-other-class-student-link',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: ['sar:entity:graph-node:knowledge:bode-margin'],
+      projection: projection({
+        events: [otherClassEvent],
+        entities: [
+          entity({ id: 'sar:entity:graph-node:knowledge:bode-margin' }),
+          studentEntity,
+        ],
+        relations: [
+          relation({ eventId: otherClassEvent.id, entityId: 'sar:entity:graph-node:knowledge:bode-margin' }),
+          relation({ eventId: otherClassEvent.id, entityId: studentEntity.id }),
+        ],
+      }),
+      maxHops: 1,
+    });
+    expect(linkedOtherClass.candidateRefs.eventIds).toEqual([]);
+    expect(linkedOtherClass.candidateRefs.entityIds).toEqual(['sar:entity:graph-node:knowledge:bode-margin']);
+    expect(linkedOtherClass.candidateRefs.retrievalChunkIds).toEqual([]);
+    expect(linkedOtherClass.sourcePackSeedRefs).not.toContain('retrieval-chunk:class-b-student');
+    expect(linkedOtherClass.trace.rejectedRefs).toContainEqual({
+      ref: otherClassEvent.id,
+      reason: 'class-scope-mismatch',
+    });
+
+    const auditOnlyStudentEntity = entity({
+      id: 'sar:entity:student:secret',
+      entityType: 'student',
+      canonicalRef: 'secret',
+      label: 'Secret student',
+      privacyScope: 'audit-only',
+    });
+    const auditOnlyEvent = event({
+      id: 'sar:event:diagnosis-summary:audit-only-student',
+      eventType: 'diagnosis-summary',
+      privacyScope: 'teacher-scoped',
+      metadata: { classId: 'class-a' },
+    });
+    const linkedAuditOnlyStudent = expandSarAssociations({
+      id: 'teacher-class-audit-only-student-link',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: ['sar:entity:graph-node:knowledge:bode-margin'],
+      projection: projection({
+        events: [auditOnlyEvent],
+        entities: [
+          entity({ id: 'sar:entity:graph-node:knowledge:bode-margin' }),
+          auditOnlyStudentEntity,
+        ],
+        relations: [
+          relation({ eventId: auditOnlyEvent.id, entityId: 'sar:entity:graph-node:knowledge:bode-margin' }),
+          relation({ eventId: auditOnlyEvent.id, entityId: auditOnlyStudentEntity.id }),
+        ],
+      }),
+      maxHops: 1,
+    });
+    expect(linkedAuditOnlyStudent.candidateRefs.eventIds).toEqual([]);
+    expect(linkedAuditOnlyStudent.candidateRefs.entityIds).toEqual(['sar:entity:graph-node:knowledge:bode-margin']);
+    expect(linkedAuditOnlyStudent.sourcePackSeedRefs).not.toContain(auditOnlyStudentEntity.id);
+    expect(linkedAuditOnlyStudent.trace.rejectedRefs).toEqual(expect.arrayContaining([
+      { ref: auditOnlyStudentEntity.id, reason: 'audit-scope-required' },
+      { ref: auditOnlyEvent.id, reason: 'event-linked-audit-scope-required' },
+    ]));
+  });
+
   it('does not expose top-level Source Pack refs when a projection contains filtered events', () => {
     const restrictedEvent = event({
       id: 'sar:event:learning-fact-summary:private-source',
@@ -655,6 +803,40 @@ describe('SAR association expansion provider', () => {
     expect(oneHopBudgeted.candidateRefs.eventIds).toEqual([seededEvent.id]);
     expect(oneHopBudgeted.sourcePackSeedRefs).not.toContain(siblingEvent.id);
     expect(oneHopBudgeted.trace.expansionHops).toEqual([]);
+  });
+
+  it('keeps top-level evidence refs for selected zero-hop direct events', () => {
+    const directEvent = event({
+      id: 'sar:event:governed-summary:direct-top-level',
+      eventType: 'learning-fact-summary',
+    });
+    const seedEntity = entity({ id: 'sar:entity:graph-node:knowledge:bode-margin' });
+    const result = expandSarAssociations({
+      id: 'zero-hop-direct-top-level-refs',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: [seedEntity.id],
+      projection: projection({
+        events: [directEvent],
+        entities: [seedEntity],
+        relations: [
+          relation({ eventId: directEvent.id, entityId: seedEntity.id }),
+        ],
+        citationTargetRefs: ['citation-target:direct-top-level'],
+        retrievalChunkRefs: ['retrieval-chunk:direct-top-level'],
+      }),
+      maxHops: 0,
+    });
+
+    expect(result.candidateRefs.eventIds).toEqual([directEvent.id]);
+    expect(result.candidateRefs.entityIds).toEqual([seedEntity.id]);
+    expect(result.candidateRefs.citationTargetIds).toEqual(['citation-target:direct-top-level']);
+    expect(result.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:direct-top-level']);
+    expect(result.sourcePackSeedRefs).toEqual(expect.arrayContaining([
+      'citation-target:direct-top-level',
+      'retrieval-chunk:direct-top-level',
+    ]));
+    expect(result.trace.expansionHops).toEqual([]);
   });
 
   it('keeps unbound zero-hop event seeds without requiring selected entities', () => {
