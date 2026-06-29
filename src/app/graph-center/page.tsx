@@ -40,29 +40,38 @@ export default async function GraphCenterPage({ searchParams }: GraphCenterPageP
     requestedLearnerId: params?.learnerId,
     requestedClassId: params?.classId,
   });
+  const sarAssociation = session?.user?.role
+    ? {
+        enabled: true,
+        studentId: session.user.role === 'STUDENT' ? session.user.id : params?.learnerId ?? null,
+        classId: session.user.role === 'STUDENT' ? null : params?.classId ?? null,
+      }
+    : undefined;
   const payload = buildGraphCenterPayload({
     domain: params?.domain as GraphCenterDomain | undefined,
     objectiveId: params?.objectiveId ?? null,
     portraitDimension: params?.portraitDimension as PortraitV2DimensionId | undefined,
     selectedNodeId: params?.nodeId ?? null,
     viewerRole: session?.user?.role,
+    sarAssociation,
     ...coverageSources,
   });
   const rootPayload = buildGraphCenterPayload({
     domain: payload.activeDomain,
     viewerRole: session?.user?.role,
+    sarAssociation,
     ...coverageSources,
   });
   const rootPayloads = {
     knowledge: payload.activeDomain === 'knowledge'
       ? rootPayload
-      : buildGraphCenterPayload({ domain: 'knowledge', viewerRole: session?.user?.role, ...coverageSources }),
+      : buildGraphCenterPayload({ domain: 'knowledge', viewerRole: session?.user?.role, sarAssociation, ...coverageSources }),
     capability: payload.activeDomain === 'capability'
       ? rootPayload
-      : buildGraphCenterPayload({ domain: 'capability', viewerRole: session?.user?.role, ...coverageSources }),
+      : buildGraphCenterPayload({ domain: 'capability', viewerRole: session?.user?.role, sarAssociation, ...coverageSources }),
     quality: payload.activeDomain === 'quality'
       ? rootPayload
-      : buildGraphCenterPayload({ domain: 'quality', viewerRole: session?.user?.role, ...coverageSources }),
+      : buildGraphCenterPayload({ domain: 'quality', viewerRole: session?.user?.role, sarAssociation, ...coverageSources }),
   };
 
   return (

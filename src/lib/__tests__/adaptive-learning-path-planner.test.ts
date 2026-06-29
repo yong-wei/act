@@ -1529,6 +1529,7 @@ describe('adaptive learning path planner', () => {
         learnerOverlay: {
           status: 'low-confidence',
           learnerId: 'student-1',
+          classId: 'class-1',
           generatedAt: '2026-06-22T00:00:00.000Z',
           items: {},
           limitations: [{ code: 'learner-overlay-low-confidence', message: 'overlay confidence is low' }],
