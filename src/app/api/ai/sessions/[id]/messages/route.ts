@@ -139,11 +139,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       currentUserQuery: userMessage.content,
       trustedContentContext: true,
     };
-    const preliminaryRuntimeContext = await buildKonlingRuntimeContext(prisma, runtimeInput);
     const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext({
       db: prisma,
       modeId: teachingAssistantModeId,
-      runtimeContext: preliminaryRuntimeContext,
       scope: scope.scope,
       clientContextHints: modeClientContextHints,
     });

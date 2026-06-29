@@ -280,11 +280,9 @@ export async function POST(request: Request) {
         currentUserQuery: messages.at(-1)?.role === 'user' ? messages.at(-1)?.content : null,
         trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId),
       };
-      const preliminaryRuntimeContext = await buildKonlingRuntimeContext(prisma, runtimeInput);
       const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext({
         db: prisma,
         modeId: teachingAssistantModeId,
-        runtimeContext: preliminaryRuntimeContext,
         scope: scope.scope,
         clientContextHints: modeClientContextHints,
       });

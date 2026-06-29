@@ -166,6 +166,9 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('teachingAssistantMode: modeContract');
     expect(chatRouteSource).toContain('const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext');
     expect(chatRouteSource).toContain('teachingAssistantServerModeContext: serverModeContext');
+    expect(chatRouteSource).not.toContain('const preliminaryRuntimeContext = await buildKonlingRuntimeContext');
+    expect(chatRouteSource.indexOf('const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext'))
+      .toBeLessThan(chatRouteSource.indexOf('const runtimeContext = await buildKonlingRuntimeContext'));
     expect(chatRouteSource).toContain('targetUserId: runtimeTargetUserId');
     expect(chatRouteSource).toContain('classId: runtimeClassId');
     expect(chatRouteSource.indexOf('const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride'))
@@ -185,6 +188,9 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('teachingAssistantMode: modeContract');
     expect(sessionMessagesRouteSource).toContain('const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext');
     expect(sessionMessagesRouteSource).toContain('teachingAssistantServerModeContext: serverModeContext');
+    expect(sessionMessagesRouteSource).not.toContain('const preliminaryRuntimeContext = await buildKonlingRuntimeContext');
+    expect(sessionMessagesRouteSource.indexOf('const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext'))
+      .toBeLessThan(sessionMessagesRouteSource.indexOf('const runtimeContext = await buildKonlingRuntimeContext'));
     expect(sessionMessagesRouteSource).toContain('targetUserId: runtimeTargetUserId');
     expect(sessionMessagesRouteSource).toContain('classId: runtimeClassId');
     expect(sessionMessagesRouteSource.indexOf('const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride'))
@@ -280,10 +286,12 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('citationGuard,');
     const sessionRuntimeInputIndex = sessionMessagesRouteSource.indexOf('const runtimeInput = {');
     const sessionTrustedIndex = sessionMessagesRouteSource.indexOf('trustedContentContext: true', sessionRuntimeInputIndex);
-    const sessionPreliminaryContextIndex = sessionMessagesRouteSource.indexOf('const preliminaryRuntimeContext = await buildKonlingRuntimeContext');
+    const sessionServerModeIndex = sessionMessagesRouteSource.indexOf('const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext');
+    const sessionRuntimeContextIndex = sessionMessagesRouteSource.indexOf('const runtimeContext = await buildKonlingRuntimeContext');
     expect(sessionRuntimeInputIndex).toBeGreaterThanOrEqual(0);
     expect(sessionTrustedIndex).toBeGreaterThan(sessionRuntimeInputIndex);
-    expect(sessionTrustedIndex).toBeLessThan(sessionPreliminaryContextIndex);
+    expect(sessionTrustedIndex).toBeLessThan(sessionServerModeIndex);
+    expect(sessionServerModeIndex).toBeLessThan(sessionRuntimeContextIndex);
   });
 
   it('does not write Konling runtime simulation state into the legacy global tool store', () => {
