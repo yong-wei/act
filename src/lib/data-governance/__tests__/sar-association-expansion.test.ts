@@ -516,6 +516,68 @@ describe('SAR association expansion provider', () => {
     ]));
   });
 
+  it('does not expand zero-hop event seeds to sibling events through linked entities', () => {
+    const seededEvent = event({
+      id: 'sar:event:diagnosis-summary:seeded',
+      eventType: 'diagnosis-summary',
+      metadata: { retrievalChunkId: 'retrieval-chunk:seeded' },
+    });
+    const siblingEvent = event({
+      id: 'sar:event:diagnosis-summary:aaa-sibling',
+      eventType: 'diagnosis-summary',
+      metadata: { retrievalChunkId: 'retrieval-chunk:sibling' },
+    });
+    const sharedEntity = entity({
+      id: 'sar:entity:learning-goal:shared',
+      entityType: 'learning-goal',
+      canonicalRef: 'goal:shared',
+      label: 'Shared goal',
+    });
+    const result = expandSarAssociations({
+      id: 'event-seed-zero-hop',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: [seededEvent.id],
+      projection: projection({
+        events: [seededEvent, siblingEvent],
+        entities: [sharedEntity],
+        relations: [
+          relation({ eventId: seededEvent.id, entityId: sharedEntity.id }),
+          relation({ eventId: siblingEvent.id, entityId: sharedEntity.id }),
+        ],
+      }),
+      maxHops: 0,
+    });
+
+    expect(result.candidateRefs.eventIds).toEqual([seededEvent.id]);
+    expect(result.candidateRefs.entityIds).toEqual([sharedEntity.id]);
+    expect(result.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:seeded']);
+    expect(result.sourcePackSeedRefs).not.toContain(siblingEvent.id);
+    expect(result.sourcePackSeedRefs).not.toContain('retrieval-chunk:sibling');
+    expect(result.trace.expansionHops).toEqual([]);
+
+    const oneHopBudgeted = expandSarAssociations({
+      id: 'event-seed-one-hop-budgeted',
+      useCase: 'source-pack-seeding',
+      callerScope: { role: 'teacher', classId: 'class-a' },
+      seedRefs: [seededEvent.id],
+      projection: projection({
+        events: [seededEvent, siblingEvent],
+        entities: [sharedEntity],
+        relations: [
+          relation({ eventId: seededEvent.id, entityId: sharedEntity.id }),
+          relation({ eventId: siblingEvent.id, entityId: sharedEntity.id }),
+        ],
+      }),
+      maxHops: 1,
+      maxEvents: 1,
+    });
+
+    expect(oneHopBudgeted.candidateRefs.eventIds).toEqual([seededEvent.id]);
+    expect(oneHopBudgeted.sourcePackSeedRefs).not.toContain(siblingEvent.id);
+    expect(oneHopBudgeted.trace.expansionHops).toEqual([]);
+  });
+
   it('honors admin and audit privacy scopes', () => {
     const adminEvent = event({
       id: 'sar:event:diagnosis-summary:admin',

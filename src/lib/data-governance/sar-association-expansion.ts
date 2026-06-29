@@ -114,6 +114,7 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
   const maxEntities = normalizeBudget(input.maxEntities, DEFAULT_MAX_ENTITIES, 'maxEntities', limitations);
   const minConfidence = normalizeMinConfidence(input.minConfidence, limitations);
   const seedEntityIds = new Set<string>();
+  const directSeedEntityIds = new Set<string>();
   const seedEventIds = new Set<string>();
   const entityDepth = new Map<string, number>();
   const eventDepth = new Map<string, number>();
@@ -121,7 +122,10 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
   for (const seedRef of uniqueSorted(input.seedRefs)) {
     if (entityById.has(seedRef)) {
       const decision = entityScopeDecision(entityById.get(seedRef), input.callerScope);
-      if (decision.allowed) seedEntityIds.add(seedRef);
+      if (decision.allowed) {
+        seedEntityIds.add(seedRef);
+        directSeedEntityIds.add(seedRef);
+      }
       else reject(rejectedRefs, seedRef, decision.reason ?? 'entity-scope-filtered');
       continue;
     }
@@ -176,7 +180,7 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
     setMinDepth(eventDepth, eventId, 0);
   }
 
-  for (const entityId of seedEntityIds) {
+  for (const entityId of directSeedEntityIds) {
     collectDirectEvents({
       entityId,
       relationsByEntity,
@@ -192,7 +196,7 @@ export function expandSarAssociations(input: SarAssociationExpansionInput): SarA
     });
   }
 
-  let frontier: FrontierItem[] = [...seedEntityIds].map((entityId) => ({ entityId, sourceEntityId: entityId }));
+  let frontier: FrontierItem[] = [...directSeedEntityIds].map((entityId) => ({ entityId, sourceEntityId: entityId }));
   for (let hop = 1; hop <= maxHops; hop += 1) {
     const nextFrontier: FrontierItem[] = [];
     for (const item of frontier) {
