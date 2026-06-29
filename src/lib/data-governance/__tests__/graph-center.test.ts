@@ -789,6 +789,58 @@ describe('graph center payload service', () => {
     expect(serialized).not.toContain('external:sar-simulation-gap');
   });
 
+  it('keeps class-scoped student-owned SAR evidence available with redacted refs', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'STUDENT',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-student-class-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'student-class-resource',
+          ownerUserId: 'learner-1',
+          classId: 'class-1',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-1',
+          targetId: 'kn:autocontrol:simulation-validation',
+          score: 0.4,
+          confidence: 0.7,
+          evidenceCount: 2,
+          classId: 'class-1',
+        }),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'student',
+        authorized: true,
+      },
+      sarAssociation: {
+        enabled: true,
+        studentId: 'learner-1',
+      },
+    });
+    const associated = payload.selectedNode?.associatedEvidence;
+    const serialized = JSON.stringify(associated);
+
+    expect(payload.learnerOverlay.classId).toBe('class-1');
+    expect(associated?.status).toBe('available');
+    expect(associated?.candidateRefs.retrievalChunkIds).toEqual(['retrieval-chunk:1']);
+    expect(associated?.resourceGapSuggestions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        ref: 'retrieval-chunk:1',
+        status: 'suggested',
+        draft: true,
+      }),
+    ]));
+    expect(serialized).not.toContain('chunk-sar-student-class-gap');
+    expect(serialized).not.toContain('student-class-resource');
+    expect(serialized).not.toContain('learner-1');
+    expect(serialized).not.toContain('class-1');
+  });
+
   it('wires Graph Center SAR associated evidence into the page and detail panel', () => {
     expect(graphCenterPageSource).toContain('sarAssociation');
     expect(graphCenterPageSource).toContain('enabled: true');

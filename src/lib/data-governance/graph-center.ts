@@ -675,7 +675,7 @@ function buildGraphCenterAssociatedEvidence(input: {
     .map((chunk) => ({
       chunk,
       projection: projectLearningEvidenceChunkToSar({
-        chunk,
+        chunk: graphCenterSarProjectionChunk(chunk, callerRole),
         coverageRefs,
         linkedResources,
       }),
@@ -696,7 +696,7 @@ function buildGraphCenterAssociatedEvidence(input: {
     callerScope: {
       role: callerRole,
       ...(input.sarAssociation.studentId ? { studentId: input.sarAssociation.studentId } : {}),
-      ...(input.authorizedScope.classId && callerRole !== 'student' ? { classId: input.authorizedScope.classId } : {}),
+      ...(input.authorizedScope.classId ? { classId: input.authorizedScope.classId } : {}),
     },
     seedRefs: uniqueSorted([...seedRefs, ...matchedEvidenceSeedRefs]),
     projection,
@@ -800,6 +800,29 @@ function canProjectEvidenceChunkToGraphCenterSar(input: {
     return !chunk.sourceRef.ownerUserId || chunk.sourceRef.ownerUserId === studentId;
   }
   return chunk.privacyClass === 'public';
+}
+
+function graphCenterSarProjectionChunk(
+  chunk: LearningEvidenceCorpusChunk,
+  callerRole: 'student' | 'teacher' | 'admin',
+): LearningEvidenceCorpusChunk {
+  if (callerRole !== 'student') return chunk;
+  return {
+    ...chunk,
+    sourceRef: {
+      ...chunk.sourceRef,
+      ownerUserId: null,
+      classId: null,
+    },
+    authority: {
+      ...chunk.authority,
+      scopeRule: {
+        ...chunk.authority.scopeRule,
+        ownerRequired: false,
+        classRequired: false,
+      },
+    },
+  };
 }
 
 function graphCenterSarCallerRole(viewerRole: GraphCenterViewerRole): 'student' | 'teacher' | 'admin' | null {
