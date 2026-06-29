@@ -731,7 +731,22 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
       try {
         const res = await fetch(importResult.failedRowArtifact.downloadUrl, { cache: 'no-store' });
         if (!res.ok) {
-          throw new Error('下载失败行 artifact 失败');
+          const failure = await readArtifactDownloadFailure(res);
+          setFailedRowsDownloadState(createAuditedActionState({
+            identity: {
+              id: artifact?.id ?? `${batchId}:failed-rows`,
+              category: 'download',
+              label: '失败行下载',
+              sourceRoute: '/admin/users',
+              requestedAction: 'download-failed-rows',
+            },
+            status: 'failed',
+            message: failure.message,
+            recoveryAction: failure.recoveryAction,
+            displayReference: artifact?.id,
+            httpStatus: failure.httpStatus,
+          }));
+          return;
         }
         const blob = await res.blob();
         const operationId = res.headers.get('x-admin-operation-id');
@@ -1542,4 +1557,40 @@ export function shouldBlockInvalidAdminUsersQuery(
   return !initialUsersQuery.source.roleSupported
     || !initialUsersQuery.source.pageValid
     || !initialUsersQuery.source.pageSizeValid;
+}
+
+async function readArtifactDownloadFailure(res: Response): Promise<{
+  message: string;
+  recoveryAction: string;
+  httpStatus: number;
+}> {
+  const payload = await readJsonObject(res);
+  const detail = typeof payload.error === 'string'
+    ? payload.error
+    : typeof payload.message === 'string'
+      ? payload.message
+      : '';
+  return {
+    message: detail ? `下载失败行 artifact 失败：${detail}` : '下载失败行 artifact 失败',
+    recoveryAction: artifactDownloadRecoveryAction(res.status),
+    httpStatus: res.status,
+  };
+}
+
+async function readJsonObject(res: Response): Promise<Record<string, unknown>> {
+  try {
+    const payload: unknown = await res.json();
+    return payload && typeof payload === 'object' && !Array.isArray(payload)
+      ? payload as Record<string, unknown>
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function artifactDownloadRecoveryAction(status: number): string {
+  if (status === 401) return '重新登录后再下载失败行';
+  if (status === 403) return '确认管理员权限后再下载失败行';
+  if (status === 404 || status === 410) return '重新预览导入批次后再下载失败行';
+  return '稍后重试，或重新预览导入批次后再下载失败行';
 }
