@@ -841,6 +841,70 @@ describe('graph center payload service', () => {
     expect(serialized).not.toContain('class-1');
   });
 
+  it('filters student SAR resource gap suggestions by raw covered resource ids before redaction', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'STUDENT',
+      resourceRegistry: buildResourceNodeRegistry({
+        registeredResources: [{
+          id: 'student-covered-resource',
+          label: 'Student covered resource',
+          type: 'ADAPTIVE_QUIZ',
+          renderTarget: '/resources/student-covered-resource',
+          knowledgeNodeIds: ['跨模型验证比较_4_47006'],
+          planningOverride: {
+            estimatedTimeMinutes: 8,
+            evidenceInstrumentation: ['answer_submit'],
+          },
+        }],
+      }),
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-student-covered-resource',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'registry:student-covered-resource',
+          ownerUserId: 'learner-1',
+          classId: 'class-1',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-1',
+          targetId: 'kn:autocontrol:simulation-validation',
+          score: 0.4,
+          confidence: 0.7,
+          evidenceCount: 2,
+          classId: 'class-1',
+        }),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'student',
+        authorized: true,
+      },
+      sarAssociation: {
+        enabled: true,
+        studentId: 'learner-1',
+      },
+    });
+    const associated = payload.selectedNode?.associatedEvidence;
+    const serialized = JSON.stringify(associated);
+
+    expect(associated?.status).toBe('available');
+    expect(associated?.candidateRefs.resourceNodeIds).toEqual(['resource-candidate:1']);
+    expect(associated?.resourceGapSuggestions.some((suggestion) => suggestion.refType === 'resource-node')).toBe(false);
+    expect(associated?.resourceGapSuggestions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        ref: 'retrieval-chunk:1',
+        refType: 'retrieval-chunk',
+      }),
+    ]));
+    expect(serialized).not.toContain('registry:student-covered-resource');
+    expect(serialized).not.toContain('chunk-sar-student-covered-resource');
+    expect(serialized).not.toContain('learner-1');
+    expect(serialized).not.toContain('class-1');
+  });
+
   it('wires Graph Center SAR associated evidence into the page and detail panel', () => {
     expect(graphCenterPageSource).toContain('sarAssociation');
     expect(graphCenterPageSource).toContain('enabled: true');

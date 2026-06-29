@@ -707,7 +707,8 @@ function buildGraphCenterAssociatedEvidence(input: {
   });
   const safeExpansion = projectGraphCenterAssociatedEvidenceForRole(expansion, input.viewerRole);
   const resourceGapSuggestions = buildSarResourceGapSuggestions({
-    expansion: safeExpansion,
+    expansion,
+    visibleExpansion: safeExpansion,
     missingCoverageTypes: input.resourceCoverage.missingCoverageTypes,
     linkedResourceIdSet,
     pathEligibleResourceIdSet,
@@ -899,18 +900,24 @@ function isStudentVisibleSarLimitation(limitation: string): boolean {
 
 function buildSarResourceGapSuggestions(input: {
   expansion: SarAssociationExpansionResult;
+  visibleExpansion?: SarAssociationExpansionResult;
   missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
   linkedResourceIdSet: ReadonlySet<string>;
   pathEligibleResourceIdSet: ReadonlySet<string>;
 }): GraphCenterSarResourceGapSuggestion[] {
   if (input.missingCoverageTypes.length === 0) return [];
+  const visibleExpansion = input.visibleExpansion ?? input.expansion;
   const refs: Array<{ ref: string; refType: GraphCenterSarResourceGapSuggestion['refType'] }> = [
     ...input.expansion.candidateRefs.resourceNodeIds
-      .filter((ref) => !input.linkedResourceIdSet.has(ref) && !input.pathEligibleResourceIdSet.has(ref))
-      .map((ref) => ({ ref, refType: 'resource-node' as const })),
-    ...input.expansion.candidateRefs.retrievalChunkIds.map((ref) => ({ ref, refType: 'retrieval-chunk' as const })),
-    ...input.expansion.candidateRefs.citationTargetIds.map((ref) => ({ ref, refType: 'citation-target' as const })),
-    ...input.expansion.candidateRefs.planningUnitIds.map((ref) => ({ ref, refType: 'planning-unit' as const })),
+      .map((ref, index) => ({
+        rawRef: ref,
+        visibleRef: visibleExpansion.candidateRefs.resourceNodeIds[index] ?? 'resource-candidate:redacted',
+      }))
+      .filter(({ rawRef }) => !input.linkedResourceIdSet.has(rawRef) && !input.pathEligibleResourceIdSet.has(rawRef))
+      .map(({ visibleRef }) => ({ ref: visibleRef, refType: 'resource-node' as const })),
+    ...visibleExpansion.candidateRefs.retrievalChunkIds.map((ref) => ({ ref, refType: 'retrieval-chunk' as const })),
+    ...visibleExpansion.candidateRefs.citationTargetIds.map((ref) => ({ ref, refType: 'citation-target' as const })),
+    ...visibleExpansion.candidateRefs.planningUnitIds.map((ref) => ({ ref, refType: 'planning-unit' as const })),
   ];
   return refs.map(({ ref, refType }, index) => ({
     id: `sar-gap:${index + 1}`,
@@ -920,8 +927,8 @@ function buildSarResourceGapSuggestions(input: {
     draft: true,
     suggestedForMissingCoverageTypes: input.missingCoverageTypes,
     rationale: {
-      basisEventIds: input.expansion.candidateRefs.eventIds,
-      traceHopCount: input.expansion.trace.expansionHops.length,
+      basisEventIds: visibleExpansion.candidateRefs.eventIds,
+      traceHopCount: visibleExpansion.trace.expansionHops.length,
       reason: 'SAR associated this candidate with the selected graph node; ResourceNode governance review is still required.',
     },
   }));
