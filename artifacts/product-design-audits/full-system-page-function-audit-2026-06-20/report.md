@@ -14,7 +14,7 @@
 
 | Change | 范围 | 主要审计证据 | 当前状态 |
 | --- | --- | --- | --- |
-| `audit-remediation-p0-stability` | 注册、空教案发课、教师投影、课前包 500 | `chapters/09-function-state-flows.md`、`chapters/10-function-state-flows-batch2.md`、`chapters/06-course-teacher-waiting-runtime-demo-all.md`、`chapters/02-authenticated-role-flows.md`、`chapters/38-function-state-flows-batch30.md`、`chapters/57-function-state-flows-batch49.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-p0-stability/evidence.md` |
+| `audit-remediation-p0-stability` | 注册、空教案发课、教师投影、课前包 500 | `chapters/09-function-state-flows.md`、`chapters/10-function-state-flows-batch2.md`、`chapters/06-course-teacher-waiting-runtime-demo-all.md`、`chapters/02-authenticated-role-flows.md`、`chapters/38-function-state-flows-batch30.md`、`chapters/57-function-state-flows-batch49.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-p0-stability/evidence.md`；2026-06-29 台账映射清理：finding 132/133 已从未标记阻断集合移出，证据：`remediation/audit-report-closure-ledger-cleanup/evidence.md` |
 | `audit-remediation-action-status-contract` | 全站动作状态、下载/导出、提交/审批/写回、`alert/live` | `chapters/49-function-state-flows-batch41.md`、`chapters/50-function-state-flows-batch42.md`、`chapters/51-function-state-flows-batch43.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | foundation remediated 2026-06-21；证据：`remediation/audit-remediation-action-status-contract/evidence.md`；具体页面缺陷待后续垂直变更关闭 |
 | `audit-remediation-api-ui-contracts` | URL 参数、搜索筛选、分页、坏 ID、API/UI 口径 | `chapters/52-function-state-flows-batch44.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | foundation + admin users no-match remediated 2026-06-21；证据：`remediation/audit-remediation-api-ui-contracts/evidence.md`；其余 deep link 页面待后续垂直变更关闭 |
 | `audit-remediation-student-learning-closure` | 学生报告反馈、任务、自适应练习、证据、成长、作品集写回 | `chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | proposed |
@@ -24,6 +24,8 @@
 | `audit-remediation-ai-task-boundaries` | AI、Prompt、Copilot 任务边界、上下文脱敏、持久输出 | `chapters/50-function-state-flows-batch42.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/62-function-state-flows-batch54.md`、`chapters/63-function-state-flows-batch55.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-ai-task-boundaries/evidence.md`；自适应完整链路、学生报告反馈完整状态机和管理员治理 AI 待后续垂直变更关闭 |
 | `audit-remediation-arena-classroom-evidence` | Arena 结果解释、多次/逾期/0 分、课堂状态、证据回流 | `chapters/10-function-state-flows-batch2.md`、`chapters/34-function-state-flows-batch26.md`、`chapters/54-function-state-flows-batch46.md` 及课堂/Arena 相关批次 | proposed |
 | `audit-remediation-authoring-resource-flows` | 教案、ResourceNode、播放列表、课程流、知识节点与作者态治理 | `chapters/60-function-state-flows-batch52.md`、`chapters/61-function-state-flows-batch53.md` 及本报告资源/作者态问题项 | proposed |
+
+台账维护规则：归档 OpenSpec 整改已经明确覆盖并留存验证证据的 finding，不应继续留在未标记阻断集合中。此类项目按 mapping-cleaned 记录归档 change id、证据路径和日期；相邻但未由该证据覆盖的功能完整性、入口动作、移动布局或后续状态机 finding 继续保留未关闭状态，等待对应垂直整改。
 
 审计对象以当前 App Router 页面为准：
 
@@ -1614,9 +1616,11 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 132. P0：教师课前包复核页当前返回 500。
    `/teacher/prep-packs` 桌面和移动端均返回 500，页面只显示 Next 错误层。
+   台账状态（2026-06-29，`audit-report-closure-ledger-cleanup`）：mapping-cleaned / closed by archived evidence。`audit-remediation-p0-stability` 已在 2026-06-21 覆盖 `/teacher/prep-packs` root 与 cluster 路由恢复态，证据见 `remediation/audit-remediation-p0-stability/evidence.md`；本次仅清理主报告未标记映射，证据见 `remediation/audit-report-closure-ledger-cleanup/evidence.md`。
 
 133. P0：`CourseEnhancementPack` 表缺失阻断复核页。
    manifest 记录 `prisma.courseEnhancementPack.findFirst()` 失败，错误为 `The table public.CourseEnhancementPack does not exist in the current database.`
+   台账状态（2026-06-29，`audit-report-closure-ledger-cleanup`）：mapping-cleaned / closed by archived evidence。`audit-remediation-p0-stability` 已把缺表、无候选包和 cluster/class 深链导向受控恢复/空态，不再返回 500；证据见 `remediation/audit-remediation-p0-stability/evidence.md`。finding 134-136 仍是课前包入口、近场动作和恢复体验完整性问题，不随本映射清理关闭。
 
 134. P1：教师工作台课前包入口通向阻断页。
    桌面和移动端都有 `/teacher/prep-packs` 入口，但点击后无法进入复核体验。
