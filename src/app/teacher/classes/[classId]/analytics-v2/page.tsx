@@ -239,12 +239,16 @@ export default function ClassAnalyticsV2Page() {
       targetId: deliveryLedgerEntry.interventionAction.studentId ?? deliveryLedgerEntry.interventionAction.classId,
       requestedAction: deliveryLedgerEntry.interventionAction.kind,
     };
-    if (!canDeliverReport) {
+    if (!canDeliverReport || !deliveryLedgerEntry.interventionAction.studentId) {
       setDeliveryState(createAuditedActionState({
         identity,
         status: 'blocked',
-        message: '报告交付缺少课堂、课次或学生上下文，暂不能创建教师处置。',
-        recoveryAction: '从课堂复盘、学生证据或班级报告入口重新进入',
+        message: deliveryLedgerEntry.interventionAction.studentId
+          ? '报告交付缺少课堂、课次或学生上下文，暂不能创建教师处置。'
+          : '班级级报告需要先选择具体学生，才能创建学生证据处置记录。',
+        recoveryAction: deliveryLedgerEntry.interventionAction.studentId
+          ? '从课堂复盘、学生证据或班级报告入口重新进入'
+          : '从学生画像、学生证据页或带 studentId 的报告链接进入',
         displayReference: deliveryLedgerEntry.artifactRef,
       }));
       return;
@@ -878,6 +882,7 @@ function ReportDeliveryHandoffStates({
   onRecordIntervention: () => void;
 }) {
   const gradingHref = buildReportDeliveryGradingHref(entry);
+  const canRecordIntervention = canDeliver && Boolean(entry.interventionAction.studentId);
 
   return (
     <div
@@ -894,12 +899,12 @@ function ReportDeliveryHandoffStates({
         发送/发布：{entry.interventionAction.privacySafeSummary}
         <button
           type="button"
-          disabled={!canDeliver}
+          disabled={!canRecordIntervention}
           onClick={onRecordIntervention}
           className="mt-2 block rounded border border-border px-2 py-1 text-left text-xs text-foreground disabled:cursor-not-allowed disabled:opacity-60"
-          data-teacher-intervention-record-action={canDeliver ? 'available' : 'missing-context'}
+          data-teacher-intervention-record-action={canRecordIntervention ? 'available' : canDeliver ? 'needs-student' : 'missing-context'}
         >
-          创建处置记录
+          {canRecordIntervention ? '创建处置记录' : '选择学生后创建处置记录'}
         </button>
       </div>
       {canDeliver ? (

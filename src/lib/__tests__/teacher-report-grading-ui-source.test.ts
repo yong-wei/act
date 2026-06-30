@@ -39,7 +39,9 @@ describe('teacher report and grading UI source contracts', () => {
     expect(source).toContain('data-teacher-intervention-action-status={entry.interventionAction.status}');
     expect(source).toContain('data-teacher-intervention-persistence-target={entry.interventionAction.persistenceTarget}');
     expect(source).toContain("fetch('/api/teacher/evidence-interventions'");
-    expect(source).toContain('data-teacher-intervention-record-action={canDeliver ?');
+    expect(source).toContain('const canRecordIntervention = canDeliver && Boolean(entry.interventionAction.studentId);');
+    expect(source).toContain("data-teacher-intervention-record-action={canRecordIntervention ? 'available' : canDeliver ? 'needs-student' : 'missing-context'}");
+    expect(source).toContain('选择学生后创建处置记录');
     expect(source).toContain('entry.interventionAction.privacySafeSummary');
     expect(source).toContain('data-report-ledger-grading-handoff-state="ready"');
     expect(source).toContain('data-report-ledger-grading-handoff-state="blocked"');
