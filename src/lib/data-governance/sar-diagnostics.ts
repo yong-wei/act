@@ -114,6 +114,7 @@ export type ControlCorrectionSarDemoFixture = {
 export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput): SerializedSarTraceForDiagnostics {
   const result = exportableSarResult(input.result);
   const nonExportableRefs = nonExportableDiagnosticRefs(input.result);
+  const sensitiveEntityRefs = sensitiveDiagnosticEntityRefs(result);
   const sourcePackHandoffRefs = exportableDiagnosticRefs(input.sourcePackHandoffRefs ?? [], input.result);
   const verifiedCitationRefs = verifiedCitationTargetRefs(
     exportableDiagnosticRefs(input.verifiedCitationRefs ?? [], input.result),
@@ -123,16 +124,18 @@ export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput)
 
   return {
     id: redactSensitiveDiagnosticRef(result.trace.id),
-    seedEntityIds: redactRefList(result.trace.seedEntityIds),
-    expandedEntityIds: redactRefList(result.entities.map((entity) => entity.id)),
-    selectedEventIds: redactRefList(result.events.map((event) => event.id)),
-    selectedRefs: redactRefList(result.trace.selectedRefs),
-    rejectedRefs: result.trace.rejectedRefs.map((item) => serializeRejectedRef(item, input.result, nonExportableRefs)),
+    seedEntityIds: redactRefList(result.trace.seedEntityIds, sensitiveEntityRefs),
+    expandedEntityIds: redactRefList(result.entities.map((entity) => entity.id), sensitiveEntityRefs),
+    selectedEventIds: redactRefList(result.events.map((event) => event.id), sensitiveEntityRefs),
+    selectedRefs: redactRefList(result.trace.selectedRefs, sensitiveEntityRefs),
+    rejectedRefs: result.trace.rejectedRefs.map((item) => (
+      serializeRejectedRef(item, input.result, nonExportableRefs, sensitiveEntityRefs)
+    )),
     limitations: mergedDiagnosticLimitations(result),
-    versionRefs: redactRefList(result.trace.versionRefs),
+    versionRefs: redactRefList(result.trace.versionRefs, sensitiveEntityRefs),
     downstream: {
-      sourcePackHandoffRefs: redactRefList(sourcePackHandoffRefs),
-      verifiedCitationRefs: redactRefList(verifiedCitationRefs),
+      sourcePackHandoffRefs: redactRefList(sourcePackHandoffRefs, sensitiveEntityRefs),
+      verifiedCitationRefs: redactRefList(verifiedCitationRefs, sensitiveEntityRefs),
       verifiedCitationRate,
     },
     events: result.events.map((event) => ({
@@ -149,10 +152,10 @@ export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput)
       },
     })),
     entities: result.entities.map((entity) => ({
-      id: redactSensitiveDiagnosticRef(entity.id),
+      id: redactSensitiveDiagnosticRef(entity.id, sensitiveEntityRefs),
       entityType: entity.entityType,
       canonicalRef: entity.entityType === 'student' ? '[redacted]' : redactSensitiveDiagnosticRef(entity.canonicalRef),
-      label: redactSensitiveDiagnosticText(entity.label),
+      label: entity.entityType === 'student' ? '[redacted]' : redactSensitiveDiagnosticText(entity.label),
       privacyScope: entity.privacyScope,
     })),
   };
@@ -530,8 +533,9 @@ function serializeRejectedRef(
   item: SarRetrievalTrace['rejectedRefs'][number],
   result: SarRetrievalResult,
   nonExportableRefs: ReadonlySet<string>,
+  sensitiveRefs?: ReadonlySet<string>,
 ): { ref: string; reason: string } {
-  const redactedRef = redactSensitiveDiagnosticRef(item.ref);
+  const redactedRef = redactSensitiveDiagnosticRef(item.ref, sensitiveRefs);
   if (!isExportableDiagnosticRef(item.ref, result, nonExportableRefs) || redactedRef === '[redacted]') {
     return {
       ref: '[redacted]',
@@ -578,6 +582,16 @@ function nonExportableDiagnosticRefs(result: SarRetrievalResult): Set<string> {
   return refs;
 }
 
+function sensitiveDiagnosticEntityRefs(result: SarRetrievalResult): Set<string> {
+  const refs = new Set<string>();
+  for (const entity of result.entities) {
+    if (entity.entityType !== 'student') continue;
+    refs.add(entity.id);
+    refs.add(entity.canonicalRef);
+  }
+  return refs;
+}
+
 function collectStringRefs(value: unknown, refs: Set<string>): void {
   if (typeof value === 'string') {
     refs.add(value);
@@ -609,8 +623,8 @@ function mergedDiagnosticLimitations(result: SarRetrievalResult): string[] {
   return uniqueSorted([...result.trace.limitations, ...result.limitations].map(redactSensitiveDiagnosticText));
 }
 
-function redactRefList(values: readonly string[]): string[] {
-  return uniqueSorted(values.map(redactSensitiveDiagnosticRef));
+function redactRefList(values: readonly string[], sensitiveRefs?: ReadonlySet<string>): string[] {
+  return uniqueSorted(values.map((value) => redactSensitiveDiagnosticRef(value, sensitiveRefs)));
 }
 
 function verifiedCitationTargetRefs(
@@ -628,9 +642,10 @@ function redactSensitiveDiagnosticText(value: string): string {
   return value;
 }
 
-function redactSensitiveDiagnosticRef(value: string): string {
+function redactSensitiveDiagnosticRef(value: string, sensitiveRefs?: ReadonlySet<string>): string {
   if (
-    SENSITIVE_DIAGNOSTIC_TEXT.some((pattern) => pattern.test(value))
+    sensitiveRefs?.has(value)
+    || SENSITIVE_DIAGNOSTIC_TEXT.some((pattern) => pattern.test(value))
     || SENSITIVE_DIAGNOSTIC_REF.some((pattern) => pattern.test(value))
   ) {
     return '[redacted]';

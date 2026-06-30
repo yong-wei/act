@@ -92,6 +92,72 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(text).not.toContain('rawScoreVector');
   });
 
+  it('redacts student entity ids across serialized trace ref lists', () => {
+    const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
+    const studentEntityId = 'sar:entity:student:student:learner-1';
+    const result = {
+      ...fixture.result,
+      trace: {
+        ...fixture.result.trace,
+        seedEntityIds: [
+          ...fixture.result.trace.seedEntityIds,
+          studentEntityId,
+        ],
+        selectedRefs: [
+          ...fixture.result.trace.selectedRefs,
+          studentEntityId,
+        ],
+        rejectedRefs: [
+          ...fixture.result.trace.rejectedRefs,
+          { ref: studentEntityId, reason: 'student-scope-required' },
+        ],
+        versionRefs: [
+          ...fixture.result.trace.versionRefs,
+          studentEntityId,
+        ],
+      },
+      entities: [
+        ...fixture.result.entities,
+        {
+          ...fixture.result.entities[0],
+          id: studentEntityId,
+          entityType: 'student' as const,
+          canonicalRef: 'student:learner-1',
+          label: 'Learner One',
+          privacyScope: 'teacher-scoped' as const,
+        },
+      ],
+    };
+    const serialized = serializeSarTraceForDiagnostics({
+      id: 'student-entity-redaction-probe',
+      query: fixture.query,
+      result,
+      sourcePackHandoffRefs: [studentEntityId],
+      verifiedCitationRefs: [studentEntityId],
+    });
+    const text = JSON.stringify(serialized);
+
+    expect(serialized.seedEntityIds).toContain('[redacted]');
+    expect(serialized.expandedEntityIds).toContain('[redacted]');
+    expect(serialized.selectedRefs).toContain('[redacted]');
+    expect(serialized.versionRefs).toContain('[redacted]');
+    expect(serialized.downstream.sourcePackHandoffRefs).toContain('[redacted]');
+    expect(serialized.downstream.verifiedCitationRefs).not.toContain(studentEntityId);
+    expect(serialized.rejectedRefs).toContainEqual({
+      ref: '[redacted]',
+      reason: '[redacted]',
+    });
+    expect(serialized.entities).toContainEqual(expect.objectContaining({
+      entityType: 'student',
+      id: '[redacted]',
+      canonicalRef: '[redacted]',
+      label: '[redacted]',
+    }));
+    expect(text).not.toContain(studentEntityId);
+    expect(text).not.toContain('student:learner-1');
+    expect(text).not.toContain('Learner One');
+  });
+
   it('redacts sensitive reason and limitation text supplied by traces', () => {
     const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
     const result = {
