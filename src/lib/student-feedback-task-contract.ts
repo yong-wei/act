@@ -101,7 +101,8 @@ export function buildFeedbackTaskContext(
   const teacherInterventionId = firstQueryValue(query.teacherInterventionId);
   const requestedLifecycleState = resolveLifecycleState(firstQueryValue(query.status), action, intent);
   const hasTeacherVisibleInterventionRequest =
-    requestedLifecycleState === 'teacher-visible' || requestedLifecycleState === 'written-back';
+    Boolean(teacherInterventionId)
+    && (requestedLifecycleState === 'teacher-visible' || requestedLifecycleState === 'written-back');
   const hasVerifiedTeacherIntervention =
     Boolean(teacherInterventionId) && teacherInterventionId === options.verifiedTeacherInterventionId;
   const hasUnverifiedTeacherIntervention =

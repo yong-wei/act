@@ -215,6 +215,10 @@ describe('student feedback task contract', () => {
       assignment: 'report-control-design',
       status: 'written-back',
     }));
+    const teacherVisibleWithoutIntervention = expectContext(buildFeedbackTaskContext({
+      assignment: 'report-control-design',
+      status: 'teacher-visible',
+    }));
 
     expect(buildFeedbackTaskStatusState(returned, '/assessment/document-feedback')).toMatchObject({
       status: 'pending',
@@ -230,8 +234,12 @@ describe('student feedback task contract', () => {
       message: expect.stringContaining('等待写回'),
     });
     expect(buildFeedbackTaskStatusState(writtenBack, '/assessment/document-feedback')).toMatchObject({
-      status: 'pending',
-      message: expect.stringContaining('等待写回'),
+      status: 'succeeded',
+      message: expect.stringContaining('反馈任务已写回'),
+    });
+    expect(buildFeedbackTaskStatusState(teacherVisibleWithoutIntervention, '/assessment/document-feedback')).toMatchObject({
+      status: 'succeeded',
+      message: expect.stringContaining('反馈任务已写回'),
     });
   });
 
