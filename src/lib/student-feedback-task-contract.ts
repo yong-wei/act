@@ -92,7 +92,11 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
   const action = firstQueryValue(query.action);
   const intent = firstQueryValue(query.intent);
   const teacherInterventionId = firstQueryValue(query.teacherInterventionId);
-  const lifecycleState = resolveLifecycleState(firstQueryValue(query.status), action, intent);
+  const requestedLifecycleState = resolveLifecycleState(firstQueryValue(query.status), action, intent);
+  const hasUnverifiedTeacherIntervention =
+    Boolean(teacherInterventionId) &&
+    (requestedLifecycleState === 'teacher-visible' || requestedLifecycleState === 'written-back');
+  const lifecycleState = hasUnverifiedTeacherIntervention ? 'completed' : requestedLifecycleState;
   const returnTo = sanitizeReturnTo(firstQueryValue(query.returnTo));
   const isDocumentFeedbackAssignment = source === 'document-feedback' && Boolean(criterionId);
   const supported = assignmentId === REPORT_CONTROL_DESIGN.assignmentId || isDocumentFeedbackAssignment;
@@ -112,7 +116,7 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
     teacherInterventionId,
     completionTarget: supported ? 'evidence-growth-portfolio' : 'unsupported',
     supported,
-    teacherIntervention: supported
+    teacherIntervention: supported && !hasUnverifiedTeacherIntervention
       ? buildStudentVisibleTeacherIntervention({
         assignmentId,
         status: lifecycleState,
