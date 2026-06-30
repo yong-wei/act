@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { BarChart3, ClipboardList, Copy, FileDown, LockKeyhole, Send, ShieldAlert, Trophy, Users } from 'lucide-react';
+import { BarChart3, ClipboardList, Copy, DatabaseZap, FileDown, LockKeyhole, Send, ShieldAlert, Trophy, Users } from 'lucide-react';
 
 import { getServerAuthSession } from '@/lib/auth';
 import {
@@ -34,6 +34,12 @@ function formatAttemptStatus(value: 'effective' | 'late' | 'zero-score' | 'inval
   if (value === 'late') return '迟交';
   if (value === 'zero-score') return '零分';
   return '无效';
+}
+
+function formatEvidenceWritebackStatus(value: 'accepted' | 'degraded' | 'blocked'): string {
+  if (value === 'accepted') return '证据已写入';
+  if (value === 'degraded') return '证据受限';
+  return '诊断保留';
 }
 
 function lifecycleToneClass(tone: 'success' | 'warning' | 'neutral' | 'muted'): string {
@@ -134,6 +140,31 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
             />
           </div>
 
+          <section className="surface-card mt-6 p-5" data-arena-evidence-writeback-report="visible">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">证据回流</h2>
+                <p className="mt-2 text-sm leading-6 text-subtle">{report.evidenceWriteback.studentVisibleRule}</p>
+              </div>
+              <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-xs font-medium text-subtle">
+                终端验证 {report.evidenceWriteback.terminalValidationAcceptedCount} 条
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <SignalRow label="已写入" value={`${report.evidenceWriteback.acceptedCount} 条`} />
+              <SignalRow label="受限证据" value={`${report.evidenceWriteback.degradedCount} 条`} />
+              <SignalRow label="未写入" value={`${report.evidenceWriteback.blockedCount} 条`} />
+            </div>
+            <div className="mt-4 rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm leading-6 text-subtle">
+              {report.evidenceWriteback.teacherRecoveryRule}
+              {report.evidenceWriteback.latestLimitationCodes.length > 0 ? (
+                <span className="block text-xs text-muted-foreground">
+                  限制代码：{report.evidenceWriteback.latestLimitationCodes.join('、')}
+                </span>
+              ) : null}
+            </div>
+          </section>
+
           <section className="surface-card mt-6 p-5" data-arena-attempt-policy="visible">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -219,7 +250,7 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
                     key={best.userId}
                     label={best.studentLabel}
                     score={best.score}
-                    detail={`${best.method} · ${formatAttemptStatus(best.attemptStatus)} · ${best.rankingExplanation} · ${formatDate(best.submittedAt)}`}
+                    detail={`${best.method} · ${formatAttemptStatus(best.attemptStatus)} · ${formatEvidenceWritebackStatus(best.evidenceWritebackStatus)} · ${best.rankingExplanation} · ${formatDate(best.submittedAt)}`}
                   />
                 ))}
               </div>
@@ -298,6 +329,9 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
           ) : null}
           <div className="sr-only" data-task-workspace-zone="floating-dock-safe-area">
             Arena 发布报告交付动作避让全局浮动控件，并保留移动端底部安全区。
+          </div>
+          <div className="sr-only" data-arena-evidence-writeback-mobile-action="reachable">
+            Arena 发布报告在移动端保留证据回流状态、限制代码和教师恢复动作。
           </div>
         </section>
       </main>

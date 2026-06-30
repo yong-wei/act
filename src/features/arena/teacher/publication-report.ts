@@ -2,6 +2,12 @@ import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
 import type { ControllerMethod } from '../types';
 import { getArenaChallengeTask } from '../data/seed-challenges';
+import {
+  buildArenaRankingExplanation,
+  buildArenaSubmissionEvidenceWriteback,
+  getArenaAttemptStatus,
+  type ArenaAttemptStatus,
+} from '../evidence-writeback';
 import type { ArenaPublicationGradingPolicy, ArenaPublicationStatus, ArenaPublicationVisibility } from './publication-store';
 
 const WEAK_METRIC_THRESHOLD = 0.6;
@@ -91,6 +97,15 @@ export interface ArenaPublicationReport {
     invalidSubmissionCount: number;
     validSubmissionRate: number;
   };
+  evidenceWriteback: {
+    acceptedCount: number;
+    degradedCount: number;
+    blockedCount: number;
+    terminalValidationAcceptedCount: number;
+    latestLimitationCodes: string[];
+    studentVisibleRule: string;
+    teacherRecoveryRule: string;
+  };
   scores: {
     average: number | null;
     median: number | null;
@@ -121,6 +136,7 @@ export interface ArenaPublicationReport {
     rankingExplanation: string;
     method: ControllerMethod;
     submittedAt: string;
+    evidenceWritebackStatus: 'accepted' | 'degraded' | 'blocked';
   }>;
   excellentSolutions: Array<{
     userId?: string;
@@ -165,24 +181,8 @@ export interface ArenaPublicationReport {
   };
 }
 
-type ArenaAttemptStatus = 'effective' | 'late' | 'zero-score' | 'invalid';
-
 function roundTwo(value: number): number {
   return Math.round(value * 100) / 100;
-}
-
-function getAttemptStatus(submission: ArenaSubmissionRecord): ArenaAttemptStatus {
-  if (!submission.evaluation.valid) return 'invalid';
-  if (submission.isLate) return 'late';
-  if (submission.evaluation.score <= 0) return 'zero-score';
-  return 'effective';
-}
-
-function buildRankingExplanation(status: ArenaAttemptStatus): string {
-  if (status === 'effective') return '有效尝试：计入个人最佳和优秀方案候选。';
-  if (status === 'late') return '迟交尝试：保留记录，但不作为优秀方案或正式排名依据。';
-  if (status === 'zero-score') return '零分尝试：保留诊断证据，但不标记为优秀方案。';
-  return '无效尝试：保留失败原因，用于课堂复盘。';
 }
 
 function buildAttemptPolicy(submissions: readonly ArenaSubmissionRecord[]): ArenaPublicationReport['attemptPolicy'] {
@@ -213,6 +213,24 @@ function buildAttemptPolicy(submissions: readonly ArenaSubmissionRecord[]): Aren
     zeroScoreSubmissionCount,
     invalidSubmissionCount,
     multipleSubmitterCount: Array.from(attemptsByStudent.values()).filter((count) => count > 1).length,
+  };
+}
+
+function buildEvidenceWritebackSummary(
+  submissions: readonly ArenaSubmissionRecord[],
+): ArenaPublicationReport['evidenceWriteback'] {
+  const writebacks = submissions.map((submission) => (
+    submission.evidenceWriteback ?? buildArenaSubmissionEvidenceWriteback(submission, { consumer: 'teacher' })
+  ));
+  const latestLimitationCodes = Array.from(new Set(writebacks.flatMap((writeback) => writeback.limitationCodes))).sort();
+  return {
+    acceptedCount: writebacks.filter((writeback) => writeback.status === 'accepted').length,
+    degradedCount: writebacks.filter((writeback) => writeback.status === 'degraded').length,
+    blockedCount: writebacks.filter((writeback) => writeback.status === 'blocked').length,
+    terminalValidationAcceptedCount: writebacks.filter((writeback) => writeback.terminalValidationAccepted).length,
+    latestLimitationCodes,
+    studentVisibleRule: '学生侧显示官方 ArenaSubmission 证据回流状态；迟交、零分和无效尝试只保留诊断证据。',
+    teacherRecoveryRule: '教师报告保留限制代码；可要求学生重新提交有效官方结果，或由管理员补充 KAQ 目标绑定后重试。',
   };
 }
 
@@ -467,7 +485,8 @@ function buildPersonalBests(submissions: readonly ArenaSubmissionRecord[]): Aren
 
   for (const submission of submissions) {
     const userId = submission.userId ?? submission.studentLabel;
-    const attemptStatus = getAttemptStatus(submission);
+    const attemptStatus = getArenaAttemptStatus(submission);
+    const evidenceWriteback = submission.evidenceWriteback ?? buildArenaSubmissionEvidenceWriteback(submission, { consumer: 'teacher' });
     const candidate = {
       userId,
       studentLabel: submission.studentLabel,
@@ -476,9 +495,10 @@ function buildPersonalBests(submissions: readonly ArenaSubmissionRecord[]): Aren
       valid: submission.evaluation.valid,
       attemptStatus,
       effectiveForRanking: attemptStatus === 'effective',
-      rankingExplanation: buildRankingExplanation(attemptStatus),
+      rankingExplanation: buildArenaRankingExplanation(attemptStatus),
       method: submission.artifact.method,
       submittedAt: submission.submittedAt,
+      evidenceWritebackStatus: evidenceWriteback.status,
     };
     const current = bestByStudent.get(userId);
     if (!current || comparePersonalBest(candidate, current) < 0) {
@@ -618,6 +638,7 @@ export function buildArenaPublicationReport(input: BuildArenaPublicationReportIn
       invalidSubmissionCount: scopedSubmissions.length - validSubmissionCount,
       validSubmissionRate: scopedSubmissions.length > 0 ? validSubmissionCount / scopedSubmissions.length : 0,
     },
+    evidenceWriteback: buildEvidenceWritebackSummary(scopedSubmissions),
     scores: buildScoreSummary(scopedSubmissions),
     hardConstraintFailures,
     weakMetrics,

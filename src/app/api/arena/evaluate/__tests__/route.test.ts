@@ -169,6 +169,15 @@ describe('POST /api/arena/evaluate', () => {
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(payload.submission.reusedEvaluation).toBe(true);
+    expect(payload.evidenceWriteback).toMatchObject({
+      status: 'accepted',
+      sourceRef: { kind: 'ArenaSubmission', id: 'submission-artifact-route-b' },
+      limitationCodes: [],
+    });
+    expect(payload.submission.evidenceWriteback).toMatchObject({
+      status: 'accepted',
+      terminalValidationAccepted: true,
+    });
     expect(mocks.getArenaPlantAdapterForOfficialEvaluationTaskId).toHaveBeenCalledWith(artifact.taskId);
     expect(mocks.createPersistedArenaSubmission).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',

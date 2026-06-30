@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, CheckCircle2, TrendingUp } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, DatabaseZap, TrendingUp } from 'lucide-react';
 
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import {
@@ -76,6 +76,18 @@ export function ArenaPersonalFeedback({
         </div>
       </div>
 
+      <div
+        className="mt-3 flex items-start gap-2 rounded-md border border-border/60 bg-background/45 px-3 py-2 text-xs"
+        data-arena-evidence-writeback={feedback.evidenceWriteback.status}
+      >
+        <DatabaseZap className="mt-0.5 h-3.5 w-3.5 text-primary" />
+        <div>
+          <div className="font-medium text-foreground">证据回流：{formatEvidenceWritebackStatus(feedback.evidenceWriteback.status)}</div>
+          <div className="mt-1 leading-5 text-subtle">{feedback.evidenceWriteback.summary}</div>
+          <div className="mt-1 text-[11px] text-muted-foreground">{feedback.evidenceWriteback.recoveryAction}</div>
+        </div>
+      </div>
+
       {feedback.hardConstraintFailures.length > 0 ? (
         <div className="mt-3 grid gap-1">
           {feedback.hardConstraintFailures.map((failure) => (
@@ -100,6 +112,12 @@ export function ArenaPersonalFeedback({
       ) : null}
     </div>
   );
+}
+
+function formatEvidenceWritebackStatus(status: 'accepted' | 'degraded' | 'blocked'): string {
+  if (status === 'accepted') return '已写入';
+  if (status === 'degraded') return '受限';
+  return '未写入';
 }
 
 function FeedbackMetric({ label, value }: { label: string; value: string }) {

@@ -36,12 +36,14 @@ function submission(input: {
   satisfaction?: Record<string, number>;
   metrics?: Record<string, number>;
   hardConstraintResults?: Array<{ id: string; label: string; passed: boolean; value?: number; threshold?: number }>;
+  taskId?: string;
 }): ArenaSubmissionRecord {
-  const currentArtifact = artifact({ id: `artifact-${input.id}`, method: input.method });
+  const taskId = input.taskId ?? 'task-report';
+  const currentArtifact = artifact({ id: `artifact-${input.id}`, taskId, method: input.method });
 
   return {
     id: input.id,
-    taskId: 'task-report',
+    taskId,
     userId: input.userId,
     classId: input.classId === null ? undefined : input.classId ?? 'class-a',
     publicationId: input.publicationId ?? 'publication-a',
@@ -161,6 +163,12 @@ describe('arena publication report analytics', () => {
       invalidSubmissionCount: 1,
       validSubmissionRate: 2 / 3,
     });
+    expect(report.evidenceWriteback).toMatchObject({
+      acceptedCount: 0,
+      degradedCount: 0,
+      blockedCount: 3,
+      terminalValidationAcceptedCount: 0,
+    });
     expect(report.scores).toMatchObject({
       average: 88,
       median: 88,
@@ -186,6 +194,88 @@ describe('arena publication report analytics', () => {
     expect(report.excellentSolutions).toEqual([
       expect.objectContaining({ studentLabel: '学生乙', submissionId: 'b-blackbox', score: 92 }),
       expect.objectContaining({ studentLabel: '学生甲', submissionId: 'a-best', score: 84 }),
+    ]);
+  });
+
+  it('summarizes evidence writeback states for effective, late, and invalid official attempts', () => {
+    const report = buildArenaPublicationReport({
+      publication: {
+        id: 'publication-evidence',
+        taskId: 'task-second-order-lead-pid',
+        classId: 'class-a',
+        deadline: '2026-06-01T08:00:00.000Z',
+        visibility: 'class',
+        leaderboardPolicyId: 'leaderboard-class-homework',
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+      },
+      roster: [
+        { userId: 'student-a', studentLabel: '学生甲' },
+        { userId: 'student-b', studentLabel: '学生乙' },
+        { userId: 'student-c', studentLabel: '学生丙' },
+      ],
+      submissions: [
+        submission({
+          id: 'effective-writeback',
+          taskId: 'task-second-order-lead-pid',
+          userId: 'student-a',
+          studentLabel: '学生甲',
+          score: 88,
+          valid: true,
+          submittedAt: '2026-05-16T08:00:00.000Z',
+          publicationId: 'publication-evidence',
+        }),
+        submission({
+          id: 'late-writeback',
+          taskId: 'task-second-order-lead-pid',
+          userId: 'student-b',
+          studentLabel: '学生乙',
+          score: 92,
+          valid: true,
+          isLate: true,
+          submittedAt: '2026-05-16T08:10:00.000Z',
+          publicationId: 'publication-evidence',
+        }),
+        submission({
+          id: 'invalid-writeback',
+          taskId: 'task-second-order-lead-pid',
+          userId: 'student-c',
+          studentLabel: '学生丙',
+          score: 48,
+          valid: false,
+          submittedAt: '2026-05-16T08:20:00.000Z',
+          publicationId: 'publication-evidence',
+        }),
+      ],
+    });
+
+    expect(report.evidenceWriteback).toMatchObject({
+      acceptedCount: 1,
+      degradedCount: 0,
+      blockedCount: 2,
+      terminalValidationAcceptedCount: 1,
+    });
+    expect(report.evidenceWriteback.latestLimitationCodes).toEqual([
+      'attempt-not-effective:invalid',
+      'attempt-not-effective:late',
+    ]);
+    expect(report.personalBests).toEqual([
+      expect.objectContaining({
+        userId: 'student-a',
+        evidenceWritebackStatus: 'accepted',
+        effectiveForRanking: true,
+      }),
+      expect.objectContaining({
+        userId: 'student-b',
+        attemptStatus: 'late',
+        evidenceWritebackStatus: 'blocked',
+        effectiveForRanking: false,
+      }),
+      expect.objectContaining({
+        userId: 'student-c',
+        attemptStatus: 'invalid',
+        evidenceWritebackStatus: 'blocked',
+        effectiveForRanking: false,
+      }),
     ]);
   });
 
