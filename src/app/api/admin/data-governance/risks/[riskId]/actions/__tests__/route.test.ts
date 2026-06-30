@@ -192,6 +192,7 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
         evidenceJson: {
           source: 'risk-detector',
           adminGovernance: {
+            currentAssignee: 'admin-1',
             auditLog: [firstPayload.auditRecord],
           },
         },
@@ -201,6 +202,7 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
         evidenceJson: {
           source: 'risk-detector',
           adminGovernance: {
+            currentAssignee: 'admin-1',
             auditLog: [firstPayload.auditRecord],
           },
         },
@@ -212,10 +214,12 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     });
     const secondPayload = await secondResponse.json();
     const updateCall = mocks.prisma.studentRiskFlag.update.mock.calls.at(-1)?.[0];
-    const auditLog = updateCall?.data?.evidenceJson?.adminGovernance?.auditLog;
+    const governance = updateCall?.data?.evidenceJson?.adminGovernance;
+    const auditLog = governance?.auditLog;
 
     expect(secondResponse.status).toBe(200);
     expect(secondPayload.operationLedger.idempotencyKey).toBe(firstPayload.operationLedger.idempotencyKey);
+    expect(governance.currentAssignee).toBe('admin-1');
     expect(auditLog).toHaveLength(1);
     expect(auditLog[0]).toMatchObject({
       idempotencyKey: firstPayload.operationLedger.idempotencyKey,
@@ -223,7 +227,7 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     });
   });
 
-  it('does not roll back current assignee when replaying an older idempotent assignment', async () => {
+  it('treats assigning back to a previous assignee as a new governance action', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-06-21T10:00:00.000Z'));
     const firstResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
@@ -261,18 +265,21 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
       });
     vi.setSystemTime(new Date('2026-06-21T10:05:00.000Z'));
 
-    const replayResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
+    const reassignmentResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
       params: Promise.resolve({ riskId: 'risk-1' }),
     });
+    const reassignmentPayload = await reassignmentResponse.json();
     const updateCall = mocks.prisma.studentRiskFlag.update.mock.calls.at(-1)?.[0];
     const governance = updateCall?.data?.evidenceJson?.adminGovernance;
 
-    expect(replayResponse.status).toBe(200);
-    expect(governance.currentAssignee).toBe('admin-2');
-    expect(governance.auditLog).toHaveLength(2);
+    expect(reassignmentResponse.status).toBe(200);
+    expect(reassignmentPayload.operationLedger.idempotencyKey).not.toBe(firstPayload.operationLedger.idempotencyKey);
+    expect(reassignmentPayload.operationLedger.auditSummary).toBe('治理风险 risk-1 已分派给 admin-1。');
+    expect(governance.currentAssignee).toBe('admin-1');
+    expect(governance.auditLog).toHaveLength(3);
     expect(governance.auditLog.at(-1)).toMatchObject({
-      assignee: 'admin-2',
-      idempotencyKey: 'admin-op:later-assignment',
+      assignee: 'admin-1',
+      idempotencyKey: reassignmentPayload.operationLedger.idempotencyKey,
     });
   });
 
