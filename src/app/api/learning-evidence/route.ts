@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
       action: request.nextUrl.searchParams.get('action'),
       returnTo: request.nextUrl.searchParams.get('returnTo'),
       intent: request.nextUrl.searchParams.get('intent'),
+      teacherInterventionId: request.nextUrl.searchParams.get('teacherInterventionId'),
     });
 
     if (!context) {

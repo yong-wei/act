@@ -33,6 +33,7 @@ export default function InteractiveResourcePage() {
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
     intent: searchParams.get('intent'),
+    teacherInterventionId: searchParams.get('teacherInterventionId'),
   });
   const [resource, setResource] = useState<TeachingResource | null>(null);
   const [isLoading, setIsLoading] = useState(true);

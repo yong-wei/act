@@ -230,6 +230,72 @@ export default function ClassAnalyticsV2Page() {
     }
   }, [canDeliverReport, classId, deliveryLedgerEntry]);
 
+  const handleRecordIntervention = useCallback(async () => {
+    const identity = {
+      id: deliveryLedgerEntry.interventionAction.id,
+      category: 'writeback' as const,
+      label: '教师证据处置',
+      sourceRoute: '/teacher/classes/report-delivery-ledger',
+      targetId: deliveryLedgerEntry.interventionAction.studentId ?? deliveryLedgerEntry.interventionAction.classId,
+      requestedAction: deliveryLedgerEntry.interventionAction.kind,
+    };
+    if (!canDeliverReport) {
+      setDeliveryState(createAuditedActionState({
+        identity,
+        status: 'blocked',
+        message: '报告交付缺少课堂、课次或学生上下文，暂不能创建教师处置。',
+        recoveryAction: '从课堂复盘、学生证据或班级报告入口重新进入',
+        displayReference: deliveryLedgerEntry.artifactRef,
+      }));
+      return;
+    }
+    try {
+      setDeliveryState(createAuditedActionState({
+        identity,
+        status: 'pending',
+        message: '正在创建教师证据处置记录。',
+        nextAction: '等待处置记录写入证据队列',
+        displayReference: deliveryLedgerEntry.interventionAction.id,
+      }));
+      const response = await fetch('/api/teacher/evidence-interventions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildInterventionRequestBody(deliveryLedgerEntry)),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(readApiError(payload) ?? '教师证据处置创建失败');
+      }
+      if (!hasPersistedIntervention(payload)) {
+        setDeliveryState(createAuditedActionState({
+          identity,
+          status: 'blocked',
+          message: '当前处置没有写入学生证据队列，不能声明记录已创建。',
+          recoveryAction: '选择具体学生或有效补练路径后重试',
+          displayReference: deliveryLedgerEntry.interventionAction.id,
+        }));
+        return;
+      }
+      setDeliveryState(createAuditedActionState({
+        identity,
+        status: 'succeeded',
+        message: '教师证据处置记录已创建，等待学生侧写回完成。',
+        nextAction: '回到评分工作台或学生证据页继续跟踪',
+        displayReference: typeof payload?.action?.id === 'string'
+          ? payload.action.id
+          : deliveryLedgerEntry.interventionAction.id,
+      }));
+    } catch (error) {
+      setDeliveryState(createAuditedActionState({
+        identity,
+        status: 'failed',
+        message: error instanceof Error ? error.message : '教师证据处置创建失败。',
+        recoveryAction: '检查学生、报告和来源证据后重试',
+        displayReference: deliveryLedgerEntry.interventionAction.id,
+      }));
+    }
+  }, [canDeliverReport, deliveryLedgerEntry]);
+
   const handleCopySummary = useCallback(async () => {
     if (!canDeliverReport) {
       setDeliveryState(createAuditedActionState({
@@ -354,6 +420,7 @@ export default function ClassAnalyticsV2Page() {
           versionLabel={reportVersionLabel}
           onDownload={handleReportDownload}
           onCopySummary={handleCopySummary}
+          onRecordIntervention={handleRecordIntervention}
         />
         {graphCenterNodeId ? (
           <section
@@ -627,6 +694,7 @@ function ReportDeliveryPanel({
   versionLabel,
   onDownload,
   onCopySummary,
+  onRecordIntervention,
 }: {
   state: AuditedActionState | null;
   ledgerEntry: TeacherReportDeliveryLedgerEntry;
@@ -634,6 +702,7 @@ function ReportDeliveryPanel({
   versionLabel: string;
   onDownload: () => void;
   onCopySummary: () => void;
+  onRecordIntervention: () => void;
 }) {
   return (
     <section
@@ -669,7 +738,7 @@ function ReportDeliveryPanel({
         />
       </div>
       <ReportDeliveryCapabilityNote />
-      <ReportDeliveryHandoffStates entry={ledgerEntry} canDeliver={canDeliver} />
+      <ReportDeliveryHandoffStates entry={ledgerEntry} canDeliver={canDeliver} onRecordIntervention={onRecordIntervention} />
       <ReportDeliveryLedgerDetails entry={ledgerEntry} />
       {state ? <ActionStatusPanel state={state} className="mt-4" /> : null}
     </section>
@@ -799,7 +868,15 @@ function ReportDeliveryCapabilityNote() {
   );
 }
 
-function ReportDeliveryHandoffStates({ entry, canDeliver }: { entry: TeacherReportDeliveryLedgerEntry; canDeliver: boolean }) {
+function ReportDeliveryHandoffStates({
+  entry,
+  canDeliver,
+  onRecordIntervention,
+}: {
+  entry: TeacherReportDeliveryLedgerEntry;
+  canDeliver: boolean;
+  onRecordIntervention: () => void;
+}) {
   const gradingHref = buildReportDeliveryGradingHref(entry);
 
   return (
@@ -810,8 +887,20 @@ function ReportDeliveryHandoffStates({ entry, canDeliver }: { entry: TeacherRepo
       <div
         className="rounded border border-border/70 px-3 py-2"
         data-report-ledger-send-publish-state="degraded"
+        data-teacher-intervention-action-id={entry.interventionAction.id}
+        data-teacher-intervention-action-status={entry.interventionAction.status}
+        data-teacher-intervention-persistence-target={entry.interventionAction.persistenceTarget}
       >
-        发送/发布：需选择有效学生或班级交付范围后继续。
+        发送/发布：{entry.interventionAction.privacySafeSummary}
+        <button
+          type="button"
+          disabled={!canDeliver}
+          onClick={onRecordIntervention}
+          className="mt-2 block rounded border border-border px-2 py-1 text-left text-xs text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          data-teacher-intervention-record-action={canDeliver ? 'available' : 'missing-context'}
+        >
+          创建处置记录
+        </button>
       </div>
       {canDeliver ? (
         <Link
@@ -834,6 +923,7 @@ function ReportDeliveryHandoffStates({ entry, canDeliver }: { entry: TeacherRepo
       <div
         className="rounded border border-border/70 px-3 py-2"
         data-report-ledger-retry-state="available"
+        data-teacher-intervention-student-target={entry.interventionAction.studentFacingTarget.surface}
       >
         失败重试：导出、复制或对象缺失时保留恢复动作。
       </div>
@@ -857,6 +947,35 @@ function buildReportDeliveryGradingHref(entry: TeacherReportDeliveryLedgerEntry)
   if (entry.gradingRunId) params.set('gradingRunId', entry.gradingRunId);
   if (entry.studentId) params.set('studentId', entry.studentId);
   return `/teacher/grading-workbench?${params.toString()}`;
+}
+
+function buildInterventionRequestBody(entry: TeacherReportDeliveryLedgerEntry) {
+  const action = entry.interventionAction;
+  return {
+    kind: action.kind,
+    surface: action.surface,
+    studentId: action.studentId,
+    classId: action.classId,
+    sessionId: action.sessionId,
+    lessonId: action.lessonId,
+    reportId: action.reportId,
+    gradingRunId: action.gradingRunId,
+    source: action.source,
+    sourceEvidenceRefs: action.sourceEvidenceRefs,
+    learnerState: action.studentId ? 'ready' : 'partial',
+  };
+}
+
+function readApiError(payload: unknown) {
+  return payload && typeof payload === 'object' && !Array.isArray(payload) && typeof (payload as { error?: unknown }).error === 'string'
+    ? (payload as { error: string }).error
+    : null;
+}
+
+function hasPersistedIntervention(payload: unknown) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
+  const record = payload as { outbox?: unknown; interventionId?: unknown };
+  return record.outbox === 'recorded' || record.outbox === 'duplicate' || typeof record.interventionId === 'string';
 }
 
 function MetricCard({

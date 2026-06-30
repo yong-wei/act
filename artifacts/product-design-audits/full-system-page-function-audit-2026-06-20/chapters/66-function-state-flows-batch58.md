@@ -134,3 +134,10 @@
 - 433 已关闭：任务大厅页面/API 解析反馈 assignment/status/returnTo，并通过显式 assignment→mission order 映射收敛 PID 补强任务和返回路径。
 - 434 已关闭：作品集收录入口生成反馈候选草稿，显示来源、候选状态和返回报告反馈路径。
 - 442 的学生反馈任务状态部分已关闭：学生反馈目标页统一接入动作状态面板；教师、管理员和统计导出状态继续按对应变更跟踪。
+
+## #749 教师证据处置闭环整改记录（2026-06-30）
+
+整改变更：`audit-remediation-teacher-evidence-intervention-closure`。证据：`../remediation/audit-remediation-teacher-evidence-intervention-closure/evidence.md`。
+
+- 435、436、437 的后续处置部分已关闭：教师报告、缺失学生发送和评分审批现在生成统一 intervention action，保留来源证据、上下文、学生侧目标和恢复动作。
+- 442 的教师处置状态部分已关闭：教师报告和学生证据页输出结构化 action status，并在学生反馈任务中携带 `teacherInterventionId`；管理员和统计导出状态仍由对应变更跟踪。

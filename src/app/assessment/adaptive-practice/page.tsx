@@ -1273,6 +1273,7 @@ export default function AdaptivePracticePage() {
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
     intent: searchParams.get('intent'),
+    teacherInterventionId: searchParams.get('teacherInterventionId'),
   });
   const withFeedbackTaskHref = useCallback((href: string, options?: Parameters<typeof buildFeedbackTaskHref>[2]) => (
     feedbackContext

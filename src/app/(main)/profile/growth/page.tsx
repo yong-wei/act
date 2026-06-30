@@ -236,6 +236,7 @@ export default function GrowthPage() {
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
     intent: searchParams.get('intent'),
+    teacherInterventionId: searchParams.get('teacherInterventionId'),
   });
 
   return (

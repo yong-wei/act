@@ -12,6 +12,7 @@ describe('student feedback task UI source contracts', () => {
   it('wires report feedback, adaptive practice, evidence, growth, missions, and portfolio to the shared assignment contract', () => {
     const documentFeedback = readSource('src/app/assessment/document-feedback/page.tsx');
     const gradingUi = readSource('src/features/assessment/document-rubric-grading-ui.tsx');
+    const feedbackPanel = readSource('src/features/assessment/student-feedback-task-panel.tsx');
     const adaptivePractice = readSource('src/app/assessment/adaptive-practice/page.tsx');
     const missions = readSource('src/app/(main)/missions/page.tsx');
     const evidence = readSource('src/app/(main)/profile/evidence/page.tsx');
@@ -26,12 +27,17 @@ describe('student feedback task UI source contracts', () => {
     expect(documentFeedback).toContain('feedbackContext');
     expect(gradingUi).toContain('StudentFeedbackTaskPanel');
     expect(gradingUi).toContain('surface="document-feedback"');
+    expect(feedbackPanel).toContain('data-student-feedback-teacher-intervention-id={context.teacherIntervention?.id ?? undefined}');
+    expect(feedbackPanel).toContain('data-student-feedback-teacher-intervention-status={context.teacherIntervention?.status ?? undefined}');
+    expect(feedbackPanel).toContain('data-student-visible-teacher-intervention="feedback-task"');
     expect(adaptivePractice).toContain('buildFeedbackTaskContext');
     expect(adaptivePractice).toContain('withFeedbackTaskHref');
+    expect(adaptivePractice).toContain("teacherInterventionId: searchParams.get('teacherInterventionId')");
     expect(adaptivePractice).toContain('window.location.assign(withFeedbackTaskHref(pathNodeContextHref(node');
     expect(adaptivePractice).toContain('href={withFeedbackTaskHref(nextPathAction.href)}');
     expect(adaptivePractice).toContain('surface="adaptive-practice"');
     expect(missions).toContain('buildFeedbackTaskContext');
+    expect(missions).toContain("teacherInterventionId: searchParams.get('teacherInterventionId')");
     expect(missions).toContain('buildFeedbackTaskHref(`/simulations/destroyer?mission=');
     expect(missions).toContain("missionQuery.set('criterion'");
     expect(missions).toContain("missionQuery.set('source'");
@@ -57,7 +63,9 @@ describe('student feedback task UI source contracts', () => {
     expect(destroyer).toContain('surface="simulation-destroyer"');
     expect(learningEvidenceRoute).toContain('listEvidenceTimeline');
     expect(learningEvidenceRoute).toContain('buildLearningEvidenceAssignmentResponse');
+    expect(learningEvidenceRoute).toContain("teacherInterventionId: request.nextUrl.searchParams.get('teacherInterventionId')");
     expect(missionsRoute).toContain('getFeedbackTaskMissionTarget');
+    expect(missionsRoute).toContain("teacherInterventionId: url.searchParams.get('teacherInterventionId')");
     expect(missionsRoute).toContain("criterion: url.searchParams.get('criterion')");
     expect(missionsRoute).toContain("source: url.searchParams.get('source')");
     expect(missionsRoute).toContain('feedbackTarget.missionOrders.includes(mission.order)');

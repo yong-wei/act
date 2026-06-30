@@ -59,6 +59,7 @@ export async function GET(request: Request) {
       action: url.searchParams.get('action'),
       returnTo: url.searchParams.get('returnTo'),
       intent: url.searchParams.get('intent'),
+      teacherInterventionId: url.searchParams.get('teacherInterventionId'),
     });
     const feedbackScoped = hasFeedbackTaskQuery({
       assignment: url.searchParams.get('assignment') ?? url.searchParams.get('q'),

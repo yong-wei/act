@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { EvidenceTimelineBrowser } from '@/features/data-governance/evidence-timeline-browser';
 import { createAuditedActionState } from '@/lib/action-status-contract';
+import { buildTeacherEvidenceInterventionAction } from '@/lib/teacher-evidence-intervention-contract';
 import {
   buildTeacherReportDeliveryHref,
   resolveTeacherReturnTo,
@@ -57,6 +58,22 @@ export default async function TeacherClassStudentEvidencePage(
     })
     : studentDetailHref;
   const primaryActionLabel = hasCompleteReportContext ? '回到报告交付' : '返回学生详情';
+  const interventionAction = buildTeacherEvidenceInterventionAction({
+    kind: hasCompleteReportContext ? 'grading-writeback' : 'reinforcement-task',
+    surface: 'teacher-evidence',
+    studentId: params.studentId,
+    classId: params.classId,
+    gradingRunId: searchParams?.gradingRunId,
+    reportId: searchParams?.reportId,
+    source: searchParams?.source ?? 'teacher-evidence',
+    sourceEvidenceRefs: hasReportContext
+      ? [
+        searchParams?.gradingRunId ? `grading-run:${searchParams.gradingRunId}` : null,
+        searchParams?.reportId ? `teacher-report:${searchParams.reportId}` : null,
+      ].filter((ref): ref is string => Boolean(ref))
+      : [],
+    learnerState: hasCompleteReportContext ? 'ready' : 'missing',
+  });
   const evidenceState = createAuditedActionState({
     identity: {
       id: `teacher-evidence:${params.classId}:${params.studentId}:${searchParams?.gradingRunId ?? 'missing-grading'}`,
@@ -85,6 +102,9 @@ export default async function TeacherClassStudentEvidencePage(
         data-teacher-evidence-grading-run-id={searchParams?.gradingRunId ?? undefined}
         data-teacher-evidence-report-id={searchParams?.reportId ?? undefined}
         data-teacher-evidence-source={searchParams?.source ?? undefined}
+        data-teacher-intervention-action-id={interventionAction.id}
+        data-teacher-intervention-action-status={interventionAction.status}
+        data-teacher-intervention-persistence-target={interventionAction.persistenceTarget}
       >
         <ActionStatusPanel
           state={evidenceState}
@@ -102,20 +122,24 @@ export default async function TeacherClassStudentEvidencePage(
         <div className="mt-4 rounded-lg border border-border bg-card/70 p-4 text-sm" data-teacher-evidence-next-steps>
           <p className="font-medium text-foreground">证据处置下一步</p>
           <p className="mt-1 text-subtle">
-            {hasCompleteReportContext
-              ? '当前页面展示选中证据基础、报告来源和评分上下文；补强任务创建保持禁用状态，避免在缺少写入 API 时产生伪操作。'
-              : hasReportContext
-                ? '当前页面保留了部分报告或评分上下文；补强任务创建保持禁用状态，避免在缺少完整处置上下文时产生伪操作。'
-              : '当前页面展示该学生的证据时间线；补强任务创建保持禁用状态，避免在缺少写入 API 时产生伪操作。'}
+            {interventionAction.privacySafeSummary}
           </p>
-          <button
-            type="button"
-            disabled
-            className="mt-3 rounded-lg border border-border px-3 py-2 text-xs text-subtle disabled:cursor-not-allowed disabled:opacity-60"
-            data-teacher-evidence-remediation-task="disabled"
-          >
-            创建补强任务
-          </button>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs text-subtle">
+            <span
+              className="rounded border border-border px-2 py-1"
+              data-teacher-evidence-remediation-task={interventionAction.status}
+            >
+              状态：{interventionAction.status}
+            </span>
+            <span className="rounded border border-border px-2 py-1">
+              写回：{interventionAction.persistenceTarget}
+            </span>
+            {interventionAction.recoveryAction ? (
+              <span className="rounded border border-border px-2 py-1">
+                恢复：{interventionAction.recoveryAction}
+              </span>
+            ) : null}
+          </div>
         </div>
       </section>
       <EvidenceTimelineBrowser

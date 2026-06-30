@@ -42,6 +42,7 @@ export default function MissionsPage() {
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
     intent: searchParams.get('intent'),
+    teacherInterventionId: searchParams.get('teacherInterventionId'),
   });
 
   const fetchMissions = useCallback(async (paramsKey = searchParamsKey) => {

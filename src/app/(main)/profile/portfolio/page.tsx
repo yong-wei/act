@@ -91,6 +91,7 @@ export default function PortfolioPage() {
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
     intent: searchParams.get('intent'),
+    teacherInterventionId: searchParams.get('teacherInterventionId'),
   };
   const feedbackContext = shouldRenderPortfolioFeedbackTask(feedbackQuery)
     ? buildFeedbackTaskContext(feedbackQuery)

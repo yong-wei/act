@@ -235,6 +235,32 @@ describe('student feedback task contract', () => {
     });
   });
 
+  it('carries teacher intervention identity into student-visible writeback targets', () => {
+    const context = expectContext(buildFeedbackTaskContext({
+      assignment: 'report-control-design',
+      status: 'teacher-visible',
+      source: 'teacher-intervention',
+      teacherInterventionId: 'teacher-intervention:feedback:ref-abc1234',
+    }));
+
+    expect(context).toMatchObject({
+      lifecycleState: 'teacher-visible',
+      teacherInterventionId: 'teacher-intervention:feedback:ref-abc1234',
+      teacherIntervention: {
+        id: 'teacher-intervention:feedback:ref-abc1234',
+        status: 'student-visible',
+        label: '教师处置已对学生可见',
+      },
+    });
+    expect(buildFeedbackTaskStatusState(context, '/assessment/document-feedback')).toMatchObject({
+      status: 'succeeded',
+      message: expect.stringContaining('教师处置已写回'),
+    });
+    expect(buildFeedbackTaskHref('/profile/evidence', context)).toContain(
+      'teacherInterventionId=teacher-intervention%3Afeedback%3Aref-abc1234',
+    );
+  });
+
   it('maps supported feedback assignments to explicit mission orders instead of full-text searching ids', () => {
     const context = expectContext(buildFeedbackTaskContext({
       assignment: 'report-control-design',
