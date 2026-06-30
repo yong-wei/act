@@ -12,6 +12,7 @@ import {
   buildFeedbackTaskContext,
   getFeedbackTaskMissionTarget,
   hasFeedbackTaskQuery,
+  resolveVerifiedTeacherInterventionId,
 } from '@/lib/student-feedback-task-contract';
 
 export const dynamic = 'force-dynamic';
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
 
     const userId = session.user.id;
     const url = new URL(request.url);
-    const feedbackContext = buildFeedbackTaskContext({
+    const feedbackQuery = {
       assignment: url.searchParams.get('assignment') ?? url.searchParams.get('q'),
       criterion: url.searchParams.get('criterion'),
       source: url.searchParams.get('source'),
@@ -60,7 +61,14 @@ export async function GET(request: Request) {
       returnTo: url.searchParams.get('returnTo'),
       intent: url.searchParams.get('intent'),
       teacherInterventionId: url.searchParams.get('teacherInterventionId'),
+    };
+    const verifiedTeacherInterventionId = await resolveVerifiedTeacherInterventionId({
+      db: prisma,
+      userId,
+      teacherInterventionId: feedbackQuery.teacherInterventionId,
+      assignment: feedbackQuery.assignment,
     });
+    const feedbackContext = buildFeedbackTaskContext(feedbackQuery, { verifiedTeacherInterventionId });
     const feedbackScoped = hasFeedbackTaskQuery({
       assignment: url.searchParams.get('assignment') ?? url.searchParams.get('q'),
     });

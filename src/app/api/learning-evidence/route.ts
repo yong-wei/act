@@ -11,6 +11,7 @@ import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '
 import {
   buildFeedbackTaskContext,
   buildLearningEvidenceAssignmentResponse,
+  resolveVerifiedTeacherInterventionId,
 } from '@/lib/student-feedback-task-contract';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: '未授权' }, { status: 401 });
     }
 
-    const context = buildFeedbackTaskContext({
+    const feedbackQuery = {
       assignment: request.nextUrl.searchParams.get('assignment'),
       criterion: request.nextUrl.searchParams.get('criterion'),
       source: request.nextUrl.searchParams.get('source'),
@@ -32,7 +33,14 @@ export async function GET(request: NextRequest) {
       returnTo: request.nextUrl.searchParams.get('returnTo'),
       intent: request.nextUrl.searchParams.get('intent'),
       teacherInterventionId: request.nextUrl.searchParams.get('teacherInterventionId'),
+    };
+    const verifiedTeacherInterventionId = await resolveVerifiedTeacherInterventionId({
+      db: prisma,
+      userId: session.user.id,
+      teacherInterventionId: feedbackQuery.teacherInterventionId,
+      assignment: feedbackQuery.assignment,
     });
+    const context = buildFeedbackTaskContext(feedbackQuery, { verifiedTeacherInterventionId });
 
     if (!context) {
       return NextResponse.json({

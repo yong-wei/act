@@ -13,6 +13,7 @@ import {
   resolveAdaptivePathLaunchReturnContext,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 import type { WidgetResult } from '@/resources/widgets/widget-props';
@@ -24,7 +25,7 @@ export default function InteractiveResourcePage() {
   const source = searchParams.get('source');
   const categorySlug = searchParams.get('category');
   const pathLaunchContext = resolveAdaptivePathLaunchReturnContext(searchParams);
-  const feedbackContext = buildFeedbackTaskContext({
+  const localFeedbackContext = buildFeedbackTaskContext({
     assignment: searchParams.get('assignment'),
     criterion: searchParams.get('criterion'),
     source,
@@ -35,6 +36,7 @@ export default function InteractiveResourcePage() {
     intent: searchParams.get('intent'),
     teacherInterventionId: searchParams.get('teacherInterventionId'),
   });
+  const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams);
   const [resource, setResource] = useState<TeachingResource | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

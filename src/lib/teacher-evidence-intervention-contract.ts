@@ -286,7 +286,6 @@ function buildInterventionSummary(
   if (status === 'recorded') return `${label}已创建持久处置记录，等待学生侧写回完成。`;
   if (status === 'pending') return `${label}可创建持久处置记录，当前尚未写回。`;
   if (status === 'reduced-personalization') return `${label}保留证据引用，但因${failureReason ?? '上下文不足'}降低个性化置信度。`;
-  if (status === 'pending') return `${label}等待写回完成，当前不声明学生侧已完成。`;
   return `${label}未写回：${failureReason ?? '缺少必要上下文'}。`;
 }
 

@@ -27,6 +27,7 @@ import {
 import { AppShell } from '@/components/platform/app-shell';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
   buildAdaptivePathLaunchHref,
@@ -1264,7 +1265,7 @@ export default function AdaptivePracticePage() {
   const isDemoMode = searchParams.get('demo') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
-  const feedbackContext = buildFeedbackTaskContext({
+  const localFeedbackContext = buildFeedbackTaskContext({
     assignment: searchParams.get('assignment'),
     criterion: searchParams.get('criterion'),
     source: searchParams.get('source'),
@@ -1275,6 +1276,7 @@ export default function AdaptivePracticePage() {
     intent: searchParams.get('intent'),
     teacherInterventionId: searchParams.get('teacherInterventionId'),
   });
+  const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams);
   const withFeedbackTaskHref = useCallback((href: string, options?: Parameters<typeof buildFeedbackTaskHref>[2]) => (
     feedbackContext
       ? buildFeedbackTaskHref(href, feedbackContext, {

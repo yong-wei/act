@@ -25,6 +25,10 @@ export interface FeedbackTaskQuery {
   teacherInterventionId?: string | string[] | null;
 }
 
+export interface FeedbackTaskContextOptions {
+  verifiedTeacherInterventionId?: string | null;
+}
+
 export interface StudentFeedbackTaskContext {
   assignmentId: string;
   assignmentTitle: string;
@@ -83,7 +87,10 @@ const STATE_LABELS: Record<FeedbackTaskLifecycleState, string> = {
   unsupported: '暂不支持',
 };
 
-export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedbackTaskContext | null {
+export function buildFeedbackTaskContext(
+  query: FeedbackTaskQuery,
+  options: FeedbackTaskContextOptions = {},
+): StudentFeedbackTaskContext | null {
   const assignmentId = firstQueryValue(query.assignment);
   if (!assignmentId) return null;
 
@@ -93,9 +100,12 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
   const intent = firstQueryValue(query.intent);
   const teacherInterventionId = firstQueryValue(query.teacherInterventionId);
   const requestedLifecycleState = resolveLifecycleState(firstQueryValue(query.status), action, intent);
+  const hasTeacherVisibleInterventionRequest =
+    requestedLifecycleState === 'teacher-visible' || requestedLifecycleState === 'written-back';
+  const hasVerifiedTeacherIntervention =
+    Boolean(teacherInterventionId) && teacherInterventionId === options.verifiedTeacherInterventionId;
   const hasUnverifiedTeacherIntervention =
-    Boolean(teacherInterventionId) &&
-    (requestedLifecycleState === 'teacher-visible' || requestedLifecycleState === 'written-back');
+    hasTeacherVisibleInterventionRequest && !hasVerifiedTeacherIntervention;
   const lifecycleState = hasUnverifiedTeacherIntervention ? 'completed' : requestedLifecycleState;
   const returnTo = sanitizeReturnTo(firstQueryValue(query.returnTo));
   const isDocumentFeedbackAssignment = source === 'document-feedback' && Boolean(criterionId);
@@ -143,7 +153,8 @@ export function shouldRenderPortfolioFeedbackTask(query: FeedbackTaskQuery): boo
 
 export function buildFeedbackTaskHref(
   baseHref: string,
-  context: Pick<StudentFeedbackTaskContext, 'assignmentId' | 'criterionId' | 'source' | 'lifecycleState' | 'returnTo' | 'teacherInterventionId'>,
+  context: Pick<StudentFeedbackTaskContext, 'assignmentId' | 'criterionId' | 'source' | 'lifecycleState' | 'returnTo'>
+    & Partial<Pick<StudentFeedbackTaskContext, 'teacherInterventionId'>>,
   options: {
     status?: FeedbackTaskLifecycleState;
     intent?: string;
@@ -173,6 +184,54 @@ export function buildFeedbackTaskHref(
   const query = params.toString();
   const hrefWithQuery = query ? `${path}?${query}` : path;
   return rawHash === undefined ? hrefWithQuery : `${hrefWithQuery}#${rawHash}`;
+}
+
+export async function resolveVerifiedTeacherInterventionId(input: {
+  db: {
+    evidenceOutbox: {
+      findFirst: (args: any) => Promise<{ causationId: string; payload: unknown } | null>;
+    };
+  };
+  userId?: string | null;
+  teacherInterventionId?: string | string[] | null;
+  assignment?: string | string[] | null;
+}) {
+  const teacherInterventionId = firstQueryValue(input.teacherInterventionId);
+  const assignmentId = firstQueryValue(input.assignment);
+  if (!input.userId || !teacherInterventionId) return null;
+  const row = await input.db.evidenceOutbox.findFirst({
+    where: {
+      ownerUserId: input.userId,
+      causationId: teacherInterventionId,
+      eventType: { startsWith: 'teacher_evidence_intervention.' },
+    },
+    select: { causationId: true, payload: true },
+  });
+  if (!row || !isVerifiedTeacherInterventionOutboxPayload(row.payload, teacherInterventionId, assignmentId)) {
+    return null;
+  }
+  return row.causationId;
+}
+
+function isVerifiedTeacherInterventionOutboxPayload(
+  payload: unknown,
+  teacherInterventionId: string,
+  assignmentId: string | null,
+) {
+  if (!payload || typeof payload !== 'object') return false;
+  const intervention = (payload as { intervention?: unknown }).intervention;
+  if (!intervention || typeof intervention !== 'object') return false;
+  const record = intervention as {
+    id?: unknown;
+    status?: unknown;
+    studentFacingTarget?: { href?: unknown; surface?: unknown };
+  };
+  if (record.id !== teacherInterventionId || record.status !== 'student-visible') return false;
+  if (!assignmentId) return true;
+  const href = typeof record.studentFacingTarget?.href === 'string' ? record.studentFacingTarget.href : null;
+  if (!href) return false;
+  const query = href.split('?')[1] ?? '';
+  return new URLSearchParams(query).get('assignment') === assignmentId;
 }
 
 function isExternalHref(href: string): boolean {

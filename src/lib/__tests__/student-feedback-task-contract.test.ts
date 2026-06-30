@@ -11,6 +11,7 @@ import {
   buildPortfolioFeedbackDraft,
   getFeedbackTaskMissionTarget,
   shouldRenderPortfolioFeedbackTask,
+  resolveVerifiedTeacherInterventionId,
   type StudentFeedbackTaskContext,
 } from '../student-feedback-task-contract';
 
@@ -229,9 +230,8 @@ describe('student feedback task contract', () => {
       message: expect.stringContaining('等待写回'),
     });
     expect(buildFeedbackTaskStatusState(writtenBack, '/assessment/document-feedback')).toMatchObject({
-      status: 'succeeded',
-      message: expect.stringContaining('已写回'),
-      nextAction: expect.stringContaining('证据'),
+      status: 'pending',
+      message: expect.stringContaining('等待写回'),
     });
   });
 
@@ -274,6 +274,76 @@ describe('student feedback task contract', () => {
       status: 'pending',
       message: expect.stringContaining('等待写回'),
     });
+  });
+
+  it('preserves server-verified teacher intervention visibility', () => {
+    const teacherInterventionId = 'teacher-intervention:feedback:ref-server-visible';
+    const context = expectContext(buildFeedbackTaskContext({
+      assignment: 'report-control-design',
+      status: 'teacher-visible',
+      source: 'teacher-intervention',
+      teacherInterventionId,
+    }, { verifiedTeacherInterventionId: teacherInterventionId }));
+
+    expect(context).toMatchObject({
+      lifecycleState: 'teacher-visible',
+      teacherInterventionId,
+      teacherIntervention: {
+        id: teacherInterventionId,
+        status: 'student-visible',
+        label: '教师处置已对学生可见',
+      },
+    });
+    expect(buildFeedbackTaskStatusState(context, '/assessment/document-feedback')).toMatchObject({
+      status: 'succeeded',
+      message: expect.stringContaining('教师处置已写回'),
+    });
+    expect(buildFeedbackTaskHref('/profile/evidence', context)).toContain(
+      'teacherInterventionId=teacher-intervention%3Afeedback%3Aref-server-visible',
+    );
+  });
+
+  it('only verifies student-visible outbox rows for the matching assignment', async () => {
+    const visiblePayload = {
+      intervention: {
+        id: 'teacher-intervention:feedback:ref-visible',
+        status: 'student-visible',
+        studentFacingTarget: {
+          href: '/assessment/document-feedback?assignment=report-control-design&status=teacher-visible',
+        },
+      },
+    };
+    const recordedPayload = {
+      intervention: {
+        id: 'teacher-intervention:feedback:ref-recorded',
+        status: 'recorded',
+        studentFacingTarget: { href: null },
+      },
+    };
+    const db = (payload: unknown) => ({
+      evidenceOutbox: {
+        findFirst: async () => ({ causationId: 'teacher-intervention:feedback:ref-visible', payload }),
+      },
+    });
+
+    await expect(resolveVerifiedTeacherInterventionId({
+      db: db(visiblePayload),
+      userId: 'student-1',
+      teacherInterventionId: 'teacher-intervention:feedback:ref-visible',
+      assignment: 'report-control-design',
+    })).resolves.toBe('teacher-intervention:feedback:ref-visible');
+    await expect(resolveVerifiedTeacherInterventionId({
+      db: db(recordedPayload),
+      userId: 'student-1',
+      teacherInterventionId: 'teacher-intervention:feedback:ref-recorded',
+      assignment: 'report-control-design',
+    })).resolves.toBeNull();
+    await expect(resolveVerifiedTeacherInterventionId({
+      db: db(visiblePayload),
+      userId: 'student-1',
+      teacherInterventionId: 'teacher-intervention:feedback:ref-visible',
+      assignment: 'other-assignment',
+    })).resolves.toBeNull();
   });
 
   it('maps supported feedback assignments to explicit mission orders instead of full-text searching ids', () => {

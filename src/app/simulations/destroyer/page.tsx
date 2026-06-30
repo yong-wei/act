@@ -1,7 +1,13 @@
 import { SimulationShell } from '../_components/simulation-shell';
 import { DestroyerSimulation } from '../_components/simulation-loaders';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
-import { buildFeedbackTaskContext, type FeedbackTaskQuery } from '@/lib/student-feedback-task-contract';
+import { getServerAuthSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import {
+  buildFeedbackTaskContext,
+  resolveVerifiedTeacherInterventionId,
+  type FeedbackTaskQuery,
+} from '@/lib/student-feedback-task-contract';
 import type { SimulationTaskContext } from '../_components/simulation-shell';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +18,14 @@ export default async function DestroyerSimulationPage({
   searchParams?: Promise<FeedbackTaskQuery & { mission?: string | string[] }>;
 }) {
   const params = await searchParams;
-  const feedbackContext = buildFeedbackTaskContext(params ?? {});
+  const session = await getServerAuthSession();
+  const verifiedTeacherInterventionId = await resolveVerifiedTeacherInterventionId({
+    db: prisma,
+    userId: session?.user?.id,
+    teacherInterventionId: params?.teacherInterventionId,
+    assignment: params?.assignment,
+  });
+  const feedbackContext = buildFeedbackTaskContext(params ?? {}, { verifiedTeacherInterventionId });
   const missionId = firstQueryValue(params?.mission);
   const simulationTaskContext = missionId || feedbackContext
     ? buildDestroyerTaskContext({ missionId, feedbackContext })

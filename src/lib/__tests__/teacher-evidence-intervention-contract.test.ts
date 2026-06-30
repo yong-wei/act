@@ -82,6 +82,28 @@ describe('teacher evidence intervention contract', () => {
     });
   });
 
+  it('carries student-visible intervention identity in targets', () => {
+    const action = buildTeacherEvidenceInterventionAction({
+      kind: 'feedback',
+      surface: 'report-ledger',
+      teacherId: 'teacher-1',
+      studentId: 'student-1',
+      classId: 'class-1',
+      reportId: 'control-correction',
+      sourceEvidenceRefs: ['LearningFact:fact-1'],
+      writebackState: 'student-visible',
+    });
+    const href = action.studentFacingTarget.href ?? '';
+    const params = new URLSearchParams(href.split('?')[1] ?? '');
+
+    expect(action.studentFacingTarget).toMatchObject({
+      surface: 'feedback-task',
+      label: '学生报告反馈',
+    });
+    expect(params.get('teacherInterventionId')).toBe(action.id);
+    expect(params.get('status')).toBe('teacher-visible');
+  });
+
   it('preserves evidence and downgrades personalization when a remedial path is missing', () => {
     const action = buildTeacherEvidenceInterventionAction({
       kind: 'remedial-path',
