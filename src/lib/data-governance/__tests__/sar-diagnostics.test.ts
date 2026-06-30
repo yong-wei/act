@@ -73,7 +73,7 @@ describe('SAR diagnostics and evaluation report', () => {
       expect.arrayContaining([
         expect.objectContaining({
           ref: '[redacted]',
-          reason: 'audit-scope-required',
+          reason: '[redacted]',
         }),
       ]),
     );
@@ -88,6 +88,7 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(text).not.toContain('private raw answer');
     expect(text).not.toContain('rawLearnerSubmission');
     expect(text).not.toContain('hiddenArenaEvaluationInternalsPayload');
+    expect(text).not.toContain('audit-scope-required');
     expect(text).not.toContain('rawScoreVector');
   });
 
@@ -330,10 +331,18 @@ describe('SAR diagnostics and evaluation report', () => {
       label: 'System Internal Visible Entity Label',
       privacyScope: 'system-internal' as const,
     };
+    const hiddenRejectedRefs = [
+      { ref: hiddenAuditEvent.id, reason: 'audit-only privacy scope blocked' },
+      { ref: hiddenEntity.id, reason: 'system-internal privacy scope blocked' },
+    ];
     const result = {
       ...fixture.result,
       trace: {
         ...fixture.result.trace,
+        rejectedRefs: [
+          ...fixture.result.trace.rejectedRefs,
+          ...hiddenRejectedRefs,
+        ],
         expansionHops: [
           ...fixture.result.trace.expansionHops,
           {
@@ -425,8 +434,18 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(report.totals.entityCount).toBe(fixture.result.entities.length);
     expect(report.totals.relationCount).toBe(fixture.result.relations.length);
     expect(report.totals.sourcePackHandoffCount).toBe(fixture.result.retrievalChunkRefs.length);
+    expect(report.totals.privacyRejectionCount).toBe(
+      fixture.report.totals.privacyRejectionCount + hiddenRejectedRefs.length,
+    );
+    expect(report.totals.sarCandidateRejectionCount).toBe(
+      fixture.report.totals.sarCandidateRejectionCount + hiddenRejectedRefs.length,
+    );
     expect(report.comparison.ordinarySourcePackRefCount).toBe(1);
     expect(report.comparison.sarAssistedRefCount).toBe(fixture.result.retrievalChunkRefs.length);
+    expect(report.serializedTraces[0].rejectedRefs.slice(-hiddenRejectedRefs.length)).toEqual([
+      { ref: '[redacted]', reason: '[redacted]' },
+      { ref: '[redacted]', reason: '[redacted]' },
+    ]);
     expect(report.privacyScopeCounts).not.toHaveProperty('audit-only');
     expect(report.privacyScopeCounts).not.toHaveProperty('system-internal');
     expect(report.sourceOwnerCounts).not.toHaveProperty('AuditOnlyOwner');

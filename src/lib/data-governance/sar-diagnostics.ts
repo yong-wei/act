@@ -113,6 +113,7 @@ export type ControlCorrectionSarDemoFixture = {
 
 export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput): SerializedSarTraceForDiagnostics {
   const result = exportableSarResult(input.result);
+  const nonExportableRefs = nonExportableDiagnosticRefs(input.result);
   const sourcePackHandoffRefs = exportableDiagnosticRefs(input.sourcePackHandoffRefs ?? result.retrievalChunkRefs, input.result);
   const verifiedCitationRefs = verifiedCitationTargetRefs(
     exportableDiagnosticRefs(input.verifiedCitationRefs ?? [], input.result),
@@ -126,10 +127,7 @@ export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput)
     expandedEntityIds: redactRefList(result.entities.map((entity) => entity.id)),
     selectedEventIds: redactRefList(result.events.map((event) => event.id)),
     selectedRefs: redactRefList(result.trace.selectedRefs),
-    rejectedRefs: result.trace.rejectedRefs.map((item) => ({
-      ref: redactSensitiveDiagnosticRef(item.ref),
-      reason: redactSensitiveDiagnosticText(item.reason),
-    })),
+    rejectedRefs: result.trace.rejectedRefs.map((item) => serializeRejectedRef(item, input.result, nonExportableRefs)),
     limitations: mergedDiagnosticLimitations(result),
     versionRefs: redactRefList(result.trace.versionRefs),
     downstream: {
@@ -510,9 +508,6 @@ function exportableSarResult(result: SarRetrievalResult): SarRetrievalResult {
         && (!hop.viaEventId || exportableEventIds.has(hop.viaEventId))
       )),
       selectedRefs: exportableDiagnosticRefs(result.trace.selectedRefs, result, nonExportableRefs),
-      rejectedRefs: result.trace.rejectedRefs.filter((item) => (
-        isExportableDiagnosticRef(item.ref, result, nonExportableRefs)
-      )),
     },
   };
 }
@@ -529,6 +524,24 @@ function isPrivateEventRef(ref: string, result: SarRetrievalResult): boolean {
 function isPrivateEntityRef(ref: string, result: SarRetrievalResult): boolean {
   const entity = result.entities.find((candidate) => candidate.id === ref);
   return Boolean(entity && !isExportablePrivacyScope(entity.privacyScope));
+}
+
+function serializeRejectedRef(
+  item: SarRetrievalTrace['rejectedRefs'][number],
+  result: SarRetrievalResult,
+  nonExportableRefs: ReadonlySet<string>,
+): { ref: string; reason: string } {
+  const redactedRef = redactSensitiveDiagnosticRef(item.ref);
+  if (!isExportableDiagnosticRef(item.ref, result, nonExportableRefs) || redactedRef === '[redacted]') {
+    return {
+      ref: '[redacted]',
+      reason: '[redacted]',
+    };
+  }
+  return {
+    ref: redactedRef,
+    reason: redactSensitiveDiagnosticText(item.reason),
+  };
 }
 
 function exportableDiagnosticRefs(
@@ -636,6 +649,8 @@ const SENSITIVE_DIAGNOSTIC_TEXT = [
   /\bhidden\b.*\b(arena|evaluation|internals)\b/i,
   /\binternals?\b/i,
   /\bprivate[_ -]?konling[_ -]?memory\b/i,
+  /\baudit[_ -]?only\b/i,
+  /\bsystem[_ -]?internal\b/i,
   /\baudit[_ -]?only[_ -]?trace\b/i,
 ];
 
