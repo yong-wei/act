@@ -1,7 +1,7 @@
 # structured-associative-retrieval Specification
 
 ## Purpose
-TBD - created by archiving change define-structured-associative-retrieval-contract. Update Purpose after archive.
+Structured Associative Retrieval is ACT's governed association layer over stable platform references for learning evidence, resources, graph nodes, Arena, path planning, diagnosis, reports, Konling, and prep-pack context. SAR exposes privacy-scoped candidates, traces, limitations, and diagnostics; it does not copy raw governed content, replace final citation verification, or override graph-mandated path-planning authority.
 ## Requirements
 ### Requirement: SAR contract defines governed associative events and entities
 The system SHALL define a structured associative retrieval contract over existing platform identifiers without copying raw governed content.

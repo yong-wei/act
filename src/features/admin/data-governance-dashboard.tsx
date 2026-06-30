@@ -35,7 +35,196 @@ type DataGovernanceDashboardProps = {
   initialActionQuery?: GovernanceActionQuery | null;
 };
 
+type SarDiagnosticsReport = NonNullable<GovernanceStatusPayload['sarDiagnostics']>;
 type GraphCenterAuditContext = 'resource-binding' | 'citation-readiness' | 'overlay-limitations' | 'custom';
+
+function formatDiagnosticRate(value: number) {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+function diagnosticRecordEntries(record: Record<string, number>, limit = 4) {
+  return Object.entries(record)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit);
+}
+
+function sanitizeVisibleDiagnosticText(value: string) {
+  const forbiddenVisibleText = [
+    /\braw[_ -]?(answer|answers|evidence|submission|submissions|trace|traces|payload)\b/i,
+    /\braw\b.*\b(answer|answers|evidence|submission|submissions|trace|traces|payload)\b/i,
+    /\bhidden(?:Arena|ArenaEvaluation|Evaluation)?Internals?\w*\b/i,
+    /\bhidden\b.*\b(arena|evaluation|internals)\b/i,
+    /\bprivate[_ -]?konling[_ -]?memory\b/i,
+    /\baudit[_ -]?only[_ -]?trace\b/i,
+  ];
+  return forbiddenVisibleText.some((pattern) => pattern.test(value)) ? '[redacted]' : value;
+}
+
+export function SarDiagnosticsPanel({ report }: { report?: SarDiagnosticsReport | null }) {
+  if (!report) {
+    return (
+      <section
+        className="admin-console-surface space-y-4"
+        data-admin-sar-diagnostics="unavailable"
+      >
+        <div className="flex items-center gap-3">
+          <span className="admin-console-icon-badge">
+            <Database className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="admin-console-title text-xl font-semibold">SAR 诊断</h2>
+            <p className="admin-console-muted text-sm">当前状态 payload 未返回 SAR 诊断报告。</p>
+          </div>
+        </div>
+        <div className="admin-console-notice" data-admin-sar-diagnostics-state="degraded">
+          SAR 诊断不可用；关联检索健康不能按完整状态展示。
+        </div>
+      </section>
+    );
+  }
+
+  const traceRows = report.queryTraceSummaries.slice(0, 4);
+  const countCards = [
+    ['事件', report.totals.eventCount],
+    ['实体', report.totals.entityCount],
+    ['关系', report.totals.relationCount],
+    ['查询', report.totals.queryCount],
+  ];
+  const downstreamCards = [
+    ['Source Pack 交接', report.totals.sourcePackHandoffCount.toLocaleString()],
+    ['Verified citation rate', formatDiagnosticRate(report.totals.verifiedCitationRate)],
+    ['SAR candidate adopted', report.totals.sarCandidateAdoptionCount.toLocaleString()],
+    ['SAR candidate rejected', report.totals.sarCandidateRejectionCount.toLocaleString()],
+    ['隐私拒绝', report.totals.privacyRejectionCount.toLocaleString()],
+    ['限制项', report.totals.limitationCount.toLocaleString()],
+  ];
+  const comparisonCards = [
+    ['Ordinary Source Pack refs', report.comparison.ordinarySourcePackRefCount.toLocaleString()],
+    ['SAR-assisted refs', report.comparison.sarAssistedRefCount.toLocaleString()],
+    ['Adopted refs', report.comparison.adoptedRefCount.toLocaleString()],
+    ['Rejected refs', report.comparison.rejectedRefCount.toLocaleString()],
+  ];
+
+  return (
+    <section
+      className="admin-console-surface space-y-5"
+      data-admin-sar-diagnostics="available"
+      data-admin-sar-demo-fixture={report.demoFixtureStatus?.id ?? 'missing'}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="admin-console-icon-badge">
+            <Database className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="admin-console-title text-xl font-semibold">SAR 诊断</h2>
+            <p className="admin-console-muted text-sm">
+              {new Date(report.generatedAt).toLocaleString('zh-CN')} 生成 · 平均 {report.totals.averageHopCount.toFixed(1)} 跳
+            </p>
+          </div>
+        </div>
+        <span className="admin-console-chip">
+          {report.demoFixtureStatus?.deterministic ? 'demo fixture stable' : 'demo fixture degraded'}
+        </span>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        {countCards.map(([label, value]) => (
+          <div key={label} className="admin-console-surface-soft">
+            <div className="admin-console-muted text-sm">{label}</div>
+            <div className="admin-console-title mt-2 text-2xl font-semibold">{Number(value).toLocaleString()}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        {downstreamCards.map(([label, value]) => (
+          <div key={label} className="admin-console-surface-soft">
+            <div className="admin-console-muted text-sm">{label}</div>
+            <div className="admin-console-title mt-2 text-lg font-semibold">{value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4" aria-label="SAR candidates and verified citation comparison">
+        {comparisonCards.map(([label, value]) => (
+          <div key={label} className="admin-console-surface-soft">
+            <div className="admin-console-muted text-sm">{label}</div>
+            <div className="admin-console-title mt-2 text-lg font-semibold">{value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        {[
+          ['Source owner', report.sourceOwnerCounts],
+          ['Privacy scope', report.privacyScopeCounts],
+          ['Authority level', report.authorityLevelCounts],
+        ].map(([label, record]) => (
+          <div key={label as string} className="admin-console-surface-soft">
+            <h3 className="admin-console-title text-sm font-semibold">{label as string}</h3>
+            <div className="mt-3 space-y-2 text-sm">
+              {diagnosticRecordEntries(record as Record<string, number>).map(([name, count]) => (
+                <div key={name} className="flex items-center justify-between gap-3">
+                  <span className="admin-console-muted">{name}</span>
+                  <span className="admin-console-title font-medium">{count.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="admin-console-table-shell p-0">
+        <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="SAR 诊断 trace summaries">
+          <thead>
+            <tr>
+              <th className="px-4 py-3">查询</th>
+              <th className="px-4 py-3">跳数</th>
+              <th className="px-4 py-3">事件/实体</th>
+              <th className="px-4 py-3">拒绝/限制</th>
+              <th className="px-4 py-3">引用</th>
+            </tr>
+          </thead>
+          <tbody>
+            {traceRows.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
+                  暂无 SAR trace summary。
+                </td>
+              </tr>
+            ) : traceRows.map((trace) => (
+              <tr key={trace.id}>
+                <td className="px-4 py-3 admin-console-title font-medium" data-label="查询">{trace.query}</td>
+                <td className="px-4 py-3" data-label="跳数">{trace.hopCount}</td>
+                <td className="px-4 py-3" data-label="事件/实体">
+                  {trace.selectedEventCount.toLocaleString()} / {trace.selectedEntityCount.toLocaleString()}
+                </td>
+                <td className="px-4 py-3" data-label="拒绝/限制">
+                  {trace.privacyRejectionCount.toLocaleString()} / {trace.limitationCount.toLocaleString()}
+                </td>
+                <td className="px-4 py-3" data-label="引用">
+                  {trace.sourcePackHandoffCount.toLocaleString()} · {formatDiagnosticRate(trace.verifiedCitationRate)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {report.demoFixtureStatus ? (
+        <div className="admin-console-surface-soft text-sm">
+          <span className="admin-console-kicker">Control-correction demo fixture</span>
+          <div className="mt-2 grid gap-2 md:grid-cols-3">
+            <div>Query：{sanitizeVisibleDiagnosticText(report.demoFixtureStatus.query)}</div>
+            <div>Source Pack：{report.demoFixtureStatus.sourcePackHandoff ? 'available' : 'missing'}</div>
+            <div>Verified citation：{report.demoFixtureStatus.verifiedCitationOutcome}</div>
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
 
 export function normalizeGraphCenterAuditContext(audit: string | null | undefined): GraphCenterAuditContext | null {
   const trimmed = audit?.trim();
@@ -694,6 +883,10 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
             </div>
           </div>
         </section>
+        )}
+
+        {activeTab === 'overview' && (
+          <SarDiagnosticsPanel report={status.sarDiagnostics ?? null} />
         )}
 
         {activeTab === 'sources' && overview.sourceCatalogPanel && (
