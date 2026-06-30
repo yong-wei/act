@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import { BarChart3, ClipboardList, Copy, DatabaseZap, FileDown, LockKeyhole, Send, ShieldAlert, Trophy, Users } from 'lucide-react';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { ArenaRouteRecovery } from '@/features/arena/arena-route-recovery';
 import {
   ArenaPublicationPermissionError,
   prismaArenaPublicationStore,
@@ -52,7 +52,19 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
   const params = await props.params;
   const session = await getServerAuthSession();
   if (!session?.user?.id || !['TEACHER', 'ADMIN'].includes(session.user.role ?? '')) {
-    notFound();
+    return (
+      <ArenaRouteRecovery
+        kind="permission-boundary"
+        sourceRoute="/teacher/arena/publications/[publicationId]"
+        targetLabel="Arena 发布报告"
+        displayReference={params.publicationId}
+        message="请使用教师或管理员账号打开该 Arena 发布报告。"
+        recoveryAction="登录教师/管理员账号或返回工作台"
+        primaryHref={session?.user?.id ? '/dashboard' : '/login'}
+        primaryLabel={session?.user?.id ? '返回工作台' : '去登录'}
+        surface="teacher-publication-permission"
+      />
+    );
   }
 
   try {
@@ -338,7 +350,18 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
     );
   } catch (error) {
     if (error instanceof ArenaPublicationPermissionError) {
-      notFound();
+      return (
+        <ArenaRouteRecovery
+          kind="missing-object"
+          sourceRoute="/teacher/arena/publications/[publicationId]"
+          targetLabel="Arena 发布报告"
+          message="Arena 发布报告不存在或当前账号不可见。"
+          recoveryAction="返回 Arena 配置页并从可见发布列表重新进入"
+          primaryHref="/teacher/arena"
+          primaryLabel="返回 Arena 配置"
+          surface="teacher-publication-report"
+        />
+      );
     }
     throw error;
   }

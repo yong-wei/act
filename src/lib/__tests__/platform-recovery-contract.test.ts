@@ -65,4 +65,36 @@ describe('platform recovery contract', () => {
     expect(state.displayReference).toHaveLength(80);
     expect(state.displayReference).toMatch(/\.\.\.$/);
   });
+
+  it('distinguishes stale, no-match, and unsupported method recovery categories', () => {
+    expect(buildPlatformRecoveryState({
+      kind: 'stale-object',
+      sourceRoute: '/arena/challenges/[taskId]',
+      targetLabel: 'Arena 发布挑战',
+    })).toMatchObject({
+      status: 'blocked',
+      recoveryKind: 'stale-object',
+      recoveryAction: '返回来源页面并刷新最新状态',
+    });
+
+    expect(buildPlatformRecoveryState({
+      kind: 'no-match',
+      sourceRoute: '/admin/users',
+      targetLabel: '账号',
+    })).toMatchObject({
+      status: 'blocked',
+      recoveryKind: 'no-match',
+      recoveryAction: '调整筛选条件后重试',
+    });
+
+    expect(buildPlatformRecoveryState({
+      kind: 'unsupported-method',
+      sourceRoute: '/api/teacher/grading',
+      targetLabel: '评分审批',
+    })).toMatchObject({
+      status: 'blocked',
+      recoveryKind: 'unsupported-method',
+      recoveryAction: '返回页面使用支持的操作入口',
+    });
+  });
 });

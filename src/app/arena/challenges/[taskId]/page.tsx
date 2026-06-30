@@ -1,6 +1,5 @@
-import { notFound } from 'next/navigation';
-
 import { ChallengeDetail } from '@/features/arena/challenge-detail';
+import { ArenaRouteRecovery } from '@/features/arena/arena-route-recovery';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import {
@@ -46,13 +45,41 @@ export default async function ArenaChallengePage(
   const searchParams = await props.searchParams;
   const params = await props.params;
   const task = getArenaChallengeTask(params.taskId);
-  if (!task) notFound();
+  if (!task) {
+    return (
+      <ArenaRouteRecovery
+        kind="invalid-object-route"
+        sourceRoute="/arena/challenges/[taskId]"
+        targetLabel="Arena 挑战"
+        displayReference={params.taskId}
+        message="Arena 挑战链接无法识别。"
+        recoveryAction="返回 Arena 挑战列表并重新选择任务"
+        primaryHref="/arena"
+        primaryLabel="返回 Arena"
+        surface="challenge-task"
+      />
+    );
+  }
 
   const object = getArenaChallengeObject(task.objectId);
   const metricProfile = getArenaMetricProfile(task.metricProfileId);
   const leaderboardPolicy = getArenaLeaderboardPolicy(task.leaderboardPolicyId);
 
-  if (!object || !metricProfile || !leaderboardPolicy) notFound();
+  if (!object || !metricProfile || !leaderboardPolicy) {
+    return (
+      <ArenaRouteRecovery
+        kind="missing-object"
+        sourceRoute="/arena/challenges/[taskId]"
+        targetLabel="Arena 挑战配置"
+        displayReference={params.taskId}
+        message="Arena 挑战配置缺少对象、指标或榜单策略。"
+        recoveryAction="返回 Arena 挑战列表并选择其他任务"
+        primaryHref="/arena"
+        primaryLabel="返回 Arena"
+        surface="challenge-config"
+      />
+    );
+  }
   const publicationId = typeof searchParams?.publicationId === 'string' && searchParams.publicationId.trim().length > 0
     ? searchParams.publicationId
     : undefined;
@@ -61,7 +88,19 @@ export default async function ArenaChallengePage(
   if (publicationId) {
     const session = await getServerAuthSession();
     if (!session?.user?.id || session.user.role !== 'STUDENT') {
-      notFound();
+      return (
+        <ArenaRouteRecovery
+          kind="permission-boundary"
+          sourceRoute="/arena/challenges/[taskId]?publicationId"
+          targetLabel="Arena 发布挑战"
+          displayReference={publicationId}
+          message="请使用有权限的学生账号打开该 Arena 发布挑战。"
+          recoveryAction="登录学生账号或返回 Arena 挑战列表"
+          primaryHref={session?.user?.id ? '/dashboard' : '/login'}
+          primaryLabel={session?.user?.id ? '返回工作台' : '去登录'}
+          surface="student-publication-permission"
+        />
+      );
     }
     viewerUserId = session.user.id;
     try {
@@ -74,7 +113,18 @@ export default async function ArenaChallengePage(
       });
     } catch (error) {
       if (error instanceof ArenaPublicationAccessError) {
-        notFound();
+        return (
+          <ArenaRouteRecovery
+            kind="missing-object"
+            sourceRoute="/arena/challenges/[taskId]?publicationId"
+            targetLabel="Arena 发布挑战"
+            message="Arena 发布挑战不存在或当前账号不可见。"
+            recoveryAction="返回 Arena 挑战列表并从可见发布入口重新进入"
+            primaryHref="/arena"
+            primaryLabel="返回 Arena"
+            surface="student-publication-access"
+          />
+        );
       }
       throw error;
     }

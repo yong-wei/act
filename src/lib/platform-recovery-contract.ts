@@ -5,6 +5,9 @@ export type PlatformRecoveryKind =
   | 'missing-object'
   | 'permission-boundary'
   | 'classroom-code-error'
+  | 'stale-object'
+  | 'no-match'
+  | 'unsupported-method'
   | 'password-validation'
   | 'recovery-action'
   | 'storage-unavailable';
@@ -43,6 +46,21 @@ const RECOVERY_DEFAULTS: Record<PlatformRecoveryKind, {
     status: 'failed',
     message: (targetLabel) => `${targetLabel}未通过校验。`,
     recoveryAction: '核对教师提供的加入码后重试',
+  },
+  'stale-object': {
+    status: 'blocked',
+    message: (targetLabel) => `${targetLabel}已过期或不再可用。`,
+    recoveryAction: '返回来源页面并刷新最新状态',
+  },
+  'no-match': {
+    status: 'blocked',
+    message: (targetLabel) => `没有找到匹配的${targetLabel}。`,
+    recoveryAction: '调整筛选条件后重试',
+  },
+  'unsupported-method': {
+    status: 'blocked',
+    message: (targetLabel) => `${targetLabel}不支持当前操作方法。`,
+    recoveryAction: '返回页面使用支持的操作入口',
   },
   'password-validation': {
     status: 'failed',
