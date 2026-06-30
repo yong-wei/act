@@ -214,6 +214,7 @@ export function KnowledgeNodeManager({
           <button type="button"
             onClick={() => toggleExpand(node.id)}
             className={`p-0.5 rounded hover:bg-slate-600 ${hasChildren ? '' : 'invisible'}`}
+            aria-label={isExpanded ? `折叠知识节点：${node.name}` : `展开知识节点：${node.name}`}
           >
             {isExpanded ? (
               <ChevronDown className="h-4 w-4 text-slate-400" />
@@ -307,6 +308,7 @@ export function KnowledgeNodeManager({
           type="button"
           onClick={() => setVisibleRootCount((current) => current + KNOWLEDGE_TREE_PAGE_SIZE)}
           className="w-full rounded-lg border border-slate-700 py-2 text-sm text-slate-300 hover:border-cyan-500 hover:text-cyan-200"
+          aria-label="加载更多知识节点"
         >
           加载更多知识节点
         </button>

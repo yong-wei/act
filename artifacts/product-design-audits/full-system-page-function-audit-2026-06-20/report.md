@@ -28,7 +28,7 @@
 | `audit-remediation-ai-task-boundaries` | AI、Prompt、Copilot 任务边界、上下文脱敏、持久输出 | `chapters/50-function-state-flows-batch42.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/62-function-state-flows-batch54.md`、`chapters/63-function-state-flows-batch55.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-ai-task-boundaries/evidence.md`；自适应完整链路、学生报告反馈完整状态机和管理员治理 AI 待后续垂直变更关闭 |
 | `audit-remediation-arena-classroom-evidence` | Arena 结果解释、多次/逾期/0 分、课堂状态、证据回流 | `chapters/10-function-state-flows-batch2.md`、`chapters/34-function-state-flows-batch26.md`、`chapters/54-function-state-flows-batch46.md` 及课堂/Arena 相关批次 | archived 2026-06-21；证据：`remediation/audit-remediation-arena-classroom-evidence/evidence.md`；official submission/report/evidence writeback subset 于 2026-06-30 由 `audit-remediation-arena-submission-report-evidence-closure` 部分关闭 |
 | `audit-remediation-arena-submission-report-evidence-closure` | Arena 官方提交、报告证据汇总、迟交/零分/无效提交状态、学生反馈证据回流、移动报告动作 | `chapters/10-function-state-flows-batch2.md`、`chapters/34-function-state-flows-batch26.md`、`chapters/54-function-state-flows-batch46.md` 及课堂/Arena 相关批次 | partial remediated 2026-06-30；证据：`remediation/audit-remediation-arena-submission-report-evidence-closure/evidence.md`；课堂状态与全局播报缺口仍待后续垂直变更关闭 |
-| `audit-remediation-authoring-resource-flows` | 教案、ResourceNode、播放列表、课程流、知识节点与作者态治理 | `chapters/60-function-state-flows-batch52.md`、`chapters/61-function-state-flows-batch53.md` 及本报告资源/作者态问题项 | archived 2026-06-22；证据：归档任务 `openspec/changes/archive/2026-06-22-audit-remediation-authoring-resource-flows/tasks.md`、本报告 361-380 的内联整改记录，以及课程流/知识节点深链任务对 381-382 的覆盖 |
+| `audit-remediation-authoring-resource-flows` | 教案、ResourceNode、播放列表、课程流、知识节点与作者态治理 | `chapters/60-function-state-flows-batch52.md`、`chapters/61-function-state-flows-batch53.md` 及本报告资源/作者态问题项 | archived 2026-06-22；证据：归档任务 `openspec/changes/archive/2026-06-22-audit-remediation-authoring-resource-flows/tasks.md`、本报告 361-380 的内联整改记录，以及课程流/知识节点深链任务对 381-382 的覆盖；2026-06-30 由 `audit-remediation-authoring-knowledge-flow-polish` 部分补充课程流播放恢复、课程流构建器状态、知识图谱筛选和作者态控件命名证据：`remediation/audit-remediation-authoring-knowledge-flow-polish/evidence.md` |
 | `audit-remediation-admin-operations-ledger` | 管理员导入、下载、配置保存、模型测试、治理刷新和统计导出的持久操作账本 | `chapters/12-function-state-flows-batch4.md`、`chapters/13-function-state-flows-batch5.md`、`chapters/15-function-state-flows-batch7.md`、`chapters/27-function-state-flows-batch19.md`、`chapters/39-function-state-flows-batch31.md` | archived 2026-06-25；证据：`../admin-operations-ledger-674/evidence.json` |
 | `audit-remediation-platform-error-status-a11y` | 平台错误恢复、权限边界、菜单/弹窗/浮层焦点和状态播报 | `chapters/40-function-state-flows-batch32.md`、`chapters/42-function-state-flows-batch34.md`、`chapters/49-function-state-flows-batch41.md`、`chapters/52-function-state-flows-batch44.md` 及后续状态流 | archived 2026-06-25；证据：`remediation/audit-remediation-platform-error-status-a11y/evidence.md` |
 | `audit-remediation-teacher-classroom-lifecycle` | 班级/临时课堂身份、实时课堂送达、学生结束态和教师投影恢复 | `chapters/31-function-state-flows-batch23.md`、`chapters/32-function-state-flows-batch24.md`、`chapters/37-function-state-flows-batch29.md`、`chapters/40-function-state-flows-batch32.md`、`chapters/54-function-state-flows-batch46.md` | archived 2026-06-25；证据：`remediation/audit-remediation-teacher-classroom-lifecycle/evidence.md` |
@@ -1022,15 +1022,18 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 369. P1：课程流创建器一次性暴露 820 个知识节点
    `/playlists/new` 桌面高 60,902px，移动端高 61,359px；API 返回 820 个知识节点，填入标题和点击动作后仍停留知识库长列表，没有可见已选节点、保存结果或恢复动作。
    2026-06-22 / #618：课程流创建器默认分页显示知识节点、显示已选数量、防重复添加，并在保存成功后跳到 `/playlists/{id}/play?intent=start-class`；`POST /api/knowledge/playlists` 写入 KNOWLEDGE_NODE `LessonItem`。
+   2026-06-30 / #730：课程流构建器增加保存/校验/增删节点的 inline status 区、移动端分段结构标记和已选环节按钮命名；证据见 `remediation/audit-remediation-authoring-knowledge-flow-polish/evidence.md`。
 
 370. P2：移动备课与资源页长度不可操作
    390px 下教师预置教案高 23,144px、教师教案高 18,670px、教师资源高 7,936px、ResourceNode 高 92,909px；320px 管理员教案高 24,697px；学生课程流移动端高 61,359px。
+   2026-06-30 / #730：课程流构建器和知识图谱移动筛选面板改为有明确分组的紧凑结构，ResourceNode/知识节点列表补充可访问命名；原始批次中的其他备课与资源页长页仍未由本变更关闭。
 
 371. P2：作者态 API 有数据但 UI 缺任务化消费
    `/api/lesson-plans`、`/api/resources`、`/api/teacher/resource-nodes`、`/api/knowledge/nodes` 均返回数据，但 UI 主要表现为长列表或静态清单，没有把 API 数据组织成可完成的编辑、治理、引用、保存或回滚任务。
 
 372. P2：第 52 批 31 个状态仍全部缺少 alert/live
    31 个 DOM/a11y JSON 均没有捕获到 `alert`。预置教案使用、教案搜索、新建教案、资源搜索、ResourceNode 筛选、治理加载、课程目录 query 和课程流创建都缺少状态播报。
+   2026-06-30 / #730：课程流创建器移除原生 alert，新增 `role="status"` / `aria-live="polite"` 的保存、校验、添加和移除状态；本变更只关闭课程流创建器相关状态缺口。
 
 373. P1：教师教案编辑直达动作会丢到公开首页
    教师教案编辑直达页能加载 `cmqlsyjrb0003vmyfz0ju3lqh`，API 也返回该教案；但该教案 `items: 0`，页面仍显示资源库与 BOPPPS 编排壳层。动作探测后最终落到公开首页 `/`，教师作者态上下文、教案 id 和恢复入口都丢失。
@@ -1059,16 +1062,20 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 379. P1：播放列表直达播放会丢失播放意图
    公开播放列表 API 返回 3 条，直达 `/playlists/cmkaxvc11000n11d46jntz6nf/play` 时路由响应 200，但最终落到公开首页 `/`；动作后进入 `/interactive-learning`，仍没有播放列表标题、playlistId、继续播放或错误说明。
    2026-06-22 / #618：播放列表 play 路由不再硬重定向，改为展示 `PlaylistPlayLauncher`，保留 playlistId、标题、环节数和 `intent=start-class`，并通过 `/api/session` 启动课堂。
+   2026-06-30 / #730：缺失或不可见课程流进入统一恢复态，保留返回课程流列表或登录动作，不泄露私有标题或原始 id。
 
 380. P2：知识节点直达能打开但缺加入课程流或学习任务后置状态
    知识节点 detail API 可返回 `鞍点_8_292242f6`，`/knowledge?nodeId=...` 也停留在知识图谱；但页面没有把该节点转成加入课程流、开始学习、查看关联资源或生成学习任务的后续状态，动作探测后仍无变化。
    2026-06-22 / #618：知识图谱同时识别 `node` 与 `nodeId`；知识节点检查器新增加入课程流和创建学习任务动作，教师知识节点管理页也提供加入课程流入口。
+   2026-06-30 / #730：知识图谱桌面工具补充稳定可访问名称，课程流构建器为选择后续动作提供状态反馈；知识节点深链的实际运行态仍按 #618 证据闭环。
 
 381. P2：移动直达状态仍依赖超长列表或静默改道
    390px 教师教案编辑仍是作者态壳层，390px ResourceNode blocked 高 92,909px；320px 管理员教案编辑只呈资源库壳层，320px 治理 authoring 缺失教案仍显示通用治理；390px 播放列表直达播放仍落到公开首页。
+   2026-06-30 / #730：课程流播放缺失/不可见状态不再静默改道，课程流构建器和知识图谱移动筛选补充紧凑结构；教师/管理员教案、治理 authoring 等其他移动直达状态仍待后续变更。
 
 382. P2：第 53 批 24 个状态仍全部缺少 alert/live
    24 个 DOM/a11y JSON 均没有捕获到 `alert`。教案直达、缺失模板、blocked query、坏教案、治理缺失 lessonPlanId、播放列表直达、知识节点直达和移动深链状态都缺少状态播报。
+   2026-06-30 / #730：课程流播放恢复态、课程流构建器保存/校验状态和移动知识图谱筛选分组已补充源码合同；其他作者态深链状态未由本变更关闭。
 
 
 

@@ -63,10 +63,41 @@ describe('/playlists/[id]/play page access', () => {
     mocks.prisma.lessonPlan.findUnique.mockResolvedValue(privatePlan());
   });
 
-  it('hides private playlist metadata from anonymous viewers', async () => {
-    await expect(PlaylistPlayPage(pageProps())).rejects.toThrow('notFound');
+  it('hides private playlist metadata from anonymous viewers with product recovery', async () => {
+    const element = await PlaylistPlayPage(pageProps());
 
-    expect(mocks.notFound).toHaveBeenCalled();
+    expect(mocks.notFound).not.toHaveBeenCalled();
+    expect(element.props.message).toBe('课程流不存在或当前账号不可见。');
+    expect(element.props.actionHref).toBe('/login');
+    expect(JSON.stringify(element.props)).not.toContain('私有课程流');
+  });
+
+  it('renders the same anonymous recovery state for missing playlists', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue(null);
+
+    const element = await PlaylistPlayPage(pageProps('missing-plan'));
+
+    expect(mocks.notFound).not.toHaveBeenCalled();
+    expect(element.props.message).toBe('课程流不存在或当前账号不可见。');
+    expect(element.props.actionHref).toBe('/login');
+    expect(JSON.stringify(element.props)).not.toContain('missing-plan');
+  });
+
+  it('keeps unavailable playlist recovery indistinguishable for anonymous viewers', async () => {
+    const privateElement = await PlaylistPlayPage(pageProps('private-plan'));
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue(null);
+
+    const missingElement = await PlaylistPlayPage(pageProps('missing-plan'));
+
+    expect({
+      message: missingElement.props.message,
+      actionHref: missingElement.props.actionHref,
+      actionLabel: missingElement.props.actionLabel,
+    }).toEqual({
+      message: privateElement.props.message,
+      actionHref: privateElement.props.actionHref,
+      actionLabel: privateElement.props.actionLabel,
+    });
   });
 
   it('lets the teacher author edit through the teacher route', async () => {

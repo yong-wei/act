@@ -23,6 +23,7 @@ export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderP
   const [description, setDescription] = useState(initialData?.description || '');
   const [isSaving, setIsSaving] = useState(false);
   const [visibleNodeCount, setVisibleNodeCount] = useState(KNOWLEDGE_NODE_PAGE_SIZE);
+  const [flowStatusMessage, setFlowStatusMessage] = useState<string | null>(null);
 
   // Fetch available nodes
   useEffect(() => {
@@ -66,6 +67,7 @@ export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderP
 
   const addItem = (node: KnowledgeNodeData) => {
     if (playlistItems.some((item) => item.nodeId === node.id)) return;
+    setFlowStatusMessage(`已加入课程流：${node.name}`);
     setPlaylistItems([...playlistItems, {
       nodeId: node.id,
       nodeName: node.name, // Temp for UI
@@ -76,8 +78,10 @@ export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderP
   };
 
   const removeItem = (index: number) => {
+    const removedName = playlistItems[index]?.nodeName;
     const newItems = [...playlistItems];
     newItems.splice(index, 1);
+    setFlowStatusMessage(removedName ? `已移除：${removedName}` : null);
     setPlaylistItems(newItems);
   };
 
@@ -93,9 +97,16 @@ export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderP
   };
 
   const handleSave = async () => {
-    if (!title) return alert('请输入标题');
-    if (playlistItems.length === 0) return alert('请至少选择一个知识节点');
+    if (!title.trim()) {
+      setFlowStatusMessage('请输入课程流标题。');
+      return;
+    }
+    if (playlistItems.length === 0) {
+      setFlowStatusMessage('请至少选择一个知识节点。');
+      return;
+    }
     setIsSaving(true);
+    setFlowStatusMessage('正在保存课程流。');
 
     try {
       const res = await fetch('/api/knowledge/playlists', {
@@ -115,20 +126,23 @@ export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderP
         router.refresh();
       } else {
         const payload = await res.json().catch(() => null);
-        alert(payload?.error || '保存失败');
+        setFlowStatusMessage(payload?.error || '保存失败，请检查课程流内容后重试。');
       }
     } catch (e) {
       console.error(e);
-      alert('保存出错');
+      setFlowStatusMessage('保存出错，请检查网络后重试。');
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[calc(100vh-100px)]">
+    <div
+      className="grid min-h-[calc(100vh-100px)] grid-cols-1 gap-6 lg:grid-cols-2"
+      data-playlist-builder-mobile-steps="library-selection-then-course-flow"
+    >
       {/* Left: Library */}
-      <Card className="bg-[#0F172A] border-slate-700 flex flex-col h-full">
+      <Card className="flex min-h-[28rem] flex-col border-slate-700 bg-[#0F172A]">
         <CardHeader>
           <CardTitle className="text-white">知识库</CardTitle>
           <div className="relative">
@@ -174,7 +188,7 @@ export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderP
             </button>
           ) : null}
           {filteredNodes.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-slate-700 py-10 text-center text-sm text-slate-500">
+            <div className="rounded-lg border border-dashed border-slate-700 py-10 text-center text-sm text-slate-500" role="status">
               没有匹配的知识节点。
             </div>
           ) : null}
@@ -182,7 +196,7 @@ export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderP
       </Card>
 
       {/* Right: Playlist Timeline */}
-      <Card className="bg-[#0F172A] border-slate-700 flex flex-col h-full">
+      <Card className="flex min-h-[28rem] flex-col border-slate-700 bg-[#0F172A]">
         <CardHeader>
           <CardTitle className="text-white">课程编排</CardTitle>
           <div className="space-y-3">
@@ -219,6 +233,7 @@ export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderP
                         <div className="font-medium text-slate-200">{item.nodeName}</div>
                         <div className="flex gap-2 mt-1">
                             <select
+                                aria-label={`选择互动方式：${item.nodeName}`}
                                 className="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-1"
                                 value={item.interactionMode}
                                 onChange={(e) => {
@@ -231,7 +246,7 @@ export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderP
                                 <option value="quiz">测验</option>
                                 <option value="discussion">讨论</option>
                             </select>
-                            <input aria-label="选择知识节点"
+                            <input aria-label={`设置时长分钟：${item.nodeName}`}
                                 type="number"
                                 className="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded w-16 px-1 text-center"
                                 value={item.duration}
@@ -245,20 +260,25 @@ export function PlaylistBuilder({ initialData, initialNodeId }: PlaylistBuilderP
                         </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <button type="button" onClick={() => moveItem(idx, 'up')} className="text-slate-400 hover:text-white disabled:opacity-30" disabled={idx === 0}>
+                        <button type="button" onClick={() => moveItem(idx, 'up')} className="text-slate-400 hover:text-white disabled:opacity-30" disabled={idx === 0} aria-label={`上移：${item.nodeName}`}>
                             <ArrowUp className="h-4 w-4" />
                         </button>
-                        <button type="button" onClick={() => moveItem(idx, 'down')} className="text-slate-400 hover:text-white disabled:opacity-30" disabled={idx === playlistItems.length - 1}>
+                        <button type="button" onClick={() => moveItem(idx, 'down')} className="text-slate-400 hover:text-white disabled:opacity-30" disabled={idx === playlistItems.length - 1} aria-label={`下移：${item.nodeName}`}>
                             <ArrowDown className="h-4 w-4" />
                         </button>
                     </div>
-                    <button type="button" onClick={() => removeItem(idx)} className="text-red-400 hover:text-red-300 ml-2">
+                    <button type="button" onClick={() => removeItem(idx)} className="text-red-400 hover:text-red-300 ml-2" aria-label={`移除：${item.nodeName}`}>
                         <Trash2 className="h-4 w-4" />
                     </button>
                 </div>
             ))}
         </CardContent>
         <div className="p-4 border-t border-slate-700">
+            {flowStatusMessage ? (
+              <div className="mb-3 rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200" role="status" aria-live="polite">
+                {flowStatusMessage}
+              </div>
+            ) : null}
             <button type="button"
                 onClick={handleSave}
                 disabled={isSaving}
