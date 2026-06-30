@@ -52,7 +52,8 @@ describe('SAR diagnostics and evaluation report', () => {
     });
     expect(report.comparison.sarAssistedRefCount).toBeGreaterThan(report.comparison.ordinarySourcePackRefCount);
     expect(report.totals.sourcePackHandoffCount).toBe(2);
-    expect(report.totals.sarCandidateAdoptionCount).toBe(17);
+    expect(report.comparison.sarAssistedRefCount).toBe(2);
+    expect(report.totals.sarCandidateAdoptionCount).toBe(1);
     expect(report.totals.sarCandidateRejectionCount).toBe(1);
     expect(report.totals.limitationCount).toBe(report.serializedTraces[0].limitations.length);
   });
@@ -127,6 +128,50 @@ describe('SAR diagnostics and evaluation report', () => {
     });
     expect(report.serializedTraces[0].limitations).toContain('[redacted]');
     expect(report.limitationCounts['[redacted]']).toBe(1);
+  });
+
+  it('serializes result-level limitations consistently with report counts', () => {
+    const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
+    const result = {
+      ...fixture.result,
+      trace: {
+        ...fixture.result.trace,
+        limitations: ['trace-only-limitation'],
+      },
+      limitations: ['trace-only-limitation', 'result-only-limitation'],
+    };
+    const report = buildSarDiagnosticsReport({
+      generatedAt: '2026-06-30T00:00:00.000Z',
+      traces: [{
+        id: 'limitation-probe',
+        query: fixture.query,
+        result,
+      }],
+    });
+
+    expect(report.serializedTraces[0].limitations).toEqual([
+      'result-only-limitation',
+      'trace-only-limitation',
+    ]);
+    expect(report.queryTraceSummaries[0].limitationCount).toBe(2);
+    expect(report.totals.limitationCount).toBe(2);
+  });
+
+  it('defaults SAR-assisted comparison to retrieval chunk refs', () => {
+    const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
+    const report = buildSarDiagnosticsReport({
+      generatedAt: '2026-06-30T00:00:00.000Z',
+      traces: [{
+        id: 'chunk-default-probe',
+        query: fixture.query,
+        result: fixture.result,
+        ordinarySourcePackRefs: ['chunk:source-pack:frequency-margin'],
+      }],
+    });
+
+    expect(fixture.result.trace.selectedRefs.length).toBeGreaterThan(fixture.result.retrievalChunkRefs.length);
+    expect(report.comparison.sarAssistedRefCount).toBe(2);
+    expect(report.totals.sarCandidateAdoptionCount).toBe(1);
   });
 
   it('redacts sensitive ids and refs from unfiltered trace inputs', () => {

@@ -127,7 +127,7 @@ export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput)
       ref: redactSensitiveDiagnosticRef(item.ref),
       reason: redactSensitiveDiagnosticText(item.reason),
     })),
-    limitations: result.trace.limitations.map(redactSensitiveDiagnosticText),
+    limitations: mergedDiagnosticLimitations(result),
     versionRefs: redactRefList(result.trace.versionRefs),
     downstream: {
       sourcePackHandoffRefs: redactRefList(sourcePackHandoffRefs),
@@ -187,14 +187,12 @@ export function buildSarDiagnosticsReport(input: {
   for (const traceInput of input.traces) {
     const { result } = traceInput;
     const tracePrivacyRejections = countPrivacyRejections(result.trace);
-    const traceLimitations = uniqueSorted(
-      [...result.trace.limitations, ...result.limitations].map(redactSensitiveDiagnosticText),
-    );
+    const traceLimitations = mergedDiagnosticLimitations(result);
     const sourcePackHandoffRefs = uniqueSorted(traceInput.sourcePackHandoffRefs ?? result.retrievalChunkRefs);
     const verifiedCitationRefs = verifiedCitationTargetRefs(traceInput.verifiedCitationRefs ?? [], result.citationTargetRefs);
     const citationTargetRefs = uniqueSorted(result.citationTargetRefs);
     const ordinarySourcePackRefs = uniqueSorted(traceInput.ordinarySourcePackRefs ?? []);
-    const sarAssistedRefs = uniqueSorted(traceInput.sarAssistedRefs ?? result.trace.selectedRefs);
+    const sarAssistedRefs = uniqueSorted(traceInput.sarAssistedRefs ?? result.retrievalChunkRefs);
     const adoptedRefs = sarAssistedRefs.filter((ref) => !ordinarySourcePackRefs.includes(ref));
 
     eventCount += result.events.length;
@@ -314,7 +312,7 @@ export function buildControlCorrectionSarDemoFixture(generatedAt = new Date().to
       sourcePackHandoffRefs,
       verifiedCitationRefs: ['citation:frequency-margin-source'],
       ordinarySourcePackRefs: ['chunk:source-pack:frequency-margin'],
-      sarAssistedRefs: expansion.sourcePackSeedRefs,
+      sarAssistedRefs: result.retrievalChunkRefs,
     }],
     demoFixtureStatus: {
       id: 'control-correction-demo',
@@ -480,6 +478,10 @@ function rate(numerator: number, denominator: number): number {
 
 function uniqueSorted(values: readonly string[]): string[] {
   return [...new Set(values.filter(Boolean))].sort((left, right) => left.localeCompare(right));
+}
+
+function mergedDiagnosticLimitations(result: SarRetrievalResult): string[] {
+  return uniqueSorted([...result.trace.limitations, ...result.limitations].map(redactSensitiveDiagnosticText));
 }
 
 function redactRefList(values: readonly string[]): string[] {
