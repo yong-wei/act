@@ -35,6 +35,14 @@ describe('teacher report and grading UI source contracts', () => {
     expect(source).toContain('targetId: entry.artifactRef');
     expect(source).toContain('data-teacher-report-handoff-states="delivery-status-contract"');
     expect(source).toContain('data-report-ledger-send-publish-state="degraded"');
+    expect(source).toContain('data-teacher-intervention-action-id={entry.interventionAction.id}');
+    expect(source).toContain('data-teacher-intervention-action-status={entry.interventionAction.status}');
+    expect(source).toContain('data-teacher-intervention-persistence-target={entry.interventionAction.persistenceTarget}');
+    expect(source).toContain("fetch('/api/teacher/evidence-interventions'");
+    expect(source).toContain('const canRecordIntervention = canDeliver && Boolean(entry.interventionAction.studentId);');
+    expect(source).toContain("data-teacher-intervention-record-action={canRecordIntervention ? 'available' : canDeliver ? 'needs-student' : 'missing-context'}");
+    expect(source).toContain('选择学生后创建处置记录');
+    expect(source).toContain('entry.interventionAction.privacySafeSummary');
     expect(source).toContain('data-report-ledger-grading-handoff-state="ready"');
     expect(source).toContain('data-report-ledger-grading-handoff-state="blocked"');
     expect(source).not.toContain('action=lock&report=control-correction');
@@ -45,6 +53,18 @@ describe('teacher report and grading UI source contracts', () => {
 
     expect(source).toContain('buildTeacherGradingMissingRunState(routeQuery)');
     expect(source).toContain('return <TeacherDocumentGradingEmptyState routeState={buildTeacherGradingMissingRunState(routeQuery)} />;');
+  });
+
+  it('keeps teacher student evidence actions on the shared intervention contract', () => {
+    const source = readSource('src/app/teacher/classes/[classId]/students/[studentId]/evidence/page.tsx');
+
+    expect(source).toContain('buildTeacherEvidenceInterventionAction');
+    expect(source).toContain("surface: 'teacher-evidence'");
+    expect(source).toContain('data-teacher-intervention-action-id={interventionAction.id}');
+    expect(source).toContain('data-teacher-intervention-action-status={interventionAction.status}');
+    expect(source).toContain('data-teacher-intervention-persistence-target={interventionAction.persistenceTarget}');
+    expect(source).toContain('interventionAction.privacySafeSummary');
+    expect(source).toContain('data-teacher-evidence-remediation-task={interventionAction.status}');
   });
 
   it('connects teacher home, history, classroom review, and report-book surfaces to report delivery ledger', () => {

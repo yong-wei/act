@@ -6,7 +6,11 @@ import { StudentDocumentGradingFeedback } from '@/features/assessment/document-r
 import { buildDocumentRubricDemoViews } from '@/features/assessment/document-rubric-grading-demo';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { buildFeedbackTaskContext, type FeedbackTaskQuery } from '@/lib/student-feedback-task-contract';
+import {
+  buildFeedbackTaskContext,
+  resolveVerifiedTeacherInterventionId,
+  type FeedbackTaskQuery,
+} from '@/lib/student-feedback-task-contract';
 import {
   buildStudentGradingFeedbackView,
   createHiddenStudentGradingFeedbackView,
@@ -48,7 +52,13 @@ export default async function DocumentFeedbackPage({
   }
 
   const params = await searchParams;
-  const feedbackContext = buildFeedbackTaskContext(params ?? {});
+  const verifiedTeacherInterventionId = await resolveVerifiedTeacherInterventionId({
+    db: prisma,
+    userId: session.user.id,
+    teacherInterventionId: params?.teacherInterventionId,
+    assignment: params?.assignment,
+  });
+  const feedbackContext = buildFeedbackTaskContext(params ?? {}, { verifiedTeacherInterventionId });
   if (params?.demo === '1') {
     const { studentView } = await buildDocumentRubricDemoViews({
       studentId: session.user.id,

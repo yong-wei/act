@@ -1,5 +1,9 @@
 import { createAuditedActionState, type AuditedActionIdentity, type AuditedActionState } from '@/lib/action-status-contract';
 import { resolveScopedReturnTarget, type ReturnTargetParam } from '@/lib/navigation-return-target';
+import {
+  buildTeacherEvidenceInterventionAction,
+  type TeacherEvidenceInterventionActionRecord,
+} from '@/lib/teacher-evidence-intervention-contract';
 
 export type TeacherReportDeliveryAction =
   | 'export'
@@ -75,6 +79,7 @@ export interface TeacherReportDeliveryLedgerEntry {
   artifactRef: string;
   redactionPolicy: 'student-safe-summary-only';
   studentSafeSummary: string;
+  interventionAction: TeacherEvidenceInterventionActionRecord;
   recoveryAction?: string;
 }
 
@@ -254,6 +259,30 @@ export function buildTeacherReportDeliveryLedgerEntry(input: {
   const fallbackSummary = missingContext
     ? getDeliveryMissingContextSummary(query, contextState)
     : `教师报告 ${query.reportId} 已进入 ${action} 交付账本，范围为 ${query.recipientScope}。`;
+  const interventionAction = buildTeacherEvidenceInterventionAction({
+    kind: action === 'reinforcement'
+      ? 'reinforcement-task'
+      : action === 'send' || action === 'deliver'
+        ? 'feedback'
+        : 'grading-writeback',
+    surface: 'report-ledger',
+    teacherId: query.actorId,
+    actorRole: query.actorRole,
+    studentId: query.studentId,
+    classId: query.classId,
+    sessionId: query.sessionId,
+    lessonId: query.lessonId,
+    reportId: query.reportId,
+    gradingRunId: query.gradingRunId,
+    source: query.source ?? surface,
+    sourceEvidenceRefs: [
+      `teacher-report:${query.reportId}:${query.versionId}`,
+      query.gradingRunId ? `grading-run:${query.gradingRunId}` : null,
+      query.sessionId ? `class-session:${query.sessionId}` : null,
+    ].filter((ref): ref is string => Boolean(ref)),
+    learnerState: query.studentId ? 'ready' : 'missing',
+    now: input.now,
+  });
 
   return {
     surface,
@@ -282,6 +311,7 @@ export function buildTeacherReportDeliveryLedgerEntry(input: {
     artifactRef,
     redactionPolicy: 'student-safe-summary-only',
     studentSafeSummary: input.studentSafeSummary ?? fallbackSummary,
+    interventionAction,
     recoveryAction: missingContext ? getDeliveryRecoveryAction(contextState) : undefined,
   };
 }

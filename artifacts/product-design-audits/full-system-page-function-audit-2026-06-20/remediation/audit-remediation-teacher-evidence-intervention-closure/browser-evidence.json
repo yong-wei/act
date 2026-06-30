@@ -1,0 +1,23 @@
+{
+  "change": "audit-remediation-teacher-evidence-intervention-closure",
+  "capturedAt": "2026-06-30T00:00:00.000Z",
+  "evidenceType": "server-rendered-component-dom",
+  "command": "rtk npx tsx -e \"render ActionStatusPanel with a recorded teacher evidence intervention state\"",
+  "surfaces": [
+    {
+      "surface": "teacher-report-delivery-handoff",
+      "selectorEvidence": [
+        "data-audited-action-id=\"teacher-intervention:feedback:ref-demo\"",
+        "data-audited-action-category=\"writeback\"",
+        "data-audited-action-status=\"succeeded\"",
+        "role=\"status\"",
+        "aria-live=\"polite\""
+      ],
+      "htmlExcerpt": "<section class=\"rounded-lg border p-4 text-sm border-platform-evidence-eligible bg-platform-surface text-platform-fg-primary\" data-audited-action-id=\"teacher-intervention:feedback:ref-demo\" data-audited-action-category=\"writeback\" data-audited-action-status=\"succeeded\" role=\"status\" aria-live=\"polite\"><div class=\"flex flex-col gap-3 md:flex-row md:items-start md:justify-between\"><div><p class=\"font-medium text-platform-fg-primary\">教师证据处置</p><p class=\"mt-1 leading-6 text-platform-fg-secondary\">教师证据处置记录已创建，等待学生侧写回完成。</p><p class=\"mt-2 break-all text-xs text-platform-fg-secondary\">操作：teacher-intervention:feedback:ref-demo</p><p class=\"mt-2 break-all text-xs text-platform-fg-secondary\">引用：teacher-intervention:feedback:ref-demo</p><p class=\"sr-only\">教师证据处置已完成：教师证据处置记录已创建，等待学生侧写回完成。</p></div><span class=\"inline-flex w-fit rounded-full border border-platform-border px-2.5 py-1 text-xs text-platform-fg-secondary\">succeeded</span></div><div class=\"mt-3 flex flex-wrap items-center gap-3 text-xs text-platform-fg-secondary\"><span>下一步：回到评分工作台或学生证据页继续跟踪</span></div></section>"
+    }
+  ],
+  "limitations": [
+    "This artifact renders the shared status component off-browser; route-level authentication and full-page browser screenshots remain outside this focused fix.",
+    "Persistence is covered by the route test for /api/teacher/evidence-interventions and source-contract assertions for the teacher report page POST wiring."
+  ]
+}

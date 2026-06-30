@@ -99,6 +99,8 @@ AI 工坊显示学习任务、日志和实验档案，动作探测后焦点落�
 
 建议：评分工作台应区分“无草稿”“有可评分提交”“方法不支持”和“来源参数失效”，并把返回动作留在教师上下文。
 
+整改记录：`audit-remediation-teacher-evidence-intervention-closure` 已在报告账本、评分工作台和教师学生证据页之间建立共享处置合同，补充 action id、幂等键、来源证据、学生侧目标和缺失上下文恢复；证据见 `../remediation/audit-remediation-teacher-evidence-intervention-closure/evidence.md`。
+
 ### 390. P1：数据中心 returnTo 没有形成返回或治理交接
 
 教师 `returnTo=/teacher/classes/.../analytics-v2` 和管理员 `returnTo=/admin/data-governance` 均仍停留数据中心；管理员动作探测命中隐藏“数据治理”文本并超时，说明可见命令与隐藏导航文本存在冲突。

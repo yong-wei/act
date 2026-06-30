@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { UserMenu } from '@/components/shared/user-menu';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import { buildAiAuditTaskState, buildPortfolioReflectionDraft } from '@/lib/ai-task-boundary-contracts';
 import {
   buildFeedbackTaskContext,
@@ -91,10 +92,12 @@ export default function PortfolioPage() {
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
     intent: searchParams.get('intent'),
+    teacherInterventionId: searchParams.get('teacherInterventionId'),
   };
-  const feedbackContext = shouldRenderPortfolioFeedbackTask(feedbackQuery)
+  const localFeedbackContext = shouldRenderPortfolioFeedbackTask(feedbackQuery)
     ? buildFeedbackTaskContext(feedbackQuery)
     : null;
+  const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams);
   const feedbackPortfolioDraft = feedbackContext
     ? buildPortfolioFeedbackDraft(feedbackContext)
     : null;
