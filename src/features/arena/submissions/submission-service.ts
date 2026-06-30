@@ -1,5 +1,6 @@
 import { evaluateArenaSubmission } from '../evaluation/evaluator';
 import type { ArenaEvaluationResult } from '../evaluation/types';
+import type { ArenaSubmissionEvidenceWriteback } from '../evidence-writeback';
 import type { ControllerArtifact } from '../types';
 import { hashControllerArtifact } from './artifact-hash';
 
@@ -17,6 +18,7 @@ export interface ArenaSubmissionRecord {
   artifact: ControllerArtifact;
   evaluation: ArenaEvaluationResult;
   evaluationProtocolVersion?: string;
+  evidenceWriteback?: ArenaSubmissionEvidenceWriteback;
   submittedAt: string;
   reusedEvaluation: boolean;
 }

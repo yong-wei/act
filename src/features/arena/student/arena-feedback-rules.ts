@@ -1,6 +1,12 @@
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
 import { formatArenaMetric } from '../display-labels';
+import {
+  buildArenaSubmissionEvidenceWriteback,
+  getArenaAttemptStatus,
+  type ArenaAttemptStatus,
+  type ArenaSubmissionEvidenceWriteback,
+} from '../evidence-writeback';
 
 export type ArenaFeedbackMode = 'white-box' | 'black-box';
 export type ArenaFeedbackRankingStatus = 'ranked' | 'not_ranked';
@@ -17,6 +23,7 @@ export interface ArenaPersonalBestComparison {
   state: ArenaPersonalBestComparisonState;
   delta: number;
   previousBestScore?: number;
+  reason?: ArenaAttemptStatus;
 }
 
 export interface ArenaHardConstraintGuidance {
@@ -41,6 +48,7 @@ export interface ArenaSubmissionFeedback {
   issueTags: string[];
   boundaryNotes: string[];
   officialOnlyMetricNotes: string[];
+  evidenceWriteback: ArenaSubmissionEvidenceWriteback;
   nextStepSuggestion: string;
   privacyNote?: string;
 }
@@ -110,7 +118,7 @@ function hardConstraintFailures(guidance: ArenaHardConstraintGuidance[]): string
 
 function comparePersonalBest(input: BuildArenaSubmissionFeedbackInput): ArenaPersonalBestComparison {
   if (!isArenaSubmissionEffectiveForRanking(input.latest)) {
-    return { state: 'none', delta: 0 };
+    return { state: 'none', delta: 0, reason: getArenaAttemptStatus(input.latest) };
   }
 
   const previous = (input.previousSubmissions ?? [])
@@ -286,6 +294,7 @@ export function buildArenaSubmissionFeedback(input: BuildArenaSubmissionFeedback
   const comparison = comparePersonalBest(input);
   const issueTags = buildIssueTags(input, weakest);
   const officialOnlyMetricNotes = buildOfficialOnlyMetricNotes(officialOnlyMetricIds, input.mode);
+  const evidenceWriteback = input.latest.evidenceWriteback ?? buildArenaSubmissionEvidenceWriteback(input.latest);
 
   return {
     rankingStatus,
@@ -303,6 +312,7 @@ export function buildArenaSubmissionFeedback(input: BuildArenaSubmissionFeedback
     issueTags,
     boundaryNotes: buildBoundaryNotes(input.mode, protocolVersion, officialOnlyMetricNotes.length > 0),
     officialOnlyMetricNotes,
+    evidenceWriteback,
     nextStepSuggestion: buildSuggestion(
       input,
       failures,

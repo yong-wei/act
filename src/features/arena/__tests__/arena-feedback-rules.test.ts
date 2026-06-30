@@ -16,7 +16,7 @@ function artifact(input: {
 }): ControllerArtifact {
   return {
     id: input.id,
-    taskId: 'task-feedback',
+    taskId: 'task-second-order-lead-pid',
     method: input.method ?? 'pid',
     params: input.params ?? { kp: 2.4, ki: 0.8, kd: 0.35 },
     createdAt: '2026-05-16T08:00:00.000Z',
@@ -41,13 +41,13 @@ function submission(input: {
 
   return {
     id: input.id,
-    taskId: 'task-feedback',
+    taskId: 'task-second-order-lead-pid',
     userId: 'student-a',
     studentLabel: '学生甲',
     artifactHash: `hash-${input.id}`,
     artifact: currentArtifact,
     evaluation: {
-      taskId: 'task-feedback',
+      taskId: 'task-second-order-lead-pid',
       artifact: currentArtifact,
       valid: input.valid,
       score: input.score,
@@ -89,6 +89,13 @@ describe('arena student diagnostic feedback rules', () => {
     expect(feedback.summary).toContain('86');
     expect(feedback.strongestMetric).toMatchObject({ metricId: 'steadyStateError', satisfaction: 0.92 });
     expect(feedback.weakestMetric).toMatchObject({ metricId: 'controlEnergy', satisfaction: 0.63 });
+    expect(feedback.evidenceWriteback).toMatchObject({
+      status: 'accepted',
+      visibilityState: 'materialized',
+      sourceRef: { kind: 'ArenaSubmission', id: 'latest' },
+      terminalValidationAccepted: true,
+      limitationCodes: [],
+    });
     expect(feedback.nextStepSuggestion).toContain('控制能量');
   });
 
@@ -138,16 +145,31 @@ describe('arena student diagnostic feedback rules', () => {
 
     expect(zeroScore.rankingStatus).toBe('not_ranked');
     expect(zeroScore.title).toContain('未进入正式排名');
-    expect(zeroScore.personalBestComparison).toEqual({ state: 'none', delta: 0 });
+    expect(zeroScore.personalBestComparison).toEqual({ state: 'none', delta: 0, reason: 'zero-score' });
     expect(zeroScore.summary).toBe('本次官方评测得分 0 分。');
+    expect(zeroScore.evidenceWriteback).toMatchObject({
+      status: 'blocked',
+      visibilityState: 'diagnostic-only',
+      limitationCodes: [],
+    });
     expect(late.rankingStatus).toBe('not_ranked');
     expect(late.title).toContain('未进入正式排名');
-    expect(late.personalBestComparison).toEqual({ state: 'none', delta: 0 });
+    expect(late.personalBestComparison).toEqual({ state: 'none', delta: 0, reason: 'late' });
     expect(late.summary).toBe('本次官方评测得分 92 分。');
+    expect(late.evidenceWriteback).toMatchObject({
+      status: 'blocked',
+      visibilityState: 'diagnostic-only',
+      limitationCodes: [],
+    });
     expect(invalid.rankingStatus).toBe('not_ranked');
     expect(invalid.title).toContain('未进入正式排名');
-    expect(invalid.personalBestComparison).toEqual({ state: 'none', delta: 0 });
+    expect(invalid.personalBestComparison).toEqual({ state: 'none', delta: 0, reason: 'invalid' });
     expect(invalid.summary).toBe('本次官方评测得分 95 分。');
+    expect(invalid.evidenceWriteback).toMatchObject({
+      status: 'blocked',
+      visibilityState: 'diagnostic-only',
+      limitationCodes: [],
+    });
   });
 
   it('compares the latest submission with the previous personal best', () => {
@@ -435,6 +457,9 @@ describe('arena personal feedback component', () => {
     expect(html).toContain('官方评测');
     expect(html).toContain('隐藏场景最差表现');
     expect(html).toContain('仅官方评测后显示');
+    expect(html).toContain('证据回流');
+    expect(html).not.toContain('missing-target-binding');
+    expect(html).not.toContain('attempt-not-effective');
   });
 
   it('uses the shared feedback component in the white-box submission panel', () => {
