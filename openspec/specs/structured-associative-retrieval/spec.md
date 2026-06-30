@@ -139,7 +139,7 @@ Adaptive path planning SHALL consume SAR candidates only as supplemental candida
 - **AND** it MAY keep it only as supporting evidence when allowed.
 
 ### Requirement: SAR exposes diagnostics and evaluation traces
-The system SHALL expose privacy-safe diagnostics for SAR projection and query behavior.
+The system SHALL expose privacy-safe diagnostics for SAR projection and query behavior through service payloads and administrator-visible governance surfaces.
 
 #### Scenario: Administrator reviews SAR health
 - **WHEN** an administrator opens SAR diagnostics or requests the SAR report payload
@@ -149,6 +149,11 @@ The system SHALL expose privacy-safe diagnostics for SAR projection and query be
 - **WHEN** a SAR query trace is persisted, displayed, or exported
 - **THEN** the trace SHALL include seed entities, expanded entities, selected events, rejected refs, limitations, version refs, and downstream citation/source-pack handoff state
 - **AND** it SHALL omit raw private evidence and hidden internals.
+
+#### Scenario: SAR diagnostics are rendered for administrators
+- **WHEN** an administrator inspects SAR diagnostics in a governance UI
+- **THEN** the rendered report SHALL use the same privacy-safe summaries and redacted trace fields as the service payload
+- **AND** it SHALL distinguish SAR candidate refs from verified citation outcomes.
 
 ### Requirement: SAR evaluation includes a multi-hop teaching demo
 The system SHALL provide a deterministic SAR demo fixture for multi-hop teaching retrieval.
