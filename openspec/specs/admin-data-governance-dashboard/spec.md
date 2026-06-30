@@ -63,3 +63,10 @@ The admin governance UI SHALL connect system/user changes to governance status, 
 - **WHEN** user import, role permission, system configuration, source coverage, session data quality, or privacy scope affects governance status
 - **THEN** the UI SHALL show affected object, freshness or quality state, repair or review action, restricted-state explanation, and redacted report/export availability where applicable
 - **AND** governance status SHALL NOT be presented as decorative metrics without an actionable path.
+
+### Requirement: Admin data governance can inspect SAR diagnostics
+The admin data governance surface SHALL provide a SAR diagnostics entry point or payload.
+
+#### Scenario: SAR diagnostics are available
+- **WHEN** an administrator inspects AI/data-governance retrieval health
+- **THEN** the dashboard or API SHALL include SAR projection counts, query trace summaries, privacy rejection counts, Source Pack handoff counts, verified citation rate, and demo fixture status.
