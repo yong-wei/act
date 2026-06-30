@@ -514,6 +514,10 @@ function redactSensitiveDiagnosticRef(value: string): string {
 }
 
 const SENSITIVE_DIAGNOSTIC_TEXT = [
+  /\braw(?:Content|Evidence|LearnerSubmissions?|Submissions?|Answers?|AnswerBod(?:y|ies)|Trace|TraceJson|Traces|TracePayload)\b/i,
+  /\blearnerSubmissions?\b/i,
+  /\bhidden(?:ArenaInternals|ArenaEvaluationInternals|EvaluationInternals)\b/i,
+  /\bauditOnlyTrace\b/i,
   /\braw[_ -]?(answer|answers|evidence|submission|submissions|trace|payload)\b/i,
   /\braw\b.*\b(answer|answers|evidence|submission|submissions|trace|payload)\b/i,
   /\bhidden[_ -]?(arena|evaluation|internals)/i,
@@ -524,6 +528,10 @@ const SENSITIVE_DIAGNOSTIC_TEXT = [
 ];
 
 const SENSITIVE_DIAGNOSTIC_REF = [
+  /(^|[:/_-])raw(?:Content|Evidence|LearnerSubmissions?|Submissions?|Answers?|AnswerBod(?:y|ies)|Trace|TraceJson|Traces|TracePayload)($|[:/_-])/i,
+  /(^|[:/_-])learnerSubmissions?($|[:/_-])/i,
+  /(^|[:/_-])hidden(?:ArenaInternals|ArenaEvaluationInternals|EvaluationInternals)($|[:/_-])/i,
+  /(^|[:/_-])auditOnlyTrace($|[:/_-])/i,
   /(^|[:/_-])private($|[:/_-])/i,
   /(^|[:/_-])private[-_]?(source|student|memory|evidence|submission|payload|trace|ref)($|[:/_-])/i,
   /(^|[:/_-])audit[-_]?only($|[:/_-])/i,

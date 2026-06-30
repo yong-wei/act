@@ -100,6 +100,7 @@ describe('SAR diagnostics and evaluation report', () => {
         rejectedRefs: [
           ...fixture.result.trace.rejectedRefs,
           { ref: 'unsafe-ref', reason: 'raw learner submission included hidden internals' },
+          { ref: 'rawTraceJson', reason: 'rawAnswerBody included rawLearnerSubmission' },
         ],
         limitations: [
           ...fixture.result.trace.limitations,
@@ -121,9 +122,16 @@ describe('SAR diagnostics and evaluation report', () => {
     });
 
     expect(JSON.stringify(report)).not.toContain('raw learner submission');
+    expect(JSON.stringify(report)).not.toContain('rawLearnerSubmission');
+    expect(JSON.stringify(report)).not.toContain('rawTraceJson');
+    expect(JSON.stringify(report)).not.toContain('rawAnswerBody');
     expect(JSON.stringify(report)).not.toContain('hidden arena internals');
     expect(report.serializedTraces[0].rejectedRefs).toContainEqual({
       ref: 'unsafe-ref',
+      reason: '[redacted]',
+    });
+    expect(report.serializedTraces[0].rejectedRefs).toContainEqual({
+      ref: '[redacted]',
       reason: '[redacted]',
     });
     expect(report.serializedTraces[0].limitations).toContain('[redacted]');
@@ -192,6 +200,8 @@ describe('SAR diagnostics and evaluation report', () => {
           'raw-submission-payload:student-control-demo',
           'sar:event:private-memory',
           'citation:private-source-ref',
+          'sar:event:rawLearnerSubmission',
+          'sar:trace:rawTraceJson',
         ],
         versionRefs: [
           ...fixture.result.trace.versionRefs,
@@ -212,6 +222,8 @@ describe('SAR diagnostics and evaluation report', () => {
         {
           ...fixture.result.events[0],
           id: 'sar:event:private-memory',
+          title: 'rawLearnerSubmission should be omitted',
+          safeSummary: 'rawTraceJson should be omitted',
           sourceRef: {
             ...fixture.result.events[0].sourceRef,
             id: 'source:private-source-ref',
@@ -229,16 +241,19 @@ describe('SAR diagnostics and evaluation report', () => {
           ...fixture.result.entities[0],
           id: 'sar:entity:private-source-ref',
           canonicalRef: 'canonical:private-source-ref',
+          label: 'rawAnswerBody should be omitted',
         },
       ],
       citationTargetRefs: [
         ...fixture.result.citationTargetRefs,
         'citation:private-source-ref',
+        'citation:rawAnswerBody',
       ],
       retrievalChunkRefs: [
         ...fixture.result.retrievalChunkRefs,
         'chunk:hidden-arena-internals',
         'chunk:private-source-ref',
+        'chunk:rawTracePayload',
       ],
     };
 
@@ -246,7 +261,7 @@ describe('SAR diagnostics and evaluation report', () => {
       id: 'unfiltered-probe',
       query: fixture.query,
       result,
-      verifiedCitationRefs: ['citation:private-source-ref'],
+      verifiedCitationRefs: ['citation:private-source-ref', 'citation:rawAnswerBody'],
     });
     const text = JSON.stringify(serialized);
 
@@ -261,6 +276,10 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(text).not.toContain('private-student');
     expect(text).not.toContain('private-memory');
     expect(text).not.toContain('private-source-ref');
+    expect(text).not.toContain('rawLearnerSubmission');
+    expect(text).not.toContain('rawTraceJson');
+    expect(text).not.toContain('rawAnswerBody');
+    expect(text).not.toContain('rawTracePayload');
     expect(text).not.toContain('raw-submission-payload');
     expect(text).not.toContain('audit-only-trace');
     expect(text).not.toContain('chunk:hidden-arena-internals');
