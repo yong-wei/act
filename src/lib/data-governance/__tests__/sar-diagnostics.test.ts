@@ -183,6 +183,29 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(report.totals.sarCandidateAdoptionCount).toBe(1);
   });
 
+  it('does not default candidate retrieval chunks to Source Pack handoff refs', () => {
+    const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
+    const serialized = serializeSarTraceForDiagnostics({
+      id: 'handoff-default-probe',
+      query: fixture.query,
+      result: fixture.result,
+    });
+    const report = buildSarDiagnosticsReport({
+      generatedAt: '2026-06-30T00:00:00.000Z',
+      traces: [{
+        id: 'handoff-default-probe',
+        query: fixture.query,
+        result: fixture.result,
+      }],
+    });
+
+    expect(fixture.result.retrievalChunkRefs).toHaveLength(2);
+    expect(serialized.downstream.sourcePackHandoffRefs).toEqual([]);
+    expect(report.serializedTraces[0].downstream.sourcePackHandoffRefs).toEqual([]);
+    expect(report.queryTraceSummaries[0].sourcePackHandoffCount).toBe(0);
+    expect(report.totals.sourcePackHandoffCount).toBe(0);
+  });
+
   it('redacts sensitive ids and refs from unfiltered trace inputs', () => {
     const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
     const result = {
@@ -262,6 +285,7 @@ describe('SAR diagnostics and evaluation report', () => {
       id: 'unfiltered-probe',
       query: fixture.query,
       result,
+      sourcePackHandoffRefs: ['chunk:private-source-ref', 'chunk:rawTracePayload'],
       verifiedCitationRefs: ['citation:private-source-ref', 'citation:rawAnswerBody'],
     });
     const text = JSON.stringify(serialized);

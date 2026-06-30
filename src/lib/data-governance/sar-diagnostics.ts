@@ -114,7 +114,7 @@ export type ControlCorrectionSarDemoFixture = {
 export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput): SerializedSarTraceForDiagnostics {
   const result = exportableSarResult(input.result);
   const nonExportableRefs = nonExportableDiagnosticRefs(input.result);
-  const sourcePackHandoffRefs = exportableDiagnosticRefs(input.sourcePackHandoffRefs ?? result.retrievalChunkRefs, input.result);
+  const sourcePackHandoffRefs = exportableDiagnosticRefs(input.sourcePackHandoffRefs ?? [], input.result);
   const verifiedCitationRefs = verifiedCitationTargetRefs(
     exportableDiagnosticRefs(input.verifiedCitationRefs ?? [], input.result),
     result.citationTargetRefs,
@@ -190,7 +190,7 @@ export function buildSarDiagnosticsReport(input: {
     const tracePrivacyRejections = countPrivacyRejections(result.trace);
     const traceLimitations = mergedDiagnosticLimitations(result);
     const sourcePackHandoffRefs = exportableDiagnosticRefs(
-      traceInput.sourcePackHandoffRefs ?? result.retrievalChunkRefs,
+      traceInput.sourcePackHandoffRefs ?? [],
       traceInput.result,
     );
     const verifiedCitationRefs = verifiedCitationTargetRefs(
