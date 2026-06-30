@@ -201,7 +201,7 @@ export function SarDiagnosticsPanel({ report }: { report?: SarDiagnosticsReport 
                   {trace.selectedEventCount.toLocaleString()} / {trace.selectedEntityCount.toLocaleString()}
                 </td>
                 <td className="px-4 py-3" data-label="拒绝/限制">
-                  {trace.privacyRejectionCount.toLocaleString()} / {trace.limitationCount.toLocaleString()}
+                  {trace.rejectedRefCount.toLocaleString()}（隐私 {trace.privacyRejectionCount.toLocaleString()}） / {trace.limitationCount.toLocaleString()}
                 </td>
                 <td className="px-4 py-3" data-label="引用">
                   {trace.sourcePackHandoffCount.toLocaleString()} · {formatDiagnosticRate(trace.verifiedCitationRate)}

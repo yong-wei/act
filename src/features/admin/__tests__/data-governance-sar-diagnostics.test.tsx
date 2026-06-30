@@ -88,6 +88,7 @@ describe('SAR diagnostics admin panel', () => {
     expect(html).toContain('SAR candidate rejected');
     expect(html).toContain('SAR-assisted refs');
     expect(html).toContain('control-correction diagnosis');
+    expect(html).toContain('2（隐私 1） / 1');
     expect(html).toContain('control-correction-demo');
   });
 
