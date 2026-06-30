@@ -272,7 +272,11 @@ function buildStudentFacingTarget(
   if (!input.pathId) {
     return { surface: 'none', href: null, label: '补练路径待选择' };
   }
-  common.set('intent', 'document-feedback');
+  const goalId = input.reportId ?? 'control-correction';
+  common.set('goal', goalId);
+  common.set('goalId', goalId);
+  common.set('pathId', input.pathId);
+  common.set('intent', 'path-execution');
   return { surface: 'adaptive-path', href: `/assessment/adaptive-practice?${common.toString()}`, label: '学生补练路径' };
 }
 

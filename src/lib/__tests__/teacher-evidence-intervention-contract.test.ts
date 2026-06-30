@@ -129,6 +129,33 @@ describe('teacher evidence intervention contract', () => {
     expect(action.privacySafeSummary).toContain('降低个性化置信度');
   });
 
+  it('carries selected remedial paths into student adaptive practice handoffs', () => {
+    const action = buildTeacherEvidenceInterventionAction({
+      kind: 'remedial-path',
+      surface: 'teacher-evidence',
+      teacherId: 'teacher-1',
+      studentId: 'student-1',
+      classId: 'class-1',
+      reportId: 'control-correction',
+      pathId: 'path-remedial-1',
+      sourceEvidenceRefs: ['LearningFact:fact-1'],
+      writebackState: 'student-visible',
+    });
+    const href = action.studentFacingTarget.href ?? '';
+    const params = new URLSearchParams(href.split('?')[1] ?? '');
+
+    expect(action.studentFacingTarget).toMatchObject({
+      surface: 'adaptive-path',
+      label: '学生补练路径',
+    });
+    expect(params.get('goal')).toBe('control-correction');
+    expect(params.get('goalId')).toBe('control-correction');
+    expect(params.get('pathId')).toBe('path-remedial-1');
+    expect(params.get('intent')).toBe('path-execution');
+    expect(params.get('teacherInterventionId')).toBe(action.id);
+    expect(params.get('status')).toBe('teacher-visible');
+  });
+
   it('keeps class report ledger interventions valid without a single student target', () => {
     const action = buildTeacherEvidenceInterventionAction({
       kind: 'grading-writeback',
