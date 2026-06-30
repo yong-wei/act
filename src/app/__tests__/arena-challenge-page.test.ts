@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   notFound: vi.fn(() => {
     throw new Error('notFound');
   }),
+  ArenaPublicationAccessError: class ArenaPublicationAccessError extends Error {},
   findPublications: vi.fn(),
   listSubmissions: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
@@ -35,7 +36,7 @@ vi.mock('@/features/arena/submissions/prisma-store', () => ({
 
 vi.mock('@/features/arena/teacher/publication-store', () => ({
   resolveAccessibleArenaPublicationForStudent: mocks.resolveAccessibleArenaPublicationForStudent,
-  ArenaPublicationAccessError: class ArenaPublicationAccessError extends Error {},
+  ArenaPublicationAccessError: mocks.ArenaPublicationAccessError,
 }));
 
 vi.mock('@/features/arena/challenge-detail', () => ({
@@ -58,6 +59,7 @@ describe('ArenaChallengePage publication context', () => {
       classId: 'class-a',
       seasonId: 'season-2026',
       isLate: false,
+      deadline: '2026-07-01T00:00:00.000Z',
       gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
     });
     mocks.listSubmissions.mockResolvedValue([
@@ -97,16 +99,85 @@ describe('ArenaChallengePage publication context', () => {
     });
   });
 
-  it('does not load publication submissions for anonymous publication URLs', async () => {
+  it('renders product recovery instead of raw 404 for anonymous publication URLs', async () => {
     mocks.getServerAuthSession.mockResolvedValue(null);
 
-    await expect(ArenaChallengePage({
+    const element = await ArenaChallengePage({
       params: Promise.resolve({ taskId }),
       searchParams: Promise.resolve({ publicationId: 'publication-1' }),
-    })).rejects.toThrow('notFound');
+    });
 
     expect(mocks.resolveAccessibleArenaPublicationForStudent).not.toHaveBeenCalled();
     expect(mocks.listSubmissions).not.toHaveBeenCalled();
+    expect(element.props).toMatchObject({
+      kind: 'permission-boundary',
+      sourceRoute: '/arena/challenges/[taskId]?publicationId',
+      targetLabel: 'Arena 发布挑战',
+      displayReference: 'publication-1',
+      primaryHref: `/login?callbackUrl=${encodeURIComponent(`/arena/challenges/${taskId}?publicationId=publication-1`)}`,
+      surface: 'student-publication-permission',
+    });
+  });
+
+  it('renders product recovery for invalid Arena task ids before loading submissions', async () => {
+    const element = await ArenaChallengePage({
+      params: Promise.resolve({ taskId: 'not-a-real-task' }),
+      searchParams: Promise.resolve({}),
+    });
+
+    expect(mocks.listSubmissions).not.toHaveBeenCalled();
+    expect(element.props).toMatchObject({
+      kind: 'invalid-object-route',
+      sourceRoute: '/arena/challenges/[taskId]',
+      targetLabel: 'Arena 挑战',
+      displayReference: 'not-a-real-task',
+      surface: 'challenge-task',
+    });
+  });
+
+  it('maps inaccessible publication ids to product recovery states', async () => {
+    mocks.resolveAccessibleArenaPublicationForStudent.mockRejectedValueOnce(
+      new mocks.ArenaPublicationAccessError('Arena publication was not found.'),
+    );
+
+    const element = await ArenaChallengePage({
+      params: Promise.resolve({ taskId }),
+      searchParams: Promise.resolve({ publicationId: 'missing-publication' }),
+    });
+
+    expect(mocks.listSubmissions).not.toHaveBeenCalled();
+    expect(element.props).toMatchObject({
+      kind: 'missing-object',
+      sourceRoute: '/arena/challenges/[taskId]?publicationId',
+      targetLabel: 'Arena 发布挑战',
+      surface: 'student-publication-access',
+    });
+    expect(element.props).not.toHaveProperty('displayReference');
+  });
+
+  it('does not reveal whether inaccessible publication ids exist or mismatch the task', async () => {
+    for (const message of [
+      'Arena publication does not match this task.',
+      'Arena publication is not active.',
+      'Student is not allowed to access this Arena publication.',
+    ]) {
+      mocks.resolveAccessibleArenaPublicationForStudent.mockRejectedValueOnce(
+        new mocks.ArenaPublicationAccessError(message),
+      );
+
+      const element = await ArenaChallengePage({
+        params: Promise.resolve({ taskId }),
+        searchParams: Promise.resolve({ publicationId: 'possibly-real-publication' }),
+      });
+
+      expect(element.props).toMatchObject({
+        kind: 'missing-object',
+        message: 'Arena 发布挑战不存在或当前账号不可见。',
+        surface: 'student-publication-access',
+      });
+      expect(element.props).not.toHaveProperty('displayReference');
+      expect(mocks.listSubmissions).not.toHaveBeenCalled();
+    }
   });
 
   it('does not class-scope course-wide publication submission reads', async () => {
@@ -117,6 +188,7 @@ describe('ArenaChallengePage publication context', () => {
       classId: 'class-b',
       seasonId: 'season-2026',
       isLate: false,
+      deadline: '2026-07-01T00:00:00.000Z',
       gradingPolicy: { hideFullLeaderboardBeforeDeadline: false },
     });
 

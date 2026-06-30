@@ -30,6 +30,12 @@ interface ClassJoinInfo {
   teacherName: string;
 }
 
+interface ClassJoinState {
+  state: string;
+  recoveryAction: string;
+  evidenceWriteback: string;
+}
+
 interface JoinRecoveryLink {
   href: string;
   label: string;
@@ -70,6 +76,7 @@ function JoinClassroomContent() {
   const [recoveryLink, setRecoveryLink] = useState<JoinRecoveryLink | null>(null);
   const [sessionInfo, setSessionInfo] = useState<SessionJoinInfo | null>(null);
   const [classInfo, setClassInfo] = useState<ClassJoinInfo | null>(null);
+  const [classJoinState, setClassJoinState] = useState<ClassJoinState | null>(null);
   const autoLookupKeyRef = useRef<string | null>(null);
 
   const resetResult = () => {
@@ -77,6 +84,7 @@ function JoinClassroomContent() {
     setRecoveryLink(null);
     setSessionInfo(null);
     setClassInfo(null);
+    setClassJoinState(null);
   };
 
   const handleModeChange = (mode: JoinMode) => {
@@ -149,12 +157,15 @@ function JoinClassroomContent() {
       }
 
       if (!res.ok) {
-        setError(data.error || '加入班级失败');
+        const recoveryAction = typeof data.classJoinState?.recoveryAction === 'string' ? data.classJoinState.recoveryAction : null;
+        setError([data.error || '加入班级失败', recoveryAction].filter(Boolean).join('。'));
+        setClassJoinState(typeof data.classJoinState?.state === 'string' ? data.classJoinState : null);
         setRecoveryLink(null);
         return;
       }
 
       setClassInfo(data.class);
+      setClassJoinState(typeof data.classJoinState?.state === 'string' ? data.classJoinState : null);
     } catch {
       setError('网络错误，请重试');
     } finally {
@@ -204,6 +215,7 @@ function JoinClassroomContent() {
       recoveryLink={recoveryLink}
       sessionInfo={sessionInfo}
       classInfo={classInfo}
+      classJoinState={classJoinState}
       onModeChange={handleModeChange}
       onCodeChange={handleCodeChange}
       onLookup={() => {
@@ -228,6 +240,7 @@ function JoinClassroomShell({
   recoveryLink = null,
   sessionInfo = null,
   classInfo = null,
+  classJoinState = null,
   onModeChange,
   onCodeChange,
   onLookup,
@@ -241,6 +254,7 @@ function JoinClassroomShell({
   recoveryLink?: JoinRecoveryLink | null;
   sessionInfo?: SessionJoinInfo | null;
   classInfo?: ClassJoinInfo | null;
+  classJoinState?: ClassJoinState | null;
   onModeChange?: (mode: JoinMode) => void;
   onCodeChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onLookup?: () => void;
@@ -356,6 +370,11 @@ function JoinClassroomShell({
               </div>
               <div className="font-bold text-white">{classInfo.name}</div>
               <div className="mt-1 text-sm text-slate-400">教师: {classInfo.teacherName}</div>
+              {classJoinState?.evidenceWriteback ? (
+                <div className="mt-3 rounded-lg border border-emerald-500/20 bg-slate-950/50 px-3 py-2 text-xs leading-5 text-emerald-100/80">
+                  {classJoinState.evidenceWriteback}
+                </div>
+              ) : null}
             </div>
           )}
 

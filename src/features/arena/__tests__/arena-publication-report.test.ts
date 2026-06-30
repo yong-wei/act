@@ -863,9 +863,18 @@ describe('arena publication report route', () => {
     );
 
     expect(pageSource).toContain('params: Promise<{ publicationId: string }>');
+    expect(pageSource).toContain('buildLoginRedirectForPath');
+    expect(pageSource).toContain('const reportPath = `/teacher/arena/publications/${encodeURIComponent(params.publicationId)}`;');
+    expect(pageSource).toContain('primaryHref={session?.user?.id ? \'/dashboard\' : buildLoginRedirectForPath(reportPath)}');
     expect(pageSource).toContain('prismaArenaPublicationStore.loadReport');
     expect(pageSource).toContain('ArenaPublicationPermissionError');
-    expect(pageSource).toContain('notFound()');
+    expect(pageSource).toContain('<ArenaRouteRecovery');
+    expect(pageSource).toContain('surface="teacher-publication-report"');
+    expect(pageSource).toContain("sourceRoute=\"/teacher/arena/publications/[publicationId]\"");
+    expect(pageSource).toContain('Arena 发布报告不存在或当前账号不可见。');
+    const reportRecoverySource = pageSource.slice(pageSource.indexOf('error instanceof ArenaPublicationPermissionError'));
+    expect(reportRecoverySource).not.toContain('displayReference={params.publicationId}');
+    expect(pageSource).not.toContain('notFound()');
     expect(pageSource).toContain('参与情况');
     expect(pageSource).toContain('提交口径');
     expect(pageSource).toContain('有效尝试');

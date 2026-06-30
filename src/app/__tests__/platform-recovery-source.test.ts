@@ -10,6 +10,9 @@ describe('platform recovery source wiring', () => {
     const lessonPlanRecovery = readFileSync(join(repoRoot, 'src/features/lesson-engine/lesson-plan-missing-recovery.tsx'), 'utf8');
     const classDetail = readFileSync(join(repoRoot, 'src/app/teacher/classes/[classId]/page.tsx'), 'utf8');
     const resourceDetail = readFileSync(join(repoRoot, 'src/app/interactive-learning/resources/[id]/page.tsx'), 'utf8');
+    const arenaChallenge = readFileSync(join(repoRoot, 'src/app/arena/challenges/[taskId]/page.tsx'), 'utf8');
+    const arenaPublicationReport = readFileSync(join(repoRoot, 'src/app/teacher/arena/publications/[publicationId]/page.tsx'), 'utf8');
+    const globalNotFound = readFileSync(join(repoRoot, 'src/app/not-found.tsx'), 'utf8');
 
     expect(lessonPlanRecovery).toContain('buildPlatformRecoveryState');
     expect(lessonPlanRecovery).toContain("kind: 'missing-object'");
@@ -19,6 +22,13 @@ describe('platform recovery source wiring', () => {
     expect(classDetail).toContain('班级不存在或当前教师账号不可见。');
     expect(resourceDetail).toContain("sourceRoute: '/interactive-learning/resources/[id]'");
     expect(resourceDetail).toContain('<ActionStatusPanel');
+    expect(arenaChallenge).toContain('<ArenaRouteRecovery');
+    expect(arenaChallenge).toContain('surface="student-publication-access"');
+    expect(arenaPublicationReport).toContain('<ArenaRouteRecovery');
+    expect(arenaPublicationReport).toContain('surface="teacher-publication-report"');
+    expect(globalNotFound).toContain('data-platform-route-recovery="global-not-found"');
+    expect(globalNotFound).toContain("kind: 'invalid-object-route'");
+    expect(globalNotFound).toContain('<ActionStatusPanel');
   });
 
   it('keeps classroom-code errors, theme announcements, and floating focus checks inspectable', () => {
@@ -28,6 +38,7 @@ describe('platform recovery source wiring', () => {
 
     expect(joinPage).toContain("kind: 'classroom-code-error'");
     expect(joinPage).toContain('data-classroom-join-recovery-link="review-evidence"');
+    expect(joinPage).toContain('classJoinState?.evidenceWriteback');
     expect(floatingControls).toContain('主题已切换为');
     expect(floatingControls).toContain('data-platform-floating-dock-status');
     expect(mobileA11y).toContain('global-ai-sidebar-keyboard-320.json');
