@@ -125,6 +125,9 @@ function buildLearningFact(input: {
     lessonId: input.submission.taskId,
     contextJson: {
       arena: {
+        official: true,
+        evaluationMode: 'official',
+        evaluationVisibility: 'official',
         taskId: input.submission.taskId,
         publicationId: input.submission.publicationId ?? null,
         classId: input.submission.classId ?? null,

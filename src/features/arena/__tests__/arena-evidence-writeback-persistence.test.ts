@@ -81,6 +81,13 @@ describe('Arena evidence writeback persistence', () => {
           sourceLogId: 'submission-arena-writeback',
           outcome: 'success',
           score: 88,
+          contextJson: expect.objectContaining({
+            arena: expect.objectContaining({
+              official: true,
+              evaluationMode: 'official',
+              evaluationVisibility: 'official',
+            }),
+          }),
         }),
       ],
     }));
