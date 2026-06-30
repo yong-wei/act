@@ -114,7 +114,7 @@ export type ControlCorrectionSarDemoFixture = {
 export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput): SerializedSarTraceForDiagnostics {
   const result = exportableSarResult(input.result);
   const nonExportableRefs = nonExportableDiagnosticRefs(input.result);
-  const sensitiveEntityRefs = sensitiveDiagnosticEntityRefs(result);
+  const sensitiveRefs = sensitiveDiagnosticRefs(result);
   const sourcePackHandoffRefs = exportableDiagnosticRefs(input.sourcePackHandoffRefs ?? [], input.result);
   const verifiedCitationRefs = verifiedCitationTargetRefs(
     exportableDiagnosticRefs(input.verifiedCitationRefs ?? [], input.result),
@@ -123,38 +123,38 @@ export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput)
   const verifiedCitationRate = rate(verifiedCitationRefs.length, uniqueSorted(result.citationTargetRefs).length);
 
   return {
-    id: redactSensitiveDiagnosticRef(result.trace.id),
-    seedEntityIds: redactRefList(result.trace.seedEntityIds, sensitiveEntityRefs),
-    expandedEntityIds: redactRefList(result.entities.map((entity) => entity.id), sensitiveEntityRefs),
-    selectedEventIds: redactRefList(result.events.map((event) => event.id), sensitiveEntityRefs),
-    selectedRefs: redactRefList(result.trace.selectedRefs, sensitiveEntityRefs),
+    id: redactSensitiveDiagnosticRef(result.trace.id, sensitiveRefs),
+    seedEntityIds: redactRefList(result.trace.seedEntityIds, sensitiveRefs),
+    expandedEntityIds: redactRefList(result.entities.map((entity) => entity.id), sensitiveRefs),
+    selectedEventIds: redactRefList(result.events.map((event) => event.id), sensitiveRefs),
+    selectedRefs: redactRefList(result.trace.selectedRefs, sensitiveRefs),
     rejectedRefs: result.trace.rejectedRefs.map((item) => (
-      serializeRejectedRef(item, input.result, nonExportableRefs, sensitiveEntityRefs)
+      serializeRejectedRef(item, input.result, nonExportableRefs, sensitiveRefs)
     )),
     limitations: mergedDiagnosticLimitations(result),
-    versionRefs: redactRefList(result.trace.versionRefs, sensitiveEntityRefs),
+    versionRefs: redactRefList(result.trace.versionRefs, sensitiveRefs),
     downstream: {
-      sourcePackHandoffRefs: redactRefList(sourcePackHandoffRefs, sensitiveEntityRefs),
-      verifiedCitationRefs: redactRefList(verifiedCitationRefs, sensitiveEntityRefs),
+      sourcePackHandoffRefs: redactRefList(sourcePackHandoffRefs, sensitiveRefs),
+      verifiedCitationRefs: redactRefList(verifiedCitationRefs, sensitiveRefs),
       verifiedCitationRate,
     },
     events: result.events.map((event) => ({
-      id: redactSensitiveDiagnosticRef(event.id),
+      id: redactSensitiveDiagnosticRef(event.id, sensitiveRefs),
       eventType: event.eventType,
       title: redactSensitiveDiagnosticText(event.title),
       safeSummary: redactSensitiveDiagnosticText(event.safeSummary),
       privacyScope: event.privacyScope,
       sourceRef: {
-        id: redactSensitiveDiagnosticRef(event.sourceRef.id),
+        id: redactSensitiveDiagnosticRef(event.sourceRef.id, sensitiveRefs),
         owner: event.sourceRef.owner,
         authorityLevel: event.sourceRef.authorityLevel,
         freshness: event.sourceRef.freshness,
       },
     })),
     entities: result.entities.map((entity) => ({
-      id: redactSensitiveDiagnosticRef(entity.id, sensitiveEntityRefs),
+      id: redactSensitiveDiagnosticRef(entity.id, sensitiveRefs),
       entityType: entity.entityType,
-      canonicalRef: entity.entityType === 'student' ? '[redacted]' : redactSensitiveDiagnosticRef(entity.canonicalRef),
+      canonicalRef: entity.entityType === 'student' ? '[redacted]' : redactSensitiveDiagnosticRef(entity.canonicalRef, sensitiveRefs),
       label: entity.entityType === 'student' ? '[redacted]' : redactSensitiveDiagnosticText(entity.label),
       privacyScope: entity.privacyScope,
     })),
@@ -190,6 +190,7 @@ export function buildSarDiagnosticsReport(input: {
 
   for (const traceInput of input.traces) {
     const result = exportableSarResult(traceInput.result);
+    const sensitiveRefs = sensitiveDiagnosticRefs(result);
     const tracePrivacyRejections = countPrivacyRejections(result.trace);
     const traceLimitations = mergedDiagnosticLimitations(result);
     const sourcePackHandoffRefs = exportableDiagnosticRefs(
@@ -233,7 +234,7 @@ export function buildSarDiagnosticsReport(input: {
     }
 
     queryTraceSummaries.push({
-      id: redactSensitiveDiagnosticRef(traceInput.id),
+      id: redactSensitiveDiagnosticRef(traceInput.id, sensitiveRefs),
       query: redactSensitiveDiagnosticText(traceInput.query),
       hopCount: result.trace.expansionHops.length,
       selectedEventCount: result.events.length,
@@ -582,12 +583,24 @@ function nonExportableDiagnosticRefs(result: SarRetrievalResult): Set<string> {
   return refs;
 }
 
-function sensitiveDiagnosticEntityRefs(result: SarRetrievalResult): Set<string> {
+function sensitiveDiagnosticRefs(result: SarRetrievalResult): Set<string> {
   const refs = new Set<string>();
+  const sensitiveEntityIds = new Set<string>();
   for (const entity of result.entities) {
-    if (entity.entityType !== 'student') continue;
+    if (entity.entityType !== 'student' && entity.entityType !== 'learning-fact') continue;
     refs.add(entity.id);
     refs.add(entity.canonicalRef);
+    sensitiveEntityIds.add(entity.id);
+  }
+  const sensitiveEventIds = new Set(
+    result.relations
+      .filter((relationItem) => sensitiveEntityIds.has(relationItem.entityId))
+      .map((relationItem) => relationItem.eventId),
+  );
+  for (const event of result.events) {
+    if (event.eventType !== 'learning-fact-summary' && !sensitiveEventIds.has(event.id)) continue;
+    refs.add(event.id);
+    refs.add(event.sourceRef.id);
   }
   return refs;
 }
@@ -676,6 +689,7 @@ const SENSITIVE_DIAGNOSTIC_REF = [
   /(^|[:/_-])auditOnlyTrace($|[:/_-])/i,
   /(^|[:/_-])private($|[:/_-])/i,
   /(^|[:/_-])private[-_]?(source|student|memory|evidence|submission|payload|trace|ref)($|[:/_-])/i,
+  /(^|[:/_-])learning[-_]?fact[:/_-]learner[-_][^:/_-]+/i,
   /(^|[:/_-])audit[-_]?only($|[:/_-])/i,
   /(^|[:/_-])raw($|[:/_-])/i,
 ];

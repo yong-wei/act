@@ -158,6 +158,118 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(text).not.toContain('Learner One');
   });
 
+  it('redacts learner-attributed governed-summary event refs', () => {
+    const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
+    const learnerFactRef = 'learning-fact:learner-1:root-locus';
+    const learnerFactEntityId = `sar:entity:learning-fact:${learnerFactRef}`;
+    const learnerEventId = `sar:event:learning-fact-summary:${learnerFactRef}`;
+    const studentEntityId = 'sar:entity:student:student:learner-1';
+    const result = {
+      ...fixture.result,
+      trace: {
+        ...fixture.result.trace,
+        id: `sar:trace:governed-summary:${learnerFactRef}`,
+        seedEntityIds: [
+          ...fixture.result.trace.seedEntityIds,
+          learnerFactEntityId,
+        ],
+        selectedRefs: [
+          ...fixture.result.trace.selectedRefs,
+          learnerEventId,
+          learnerFactRef,
+        ],
+        versionRefs: [
+          ...fixture.result.trace.versionRefs,
+          learnerFactRef,
+        ],
+      },
+      events: [
+        ...fixture.result.events,
+        {
+          ...fixture.result.events[0],
+          id: learnerEventId,
+          eventType: 'learning-fact-summary' as const,
+          title: 'Root locus mastery fact',
+          safeSummary: 'Partial mastery evidence for root locus interpretation.',
+          privacyScope: 'teacher-scoped' as const,
+          sourceRef: {
+            ...fixture.result.events[0].sourceRef,
+            id: learnerFactRef,
+            owner: 'adaptive-learner-state',
+          },
+        },
+      ],
+      entities: [
+        ...fixture.result.entities,
+        {
+          ...fixture.result.entities[0],
+          id: learnerFactEntityId,
+          entityType: 'learning-fact' as const,
+          canonicalRef: learnerFactRef,
+          label: 'Root locus mastery fact',
+          privacyScope: 'teacher-scoped' as const,
+        },
+        {
+          ...fixture.result.entities[0],
+          id: studentEntityId,
+          entityType: 'student' as const,
+          canonicalRef: 'student:learner-1',
+          label: 'Learner One',
+          privacyScope: 'teacher-scoped' as const,
+        },
+      ],
+      relations: [
+        ...fixture.result.relations,
+        {
+          eventId: learnerEventId,
+          entityId: learnerFactEntityId,
+          role: 'about' as const,
+          confidence: 1,
+          provenance: 'metadata-projection' as const,
+          source: 'governed-summary-ref',
+        },
+        {
+          eventId: learnerEventId,
+          entityId: studentEntityId,
+          role: 'generated-from' as const,
+          confidence: 1,
+          provenance: 'metadata-projection' as const,
+          source: 'governed-summary-ref',
+        },
+      ],
+    };
+    const serialized = serializeSarTraceForDiagnostics({
+      id: 'learner-event-redaction-probe',
+      query: fixture.query,
+      result,
+    });
+    const report = buildSarDiagnosticsReport({
+      generatedAt: '2026-06-30T00:00:00.000Z',
+      traces: [{
+        id: learnerFactRef,
+        query: fixture.query,
+        result,
+      }],
+    });
+    const text = JSON.stringify({ serialized, report });
+
+    expect(serialized.id).toBe('[redacted]');
+    expect(serialized.seedEntityIds).toContain('[redacted]');
+    expect(serialized.selectedEventIds).toContain('[redacted]');
+    expect(serialized.selectedRefs).toContain('[redacted]');
+    expect(serialized.versionRefs).toContain('[redacted]');
+    expect(serialized.events).toContainEqual(expect.objectContaining({
+      id: '[redacted]',
+      eventType: 'learning-fact-summary',
+      sourceRef: expect.objectContaining({ id: '[redacted]' }),
+    }));
+    expect(serialized.events[0].id).not.toBe('[redacted]');
+    expect(report.queryTraceSummaries[0].id).toBe('[redacted]');
+    expect(text).not.toContain('learner-1');
+    expect(text).not.toContain(learnerFactRef);
+    expect(text).not.toContain(learnerEventId);
+  });
+
   it('redacts sensitive reason and limitation text supplied by traces', () => {
     const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
     const result = {
