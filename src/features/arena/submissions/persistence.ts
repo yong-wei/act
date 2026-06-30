@@ -56,6 +56,13 @@ export interface StoredArenaSubmission {
 
 export interface ArenaSubmissionStore {
   findEvaluationByHash(taskId: string, artifactHash: string, protocolVersion: string): Promise<StoredArenaEvaluation | null>;
+  findDuplicateSubmissionByArtifact?(input: {
+    taskId: string;
+    userId: string;
+    publicationId?: string;
+    artifactHash: string;
+    protocolVersion: string;
+  }): Promise<StoredArenaSubmission | null>;
   createEvaluation(input: Omit<StoredArenaEvaluation, 'id'>): Promise<StoredArenaEvaluation>;
   upsertArtifact(input: Omit<StoredArenaArtifact, 'id'>): Promise<StoredArenaArtifact>;
   createSubmission(input: Omit<StoredArenaSubmission, 'id'> & {
@@ -200,6 +207,13 @@ export async function createPersistedArenaSubmission(
   const protocolVersion = getArenaEvaluationProtocolVersion({ taskId: input.taskId, method: artifact.method });
 
   const existingEvaluation = await input.store.findEvaluationByHash(input.taskId, artifactHash, protocolVersion);
+  const duplicateSubmission = await input.store.findDuplicateSubmissionByArtifact?.({
+    taskId: input.taskId,
+    userId: input.userId,
+    publicationId: input.publicationId,
+    artifactHash,
+    protocolVersion,
+  }) ?? null;
   let evaluation: ArenaEvaluationResult;
   try {
     evaluation = existingEvaluation?.result ?? await evaluateArenaSubmission({ taskId: input.taskId, artifact });
@@ -250,6 +264,6 @@ export async function createPersistedArenaSubmission(
     evaluation: storedSubmission.evaluation,
     evaluationProtocolVersion: protocolVersion,
     submittedAt: storedSubmission.submittedAt,
-    reusedEvaluation: Boolean(existingEvaluation),
+    reusedEvaluation: Boolean(duplicateSubmission),
   };
 }

@@ -8,6 +8,7 @@ import type {
   StoredArenaEvaluation,
   StoredArenaSubmission,
 } from './persistence';
+import { readArenaSubmissionEvidenceWritebacks } from '../evidence-writeback-persistence';
 
 type PrismaJson = Record<string, unknown> | unknown[];
 type PrismaModule = typeof import('@/lib/prisma');
@@ -20,6 +21,7 @@ export interface ArenaSubmissionListOptions {
   seasonId?: string;
   publicationId?: string;
   includeLegacyProtocols?: boolean;
+  evidenceWritebackConsumer?: 'student' | 'teacher' | 'admin' | 'service';
 }
 
 function isMissingArenaSubmissionSchema(error: unknown): boolean {
@@ -82,7 +84,7 @@ function toStoredEvaluation(row: Record<string, unknown>): StoredArenaEvaluation
   };
 }
 
-function toSubmissionRecord(row: Record<string, unknown>): ArenaSubmissionRecord {
+function toSubmissionRecord(row: Record<string, unknown>, reusedEvaluation = false): ArenaSubmissionRecord {
   const artifactRow = row.controllerArtifact as Record<string, unknown>;
   const evaluationRow = row.evaluationRun as Record<string, unknown>;
   const userRow = row.user as { profile?: { studentNumber?: string | null } | null } | undefined;
@@ -103,8 +105,18 @@ function toSubmissionRecord(row: Record<string, unknown>): ArenaSubmissionRecord
     evaluation: toEvaluationResult(evaluationRow),
     evaluationProtocolVersion: String(evaluationRow.protocolVersion),
     submittedAt: (row.submittedAt as Date).toISOString(),
-    reusedEvaluation: false,
+    reusedEvaluation,
   };
+}
+
+function duplicateEvaluationKeyFromSubmission(submission: ArenaSubmissionRecord): string {
+  return [
+    submission.userId,
+    submission.publicationId ?? 'no-publication',
+    submission.taskId,
+    submission.artifactHash,
+    submission.evaluationProtocolVersion,
+  ].join(':');
 }
 
 export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
@@ -156,6 +168,42 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
     });
 
     return toStoredEvaluation(row);
+  },
+
+  async findDuplicateSubmissionByArtifact(input) {
+    const prisma = await getPrismaClient();
+    const rows = await (prisma as any).arenaSubmission.findMany({
+      where: {
+        taskId: input.taskId,
+        userId: input.userId,
+        publicationId: input.publicationId ?? null,
+        artifactHash: input.artifactHash,
+        evaluationRun: {
+          is: {
+            protocolVersion: input.protocolVersion,
+          },
+        },
+      },
+      include: {
+        controllerArtifact: true,
+        evaluationRun: true,
+      },
+      orderBy: {
+        submittedAt: 'asc',
+      },
+    });
+    const writebacks = await readArenaSubmissionEvidenceWritebacks(
+      prisma as any,
+      rows.map((row: Record<string, unknown>) => String(row.id)),
+      'service',
+    );
+    const acceptedDuplicate = rows.find((row: Record<string, unknown>) => {
+      const evidenceWriteback = writebacks.get(String(row.id));
+      return evidenceWriteback?.status === 'accepted' &&
+        evidenceWriteback.terminalValidationAccepted === true;
+    });
+
+    return acceptedDuplicate ? toSubmissionRecord(acceptedDuplicate) : null;
   },
 
   async upsertArtifact(input) {
@@ -291,16 +339,38 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
       throw error;
     }
 
-    return rows
-      .filter((row: Record<string, unknown>) => {
-        const evaluationRun = row.evaluationRun as Record<string, unknown>;
-        const storedVersion = String(evaluationRun.protocolVersion);
-        const controllerArtifact = row.controllerArtifact as Record<string, unknown> | undefined;
-        const method = (controllerArtifact?.payload as Record<string, unknown>)?.method as string | undefined;
-        const expectedVersion = getArenaEvaluationProtocolVersion({ taskId: String(row.taskId), method: method as any });
-        return storedVersion === expectedVersion ||
-          (options?.includeLegacyProtocols === true && storedVersion === 'whitebox-v1');
-      })
-      .map((row: Record<string, unknown>) => toSubmissionRecord(row));
+    const protocolMatchedRows = rows.filter((row: Record<string, unknown>) => {
+      const evaluationRun = row.evaluationRun as Record<string, unknown>;
+      const storedVersion = String(evaluationRun.protocolVersion);
+      const controllerArtifact = row.controllerArtifact as Record<string, unknown> | undefined;
+      const method = (controllerArtifact?.payload as Record<string, unknown>)?.method as string | undefined;
+      const expectedVersion = getArenaEvaluationProtocolVersion({ taskId: String(row.taskId), method: method as any });
+      return storedVersion === expectedVersion ||
+        (options?.includeLegacyProtocols === true && storedVersion === 'whitebox-v1');
+    });
+    const baseSubmissions = protocolMatchedRows.map((row: Record<string, unknown>) => toSubmissionRecord(row));
+    const writebacks = await readArenaSubmissionEvidenceWritebacks(
+      prisma as any,
+      baseSubmissions.map((submission) => submission.id),
+      options?.evidenceWritebackConsumer ?? 'student',
+    );
+    const acceptedKeys = new Set<string>();
+    return baseSubmissions.map((submission) => {
+      const evidenceWriteback = writebacks.get(submission.id) ?? submission.evidenceWriteback;
+      const duplicateKey = duplicateEvaluationKeyFromSubmission(submission);
+      const reusedEvaluation = evidenceWriteback?.attemptStatus === 'duplicate-only' ||
+        acceptedKeys.has(duplicateKey);
+      if (
+        evidenceWriteback?.status === 'accepted' &&
+        evidenceWriteback.terminalValidationAccepted === true
+      ) {
+        acceptedKeys.add(duplicateKey);
+      }
+      return {
+        ...submission,
+        reusedEvaluation,
+        evidenceWriteback,
+      };
+    });
   },
 };

@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { hashControllerArtifact } from '../submissions/artifact-hash';
-import { createArenaSubmission } from '../submissions/submission-service';
+import { createArenaSubmission as createArenaSubmissionRecord } from '../submissions/submission-service';
+import type { CreateArenaSubmissionInput } from '../submissions/submission-service';
 import { createPersistedArenaSubmission } from '../submissions/persistence';
 import type { StoredArenaEvaluation } from '../submissions/persistence';
+import { buildArenaSubmissionEvidenceWriteback } from '../evidence-writeback';
 import { buildArenaLeaderboard } from '../leaderboards/leaderboard';
 import { getChallengeLeaderboardBrowserViewModel } from '../leaderboards/leaderboard-service';
 import { buildArenaLeaderboardHonors, buildArenaShowcaseSummaries } from '../leaderboards/honors-showcase';
@@ -19,6 +21,42 @@ const pidArtifact: ControllerArtifact = {
   params: { kp: 2.4, ki: 0.8, kd: 0.35 },
   createdAt: '2026-05-10T10:00:00.000Z',
 };
+
+async function createArenaSubmission(input: CreateArenaSubmissionInput) {
+  const submission = await createArenaSubmissionRecord(input);
+  return {
+    ...submission,
+    evidenceWriteback: testEvidenceWriteback(submission),
+  };
+}
+
+function acceptedTestWriteback(submission: Awaited<ReturnType<typeof createArenaSubmissionRecord>>) {
+  return {
+    status: 'accepted' as const,
+    sourceRef: { kind: 'ArenaSubmission' as const, id: submission.id },
+    attemptStatus: 'effective' as const,
+    visibilityState: 'materialized' as const,
+    targetLabel: '控制校正 Arena 官方迁移验证',
+    summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+    recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
+    limitationCodes: [],
+    overlayCount: 1,
+    terminalValidationAccepted: true,
+  };
+}
+
+function testEvidenceWriteback(submission: Awaited<ReturnType<typeof createArenaSubmissionRecord>>) {
+  if (
+    !submission.isLate &&
+    !submission.reusedEvaluation
+  ) {
+    return acceptedTestWriteback(submission);
+  }
+  return buildArenaSubmissionEvidenceWriteback({
+    ...submission,
+    userId: submission.userId ?? 'student-test',
+  });
+}
 
 describe('arena submissions and leaderboards', () => {
   it('hashes controller artifacts independent of parameter key order', async () => {
@@ -585,6 +623,18 @@ describe('arena submissions and leaderboards', () => {
       },
       submittedAt: '2026-05-10T10:01:00.000Z',
       reusedEvaluation: false,
+      evidenceWriteback: {
+        status: 'accepted' as const,
+        sourceRef: { kind: 'ArenaSubmission' as const, id: 'submission-browser-pareto-front' },
+        attemptStatus: 'effective' as const,
+        visibilityState: 'materialized' as const,
+        targetLabel: '控制校正 Arena 官方迁移验证',
+        summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+        recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
+        limitationCodes: [],
+        overlayCount: 1,
+        terminalValidationAccepted: true,
+      },
       evaluation: {
         taskId: 'task-delay-robust-pareto',
         artifact: pidArtifact,
@@ -848,6 +898,13 @@ describe('arena submissions and leaderboards', () => {
   it('reuses official evaluations from the persistence store instead of route-local memory', async () => {
     const calls: string[] = [];
     const evaluationRows = new Map<string, StoredArenaEvaluation>();
+    const submissionRows: Array<{
+      taskId: string;
+      userId: string;
+      publicationId?: string;
+      artifactHash: string;
+      evaluationId: string;
+    }> = [];
     const artifactHash = hashControllerArtifact(pidArtifact);
     evaluationRows.set(`${pidArtifact.taskId}:${artifactHash}:template-whitebox-v1`, {
       id: 'eval-legacy-template',
@@ -871,6 +928,37 @@ describe('arena submissions and leaderboards', () => {
       findEvaluationByHash: vi.fn(async (taskId: string, hash: string, protocolVersion: string) =>
         evaluationRows.get(`${taskId}:${hash}:${protocolVersion}`) ?? null,
       ),
+      findDuplicateSubmissionByArtifact: vi.fn(async (input) => {
+        const duplicate = submissionRows.find((submission) => {
+          const evaluation = [...evaluationRows.values()].find((row) => row.id === submission.evaluationId);
+          return submission.taskId === input.taskId &&
+            submission.userId === input.userId &&
+            submission.publicationId === input.publicationId &&
+            submission.artifactHash === input.artifactHash &&
+            evaluation?.protocolVersion === input.protocolVersion;
+        });
+        return duplicate ? {
+          id: 'duplicate-submission-row',
+          taskId: duplicate.taskId,
+          userId: duplicate.userId,
+          publicationId: duplicate.publicationId,
+          studentLabel: 'existing',
+          artifactHash: duplicate.artifactHash,
+          artifact: pidArtifact,
+          evaluation: evaluationRows.get(`${duplicate.taskId}:${duplicate.artifactHash}:analysis-whitebox-v1`)?.result ?? {
+            taskId: duplicate.taskId,
+            artifact: pidArtifact,
+            valid: true,
+            score: 12,
+            metrics: {},
+            satisfaction: {},
+            hardConstraintResults: [],
+            penalties: [],
+            explanation: [],
+          },
+          submittedAt: '2026-05-10T10:01:00.000Z',
+        } : null;
+      }),
       createEvaluation: vi.fn(async (evaluation: Omit<StoredArenaEvaluation, 'id'>) => {
         calls.push('createEvaluation');
         const row = { ...evaluation, id: 'eval-created' };
@@ -883,6 +971,13 @@ describe('arena submissions and leaderboards', () => {
       }),
       createSubmission: vi.fn(async (submission) => {
         calls.push('createSubmission');
+        submissionRows.push({
+          taskId: submission.taskId,
+          userId: submission.userId,
+          publicationId: submission.publicationId,
+          artifactHash: submission.artifactHash,
+          evaluationId: submission.evaluationId,
+        });
         return { ...submission, id: `stored-${calls.length}` };
       }),
     };
@@ -903,15 +998,24 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:02:00.000Z',
       store,
     });
+    const peer = await createPersistedArenaSubmission({
+      taskId: pidArtifact.taskId,
+      artifact: { ...pidArtifact, id: 'artifact-peer' },
+      userId: 'student-2',
+      studentLabel: '学生乙',
+      submittedAt: '2026-05-10T10:03:00.000Z',
+      store,
+    });
 
     expect(first.reusedEvaluation).toBe(false);
     expect(second.reusedEvaluation).toBe(true);
+    expect(peer.reusedEvaluation).toBe(false);
     expect(store.findEvaluationByHash).toHaveBeenCalledWith(pidArtifact.taskId, artifactHash, 'analysis-whitebox-v1');
     expect(store.createEvaluation).toHaveBeenCalledTimes(1);
     expect(store.createEvaluation).toHaveBeenCalledWith(expect.objectContaining({
       protocolVersion: 'analysis-whitebox-v1',
     }));
-    expect(store.createSubmission).toHaveBeenCalledTimes(2);
+    expect(store.createSubmission).toHaveBeenCalledTimes(3);
   });
 
   it('builds task stats from real submissions and leaves empty tasks without fake scores', async () => {
