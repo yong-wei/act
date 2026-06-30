@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 
 import { requireAdminSession } from '@/lib/admin';
+import {
+  buildAdminOperationIdempotencyKey,
+  buildAdminOperationLedgerEntry,
+  operationLedgerHeaders,
+} from '@/lib/admin-operation-ledger';
+import { persistAdminOperationLedger } from '@/lib/admin-operation-ledger-runtime';
 import { prisma } from '@/lib/prisma';
 
 type GovernanceAction = 'resolve' | 'assign';
@@ -13,6 +19,9 @@ type GovernanceAuditRecord = {
   assignee: string | null;
   outcome: 'resolved' | 'assigned';
   undoAvailable: boolean;
+  operationId?: string;
+  idempotencyKey?: string;
+  retentionPolicy?: string;
   recordedAt: string;
 };
 
@@ -57,6 +66,10 @@ export async function POST(
   const assignee = typeof payload?.assignee === 'string' && payload.assignee.trim()
     ? payload.assignee.trim()
     : null;
+  const note = typeof payload?.note === 'string' && payload.note.trim()
+    ? payload.note.trim()
+    : null;
+  const resolutionNote = note ?? '管理员从数据治理工作台标记处理';
   if (action === 'assign') {
     if (!assignee) {
       return NextResponse.json({ error: '缺少负责人' }, { status: 400 });
@@ -81,7 +94,7 @@ export async function POST(
     recordedAt: now.toISOString(),
   };
   try {
-    const updated = await withGovernanceAuditRetry(() => prisma.$transaction(async (tx) => {
+    const result = await withGovernanceAuditRetry(() => prisma.$transaction(async (tx) => {
       const currentRisk = await tx.studentRiskFlag.findUnique({
         where: { id: risk.id },
         select: {
@@ -95,15 +108,32 @@ export async function POST(
       if (currentRisk.isResolved) {
         throw new GovernanceActionConflictError('治理风险已解决，不能继续提交治理动作');
       }
-      const evidenceJson = appendGovernanceAudit(currentRisk.evidenceJson, auditRecord);
+      const operationLedger = buildGovernanceOperationLedger({
+        action,
+        riskId,
+        actorId: session.user.id,
+        actorRole: session.user.role,
+        assignee,
+        resolutionNote,
+        recordedAt: auditRecord.recordedAt,
+        auditRecord,
+        currentEvidenceJson: currentRisk.evidenceJson,
+      });
+      const nextAuditRecord = {
+        ...auditRecord,
+        operationId: operationLedger.operationId,
+        idempotencyKey: operationLedger.idempotencyKey,
+        retentionPolicy: operationLedger.retentionPolicy.policy,
+      };
+      const evidenceJson = appendGovernanceAudit(currentRisk.evidenceJson, nextAuditRecord);
 
-      return tx.studentRiskFlag.update({
+      const updatedRisk = await tx.studentRiskFlag.update({
         where: { id: riskId },
         data: action === 'resolve'
           ? {
               isResolved: true,
               resolvedAt: now,
-              resolutionNote: payload?.note?.trim() || '管理员从数据治理工作台标记处理',
+              resolutionNote,
               evidenceJson,
             }
           : {
@@ -118,14 +148,24 @@ export async function POST(
           evidenceJson: true,
         },
       });
+      await persistAdminOperationLedger(operationLedger, [], tx);
+
+      return {
+        updatedRisk,
+        auditRecord: nextAuditRecord,
+        operationLedger,
+      };
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     }));
 
     return NextResponse.json({
       ok: true,
-      risk: updated,
-      auditRecord,
+      risk: result.updatedRisk,
+      auditRecord: result.auditRecord,
+      operationLedger: result.operationLedger,
+    }, {
+      headers: operationLedgerHeaders(result.operationLedger),
     });
   } catch (error) {
     if (error instanceof GovernanceActionConflictError) {
@@ -133,6 +173,99 @@ export async function POST(
     }
     throw error;
   }
+}
+
+function buildGovernanceOperationLedger(input: {
+  action: GovernanceAction;
+  riskId: string;
+  actorId: string;
+  actorRole: string;
+  assignee: string | null;
+  resolutionNote: string;
+  recordedAt: string;
+  auditRecord: GovernanceAuditRecord;
+  currentEvidenceJson: Prisma.JsonValue;
+}) {
+  const auditLog = readGovernanceAuditLog(input.currentEvidenceJson);
+  const latestRecord = auditLog.at(-1) ?? null;
+  const replayRecord = latestRecord && isSameGovernanceAction(latestRecord, input.auditRecord)
+    ? latestRecord
+    : null;
+  const baseKeyParts = [
+    'admin-governance-action',
+    input.action,
+    input.riskId,
+    input.actorId,
+    input.assignee ?? '',
+    input.action === 'resolve' ? input.resolutionNote : '',
+  ];
+  const baseIdempotencyKey = buildAdminOperationIdempotencyKey(baseKeyParts);
+  const hasEarlierMatchingAction = auditLog.some((item) => (
+    isSameGovernanceAction(item, input.auditRecord)
+  ));
+  const idempotencyKey = typeof replayRecord?.idempotencyKey === 'string'
+    ? replayRecord.idempotencyKey
+    : hasEarlierMatchingAction && latestRecord
+      ? buildAdminOperationIdempotencyKey([
+          ...baseKeyParts,
+          'after',
+          latestRecord.idempotencyKey ?? latestRecord.recordedAt,
+        ])
+      : baseIdempotencyKey;
+
+  return buildAdminOperationLedgerEntry({
+    kind: input.action === 'resolve' ? 'admin-governance-resolve' : 'admin-governance-assign',
+    actorId: input.actorId,
+    actorRole: input.actorRole,
+    scope: `admin-governance-${input.action}:${input.riskId}`,
+    startedAt: input.recordedAt,
+    completedAt: input.recordedAt,
+    outcome: 'completed',
+    idempotencyKey,
+    rollback: {
+      available: false,
+      rationale: '治理风险处置当前通过后续人工复核修正，不提供自动回滚。',
+    },
+    auditSummary: input.action === 'resolve'
+      ? `治理风险 ${input.riskId} 已由管理员标记处理。`
+      : `治理风险 ${input.riskId} 已分派给 ${input.assignee}。`,
+    recoveryState: {
+      status: 'available',
+      action: '刷新治理列表并复核风险状态',
+    },
+  });
+}
+
+function readGovernanceAuditLog(evidenceJson: Prisma.JsonValue): GovernanceAuditRecord[] {
+  const base = evidenceJson && typeof evidenceJson === 'object' && !Array.isArray(evidenceJson)
+    ? evidenceJson as Record<string, unknown>
+    : {};
+  const governance = base.adminGovernance
+    && typeof base.adminGovernance === 'object'
+    && !Array.isArray(base.adminGovernance)
+    ? base.adminGovernance as Record<string, unknown>
+    : {};
+  return Array.isArray(governance.auditLog)
+    ? governance.auditLog.filter(isGovernanceAuditRecord)
+    : [];
+}
+
+function isGovernanceAuditRecord(value: unknown): value is GovernanceAuditRecord {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && typeof (value as Record<string, unknown>).actorId === 'string'
+    && ((value as Record<string, unknown>).action === 'resolve' || (value as Record<string, unknown>).action === 'assign')
+    && typeof (value as Record<string, unknown>).riskId === 'string'
+  );
+}
+
+function isSameGovernanceAction(left: GovernanceAuditRecord, right: GovernanceAuditRecord): boolean {
+  return left.actorId === right.actorId
+    && left.action === right.action
+    && left.riskId === right.riskId
+    && (left.assignee ?? null) === (right.assignee ?? null);
 }
 
 function appendGovernanceAudit(
@@ -150,13 +283,25 @@ function appendGovernanceAudit(
   const auditLog = Array.isArray(governance.auditLog)
     ? governance.auditLog
     : [];
+  const existingAuditRecord = auditRecord.idempotencyKey
+    ? auditLog.find((item) => (
+        item
+        && typeof item === 'object'
+        && !Array.isArray(item)
+        && (item as Record<string, unknown>).idempotencyKey === auditRecord.idempotencyKey
+      ))
+    : null;
+  const nextAuditLog = existingAuditRecord ? auditLog : [...auditLog, auditRecord];
+  const nextAssignee = existingAuditRecord
+    ? governance.currentAssignee ?? null
+    : auditRecord.assignee ?? governance.currentAssignee ?? null;
 
   return {
     ...base,
     adminGovernance: {
       ...governance,
-      currentAssignee: auditRecord.assignee ?? governance.currentAssignee ?? null,
-      auditLog: [...auditLog, auditRecord],
+      currentAssignee: nextAssignee,
+      auditLog: nextAuditLog,
     },
   } as Prisma.InputJsonValue;
 }

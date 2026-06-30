@@ -7,6 +7,8 @@ export type AdminOperationKind =
   | 'admin-config-model-test'
   | 'admin-governance-refresh'
   | 'admin-governance-export'
+  | 'admin-governance-resolve'
+  | 'admin-governance-assign'
   | 'admin-states-export';
 
 export type AdminOperationOutcome =

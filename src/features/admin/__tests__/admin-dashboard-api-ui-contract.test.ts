@@ -135,16 +135,44 @@ describe('AdminDashboard API/UI query contract states', () => {
   });
 
   it('uses the shared CSV serializer for failed import row downloads', () => {
-    const start = adminDashboardSource.indexOf('const downloadFailedImportRows = () => {');
+    const start = adminDashboardSource.indexOf('const downloadFailedImportRows = async () => {');
     const end = adminDashboardSource.indexOf('const handleImport = async', start);
     const downloadFailedRowsSource = adminDashboardSource.slice(start, end);
 
+    expect(adminDashboardSource).toContain('const [failedRowsDownloadState, setFailedRowsDownloadState]');
+    expect(adminDashboardSource).toContain('<ActionStatusPanel state={failedRowsDownloadState} className="mt-4" />');
+    expect(adminDashboardSource).toContain('const downloadFailedImportRows = async () => {');
+    expect(downloadFailedRowsSource).toContain('setFailedRowsDownloadState(createAuditedActionState');
+    expect(downloadFailedRowsSource).toContain("requestedAction: 'download-failed-rows'");
+    expect(downloadFailedRowsSource).toContain("const res = await fetch(importResult.failedRowArtifact.downloadUrl, { cache: 'no-store' });");
+    expect(downloadFailedRowsSource).toContain('const failure = await readArtifactDownloadFailure(res);');
+    expect(downloadFailedRowsSource).toContain('httpStatus: failure.httpStatus');
+    expect(downloadFailedRowsSource).toContain("res.headers.get('x-admin-operation-id')");
+    expect(downloadFailedRowsSource).toContain('下载操作已写入管理员操作账本');
     expect(downloadFailedRowsSource).toContain('toCsv(csv)');
     expect(downloadFailedRowsSource).toContain("['row', 'accountFingerprint', 'reason']");
     expect(downloadFailedRowsSource).toContain('failedRows.map');
     expect(downloadFailedRowsSource).toContain('failedRowArtifact?.downloadUrl');
     expect(downloadFailedRowsSource).not.toContain('replace(/"/g');
     expect(downloadFailedRowsSource).not.toContain("['row', 'account', 'reason']");
+    expect(adminDashboardSource).toContain('async function readArtifactDownloadFailure(res: Response)');
+    expect(adminDashboardSource).toContain("typeof payload.error === 'string'");
+    expect(adminDashboardSource).toContain("typeof payload.message === 'string'");
+    expect(adminDashboardSource).toContain('artifactDownloadRecoveryAction(res.status)');
+    expect(adminDashboardSource).toContain("if (status === 401) return '重新登录后再下载失败行';");
+    expect(adminDashboardSource).toContain("if (status === 403) return '确认管理员权限后再下载失败行';");
+    expect(adminDashboardSource).toContain('if (status === 404 || status === 410)');
+  });
+
+  it('clears stale failed-row download state when a new import starts', () => {
+    const start = adminDashboardSource.indexOf('const handleImport = async');
+    const end = adminDashboardSource.indexOf('const overviewCards = useMemo', start);
+    const handleImportSource = adminDashboardSource.slice(start, end);
+
+    expect(handleImportSource).toContain('setFailedRowsDownloadState(null);');
+    expect(handleImportSource.indexOf('setFailedRowsDownloadState(null);')).toBeLessThan(
+      handleImportSource.indexOf("fetch('/api/admin/users/import'"),
+    );
   });
 
   it('keeps the admin users table mobile-carded and announces list state changes', () => {

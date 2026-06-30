@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   requireAdminSession: vi.fn(),
@@ -7,6 +7,12 @@ const mocks = vi.hoisted(() => ({
     studentRiskFlag: {
       findUnique: vi.fn(),
       update: vi.fn(),
+    },
+    adminOperationLedger: {
+      upsert: vi.fn(),
+    },
+    adminOperationArtifact: {
+      upsert: vi.fn(),
     },
     user: {
       findUnique: vi.fn(),
@@ -50,7 +56,13 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
       resolutionNote: '管理员从数据治理工作台标记处理',
       evidenceJson: {},
     });
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
+    mocks.prisma.adminOperationArtifact.upsert.mockResolvedValue({});
     mocks.prisma.user.findUnique.mockResolvedValue({ id: 'admin-1' });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('resolves a risk and persists governance audit into evidenceJson', async () => {
@@ -70,7 +82,28 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
       riskId: 'risk-1',
       outcome: 'resolved',
       undoAvailable: false,
+      retentionPolicy: 'admin-operation-ledger-30d',
     });
+    expect(payload.operationLedger).toMatchObject({
+      kind: 'admin-governance-resolve',
+      actorId: 'admin-1',
+      scope: 'admin-governance-resolve:risk-1',
+      outcome: 'completed',
+      auditSummary: '治理风险 risk-1 已由管理员标记处理。',
+    });
+    expect(payload.auditRecord.operationId).toBe(payload.operationLedger.operationId);
+    expect(payload.auditRecord.idempotencyKey).toBe(payload.operationLedger.idempotencyKey);
+    expect(response.headers.get('x-admin-operation-id')).toBe(payload.operationLedger.operationId);
+    expect(response.headers.get('x-admin-operation-outcome')).toBe('completed');
+    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { idempotencyKey: payload.operationLedger.idempotencyKey },
+      create: expect.objectContaining({
+        operationId: payload.operationLedger.operationId,
+        kind: 'admin-governance-resolve',
+        scope: 'admin-governance-resolve:risk-1',
+        outcome: 'completed',
+      }),
+    }));
     expect(mocks.prisma.studentRiskFlag.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'risk-1' },
       data: expect.objectContaining({
@@ -92,6 +125,7 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     const response = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
       params: Promise.resolve({ riskId: 'risk-1' }),
     });
+    const payload = await response.json();
 
     expect(response.status).toBe(200);
     expect(mocks.prisma.$transaction).toHaveBeenCalledWith(
@@ -102,6 +136,13 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
       where: { id: 'admin-1' },
       select: { id: true },
     });
+    expect(payload.operationLedger).toMatchObject({
+      kind: 'admin-governance-assign',
+      scope: 'admin-governance-assign:risk-1',
+      outcome: 'completed',
+      auditSummary: '治理风险 risk-1 已分派给 admin-1。',
+    });
+    expect(response.headers.get('x-admin-operation-id')).toBe(payload.operationLedger.operationId);
     expect(mocks.prisma.studentRiskFlag.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         evidenceJson: expect.objectContaining({
@@ -114,6 +155,154 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
         }),
       }),
     }));
+  });
+
+  it('uses stable governance action idempotency keys across repeated requests', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-21T10:00:00.000Z'));
+    const firstResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const firstPayload = await firstResponse.json();
+    vi.setSystemTime(new Date('2026-06-21T10:05:00.000Z'));
+
+    const secondResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const secondPayload = await secondResponse.json();
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(firstPayload.operationLedger.idempotencyKey).toBe(secondPayload.operationLedger.idempotencyKey);
+    expect(firstPayload.operationLedger.operationId).toBe(secondPayload.operationLedger.operationId);
+  });
+
+  it('does not duplicate governance audit evidence for repeated idempotent actions', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-21T10:00:00.000Z'));
+    const firstResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const firstPayload = await firstResponse.json();
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-1',
+            auditLog: [firstPayload.auditRecord],
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-1',
+            auditLog: [firstPayload.auditRecord],
+          },
+        },
+      });
+    vi.setSystemTime(new Date('2026-06-21T10:05:00.000Z'));
+
+    const secondResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const secondPayload = await secondResponse.json();
+    const updateCall = mocks.prisma.studentRiskFlag.update.mock.calls.at(-1)?.[0];
+    const governance = updateCall?.data?.evidenceJson?.adminGovernance;
+    const auditLog = governance?.auditLog;
+
+    expect(secondResponse.status).toBe(200);
+    expect(secondPayload.operationLedger.idempotencyKey).toBe(firstPayload.operationLedger.idempotencyKey);
+    expect(governance.currentAssignee).toBe('admin-1');
+    expect(auditLog).toHaveLength(1);
+    expect(auditLog[0]).toMatchObject({
+      idempotencyKey: firstPayload.operationLedger.idempotencyKey,
+      recordedAt: firstPayload.auditRecord.recordedAt,
+    });
+  });
+
+  it('treats assigning back to a previous assignee as a new governance action', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-21T10:00:00.000Z'));
+    const firstResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const firstPayload = await firstResponse.json();
+    const laterAssignment = {
+      ...firstPayload.auditRecord,
+      assignee: 'admin-2',
+      idempotencyKey: 'admin-op:later-assignment',
+      recordedAt: '2026-06-21T10:03:00.000Z',
+    };
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-2',
+            auditLog: [firstPayload.auditRecord, laterAssignment],
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-2',
+            auditLog: [firstPayload.auditRecord, laterAssignment],
+          },
+        },
+      });
+    vi.setSystemTime(new Date('2026-06-21T10:05:00.000Z'));
+
+    const reassignmentResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const reassignmentPayload = await reassignmentResponse.json();
+    const updateCall = mocks.prisma.studentRiskFlag.update.mock.calls.at(-1)?.[0];
+    const governance = updateCall?.data?.evidenceJson?.adminGovernance;
+
+    expect(reassignmentResponse.status).toBe(200);
+    expect(reassignmentPayload.operationLedger.idempotencyKey).not.toBe(firstPayload.operationLedger.idempotencyKey);
+    expect(reassignmentPayload.operationLedger.auditSummary).toBe('治理风险 risk-1 已分派给 admin-1。');
+    expect(governance.currentAssignee).toBe('admin-1');
+    expect(governance.auditLog).toHaveLength(3);
+    expect(governance.auditLog.at(-1)).toMatchObject({
+      assignee: 'admin-1',
+      idempotencyKey: reassignmentPayload.operationLedger.idempotencyKey,
+    });
+  });
+
+  it('includes stable resolution notes in governance action idempotency keys', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-21T10:00:00.000Z'));
+    const firstResponse = await POST(postRequest({ action: 'resolve', note: '已人工复核' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const firstPayload = await firstResponse.json();
+    vi.setSystemTime(new Date('2026-06-21T10:05:00.000Z'));
+
+    const secondResponse = await POST(postRequest({ action: 'resolve', note: '已人工复核' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const secondPayload = await secondResponse.json();
+    const thirdResponse = await POST(postRequest({ action: 'resolve', note: '需要后续跟进' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const thirdPayload = await thirdResponse.json();
+
+    expect(firstPayload.operationLedger.idempotencyKey).toBe(secondPayload.operationLedger.idempotencyKey);
+    expect(firstPayload.operationLedger.idempotencyKey).not.toBe(thirdPayload.operationLedger.idempotencyKey);
   });
 
   it('retries serializable governance audit conflicts before returning success', async () => {
@@ -174,6 +363,7 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     expect(payload).toEqual({ error: '治理风险已解决，不能继续提交治理动作' });
     expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
     expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
   });
 
   it('rejects stale governance actions when the risk resolves before the transaction update', async () => {
@@ -198,6 +388,7 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     expect(payload).toEqual({ error: '治理风险已解决，不能继续提交治理动作' });
     expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(1);
     expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
   });
 
   it('returns 404 for missing risks before mutating data', async () => {
@@ -211,5 +402,6 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     expect(response.status).toBe(404);
     expect(payload).toEqual({ error: '治理风险不存在' });
     expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
   });
 });

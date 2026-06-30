@@ -167,6 +167,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
   const [exportingUsers, setExportingUsers] = useState(false);
   const [templateDownloadState, setTemplateDownloadState] = useState<ReturnType<typeof createAuditedActionState> | null>(null);
   const [usersExportState, setUsersExportState] = useState<ReturnType<typeof createAuditedActionState> | null>(null);
+  const [failedRowsDownloadState, setFailedRowsDownloadState] = useState<ReturnType<typeof createAuditedActionState> | null>(null);
   const [creating, setCreating] = useState(false);
   const [usersQueryTouched, setUsersQueryTouched] = useState(false);
   const [createForm, setCreateForm] = useState({
@@ -710,12 +711,83 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
     }
   };
 
-  const downloadFailedImportRows = () => {
+  const downloadFailedImportRows = async () => {
+    const artifact = importResult?.failedRowArtifact;
+    const batchId = importResult?.batchId ?? 'admin-user-import';
+    setFailedRowsDownloadState(createAuditedActionState({
+      identity: {
+        id: artifact?.id ?? `${batchId}:failed-rows-local`,
+        category: 'download',
+        label: '失败行下载',
+        sourceRoute: '/admin/users',
+        requestedAction: 'download-failed-rows',
+      },
+      status: 'pending',
+      message: '正在生成 PII 最小化失败行文件。',
+      nextAction: '等待浏览器下载失败行 CSV',
+      displayReference: artifact?.id,
+    }));
     if (importResult?.failedRowArtifact?.downloadUrl) {
-      const link = document.createElement('a');
-      link.href = importResult.failedRowArtifact.downloadUrl;
-      link.download = `${importResult.batchId ?? 'admin-user-import'}-failed-rows.csv`;
-      link.click();
+      try {
+        const res = await fetch(importResult.failedRowArtifact.downloadUrl, { cache: 'no-store' });
+        if (!res.ok) {
+          const failure = await readArtifactDownloadFailure(res);
+          setFailedRowsDownloadState(createAuditedActionState({
+            identity: {
+              id: artifact?.id ?? `${batchId}:failed-rows`,
+              category: 'download',
+              label: '失败行下载',
+              sourceRoute: '/admin/users',
+              requestedAction: 'download-failed-rows',
+            },
+            status: 'failed',
+            message: failure.message,
+            recoveryAction: failure.recoveryAction,
+            displayReference: artifact?.id,
+            httpStatus: failure.httpStatus,
+          }));
+          return;
+        }
+        const blob = await res.blob();
+        const operationId = res.headers.get('x-admin-operation-id');
+        const idempotencyKey = res.headers.get('x-admin-operation-idempotency-key');
+        const filename = `${batchId}-failed-rows.csv`;
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        setFailedRowsDownloadState(createAuditedActionState({
+          identity: {
+            id: operationId ?? artifact?.id ?? `${batchId}:failed-rows`,
+            category: 'download',
+            label: '失败行下载',
+            sourceRoute: '/admin/users',
+            requestedAction: 'download-failed-rows',
+          },
+          status: 'succeeded',
+          message: 'PII 最小化失败行文件已生成，下载操作已写入管理员操作账本。',
+          nextAction: '修正源文件后重新预览或提交导入',
+          displayReference: operationId ?? idempotencyKey ?? artifact?.id,
+          downloadFilename: filename,
+        }));
+      } catch (error) {
+        setFailedRowsDownloadState(createAuditedActionState({
+          identity: {
+            id: artifact?.id ?? `${batchId}:failed-rows`,
+            category: 'download',
+            label: '失败行下载',
+            sourceRoute: '/admin/users',
+            requestedAction: 'download-failed-rows',
+          },
+          status: 'failed',
+          message: error instanceof Error ? error.message : '下载失败行 artifact 失败',
+          recoveryAction: '重新预览导入批次后再下载失败行',
+          displayReference: artifact?.id,
+          httpStatus: 500,
+        }));
+      }
       return;
     }
     const failedRows = importResult?.failedRows ?? [];
@@ -734,10 +806,24 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
     link.download = filename;
     link.click();
     window.URL.revokeObjectURL(url);
+    setFailedRowsDownloadState(createAuditedActionState({
+      identity: {
+        id: `${batchId}:failed-rows-local`,
+        category: 'download',
+        label: '失败行下载',
+        sourceRoute: '/admin/users',
+        requestedAction: 'download-failed-rows',
+      },
+      status: 'succeeded',
+      message: 'PII 最小化失败行文件已在浏览器本地生成；当前结果没有服务端 artifact 引用。',
+      nextAction: '修正源文件后重新预览或提交导入',
+      downloadFilename: filename,
+    }));
   };
 
   const handleImport = async (file: File, mode: 'preview' | 'commit' = 'preview') => {
     setImporting(true);
+    setFailedRowsDownloadState(null);
     if (mode === 'preview') {
       setPendingImportFile(file);
       setImportResult(null);
@@ -1065,6 +1151,9 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
             ) : null}
             {usersExportState ? (
               <ActionStatusPanel state={usersExportState} className="mt-4" />
+            ) : null}
+            {failedRowsDownloadState ? (
+              <ActionStatusPanel state={failedRowsDownloadState} className="mt-4" />
             ) : null}
 
             <div
@@ -1469,4 +1558,40 @@ export function shouldBlockInvalidAdminUsersQuery(
   return !initialUsersQuery.source.roleSupported
     || !initialUsersQuery.source.pageValid
     || !initialUsersQuery.source.pageSizeValid;
+}
+
+async function readArtifactDownloadFailure(res: Response): Promise<{
+  message: string;
+  recoveryAction: string;
+  httpStatus: number;
+}> {
+  const payload = await readJsonObject(res);
+  const detail = typeof payload.error === 'string'
+    ? payload.error
+    : typeof payload.message === 'string'
+      ? payload.message
+      : '';
+  return {
+    message: detail ? `下载失败行 artifact 失败：${detail}` : '下载失败行 artifact 失败',
+    recoveryAction: artifactDownloadRecoveryAction(res.status),
+    httpStatus: res.status,
+  };
+}
+
+async function readJsonObject(res: Response): Promise<Record<string, unknown>> {
+  try {
+    const payload: unknown = await res.json();
+    return payload && typeof payload === 'object' && !Array.isArray(payload)
+      ? payload as Record<string, unknown>
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function artifactDownloadRecoveryAction(status: number): string {
+  if (status === 401) return '重新登录后再下载失败行';
+  if (status === 403) return '确认管理员权限后再下载失败行';
+  if (status === 404 || status === 410) return '重新预览导入批次后再下载失败行';
+  return '稍后重试，或重新预览导入批次后再下载失败行';
 }
