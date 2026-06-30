@@ -243,25 +243,25 @@ export function TeacherResourceNodeManagement({
               className="h-10 w-full rounded-md border border-platform-border bg-platform-surface pl-10 pr-3 text-sm text-platform-fg-primary outline-none focus:border-platform-action-primary"
             />
           </label>
-          <Select value={nodeType} onChange={(value) => setNodeType(value as ResourceNodeType | 'all')}>
+          <Select ariaLabel="筛选 ResourceNode 类型" value={nodeType} onChange={(value) => setNodeType(value as ResourceNodeType | 'all')}>
             <option value="all">全部类型</option>
             {supportedTypes.map((type) => <option key={type} value={type}>{type}</option>)}
           </Select>
-          <Select value={availability} onChange={(value) => setAvailability(value as ResourceNodeAvailability | 'all')}>
+          <Select ariaLabel="筛选 ResourceNode 可用性" value={availability} onChange={(value) => setAvailability(value as ResourceNodeAvailability | 'all')}>
             {AVAILABILITY_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
           </Select>
-          <Select value={teacherPolicy} onChange={(value) => setTeacherPolicy(value as ResourceNodeTeacherPolicy | 'all')}>
+          <Select ariaLabel="筛选 ResourceNode 教师策略" value={teacherPolicy} onChange={(value) => setTeacherPolicy(value as ResourceNodeTeacherPolicy | 'all')}>
             {POLICY_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
           </Select>
-          <Select value={privacyLevel} onChange={(value) => setPrivacyLevel(value as ResourceNodePrivacyLevel | 'all')}>
+          <Select ariaLabel="筛选 ResourceNode 隐私级别" value={privacyLevel} onChange={(value) => setPrivacyLevel(value as ResourceNodePrivacyLevel | 'all')}>
             {PRIVACY_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
           </Select>
-          <Select value={pathFilter} onChange={(value) => setPathFilter(value as PathFilter)}>
+          <Select ariaLabel="筛选 ResourceNode 路径资格" value={pathFilter} onChange={(value) => setPathFilter(value as PathFilter)}>
             <option value="all">全部路径资格</option>
             <option value="eligible">可规划</option>
             <option value="excluded">已排除</option>
           </Select>
-          <Select value={knowledgeMapping} onChange={(value) => setKnowledgeMapping(value as ResourceNodeKnowledgeMappingFilter)}>
+          <Select ariaLabel="筛选 ResourceNode 知识映射" value={knowledgeMapping} onChange={(value) => setKnowledgeMapping(value as ResourceNodeKnowledgeMappingFilter)}>
             <option value="all">全部知识映射</option>
             <option value="mapped">已映射</option>
             <option value="unmapped">未映射</option>
@@ -289,6 +289,7 @@ export function TeacherResourceNodeManagement({
                 key={node.id}
                 type="button"
                 onClick={() => setSelectedId(node.id)}
+                aria-label={`查看 ResourceNode：${node.title}`}
                 className={`rounded-lg border p-4 text-left transition-colors ${
                   selectedNode?.id === node.id
                     ? 'border-platform-action-primary bg-platform-action-subtle'
@@ -337,6 +338,7 @@ export function TeacherResourceNodeManagement({
                 type="button"
                 onClick={() => setVisibleLimit((current) => current + RESOURCE_NODE_PAGE_SIZE)}
                 className="rounded-md border border-platform-border px-3 py-1.5 text-platform-fg-primary hover:border-platform-action-primary hover:text-platform-action-primary"
+                aria-label="加载更多 ResourceNode"
               >
                 加载更多
               </button>
@@ -519,16 +521,19 @@ function SummaryCell({ label, value }: { label: string; value: number }) {
 }
 
 function Select({
+  ariaLabel,
   value,
   onChange,
   children,
 }: {
+  ariaLabel: string;
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
 }) {
   return (
     <select
+      aria-label={ariaLabel}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       className="h-10 rounded-md border border-platform-border bg-platform-surface px-3 text-sm text-platform-fg-primary outline-none focus:border-platform-action-primary"

@@ -52,9 +52,14 @@ describe('authoring resource flow source contracts', () => {
     expect(source).toContain("initialStatus === 'blocked'");
     expect(source).toContain('RESOURCE_NODE_PAGE_SIZE');
     expect(source).toContain('加载更多');
+    expect(source).toContain('ariaLabel="筛选 ResourceNode 类型"');
+    expect(source).toContain('aria-label={`查看 ResourceNode：${node.title}`}');
+    expect(source).toContain('aria-label="加载更多 ResourceNode"');
     expect(resourceEditSource).toContain('使用影响');
     expect(knowledgeNodeSource).toContain('KNOWLEDGE_TREE_PAGE_SIZE');
     expect(knowledgeNodeSource).toContain('加入课程流');
+    expect(knowledgeNodeSource).toContain('折叠知识节点');
+    expect(knowledgeNodeSource).toContain('aria-label="加载更多知识节点"');
   });
 
   it('keeps interactive course catalog search bound to the q query', () => {
@@ -82,11 +87,23 @@ describe('authoring resource flow source contracts', () => {
     expect(builderSource).toContain('/api/knowledge/nodes?source=db');
     expect(builderSource).toContain('/play?intent=start-class');
     expect(builderSource).toContain('KNOWLEDGE_NODE_PAGE_SIZE');
+    expect(builderSource).toContain('data-playlist-builder-mobile-steps="library-selection-then-course-flow"');
+    expect(builderSource).toContain('setFlowStatusMessage');
+    expect(builderSource).not.toContain("alert('请输入标题')");
+    expect(builderSource).toContain('aria-label={`上移：${item.nodeName}`}');
+    expect(builderSource).toContain('aria-label={`移除：${item.nodeName}`}');
     expect(playSource).toContain('<PlaylistPlayLauncher');
+    expect(playSource).toContain('data-playlist-play-recovery="unavailable"');
+    expect(playSource).toContain('课程流不存在或当前账号不可见。');
+    expect(playSource).not.toContain('notFound()');
     expect(playSource).toContain('!plan.isPublic && !isAdmin && !isAuthor');
     expect(playSource).toContain('editHref={editHref}');
     expect(playSource).toContain('canStartClass={canStartClass}');
     expect(graphSource).toContain("params.get('node') ?? params.get('nodeId')");
+    expect(graphSource).toContain('aria-label={`${item.label}工具`}');
+    expect(graphSource).toContain('data-knowledge-mobile-filter-group="density-mode"');
+    expect(graphSource).toContain('data-knowledge-mobile-filter-group="relation-types"');
+    expect(graphSource).toContain('data-knowledge-mobile-filter-group="advanced-thresholds"');
     expect(panelSource).toContain('data-resource-node-action="add-to-course-flow"');
     expect(panelSource).toContain('data-resource-node-action="create-learning-task"');
     expect(panelSource).toContain('intent=contextual-recommendation');
