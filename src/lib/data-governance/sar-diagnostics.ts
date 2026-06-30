@@ -118,39 +118,39 @@ export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput)
   const verifiedCitationRate = rate(verifiedCitationRefs.length, uniqueSorted(result.citationTargetRefs).length);
 
   return {
-    id: result.trace.id,
-    seedEntityIds: uniqueSorted(result.trace.seedEntityIds),
-    expandedEntityIds: uniqueSorted(result.entities.map((entity) => entity.id)),
-    selectedEventIds: uniqueSorted(result.events.map((event) => event.id)),
-    selectedRefs: uniqueSorted(result.trace.selectedRefs),
+    id: redactSensitiveDiagnosticRef(result.trace.id),
+    seedEntityIds: redactRefList(result.trace.seedEntityIds),
+    expandedEntityIds: redactRefList(result.entities.map((entity) => entity.id)),
+    selectedEventIds: redactRefList(result.events.map((event) => event.id)),
+    selectedRefs: redactRefList(result.trace.selectedRefs),
     rejectedRefs: result.trace.rejectedRefs.map((item) => ({
-      ref: redactSensitiveDiagnosticText(item.ref),
+      ref: redactSensitiveDiagnosticRef(item.ref),
       reason: redactSensitiveDiagnosticText(item.reason),
     })),
     limitations: result.trace.limitations.map(redactSensitiveDiagnosticText),
-    versionRefs: uniqueSorted(result.trace.versionRefs),
+    versionRefs: redactRefList(result.trace.versionRefs),
     downstream: {
-      sourcePackHandoffRefs,
-      verifiedCitationRefs,
+      sourcePackHandoffRefs: redactRefList(sourcePackHandoffRefs),
+      verifiedCitationRefs: redactRefList(verifiedCitationRefs),
       verifiedCitationRate,
     },
     events: result.events.map((event) => ({
-      id: event.id,
+      id: redactSensitiveDiagnosticRef(event.id),
       eventType: event.eventType,
       title: redactSensitiveDiagnosticText(event.title),
       safeSummary: redactSensitiveDiagnosticText(event.safeSummary),
       privacyScope: event.privacyScope,
       sourceRef: {
-        id: event.sourceRef.id,
+        id: redactSensitiveDiagnosticRef(event.sourceRef.id),
         owner: event.sourceRef.owner,
         authorityLevel: event.sourceRef.authorityLevel,
         freshness: event.sourceRef.freshness,
       },
     })),
     entities: result.entities.map((entity) => ({
-      id: entity.id,
+      id: redactSensitiveDiagnosticRef(entity.id),
       entityType: entity.entityType,
-      canonicalRef: entity.entityType === 'student' ? '[redacted]' : entity.canonicalRef,
+      canonicalRef: entity.entityType === 'student' ? '[redacted]' : redactSensitiveDiagnosticRef(entity.canonicalRef),
       label: redactSensitiveDiagnosticText(entity.label),
       privacyScope: entity.privacyScope,
     })),
@@ -225,8 +225,8 @@ export function buildSarDiagnosticsReport(input: {
     }
 
     queryTraceSummaries.push({
-      id: traceInput.id,
-      query: traceInput.query,
+      id: redactSensitiveDiagnosticRef(traceInput.id),
+      query: redactSensitiveDiagnosticText(traceInput.query),
       hopCount: result.trace.expansionHops.length,
       selectedEventCount: result.events.length,
       selectedEntityCount: result.entities.length,
@@ -482,6 +482,10 @@ function uniqueSorted(values: readonly string[]): string[] {
   return [...new Set(values.filter(Boolean))].sort((left, right) => left.localeCompare(right));
 }
 
+function redactRefList(values: readonly string[]): string[] {
+  return uniqueSorted(values.map(redactSensitiveDiagnosticRef));
+}
+
 function verifiedCitationTargetRefs(
   verifiedCitationRefs: readonly string[],
   citationTargetRefs: readonly string[],
@@ -497,6 +501,16 @@ function redactSensitiveDiagnosticText(value: string): string {
   return value;
 }
 
+function redactSensitiveDiagnosticRef(value: string): string {
+  if (
+    SENSITIVE_DIAGNOSTIC_TEXT.some((pattern) => pattern.test(value))
+    || SENSITIVE_DIAGNOSTIC_REF.some((pattern) => pattern.test(value))
+  ) {
+    return '[redacted]';
+  }
+  return value;
+}
+
 const SENSITIVE_DIAGNOSTIC_TEXT = [
   /\braw[_ -]?(answer|answers|evidence|submission|submissions|trace|payload)\b/i,
   /\braw\b.*\b(answer|answers|evidence|submission|submissions|trace|payload)\b/i,
@@ -505,4 +519,11 @@ const SENSITIVE_DIAGNOSTIC_TEXT = [
   /\binternals?\b/i,
   /\bprivate[_ -]?konling[_ -]?memory\b/i,
   /\baudit[_ -]?only[_ -]?trace\b/i,
+];
+
+const SENSITIVE_DIAGNOSTIC_REF = [
+  /(^|[:/_-])private($|[:/_-])/i,
+  /(^|[:/_-])private[-_]?(source|student|memory|evidence|submission|payload|trace|ref)($|[:/_-])/i,
+  /(^|[:/_-])audit[-_]?only($|[:/_-])/i,
+  /(^|[:/_-])raw($|[:/_-])/i,
 ];

@@ -129,6 +129,117 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(report.limitationCounts['[redacted]']).toBe(1);
   });
 
+  it('redacts sensitive ids and refs from unfiltered trace inputs', () => {
+    const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
+    const result = {
+      ...fixture.result,
+      trace: {
+        ...fixture.result.trace,
+        id: 'sar:trace:hidden-arena-internals',
+        seedEntityIds: [
+          ...fixture.result.trace.seedEntityIds,
+          'sar:entity:private-raw-submission',
+          'sar:entity:private-student',
+        ],
+        selectedRefs: [
+          ...fixture.result.trace.selectedRefs,
+          'sar:event:hidden-arena-internals',
+          'raw-submission-payload:student-control-demo',
+          'sar:event:private-memory',
+          'citation:private-source-ref',
+        ],
+        versionRefs: [
+          ...fixture.result.trace.versionRefs,
+          'audit-only-trace.v1',
+          'version:private-source-ref',
+        ],
+      },
+      events: [
+        ...fixture.result.events,
+        {
+          ...fixture.result.events[0],
+          id: 'sar:event:hidden-arena-internals',
+          sourceRef: {
+            ...fixture.result.events[0].sourceRef,
+            id: 'sar:event:hidden-arena-internals',
+          },
+        },
+        {
+          ...fixture.result.events[0],
+          id: 'sar:event:private-memory',
+          sourceRef: {
+            ...fixture.result.events[0].sourceRef,
+            id: 'source:private-source-ref',
+          },
+        },
+      ],
+      entities: [
+        ...fixture.result.entities,
+        {
+          ...fixture.result.entities[0],
+          id: 'sar:entity:raw-submission',
+          canonicalRef: 'raw-submission-payload:student-control-demo',
+        },
+        {
+          ...fixture.result.entities[0],
+          id: 'sar:entity:private-source-ref',
+          canonicalRef: 'canonical:private-source-ref',
+        },
+      ],
+      citationTargetRefs: [
+        ...fixture.result.citationTargetRefs,
+        'citation:private-source-ref',
+      ],
+      retrievalChunkRefs: [
+        ...fixture.result.retrievalChunkRefs,
+        'chunk:hidden-arena-internals',
+        'chunk:private-source-ref',
+      ],
+    };
+
+    const serialized = serializeSarTraceForDiagnostics({
+      id: 'unfiltered-probe',
+      query: fixture.query,
+      result,
+      verifiedCitationRefs: ['citation:private-source-ref'],
+    });
+    const text = JSON.stringify(serialized);
+
+    expect(serialized.id).toBe('[redacted]');
+    expect(serialized.seedEntityIds).toContain('[redacted]');
+    expect(serialized.selectedRefs).toContain('[redacted]');
+    expect(serialized.versionRefs).toContain('[redacted]');
+    expect(serialized.downstream.sourcePackHandoffRefs).toContain('[redacted]');
+    expect(serialized.downstream.verifiedCitationRefs).toContain('[redacted]');
+    expect(text).not.toContain('sar:event:hidden-arena-internals');
+    expect(text).not.toContain('private-raw-submission');
+    expect(text).not.toContain('private-student');
+    expect(text).not.toContain('private-memory');
+    expect(text).not.toContain('private-source-ref');
+    expect(text).not.toContain('raw-submission-payload');
+    expect(text).not.toContain('audit-only-trace');
+    expect(text).not.toContain('chunk:hidden-arena-internals');
+    expect(text).not.toContain('chunk:private-source-ref');
+  });
+
+  it('redacts sensitive report summary id and query text', () => {
+    const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
+    const report = buildSarDiagnosticsReport({
+      generatedAt: '2026-06-30T00:00:00.000Z',
+      traces: [{
+        id: 'trace:private-source-ref',
+        query: 'show raw learner submission hidden arena internals',
+        result: fixture.result,
+      }],
+    });
+
+    expect(report.queryTraceSummaries[0].id).toBe('[redacted]');
+    expect(report.queryTraceSummaries[0].query).toBe('[redacted]');
+    expect(JSON.stringify(report.queryTraceSummaries[0])).not.toContain('private-source-ref');
+    expect(JSON.stringify(report.queryTraceSummaries[0])).not.toContain('raw learner submission');
+    expect(JSON.stringify(report.queryTraceSummaries[0])).not.toContain('hidden arena internals');
+  });
+
   it('caps verified citation rate to verified citation targets only', () => {
     const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
     const report = buildSarDiagnosticsReport({
