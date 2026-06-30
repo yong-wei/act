@@ -286,6 +286,169 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(text).not.toContain('chunk:private-source-ref');
   });
 
+  it('omits audit-only and system-internal events from serialized and counted diagnostics', () => {
+    const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
+    const hiddenAuditEvent = {
+      ...fixture.result.events[0],
+      id: 'sar:event:audit-only-visible-title',
+      title: 'Audit Only Visible Title',
+      safeSummary: 'Audit-only summary that should be omitted as an event object.',
+      privacyScope: 'audit-only' as const,
+      sourceRef: {
+        ...fixture.result.events[0].sourceRef,
+        id: 'sar:event:audit-only-visible-title',
+        owner: 'AuditOnlyOwner',
+      },
+      metadata: {
+        auditCitationTargetId: 'citation:audit-only-visible-target',
+        auditRetrievalChunkId: 'chunk:audit-only-visible-target',
+      },
+    };
+    const hiddenSystemEvent = {
+      ...fixture.result.events[0],
+      id: 'sar:event:system-internal-visible-title',
+      title: 'System Internal Visible Title',
+      safeSummary: 'System-internal summary that should be omitted as an event object.',
+      privacyScope: 'system-internal' as const,
+      sourceRef: {
+        ...fixture.result.events[0].sourceRef,
+        id: 'sar:event:system-internal-visible-title',
+        owner: 'SystemInternalOwner',
+      },
+      metadata: {
+        systemCitationTargetId: 'citation:system-internal-visible-target',
+        systemRetrievalChunkId: 'chunk:system-internal-visible-target',
+        nestedRefs: {
+          artifactRefs: ['chunk:system-internal-nested-target'],
+        },
+      },
+    };
+    const hiddenEntity = {
+      ...fixture.result.entities[0],
+      id: 'sar:entity:system-internal-visible-label',
+      canonicalRef: 'canonical:system-internal-visible-label',
+      label: 'System Internal Visible Entity Label',
+      privacyScope: 'system-internal' as const,
+    };
+    const result = {
+      ...fixture.result,
+      trace: {
+        ...fixture.result.trace,
+        expansionHops: [
+          ...fixture.result.trace.expansionHops,
+          {
+            fromEntityId: fixture.result.entities[0].id,
+            toEntityId: hiddenEntity.id,
+            viaEventId: hiddenSystemEvent.id,
+            relationRole: 'about' as const,
+            confidence: 1,
+          },
+        ],
+        selectedRefs: [
+          ...fixture.result.trace.selectedRefs,
+          hiddenAuditEvent.id,
+          hiddenSystemEvent.id,
+          hiddenEntity.id,
+        ],
+      },
+      events: [
+        ...fixture.result.events,
+        hiddenAuditEvent,
+        hiddenSystemEvent,
+      ],
+      relations: [
+        ...fixture.result.relations,
+        {
+          eventId: hiddenAuditEvent.id,
+          entityId: fixture.result.entities[0].id,
+          role: 'about' as const,
+          confidence: 1,
+          provenance: 'metadata-projection' as const,
+          source: 'diagnostics-test',
+        },
+        {
+          eventId: hiddenSystemEvent.id,
+          entityId: hiddenEntity.id,
+          role: 'about' as const,
+          confidence: 1,
+          provenance: 'metadata-projection' as const,
+          source: 'diagnostics-test',
+        },
+      ],
+      entities: [
+        ...fixture.result.entities,
+        hiddenEntity,
+      ],
+      citationTargetRefs: [
+        ...fixture.result.citationTargetRefs,
+        'citation:audit-only-visible-target',
+        'citation:system-internal-visible-target',
+      ],
+      retrievalChunkRefs: [
+        ...fixture.result.retrievalChunkRefs,
+        'chunk:audit-only-visible-target',
+        'chunk:system-internal-visible-target',
+        'chunk:system-internal-nested-target',
+      ],
+    };
+    const report = buildSarDiagnosticsReport({
+      generatedAt: '2026-06-30T00:00:00.000Z',
+      traces: [{
+        id: 'privacy-scope-probe',
+        query: fixture.query,
+        result,
+        sourcePackHandoffRefs: [
+          ...fixture.result.retrievalChunkRefs,
+          'chunk:audit-only-visible-target',
+          'chunk:system-internal-visible-target',
+          'chunk:system-internal-nested-target',
+        ],
+        verifiedCitationRefs: [
+          fixture.result.citationTargetRefs[0],
+          'citation:audit-only-visible-target',
+          'citation:system-internal-visible-target',
+        ],
+        ordinarySourcePackRefs: [
+          fixture.result.retrievalChunkRefs[0],
+          'chunk:audit-only-visible-target',
+        ],
+        sarAssistedRefs: [
+          ...fixture.result.retrievalChunkRefs,
+          'chunk:audit-only-visible-target',
+          'chunk:system-internal-visible-target',
+        ],
+      }],
+    });
+    const text = JSON.stringify(report);
+
+    expect(report.totals.eventCount).toBe(fixture.result.events.length);
+    expect(report.totals.entityCount).toBe(fixture.result.entities.length);
+    expect(report.totals.relationCount).toBe(fixture.result.relations.length);
+    expect(report.totals.sourcePackHandoffCount).toBe(fixture.result.retrievalChunkRefs.length);
+    expect(report.comparison.ordinarySourcePackRefCount).toBe(1);
+    expect(report.comparison.sarAssistedRefCount).toBe(fixture.result.retrievalChunkRefs.length);
+    expect(report.privacyScopeCounts).not.toHaveProperty('audit-only');
+    expect(report.privacyScopeCounts).not.toHaveProperty('system-internal');
+    expect(report.sourceOwnerCounts).not.toHaveProperty('AuditOnlyOwner');
+    expect(report.sourceOwnerCounts).not.toHaveProperty('SystemInternalOwner');
+    expect(report.eventTypeCounts['path-summary']).toBe(fixture.report.eventTypeCounts['path-summary']);
+    expect(report.authorityLevelCounts['platform-verified']).toBe(fixture.report.authorityLevelCounts['platform-verified']);
+    expect(text).not.toContain('Audit Only Visible Title');
+    expect(text).not.toContain('System Internal Visible Title');
+    expect(text).not.toContain('AuditOnlyOwner');
+    expect(text).not.toContain('SystemInternalOwner');
+    expect(text).not.toContain('System Internal Visible Entity Label');
+    expect(text).not.toContain(hiddenEntity.id);
+    expect(text).not.toContain(hiddenEntity.canonicalRef);
+    expect(text).not.toContain(hiddenAuditEvent.id);
+    expect(text).not.toContain(hiddenSystemEvent.id);
+    expect(text).not.toContain('citation:audit-only-visible-target');
+    expect(text).not.toContain('citation:system-internal-visible-target');
+    expect(text).not.toContain('chunk:audit-only-visible-target');
+    expect(text).not.toContain('chunk:system-internal-visible-target');
+    expect(text).not.toContain('chunk:system-internal-nested-target');
+  });
+
   it('redacts sensitive report summary id and query text', () => {
     const fixture = buildControlCorrectionSarDemoFixture('2026-06-30T00:00:00.000Z');
     const report = buildSarDiagnosticsReport({

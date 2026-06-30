@@ -112,9 +112,12 @@ export type ControlCorrectionSarDemoFixture = {
 };
 
 export function serializeSarTraceForDiagnostics(input: SarDiagnosticsTraceInput): SerializedSarTraceForDiagnostics {
-  const result = input.result;
-  const sourcePackHandoffRefs = uniqueSorted(input.sourcePackHandoffRefs ?? result.retrievalChunkRefs);
-  const verifiedCitationRefs = verifiedCitationTargetRefs(input.verifiedCitationRefs ?? [], result.citationTargetRefs);
+  const result = exportableSarResult(input.result);
+  const sourcePackHandoffRefs = exportableDiagnosticRefs(input.sourcePackHandoffRefs ?? result.retrievalChunkRefs, input.result);
+  const verifiedCitationRefs = verifiedCitationTargetRefs(
+    exportableDiagnosticRefs(input.verifiedCitationRefs ?? [], input.result),
+    result.citationTargetRefs,
+  );
   const verifiedCitationRate = rate(verifiedCitationRefs.length, uniqueSorted(result.citationTargetRefs).length);
 
   return {
@@ -185,14 +188,20 @@ export function buildSarDiagnosticsReport(input: {
   let rejectedRefCount = 0;
 
   for (const traceInput of input.traces) {
-    const { result } = traceInput;
+    const result = exportableSarResult(traceInput.result);
     const tracePrivacyRejections = countPrivacyRejections(result.trace);
     const traceLimitations = mergedDiagnosticLimitations(result);
-    const sourcePackHandoffRefs = uniqueSorted(traceInput.sourcePackHandoffRefs ?? result.retrievalChunkRefs);
-    const verifiedCitationRefs = verifiedCitationTargetRefs(traceInput.verifiedCitationRefs ?? [], result.citationTargetRefs);
+    const sourcePackHandoffRefs = exportableDiagnosticRefs(
+      traceInput.sourcePackHandoffRefs ?? result.retrievalChunkRefs,
+      traceInput.result,
+    );
+    const verifiedCitationRefs = verifiedCitationTargetRefs(
+      exportableDiagnosticRefs(traceInput.verifiedCitationRefs ?? [], traceInput.result),
+      result.citationTargetRefs,
+    );
     const citationTargetRefs = uniqueSorted(result.citationTargetRefs);
-    const ordinarySourcePackRefs = uniqueSorted(traceInput.ordinarySourcePackRefs ?? []);
-    const sarAssistedRefs = uniqueSorted(traceInput.sarAssistedRefs ?? result.retrievalChunkRefs);
+    const ordinarySourcePackRefs = exportableDiagnosticRefs(traceInput.ordinarySourcePackRefs ?? [], traceInput.result);
+    const sarAssistedRefs = exportableDiagnosticRefs(traceInput.sarAssistedRefs ?? result.retrievalChunkRefs, traceInput.result);
     const adoptedRefs = sarAssistedRefs.filter((ref) => !ordinarySourcePackRefs.includes(ref));
 
     eventCount += result.events.length;
@@ -465,6 +474,109 @@ function countPrivacyRejections(trace: SarRetrievalTrace): number {
     || item.reason.includes('privacy')
     || item.reason.includes('internal')
   )).length;
+}
+
+function exportableSarResult(result: SarRetrievalResult): SarRetrievalResult {
+  const exportableEventIds = new Set(
+    result.events
+      .filter((event) => isExportablePrivacyScope(event.privacyScope))
+      .map((event) => event.id),
+  );
+  const exportableEntityIds = new Set(
+    result.entities
+      .filter((entity) => isExportablePrivacyScope(entity.privacyScope))
+      .map((entity) => entity.id),
+  );
+  const nonExportableRefs = nonExportableDiagnosticRefs(result);
+  const events = result.events.filter((event) => exportableEventIds.has(event.id));
+  const entities = result.entities.filter((entity) => exportableEntityIds.has(entity.id));
+  const relations = result.relations.filter((relation) => (
+    exportableEventIds.has(relation.eventId) && exportableEntityIds.has(relation.entityId)
+  ));
+  return {
+    ...result,
+    events,
+    entities,
+    relations,
+    citationTargetRefs: exportableDiagnosticRefs(result.citationTargetRefs, result, nonExportableRefs),
+    retrievalChunkRefs: exportableDiagnosticRefs(result.retrievalChunkRefs, result, nonExportableRefs),
+    trace: {
+      ...result.trace,
+      seedEntityIds: exportableDiagnosticRefs(result.trace.seedEntityIds, result, nonExportableRefs),
+      versionRefs: exportableDiagnosticRefs(result.trace.versionRefs, result, nonExportableRefs),
+      expansionHops: result.trace.expansionHops.filter((hop) => (
+        exportableEntityIds.has(hop.fromEntityId)
+        && exportableEntityIds.has(hop.toEntityId)
+        && (!hop.viaEventId || exportableEventIds.has(hop.viaEventId))
+      )),
+      selectedRefs: exportableDiagnosticRefs(result.trace.selectedRefs, result, nonExportableRefs),
+      rejectedRefs: result.trace.rejectedRefs.filter((item) => (
+        isExportableDiagnosticRef(item.ref, result, nonExportableRefs)
+      )),
+    },
+  };
+}
+
+function isExportablePrivacyScope(scope: SarPrivacyScope): boolean {
+  return scope === 'student-visible' || scope === 'teacher-scoped' || scope === 'admin-scoped';
+}
+
+function isPrivateEventRef(ref: string, result: SarRetrievalResult): boolean {
+  const event = result.events.find((candidate) => candidate.id === ref);
+  return Boolean(event && !isExportablePrivacyScope(event.privacyScope));
+}
+
+function isPrivateEntityRef(ref: string, result: SarRetrievalResult): boolean {
+  const entity = result.entities.find((candidate) => candidate.id === ref);
+  return Boolean(entity && !isExportablePrivacyScope(entity.privacyScope));
+}
+
+function exportableDiagnosticRefs(
+  values: readonly string[],
+  result: SarRetrievalResult,
+  nonExportableRefs = nonExportableDiagnosticRefs(result),
+): string[] {
+  return uniqueSorted(values.filter((ref) => isExportableDiagnosticRef(ref, result, nonExportableRefs)));
+}
+
+function isExportableDiagnosticRef(
+  ref: string,
+  result: SarRetrievalResult,
+  nonExportableRefs: ReadonlySet<string>,
+): boolean {
+  return !nonExportableRefs.has(ref)
+    && !isPrivateEventRef(ref, result)
+    && !isPrivateEntityRef(ref, result);
+}
+
+function nonExportableDiagnosticRefs(result: SarRetrievalResult): Set<string> {
+  const refs = new Set<string>();
+  for (const event of result.events) {
+    if (isExportablePrivacyScope(event.privacyScope)) continue;
+    refs.add(event.id);
+    refs.add(event.sourceRef.id);
+    collectStringRefs(event.metadata, refs);
+  }
+  for (const entity of result.entities) {
+    if (isExportablePrivacyScope(entity.privacyScope)) continue;
+    refs.add(entity.id);
+    refs.add(entity.canonicalRef);
+  }
+  return refs;
+}
+
+function collectStringRefs(value: unknown, refs: Set<string>): void {
+  if (typeof value === 'string') {
+    refs.add(value);
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectStringRefs(item, refs));
+    return;
+  }
+  if (value && typeof value === 'object') {
+    Object.values(value).forEach((item) => collectStringRefs(item, refs));
+  }
 }
 
 function increment(record: Record<string, number>, key: string): void {
