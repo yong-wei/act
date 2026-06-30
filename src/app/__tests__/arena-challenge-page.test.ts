@@ -114,6 +114,7 @@ describe('ArenaChallengePage publication context', () => {
       sourceRoute: '/arena/challenges/[taskId]?publicationId',
       targetLabel: 'Arena 发布挑战',
       displayReference: 'publication-1',
+      primaryHref: `/login?callbackUrl=${encodeURIComponent(`/arena/challenges/${taskId}?publicationId=publication-1`)}`,
       surface: 'student-publication-permission',
     });
   });

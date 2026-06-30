@@ -863,6 +863,9 @@ describe('arena publication report route', () => {
     );
 
     expect(pageSource).toContain('params: Promise<{ publicationId: string }>');
+    expect(pageSource).toContain('buildLoginRedirectForPath');
+    expect(pageSource).toContain('const reportPath = `/teacher/arena/publications/${encodeURIComponent(params.publicationId)}`;');
+    expect(pageSource).toContain('primaryHref={session?.user?.id ? \'/dashboard\' : buildLoginRedirectForPath(reportPath)}');
     expect(pageSource).toContain('prismaArenaPublicationStore.loadReport');
     expect(pageSource).toContain('ArenaPublicationPermissionError');
     expect(pageSource).toContain('<ArenaRouteRecovery');

@@ -1,6 +1,7 @@
 import { ChallengeDetail } from '@/features/arena/challenge-detail';
 import { ArenaRouteRecovery } from '@/features/arena/arena-route-recovery';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import { prisma } from '@/lib/prisma';
 import {
   filterArenaSubmissionsForHiddenPublicationPolicy,
@@ -87,6 +88,7 @@ export default async function ArenaChallengePage(
   let viewerUserId: string | undefined;
   if (publicationId) {
     const session = await getServerAuthSession();
+    const publicationPath = `/arena/challenges/${encodeURIComponent(params.taskId)}?${new URLSearchParams({ publicationId }).toString()}`;
     if (!session?.user?.id || session.user.role !== 'STUDENT') {
       return (
         <ArenaRouteRecovery
@@ -96,7 +98,7 @@ export default async function ArenaChallengePage(
           displayReference={publicationId}
           message="请使用有权限的学生账号打开该 Arena 发布挑战。"
           recoveryAction="登录学生账号或返回 Arena 挑战列表"
-          primaryHref={session?.user?.id ? '/dashboard' : '/login'}
+          primaryHref={session?.user?.id ? '/dashboard' : buildLoginRedirectForPath(publicationPath)}
           primaryLabel={session?.user?.id ? '返回工作台' : '去登录'}
           surface="student-publication-permission"
         />

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { BarChart3, ClipboardList, Copy, DatabaseZap, FileDown, LockKeyhole, Send, ShieldAlert, Trophy, Users } from 'lucide-react';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import { ArenaRouteRecovery } from '@/features/arena/arena-route-recovery';
 import {
   ArenaPublicationPermissionError,
@@ -51,6 +52,7 @@ function lifecycleToneClass(tone: 'success' | 'warning' | 'neutral' | 'muted'): 
 export default async function ArenaPublicationReportPage(props: ArenaPublicationReportPageProps) {
   const params = await props.params;
   const session = await getServerAuthSession();
+  const reportPath = `/teacher/arena/publications/${encodeURIComponent(params.publicationId)}`;
   if (!session?.user?.id || !['TEACHER', 'ADMIN'].includes(session.user.role ?? '')) {
     return (
       <ArenaRouteRecovery
@@ -60,7 +62,7 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
         displayReference={params.publicationId}
         message="请使用教师或管理员账号打开该 Arena 发布报告。"
         recoveryAction="登录教师/管理员账号或返回工作台"
-        primaryHref={session?.user?.id ? '/dashboard' : '/login'}
+        primaryHref={session?.user?.id ? '/dashboard' : buildLoginRedirectForPath(reportPath)}
         primaryLabel={session?.user?.id ? '返回工作台' : '去登录'}
         surface="teacher-publication-permission"
       />
