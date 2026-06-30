@@ -24,6 +24,7 @@ import {
   type EvidenceSourceCoverageReport,
 } from '@/lib/data-governance/evidence-source-catalog';
 import { getStudentEvidenceFeatureCacheAdminSummary } from '@/lib/data-governance/student-evidence-feature-cache';
+import { buildControlCorrectionSarDemoFixture } from '@/lib/data-governance/sar-diagnostics';
 import { parseSessionGovernanceSummary } from '@/lib/classroom-session-statistics';
 
 export const dynamic = 'force-dynamic';
@@ -666,6 +667,7 @@ export async function GET(request: NextRequest) {
     );
 
     const completedAt = new Date().toISOString();
+    const sarDiagnostics = buildControlCorrectionSarDemoFixture(completedAt).report;
     const operationLedger = shouldRecordRefresh
       ? buildAdminOperationLedgerEntry({
           kind: 'admin-governance-refresh',
@@ -753,6 +755,7 @@ export async function GET(request: NextRequest) {
       factTypeDistribution: summarizeLearningFactTypes(learningFacts),
       sessionQuality: summarizeSessionQuality(recentSessionQualityReports),
       featureCache,
+      sarDiagnostics,
       sourceCoverage: sourceCoverageReport,
       sourceCatalog: {
         totalSources: getEvidenceSourceCatalog().length,

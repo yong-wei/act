@@ -1,4 +1,5 @@
 import type { AdminOperationLedgerEntry } from '@/lib/admin-operation-ledger';
+import type { SarDiagnosticsReport } from '@/lib/data-governance/sar-diagnostics';
 
 export type GovernanceQueueStats = {
   waiting: number;
@@ -24,6 +25,7 @@ export type GovernanceStatusPayload = {
     audit: string | null;
     preferredTab: 'sources' | 'cache' | 'overview';
   } | null;
+  sarDiagnostics?: SarDiagnosticsReport;
   freshness: {
     lastSnapshotMinutes: number | null;
     status: string;
