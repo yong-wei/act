@@ -164,6 +164,17 @@ describe('AdminDashboard API/UI query contract states', () => {
     expect(adminDashboardSource).toContain('if (status === 404 || status === 410)');
   });
 
+  it('clears stale failed-row download state when a new import starts', () => {
+    const start = adminDashboardSource.indexOf('const handleImport = async');
+    const end = adminDashboardSource.indexOf('const overviewCards = useMemo', start);
+    const handleImportSource = adminDashboardSource.slice(start, end);
+
+    expect(handleImportSource).toContain('setFailedRowsDownloadState(null);');
+    expect(handleImportSource.indexOf('setFailedRowsDownloadState(null);')).toBeLessThan(
+      handleImportSource.indexOf("fetch('/api/admin/users/import'"),
+    );
+  });
+
   it('keeps the admin users table mobile-carded and announces list state changes', () => {
     const html = renderToStaticMarkup(createElement(AdminDashboard, {
       currentUser,

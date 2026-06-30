@@ -823,6 +823,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
 
   const handleImport = async (file: File, mode: 'preview' | 'commit' = 'preview') => {
     setImporting(true);
+    setFailedRowsDownloadState(null);
     if (mode === 'preview') {
       setPendingImportFile(file);
       setImportResult(null);

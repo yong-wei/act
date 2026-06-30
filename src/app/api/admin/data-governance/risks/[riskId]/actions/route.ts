@@ -66,6 +66,10 @@ export async function POST(
   const assignee = typeof payload?.assignee === 'string' && payload.assignee.trim()
     ? payload.assignee.trim()
     : null;
+  const note = typeof payload?.note === 'string' && payload.note.trim()
+    ? payload.note.trim()
+    : null;
+  const resolutionNote = note ?? '管理员从数据治理工作台标记处理';
   if (action === 'assign') {
     if (!assignee) {
       return NextResponse.json({ error: '缺少负责人' }, { status: 400 });
@@ -103,7 +107,7 @@ export async function POST(
       riskId,
       session.user.id,
       assignee ?? '',
-      auditRecord.recordedAt,
+      action === 'resolve' ? resolutionNote : '',
     ]),
     rollback: {
       available: false,
@@ -143,7 +147,7 @@ export async function POST(
           ? {
               isResolved: true,
               resolvedAt: now,
-              resolutionNote: payload?.note?.trim() || '管理员从数据治理工作台标记处理',
+              resolutionNote,
               evidenceJson,
             }
           : {
@@ -196,13 +200,25 @@ function appendGovernanceAudit(
   const auditLog = Array.isArray(governance.auditLog)
     ? governance.auditLog
     : [];
+  const existingAuditRecord = auditRecord.idempotencyKey
+    ? auditLog.find((item) => (
+        item
+        && typeof item === 'object'
+        && !Array.isArray(item)
+        && (item as Record<string, unknown>).idempotencyKey === auditRecord.idempotencyKey
+      ))
+    : null;
+  const nextAuditLog = existingAuditRecord ? auditLog : [...auditLog, auditRecord];
+  const nextAssignee = existingAuditRecord
+    ? governance.currentAssignee ?? null
+    : auditRecord.assignee ?? governance.currentAssignee ?? null;
 
   return {
     ...base,
     adminGovernance: {
       ...governance,
-      currentAssignee: auditRecord.assignee ?? governance.currentAssignee ?? null,
-      auditLog: [...auditLog, auditRecord],
+      currentAssignee: nextAssignee,
+      auditLog: nextAuditLog,
     },
   } as Prisma.InputJsonValue;
 }
