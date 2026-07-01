@@ -23,6 +23,10 @@ import {
   AppShell,
   PlatformSurface,
 } from '@/components/platform/app-shell';
+import {
+  requestClassroomConflictChoice,
+  type ClassroomConflictIdentity,
+} from '@/features/classroom/classroom-lifecycle-dialog';
 import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
 import { LessonEntryRuntimeSections } from '@/features/interactive/shared/lesson-entry-runtime-sections';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
@@ -146,13 +150,19 @@ export function CourseEntryShell({
           sourcePresetKey: config.presetKey,
         }),
       });
-      const preflightData = (await preflightRes.json()) as JoinSessionResponse;
+      const preflightData = (await preflightRes.json()) as JoinSessionResponse & { classroomIdentity?: unknown };
       if (preflightRes.status === 409 && preflightData.existingSessionId && preflightData.requiresExplicitChoice) {
-        const createNew = window.confirm(`${preflightData.error ?? '该互动课已有进行中的临时课堂。'}\n\n确定新开课堂？取消则进入已有课堂。`);
-        if (!createNew) {
+        setIsCreating(false);
+        const choice = await requestClassroomConflictChoice({
+          identity: preflightData.classroomIdentity as ClassroomConflictIdentity | undefined,
+          message: preflightData.error,
+        });
+        if (choice === 'reuse') {
           router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${preflightData.existingSessionId}/waiting`);
           return;
         }
+        if (choice !== 'new-session') return;
+        setIsCreating(true);
       } else if (!preflightRes.ok && preflightRes.status !== 400) {
         throw new Error(preflightData.error || '课堂查重失败');
       }

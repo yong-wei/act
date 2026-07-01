@@ -10,6 +10,7 @@ import { useCourseEventTracking } from '@/features/interactive/session-framework
 import { getInteractiveRevealLayerCount } from '@/features/interactive/shared/manifest-runtime/activity-renderers';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
+import { requestClassroomEndConfirmation } from '@/features/classroom/classroom-lifecycle-dialog';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
@@ -187,7 +188,7 @@ function UNIT_1_2LiveTeacherPage({
 
   const handleEndSession = useCallback(async () => {
     if (!sessionInfo) return;
-    if (!window.confirm('确定要结束课堂吗？结束后学生将停止同步课堂进度。')) return;
+    if (!(await requestClassroomEndConfirmation())) return;
     setEndingSession(true);
     try {
       await finalizeUNIT_1_2TeacherSession({

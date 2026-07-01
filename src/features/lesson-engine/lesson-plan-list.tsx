@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { requestClassroomConflictChoice } from '@/features/classroom/classroom-lifecycle-dialog';
 import { EMPTY_LESSON_PLAN_MESSAGE } from '@/lib/lesson-plan-readiness';
 
 interface LessonPlanListProps {
@@ -42,6 +43,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [operationMessage, setOperationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setLocalPlans(plans);
@@ -60,6 +62,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
 
   const startSession = async (planId: string) => {
     setLoadingId(planId);
+    setOperationMessage(null);
     try {
       // Create a new session
       const res = await fetch('/api/session', {
@@ -71,13 +74,17 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         if (res.status === 409 && errorData.existingSessionId && errorData.requiresExplicitChoice) {
-          const reuseExisting = window.confirm(`${errorData.classroomIdentity?.summaryLabel ?? '该教案'}已有进行中的临时课堂。是否进入已有课堂？`);
-          if (reuseExisting) {
+          setLoadingId(null);
+          const choice = await requestClassroomConflictChoice({
+            identity: errorData.classroomIdentity,
+            message: errorData.error,
+          });
+          if (choice === 'reuse') {
             router.push(`/classroom/teacher/${errorData.existingSessionId}`);
             return;
           }
-          const createNew = window.confirm('确认仍要新开一个临时课堂？');
-          if (createNew) {
+          if (choice === 'new-session') {
+            setLoadingId(planId);
             const retry = await fetch('/api/session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -90,7 +97,6 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
             router.push(`/classroom/teacher/${retryPayload.id}`);
             return;
           }
-          setLoadingId(null);
           return;
         }
         throw new Error(errorData.error || 'Failed to start session');
@@ -101,7 +107,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
       router.push(`/classroom/teacher/${session.id}`);
     } catch (e) {
       console.error(e);
-      alert(e instanceof Error ? e.message : '无法开始上课');
+      setOperationMessage(e instanceof Error ? e.message : '无法开始上课');
       setLoadingId(null);
     }
   };
@@ -121,10 +127,10 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
       setPendingDelete(null);
       setMenuOpenId(null);
       router.refresh();
-      alert('教案已删除');
+      setOperationMessage('教案已删除。');
     } catch (error) {
       console.error(error);
-      alert(`删除失败：${error instanceof Error ? error.message : '未知错误'}`);
+      setOperationMessage(`删除失败：${error instanceof Error ? error.message : '未知错误'}`);
     } finally {
       setIsDeleting(false);
     }
@@ -157,6 +163,11 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
           显示 {visiblePlans.length} / {localPlans.length} 个教案
         </div>
       </div>
+      {operationMessage ? (
+        <div className="rounded-lg border border-platform-action-primary bg-platform-surface px-3 py-2 text-sm text-platform-fg-primary" role="status" aria-live="polite">
+          {operationMessage}
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {visiblePlans.map((plan) => {
@@ -241,7 +252,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
                   </button>
                 )}
                 <button type="button"
-                    onClick={() => canStart ? startSession(plan.id) : alert(EMPTY_LESSON_PLAN_MESSAGE)}
+                    onClick={() => canStart ? startSession(plan.id) : setOperationMessage(EMPTY_LESSON_PLAN_MESSAGE)}
                     disabled={!!loadingId || !canStart}
                     className="flex items-center gap-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3 py-1.5 rounded transition-all disabled:opacity-50"
                     title={!canStart ? EMPTY_LESSON_PLAN_MESSAGE : undefined}

@@ -30,6 +30,11 @@ import { AddStudentsModal } from '@/components/teacher/add-students-modal';
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import {
+  requestClassroomActionConfirmation,
+  requestClassroomConflictChoice,
+  requestClassroomEndConfirmation,
+} from '@/features/classroom/classroom-lifecycle-dialog';
+import {
   buildTeacherClassInsightsHref,
   buildTeacherStudentInsightsHref,
   formatTeacherStudentDisplayId,
@@ -289,11 +294,17 @@ export default function ClassDetailPage() {
       if (!res.ok) {
         const error = await res.json();
         if (error.existingSessionId && error.requiresExplicitChoice) {
-          if (window.confirm(`${error.classroomIdentity?.summaryLabel ?? '该班级和教案'}已有进行中的课堂。是否直接进入？`)) {
+          setStarting(false);
+          const choice = await requestClassroomConflictChoice({
+            identity: error.classroomIdentity,
+            message: error.error,
+          });
+          if (choice === 'reuse') {
             router.push(`/classroom/teacher/${error.existingSessionId}`);
             return;
           }
-          if (window.confirm('确认仍要为该班级和教案新开一节课堂？')) {
+          if (choice === 'new-session') {
+            setStarting(true);
             const retry = await fetch('/api/session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -331,7 +342,14 @@ export default function ClassDetailPage() {
 
   // 移除学生
   const handleRemoveStudent = async (studentId: string, studentName: string) => {
-    if (!confirm(`确定要将 ${studentName} 从班级中移除吗？`)) return;
+    const confirmed = await requestClassroomActionConfirmation({
+      title: '移除班级学生',
+      description: `确认将 ${studentName} 从当前班级移除？`,
+      details: ['学生账号不会被删除', '该学生将不能通过当前班级身份进入后续课堂', '已有课堂证据仍保留在历史记录中'],
+      confirmLabel: '确认移除',
+      dataState: 'remove-student',
+    });
+    if (!confirmed) return;
 
     setRemovingStudent(studentId);
     try {
@@ -355,7 +373,13 @@ export default function ClassDetailPage() {
   };
 
   const handleFinishSession = async (sessionId: string) => {
-    if (!confirm('确定停止这节正在进行的课堂吗？')) return;
+    const session = sessions.find((item) => item.id === sessionId);
+    const confirmed = await requestClassroomEndConfirmation([
+      session ? `课堂：${session.plan.title}` : `课堂会话：${sessionId}`,
+      session ? `当前参与：${session.studentCount} 名学生` : '学生端将进入课堂结束态',
+      '教师端课堂历史会在结束后刷新',
+    ]);
+    if (!confirmed) return;
 
     setEndingSessionId(sessionId);
     try {
@@ -398,8 +422,15 @@ export default function ClassDetailPage() {
       `${session.studentCount} 名学生的课堂状态`,
       '课堂作答与步进响应',
       '课堂复盘报告与学生报告',
-    ].join('、');
-    if (!confirm(`确定删除《${session.plan.title}》这节已结束课堂吗？将同步删除：${impact}。`)) return;
+    ];
+    const confirmed = await requestClassroomActionConfirmation({
+      title: '删除已结束课堂',
+      description: `确认删除《${session.plan.title}》这节已结束课堂？`,
+      details: impact,
+      confirmLabel: '确认删除',
+      dataState: 'delete-finished-session',
+    });
+    if (!confirmed) return;
 
     setDeletingSessionId(session.id);
     try {
@@ -431,7 +462,14 @@ export default function ClassDetailPage() {
 
   const handleRegenerateJoinCode = async () => {
     if (!activeSession) return;
-    if (!confirm('确定重新生成课堂码？旧码将立即失效。')) return;
+    const confirmed = await requestClassroomActionConfirmation({
+      title: '重新生成课堂码',
+      description: '确认重新生成当前课堂的加入码？',
+      details: ['旧课堂码将立即失效', `当前课堂：${activeSession.plan.title}`, '已在课堂内的学生不会被移除'],
+      confirmLabel: '确认重新生成',
+      dataState: 'regenerate-join-code',
+    });
+    if (!confirmed) return;
 
     setRegeneratingJoinCode(true);
     try {

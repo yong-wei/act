@@ -1,0 +1,61 @@
+{
+  "changeId": "audit-remediation-classroom-lifecycle-dialog-closure",
+  "issue": 753,
+  "capturedAt": "2026-07-01T23:27:41+08:00",
+  "closedFindings": [
+    {
+      "id": "classroom-lifecycle-active-conflict-native-confirm",
+      "surface": "teacher class detail, lesson plan list, interactive course entries",
+      "evidence": [
+        "src/features/classroom/classroom-lifecycle-dialog.ts",
+        "src/features/lesson-engine/lesson-plan-list.tsx",
+        "src/features/interactive/shared/course-entry-shell.tsx",
+        "src/features/interactive/shared/premium-lesson-entry-page.tsx",
+        "src/app/teacher/classes/[classId]/page.tsx",
+        "src/features/classroom/__tests__/classroom-lifecycle-dialog.test.ts",
+        "src/features/interactive/__tests__/classroom-join-entry.test.ts"
+      ],
+      "verification": [
+        "npm run test:unit -- src/features/classroom/__tests__/classroom-lifecycle-dialog.test.ts",
+        "npm run test:unit -- src/features/interactive/__tests__/classroom-join-entry.test.ts",
+        "npm run lint",
+        "openspec validate audit-remediation-teacher-classroom-lifecycle --strict"
+      ]
+    },
+    {
+      "id": "classroom-lifecycle-end-delete-native-confirm",
+      "surface": "interactive teacher runtime, class detail",
+      "evidence": [
+        "src/features/classroom/classroom-lifecycle-dialog.ts",
+        "src/features/interactive/*/teacher-page.tsx",
+        "src/app/teacher/classes/[classId]/page.tsx",
+        "src/features/classroom/__tests__/classroom-lifecycle-dialog.test.ts",
+        "src/features/interactive/__tests__/classroom-join-entry.test.ts"
+      ],
+      "verification": [
+        "DOM behavior: conflict choices resolve reuse/cancel/new-session values and remove the overlay",
+        "DOM behavior: Escape resolves cancel, Tab wraps focus inside the dialog, and close restores opener focus",
+        "DOM behavior: end confirmation resolves true only through the confirm button",
+        "source contract: in-scope lifecycle files contain no window.confirm/confirm() native classroom confirmation",
+        "source contract: lesson list, class detail, and teacher history contain no alert() lifecycle feedback",
+        "source contract: all interactive teacher runtime pages call requestClassroomEndConfirmation"
+      ]
+    },
+    {
+      "id": "classroom-lifecycle-status-announcement",
+      "surface": "lesson plan list, teacher class detail",
+      "evidence": [
+        "src/features/lesson-engine/lesson-plan-list.tsx",
+        "src/app/teacher/classes/[classId]/page.tsx"
+      ],
+      "verification": [
+        "page status regions use role=status and aria-live=polite for operation feedback"
+      ]
+    }
+  ],
+  "residualScope": [
+    "Teacher report, teacher history archive management, Arena, admin governance, authoring, resource editor, preset lesson management, and media download alerts remain outside this OpenSpec change.",
+    "This evidence combines source contracts with focused DOM behavior tests for the product lifecycle dialogs. Browser screenshot capture is not included in this change.",
+    "Projection direct-link recovery continues to rely on the existing server-side session access and ended-state guards covered by classroom-join-entry source contracts; this change does not rewrite projection routing."
+  ]
+}

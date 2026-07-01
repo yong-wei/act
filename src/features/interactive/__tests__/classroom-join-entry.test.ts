@@ -1,9 +1,18 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
 const repoRoot = process.cwd();
+
+function collectTeacherRuntimePages(dir: string): string[] {
+  return readdirSync(dir).flatMap((entry) => {
+    const fullPath = join(dir, entry);
+    const stat = statSync(fullPath);
+    if (stat.isDirectory()) return collectTeacherRuntimePages(fullPath);
+    return entry === 'teacher-page.tsx' ? [fullPath] : [];
+  });
+}
 
 describe('classroom join entry', () => {
   it('keeps session join and adds class join on the same page', () => {
@@ -102,6 +111,44 @@ describe('classroom join entry', () => {
     );
     expect(studentSource).toContain('data-classroom-identity-kind={classroomIdentity.kind}');
     expect(studentSource).not.toContain('session id');
+  });
+
+  it('uses product-owned lifecycle dialogs instead of native classroom confirms', () => {
+    const lifecycleDialogSource = readFileSync(join(repoRoot, 'src/features/classroom/classroom-lifecycle-dialog.ts'), 'utf8');
+    const classPageSource = readFileSync(join(repoRoot, 'src/app/teacher/classes/[classId]/page.tsx'), 'utf8');
+    const lessonListSource = readFileSync(join(repoRoot, 'src/features/lesson-engine/lesson-plan-list.tsx'), 'utf8');
+    const courseEntrySource = readFileSync(join(repoRoot, 'src/features/interactive/shared/course-entry-shell.tsx'), 'utf8');
+    const premiumEntrySource = readFileSync(join(repoRoot, 'src/features/interactive/shared/premium-lesson-entry-page.tsx'), 'utf8');
+    const teacherRuntimeSources = collectTeacherRuntimePages(join(repoRoot, 'src/features/interactive'))
+      .map((filePath) => readFileSync(filePath, 'utf8'));
+    const lifecycleSources = [
+      classPageSource,
+      lessonListSource,
+      courseEntrySource,
+      premiumEntrySource,
+      ...teacherRuntimeSources,
+    ].join('\n');
+
+    expect(lifecycleDialogSource).toContain('data-classroom-lifecycle-dialog');
+    expect(lifecycleDialogSource).toContain("role', 'dialog'");
+    expect(lifecycleDialogSource).toContain("aria-modal', 'true'");
+    expect(lifecycleDialogSource).toContain("event.key === 'Escape'");
+    expect(lifecycleDialogSource).toContain("event.key !== 'Tab'");
+    expect(lifecycleDialogSource).toContain('opener.focus()');
+    expect(lifecycleDialogSource).toContain('overlay.remove()');
+    expect(lifecycleDialogSource).toContain('requestClassroomConflictChoice');
+    expect(lifecycleDialogSource).toContain('requestClassroomEndConfirmation');
+    expect(classPageSource).toContain('requestClassroomActionConfirmation');
+    expect(classPageSource).toContain('requestClassroomEndConfirmation');
+    expect(lessonListSource).toContain('requestClassroomConflictChoice');
+    expect(courseEntrySource).toContain('requestClassroomConflictChoice');
+    expect(premiumEntrySource).toContain('requestClassroomConflictChoice');
+    expect(teacherRuntimeSources.every((source) => source.includes('requestClassroomEndConfirmation'))).toBe(true);
+    expect(lifecycleSources).not.toMatch(/window\.confirm|(?<!requestClassroomAction)confirm\(/);
+    expect([
+      lessonListSource,
+      classPageSource,
+    ].join('\n')).not.toMatch(/window\.alert|\balert\(/);
   });
 
   it('records teacher control lifecycle events through the state endpoint', () => {
