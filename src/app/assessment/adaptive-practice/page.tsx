@@ -1453,7 +1453,20 @@ export default function AdaptivePracticePage() {
     learnerStateReadiness,
     evidenceReadiness,
   ]), [evidenceReadiness, learnerStateReadiness, pathAdvisorReadiness]);
-  const canSubmitPathGeneration = pathGenerationReadiness.status === 'ready';
+  const pathGenerationDegradedReadiness = learnerStateReadiness?.status === 'degraded'
+    ? learnerStateReadiness
+    : evidenceReadiness?.status === 'degraded'
+      ? evidenceReadiness
+      : null;
+  const canRetryPathGeneration = pathGenerationReadiness.status === 'retryable' &&
+    pathAdvisorReadiness?.status === 'retryable' &&
+    !pathGenerationDegradedReadiness &&
+    assistantEntryPoint?.mode === 'path-advisor' &&
+    Boolean(assistantEntryPoint.serverContext.modeContextToken);
+  const canSubmitPathGeneration = pathGenerationReadiness.status === 'ready' || canRetryPathGeneration;
+  const pathGenerationDisplayReadiness = pathGenerationReadiness.status === 'retryable' && pathGenerationDegradedReadiness
+    ? pathGenerationDegradedReadiness
+    : pathGenerationReadiness;
   const pathExecutionNodes = useMemo(
     () => getPathExecutionNodes(activePathPlan, activePathRound, selectedExecutionOption),
     [activePathPlan, activePathRound, selectedExecutionOption],
@@ -1959,7 +1972,7 @@ export default function AdaptivePracticePage() {
       return;
     }
     if (!canSubmitPathGeneration) {
-      setPathChoiceMessage(pathGenerationReadiness.studentMessage);
+      setPathChoiceMessage(pathGenerationDisplayReadiness.studentMessage);
       return;
     }
     const modeContextToken = assistantEntryPoint?.mode === 'path-advisor'
@@ -2083,7 +2096,7 @@ export default function AdaptivePracticePage() {
     pathAdvisorAgentSessionId,
     pathExecutionNodes,
     pathGenerationPanel,
-    pathGenerationReadiness,
+    pathGenerationDisplayReadiness,
     pathOptions,
     refreshLatestLearningPathAfterKonling,
     routeIntent,
@@ -2538,8 +2551,8 @@ export default function AdaptivePracticePage() {
                     onClick={openPathGenerationAdvisor}
                     disabled={assistantEntryPoint?.mode !== 'path-advisor' || !canSubmitPathGeneration}
                     data-adaptive-path-generation-action="open-in-page-path-advisor"
-                    data-adaptive-generation-readiness-status={pathGenerationReadiness.status}
-                    data-adaptive-generation-readiness-reason={pathGenerationReadiness.reason}
+                    data-adaptive-generation-readiness-status={pathGenerationDisplayReadiness.status}
+                    data-adaptive-generation-readiness-reason={pathGenerationDisplayReadiness.reason}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
                   >
                     <Sparkles className="size-4" aria-hidden="true" />
@@ -2682,10 +2695,10 @@ export default function AdaptivePracticePage() {
               data-adaptive-path-generation-panel="editable"
               data-adaptive-path-generation-mobile-sheet="bottom-sheet"
               data-konling-citation-slot="cited-explanation"
-              data-adaptive-generation-readiness-status={pathGenerationReadiness.status}
-              data-adaptive-generation-readiness-reason={pathGenerationReadiness.reason}
-              data-adaptive-generation-student-action={pathGenerationReadiness.studentAction}
-              data-adaptive-generation-staff-action={pathGenerationReadiness.staffAction}
+              data-adaptive-generation-readiness-status={pathGenerationDisplayReadiness.status}
+              data-adaptive-generation-readiness-reason={pathGenerationDisplayReadiness.reason}
+              data-adaptive-generation-student-action={pathGenerationDisplayReadiness.studentAction}
+              data-adaptive-generation-staff-action={pathGenerationDisplayReadiness.staffAction}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2695,14 +2708,14 @@ export default function AdaptivePracticePage() {
                 </div>
                 <MessageSquare className="size-5 text-primary" aria-hidden="true" />
               </div>
-              {pathGenerationReadiness.status !== 'ready' ? (
+              {pathGenerationDisplayReadiness.status !== 'ready' ? (
                 <div
                   className="mt-4 rounded-lg border border-border bg-muted/45 p-3"
                   role="status"
                   aria-live="polite"
-                  data-adaptive-generation-readiness-card={pathGenerationReadiness.reason}
+                  data-adaptive-generation-readiness-card={pathGenerationDisplayReadiness.reason}
                 >
-                  <p className="text-sm font-medium text-foreground">{pathGenerationReadiness.studentMessage}</p>
+                  <p className="text-sm font-medium text-foreground">{pathGenerationDisplayReadiness.studentMessage}</p>
                   <p className="mt-1 text-xs leading-5 text-subtle">
                     如仍无法继续，请把当前状态转交给教师或管理员处理。
                   </p>
@@ -2844,7 +2857,7 @@ export default function AdaptivePracticePage() {
                   onClick={() => submitPathGeneration('generate')}
                   disabled={pathGenerationPending !== null || hasInvalidRequestedGoal || !canSubmitPathGeneration}
                   data-adaptive-path-generation-action="submit-panel-request"
-                  data-adaptive-generation-readiness-action={pathGenerationReadiness.studentAction}
+                  data-adaptive-generation-readiness-action={pathGenerationDisplayReadiness.studentAction}
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
                 >
                   <Sparkles className="size-4" aria-hidden="true" />
