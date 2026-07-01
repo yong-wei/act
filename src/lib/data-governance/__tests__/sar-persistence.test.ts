@@ -190,6 +190,19 @@ describe('SAR persistence', () => {
     }
   });
 
+  it('rejects restricted text in rejected trace refs', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const write = repository.upsertQueryTrace(traceInput(sarResult({
+      trace: trace({
+        rejectedRefs: [{ ref: 'raw answer body', reason: 'scope unavailable' }],
+      }),
+    })));
+
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toContain('rejectedRefs.0.ref');
+    expect(JSON.stringify(repository.getSnapshot())).not.toContain('raw answer body');
+  });
+
   it('stores query traces with hash-only query identity and handoff state', () => {
     const repository = createSarPersistenceRepository({ now: () => fixedNow });
     const input = traceInput();
@@ -476,6 +489,21 @@ describe('SAR persistence', () => {
     expect(JSON.stringify(exportedTrace)).not.toContain('sar:entity:orphan-system');
   });
 
+  it('keeps safe export mutations isolated from repository state', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    repository.upsertResult(sarResult());
+    repository.upsertQueryTrace(traceInput());
+
+    const exported = repository.exportSafeSnapshot();
+    exported.events[0].sourceRef.ownerUserIdHash = 'learner-raw';
+    exported.queryTraces[0].scope.studentIdHash = 'learner-raw';
+    exported.queryTraces[0].selectedRefs.push('sar:event:raw-answer-body');
+
+    const snapshot = repository.getSnapshot();
+    expect(JSON.stringify(snapshot)).not.toContain('learner-raw');
+    expect(JSON.stringify(snapshot)).not.toContain('sar:event:raw-answer-body');
+  });
+
   it('restores durable snapshots from disk without duplicating rebuilt records', () => {
     const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
     const filePath = join(directory, 'sar-index.json');
@@ -546,6 +574,108 @@ describe('SAR persistence', () => {
     }
   });
 
+  it('rejects restored snapshots with top-level raw fields', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertResult(sarResult());
+      const snapshot = repository.getSnapshot();
+      writeFileSync(filePath, JSON.stringify({
+        ...snapshot,
+        rawLearnerSubmission: 'student answer body',
+      }));
+
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored projection records with extra raw fields', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertResult(sarResult());
+      const snapshot = repository.getSnapshot();
+      writeFileSync(filePath, JSON.stringify({
+        ...snapshot,
+        events: {
+          'sar:event:kaq:root-locus': {
+            ...snapshot.events['sar:event:kaq:root-locus'],
+            metadata: { rawLearnerSubmission: 'student answer body' },
+          },
+        },
+        entities: {
+          'sar:entity:kaq:root-locus': {
+            ...snapshot.entities['sar:entity:kaq:root-locus'],
+            rawAnswerBody: 'student answer body',
+          },
+        },
+        relations: {
+          [Object.keys(snapshot.relations)[0]]: {
+            ...Object.values(snapshot.relations)[0],
+            rawTracePayload: 'private raw trace',
+          },
+        },
+      }));
+
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored projection records with corrupted exported fields', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertResult(sarResult());
+      const snapshot = repository.getSnapshot();
+      writeFileSync(filePath, JSON.stringify({
+        ...snapshot,
+        events: {
+          'sar:event:kaq:root-locus': {
+            ...snapshot.events['sar:event:kaq:root-locus'],
+            authorityLevel: 'raw answer body',
+          },
+        },
+      }));
+
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored snapshots with restricted sourceRef text', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertResult(sarResult());
+      const snapshot = repository.getSnapshot();
+      writeFileSync(filePath, JSON.stringify({
+        ...snapshot,
+        events: {
+          'sar:event:kaq:root-locus': {
+            ...snapshot.events['sar:event:kaq:root-locus'],
+            sourceRef: {
+              ...snapshot.events['sar:event:kaq:root-locus'].sourceRef,
+              owner: 'raw answer body',
+            },
+          },
+        },
+      }));
+
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
   it('rejects restored snapshots with restricted trace text in allowed fields', () => {
     const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
     const filePath = join(directory, 'sar-index.json');
@@ -558,9 +688,86 @@ describe('SAR persistence', () => {
         queryTraces: {
           'sar:trace:root-locus': {
             ...snapshot.queryTraces['sar:trace:root-locus'],
+            seedEntityIds: ['raw answer body'],
             selectedRefs: ['raw answer body'],
-            rejectedRefs: [{ ref: 'sar:event:private', reason: 'hidden arena evaluation internals' }],
+            rejectedRefs: [{ ref: 'raw audit trace', reason: 'hidden arena evaluation internals' }],
             limitations: ['private konling memory'],
+          },
+        },
+      }));
+
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored snapshots with restricted query role text', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertQueryTrace(traceInput());
+      const snapshot = repository.getSnapshot();
+      writeFileSync(filePath, JSON.stringify({
+        ...snapshot,
+        queryTraces: {
+          'sar:trace:root-locus': {
+            ...snapshot.queryTraces['sar:trace:root-locus'],
+            queryRole: 'raw answer body',
+            useCase: 'hidden arena evaluation internals',
+          },
+        },
+      }));
+
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored snapshots with restricted nested trace scope text', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertQueryTrace(traceInput());
+      const snapshot = repository.getSnapshot();
+      writeFileSync(filePath, JSON.stringify({
+        ...snapshot,
+        queryTraces: {
+          'sar:trace:root-locus': {
+            ...snapshot.queryTraces['sar:trace:root-locus'],
+            scope: {
+              ...snapshot.queryTraces['sar:trace:root-locus'].scope,
+              rawQuery: 'raw answer body',
+            },
+          },
+        },
+      }));
+
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored snapshots with restricted expansion hop fields', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertQueryTrace(traceInput());
+      const snapshot = repository.getSnapshot();
+      writeFileSync(filePath, JSON.stringify({
+        ...snapshot,
+        queryTraces: {
+          'sar:trace:root-locus': {
+            ...snapshot.queryTraces['sar:trace:root-locus'],
+            expansionHops: [{
+              ...snapshot.queryTraces['sar:trace:root-locus'].expansionHops[0],
+              relationRole: 'raw answer body',
+            }],
           },
         },
       }));

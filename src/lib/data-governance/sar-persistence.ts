@@ -176,6 +176,15 @@ export interface SarPersistenceWriteResult {
   issues: SarValidationIssue[];
 }
 
+const SNAPSHOT_KEYS = new Set([
+  'schemaVersion',
+  'generatedAt',
+  'events',
+  'entities',
+  'relations',
+  'queryTraces',
+]);
+
 const QUERY_TRACE_RECORD_KEYS = new Set([
   'stableId',
   'queryRole',
@@ -198,6 +207,49 @@ const QUERY_TRACE_RECORD_KEYS = new Set([
   'updatedAt',
 ]);
 
+const PERSISTED_EVENT_RECORD_KEYS = new Set([
+  'stableId',
+  'eventType',
+  'title',
+  'safeSummary',
+  'sourceRef',
+  'authorityLevel',
+  'privacyScope',
+  'freshness',
+  'contentHash',
+  'versionRefs',
+  'writtenAt',
+  'updatedAt',
+]);
+
+const PERSISTED_ENTITY_RECORD_KEYS = new Set([
+  'stableId',
+  'entityType',
+  'canonicalRef',
+  'label',
+  'aliases',
+  'privacyScope',
+  'extraction',
+  'contentHash',
+  'versionRefs',
+  'writtenAt',
+  'updatedAt',
+]);
+
+const PERSISTED_RELATION_RECORD_KEYS = new Set([
+  'stableId',
+  'eventId',
+  'entityId',
+  'role',
+  'confidence',
+  'provenance',
+  'source',
+  'contentHash',
+  'versionRefs',
+  'writtenAt',
+  'updatedAt',
+]);
+
 const PERSISTED_SOURCE_REF_KEYS = new Set([
   'id',
   'owner',
@@ -206,6 +258,27 @@ const PERSISTED_SOURCE_REF_KEYS = new Set([
   'contentHash',
   'ownerUserIdHash',
   'classIdHash',
+]);
+
+const QUERY_TRACE_SCOPE_REF_KEYS = new Set([
+  'scope',
+  'studentIdHash',
+  'classIdHash',
+  'teacherIdHash',
+]);
+
+const QUERY_TRACE_RETENTION_KEYS = new Set([
+  'storedAt',
+  'retainUntil',
+  'minimizeAfter',
+  'minimizationPolicy',
+]);
+
+const QUERY_TRACE_AGGREGATE_COUNTS_KEYS = new Set([
+  'seedEntityIds',
+  'expansionHops',
+  'selectedRefs',
+  'rejectedRefs',
 ]);
 
 const EXPORT_ELIGIBILITY = new Set<SarQueryTraceExportEligibility>([
@@ -386,7 +459,7 @@ export class SarPersistenceRepository {
     const eventIds = new Set(activeEvents.map((record) => record.stableId));
     const entityIds = new Set(activeEntities.map((record) => record.stableId));
 
-    return {
+    return deepClone({
       schemaVersion: this.snapshot.schemaVersion,
       generatedAt: this.snapshot.generatedAt,
       exportedAt: now,
@@ -398,7 +471,7 @@ export class SarPersistenceRepository {
         .map((trace) => minimizeTraceIfExpired(trace, now))
         .filter(isExportEligibleQueryTrace)
         .map((trace) => filterTraceRefsForExport(trace, eventIds, entityIds)),
-    };
+    });
   }
 
   private loadSnapshot(): SarPersistenceSnapshot | null {
@@ -478,23 +551,69 @@ function persistResultIntoSnapshot(
 }
 
 function validateSnapshot(snapshot: SarPersistenceSnapshot): SarValidationIssue[] {
+  if (!isRecord(snapshot)) {
+    return [{ code: 'invalid-object', path: 'snapshot', message: 'SAR persistence snapshot must be an object.' }];
+  }
   return [
-    ...Object.values(snapshot.events).flatMap((record) => validateSarEvent({
+    ...validateAllowedKeys(snapshot, SNAPSHOT_KEYS, 'snapshot'),
+    ...validateSnapshotShape(snapshot),
+    ...recordValues(snapshot.events).flatMap(validatePersistedEventRecord),
+    ...recordValues(snapshot.entities).flatMap(validatePersistedEntityRecord),
+    ...recordValues(snapshot.relations).flatMap(validatePersistedRelationRecord),
+    ...recordValues(snapshot.queryTraces).flatMap(validatePersistedQueryTraceRecord),
+  ];
+}
+
+function validateSnapshotShape(snapshot: Record<string, unknown>): SarValidationIssue[] {
+  const issues: SarValidationIssue[] = [];
+  if (snapshot.schemaVersion !== 'sar-persistence.v1') {
+    issues.push({ code: 'invalid-object', path: 'schemaVersion', message: 'SAR persistence snapshot schemaVersion is unsupported.' });
+  }
+  if (!isIsoDate(snapshot.generatedAt)) {
+    issues.push({ code: 'missing-required-field', path: 'generatedAt', message: 'SAR persistence snapshot generatedAt must be an ISO timestamp.' });
+  }
+  for (const key of ['events', 'entities', 'relations', 'queryTraces']) {
+    if (!isRecord(snapshot[key])) {
+      issues.push({ code: 'invalid-object', path: key, message: `${key} must be a record map.` });
+    }
+  }
+  return issues;
+}
+
+function validatePersistedEventRecord(record: unknown): SarValidationIssue[] {
+  if (!isRecord(record)) {
+    return [{ code: 'invalid-object', path: 'events', message: 'Persisted event must be an object.' }];
+  }
+  return [
+    ...validateAllowedKeys(record, PERSISTED_EVENT_RECORD_KEYS, `events.${String(record.stableId ?? 'unknown')}`),
+    ...validatePersistedEventDerivedFields(record),
+    ...validatePersistedTextBoundary(record, `events.${String(record.stableId ?? 'unknown')}`),
+    ...validateSarEvent({
       id: record.stableId,
       eventType: record.eventType,
       title: record.title,
       safeSummary: record.safeSummary,
-      sourceRef: {
+      sourceRef: isRecord(record.sourceRef) ? {
         id: record.sourceRef.id,
         owner: record.sourceRef.owner,
         authorityLevel: record.sourceRef.authorityLevel,
         freshness: record.sourceRef.freshness,
         contentHash: record.sourceRef.contentHash,
-      },
+      } : record.sourceRef,
       privacyScope: record.privacyScope,
-    }).issues),
-    ...Object.values(snapshot.events).flatMap((record) => validatePersistedSourceRef(record.sourceRef)),
-    ...Object.values(snapshot.entities).flatMap((record) => validateSarEntity({
+    }).issues,
+    ...validatePersistedSourceRef(record.sourceRef),
+  ];
+}
+
+function validatePersistedEntityRecord(record: unknown): SarValidationIssue[] {
+  if (!isRecord(record)) {
+    return [{ code: 'invalid-object', path: 'entities', message: 'Persisted entity must be an object.' }];
+  }
+  return [
+    ...validateAllowedKeys(record, PERSISTED_ENTITY_RECORD_KEYS, `entities.${String(record.stableId ?? 'unknown')}`),
+    ...validatePersistedTextBoundary(record, `entities.${String(record.stableId ?? 'unknown')}`),
+    ...validateSarEntity({
       id: record.stableId,
       entityType: record.entityType,
       canonicalRef: record.canonicalRef,
@@ -502,16 +621,25 @@ function validateSnapshot(snapshot: SarPersistenceSnapshot): SarValidationIssue[
       aliases: record.aliases,
       privacyScope: record.privacyScope,
       extraction: record.extraction,
-    }).issues),
-    ...Object.values(snapshot.relations).flatMap((record) => validateSarRelation({
+    }).issues,
+  ];
+}
+
+function validatePersistedRelationRecord(record: unknown): SarValidationIssue[] {
+  if (!isRecord(record)) {
+    return [{ code: 'invalid-object', path: 'relations', message: 'Persisted relation must be an object.' }];
+  }
+  return [
+    ...validateAllowedKeys(record, PERSISTED_RELATION_RECORD_KEYS, `relations.${String(record.stableId ?? 'unknown')}`),
+    ...validatePersistedTextBoundary(record, `relations.${String(record.stableId ?? 'unknown')}`),
+    ...validateSarRelation({
       eventId: record.eventId,
       entityId: record.entityId,
       role: record.role,
       confidence: record.confidence,
       provenance: record.provenance,
       source: record.source,
-    }).issues),
-    ...Object.values(snapshot.queryTraces).flatMap(validatePersistedQueryTraceRecord),
+    }).issues,
   ];
 }
 
@@ -541,9 +669,53 @@ function validatePersistedQueryTraceRecord(record: unknown): SarValidationIssue[
   }
   issues.push(...validateScopeRef(record.scope));
   issues.push(...validateRetention(record.retention));
+  if (record.aggregateCounts !== undefined) {
+    issues.push(...validateAggregateCounts(record.aggregateCounts));
+  }
   issues.push(...validateTraceEnums(record.exportEligibility, record.handoffStatus));
   issues.push(...validateQueryTraceIdentity(record.queryRole, record.useCase, record.queryHash));
+  issues.push(...validateSarTrace({
+    id: record.stableId,
+    seedEntityIds: record.seedEntityIds,
+    expansionHops: record.expansionHops,
+    selectedRefs: record.selectedRefs,
+    rejectedRefs: record.rejectedRefs,
+    limitations: record.limitations,
+    versionRefs: record.versionRefs,
+  }).issues);
+  issues.push(...validatePersistedTextBoundary({
+    queryRole: record.queryRole,
+    useCase: record.useCase,
+  }, `queryTraces.${String(record.stableId ?? 'unknown')}`));
   issues.push(...validateTraceTextBoundary(record));
+  return issues;
+}
+
+function validatePersistedEventDerivedFields(record: Record<string, unknown>): SarValidationIssue[] {
+  const issues: SarValidationIssue[] = [];
+  if (isRecord(record.sourceRef)) {
+    if (record.authorityLevel !== record.sourceRef.authorityLevel) {
+      issues.push({
+        code: 'invalid-reference',
+        path: 'events.authorityLevel',
+        message: 'Persisted event authorityLevel must match sourceRef.authorityLevel.',
+      });
+    }
+    if (record.freshness !== record.sourceRef.freshness) {
+      issues.push({
+        code: 'invalid-reference',
+        path: 'events.freshness',
+        message: 'Persisted event freshness must match sourceRef.freshness.',
+      });
+    }
+    if (record.sourceRef.contentHash !== undefined && record.contentHash !== record.sourceRef.contentHash) {
+      issues.push({
+        code: 'invalid-reference',
+        path: 'events.contentHash',
+        message: 'Persisted event contentHash must match sourceRef.contentHash when sourceRef provides one.',
+      });
+    }
+  }
   return issues;
 }
 
@@ -570,11 +742,40 @@ function validatePersistedSourceRef(sourceRef: SarPersistedSourceRef): SarValida
   return issues;
 }
 
+function validateAllowedKeys(
+  record: Record<string, unknown>,
+  allowedKeys: ReadonlySet<string>,
+  path: string,
+): SarValidationIssue[] {
+  const issues: SarValidationIssue[] = [];
+  for (const key of Object.keys(record)) {
+    if (!allowedKeys.has(key)) {
+      issues.push({
+        code: 'restricted-raw-content',
+        path: `${path}.${key}`,
+        message: `${path}.${key} is outside the SAR persistence boundary.`,
+      });
+    }
+  }
+  return issues;
+}
+
+function validatePersistedTextBoundary(record: Record<string, unknown>, path: string): SarValidationIssue[] {
+  const issues: SarValidationIssue[] = [];
+  for (const [key, value] of Object.entries(record)) {
+    collectRestrictedTraceText(value, `${path}.${key}`, issues);
+  }
+  return issues;
+}
+
 function validateScopeRef(scopeRef: unknown): SarValidationIssue[] {
   if (!isRecord(scopeRef) || typeof scopeRef.scope !== 'string') {
     return [{ code: 'invalid-trace', path: 'scope', message: 'Trace scope is required.' }];
   }
-  const issues: SarValidationIssue[] = [];
+  const issues: SarValidationIssue[] = [
+    ...validateAllowedKeys(scopeRef, QUERY_TRACE_SCOPE_REF_KEYS, 'scope'),
+    ...validatePersistedTextBoundary(scopeRef, 'scope'),
+  ];
   if (!QUERY_TRACE_SCOPES.has(scopeRef.scope as SarQueryTraceScope)) {
     issues.push({ code: 'invalid-trace', path: 'scope.scope', message: 'Trace scope must use a governed value.' });
   }
@@ -625,7 +826,10 @@ function validateRetention(retention: unknown): SarValidationIssue[] {
   if (!isRecord(retention)) {
     return [{ code: 'invalid-trace', path: 'retention', message: 'Trace retention is required.' }];
   }
-  const issues: SarValidationIssue[] = [];
+  const issues: SarValidationIssue[] = [
+    ...validateAllowedKeys(retention, QUERY_TRACE_RETENTION_KEYS, 'retention'),
+    ...validatePersistedTextBoundary(retention, 'retention'),
+  ];
   if (!isIsoDate(retention.storedAt)) {
     issues.push({ code: 'missing-required-field', path: 'retention.storedAt', message: 'Trace retention requires storedAt.' });
   }
@@ -661,16 +865,37 @@ function validateRetention(retention: unknown): SarValidationIssue[] {
   return issues;
 }
 
+function validateAggregateCounts(aggregateCounts: unknown): SarValidationIssue[] {
+  if (!isRecord(aggregateCounts)) {
+    return [{ code: 'invalid-trace', path: 'aggregateCounts', message: 'Trace aggregateCounts must be an object when provided.' }];
+  }
+  const issues: SarValidationIssue[] = [
+    ...validateAllowedKeys(aggregateCounts, QUERY_TRACE_AGGREGATE_COUNTS_KEYS, 'aggregateCounts'),
+    ...validatePersistedTextBoundary(aggregateCounts, 'aggregateCounts'),
+  ];
+  for (const [key, value] of Object.entries(aggregateCounts)) {
+    if (typeof value !== 'number' || Number.isNaN(value) || value < 0) {
+      issues.push({ code: 'invalid-trace', path: `aggregateCounts.${key}`, message: 'Trace aggregateCounts values must be non-negative numbers.' });
+    }
+  }
+  return issues;
+}
+
 function validateTraceTextBoundary(traceLike: Pick<
   SarPersistedQueryTraceRecord,
-  'selectedRefs' | 'rejectedRefs' | 'limitations'
+  'seedEntityIds' | 'expansionHops' | 'selectedRefs' | 'rejectedRefs' | 'limitations'
 > | SarRetrievalTrace): SarValidationIssue[] {
   const issues: SarValidationIssue[] = [];
+  collectRestrictedTraceText(traceLike.seedEntityIds, 'seedEntityIds', issues);
+  collectRestrictedTraceText(traceLike.expansionHops, 'expansionHops', issues);
   collectRestrictedTraceText(traceLike.selectedRefs, 'selectedRefs', issues);
   collectRestrictedTraceText(traceLike.limitations, 'limitations', issues);
   if (Array.isArray(traceLike.rejectedRefs)) {
     traceLike.rejectedRefs.forEach((ref, index) => {
-      if (isRecord(ref)) collectRestrictedTraceText(ref.reason, `rejectedRefs.${index}.reason`, issues);
+      if (isRecord(ref)) {
+        collectRestrictedTraceText(ref.ref, `rejectedRefs.${index}.ref`, issues);
+        collectRestrictedTraceText(ref.reason, `rejectedRefs.${index}.reason`, issues);
+      }
     });
   }
   return issues;
@@ -785,6 +1010,10 @@ function collectRestrictedTraceText(
   }
   if (Array.isArray(value)) {
     value.forEach((item, index) => collectRestrictedTraceText(item, `${path}.${index}`, issues));
+    return;
+  }
+  if (isRecord(value)) {
+    Object.entries(value).forEach(([key, child]) => collectRestrictedTraceText(child, `${path}.${key}`, issues));
   }
 }
 
@@ -826,6 +1055,10 @@ function isHashRef(value: unknown): value is string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function recordValues(value: unknown): unknown[] {
+  return isRecord(value) ? Object.values(value) : [];
 }
 
 function deepClone<T>(value: T): T {
