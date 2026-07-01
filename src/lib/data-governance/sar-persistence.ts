@@ -396,7 +396,8 @@ export class SarPersistenceRepository {
         .filter((record) => eventIds.has(record.eventId) && entityIds.has(record.entityId)),
       queryTraces: Object.values(this.snapshot.queryTraces)
         .map((trace) => minimizeTraceIfExpired(trace, now))
-        .filter(isExportEligibleQueryTrace),
+        .filter(isExportEligibleQueryTrace)
+        .map((trace) => filterTraceRefsForExport(trace, eventIds, entityIds)),
     };
   }
 
@@ -725,6 +726,34 @@ function isExportEligibleQueryTrace(trace: SarPersistedQueryTraceRecord): boolea
     trace.exportEligibility === 'admin-export'
     || trace.exportEligibility === 'teacher-export'
   );
+}
+
+function filterTraceRefsForExport(
+  trace: SarPersistedQueryTraceRecord,
+  eventIds: ReadonlySet<string>,
+  entityIds: ReadonlySet<string>,
+): SarPersistedQueryTraceRecord {
+  return {
+    ...trace,
+    seedEntityIds: trace.seedEntityIds.filter((id) => entityIds.has(id)),
+    expansionHops: trace.expansionHops.filter((hop) => (
+      entityIds.has(hop.fromEntityId)
+      && entityIds.has(hop.toEntityId)
+      && (hop.viaEventId === undefined || eventIds.has(hop.viaEventId))
+    )),
+    selectedRefs: trace.selectedRefs.filter((ref) => isExportableTraceRef(ref, eventIds, entityIds)),
+    rejectedRefs: trace.rejectedRefs.filter((ref) => isExportableTraceRef(ref.ref, eventIds, entityIds)),
+  };
+}
+
+function isExportableTraceRef(
+  ref: string,
+  eventIds: ReadonlySet<string>,
+  entityIds: ReadonlySet<string>,
+): boolean {
+  if (ref.startsWith('sar:event:')) return eventIds.has(ref);
+  if (ref.startsWith('sar:entity:')) return entityIds.has(ref);
+  return true;
 }
 
 function sanitizeSourceRef(sourceRef: SarRetrievalEvent['sourceRef']): SarPersistedSourceRef {

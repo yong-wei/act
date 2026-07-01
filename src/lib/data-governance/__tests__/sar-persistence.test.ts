@@ -361,6 +361,121 @@ describe('SAR persistence', () => {
     expect(exported.relations.map((record) => record.eventId)).toEqual(['sar:event:kaq:root-locus']);
   });
 
+  it('filters restricted SAR refs from exported query traces', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const restrictedEvent = event({
+      id: 'sar:event:audit-only',
+      title: 'Audit-only event',
+      safeSummary: 'Governed audit summary.',
+      sourceRef: { ...event().sourceRef, id: 'audit:event', contentHash: 'sha256:audit' },
+      privacyScope: 'audit-only',
+    });
+    const restrictedEntity = entity({
+      id: 'sar:entity:system',
+      canonicalRef: 'system:internal',
+      label: 'System internal entity',
+      privacyScope: 'system-internal',
+    });
+    const result = sarResult({
+      trace: trace({
+        seedEntityIds: ['sar:entity:kaq:root-locus', 'sar:entity:system'],
+        expansionHops: [{
+          fromEntityId: 'sar:entity:kaq:root-locus',
+          toEntityId: 'sar:entity:system',
+          viaEventId: 'sar:event:audit-only',
+          relationRole: 'supports',
+          confidence: 0.72,
+        }],
+        selectedRefs: [
+          'sar:event:kaq:root-locus',
+          'sar:event:audit-only',
+          'citation-target:kaq:root-locus',
+        ],
+        rejectedRefs: [
+          { ref: 'sar:entity:system', reason: 'scope unavailable' },
+          { ref: 'learning-evidence:chunk:root-locus', reason: 'low confidence' },
+        ],
+      }),
+      events: [event(), restrictedEvent],
+      entities: [entity(), restrictedEntity],
+      relations: [
+        relation(),
+        relation({
+          eventId: 'sar:event:audit-only',
+          entityId: 'sar:entity:system',
+          source: 'audit relation summary',
+        }),
+      ],
+    });
+
+    repository.upsertResult(result);
+    repository.upsertQueryTrace(traceInput(result));
+
+    const [exportedTrace] = repository.exportSafeSnapshot().queryTraces;
+    expect(exportedTrace.seedEntityIds).toEqual(['sar:entity:kaq:root-locus']);
+    expect(exportedTrace.expansionHops).toEqual([]);
+    expect(exportedTrace.selectedRefs).toEqual([
+      'sar:event:kaq:root-locus',
+      'citation-target:kaq:root-locus',
+    ]);
+    expect(exportedTrace.rejectedRefs).toEqual([
+      { ref: 'learning-evidence:chunk:root-locus', reason: 'low confidence' },
+    ]);
+    expect(JSON.stringify(exportedTrace)).not.toContain('sar:event:audit-only');
+    expect(JSON.stringify(exportedTrace)).not.toContain('sar:entity:system');
+  });
+
+  it('filters orphan SAR refs from exported query traces after rebuild', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const orphanEvent = event({
+      id: 'sar:event:orphan-audit',
+      title: 'Orphan audit event',
+      safeSummary: 'Governed audit summary.',
+      sourceRef: { ...event().sourceRef, id: 'audit:orphan', contentHash: 'sha256:orphan-audit' },
+      privacyScope: 'audit-only',
+    });
+    const orphanEntity = entity({
+      id: 'sar:entity:orphan-system',
+      canonicalRef: 'system:orphan',
+      label: 'Orphan system entity',
+      privacyScope: 'system-internal',
+    });
+    const result = sarResult({
+      trace: trace({
+        selectedRefs: ['sar:event:kaq:root-locus', 'sar:event:orphan-audit', 'citation-target:kaq:root-locus'],
+        rejectedRefs: [
+          { ref: 'sar:entity:orphan-system', reason: 'scope unavailable' },
+          { ref: 'learning-evidence:chunk:root-locus', reason: 'low confidence' },
+        ],
+      }),
+      events: [event(), orphanEvent],
+      entities: [entity(), orphanEntity],
+      relations: [
+        relation(),
+        relation({
+          eventId: 'sar:event:orphan-audit',
+          entityId: 'sar:entity:orphan-system',
+          source: 'orphan audit relation summary',
+        }),
+      ],
+    });
+    repository.upsertResult(result);
+    repository.upsertQueryTrace(traceInput(result));
+
+    repository.rebuild([sarResult()]);
+
+    const [exportedTrace] = repository.exportSafeSnapshot().queryTraces;
+    expect(exportedTrace.selectedRefs).toEqual([
+      'sar:event:kaq:root-locus',
+      'citation-target:kaq:root-locus',
+    ]);
+    expect(exportedTrace.rejectedRefs).toEqual([
+      { ref: 'learning-evidence:chunk:root-locus', reason: 'low confidence' },
+    ]);
+    expect(JSON.stringify(exportedTrace)).not.toContain('sar:event:orphan-audit');
+    expect(JSON.stringify(exportedTrace)).not.toContain('sar:entity:orphan-system');
+  });
+
   it('restores durable snapshots from disk without duplicating rebuilt records', () => {
     const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
     const filePath = join(directory, 'sar-index.json');
