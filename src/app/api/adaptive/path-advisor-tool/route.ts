@@ -20,6 +20,11 @@ import {
 import { prisma } from '@/lib/prisma';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import { getAdaptivePracticeGoalOption } from '@/lib/adaptive-path-goal-options';
+import {
+  adaptiveGenerationReadinessFromHttp,
+  buildAdaptiveGenerationReadiness,
+  type AdaptiveGenerationReadiness,
+} from '@/lib/adaptive-generation-readiness';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const runtime = 'nodejs';
@@ -34,7 +39,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '请先登录后再生成学习路径' }, { status: 401 });
     }
     if (session.user.role !== 'STUDENT') {
-      return NextResponse.json({ error: '当前入口仅支持学生生成个人学习路径' }, { status: 403 });
+      return readinessError('当前入口仅支持学生生成个人学习路径', 403, buildAdaptiveGenerationReadiness({
+        reason: 'advisor-forbidden',
+        source: 'path-advisor-tool',
+      }));
     }
 
     const body = await request.json();
@@ -44,7 +52,20 @@ export async function POST(request: Request) {
     }
     const classId = session.user.profile?.classId ?? null;
     if (!classId) {
-      return NextResponse.json({ error: '当前账号缺少班级信息，暂不能生成学习路径' }, { status: 403 });
+      return readinessError('当前账号缺少班级信息，暂不能生成学习路径', 403, buildAdaptiveGenerationReadiness({
+        reason: 'missing-class-binding',
+        source: 'session',
+      }));
+    }
+    const classBinding = await prisma.class.findUnique({
+      where: { id: classId },
+      select: { teacherId: true },
+    });
+    if (!classBinding?.teacherId) {
+      return readinessError('当前班级缺少任课教师绑定，暂不能生成学习路径', 403, buildAdaptiveGenerationReadiness({
+        reason: 'missing-teacher-binding',
+        source: 'session',
+      }));
     }
 
     const modeContextToken = typeof body.modeContextToken === 'string' ? body.modeContextToken : '';
@@ -70,7 +91,14 @@ export async function POST(request: Request) {
       },
     });
     if (!scopeResult.ok) {
-      return NextResponse.json({ error: scopeResult.error }, { status: scopeResult.status });
+      return NextResponse.json({
+        error: scopeResult.error,
+        readiness: adaptiveGenerationReadinessFromHttp({
+          status: scopeResult.status,
+          source: 'path-advisor-tool',
+          fallbackReason: 'advisor-forbidden',
+        }),
+      }, { status: scopeResult.status });
     }
 
     const requestedToolInput = await buildPathAdvisorToolInput(body, goalId, session.user.id);
@@ -85,7 +113,10 @@ export async function POST(request: Request) {
       clientContextHints: requestedContextHints,
     });
     if (requestedToolInput.graphNodeId && !signedGraphNodeId) {
-      return NextResponse.json({ error: '图谱节点上下文未签名或已失效' }, { status: 403 });
+      return readinessError('图谱节点上下文未签名或已失效', 403, buildAdaptiveGenerationReadiness({
+        reason: 'advisor-forbidden',
+        source: 'path-advisor-tool',
+      }));
     }
     const toolInput = signedGraphNodeId
       ? { ...requestedToolInput, graphNodeId: signedGraphNodeId }
@@ -148,6 +179,10 @@ export async function POST(request: Request) {
     if (modeContract.status === 'unavailable') {
       return NextResponse.json({
         error: 'KONLING_MODE_UNAVAILABLE',
+        readiness: buildAdaptiveGenerationReadiness({
+          reason: 'service-unavailable',
+          source: 'path-advisor-tool',
+        }),
         unavailableReasons: modeContract.unavailableReasons,
         clientHintsRejected: modeContract.clientHintsRejected,
       }, { status: 409 });
@@ -181,16 +216,34 @@ export async function POST(request: Request) {
     return NextResponse.json({
       operation,
       agentSessionId: agentSession.id,
+      readiness: buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor-tool' }),
       result,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof KonlingRuntimeScopeError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json({
+        error: error.message,
+        readiness: adaptiveGenerationReadinessFromHttp({
+          status: error.status,
+          source: 'path-advisor-tool',
+          fallbackReason: 'advisor-forbidden',
+        }),
+      }, { status: error.status });
     }
     console.error('[AdaptivePathAdvisorTool] Error:', error);
-    return NextResponse.json({ error: '学习路径生成失败' }, { status: 500 });
+    return NextResponse.json({
+      error: '学习路径生成失败',
+      readiness: buildAdaptiveGenerationReadiness({
+        reason: 'retryable',
+        source: 'path-advisor-tool',
+      }),
+    }, { status: 500 });
   }
+}
+
+function readinessError(error: string, status: 403, readiness: AdaptiveGenerationReadiness) {
+  return NextResponse.json({ error, readiness }, { status });
 }
 
 function buildPathAwareCitationContext(

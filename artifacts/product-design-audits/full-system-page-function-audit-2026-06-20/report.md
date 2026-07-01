@@ -913,6 +913,7 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 335. P1：路径生成动作没有解决前置条件
    路径生成设置可见，点击后只提示“路径生成上下文还在准备，请稍后重试”，没有解释缺少班级信息、服务不可用或需要教师绑定。
+   台账状态（2026-07-01，`audit-remediation-adaptive-generation-readiness-closure`）：closed for generation readiness preconditions。路径生成入口、`path-advisor-context` 和 `path-advisor-tool` 现在共享 readiness contract，区分缺少班级绑定、缺少教师绑定、学习者状态不可用、路径顾问权限不足、服务不可用、证据不足和可重试失败；UI 暴露学生下一步、教师/管理员处理路径和 DOM 状态标记，生成按钮不再在缺少前置条件时只落入通用“稍后重试”。本关闭仅覆盖路径生成前置条件和服务错误，不重复关闭 `audit-remediation-student-path-evidence-loop-closure` 已覆盖的空路径、坏 pathId、selection/execution/evidence-review 恢复范围；证据见 `openspec/changes/audit-remediation-adaptive-generation-readiness-closure/evidence.md`。
 
 336. P1：path-selection、path-execution 和坏 pathId 状态仍被普通页面吞掉
    无真实 path 时，选择和执行 intent 仍显示路径/练习资源；坏 pathId 也没有“路径不存在/已过期/重新生成”状态。

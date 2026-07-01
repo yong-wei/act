@@ -102,6 +102,66 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("option.activeNodeIds?.[0] ?? option.nodeIds?.[0]");
   });
 
+  it('shows adaptive generation readiness before path generation can fail generically', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const contextRouteSource = readRepoFile('src/app/api/adaptive/path-advisor-context/route.ts');
+    const toolRouteSource = readRepoFile('src/app/api/adaptive/path-advisor-tool/route.ts');
+
+    expect(source).toContain('pathGenerationReadiness');
+    expect(source).toContain('selectAdaptiveGenerationReadiness');
+    expect(source).toContain('const learnerStatePendingReadiness = useMemo');
+    expect(source).toContain('Boolean(pathAdvisorContextGoal)');
+    expect(source).toContain("learnerStateLoadState !== 'ready'");
+    expect(source).toContain("buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'learner-state' })");
+    expect(source).toContain('const authRequiredGenerationReadiness = useMemo');
+    expect(source).toContain("authStatus === 'unauthenticated'");
+    expect(source).toContain("buildAdaptiveGenerationReadiness({ reason: 'auth-required', source: 'session' })");
+    expect(source).toContain('const loginCallbackHref = showGenerationWorkspace');
+    expect(source).toContain('? withFeedbackTaskHref(buildPathGenerationGoalHref(activeGoal, pathGenerationPanel))');
+    expect(source).toContain(': feedbackGenericPathGenerationHref');
+    expect(source).toContain(': activeGoalContextHref');
+    expect(source).toContain('const loginHref = `/login?callbackUrl=${encodeURIComponent(loginCallbackHref)}`;');
+    expect(source).toContain('if (activeGoal || !pathAdvisorContextGoal || !showGenerationWorkspace || isDemoMode) return;');
+    expect(source).toContain('const generationGoal = pathAdvisorContextGoal;');
+    expect(source).toContain('fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(generationGoal)}`)');
+    expect(source).toContain("const pathGenerationDegradedReadiness = learnerStateReadiness?.status === 'degraded'");
+    expect(source).toContain("evidenceReadiness?.status === 'degraded'");
+    expect(source).toContain("const canRetryPathGeneration = pathGenerationReadiness.status === 'retryable'");
+    expect(source).toContain("pathAdvisorReadiness?.status === 'retryable'");
+    expect(source).toContain('!pathGenerationDegradedReadiness');
+    expect(source).toContain("assistantEntryPoint?.mode === 'path-advisor'");
+    expect(source).toContain('Boolean(assistantEntryPoint.serverContext.modeContextToken)');
+    expect(source).toContain("const hasPathAdvisorModeContext = assistantEntryPoint?.mode === 'path-advisor'");
+    expect(source).toContain("const canSubmitPathGeneration = (pathGenerationReadiness.status === 'ready' && hasPathAdvisorModeContext) || canRetryPathGeneration;");
+    expect(source).toContain("const pathGenerationContextReadiness = pathGenerationReadiness.status === 'ready'");
+    expect(source).toContain('!hasPathAdvisorModeContext');
+    expect(source).toContain("buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'path-advisor' })");
+    expect(source).toContain('learnerStatePendingReadiness,');
+    expect(source).toContain('const pathGenerationDisplayReadiness = pathGenerationContextReadiness ??');
+    expect(source).toContain("pathGenerationReadiness.status === 'retryable' && pathGenerationDegradedReadiness");
+    expect(source).toContain('learner-state-unavailable');
+    expect(source).toContain("pathGenerationDisplayReadiness.studentAction === 'login'");
+    expect(source).toContain('登录后继续');
+    expect(source).toContain("learnerStateLoadState === 'ready'");
+    expect(source).toContain('insufficient-evidence');
+    expect(source).toContain('data-adaptive-generation-readiness-status={pathGenerationDisplayReadiness.status}');
+    expect(source).toContain('data-adaptive-generation-readiness-reason={pathGenerationDisplayReadiness.reason}');
+    expect(source).toContain('data-adaptive-generation-student-action={pathGenerationDisplayReadiness.studentAction}');
+    expect(source).toContain('data-adaptive-generation-staff-action={pathGenerationDisplayReadiness.staffAction}');
+    expect(source).toContain('data-adaptive-generation-readiness-card={pathGenerationDisplayReadiness.reason}');
+    expect(source).toContain('如仍无法继续，请把当前状态转交给教师或管理员处理。');
+    expect(source).not.toContain('{pathGenerationReadiness.staffMessage}</p>');
+    expect(source).toContain('disabled={pathGenerationPending !== null || hasInvalidRequestedGoal || !canSubmitPathGeneration}');
+    expect(source).toContain('setPathChoiceMessage(pathGenerationDisplayReadiness.studentMessage)');
+    expect(source).toContain('readAdaptiveGenerationReadiness(payload)');
+    expect(source).toContain("fallbackReason: response.status === 401 ? 'auth-required' : 'service-unavailable'");
+    expect(contextRouteSource).toContain('missing-class-binding');
+    expect(contextRouteSource).toContain('missing-teacher-binding');
+    expect(contextRouteSource).toContain('service-unavailable');
+    expect(toolRouteSource).toContain('readiness: buildAdaptiveGenerationReadiness');
+    expect(toolRouteSource).toContain('adaptiveGenerationReadinessFromHttp');
+  });
+
   it('renders explicit path recovery instead of fake progress for missing path contexts', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
@@ -137,7 +197,10 @@ describe('adaptive practice page entry states', () => {
     );
 
     expect(learnerStateEffectStart).toBeGreaterThan(-1);
-    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setActiveLearnerState(null);\n      setPathContextLoadState(\'ready\');\n      setLoadedPathContextKey(requestedPathContextKey);\n      return;\n    }');
+    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setActiveLearnerState(null);');
+    expect(learnerStateEffect).toContain("setLearnerStateLoadState('ready');");
+    expect(learnerStateEffect).toContain("setPathContextLoadState('ready');");
+    expect(learnerStateEffect).toContain('setLoadedPathContextKey(requestedPathContextKey);');
     expect(source).not.toContain('if (!activeGoal || isDemoMode) {\n      setActiveLearnerState(null);');
     expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setActivePathPlan(null);');
     expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setActivePathRound(null);');

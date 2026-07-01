@@ -6,7 +6,12 @@ import {
 } from '@/lib/konling-teaching-assistant-server-context';
 import { getAdaptivePathAdvisorGoalContext } from '@/lib/adaptive-path-goal-options';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import {
+  buildAdaptiveGenerationReadiness,
+  type AdaptiveGenerationReadiness,
+} from '@/lib/adaptive-generation-readiness';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,12 +31,29 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: '请先登录后再生成学习路径' }, { status: 401 });
   }
   if (session.user.role !== 'STUDENT') {
-    return NextResponse.json({ error: '当前入口仅支持学生生成个人学习路径' }, { status: 403 });
+    return readinessError('当前入口仅支持学生生成个人学习路径', 403, buildAdaptiveGenerationReadiness({
+      reason: 'advisor-forbidden',
+      source: 'path-advisor',
+    }));
   }
 
   const classId = session.user.profile?.classId ?? null;
   if (!classId) {
-    return NextResponse.json({ error: '当前账号缺少班级信息，暂不能生成学习路径' }, { status: 403 });
+    return readinessError('当前账号缺少班级信息，暂不能生成学习路径', 403, buildAdaptiveGenerationReadiness({
+      reason: 'missing-class-binding',
+      source: 'session',
+    }));
+  }
+
+  const classBinding = await prisma.class.findUnique({
+    where: { id: classId },
+    select: { teacherId: true },
+  });
+  if (!classBinding?.teacherId) {
+    return readinessError('当前班级缺少任课教师绑定，暂不能生成学习路径', 403, buildAdaptiveGenerationReadiness({
+      reason: 'missing-teacher-binding',
+      source: 'session',
+    }));
   }
 
   const goalContext = getAdaptivePathAdvisorGoalContext(goalId);
@@ -54,7 +76,10 @@ export async function GET(request: Request) {
     },
   });
   if (!modeContextToken) {
-    return NextResponse.json({ error: '学习路径生成服务尚未配置' }, { status: 503 });
+    return readinessError('学习路径生成服务尚未配置', 503, buildAdaptiveGenerationReadiness({
+      reason: 'service-unavailable',
+      source: 'path-advisor',
+    }));
   }
 
   return NextResponse.json({
@@ -62,6 +87,7 @@ export async function GET(request: Request) {
     classId,
     graphNodeId,
     modeContextToken,
+    readiness: buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor' }),
     ...goalContext,
   });
 }
@@ -73,4 +99,8 @@ function isGraphNodeInLearningGoalSubgraph(goalId: string, graphNodeId: string):
     ...expansion.graphNodeIds.capability,
     ...expansion.graphNodeIds.quality,
   ].includes(graphNodeId);
+}
+
+function readinessError(error: string, status: 403 | 503, readiness: AdaptiveGenerationReadiness) {
+  return NextResponse.json({ error, readiness }, { status });
 }
