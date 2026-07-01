@@ -55,6 +55,12 @@ import {
   type GenerationDifficultyRhythm,
   type PathGenerationPanelState,
 } from '@/lib/adaptive-path-generation-panel';
+import {
+  adaptiveGenerationReadinessFromHttp,
+  buildAdaptiveGenerationReadiness,
+  selectAdaptiveGenerationReadiness,
+  type AdaptiveGenerationReadiness,
+} from '@/lib/adaptive-generation-readiness';
 import { restoreAdaptiveLearningPathPlanFromRound } from '@/lib/adaptive-path-round-restore';
 import {
   adaptivePracticeGoalLabel,
@@ -140,6 +146,7 @@ interface PathAdvisorContextResponse {
   classId: string;
   graphNodeId?: string | null;
   modeContextToken: string;
+  readiness?: AdaptiveGenerationReadiness;
   courseTitle: string;
   topic: string;
   learningObjectives: string[];
@@ -170,6 +177,37 @@ type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
+
+function readAdaptiveGenerationReadiness(payload: unknown): AdaptiveGenerationReadiness | null {
+  const record = getRecord(payload);
+  const readiness = getRecord(record.readiness);
+  const status = typeof readiness.status === 'string' ? readiness.status : '';
+  const reason = typeof readiness.reason === 'string' ? readiness.reason : '';
+  const studentAction = typeof readiness.studentAction === 'string' ? readiness.studentAction : '';
+  const staffAction = typeof readiness.staffAction === 'string' ? readiness.staffAction : '';
+  const studentMessage = typeof readiness.studentMessage === 'string' ? readiness.studentMessage : '';
+  const staffMessage = typeof readiness.staffMessage === 'string' ? readiness.staffMessage : '';
+  const evidence = getRecord(readiness.evidence);
+  const source = typeof evidence.source === 'string' ? evidence.source : '';
+  const diagnosticCode = typeof evidence.diagnosticCode === 'string' ? evidence.diagnosticCode : '';
+  const safeLabel = typeof evidence.safeLabel === 'string' ? evidence.safeLabel : '';
+  if (!status || !reason || !studentAction || !staffAction || !studentMessage || !staffMessage || !source || !diagnosticCode) {
+    return null;
+  }
+  return {
+    status,
+    reason,
+    studentAction,
+    staffAction,
+    studentMessage,
+    staffMessage,
+    evidence: {
+      source,
+      diagnosticCode,
+      safeLabel: safeLabel || diagnosticCode,
+    },
+  } as AdaptiveGenerationReadiness;
+}
 
 interface PathSelectionHistoryView {
   type: string;
@@ -1353,6 +1391,7 @@ export default function AdaptivePracticePage() {
   const [questionStartAt, setQuestionStartAt] = useState<number>(Date.now());
   const [error, setError] = useState<string | null>(null);
   const [activeLearnerState, setActiveLearnerState] = useState<AdaptiveLearnerState | null>(null);
+  const [learnerStateLoadState, setLearnerStateLoadState] = useState<'idle' | 'loading' | 'ready'>('idle');
   const [activePathPlan, setActivePathPlan] = useState<AdaptiveLearningPathPlan | null>(null);
   const [activePathRound, setActivePathRound] = useState<LearningPathRoundView | null>(null);
   const [pathContextLoadState, setPathContextLoadState] = useState<AdaptivePathContextLoadState>('idle');
@@ -1361,6 +1400,8 @@ export default function AdaptivePracticePage() {
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
+  const [pathAdvisorReadiness, setPathAdvisorReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
+  const [learnerStateReadiness, setLearnerStateReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [pathAdvisorAgentSessionId, setPathAdvisorAgentSessionId] = useState<string | null>(null);
   const pathAdvisorContextGoal = hasInvalidRequestedGoal
     ? null
@@ -1398,6 +1439,21 @@ export default function AdaptivePracticePage() {
   );
   const pathSelectionHistory = useMemo(() => getPathSelectionHistory(adaptivePathCenter), [adaptivePathCenter]);
   const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
+  const evidenceReadiness = useMemo(() => (
+    showGenerationWorkspace &&
+      !isDemoMode &&
+      authStatus === 'authenticated' &&
+      learnerStateLoadState === 'ready' &&
+      !activeLearnerState
+      ? buildAdaptiveGenerationReadiness({ reason: 'insufficient-evidence', source: 'ui' })
+      : null
+  ), [activeLearnerState, authStatus, isDemoMode, learnerStateLoadState, showGenerationWorkspace]);
+  const pathGenerationReadiness = useMemo(() => selectAdaptiveGenerationReadiness([
+    pathAdvisorReadiness,
+    learnerStateReadiness,
+    evidenceReadiness,
+  ]), [evidenceReadiness, learnerStateReadiness, pathAdvisorReadiness]);
+  const canSubmitPathGeneration = pathGenerationReadiness.status === 'ready';
   const pathExecutionNodes = useMemo(
     () => getPathExecutionNodes(activePathPlan, activePathRound, selectedExecutionOption),
     [activePathPlan, activePathRound, selectedExecutionOption],
@@ -1510,6 +1566,7 @@ export default function AdaptivePracticePage() {
   useEffect(() => {
     if (!pathAdvisorContextGoal || isDemoMode) {
       updatePageContext({ assistantEntryPoint: null });
+      setPathAdvisorReadiness(null);
       return;
     }
     const contextGoal = pathAdvisorContextGoal;
@@ -1518,6 +1575,7 @@ export default function AdaptivePracticePage() {
 
     if (authStatus !== 'authenticated') {
       updatePageContext({ assistantEntryPoint: null });
+      setPathAdvisorReadiness(null);
       return;
     }
 
@@ -1528,11 +1586,20 @@ export default function AdaptivePracticePage() {
         if (activeGraphNodeId) contextQuery.set('graphNodeId', activeGraphNodeId);
         const response = await fetch(`/api/adaptive/path-advisor-context?${contextQuery.toString()}`);
         if (!response.ok) {
-          if (!cancelled) updatePageContext({ assistantEntryPoint: null });
+          const payload = await response.json().catch(() => ({}));
+          if (!cancelled) {
+            updatePageContext({ assistantEntryPoint: null });
+            setPathAdvisorReadiness(readAdaptiveGenerationReadiness(payload) ?? adaptiveGenerationReadinessFromHttp({
+              status: response.status,
+              source: 'path-advisor',
+              fallbackReason: 'service-unavailable',
+            }));
+          }
           return;
         }
         const payload = (await response.json()) as PathAdvisorContextResponse;
         if (cancelled) return;
+        setPathAdvisorReadiness(payload.readiness ?? buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor' }));
         updatePageContext({
           pageType: 'practice',
           stepId: 'adaptive-path-center',
@@ -1568,7 +1635,10 @@ export default function AdaptivePracticePage() {
           },
         });
       } catch {
-        if (!cancelled) updatePageContext({ assistantEntryPoint: null });
+        if (!cancelled) {
+          updatePageContext({ assistantEntryPoint: null });
+          setPathAdvisorReadiness(buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'path-advisor' }));
+        }
       }
     }
 
@@ -1648,6 +1718,8 @@ export default function AdaptivePracticePage() {
       setActiveLearnerState(null);
       setActivePathPlan(null);
       setActivePathRound(null);
+      setLearnerStateLoadState('idle');
+      setLearnerStateReadiness(null);
       setPathContextLoadState('idle');
       setLoadedPathContextKey(null);
       return;
@@ -1655,12 +1727,15 @@ export default function AdaptivePracticePage() {
 
     if (isDemoMode) {
       setActiveLearnerState(null);
+      setLearnerStateLoadState('ready');
+      setLearnerStateReadiness(null);
       setPathContextLoadState('ready');
       setLoadedPathContextKey(requestedPathContextKey);
       return;
     }
 
     if (authStatus === 'loading') {
+      setLearnerStateLoadState('loading');
       setPathContextLoadState('loading');
       return;
     }
@@ -1669,6 +1744,8 @@ export default function AdaptivePracticePage() {
       setActiveLearnerState(null);
       setActivePathPlan(null);
       setActivePathRound(null);
+      setLearnerStateLoadState('idle');
+      setLearnerStateReadiness(null);
       setPathContextLoadState('missing');
       setLoadedPathContextKey(null);
       return;
@@ -1679,6 +1756,8 @@ export default function AdaptivePracticePage() {
     let cancelled = false;
     async function loadAdaptivePathCenterData() {
       const requiresRoutePathContext = showSelectionWorkspace || showExecutionWorkspace || showEvidenceWorkspace;
+      setLearnerStateLoadState('loading');
+      setLearnerStateReadiness(null);
       setPathContextLoadState(requiresRoutePathContext || activePathId ? 'loading' : 'idle');
       setLoadedPathContextKey(null);
       if (requiresRoutePathContext || activePathId) {
@@ -1691,12 +1770,25 @@ export default function AdaptivePracticePage() {
         if (!cancelled && learnerResponse.ok) {
           learnerState = (await learnerResponse.json()) as AdaptiveLearnerState;
           setActiveLearnerState(learnerState);
+          setLearnerStateReadiness(null);
+          setLearnerStateLoadState('ready');
         } else if (!cancelled) {
           setActiveLearnerState(null);
+          setLearnerStateReadiness(adaptiveGenerationReadinessFromHttp({
+            status: learnerResponse.status,
+            source: 'learner-state',
+            fallbackReason: 'learner-state-unavailable',
+          }));
+          setLearnerStateLoadState('ready');
         }
       } catch {
         if (!cancelled) {
           setActiveLearnerState(null);
+          setLearnerStateReadiness(buildAdaptiveGenerationReadiness({
+            reason: 'learner-state-unavailable',
+            source: 'learner-state',
+          }));
+          setLearnerStateLoadState('ready');
         }
       }
 
@@ -1866,6 +1958,10 @@ export default function AdaptivePracticePage() {
       setPathChoiceMessage('学习路径目标未注册，请先选择可用目标。');
       return;
     }
+    if (!canSubmitPathGeneration) {
+      setPathChoiceMessage(pathGenerationReadiness.studentMessage);
+      return;
+    }
     const modeContextToken = assistantEntryPoint?.mode === 'path-advisor'
       ? assistantEntryPoint.serverContext.modeContextToken
       : null;
@@ -1923,8 +2019,14 @@ export default function AdaptivePracticePage() {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
+        const readiness = readAdaptiveGenerationReadiness(payload);
+        if (readiness) {
+          setPathAdvisorReadiness(readiness);
+          throw new Error(readiness.studentMessage);
+        }
         throw new Error(typeof payload.error === 'string' ? payload.error : '学习路径生成失败');
       }
+      setPathAdvisorReadiness(readAdaptiveGenerationReadiness(payload) ?? buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor-tool' }));
       if (typeof payload.agentSessionId === 'string') {
         setPathAdvisorAgentSessionId(payload.agentSessionId);
       }
@@ -1974,12 +2076,14 @@ export default function AdaptivePracticePage() {
     activePathId,
     assistantEntryPoint,
     authStatus,
+    canSubmitPathGeneration,
     hasInvalidRequestedGoal,
     activePathPlan,
     activePathRound,
     pathAdvisorAgentSessionId,
     pathExecutionNodes,
     pathGenerationPanel,
+    pathGenerationReadiness,
     pathOptions,
     refreshLatestLearningPathAfterKonling,
     routeIntent,
@@ -2432,12 +2536,14 @@ export default function AdaptivePracticePage() {
                   <button
                     type="button"
                     onClick={openPathGenerationAdvisor}
-                    disabled={assistantEntryPoint?.mode !== 'path-advisor'}
+                    disabled={assistantEntryPoint?.mode !== 'path-advisor' || !canSubmitPathGeneration}
                     data-adaptive-path-generation-action="open-in-page-path-advisor"
+                    data-adaptive-generation-readiness-status={pathGenerationReadiness.status}
+                    data-adaptive-generation-readiness-reason={pathGenerationReadiness.reason}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
                   >
                     <Sparkles className="size-4" aria-hidden="true" />
-                    {assistantEntryPoint?.mode === 'path-advisor' ? '请控灵生成路径' : '路径顾问准备中'}
+                    {assistantEntryPoint?.mode === 'path-advisor' && canSubmitPathGeneration ? '请控灵生成路径' : '路径顾问准备中'}
                   </button>
                 ) : (
                   <Link
@@ -2576,6 +2682,10 @@ export default function AdaptivePracticePage() {
               data-adaptive-path-generation-panel="editable"
               data-adaptive-path-generation-mobile-sheet="bottom-sheet"
               data-konling-citation-slot="cited-explanation"
+              data-adaptive-generation-readiness-status={pathGenerationReadiness.status}
+              data-adaptive-generation-readiness-reason={pathGenerationReadiness.reason}
+              data-adaptive-generation-student-action={pathGenerationReadiness.studentAction}
+              data-adaptive-generation-staff-action={pathGenerationReadiness.staffAction}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2585,6 +2695,19 @@ export default function AdaptivePracticePage() {
                 </div>
                 <MessageSquare className="size-5 text-primary" aria-hidden="true" />
               </div>
+              {pathGenerationReadiness.status !== 'ready' ? (
+                <div
+                  className="mt-4 rounded-lg border border-border bg-muted/45 p-3"
+                  role="status"
+                  aria-live="polite"
+                  data-adaptive-generation-readiness-card={pathGenerationReadiness.reason}
+                >
+                  <p className="text-sm font-medium text-foreground">{pathGenerationReadiness.studentMessage}</p>
+                  <p className="mt-1 text-xs leading-5 text-subtle">
+                    如仍无法继续，请把当前状态转交给教师或管理员处理。
+                  </p>
+                </div>
+              ) : null}
               <div className="mt-4 grid gap-3" data-adaptive-path-generation-request="structured-panel">
                 <label className="block rounded-lg border border-border bg-background/45 p-3">
                   <span className="text-xs text-subtle">学习目标</span>
@@ -2719,8 +2842,9 @@ export default function AdaptivePracticePage() {
                 <button
                   type="button"
                   onClick={() => submitPathGeneration('generate')}
-                  disabled={pathGenerationPending !== null || hasInvalidRequestedGoal}
+                  disabled={pathGenerationPending !== null || hasInvalidRequestedGoal || !canSubmitPathGeneration}
                   data-adaptive-path-generation-action="submit-panel-request"
+                  data-adaptive-generation-readiness-action={pathGenerationReadiness.studentAction}
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
                 >
                   <Sparkles className="size-4" aria-hidden="true" />
@@ -2729,7 +2853,7 @@ export default function AdaptivePracticePage() {
                 <button
                   type="button"
                   onClick={openPathGenerationAdvisor}
-                  disabled={assistantEntryPoint?.mode !== 'path-advisor'}
+                  disabled={assistantEntryPoint?.mode !== 'path-advisor' || !canSubmitPathGeneration}
                   className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary disabled:opacity-60"
                 >
                   <MessageSquare className="size-4" aria-hidden="true" />
@@ -2801,7 +2925,11 @@ export default function AdaptivePracticePage() {
           ) : null}
 
           {pathChoiceMessage && (showGenerationWorkspace || showSelectionWorkspace) ? (
-            <p className="rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground">
+            <p
+              className="rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground"
+              role="status"
+              aria-live="polite"
+            >
               {pathChoiceMessage}
             </p>
           ) : null}

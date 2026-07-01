@@ -102,6 +102,33 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("option.activeNodeIds?.[0] ?? option.nodeIds?.[0]");
   });
 
+  it('shows adaptive generation readiness before path generation can fail generically', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    const contextRouteSource = readRepoFile('src/app/api/adaptive/path-advisor-context/route.ts');
+    const toolRouteSource = readRepoFile('src/app/api/adaptive/path-advisor-tool/route.ts');
+
+    expect(source).toContain('pathGenerationReadiness');
+    expect(source).toContain('selectAdaptiveGenerationReadiness');
+    expect(source).toContain('learner-state-unavailable');
+    expect(source).toContain("learnerStateLoadState === 'ready'");
+    expect(source).toContain('insufficient-evidence');
+    expect(source).toContain('data-adaptive-generation-readiness-status={pathGenerationReadiness.status}');
+    expect(source).toContain('data-adaptive-generation-readiness-reason={pathGenerationReadiness.reason}');
+    expect(source).toContain('data-adaptive-generation-student-action={pathGenerationReadiness.studentAction}');
+    expect(source).toContain('data-adaptive-generation-staff-action={pathGenerationReadiness.staffAction}');
+    expect(source).toContain('data-adaptive-generation-readiness-card={pathGenerationReadiness.reason}');
+    expect(source).toContain('如仍无法继续，请把当前状态转交给教师或管理员处理。');
+    expect(source).not.toContain('{pathGenerationReadiness.staffMessage}</p>');
+    expect(source).toContain('disabled={pathGenerationPending !== null || hasInvalidRequestedGoal || !canSubmitPathGeneration}');
+    expect(source).toContain('setPathChoiceMessage(pathGenerationReadiness.studentMessage)');
+    expect(source).toContain('readAdaptiveGenerationReadiness(payload)');
+    expect(contextRouteSource).toContain('missing-class-binding');
+    expect(contextRouteSource).toContain('missing-teacher-binding');
+    expect(contextRouteSource).toContain('service-unavailable');
+    expect(toolRouteSource).toContain('readiness: buildAdaptiveGenerationReadiness');
+    expect(toolRouteSource).toContain('adaptiveGenerationReadinessFromHttp');
+  });
+
   it('renders explicit path recovery instead of fake progress for missing path contexts', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
@@ -137,7 +164,10 @@ describe('adaptive practice page entry states', () => {
     );
 
     expect(learnerStateEffectStart).toBeGreaterThan(-1);
-    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setActiveLearnerState(null);\n      setPathContextLoadState(\'ready\');\n      setLoadedPathContextKey(requestedPathContextKey);\n      return;\n    }');
+    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setActiveLearnerState(null);');
+    expect(learnerStateEffect).toContain("setLearnerStateLoadState('ready');");
+    expect(learnerStateEffect).toContain("setPathContextLoadState('ready');");
+    expect(learnerStateEffect).toContain('setLoadedPathContextKey(requestedPathContextKey);');
     expect(source).not.toContain('if (!activeGoal || isDemoMode) {\n      setActiveLearnerState(null);');
     expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setActivePathPlan(null);');
     expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setActivePathRound(null);');

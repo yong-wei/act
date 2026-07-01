@@ -620,7 +620,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('openPathGenerationAdvisor');
     expect(source).toContain('const hasInvalidRequestedGoal = requestedGoal !== null && !explicitGoal');
     expect(source).toContain('const pathAdvisorContextGoal = hasInvalidRequestedGoal');
-    expect(source).toContain('disabled={pathGenerationPending !== null || hasInvalidRequestedGoal}');
+    expect(source).toContain('disabled={pathGenerationPending !== null || hasInvalidRequestedGoal || !canSubmitPathGeneration}');
     expect(source).toContain('pathAdvisorContextGoal || isDemoMode');
     expect(source).toContain("data-adaptive-path-generation-action=\"open-in-page-path-advisor\"");
     expect(source).toContain("data-adaptive-path-generation-action=\"choose-generation-goal\"");
@@ -700,7 +700,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('resolveKonlingTeachingAssistantSignedGraphNodeId');
     expect(routeSource).toContain('const signedGraphNodeId = resolveKonlingTeachingAssistantSignedGraphNodeId');
     expect(routeSource).toContain('if (requestedToolInput.graphNodeId && !signedGraphNodeId)');
-    expect(routeSource).toContain("error: '图谱节点上下文未签名或已失效'");
+    expect(routeSource).toContain("return readinessError('图谱节点上下文未签名或已失效'");
+    expect(routeSource).toContain("reason: 'advisor-forbidden'");
     expect(routeSource).toContain('graphNodeId: signedGraphNodeId');
     expect(routeSource).toContain('readPathOptionStyleLookup');
     expect(routeSource).toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');

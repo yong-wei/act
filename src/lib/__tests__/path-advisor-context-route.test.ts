@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   createKonlingTeachingAssistantServerContextToken: vi.fn(),
   getServerAuthSession: vi.fn(),
+  classFindUnique: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -11,6 +12,14 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/konling-teaching-assistant-server-context', () => ({
   createKonlingTeachingAssistantServerContextToken: mocks.createKonlingTeachingAssistantServerContextToken,
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: {
+    class: {
+      findUnique: mocks.classFindUnique,
+    },
+  },
 }));
 
 import { GET } from '@/app/api/adaptive/path-advisor-context/route';
@@ -24,6 +33,7 @@ describe('path advisor context route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.createKonlingTeachingAssistantServerContextToken.mockReturnValue('signed-token');
+    mocks.classFindUnique.mockResolvedValue({ teacherId: 'teacher-1' });
     mocks.getServerAuthSession.mockResolvedValue({
       user: {
         id: 'student-1',
@@ -42,6 +52,12 @@ describe('path advisor context route', () => {
       goalId: 'control-correction',
       graphNodeId: 'kn:autocontrol:controller-correction',
       modeContextToken: 'signed-token',
+      readiness: {
+        status: 'ready',
+        reason: 'ready',
+        studentAction: 'continue-practice',
+        staffAction: 'none',
+      },
     });
     expect(mocks.createKonlingTeachingAssistantServerContextToken).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -138,7 +154,45 @@ describe('path advisor context route', () => {
     const missingClassResponse = await request('goal=simulation-validation-practice');
 
     expect(missingClassResponse.status).toBe(403);
+    await expect(missingClassResponse.json()).resolves.toMatchObject({
+      readiness: {
+        status: 'blocked',
+        reason: 'missing-class-binding',
+        studentAction: 'request-teacher-binding',
+        staffAction: 'bind-class',
+      },
+    });
     expect(mocks.createKonlingTeachingAssistantServerContextToken).not.toHaveBeenCalled();
+  });
+
+  it('returns readiness when teacher binding or path advisor service is unavailable', async () => {
+    mocks.classFindUnique.mockResolvedValueOnce({ teacherId: null });
+    const missingTeacherResponse = await request('goal=simulation-validation-practice');
+
+    expect(missingTeacherResponse.status).toBe(403);
+    await expect(missingTeacherResponse.json()).resolves.toMatchObject({
+      readiness: {
+        status: 'blocked',
+        reason: 'missing-teacher-binding',
+        studentAction: 'request-teacher-binding',
+        staffAction: 'bind-class',
+      },
+    });
+    expect(mocks.createKonlingTeachingAssistantServerContextToken).not.toHaveBeenCalled();
+
+    mocks.classFindUnique.mockResolvedValueOnce({ teacherId: 'teacher-1' });
+    mocks.createKonlingTeachingAssistantServerContextToken.mockReturnValueOnce(null);
+    const serviceUnavailableResponse = await request('goal=simulation-validation-practice');
+
+    expect(serviceUnavailableResponse.status).toBe(503);
+    await expect(serviceUnavailableResponse.json()).resolves.toMatchObject({
+      readiness: {
+        status: 'retryable',
+        reason: 'service-unavailable',
+        studentAction: 'retry',
+        staffAction: 'check-service',
+      },
+    });
   });
 
   it('rejects graphNodeId outside the selected goal subgraph', async () => {
