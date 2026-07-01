@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 
 import { getServerAuthSession } from '@/lib/auth';
 import { recordPathIntervention } from '@/lib/control-correction-path-rounds';
@@ -7,6 +8,7 @@ import { prisma } from '@/lib/prisma';
 import {
   buildTeacherEvidenceInterventionAction,
   buildTeacherEvidenceInterventionOutboxRow,
+  type TeacherEvidenceInterventionOutboxRow,
   type TeacherEvidenceInterventionInput,
   type TeacherEvidenceInterventionKind,
   type TeacherEvidenceInterventionSurface,
@@ -26,6 +28,15 @@ const INTERVENTION_SURFACES = new Set<TeacherEvidenceInterventionSurface>([
   'teacher-evidence',
   'classroom-review',
 ]);
+
+function toEvidenceOutboxCreateManyRow(
+  row: TeacherEvidenceInterventionOutboxRow,
+): Prisma.EvidenceOutboxCreateManyInput {
+  return {
+    ...row,
+    payload: row.payload as Prisma.InputJsonValue,
+  };
+}
 
 export async function POST(request: Request) {
   try {
@@ -83,7 +94,7 @@ export async function POST(request: Request) {
         });
         const outboxRow = buildTeacherEvidenceInterventionOutboxRow(reduced);
         if (outboxRow) {
-          await prisma.evidenceOutbox.createMany({ data: [outboxRow], skipDuplicates: true });
+          await prisma.evidenceOutbox.createMany({ data: [toEvidenceOutboxCreateManyRow(outboxRow)], skipDuplicates: true });
         }
         return NextResponse.json({ action: reduced, outbox: outboxRow ? 'recorded' : 'skipped' }, { status: 202 });
       }
@@ -117,7 +128,7 @@ export async function POST(request: Request) {
     });
     const outboxRow = buildTeacherEvidenceInterventionOutboxRow(recorded);
     if (!outboxRow) return NextResponse.json({ action: draftAction, outbox: 'non-writeback' }, { status: 422 });
-    const result = await prisma.evidenceOutbox.createMany({ data: [outboxRow], skipDuplicates: true });
+    const result = await prisma.evidenceOutbox.createMany({ data: [toEvidenceOutboxCreateManyRow(outboxRow)], skipDuplicates: true });
     return NextResponse.json({
       action: recorded,
       outbox: typeof result?.count === 'number' && result.count === 0 ? 'duplicate' : 'recorded',

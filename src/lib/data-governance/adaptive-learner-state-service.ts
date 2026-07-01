@@ -17,6 +17,7 @@ import {
   isRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningCapabilityTarget,
 } from '../adaptive-learning-path-planner';
+import { readArenaSubmissionEvidenceWritebacks } from '@/features/arena/evidence-writeback-persistence';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -469,6 +470,9 @@ interface AdaptiveLearnerStateDb {
   arenaSubmission?: {
     findMany?: (args: any) => Promise<Array<any>>;
   };
+  evidenceOutbox?: {
+    findMany?: (args: any) => Promise<Array<any>>;
+  };
   agentToolRun?: {
     findMany?: (args: any) => Promise<Array<any>>;
     findFirst?: (args: any) => Promise<unknown>;
@@ -755,6 +759,9 @@ export async function readAdaptiveLearnerState(
       : Promise.resolve([]),
   ]);
 
+  const controlCorrectionArenaSubmissionsWithWriteback = shouldBuildControlCorrectionGoalSlice
+    ? await attachPersistedArenaWritebacks(db, controlCorrectionArenaSubmissions)
+    : controlCorrectionArenaSubmissions;
   const { vector, source } = resolvePrimaryCompetencyVector(latestSnapshot, featureSnapshot);
   const knowledgeMastery = buildKnowledgeMastery(masteryUpdates, now);
   const evidence = buildEvidenceSummary(featureRead, featureCache);
@@ -762,7 +769,7 @@ export async function readAdaptiveLearnerState(
     knowledgeMastery,
     vector,
     facts: controlCorrectionFacts,
-    arenaSubmissions: controlCorrectionArenaSubmissions,
+    arenaSubmissions: controlCorrectionArenaSubmissionsWithWriteback,
     agentToolRuns: controlCorrectionAgentToolRuns,
     featureRead,
     evidence,
@@ -793,7 +800,7 @@ export async function readAdaptiveLearnerState(
     knowledgeMastery,
     masteryTraceability,
     facts: controlCorrectionFacts,
-    arenaSubmissions: controlCorrectionArenaSubmissions,
+    arenaSubmissions: controlCorrectionArenaSubmissionsWithWriteback,
     prerequisiteFeatureGroups,
     paths,
     activeControlCorrectionPath: activeControlCorrectionPaths.find(isControlCorrectionPathRound) ?? null,
@@ -864,6 +871,26 @@ async function readFeatureCache(
     };
   }
   return readStudentEvidenceFeatures(db as Parameters<typeof readStudentEvidenceFeatures>[0], userId, { now });
+}
+
+async function attachPersistedArenaWritebacks(
+  db: AdaptiveLearnerStateDb,
+  submissions: Array<Record<string, unknown>>,
+): Promise<Array<Record<string, unknown>>> {
+  const submissionIds = submissions
+    .map((submission) => readString(submission.id))
+    .filter((id): id is string => Boolean(id));
+  if (!submissionIds.length || typeof db.evidenceOutbox?.findMany !== 'function') {
+    return submissions;
+  }
+
+  const writebacks = await readArenaSubmissionEvidenceWritebacks(db, submissionIds, 'service');
+  if (writebacks.size === 0) return submissions;
+  return submissions.map((submission) => {
+    const id = readString(submission.id);
+    const evidenceWriteback = id ? writebacks.get(id) : null;
+    return evidenceWriteback ? { ...submission, evidenceWriteback } : submission;
+  });
 }
 
 function resolvePrimaryCompetencyVector(
@@ -2235,6 +2262,12 @@ function countOfficialControlCorrectionArenaSubmissions(submissions: Array<Recor
 
 function isOfficialControlCorrectionArenaSubmission(submission: Record<string, unknown>): boolean {
   if (submission.valid !== true) return false;
+  if (submission.isLate === true) return false;
+  if (typeof submission.score === 'number' && submission.score <= 0) return false;
+  const evidenceWriteback = getObject(submission.evidenceWriteback);
+  if (Object.keys(evidenceWriteback).length === 0) return false;
+  if (evidenceWriteback.status !== 'accepted') return false;
+  if (evidenceWriteback.terminalValidationAccepted !== true) return false;
   const evaluationRun = getObject(submission.evaluationRun);
   const controllerArtifact = getObject(submission.controllerArtifact);
   const artifactPayload = getObject(controllerArtifact.payload);

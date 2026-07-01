@@ -1416,7 +1416,7 @@ function extractSimulationArenaFactEvidence(fact: StudentEvidenceFeatureLearning
       ? trace.summary
       : {};
   const launchMode = readString(sourceContext.launchMode) ?? readString(context.launchMode);
-  const official = resolveSimulationArenaOfficial(sourceContext, context, fact);
+  const official = resolveSimulationArenaOfficial(sourceContext, fact);
   const preview = resolveSimulationArenaPreview(sourceContext, fact, official);
   const agentAssisted = sourceContext.agentAssisted === true ||
     context.agentAssisted === true ||
@@ -1463,15 +1463,16 @@ function resolveInterventionOutcome(sourceContext: Record<string, unknown>): num
 
 function resolveSimulationArenaOfficial(
   sourceContext: Record<string, unknown>,
-  context: Record<string, unknown>,
   fact: StudentEvidenceFeatureLearningFact
 ): boolean {
-  const governance = isObject(context.evidenceGovernance) ? context.evidenceGovernance : {};
+  const evidenceWriteback = isObject(sourceContext.evidenceWriteback) ? sourceContext.evidenceWriteback : {};
+  const acceptedPersistedWriteback = (fact.sourceEventId ?? '').startsWith('arena-official:') &&
+    evidenceWriteback.status === 'accepted' &&
+    evidenceWriteback.terminalValidationAccepted === true;
   return sourceContext.official === true ||
     sourceContext.evaluationMode === 'official' ||
     sourceContext.evaluationVisibility === 'official' ||
-    governance.policyReason === 'official_arena_evaluation' ||
-    (fact.sourceEventId ?? '').includes('arena_evaluation_complete');
+    acceptedPersistedWriteback;
 }
 
 function resolveSimulationArenaPreview(

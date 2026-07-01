@@ -30,10 +30,11 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
-function formatAttemptStatus(value: 'effective' | 'late' | 'zero-score' | 'invalid'): string {
+function formatAttemptStatus(value: 'effective' | 'late' | 'zero-score' | 'invalid' | 'duplicate-only'): string {
   if (value === 'effective') return '有效尝试';
   if (value === 'late') return '迟交';
   if (value === 'zero-score') return '零分';
+  if (value === 'duplicate-only') return '重复提交';
   return '无效';
 }
 

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { buildArenaPublicationReport } from '../teacher/publication-report';
+import { buildArenaSubmissionEvidenceWriteback } from '../evidence-writeback';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import { loadArenaPublicationReportForActor } from '../teacher/publication-store';
 import type { ControllerArtifact, ControllerMethod } from '../types';
@@ -37,11 +38,12 @@ function submission(input: {
   metrics?: Record<string, number>;
   hardConstraintResults?: Array<{ id: string; label: string; passed: boolean; value?: number; threshold?: number }>;
   taskId?: string;
+  reusedEvaluation?: boolean;
 }): ArenaSubmissionRecord {
   const taskId = input.taskId ?? 'task-report';
   const currentArtifact = artifact({ id: `artifact-${input.id}`, taskId, method: input.method });
 
-  return {
+  const record: ArenaSubmissionRecord = {
     id: input.id,
     taskId,
     userId: input.userId,
@@ -75,7 +77,45 @@ function submission(input: {
       explanation: [],
     },
     submittedAt: input.submittedAt,
-    reusedEvaluation: false,
+    reusedEvaluation: input.reusedEvaluation ?? false,
+  };
+  return {
+    ...record,
+    evidenceWriteback: defaultTeacherWriteback(record),
+  };
+}
+
+function acceptedTeacherWriteback(record: ArenaSubmissionRecord): NonNullable<ArenaSubmissionRecord['evidenceWriteback']> {
+  return {
+    status: 'accepted',
+    sourceRef: { kind: 'ArenaSubmission', id: record.id },
+    attemptStatus: 'effective',
+    visibilityState: 'materialized',
+    targetLabel: '控制校正 Arena 官方迁移验证',
+    summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+    recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
+    limitationCodes: [],
+    overlayCount: 1,
+    terminalValidationAccepted: true,
+  };
+}
+
+function defaultTeacherWriteback(record: ArenaSubmissionRecord): NonNullable<ArenaSubmissionRecord['evidenceWriteback']> {
+  if (
+    record.evaluation.valid &&
+    !record.isLate &&
+    record.evaluation.score > 0 &&
+    !record.reusedEvaluation
+  ) {
+    return acceptedTeacherWriteback(record);
+  }
+  return buildArenaSubmissionEvidenceWriteback(record, { consumer: 'teacher' });
+}
+
+function withPersistedTeacherWriteback(record: ArenaSubmissionRecord): ArenaSubmissionRecord {
+  return {
+    ...record,
+    evidenceWriteback: buildArenaSubmissionEvidenceWriteback(record, { consumer: 'teacher' }),
   };
 }
 
@@ -164,10 +204,10 @@ describe('arena publication report analytics', () => {
       validSubmissionRate: 2 / 3,
     });
     expect(report.evidenceWriteback).toMatchObject({
-      acceptedCount: 0,
+      acceptedCount: 2,
       degradedCount: 0,
-      blockedCount: 3,
-      terminalValidationAcceptedCount: 0,
+      blockedCount: 1,
+      terminalValidationAcceptedCount: 2,
     });
     expect(report.scores).toMatchObject({
       average: 88,
@@ -214,7 +254,7 @@ describe('arena publication report analytics', () => {
         { userId: 'student-c', studentLabel: '学生丙' },
       ],
       submissions: [
-        submission({
+        withPersistedTeacherWriteback(submission({
           id: 'effective-writeback',
           taskId: 'task-second-order-lead-pid',
           userId: 'student-a',
@@ -223,8 +263,8 @@ describe('arena publication report analytics', () => {
           valid: true,
           submittedAt: '2026-05-16T08:00:00.000Z',
           publicationId: 'publication-evidence',
-        }),
-        submission({
+        })),
+        withPersistedTeacherWriteback(submission({
           id: 'late-writeback',
           taskId: 'task-second-order-lead-pid',
           userId: 'student-b',
@@ -234,8 +274,8 @@ describe('arena publication report analytics', () => {
           isLate: true,
           submittedAt: '2026-05-16T08:10:00.000Z',
           publicationId: 'publication-evidence',
-        }),
-        submission({
+        })),
+        withPersistedTeacherWriteback(submission({
           id: 'invalid-writeback',
           taskId: 'task-second-order-lead-pid',
           userId: 'student-c',
@@ -244,7 +284,7 @@ describe('arena publication report analytics', () => {
           valid: false,
           submittedAt: '2026-05-16T08:20:00.000Z',
           publicationId: 'publication-evidence',
-        }),
+        })),
       ],
     });
 
@@ -263,18 +303,6 @@ describe('arena publication report analytics', () => {
         userId: 'student-a',
         evidenceWritebackStatus: 'accepted',
         effectiveForRanking: true,
-      }),
-      expect.objectContaining({
-        userId: 'student-b',
-        attemptStatus: 'late',
-        evidenceWritebackStatus: 'blocked',
-        effectiveForRanking: false,
-      }),
-      expect.objectContaining({
-        userId: 'student-c',
-        attemptStatus: 'invalid',
-        evidenceWritebackStatus: 'blocked',
-        effectiveForRanking: false,
       }),
     ]);
   });
@@ -397,7 +425,7 @@ describe('arena publication report analytics', () => {
       invalidSubmissionCount: 1,
     });
     expect(report.scores).toEqual({ average: 85, median: 85, highest: 90 });
-    expect(report.personalBests.map((best) => best.userId)).toEqual(['student-b', 'student-a', 'student-c']);
+    expect(report.personalBests.map((best) => best.userId)).toEqual(['student-b', 'student-a']);
     expect(report.publicationContext.classTitle).toBe('课程范围');
   });
 
@@ -570,6 +598,15 @@ describe('arena publication report analytics', () => {
           submittedAt: '2026-06-02T08:00:00.000Z',
         }),
         submission({
+          id: 'd-duplicate-high',
+          userId: 'student-d',
+          studentLabel: '学生丁',
+          score: 99,
+          valid: true,
+          reusedEvaluation: true,
+          submittedAt: '2026-05-16T08:25:00.000Z',
+        }),
+        submission({
           id: 'c-invalid-high',
           userId: 'student-c',
           studentLabel: '学生丙',
@@ -595,7 +632,7 @@ describe('arena publication report analytics', () => {
       highest: 72,
     });
     expect(report.classroomReview.methodPatterns).toEqual([
-      expect.objectContaining({ count: 4, validCount: 1, averageScore: 72 }),
+      expect.objectContaining({ count: 5, validCount: 1, averageScore: 72 }),
     ]);
     expect(report.excellentSolutions).toEqual([
       expect.objectContaining({ submissionId: 'a-effective', score: 72 }),
@@ -605,12 +642,78 @@ describe('arena publication report analytics', () => {
       attemptStatus: 'effective',
       effectiveForRanking: true,
     });
-    expect(report.personalBests.find((best) => best.userId === 'student-b')).toMatchObject({
-      submissionId: 'b-late-high',
-      attemptStatus: 'late',
-      effectiveForRanking: false,
-    });
+    expect(report.personalBests.find((best) => best.userId === 'student-b')).toBeUndefined();
+    expect(report.personalBests.find((best) => best.userId === 'student-d')).toBeUndefined();
     expect(report.classroomReview.leaderboardVisibilityMessage).toContain('有效尝试');
+  });
+
+  it('keeps historical missing and degraded outcomes ranked while excluding blocked writebacks', () => {
+    const missing = submission({
+      id: 'missing-writeback',
+      userId: 'student-missing',
+      studentLabel: '缺失写回',
+      score: 91,
+      valid: true,
+      submittedAt: '2026-05-16T08:00:00.000Z',
+    });
+    delete missing.evidenceWriteback;
+    const blocked = submission({
+      id: 'blocked-writeback',
+      userId: 'student-blocked',
+      studentLabel: '阻塞写回',
+      score: 92,
+      valid: true,
+      submittedAt: '2026-05-16T08:05:00.000Z',
+    });
+    blocked.evidenceWriteback = {
+      ...acceptedTeacherWriteback(blocked),
+      status: 'blocked',
+      visibilityState: 'diagnostic-only',
+      overlayCount: 0,
+      terminalValidationAccepted: false,
+    };
+    const degraded = submission({
+      id: 'degraded-writeback',
+      userId: 'student-degraded',
+      studentLabel: '受限写回',
+      score: 93,
+      valid: true,
+      submittedAt: '2026-05-16T08:10:00.000Z',
+    });
+    degraded.evidenceWriteback = {
+      ...acceptedTeacherWriteback(degraded),
+      status: 'degraded',
+      terminalValidationAccepted: false,
+    };
+
+    const report = buildArenaPublicationReport({
+      publication: {
+        id: 'publication-a',
+        taskId: 'task-report',
+        classId: 'class-a',
+        deadline: '2026-06-01T08:00:00.000Z',
+        visibility: 'class',
+        leaderboardPolicyId: 'leaderboard-class-homework',
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+      },
+      submissions: [missing, blocked, degraded],
+      excellentSolutionLimit: 5,
+    });
+
+    expect(report.scores).toEqual({ average: 92, median: 92, highest: 93 });
+    expect(report.excellentSolutions).toEqual([
+      expect.objectContaining({ submissionId: 'degraded-writeback', score: 93 }),
+      expect.objectContaining({ submissionId: 'missing-writeback', score: 91 }),
+    ]);
+    expect(report.personalBests.map((best) => best.submissionId)).toEqual([
+      'degraded-writeback',
+      'missing-writeback',
+    ]);
+    expect(report.personalBests.find((best) => best.submissionId === 'degraded-writeback')).toMatchObject({
+      evidenceWritebackStatus: 'degraded',
+      effectiveForRanking: true,
+    });
+    expect(report.personalBests.find((best) => best.submissionId === 'blocked-writeback')).toBeUndefined();
   });
 
   it('exposes publication product context, lifecycle state, delivery actions, and leaderboard boundaries', () => {
@@ -775,6 +878,7 @@ describe('arena publication report access', () => {
       taskId: 'task-report',
       publicationId: 'publication-a',
       classId: 'class-a',
+      evidenceWritebackConsumer: 'teacher',
     });
     expect(report.participation).toMatchObject({
       expectedStudentCount: 2,
@@ -819,6 +923,7 @@ describe('arena publication report access', () => {
     expect(listSubmissions).toHaveBeenCalledWith({
       taskId: 'task-report',
       publicationId: 'publication-a',
+      evidenceWritebackConsumer: 'teacher',
     });
     expect(report.participation.participantCount).toBe(1);
     expect(report.participation).toMatchObject({

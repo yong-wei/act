@@ -13,6 +13,7 @@ export type LearningFactProfilePolicyReason =
   | 'legacy_evidence_context_only'
   | 'missing_evidence_context_only'
   | 'official_arena_evaluation'
+  | 'arena_client_evaluation_context_only'
   | 'adaptive_assessment_evidence'
   | 'adaptive_assessment_provisional_context_only'
   | 'adaptive_assessment_missing_kaq_context_only';
@@ -211,10 +212,10 @@ export function resolveLearningFactEvidenceGovernance(
     && typeof payload.valid === 'boolean'
   ) {
     return toJsonObject({
-      evidenceQuality: 'rich',
-      profileWeight: 1,
-      skipProfileContribution: false,
-      policyReason: 'official_arena_evaluation',
+      evidenceQuality: 'partial',
+      profileWeight: 0,
+      skipProfileContribution: true,
+      policyReason: 'arena_client_evaluation_context_only',
     });
   }
 

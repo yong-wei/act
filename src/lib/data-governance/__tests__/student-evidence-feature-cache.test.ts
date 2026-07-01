@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { LearningFact } from '@prisma/client';
+import type { LearningEvent } from '../event-protocol';
+import { eventToLearningFactInput } from '../learning-fact-materialization';
 import {
   buildStudentEvidenceFeaturePayload,
   getStudentEvidenceFeatureCacheAdminSummary,
@@ -28,6 +30,33 @@ function fact(overrides: Partial<LearningFact> = {}): LearningFact {
     lessonId: 'lesson-1',
     contextJson: {},
     createdAt: new Date('2026-05-01T10:05:00.000Z'),
+    ...overrides,
+  };
+}
+
+function clientArenaEvaluationEvent(overrides: Partial<LearningEvent> = {}): LearningEvent {
+  return {
+    eventId: 'client-event:arena_evaluation_complete:fake',
+    occurredAt: '2026-05-20T10:05:00.000Z',
+    userId: 'student-1',
+    role: 'student',
+    courseId: 'control-correction',
+    lessonId: 'task-preview',
+    sessionId: 'session-1',
+    pagePath: '/arena/task-preview',
+    pageType: 'simulation',
+    moduleId: 'task-preview',
+    actionType: 'arena_evaluation_complete',
+    targetType: 'arena-task',
+    targetId: 'task-preview',
+    payload: {
+      taskId: 'task-preview',
+      score: 100,
+      valid: true,
+      eventType: 'arena_evaluation_complete',
+    },
+    source: 'web',
+    priority: 'core',
     ...overrides,
   };
 }
@@ -578,6 +607,200 @@ describe('buildStudentEvidenceFeaturePayload', () => {
       }),
     ]);
     expect(JSON.stringify(simulationArena)).not.toContain('samples');
+  });
+
+  it('counts persisted accepted Arena writeback facts as official Arena evidence', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-21T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'persisted-arena-writeback',
+          factType: 'design',
+          startedAt: new Date('2026-05-20T10:00:00.000Z'),
+          finishedAt: new Date('2026-05-20T10:05:00.000Z'),
+          outcome: 'success',
+          score: 88,
+          sourceEventId: 'arena-official:publication-a:task-second-order-lead-pid:submission-a:student-1:hash-a',
+          sourceLogId: 'submission-a',
+          contextJson: {
+            arena: {
+              taskId: 'task-second-order-lead-pid',
+              publicationId: 'publication-a',
+              artifactHash: 'hash-a',
+              score: 88,
+              valid: true,
+              evidenceWriteback: {
+                status: 'accepted',
+                terminalValidationAccepted: true,
+              },
+            },
+          },
+        }),
+      ],
+    });
+
+    expect((payload.features as any).simulationArena.recent30d).toMatchObject({
+      evidenceCount: 1,
+      completedCount: 1,
+      officialCount: 1,
+      previewCount: 0,
+    });
+  });
+
+  it('does not promote client-controlled Arena event ids that merely contain the official prefix text', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-21T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'spoofed-arena-prefix',
+          factType: 'simulation',
+          startedAt: new Date('2026-05-20T10:00:00.000Z'),
+          finishedAt: new Date('2026-05-20T10:05:00.000Z'),
+          outcome: 'success',
+          score: 72,
+          sourceEventId: 'client-event:arena-official:fake',
+          sourceLogId: 'client-arena-log',
+          contextJson: {
+            arena: {
+              taskId: 'task-preview',
+              preview: true,
+              launchMode: 'standalone',
+              valid: true,
+            },
+          },
+        }),
+      ],
+    });
+
+    expect((payload.features as any).simulationArena.recent30d).toMatchObject({
+      evidenceCount: 1,
+      completedCount: 1,
+      officialCount: 0,
+      previewCount: 1,
+    });
+  });
+
+  it('does not promote client-controlled Arena event ids that contain legacy evaluation text', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-21T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'spoofed-arena-legacy-event',
+          factType: 'simulation',
+          startedAt: new Date('2026-05-20T10:00:00.000Z'),
+          finishedAt: new Date('2026-05-20T10:05:00.000Z'),
+          outcome: 'success',
+          score: 72,
+          sourceEventId: 'client-event:arena_evaluation_complete:fake',
+          sourceLogId: 'client-arena-log',
+          contextJson: {
+            arena: {
+              taskId: 'task-preview',
+              preview: true,
+              launchMode: 'standalone',
+              valid: true,
+            },
+          },
+        }),
+      ],
+    });
+
+    expect((payload.features as any).simulationArena.recent30d).toMatchObject({
+      evidenceCount: 1,
+      completedCount: 1,
+      officialCount: 0,
+      previewCount: 1,
+    });
+  });
+
+  it('does not count client-materialized Arena evaluation events as official writeback evidence', () => {
+    const materialized = eventToLearningFactInput(clientArenaEvaluationEvent());
+
+    expect(materialized).toMatchObject({
+      sourceEventId: 'client-event:arena_evaluation_complete:fake',
+      contextJson: {
+        evidenceGovernance: {
+          policyReason: 'arena_client_evaluation_context_only',
+        },
+      },
+    });
+
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-21T00:00:00.000Z'),
+      facts: [fact(materialized as Partial<LearningFact>)],
+    });
+
+    expect((payload.features as any).simulationArena.recent30d).toMatchObject({
+      evidenceCount: 1,
+      completedCount: 1,
+      officialCount: 0,
+    });
+  });
+
+  it('does not count non-accepted Arena writeback facts as official evidence', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-21T00:00:00.000Z'),
+      facts: [
+        fact({
+          id: 'blocked-arena-writeback',
+          factType: 'design',
+          startedAt: new Date('2026-05-20T10:00:00.000Z'),
+          finishedAt: new Date('2026-05-20T10:05:00.000Z'),
+          outcome: 'success',
+          score: 0,
+          sourceEventId: 'arena-official:publication-a:task-second-order-lead-pid:submission-blocked:student-1:hash-a',
+          sourceLogId: 'submission-blocked',
+          contextJson: {
+            arena: {
+              taskId: 'task-second-order-lead-pid',
+              publicationId: 'publication-a',
+              artifactHash: 'hash-a',
+              score: 0,
+              valid: false,
+              evidenceWriteback: {
+                status: 'blocked',
+                terminalValidationAccepted: false,
+              },
+            },
+          },
+        }),
+        fact({
+          id: 'degraded-arena-writeback',
+          factType: 'design',
+          startedAt: new Date('2026-05-20T11:00:00.000Z'),
+          finishedAt: new Date('2026-05-20T11:05:00.000Z'),
+          outcome: 'success',
+          score: 66,
+          sourceEventId: 'arena-official:publication-a:task-second-order-lead-pid:submission-degraded:student-1:hash-b',
+          sourceLogId: 'submission-degraded',
+          contextJson: {
+            arena: {
+              taskId: 'task-second-order-lead-pid',
+              publicationId: 'publication-a',
+              artifactHash: 'hash-b',
+              score: 66,
+              valid: true,
+              evidenceWriteback: {
+                status: 'degraded',
+                terminalValidationAccepted: false,
+              },
+            },
+          },
+        }),
+      ],
+    });
+
+    expect((payload.features as any).simulationArena.recent30d).toMatchObject({
+      evidenceCount: 2,
+      completedCount: 2,
+      officialCount: 0,
+      previewCount: 0,
+    });
   });
 
   it('produces a stable payload for unchanged governed facts regardless of input order', () => {

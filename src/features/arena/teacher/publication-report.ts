@@ -4,7 +4,7 @@ import type { ControllerMethod } from '../types';
 import { getArenaChallengeTask } from '../data/seed-challenges';
 import {
   buildArenaRankingExplanation,
-  buildArenaSubmissionEvidenceWriteback,
+  buildMissingArenaSubmissionEvidenceWriteback,
   getArenaAttemptStatus,
   type ArenaAttemptStatus,
 } from '../evidence-writeback';
@@ -220,7 +220,7 @@ function buildEvidenceWritebackSummary(
   submissions: readonly ArenaSubmissionRecord[],
 ): ArenaPublicationReport['evidenceWriteback'] {
   const writebacks = submissions.map((submission) => (
-    submission.evidenceWriteback ?? buildArenaSubmissionEvidenceWriteback(submission, { consumer: 'teacher' })
+    submission.evidenceWriteback ?? buildMissingArenaSubmissionEvidenceWriteback(submission, { consumer: 'teacher' })
   ));
   const latestLimitationCodes = Array.from(new Set(writebacks.flatMap((writeback) => writeback.limitationCodes))).sort();
   return {
@@ -484,9 +484,10 @@ function buildPersonalBests(submissions: readonly ArenaSubmissionRecord[]): Aren
   const bestByStudent = new Map<string, ArenaPublicationReport['personalBests'][number]>();
 
   for (const submission of submissions) {
+    if (!isArenaSubmissionEffectiveForRanking(submission)) continue;
     const userId = submission.userId ?? submission.studentLabel;
     const attemptStatus = getArenaAttemptStatus(submission);
-    const evidenceWriteback = submission.evidenceWriteback ?? buildArenaSubmissionEvidenceWriteback(submission, { consumer: 'teacher' });
+    const evidenceWriteback = submission.evidenceWriteback ?? buildMissingArenaSubmissionEvidenceWriteback(submission, { consumer: 'teacher' });
     const candidate = {
       userId,
       studentLabel: submission.studentLabel,
@@ -494,7 +495,7 @@ function buildPersonalBests(submissions: readonly ArenaSubmissionRecord[]): Aren
       score: submission.evaluation.score,
       valid: submission.evaluation.valid,
       attemptStatus,
-      effectiveForRanking: attemptStatus === 'effective',
+      effectiveForRanking: isArenaSubmissionEffectiveForRanking(submission),
       rankingExplanation: buildArenaRankingExplanation(attemptStatus),
       method: submission.artifact.method,
       submittedAt: submission.submittedAt,
@@ -607,8 +608,17 @@ function buildGradingMessage(publication: ArenaPublicationReportPublication): st
   return '当前发布不强制隐藏完整榜单，报告仍区分官方评价结果与作业评价解释。';
 }
 
+function withTeacherEvidenceWritebacks(
+  submissions: readonly ArenaSubmissionRecord[],
+): ArenaSubmissionRecord[] {
+  return submissions.map((submission) => ({
+    ...submission,
+    evidenceWriteback: submission.evidenceWriteback ?? buildMissingArenaSubmissionEvidenceWriteback(submission, { consumer: 'teacher' }),
+  }));
+}
+
 export function buildArenaPublicationReport(input: BuildArenaPublicationReportInput): ArenaPublicationReport {
-  const scopedSubmissions = filterPublicationSubmissions(input);
+  const scopedSubmissions = withTeacherEvidenceWritebacks(filterPublicationSubmissions(input));
   const participantUserIds = new Set(scopedSubmissions.map((submission) => submission.userId ?? submission.studentLabel));
   const roster = input.publication.visibility === 'class' ? input.roster ?? [] : [];
   const nonSubmitters = roster.filter((student) => !participantUserIds.has(student.userId));

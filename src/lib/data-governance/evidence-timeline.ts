@@ -482,15 +482,20 @@ function inferArenaLearnerRecordSourceScope(
 ): EvidenceTimelineLearnerRecordSourceScope | undefined {
   const context = readRecord(fact.contextJson);
   const arena = readRecord(context.arena);
-  const evidenceGovernance = readRecord(context.evidenceGovernance);
+  const arenaEvidenceWriteback = readRecord(arena.evidenceWriteback);
   const sourceEventId = fact.sourceEventId ?? '';
 
   if (
     fact.factType === 'arena_official'
     || fact.factType === 'arena_submission'
-    || sourceEventId.includes('arena_submit')
-    || sourceEventId.includes('arena_evaluation_complete')
-    || evidenceGovernance.policyReason === 'official_arena_evaluation'
+    || arena.official === true
+    || arena.evaluationMode === 'official'
+    || arena.evaluationVisibility === 'official'
+    || sourceEventId.startsWith('arena-official:')
+    || (
+      arenaEvidenceWriteback.status === 'accepted'
+      && arenaEvidenceWriteback.terminalValidationAccepted === true
+    )
   ) {
     return 'arena-official-result';
   }

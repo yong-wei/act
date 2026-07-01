@@ -484,6 +484,7 @@ export async function loadArenaPublicationReportForActor(
       taskId: publication.taskId,
       publicationId: publication.id,
       ...(publication.visibility === 'class' ? { classId: publication.classId } : {}),
+      evidenceWritebackConsumer: 'teacher',
     }),
     publication.visibility === 'class' ? listPublicationRoster(db, publication.classId) : Promise.resolve([]),
   ]);

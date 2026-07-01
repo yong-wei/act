@@ -2,7 +2,7 @@ import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
 import { formatArenaMetric } from '../display-labels';
 import {
-  buildArenaSubmissionEvidenceWriteback,
+  buildMissingArenaSubmissionEvidenceWriteback,
   getArenaAttemptStatus,
   type ArenaAttemptStatus,
   type ArenaSubmissionEvidenceWriteback,
@@ -286,7 +286,12 @@ export function buildArenaSubmissionFeedback(input: BuildArenaSubmissionFeedback
   const scoreComposition = metricSignals(input.latest, officialOnlyMetricIds);
   const hardConstraintGuidanceItems = hardConstraintGuidance(input.latest);
   const failures = hardConstraintFailures(hardConstraintGuidanceItems);
-  const rankingStatus: ArenaFeedbackRankingStatus = isArenaSubmissionEffectiveForRanking(input.latest) && failures.length === 0
+  const evidenceWriteback = input.latest.evidenceWriteback ?? buildMissingArenaSubmissionEvidenceWriteback(input.latest);
+  const latestWithEvidenceWriteback = {
+    ...input.latest,
+    evidenceWriteback,
+  };
+  const rankingStatus: ArenaFeedbackRankingStatus = isArenaSubmissionEffectiveForRanking(latestWithEvidenceWriteback) && failures.length === 0
     ? 'ranked'
     : 'not_ranked';
   const strongest = strongestMetric(input.latest, officialOnlyMetricIds);
@@ -294,7 +299,6 @@ export function buildArenaSubmissionFeedback(input: BuildArenaSubmissionFeedback
   const comparison = comparePersonalBest(input);
   const issueTags = buildIssueTags(input, weakest);
   const officialOnlyMetricNotes = buildOfficialOnlyMetricNotes(officialOnlyMetricIds, input.mode);
-  const evidenceWriteback = input.latest.evidenceWriteback ?? buildArenaSubmissionEvidenceWriteback(input.latest);
 
   return {
     rankingStatus,

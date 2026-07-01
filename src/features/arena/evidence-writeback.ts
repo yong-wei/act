@@ -5,7 +5,7 @@ import { buildKaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
 import type { ArenaSubmissionRecord } from './submissions/submission-service';
 import { isArenaSubmissionEffectiveForRanking } from './submissions/ranking-policy';
 
-export type ArenaAttemptStatus = 'effective' | 'late' | 'zero-score' | 'invalid';
+export type ArenaAttemptStatus = 'effective' | 'late' | 'zero-score' | 'invalid' | 'duplicate-only';
 export type ArenaEvidenceVisibilityState = 'materialized' | 'diagnostic-only' | 'unavailable';
 
 export interface ArenaSubmissionEvidenceWriteback {
@@ -40,6 +40,7 @@ export function getArenaAttemptStatus(submission: ArenaSubmissionRecord): ArenaA
   if (!submission.evaluation.valid) return 'invalid';
   if (submission.isLate) return 'late';
   if (submission.evaluation.score <= 0) return 'zero-score';
+  if (submission.reusedEvaluation) return 'duplicate-only';
   return 'effective';
 }
 
@@ -47,6 +48,7 @@ export function buildArenaRankingExplanation(status: ArenaAttemptStatus): string
   if (status === 'effective') return '有效尝试：计入个人最佳和优秀方案候选。';
   if (status === 'late') return '迟交尝试：保留记录，但不作为优秀方案或正式排名依据。';
   if (status === 'zero-score') return '零分尝试：保留诊断证据，但不标记为优秀方案。';
+  if (status === 'duplicate-only') return '重复提交：复用既有评测，只保留诊断记录，不新增正式掌握证据。';
   return '无效尝试：保留失败原因，用于课堂复盘。';
 }
 
@@ -66,7 +68,9 @@ function buildLimitedWriteback(
       ? '零分官方提交已保留为诊断证据，需要重新提交有效尝试后才能形成掌握证据。'
       : attemptStatus === 'invalid'
         ? '无效官方提交保留失败原因，不写入掌握证据。'
-        : '官方提交缺少完整证据绑定，暂不能写入掌握证据。';
+        : attemptStatus === 'duplicate-only'
+          ? '重复官方提交复用既有评测，只保留诊断记录，不新增终端掌握判定。'
+          : '官方提交缺少完整证据绑定，暂不能写入掌握证据。';
 
   return {
     status: 'blocked',
@@ -77,6 +81,27 @@ function buildLimitedWriteback(
     summary: reason,
     recoveryAction: '重新提交一次截止前、有效且非零分的官方 Arena 结果；若仍无法写回，请由教师在报告中复核证据绑定。',
     limitationCodes: exposeLimitationCodes ? limitationCodes : [],
+    overlayCount: 0,
+    terminalValidationAccepted: false,
+  };
+}
+
+export function buildMissingArenaSubmissionEvidenceWriteback(
+  submission: ArenaSubmissionRecord,
+  options: {
+    consumer?: 'student' | 'teacher' | 'admin' | 'service';
+  } = {},
+): ArenaSubmissionEvidenceWriteback {
+  const exposeLimitationCodes = options.consumer === 'teacher' || options.consumer === 'admin' || options.consumer === 'service';
+  return {
+    status: 'degraded',
+    sourceRef: { kind: 'ArenaSubmission', id: submission.id },
+    attemptStatus: getArenaAttemptStatus(submission),
+    visibilityState: 'unavailable',
+    targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
+    summary: '官方提交尚未读取到持久化证据回流结果，保留原有排名资格但暂不作为掌握证据。',
+    recoveryAction: '等待证据回流完成；若持续缺失，请由教师或管理员复核写回任务。',
+    limitationCodes: exposeLimitationCodes ? ['missing-persisted-writeback'] : [],
     overlayCount: 0,
     terminalValidationAccepted: false,
   };
@@ -112,13 +137,13 @@ export function buildArenaSubmissionEvidenceWriteback(
 
   if (!CONTROL_CORRECTION_OFFICIAL_ARENA_TASKS.has(submission.taskId)) {
     return {
-      status: 'blocked',
+      status: 'degraded',
       sourceRef: { kind: 'ArenaSubmission', id: submission.id },
       attemptStatus,
-      visibilityState: 'unavailable',
+      visibilityState: 'diagnostic-only',
       targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
-      summary: '该 Arena 任务尚未绑定到 KAQ 目标，官方结果暂不能写入学生证据时间线。',
-      recoveryAction: '教师报告中保留官方提交记录；管理员需要为该任务补充 KAQ 目标绑定后再重试写回。',
+      summary: '该 Arena 任务尚未绑定到 KAQ 目标，官方结果保留为诊断证据并继续参与排名。',
+      recoveryAction: '教师报告中保留官方提交记录；管理员需要为该任务补充 KAQ 目标绑定后再重试写回，以获得完整掌握证据。',
       limitationCodes: exposeLimitationCodes ? ['missing-target-binding'] : [],
       overlayCount: 0,
       terminalValidationAccepted: false,
@@ -171,7 +196,11 @@ export function buildArenaSubmissionEvidenceWriteback(
     status: result.status,
     sourceRef: { kind: 'ArenaSubmission', id: submission.id },
     attemptStatus,
-    visibilityState: result.status === 'accepted' || result.status === 'degraded' ? 'materialized' : 'unavailable',
+    visibilityState: result.status === 'accepted'
+      ? 'materialized'
+      : result.status === 'degraded'
+        ? 'diagnostic-only'
+        : 'unavailable',
     targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
     summary,
     recoveryAction: result.status === 'accepted'

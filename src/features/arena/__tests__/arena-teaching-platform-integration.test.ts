@@ -110,6 +110,18 @@ function submission(overrides: Partial<ArenaSubmissionRecord>): ArenaSubmissionR
     },
     submittedAt: '2026-05-15T10:00:00.000Z',
     reusedEvaluation: false,
+    evidenceWriteback: {
+      status: 'accepted',
+      sourceRef: { kind: 'ArenaSubmission', id: overrides.id ?? 'submission-a' },
+      attemptStatus: 'effective',
+      visibilityState: 'materialized',
+      targetLabel: '控制校正 Arena 官方迁移验证',
+      summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+      recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
+      limitationCodes: [],
+      overlayCount: 1,
+      terminalValidationAccepted: true,
+    },
     ...overrides,
   };
 }

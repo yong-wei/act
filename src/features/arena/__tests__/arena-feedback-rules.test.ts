@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import { buildArenaSubmissionFeedback } from '../student/arena-feedback-rules';
 import { ArenaPersonalFeedback } from '../student/arena-personal-feedback';
+import { buildArenaSubmissionEvidenceWriteback } from '../evidence-writeback';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { ControllerArtifact, ControllerMethod } from '../types';
 
@@ -36,10 +37,11 @@ function submission(input: {
   metadata?: Record<string, unknown>;
   evaluationProtocolVersion?: string;
   isLate?: boolean;
+  reusedEvaluation?: boolean;
 }): ArenaSubmissionRecord {
   const currentArtifact = artifact({ id: `artifact-${input.id}`, method: input.method, params: input.params });
 
-  return {
+  const record: ArenaSubmissionRecord = {
     id: input.id,
     taskId: 'task-second-order-lead-pid',
     userId: 'student-a',
@@ -73,14 +75,26 @@ function submission(input: {
     evaluationProtocolVersion: input.evaluationProtocolVersion,
     isLate: input.isLate,
     submittedAt: input.submittedAt,
-    reusedEvaluation: false,
+    reusedEvaluation: input.reusedEvaluation ?? false,
+  };
+  return {
+    ...record,
+    evidenceWriteback: buildArenaSubmissionEvidenceWriteback(record),
+  };
+}
+
+function withPersistedStudentWriteback(record: ArenaSubmissionRecord): ArenaSubmissionRecord {
+  return {
+    ...record,
+    evidenceWriteback: buildArenaSubmissionEvidenceWriteback(record),
   };
 }
 
 describe('arena student diagnostic feedback rules', () => {
   it('explains a valid ranked official submission with strongest and weakest metrics', () => {
+    const latest = submission({ id: 'latest', score: 86, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' });
     const feedback = buildArenaSubmissionFeedback({
-      latest: submission({ id: 'latest', score: 86, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' }),
+      latest: withPersistedStudentWriteback(latest),
       mode: 'white-box',
     });
 
@@ -97,6 +111,46 @@ describe('arena student diagnostic feedback rules', () => {
       limitationCodes: [],
     });
     expect(feedback.nextStepSuggestion).toContain('控制能量');
+  });
+
+  it('does not recompute accepted evidence writeback when persisted outcome is missing', () => {
+    const latest = submission({ id: 'missing-writeback', score: 86, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' });
+    delete latest.evidenceWriteback;
+    const feedback = buildArenaSubmissionFeedback({
+      latest,
+      mode: 'white-box',
+    });
+
+    expect(feedback.evidenceWriteback).toMatchObject({
+      status: 'degraded',
+      sourceRef: { kind: 'ArenaSubmission', id: 'missing-writeback' },
+      visibilityState: 'unavailable',
+      terminalValidationAccepted: false,
+      limitationCodes: [],
+    });
+  });
+
+  it('keeps duplicate-only reused evaluations out of official ranking feedback', () => {
+    const duplicate = submission({
+      id: 'duplicate-only',
+      score: 91,
+      valid: true,
+      reusedEvaluation: true,
+      submittedAt: '2026-05-16T08:20:00.000Z',
+    });
+
+    const feedback = buildArenaSubmissionFeedback({
+      latest: withPersistedStudentWriteback(duplicate),
+      mode: 'white-box',
+    });
+
+    expect(feedback.rankingStatus).toBe('not_ranked');
+    expect(feedback.title).toContain('未进入正式排名');
+    expect(feedback.evidenceWriteback).toMatchObject({
+      status: 'blocked',
+      attemptStatus: 'duplicate-only',
+      terminalValidationAccepted: false,
+    });
   });
 
   it('explains hard-constraint failures as not ranked with Chinese repair suggestions', () => {
@@ -128,17 +182,17 @@ describe('arena student diagnostic feedback rules', () => {
       submittedAt: '2026-05-16T08:00:00.000Z',
     });
     const zeroScore = buildArenaSubmissionFeedback({
-      latest: submission({ id: 'zero-score', score: 0, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' }),
+      latest: withPersistedStudentWriteback(submission({ id: 'zero-score', score: 0, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' })),
       previousSubmissions: [previousEffective],
       mode: 'white-box',
     });
     const late = buildArenaSubmissionFeedback({
-      latest: submission({ id: 'late', score: 92, valid: true, isLate: true, submittedAt: '2026-05-16T08:21:00.000Z' }),
+      latest: withPersistedStudentWriteback(submission({ id: 'late', score: 92, valid: true, isLate: true, submittedAt: '2026-05-16T08:21:00.000Z' })),
       previousSubmissions: [previousEffective],
       mode: 'white-box',
     });
     const invalid = buildArenaSubmissionFeedback({
-      latest: submission({ id: 'invalid-latest', score: 95, valid: false, submittedAt: '2026-05-16T08:22:00.000Z' }),
+      latest: withPersistedStudentWriteback(submission({ id: 'invalid-latest', score: 95, valid: false, submittedAt: '2026-05-16T08:22:00.000Z' })),
       previousSubmissions: [previousEffective],
       mode: 'white-box',
     });

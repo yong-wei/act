@@ -465,6 +465,7 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
   const evidenceGovernance = resolveLearningFactEvidenceGovernance(actionType, payload);
   const policyReason = readRecord(evidenceGovernance)?.policyReason;
   const suppressCompetencyContribution =
+    policyReason === 'arena_client_evaluation_context_only' ||
     policyReason === 'adaptive_assessment_provisional_context_only' ||
     policyReason === 'adaptive_assessment_missing_kaq_context_only';
   const fact: Prisma.LearningFactCreateManyInput & { contextJson?: Prisma.InputJsonValue } = {

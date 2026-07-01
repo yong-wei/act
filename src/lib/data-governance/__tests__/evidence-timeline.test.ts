@@ -424,7 +424,33 @@ describe('evidence timeline browser', () => {
                 valid: true,
               },
               evidenceGovernance: {
-                policyReason: 'official_arena_evaluation',
+                policyReason: 'arena_client_evaluation_context_only',
+              },
+            },
+          }),
+          fact({
+            id: 'arena-persisted-writeback',
+            factType: 'design',
+            moduleId: 'task-second-order-lead-pid',
+            sourceEventId: 'arena-official:publication-a:task-second-order-lead-pid:submission-a:student-1:hash-a',
+            sourceLogId: 'submission-a',
+            contextJson: {
+              arena: {
+                taskId: 'task-second-order-lead-pid',
+                score: 93,
+                valid: true,
+                evidenceWriteback: {
+                  status: 'accepted',
+                  sourceRef: { kind: 'ArenaSubmission', id: 'submission-a' },
+                  attemptStatus: 'effective',
+                  visibilityState: 'materialized',
+                  targetLabel: '控制校正 Arena 官方迁移验证',
+                  summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+                  recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
+                  limitationCodes: [],
+                  overlayCount: 1,
+                  terminalValidationAccepted: true,
+                },
               },
             },
           }),
@@ -472,6 +498,7 @@ describe('evidence timeline browser', () => {
 
     expect(page.items.map((item) => item.learnerRecord?.sourceScope)).toEqual([
       'interactive-lesson-submission',
+      'arena-preview-result',
       'arena-official-result',
       'arena-preview-result',
       'simulation-workbench-completion',
@@ -483,19 +510,24 @@ describe('evidence timeline browser', () => {
       nextAction: { href: '/profile/evidence?lessonId=unit-5-2-phase-plane-disturbance-boundary', label: '复盘课堂作答' },
     });
     expect(page.items[1].learnerRecord).toMatchObject({
-      confidence: 'high',
-      missingSourceState: 'complete',
-      nextAction: { href: '/arena', label: '查看 Arena 结果' },
-    });
-    expect(page.items[2].learnerRecord).toMatchObject({
       confidence: 'medium',
       missingSourceState: 'official-arena-missing',
       nextAction: { href: '/arena', label: '提交官方评测' },
     });
+    expect(page.items[2].learnerRecord).toMatchObject({
+      confidence: 'high',
+      missingSourceState: 'complete',
+      nextAction: { href: '/arena', label: '查看 Arena 结果' },
+    });
     expect(page.items[3].learnerRecord).toMatchObject({
-      nextAction: { href: '/interactive-learning/control-workbench', label: '继续工作台验证' },
+      confidence: 'medium',
+      missingSourceState: 'official-arena-missing',
+      nextAction: { href: '/arena', label: '提交官方评测' },
     });
     expect(page.items[4].learnerRecord).toMatchObject({
+      nextAction: { href: '/interactive-learning/control-workbench', label: '继续工作台验证' },
+    });
+    expect(page.items[5].learnerRecord).toMatchObject({
       nextAction: { href: '/assessment/adaptive-practice?intent=practice', label: '继续自适应练习' },
     });
   });
