@@ -225,18 +225,18 @@ export function buildGovernanceActionContract(input: {
     };
   }
 
-  if (action === 'assign' && !assignee) {
-    return {
-      state: governanceBlockedState(action, riskId, `风险 ${riskId} 存在，但缺少负责人，不能完成分派。`, '选择负责人后重新分派', 400),
-      auditRecord: audit(input.actorId, action, riskId, assignee, 'missing-assignee', false, recordedAt, risk),
-    };
-  }
-
   const currentlyClosed = risk.isResolved || risk.dispositionStatus === 'resolved' || risk.dispositionStatus === 'ignored';
   if ((action === 'resolve' || action === 'assign' || action === 'ignore') && currentlyClosed) {
     return {
       state: governanceBlockedState(action, riskId, `风险 ${riskId} 已处理，不能重复提交 ${action} 动作。`, '查看审计记录，或使用重开/撤销恢复为待处理', 409),
       auditRecord: audit(input.actorId, action, riskId, assignee, 'already-handled', true, recordedAt, risk),
+    };
+  }
+
+  if (action === 'assign' && !assignee) {
+    return {
+      state: governanceBlockedState(action, riskId, `风险 ${riskId} 存在，但缺少负责人，不能完成分派。`, '选择负责人后重新分派', 400),
+      auditRecord: audit(input.actorId, action, riskId, assignee, 'missing-assignee', false, recordedAt, risk),
     };
   }
 

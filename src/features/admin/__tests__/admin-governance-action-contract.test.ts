@@ -97,6 +97,7 @@ describe('admin governance action contract', () => {
 
     expect(contract.state).toMatchObject({
       status: 'blocked',
+      httpStatus: 400,
       identity: {
         category: 'governance-assign',
         targetId: 'risk-1',
@@ -105,6 +106,32 @@ describe('admin governance action contract', () => {
     expect(contract.auditRecord).toMatchObject({
       outcome: 'missing-assignee',
       assignee: null,
+    });
+  });
+
+  it('reports already handled before missing assignee for stale assign links', () => {
+    const contract = buildGovernanceActionContract({
+      query: { action: 'assign', riskId: 'risk-2' },
+      risks,
+      actorId: 'admin-1',
+      now: new Date('2026-06-21T12:00:00.000Z'),
+    });
+
+    expect(contract.state).toMatchObject({
+      status: 'blocked',
+      httpStatus: 409,
+      recoveryAction: '查看审计记录，或使用重开/撤销恢复为待处理',
+      identity: {
+        category: 'governance-assign',
+        targetId: 'risk-2',
+      },
+    });
+    expect(contract.auditRecord).toMatchObject({
+      outcome: 'already-handled',
+      assignee: null,
+      undoAvailable: true,
+      previousState: 'resolved',
+      affectedObject: 'student-2',
     });
   });
 
