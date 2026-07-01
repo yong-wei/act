@@ -206,6 +206,59 @@ describe('SAR persistence', () => {
     expect(JSON.stringify(repository.getSnapshot())).not.toContain('raw answer body');
   });
 
+  it('rejects restricted query role and use case text before persistence', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const write = repository.upsertQueryTrace({
+      ...traceInput(),
+      queryRole: 'raw answer body',
+      useCase: 'hidden arena evaluation internals',
+    });
+
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'queryTrace.queryRole',
+      'queryTrace.useCase',
+    ]));
+    expect(repository.getSnapshot().queryTraces).toEqual({});
+  });
+
+  it('rejects restricted source refs before projection persistence', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const result = sarResult({
+      events: [event({
+        sourceRef: {
+          ...event().sourceRef,
+          id: 'raw answer body',
+          owner: 'raw audit trace',
+        },
+      })],
+    });
+
+    const write = repository.upsertResult(result);
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'events.0.sourceRef.id',
+      'events.0.sourceRef.owner',
+    ]));
+    expect(repository.getSnapshot().events).toEqual({});
+
+    const queryWrite = repository.upsertQueryTrace(traceInput(result));
+    expect(queryWrite.persisted).toBe(false);
+    expect(queryWrite.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'events.0.sourceRef.id',
+      'events.0.sourceRef.owner',
+    ]));
+    expect(repository.getSnapshot().queryTraces).toEqual({});
+
+    const rebuild = repository.rebuild([result]);
+    expect(rebuild.persisted).toBe(false);
+    expect(rebuild.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'events.0.sourceRef.id',
+      'events.0.sourceRef.owner',
+    ]));
+    expect(repository.getSnapshot().events).toEqual({});
+  });
+
   it('rejects restricted trace version refs before persistence', () => {
     const repository = createSarPersistenceRepository({ now: () => fixedNow });
     const write = repository.upsertResult(sarResult({

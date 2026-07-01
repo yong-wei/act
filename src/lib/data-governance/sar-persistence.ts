@@ -377,8 +377,8 @@ export class SarPersistenceRepository {
       const issues = validateSarResult(result).issues;
       if (issues.length > 0) return { persisted: false, issues };
       const versionRefs = options.versionRefs ?? result.trace.versionRefs;
-      const versionRefIssues = validateVersionRefs(versionRefs);
-      if (versionRefIssues.length > 0) return { persisted: false, issues: versionRefIssues };
+      const persistenceIssues = validateResultPersistenceInput(result, versionRefs);
+      if (persistenceIssues.length > 0) return { persisted: false, issues: persistenceIssues };
       persistResultIntoSnapshot(next, result, versionRefs, options.now ?? this.now());
     }
     next.queryTraces = this.snapshot.queryTraces;
@@ -391,8 +391,8 @@ export class SarPersistenceRepository {
     const issues = validateSarResult(result).issues;
     if (issues.length > 0) return { persisted: false, issues };
     const versionRefs = options.versionRefs ?? result.trace.versionRefs;
-    const versionRefIssues = validateVersionRefs(versionRefs);
-    if (versionRefIssues.length > 0) return { persisted: false, issues: versionRefIssues };
+    const persistenceIssues = validateResultPersistenceInput(result, versionRefs);
+    if (persistenceIssues.length > 0) return { persisted: false, issues: persistenceIssues };
     persistResultIntoSnapshot(
       this.snapshot,
       result,
@@ -409,8 +409,11 @@ export class SarPersistenceRepository {
     if (resultIssues.length > 0) return { persisted: false, issues: resultIssues };
     const traceIssues = validateSarTrace(input.result.trace).issues;
     if (traceIssues.length > 0) return { persisted: false, issues: traceIssues };
-    const retentionIssues = validateTracePersistenceInput(input);
-    if (retentionIssues.length > 0) return { persisted: false, issues: retentionIssues };
+    const persistenceIssues = [
+      ...validateResultPersistenceInput(input.result, input.result.trace.versionRefs),
+      ...validateTracePersistenceInput(input),
+    ];
+    if (persistenceIssues.length > 0) return { persisted: false, issues: persistenceIssues };
 
     const now = input.now ?? this.now();
     const trace = input.result.trace;
@@ -662,9 +665,25 @@ function validateTracePersistenceInput(input: SarPersistQueryTraceInput): SarVal
     ...validateScopeRef(input.scope),
     ...validateTraceEnums(input.exportEligibility, input.handoffStatus),
     ...validateQueryTraceIdentity(input.queryRole, input.useCase, hashSarQueryIdentity(input.queryIdentity)),
+    ...validatePersistedTextBoundary({
+      queryRole: input.queryRole,
+      useCase: input.useCase,
+    }, 'queryTrace'),
     ...validateVersionRefs(input.result.trace.versionRefs),
     ...validateTraceTextBoundary(input.result.trace),
   ];
+}
+
+function validateResultPersistenceInput(result: SarRetrievalResult, versionRefs: unknown): SarValidationIssue[] {
+  const issues: SarValidationIssue[] = [
+    ...validateVersionRefs(versionRefs),
+  ];
+  result.events.forEach((event, index) => {
+    issues.push(...validatePersistedSourceRef(sanitizeSourceRef(event.sourceRef))
+      .map((issue) => ({ ...issue, path: `events.${index}.${issue.path}` })));
+    issues.push(...validatePersistedTextBoundary(sanitizeSourceRef(event.sourceRef), `events.${index}.sourceRef`));
+  });
+  return issues;
 }
 
 function validatePersistedQueryTraceRecord(record: unknown): SarValidationIssue[] {
