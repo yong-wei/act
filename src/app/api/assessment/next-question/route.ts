@@ -97,7 +97,9 @@ async function readVerifiedPathContext(
   };
 }
 
-function isPathAssessmentNode(pathNode: Record<string, unknown> | null): boolean {
+function isPathAssessmentNode(
+  pathNode: Record<string, unknown> | null,
+): pathNode is Record<string, unknown> & { type: 'adaptive_quiz' | 'checkpoint' } {
   return pathNode?.type === 'adaptive_quiz' || pathNode?.type === 'checkpoint';
 }
 

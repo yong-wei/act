@@ -18,6 +18,12 @@ type ArenaWritebackDb = {
   };
 };
 
+type ArenaWritebackReadDb = {
+  evidenceOutbox?: {
+    findMany?(args: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
+  };
+};
+
 export interface PersistedArenaEvidenceWritebackOutcome {
   evidenceWriteback: ArenaSubmissionEvidenceWriteback;
   dedupeKey: string;
@@ -258,7 +264,7 @@ export async function persistArenaSubmissionEvidenceWriteback(
 }
 
 export async function readArenaSubmissionEvidenceWritebacks(
-  db: Pick<ArenaWritebackDb, 'evidenceOutbox'>,
+  db: ArenaWritebackReadDb,
   submissionIds: readonly string[],
   consumer: ArenaEvidenceWritebackConsumer = 'student',
 ): Promise<Map<string, ArenaSubmissionEvidenceWriteback>> {
@@ -277,9 +283,11 @@ export async function readArenaSubmissionEvidenceWritebacks(
   const outcomes = new Map<string, ArenaSubmissionEvidenceWriteback>();
   for (const row of rows) {
     const causationId = typeof row.causationId === 'string' ? row.causationId : null;
-    if (!causationId || outcomes.has(causationId)) continue;
+    if (!causationId) continue;
     const evidenceWriteback = parsePersistedEvidenceWriteback(row, consumer);
     if (evidenceWriteback) {
+      const existing = outcomes.get(causationId);
+      if (existing?.status === 'accepted') continue;
       outcomes.set(causationId, evidenceWriteback);
     }
   }

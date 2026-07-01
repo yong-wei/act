@@ -5,6 +5,8 @@ const mocks = vi.hoisted(() => ({
     arenaSubmission: {
       findMany: vi.fn(),
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
     },
     evidenceOutbox: {
       findMany: vi.fn(),
@@ -79,6 +81,8 @@ describe('prismaArenaSubmissionStore', () => {
     vi.unstubAllEnvs();
     mocks.prisma.evidenceOutbox.findMany.mockResolvedValue([]);
     mocks.prisma.arenaSubmission.findFirst.mockResolvedValue(null);
+    mocks.prisma.arenaSubmission.findUnique.mockResolvedValue(null);
+    mocks.prisma.arenaSubmission.create.mockReset();
   });
 
   it('returns an empty submission list when Arena tables have not been migrated yet', async () => {
@@ -327,6 +331,60 @@ describe('prismaArenaSubmissionStore', () => {
     });
 
     expect(duplicate).toBeNull();
+  });
+
+  it('returns the atomically claimed submission as effective when the attempt key collides', async () => {
+    const existing = {
+      ...submissionRow('first', 'analysis-whitebox-v1'),
+      submissionAttemptKey: 'user-first:publication-a:task-second-order-lead-pid:artifact-hash-first:analysis-whitebox-v1',
+    };
+    existing.publicationId = 'publication-a';
+    const conflict = Object.assign(new Error('Unique constraint failed on the fields: (`submissionAttemptKey`)'), {
+      code: 'P2002',
+      meta: {
+        target: ['submissionAttemptKey'],
+      },
+    });
+    mocks.prisma.arenaSubmission.create.mockRejectedValueOnce(conflict);
+    mocks.prisma.arenaSubmission.findUnique.mockResolvedValueOnce(existing);
+
+    const created = await prismaArenaSubmissionStore.createSubmission({
+      taskId: existing.taskId,
+      userId: existing.userId,
+      publicationId: existing.publicationId,
+      studentLabel: existing.studentLabel,
+      artifactHash: existing.artifactHash,
+      artifact,
+      evaluation: {
+        taskId: existing.taskId,
+        artifact,
+        valid: true,
+        score: 80,
+        metrics: {},
+        satisfaction: {},
+        hardConstraintResults: [],
+        penalties: [],
+        explanation: [],
+      },
+      evaluationProtocolVersion: 'analysis-whitebox-v1',
+      submissionAttemptKey: existing.submissionAttemptKey,
+      submittedAt: '2026-05-15T10:00:00.000Z',
+      artifactId: 'artifact-row',
+      evaluationId: 'eval-first',
+    });
+
+    expect(mocks.prisma.arenaSubmission.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        submissionAttemptKey: existing.submissionAttemptKey,
+      }),
+    }));
+    expect(mocks.prisma.arenaSubmission.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        submissionAttemptKey: existing.submissionAttemptKey,
+      },
+    }));
+    expect(created.id).toBe('first');
+    expect(created.reusedEvaluation).toBe(false);
   });
 
   it('rebuilds same-student duplicate-only submissions from persisted duplicate evaluation keys and excludes blocked writebacks from ranking', async () => {

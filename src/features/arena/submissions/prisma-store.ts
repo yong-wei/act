@@ -109,6 +109,38 @@ function toSubmissionRecord(row: Record<string, unknown>, reusedEvaluation = fal
   };
 }
 
+function toStoredSubmission(row: Record<string, unknown>, reusedEvaluation = false): StoredArenaSubmission {
+  const artifactRow = row.controllerArtifact as Record<string, unknown>;
+  const evaluationRow = row.evaluationRun as Record<string, unknown>;
+  return {
+    id: String(row.id),
+    taskId: String(row.taskId),
+    userId: String(row.userId),
+    classId: typeof row.classId === 'string' ? row.classId : undefined,
+    seasonId: typeof row.seasonId === 'string' ? row.seasonId : undefined,
+    publicationId: typeof row.publicationId === 'string' ? row.publicationId : undefined,
+    isLate: Boolean(row.isLate),
+    studentLabel: String(row.studentLabel),
+    artifactHash: String(row.artifactHash),
+    artifact: artifactRow.payload as ControllerArtifact,
+    evaluation: toEvaluationResult(evaluationRow),
+    evaluationProtocolVersion: String(evaluationRow.protocolVersion),
+    submissionAttemptKey: typeof row.submissionAttemptKey === 'string' ? row.submissionAttemptKey : undefined,
+    submittedAt: (row.submittedAt as Date).toISOString(),
+    reusedEvaluation,
+  };
+}
+
+function isUniqueConstraintViolation(error: unknown, field: string): boolean {
+  if (typeof error !== 'object' || error === null || !('code' in error)) return false;
+  const prismaError = error as { code?: unknown; meta?: { target?: unknown } };
+  if (prismaError.code !== 'P2002') return false;
+  const target = prismaError.meta?.target;
+  return Array.isArray(target)
+    ? target.includes(field)
+    : String(target ?? '').includes(field);
+}
+
 function duplicateEvaluationKeyFromSubmission(submission: ArenaSubmissionRecord): string {
   return [
     submission.userId,
@@ -203,7 +235,7 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
         evidenceWriteback.terminalValidationAccepted === true;
     });
 
-    return acceptedDuplicate ? toSubmissionRecord(acceptedDuplicate) : null;
+    return acceptedDuplicate ? toStoredSubmission(acceptedDuplicate, true) : null;
   },
 
   async upsertArtifact(input) {
@@ -240,43 +272,48 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
 
   async createSubmission(input) {
     const prisma = await getPrismaClient();
-    const row = await (prisma as any).arenaSubmission.create({
-      data: {
-        taskId: input.taskId,
-        userId: input.userId,
-        classId: input.classId ?? null,
-        seasonId: input.seasonId ?? null,
-        publicationId: input.publicationId ?? null,
-        isLate: input.isLate ?? false,
-        studentLabel: input.studentLabel,
-        artifactHash: input.artifactHash,
-        method: input.artifact.method,
-        score: input.evaluation.score,
-        valid: input.evaluation.valid,
-        submittedAt: new Date(input.submittedAt),
-        controllerArtifactId: input.artifactId,
-        evaluationRunId: input.evaluationId,
-      },
-      include: {
-        controllerArtifact: true,
-        evaluationRun: true,
-      },
-    });
+    try {
+      const row = await (prisma as any).arenaSubmission.create({
+        data: {
+          taskId: input.taskId,
+          userId: input.userId,
+          classId: input.classId ?? null,
+          seasonId: input.seasonId ?? null,
+          publicationId: input.publicationId ?? null,
+          isLate: input.isLate ?? false,
+          studentLabel: input.studentLabel,
+          artifactHash: input.artifactHash,
+          method: input.artifact.method,
+          score: input.evaluation.score,
+          valid: input.evaluation.valid,
+          submissionAttemptKey: input.submissionAttemptKey ?? null,
+          submittedAt: new Date(input.submittedAt),
+          controllerArtifactId: input.artifactId,
+          evaluationRunId: input.evaluationId,
+        },
+        include: {
+          controllerArtifact: true,
+          evaluationRun: true,
+        },
+      });
 
-    return {
-      id: String(row.id),
-      taskId: String(row.taskId),
-      userId: String(row.userId),
-      classId: typeof row.classId === 'string' ? row.classId : undefined,
-      seasonId: typeof row.seasonId === 'string' ? row.seasonId : undefined,
-      publicationId: typeof row.publicationId === 'string' ? row.publicationId : undefined,
-      isLate: Boolean(row.isLate),
-      studentLabel: String(row.studentLabel),
-      artifactHash: String(row.artifactHash),
-      artifact: (row.controllerArtifact as Record<string, unknown>).payload as ControllerArtifact,
-      evaluation: toEvaluationResult(row.evaluationRun as Record<string, unknown>),
-      submittedAt: (row.submittedAt as Date).toISOString(),
-    } satisfies StoredArenaSubmission;
+      return toStoredSubmission(row);
+    } catch (error) {
+      if (!input.submissionAttemptKey || !isUniqueConstraintViolation(error, 'submissionAttemptKey')) {
+        throw error;
+      }
+      const row = await (prisma as any).arenaSubmission.findUnique({
+        where: {
+          submissionAttemptKey: input.submissionAttemptKey,
+        },
+        include: {
+          controllerArtifact: true,
+          evaluationRun: true,
+        },
+      });
+      if (!row) throw error;
+      return toStoredSubmission(row);
+    }
   },
 
   async listSubmissions(options) {

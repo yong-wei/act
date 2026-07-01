@@ -723,7 +723,7 @@ describe('buildStudentEvidenceFeaturePayload', () => {
       sourceEventId: 'client-event:arena_evaluation_complete:fake',
       contextJson: {
         evidenceGovernance: {
-          policyReason: 'official_arena_evaluation',
+          policyReason: 'arena_client_evaluation_context_only',
         },
       },
     });

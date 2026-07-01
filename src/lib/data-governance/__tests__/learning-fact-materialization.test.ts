@@ -1070,7 +1070,7 @@ describe('eventToLearningFactInput', () => {
     expect(fact).toBeNull();
   });
 
-  it('materializes Arena official evaluation completion as a design fact', () => {
+  it('materializes client Arena evaluation completion as non-official context evidence', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'arena-evaluation-001',
       actionType: 'arena_evaluation_complete',
@@ -1091,17 +1091,13 @@ describe('eventToLearningFactInput', () => {
       outcome: 'success',
       score: 91,
     });
-    expect(fact?.competencyContribution).toMatchObject({
-      parameterDesign: 0.9,
-      engineeringDecision: 0.6,
-      selfDirectedLearning: 0.3,
-    });
+    expect(fact?.competencyContribution).toEqual({});
     expect(fact?.contextJson).toMatchObject({
       evidenceGovernance: {
-        evidenceQuality: 'rich',
-        profileWeight: 1,
-        skipProfileContribution: false,
-        policyReason: 'official_arena_evaluation',
+        evidenceQuality: 'partial',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'arena_client_evaluation_context_only',
       },
     });
   });

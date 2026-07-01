@@ -424,7 +424,7 @@ describe('evidence timeline browser', () => {
                 valid: true,
               },
               evidenceGovernance: {
-                policyReason: 'official_arena_evaluation',
+                policyReason: 'arena_client_evaluation_context_only',
               },
             },
           }),
@@ -498,7 +498,7 @@ describe('evidence timeline browser', () => {
 
     expect(page.items.map((item) => item.learnerRecord?.sourceScope)).toEqual([
       'interactive-lesson-submission',
-      'arena-official-result',
+      'arena-preview-result',
       'arena-official-result',
       'arena-preview-result',
       'simulation-workbench-completion',
@@ -510,9 +510,9 @@ describe('evidence timeline browser', () => {
       nextAction: { href: '/profile/evidence?lessonId=unit-5-2-phase-plane-disturbance-boundary', label: '复盘课堂作答' },
     });
     expect(page.items[1].learnerRecord).toMatchObject({
-      confidence: 'high',
-      missingSourceState: 'complete',
-      nextAction: { href: '/arena', label: '查看 Arena 结果' },
+      confidence: 'medium',
+      missingSourceState: 'official-arena-missing',
+      nextAction: { href: '/arena', label: '提交官方评测' },
     });
     expect(page.items[2].learnerRecord).toMatchObject({
       confidence: 'high',

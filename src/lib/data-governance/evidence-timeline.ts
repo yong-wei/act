@@ -483,16 +483,15 @@ function inferArenaLearnerRecordSourceScope(
   const context = readRecord(fact.contextJson);
   const arena = readRecord(context.arena);
   const arenaEvidenceWriteback = readRecord(arena.evidenceWriteback);
-  const evidenceGovernance = readRecord(context.evidenceGovernance);
   const sourceEventId = fact.sourceEventId ?? '';
 
   if (
     fact.factType === 'arena_official'
     || fact.factType === 'arena_submission'
+    || arena.official === true
+    || arena.evaluationMode === 'official'
+    || arena.evaluationVisibility === 'official'
     || sourceEventId.startsWith('arena-official:')
-    || sourceEventId.includes('arena_submit')
-    || sourceEventId.includes('arena_evaluation_complete')
-    || evidenceGovernance.policyReason === 'official_arena_evaluation'
     || (
       arenaEvidenceWriteback.status === 'accepted'
       && arenaEvidenceWriteback.terminalValidationAccepted === true

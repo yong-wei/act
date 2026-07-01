@@ -51,6 +51,9 @@ export interface StoredArenaSubmission {
   artifactHash: string;
   artifact: ControllerArtifact;
   evaluation: ArenaEvaluationResult;
+  evaluationProtocolVersion?: string;
+  submissionAttemptKey?: string;
+  reusedEvaluation?: boolean;
   submittedAt: string;
 }
 
@@ -190,6 +193,22 @@ function assertTrustedOdysseySubmissionSource(input: CreatePersistedArenaSubmiss
   }
 }
 
+function buildSubmissionAttemptKey(input: {
+  taskId: string;
+  userId: string;
+  publicationId?: string;
+  artifactHash: string;
+  protocolVersion: string;
+}): string {
+  return [
+    input.userId,
+    input.publicationId ?? 'no-publication',
+    input.taskId,
+    input.artifactHash,
+    input.protocolVersion,
+  ].join(':');
+}
+
 export async function createPersistedArenaSubmission(
   input: CreatePersistedArenaSubmissionInput,
 ): Promise<ArenaSubmissionRecord> {
@@ -246,6 +265,14 @@ export async function createPersistedArenaSubmission(
     artifact,
     evaluation: { ...evaluation, artifact },
     submittedAt: input.submittedAt,
+    evaluationProtocolVersion: protocolVersion,
+    submissionAttemptKey: duplicateSubmission ? undefined : buildSubmissionAttemptKey({
+      taskId: input.taskId,
+      userId: input.userId,
+      publicationId: input.publicationId,
+      artifactHash,
+      protocolVersion,
+    }),
     artifactId: storedArtifact.id,
     evaluationId: storedEvaluation.id,
   });
@@ -264,6 +291,6 @@ export async function createPersistedArenaSubmission(
     evaluation: storedSubmission.evaluation,
     evaluationProtocolVersion: protocolVersion,
     submittedAt: storedSubmission.submittedAt,
-    reusedEvaluation: Boolean(duplicateSubmission),
+    reusedEvaluation: Boolean(duplicateSubmission) || storedSubmission.reusedEvaluation === true,
   };
 }

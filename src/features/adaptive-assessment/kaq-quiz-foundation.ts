@@ -514,7 +514,17 @@ export function buildKaqQuizFoundationArtifacts(input: {
     };
   });
 
-  const limitationRows = rows.flatMap((row) => (
+  type LimitationRow = {
+    learningGoalId: string | null;
+    reason: string;
+    scope?: string;
+    severity: 'blocking' | 'warning';
+    denominator: number;
+    sourceWindow: unknown;
+    versionRefs: KaqQuizVersionRefs;
+  };
+
+  const limitationRows: LimitationRow[] = rows.flatMap((row) => (
     row.limitationReasons.map((reason) => ({
       learningGoalId: row.learningGoalId,
       reason,

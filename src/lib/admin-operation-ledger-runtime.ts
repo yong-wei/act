@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 
 import type {
   AdminOperationArtifactRef,
@@ -15,15 +15,7 @@ type PersistArtifactInput = {
   };
 };
 
-type AdminOperationLedgerDb = {
-  adminOperationLedger: {
-    upsert: (args: unknown) => Promise<unknown>;
-  };
-  adminOperationArtifact: {
-    upsert: (args: unknown) => Promise<unknown>;
-    findUnique?: (args: unknown) => Promise<unknown>;
-  };
-};
+type AdminOperationLedgerDb = Pick<Prisma.TransactionClient, 'adminOperationLedger' | 'adminOperationArtifact'>;
 
 export async function persistAdminOperationLedger(
   entry: AdminOperationLedgerEntry,

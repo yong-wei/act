@@ -221,6 +221,56 @@ describe('Arena evidence writeback persistence', () => {
     expect(outcomes.has('submission-missing')).toBe(false);
   });
 
+  it('prefers processed accepted writeback when duplicate-only rows share the submission id', async () => {
+    const db = createMockDb();
+    db.evidenceOutbox.findMany.mockResolvedValueOnce([
+      {
+        causationId: 'submission-a',
+        status: 'blocked',
+        payload: {
+          evidenceWriteback: {
+            status: 'blocked',
+            sourceRef: { kind: 'ArenaSubmission', id: 'submission-a' },
+            attemptStatus: 'duplicate-only',
+            visibilityState: 'diagnostic-only',
+            targetLabel: '控制校正 Arena 官方迁移验证',
+            summary: '重复提交只保留诊断记录。',
+            recoveryAction: '无需处理；首次正式提交仍作为官方证据。',
+            limitationCodes: ['attempt-not-effective:duplicate-only'],
+            overlayCount: 0,
+            terminalValidationAccepted: false,
+          },
+        },
+      },
+      {
+        causationId: 'submission-a',
+        status: 'processed',
+        payload: {
+          evidenceWriteback: {
+            status: 'accepted',
+            sourceRef: { kind: 'ArenaSubmission', id: 'submission-a' },
+            attemptStatus: 'effective',
+            visibilityState: 'materialized',
+            targetLabel: '控制校正 Arena 官方迁移验证',
+            summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+            recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
+            limitationCodes: [],
+            overlayCount: 1,
+            terminalValidationAccepted: true,
+          },
+        },
+      },
+    ]);
+
+    const outcomes = await readArenaSubmissionEvidenceWritebacks(db, ['submission-a'], 'teacher');
+
+    expect(outcomes.get('submission-a')).toMatchObject({
+      status: 'accepted',
+      attemptStatus: 'effective',
+      terminalValidationAccepted: true,
+    });
+  });
+
   it('redacts student persisted projections while preserving the visible submission reference', async () => {
     const db = createMockDb();
     db.evidenceOutbox.findMany.mockResolvedValueOnce([

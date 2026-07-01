@@ -1584,6 +1584,7 @@ export interface KonlingRuntimeDb {
   };
   evidenceOutbox?: {
     createMany?: (args: any) => Promise<{ count: number }>;
+    findMany?: (args: any) => Promise<any[]>;
   };
   adaptiveMasteryUpdate?: {
     findMany?: (args: any) => Promise<unknown[]>;
