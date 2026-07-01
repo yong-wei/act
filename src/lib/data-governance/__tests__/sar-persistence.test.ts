@@ -203,6 +203,24 @@ describe('SAR persistence', () => {
     expect(JSON.stringify(repository.getSnapshot())).not.toContain('raw answer body');
   });
 
+  it('rejects restricted trace version refs before persistence', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const write = repository.upsertResult(sarResult({
+      trace: trace({ versionRefs: ['raw audit trace'] }),
+    }));
+
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toContain('versionRefs.0');
+    expect(repository.getSnapshot().events).toEqual({});
+
+    const queryWrite = repository.upsertQueryTrace(traceInput(sarResult({
+      trace: trace({ versionRefs: ['raw answer body'] }),
+    })));
+    expect(queryWrite.persisted).toBe(false);
+    expect(queryWrite.issues.map((issue) => issue.path)).toContain('versionRefs.0');
+    expect(repository.getSnapshot().queryTraces).toEqual({});
+  });
+
   it('stores query traces with hash-only query identity and handoff state', () => {
     const repository = createSarPersistenceRepository({ now: () => fixedNow });
     const input = traceInput();
@@ -223,6 +241,12 @@ describe('SAR persistence', () => {
     const serialized = JSON.stringify(persisted);
     expect(serialized).not.toContain('Which root locus objective should support this learner?');
     expect(serialized).not.toContain('prompt');
+
+    const exported = repository.exportSafeSnapshot();
+    expect(exported.events.map((record) => record.stableId)).toEqual(['sar:event:kaq:root-locus']);
+    expect(exported.entities.map((record) => record.stableId)).toEqual(['sar:entity:kaq:root-locus']);
+    expect(exported.queryTraces[0].seedEntityIds).toEqual(['sar:entity:kaq:root-locus']);
+    expect(exported.queryTraces[0].selectedRefs).toEqual(['sar:event:kaq:root-locus']);
   });
 
   it('copies query trace scope and retention before caching records', () => {

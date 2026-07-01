@@ -376,7 +376,10 @@ export class SarPersistenceRepository {
     for (const result of results) {
       const issues = validateSarResult(result).issues;
       if (issues.length > 0) return { persisted: false, issues };
-      persistResultIntoSnapshot(next, result, options.versionRefs ?? result.trace.versionRefs, options.now ?? this.now());
+      const versionRefs = options.versionRefs ?? result.trace.versionRefs;
+      const versionRefIssues = validateVersionRefs(versionRefs);
+      if (versionRefIssues.length > 0) return { persisted: false, issues: versionRefIssues };
+      persistResultIntoSnapshot(next, result, versionRefs, options.now ?? this.now());
     }
     next.queryTraces = this.snapshot.queryTraces;
     this.snapshot = next;
@@ -387,10 +390,13 @@ export class SarPersistenceRepository {
   upsertResult(result: SarRetrievalResult, options: SarPersistResultOptions = {}): SarPersistenceWriteResult {
     const issues = validateSarResult(result).issues;
     if (issues.length > 0) return { persisted: false, issues };
+    const versionRefs = options.versionRefs ?? result.trace.versionRefs;
+    const versionRefIssues = validateVersionRefs(versionRefs);
+    if (versionRefIssues.length > 0) return { persisted: false, issues: versionRefIssues };
     persistResultIntoSnapshot(
       this.snapshot,
       result,
-      options.versionRefs ?? result.trace.versionRefs,
+      versionRefs,
       options.now ?? this.now(),
     );
     this.snapshot.generatedAt = options.now ?? this.now();
@@ -408,6 +414,7 @@ export class SarPersistenceRepository {
 
     const now = input.now ?? this.now();
     const trace = input.result.trace;
+    persistResultIntoSnapshot(this.snapshot, input.result, trace.versionRefs, now);
     const stableId = trace.id;
     const previous = this.snapshot.queryTraces[stableId];
     const next: SarPersistedQueryTraceRecord = {
@@ -649,6 +656,7 @@ function validateTracePersistenceInput(input: SarPersistQueryTraceInput): SarVal
     ...validateScopeRef(input.scope),
     ...validateTraceEnums(input.exportEligibility, input.handoffStatus),
     ...validateQueryTraceIdentity(input.queryRole, input.useCase, hashSarQueryIdentity(input.queryIdentity)),
+    ...validateVersionRefs(input.result.trace.versionRefs),
     ...validateTraceTextBoundary(input.result.trace),
   ];
 }
@@ -883,13 +891,14 @@ function validateAggregateCounts(aggregateCounts: unknown): SarValidationIssue[]
 
 function validateTraceTextBoundary(traceLike: Pick<
   SarPersistedQueryTraceRecord,
-  'seedEntityIds' | 'expansionHops' | 'selectedRefs' | 'rejectedRefs' | 'limitations'
+  'seedEntityIds' | 'expansionHops' | 'selectedRefs' | 'rejectedRefs' | 'limitations' | 'versionRefs'
 > | SarRetrievalTrace): SarValidationIssue[] {
   const issues: SarValidationIssue[] = [];
   collectRestrictedTraceText(traceLike.seedEntityIds, 'seedEntityIds', issues);
   collectRestrictedTraceText(traceLike.expansionHops, 'expansionHops', issues);
   collectRestrictedTraceText(traceLike.selectedRefs, 'selectedRefs', issues);
   collectRestrictedTraceText(traceLike.limitations, 'limitations', issues);
+  collectRestrictedTraceText(traceLike.versionRefs, 'versionRefs', issues);
   if (Array.isArray(traceLike.rejectedRefs)) {
     traceLike.rejectedRefs.forEach((ref, index) => {
       if (isRecord(ref)) {
@@ -898,6 +907,16 @@ function validateTraceTextBoundary(traceLike: Pick<
       }
     });
   }
+  return issues;
+}
+
+function validateVersionRefs(versionRefs: unknown): SarValidationIssue[] {
+  const issues: SarValidationIssue[] = [];
+  if (!Array.isArray(versionRefs) || versionRefs.some((ref) => typeof ref !== 'string')) {
+    issues.push({ code: 'invalid-trace', path: 'versionRefs', message: 'versionRefs must be a string array.' });
+    return issues;
+  }
+  collectRestrictedTraceText(versionRefs, 'versionRefs', issues);
   return issues;
 }
 
