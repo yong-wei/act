@@ -1448,11 +1448,21 @@ export default function AdaptivePracticePage() {
       ? buildAdaptiveGenerationReadiness({ reason: 'insufficient-evidence', source: 'ui' })
       : null
   ), [activeLearnerState, authStatus, isDemoMode, learnerStateLoadState, showGenerationWorkspace]);
+  const learnerStatePendingReadiness = useMemo(() => (
+    showGenerationWorkspace &&
+      !isDemoMode &&
+      authStatus === 'authenticated' &&
+      Boolean(activeGoal) &&
+      learnerStateLoadState !== 'ready'
+      ? buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'learner-state' })
+      : null
+  ), [activeGoal, authStatus, isDemoMode, learnerStateLoadState, showGenerationWorkspace]);
   const pathGenerationReadiness = useMemo(() => selectAdaptiveGenerationReadiness([
     pathAdvisorReadiness,
     learnerStateReadiness,
+    learnerStatePendingReadiness,
     evidenceReadiness,
-  ]), [evidenceReadiness, learnerStateReadiness, pathAdvisorReadiness]);
+  ]), [evidenceReadiness, learnerStatePendingReadiness, learnerStateReadiness, pathAdvisorReadiness]);
   const pathGenerationDegradedReadiness = learnerStateReadiness?.status === 'degraded'
     ? learnerStateReadiness
     : evidenceReadiness?.status === 'degraded'
