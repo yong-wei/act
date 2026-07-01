@@ -775,10 +775,10 @@ function validatePersistedSourceRef(sourceRef: SarPersistedSourceRef): SarValida
       });
     }
   }
-  if (sourceRef.ownerUserIdHash !== undefined && !isHashRef(sourceRef.ownerUserIdHash)) {
+  if (sourceRef.ownerUserIdHash !== undefined && !isHashRef(sourceRef.ownerUserIdHash, 'owner-user')) {
     issues.push({ code: 'invalid-reference', path: 'sourceRef.ownerUserIdHash', message: 'ownerUserIdHash must be hash-only.' });
   }
-  if (sourceRef.classIdHash !== undefined && !isHashRef(sourceRef.classIdHash)) {
+  if (sourceRef.classIdHash !== undefined && !isHashRef(sourceRef.classIdHash, 'class')) {
     issues.push({ code: 'invalid-reference', path: 'sourceRef.classIdHash', message: 'classIdHash must be hash-only.' });
   }
   return issues;
@@ -821,19 +821,19 @@ function validateScopeRef(scopeRef: unknown): SarValidationIssue[] {
   if (!QUERY_TRACE_SCOPES.has(scopeRef.scope as SarQueryTraceScope)) {
     issues.push({ code: 'invalid-trace', path: 'scope.scope', message: 'Trace scope must use a governed value.' });
   }
-  if (scopeRef.studentIdHash !== undefined && !isHashRef(scopeRef.studentIdHash)) {
+  if (scopeRef.studentIdHash !== undefined && !isHashRef(scopeRef.studentIdHash, 'student')) {
     issues.push({ code: 'invalid-trace', path: 'scope.studentIdHash', message: 'studentIdHash must be hash-only.' });
   }
-  if (scopeRef.classIdHash !== undefined && !isHashRef(scopeRef.classIdHash)) {
+  if (scopeRef.classIdHash !== undefined && !isHashRef(scopeRef.classIdHash, 'class')) {
     issues.push({ code: 'invalid-trace', path: 'scope.classIdHash', message: 'classIdHash must be hash-only.' });
   }
-  if (scopeRef.teacherIdHash !== undefined && !isHashRef(scopeRef.teacherIdHash)) {
+  if (scopeRef.teacherIdHash !== undefined && !isHashRef(scopeRef.teacherIdHash, 'teacher')) {
     issues.push({ code: 'invalid-trace', path: 'scope.teacherIdHash', message: 'teacherIdHash must be hash-only.' });
   }
-  if (scopeRef.scope === 'student' && !isHashRef(scopeRef.studentIdHash)) {
+  if (scopeRef.scope === 'student' && !isHashRef(scopeRef.studentIdHash, 'student')) {
     issues.push({ code: 'invalid-trace', path: 'scope.studentIdHash', message: 'Student-scoped traces require hash-only student identity.' });
   }
-  if (scopeRef.scope === 'class' && !isHashRef(scopeRef.classIdHash)) {
+  if (scopeRef.scope === 'class' && !isHashRef(scopeRef.classIdHash, 'class')) {
     issues.push({ code: 'invalid-trace', path: 'scope.classIdHash', message: 'Class-scoped traces require hash-only class identity.' });
   }
   return issues;
@@ -847,7 +847,7 @@ function validateQueryTraceIdentity(queryRole: unknown, useCase: unknown, queryH
   if (typeof useCase !== 'string' || useCase.trim() === '') {
     issues.push({ code: 'invalid-trace', path: 'useCase', message: 'Query trace use case is required.' });
   }
-  if (typeof queryHash !== 'string' || !queryHash.startsWith('sar:query:sha256:')) {
+  if (typeof queryHash !== 'string' || !/^sar:query:sha256:[a-f0-9]{64}$/.test(queryHash)) {
     issues.push({ code: 'invalid-trace', path: 'queryHash', message: 'Query trace must store hash-only query identity.' });
   }
   return issues;
@@ -1102,8 +1102,8 @@ function isIsoDate(value: unknown): boolean {
   return typeof value === 'string' && value.trim() !== '' && !Number.isNaN(new Date(value).getTime());
 }
 
-function isHashRef(value: unknown): value is string {
-  return typeof value === 'string' && /^sar:[a-z-]+:sha256:[A-Za-z0-9_-]+$/.test(value);
+function isHashRef(value: unknown, scope: string): value is string {
+  return typeof value === 'string' && new RegExp(`^sar:${scope}:sha256:[a-f0-9]{64}$`).test(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

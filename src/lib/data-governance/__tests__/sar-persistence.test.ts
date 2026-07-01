@@ -17,6 +17,9 @@ import type {
 } from '../structured-associative-retrieval';
 
 const fixedNow = '2026-07-01T00:00:00.000Z';
+const studentHash = `sar:student:sha256:${'a'.repeat(64)}`;
+const mutatedStudentHash = `sar:student:sha256:${'b'.repeat(64)}`;
+const classHash = `sar:class:sha256:${'c'.repeat(64)}`;
 
 const event = (overrides: Partial<SarRetrievalEvent> = {}): SarRetrievalEvent => ({
   id: 'sar:event:kaq:root-locus',
@@ -94,8 +97,8 @@ const traceInput = (result = sarResult()) => ({
   },
   scope: {
     scope: 'student' as const,
-    studentIdHash: 'sar:student:sha256:demo',
-    classIdHash: 'sar:class:sha256:control',
+    studentIdHash: studentHash,
+    classIdHash: classHash,
   },
   retention: {
     storedAt: fixedNow,
@@ -254,11 +257,11 @@ describe('SAR persistence', () => {
     const input = traceInput();
     expect(repository.upsertQueryTrace(input).persisted).toBe(true);
 
-    input.scope.studentIdHash = 'sar:student:sha256:mutated';
+    input.scope.studentIdHash = mutatedStudentHash;
     input.retention.retainUntil = '2027-01-01T00:00:00.000Z';
 
     const persisted = repository.getSnapshot().queryTraces['sar:trace:root-locus'];
-    expect(persisted.scope.studentIdHash).toBe('sar:student:sha256:demo');
+    expect(persisted.scope.studentIdHash).toBe(studentHash);
     expect(persisted.retention.retainUntil).toBe('2026-07-08T00:00:00.000Z');
   });
 
@@ -269,13 +272,37 @@ describe('SAR persistence', () => {
       scope: {
         scope: 'student',
         studentIdHash: 'student-control-demo',
-        classIdHash: 'sar:class:sha256:control',
+        classIdHash: classHash,
       },
     });
 
     expect(write.persisted).toBe(false);
     expect(write.issues.map((issue) => issue.path)).toContain('scope.studentIdHash');
     expect(repository.getSnapshot().queryTraces).toEqual({});
+  });
+
+  it('rejects readable suffixes in scoped hash refs', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const write = repository.upsertQueryTrace({
+      ...traceInput(),
+      scope: {
+        ...traceInput().scope,
+        studentIdHash: 'sar:student:sha256:learner-raw-id',
+      },
+    });
+
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toContain('scope.studentIdHash');
+
+    const wrongPrefix = repository.upsertQueryTrace({
+      ...traceInput(),
+      scope: {
+        ...traceInput().scope,
+        studentIdHash: classHash,
+      },
+    });
+    expect(wrongPrefix.persisted).toBe(false);
+    expect(wrongPrefix.issues.map((issue) => issue.path)).toContain('scope.studentIdHash');
   });
 
   it('rejects invalid query trace export and retention enum values', () => {
@@ -793,6 +820,38 @@ describe('SAR persistence', () => {
             ...snapshot.queryTraces['sar:trace:root-locus'],
             queryRole: 'raw answer body',
             useCase: 'hidden arena evaluation internals',
+          },
+        },
+      }));
+
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored snapshots with forged hash suffixes', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertQueryTrace(traceInput());
+      const snapshot = repository.getSnapshot();
+      writeFileSync(filePath, JSON.stringify({
+        ...snapshot,
+        events: {
+          'sar:event:kaq:root-locus': {
+            ...snapshot.events['sar:event:kaq:root-locus'],
+            sourceRef: {
+              ...snapshot.events['sar:event:kaq:root-locus'].sourceRef,
+              ownerUserIdHash: classHash,
+            },
+          },
+        },
+        queryTraces: {
+          'sar:trace:root-locus': {
+            ...snapshot.queryTraces['sar:trace:root-locus'],
+            queryHash: 'sar:query:sha256:Which root locus objective should support this learner?',
           },
         },
       }));
