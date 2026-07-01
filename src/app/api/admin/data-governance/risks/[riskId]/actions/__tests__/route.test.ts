@@ -81,7 +81,10 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
       action: 'resolve',
       riskId: 'risk-1',
       outcome: 'resolved',
-      undoAvailable: false,
+      undoAvailable: true,
+      previousState: 'open',
+      newState: 'resolved',
+      affectedObject: 'student:student-1',
       retentionPolicy: 'admin-operation-ledger-30d',
     });
     expect(payload.operationLedger).toMatchObject({
@@ -119,6 +122,297 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
         }),
       }),
     }));
+  });
+
+  it('ignores a risk as a reversible disposition with audit state', async () => {
+    const response = await POST(postRequest({ action: 'ignore', note: '误报，忽略' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.auditRecord).toMatchObject({
+      action: 'ignore',
+      outcome: 'ignored',
+      undoAvailable: true,
+      previousState: 'open',
+      newState: 'ignored',
+      note: '误报，忽略',
+    });
+    expect(payload.operationLedger).toMatchObject({
+      kind: 'admin-governance-ignore',
+      scope: 'admin-governance-ignore:risk-1',
+      auditSummary: '治理风险 risk-1 已由管理员忽略。',
+      rollback: expect.objectContaining({ available: true }),
+    });
+    expect(mocks.prisma.studentRiskFlag.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        isResolved: true,
+        resolutionNote: '误报，忽略',
+        evidenceJson: expect.objectContaining({
+          adminGovernance: expect.objectContaining({
+            lastDisposition: 'ignored',
+            auditLog: expect.arrayContaining([
+              expect.objectContaining({ action: 'ignore', outcome: 'ignored' }),
+            ]),
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('reopens a resolved risk and records the previous handled state', async () => {
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: true,
+        resolvedAt: new Date('2026-06-21T10:00:00.000Z'),
+        resolutionNote: '已人工复核',
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            auditLog: [
+              {
+                actorId: 'admin-1',
+                action: 'resolve',
+                riskId: 'risk-1',
+                assignee: null,
+                outcome: 'resolved',
+                undoAvailable: true,
+                recordedAt: '2026-06-21T10:00:00.000Z',
+              },
+            ],
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        isResolved: true,
+        resolvedAt: new Date('2026-06-21T10:00:00.000Z'),
+        resolutionNote: '已人工复核',
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            auditLog: [
+              {
+                actorId: 'admin-1',
+                action: 'resolve',
+                riskId: 'risk-1',
+                assignee: null,
+                outcome: 'resolved',
+                undoAvailable: true,
+                recordedAt: '2026-06-21T10:00:00.000Z',
+              },
+            ],
+          },
+        },
+      });
+
+    const response = await POST(postRequest({ action: 'reopen' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.auditRecord).toMatchObject({
+      action: 'reopen',
+      outcome: 'reopened',
+      undoAvailable: false,
+      previousState: 'resolved',
+      newState: 'open',
+    });
+    expect(payload.operationLedger).toMatchObject({
+      kind: 'admin-governance-reopen',
+      scope: 'admin-governance-reopen:risk-1',
+      auditSummary: '治理风险 risk-1 已重新打开。',
+    });
+    expect(mocks.prisma.studentRiskFlag.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        isResolved: false,
+        resolvedAt: null,
+        resolutionNote: null,
+        evidenceJson: expect.objectContaining({
+          adminGovernance: expect.objectContaining({
+            lastDisposition: 'open',
+            auditLog: expect.arrayContaining([
+              expect.objectContaining({ action: 'resolve', undoAvailable: false }),
+              expect.objectContaining({ action: 'reopen', outcome: 'reopened' }),
+            ]),
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('uses legacy lastDisposition when reopening resolved risks without audit logs', async () => {
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: true,
+        resolvedAt: new Date('2026-06-21T10:00:00.000Z'),
+        resolutionNote: null,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            lastDisposition: 'ignored',
+            auditLog: [],
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        isResolved: true,
+        resolvedAt: new Date('2026-06-21T10:00:00.000Z'),
+        resolutionNote: null,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            lastDisposition: 'ignored',
+            auditLog: [],
+          },
+        },
+      });
+
+    const response = await POST(postRequest({ action: 'reopen' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.auditRecord).toMatchObject({
+      action: 'reopen',
+      previousState: 'ignored',
+      newState: 'open',
+    });
+  });
+
+  it('undoes a handled risk disposition and rejects undo for open risks', async () => {
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: true,
+        resolvedAt: new Date('2026-06-21T10:00:00.000Z'),
+        resolutionNote: '管理员从数据治理工作台忽略该风险',
+        evidenceJson: {
+          adminGovernance: {
+            auditLog: [
+              {
+                actorId: 'admin-1',
+                action: 'ignore',
+                riskId: 'risk-1',
+                assignee: null,
+                outcome: 'ignored',
+                undoAvailable: true,
+                recordedAt: '2026-06-21T10:00:00.000Z',
+              },
+            ],
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        isResolved: true,
+        resolvedAt: new Date('2026-06-21T10:00:00.000Z'),
+        resolutionNote: '管理员从数据治理工作台忽略该风险',
+        evidenceJson: {
+          adminGovernance: {
+            auditLog: [
+              {
+                actorId: 'admin-1',
+                action: 'ignore',
+                riskId: 'risk-1',
+                assignee: null,
+                outcome: 'ignored',
+                undoAvailable: true,
+                recordedAt: '2026-06-21T10:00:00.000Z',
+              },
+            ],
+          },
+        },
+      });
+
+    const undoResponse = await POST(postRequest({ action: 'undo' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const undoPayload = await undoResponse.json();
+
+    expect(undoResponse.status).toBe(200);
+    expect(undoPayload.auditRecord).toMatchObject({
+      action: 'undo',
+      outcome: 'undone',
+      previousState: 'ignored',
+      newState: 'open',
+    });
+
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValueOnce({
+      id: 'risk-1',
+      userId: 'student-1',
+      isResolved: false,
+      evidenceJson: { source: 'risk-detector' },
+    });
+    const openUndoResponse = await POST(postRequest({ action: 'undo' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const openUndoPayload = await openUndoResponse.json();
+
+    expect(openUndoResponse.status).toBe(409);
+    expect(openUndoPayload).toEqual({ error: '治理风险仍处于待处理状态，无需重新打开' });
+  });
+
+  it('rejects undo when no undoable disposition audit exists', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValueOnce({
+      id: 'risk-1',
+      userId: 'student-1',
+      isResolved: true,
+      resolvedAt: new Date('2026-06-21T10:00:00.000Z'),
+      resolutionNote: 'legacy close',
+      evidenceJson: {
+        adminGovernance: {
+          auditLog: [
+            {
+              actorId: 'admin-1',
+              action: 'resolve',
+              riskId: 'risk-1',
+              assignee: null,
+              outcome: 'resolved',
+              undoAvailable: false,
+              recordedAt: '2026-06-21T10:00:00.000Z',
+            },
+          ],
+        },
+      },
+    });
+
+    const response = await POST(postRequest({ action: 'undo' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toEqual({ error: '治理风险没有可撤销的处置记录' });
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when the risk disappears inside the transaction', async () => {
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: false,
+        evidenceJson: { source: 'risk-detector' },
+      })
+      .mockResolvedValueOnce(null);
+
+    const response = await POST(postRequest({ action: 'resolve' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(payload).toEqual({ error: '治理风险不存在' });
+    expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
   });
 
   it('assigns a risk only when the assignee exists', async () => {
@@ -224,6 +518,104 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     expect(auditLog[0]).toMatchObject({
       idempotencyKey: firstPayload.operationLedger.idempotencyKey,
       recordedAt: firstPayload.auditRecord.recordedAt,
+    });
+  });
+
+  it('includes assign notes in governance action idempotency keys', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-21T10:00:00.000Z'));
+    const firstResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1', note: '先由班主任复核' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const firstPayload = await firstResponse.json();
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-1',
+            auditLog: [firstPayload.auditRecord],
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-1',
+            auditLog: [firstPayload.auditRecord],
+          },
+        },
+      });
+    vi.setSystemTime(new Date('2026-06-21T10:05:00.000Z'));
+
+    const secondResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1', note: '补充电话确认记录' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const secondPayload = await secondResponse.json();
+    const updateCall = mocks.prisma.studentRiskFlag.update.mock.calls.at(-1)?.[0];
+    const governance = updateCall?.data?.evidenceJson?.adminGovernance;
+
+    expect(secondResponse.status).toBe(200);
+    expect(secondPayload.operationLedger.idempotencyKey).not.toBe(firstPayload.operationLedger.idempotencyKey);
+    expect(governance.auditLog).toHaveLength(2);
+    expect(governance.auditLog.at(-1)).toMatchObject({
+      action: 'assign',
+      assignee: 'admin-1',
+      note: '补充电话确认记录',
+      idempotencyKey: secondPayload.operationLedger.idempotencyKey,
+    });
+  });
+
+  it('keeps repeated assign actions with the same custom note idempotent', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-21T10:00:00.000Z'));
+    const firstResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1', note: '先由班主任复核' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const firstPayload = await firstResponse.json();
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-1',
+            auditLog: [firstPayload.auditRecord],
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-1',
+            auditLog: [firstPayload.auditRecord],
+          },
+        },
+      });
+    vi.setSystemTime(new Date('2026-06-21T10:05:00.000Z'));
+
+    const secondResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1', note: '先由班主任复核' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const secondPayload = await secondResponse.json();
+    const updateCall = mocks.prisma.studentRiskFlag.update.mock.calls.at(-1)?.[0];
+    const governance = updateCall?.data?.evidenceJson?.adminGovernance;
+
+    expect(secondResponse.status).toBe(200);
+    expect(secondPayload.operationLedger.idempotencyKey).toBe(firstPayload.operationLedger.idempotencyKey);
+    expect(governance.auditLog).toHaveLength(1);
+    expect(governance.auditLog[0]).toMatchObject({
+      note: '先由班主任复核',
+      idempotencyKey: firstPayload.operationLedger.idempotencyKey,
     });
   });
 

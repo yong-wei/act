@@ -26,6 +26,10 @@ import {
 import { getStudentEvidenceFeatureCacheAdminSummary } from '@/lib/data-governance/student-evidence-feature-cache';
 import { buildControlCorrectionSarDemoFixture } from '@/lib/data-governance/sar-diagnostics';
 import { parseSessionGovernanceSummary } from '@/lib/classroom-session-statistics';
+import type {
+  GovernanceActionAuditRecord,
+  GovernanceRiskDispositionStatus,
+} from '@/features/admin/admin-governance-action-contract';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +50,109 @@ function compactSourceLabel(...values: unknown[]): string | null {
 
 function readString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function readGovernanceAuditLog(value: unknown): GovernanceActionAuditRecord[] {
+  const governance = readObject(readObject(value).adminGovernance);
+  return Array.isArray(governance.auditLog)
+    ? governance.auditLog.filter((item): item is GovernanceActionAuditRecord => (
+        Boolean(
+          item
+          && typeof item === 'object'
+          && !Array.isArray(item)
+          && typeof (item as Record<string, unknown>).actorId === 'string'
+          && typeof (item as Record<string, unknown>).action === 'string'
+          && typeof (item as Record<string, unknown>).riskId === 'string'
+          && typeof (item as Record<string, unknown>).recordedAt === 'string'
+        )
+      ))
+    : [];
+}
+
+function readGovernanceAssignee(value: unknown): string | null {
+  const governance = readObject(readObject(value).adminGovernance);
+  return readString(governance.currentAssignee) ?? null;
+}
+
+function readUndoAvailable(value: unknown): boolean {
+  const auditLog = readGovernanceAuditLog(value);
+  const latestDisposition = [...auditLog].reverse().find((item) => (
+    item.action === 'resolve'
+    || item.action === 'ignore'
+    || item.action === 'reopen'
+    || item.action === 'undo'
+  ));
+  return Boolean(
+    latestDisposition
+    && (latestDisposition.action === 'resolve' || latestDisposition.action === 'ignore')
+    && latestDisposition.undoAvailable === true
+  );
+}
+
+function readGovernanceDisposition(value: {
+  isResolved: boolean;
+  resolutionNote?: string | null;
+  evidenceJson: unknown;
+}): GovernanceRiskDispositionStatus {
+  const lastDisposition = readString(readObject(readObject(value.evidenceJson).adminGovernance).lastDisposition);
+  if (value.isResolved && (lastDisposition === 'ignored' || lastDisposition === 'resolved')) {
+    return lastDisposition;
+  }
+  if (!value.isResolved && lastDisposition === 'open') {
+    return 'open';
+  }
+  const auditLog = readGovernanceAuditLog(value.evidenceJson);
+  const latestDisposition = [...auditLog].reverse().find((item) => (
+    item.action === 'resolve'
+    || item.action === 'ignore'
+    || item.action === 'reopen'
+    || item.action === 'undo'
+  ));
+  if (!value.isResolved) return 'open';
+  if (latestDisposition?.action === 'ignore' || latestDisposition?.outcome === 'ignored') return 'ignored';
+  if (value.resolutionNote?.includes('忽略')) return 'ignored';
+  return 'resolved';
+}
+
+function mapGovernanceRiskPayload(risk: {
+  id: string;
+  userId: string;
+  flagType: string;
+  severity: string;
+  description: string;
+  triggeredAt: Date;
+  isResolved: boolean;
+  resolvedAt?: Date | null;
+  resolutionNote?: string | null;
+  evidenceJson: unknown;
+  user: {
+    name: string | null;
+    email: string | null;
+  };
+}) {
+  const userToken = risk.userId.slice(0, 12);
+  const userName = risk.user.name || `学生 ${userToken}`;
+  const safeLabel = `${userName} · ${risk.flagType} · ${risk.severity}`;
+  const affectedObjectLabel = `student:${userToken}`;
+  return {
+    id: risk.id,
+    userId: risk.userId,
+    userName,
+    flagType: risk.flagType,
+    severity: risk.severity,
+    description: risk.description,
+    triggeredAt: risk.triggeredAt.toISOString(),
+    isResolved: risk.isResolved,
+    resolvedAt: risk.resolvedAt?.toISOString() ?? null,
+    resolutionNote: risk.resolutionNote ?? null,
+    safeLabel,
+    affectedObjectLabel,
+    evidenceHref: `/admin/data-governance?tab=risks&riskId=${encodeURIComponent(risk.id)}&action=evidence`,
+    currentAssignee: readGovernanceAssignee(risk.evidenceJson),
+    dispositionStatus: readGovernanceDisposition(risk),
+    undoAvailable: readUndoAvailable(risk.evidenceJson),
+    auditTrail: readGovernanceAuditLog(risk.evidenceJson),
+  };
 }
 
 function buildArenaPreviewBoundaryMetadata(row: {
@@ -547,6 +654,9 @@ export async function GET(request: NextRequest) {
           description: true,
           triggeredAt: true,
           isResolved: true,
+          resolvedAt: true,
+          resolutionNote: true,
+          evidenceJson: true,
           user: {
             select: {
               name: true,
@@ -585,7 +695,7 @@ export async function GET(request: NextRequest) {
     ]);
     const targetRiskFlag = requestedRiskId && !recentRiskFlags.some((risk) => risk.id === requestedRiskId)
       ? await prisma.studentRiskFlag.findUnique({
-          where: { id: requestedRiskId, isResolved: false },
+          where: { id: requestedRiskId },
           select: {
             id: true,
             userId: true,
@@ -594,6 +704,9 @@ export async function GET(request: NextRequest) {
             description: true,
             triggeredAt: true,
             isResolved: true,
+            resolvedAt: true,
+            resolutionNote: true,
+            evidenceJson: true,
             user: {
               select: {
                 name: true,
@@ -730,28 +843,8 @@ export async function GET(request: NextRequest) {
         snapshotAt: item.snapshotAt.toISOString(),
         factCount: item.factCount,
       })),
-      recentRiskFlags: recentRiskFlags.map((risk) => ({
-        id: risk.id,
-        userId: risk.userId,
-        userName: risk.user.name || risk.user.email || risk.userId.slice(0, 8),
-        flagType: risk.flagType,
-        severity: risk.severity,
-        description: risk.description,
-        triggeredAt: risk.triggeredAt.toISOString(),
-        isResolved: risk.isResolved,
-      })),
-      targetRiskFlag: targetRiskFlag
-        ? {
-            id: targetRiskFlag.id,
-            userId: targetRiskFlag.userId,
-            userName: targetRiskFlag.user.name || targetRiskFlag.user.email || targetRiskFlag.userId.slice(0, 8),
-            flagType: targetRiskFlag.flagType,
-            severity: targetRiskFlag.severity,
-            description: targetRiskFlag.description,
-            triggeredAt: targetRiskFlag.triggeredAt.toISOString(),
-            isResolved: targetRiskFlag.isResolved,
-          }
-        : null,
+      recentRiskFlags: recentRiskFlags.map(mapGovernanceRiskPayload),
+      targetRiskFlag: targetRiskFlag ? mapGovernanceRiskPayload(targetRiskFlag) : null,
       factTypeDistribution: summarizeLearningFactTypes(learningFacts),
       sessionQuality: summarizeSessionQuality(recentSessionQualityReports),
       featureCache,

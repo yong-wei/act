@@ -1,5 +1,9 @@
 import type { AdminOperationLedgerEntry } from '@/lib/admin-operation-ledger';
 import type { SarDiagnosticsReport } from '@/lib/data-governance/sar-diagnostics';
+import type {
+  GovernanceActionAuditRecord,
+  GovernanceRiskDispositionStatus,
+} from '@/features/admin/admin-governance-action-contract';
 
 export type GovernanceQueueStats = {
   waiting: number;
@@ -117,6 +121,15 @@ export type GovernanceStatusPayload = {
     description: string;
     triggeredAt: string;
     isResolved: boolean;
+    resolvedAt?: string | null;
+    resolutionNote?: string | null;
+    safeLabel?: string;
+    affectedObjectLabel?: string;
+    evidenceHref?: string;
+    currentAssignee?: string | null;
+    dispositionStatus?: GovernanceRiskDispositionStatus;
+    undoAvailable?: boolean;
+    auditTrail?: GovernanceActionAuditRecord[];
   }>;
   targetRiskFlag?: {
     id: string;
@@ -127,6 +140,15 @@ export type GovernanceStatusPayload = {
     description: string;
     triggeredAt: string;
     isResolved: boolean;
+    resolvedAt?: string | null;
+    resolutionNote?: string | null;
+    safeLabel?: string;
+    affectedObjectLabel?: string;
+    evidenceHref?: string;
+    currentAssignee?: string | null;
+    dispositionStatus?: GovernanceRiskDispositionStatus;
+    undoAvailable?: boolean;
+    auditTrail?: GovernanceActionAuditRecord[];
   } | null;
   recentSnapshots: Array<{
     userId: string;
@@ -158,7 +180,7 @@ type QueueCard = {
 };
 
 type GovernanceTab = {
-  id: 'overview' | 'sessions' | 'sources' | 'cache';
+  id: 'overview' | 'risks' | 'sessions' | 'sources' | 'cache';
   label: string;
 };
 
@@ -216,6 +238,7 @@ function buildSessionQualityCard(payload: GovernanceStatusPayload): SummaryCard 
 export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
   const tabs: GovernanceTab[] = [
     { id: 'overview', label: '总览' },
+    { id: 'risks', label: '风险治理' },
     { id: 'sessions', label: '课堂质量' },
     { id: 'sources', label: '证据源' },
     { id: 'cache', label: '缓存健康' },
@@ -259,7 +282,10 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
     failed: stats.failed,
   }));
 
-  const riskRows: RiskRow[] = payload.recentRiskFlags.map((risk) => ({
+  const riskSourceRows = payload.targetRiskFlag
+    ? [payload.targetRiskFlag, ...payload.recentRiskFlags.filter((risk) => risk.id !== payload.targetRiskFlag?.id)]
+    : payload.recentRiskFlags;
+  const riskRows: RiskRow[] = riskSourceRows.map((risk) => ({
     ...risk,
     severityLabel: RISK_SEVERITY_LABELS[risk.severity] || risk.severity,
     flagLabel: RISK_TYPE_LABELS[risk.flagType] || risk.flagType,

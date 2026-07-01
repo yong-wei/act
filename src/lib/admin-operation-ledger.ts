@@ -9,6 +9,9 @@ export type AdminOperationKind =
   | 'admin-governance-export'
   | 'admin-governance-resolve'
   | 'admin-governance-assign'
+  | 'admin-governance-ignore'
+  | 'admin-governance-reopen'
+  | 'admin-governance-undo'
   | 'admin-states-export';
 
 export type AdminOperationOutcome =

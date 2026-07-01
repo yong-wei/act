@@ -455,6 +455,24 @@ describe('GET /api/admin/data-governance/status', () => {
       description: '较早待处理风险',
       triggeredAt: new Date('2026-05-18T08:00:00.000Z'),
       isResolved: false,
+      resolvedAt: null,
+      resolutionNote: null,
+      evidenceJson: {
+        adminGovernance: {
+          currentAssignee: 'admin-1',
+          auditLog: [
+            {
+              actorId: 'admin-1',
+              action: 'assign',
+              riskId: 'risk-older',
+              assignee: 'admin-1',
+              outcome: 'assigned',
+              undoAvailable: false,
+              recordedAt: '2026-05-18T09:00:00.000Z',
+            },
+          ],
+        },
+      },
       user: { name: '张三', email: 'student@example.test' },
     });
 
@@ -463,13 +481,124 @@ describe('GET /api/admin/data-governance/status', () => {
 
     expect(response.status).toBe(200);
     expect(mocks.prisma.studentRiskFlag.findUnique).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'risk-older', isResolved: false },
+      where: { id: 'risk-older' },
     }));
     expect(payload.targetRiskFlag).toMatchObject({
       id: 'risk-older',
       userId: 'student-1',
       userName: '张三',
       isResolved: false,
+      safeLabel: '张三 · participation · high',
+      affectedObjectLabel: 'student:student-1',
+      evidenceHref: '/admin/data-governance?tab=risks&riskId=risk-older&action=evidence',
+      currentAssignee: 'admin-1',
+      dispositionStatus: 'open',
+      undoAvailable: false,
+      auditTrail: [
+        expect.objectContaining({ action: 'assign', outcome: 'assigned' }),
+      ],
+    });
+  });
+
+  it('uses lastDisposition as the safe governance state source for legacy audit payloads', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue({
+      id: 'risk-legacy-ignored',
+      userId: 'student-1234567890',
+      flagType: 'participation',
+      severity: 'medium',
+      description: '旧格式忽略风险',
+      triggeredAt: new Date('2026-05-18T08:00:00.000Z'),
+      isResolved: true,
+      resolvedAt: new Date('2026-05-18T10:00:00.000Z'),
+      resolutionNote: null,
+      evidenceJson: {
+        adminGovernance: {
+          lastDisposition: 'ignored',
+        },
+      },
+      user: { name: null, email: 'student@example.test' },
+    });
+
+    const response = await GET(createRequest('?tab=risks&riskId=risk-legacy-ignored'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.targetRiskFlag).toMatchObject({
+      id: 'risk-legacy-ignored',
+      userName: '学生 student-1234',
+      safeLabel: '学生 student-1234 · participation · medium',
+      affectedObjectLabel: 'student:student-1234',
+      dispositionStatus: 'ignored',
+      auditTrail: [],
+    });
+    expect(payload.targetRiskFlag.safeLabel).not.toContain('@');
+  });
+
+  it('falls back to resolutionNote when legacy ignored risks lack governance disposition metadata', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue({
+      id: 'risk-note-ignored',
+      userId: 'student-1234567890',
+      flagType: 'participation',
+      severity: 'medium',
+      description: '旧备注忽略风险',
+      triggeredAt: new Date('2026-05-18T08:00:00.000Z'),
+      isResolved: true,
+      resolvedAt: new Date('2026-05-18T10:00:00.000Z'),
+      resolutionNote: '管理员从数据治理工作台忽略该风险',
+      evidenceJson: {},
+      user: { name: null, email: 'student@example.test' },
+    });
+
+    const response = await GET(createRequest('?tab=risks&riskId=risk-note-ignored'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.targetRiskFlag).toMatchObject({
+      id: 'risk-note-ignored',
+      dispositionStatus: 'ignored',
+      auditTrail: [],
+    });
+  });
+
+  it('returns resolved target risks so URL intents can show already-handled recovery', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue({
+      id: 'risk-resolved',
+      userId: 'student-1',
+      flagType: 'participation',
+      severity: 'medium',
+      description: '已处理风险',
+      triggeredAt: new Date('2026-05-18T08:00:00.000Z'),
+      isResolved: true,
+      resolvedAt: new Date('2026-05-18T10:00:00.000Z'),
+      resolutionNote: '管理员从数据治理工作台忽略该风险',
+      evidenceJson: {
+        adminGovernance: {
+          auditLog: [
+            {
+              actorId: 'admin-1',
+              action: 'ignore',
+              riskId: 'risk-resolved',
+              assignee: null,
+              outcome: 'ignored',
+              undoAvailable: true,
+              recordedAt: '2026-05-18T10:00:00.000Z',
+            },
+          ],
+        },
+      },
+      user: { name: '张三', email: 'student@example.test' },
+    });
+
+    const response = await GET(createRequest('?tab=risks&action=resolve&riskId=risk-resolved'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.targetRiskFlag).toMatchObject({
+      id: 'risk-resolved',
+      isResolved: true,
+      dispositionStatus: 'ignored',
+      resolvedAt: '2026-05-18T10:00:00.000Z',
+      resolutionNote: '管理员从数据治理工作台忽略该风险',
     });
   });
 

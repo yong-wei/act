@@ -821,6 +821,7 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 305. P1：管理员治理风险清单仍不可处置。
    管理员治理页能展示 170 个风险和风险清单，但没有查看证据、分派、标记处理、导出、批量处置或撤销入口。
+   台账状态（2026-07-01，`audit-remediation-admin-risk-governance-workflow-closure`）：closed for row-level risk governance workflow。风险行已具备证据入口、负责人状态、处置/忽略、重开/撤销和审计记录；本条不关闭批量处置、导出、移动宽度或批量导入范围。
 
 306. P2：管理员总览动作缺少状态反馈。
    管理员总览中的刷新、查看、治理相关动作尝试后没有 `role=status` 或页面内状态变化。
@@ -892,6 +893,7 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 329. P1：管理员治理风险仍不可处置。
    治理页和 API 都能展示 170 个风险，但 drilldown 后没有进入证据、分派、标记处理、批量处置、撤销或审计记录。
+   台账状态（2026-07-01，`audit-remediation-admin-risk-governance-workflow-closure`）：closed for risk objectization。`tab=risks`、`riskId` 与 `action=assign/resolve/ignore/reopen/undo` 进入风险动作上下文，status API 返回目标风险、分派、处置状态和审计链，action API 持久化 actor、previous/new state、note 与 affected object；批量处置和导出仍属于其他 finding。
 
 330. P1：数据中心导出和治理入口命中不稳定。
    数据中心管理员态点击导出演示快照没有 download event；治理入口点击时定位到隐藏 `数据治理` 文本并超时。
@@ -933,6 +935,7 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 342. P1：治理风险清单仍是只读表
    加载后可见 170 个风险和风险说明，但风险行没有查看证据、分派、标记处理、批量处置、导出或撤销。
+   台账状态（2026-07-01，`audit-remediation-admin-risk-governance-workflow-closure`）：closed for row-level actions。风险清单已从只读行扩展为 evidence、assignment、disposition、undo/reopen 和 audit trail 的对象化工作流；移动横向溢出、批量处置和导出事件不在本次关闭范围。
 
 343. P1：数据中心 returnTo、导出和治理交接都未闭环
    `returnTo=/admin/data-governance` 没有形成可见返回治理交接；导出没有 download event；治理入口仍命中隐藏文本。
