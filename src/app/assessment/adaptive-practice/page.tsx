@@ -1452,11 +1452,11 @@ export default function AdaptivePracticePage() {
     showGenerationWorkspace &&
       !isDemoMode &&
       authStatus === 'authenticated' &&
-      Boolean(activeGoal) &&
+      Boolean(pathAdvisorContextGoal) &&
       learnerStateLoadState !== 'ready'
       ? buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'learner-state' })
       : null
-  ), [activeGoal, authStatus, isDemoMode, learnerStateLoadState, showGenerationWorkspace]);
+  ), [authStatus, isDemoMode, learnerStateLoadState, pathAdvisorContextGoal, showGenerationWorkspace]);
   const pathGenerationReadiness = useMemo(() => selectAdaptiveGenerationReadiness([
     pathAdvisorReadiness,
     learnerStateReadiness,
@@ -1876,6 +1876,61 @@ export default function AdaptivePracticePage() {
       cancelled = true;
     };
   }, [activeGoal, activeGoalLabel, activePathId, authStatus, isDemoMode, requestedPathContextKey, showEvidenceWorkspace, showExecutionWorkspace, showSelectionWorkspace]);
+
+  useEffect(() => {
+    if (activeGoal || !pathAdvisorContextGoal || !showGenerationWorkspace || isDemoMode) return;
+
+    if (authStatus === 'loading') {
+      setLearnerStateLoadState('loading');
+      setLearnerStateReadiness(null);
+      return;
+    }
+
+    if (authStatus !== 'authenticated') {
+      setActiveLearnerState(null);
+      setLearnerStateLoadState('idle');
+      setLearnerStateReadiness(null);
+      return;
+    }
+
+    const generationGoal = pathAdvisorContextGoal;
+    let cancelled = false;
+    async function loadPathGenerationLearnerState() {
+      setLearnerStateLoadState('loading');
+      setLearnerStateReadiness(null);
+      try {
+        const learnerResponse = await fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(generationGoal)}`);
+        if (cancelled) return;
+        if (learnerResponse.ok) {
+          setActiveLearnerState((await learnerResponse.json()) as AdaptiveLearnerState);
+          setLearnerStateReadiness(null);
+          setLearnerStateLoadState('ready');
+          return;
+        }
+        setActiveLearnerState(null);
+        setLearnerStateReadiness(adaptiveGenerationReadinessFromHttp({
+          status: learnerResponse.status,
+          source: 'learner-state',
+          fallbackReason: 'learner-state-unavailable',
+        }));
+        setLearnerStateLoadState('ready');
+      } catch {
+        if (!cancelled) {
+          setActiveLearnerState(null);
+          setLearnerStateReadiness(buildAdaptiveGenerationReadiness({
+            reason: 'learner-state-unavailable',
+            source: 'learner-state',
+          }));
+          setLearnerStateLoadState('ready');
+        }
+      }
+    }
+
+    void loadPathGenerationLearnerState();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeGoal, authStatus, isDemoMode, pathAdvisorContextGoal, showGenerationWorkspace]);
 
   const reloadActiveLearningPath = useCallback(async () => {
     const pathIdToLoad = activePathRound?.id ??

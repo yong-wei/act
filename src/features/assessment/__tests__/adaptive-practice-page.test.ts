@@ -110,9 +110,12 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('pathGenerationReadiness');
     expect(source).toContain('selectAdaptiveGenerationReadiness');
     expect(source).toContain('const learnerStatePendingReadiness = useMemo');
-    expect(source).toContain('Boolean(activeGoal)');
+    expect(source).toContain('Boolean(pathAdvisorContextGoal)');
     expect(source).toContain("learnerStateLoadState !== 'ready'");
     expect(source).toContain("buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'learner-state' })");
+    expect(source).toContain('if (activeGoal || !pathAdvisorContextGoal || !showGenerationWorkspace || isDemoMode) return;');
+    expect(source).toContain('const generationGoal = pathAdvisorContextGoal;');
+    expect(source).toContain('fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(generationGoal)}`)');
     expect(source).toContain("const pathGenerationDegradedReadiness = learnerStateReadiness?.status === 'degraded'");
     expect(source).toContain("evidenceReadiness?.status === 'degraded'");
     expect(source).toContain("const canRetryPathGeneration = pathGenerationReadiness.status === 'retryable'");
