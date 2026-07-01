@@ -674,6 +674,59 @@ describe('SAR persistence', () => {
     }
   });
 
+  it('rejects restored records with missing or invalid persisted schema fields', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertQueryTrace(traceInput());
+      const snapshot = repository.getSnapshot();
+      const eventWithoutContentHash: Record<string, unknown> = { ...snapshot.events['sar:event:kaq:root-locus'] };
+      delete eventWithoutContentHash.contentHash;
+      const traceWithoutContentHash: Record<string, unknown> = { ...snapshot.queryTraces['sar:trace:root-locus'] };
+      delete traceWithoutContentHash.contentHash;
+      delete traceWithoutContentHash.minimized;
+      const relationId = Object.keys(snapshot.relations)[0];
+      const corruptedSnapshot = {
+        ...snapshot,
+        events: {
+          'sar:event:kaq:root-locus': eventWithoutContentHash,
+        },
+        entities: {
+          'sar:entity:kaq:root-locus': {
+            ...snapshot.entities['sar:entity:kaq:root-locus'],
+            versionRefs: 'sar-contract.v1',
+          },
+        },
+        relations: {
+          [relationId]: {
+            ...Object.values(snapshot.relations)[0],
+            updatedAt: 'not-a-date',
+          },
+        },
+        queryTraces: {
+          'sar:trace:root-locus': traceWithoutContentHash,
+        },
+      };
+
+      const restored = repository.restore(corruptedSnapshot);
+      expect(restored.persisted).toBe(false);
+      expect(restored.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+        'events.sar:event:kaq:root-locus.contentHash',
+        'entities.sar:entity:kaq:root-locus.versionRefs',
+        `relations.${relationId}.updatedAt`,
+        'queryTraces.sar:trace:root-locus.contentHash',
+        'queryTraces.sar:trace:root-locus.minimized',
+      ]));
+
+      writeFileSync(filePath, JSON.stringify(corruptedSnapshot));
+
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
   it('rejects restored snapshots with restricted sourceRef text', () => {
     const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
     const filePath = join(directory, 'sar-index.json');

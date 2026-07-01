@@ -593,6 +593,8 @@ function validatePersistedEventRecord(record: unknown): SarValidationIssue[] {
   }
   return [
     ...validateAllowedKeys(record, PERSISTED_EVENT_RECORD_KEYS, `events.${String(record.stableId ?? 'unknown')}`),
+    ...validatePersistedRecordFields(record, `events.${String(record.stableId ?? 'unknown')}`, ['stableId', 'contentHash'], ['writtenAt', 'updatedAt']),
+    ...validateVersionRefs(record.versionRefs, `events.${String(record.stableId ?? 'unknown')}.versionRefs`),
     ...validatePersistedEventDerivedFields(record),
     ...validatePersistedTextBoundary(record, `events.${String(record.stableId ?? 'unknown')}`),
     ...validateSarEvent({
@@ -619,6 +621,8 @@ function validatePersistedEntityRecord(record: unknown): SarValidationIssue[] {
   }
   return [
     ...validateAllowedKeys(record, PERSISTED_ENTITY_RECORD_KEYS, `entities.${String(record.stableId ?? 'unknown')}`),
+    ...validatePersistedRecordFields(record, `entities.${String(record.stableId ?? 'unknown')}`, ['stableId', 'contentHash'], ['writtenAt', 'updatedAt']),
+    ...validateVersionRefs(record.versionRefs, `entities.${String(record.stableId ?? 'unknown')}.versionRefs`),
     ...validatePersistedTextBoundary(record, `entities.${String(record.stableId ?? 'unknown')}`),
     ...validateSarEntity({
       id: record.stableId,
@@ -638,6 +642,8 @@ function validatePersistedRelationRecord(record: unknown): SarValidationIssue[] 
   }
   return [
     ...validateAllowedKeys(record, PERSISTED_RELATION_RECORD_KEYS, `relations.${String(record.stableId ?? 'unknown')}`),
+    ...validatePersistedRecordFields(record, `relations.${String(record.stableId ?? 'unknown')}`, ['stableId', 'contentHash'], ['writtenAt', 'updatedAt']),
+    ...validateVersionRefs(record.versionRefs, `relations.${String(record.stableId ?? 'unknown')}.versionRefs`),
     ...validatePersistedTextBoundary(record, `relations.${String(record.stableId ?? 'unknown')}`),
     ...validateSarRelation({
       eventId: record.eventId,
@@ -675,6 +681,8 @@ function validatePersistedQueryTraceRecord(record: unknown): SarValidationIssue[
       });
     }
   }
+  issues.push(...validatePersistedRecordFields(record, `queryTraces.${String(record.stableId ?? 'unknown')}`, ['stableId', 'queryHash', 'contentHash'], ['writtenAt', 'updatedAt'], ['minimized']));
+  issues.push(...validateVersionRefs(record.versionRefs, `queryTraces.${String(record.stableId ?? 'unknown')}.versionRefs`));
   issues.push(...validateScopeRef(record.scope));
   issues.push(...validateRetention(record.retention));
   if (record.aggregateCounts !== undefined) {
@@ -722,6 +730,32 @@ function validatePersistedEventDerivedFields(record: Record<string, unknown>): S
         path: 'events.contentHash',
         message: 'Persisted event contentHash must match sourceRef.contentHash when sourceRef provides one.',
       });
+    }
+  }
+  return issues;
+}
+
+function validatePersistedRecordFields(
+  record: Record<string, unknown>,
+  path: string,
+  stringFields: readonly string[],
+  isoFields: readonly string[],
+  booleanFields: readonly string[] = [],
+): SarValidationIssue[] {
+  const issues: SarValidationIssue[] = [];
+  for (const field of stringFields) {
+    if (typeof record[field] !== 'string' || record[field].trim() === '') {
+      issues.push({ code: 'missing-required-field', path: `${path}.${field}`, message: `${field} must be a non-empty string.` });
+    }
+  }
+  for (const field of isoFields) {
+    if (!isIsoDate(record[field])) {
+      issues.push({ code: 'missing-required-field', path: `${path}.${field}`, message: `${field} must be an ISO timestamp.` });
+    }
+  }
+  for (const field of booleanFields) {
+    if (typeof record[field] !== 'boolean') {
+      issues.push({ code: 'missing-required-field', path: `${path}.${field}`, message: `${field} must be a boolean.` });
     }
   }
   return issues;
@@ -910,13 +944,13 @@ function validateTraceTextBoundary(traceLike: Pick<
   return issues;
 }
 
-function validateVersionRefs(versionRefs: unknown): SarValidationIssue[] {
+function validateVersionRefs(versionRefs: unknown, path = 'versionRefs'): SarValidationIssue[] {
   const issues: SarValidationIssue[] = [];
   if (!Array.isArray(versionRefs) || versionRefs.some((ref) => typeof ref !== 'string')) {
-    issues.push({ code: 'invalid-trace', path: 'versionRefs', message: 'versionRefs must be a string array.' });
+    issues.push({ code: 'invalid-trace', path, message: 'versionRefs must be a string array.' });
     return issues;
   }
-  collectRestrictedTraceText(versionRefs, 'versionRefs', issues);
+  collectRestrictedTraceText(versionRefs, path, issues);
   return issues;
 }
 
