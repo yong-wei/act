@@ -57,6 +57,16 @@ export async function POST(request: Request) {
         source: 'session',
       }));
     }
+    const classBinding = await prisma.class.findUnique({
+      where: { id: classId },
+      select: { teacherId: true },
+    });
+    if (!classBinding?.teacherId) {
+      return readinessError('当前班级缺少任课教师绑定，暂不能生成学习路径', 403, buildAdaptiveGenerationReadiness({
+        reason: 'missing-teacher-binding',
+        source: 'session',
+      }));
+    }
 
     const modeContextToken = typeof body.modeContextToken === 'string' ? body.modeContextToken : '';
     if (!modeContextToken) {
