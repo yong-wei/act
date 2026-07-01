@@ -1368,7 +1368,6 @@ export default function AdaptivePracticePage() {
     : '/assessment/adaptive-practice');
   const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';
   const feedbackGenericPathGenerationHref = withFeedbackTaskHref(genericPathGenerationHref);
-  const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoalContextHref)}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
   const { assistantEntryPoint, openAssistantEntryPoint, updatePageContext } = useGlobalAI();
   const searchParamsKey = searchParams.toString();
@@ -1403,6 +1402,12 @@ export default function AdaptivePracticePage() {
   const [pathAdvisorReadiness, setPathAdvisorReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [learnerStateReadiness, setLearnerStateReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [pathAdvisorAgentSessionId, setPathAdvisorAgentSessionId] = useState<string | null>(null);
+  const loginCallbackHref = showGenerationWorkspace
+    ? activeGoal
+      ? withFeedbackTaskHref(buildPathGenerationGoalHref(activeGoal, pathGenerationPanel))
+      : feedbackGenericPathGenerationHref
+    : activeGoalContextHref;
+  const loginHref = `/login?callbackUrl=${encodeURIComponent(loginCallbackHref)}`;
   const pathAdvisorContextGoal = hasInvalidRequestedGoal
     ? null
     : activeGoal ?? (showGenerationWorkspace ? pathGenerationPanel.goalId : null);

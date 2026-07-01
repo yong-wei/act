@@ -116,6 +116,11 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('const authRequiredGenerationReadiness = useMemo');
     expect(source).toContain("authStatus === 'unauthenticated'");
     expect(source).toContain("buildAdaptiveGenerationReadiness({ reason: 'auth-required', source: 'session' })");
+    expect(source).toContain('const loginCallbackHref = showGenerationWorkspace');
+    expect(source).toContain('? withFeedbackTaskHref(buildPathGenerationGoalHref(activeGoal, pathGenerationPanel))');
+    expect(source).toContain(': feedbackGenericPathGenerationHref');
+    expect(source).toContain(': activeGoalContextHref');
+    expect(source).toContain('const loginHref = `/login?callbackUrl=${encodeURIComponent(loginCallbackHref)}`;');
     expect(source).toContain('if (activeGoal || !pathAdvisorContextGoal || !showGenerationWorkspace || isDemoMode) return;');
     expect(source).toContain('const generationGoal = pathAdvisorContextGoal;');
     expect(source).toContain('fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(generationGoal)}`)');
