@@ -28,6 +28,8 @@ import type {
   ResourceNodeTeacherPolicy,
   ResourceNodeType,
 } from '@/lib/resource-node-registry';
+import { buildResourceNodeAuthoringTasks } from '@/lib/authoring-api-task-consumption';
+import { AuthoringApiTaskStrip } from './authoring-api-task-strip';
 
 interface TeacherResourceNodeManagementProps {
   initialNodes: TeacherResourceNodeView[];
@@ -367,6 +369,7 @@ function NodeDetail({
   saveState: 'idle' | 'saving' | 'saved' | 'error';
   onSave: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+  const authoringTasks = buildResourceNodeAuthoringTasks({ node, saveState });
   return (
     <div>
       <div className="mb-5 flex items-start justify-between gap-4">
@@ -407,6 +410,11 @@ function NodeDetail({
           打开资源
         </Link>
       )}
+
+      <div className="mb-5 rounded-md border border-platform-border bg-platform-canvas-muted p-3">
+        <div className="mb-2 text-sm font-medium text-platform-fg-secondary">API 任务消费</div>
+        <AuthoringApiTaskStrip surface="resource-node" tasks={authoringTasks} />
+      </div>
 
       {node.warnings.length > 0 && (
         <div className="mb-5 space-y-2">

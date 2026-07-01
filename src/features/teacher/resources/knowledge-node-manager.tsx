@@ -6,6 +6,8 @@ import { ChevronRight, ChevronDown, BookOpen, Eye, Pencil, Lightbulb, Brain, Sca
 import { KnowledgeNodeEditDialog } from './knowledge-node-edit-dialog';
 import { KnowledgeCardDialog } from '@/features/knowledge/knowledge-card';
 import { useRouter } from 'next/navigation';
+import { buildKnowledgeNodeAuthoringTasks } from '@/lib/authoring-api-task-consumption';
+import { AuthoringApiTaskStrip } from './authoring-api-task-strip';
 
 interface KnowledgeNodeLink {
   relation: string;
@@ -49,6 +51,7 @@ export function KnowledgeNodeManager({
   const [editingNode, setEditingNode] = useState<KnowledgeNode | null>(null);
   const [previewNode, setPreviewNode] = useState<KnowledgeNode | null>(null);
   const [visibleRootCount, setVisibleRootCount] = useState(KNOWLEDGE_TREE_PAGE_SIZE);
+  const [nodeSaveState, setNodeSaveState] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({});
 
   // 构建树形结构
   const tree = useMemo(() => {
@@ -182,14 +185,17 @@ export function KnowledgeNodeManager({
     id: string,
     data: { name: string; description: string; metadata: any }
   ) => {
+    setNodeSaveState((current) => ({ ...current, [id]: 'saving' }));
     const res = await fetch(`/api/knowledge/nodes/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
     if (!res.ok) {
+      setNodeSaveState((current) => ({ ...current, [id]: 'error' }));
       throw new Error('Failed to update node');
     }
+    setNodeSaveState((current) => ({ ...current, [id]: 'saved' }));
     router.refresh();
   };
 
@@ -203,11 +209,19 @@ export function KnowledgeNodeManager({
       label: node.nodeType,
     };
     const Icon = config.icon;
+    const authoringTasks = buildKnowledgeNodeAuthoringTasks({
+      id: node.id,
+      name: node.name,
+      description: node.description,
+      sourceLinks: node.sourceLinks,
+      targetLinks: node.targetLinks,
+      editState: nodeSaveState[node.id] ?? 'idle',
+    });
 
     return (
       <div key={node.id}>
         <div
-          className={`flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-slate-700/50 transition-colors group`}
+          className={`flex flex-wrap items-center gap-2 py-2 px-3 rounded-lg hover:bg-slate-700/50 transition-colors group`}
           style={{ paddingLeft: `${depth * 24 + 12}px` }}
         >
           {/* 展开/折叠按钮 */}
@@ -260,6 +274,9 @@ export function KnowledgeNodeManager({
             >
               <Pencil className="h-3.5 w-3.5" />
             </button>
+          </div>
+          <div className="basis-full pl-7">
+            <AuthoringApiTaskStrip surface="knowledge-node" tasks={authoringTasks} />
           </div>
         </div>
 
