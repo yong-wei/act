@@ -122,7 +122,7 @@ describe('arena student diagnostic feedback rules', () => {
     });
 
     expect(feedback.evidenceWriteback).toMatchObject({
-      status: 'blocked',
+      status: 'degraded',
       sourceRef: { kind: 'ArenaSubmission', id: 'missing-writeback' },
       visibilityState: 'unavailable',
       terminalValidationAccepted: false,

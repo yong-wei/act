@@ -123,6 +123,104 @@ describe('arena submissions and leaderboards', () => {
     expect(method.entries.every((entry) => entry.method === 'pid')).toBe(true);
   });
 
+  it('keeps legacy effective submissions without persisted writeback on leaderboards', async () => {
+    const legacy = await createArenaSubmissionRecord({
+      taskId: 'task-second-order-lead-pid',
+      artifact: pidArtifact,
+      studentLabel: '历史有效成绩',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    legacy.evaluation.valid = true;
+    legacy.evaluation.score = 82;
+
+    const leaderboard = buildArenaLeaderboard([legacy], {
+      taskId: 'task-second-order-lead-pid',
+      type: 'main',
+    });
+    const stats = buildArenaTaskStats([legacy], ['task-second-order-lead-pid']);
+
+    expect(leaderboard.entries).toHaveLength(1);
+    expect(leaderboard.entries[0]?.studentLabel).toBe('历史有效成绩');
+    expect(stats['task-second-order-lead-pid']).toMatchObject({
+      participantCount: 1,
+      submissionCount: 1,
+      topScore: 82,
+    });
+  });
+
+  it('keeps effective non-KAQ-bound task submissions ranked while leaving writeback degraded', async () => {
+    const unboundTaskSubmission = await createArenaSubmissionRecord({
+      taskId: 'task-integrator-low-frequency-balance',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-unbound-task',
+        taskId: 'task-integrator-low-frequency-balance',
+        params: { kp: 1.8, ki: 0.6, kd: 0.12 },
+      },
+      userId: 'student-unbound-task',
+      studentLabel: '未绑定 KAQ 任务有效成绩',
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      existingSubmissions: [],
+    });
+    unboundTaskSubmission.evaluation.valid = true;
+    unboundTaskSubmission.evaluation.score = 84;
+    const evidenceWriteback = buildArenaSubmissionEvidenceWriteback({
+      ...unboundTaskSubmission,
+      userId: 'student-unbound-task',
+    }, { consumer: 'service' });
+
+    const leaderboard = buildArenaLeaderboard([{
+      ...unboundTaskSubmission,
+      evidenceWriteback,
+    }], {
+      taskId: 'task-integrator-low-frequency-balance',
+      type: 'main',
+    });
+
+    expect(evidenceWriteback).toMatchObject({
+      status: 'degraded',
+      visibilityState: 'diagnostic-only',
+      limitationCodes: ['missing-target-binding'],
+      terminalValidationAccepted: false,
+    });
+    expect(leaderboard.entries).toHaveLength(1);
+    expect(leaderboard.entries[0]?.score).toBe(84);
+  });
+
+  it('excludes intrinsically effective submissions with blocked persisted writeback', async () => {
+    const blocked = await createArenaSubmissionRecord({
+      taskId: 'task-second-order-lead-pid',
+      artifact: pidArtifact,
+      studentLabel: '阻塞写回成绩',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    blocked.evaluation.valid = true;
+    blocked.evaluation.score = 86;
+
+    const leaderboard = buildArenaLeaderboard([{
+      ...blocked,
+      evidenceWriteback: {
+        status: 'blocked',
+        sourceRef: { kind: 'ArenaSubmission', id: blocked.id },
+        attemptStatus: 'effective',
+        visibilityState: 'unavailable',
+        targetLabel: '控制校正 Arena 官方迁移验证',
+        summary: '官方提交尚未读取到持久化证据回流结果，暂不作为掌握证据。',
+        recoveryAction: '等待证据回流完成。',
+        limitationCodes: ['missing-persisted-writeback'],
+        overlayCount: 0,
+        terminalValidationAccepted: false,
+      },
+    }], {
+      taskId: 'task-second-order-lead-pid',
+      type: 'main',
+    });
+
+    expect(leaderboard.entries).toHaveLength(0);
+  });
+
   it('uses leaderboard policy metric tie breakers before submitted time', async () => {
     const first = await createArenaSubmission({
       taskId: 'task-integrator-low-frequency-balance',

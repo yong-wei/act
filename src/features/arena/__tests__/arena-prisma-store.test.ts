@@ -567,7 +567,7 @@ describe('prismaArenaSubmissionStore', () => {
     }))).toEqual([
       {
         id: 'orphan',
-        reusedEvaluation: false,
+        reusedEvaluation: true,
         status: 'missing',
         effective: false,
       },

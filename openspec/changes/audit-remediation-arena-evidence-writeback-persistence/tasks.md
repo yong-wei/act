@@ -27,9 +27,10 @@
 - Consumer path: `src/features/arena/submissions/prisma-store.ts` attaches
   persisted outcomes to `ArenaSubmissionRecord`; `src/features/arena/teacher/publication-store.ts`
   requests teacher projection for publication reports.
-- Ranking path: `src/features/arena/submissions/ranking-policy.ts` excludes
-  anything without persisted `accepted` writeback outcome from official ranking,
-  personal-best, score summary, and excellent-solution eligibility; `src/features/arena/submissions/prisma-store.ts`
+- Ranking path: `src/features/arena/submissions/ranking-policy.ts` keeps
+  valid, non-late, positive-score, non-duplicate Arena submissions eligible for
+  official ranking while leaving KAQ writeback status as the learning-evidence
+  gate; `src/features/arena/submissions/prisma-store.ts`
   rebuilds duplicate-only state for same-student repeated
   publication/task/artifact/protocol submissions on Prisma reload without
   treating cross-student evaluation-cache hits as duplicates. A same-context

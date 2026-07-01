@@ -14,7 +14,7 @@
 
 ## Boundaries
 
-- 不改变 Arena 评分算法；leaderboard 排名有效性继续排除 invalid/late/zero，并新增要求持久 `accepted` writeback outcome，防止 duplicate-only、blocked、degraded 或 missing-persisted outcome 进入正式排名。
+- 不改变 Arena 评分算法；leaderboard 排名有效性继续排除 invalid/late/zero/duplicate-only 和 persisted blocked writeback。KAQ writeback outcome 是学习证据与教师报告的治理真源；历史提交或尚未绑定 KAQ 目标的有效 Arena 任务仍保留原有榜单资格，但不能被提升为终端掌握证据。
 - 不把无效 attempt 写成掌握证据。
 - 不依赖前端临时状态作为写回成功依据。
 - 不关闭课堂 runtime 证据写回之外的课堂生命周期问题。

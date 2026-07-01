@@ -392,17 +392,23 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
       options?.evidenceWritebackConsumer ?? 'student',
     );
     const acceptedKeys = new Set<string>();
-    return baseSubmissions.map((submission) => {
+    for (const submission of baseSubmissions) {
       const evidenceWriteback = writebacks.get(submission.id) ?? submission.evidenceWriteback;
-      const duplicateKey = duplicateEvaluationKeyFromSubmission(submission);
-      const reusedEvaluation = evidenceWriteback?.attemptStatus === 'duplicate-only' ||
-        acceptedKeys.has(duplicateKey);
       if (
         evidenceWriteback?.status === 'accepted' &&
         evidenceWriteback.terminalValidationAccepted === true
       ) {
-        acceptedKeys.add(duplicateKey);
+        acceptedKeys.add(duplicateEvaluationKeyFromSubmission(submission));
       }
+    }
+    return baseSubmissions.map((submission) => {
+      const evidenceWriteback = writebacks.get(submission.id) ?? submission.evidenceWriteback;
+      const duplicateKey = duplicateEvaluationKeyFromSubmission(submission);
+      const reusedEvaluation = evidenceWriteback?.attemptStatus === 'duplicate-only' ||
+        (acceptedKeys.has(duplicateKey) && !(
+          evidenceWriteback?.status === 'accepted' &&
+          evidenceWriteback.terminalValidationAccepted === true
+        ));
       return {
         ...submission,
         reusedEvaluation,

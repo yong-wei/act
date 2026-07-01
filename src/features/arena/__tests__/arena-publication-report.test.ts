@@ -647,7 +647,7 @@ describe('arena publication report analytics', () => {
     expect(report.classroomReview.leaderboardVisibilityMessage).toContain('有效尝试');
   });
 
-  it('keeps missing, blocked, and degraded persisted outcomes out of teacher ranking surfaces', () => {
+  it('keeps historical missing and degraded outcomes ranked while excluding blocked writebacks', () => {
     const missing = submission({
       id: 'missing-writeback',
       userId: 'student-missing',
@@ -700,9 +700,20 @@ describe('arena publication report analytics', () => {
       excellentSolutionLimit: 5,
     });
 
-    expect(report.scores).toEqual({ average: null, median: null, highest: null });
-    expect(report.excellentSolutions).toEqual([]);
-    expect(report.personalBests).toEqual([]);
+    expect(report.scores).toEqual({ average: 92, median: 92, highest: 93 });
+    expect(report.excellentSolutions).toEqual([
+      expect.objectContaining({ submissionId: 'degraded-writeback', score: 93 }),
+      expect.objectContaining({ submissionId: 'missing-writeback', score: 91 }),
+    ]);
+    expect(report.personalBests.map((best) => best.submissionId)).toEqual([
+      'degraded-writeback',
+      'missing-writeback',
+    ]);
+    expect(report.personalBests.find((best) => best.submissionId === 'degraded-writeback')).toMatchObject({
+      evidenceWritebackStatus: 'degraded',
+      effectiveForRanking: true,
+    });
+    expect(report.personalBests.find((best) => best.submissionId === 'blocked-writeback')).toBeUndefined();
   });
 
   it('exposes publication product context, lifecycle state, delivery actions, and leaderboard boundaries', () => {

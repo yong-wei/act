@@ -94,12 +94,12 @@ export function buildMissingArenaSubmissionEvidenceWriteback(
 ): ArenaSubmissionEvidenceWriteback {
   const exposeLimitationCodes = options.consumer === 'teacher' || options.consumer === 'admin' || options.consumer === 'service';
   return {
-    status: 'blocked',
+    status: 'degraded',
     sourceRef: { kind: 'ArenaSubmission', id: submission.id },
     attemptStatus: getArenaAttemptStatus(submission),
     visibilityState: 'unavailable',
     targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
-    summary: '官方提交尚未读取到持久化证据回流结果，暂不作为掌握证据。',
+    summary: '官方提交尚未读取到持久化证据回流结果，保留原有排名资格但暂不作为掌握证据。',
     recoveryAction: '等待证据回流完成；若持续缺失，请由教师或管理员复核写回任务。',
     limitationCodes: exposeLimitationCodes ? ['missing-persisted-writeback'] : [],
     overlayCount: 0,
@@ -137,13 +137,13 @@ export function buildArenaSubmissionEvidenceWriteback(
 
   if (!CONTROL_CORRECTION_OFFICIAL_ARENA_TASKS.has(submission.taskId)) {
     return {
-      status: 'blocked',
+      status: 'degraded',
       sourceRef: { kind: 'ArenaSubmission', id: submission.id },
       attemptStatus,
-      visibilityState: 'unavailable',
+      visibilityState: 'diagnostic-only',
       targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
-      summary: '该 Arena 任务尚未绑定到 KAQ 目标，官方结果暂不能写入学生证据时间线。',
-      recoveryAction: '教师报告中保留官方提交记录；管理员需要为该任务补充 KAQ 目标绑定后再重试写回。',
+      summary: '该 Arena 任务尚未绑定到 KAQ 目标，官方结果保留为诊断证据并继续参与排名。',
+      recoveryAction: '教师报告中保留官方提交记录；管理员需要为该任务补充 KAQ 目标绑定后再重试写回，以获得完整掌握证据。',
       limitationCodes: exposeLimitationCodes ? ['missing-target-binding'] : [],
       overlayCount: 0,
       terminalValidationAccepted: false,
@@ -196,7 +196,11 @@ export function buildArenaSubmissionEvidenceWriteback(
     status: result.status,
     sourceRef: { kind: 'ArenaSubmission', id: submission.id },
     attemptStatus,
-    visibilityState: result.status === 'accepted' || result.status === 'degraded' ? 'materialized' : 'unavailable',
+    visibilityState: result.status === 'accepted'
+      ? 'materialized'
+      : result.status === 'degraded'
+        ? 'diagnostic-only'
+        : 'unavailable',
     targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
     summary,
     recoveryAction: result.status === 'accepted'
