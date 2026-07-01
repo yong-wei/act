@@ -228,6 +228,14 @@ const MINIMIZATION_POLICIES = new Set<SarQueryTraceMinimizationPolicy>([
   'redact-details-after-retention',
 ]);
 
+const QUERY_TRACE_SCOPES = new Set<SarQueryTraceScope>([
+  'student',
+  'class',
+  'teacher',
+  'admin',
+  'system',
+]);
+
 const RESTRICTED_TRACE_TEXT = [
   /\braw[_ -]?answer[_ -]?bod(?:y|ies)\b/i,
   /\braw[_ -]?answers?\b/i,
@@ -334,8 +342,8 @@ export class SarPersistenceRepository {
       queryRole: input.queryRole,
       useCase: input.useCase,
       queryHash: hashSarQueryIdentity(input.queryIdentity),
-      scope: input.scope,
-      retention: input.retention,
+      scope: { ...input.scope },
+      retention: { ...input.retention },
       exportEligibility: input.exportEligibility,
       handoffStatus: input.handoffStatus,
       seedEntityIds: [...trace.seedEntityIds],
@@ -566,6 +574,9 @@ function validateScopeRef(scopeRef: unknown): SarValidationIssue[] {
     return [{ code: 'invalid-trace', path: 'scope', message: 'Trace scope is required.' }];
   }
   const issues: SarValidationIssue[] = [];
+  if (!QUERY_TRACE_SCOPES.has(scopeRef.scope as SarQueryTraceScope)) {
+    issues.push({ code: 'invalid-trace', path: 'scope.scope', message: 'Trace scope must use a governed value.' });
+  }
   if (scopeRef.studentIdHash !== undefined && !isHashRef(scopeRef.studentIdHash)) {
     issues.push({ code: 'invalid-trace', path: 'scope.studentIdHash', message: 'studentIdHash must be hash-only.' });
   }
@@ -758,7 +769,6 @@ function relationKey(relation: SarRetrievalEventEntity): string {
     relation.entityId,
     relation.role,
     relation.provenance,
-    relation.source,
   ].map(encodeURIComponent).join('|');
 }
 

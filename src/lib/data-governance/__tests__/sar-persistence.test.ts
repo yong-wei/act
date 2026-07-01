@@ -212,6 +212,19 @@ describe('SAR persistence', () => {
     expect(serialized).not.toContain('prompt');
   });
 
+  it('copies query trace scope and retention before caching records', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const input = traceInput();
+    expect(repository.upsertQueryTrace(input).persisted).toBe(true);
+
+    input.scope.studentIdHash = 'sar:student:sha256:mutated';
+    input.retention.retainUntil = '2027-01-01T00:00:00.000Z';
+
+    const persisted = repository.getSnapshot().queryTraces['sar:trace:root-locus'];
+    expect(persisted.scope.studentIdHash).toBe('sar:student:sha256:demo');
+    expect(persisted.retention.retainUntil).toBe('2026-07-08T00:00:00.000Z');
+  });
+
   it('rejects student-scoped traces without hash-only student identity', () => {
     const repository = createSarPersistenceRepository({ now: () => fixedNow });
     const write = repository.upsertQueryTrace({
@@ -246,6 +259,20 @@ describe('SAR persistence', () => {
       'handoffStatus',
       'retention.minimizationPolicy',
     ]));
+  });
+
+  it('rejects unknown query trace scopes', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const write = repository.upsertQueryTrace({
+      ...traceInput(),
+      scope: {
+        ...traceInput().scope,
+        scope: 'public' as never,
+      },
+    });
+
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toContain('scope.scope');
   });
 
   it('minimizes expired traces and excludes them from safe exports', () => {
@@ -362,6 +389,25 @@ describe('SAR persistence', () => {
     }
   });
 
+  it('updates stable relations when relation source text changes', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    repository.upsertResult(sarResult());
+    repository.upsertResult(sarResult({
+      relations: [relation({ source: 'updated matched KAQ objective summary' })],
+    }), { now: '2026-07-01T03:00:00.000Z' });
+
+    const relations = Object.values(repository.getSnapshot().relations);
+    expect(relations).toHaveLength(1);
+    expect(relations[0]).toMatchObject({
+      eventId: 'sar:event:kaq:root-locus',
+      entityId: 'sar:entity:kaq:root-locus',
+      role: 'about',
+      provenance: 'deterministic-id',
+      source: 'updated matched KAQ objective summary',
+      updatedAt: '2026-07-01T03:00:00.000Z',
+    });
+  });
+
   it('rejects restored snapshots that contain raw query trace fields', () => {
     const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
     const filePath = join(directory, 'sar-index.json');
@@ -400,6 +446,29 @@ describe('SAR persistence', () => {
             selectedRefs: ['raw answer body'],
             rejectedRefs: [{ ref: 'sar:event:private', reason: 'hidden arena evaluation internals' }],
             limitations: ['private konling memory'],
+          },
+        },
+      }));
+
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored snapshots with unknown query trace scopes', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertQueryTrace(traceInput());
+      const snapshot = repository.getSnapshot();
+      writeFileSync(filePath, JSON.stringify({
+        ...snapshot,
+        queryTraces: {
+          'sar:trace:root-locus': {
+            ...snapshot.queryTraces['sar:trace:root-locus'],
+            scope: { scope: 'public' },
           },
         },
       }));
