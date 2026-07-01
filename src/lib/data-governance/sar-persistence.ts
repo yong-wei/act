@@ -320,6 +320,14 @@ const RESTRICTED_TRACE_TEXT = [
   /\bprivate[_ -]?konling[_ -]?memory\b/i,
   /\baudit[_ -]?only[_ -]?trace\b/i,
   /\baudit[_ -]?trace\b/i,
+  /\b(?:learner|student|class)[:_][A-Za-z0-9][A-Za-z0-9._:-]*\b/i,
+  /\b(?:learner|student|class)-(?!centered\b|based\b|visible\b|scoped\b|scope\b|only\b|internal\b)(?=[A-Za-z0-9._:-]*(?:\d|raw))[A-Za-z0-9][A-Za-z0-9._:-]*\b/i,
+  /\b(?:learner|student|class|user)Id\b\s*[:=]\s*[A-Za-z0-9][A-Za-z0-9._:-]*\b/i,
+  /\b(?:learner|student|class|user)-id\b\s*[:=]?\s*[A-Za-z0-9][A-Za-z0-9._:-]*\b/i,
+  /\b(?:learner|student|class|user)\s+id\b\s*[:=]?\s*[A-Za-z0-9][A-Za-z0-9._:-]*\b/i,
+  /(?:学号|学生ID|学生id|学生编号|班级ID|班级id|班级编号)\s*[:：=]?\s*[A-Za-z0-9][A-Za-z0-9._:-]*/i,
+  /(?:学生|班级)\s*[Ii][Dd]\s*[:：=]?\s*[A-Za-z0-9][A-Za-z0-9._:-]*/,
+  /班级\s*[:：=]?\s*[A-Z]?\d[A-Za-z0-9._:-]*/i,
 ];
 
 export function createEmptySarPersistenceSnapshot(now = new Date().toISOString()): SarPersistenceSnapshot {
@@ -381,7 +389,10 @@ export class SarPersistenceRepository {
       if (persistenceIssues.length > 0) return { persisted: false, issues: persistenceIssues };
       persistResultIntoSnapshot(next, result, versionRefs, options.now ?? this.now());
     }
-    next.queryTraces = this.snapshot.queryTraces;
+    next.queryTraces = Object.fromEntries(
+      Object.entries(this.snapshot.queryTraces)
+        .map(([id, trace]) => [id, normalizePersistedQueryTraceRefs(trace)]),
+    );
     this.snapshot = next;
     this.flush();
     return { persisted: true, issues: [] };
@@ -416,7 +427,8 @@ export class SarPersistenceRepository {
     if (persistenceIssues.length > 0) return { persisted: false, issues: persistenceIssues };
 
     const now = input.now ?? this.now();
-    const trace = input.result.trace;
+    const entityIdMap = new Map(input.result.entities.map((entity) => [entity.id, persistedEntityId(entity)]));
+    const trace = normalizePersistedTraceRefs(input.result.trace, entityIdMap);
     persistResultIntoSnapshot(this.snapshot, input.result, trace.versionRefs, now);
     const stableId = trace.id;
     const previous = this.snapshot.queryTraces[stableId];
@@ -504,6 +516,7 @@ function persistResultIntoSnapshot(
   versionRefs: string[],
   now: string,
 ): void {
+  const entityIdMap = new Map(result.entities.map((entity) => [entity.id, persistedEntityId(entity)]));
   for (const event of result.events) {
     const key = event.id;
     const previous = snapshot.events[key];
@@ -524,14 +537,15 @@ function persistResultIntoSnapshot(
   }
 
   for (const entity of result.entities) {
-    const key = entity.id;
+    const key = persistedEntityId(entity);
     const previous = snapshot.entities[key];
+    const persistedRef = persistedEntityCanonicalRef(entity);
     snapshot.entities[key] = {
-      stableId: entity.id,
+      stableId: key,
       entityType: entity.entityType,
-      canonicalRef: entity.canonicalRef,
-      label: entity.label,
-      aliases: [...entity.aliases],
+      canonicalRef: persistedRef,
+      label: isScopedIdentityEntity(entity) ? `${entity.entityType} entity` : entity.label,
+      aliases: isScopedIdentityEntity(entity) ? [persistedRef] : [...entity.aliases],
       privacyScope: entity.privacyScope,
       extraction: entity.extraction,
       contentHash: stableHash(entity),
@@ -542,12 +556,16 @@ function persistResultIntoSnapshot(
   }
 
   for (const relation of result.relations) {
-    const key = relationKey(relation);
+    const persistedRelation = {
+      ...relation,
+      entityId: entityIdMap.get(relation.entityId) ?? normalizeScopedEntityRef(relation.entityId),
+    };
+    const key = relationKey(persistedRelation);
     const previous = snapshot.relations[key];
     snapshot.relations[key] = {
       stableId: key,
-      eventId: relation.eventId,
-      entityId: relation.entityId,
+      eventId: persistedRelation.eventId,
+      entityId: persistedRelation.entityId,
       role: relation.role,
       confidence: relation.confidence,
       provenance: relation.provenance,
@@ -567,10 +585,10 @@ function validateSnapshot(snapshot: SarPersistenceSnapshot): SarValidationIssue[
   return [
     ...validateAllowedKeys(snapshot, SNAPSHOT_KEYS, 'snapshot'),
     ...validateSnapshotShape(snapshot),
-    ...recordValues(snapshot.events).flatMap(validatePersistedEventRecord),
-    ...recordValues(snapshot.entities).flatMap(validatePersistedEntityRecord),
-    ...recordValues(snapshot.relations).flatMap(validatePersistedRelationRecord),
-    ...recordValues(snapshot.queryTraces).flatMap(validatePersistedQueryTraceRecord),
+    ...validateRecordMap(snapshot.events, 'events', validatePersistedEventRecord),
+    ...validateRecordMap(snapshot.entities, 'entities', validatePersistedEntityRecord),
+    ...validateRecordMap(snapshot.relations, 'relations', validatePersistedRelationRecord),
+    ...validateRecordMap(snapshot.queryTraces, 'queryTraces', validatePersistedQueryTraceRecord),
   ];
 }
 
@@ -590,6 +608,49 @@ function validateSnapshotShape(snapshot: Record<string, unknown>): SarValidation
   return issues;
 }
 
+function validateRecordMap(
+  value: unknown,
+  path: 'events' | 'entities' | 'relations' | 'queryTraces',
+  validateRecord: (record: unknown) => SarValidationIssue[],
+): SarValidationIssue[] {
+  if (!isRecord(value)) return [];
+  return Object.entries(value).flatMap(([key, record]) => [
+    ...validateRecord(record),
+    ...validateRecordMapKey(key, record, path),
+  ]);
+}
+
+function validateRecordMapKey(
+  key: string,
+  record: unknown,
+  path: 'events' | 'entities' | 'relations' | 'queryTraces',
+): SarValidationIssue[] {
+  if (!isRecord(record)) return [];
+  const issues: SarValidationIssue[] = [];
+  if (record.stableId !== key) {
+    issues.push({
+      code: 'invalid-reference',
+      path: `${path}.${key}`,
+      message: `${path} map key must match record stableId.`,
+    });
+  }
+  if (path === 'relations' && record.stableId !== relationKey({
+    eventId: record.eventId,
+    entityId: record.entityId,
+    role: record.role,
+    confidence: record.confidence,
+    provenance: record.provenance,
+    source: record.source,
+  } as SarRetrievalEventEntity)) {
+    issues.push({
+      code: 'invalid-reference',
+      path: `${path}.${key}.stableId`,
+      message: 'Persisted relation stableId must match its current relation key.',
+    });
+  }
+  return issues;
+}
+
 function validatePersistedEventRecord(record: unknown): SarValidationIssue[] {
   if (!isRecord(record)) {
     return [{ code: 'invalid-object', path: 'events', message: 'Persisted event must be an object.' }];
@@ -597,6 +658,7 @@ function validatePersistedEventRecord(record: unknown): SarValidationIssue[] {
   return [
     ...validateAllowedKeys(record, PERSISTED_EVENT_RECORD_KEYS, `events.${String(record.stableId ?? 'unknown')}`),
     ...validatePersistedRecordFields(record, `events.${String(record.stableId ?? 'unknown')}`, ['stableId', 'contentHash'], ['writtenAt', 'updatedAt']),
+    ...validateScopedEntityRef(record.stableId, `events.${String(record.stableId ?? 'unknown')}.stableId`),
     ...validateVersionRefs(record.versionRefs, `events.${String(record.stableId ?? 'unknown')}.versionRefs`),
     ...validatePersistedEventDerivedFields(record),
     ...validatePersistedTextBoundary(record, `events.${String(record.stableId ?? 'unknown')}`),
@@ -625,6 +687,7 @@ function validatePersistedEntityRecord(record: unknown): SarValidationIssue[] {
   return [
     ...validateAllowedKeys(record, PERSISTED_ENTITY_RECORD_KEYS, `entities.${String(record.stableId ?? 'unknown')}`),
     ...validatePersistedRecordFields(record, `entities.${String(record.stableId ?? 'unknown')}`, ['stableId', 'contentHash'], ['writtenAt', 'updatedAt']),
+    ...validatePersistedScopedEntityRecord(record),
     ...validateVersionRefs(record.versionRefs, `entities.${String(record.stableId ?? 'unknown')}.versionRefs`),
     ...validatePersistedTextBoundary(record, `entities.${String(record.stableId ?? 'unknown')}`),
     ...validateSarEntity({
@@ -648,6 +711,7 @@ function validatePersistedRelationRecord(record: unknown): SarValidationIssue[] 
     ...validatePersistedRecordFields(record, `relations.${String(record.stableId ?? 'unknown')}`, ['stableId', 'contentHash'], ['writtenAt', 'updatedAt']),
     ...validateVersionRefs(record.versionRefs, `relations.${String(record.stableId ?? 'unknown')}.versionRefs`),
     ...validatePersistedTextBoundary(record, `relations.${String(record.stableId ?? 'unknown')}`),
+    ...validateScopedEntityRef(record.entityId, `relations.${String(record.stableId ?? 'unknown')}.entityId`),
     ...validateSarRelation({
       eventId: record.eventId,
       entityId: record.entityId,
@@ -657,6 +721,94 @@ function validatePersistedRelationRecord(record: unknown): SarValidationIssue[] 
       source: record.source,
     }).issues,
   ];
+}
+
+function normalizePersistedTraceRefs(trace: SarRetrievalTrace, entityIdMap: ReadonlyMap<string, string>): SarRetrievalTrace {
+  const mapEntityRef = (ref: string): string => entityIdMap.get(ref) ?? normalizeScopedEntityRef(ref);
+  return {
+    ...trace,
+    seedEntityIds: trace.seedEntityIds.map(mapEntityRef),
+    expansionHops: trace.expansionHops.map((hop) => ({
+      ...hop,
+      fromEntityId: mapEntityRef(hop.fromEntityId),
+      toEntityId: mapEntityRef(hop.toEntityId),
+    })),
+    selectedRefs: trace.selectedRefs.map(mapEntityRef),
+    rejectedRefs: trace.rejectedRefs.map((ref) => ({
+      ...ref,
+      ref: mapEntityRef(ref.ref),
+    })),
+  };
+}
+
+function normalizePersistedQueryTraceRefs(trace: SarPersistedQueryTraceRecord): SarPersistedQueryTraceRecord {
+  return {
+    ...trace,
+    seedEntityIds: trace.seedEntityIds.map(normalizeScopedEntityRef),
+    expansionHops: trace.expansionHops.map((hop) => ({
+      ...hop,
+      fromEntityId: normalizeScopedEntityRef(hop.fromEntityId),
+      toEntityId: normalizeScopedEntityRef(hop.toEntityId),
+    })),
+    selectedRefs: trace.selectedRefs.map(normalizeScopedEntityRef),
+    rejectedRefs: trace.rejectedRefs.map((ref) => ({
+      ...ref,
+      ref: normalizeScopedEntityRef(ref.ref),
+    })),
+  };
+}
+
+function normalizeScopedEntityRef(ref: string): string {
+  if (/^sar:entity:(student|class):sha256:[a-f0-9]{64}$/.test(ref)) return ref;
+  const match = /^sar:entity:(student|class):(.+)$/.exec(ref);
+  if (!match) return ref;
+  const [, entityType, rawRef] = match;
+  return `sar:entity:${entityType}:sha256:${stableHash(rawRef)}`;
+}
+
+function isScopedIdentityEntity(entity: Pick<SarRetrievalEntity, 'entityType'>): boolean {
+  return entity.entityType === 'student' || entity.entityType === 'class';
+}
+
+function persistedEntityCanonicalRef(entity: SarRetrievalEntity): string {
+  if (!isScopedIdentityEntity(entity)) return entity.canonicalRef;
+  return hashScopedRef(entity.entityType, entity.canonicalRef);
+}
+
+function persistedEntityId(entity: SarRetrievalEntity): string {
+  if (!isScopedIdentityEntity(entity)) return entity.id;
+  return `sar:entity:${entity.entityType}:sha256:${stableHash(entity.canonicalRef)}`;
+}
+
+function validatePersistedScopedEntityRecord(record: Record<string, unknown>): SarValidationIssue[] {
+  if (record.entityType !== 'student' && record.entityType !== 'class') return [];
+  const entityType = record.entityType;
+  const path = `entities.${String(record.stableId ?? 'unknown')}`;
+  const issues: SarValidationIssue[] = [];
+  if (typeof record.stableId !== 'string' || !new RegExp(`^sar:entity:${entityType}:sha256:[a-f0-9]{64}$`).test(record.stableId)) {
+    issues.push({ code: 'invalid-reference', path: `${path}.stableId`, message: `${entityType} entity stableId must be hash-only.` });
+  }
+  if (typeof record.canonicalRef !== 'string' || !new RegExp(`^sar:${entityType}:sha256:[a-f0-9]{64}$`).test(record.canonicalRef)) {
+    issues.push({ code: 'invalid-reference', path: `${path}.canonicalRef`, message: `${entityType} entity canonicalRef must be hash-only.` });
+  }
+  if (record.label !== `${entityType} entity`) {
+    issues.push({ code: 'invalid-reference', path: `${path}.label`, message: `${entityType} entity label must not expose scoped identity.` });
+  }
+  if (!Array.isArray(record.aliases) || record.aliases.length !== 1 || record.aliases[0] !== record.canonicalRef) {
+    issues.push({ code: 'invalid-reference', path: `${path}.aliases`, message: `${entityType} entity aliases must be hash-only.` });
+  }
+  return issues;
+}
+
+function validateScopedEntityRef(ref: unknown, path: string): SarValidationIssue[] {
+  if (
+    typeof ref === 'string'
+    && /^sar:entity:(student|class):/.test(ref)
+    && !/^sar:entity:(student|class):sha256:[a-f0-9]{64}$/.test(ref)
+  ) {
+    return [{ code: 'invalid-reference', path, message: 'Scoped entity refs must be hash-only.' }];
+  }
+  return [];
 }
 
 function validateTracePersistenceInput(input: SarPersistQueryTraceInput): SarValidationIssue[] {
@@ -679,9 +831,20 @@ function validateResultPersistenceInput(result: SarRetrievalResult, versionRefs:
     ...validateVersionRefs(versionRefs),
   ];
   result.events.forEach((event, index) => {
+    issues.push(...validateScopedEntityRef(event.id, `events.${index}.id`));
+    collectRestrictedTraceText(event.id, `events.${index}.id`, issues);
+    issues.push(...validatePersistedTextBoundary({
+      title: event.title,
+      safeSummary: event.safeSummary,
+    }, `events.${index}`));
     issues.push(...validatePersistedSourceRef(sanitizeSourceRef(event.sourceRef))
       .map((issue) => ({ ...issue, path: `events.${index}.${issue.path}` })));
     issues.push(...validatePersistedTextBoundary(sanitizeSourceRef(event.sourceRef), `events.${index}.sourceRef`));
+  });
+  result.relations.forEach((relation, index) => {
+    collectRestrictedTraceText(relation.eventId, `relations.${index}.eventId`, issues);
+    collectRestrictedTraceText(relation.entityId, `relations.${index}.entityId`, issues, { allowStructuredScopedRefs: true });
+    issues.push(...validatePersistedTextBoundary({ source: relation.source }, `relations.${index}`));
   });
   return issues;
 }
@@ -723,6 +886,37 @@ function validatePersistedQueryTraceRecord(record: unknown): SarValidationIssue[
     useCase: record.useCase,
   }, `queryTraces.${String(record.stableId ?? 'unknown')}`));
   issues.push(...validateTraceTextBoundary(record));
+  issues.push(...validatePersistedTraceScopedRefs(record));
+  return issues;
+}
+
+function validatePersistedTraceScopedRefs(record: Record<string, unknown>): SarValidationIssue[] {
+  const path = `queryTraces.${String(record.stableId ?? 'unknown')}`;
+  const issues: SarValidationIssue[] = [];
+  if (Array.isArray(record.seedEntityIds)) {
+    record.seedEntityIds.forEach((ref, index) => {
+      issues.push(...validateScopedEntityRef(ref, `${path}.seedEntityIds.${index}`));
+    });
+  }
+  if (Array.isArray(record.selectedRefs)) {
+    record.selectedRefs.forEach((ref, index) => {
+      issues.push(...validateScopedEntityRef(ref, `${path}.selectedRefs.${index}`));
+    });
+  }
+  if (Array.isArray(record.expansionHops)) {
+    record.expansionHops.forEach((hop, index) => {
+      if (!isRecord(hop)) return;
+      issues.push(...validateScopedEntityRef(hop.fromEntityId, `${path}.expansionHops.${index}.fromEntityId`));
+      issues.push(...validateScopedEntityRef(hop.toEntityId, `${path}.expansionHops.${index}.toEntityId`));
+      issues.push(...validateScopedEntityRef(hop.viaEventId, `${path}.expansionHops.${index}.viaEventId`));
+    });
+  }
+  if (Array.isArray(record.rejectedRefs)) {
+    record.rejectedRefs.forEach((ref, index) => {
+      if (!isRecord(ref)) return;
+      issues.push(...validateScopedEntityRef(ref.ref, `${path}.rejectedRefs.${index}.ref`));
+    });
+  }
   return issues;
 }
 
@@ -947,15 +1141,15 @@ function validateTraceTextBoundary(traceLike: Pick<
   'seedEntityIds' | 'expansionHops' | 'selectedRefs' | 'rejectedRefs' | 'limitations' | 'versionRefs'
 > | SarRetrievalTrace): SarValidationIssue[] {
   const issues: SarValidationIssue[] = [];
-  collectRestrictedTraceText(traceLike.seedEntityIds, 'seedEntityIds', issues);
-  collectRestrictedTraceText(traceLike.expansionHops, 'expansionHops', issues);
-  collectRestrictedTraceText(traceLike.selectedRefs, 'selectedRefs', issues);
+  collectRestrictedTraceText(traceLike.seedEntityIds, 'seedEntityIds', issues, { allowStructuredScopedRefs: true });
+  collectRestrictedTraceText(traceLike.expansionHops, 'expansionHops', issues, { allowStructuredScopedRefs: true });
+  collectRestrictedTraceText(traceLike.selectedRefs, 'selectedRefs', issues, { allowStructuredScopedRefs: true });
   collectRestrictedTraceText(traceLike.limitations, 'limitations', issues);
   collectRestrictedTraceText(traceLike.versionRefs, 'versionRefs', issues);
   if (Array.isArray(traceLike.rejectedRefs)) {
     traceLike.rejectedRefs.forEach((ref, index) => {
       if (isRecord(ref)) {
-        collectRestrictedTraceText(ref.ref, `rejectedRefs.${index}.ref`, issues);
+        collectRestrictedTraceText(ref.ref, `rejectedRefs.${index}.ref`, issues, { allowStructuredScopedRefs: true });
         collectRestrictedTraceText(ref.reason, `rejectedRefs.${index}.reason`, issues);
       }
     });
@@ -1039,7 +1233,7 @@ function filterTraceRefsForExport(
       && (hop.viaEventId === undefined || eventIds.has(hop.viaEventId))
     )),
     selectedRefs: trace.selectedRefs.filter((ref) => isExportableTraceRef(ref, eventIds, entityIds)),
-    rejectedRefs: trace.rejectedRefs.filter((ref) => isExportableTraceRef(ref.ref, eventIds, entityIds)),
+    rejectedRefs: trace.rejectedRefs.filter((ref) => isExportableRejectedTraceRef(ref.ref, eventIds, entityIds)),
   };
 }
 
@@ -1051,6 +1245,15 @@ function isExportableTraceRef(
   if (ref.startsWith('sar:event:')) return eventIds.has(ref);
   if (ref.startsWith('sar:entity:')) return entityIds.has(ref);
   return true;
+}
+
+function isExportableRejectedTraceRef(
+  ref: string,
+  eventIds: ReadonlySet<string>,
+  entityIds: ReadonlySet<string>,
+): boolean {
+  if (isExportableTraceRef(ref, eventIds, entityIds)) return true;
+  return /^sar:entity:(student|class):sha256:[a-f0-9]{64}$/.test(ref);
 }
 
 function sanitizeSourceRef(sourceRef: SarRetrievalEvent['sourceRef']): SarPersistedSourceRef {
@@ -1073,19 +1276,26 @@ function collectRestrictedTraceText(
   value: unknown,
   path: string,
   issues: SarValidationIssue[],
+  options: { allowStructuredScopedRefs?: boolean } = {},
 ): void {
   if (typeof value === 'string') {
+    if (/^sar:[a-z-]+:sha256:[a-f0-9]{64}$/.test(value) || /^sar:entity:(student|class):sha256:[a-f0-9]{64}$/.test(value)) {
+      return;
+    }
+    if (options.allowStructuredScopedRefs && /^sar:entity:(student|class):/.test(value)) {
+      return;
+    }
     if (RESTRICTED_TRACE_TEXT.some((pattern) => pattern.test(value))) {
       issues.push({ code: 'restricted-raw-content', path, message: `${path} contains restricted raw content.` });
     }
     return;
   }
   if (Array.isArray(value)) {
-    value.forEach((item, index) => collectRestrictedTraceText(item, `${path}.${index}`, issues));
+    value.forEach((item, index) => collectRestrictedTraceText(item, `${path}.${index}`, issues, options));
     return;
   }
   if (isRecord(value)) {
-    Object.entries(value).forEach(([key, child]) => collectRestrictedTraceText(child, `${path}.${key}`, issues));
+    Object.entries(value).forEach(([key, child]) => collectRestrictedTraceText(child, `${path}.${key}`, issues, options));
   }
 }
 
@@ -1127,10 +1337,6 @@ function isHashRef(value: unknown, scope: string): value is string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function recordValues(value: unknown): unknown[] {
-  return isRecord(value) ? Object.values(value) : [];
 }
 
 function deepClone<T>(value: T): T {

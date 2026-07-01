@@ -226,37 +226,189 @@ describe('SAR persistence', () => {
     const repository = createSarPersistenceRepository({ now: () => fixedNow });
     const result = sarResult({
       events: [event({
+        title: 'Learner learner-raw-x mastery',
+        safeSummary: 'Class class:raw-section summary',
         sourceRef: {
           ...event().sourceRef,
-          id: 'raw answer body',
-          owner: 'raw audit trace',
+          id: 'learner-raw-x',
+          owner: 'class:raw-section',
         },
       })],
+      relations: [relation({ source: 'matched learner-raw-x' })],
     });
 
     const write = repository.upsertResult(result);
     expect(write.persisted).toBe(false);
     expect(write.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'events.0.title',
+      'events.0.safeSummary',
       'events.0.sourceRef.id',
       'events.0.sourceRef.owner',
+      'relations.0.source',
     ]));
     expect(repository.getSnapshot().events).toEqual({});
 
     const queryWrite = repository.upsertQueryTrace(traceInput(result));
     expect(queryWrite.persisted).toBe(false);
     expect(queryWrite.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'events.0.title',
+      'events.0.safeSummary',
       'events.0.sourceRef.id',
       'events.0.sourceRef.owner',
+      'relations.0.source',
     ]));
     expect(repository.getSnapshot().queryTraces).toEqual({});
 
     const rebuild = repository.rebuild([result]);
     expect(rebuild.persisted).toBe(false);
     expect(rebuild.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'events.0.title',
+      'events.0.safeSummary',
       'events.0.sourceRef.id',
       'events.0.sourceRef.owner',
+      'relations.0.source',
     ]));
     expect(repository.getSnapshot().events).toEqual({});
+  });
+
+  it('rejects raw structured scoped refs in free-text fields', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const result = sarResult({
+      events: [event({
+        title: 'sar:entity:student:student:learner-1',
+        safeSummary: 'sar:entity:class:class:raw-section',
+        sourceRef: {
+          ...event().sourceRef,
+          id: 'sar:entity:student:student:learner-1',
+          owner: 'sar:entity:class:class:raw-section',
+        },
+      })],
+      relations: [relation({ source: 'sar:entity:class:class:raw-section' })],
+    });
+
+    const write = repository.upsertResult(result);
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'events.0.title',
+      'events.0.safeSummary',
+      'events.0.sourceRef.id',
+      'events.0.sourceRef.owner',
+      'relations.0.source',
+    ]));
+    expect(JSON.stringify(repository.getSnapshot())).not.toContain('learner-1');
+  });
+
+  it('rejects raw identity labels before projection persistence', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const result = sarResult({
+      events: [event({
+        id: 'student-id:abc',
+        title: 'student id abc123 mastery trace',
+        safeSummary: '班级 ID: A01 的聚合说明',
+        sourceRef: {
+          ...event().sourceRef,
+          id: 'learner-id:demo',
+          owner: 'user-id:abc',
+        },
+      })],
+      relations: [relation({
+        eventId: 'student-id:abc',
+        source: 'matched class-id:demo',
+      })],
+      trace: trace({
+        selectedRefs: ['student-id:abc'],
+        expansionHops: [{
+          fromEntityId: 'sar:entity:kaq:root-locus',
+          toEntityId: 'sar:entity:kaq:root-locus',
+          viaEventId: 'student-id:abc',
+          relationRole: 'supports',
+          confidence: 0.72,
+        }],
+      }),
+    });
+
+    const write = repository.upsertResult(result);
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'events.0.id',
+      'events.0.title',
+      'events.0.safeSummary',
+      'events.0.sourceRef.id',
+      'events.0.sourceRef.owner',
+      'relations.0.eventId',
+      'relations.0.source',
+    ]));
+    expect(JSON.stringify(repository.getSnapshot())).not.toContain('abc');
+    expect(JSON.stringify(repository.getSnapshot())).not.toContain('A01');
+  });
+
+  it('rejects raw identity labels in query trace metadata before persistence', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const result = sarResult({
+      trace: trace({
+        versionRefs: ['user-id:abc'],
+      }),
+    });
+
+    const write = repository.upsertQueryTrace({
+      ...traceInput(result),
+      queryRole: 'learner-id:demo diagnostics',
+      useCase: '学生 ID: abc retrieval',
+    });
+
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'queryTrace.queryRole',
+      'queryTrace.useCase',
+      'versionRefs.0',
+    ]));
+    expect(repository.getSnapshot().queryTraces).toEqual({});
+  });
+
+  it('rejects scoped entity refs masquerading as event ids', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const rawEventId = 'sar:entity:student:student:learner-1';
+    const result = sarResult({
+      events: [event({ id: rawEventId })],
+      relations: [relation({ eventId: rawEventId })],
+      trace: trace({
+        selectedRefs: [rawEventId],
+        expansionHops: [{
+          fromEntityId: 'sar:entity:kaq:root-locus',
+          toEntityId: 'sar:entity:kaq:root-locus',
+          viaEventId: rawEventId,
+          relationRole: 'supports',
+          confidence: 0.72,
+        }],
+      }),
+    });
+
+    const write = repository.upsertResult(result);
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toContain('events.0.id');
+
+    const queryWrite = repository.upsertQueryTrace(traceInput(result));
+    expect(queryWrite.persisted).toBe(false);
+    expect(queryWrite.issues.map((issue) => issue.path)).toContain('events.0.id');
+
+    const rebuild = repository.rebuild([result]);
+    expect(rebuild.persisted).toBe(false);
+    expect(rebuild.issues.map((issue) => issue.path)).toContain('events.0.id');
+    expect(JSON.stringify(repository.getSnapshot())).not.toContain('learner-1');
+  });
+
+  it('allows hyphenated pedagogical descriptions that are not scoped ids', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const result = sarResult({
+      events: [event({
+        title: 'Student-centered root locus reflection',
+        safeSummary: 'Class-based activity summary for learner-centered practice.',
+      })],
+      relations: [relation({ source: 'matched learner-centered reflection' })],
+    });
+
+    expect(repository.upsertResult(result).persisted).toBe(true);
+    expect(repository.exportSafeSnapshot().events[0].title).toBe('Student-centered root locus reflection');
   });
 
   it('rejects restricted trace version refs before persistence', () => {
@@ -303,6 +455,124 @@ describe('SAR persistence', () => {
     expect(exported.entities.map((record) => record.stableId)).toEqual(['sar:entity:kaq:root-locus']);
     expect(exported.queryTraces[0].seedEntityIds).toEqual(['sar:entity:kaq:root-locus']);
     expect(exported.queryTraces[0].selectedRefs).toEqual(['sar:event:kaq:root-locus']);
+  });
+
+  it('hashes student and class entity references before export', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const rawStudentEntityId = 'sar:entity:student:student:learner-1';
+    const rawClassEntityId = 'sar:entity:class:class:control-1';
+    const rejectedStudentEntityId = 'sar:entity:student:student:rejected-learner';
+    const rejectedClassEntityId = 'sar:entity:class:class:rejected-class';
+    const alreadyHashedStudentRef = `sar:entity:student:sha256:${'d'.repeat(64)}`;
+    const result = sarResult({
+      entities: [
+        entity({
+          id: rawStudentEntityId,
+          entityType: 'student',
+          canonicalRef: 'student:learner-1',
+          label: 'Learner 1',
+          aliases: ['student:learner-1', 'Learner 1'],
+          privacyScope: 'teacher-scoped',
+        }),
+        entity({
+          id: rawClassEntityId,
+          entityType: 'class',
+          canonicalRef: 'class:control-1',
+          label: 'Control class',
+          aliases: ['class:control-1'],
+          privacyScope: 'teacher-scoped',
+        }),
+      ],
+      relations: [
+        relation({ entityId: rawStudentEntityId }),
+        relation({ entityId: rawClassEntityId, role: 'supports' }),
+      ],
+      trace: trace({
+        seedEntityIds: [rawStudentEntityId, rawClassEntityId],
+        expansionHops: [{
+          fromEntityId: rawStudentEntityId,
+          toEntityId: rawClassEntityId,
+          viaEventId: 'sar:event:kaq:root-locus',
+          relationRole: 'supports',
+          confidence: 0.72,
+        }],
+        selectedRefs: ['sar:event:kaq:root-locus', rawStudentEntityId, rawClassEntityId],
+        rejectedRefs: [
+          { ref: rejectedStudentEntityId, reason: 'student-scope-mismatch' },
+          { ref: rejectedClassEntityId, reason: 'class-scope-mismatch' },
+          { ref: alreadyHashedStudentRef, reason: 'already-hashed' },
+        ],
+      }),
+    });
+
+    expect(repository.upsertQueryTrace(traceInput(result)).persisted).toBe(true);
+
+    const snapshotJson = JSON.stringify(repository.getSnapshot());
+    expect(snapshotJson).not.toContain('learner-1');
+    expect(snapshotJson).not.toContain('control-1');
+    expect(snapshotJson).not.toContain('rejected-learner');
+    expect(snapshotJson).not.toContain('rejected-class');
+
+    const exported = repository.exportSafeSnapshot();
+    const exportedStudent = exported.entities.find((record) => record.entityType === 'student');
+    const exportedClass = exported.entities.find((record) => record.entityType === 'class');
+    expect(exportedStudent?.stableId).toMatch(/^sar:entity:student:sha256:[a-f0-9]{64}$/);
+    expect(exportedStudent?.canonicalRef).toMatch(/^sar:student:sha256:[a-f0-9]{64}$/);
+    expect(exportedStudent?.label).toBe('student entity');
+    expect(exportedStudent?.aliases).toEqual([exportedStudent?.canonicalRef]);
+    expect(exportedClass?.stableId).toMatch(/^sar:entity:class:sha256:[a-f0-9]{64}$/);
+    expect(exportedClass?.canonicalRef).toMatch(/^sar:class:sha256:[a-f0-9]{64}$/);
+    expect(exportedClass?.aliases).toEqual([exportedClass?.canonicalRef]);
+    expect(exported.relations.map((record) => record.entityId)).toEqual([
+      exportedStudent?.stableId,
+      exportedClass?.stableId,
+    ]);
+    expect(exported.queryTraces[0].seedEntityIds).toEqual([
+      exportedStudent?.stableId,
+      exportedClass?.stableId,
+    ]);
+    expect(exported.queryTraces[0].expansionHops[0]).toMatchObject({
+      fromEntityId: exportedStudent?.stableId,
+      toEntityId: exportedClass?.stableId,
+    });
+    expect(exported.queryTraces[0].selectedRefs).toEqual([
+      'sar:event:kaq:root-locus',
+      exportedStudent?.stableId,
+      exportedClass?.stableId,
+    ]);
+    expect(exported.queryTraces[0].rejectedRefs).toEqual([
+      {
+        ref: expect.stringMatching(/^sar:entity:student:sha256:[a-f0-9]{64}$/),
+        reason: 'student-scope-mismatch',
+      },
+      {
+        ref: expect.stringMatching(/^sar:entity:class:sha256:[a-f0-9]{64}$/),
+        reason: 'class-scope-mismatch',
+      },
+      {
+        ref: alreadyHashedStudentRef,
+        reason: 'already-hashed',
+      },
+    ]);
+    expect(JSON.stringify(exported)).not.toContain('learner-1');
+    expect(JSON.stringify(exported)).not.toContain('control-1');
+    expect(JSON.stringify(exported)).not.toContain('rejected-learner');
+    expect(JSON.stringify(exported)).not.toContain('rejected-class');
+
+    const projectionOnlyRepository = createSarPersistenceRepository({ now: () => fixedNow });
+    expect(projectionOnlyRepository.upsertResult(result).persisted).toBe(true);
+    const projectionOnlySnapshot = projectionOnlyRepository.getSnapshot();
+    const projectionOnlyEntityIds = Object.keys(projectionOnlySnapshot.entities);
+    expect(projectionOnlyEntityIds).toEqual([
+      exportedStudent?.stableId,
+      exportedClass?.stableId,
+    ]);
+    expect(Object.values(projectionOnlySnapshot.relations).map((record) => record.entityId)).toEqual([
+      exportedStudent?.stableId,
+      exportedClass?.stableId,
+    ]);
+    expect(JSON.stringify(projectionOnlyRepository.exportSafeSnapshot())).not.toContain('learner-1');
+    expect(JSON.stringify(projectionOnlyRepository.exportSafeSnapshot())).not.toContain('control-1');
   });
 
   it('copies query trace scope and retention before caching records', () => {
@@ -748,6 +1018,185 @@ describe('SAR persistence', () => {
         },
       }));
 
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored snapshots with raw scoped entity refs', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertQueryTrace(traceInput());
+      const snapshot = repository.getSnapshot();
+      const relationId = Object.keys(snapshot.relations)[0];
+      const rawStudentEntity = {
+        ...snapshot.entities['sar:entity:kaq:root-locus'],
+        stableId: 'sar:entity:student:student:learner-1',
+        entityType: 'student',
+        canonicalRef: 'student:learner-1',
+        label: 'Learner 1',
+        aliases: ['student:learner-1'],
+      };
+      const corruptedSnapshot = {
+        ...snapshot,
+        entities: {
+          [rawStudentEntity.stableId]: rawStudentEntity,
+        },
+        relations: {
+          [relationId]: {
+            ...Object.values(snapshot.relations)[0],
+            entityId: rawStudentEntity.stableId,
+          },
+        },
+        queryTraces: {
+          'sar:trace:root-locus': {
+            ...snapshot.queryTraces['sar:trace:root-locus'],
+            seedEntityIds: [rawStudentEntity.stableId],
+            selectedRefs: [rawStudentEntity.stableId],
+            expansionHops: [{
+              ...snapshot.queryTraces['sar:trace:root-locus'].expansionHops[0],
+              viaEventId: 'sar:entity:student:student:learner-1',
+            }],
+            rejectedRefs: [{ ref: 'sar:entity:class:class:raw-class', reason: 'class-scope-mismatch' }],
+          },
+        },
+      };
+
+      const restored = repository.restore(corruptedSnapshot);
+      expect(restored.persisted).toBe(false);
+      expect(restored.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+        'entities.sar:entity:student:student:learner-1.stableId',
+        'entities.sar:entity:student:student:learner-1.canonicalRef',
+        `relations.${relationId}.entityId`,
+        'queryTraces.sar:trace:root-locus.seedEntityIds.0',
+        'queryTraces.sar:trace:root-locus.selectedRefs.0',
+        'queryTraces.sar:trace:root-locus.expansionHops.0.viaEventId',
+        'queryTraces.sar:trace:root-locus.rejectedRefs.0.ref',
+      ]));
+
+      writeFileSync(filePath, JSON.stringify(corruptedSnapshot));
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored snapshots with raw identity labels', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertQueryTrace(traceInput());
+      const snapshot = repository.getSnapshot();
+      const rawEventId = 'student-id:abc';
+      const corruptedSnapshot = {
+        ...snapshot,
+        events: {
+          [rawEventId]: {
+            ...snapshot.events['sar:event:kaq:root-locus'],
+            stableId: rawEventId,
+            title: 'student id abc123 mastery trace',
+            safeSummary: '班级 ID: A01 的聚合说明',
+            sourceRef: {
+              ...snapshot.events['sar:event:kaq:root-locus'].sourceRef,
+              owner: 'user-id:abc',
+            },
+          },
+        },
+        queryTraces: {
+          'sar:trace:root-locus': {
+            ...snapshot.queryTraces['sar:trace:root-locus'],
+            selectedRefs: ['learner-id:demo'],
+            rejectedRefs: [{ ref: 'class-id:demo', reason: 'student id abc123 mismatch' }],
+            versionRefs: ['user-id:abc'],
+          },
+        },
+      };
+
+      const restored = repository.restore(corruptedSnapshot);
+      expect(restored.persisted).toBe(false);
+      expect(restored.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+        `events.${rawEventId}.stableId`,
+        `events.${rawEventId}.title`,
+        `events.${rawEventId}.safeSummary`,
+        `events.${rawEventId}.sourceRef.owner`,
+        'queryTraces.sar:trace:root-locus.versionRefs.0',
+        'selectedRefs.0',
+        'rejectedRefs.0.ref',
+        'rejectedRefs.0.reason',
+        'versionRefs.0',
+      ]));
+
+      writeFileSync(filePath, JSON.stringify(corruptedSnapshot));
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored snapshots with mismatched raw record map keys', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertQueryTrace(traceInput());
+      const snapshot = repository.getSnapshot();
+      const rawEntityKey = 'sar:entity:student:student:learner-1';
+      const hashedEntityId = `sar:entity:student:sha256:${'e'.repeat(64)}`;
+      const hashedCanonicalRef = `sar:student:sha256:${'f'.repeat(64)}`;
+      const relationRecord = Object.values(snapshot.relations)[0];
+      const rawRelationKey = [
+        relationRecord.eventId,
+        'sar:entity:student:student:learner-1',
+        relationRecord.role,
+        relationRecord.provenance,
+      ].map(encodeURIComponent).join('|');
+      const hashedRelationKey = [
+        relationRecord.eventId,
+        hashedEntityId,
+        relationRecord.role,
+        relationRecord.provenance,
+      ].map(encodeURIComponent).join('|');
+      const corruptedSnapshot = {
+        ...snapshot,
+        entities: {
+          [rawEntityKey]: {
+            ...snapshot.entities['sar:entity:kaq:root-locus'],
+            stableId: hashedEntityId,
+            entityType: 'student',
+            canonicalRef: hashedCanonicalRef,
+            label: 'student entity',
+            aliases: [hashedCanonicalRef],
+          },
+        },
+        relations: {
+          [rawRelationKey]: {
+            ...relationRecord,
+            stableId: rawRelationKey,
+            entityId: hashedEntityId,
+          },
+        },
+      };
+
+      const restored = repository.restore(corruptedSnapshot);
+      expect(restored.persisted).toBe(false);
+      expect(restored.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+        `entities.${rawEntityKey}`,
+        `relations.${rawRelationKey}.stableId`,
+      ]));
+
+      writeFileSync(filePath, JSON.stringify({
+        ...corruptedSnapshot,
+        relations: {
+          [rawRelationKey]: {
+            ...corruptedSnapshot.relations[rawRelationKey],
+            stableId: hashedRelationKey,
+          },
+        },
+      }));
       expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
     } finally {
       rmSync(directory, { recursive: true, force: true });
