@@ -521,6 +521,104 @@ describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
     });
   });
 
+  it('includes assign notes in governance action idempotency keys', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-21T10:00:00.000Z'));
+    const firstResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1', note: '先由班主任复核' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const firstPayload = await firstResponse.json();
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-1',
+            auditLog: [firstPayload.auditRecord],
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-1',
+            auditLog: [firstPayload.auditRecord],
+          },
+        },
+      });
+    vi.setSystemTime(new Date('2026-06-21T10:05:00.000Z'));
+
+    const secondResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1', note: '补充电话确认记录' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const secondPayload = await secondResponse.json();
+    const updateCall = mocks.prisma.studentRiskFlag.update.mock.calls.at(-1)?.[0];
+    const governance = updateCall?.data?.evidenceJson?.adminGovernance;
+
+    expect(secondResponse.status).toBe(200);
+    expect(secondPayload.operationLedger.idempotencyKey).not.toBe(firstPayload.operationLedger.idempotencyKey);
+    expect(governance.auditLog).toHaveLength(2);
+    expect(governance.auditLog.at(-1)).toMatchObject({
+      action: 'assign',
+      assignee: 'admin-1',
+      note: '补充电话确认记录',
+      idempotencyKey: secondPayload.operationLedger.idempotencyKey,
+    });
+  });
+
+  it('keeps repeated assign actions with the same custom note idempotent', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-21T10:00:00.000Z'));
+    const firstResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1', note: '先由班主任复核' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const firstPayload = await firstResponse.json();
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-1',
+            auditLog: [firstPayload.auditRecord],
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        isResolved: false,
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            currentAssignee: 'admin-1',
+            auditLog: [firstPayload.auditRecord],
+          },
+        },
+      });
+    vi.setSystemTime(new Date('2026-06-21T10:05:00.000Z'));
+
+    const secondResponse = await POST(postRequest({ action: 'assign', assignee: 'admin-1', note: '先由班主任复核' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const secondPayload = await secondResponse.json();
+    const updateCall = mocks.prisma.studentRiskFlag.update.mock.calls.at(-1)?.[0];
+    const governance = updateCall?.data?.evidenceJson?.adminGovernance;
+
+    expect(secondResponse.status).toBe(200);
+    expect(secondPayload.operationLedger.idempotencyKey).toBe(firstPayload.operationLedger.idempotencyKey);
+    expect(governance.auditLog).toHaveLength(1);
+    expect(governance.auditLog[0]).toMatchObject({
+      note: '先由班主任复核',
+      idempotencyKey: firstPayload.operationLedger.idempotencyKey,
+    });
+  });
+
   it('treats assigning back to a previous assignee as a new governance action', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-06-21T10:00:00.000Z'));

@@ -341,7 +341,7 @@ function buildGovernanceOperationLedger(input: {
     input.riskId,
     input.actorId,
     input.assignee ?? '',
-    input.action === 'resolve' || input.action === 'ignore' || input.action === 'reopen' || input.action === 'undo'
+    input.action === 'assign' || input.action === 'resolve' || input.action === 'ignore' || input.action === 'reopen' || input.action === 'undo'
       ? input.resolutionNote
       : '',
     input.previousState,
