@@ -149,6 +149,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('disabled={pathGenerationPending !== null || hasInvalidRequestedGoal || !canSubmitPathGeneration}');
     expect(source).toContain('setPathChoiceMessage(pathGenerationDisplayReadiness.studentMessage)');
     expect(source).toContain('readAdaptiveGenerationReadiness(payload)');
+    expect(source).toContain("fallbackReason: response.status === 401 ? 'auth-required' : 'service-unavailable'");
     expect(contextRouteSource).toContain('missing-class-binding');
     expect(contextRouteSource).toContain('missing-teacher-binding');
     expect(contextRouteSource).toContain('service-unavailable');

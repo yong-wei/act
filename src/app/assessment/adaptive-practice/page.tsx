@@ -1630,7 +1630,7 @@ export default function AdaptivePracticePage() {
             setPathAdvisorReadiness(readAdaptiveGenerationReadiness(payload) ?? adaptiveGenerationReadinessFromHttp({
               status: response.status,
               source: 'path-advisor',
-              fallbackReason: 'service-unavailable',
+              fallbackReason: response.status === 401 ? 'auth-required' : 'service-unavailable',
             }));
           }
           return;

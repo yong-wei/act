@@ -72,6 +72,15 @@ describe('adaptive generation readiness', () => {
       staffAction: 'inspect-evidence',
     });
     expect(adaptiveGenerationReadinessFromHttp({
+      status: 401,
+      source: 'learner-state',
+    })).toMatchObject({
+      reason: 'auth-required',
+      status: 'blocked',
+      studentAction: 'login',
+      staffAction: 'none',
+    });
+    expect(adaptiveGenerationReadinessFromHttp({
       status: 500,
       source: 'path-advisor-tool',
     })).toMatchObject({

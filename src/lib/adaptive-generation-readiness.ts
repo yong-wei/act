@@ -148,6 +148,9 @@ export function adaptiveGenerationReadinessFromHttp(input: {
   if (input.fallbackReason) {
     return buildAdaptiveGenerationReadiness({ reason: input.fallbackReason, source: input.source });
   }
+  if (input.status === 401) {
+    return buildAdaptiveGenerationReadiness({ reason: 'auth-required', source: input.source });
+  }
   if (input.status === 403) {
     return buildAdaptiveGenerationReadiness({ reason: 'advisor-forbidden', source: input.source });
   }
