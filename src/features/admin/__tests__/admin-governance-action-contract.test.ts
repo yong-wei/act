@@ -359,6 +359,14 @@ describe('admin governance action contract', () => {
     expect(dataGovernanceDashboardSource).toContain('负责人：{compactAdminIdentifier(visibleAuditRecord.assignee)}');
     expect(dataGovernanceDashboardSource).toContain('risk.undoAvailable ? (');
     expect(dataGovernanceDashboardSource).toContain('function governanceFailureOutcome');
+    expect(dataGovernanceDashboardSource).toContain("function isAssigneeFailure(message: string)");
+    expect(dataGovernanceDashboardSource).toContain("message.includes('负责人不存在') || message.includes('缺少负责人')");
+    expect(dataGovernanceDashboardSource).toContain("if (isAssigneeFailure(message)) return 'missing-assignee'");
+    expect(dataGovernanceDashboardSource).toContain("if (isAssigneeFailure(message)) return '重新选择负责人后提交分派'");
+    expect(dataGovernanceDashboardSource.indexOf("if (isAssigneeFailure(message)) return 'missing-assignee'"))
+      .toBeLessThan(dataGovernanceDashboardSource.indexOf("if (responseStatus === 404) return 'missing-risk'"));
+    expect(dataGovernanceDashboardSource.indexOf("if (isAssigneeFailure(message)) return '重新选择负责人后提交分派'"))
+      .toBeLessThan(dataGovernanceDashboardSource.indexOf("if (responseStatus === 404) return '返回风险列表并刷新数据'"));
     expect(dataGovernanceDashboardSource).toContain("return 'undo-unavailable'");
     expect(dataGovernanceDashboardSource).toContain("return 'already-open'");
     expect(dataGovernanceDashboardSource).toContain('aria-pressed={activeTab === tab.id}');

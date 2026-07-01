@@ -30,14 +30,14 @@
 Targeted admin risk-governance tests passed:
 
 ```text
-rtk npx vitest run src/features/admin/__tests__/admin-governance-action-contract.test.ts src/app/api/admin/data-governance/status/__tests__/route.test.ts 'src/app/api/admin/data-governance/risks/[riskId]/actions/__tests__/route.test.ts'
+rtk npx vitest run src/features/admin/__tests__/admin-governance-action-contract.test.ts src/features/admin/__tests__/data-governance-overview.test.ts src/app/api/admin/data-governance/status/__tests__/route.test.ts 'src/app/api/admin/data-governance/risks/[riskId]/actions/__tests__/route.test.ts'
 ```
 
 Result:
 
 ```text
-Test Files  3 passed (3)
-Tests  38 passed (38)
+Test Files  4 passed (4)
+Tests  42 passed (42)
 ```
 
 Representative DOM/source evidence is covered by `src/features/admin/__tests__/admin-governance-action-contract.test.ts` string assertions for:

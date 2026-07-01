@@ -267,7 +267,12 @@ function compactAdminIdentifier(value: string | null | undefined) {
   return value ? `${value.slice(0, 8)}...` : '-';
 }
 
+function isAssigneeFailure(message: string) {
+  return message.includes('负责人不存在') || message.includes('缺少负责人');
+}
+
 function governanceFailureOutcome(responseStatus: number, message: string): GovernanceActionAuditRecord['outcome'] {
+  if (isAssigneeFailure(message)) return 'missing-assignee';
   if (responseStatus === 404) return 'missing-risk';
   if (message.includes('仍处于待处理')) return 'already-open';
   if (message.includes('没有可撤销')) return 'undo-unavailable';
@@ -276,6 +281,7 @@ function governanceFailureOutcome(responseStatus: number, message: string): Gove
 }
 
 function governanceFailureRecovery(responseStatus: number, message: string) {
+  if (isAssigneeFailure(message)) return '重新选择负责人后提交分派';
   if (responseStatus === 404) return '返回风险列表并刷新数据';
   if (message.includes('仍处于待处理')) return '继续分派、处置或忽略该风险';
   if (message.includes('没有可撤销')) return '查看审计记录，或使用重开恢复为待处理';
