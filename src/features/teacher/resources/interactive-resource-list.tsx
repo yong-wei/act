@@ -70,17 +70,22 @@ export function InteractiveResourceList({
 
   const handleSaveResource = async (id: string, data: { displayName: string; description: string }) => {
     setResourceSaveState((current) => ({ ...current, [id]: 'saving' }));
-    const res = await fetch(`/api/resources/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`/api/resources/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        setResourceSaveState((current) => ({ ...current, [id]: 'error' }));
+        throw new Error('Failed to update resource');
+      }
+      setResourceSaveState((current) => ({ ...current, [id]: 'saved' }));
+      router.refresh();
+    } catch (error) {
       setResourceSaveState((current) => ({ ...current, [id]: 'error' }));
-      throw new Error('Failed to update resource');
+      throw error;
     }
-    setResourceSaveState((current) => ({ ...current, [id]: 'saved' }));
-    router.refresh();
   };
 
   return (
