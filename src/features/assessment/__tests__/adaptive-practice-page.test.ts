@@ -116,8 +116,13 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('!pathGenerationDegradedReadiness');
     expect(source).toContain("assistantEntryPoint?.mode === 'path-advisor'");
     expect(source).toContain('Boolean(assistantEntryPoint.serverContext.modeContextToken)');
-    expect(source).toContain("const canSubmitPathGeneration = pathGenerationReadiness.status === 'ready' || canRetryPathGeneration;");
-    expect(source).toContain("const pathGenerationDisplayReadiness = pathGenerationReadiness.status === 'retryable' && pathGenerationDegradedReadiness");
+    expect(source).toContain("const hasPathAdvisorModeContext = assistantEntryPoint?.mode === 'path-advisor'");
+    expect(source).toContain("const canSubmitPathGeneration = (pathGenerationReadiness.status === 'ready' && hasPathAdvisorModeContext) || canRetryPathGeneration;");
+    expect(source).toContain("const pathGenerationContextReadiness = pathGenerationReadiness.status === 'ready'");
+    expect(source).toContain('!hasPathAdvisorModeContext');
+    expect(source).toContain("buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'path-advisor' })");
+    expect(source).toContain('const pathGenerationDisplayReadiness = pathGenerationContextReadiness ??');
+    expect(source).toContain("pathGenerationReadiness.status === 'retryable' && pathGenerationDegradedReadiness");
     expect(source).toContain('learner-state-unavailable');
     expect(source).toContain("learnerStateLoadState === 'ready'");
     expect(source).toContain('insufficient-evidence');

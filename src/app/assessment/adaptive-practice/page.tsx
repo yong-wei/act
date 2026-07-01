@@ -1458,15 +1458,22 @@ export default function AdaptivePracticePage() {
     : evidenceReadiness?.status === 'degraded'
       ? evidenceReadiness
       : null;
+  const hasPathAdvisorModeContext = assistantEntryPoint?.mode === 'path-advisor' &&
+    Boolean(assistantEntryPoint.serverContext.modeContextToken);
   const canRetryPathGeneration = pathGenerationReadiness.status === 'retryable' &&
     pathAdvisorReadiness?.status === 'retryable' &&
     !pathGenerationDegradedReadiness &&
-    assistantEntryPoint?.mode === 'path-advisor' &&
-    Boolean(assistantEntryPoint.serverContext.modeContextToken);
-  const canSubmitPathGeneration = pathGenerationReadiness.status === 'ready' || canRetryPathGeneration;
-  const pathGenerationDisplayReadiness = pathGenerationReadiness.status === 'retryable' && pathGenerationDegradedReadiness
+    hasPathAdvisorModeContext;
+  const canSubmitPathGeneration = (pathGenerationReadiness.status === 'ready' && hasPathAdvisorModeContext) || canRetryPathGeneration;
+  const pathGenerationContextReadiness = pathGenerationReadiness.status === 'ready' &&
+    pathAdvisorContextGoal &&
+    !hasPathAdvisorModeContext
+    ? buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'path-advisor' })
+    : null;
+  const pathGenerationDisplayReadiness = pathGenerationContextReadiness ??
+    (pathGenerationReadiness.status === 'retryable' && pathGenerationDegradedReadiness
     ? pathGenerationDegradedReadiness
-    : pathGenerationReadiness;
+    : pathGenerationReadiness);
   const pathExecutionNodes = useMemo(
     () => getPathExecutionNodes(activePathPlan, activePathRound, selectedExecutionOption),
     [activePathPlan, activePathRound, selectedExecutionOption],
