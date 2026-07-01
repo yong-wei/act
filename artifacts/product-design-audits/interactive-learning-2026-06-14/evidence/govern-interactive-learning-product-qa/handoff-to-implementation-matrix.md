@@ -42,6 +42,16 @@ Design source: `artifacts/product-design-audits/interactive-learning-2026-06-14/
 - Course entry and runtime pages must not reintroduce `premium-lesson-*` as their primary shell.
 - Standard module chrome must be registered for representative module states.
 
+## Source Refresh
+
+### 2026-07-01: Classroom lifecycle dialog closure
+
+- Change: `audit-remediation-classroom-lifecycle-dialog-closure`
+- Scope: shared course entry conflict handling, lesson-plan active-class feedback, class-bound classroom actions, and interactive teacher runtime end-session confirmation.
+- Product QA impact: the change replaces native browser confirm/alert surfaces with the shared classroom lifecycle dialog and inline status messaging. It does not change student runtime module layout, teacher projection chrome, course navigation, Konling dock placement, or compact spacing geometry.
+- Teacher runtime bulk pattern: each changed `src/features/interactive/unit-*/teacher-page.tsx` file only imports `requestClassroomEndConfirmation` and replaces the existing native end-session confirmation with `await requestClassroomEndConfirmation()`.
+- Evidence: `src/features/interactive/__tests__/classroom-join-entry.test.ts` asserts the lifecycle dialog API contract, in-scope source usage, and absence of native confirm/alert calls for the covered classroom lifecycle paths.
+
 ## Temporary Exceptions
 
 None.

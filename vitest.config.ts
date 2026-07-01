@@ -25,6 +25,7 @@ export default defineConfig({
       'src/features/knowledge/__tests__/**/*.test.ts',
       'src/features/arena/__tests__/**/*.test.ts',
       'src/features/arena/__tests__/**/*.test.tsx',
+      'src/features/classroom/__tests__/**/*.test.ts',
       'src/features/control-workbench/__tests__/**/*.test.ts',
       'src/features/data-center/__tests__/**/*.test.ts',
       'src/app/api/classes/**/__tests__/**/*.test.ts',

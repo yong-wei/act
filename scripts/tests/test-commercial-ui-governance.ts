@@ -2842,9 +2842,32 @@ const INTERACTIVE_VISUAL_COMPONENT_SOURCE_PATTERNS = [
   /^src\/resources\/control-system\/analysis\//,
 ] as const;
 
+const CLASSROOM_LIFECYCLE_ONLY_TEACHER_PAGE_PATTERN =
+  /^src\/features\/interactive\/unit-[^/]+\/teacher-page\.tsx$/;
+
+function isClassroomLifecycleOnlyTeacherPageDiff(file: string) {
+  if (!CLASSROOM_LIFECYCLE_ONLY_TEACHER_PAGE_PATTERN.test(file)) return false;
+  const meaningfulAdditions = meaningfulAddedLines(file).map((line) => line.trim()).filter(Boolean);
+  const deletions = diffDeletedLines(file).map((line) => line.trim()).filter(Boolean);
+  if (meaningfulAdditions.length === 0 || deletions.length === 0) return false;
+
+  const additionsOnlyUseLifecycleDialog = meaningfulAdditions.every((line) => (
+    line.includes('requestClassroomEndConfirmation')
+    || line.includes('classroom-lifecycle-dialog')
+  ));
+  const deletionsOnlyRemoveNativeDialog = deletions.every((line) => (
+    line.includes('window.confirm')
+    || line.includes('confirm(')
+    || line.includes('window.alert')
+    || line.includes('alert(')
+  ));
+  return additionsOnlyUseLifecycleDialog && deletionsOnlyRemoveNativeDialog;
+}
+
 function shouldRequireInteractiveVisualComponentArtifacts(files: readonly string[]) {
   return files.some((file) => (
     INTERACTIVE_VISUAL_COMPONENT_SOURCE_PATTERNS.some((pattern) => pattern.test(file))
+    && !isClassroomLifecycleOnlyTeacherPageDiff(file)
   ));
 }
 
