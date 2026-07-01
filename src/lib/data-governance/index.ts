@@ -50,3 +50,4 @@ export * from './interactive-session-finalization';
 export * from './structured-associative-retrieval-types';
 export * from './structured-associative-retrieval';
 export * from './sar-association-expansion';
+export * from './sar-persistence';
