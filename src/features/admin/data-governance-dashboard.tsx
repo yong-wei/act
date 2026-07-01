@@ -338,12 +338,22 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
   const [executedActionState, setExecutedActionState] = useState<AuditedActionState | null>(null);
   const [executedAuditRecord, setExecutedAuditRecord] = useState<GovernanceActionAuditRecord | null>(null);
   const [refreshActionState, setRefreshActionState] = useState<AuditedActionState | null>(null);
+  const [retainedRiskQuery, setRetainedRiskQuery] = useState<{ riskId: string; tab: GovernanceDashboardTab } | null>(
+    initialActionQuery?.riskId
+      ? { riskId: initialActionQuery.riskId, tab: 'risks' }
+      : null,
+  );
 
-  const fetchStatus = useCallback(async (manual = false) => {
+  const fetchStatus = useCallback(async (
+    manual = false,
+    overrideQuery?: { riskId?: string | null; tab?: GovernanceDashboardTab | null },
+  ) => {
+    const requestedRiskId = overrideQuery?.riskId ?? retainedRiskQuery?.riskId ?? initialActionQuery?.riskId ?? '';
+    const requestedTab = overrideQuery?.tab ?? retainedRiskQuery?.tab ?? initialActionQuery?.tab ?? '';
     const idempotencyKey = buildAdminOperationIdempotencyKey([
       'admin-governance-refresh',
       currentUser.id,
-      initialActionQuery?.riskId ?? '',
+      requestedRiskId,
       initialActionQuery?.surface ?? '',
       initialActionQuery?.audit ?? '',
     ]);
@@ -370,14 +380,14 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
         }));
       }
       const params = new URLSearchParams();
-      if (initialActionQuery?.riskId?.trim()) {
-        params.set('riskId', initialActionQuery.riskId.trim());
+      if (requestedRiskId.trim()) {
+        params.set('riskId', requestedRiskId.trim());
       }
       if (initialActionQuery?.surface === 'authoring') {
         params.set('surface', 'authoring');
       }
-      if (initialActionQuery?.tab?.trim()) {
-        params.set('tab', initialActionQuery.tab.trim());
+      if (requestedTab.trim()) {
+        params.set('tab', requestedTab.trim());
       }
       if (initialActionQuery?.lessonPlanId?.trim()) {
         params.set('lessonPlanId', initialActionQuery.lessonPlanId.trim());
@@ -447,6 +457,8 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
     initialActionQuery?.riskId,
     initialActionQuery?.surface,
     initialActionQuery?.tab,
+    retainedRiskQuery?.riskId,
+    retainedRiskQuery?.tab,
   ]);
 
   useEffect(() => {
@@ -557,7 +569,9 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
             message: `${label}已保存审计记录。`,
             nextAction: '刷新治理列表并复核风险状态',
           }));
-      fetchStatus();
+      setRetainedRiskQuery({ riskId: input.riskId, tab: 'risks' });
+      setActiveTab('risks');
+      fetchStatus(false, { riskId: input.riskId, tab: 'risks' });
     } catch (err) {
       const message = err instanceof Error ? err.message : '治理动作失败';
       const outcome = governanceFailureOutcome(responseStatus, message);

@@ -349,6 +349,13 @@ describe('admin governance action contract', () => {
     expect(dataGovernanceDashboardSource).toContain('保留策略：{visibleAuditRecord.retentionPolicy ??');
     expect(dataGovernanceDashboardSource).toContain("params.set('graphNodeId', initialActionQuery.graphNodeId.trim())");
     expect(dataGovernanceDashboardSource).toContain("params.set('audit', initialActionQuery.audit.trim())");
+    expect(dataGovernanceDashboardSource).toContain('const [retainedRiskQuery, setRetainedRiskQuery]');
+    expect(dataGovernanceDashboardSource).toContain("overrideQuery?: { riskId?: string | null; tab?: GovernanceDashboardTab | null }");
+    expect(dataGovernanceDashboardSource).toContain("const requestedRiskId = overrideQuery?.riskId ?? retainedRiskQuery?.riskId ?? initialActionQuery?.riskId ?? ''");
+    expect(dataGovernanceDashboardSource).toContain("const requestedTab = overrideQuery?.tab ?? retainedRiskQuery?.tab ?? initialActionQuery?.tab ?? ''");
+    expect(dataGovernanceDashboardSource).toContain("setRetainedRiskQuery({ riskId: input.riskId, tab: 'risks' })");
+    expect(dataGovernanceDashboardSource).toContain("setActiveTab('risks')");
+    expect(dataGovernanceDashboardSource).toContain("fetchStatus(false, { riskId: input.riskId, tab: 'risks' })");
     expect(dataGovernanceDashboardSource).toContain('data-graph-center-preferred-tab');
     expect(dataGovernanceDashboardSource).toContain("status: responseStatus === 409 ? 'blocked' : 'failed'");
   });

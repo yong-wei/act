@@ -132,6 +132,19 @@ describe('buildGovernanceOverview', () => {
           isResolved: false,
         },
       ],
+      targetRiskFlag: {
+        id: 'risk-1',
+        userId: 'u-1',
+        userName: '张三',
+        flagType: 'ai_misuse',
+        severity: 'high',
+        description: '最近 7 天 AI 依赖显著升高',
+        triggeredAt: '2026-03-19T08:00:00.000Z',
+        isResolved: true,
+        resolvedAt: '2026-03-19T09:00:00.000Z',
+        dispositionStatus: 'ignored',
+        undoAvailable: true,
+      },
       recentSnapshots: [
         {
           userId: 'u-2',
@@ -170,7 +183,7 @@ describe('buildGovernanceOverview', () => {
       unsupportedSources: 1,
       coverageCommand: 'npm run db:evidence-source-coverage -- --text',
     });
-    expect(overview.tabs.map((tab) => tab.label)).toEqual(['总览', '课堂质量', '证据源', '缓存健康']);
+    expect(overview.tabs.map((tab) => tab.label)).toEqual(['总览', '风险治理', '课堂质量', '证据源', '缓存健康']);
     expect(overview.sessionQualityPanel).toMatchObject({
       title: '课堂质量分布',
       rows: [
@@ -211,5 +224,12 @@ describe('buildGovernanceOverview', () => {
     });
     expect(overview.snapshotPanel.title).toBe('最新快照明细');
     expect(overview.riskPanel.rows[0]?.userName).toBe('张三');
+    expect(overview.riskPanel.rows[0]).toMatchObject({
+      id: 'risk-1',
+      isResolved: true,
+      undoAvailable: true,
+      flagLabel: 'AI 依赖风险',
+    });
+    expect(overview.riskPanel.rows).toHaveLength(1);
   });
 });
