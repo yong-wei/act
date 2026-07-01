@@ -47,6 +47,15 @@ describe('adaptive generation readiness', () => {
       staffAction: 'review-permission',
     });
     expect(buildAdaptiveGenerationReadiness({
+      reason: 'auth-required',
+      source: 'session',
+    })).toMatchObject({
+      status: 'blocked',
+      studentAction: 'login',
+      staffAction: 'none',
+      studentMessage: '请先登录后再生成学习路径。',
+    });
+    expect(buildAdaptiveGenerationReadiness({
       reason: 'service-unavailable',
       source: 'path-advisor',
     })).toMatchObject({

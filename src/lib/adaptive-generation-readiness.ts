@@ -4,6 +4,7 @@ export type AdaptiveGenerationReadinessReason =
   | 'ready'
   | 'missing-class-binding'
   | 'missing-teacher-binding'
+  | 'auth-required'
   | 'learner-state-unavailable'
   | 'advisor-forbidden'
   | 'service-unavailable'
@@ -12,6 +13,7 @@ export type AdaptiveGenerationReadinessReason =
 
 export type AdaptiveGenerationStudentAction =
   | 'continue-practice'
+  | 'login'
   | 'request-teacher-binding'
   | 'retry'
   | 'review-evidence'
@@ -66,6 +68,13 @@ const readinessByReason: Record<Exclude<AdaptiveGenerationReadinessReason, 'read
     staffAction: 'bind-class',
     studentMessage: '当前班级还没有绑定任课教师，请联系管理员或教师完成班级设置。',
     staffMessage: '班级缺少 teacherId，路径生成无法确定教师作用域。',
+  },
+  'auth-required': {
+    status: 'blocked',
+    studentAction: 'login',
+    staffAction: 'none',
+    studentMessage: '请先登录后再生成学习路径。',
+    staffMessage: '学生尚未登录，路径生成上下文不能签发。',
   },
   'learner-state-unavailable': {
     status: 'degraded',

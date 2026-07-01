@@ -1457,12 +1457,20 @@ export default function AdaptivePracticePage() {
       ? buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'learner-state' })
       : null
   ), [authStatus, isDemoMode, learnerStateLoadState, pathAdvisorContextGoal, showGenerationWorkspace]);
+  const authRequiredGenerationReadiness = useMemo(() => (
+    showGenerationWorkspace &&
+      !isDemoMode &&
+      authStatus === 'unauthenticated'
+      ? buildAdaptiveGenerationReadiness({ reason: 'auth-required', source: 'session' })
+      : null
+  ), [authStatus, isDemoMode, showGenerationWorkspace]);
   const pathGenerationReadiness = useMemo(() => selectAdaptiveGenerationReadiness([
+    authRequiredGenerationReadiness,
     pathAdvisorReadiness,
     learnerStateReadiness,
     learnerStatePendingReadiness,
     evidenceReadiness,
-  ]), [evidenceReadiness, learnerStatePendingReadiness, learnerStateReadiness, pathAdvisorReadiness]);
+  ]), [authRequiredGenerationReadiness, evidenceReadiness, learnerStatePendingReadiness, learnerStateReadiness, pathAdvisorReadiness]);
   const pathGenerationDegradedReadiness = learnerStateReadiness?.status === 'degraded'
     ? learnerStateReadiness
     : evidenceReadiness?.status === 'degraded'
@@ -2791,6 +2799,15 @@ export default function AdaptivePracticePage() {
                   <p className="mt-1 text-xs leading-5 text-subtle">
                     如仍无法继续，请把当前状态转交给教师或管理员处理。
                   </p>
+                  {pathGenerationDisplayReadiness.studentAction === 'login' ? (
+                    <Link
+                      href={loginHref}
+                      className="mt-3 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                    >
+                      <ExternalLink className="size-3.5" aria-hidden="true" />
+                      登录后继续
+                    </Link>
+                  ) : null}
                 </div>
               ) : null}
               <div className="mt-4 grid gap-3" data-adaptive-path-generation-request="structured-panel">

@@ -113,6 +113,9 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('Boolean(pathAdvisorContextGoal)');
     expect(source).toContain("learnerStateLoadState !== 'ready'");
     expect(source).toContain("buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'learner-state' })");
+    expect(source).toContain('const authRequiredGenerationReadiness = useMemo');
+    expect(source).toContain("authStatus === 'unauthenticated'");
+    expect(source).toContain("buildAdaptiveGenerationReadiness({ reason: 'auth-required', source: 'session' })");
     expect(source).toContain('if (activeGoal || !pathAdvisorContextGoal || !showGenerationWorkspace || isDemoMode) return;');
     expect(source).toContain('const generationGoal = pathAdvisorContextGoal;');
     expect(source).toContain('fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(generationGoal)}`)');
@@ -132,6 +135,8 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('const pathGenerationDisplayReadiness = pathGenerationContextReadiness ??');
     expect(source).toContain("pathGenerationReadiness.status === 'retryable' && pathGenerationDegradedReadiness");
     expect(source).toContain('learner-state-unavailable');
+    expect(source).toContain("pathGenerationDisplayReadiness.studentAction === 'login'");
+    expect(source).toContain('登录后继续');
     expect(source).toContain("learnerStateLoadState === 'ready'");
     expect(source).toContain('insufficient-evidence');
     expect(source).toContain('data-adaptive-generation-readiness-status={pathGenerationDisplayReadiness.status}');
