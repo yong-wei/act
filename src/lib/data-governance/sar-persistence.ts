@@ -438,7 +438,7 @@ export class SarPersistenceRepository {
     const entityIdMap = new Map(input.result.entities.map((entity) => [entity.id, persistedEntityId(entity)]));
     const trace = normalizePersistedTraceRefs(input.result.trace, entityIdMap);
     persistResultIntoSnapshot(this.snapshot, input.result, trace.versionRefs, now);
-    const stableId = trace.id;
+    const stableId = persistedQueryTraceId(trace.id, queryHash, input.scope, input.retention.storedAt);
     const previous = this.snapshot.queryTraces[stableId];
     const next: SarPersistedQueryTraceRecord = {
       stableId,
@@ -488,6 +488,10 @@ export class SarPersistenceRepository {
       .filter((record) => isExportableScope(record.privacyScope));
     const eventIds = new Set(activeEvents.map((record) => record.stableId));
     const entityIds = new Set(activeEntities.map((record) => record.stableId));
+    const nonSarRefs = new Set(activeEvents.flatMap((record) => [
+      record.sourceRef.id,
+      record.sourceRef.owner,
+    ]));
 
     return deepClone({
       schemaVersion: this.snapshot.schemaVersion,
@@ -500,7 +504,7 @@ export class SarPersistenceRepository {
       queryTraces: Object.values(this.snapshot.queryTraces)
         .map((trace) => minimizeTraceIfExpired(trace, now))
         .filter(isExportEligibleQueryTrace)
-        .map((trace) => filterTraceRefsForExport(trace, eventIds, entityIds)),
+        .map((trace) => filterTraceRefsForExport(trace, eventIds, entityIds, nonSarRefs)),
     });
   }
 
@@ -1266,6 +1270,7 @@ function filterTraceRefsForExport(
   trace: SarPersistedQueryTraceRecord,
   eventIds: ReadonlySet<string>,
   entityIds: ReadonlySet<string>,
+  nonSarRefs: ReadonlySet<string>,
 ): SarPersistedQueryTraceRecord {
   return {
     ...trace,
@@ -1275,8 +1280,8 @@ function filterTraceRefsForExport(
       && entityIds.has(hop.toEntityId)
       && (hop.viaEventId === undefined || eventIds.has(hop.viaEventId))
     )),
-    selectedRefs: trace.selectedRefs.filter((ref) => isExportableTraceRef(ref, eventIds, entityIds)),
-    rejectedRefs: trace.rejectedRefs.filter((ref) => isExportableRejectedTraceRef(ref.ref, eventIds, entityIds)),
+    selectedRefs: trace.selectedRefs.filter((ref) => isExportableTraceRef(ref, eventIds, entityIds, nonSarRefs)),
+    rejectedRefs: trace.rejectedRefs.filter((ref) => isExportableRejectedTraceRef(ref.ref, eventIds, entityIds, nonSarRefs)),
   };
 }
 
@@ -1284,19 +1289,35 @@ function isExportableTraceRef(
   ref: string,
   eventIds: ReadonlySet<string>,
   entityIds: ReadonlySet<string>,
+  nonSarRefs: ReadonlySet<string>,
 ): boolean {
   if (ref.startsWith('sar:event:')) return eventIds.has(ref);
   if (ref.startsWith('sar:entity:')) return entityIds.has(ref);
-  return true;
+  return nonSarRefs.has(ref);
 }
 
 function isExportableRejectedTraceRef(
   ref: string,
   eventIds: ReadonlySet<string>,
   entityIds: ReadonlySet<string>,
+  nonSarRefs: ReadonlySet<string>,
 ): boolean {
-  if (isExportableTraceRef(ref, eventIds, entityIds)) return true;
+  if (isExportableTraceRef(ref, eventIds, entityIds, nonSarRefs)) return true;
   return /^sar:entity:(student|class):sha256:[a-f0-9]{64}$/.test(ref);
+}
+
+function persistedQueryTraceId(
+  traceId: string,
+  queryHash: string,
+  scope: SarQueryTraceScopeRef,
+  storedAt: string,
+): string {
+  return `sar:trace:sha256:${stableHash({
+    traceId,
+    queryHash,
+    scope,
+    storedAt,
+  })}`;
 }
 
 function sanitizeSourceRef(sourceRef: SarRetrievalEvent['sourceRef']): SarPersistedSourceRef {

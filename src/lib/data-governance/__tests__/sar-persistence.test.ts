@@ -7,6 +7,8 @@ import { describe, expect, it } from 'vitest';
 import {
   createSarPersistenceRepository,
   hashSarQueryIdentity,
+  type SarPersistedQueryTraceRecord,
+  type SarPersistenceSnapshot,
 } from '../sar-persistence';
 import type {
   SarRetrievalEntity,
@@ -110,6 +112,12 @@ const traceInput = (result = sarResult()) => ({
   handoffStatus: 'source-pack-pending' as const,
   now: fixedNow,
 });
+
+const onlyQueryTraceRecord = (snapshot: SarPersistenceSnapshot): SarPersistedQueryTraceRecord => {
+  const records = Object.values(snapshot.queryTraces);
+  expect(records).toHaveLength(1);
+  return records[0];
+};
 
 describe('SAR persistence', () => {
   it('persists projection records idempotently without duplicate relations', () => {
@@ -471,9 +479,9 @@ describe('SAR persistence', () => {
 
     expect(repository.upsertQueryTrace(input).persisted).toBe(true);
 
-    const persisted = repository.getSnapshot().queryTraces['sar:trace:root-locus'];
+    const persisted = onlyQueryTraceRecord(repository.getSnapshot());
     expect(persisted).toMatchObject({
-      stableId: 'sar:trace:root-locus',
+      stableId: expect.stringMatching(/^sar:trace:sha256:[a-f0-9]{64}$/),
       queryRole: 'teacher-diagnostics',
       useCase: 'sar-retrieval-index',
       handoffStatus: 'source-pack-pending',
@@ -619,9 +627,32 @@ describe('SAR persistence', () => {
     input.scope.studentIdHash = mutatedStudentHash;
     input.retention.retainUntil = '2027-01-01T00:00:00.000Z';
 
-    const persisted = repository.getSnapshot().queryTraces['sar:trace:root-locus'];
+    const persisted = onlyQueryTraceRecord(repository.getSnapshot());
     expect(persisted.scope.studentIdHash).toBe(studentHash);
     expect(persisted.retention.retainUntil).toBe('2026-07-08T00:00:00.000Z');
+  });
+
+  it('keeps repeated trace ids distinct across query identity and scope', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const input = traceInput();
+
+    expect(repository.upsertQueryTrace(input).persisted).toBe(true);
+    expect(repository.upsertQueryTrace({
+      ...input,
+      scope: {
+        ...input.scope,
+        studentIdHash: mutatedStudentHash,
+      },
+    }).persisted).toBe(true);
+
+    const traces = Object.values(repository.getSnapshot().queryTraces);
+    expect(traces).toHaveLength(2);
+    expect(new Set(traces.map((record) => record.stableId)).size).toBe(2);
+    expect(new Set(traces.map((record) => record.queryHash)).size).toBe(1);
+    expect(traces.map((record) => record.scope.studentIdHash).sort()).toEqual([
+      studentHash,
+      mutatedStudentHash,
+    ]);
   });
 
   it('rejects student-scoped traces without hash-only student identity', () => {
@@ -749,7 +780,7 @@ describe('SAR persistence', () => {
 
     repository.minimizeExpiredTraces('2026-07-04T00:00:00.000Z');
 
-    const traceRecord = repository.getSnapshot().queryTraces['sar:trace:root-locus'];
+    const traceRecord = onlyQueryTraceRecord(repository.getSnapshot());
     expect(traceRecord.minimized).toBe(true);
     expect(traceRecord.seedEntityIds).toEqual([]);
     expect(traceRecord.selectedRefs).toEqual([]);
@@ -769,7 +800,7 @@ describe('SAR persistence', () => {
     const rebuild = repository.rebuild([sarResult()], { now: '2026-07-04T00:00:00.000Z' });
     expect(rebuild.persisted).toBe(true);
 
-    const traceRecord = repository.getSnapshot().queryTraces['sar:trace:root-locus'];
+    const traceRecord = onlyQueryTraceRecord(repository.getSnapshot());
     expect(traceRecord.minimized).toBe(true);
     expect(traceRecord.seedEntityIds).toEqual([]);
     expect(traceRecord.selectedRefs).toEqual([]);
@@ -792,7 +823,7 @@ describe('SAR persistence', () => {
     }), { now: '2026-07-04T00:00:00.000Z' });
     expect(update.persisted).toBe(true);
 
-    const traceRecord = repository.getSnapshot().queryTraces['sar:trace:root-locus'];
+    const traceRecord = onlyQueryTraceRecord(repository.getSnapshot());
     expect(traceRecord.minimized).toBe(true);
     expect(traceRecord.seedEntityIds).toEqual([]);
     expect(traceRecord.selectedRefs).toEqual([]);
@@ -811,7 +842,7 @@ describe('SAR persistence', () => {
       },
     });
     deleteRepository.minimizeExpiredTraces('2026-07-04T00:00:00.000Z');
-    const deleted = deleteRepository.getSnapshot().queryTraces['sar:trace:root-locus'];
+    const deleted = onlyQueryTraceRecord(deleteRepository.getSnapshot());
     expect(deleted.limitations).toEqual([]);
     expect(deleted.aggregateCounts).toBeUndefined();
 
@@ -824,7 +855,7 @@ describe('SAR persistence', () => {
       },
     });
     redactRepository.minimizeExpiredTraces('2026-07-04T00:00:00.000Z');
-    const redacted = redactRepository.getSnapshot().queryTraces['sar:trace:root-locus'];
+    const redacted = onlyQueryTraceRecord(redactRepository.getSnapshot());
     expect(redacted.limitations).toContain('Trace details redacted after SAR retention boundary.');
     expect(redacted.aggregateCounts).toBeUndefined();
   });
@@ -869,11 +900,17 @@ describe('SAR persistence', () => {
 
   it('filters restricted SAR refs from exported query traces', () => {
     const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const exportableEvent = event({
+      sourceRef: {
+        ...event().sourceRef,
+        id: 'learning-evidence:chunk:root-locus',
+      },
+    });
     const restrictedEvent = event({
       id: 'sar:event:audit-only',
       title: 'Audit-only event',
       safeSummary: 'Governed audit summary.',
-      sourceRef: { ...event().sourceRef, id: 'audit:event', contentHash: 'sha256:audit' },
+      sourceRef: { ...event().sourceRef, id: 'chunk:audit-only', contentHash: 'sha256:audit' },
       privacyScope: 'audit-only',
     });
     const restrictedEntity = entity({
@@ -895,6 +932,8 @@ describe('SAR persistence', () => {
         selectedRefs: [
           'sar:event:kaq:root-locus',
           'sar:event:audit-only',
+          'learning-evidence:chunk:root-locus',
+          'chunk:audit-only',
           'citation-target:kaq:root-locus',
         ],
         rejectedRefs: [
@@ -902,8 +941,10 @@ describe('SAR persistence', () => {
           { ref: 'learning-evidence:chunk:root-locus', reason: 'low confidence' },
         ],
       }),
-      events: [event(), restrictedEvent],
+      events: [exportableEvent, restrictedEvent],
       entities: [entity(), restrictedEntity],
+      citationTargetRefs: ['citation-target:kaq:root-locus'],
+      retrievalChunkRefs: ['learning-evidence:chunk:root-locus', 'chunk:audit-only'],
       relations: [
         relation(),
         relation({
@@ -915,20 +956,24 @@ describe('SAR persistence', () => {
     });
 
     repository.upsertResult(result);
-    repository.upsertQueryTrace(traceInput(result));
+    const write = repository.upsertQueryTrace(traceInput(result));
+    expect(write.issues).toEqual([]);
+    expect(write.persisted).toBe(true);
 
     const [exportedTrace] = repository.exportSafeSnapshot().queryTraces;
     expect(exportedTrace.seedEntityIds).toEqual(['sar:entity:kaq:root-locus']);
     expect(exportedTrace.expansionHops).toEqual([]);
     expect(exportedTrace.selectedRefs).toEqual([
       'sar:event:kaq:root-locus',
-      'citation-target:kaq:root-locus',
+      'learning-evidence:chunk:root-locus',
     ]);
     expect(exportedTrace.rejectedRefs).toEqual([
       { ref: 'learning-evidence:chunk:root-locus', reason: 'low confidence' },
     ]);
     expect(JSON.stringify(exportedTrace)).not.toContain('sar:event:audit-only');
     expect(JSON.stringify(exportedTrace)).not.toContain('sar:entity:system');
+    expect(JSON.stringify(exportedTrace)).not.toContain('chunk:audit-only');
+    expect(JSON.stringify(exportedTrace)).not.toContain('citation-target:kaq:root-locus');
   });
 
   it('filters orphan SAR refs from exported query traces after rebuild', () => {
@@ -973,13 +1018,11 @@ describe('SAR persistence', () => {
     const [exportedTrace] = repository.exportSafeSnapshot().queryTraces;
     expect(exportedTrace.selectedRefs).toEqual([
       'sar:event:kaq:root-locus',
-      'citation-target:kaq:root-locus',
     ]);
-    expect(exportedTrace.rejectedRefs).toEqual([
-      { ref: 'learning-evidence:chunk:root-locus', reason: 'low confidence' },
-    ]);
+    expect(exportedTrace.rejectedRefs).toEqual([]);
     expect(JSON.stringify(exportedTrace)).not.toContain('sar:event:orphan-audit');
     expect(JSON.stringify(exportedTrace)).not.toContain('sar:entity:orphan-system');
+    expect(JSON.stringify(exportedTrace)).not.toContain('citation-target:kaq:root-locus');
   });
 
   it('keeps safe export mutations isolated from repository state', () => {
@@ -1073,11 +1116,12 @@ describe('SAR persistence', () => {
       const repository = createSarPersistenceRepository({ now: () => fixedNow });
       repository.upsertQueryTrace(traceInput());
       const snapshot = repository.getSnapshot();
+      const traceRecord = onlyQueryTraceRecord(snapshot);
       writeFileSync(filePath, JSON.stringify({
         ...snapshot,
         queryTraces: {
-          'sar:trace:root-locus': {
-            ...snapshot.queryTraces['sar:trace:root-locus'],
+          [traceRecord.stableId]: {
+            ...traceRecord,
             rawQuery: 'Which root locus objective should support this learner?',
           },
         },
@@ -1173,6 +1217,7 @@ describe('SAR persistence', () => {
       repository.upsertQueryTrace(traceInput());
       const snapshot = repository.getSnapshot();
       const relationId = Object.keys(snapshot.relations)[0];
+      const traceRecord = onlyQueryTraceRecord(snapshot);
       const rawStudentEntity = {
         ...snapshot.entities['sar:entity:kaq:root-locus'],
         stableId: 'sar:entity:student:student:learner-1',
@@ -1193,12 +1238,12 @@ describe('SAR persistence', () => {
           },
         },
         queryTraces: {
-          'sar:trace:root-locus': {
-            ...snapshot.queryTraces['sar:trace:root-locus'],
+          [traceRecord.stableId]: {
+            ...traceRecord,
             seedEntityIds: [rawStudentEntity.stableId],
             selectedRefs: [rawStudentEntity.stableId],
             expansionHops: [{
-              ...snapshot.queryTraces['sar:trace:root-locus'].expansionHops[0],
+              ...traceRecord.expansionHops[0],
               viaEventId: 'sar:entity:student:student:learner-1',
             }],
             rejectedRefs: [{ ref: 'sar:entity:class:class:raw-class', reason: 'class-scope-mismatch' }],
@@ -1212,10 +1257,10 @@ describe('SAR persistence', () => {
         'entities.sar:entity:student:student:learner-1.stableId',
         'entities.sar:entity:student:student:learner-1.canonicalRef',
         `relations.${relationId}.entityId`,
-        'queryTraces.sar:trace:root-locus.seedEntityIds.0',
-        'queryTraces.sar:trace:root-locus.selectedRefs.0',
-        'queryTraces.sar:trace:root-locus.expansionHops.0.viaEventId',
-        'queryTraces.sar:trace:root-locus.rejectedRefs.0.ref',
+        `queryTraces.${traceRecord.stableId}.seedEntityIds.0`,
+        `queryTraces.${traceRecord.stableId}.selectedRefs.0`,
+        `queryTraces.${traceRecord.stableId}.expansionHops.0.viaEventId`,
+        `queryTraces.${traceRecord.stableId}.rejectedRefs.0.ref`,
       ]));
 
       writeFileSync(filePath, JSON.stringify(corruptedSnapshot));
@@ -1232,6 +1277,7 @@ describe('SAR persistence', () => {
       const repository = createSarPersistenceRepository({ now: () => fixedNow });
       repository.upsertQueryTrace(traceInput());
       const snapshot = repository.getSnapshot();
+      const traceRecord = onlyQueryTraceRecord(snapshot);
       const rawEventId = 'student-id:abc';
       const corruptedSnapshot = {
         ...snapshot,
@@ -1248,8 +1294,8 @@ describe('SAR persistence', () => {
           },
         },
         queryTraces: {
-          'sar:trace:root-locus': {
-            ...snapshot.queryTraces['sar:trace:root-locus'],
+          [traceRecord.stableId]: {
+            ...traceRecord,
             selectedRefs: ['learner-id:demo'],
             rejectedRefs: [{ ref: 'class-id:demo', reason: 'student id abc123 mismatch' }],
             versionRefs: ['user-id:abc'],
@@ -1264,7 +1310,7 @@ describe('SAR persistence', () => {
         `events.${rawEventId}.title`,
         `events.${rawEventId}.safeSummary`,
         `events.${rawEventId}.sourceRef.owner`,
-        'queryTraces.sar:trace:root-locus.versionRefs.0',
+        `queryTraces.${traceRecord.stableId}.versionRefs.0`,
         'selectedRefs.0',
         'rejectedRefs.0.ref',
         'rejectedRefs.0.reason',
@@ -1285,12 +1331,13 @@ describe('SAR persistence', () => {
       const repository = createSarPersistenceRepository({ now: () => fixedNow });
       repository.upsertQueryTrace(traceInput());
       const snapshot = repository.getSnapshot();
+      const traceRecord = onlyQueryTraceRecord(snapshot);
       const rawTraceId = 'Which root locus objective should support this learner?';
       const corruptedSnapshot = {
         ...snapshot,
         queryTraces: {
           [rawTraceId]: {
-            ...snapshot.queryTraces['sar:trace:root-locus'],
+            ...traceRecord,
             stableId: rawTraceId,
           },
         },
@@ -1382,7 +1429,8 @@ describe('SAR persistence', () => {
       const snapshot = repository.getSnapshot();
       const eventWithoutContentHash: Record<string, unknown> = { ...snapshot.events['sar:event:kaq:root-locus'] };
       delete eventWithoutContentHash.contentHash;
-      const traceWithoutContentHash: Record<string, unknown> = { ...snapshot.queryTraces['sar:trace:root-locus'] };
+      const traceRecord = onlyQueryTraceRecord(snapshot);
+      const traceWithoutContentHash: Record<string, unknown> = { ...traceRecord };
       delete traceWithoutContentHash.contentHash;
       delete traceWithoutContentHash.minimized;
       const relationId = Object.keys(snapshot.relations)[0];
@@ -1404,7 +1452,7 @@ describe('SAR persistence', () => {
           },
         },
         queryTraces: {
-          'sar:trace:root-locus': traceWithoutContentHash,
+          [traceRecord.stableId]: traceWithoutContentHash,
         },
       };
 
@@ -1414,8 +1462,8 @@ describe('SAR persistence', () => {
         'events.sar:event:kaq:root-locus.contentHash',
         'entities.sar:entity:kaq:root-locus.versionRefs',
         `relations.${relationId}.updatedAt`,
-        'queryTraces.sar:trace:root-locus.contentHash',
-        'queryTraces.sar:trace:root-locus.minimized',
+        `queryTraces.${traceRecord.stableId}.contentHash`,
+        `queryTraces.${traceRecord.stableId}.minimized`,
       ]));
 
       writeFileSync(filePath, JSON.stringify(corruptedSnapshot));
@@ -1459,11 +1507,12 @@ describe('SAR persistence', () => {
       const repository = createSarPersistenceRepository({ now: () => fixedNow });
       repository.upsertQueryTrace(traceInput());
       const snapshot = repository.getSnapshot();
+      const traceRecord = onlyQueryTraceRecord(snapshot);
       writeFileSync(filePath, JSON.stringify({
         ...snapshot,
         queryTraces: {
-          'sar:trace:root-locus': {
-            ...snapshot.queryTraces['sar:trace:root-locus'],
+          [traceRecord.stableId]: {
+            ...traceRecord,
             seedEntityIds: ['raw answer body'],
             selectedRefs: ['raw answer body'],
             rejectedRefs: [{ ref: 'raw audit trace', reason: 'hidden arena evaluation internals' }],
@@ -1485,11 +1534,12 @@ describe('SAR persistence', () => {
       const repository = createSarPersistenceRepository({ now: () => fixedNow });
       repository.upsertQueryTrace(traceInput());
       const snapshot = repository.getSnapshot();
+      const traceRecord = onlyQueryTraceRecord(snapshot);
       writeFileSync(filePath, JSON.stringify({
         ...snapshot,
         queryTraces: {
-          'sar:trace:root-locus': {
-            ...snapshot.queryTraces['sar:trace:root-locus'],
+          [traceRecord.stableId]: {
+            ...traceRecord,
             queryRole: 'raw answer body',
             useCase: 'hidden arena evaluation internals',
           },
@@ -1509,6 +1559,7 @@ describe('SAR persistence', () => {
       const repository = createSarPersistenceRepository({ now: () => fixedNow });
       repository.upsertQueryTrace(traceInput());
       const snapshot = repository.getSnapshot();
+      const traceRecord = onlyQueryTraceRecord(snapshot);
       writeFileSync(filePath, JSON.stringify({
         ...snapshot,
         events: {
@@ -1521,8 +1572,8 @@ describe('SAR persistence', () => {
           },
         },
         queryTraces: {
-          'sar:trace:root-locus': {
-            ...snapshot.queryTraces['sar:trace:root-locus'],
+          [traceRecord.stableId]: {
+            ...traceRecord,
             queryHash: 'sar:query:sha256:Which root locus objective should support this learner?',
           },
         },
@@ -1541,13 +1592,14 @@ describe('SAR persistence', () => {
       const repository = createSarPersistenceRepository({ now: () => fixedNow });
       repository.upsertQueryTrace(traceInput());
       const snapshot = repository.getSnapshot();
+      const traceRecord = onlyQueryTraceRecord(snapshot);
       writeFileSync(filePath, JSON.stringify({
         ...snapshot,
         queryTraces: {
-          'sar:trace:root-locus': {
-            ...snapshot.queryTraces['sar:trace:root-locus'],
+          [traceRecord.stableId]: {
+            ...traceRecord,
             scope: {
-              ...snapshot.queryTraces['sar:trace:root-locus'].scope,
+              ...traceRecord.scope,
               rawQuery: 'raw answer body',
             },
           },
@@ -1567,13 +1619,14 @@ describe('SAR persistence', () => {
       const repository = createSarPersistenceRepository({ now: () => fixedNow });
       repository.upsertQueryTrace(traceInput());
       const snapshot = repository.getSnapshot();
+      const traceRecord = onlyQueryTraceRecord(snapshot);
       writeFileSync(filePath, JSON.stringify({
         ...snapshot,
         queryTraces: {
-          'sar:trace:root-locus': {
-            ...snapshot.queryTraces['sar:trace:root-locus'],
+          [traceRecord.stableId]: {
+            ...traceRecord,
             expansionHops: [{
-              ...snapshot.queryTraces['sar:trace:root-locus'].expansionHops[0],
+              ...traceRecord.expansionHops[0],
               relationRole: 'raw answer body',
             }],
           },
@@ -1593,11 +1646,12 @@ describe('SAR persistence', () => {
       const repository = createSarPersistenceRepository({ now: () => fixedNow });
       repository.upsertQueryTrace(traceInput());
       const snapshot = repository.getSnapshot();
+      const traceRecord = onlyQueryTraceRecord(snapshot);
       writeFileSync(filePath, JSON.stringify({
         ...snapshot,
         queryTraces: {
-          'sar:trace:root-locus': {
-            ...snapshot.queryTraces['sar:trace:root-locus'],
+          [traceRecord.stableId]: {
+            ...traceRecord,
             scope: { scope: 'public' },
           },
         },
