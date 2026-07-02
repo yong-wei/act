@@ -24,7 +24,10 @@ import {
   type EvidenceSourceCoverageReport,
 } from '@/lib/data-governance/evidence-source-catalog';
 import { getStudentEvidenceFeatureCacheAdminSummary } from '@/lib/data-governance/student-evidence-feature-cache';
-import { buildControlCorrectionSarDemoFixture } from '@/lib/data-governance/sar-diagnostics';
+import {
+  buildControlCorrectionSarDemoFixture,
+  buildSarLiveEvaluationReportFromPersistenceExport,
+} from '@/lib/data-governance/sar-diagnostics';
 import { createSarPersistenceRepository } from '@/lib/data-governance/sar-persistence';
 import {
   buildControlCorrectionSarRefreshSources,
@@ -871,7 +874,8 @@ export async function GET(request: NextRequest) {
     );
 
     const completedAt = new Date().toISOString();
-    const sarDiagnostics = buildControlCorrectionSarDemoFixture(completedAt).report;
+    const sarDemoFixture = buildControlCorrectionSarDemoFixture(completedAt);
+    let sarDiagnostics = sarDemoFixture.report;
     const sarPersistenceFilePath = process.env.SAR_PERSISTENCE_FILE_PATH?.trim() || undefined;
     const sarPersistencePathMissing = shouldRecordRefresh && !sarPersistenceFilePath;
     const sarRefreshSources = markSarRefreshPersistenceBlocked(
@@ -881,16 +885,46 @@ export async function GET(request: NextRequest) {
       }),
       sarPersistencePathMissing,
     );
+    const sarRepository = createSarPersistenceRepository({
+      filePath: sarPersistencePathMissing ? undefined : sarPersistenceFilePath,
+      now: () => completedAt,
+    });
     const sarRefresh = runSarProjectionRefresh({
-      repository: createSarPersistenceRepository({
-        filePath: sarPersistencePathMissing ? undefined : sarPersistenceFilePath,
-        now: () => completedAt,
-      }),
+      repository: sarRepository,
       sources: sarRefreshSources,
       now: completedAt,
       persist: shouldRecordRefresh && !sarPersistencePathMissing,
     });
     const sarRefreshHealth = sarRefresh.health;
+    sarDiagnostics = {
+      ...sarDiagnostics,
+      liveEvaluation: buildSarLiveEvaluationReportFromPersistenceExport({
+        generatedAt: completedAt,
+        persistenceExport: sarRepository.exportSafeSnapshot(completedAt),
+        diagnostics: sarDiagnostics,
+        arenaAuthority: sarArenaAuthority,
+        evaluationRecords: [
+          {
+            id: 'teacher-sar-live-eval-control-correction',
+            kind: 'target-user-feedback',
+            actorRole: 'teacher',
+            task: '复核控制校正目标的资源缺口与 Arena 验证链路',
+            expectedEvidence: '报告区分普通 Source Pack 基线、SAR 候选和已核验引用',
+            observedResult: 'SAR 候选补充了控制校正仿真到 Arena 官方验证的链路',
+            limitation: '当前代表查询集中在控制校正目标，仍需扩大真实课堂样本',
+          },
+          {
+            id: 'admin-sar-live-export-privacy',
+            kind: 'structured-test',
+            actorRole: 'admin',
+            task: '导出 SAR live evaluation 治理报告',
+            expectedEvidence: '导出不包含受限原文或内部 Arena 载荷',
+            observedResult: '报告仅包含安全摘要、计数、来源标签和结构化限制项',
+            limitation: '反馈记录来自结构化验收与目标用户复核，后续应补充更多生产周期记录',
+          },
+        ],
+      }),
+    };
     const sarRefreshFailed = sarRefreshHealth.status === 'failed'
       || sarRefreshHealth.totals.failureCount > 0;
     const sarRefreshOperationOutcome = sarPersistencePathMissing

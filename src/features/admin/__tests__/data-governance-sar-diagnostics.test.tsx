@@ -171,10 +171,133 @@ describe('SAR diagnostics admin panel', () => {
     'private Konling memory',
   ])('redacts forbidden visible demo fixture text: %s', (query) => {
     const report = reportWithPrivateTrace();
-    report.demoFixtureStatus = { ...report.demoFixtureStatus, query };
+    report.demoFixtureStatus = {
+      id: report.demoFixtureStatus?.id ?? 'control-correction-demo',
+      deterministic: report.demoFixtureStatus?.deterministic ?? true,
+      sourcePackHandoff: report.demoFixtureStatus?.sourcePackHandoff ?? true,
+      verifiedCitationOutcome: report.demoFixtureStatus?.verifiedCitationOutcome ?? 'available',
+      query,
+    };
     const html = renderToStaticMarkup(createElement(SarDiagnosticsPanel, { report }));
 
     expect(html).toContain('[redacted]');
     expect(html).not.toContain(query);
+  });
+
+  it('renders SAR live evaluation report metrics without restricted record content', () => {
+    const report = reportWithPrivateTrace();
+    report.liveEvaluation = {
+      generatedAt: '2026-07-02T09:00:00.000Z',
+      querySet: [{
+        id: 'trace-safe',
+        query: 'control-correction diagnosis',
+        ordinaryRetrievalBaselineRefCount: 1,
+        ordinaryRetrievalBaselineRefs: ['chunk:source-pack:frequency-margin'],
+        sarCandidateRefCount: 2,
+        sarCandidateRefs: ['chunk:source-pack:frequency-margin', 'planning-unit:persisted-sar-candidate'],
+        sarOnlyCandidateRefCount: 1,
+        sarOnlyCandidateRefs: ['planning-unit:persisted-sar-candidate'],
+        citationTargetRefCount: 2,
+        citationTargetRefs: ['citation-target:persisted-direct-candidate', 'citation:persisted-arena-official'],
+        verifiedCitationRefCount: 1,
+        verifiedCitationRefs: ['citation:persisted-arena-official'],
+        verifiedCitationRate: 0.5,
+        verifiedCitationEvidenceStatus: 'available',
+        sourcePackHandoffRefCount: 2,
+        sourcePackHandoffRefs: ['chunk:source-pack:frequency-margin', 'planning-unit:persisted-sar-candidate'],
+        adoptedCandidateRefs: ['planning-unit:persisted-sar-candidate'],
+        rejectedCandidateRefs: [{ ref: '[redacted]', reason: '[redacted]' }],
+        multiHopHit: true,
+        privacyRejectionCount: 1,
+        limitationCount: 1,
+      }],
+      metrics: {
+        queryCount: 1,
+        ordinaryRetrievalBaselineRefCount: 1,
+        sarCandidateRefCount: 2,
+        sarOnlyCandidateRefCount: 1,
+        citationTargetRefCount: 2,
+        verifiedCitationRefCount: 1,
+        verifiedCitationRate: 0.5,
+        verifiedCitationEvidenceStatus: 'available',
+        sourcePackHandoffRefCount: 2,
+        privacyRejectionCount: 1,
+        limitationCount: 2,
+        feedbackRecordCount: 2,
+        multiHopHitRate: 1,
+      },
+      baselineComparison: {
+        ordinaryRetrievalBaselineRefCount: 1,
+        sarCandidateRefCount: 2,
+        sarOnlyCandidateRefCount: 1,
+        citationTargetRefCount: 2,
+        verifiedCitationRefCount: 1,
+        verifiedCitationRate: 0.5,
+        verifiedCitationEvidenceStatus: 'available',
+      },
+      evaluationRecords: [
+        {
+          id: 'safe-record',
+          kind: 'structured-test',
+          actorRole: 'admin',
+          task: '检查治理报告导出',
+          expectedEvidence: '只展示安全摘要',
+          observedResult: '候选和正式引用被分开计数',
+          limitation: '样本有限',
+        },
+        {
+          id: '[redacted]',
+          kind: 'target-user-feedback',
+          actorRole: 'teacher',
+          task: '[redacted]',
+          expectedEvidence: '[redacted]',
+          observedResult: '[redacted]',
+          limitation: '[redacted]',
+        },
+      ],
+      limitations: ['arena-auxiliary-evidence-context-only', '[redacted]'],
+      privacyBoundary: {
+        restrictedRawContentExcluded: true,
+        candidateRefsAreVerifiedCitations: false,
+        exportedFields: ['querySet', 'metrics'],
+      },
+      arenaOfficialAuthority: {
+        status: 'available',
+        officialMetricSources: {
+          score: 'ArenaSubmission',
+          validity: 'ArenaSubmission',
+          ranking: 'ArenaSubmission',
+          attemptPolicy: 'ArenaSubmission',
+          evaluationMetrics: 'ArenaEvaluationRun',
+        },
+        officialSources: ['ArenaEvaluationRun', 'ArenaSubmission'],
+        auxiliarySources: ['KAQWriteback', 'LearningFact', 'SARTrace'],
+        officialRecordSummary: {
+          submissionCount: 1,
+          evaluationRunCount: 1,
+          latestSubmissionAt: '2026-07-02T08:55:00.000Z',
+          latestEvaluationCompletedAt: '2026-07-02T08:58:00.000Z',
+        },
+        limitations: ['arena-auxiliary-evidence-context-only'],
+      },
+    };
+    const html = renderToStaticMarkup(createElement(SarDiagnosticsPanel, { report }));
+
+    expect(html).toContain('SAR live evaluation');
+    expect(html).toContain('Baseline refs');
+    expect(html).toContain('SAR candidates');
+    expect(html).toContain('Verified citation rate');
+    expect(html).toContain('50.0%');
+    expect(html).toContain('100.0%');
+    expect(html).toContain('ArenaSubmission');
+    expect(html).toContain('ArenaEvaluationRun');
+    expect(html).toContain('检查治理报告导出');
+    expect(html).not.toContain('private raw answer');
+    expect(html).not.toContain('hiddenArenaEvaluationInternalsPayload');
+    expect(html).not.toContain('private Konling memory');
+
+    report.liveEvaluation.metrics.verifiedCitationEvidenceStatus = 'unavailable';
+    const unavailableHtml = renderToStaticMarkup(createElement(SarDiagnosticsPanel, { report }));
+    expect(unavailableHtml).toContain('Unavailable');
   });
 });

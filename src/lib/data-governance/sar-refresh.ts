@@ -296,8 +296,8 @@ export function buildControlCorrectionSarRefreshSources(
     {
       ...source('arena-official', generatedAt, arenaCoverage),
       arenaAuthority: input.arenaAuthority ?? {
-        scoreSource: 'ArenaEvaluationRun',
-        validitySource: 'ArenaEvaluationRun',
+        scoreSource: 'ArenaSubmission',
+        validitySource: 'ArenaSubmission',
         rankingSource: 'ArenaSubmission',
         attemptPolicySource: 'ArenaSubmission',
         evaluationMetricsSource: 'ArenaEvaluationRun',
@@ -569,18 +569,22 @@ function evaluateArenaAuthority(input?: SarArenaAuthorityInput | null): {
     };
   }
   const officialCandidates = [
-    input.scoreSource,
-    input.validitySource,
-    input.rankingSource,
-    input.attemptPolicySource,
-    input.evaluationMetricsSource,
-  ];
-  const invalidOfficialSources = officialCandidates.filter((candidate) => (
+    ['score', input.scoreSource],
+    ['validity', input.validitySource],
+    ['ranking', input.rankingSource],
+    ['attemptPolicy', input.attemptPolicySource],
+    ['evaluationMetrics', input.evaluationMetricsSource],
+  ] as const;
+  const invalidOfficialSources = officialCandidates
+    .filter(([field, candidate]) => !isAcceptedOfficialArenaFieldSource(field, candidate))
+    .map(([, candidate]) => candidate);
+  const invalidAuxiliarySources = invalidOfficialSources.filter((candidate): candidate is SarArenaAuxiliarySource => (
     !OFFICIAL_ARENA_SOURCES.has(candidate as SarArenaOfficialSource)
   ));
-  const officialSources = officialCandidates.filter((candidate): candidate is SarArenaOfficialSource => (
-    OFFICIAL_ARENA_SOURCES.has(candidate as SarArenaOfficialSource)
-  ));
+  const officialSources = officialCandidates
+    .filter(([, candidate]) => OFFICIAL_ARENA_SOURCES.has(candidate as SarArenaOfficialSource))
+    .filter(([field, candidate]) => isAcceptedOfficialArenaFieldSource(field, candidate))
+    .map(([, candidate]) => candidate);
   const records = input.officialRecords;
   const missingOfficialRecords = !records
     || records.submissionCount === 0
@@ -592,7 +596,7 @@ function evaluateArenaAuthority(input?: SarArenaAuthorityInput | null): {
     || records.evaluationMetricRefs.length === 0;
   const auxiliarySources = uniqueSorted([
     ...(input.auxiliarySources ?? []),
-    ...(invalidOfficialSources as SarArenaAuxiliarySource[]),
+    ...invalidAuxiliarySources,
   ]) as SarArenaAuxiliarySource[];
   return {
     valid: invalidOfficialSources.length === 0 && !missingOfficialRecords,
@@ -623,6 +627,14 @@ function sourceStatus(input: {
   if (input.staleCount > 0) return 'stale';
   if (input.limitations.length > 0) return 'degraded';
   return 'fresh';
+}
+
+function isAcceptedOfficialArenaFieldSource(
+  field: 'score' | 'validity' | 'ranking' | 'attemptPolicy' | 'evaluationMetrics',
+  source: SarArenaOfficialSource | SarArenaAuxiliarySource,
+): source is SarArenaOfficialSource {
+  if (field === 'evaluationMetrics') return source === 'ArenaEvaluationRun';
+  return source === 'ArenaSubmission';
 }
 
 function aggregateStatus(records: readonly SarRefreshSourceHealthRecord[]): SarRefreshHealthStatus {
