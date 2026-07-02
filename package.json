@@ -70,6 +70,7 @@
     "db:backfill-unit-4-1-growth": "npx tsx ./scripts/db/backfill-unit-4-1-growth-governance.ts",
     "db:backfill-class-attribution": "tsx ./scripts/db/backfill-class-session-attribution.ts",
     "db:evidence-source-coverage": "tsx ./scripts/db/report-evidence-source-coverage.ts",
+    "db:data-completeness-audit": "tsx ./scripts/db/report-data-completeness-audit.ts",
     "db:kaq-quiz-foundation": "tsx ./scripts/db/generate-kaq-quiz-foundation.ts",
     "db:resource-field-completion-audit": "tsx ./scripts/db/generate-resource-field-completion-audit.ts",
     "db:export-textbook-resources": "python3 course-content/scripts/export_textbook_resources.py --book hu-shousong-exercise-analysis-3rd",
