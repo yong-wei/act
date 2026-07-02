@@ -150,7 +150,7 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
     expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
   });
 
-  it('allows non-accept reviews for authorized non-ResourceNode candidates without a ResourceNode audit target', async () => {
+  it('persists authorized non-ResourceNode reviews on an owned source resource audit target', async () => {
     const response = await POST(reviewRequest({
       decision: 'reject',
       candidateId: 'sar-gap:chunk-bode-gap',
@@ -164,7 +164,8 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
     expect(response.status).toBe(200);
     expect(payload).toMatchObject({
       ok: true,
-      persisted: false,
+      persisted: true,
+      persistedResourceId: 'owned-quiz',
       state: 'rejected',
       auditRecord: {
         candidateId: 'sar-gap:chunk-bode-gap',
@@ -172,10 +173,25 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
         decision: 'reject',
       },
     });
-    expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'owned-quiz' },
+      data: expect.objectContaining({
+        config: expect.objectContaining({
+          resourceNodePlanning: expect.objectContaining({
+            sarSuggestedBindingReviews: [
+              expect.objectContaining({
+                candidateId: 'sar-gap:chunk-bode-gap',
+                candidateRefType: 'retrieval-chunk',
+                decision: 'reject',
+              }),
+            ],
+          }),
+        }),
+      }),
+    }));
   });
 
-  it('authorizes textbook section SAR reviews with prefixed section source refs', async () => {
+  it('rejects textbook SAR reviews when no persistent audit target is available', async () => {
     const response = await POST(reviewRequest({
       decision: 'defer',
       candidateId: 'sar-gap:textbook-section',
@@ -186,16 +202,31 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
     }));
     const payload = await response.json();
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(400);
     expect(payload).toMatchObject({
-      ok: true,
-      persisted: false,
-      state: 'deferred',
-      auditRecord: {
-        candidateId: 'sar-gap:textbook-section',
-        decision: 'defer',
-      },
+      ok: false,
+      code: 'SAR_REVIEW_REQUIRES_PERSISTENT_AUDIT_TARGET',
     });
+    expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
+  });
+
+  it('does not infer non-resource SAR audit targets from candidate refs', async () => {
+    const response = await POST(reviewRequest({
+      decision: 'reject',
+      candidateId: 'sar-gap:textbook-spoof',
+      candidateRef: 'owned-quiz',
+      refType: 'citation-target',
+      resourceNodeId: null,
+      sourceRefs: ['textbook-section:dorf-modern-control-systems:ch10-sec01'],
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload).toMatchObject({
+      ok: false,
+      code: 'SAR_REVIEW_REQUIRES_PERSISTENT_AUDIT_TARGET',
+    });
+    expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
   });
 });
 

@@ -100,6 +100,7 @@ export async function POST(request: Request) {
       result,
       resourceNode,
       resources,
+      candidateSourceRefs: candidate.candidate.sourceRefs ?? [],
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
@@ -112,16 +113,26 @@ async function persistSarSuggestedBindingReview(input: {
   result: SarSuggestedBindingReviewResult;
   resourceNode?: { id: string; sourceKind: string; sourceRef: string };
   resources: ReadonlyArray<{ id: string; config: unknown }>;
+  candidateSourceRefs: readonly string[];
 }) {
   if (!input.result.ok) {
     return NextResponse.json(input.result, { status: input.result.status });
   }
   if (!input.resourceNode || input.resourceNode.sourceKind !== 'teaching_resource') {
     if (input.result.state !== 'accepted') {
-      return NextResponse.json({
-        ...input.result,
-        persisted: false,
-      }, { status: input.result.status });
+      const auditResource = findSarReviewAuditResource(input.candidateSourceRefs, input.resources);
+      if (!auditResource) {
+        return NextResponse.json({
+          ok: false,
+          status: 400,
+          code: 'SAR_REVIEW_REQUIRES_PERSISTENT_AUDIT_TARGET',
+          error: 'SAR 建议审查需要可持久化的审计目标。',
+        }, { status: 400 });
+      }
+      return persistSarReviewOnResource({
+        result: input.result,
+        resource: auditResource,
+      });
     }
     return NextResponse.json({
       ok: false,
@@ -139,8 +150,17 @@ async function persistSarSuggestedBindingReview(input: {
       error: 'ResourceNode 审计目标不存在或无权管理。',
     }, { status: 403 });
   }
+  return persistSarReviewOnResource({
+    result: input.result,
+    resource,
+  });
+}
 
-  const currentConfig = asRecord(resource.config);
+async function persistSarReviewOnResource(input: {
+  result: Extract<SarSuggestedBindingReviewResult, { ok: true }>;
+  resource: { id: string; config: unknown };
+}) {
+  const currentConfig = asRecord(input.resource.config);
   const currentPlanning = asRecord(currentConfig.resourceNodePlanning);
   const existingReviews = Array.isArray(currentPlanning.sarSuggestedBindingReviews)
     ? currentPlanning.sarSuggestedBindingReviews.filter((item) => readObject(item))
@@ -159,7 +179,7 @@ async function persistSarSuggestedBindingReview(input: {
   };
 
   await prisma.teachingResource.update({
-    where: { id: resource.id },
+    where: { id: input.resource.id },
     data: {
       ...(input.result.persistablePatch?.displayName !== undefined
         ? { displayName: input.result.persistablePatch.displayName }
@@ -174,8 +194,16 @@ async function persistSarSuggestedBindingReview(input: {
   return NextResponse.json({
     ...input.result,
     persisted: true,
-    persistedResourceId: resource.id,
+    persistedResourceId: input.resource.id,
   }, { status: input.result.status });
+}
+
+function findSarReviewAuditResource(
+  candidateSourceRefs: readonly string[],
+  resources: ReadonlyArray<{ id: string; config: unknown }>,
+) {
+  const sourceRefs = new Set(candidateSourceRefs);
+  return resources.find((resource) => sourceRefs.has(resource.id));
 }
 
 function createScope(
