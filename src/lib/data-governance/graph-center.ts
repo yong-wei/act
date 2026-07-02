@@ -1003,7 +1003,6 @@ function buildSarReviewAuditSourceRefs(input: {
   refType: GraphCenterSarResourceGapSuggestion['refType'];
   targetNodeId: string;
 }): string[] {
-  if (input.refType === 'resource-node') return [];
   return uniqueSorted([input.targetNodeId]);
 }
 

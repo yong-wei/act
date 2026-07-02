@@ -595,7 +595,14 @@ describe('teacher ResourceNode management contracts', () => {
   it('accepts SAR suggested bindings only through existing ResourceNode governance validation', () => {
     const resourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
     const result = reviewSarSuggestedBinding({
-      candidate: sarSuggestedBindingCandidate(),
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'teaching-resource:owned-quiz',
+          refType: 'resource-node',
+          resourceNodeId: 'teaching-resource:owned-quiz',
+          sourceRefs: ['kn-bode'],
+        },
+      }),
       scope: teacherScopeWithRegistryRefs,
       decision: 'accept',
       rationale: '确认该资源可补齐路径资源覆盖。',
@@ -923,6 +930,36 @@ describe('teacher ResourceNode management contracts', () => {
       decision: 'accept',
       state: 'suggested',
       governanceEffect: null,
+    });
+  });
+
+  it('does not accept non-ResourceNode SAR candidates by matching readable sourceRefs', () => {
+    const resourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'retrieval-chunk:owned-quiz',
+          refType: 'retrieval-chunk',
+          sourceRefs: ['owned-quiz'],
+        },
+      }),
+      scope: teacherScopeWithRegistryRefs,
+      decision: 'accept',
+      rationale: '尝试把 chunk 候选当作 ResourceNode 接受。',
+      reviewedAt: '2026-07-02T10:16:00.000Z',
+      resourceNode,
+      patch: {
+        planningMetadata: {
+          knowledgeCoverage: ['kn-bode'],
+        },
+      },
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      status: 403,
+      code: 'SAR_SUGGESTED_BINDING_FORBIDDEN',
+      error: '建议绑定不存在或无权审查。',
     });
   });
 

@@ -656,15 +656,10 @@ function sarCandidateMatchesResourceNode(
   resourceNode: ResourceNode,
 ): boolean {
   const candidateResourceNodeId = candidate.candidate.resourceNodeId?.trim();
-  const candidateSourceRefs = candidate.candidate.sourceRefs ?? [];
-  const resourceSourceRefs = new Set([resourceNode.sourceRef, ...resourceNode.sourceRefs.map((source) => source.ref)]);
   const referencesResourceNode = candidateResourceNodeId
     ? candidateResourceNodeId === resourceNode.id
     : candidate.candidate.refType === 'resource-node' && candidate.candidate.ref === resourceNode.id;
-  const referencesSourceRef = candidateSourceRefs.length === 0
-    ? false
-    : candidateSourceRefs.every((ref) => resourceSourceRefs.has(ref));
-  return referencesResourceNode && (candidateSourceRefs.length === 0 || referencesSourceRef);
+  return referencesResourceNode;
 }
 
 function buildSarSuggestedBindingAuditRecord(input: {

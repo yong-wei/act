@@ -429,6 +429,12 @@ describe('graph center payload service', () => {
     const retrievalChunkSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
       suggestion.ref === 'chunk-sar-simulation-gap'
     );
+    const resourceNodeSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
+      suggestion.refType === 'resource-node'
+    );
+    expect(resourceNodeSuggestion?.review?.auditPayload.sourceRefs).toEqual([
+      'kn:autocontrol:simulation-validation',
+    ]);
     const reviewPayload = retrievalChunkSuggestion?.review?.auditPayload;
     expect(reviewPayload?.sourceRefs.some((ref) => ref.startsWith('sar:event:'))).toBe(false);
     expect(reviewPayload?.sourceRefs).not.toContain('chunk-sar-simulation-gap');
@@ -472,6 +478,45 @@ describe('graph center payload service', () => {
       reviewedAt: '2026-07-02T12:00:00.000Z',
     });
     expect(reviewResult).toMatchObject({ ok: true, status: 200, state: 'rejected' });
+    const resourceNodeReviewPayload = resourceNodeSuggestion?.review?.auditPayload;
+    const resourceNodeRejectResult = reviewSarSuggestedBinding({
+      candidate: {
+        id: resourceNodeReviewPayload?.candidateId ?? 'missing',
+        target: {
+          graphNodeId: 'kn:autocontrol:simulation-validation',
+          objectiveId: null,
+        },
+        candidate: {
+          ref: resourceNodeReviewPayload?.candidateRef ?? 'missing',
+          refType: resourceNodeReviewPayload?.candidateRefType ?? 'resource-node',
+          sourceRefs: resourceNodeReviewPayload?.sourceRefs ?? [],
+        },
+        missingCoverageTypes: resourceNodeReviewPayload?.missingCoverageTypes ?? [],
+        provenance: {
+          source: resourceNodeReviewPayload?.provenance.source ?? 'graph-center-sar',
+          basisEventIds: resourceNodeReviewPayload?.provenance.basisEventIds ?? [],
+          traceId: null,
+        },
+        traceSummary: {
+          seedEntityIds: associated?.traceSummary.seedEntityIds ?? [],
+          expansionHopCount: resourceNodeReviewPayload?.traceSummary.traceHopCount ?? 0,
+          selectedRefCount: associated?.traceSummary.selectedRefCount ?? 0,
+          rejectedRefCount: associated?.traceSummary.rejectedRefCount ?? 0,
+          limitations: resourceNodeReviewPayload?.traceSummary.limitations ?? [],
+        },
+        limitations: resourceNodeReviewPayload?.traceSummary.limitations ?? [],
+      },
+      scope: {
+        role: 'TEACHER',
+        teacherId: 'teacher-1',
+        editableSourceRefs: new Set(),
+        readableSourceRefs: new Set(resourceNodeReviewPayload?.sourceRefs ?? []),
+      },
+      decision: 'reject',
+      rationale: '教师拒绝该 ResourceNode 候选。',
+      reviewedAt: '2026-07-02T12:05:00.000Z',
+    });
+    expect(resourceNodeRejectResult).toMatchObject({ ok: true, status: 200, state: 'rejected' });
     expect(associated?.resourceGapSuggestions[0]?.rationale.reason).toContain('ResourceNode governance review');
   });
 
