@@ -205,6 +205,25 @@ export interface GraphCenterSarResourceGapSuggestion {
   refType: 'resource-node' | 'retrieval-chunk' | 'citation-target' | 'planning-unit';
   status: 'suggested';
   draft: true;
+  review: {
+    state: 'suggested';
+    authoritative: false;
+    availableActions: ['accept', 'reject', 'defer', 'invalidate'];
+    auditPayload: {
+      candidateId: string;
+      candidateRef: string;
+      candidateRefType: GraphCenterSarResourceGapSuggestion['refType'];
+      missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
+      provenance: {
+        source: 'graph-center-sar';
+        basisEventIds: string[];
+      };
+      traceSummary: {
+        traceHopCount: number;
+        limitations: string[];
+      };
+    };
+  };
   suggestedForMissingCoverageTypes: GraphCenterResourceCoverageMissingType[];
   rationale: {
     basisEventIds: string[];
@@ -937,6 +956,25 @@ function buildSarResourceGapSuggestions(input: {
     refType,
     status: 'suggested',
     draft: true,
+    review: {
+      state: 'suggested',
+      authoritative: false,
+      availableActions: ['accept', 'reject', 'defer', 'invalidate'],
+      auditPayload: {
+        candidateId: `sar-gap:${index + 1}`,
+        candidateRef: ref,
+        candidateRefType: refType,
+        missingCoverageTypes: input.missingCoverageTypes,
+        provenance: {
+          source: 'graph-center-sar',
+          basisEventIds: visibleExpansion.candidateRefs.eventIds,
+        },
+        traceSummary: {
+          traceHopCount: visibleExpansion.trace.expansionHops.length,
+          limitations: visibleExpansion.limitations,
+        },
+      },
+    },
     suggestedForMissingCoverageTypes: input.missingCoverageTypes,
     rationale: {
       basisEventIds: visibleExpansion.candidateRefs.eventIds,

@@ -394,6 +394,25 @@ describe('graph center payload service', () => {
         refType: 'retrieval-chunk',
         status: 'suggested',
         draft: true,
+        review: expect.objectContaining({
+          state: 'suggested',
+          authoritative: false,
+          availableActions: ['accept', 'reject', 'defer', 'invalidate'],
+          auditPayload: expect.objectContaining({
+            candidateRef: 'chunk-sar-simulation-gap',
+            candidateRefType: 'retrieval-chunk',
+            missingCoverageTypes: expect.arrayContaining([
+              'linked-resource',
+              'path-eligible-resource',
+            ]),
+            provenance: expect.objectContaining({
+              source: 'graph-center-sar',
+            }),
+            traceSummary: expect.objectContaining({
+              traceHopCount: expect.any(Number),
+            }),
+          }),
+        }),
         suggestedForMissingCoverageTypes: expect.arrayContaining([
           'linked-resource',
           'path-eligible-resource',
