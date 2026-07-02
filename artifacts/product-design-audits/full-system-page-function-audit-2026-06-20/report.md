@@ -1035,6 +1035,7 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 371. P2：作者态 API 有数据但 UI 缺任务化消费
    `/api/lesson-plans`、`/api/resources`、`/api/teacher/resource-nodes`、`/api/knowledge/nodes` 均返回数据，但 UI 主要表现为长列表或静态清单，没有把 API 数据组织成可完成的编辑、治理、引用、保存或回滚任务。
+   2026-07-02 / #754：教案、资源、ResourceNode 和知识节点作者态表面新增 `data-authoring-api-task-*` 任务消费合同，将 API 记录映射为编辑、校验、预览、加入教案、映射审查、阻断处理、引用、保存和不可回滚说明；状态覆盖 available、disabled、pending、saved、failed、rolled-back、not-reversible，并在缺字段、无效引用、blocked ResourceNode、权限和不支持回滚时给出恢复动作。证据见 `remediation/audit-remediation-authoring-api-task-consumption-closure/evidence.md`；本条只关闭 API-consumption finding 371，不重复关闭课程流保存/播放、图谱筛选、移动构建器或按钮命名范围。
 
 372. P2：第 52 批 31 个状态仍全部缺少 alert/live
    31 个 DOM/a11y JSON 均没有捕获到 `alert`。预置教案使用、教案搜索、新建教案、资源搜索、ResourceNode 筛选、治理加载、课程目录 query 和课程流创建都缺少状态播报。

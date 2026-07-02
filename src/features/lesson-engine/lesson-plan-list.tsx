@@ -13,6 +13,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { requestClassroomConflictChoice } from '@/features/classroom/classroom-lifecycle-dialog';
+import { AuthoringApiTaskStrip } from '@/features/teacher/resources/authoring-api-task-strip';
+import { buildLessonPlanAuthoringTasks } from '@/lib/authoring-api-task-consumption';
 import { EMPTY_LESSON_PLAN_MESSAGE } from '@/lib/lesson-plan-readiness';
 
 interface LessonPlanListProps {
@@ -176,6 +178,12 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
         const editHref = `${basePath}/${plan.id}/edit${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`;
         const itemCount = Number(plan._count?.items ?? 0);
         const canStart = itemCount > 0;
+        const authoringTasks = buildLessonPlanAuthoringTasks({
+          id: plan.id,
+          itemCount,
+          canEdit,
+          editHref,
+        });
         return (
         <div
           key={plan.id}
@@ -220,6 +228,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
               预置公开教案
             </span>
           )}
+          <AuthoringApiTaskStrip surface="lesson-plan" tasks={authoringTasks} />
 
           <div className="flex items-center gap-4 text-xs text-slate-500 mb-6">
             <span className="flex items-center gap-1">

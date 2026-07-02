@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { ResourceEditDialog } from './resource-edit-dialog';
 import { useRouter } from 'next/navigation';
+import { buildTeachingResourceAuthoringTasks } from '@/lib/authoring-api-task-consumption';
+import { AuthoringApiTaskStrip } from './authoring-api-task-strip';
 
 interface Resource {
   id: string;
@@ -41,6 +43,7 @@ export function InteractiveResourceList({
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [resourceSaveState, setResourceSaveState] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({});
 
   // 过滤资源
   const filteredResources = resources.filter((r) => {
@@ -66,15 +69,23 @@ export function InteractiveResourceList({
   const categoryOrder = Object.keys(CATEGORY_CONFIG);
 
   const handleSaveResource = async (id: string, data: { displayName: string; description: string }) => {
-    const res = await fetch(`/api/resources/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      throw new Error('Failed to update resource');
+    setResourceSaveState((current) => ({ ...current, [id]: 'saving' }));
+    try {
+      const res = await fetch(`/api/resources/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        setResourceSaveState((current) => ({ ...current, [id]: 'error' }));
+        throw new Error('Failed to update resource');
+      }
+      setResourceSaveState((current) => ({ ...current, [id]: 'saved' }));
+      router.refresh();
+    } catch (error) {
+      setResourceSaveState((current) => ({ ...current, [id]: 'error' }));
+      throw error;
     }
-    router.refresh();
   };
 
   return (
@@ -128,7 +139,22 @@ export function InteractiveResourceList({
               <span className="text-slate-500 font-normal">({items.length})</span>
             </h3>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {items.map((resource) => (
+              {items.map((resource) => {
+                const authoringTasks = buildTeachingResourceAuthoringTasks({
+                  id: resource.id,
+                  title: resource.title,
+                  type: resource.type,
+                  registryId: resource.registryId,
+                  description: resource.description,
+                  canPreview: Boolean(resource.registryId),
+                  canEdit: true,
+                  canAttach: false,
+                  previewHref: resource.registryId
+                    ? `/interactive-learning/resources/${encodeURIComponent(resource.id)}`
+                    : undefined,
+                  editState: resourceSaveState[resource.id] ?? 'idle',
+                });
+                return (
                 <div
                   key={resource.id}
                   className={`rounded-lg border border-slate-700 p-4 transition-colors hover:border-slate-600 ${config?.bgColor || 'bg-slate-800/50'}`}
@@ -155,6 +181,7 @@ export function InteractiveResourceList({
                           </span>
                         )}
                       </div>
+                      <AuthoringApiTaskStrip surface="resource" tasks={authoringTasks} />
                     </div>
                     <button type="button"
                       onClick={() => setEditingResource(resource)}
@@ -165,7 +192,7 @@ export function InteractiveResourceList({
                     </button>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         );
