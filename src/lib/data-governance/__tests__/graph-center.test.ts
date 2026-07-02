@@ -370,6 +370,11 @@ describe('graph center payload service', () => {
           resourceId: 'external:sar-simulation-gap',
         }),
         ragChunk({
+          id: 'chunk-sar-semantic-resource-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'resource:semantic-simulation-gap',
+        }),
+        ragChunk({
           id: 'chunk-sar-unrelated-gap',
           knowledgeNodeRefs: ['unrelated-knowledge-node'],
           resourceId: 'external:sar-unrelated-gap',
@@ -387,7 +392,7 @@ describe('graph center payload service', () => {
     expect(coverage?.pathEligibleResourceCount).toBe(0);
     expect(coverage?.citationReadyCount).toBe(0);
     expect(coverage?.verifiedCitationCount).toBe(0);
-    expect(coverage?.ragIndexedCount).toBe(1);
+    expect(coverage?.ragIndexedCount).toBe(2);
     expect(associated?.status).toBe('available');
     expect(associated?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-simulation-gap');
     expect(JSON.stringify(associated)).not.toContain('chunk-sar-unrelated-gap');
@@ -430,11 +435,22 @@ describe('graph center payload service', () => {
       suggestion.ref === 'chunk-sar-simulation-gap'
     );
     const resourceNodeSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
-      suggestion.refType === 'resource-node'
+      suggestion.ref === 'external:sar-simulation-gap' && suggestion.refType === 'resource-node'
+    );
+    const semanticResourceNodeSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
+      suggestion.ref === 'semantic-simulation-gap' && suggestion.refType === 'resource-node'
     );
     expect(resourceNodeSuggestion?.review?.auditPayload.sourceRefs).toEqual([
       'external:sar-simulation-gap',
     ]);
+    expect(semanticResourceNodeSuggestion?.review).toMatchObject({
+      availableActions: ['accept', 'reject', 'defer', 'invalidate'],
+      auditPayload: expect.objectContaining({
+        candidateRef: 'semantic-simulation-gap',
+        candidateRefType: 'resource-node',
+        sourceRefs: ['resource:semantic-simulation-gap'],
+      }),
+    });
     const reviewPayload = retrievalChunkSuggestion?.review?.auditPayload;
     expect(reviewPayload?.sourceRefs.some((ref) => ref.startsWith('sar:event:'))).toBe(false);
     expect(reviewPayload?.sourceRefs).not.toContain('chunk-sar-simulation-gap');

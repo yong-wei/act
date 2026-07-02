@@ -1019,13 +1019,26 @@ function sarReviewEventSupportsCandidate(
     return event.sourceRef.id === ref || event.metadata?.chunkId === ref;
   }
   if (refType === 'resource-node') {
-    return event.sourceRef.id === ref || event.metadata?.resourceId === ref || event.metadata?.resourceNodeId === ref;
+    return sarReviewResourceRefMatches(event.sourceRef.id, ref)
+      || sarReviewResourceRefMatches(event.metadata?.resourceId, ref)
+      || sarReviewResourceRefMatches(event.metadata?.resourceNodeId, ref);
   }
   if (refType === 'citation-target') {
     return event.metadata?.citationTargetId === ref
       || (Array.isArray(event.metadata?.citationTargetIds) && event.metadata.citationTargetIds.includes(ref));
   }
   return event.metadata?.planningUnitId === ref;
+}
+
+function sarReviewResourceRefMatches(value: unknown, ref: string): boolean {
+  if (typeof value !== 'string') return false;
+  return value === ref || canonicalSarResourceNodeRef(value) === canonicalSarResourceNodeRef(ref);
+}
+
+function canonicalSarResourceNodeRef(resourceRef: string): string {
+  const semanticPrefix = 'resource:';
+  if (!resourceRef.startsWith(semanticPrefix)) return resourceRef;
+  return resourceRef.slice(semanticPrefix.length) || resourceRef;
 }
 
 function sarReviewEventAuthorizationRefs(
