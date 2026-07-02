@@ -138,6 +138,7 @@ function seedSarPersistenceQueryTrace(filePath: string) {
         'chunk:source-pack:persisted-baseline',
         'sar:event:persisted-citation',
         'citation:persisted-arena-official',
+        'sar:event:persisted-sar-candidate',
       ],
       rejectedRefs: [{ ref: 'sar:event:persisted-rejected', reason: 'privacy scope unavailable' }],
       limitations: ['persisted-trace-limited-sample'],
@@ -153,6 +154,19 @@ function seedSarPersistenceQueryTrace(filePath: string) {
         id: 'chunk:source-pack:persisted-baseline',
         owner: 'ResourceNode',
         authorityLevel: 'teacher-approved' as const,
+        freshness: now,
+      },
+      metadata: {},
+    }, {
+      id: 'sar:event:persisted-sar-candidate',
+      eventType: 'corpus-chunk-summary' as const,
+      title: 'Persisted SAR candidate',
+      safeSummary: 'Persisted SAR trace selected a candidate chunk.',
+      privacyScope: 'teacher-scoped' as const,
+      sourceRef: {
+        id: 'chunk:persisted-sar-candidate',
+        owner: 'LearningEvidenceCorpus',
+        authorityLevel: 'metadata-projected' as const,
         freshness: now,
       },
       metadata: {},
@@ -690,14 +704,14 @@ describe('GET /api/admin/data-governance/status', () => {
           queryCount: 1,
           feedbackRecordCount: 2,
           ordinaryRetrievalBaselineRefCount: 1,
-          sarCandidateRefCount: expect.any(Number),
+          sarCandidateRefCount: 1,
+          sarOnlyCandidateRefCount: 1,
           verifiedCitationRefCount: 1,
         },
         arenaOfficialAuthority: {
           status: 'available',
         },
       });
-      expect(payload.sarDiagnostics.liveEvaluation.metrics.sarCandidateRefCount).toBeGreaterThanOrEqual(2);
       expect(payload.sarDiagnostics.liveEvaluation.querySet[0].query).toContain('teacher-diagnostics · sar-live-evaluation');
       expect(payload.sarDiagnostics.liveEvaluation.querySet[0].query).toContain('sha256:');
       expect(JSON.stringify(payload.sarDiagnostics.liveEvaluation)).not.toContain('Which persisted SAR trace supports control correction?');

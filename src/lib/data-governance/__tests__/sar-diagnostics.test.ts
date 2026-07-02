@@ -1102,6 +1102,7 @@ describe('SAR diagnostics and evaluation report', () => {
             'sar:event:persisted-baseline',
             'sar:event:persisted-citation',
             'retrieval-chunk:persisted-direct',
+            'planning-unit:persisted-sar-candidate',
             'sar:entity:persisted-arena',
           ],
           rejectedRefs: [{ ref: 'sar:event:blocked-private', reason: 'privacy scope unavailable' }],
@@ -1145,8 +1146,8 @@ describe('SAR diagnostics and evaluation report', () => {
       id: 'sar:trace:sha256:persisted-live-eval',
       query: 'teacher-diagnostics · sar-live-evaluation · sha256:persist',
       ordinaryRetrievalBaselineRefCount: 2,
-      sarCandidateRefCount: 4,
-      sarOnlyCandidateRefCount: 2,
+      sarCandidateRefCount: 1,
+      sarOnlyCandidateRefCount: 1,
       verifiedCitationRefCount: 1,
       multiHopHit: true,
     });
@@ -1154,11 +1155,28 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(report.metrics).toMatchObject({
       queryCount: 1,
       ordinaryRetrievalBaselineRefCount: 2,
-      sarCandidateRefCount: 4,
-      sarOnlyCandidateRefCount: 2,
+      sarCandidateRefCount: 1,
+      sarOnlyCandidateRefCount: 1,
       verifiedCitationRefCount: 1,
       sourcePackHandoffRefCount: 2,
       feedbackRecordCount: 2,
+    });
+    const pendingCitationReport = buildSarLiveEvaluationReportFromPersistenceExport({
+      generatedAt: '2026-07-02T09:05:00.000Z',
+      persistenceExport: {
+        ...persistedExport,
+        queryTraces: persistedExport.queryTraces.map((trace) => ({
+          ...trace,
+          handoffStatus: 'citation-verification-pending',
+        })),
+      },
+      diagnostics: fixture.report,
+      evaluationRecords: [],
+    });
+    expect(pendingCitationReport.querySet[0]).toMatchObject({
+      verifiedCitationRefCount: 0,
+      sarCandidateRefCount: 2,
+      sarOnlyCandidateRefCount: 2,
     });
     expect(JSON.stringify(report)).not.toContain(fixture.query);
     expect(JSON.stringify(report)).not.toContain('control-correction-demo');

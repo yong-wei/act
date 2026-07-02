@@ -497,9 +497,14 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
     const relations = input.persistenceExport.relations
       .filter((record) => eventIds.has(record.eventId) && entityIds.has(record.entityId))
       .map(persistedRelationToSarRelation);
-    const verifiedCitationRefs = persistedVerifiedCitationRefs(trace.selectedRefs, eventById, eventBySourceRef);
+    const verifiedCitationRefs = trace.handoffStatus === 'ready'
+      ? persistedVerifiedCitationRefs(trace.selectedRefs, eventById, eventBySourceRef)
+      : [];
     const ordinarySourcePackRefs = persistedOrdinaryBaselineRefs(trace.selectedRefs, eventById, eventBySourceRef);
-    const sarAssistedRefs = persistedSarAssistedRefs(trace.selectedRefs, eventById, eventBySourceRef);
+    const sarAssistedRefs = persistedSarAssistedRefs(trace.selectedRefs, eventById, eventBySourceRef, entityById, {
+      ordinarySourcePackRefs,
+      verifiedCitationRefs,
+    });
     const result: SarRetrievalResult = {
       id: `sar:result:persisted:${trace.stableId}`,
       trace: {
@@ -829,11 +834,29 @@ function persistedSarAssistedRefs(
   selectedRefs: readonly string[],
   eventById: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
   eventBySourceRef: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
+  entityById: ReadonlyMap<string, SarPersistenceExport['entities'][number]>,
+  classifiedRefs: {
+    ordinarySourcePackRefs: readonly string[];
+    verifiedCitationRefs: readonly string[];
+  },
 ): string[] {
-  return uniqueSorted(selectedRefs.map((ref) => {
+  const ordinarySourcePackRefs = new Set(classifiedRefs.ordinarySourcePackRefs);
+  const verifiedCitationRefs = new Set(classifiedRefs.verifiedCitationRefs);
+  return uniqueSorted(selectedRefs.flatMap((ref) => {
+    if (entityById.has(ref)) return [];
     const eventRecord = eventById.get(ref) ?? eventBySourceRef.get(ref);
-    return eventRecord?.sourceRef.id ?? ref;
+    const normalized = eventRecord?.sourceRef.id ?? ref;
+    if (ordinarySourcePackRefs.has(normalized) || verifiedCitationRefs.has(normalized)) return [];
+    if (eventRecord?.eventType === 'corpus-chunk-summary') return [normalized];
+    return isPersistedSarCandidateRef(normalized) ? [normalized] : [];
   }));
+}
+
+function isPersistedSarCandidateRef(ref: string): boolean {
+  return ref.startsWith('citation:')
+    || ref.startsWith('citation-target:')
+    || ref.startsWith('planning-unit:')
+    || ref.startsWith('resource-candidate:');
 }
 
 function isPersistedRetrievalRef(ref: string): boolean {
