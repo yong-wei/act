@@ -184,7 +184,7 @@ export function buildDataCompletenessAuditReport(input: DataCompletenessAuditInp
   const citationReadiness = buildCitationReadinessLayer(input.resourceRegistry, input.evidenceCorpus ?? []);
   const pathReadiness = buildPathReadinessLayer(input.resourceRegistry);
   const evidenceLineage = buildEvidenceLineageLayer(input);
-  const learnerFixtureReadiness = buildLearnerFixtureLayer(input);
+  const learnerFixtureReadiness = buildLearnerFixtureLayer(input, [resourceBinding, pathReadiness]);
   const layers = [
     graphCore,
     resourceBinding,
@@ -399,7 +399,7 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
     ...factUsers.filter((userId) => !snapshotUsers.has(userId)).map((userId) => finding('student-competency-snapshot-missing', 'partial', maskStableLearnerRef(userId), 'LearningFact user lacks StudentCompetencySnapshot coverage.', 'refresh-competency-snapshots')),
     ...factUsers.filter((userId) => !summaryUsers.has(userId)).map((userId) => finding('student-profile-summary-missing', 'advisory', maskStableLearnerRef(userId), 'LearningFact user lacks StudentProfileSummary coverage.', 'refresh-profile-summaries')),
     ...factUsers.filter((userId) => !cacheUsers.has(userId)).map((userId) => finding('student-evidence-feature-cache-missing', 'partial', maskStableLearnerRef(userId), 'LearningFact user lacks StudentEvidenceFeatureCache coverage.', 'refresh-student-evidence-feature-cache')),
-    ...caches.filter((cache) => (cache.sourceFactCount ?? 0) === 0 || !hasObjectKeys(cache.sourceCoverage)).map((cache) => finding('student-evidence-feature-cache-source-coverage-missing', 'partial', maskStableLearnerRef(cache.userId), 'StudentEvidenceFeatureCache lacks source fact coverage.', 'refresh-student-evidence-feature-cache')),
+    ...caches.filter((cache) => (cache.sourceFactCount ?? 0) === 0 || !hasCompleteSourceCoverage(cache.sourceCoverage)).map((cache) => finding('student-evidence-feature-cache-source-coverage-missing', 'partial', maskStableLearnerRef(cache.userId), 'StudentEvidenceFeatureCache lacks source fact coverage.', 'refresh-student-evidence-feature-cache')),
   ];
 
   return layer('evidenceLineage', {
@@ -427,7 +427,10 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
   }, findings);
 }
 
-function buildLearnerFixtureLayer(input: DataCompletenessAuditInput) {
+function buildLearnerFixtureLayer(
+  input: DataCompletenessAuditInput,
+  blockingDependencyLayers: DataCompletenessLayerSummary[],
+) {
   const canonicalSpec = input.canonicalLearner ?? { displayName: 'Yang Fan', studentNumber: '20230010102605' };
   const candidates = input.learnerCandidates ?? [];
   const canonical = candidates.find((candidate) => (
@@ -465,7 +468,14 @@ function buildLearnerFixtureLayer(input: DataCompletenessAuditInput) {
       ? finding('fixture-adaptive-assessment-state-missing', 'partial', maskStableLearnerRef(candidateForChecks.userId), 'Canonical fixture has no adaptive assessment state.', 'materialize-fixture-adaptive-assessment-state')
       : null,
   ].filter(Boolean) as DataCompletenessFinding[];
-  const blockers = findings.filter((item) => item.severity === 'blocked').map((item) => item.id);
+  const blockers = uniqueSorted([
+    ...findings.filter((item) => item.severity === 'blocked').map((item) => item.id),
+    ...blockingDependencyLayers.flatMap((dependencyLayer) =>
+      dependencyLayer.findings
+        .filter((item) => item.severity === 'blocked')
+        .map((item) => `${dependencyLayer.id}:${item.id}`)
+    ),
+  ]);
 
   return {
     layer: layer('learnerFixtureReadiness', {
@@ -625,7 +635,7 @@ function maskLearnerCandidate(candidate: DataCompletenessLearnerCandidateInput):
     competencySnapshotCount: candidate.competencySnapshotCount ?? 0,
     profileSummaryCount: candidate.profileSummaryCount ?? 0,
     featureCacheSourceFactCount: candidate.featureCache?.sourceFactCount ?? 0,
-    featureCacheHasCoverage: hasObjectKeys(candidate.featureCache?.sourceCoverage),
+    featureCacheHasCoverage: hasCompleteSourceCoverage(candidate.featureCache?.sourceCoverage),
     adaptiveAssessmentStateCount: candidate.adaptiveAssessmentStateCount ?? 0,
   };
 }
@@ -642,6 +652,11 @@ function hashIdentifier(value: string | null | undefined): string | null {
 
 function hasObjectKeys(value: unknown): boolean {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0);
+}
+
+function hasCompleteSourceCoverage(value: unknown): boolean {
+  if (!hasObjectKeys(value)) return false;
+  return Object.values(value as Record<string, unknown>).every((status) => status === 'available');
 }
 
 function uniqueSorted(values: string[]): string[] {

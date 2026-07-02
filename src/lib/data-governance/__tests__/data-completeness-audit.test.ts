@@ -200,6 +200,41 @@ describe('data completeness audit', () => {
     expect(JSON.stringify(report)).not.toContain('eventData');
   });
 
+  it('treats partial or missing feature cache source coverage as incomplete', () => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [{
+        id: 'fact-partial-cache',
+        userId: 'student-partial-cache',
+        factType: 'question',
+        sourceEventId: 'interaction-log:log-1',
+        sourceLogId: 'log-1',
+      }],
+      studentCompetencySnapshots: [{ userId: 'student-partial-cache' }],
+      studentProfileSummaries: [{ userId: 'student-partial-cache' }],
+      studentEvidenceFeatureCaches: [{
+        userId: 'student-partial-cache',
+        sourceFactCount: 1,
+        sourceCoverage: {
+          LearningFact: 'partial',
+          StudentStepResponse: 'missing',
+        },
+      }, {
+        userId: 'student-mixed-cache',
+        sourceFactCount: 2,
+        sourceCoverage: {
+          LearningFact: 'available',
+          StudentCompetencySnapshot: 'missing',
+        },
+      }],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.featureCachesMissingSourceCoverage).toBe(2);
+    expect(lineage?.findings.filter((finding) =>
+      finding.id === 'student-evidence-feature-cache-source-coverage-missing'
+    )).toHaveLength(2);
+  });
+
   it('masks Yang Fan fixture identifiers and reports duplicates as diagnostics only', () => {
     const report = buildDataCompletenessAuditReport({
       canonicalLearner: {
@@ -288,6 +323,64 @@ describe('data completeness audit', () => {
       'materialize-fixture-adaptive-assessment-state',
     ]));
     expect(report.learnerFixture.fixtureGenerationBlocked).toBe(false);
+  });
+
+  it('blocks fixture generation when resource prerequisites remain blocked', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'blocked-controller',
+        label: 'Blocked controller resource',
+        type: 'SIMULATION_APP',
+        knowledgeNodeIds: ['kn-controller'],
+      }],
+    });
+    const report = buildDataCompletenessAuditReport({
+      knowledgeNodes: [{
+        id: 'kn-controller',
+        name: 'controller correction',
+        description: 'Controller correction concept.',
+        tags: ['correction'],
+        resources: ['resource:blocked-controller'],
+        isActive: true,
+        sourceLinkCount: 1,
+        targetLinkCount: 1,
+      }],
+      teachingResources: [{
+        id: 'resource-blocked',
+        title: 'Blocked controller resource',
+        registryId: 'blocked-controller',
+        knowledgeNodeIds: ['kn-controller'],
+      }],
+      resourceRegistry: registry,
+      canonicalLearner: {
+        displayName: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+      },
+      learnerCandidates: [{
+        userId: 'user-canonical',
+        name: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+        learningFactCount: 3,
+        knowledgeProgressCount: 1,
+        pathExecutionCount: 1,
+        pathExecutionEvidenceRefCount: 1,
+        competencySnapshotCount: 1,
+        profileSummaryCount: 1,
+        adaptiveAssessmentStateCount: 1,
+        featureCache: {
+          sourceFactCount: 3,
+          sourceCoverage: { LearningFact: 'available' },
+        },
+      }],
+    });
+
+    expect(report.learnerFixture.fixtureGenerationBlocked).toBe(true);
+    expect(report.learnerFixture.blockers).toEqual(expect.arrayContaining([
+      expect.stringMatching(/^resourceBinding:/),
+      expect.stringMatching(/^pathReadiness:/),
+    ]));
   });
 
   it('does not leak canonical fixture display fields when the account is missing', () => {
