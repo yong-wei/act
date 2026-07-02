@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import type { CrossDomainQuestion } from '@/features/assessment/adaptive-question-bank';
 import { buildKaqArtifactVersionRefs, type KaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
-import runtimeBaselineMatrix from '../../../course-content/runtime/resource-governance/learning-goal-resource-baseline-matrix.json';
 
 export const KAQ_QUIZ_FOUNDATION_BANK_VERSION = 'kaq-quiz-foundation-bank.v1';
 
@@ -191,7 +192,41 @@ const FALLBACK_GOALS = [
 ];
 
 const DEFAULT_REVIEWED_AT = '2026-06-24T00:00:00.000Z';
-const RUNTIME_BASELINE_MATRIX = runtimeBaselineMatrix as KaqQuizCoverageBaselineMatrix;
+const BASELINE_MATRIX_PATH = path.join(
+  process.cwd(),
+  'course-content',
+  'runtime',
+  'resource-governance',
+  'learning-goal-resource-baseline-matrix.json',
+);
+const RUNTIME_BASELINE_MATRIX = loadRuntimeBaselineMatrix();
+
+function loadRuntimeBaselineMatrix(): KaqQuizCoverageBaselineMatrix {
+  try {
+    if (!fs.existsSync(BASELINE_MATRIX_PATH)) {
+      return fallbackBaselineMatrix();
+    }
+    const matrix = JSON.parse(fs.readFileSync(BASELINE_MATRIX_PATH, 'utf8')) as Partial<KaqQuizCoverageBaselineMatrix>;
+    return {
+      artifactVersion: matrix.artifactVersion ?? 'learning-goal-resource-baseline-matrix.unavailable',
+      generatedAt: matrix.generatedAt,
+      sourceWindow: matrix.sourceWindow,
+      versionRefs: matrix.versionRefs,
+      batchLearningGoalIds: compactStrings(matrix.batchLearningGoalIds),
+      rows: Array.isArray(matrix.rows) ? matrix.rows : [],
+    };
+  } catch {
+    return fallbackBaselineMatrix();
+  }
+}
+
+function fallbackBaselineMatrix(): KaqQuizCoverageBaselineMatrix {
+  return {
+    artifactVersion: 'learning-goal-resource-baseline-matrix.unavailable',
+    batchLearningGoalIds: FALLBACK_GOALS,
+    rows: FALLBACK_GOALS.map((learningGoalId) => ({ learningGoalId })),
+  };
+}
 
 function stableHash(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');

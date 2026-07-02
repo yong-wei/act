@@ -1011,7 +1011,7 @@ function validatePersistedRecordFields(
   return issues;
 }
 
-function validatePersistedSourceRef(sourceRef: SarPersistedSourceRef): SarValidationIssue[] {
+function validatePersistedSourceRef(sourceRef: unknown): SarValidationIssue[] {
   const issues: SarValidationIssue[] = [];
   if (!isRecord(sourceRef)) {
     return [{ code: 'invalid-reference', path: 'sourceRef', message: 'Persisted sourceRef must be an object.' }];
@@ -1052,7 +1052,7 @@ function validateAllowedKeys(
   return issues;
 }
 
-function validatePersistedTextBoundary(record: Record<string, unknown>, path: string): SarValidationIssue[] {
+function validatePersistedTextBoundary(record: object, path: string): SarValidationIssue[] {
   const issues: SarValidationIssue[] = [];
   for (const [key, value] of Object.entries(record)) {
     collectRestrictedTraceText(value, `${path}.${key}`, issues);
@@ -1176,7 +1176,7 @@ function validateAggregateCounts(aggregateCounts: unknown): SarValidationIssue[]
 function validateTraceTextBoundary(traceLike: Pick<
   SarPersistedQueryTraceRecord,
   'stableId' | 'seedEntityIds' | 'expansionHops' | 'selectedRefs' | 'rejectedRefs' | 'limitations' | 'versionRefs'
-> | SarRetrievalTrace): SarValidationIssue[] {
+> | SarRetrievalTrace | Record<string, unknown>): SarValidationIssue[] {
   const issues: SarValidationIssue[] = [];
   const traceId = 'stableId' in traceLike ? traceLike.stableId : traceLike.id;
   issues.push(...validateTraceStableId(traceId, 'trace.id'));
@@ -1392,7 +1392,7 @@ function stableStringify(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function isIsoDate(value: unknown): boolean {
+function isIsoDate(value: unknown): value is string {
   return typeof value === 'string' && value.trim() !== '' && !Number.isNaN(new Date(value).getTime());
 }
 
