@@ -1167,9 +1167,12 @@ function validateAggregateCounts(aggregateCounts: unknown): SarValidationIssue[]
 
 function validateTraceTextBoundary(traceLike: Pick<
   SarPersistedQueryTraceRecord,
-  'seedEntityIds' | 'expansionHops' | 'selectedRefs' | 'rejectedRefs' | 'limitations' | 'versionRefs'
+  'stableId' | 'seedEntityIds' | 'expansionHops' | 'selectedRefs' | 'rejectedRefs' | 'limitations' | 'versionRefs'
 > | SarRetrievalTrace): SarValidationIssue[] {
   const issues: SarValidationIssue[] = [];
+  const traceId = 'stableId' in traceLike ? traceLike.stableId : traceLike.id;
+  issues.push(...validateTraceStableId(traceId, 'trace.id'));
+  collectRestrictedTraceText(traceId, 'trace.id', issues);
   collectRestrictedTraceText(traceLike.seedEntityIds, 'seedEntityIds', issues, { allowStructuredScopedRefs: true });
   collectRestrictedTraceText(traceLike.expansionHops, 'expansionHops', issues, { allowStructuredScopedRefs: true });
   collectRestrictedTraceText(traceLike.selectedRefs, 'selectedRefs', issues, { allowStructuredScopedRefs: true });
@@ -1184,6 +1187,13 @@ function validateTraceTextBoundary(traceLike: Pick<
     });
   }
   return issues;
+}
+
+function validateTraceStableId(value: unknown, path: string): SarValidationIssue[] {
+  if (typeof value !== 'string' || !/^sar:trace:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value)) {
+    return [{ code: 'invalid-trace', path, message: 'Query trace stableId must use the sar:trace namespace.' }];
+  }
+  return [];
 }
 
 function validateVersionRefs(versionRefs: unknown, path = 'versionRefs'): SarValidationIssue[] {

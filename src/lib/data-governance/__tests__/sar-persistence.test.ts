@@ -725,6 +725,23 @@ describe('SAR persistence', () => {
     expect(circularRepository.getSnapshot().queryTraces).toEqual({});
   });
 
+  it('rejects restricted trace ids before query trace persistence', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const rawText = repository.upsertQueryTrace(traceInput(sarResult({
+      trace: trace({ id: 'Which root locus objective should support this learner?' }),
+    })));
+    expect(rawText.persisted).toBe(false);
+    expect(rawText.issues.map((issue) => issue.path)).toContain('trace.id');
+
+    const restrictedText = repository.upsertQueryTrace(traceInput(sarResult({
+      trace: trace({ id: 'raw answer body for learner-1' }),
+    })));
+    expect(restrictedText.persisted).toBe(false);
+    expect(restrictedText.issues.map((issue) => issue.path)).toContain('trace.id');
+    expect(repository.getSnapshot().queryTraces).toEqual({});
+    expect(JSON.stringify(repository.exportSafeSnapshot())).not.toContain('learner-1');
+  });
+
   it('minimizes expired traces and excludes them from safe exports', () => {
     const repository = createSarPersistenceRepository({ now: () => fixedNow });
     repository.upsertResult(sarResult());
@@ -1213,6 +1230,35 @@ describe('SAR persistence', () => {
         'rejectedRefs.0.reason',
         'versionRefs.0',
       ]));
+
+      writeFileSync(filePath, JSON.stringify(corruptedSnapshot));
+      expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects restored snapshots with restricted query trace stable ids', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-persistence-'));
+    const filePath = join(directory, 'sar-index.json');
+    try {
+      const repository = createSarPersistenceRepository({ now: () => fixedNow });
+      repository.upsertQueryTrace(traceInput());
+      const snapshot = repository.getSnapshot();
+      const rawTraceId = 'Which root locus objective should support this learner?';
+      const corruptedSnapshot = {
+        ...snapshot,
+        queryTraces: {
+          [rawTraceId]: {
+            ...snapshot.queryTraces['sar:trace:root-locus'],
+            stableId: rawTraceId,
+          },
+        },
+      };
+
+      const restored = repository.restore(corruptedSnapshot);
+      expect(restored.persisted).toBe(false);
+      expect(restored.issues.map((issue) => issue.path)).toContain('trace.id');
 
       writeFileSync(filePath, JSON.stringify(corruptedSnapshot));
       expect(() => createSarPersistenceRepository({ filePath })).toThrow('Invalid SAR persistence snapshot');
