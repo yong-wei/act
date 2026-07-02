@@ -380,6 +380,7 @@ export function buildSarLiveEvaluationReport(input: {
   let privacyRejectionCount = 0;
   let limitationCount = 0;
   let multiHopHitCount = 0;
+  const liveTraceLimitations: string[] = [];
 
   for (const traceInput of input.traces) {
     const result = exportableSarResult(traceInput.result);
@@ -396,6 +397,7 @@ export function buildSarLiveEvaluationReport(input: {
     const traceLimitations = mergedDiagnosticLimitations(result);
     const tracePrivacyRejectionCount = countPrivacyRejections(result.trace);
     const multiHopHit = result.trace.expansionHops.length > 1 && sarRefs.length > 0;
+    liveTraceLimitations.push(...traceLimitations);
 
     ordinaryRetrievalBaselineRefCount += ordinaryRefs.length;
     sarCandidateRefCount += sarRefs.length;
@@ -426,6 +428,7 @@ export function buildSarLiveEvaluationReport(input: {
   const arenaOfficialAuthority = evaluateLiveArenaAuthority(input.arenaAuthority);
   const limitations = uniqueSorted([
     ...Object.keys(input.diagnostics.limitationCounts),
+    ...liveTraceLimitations,
     ...(input.limitations ?? []),
     ...arenaOfficialAuthority.limitations,
   ].map(redactSensitiveDiagnosticText));

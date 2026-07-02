@@ -1171,6 +1171,7 @@ describe('SAR diagnostics and evaluation report', () => {
       sourcePackHandoffRefCount: 3,
       feedbackRecordCount: 2,
     });
+    expect(report.limitations).toContain('persisted-trace-limited-sample');
     const pendingCitationReport = buildSarLiveEvaluationReportFromPersistenceExport({
       generatedAt: '2026-07-02T09:05:00.000Z',
       persistenceExport: {
