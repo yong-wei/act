@@ -235,6 +235,73 @@ describe('data completeness audit', () => {
     )).toHaveLength(2);
   });
 
+  it('matches bare clientEventId lineage by user instead of globally', () => {
+    const report = buildDataCompletenessAuditReport({
+      interactionLogs: [{
+        id: 'log-student-1',
+        userId: 'student-1',
+        eventType: 'lesson_submit',
+        clientEventId: 'shared-client-event',
+        attemptKey: 'attempt-1',
+        createdAt: '2026-07-02T00:00:00.000Z',
+      }, {
+        id: 'log-student-2',
+        userId: 'student-2',
+        eventType: 'lesson_submit',
+        clientEventId: 'shared-client-event',
+        attemptKey: 'attempt-2',
+        createdAt: '2026-07-02T00:00:01.000Z',
+      }, {
+        id: 'log-student-1-duplicate',
+        userId: 'student-1',
+        eventType: 'lesson_submit',
+        clientEventId: 'shared-client-event',
+        attemptKey: 'attempt-3',
+        createdAt: '2026-07-02T00:00:02.000Z',
+      }],
+      eventDictionaryTypes: ['lesson_submit'],
+      learningFacts: [{
+        id: 'fact-same-user',
+        userId: 'student-1',
+        factType: 'question',
+        sourceEventId: 'shared-client-event',
+        sourceLogId: null,
+      }, {
+        id: 'fact-cross-user',
+        userId: 'student-3',
+        factType: 'question',
+        sourceEventId: 'shared-client-event',
+        sourceLogId: null,
+      }],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.duplicateClientEventIds).toBe(1);
+    expect(lineage?.totals.danglingLearningFactSourceEvents).toBe(1);
+    expect(lineage?.findings.filter((finding) =>
+      finding.id === 'interaction-log-client-event-id-duplicate'
+    )).toHaveLength(1);
+    const duplicateFinding = lineage?.findings.find((finding) =>
+      finding.id === 'interaction-log-client-event-id-duplicate'
+    );
+    expect(duplicateFinding?.stableRef).toMatch(/^clientEventId:sha256:/);
+    expect(duplicateFinding?.message).toContain('learner-scoped clientEventId');
+    expect(lineage?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-event-dangling',
+        stableRef: 'LearningFact:fact-cross-user',
+      }),
+    ]));
+    expect(lineage?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-event-dangling',
+        stableRef: 'LearningFact:fact-same-user',
+      }),
+    ]));
+    expect(JSON.stringify(report)).not.toContain('student-1:shared-client-event');
+    expect(JSON.stringify(report)).not.toContain('student-2:shared-client-event');
+  });
+
   it('masks Yang Fan fixture identifiers and reports duplicates as diagnostics only', () => {
     const report = buildDataCompletenessAuditReport({
       canonicalLearner: {

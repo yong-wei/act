@@ -376,25 +376,25 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
   const cacheUsers = new Set(caches.map((cache) => cache.userId));
   const logIds = new Set(logs.map((log) => log.id));
   const clientEventIds = logs
-    .map((log) => normalizeKey(log.clientEventId))
+    .map((log) => clientEventDedupeKey(log))
     .filter((value): value is string => Boolean(value));
   const clientEventIdCounts = countValues(clientEventIds);
-  const validSourceEventIds = buildValidSourceEventIds(logs);
+  const sourceEventIndex = buildValidSourceEventIndex(logs);
   const findings = [
     ...logs.filter((log) => !log.clientEventId).map((log) => finding('interaction-log-client-event-id-missing', 'partial', `InteractionLog:${log.id}`, 'InteractionLog lacks clientEventId.', 'repair-source-event-lineage')),
     ...logs.filter((log) => !log.attemptKey).map((log) => finding('interaction-log-attempt-key-missing', 'advisory', `InteractionLog:${log.id}`, 'InteractionLog lacks attemptKey for dedupe grouping.', 'repair-source-event-lineage')),
     ...logs.filter((log) => !log.clientEventAt && !log.createdAt).map((log) => finding('interaction-log-timestamp-missing', 'blocked', `InteractionLog:${log.id}`, 'InteractionLog lacks clientEventAt and createdAt.', 'repair-source-event-lineage')),
     ...Array.from(clientEventIdCounts.entries())
       .filter(([, count]) => count > 1)
-      .map(([clientEventId, count]) => finding('interaction-log-client-event-id-duplicate', 'partial', `clientEventId:${clientEventId}`, `${count} InteractionLog rows share one clientEventId.`, 'repair-source-event-lineage')),
+      .map(([clientEventIdKey, count]) => finding('interaction-log-client-event-id-duplicate', 'partial', `clientEventId:${hashIdentifier(clientEventIdKey) ?? 'unknown'}`, `${count} InteractionLog rows share one learner-scoped clientEventId.`, 'repair-source-event-lineage')),
     ...logs.filter((log) => !eventTypes.has(log.eventType)).map((log) => finding('event-dictionary-mapping-missing', 'partial', `InteractionLog:${log.id}`, `${log.eventType} is not in EventDictionary.`, 'repair-event-dictionary')),
     ...batches.filter((batch) => !batch.processedAt).map((batch) => finding('learning-event-batch-unprocessed', 'blocked', `LearningEventBatch:${batch.id}`, `${batch.eventCount} source events are not processed.`, 'process-learning-event-batches')),
     ...facts.filter((fact) => !fact.sourceEventId && !fact.sourceLogId).map((fact) => finding('learning-fact-source-ref-missing', 'partial', `LearningFact:${fact.id}`, `${fact.factType} fact lacks sourceEventId/sourceLogId.`, 'repair-learning-fact-attribution')),
     ...facts
-      .filter((fact) => hasDanglingLearningFactSourceLog(fact, logIds, validSourceEventIds))
+      .filter((fact) => hasDanglingLearningFactSourceLog(fact, logIds, sourceEventIndex))
       .map((fact) => finding('learning-fact-source-log-dangling', 'blocked', `LearningFact:${fact.id}`, `${fact.factType} fact references a missing sourceLogId.`, 'repair-learning-fact-attribution')),
     ...facts
-      .filter((fact) => hasDanglingLearningFactSourceEvent(fact, validSourceEventIds))
+      .filter((fact) => hasDanglingLearningFactSourceEvent(fact, sourceEventIndex))
       .map((fact) => finding('learning-fact-source-event-dangling', 'blocked', `LearningFact:${fact.id}`, `${fact.factType} fact references a missing sourceEventId.`, 'repair-learning-fact-attribution')),
     ...factUsers.filter((userId) => !snapshotUsers.has(userId)).map((userId) => finding('student-competency-snapshot-missing', 'partial', maskStableLearnerRef(userId), 'LearningFact user lacks StudentCompetencySnapshot coverage.', 'refresh-competency-snapshots')),
     ...factUsers.filter((userId) => !summaryUsers.has(userId)).map((userId) => finding('student-profile-summary-missing', 'advisory', maskStableLearnerRef(userId), 'LearningFact user lacks StudentProfileSummary coverage.', 'refresh-profile-summaries')),
@@ -534,54 +534,72 @@ function countValues(values: string[]): Map<string, number> {
   return counts;
 }
 
-function buildValidSourceEventIds(logs: DataCompletenessInteractionLogInput[]): Set<string> {
-  const ids = new Set<string>();
+function clientEventDedupeKey(log: DataCompletenessInteractionLogInput): string | null {
+  const userId = normalizeKey(log.userId);
+  const clientEventId = normalizeKey(log.clientEventId);
+  if (!userId || !clientEventId) return null;
+  return `${userId}:${clientEventId}`;
+}
+
+function buildValidSourceEventIndex(logs: DataCompletenessInteractionLogInput[]): {
+  logDerivedIds: Set<string>;
+  clientEventIdsByUser: Map<string, Set<string>>;
+} {
+  const logDerivedIds = new Set<string>();
+  const clientEventIdsByUser = new Map<string, Set<string>>();
   for (const log of logs) {
     const id = normalizeKey(log.id);
     if (id) {
-      ids.add(id);
-      ids.add(`interaction-log:${id}`);
-      ids.add(`historical:InteractionLog:${id}`);
+      logDerivedIds.add(id);
+      logDerivedIds.add(`interaction-log:${id}`);
+      logDerivedIds.add(`historical:InteractionLog:${id}`);
       if (log.eventType) {
-        ids.add(`historical:InteractionLog:${id}:${log.eventType}`);
+        logDerivedIds.add(`historical:InteractionLog:${id}:${log.eventType}`);
       }
     }
     const clientEventId = normalizeKey(log.clientEventId);
-    if (clientEventId) {
+    const userId = normalizeKey(log.userId);
+    if (clientEventId && userId) {
+      const ids = clientEventIdsByUser.get(userId) ?? new Set<string>();
       ids.add(clientEventId);
+      clientEventIdsByUser.set(userId, ids);
     }
   }
-  return ids;
+  return { logDerivedIds, clientEventIdsByUser };
 }
 
 function hasDanglingLearningFactSourceLog(
   fact: DataCompletenessLearningFactInput,
   logIds: Set<string>,
-  validSourceEventIds: Set<string>,
+  sourceEventIndex: ReturnType<typeof buildValidSourceEventIndex>,
 ): boolean {
   const sourceLogId = normalizeKey(fact.sourceLogId);
   if (!sourceLogId) return false;
   if (logIds.has(sourceLogId)) return false;
-  return classifyLearningFactSource(fact, validSourceEventIds) !== 'governed-external';
+  return classifyLearningFactSource(fact, sourceEventIndex) !== 'governed-external';
 }
 
 function hasDanglingLearningFactSourceEvent(
   fact: DataCompletenessLearningFactInput,
-  validSourceEventIds: Set<string>,
+  sourceEventIndex: ReturnType<typeof buildValidSourceEventIndex>,
 ): boolean {
   const sourceEventId = normalizeKey(fact.sourceEventId);
   if (!sourceEventId) return false;
-  if (validSourceEventIds.has(sourceEventId)) return false;
-  return classifyLearningFactSource(fact, validSourceEventIds) !== 'governed-external';
+  if (sourceEventIndex.logDerivedIds.has(sourceEventId)) return false;
+  const factUserId = normalizeKey(fact.userId);
+  if (factUserId && sourceEventIndex.clientEventIdsByUser.get(factUserId)?.has(sourceEventId)) return false;
+  return classifyLearningFactSource(fact, sourceEventIndex) !== 'governed-external';
 }
 
 function classifyLearningFactSource(
   fact: DataCompletenessLearningFactInput,
-  validSourceEventIds: Set<string>,
+  sourceEventIndex: ReturnType<typeof buildValidSourceEventIndex>,
 ): 'interaction-log' | 'governed-external' | 'unknown' {
   const sourceEventId = normalizeKey(fact.sourceEventId);
   if (!sourceEventId) return 'unknown';
-  if (validSourceEventIds.has(sourceEventId)) return 'interaction-log';
+  if (sourceEventIndex.logDerivedIds.has(sourceEventId)) return 'interaction-log';
+  const factUserId = normalizeKey(fact.userId);
+  if (factUserId && sourceEventIndex.clientEventIdsByUser.get(factUserId)?.has(sourceEventId)) return 'interaction-log';
   if (
     sourceEventId.startsWith('interaction-log:') ||
     sourceEventId.startsWith('historical:InteractionLog:')
