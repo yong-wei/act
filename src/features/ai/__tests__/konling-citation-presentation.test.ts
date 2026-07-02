@@ -224,6 +224,44 @@ describe('Konling verified citation presentation', () => {
     expect(presentation.items.map((item: any) => item.sourceType)).toEqual(['path-execution', 'content']);
   });
 
+  it('does not collapse legacy retrieval sources without stable ids into unknown keys', () => {
+    const presentation = normalizeKonlingCitationPresentation({
+      konlingCitationGuard: {
+        status: 'verified',
+        retrievalSources: [
+          {
+            sourceType: 'content',
+            displayTitle: '第一段教材引用',
+            href: '/course-runtime/resources/unit.md#first',
+            confidence: 'high',
+            evidenceBasis: 'legacy-retrieval-source',
+          },
+          {
+            sourceType: 'content',
+            displayTitle: '第二段教材引用',
+            href: '/course-runtime/resources/unit.md#second',
+            confidence: 'medium',
+            evidenceBasis: 'legacy-retrieval-source',
+          },
+          {
+            sourceType: 'content',
+            displayTitle: '无地址教材引用',
+            href: null,
+            confidence: 'medium',
+            evidenceBasis: 'legacy-retrieval-source',
+          },
+        ],
+      },
+    }) as any;
+
+    expect(presentation.items).toHaveLength(3);
+    expect(presentation.items.map((item: any) => item.key)).toEqual([
+      'content:/course-runtime/resources/unit.md#first',
+      'content:/course-runtime/resources/unit.md#second',
+      'content:无地址教材引用:legacy-retrieval-source',
+    ]);
+  });
+
   it('renders a missing verified citation state separately from diagnostics', () => {
     const html = renderToStaticMarkup(
       React.createElement(KonlingCitationPanel, {

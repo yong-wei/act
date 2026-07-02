@@ -197,7 +197,7 @@ function buildCitationKey(sourceType: string, citation: CitationLike, href: stri
     citation.citationChip?.chunkId,
     href,
     `${citation.title ?? citation.displayTitle ?? 'untitled'}:${citation.evidenceBasis ?? 'unknown'}`,
-  ]);
+  ]) ?? 'unknown';
   return `${sourceType}:${identity}`;
 }
 
@@ -241,7 +241,7 @@ function firstString(values: readonly unknown[]) {
   for (const value of values) {
     if (typeof value === 'string' && value.trim()) return value.trim();
   }
-  return 'unknown';
+  return null;
 }
 
 function joinKey(values: readonly unknown[]) {
