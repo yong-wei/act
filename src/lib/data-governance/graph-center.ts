@@ -1048,10 +1048,13 @@ function sarReviewEventAuthorizationRefs(
 ): string[] {
   const resourceId = typeof event.metadata?.resourceId === 'string' ? event.metadata.resourceId : '';
   return uniqueSorted([
-    refType === 'retrieval-chunk' && resourceId === candidateRef ? '' : resourceId,
+    refType === 'retrieval-chunk' && resourceId === candidateRef ? '' : sarReviewAuthorizationRef(resourceId),
     event.eventType === 'resource-node' ? event.sourceRef.id : '',
-    event.sourceRef.classId ?? '',
   ].filter((ref) => ref && !ref.startsWith('sar:event:')));
+}
+
+function sarReviewAuthorizationRef(ref: string): string {
+  return ref;
 }
 
 function buildSarReviewAvailableActions(

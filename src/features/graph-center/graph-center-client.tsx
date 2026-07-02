@@ -10,12 +10,14 @@ import {
   type GraphCenterLearnerOverlayState,
   type GraphCenterOverlayStatus,
   type GraphCenterPayload,
+  type GraphCenterSarResourceGapSuggestion,
   type GraphCenterSelectedNodeDetail,
   type GraphCenterResourceCoverageMissingType,
   type GraphCenterResourceCoverageState,
 } from '@/lib/data-governance/graph-center';
 
 type GraphCenterDisplayMode = 'resourceCoverage' | 'learner' | 'class';
+type SarReviewDecision = NonNullable<GraphCenterSarResourceGapSuggestion['review']>['availableActions'][number];
 type GraphCenterFieldCompletionSummary = NonNullable<
   NonNullable<GraphCenterPayload['selectedNode']>['resourceCoverage']['fieldCompletion']
 >;
@@ -344,8 +346,55 @@ export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplay
 
 function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterSelectedNodeDetail }) {
   const associated = selectedNode.associatedEvidence;
+  const [reviewStates, setReviewStates] = useState<Record<string, string>>({});
   if (!associated) return null;
   const hasDraftCandidates = associated.resourceGapSuggestions.length > 0;
+
+  async function submitReview(candidate: GraphCenterSarResourceGapSuggestion, decision: SarReviewDecision) {
+    if (!candidate.review || candidate.refType !== 'resource-node' || decision === 'accept') return;
+    const key = `${candidate.refType}:${candidate.ref}`;
+    setReviewStates((state) => ({ ...state, [key]: 'submitting' }));
+    const response = await fetch('/api/teacher/sar-suggested-bindings/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        decision,
+        rationale: `Graph Center SAR ${decision}`,
+        resourceNodeId: candidate.ref,
+        candidate: {
+          id: candidate.review.auditPayload.candidateId,
+          target: {
+            graphNodeId: selectedNode.node.id,
+            objectiveId: selectedNode.objectives[0]?.id ?? null,
+          },
+          candidate: {
+            ref: candidate.review.auditPayload.candidateRef,
+            refType: candidate.review.auditPayload.candidateRefType,
+            resourceNodeId: candidate.refType === 'resource-node' ? candidate.ref : null,
+            sourceRefs: candidate.review.auditPayload.sourceRefs,
+          },
+          missingCoverageTypes: candidate.review.auditPayload.missingCoverageTypes,
+          provenance: {
+            source: candidate.review.auditPayload.provenance.source,
+            basisEventIds: candidate.review.auditPayload.provenance.basisEventIds,
+            traceId: null,
+          },
+          traceSummary: {
+            seedEntityIds: associated.traceSummary.seedEntityIds,
+            expansionHopCount: candidate.review.auditPayload.traceSummary.traceHopCount,
+            selectedRefCount: associated.traceSummary.selectedRefCount,
+            rejectedRefCount: associated.traceSummary.rejectedRefCount,
+            limitations: candidate.review.auditPayload.traceSummary.limitations,
+          },
+          limitations: associated.limitations,
+        },
+      }),
+    });
+    setReviewStates((state) => ({
+      ...state,
+      [key]: response.ok ? 'reviewed' : 'failed',
+    }));
+  }
 
   return (
     <div
@@ -367,15 +416,42 @@ function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterS
       )}
       {hasDraftCandidates && (
         <DetailGroup label="候选资源缺口">
-          {associated.resourceGapSuggestions.slice(0, 4).map((candidate) => (
-            <span
-              key={`${candidate.refType}:${candidate.ref}`}
-              data-graph-center-sar-candidate="suggested"
-              data-graph-center-sar-candidate-type={candidate.refType}
-            >
-              {candidate.refType} · 建议/草稿
-            </span>
-          ))}
+          {associated.resourceGapSuggestions.slice(0, 4).map((candidate) => {
+            const key = `${candidate.refType}:${candidate.ref}`;
+            const state = reviewStates[key];
+            const reviewableActions = candidate.review && candidate.refType === 'resource-node'
+              ? candidate.review.availableActions.filter((action) => action !== 'accept')
+              : [];
+            return (
+              <span
+                key={key}
+                className="space-y-1"
+                data-graph-center-sar-candidate="suggested"
+                data-graph-center-sar-candidate-type={candidate.refType}
+              >
+                <span>{candidate.refType} · 建议/草稿</span>
+                {reviewableActions.length > 0 && (
+                  <span className="flex flex-wrap gap-1">
+                    {reviewableActions.map((action) => (
+                      <button
+                        key={action}
+                        type="button"
+                        className="rounded border border-platform-border px-1.5 py-0.5 text-[11px] text-platform-fg-secondary hover:border-platform-accent hover:text-platform-accent"
+                        onClick={() => void submitReview(candidate, action)}
+                        disabled={state === 'submitting'}
+                        data-graph-center-sar-review-action={action}
+                      >
+                        {action}
+                      </button>
+                    ))}
+                    {state && (
+                      <span data-graph-center-sar-review-state={state}>{state}</span>
+                    )}
+                  </span>
+                )}
+              </span>
+            );
+          })}
         </DetailGroup>
       )}
       {(associated.traceSummary.expansionHopCount > 0 || associated.limitations.length > 0) && (

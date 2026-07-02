@@ -592,6 +592,42 @@ describe('teacher ResourceNode management contracts', () => {
     });
   });
 
+  it('does not authorize namespace-prefixed SAR refs by stripping prefixes', () => {
+    const resourceResult = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'chunk:kn-bode',
+          refType: 'retrieval-chunk',
+          sourceRefs: ['resource:kn-bode'],
+        },
+      }),
+      scope: teacherScope,
+      decision: 'reject',
+      rationale: '确认 resource: 前缀不会通过知识节点可读权限。',
+      reviewedAt: '2026-07-02T10:04:00.000Z',
+    });
+    const textbookResult = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'textbook-section:kn-bode',
+          refType: 'retrieval-chunk',
+          sourceRefs: ['textbook-section:kn-bode'],
+        },
+      }),
+      scope: teacherScope,
+      decision: 'defer',
+      rationale: '确认 textbook-section: 前缀不会通过知识节点可读权限。',
+      reviewedAt: '2026-07-02T10:04:30.000Z',
+    });
+
+    expect(resourceResult.ok).toBe(false);
+    expect(textbookResult.ok).toBe(false);
+    if (resourceResult.ok) throw new Error('resource-prefixed ref should not be authorized');
+    if (textbookResult.ok) throw new Error('textbook-prefixed ref should not be authorized');
+    expect(resourceResult.code).toBe('SAR_SUGGESTED_BINDING_FORBIDDEN');
+    expect(textbookResult.code).toBe('SAR_SUGGESTED_BINDING_FORBIDDEN');
+  });
+
   it('accepts SAR suggested bindings only through existing ResourceNode governance validation', () => {
     const resourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
     const result = reviewSarSuggestedBinding({

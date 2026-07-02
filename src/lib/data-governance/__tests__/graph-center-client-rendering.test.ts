@@ -119,6 +119,83 @@ describe('graph center client surface', () => {
     expect(html).toContain('href="/assessment/adaptive-practice?goal=control-correction&amp;graphNodeId=kn%3Aautocontrol%3Acontroller-correction&amp;intent=contextual-recommendation"');
   });
 
+  it('renders SAR review actions for teacher draft gap suggestions', () => {
+    const basePayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+    });
+    const selectedNode = basePayload.selectedNode;
+    if (!selectedNode) throw new Error('selected node missing');
+    const payload: GraphCenterPayload = {
+      ...basePayload,
+      selectedNode: {
+        ...selectedNode,
+        associatedEvidence: {
+          status: 'available',
+          eventCount: 1,
+          topEvents: [],
+          traceSummary: {
+            seedEntityIds: ['sar:entity:graph-node'],
+            expansionHopCount: 1,
+            selectedRefCount: 1,
+            rejectedRefCount: 0,
+            limitations: [],
+          },
+          candidateRefs: {
+            resourceNodeIds: ['teaching-resource:owned-quiz'],
+            retrievalChunkIds: [],
+            citationTargetIds: [],
+            planningUnitIds: [],
+            eventIds: ['sar:event:safe-1'],
+            entityIds: [],
+          },
+          resourceGapSuggestions: [{
+            id: 'sar-gap:1',
+            ref: 'teaching-resource:owned-quiz',
+            refType: 'resource-node',
+            status: 'suggested',
+            draft: true,
+            review: {
+              state: 'suggested',
+              authoritative: false,
+              availableActions: ['accept', 'reject', 'defer', 'invalidate'],
+              auditPayload: {
+                candidateId: 'sar-gap:1',
+                candidateRef: 'teaching-resource:owned-quiz',
+                candidateRefType: 'resource-node',
+                sourceRefs: ['owned-quiz'],
+                missingCoverageTypes: ['linked-resource'],
+                provenance: {
+                  source: 'graph-center-sar',
+                  basisEventIds: ['sar:event:safe-1'],
+                },
+                traceSummary: {
+                  traceHopCount: 1,
+                  limitations: [],
+                },
+              },
+            },
+            suggestedForMissingCoverageTypes: ['linked-resource'],
+            rationale: {
+              basisEventIds: ['sar:event:safe-1'],
+              traceHopCount: 1,
+              reason: 'SAR associated this candidate with the selected graph node.',
+            },
+          }],
+          limitations: [],
+        },
+      },
+    };
+    const html = renderToStaticMarkup(createElement(GraphCenterClient, { initialPayload: payload }));
+
+    expect(html).toContain('data-graph-center-sar-candidate="suggested"');
+    expect(html).toContain('data-graph-center-sar-review-action="reject"');
+    expect(html).toContain('data-graph-center-sar-review-action="defer"');
+    expect(html).toContain('data-graph-center-sar-review-action="invalidate"');
+    expect(html).not.toContain('data-graph-center-sar-review-action="accept"');
+  });
+
   it('renders class heat mode with suppression and denominator labels', () => {
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',

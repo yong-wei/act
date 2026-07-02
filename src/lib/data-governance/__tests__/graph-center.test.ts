@@ -375,6 +375,16 @@ describe('graph center payload service', () => {
           resourceId: 'resource:semantic-simulation-gap',
         }),
         ragChunk({
+          id: 'chunk-sar-prefixed-knowledge-collision',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'resource:kn-bode',
+        }),
+        ragChunk({
+          id: 'chunk-sar-textbook-collision',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'textbook-section:kn-bode',
+        }),
+        ragChunk({
           id: 'chunk-sar-unrelated-gap',
           knowledgeNodeRefs: ['unrelated-knowledge-node'],
           resourceId: 'external:sar-unrelated-gap',
@@ -392,7 +402,7 @@ describe('graph center payload service', () => {
     expect(coverage?.pathEligibleResourceCount).toBe(0);
     expect(coverage?.citationReadyCount).toBe(0);
     expect(coverage?.verifiedCitationCount).toBe(0);
-    expect(coverage?.ragIndexedCount).toBe(2);
+    expect(coverage?.ragIndexedCount).toBe(4);
     expect(associated?.status).toBe('available');
     expect(associated?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-simulation-gap');
     expect(JSON.stringify(associated)).not.toContain('chunk-sar-unrelated-gap');
@@ -451,10 +461,17 @@ describe('graph center payload service', () => {
         sourceRefs: ['resource:semantic-simulation-gap'],
       }),
     });
+    const reviewSourceRefs = associated?.resourceGapSuggestions.flatMap((suggestion) =>
+      suggestion.review?.auditPayload.sourceRefs ?? []
+    ) ?? [];
+    expect(reviewSourceRefs).toContain('resource:kn-bode');
+    expect(reviewSourceRefs).toContain('textbook-section:kn-bode');
+    expect(reviewSourceRefs).not.toContain('kn-bode');
     const reviewPayload = retrievalChunkSuggestion?.review?.auditPayload;
     expect(reviewPayload?.sourceRefs.some((ref) => ref.startsWith('sar:event:'))).toBe(false);
     expect(reviewPayload?.sourceRefs).not.toContain('chunk-sar-simulation-gap');
     expect(reviewPayload?.sourceRefs).not.toContain('kn:autocontrol:simulation-validation');
+    expect(reviewPayload?.sourceRefs).not.toContain('class-1');
     expect(reviewPayload?.sourceRefs.length).toBeGreaterThan(0);
     const teacherReviewScope: TeacherResourceNodeScope = {
       role: 'TEACHER',
