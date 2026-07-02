@@ -25,12 +25,39 @@ describe('Konling verified citation presentation', () => {
   });
 
   it('renders final verified citations from server-owned metadata', () => {
+    const presentation = normalizeKonlingCitationPresentation({
+      konlingCitationGuard: {
+        status: 'verified',
+        citations: [{
+          id: 'content:citation-target:time-constant',
+          sourceType: 'content',
+          displayTitle: '时间常数教材片段',
+          href: '/course-runtime/resources/textbooks/control/ch02.md#time-constant',
+          confidence: 'high',
+          evidenceBasis: 'source-pack',
+        }],
+      },
+    }) as any;
+
+    expect(presentation.summary.status).toBe('verified');
+    expect(presentation.items[0]).toMatchObject({
+      key: 'content:content:citation-target:time-constant',
+      displayIndex: 1,
+      title: '时间常数教材片段',
+      sourceType: 'content',
+      href: '/course-runtime/resources/textbooks/control/ch02.md#time-constant',
+      confidence: 'high',
+      limitation: null,
+      evidenceBasis: 'source-pack',
+    });
+
     const html = renderToStaticMarkup(
       React.createElement(KonlingCitationPanel, {
         metadata: {
           konlingCitationGuard: {
             status: 'verified',
             citations: [{
+              id: 'content:citation-target:time-constant',
               sourceType: 'content',
               displayTitle: '时间常数教材片段',
               href: '/course-runtime/resources/textbooks/control/ch02.md#time-constant',
@@ -72,51 +99,68 @@ describe('Konling verified citation presentation', () => {
           },
         ],
       },
-    });
+    }) as any;
 
-    expect(presentation.citations[0]).toMatchObject({
+    expect(presentation.items[0]).toMatchObject({
       href: null,
-      limitationState: 'insufficient-authority',
+      limitation: 'insufficient-authority',
     });
-    expect(presentation.citations[1]).toMatchObject({
+    expect(presentation.items[1]).toMatchObject({
       href: null,
-      limitationState: 'guard-low-confidence',
+      limitation: 'unavailable-address',
     });
 
     const html = renderToStaticMarkup(React.createElement(KonlingCitationPanel, {
-      metadata: { konlingCitationGuard: { citations: presentation.citations } },
+      metadata: { konlingCitationGuard: { citations: presentation.items } },
     }));
     expect(html).toContain('data-citation-limited="insufficient-authority"');
+    expect(html).toContain('data-citation-limited="unavailable-address"');
     expect(html).not.toContain('/knowledge#user-content-fn1');
   });
 
-  it('disables clicks when the whole guard is low confidence', () => {
+  it('keeps verified content citations clickable when personalization is limited', () => {
     const html = renderToStaticMarkup(
       React.createElement(KonlingCitationPanel, {
         metadata: {
           konlingCitationGuard: {
             status: 'low-confidence',
-            lowConfidenceReasons: ['assistant-citations-missing'],
-            citations: [{
-              sourceType: 'content',
-              displayTitle: '高置信来源但整体核验有限',
-              href: '/course-runtime/resources/textbooks/control/ch02.md#time-constant',
-              confidence: 'high',
-              evidenceBasis: 'source-pack',
-            }],
+            missingCitationClasses: ['learner-state'],
+            personalizationAvailability: {
+              status: 'limited',
+              missingCitationClasses: ['learner-state'],
+              lowConfidenceReasons: ['missing-context:learner-state-summary'],
+            },
+            citations: [
+              {
+                id: 'content:citation-target:time-constant',
+                sourceType: 'content',
+                displayTitle: '高置信课程来源',
+                href: '/course-runtime/resources/textbooks/control/ch02.md#time-constant',
+                confidence: 'high',
+                evidenceBasis: 'source-pack',
+              },
+              {
+                id: 'learner-state:student-1:cold-start',
+                sourceType: 'learner-state',
+                displayTitle: '缺失学习画像',
+                href: null,
+                confidence: 'low',
+                evidenceBasis: 'ColdStartAdaptiveLearnerStateFallback',
+              },
+            ],
           },
         },
       }),
     );
 
-    expect(html).toContain('data-konling-citation-status="low-confidence"');
+    expect(html).toContain('data-konling-citation-status="limited"');
     expect(html).toContain('引用核验有限');
     expect(html).not.toContain('已验证引用');
-    expect(html).toContain('data-citation-limited="guard-low-confidence"');
-    expect(html).not.toContain('data-citation-target=');
+    expect(html).toContain('data-citation-target="/course-runtime/resources/textbooks/control/ch02.md#time-constant"');
+    expect(html).toContain('data-citation-limited="unavailable-address"');
   });
 
-  it('downgrades streaming preflight citation metadata before final verification', () => {
+  it('keeps streaming diagnostics separate from final citation state', () => {
     const html = renderToStaticMarkup(
       React.createElement(KonlingCitationPanel, {
         metadata: {
@@ -135,11 +179,49 @@ describe('Konling verified citation presentation', () => {
       }),
     );
 
-    expect(html).toContain('data-konling-citation-status="low-confidence"');
-    expect(html).toContain('引用核验有限');
-    expect(html).not.toContain('已验证引用');
-    expect(html).toContain('data-citation-limited="guard-low-confidence"');
-    expect(html).not.toContain('data-citation-target=');
+    expect(html).toContain('data-konling-citation-status="verified"');
+    expect(html).toContain('已验证引用');
+    expect(html).toContain('data-citation-target="/course-runtime/resources/textbooks/control/ch02.md#time-constant"');
+    expect(html).toContain('data-konling-citation-diagnostics');
+    expect(html).toContain('开发诊断：assistant-citations-unverified-stream');
+  });
+
+  it('deduplicates citations by governed identity without merging source types by title', () => {
+    const presentation = normalizeKonlingCitationPresentation({
+      konlingCitationGuard: {
+        status: 'verified',
+        citations: [
+          {
+            id: 'path-execution:path-a:node-1:completed:2026-07-01',
+            sourceType: 'path-execution',
+            displayTitle: '根轨迹路径节点',
+            href: '/adaptive/path-center?path=path-a#node-1',
+            confidence: 'medium',
+            evidenceBasis: 'path-execution:path-a',
+          },
+          {
+            id: 'path-execution:path-a:node-1:completed:2026-07-01',
+            sourceType: 'path-execution',
+            displayTitle: '根轨迹路径节点',
+            href: '/adaptive/path-center?path=path-a#node-1',
+            confidence: 'medium',
+            evidenceBasis: 'path-execution:path-a',
+          },
+          {
+            id: 'content:citation-target:node-1',
+            sourceType: 'content',
+            displayTitle: '根轨迹路径节点',
+            href: '/course-runtime/resources/unit.md#node-1',
+            confidence: 'high',
+            evidenceBasis: 'source-pack',
+          },
+        ],
+      },
+    }) as any;
+
+    expect(presentation.items).toHaveLength(2);
+    expect(presentation.items.map((item: any) => item.displayIndex)).toEqual([1, 2]);
+    expect(presentation.items.map((item: any) => item.sourceType)).toEqual(['path-execution', 'content']);
   });
 
   it('renders a missing verified citation state separately from diagnostics', () => {
