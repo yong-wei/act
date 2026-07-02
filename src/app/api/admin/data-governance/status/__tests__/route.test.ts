@@ -4,6 +4,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '@/lib/data-governance/student-evidence-feature-cache';
+import { createSarPersistenceRepository } from '@/lib/data-governance/sar-persistence';
 
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
@@ -111,6 +112,138 @@ import { GET } from '../route';
 
 function createRequest(query = '') {
   return new NextRequest(`http://localhost/api/admin/data-governance/status${query}`);
+}
+
+function seedSarPersistenceQueryTrace(filePath: string) {
+  const now = '2026-05-20T11:50:00.000Z';
+  const result = {
+    id: 'sar:result:persisted-live-eval',
+    trace: {
+      id: 'sar:trace:persisted-live-eval',
+      seedEntityIds: ['sar:entity:persisted-goal'],
+      expansionHops: [{
+        fromEntityId: 'sar:entity:persisted-goal',
+        toEntityId: 'sar:entity:persisted-arena',
+        viaEventId: 'sar:event:persisted-citation',
+        relationRole: 'supports' as const,
+        confidence: 0.92,
+      }, {
+        fromEntityId: 'sar:entity:persisted-arena',
+        toEntityId: 'sar:entity:persisted-citation-target',
+        viaEventId: 'sar:event:persisted-citation',
+        relationRole: 'about' as const,
+        confidence: 0.91,
+      }],
+      selectedRefs: [
+        'chunk:source-pack:persisted-baseline',
+        'sar:event:persisted-citation',
+        'citation:persisted-arena-official',
+      ],
+      rejectedRefs: [{ ref: 'sar:event:persisted-rejected', reason: 'privacy scope unavailable' }],
+      limitations: ['persisted-trace-limited-sample'],
+      versionRefs: ['sar-persistence.v1'],
+    },
+    events: [{
+      id: 'sar:event:persisted-source-pack-baseline',
+      eventType: 'resource-node' as const,
+      title: 'Persisted Source Pack baseline',
+      safeSummary: 'Persisted ordinary retrieval baseline selected a source pack resource.',
+      privacyScope: 'teacher-scoped' as const,
+      sourceRef: {
+        id: 'chunk:source-pack:persisted-baseline',
+        owner: 'ResourceNode',
+        authorityLevel: 'teacher-approved' as const,
+        freshness: now,
+      },
+      metadata: {},
+    }, {
+      id: 'sar:event:persisted-citation',
+      eventType: 'arena-summary' as const,
+      title: 'Persisted Arena citation',
+      safeSummary: 'Persisted SAR trace selected an official Arena citation target.',
+      privacyScope: 'teacher-scoped' as const,
+      sourceRef: {
+        id: 'citation:persisted-arena-official',
+        owner: 'ArenaEvaluationRun',
+        authorityLevel: 'platform-verified' as const,
+        freshness: now,
+      },
+      metadata: {},
+    }],
+    entities: [{
+      id: 'sar:entity:persisted-goal',
+      entityType: 'learning-goal' as const,
+      canonicalRef: 'goal:persisted-control-correction',
+      label: 'Persisted control correction goal',
+      aliases: [],
+      privacyScope: 'teacher-scoped' as const,
+      extraction: 'platform-stable-id' as const,
+    }, {
+      id: 'sar:entity:persisted-arena',
+      entityType: 'planning-unit' as const,
+      canonicalRef: 'arena:persisted-official',
+      label: 'Persisted Arena official validation',
+      aliases: [],
+      privacyScope: 'teacher-scoped' as const,
+      extraction: 'platform-stable-id' as const,
+    }, {
+      id: 'sar:entity:persisted-citation-target',
+      entityType: 'citation-target' as const,
+      canonicalRef: 'citation:persisted-arena-official',
+      label: 'Persisted Arena citation target',
+      aliases: [],
+      privacyScope: 'teacher-scoped' as const,
+      extraction: 'platform-stable-id' as const,
+    }],
+    relations: [{
+      eventId: 'sar:event:persisted-source-pack-baseline',
+      entityId: 'sar:entity:persisted-goal',
+      role: 'supports' as const,
+      confidence: 0.9,
+      provenance: 'metadata-projection' as const,
+      source: 'persisted-trace-test',
+    }, {
+      eventId: 'sar:event:persisted-citation',
+      entityId: 'sar:entity:persisted-arena',
+      role: 'supports' as const,
+      confidence: 0.92,
+      provenance: 'metadata-projection' as const,
+      source: 'persisted-trace-test',
+    }, {
+      eventId: 'sar:event:persisted-citation',
+      entityId: 'sar:entity:persisted-citation-target',
+      role: 'about' as const,
+      confidence: 0.91,
+      provenance: 'metadata-projection' as const,
+      source: 'persisted-trace-test',
+    }],
+    citationTargetRefs: ['citation:persisted-arena-official'],
+    retrievalChunkRefs: ['chunk:source-pack:persisted-baseline'],
+    limitations: ['persisted-trace-limited-sample'],
+  };
+  const repository = createSarPersistenceRepository({ filePath, now: () => now });
+  const write = repository.upsertQueryTrace({
+    result,
+    queryRole: 'teacher-diagnostics',
+    useCase: 'sar-live-evaluation',
+    queryIdentity: {
+      prompt: 'Which persisted SAR trace supports control correction?',
+      filters: ['control-correction'],
+    },
+    scope: {
+      scope: 'teacher',
+      teacherIdHash: `sar:teacher:sha256:${'a'.repeat(64)}`,
+    },
+    retention: {
+      storedAt: now,
+      retainUntil: '2026-07-20T00:00:00.000Z',
+      minimizationPolicy: 'aggregate-after-retention',
+    },
+    exportEligibility: 'teacher-export',
+    handoffStatus: 'ready',
+    now,
+  });
+  expect(write.persisted).toBe(true);
 }
 
 describe('GET /api/admin/data-governance/status', () => {
@@ -444,6 +577,35 @@ describe('GET /api/admin/data-governance/status', () => {
     });
     expect(JSON.stringify(payload.sarDiagnostics)).not.toContain('private raw answer');
     expect(JSON.stringify(payload.sarDiagnostics)).not.toContain('hiddenArenaEvaluationInternalsPayload');
+    expect(payload.sarDiagnostics.liveEvaluation).toMatchObject({
+      metrics: {
+        queryCount: 0,
+        feedbackRecordCount: 2,
+        ordinaryRetrievalBaselineRefCount: 0,
+        sarCandidateRefCount: 0,
+        verifiedCitationRefCount: 0,
+      },
+      privacyBoundary: {
+        restrictedRawContentExcluded: true,
+        candidateRefsAreVerifiedCitations: false,
+      },
+      arenaOfficialAuthority: {
+        status: 'available',
+        officialMetricSources: {
+          score: 'ArenaSubmission',
+          validity: 'ArenaSubmission',
+          ranking: 'ArenaSubmission',
+          attemptPolicy: 'ArenaSubmission',
+          evaluationMetrics: 'ArenaEvaluationRun',
+        },
+        officialRecordSummary: {
+          submissionCount: 1,
+          evaluationRunCount: 1,
+        },
+      },
+    });
+    expect(payload.sarDiagnostics.liveEvaluation.evaluationRecords).toHaveLength(2);
+    expect(payload.sarDiagnostics.liveEvaluation.limitations).toContain('sar-live-evaluation-persisted-traces-missing');
     expect(payload.sarRefreshHealth).toMatchObject({
       status: 'degraded',
       totals: {
@@ -510,6 +672,44 @@ describe('GET /api/admin/data-governance/status', () => {
         }),
       ],
     });
+  });
+
+  it('builds SAR live evaluation from persisted query traces when persistence is configured', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-live-eval-'));
+    const previous = process.env.SAR_PERSISTENCE_FILE_PATH;
+    const filePath = join(directory, 'sar.json');
+    seedSarPersistenceQueryTrace(filePath);
+    process.env.SAR_PERSISTENCE_FILE_PATH = filePath;
+    try {
+      const response = await GET(createRequest());
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.sarDiagnostics.liveEvaluation).toMatchObject({
+        metrics: {
+          queryCount: 1,
+          feedbackRecordCount: 2,
+          ordinaryRetrievalBaselineRefCount: 1,
+          sarCandidateRefCount: expect.any(Number),
+          verifiedCitationRefCount: 1,
+        },
+        arenaOfficialAuthority: {
+          status: 'available',
+        },
+      });
+      expect(payload.sarDiagnostics.liveEvaluation.metrics.sarCandidateRefCount).toBeGreaterThanOrEqual(2);
+      expect(payload.sarDiagnostics.liveEvaluation.querySet[0].query).toContain('teacher-diagnostics · sar-live-evaluation');
+      expect(payload.sarDiagnostics.liveEvaluation.querySet[0].query).toContain('sha256:');
+      expect(JSON.stringify(payload.sarDiagnostics.liveEvaluation)).not.toContain('Which persisted SAR trace supports control correction?');
+      expect(JSON.stringify(payload.sarDiagnostics.liveEvaluation)).not.toContain('control-correction-demo');
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SAR_PERSISTENCE_FILE_PATH;
+      } else {
+        process.env.SAR_PERSISTENCE_FILE_PATH = previous;
+      }
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 
   it('returns a requested risk outside the recent risk window for deep links', async () => {

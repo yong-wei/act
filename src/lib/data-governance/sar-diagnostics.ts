@@ -11,6 +11,12 @@ import type {
   SarRetrievalResult,
   SarRetrievalTrace,
 } from './structured-associative-retrieval-types';
+import type {
+  SarArenaAuxiliarySource,
+  SarArenaAuthorityInput,
+  SarArenaOfficialSource,
+} from './sar-refresh';
+import type { SarPersistenceExport } from './sar-persistence';
 
 export type SarDiagnosticsTraceInput = {
   id: string;
@@ -100,6 +106,77 @@ export type SarDiagnosticsReport = {
     query: string;
     sourcePackHandoff: boolean;
     verifiedCitationOutcome: 'available' | 'missing';
+  };
+  liveEvaluation?: SarLiveEvaluationReport;
+};
+
+export type SarLiveEvaluationRecord = {
+  id: string;
+  kind: 'target-user-feedback' | 'structured-test';
+  actorRole: 'teacher' | 'admin' | 'student' | 'reviewer';
+  task: string;
+  expectedEvidence: string;
+  observedResult: string;
+  limitation: string;
+};
+
+export type SarLiveEvaluationReport = {
+  generatedAt: string;
+  querySet: Array<{
+    id: string;
+    query: string;
+    ordinaryRetrievalBaselineRefCount: number;
+    sarCandidateRefCount: number;
+    sarOnlyCandidateRefCount: number;
+    verifiedCitationRefCount: number;
+    sourcePackHandoffRefCount: number;
+    multiHopHit: boolean;
+    privacyRejectionCount: number;
+    limitationCount: number;
+  }>;
+  metrics: {
+    queryCount: number;
+    ordinaryRetrievalBaselineRefCount: number;
+    sarCandidateRefCount: number;
+    sarOnlyCandidateRefCount: number;
+    verifiedCitationRefCount: number;
+    sourcePackHandoffRefCount: number;
+    privacyRejectionCount: number;
+    limitationCount: number;
+    feedbackRecordCount: number;
+    multiHopHitRate: number;
+  };
+  baselineComparison: {
+    ordinaryRetrievalBaselineRefCount: number;
+    sarCandidateRefCount: number;
+    sarOnlyCandidateRefCount: number;
+    verifiedCitationRefCount: number;
+  };
+  evaluationRecords: SarLiveEvaluationRecord[];
+  limitations: string[];
+  privacyBoundary: {
+    restrictedRawContentExcluded: boolean;
+    candidateRefsAreVerifiedCitations: boolean;
+    exportedFields: string[];
+  };
+  arenaOfficialAuthority: {
+    status: 'available' | 'unavailable';
+    officialMetricSources: Partial<{
+      score: SarArenaOfficialSource;
+      validity: SarArenaOfficialSource;
+      ranking: SarArenaOfficialSource;
+      attemptPolicy: SarArenaOfficialSource;
+      evaluationMetrics: SarArenaOfficialSource;
+    }>;
+    officialSources: SarArenaOfficialSource[];
+    auxiliarySources: SarArenaAuxiliarySource[];
+    officialRecordSummary: {
+      submissionCount: number;
+      evaluationRunCount: number;
+      latestSubmissionAt: string | null;
+      latestEvaluationCompletedAt: string | null;
+    };
+    limitations: string[];
   };
 };
 
@@ -277,6 +354,194 @@ export function buildSarDiagnosticsReport(input: {
     },
     demoFixtureStatus: input.demoFixtureStatus,
   };
+}
+
+export function buildSarLiveEvaluationReport(input: {
+  generatedAt: string;
+  diagnostics: SarDiagnosticsReport;
+  traces: readonly SarDiagnosticsTraceInput[];
+  evaluationRecords: readonly SarLiveEvaluationRecord[];
+  arenaAuthority?: SarArenaAuthorityInput | null;
+  limitations?: readonly string[];
+}): SarLiveEvaluationReport {
+  const querySet: SarLiveEvaluationReport['querySet'] = [];
+  let ordinaryRetrievalBaselineRefCount = 0;
+  let sarCandidateRefCount = 0;
+  let sarOnlyCandidateRefCount = 0;
+  let verifiedCitationRefCount = 0;
+  let sourcePackHandoffRefCount = 0;
+  let privacyRejectionCount = 0;
+  let limitationCount = 0;
+  let multiHopHitCount = 0;
+
+  for (const traceInput of input.traces) {
+    const result = exportableSarResult(traceInput.result);
+    const sensitiveRefs = sensitiveDiagnosticRefs(result);
+    const ordinaryRefs = exportableDiagnosticRefs(traceInput.ordinarySourcePackRefs ?? [], traceInput.result);
+    const sarRefs = exportableDiagnosticRefs(traceInput.sarAssistedRefs ?? result.retrievalChunkRefs, traceInput.result);
+    const sarOnlyRefs = sarRefs.filter((ref) => !ordinaryRefs.includes(ref));
+    const sourcePackHandoffRefs = exportableDiagnosticRefs(traceInput.sourcePackHandoffRefs ?? [], traceInput.result);
+    const verifiedRefs = verifiedCitationTargetRefs(
+      exportableDiagnosticRefs(traceInput.verifiedCitationRefs ?? [], traceInput.result),
+      result.citationTargetRefs,
+    );
+    const traceLimitations = mergedDiagnosticLimitations(result);
+    const tracePrivacyRejectionCount = countPrivacyRejections(result.trace);
+    const multiHopHit = result.trace.expansionHops.length > 1 && sarRefs.length > 0;
+
+    ordinaryRetrievalBaselineRefCount += ordinaryRefs.length;
+    sarCandidateRefCount += sarRefs.length;
+    sarOnlyCandidateRefCount += sarOnlyRefs.length;
+    verifiedCitationRefCount += verifiedRefs.length;
+    sourcePackHandoffRefCount += sourcePackHandoffRefs.length;
+    privacyRejectionCount += tracePrivacyRejectionCount;
+    limitationCount += traceLimitations.length;
+    if (multiHopHit) multiHopHitCount += 1;
+
+    querySet.push({
+      id: redactSensitiveDiagnosticRef(traceInput.id, sensitiveRefs),
+      query: redactSensitiveDiagnosticText(traceInput.query),
+      ordinaryRetrievalBaselineRefCount: ordinaryRefs.length,
+      sarCandidateRefCount: sarRefs.length,
+      sarOnlyCandidateRefCount: sarOnlyRefs.length,
+      verifiedCitationRefCount: verifiedRefs.length,
+      sourcePackHandoffRefCount: sourcePackHandoffRefs.length,
+      multiHopHit,
+      privacyRejectionCount: tracePrivacyRejectionCount,
+      limitationCount: traceLimitations.length,
+    });
+  }
+
+  const arenaOfficialAuthority = evaluateLiveArenaAuthority(input.arenaAuthority);
+  const limitations = uniqueSorted([
+    ...Object.keys(input.diagnostics.limitationCounts),
+    ...(input.limitations ?? []),
+    ...arenaOfficialAuthority.limitations,
+  ].map(redactSensitiveDiagnosticText));
+
+  return {
+    generatedAt: input.generatedAt,
+    querySet,
+    metrics: {
+      queryCount: querySet.length,
+      ordinaryRetrievalBaselineRefCount,
+      sarCandidateRefCount,
+      sarOnlyCandidateRefCount,
+      verifiedCitationRefCount,
+      sourcePackHandoffRefCount,
+      privacyRejectionCount,
+      limitationCount,
+      feedbackRecordCount: input.evaluationRecords.length,
+      multiHopHitRate: rate(multiHopHitCount, querySet.length),
+    },
+    baselineComparison: {
+      ordinaryRetrievalBaselineRefCount,
+      sarCandidateRefCount,
+      sarOnlyCandidateRefCount,
+      verifiedCitationRefCount,
+    },
+    evaluationRecords: input.evaluationRecords.map(serializeLiveEvaluationRecord),
+    limitations,
+    privacyBoundary: {
+      restrictedRawContentExcluded: true,
+      candidateRefsAreVerifiedCitations: false,
+      exportedFields: [
+        'querySet',
+        'metrics',
+        'baselineComparison',
+        'evaluationRecords',
+        'limitations',
+        'arenaOfficialAuthority',
+      ],
+    },
+    arenaOfficialAuthority,
+  };
+}
+
+export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
+  generatedAt: string;
+  persistenceExport: SarPersistenceExport;
+  diagnostics: SarDiagnosticsReport;
+  evaluationRecords: readonly SarLiveEvaluationRecord[];
+  arenaAuthority?: SarArenaAuthorityInput | null;
+  limitations?: readonly string[];
+}): SarLiveEvaluationReport {
+  const eventById = new Map(input.persistenceExport.events.map((record) => [record.stableId, record]));
+  const eventBySourceRef = new Map(input.persistenceExport.events.map((record) => [record.sourceRef.id, record]));
+  const entityById = new Map(input.persistenceExport.entities.map((record) => [record.stableId, record]));
+  const traces = input.persistenceExport.queryTraces.map((trace): SarDiagnosticsTraceInput => {
+    const eventIds = new Set<string>();
+    const entityIds = new Set<string>();
+    for (const ref of trace.selectedRefs) {
+      if (eventById.has(ref)) eventIds.add(ref);
+      const sourceEvent = eventBySourceRef.get(ref);
+      if (sourceEvent) eventIds.add(sourceEvent.stableId);
+      if (entityById.has(ref)) entityIds.add(ref);
+    }
+    for (const seedId of trace.seedEntityIds) {
+      if (entityById.has(seedId)) entityIds.add(seedId);
+    }
+    for (const hop of trace.expansionHops) {
+      if (entityById.has(hop.fromEntityId)) entityIds.add(hop.fromEntityId);
+      if (entityById.has(hop.toEntityId)) entityIds.add(hop.toEntityId);
+      if (hop.viaEventId && eventById.has(hop.viaEventId)) eventIds.add(hop.viaEventId);
+    }
+    const events = [...eventIds].flatMap((id) => {
+      const record = eventById.get(id);
+      return record ? [persistedEventToSarEvent(record)] : [];
+    });
+    const entities = [...entityIds].flatMap((id) => {
+      const record = entityById.get(id);
+      return record ? [persistedEntityToSarEntity(record)] : [];
+    });
+    const relations = input.persistenceExport.relations
+      .filter((record) => eventIds.has(record.eventId) && entityIds.has(record.entityId))
+      .map(persistedRelationToSarRelation);
+    const verifiedCitationRefs = persistedVerifiedCitationRefs(trace.selectedRefs, eventBySourceRef);
+    const ordinarySourcePackRefs = persistedOrdinaryBaselineRefs(trace.selectedRefs, eventById, eventBySourceRef);
+    const result: SarRetrievalResult = {
+      id: `sar:result:persisted:${trace.stableId}`,
+      trace: {
+        id: trace.stableId,
+        seedEntityIds: trace.seedEntityIds,
+        expansionHops: trace.expansionHops,
+        selectedRefs: trace.selectedRefs,
+        rejectedRefs: trace.rejectedRefs,
+        limitations: trace.limitations,
+        versionRefs: trace.versionRefs,
+      },
+      events,
+      entities,
+      relations,
+      citationTargetRefs: verifiedCitationRefs,
+      retrievalChunkRefs: trace.selectedRefs,
+      limitations: trace.limitations,
+    };
+
+    return {
+      id: trace.stableId,
+      query: `${trace.queryRole} · ${trace.useCase} · ${shortPersistedQueryHash(trace.queryHash)}`,
+      result,
+      sourcePackHandoffRefs: trace.handoffStatus === 'ready' ? trace.selectedRefs : [],
+      verifiedCitationRefs,
+      ordinarySourcePackRefs,
+      sarAssistedRefs: trace.selectedRefs,
+    };
+  });
+  const missingTraceLimitations = traces.length === 0 ? ['sar-live-evaluation-persisted-traces-missing'] : [];
+
+  return buildSarLiveEvaluationReport({
+    generatedAt: input.generatedAt,
+    diagnostics: input.diagnostics,
+    traces,
+    evaluationRecords: input.evaluationRecords,
+    arenaAuthority: input.arenaAuthority,
+    limitations: [
+      ...(input.limitations ?? []),
+      ...missingTraceLimitations,
+      `sar-persistence-exported-at:${input.persistenceExport.exportedAt}`,
+    ],
+  });
 }
 
 export function buildControlCorrectionSarDemoFixture(generatedAt = new Date().toISOString()): ControlCorrectionSarDemoFixture {
@@ -468,6 +733,180 @@ function relation(
     provenance: 'metadata-projection',
     source: 'control-correction-sar-demo',
   };
+}
+
+function serializeLiveEvaluationRecord(record: SarLiveEvaluationRecord): SarLiveEvaluationRecord {
+  return {
+    id: redactSensitiveDiagnosticRef(record.id),
+    kind: record.kind,
+    actorRole: record.actorRole,
+    task: redactSensitiveDiagnosticText(record.task),
+    expectedEvidence: redactSensitiveDiagnosticText(record.expectedEvidence),
+    observedResult: redactSensitiveDiagnosticText(record.observedResult),
+    limitation: redactSensitiveDiagnosticText(record.limitation),
+  };
+}
+
+function persistedEventToSarEvent(
+  record: SarPersistenceExport['events'][number],
+): SarRetrievalEvent {
+  return {
+    id: record.stableId,
+    eventType: record.eventType,
+    title: record.title,
+    safeSummary: record.safeSummary,
+    sourceRef: {
+      id: record.sourceRef.id,
+      owner: record.sourceRef.owner,
+      authorityLevel: record.sourceRef.authorityLevel,
+      freshness: record.sourceRef.freshness,
+      contentHash: record.sourceRef.contentHash,
+    },
+    privacyScope: record.privacyScope,
+    metadata: {},
+  };
+}
+
+function persistedEntityToSarEntity(
+  record: SarPersistenceExport['entities'][number],
+): SarRetrievalEntity {
+  return {
+    id: record.stableId,
+    entityType: record.entityType,
+    canonicalRef: record.canonicalRef,
+    label: record.label,
+    aliases: record.aliases,
+    privacyScope: record.privacyScope,
+    extraction: record.extraction,
+  };
+}
+
+function persistedRelationToSarRelation(
+  record: SarPersistenceExport['relations'][number],
+): SarRetrievalEventEntity {
+  return {
+    eventId: record.eventId,
+    entityId: record.entityId,
+    role: record.role,
+    confidence: record.confidence,
+    provenance: record.provenance,
+    source: record.source,
+  };
+}
+
+function persistedVerifiedCitationRefs(
+  selectedRefs: readonly string[],
+  eventBySourceRef: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
+): string[] {
+  return uniqueSorted(selectedRefs.filter((ref) => (
+    isPersistedCitationRef(ref) || isPersistedCitationRef(eventBySourceRef.get(ref)?.sourceRef.id ?? '')
+  )));
+}
+
+function persistedOrdinaryBaselineRefs(
+  selectedRefs: readonly string[],
+  eventById: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
+  eventBySourceRef: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
+): string[] {
+  return uniqueSorted(selectedRefs.filter((ref) => {
+    const eventRecord = eventById.get(ref) ?? eventBySourceRef.get(ref);
+    return ref.toLowerCase().includes('source-pack')
+      || ref.toLowerCase().includes('ordinary')
+      || eventRecord?.eventType === 'resource-node'
+      || eventRecord?.sourceRef.owner === 'ResourceNode';
+  }));
+}
+
+function isPersistedCitationRef(ref: string): boolean {
+  return ref.startsWith('citation:') || ref.startsWith('citation-target:');
+}
+
+function shortPersistedQueryHash(queryHash: string): string {
+  return queryHash.replace(/^sar:query:/, '').slice(0, 14);
+}
+
+function evaluateLiveArenaAuthority(
+  input?: SarArenaAuthorityInput | null,
+): SarLiveEvaluationReport['arenaOfficialAuthority'] {
+  if (!input) {
+    return {
+      status: 'unavailable',
+      officialMetricSources: {},
+      officialSources: [],
+      auxiliarySources: [],
+      officialRecordSummary: {
+        submissionCount: 0,
+        evaluationRunCount: 0,
+        latestSubmissionAt: null,
+        latestEvaluationCompletedAt: null,
+      },
+      limitations: ['arena-official-source-authority-missing'],
+    };
+  }
+  const officialMetricSources: SarLiveEvaluationReport['arenaOfficialAuthority']['officialMetricSources'] = {};
+  const auxiliarySources = new Set<SarArenaAuxiliarySource>(input.auxiliarySources ?? []);
+  const candidateFields = [
+    ['score', input.scoreSource],
+    ['validity', input.validitySource],
+    ['ranking', input.rankingSource],
+    ['attemptPolicy', input.attemptPolicySource],
+    ['evaluationMetrics', input.evaluationMetricsSource],
+  ] as const;
+  for (const [field, source] of candidateFields) {
+    if (isAcceptedOfficialArenaFieldSource(field, source)) {
+      officialMetricSources[field] = source;
+    } else if (!isArenaOfficialSource(source)) {
+      auxiliarySources.add(source);
+    }
+  }
+
+  const records = input.officialRecords;
+  const missingOfficialRecords = !records
+    || records.submissionCount === 0
+    || records.evaluationRunCount === 0
+    || records.scoreRefs.length === 0
+    || records.validityRefs.length === 0
+    || records.rankingRefs.length === 0
+    || records.attemptPolicyRefs.length === 0
+    || records.evaluationMetricRefs.length === 0;
+  const invalidOfficialSources = candidateFields.some(([field, source]) => (
+    !isAcceptedOfficialArenaFieldSource(field, source)
+  ));
+  const limitations = uniqueSorted([
+    ...(invalidOfficialSources ? ['arena-official-source-authority-invalid'] : []),
+    ...(missingOfficialRecords ? ['arena-official-records-missing'] : []),
+    ...(auxiliarySources.size > 0 ? ['arena-auxiliary-evidence-context-only'] : []),
+  ]);
+
+  return {
+    status: limitations.includes('arena-official-source-authority-invalid') || missingOfficialRecords
+      ? 'unavailable'
+      : 'available',
+    officialMetricSources,
+    officialSources: uniqueSorted(Object.values(officialMetricSources)) as SarArenaOfficialSource[],
+    auxiliarySources: uniqueSorted([...auxiliarySources]) as SarArenaAuxiliarySource[],
+    officialRecordSummary: {
+      submissionCount: records?.submissionCount ?? 0,
+      evaluationRunCount: records?.evaluationRunCount ?? 0,
+      latestSubmissionAt: records?.latestSubmissionAt ?? null,
+      latestEvaluationCompletedAt: records?.latestEvaluationCompletedAt ?? null,
+    },
+    limitations,
+  };
+}
+
+function isArenaOfficialSource(
+  source: SarArenaOfficialSource | SarArenaAuxiliarySource,
+): source is SarArenaOfficialSource {
+  return source === 'ArenaSubmission' || source === 'ArenaEvaluationRun';
+}
+
+function isAcceptedOfficialArenaFieldSource(
+  field: 'score' | 'validity' | 'ranking' | 'attemptPolicy' | 'evaluationMetrics',
+  source: SarArenaOfficialSource | SarArenaAuxiliarySource,
+): source is SarArenaOfficialSource {
+  if (field === 'evaluationMetrics') return source === 'ArenaEvaluationRun';
+  return source === 'ArenaSubmission';
 }
 
 function countPrivacyRejections(trace: SarRetrievalTrace): number {
