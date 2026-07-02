@@ -138,6 +138,34 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
     }));
   });
 
+  it('rejects duplicate terminal SAR candidate reviews', async () => {
+    mocks.prisma.teachingResource.findMany.mockResolvedValue([{
+      ...ownedResource,
+      config: {
+        resourceNodePlanning: {
+          sarSuggestedBindingReviews: [{
+            candidateId: 'sar-gap:owned-quiz',
+            candidateRef: 'teaching-resource:owned-quiz',
+            candidateRefType: 'resource-node',
+            state: 'accepted',
+            decision: 'accept',
+          }],
+        },
+      },
+    }]);
+
+    const response = await POST(reviewRequest({ decision: 'reject' }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      ok: false,
+      code: 'SAR_REVIEW_CANDIDATE_ALREADY_TERMINAL',
+      existingState: 'accepted',
+    });
+    expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
+  });
+
   it('rejects accepted suggestions without an explicit governance patch', async () => {
     const response = await POST(reviewRequest({ decision: 'accept' }));
     const payload = await response.json();

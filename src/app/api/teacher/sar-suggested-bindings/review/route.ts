@@ -165,6 +165,19 @@ async function persistSarReviewOnResource(input: {
   const existingReviews = Array.isArray(currentPlanning.sarSuggestedBindingReviews)
     ? currentPlanning.sarSuggestedBindingReviews.filter((item) => readObject(item))
     : [];
+  const terminalReview = existingReviews.find((review) =>
+    stringValue(review.candidateId) === input.result.auditRecord.candidateId &&
+    isTerminalSarReviewState(stringValue(review.state))
+  );
+  if (terminalReview) {
+    return NextResponse.json({
+      ok: false,
+      status: 409,
+      code: 'SAR_REVIEW_CANDIDATE_ALREADY_TERMINAL',
+      error: 'SAR 候选已完成终态审查。',
+      existingState: stringValue(terminalReview.state),
+    }, { status: 409 });
+  }
   const planningPatch = input.result.persistablePatch?.resourceNodePlanning ?? {};
   const nextConfig = {
     ...currentConfig,
@@ -204,6 +217,10 @@ function findSarReviewAuditResource(
 ) {
   const sourceRefs = new Set(candidateSourceRefs);
   return resources.find((resource) => sourceRefs.has(resource.id));
+}
+
+function isTerminalSarReviewState(state: string | null): boolean {
+  return state === 'accepted' || state === 'rejected' || state === 'invalidated';
 }
 
 function createScope(
