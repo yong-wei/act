@@ -686,29 +686,46 @@ describe('GET /api/admin/data-governance/status', () => {
     });
   });
 
-  it('records an admin operation ledger entry for manual refresh requests', async () => {
-    const response = await GET(createRequest('?recordOperation=refresh&riskId=risk-1'));
-    const payload = await response.json();
+  it('blocks audited manual SAR refresh when persistence path is missing', async () => {
+    const previous = process.env.SAR_PERSISTENCE_FILE_PATH;
+    delete process.env.SAR_PERSISTENCE_FILE_PATH;
+    try {
+      const response = await GET(createRequest('?recordOperation=refresh&riskId=risk-1'));
+      const payload = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(payload.operationLedger).toMatchObject({
-      kind: 'admin-governance-refresh',
-      actorId: 'admin-1',
-      outcome: 'completed',
-      idempotencyKey: expect.stringMatching(/^admin-op:/),
-      auditSummary: expect.stringContaining('sarRefresh=degraded'),
-    });
-    expect(payload.sarRefreshHealth.operationEvidence).toMatchObject({
-      operationId: payload.operationLedger.operationId,
-      idempotencyKey: payload.operationLedger.idempotencyKey,
-    });
-    expect(response.headers.get('x-admin-operation-id')).toMatch(/^admin-governance-refresh:/);
-    expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      create: expect.objectContaining({
+      expect(response.status).toBe(200);
+      expect(payload.operationLedger).toMatchObject({
         kind: 'admin-governance-refresh',
-        scope: 'admin-data-governance-status',
-      }),
-    }));
+        actorId: 'admin-1',
+        outcome: 'blocked',
+        idempotencyKey: expect.stringMatching(/^admin-op:/),
+        auditSummary: expect.stringContaining('数据治理状态刷新被阻止'),
+        recoveryState: expect.objectContaining({
+          status: 'retry',
+          action: '配置 SAR_PERSISTENCE_FILE_PATH 后重试刷新',
+        }),
+      });
+      expect(payload.sarRefreshHealth.status).toBe('failed');
+      expect(payload.sarRefreshHealth.limitations).toContain('sar-persistence-file-path-required');
+      expect(payload.sarRefreshHealth.operationEvidence).toMatchObject({
+        operationId: payload.operationLedger.operationId,
+        idempotencyKey: payload.operationLedger.idempotencyKey,
+      });
+      expect(response.headers.get('x-admin-operation-outcome')).toBe('blocked');
+      expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+        create: expect.objectContaining({
+          kind: 'admin-governance-refresh',
+          scope: 'admin-data-governance-status',
+          outcome: 'blocked',
+        }),
+      }));
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SAR_PERSISTENCE_FILE_PATH;
+      } else {
+        process.env.SAR_PERSISTENCE_FILE_PATH = previous;
+      }
+    }
   });
 
   it('does not write SAR persistence during automatic status reads', async () => {
@@ -754,6 +771,64 @@ describe('GET /api/admin/data-governance/status', () => {
       }
       rmSync(directory, { recursive: true, force: true });
     }
+  });
+
+  it('uses submission-linked Arena evaluation runs for official SAR authority', async () => {
+    mocks.prisma.arenaSubmission.findMany.mockResolvedValue([
+      {
+        id: 'arena-submission-with-reused-run',
+        userId: 'student-1',
+        taskId: 'unit-5-2-regression-fixture',
+        classId: 'class-1',
+        seasonId: 'season-1',
+        publicationId: 'publication-1',
+        score: 91,
+        valid: true,
+        submissionAttemptKey: 'attempt-reused-1',
+        submittedAt: new Date('2026-05-20T08:18:00.000Z'),
+        evaluationRunId: 'arena-eval-reused-old',
+      },
+    ]);
+    mocks.prisma.arenaEvaluationRun.findMany
+      .mockResolvedValueOnce([
+        {
+          id: 'arena-eval-latest-unrelated',
+          taskId: 'other-task',
+          metadata: { source: 'real' },
+          completedAt: new Date('2026-05-20T09:00:00.000Z'),
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'arena-eval-reused-old',
+          taskId: 'unit-5-2-regression-fixture',
+          metrics: { settlingTime: 1.5 },
+          protocolVersion: 'arena-protocol.v1',
+          completedAt: new Date('2026-05-18T08:20:00.000Z'),
+        },
+      ]);
+
+    const response = await GET(createRequest());
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.arenaEvaluationRun.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: { in: ['arena-eval-reused-old'] } },
+    }));
+    expect(payload.sarRefreshHealth.sources).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        family: 'arena-official',
+        arenaAuthority: expect.objectContaining({
+          officialRecordSummary: {
+            submissionCount: 1,
+            evaluationRunCount: 1,
+            latestSubmissionAt: '2026-05-20T08:18:00.000Z',
+            latestEvaluationCompletedAt: '2026-05-18T08:20:00.000Z',
+          },
+        }),
+      }),
+    ]));
+    expect(payload.sarRefreshHealth.totals.failureCount).toBe(0);
   });
 
   it('does not record an admin operation ledger entry for automatic status reads', async () => {

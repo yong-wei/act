@@ -397,13 +397,20 @@ function governanceRefreshStateFromLedger(ledger: AdminOperationLedgerEntry) {
       sourceRoute: '/admin/data-governance',
       requestedAction: 'refresh',
     },
-    status: ledger.outcome === 'failed' ? 'failed' : 'succeeded',
+    status: governanceRefreshStatusFromLedgerOutcome(ledger.outcome),
     message: ledger.auditSummary,
     nextAction: '复核治理风险或导出风险文件',
     recoveryAction: ledger.recoveryState.action,
     recoveryKind: ledger.recoveryState.status,
     displayReference: ledger.idempotencyKey,
   });
+}
+
+function governanceRefreshStatusFromLedgerOutcome(outcome: AdminOperationLedgerEntry['outcome']) {
+  if (outcome === 'pending') return 'pending';
+  if (outcome === 'failed') return 'failed';
+  if (outcome === 'blocked') return 'blocked';
+  return 'succeeded';
 }
 
 function governanceActionStateFromLedger(

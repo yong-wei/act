@@ -376,6 +376,8 @@ describe('admin governance action contract', () => {
     expect(dataGovernanceDashboardSource).toContain('aria-label="刷新数据治理状态"');
     expect(dataGovernanceDashboardSource).toContain('const [refreshActionState, setRefreshActionState]');
     expect(dataGovernanceDashboardSource).toContain("category: 'refresh'");
+    expect(dataGovernanceDashboardSource).toContain('function governanceRefreshStatusFromLedgerOutcome');
+    expect(dataGovernanceDashboardSource).toContain("if (outcome === 'blocked') return 'blocked'");
     expect(dataGovernanceDashboardSource).toContain('<ActionStatusPanel state={refreshActionState} />');
     expect(dataGovernanceDashboardSource).toContain('function governanceActionStateFromLedger');
     expect(dataGovernanceDashboardSource).toContain('operationLedger?: AdminOperationLedgerEntry');

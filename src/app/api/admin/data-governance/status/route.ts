@@ -30,6 +30,7 @@ import {
   buildControlCorrectionSarRefreshSources,
   runSarProjectionRefresh,
   type SarArenaAuthorityInput,
+  type SarRefreshSourceInput,
 } from '@/lib/data-governance/sar-refresh';
 import { parseSessionGovernanceSummary } from '@/lib/classroom-session-statistics';
 import type {
@@ -543,35 +544,38 @@ async function collectEvidenceSourceCoverageReport(): Promise<EvidenceSourceCove
 }
 
 async function collectSarArenaOfficialAuthority(): Promise<SarArenaAuthorityInput> {
-  const [submissions, evaluationRuns] = await Promise.all([
-    prisma.arenaSubmission.findMany({
-      orderBy: { submittedAt: 'desc' },
-      take: SOURCE_COVERAGE_ROW_LIMIT,
-      select: {
-        id: true,
-        taskId: true,
-        score: true,
-        valid: true,
-        submissionAttemptKey: true,
-        submittedAt: true,
-        evaluationRunId: true,
-      },
-    }),
-    prisma.arenaEvaluationRun.findMany({
-      orderBy: { completedAt: 'desc' },
-      take: SOURCE_COVERAGE_ROW_LIMIT,
-      select: {
-        id: true,
-        taskId: true,
-        metrics: true,
-        protocolVersion: true,
-        completedAt: true,
-      },
-    }),
-  ]);
-  const evaluationRunIds = new Set(evaluationRuns.map((run) => run.id));
+  const submissions = await prisma.arenaSubmission.findMany({
+    orderBy: { submittedAt: 'desc' },
+    take: SOURCE_COVERAGE_ROW_LIMIT,
+    select: {
+      id: true,
+      taskId: true,
+      score: true,
+      valid: true,
+      submissionAttemptKey: true,
+      submittedAt: true,
+      evaluationRunId: true,
+    },
+  });
+  const submissionEvaluationRunIds = Array.from(new Set(
+    submissions.map((submission) => submission.evaluationRunId),
+  )).sort((left, right) => left.localeCompare(right));
+  const evaluationRuns = submissionEvaluationRunIds.length
+    ? await prisma.arenaEvaluationRun.findMany({
+        where: { id: { in: submissionEvaluationRunIds } },
+        orderBy: { completedAt: 'desc' },
+        select: {
+          id: true,
+          taskId: true,
+          metrics: true,
+          protocolVersion: true,
+          completedAt: true,
+        },
+      })
+    : [];
+  const returnedEvaluationRunIds = new Set(evaluationRuns.map((run) => run.id));
   const officialSubmissions = submissions.filter((submission) => (
-    evaluationRunIds.has(submission.evaluationRunId)
+    returnedEvaluationRunIds.has(submission.evaluationRunId)
   ));
   const latestEvaluationCompletedAt = evaluationRuns
     .map((run) => run.completedAt.toISOString())
@@ -599,6 +603,26 @@ async function collectSarArenaOfficialAuthority(): Promise<SarArenaAuthorityInpu
       evaluationMetricRefs: evaluationRuns.map((run) => `ArenaEvaluationRun:${run.id}:metrics:${run.protocolVersion}`),
     },
   };
+}
+
+function markSarRefreshPersistenceBlocked(
+  sources: SarRefreshSourceInput[],
+  blocked: boolean,
+): SarRefreshSourceInput[] {
+  if (!blocked) return sources;
+  return sources.map((source) => (
+    source.result
+      ? {
+          ...source,
+          failureCount: Math.max(source.failureCount ?? 0, 1),
+          retryState: 'blocked',
+          limitations: [
+            ...(source.limitations ?? []),
+            'sar-persistence-file-path-required',
+          ],
+        }
+      : source
+  ));
 }
 
 export async function GET(request: NextRequest) {
@@ -849,17 +873,22 @@ export async function GET(request: NextRequest) {
     const completedAt = new Date().toISOString();
     const sarDiagnostics = buildControlCorrectionSarDemoFixture(completedAt).report;
     const sarPersistenceFilePath = process.env.SAR_PERSISTENCE_FILE_PATH?.trim() || undefined;
-    const sarRefresh = runSarProjectionRefresh({
-      repository: createSarPersistenceRepository({
-        filePath: shouldRecordRefresh ? sarPersistenceFilePath : undefined,
-        now: () => completedAt,
-      }),
-      sources: buildControlCorrectionSarRefreshSources(completedAt, {
+    const sarPersistencePathMissing = shouldRecordRefresh && !sarPersistenceFilePath;
+    const sarRefreshSources = markSarRefreshPersistenceBlocked(
+      buildControlCorrectionSarRefreshSources(completedAt, {
         coverageSources: sourceCoverageReport.sources,
         arenaAuthority: sarArenaAuthority,
       }),
+      sarPersistencePathMissing,
+    );
+    const sarRefresh = runSarProjectionRefresh({
+      repository: createSarPersistenceRepository({
+        filePath: shouldRecordRefresh && !sarPersistencePathMissing ? sarPersistenceFilePath : undefined,
+        now: () => completedAt,
+      }),
+      sources: sarRefreshSources,
       now: completedAt,
-      persist: shouldRecordRefresh,
+      persist: shouldRecordRefresh && !sarPersistencePathMissing,
     });
     const sarRefreshHealth = sarRefresh.health;
     const operationLedger = shouldRecordRefresh
@@ -870,7 +899,7 @@ export async function GET(request: NextRequest) {
           scope: 'admin-data-governance-status',
           startedAt: completedAt,
           completedAt,
-          outcome: 'completed',
+          outcome: sarPersistencePathMissing ? 'blocked' : 'completed',
           idempotencyKey: buildAdminOperationIdempotencyKey([
             'admin-governance-refresh',
             session.user.id,
@@ -883,10 +912,12 @@ export async function GET(request: NextRequest) {
             available: false,
             rationale: '数据治理刷新只读取状态，不修改业务数据，无需回滚。',
           },
-          auditSummary: `数据治理状态已刷新：activeRiskFlags=${riskFlagCount}，learningFacts=${learningFactCount}，sarRefresh=${sarRefreshHealth.status}，sarStaleSources=${sarRefreshHealth.totals.staleSourceCount}，sarFailures=${sarRefreshHealth.totals.failureCount}。`,
+          auditSummary: `数据治理状态刷新${sarPersistencePathMissing ? '被阻止' : '已完成'}：activeRiskFlags=${riskFlagCount}，learningFacts=${learningFactCount}，sarRefresh=${sarRefreshHealth.status}，sarStaleSources=${sarRefreshHealth.totals.staleSourceCount}，sarFailures=${sarRefreshHealth.totals.failureCount}。`,
           recoveryState: {
-            status: 'available',
-            action: '复核治理风险或导出风险文件',
+            status: sarPersistencePathMissing ? 'retry' : 'available',
+            action: sarPersistencePathMissing
+              ? '配置 SAR_PERSISTENCE_FILE_PATH 后重试刷新'
+              : '复核治理风险或导出风险文件',
           },
         })
       : null;
