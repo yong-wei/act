@@ -405,13 +405,17 @@ export class SarPersistenceRepository {
     const versionRefs = options.versionRefs ?? result.trace.versionRefs;
     const persistenceIssues = validateResultPersistenceInput(result, versionRefs);
     if (persistenceIssues.length > 0) return { persisted: false, issues: persistenceIssues };
+    const now = options.now ?? this.now();
     persistResultIntoSnapshot(
       this.snapshot,
       result,
       versionRefs,
-      options.now ?? this.now(),
+      now,
     );
-    this.snapshot.generatedAt = options.now ?? this.now();
+    for (const [id, trace] of Object.entries(this.snapshot.queryTraces)) {
+      this.snapshot.queryTraces[id] = minimizeTraceIfExpired(trace, now);
+    }
+    this.snapshot.generatedAt = now;
     this.flush();
     return { persisted: true, issues: [] };
   }

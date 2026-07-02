@@ -783,6 +783,24 @@ describe('SAR persistence', () => {
     expect(repository.exportSafeSnapshot('2026-07-04T00:00:00.000Z').queryTraces).toEqual([]);
   });
 
+  it('minimizes expired traces while refreshing projection records', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    expect(repository.upsertQueryTrace(traceInput()).persisted).toBe(true);
+
+    const update = repository.upsertResult(sarResult({
+      events: [event({ safeSummary: 'Updated governed summary.' })],
+    }), { now: '2026-07-04T00:00:00.000Z' });
+    expect(update.persisted).toBe(true);
+
+    const traceRecord = repository.getSnapshot().queryTraces['sar:trace:root-locus'];
+    expect(traceRecord.minimized).toBe(true);
+    expect(traceRecord.seedEntityIds).toEqual([]);
+    expect(traceRecord.selectedRefs).toEqual([]);
+    expect(traceRecord.rejectedRefs).toEqual([]);
+    expect(traceRecord.updatedAt).toBe('2026-07-04T00:00:00.000Z');
+    expect(repository.exportSafeSnapshot('2026-07-04T00:00:00.000Z').queryTraces).toEqual([]);
+  });
+
   it('applies delete and redact trace retention policies distinctly', () => {
     const deleteRepository = createSarPersistenceRepository({ now: () => fixedNow });
     deleteRepository.upsertQueryTrace({
