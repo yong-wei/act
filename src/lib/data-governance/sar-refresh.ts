@@ -3,6 +3,7 @@ import {
   type SarPersistenceRepository,
 } from './sar-persistence';
 import type {
+  SarEntityType,
   SarRetrievalResult,
   SarValidationIssue,
 } from './structured-associative-retrieval';
@@ -378,7 +379,7 @@ function buildSourceFamilySarResult(
     'arena-official': 'arena-summary',
     'path-summary': 'path-summary',
   };
-  const entityTypes: Record<SarRefreshSourceFamily, Parameters<typeof projectGovernedSummaryToSar>[0]['entityRefs'] extends readonly (infer T)[] ? T extends { entityType: infer E } ? E : never : never> = {
+  const entityTypes: Record<SarRefreshSourceFamily, SarEntityType> = {
     'kaq-graph': 'graph-node',
     'learning-goal': 'learning-goal',
     'resource-node': 'resource-node',
@@ -522,8 +523,9 @@ function persistenceSafeSarResult(result: SarRetrievalResult): SarRetrievalResul
   };
 }
 
-function sanitizeMetadata(value: Record<string, unknown>): Record<string, unknown> {
+function sanitizeMetadata(value: Record<string, unknown> | undefined): Record<string, unknown> {
   const next: Record<string, unknown> = {};
+  if (!value) return next;
   for (const [key, item] of Object.entries(value)) {
     if (isRestrictedHealthText(key)) continue;
     if (typeof item === 'string') {
@@ -554,7 +556,16 @@ function evaluateArenaAuthority(input?: SarArenaAuthorityInput | null): {
     return {
       valid: false,
       limitations: ['arena-official-source-authority-missing'],
-      summary: { officialSources: [], auxiliarySources: [] },
+      summary: {
+        officialSources: [],
+        auxiliarySources: [],
+        officialRecordSummary: {
+          submissionCount: 0,
+          evaluationRunCount: 0,
+          latestSubmissionAt: null,
+          latestEvaluationCompletedAt: null,
+        },
+      },
     };
   }
   const officialCandidates = [
