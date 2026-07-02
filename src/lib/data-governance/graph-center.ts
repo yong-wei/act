@@ -208,7 +208,7 @@ export interface GraphCenterSarResourceGapSuggestion {
   review?: {
     state: 'suggested';
     authoritative: false;
-    availableActions: ['accept', 'reject', 'defer', 'invalidate'];
+    availableActions: Array<'accept' | 'reject' | 'defer' | 'invalidate'>;
     auditPayload: {
       candidateId: string;
       candidateRef: string;
@@ -739,6 +739,7 @@ function buildGraphCenterAssociatedEvidence(input: {
     linkedResourceIdSet,
     pathEligibleResourceIdSet,
     reviewActionsAllowed: input.viewerRole === 'TEACHER' || input.viewerRole === 'ADMIN',
+    targetNodeId: input.node.id,
   });
   return {
     status: safeExpansion.events.length > 0 || resourceGapSuggestions.length > 0
@@ -938,6 +939,7 @@ function buildSarResourceGapSuggestions(input: {
   linkedResourceIdSet: ReadonlySet<string>;
   pathEligibleResourceIdSet: ReadonlySet<string>;
   reviewActionsAllowed: boolean;
+  targetNodeId: string;
 }): GraphCenterSarResourceGapSuggestion[] {
   if (input.missingCoverageTypes.length === 0) return [];
   const visibleExpansion = input.visibleExpansion ?? input.expansion;
@@ -953,9 +955,12 @@ function buildSarResourceGapSuggestions(input: {
     ...visibleExpansion.candidateRefs.citationTargetIds.map((ref) => ({ ref, refType: 'citation-target' as const })),
     ...visibleExpansion.candidateRefs.planningUnitIds.map((ref) => ({ ref, refType: 'planning-unit' as const })),
   ];
-  const auditSourceRefs = buildSarReviewAuditSourceRefs(visibleExpansion);
   return refs.map(({ ref, refType }, index) => {
     const id = `sar-gap:${index + 1}`;
+    const auditSourceRefs = buildSarReviewAuditSourceRefs({
+      refType,
+      targetNodeId: input.targetNodeId,
+    });
     return {
       id,
       ref,
@@ -966,12 +971,12 @@ function buildSarResourceGapSuggestions(input: {
         review: {
           state: 'suggested',
           authoritative: false,
-          availableActions: ['accept', 'reject', 'defer', 'invalidate'],
+          availableActions: buildSarReviewAvailableActions(refType),
           auditPayload: {
             candidateId: id,
             candidateRef: ref,
             candidateRefType: refType,
-            sourceRefs: uniqueSorted([ref, ...auditSourceRefs]),
+            sourceRefs: auditSourceRefs,
             missingCoverageTypes: input.missingCoverageTypes,
             provenance: {
               source: 'graph-center-sar',
@@ -994,10 +999,19 @@ function buildSarResourceGapSuggestions(input: {
   });
 }
 
-function buildSarReviewAuditSourceRefs(expansion: SarAssociationExpansionResult): string[] {
-  return uniqueSorted([
-    ...expansion.events.map((event) => event.sourceRef.id),
-  ]);
+function buildSarReviewAuditSourceRefs(input: {
+  refType: GraphCenterSarResourceGapSuggestion['refType'];
+  targetNodeId: string;
+}): string[] {
+  if (input.refType === 'resource-node') return [];
+  return uniqueSorted([input.targetNodeId]);
+}
+
+function buildSarReviewAvailableActions(
+  refType: GraphCenterSarResourceGapSuggestion['refType'],
+): NonNullable<GraphCenterSarResourceGapSuggestion['review']>['availableActions'] {
+  if (refType === 'resource-node') return ['accept', 'reject', 'defer', 'invalidate'];
+  return ['reject', 'defer', 'invalidate'];
 }
 
 function mergeSarResults(results: SarRetrievalResult[]): Pick<

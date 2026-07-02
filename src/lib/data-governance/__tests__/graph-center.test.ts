@@ -401,12 +401,12 @@ describe('graph center payload service', () => {
         review: expect.objectContaining({
           state: 'suggested',
           authoritative: false,
-          availableActions: ['accept', 'reject', 'defer', 'invalidate'],
+          availableActions: ['reject', 'defer', 'invalidate'],
           auditPayload: expect.objectContaining({
             candidateRef: 'chunk-sar-simulation-gap',
             candidateRefType: 'retrieval-chunk',
             sourceRefs: expect.arrayContaining([
-              'chunk-sar-simulation-gap',
+              'kn:autocontrol:simulation-validation',
             ]),
             missingCoverageTypes: expect.arrayContaining([
               'linked-resource',
@@ -426,8 +426,12 @@ describe('graph center payload service', () => {
         ]),
       }),
     ]));
-    const reviewPayload = associated?.resourceGapSuggestions[0]?.review?.auditPayload;
+    const retrievalChunkSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
+      suggestion.ref === 'chunk-sar-simulation-gap'
+    );
+    const reviewPayload = retrievalChunkSuggestion?.review?.auditPayload;
     expect(reviewPayload?.sourceRefs.some((ref) => ref.startsWith('sar:event:'))).toBe(false);
+    expect(reviewPayload?.sourceRefs).not.toContain('chunk-sar-simulation-gap');
     expect(reviewPayload?.sourceRefs.length).toBeGreaterThan(0);
     const teacherReviewScope: TeacherResourceNodeScope = {
       role: 'TEACHER',
@@ -2050,6 +2054,7 @@ function ragChunk(input: {
   citationAddress?: LearningEvidenceCorpusChunk['citationAddress'];
   contentHash?: string;
   resourceId?: string;
+  sourceRefId?: string;
   ownerUserId?: string | null;
   classId?: string | null;
   privacyClass?: LearningEvidenceCorpusChunk['privacyClass'];
@@ -2062,7 +2067,7 @@ function ragChunk(input: {
     family: 'course-content',
     sourceType: 'course-content',
     sourceRef: {
-      id: input.id,
+      id: input.sourceRefId ?? input.id,
       ownerUserId: input.ownerUserId ?? null,
       classId: input.classId ?? null,
       goalId: 'graph-resource-coverage',
