@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
+import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
 import {
   buildDataCompletenessAuditReport,
   renderDataCompletenessAuditMarkdown,
@@ -74,6 +75,89 @@ describe('data completeness audit', () => {
       planningUnits: 1,
     });
     expect(report).not.toHaveProperty('score');
+  });
+
+  it('reports declared TeachingResource registryIds that are not registered', () => {
+    const teachingResources = [{
+      id: 'resource-typo',
+      title: 'Typo resource',
+      type: 'INTERACTIVE_COMP',
+      registryId: 'sim-controller-typo',
+      knowledgeNodes: [{
+        id: 'kn-controller',
+        name: 'Controller correction',
+        resources: [],
+        tags: ['correction'],
+      }],
+    }];
+    const registry = buildResourceNodeRegistryFromTeachingResources(teachingResources, [{
+      id: 'sim-controller',
+      label: 'Controller tuning simulation',
+      type: 'SIMULATION_APP',
+      launchTarget: '/sim/controller',
+      knowledgeNodeIds: ['kn-controller'],
+    }]);
+    const report = buildDataCompletenessAuditReport({
+      teachingResources,
+      resourceRegistry: registry,
+    });
+
+    const resourceBinding = report.layers.find((layer) => layer.id === 'resourceBinding');
+    expect(resourceBinding?.severity).toBe('blocked');
+    expect(resourceBinding?.totals.teachingResourcesUnregisteredRegistry).toBe(1);
+    expect(resourceBinding?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'teaching-resource-registry-unregistered',
+        stableRef: 'TeachingResource:resource-typo',
+      }),
+    ]));
+  });
+
+  it('does not treat non-path registry nodes as path readiness blockers', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeNodes: [{
+        id: 'kn-controller',
+        name: 'Controller correction',
+        tags: ['correction'],
+      }],
+    });
+    const report = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      canonicalLearner: {
+        displayName: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+      },
+      learnerCandidates: [{
+        userId: 'user-canonical',
+        name: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+        learningFactCount: 1,
+        knowledgeProgressCount: 1,
+        pathExecutionCount: 1,
+        pathExecutionEvidenceRefCount: 1,
+        competencySnapshotCount: 1,
+        profileSummaryCount: 1,
+        adaptiveAssessmentStateCount: 1,
+        featureCache: {
+          sourceFactCount: 1,
+          sourceCoverage: { LearningFact: 'available' },
+        },
+      }],
+    });
+
+    const pathReadiness = report.layers.find((layer) => layer.id === 'pathReadiness');
+    expect(pathReadiness?.severity).toBe('advisory');
+    expect(pathReadiness?.totals).toMatchObject({
+      resourceNodes: 0,
+      blockedPathNodes: 0,
+    });
+    expect(report.learnerFixture.fixtureGenerationBlocked).toBe(false);
+    expect(report.learnerFixture.blockers).not.toEqual(expect.arrayContaining([
+      expect.stringMatching(/^pathReadiness:/),
+      expect.stringMatching(/^resourceBinding:/),
+    ]));
   });
 
   it('audits evidence lineage without exposing raw event payloads', () => {

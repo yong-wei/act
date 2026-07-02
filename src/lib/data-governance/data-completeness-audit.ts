@@ -277,12 +277,20 @@ function buildResourceBindingLayer(
   resources: DataCompletenessTeachingResourceInput[],
   registry: ResourceNodeRegistry | undefined,
 ): DataCompletenessLayerSummary {
-  const registryFindings = registry?.audit.ineligibleNodes.flatMap((node) => node.reasons.map((reason) => (
-    finding(reason, 'blocked', `ResourceNode:${node.id}`, `${node.title} is not path eligible: ${reason}.`, 'audit-resource-node-bindings')
-  ))) ?? [];
+  const registeredResourceIds = collectRegisteredResourceIds(registry);
+  const registryFindings = buildPathAuditEntries(registry).flatMap(({ node, audit }) =>
+    audit.pathEligible
+      ? []
+      : audit.issues.map((issue) => (
+        finding(issue.code, issue.severity === 'blocking' ? 'blocked' : 'partial', `ResourceNode:${node.id}`, `${node.title} is not path eligible: ${issue.code}.`, 'audit-resource-node-bindings')
+      ))
+  );
   const resourceFindings = resources.flatMap((resource): DataCompletenessFinding[] => [
     !resource.registryId
       ? finding('teaching-resource-registry-missing', 'partial', `TeachingResource:${resource.id}`, `${resource.title} has no registryId.`, 'bind-teaching-resources')
+      : null,
+    resource.registryId && registry && !registeredResourceIds.has(resource.registryId)
+      ? finding('teaching-resource-registry-unregistered', 'blocked', `TeachingResource:${resource.id}`, `${resource.title} references an unregistered registryId.`, 'bind-teaching-resources')
       : null,
     (resource.knowledgeNodeIds ?? []).length === 0
       ? finding('teaching-resource-knowledge-missing', 'partial', `TeachingResource:${resource.id}`, `${resource.title} has no knowledge-node binding.`, 'bind-teaching-resources')
@@ -296,6 +304,7 @@ function buildResourceBindingLayer(
     pathEligibleNodes: registry?.audit.pathEligibleNodes ?? 0,
     ineligibleNodes: registry?.audit.ineligibleNodes.length ?? 0,
     teachingResourcesMissingRegistry: countFindings(findings, 'teaching-resource-registry-missing'),
+    teachingResourcesUnregisteredRegistry: countFindings(findings, 'teaching-resource-registry-unregistered'),
     teachingResourcesMissingKnowledge: countFindings(findings, 'teaching-resource-knowledge-missing'),
   }, findings);
 }
@@ -334,11 +343,7 @@ function buildCitationReadinessLayer(
 }
 
 function buildPathReadinessLayer(registry: ResourceNodeRegistry | undefined): DataCompletenessLayerSummary {
-  const audits = (registry?.nodes ?? []).map((node) => ({
-    node,
-    audit: buildResourceNodeHighConfidencePlanningAudit(node),
-    projection: buildResourceSemanticProjection(node),
-  }));
+  const audits = buildPathAuditEntries(registry);
   const findings = audits.flatMap(({ node, audit, projection }) => {
     const issueFindings = audit.issues.map((issue) => finding(
       issue.code,
@@ -355,11 +360,39 @@ function buildPathReadinessLayer(registry: ResourceNodeRegistry | undefined): Da
   });
 
   return layer('pathReadiness', {
-    resourceNodes: registry?.nodes.length ?? 0,
+    resourceNodes: audits.length,
     planningUnits: audits.filter((entry) => Boolean(entry.projection.planningUnit)).length,
     highConfidencePathEligible: audits.filter((entry) => entry.audit.pathEligible).length,
     blockedPathNodes: audits.filter((entry) => !entry.audit.pathEligible).length,
   }, findings);
+}
+
+function collectRegisteredResourceIds(registry: ResourceNodeRegistry | undefined): Set<string> {
+  const ids = new Set<string>();
+  for (const node of registry?.nodes ?? []) {
+    if (node.sourceKind === 'resource_registry') {
+      ids.add(node.sourceRef);
+    }
+  }
+  return ids;
+}
+
+function buildPathAuditEntries(registry: ResourceNodeRegistry | undefined) {
+  return (registry?.nodes ?? [])
+    .map((node) => ({
+      node,
+      audit: buildResourceNodeHighConfidencePlanningAudit(node),
+      projection: buildResourceSemanticProjection(node),
+    }))
+    .filter(({ node, projection }) => projection.planningUnit || isPathAuditCandidate(node));
+}
+
+function isPathAuditCandidate(node: ResourceNode): boolean {
+  if (node.sourceKind === 'knowledge_graph') return false;
+  if (node.sourceKind === 'textbook') return false;
+  if (node.sourceKind === 'runtime_lesson_step') return false;
+  if (node.sourceKind === 'runtime_handout') return false;
+  return node.type !== 'knowledge_node' && node.type !== 'textbook';
 }
 
 function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompletenessLayerSummary {
