@@ -891,6 +891,18 @@ export async function GET(request: NextRequest) {
       persist: shouldRecordRefresh && !sarPersistencePathMissing,
     });
     const sarRefreshHealth = sarRefresh.health;
+    const sarRefreshFailed = sarRefreshHealth.status === 'failed'
+      || sarRefreshHealth.totals.failureCount > 0;
+    const sarRefreshOperationOutcome = sarPersistencePathMissing
+      ? 'blocked'
+      : sarRefreshFailed
+        ? 'failed'
+        : 'completed';
+    const sarRefreshAuditStatus = sarPersistencePathMissing
+      ? '被阻止'
+      : sarRefreshFailed
+        ? '失败'
+        : '已完成';
     const operationLedger = shouldRecordRefresh
       ? buildAdminOperationLedgerEntry({
           kind: 'admin-governance-refresh',
@@ -899,7 +911,7 @@ export async function GET(request: NextRequest) {
           scope: 'admin-data-governance-status',
           startedAt: completedAt,
           completedAt,
-          outcome: sarPersistencePathMissing ? 'blocked' : 'completed',
+          outcome: sarRefreshOperationOutcome,
           idempotencyKey: buildAdminOperationIdempotencyKey([
             'admin-governance-refresh',
             session.user.id,
@@ -912,11 +924,13 @@ export async function GET(request: NextRequest) {
             available: false,
             rationale: '数据治理刷新只读取状态，不修改业务数据，无需回滚。',
           },
-          auditSummary: `数据治理状态刷新${sarPersistencePathMissing ? '被阻止' : '已完成'}：activeRiskFlags=${riskFlagCount}，learningFacts=${learningFactCount}，sarRefresh=${sarRefreshHealth.status}，sarStaleSources=${sarRefreshHealth.totals.staleSourceCount}，sarFailures=${sarRefreshHealth.totals.failureCount}。`,
+          auditSummary: `数据治理状态刷新${sarRefreshAuditStatus}：activeRiskFlags=${riskFlagCount}，learningFacts=${learningFactCount}，sarRefresh=${sarRefreshHealth.status}，sarStaleSources=${sarRefreshHealth.totals.staleSourceCount}，sarFailures=${sarRefreshHealth.totals.failureCount}。`,
           recoveryState: {
-            status: sarPersistencePathMissing ? 'retry' : 'available',
+            status: sarPersistencePathMissing || sarRefreshFailed ? 'retry' : 'available',
             action: sarPersistencePathMissing
               ? '配置 SAR_PERSISTENCE_FILE_PATH 后重试刷新'
+              : sarRefreshFailed
+                ? '修复 SAR 刷新失败源后重试刷新'
               : '复核治理风险或导出风险文件',
           },
         })

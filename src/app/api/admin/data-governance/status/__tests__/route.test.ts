@@ -774,6 +774,44 @@ describe('GET /api/admin/data-governance/status', () => {
     }
   });
 
+  it('records failed outcome when audited SAR refresh health fails', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-status-'));
+    const previous = process.env.SAR_PERSISTENCE_FILE_PATH;
+    const filePath = join(directory, 'sar.json');
+    process.env.SAR_PERSISTENCE_FILE_PATH = filePath;
+    mocks.prisma.arenaSubmission.findMany.mockResolvedValue([]);
+    mocks.prisma.arenaEvaluationRun.findMany.mockResolvedValue([]);
+    try {
+      const response = await GET(createRequest('?recordOperation=refresh'));
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.sarRefreshHealth.status).toBe('failed');
+      expect(payload.sarRefreshHealth.totals.failureCount).toBeGreaterThan(0);
+      expect(payload.operationLedger).toMatchObject({
+        outcome: 'failed',
+        auditSummary: expect.stringContaining('数据治理状态刷新失败'),
+        recoveryState: expect.objectContaining({
+          status: 'retry',
+          action: '修复 SAR 刷新失败源后重试刷新',
+        }),
+      });
+      expect(response.headers.get('x-admin-operation-outcome')).toBe('failed');
+      expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+        create: expect.objectContaining({
+          outcome: 'failed',
+        }),
+      }));
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SAR_PERSISTENCE_FILE_PATH;
+      } else {
+        process.env.SAR_PERSISTENCE_FILE_PATH = previous;
+      }
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
   it('reuses recorded SAR persistence during automatic status reads', async () => {
     const directory = mkdtempSync(join(tmpdir(), 'sar-status-'));
     const previous = process.env.SAR_PERSISTENCE_FILE_PATH;
