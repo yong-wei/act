@@ -36,12 +36,13 @@ describe('SAR projection refresh orchestration', () => {
     expect(first.health.limitations).not.toContain('sar-projection-builder-unavailable');
     expect(first.health.totals).toMatchObject({
       sourceFamilyCount: 8,
-      projectedEventCount: 12,
-      projectedEntityCount: 13,
-      projectedRelationCount: 17,
+      projectedEventCount: 8,
+      projectedEntityCount: 8,
+      projectedRelationCount: 8,
     });
     expect(second.health.totals).toEqual(first.health.totals);
-    expect(Object.keys(second.repository.getSnapshot().events)).toHaveLength(12);
+    expect(Object.keys(second.repository.getSnapshot().events)).toHaveLength(8);
+    expect(second.repository.getSnapshot().events).not.toHaveProperty('sar:event:arena-validation');
   });
 
   it('does not mark dry-run refreshes as newly successful', () => {

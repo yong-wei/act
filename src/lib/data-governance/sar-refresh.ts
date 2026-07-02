@@ -1,7 +1,4 @@
 import {
-  buildControlCorrectionSarDemoFixture,
-} from './sar-diagnostics';
-import {
   createSarPersistenceRepository,
   type SarPersistenceRepository,
 } from './sar-persistence';
@@ -244,7 +241,6 @@ export function buildControlCorrectionSarRefreshSources(
     arenaAuthority?: SarArenaAuthorityInput;
   } = {},
 ): SarRefreshSourceInput[] {
-  const fixture = buildControlCorrectionSarDemoFixture(generatedAt);
   const coverageByFamily = summarizeCoverageByFamily(input.coverageSources ?? []);
   const arenaCoverage = input.arenaAuthority?.officialRecords
     && input.arenaAuthority.officialRecords.submissionCount > 0
@@ -275,8 +271,6 @@ export function buildControlCorrectionSarRefreshSources(
     },
     {
       ...source('path-summary', generatedAt, coverageByFamily.get('path-summary')),
-      result: fixture.result,
-      limitations: ['control-correction-demo-fixture-projection'],
     },
   ];
 }
@@ -312,14 +306,12 @@ function source(
     staleCount: coverage?.staleCount,
     failureCount: coverage?.failureCount,
     limitations: coverage?.limitations,
-    result: family === 'path-summary'
-      ? undefined
-      : buildSourceFamilySarResult(family, generatedAt, coverage),
+    result: buildSourceFamilySarResult(family, generatedAt, coverage),
   };
 }
 
 function buildSourceFamilySarResult(
-  family: Exclude<SarRefreshSourceFamily, 'path-summary'>,
+  family: SarRefreshSourceFamily,
   generatedAt: string,
   coverage?: {
     highWaterMark: string | null;
@@ -328,7 +320,7 @@ function buildSourceFamilySarResult(
     limitations: string[];
   },
 ): SarRetrievalResult {
-  const titles: Record<Exclude<SarRefreshSourceFamily, 'path-summary'>, string> = {
+  const titles: Record<SarRefreshSourceFamily, string> = {
     'kaq-graph': 'K/A/Q graph projection health',
     'learning-goal': 'Learning goal projection health',
     'resource-node': 'Resource node projection health',
@@ -336,8 +328,9 @@ function buildSourceFamilySarResult(
     'learning-fact-summary': 'Learning fact projection health',
     'simulation-summary': 'Simulation summary projection health',
     'arena-official': 'Arena official projection health',
+    'path-summary': 'Path summary projection health',
   };
-  const eventTypes: Record<Exclude<SarRefreshSourceFamily, 'path-summary'>, Parameters<typeof projectGovernedSummaryToSar>[0]['eventType']> = {
+  const eventTypes: Record<SarRefreshSourceFamily, Parameters<typeof projectGovernedSummaryToSar>[0]['eventType']> = {
     'kaq-graph': 'graph-node',
     'learning-goal': 'path-summary',
     'resource-node': 'resource-node',
@@ -345,8 +338,9 @@ function buildSourceFamilySarResult(
     'learning-fact-summary': 'learning-fact-summary',
     'simulation-summary': 'simulation-summary',
     'arena-official': 'arena-summary',
+    'path-summary': 'path-summary',
   };
-  const entityTypes: Record<Exclude<SarRefreshSourceFamily, 'path-summary'>, Parameters<typeof projectGovernedSummaryToSar>[0]['entityRefs'] extends readonly (infer T)[] ? T extends { entityType: infer E } ? E : never : never> = {
+  const entityTypes: Record<SarRefreshSourceFamily, Parameters<typeof projectGovernedSummaryToSar>[0]['entityRefs'] extends readonly (infer T)[] ? T extends { entityType: infer E } ? E : never : never> = {
     'kaq-graph': 'graph-node',
     'learning-goal': 'learning-goal',
     'resource-node': 'resource-node',
@@ -354,6 +348,7 @@ function buildSourceFamilySarResult(
     'learning-fact-summary': 'learning-fact',
     'simulation-summary': 'path-node',
     'arena-official': 'path-node',
+    'path-summary': 'path-node',
   };
   const highWaterMark = coverage?.highWaterMark ?? generatedAt;
   const staleCount = coverage?.staleCount ?? 0;

@@ -448,9 +448,9 @@ describe('GET /api/admin/data-governance/status', () => {
       status: 'degraded',
       totals: {
         sourceFamilyCount: 8,
-        projectedEventCount: 12,
-        projectedEntityCount: 13,
-        projectedRelationCount: 17,
+        projectedEventCount: 8,
+        projectedEntityCount: 8,
+        projectedRelationCount: 8,
         staleSourceCount: 3,
         failureCount: 0,
       },
@@ -472,14 +472,13 @@ describe('GET /api/admin/data-governance/status', () => {
         }),
         expect.objectContaining({
           family: 'path-summary',
-          projectedEventCount: 5,
-          projectedEntityCount: 6,
-          projectedRelationCount: 10,
+          projectedEventCount: 1,
+          projectedEntityCount: 1,
+          projectedRelationCount: 1,
         }),
       ]),
       limitations: [
         'arena-auxiliary-evidence-context-only',
-        'control-correction-demo-fixture-projection',
         'source-materialization-future',
         'source-rows-excluded',
       ],
@@ -762,7 +761,9 @@ describe('GET /api/admin/data-governance/status', () => {
       expect(response.status).toBe(200);
       expect(payload.operationLedger).toBeDefined();
       expect(existsSync(filePath)).toBe(true);
-      expect(JSON.parse(readFileSync(filePath, 'utf8')).events).toHaveProperty('sar:event:arena-validation');
+      const snapshot = JSON.parse(readFileSync(filePath, 'utf8'));
+      expect(snapshot.events).toHaveProperty('sar:event:path-summary:sar-refresh:path-summary');
+      expect(snapshot.events).not.toHaveProperty('sar:event:arena-validation');
     } finally {
       if (previous === undefined) {
         delete process.env.SAR_PERSISTENCE_FILE_PATH;
