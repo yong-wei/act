@@ -178,6 +178,7 @@ export interface GraphCenterSarAssociationInput {
   enabled?: boolean;
   studentId?: string | null;
   classId?: string | null;
+  trustedScope?: boolean;
   maxEvents?: number;
   maxEntities?: number;
   minConfidence?: number;
@@ -617,6 +618,9 @@ function buildNodeDetails(
           classOverlay: actionContext.classOverlay,
           nodeId: node.id,
           requestedStudentId: actionContext.sarAssociation?.studentId ?? null,
+          trustedClassId: actionContext.sarAssociation?.trustedScope
+            ? actionContext.sarAssociation.classId ?? null
+            : null,
         }),
       }),
       actions: buildGraphCenterActions({
@@ -754,8 +758,12 @@ function sarAuthorizedScope(input: {
   classOverlay: GraphCenterClassOverlay;
   nodeId: string;
   requestedStudentId: string | null;
+  trustedClassId: string | null;
 }): GraphCenterSarAuthorizedScope {
-  const { learnerOverlay, classOverlay, requestedStudentId } = input;
+  const { learnerOverlay, classOverlay, requestedStudentId, trustedClassId } = input;
+  if (trustedClassId) {
+    return { classId: trustedClassId, learnerId: requestedStudentId };
+  }
   if (
     requestedStudentId &&
     learnerOverlay.status !== 'unauthorized' &&
