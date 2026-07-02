@@ -139,9 +139,10 @@ export function runSarProjectionRefresh(input: {
 }): SarProjectionRefreshResult {
   const now = input.now ?? new Date().toISOString();
   const repository = input.repository ?? createSarPersistenceRepository({ now: () => now });
-  const persistedSnapshot = input.persist === false ? repository.getSnapshot() : null;
+  const persistedSnapshot = repository.getSnapshot();
   const writes: SarProjectionRefreshResult['writes'] = [];
   const sourceRecords: SarRefreshSourceHealthRecord[] = [];
+  const persistedLastSuccessfulTimes: Array<string | null> = [];
 
   for (const source of input.sources) {
     const arenaAuthority = source.family === 'arena-official'
@@ -153,16 +154,30 @@ export function runSarProjectionRefresh(input: {
     ]);
     let persisted = true;
     let writeIssues: SarValidationIssue[] = [];
+    let writeLimitations: string[] = [];
     const persistenceResult = source.result ? persistenceSafeSarResult(source.result) : null;
     const persistedLastSuccessfulAt = persistedSourceLastSuccessfulAt(
       persistedSnapshot,
       source,
       persistenceResult,
     );
+    persistedLastSuccessfulTimes.push(persistedLastSuccessfulAt);
     if (source.result && input.persist !== false) {
-      const writeResult = repository.upsertResult(persistenceResult ?? source.result, { now });
-      persisted = writeResult.persisted;
-      writeIssues = writeResult.issues;
+      try {
+        const writeResult = repository.upsertResult(persistenceResult ?? source.result, { now });
+        persisted = writeResult.persisted;
+        writeIssues = writeResult.issues;
+      } catch (error) {
+        persisted = false;
+        writeLimitations = ['sar-persistence-write-failed'];
+        writeIssues = [{
+          code: 'invalid-object',
+          path: `sources.${source.family}.persistence`,
+          message: error instanceof Error && error.message
+            ? `SAR persistence write failed: ${error.message}`
+            : 'SAR persistence write failed.',
+        }];
+      }
       writes.push({
         family: source.family,
         persisted,
@@ -176,7 +191,7 @@ export function runSarProjectionRefresh(input: {
     );
     const staleCount = Math.max(0, source.staleCount ?? 0);
     const projectionLimitations = source.result
-      ? sourceLimitations
+      ? uniqueSorted([...sourceLimitations, ...writeLimitations])
       : uniqueSorted([...sourceLimitations, 'sar-projection-builder-unavailable']);
     sourceRecords.push({
       family: source.family,
@@ -203,26 +218,49 @@ export function runSarProjectionRefresh(input: {
       arenaAuthority: arenaAuthority?.summary,
     });
   }
+  const refreshFailed = sourceRecords.some((record) => record.failureCount > 0);
+  const rollbackLimitations = refreshFailed && input.persist !== false
+    ? restoreSnapshotAfterFailedRefresh(repository, persistedSnapshot)
+    : [];
+  const healthSourceRecords = refreshFailed && input.persist !== false
+    ? sourceRecords.map((record, index) => ({
+        ...record,
+        lastSuccessfulAt: persistedLastSuccessfulTimes[index] ?? null,
+        limitations: uniqueSorted([...record.limitations, ...rollbackLimitations]),
+      }))
+    : sourceRecords;
 
   const health: SarRefreshHealth = {
     generatedAt: now,
-    status: aggregateStatus(sourceRecords),
+    status: aggregateStatus(healthSourceRecords),
     lastAttemptedAt: now,
-    lastSuccessfulAt: latestSuccessfulAt(sourceRecords),
+    lastSuccessfulAt: latestSuccessfulAt(healthSourceRecords),
     totals: {
-      sourceFamilyCount: new Set(sourceRecords.map((record) => record.family)).size,
-      projectedEventCount: sourceRecords.reduce((total, record) => total + record.projectedEventCount, 0),
-      projectedEntityCount: sourceRecords.reduce((total, record) => total + record.projectedEntityCount, 0),
-      projectedRelationCount: sourceRecords.reduce((total, record) => total + record.projectedRelationCount, 0),
-      staleSourceCount: sourceRecords.filter((record) => record.staleCount > 0 || record.status === 'stale').length,
-      failureCount: sourceRecords.reduce((total, record) => total + record.failureCount, 0),
+      sourceFamilyCount: new Set(healthSourceRecords.map((record) => record.family)).size,
+      projectedEventCount: healthSourceRecords.reduce((total, record) => total + record.projectedEventCount, 0),
+      projectedEntityCount: healthSourceRecords.reduce((total, record) => total + record.projectedEntityCount, 0),
+      projectedRelationCount: healthSourceRecords.reduce((total, record) => total + record.projectedRelationCount, 0),
+      staleSourceCount: healthSourceRecords.filter((record) => record.staleCount > 0 || record.status === 'stale').length,
+      failureCount: healthSourceRecords.reduce((total, record) => total + record.failureCount, 0),
     },
-    sources: sourceRecords,
-    limitations: uniqueSorted(sourceRecords.flatMap((record) => record.limitations)),
+    sources: healthSourceRecords,
+    limitations: uniqueSorted(healthSourceRecords.flatMap((record) => record.limitations)),
     operationEvidence: input.operationEvidence,
   };
 
   return { repository, health, writes };
+}
+
+function restoreSnapshotAfterFailedRefresh(
+  repository: SarPersistenceRepository,
+  snapshot: ReturnType<SarPersistenceRepository['getSnapshot']>,
+): string[] {
+  try {
+    const restored = repository.restore(snapshot);
+    return restored.persisted ? [] : ['sar-persistence-rollback-failed'];
+  } catch {
+    return ['sar-persistence-rollback-failed'];
+  }
 }
 
 export function buildControlCorrectionSarRefreshSources(

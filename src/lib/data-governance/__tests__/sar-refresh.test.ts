@@ -10,12 +10,12 @@ describe('SAR projection refresh orchestration', () => {
   it('upserts SAR projections idempotently and reports persisted counts', () => {
     const now = '2026-07-02T08:00:00.000Z';
     const first = runSarProjectionRefresh({
-      sources: buildControlCorrectionSarRefreshSources(now),
+      sources: buildRefreshSourcesWithOfficialArena(now),
       now,
     });
     const second = runSarProjectionRefresh({
       repository: first.repository,
-      sources: buildControlCorrectionSarRefreshSources(now),
+      sources: buildRefreshSourcesWithOfficialArena(now),
       now,
     });
 
@@ -95,6 +95,63 @@ describe('SAR projection refresh orchestration', () => {
     expect(ordinaryRead.writes).toHaveLength(0);
     expect(ordinaryRead.health.lastSuccessfulAt).toBe(refreshTime);
     expect(ordinaryRead.health.sources.find((source) => source.family === 'kaq-graph')?.lastSuccessfulAt).toBe(refreshTime);
+  });
+
+  it('preserves the previous successful time when a persisted refresh fails', () => {
+    const refreshTime = '2026-07-02T08:00:00.000Z';
+    const failedAttemptTime = '2026-07-02T09:00:00.000Z';
+    const recorded = runSarProjectionRefresh({
+      sources: buildRefreshSourcesWithOfficialArena(refreshTime),
+      now: refreshTime,
+    });
+    const failed = runSarProjectionRefresh({
+      repository: recorded.repository,
+      sources: buildControlCorrectionSarRefreshSources(failedAttemptTime),
+      now: failedAttemptTime,
+    });
+
+    expect(failed.health.status).toBe('failed');
+    expect(failed.health.lastSuccessfulAt).toBe(refreshTime);
+    expect(failed.health.sources.find((source) => source.family === 'arena-official')?.lastSuccessfulAt).toBe(refreshTime);
+    expect(recorded.repository.getSnapshot().generatedAt).toBe(refreshTime);
+
+    const dryRunAfterFailure = runSarProjectionRefresh({
+      repository: recorded.repository,
+      sources: buildRefreshSourcesWithOfficialArena('2026-07-02T10:00:00.000Z'),
+      now: '2026-07-02T10:00:00.000Z',
+      persist: false,
+    });
+
+    expect(dryRunAfterFailure.health.lastSuccessfulAt).toBe(refreshTime);
+  });
+
+  it('reports persistence write exceptions as failed refresh health', () => {
+    const now = '2026-07-02T08:00:00.000Z';
+    const recorded = runSarProjectionRefresh({
+      sources: buildRefreshSourcesWithOfficialArena(now),
+      now,
+    });
+    const throwingRepository = {
+      getSnapshot: () => recorded.repository.getSnapshot(),
+      upsertResult: () => {
+        throw new Error('EACCES');
+      },
+    };
+    const failed = runSarProjectionRefresh({
+      repository: throwingRepository as never,
+      sources: buildControlCorrectionSarRefreshSources('2026-07-02T09:00:00.000Z'),
+      now: '2026-07-02T09:00:00.000Z',
+    });
+
+    expect(failed.health.status).toBe('failed');
+    expect(failed.health.limitations).toContain('sar-persistence-write-failed');
+    expect(failed.writes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        family: 'kaq-graph',
+        persisted: false,
+        issues: [expect.objectContaining({ path: 'sources.kaq-graph.persistence' })],
+      }),
+    ]));
   });
 
   it('reports stale and failed source health with retry state', () => {
