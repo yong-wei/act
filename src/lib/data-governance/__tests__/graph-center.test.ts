@@ -1861,6 +1861,44 @@ describe('graph center payload service', () => {
     expect(serialized).not.toContain('suppressed-class-resource');
   });
 
+  it('does not let trusted SAR scope bypass a suppressed class overlay', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'TEACHER',
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-sar-trusted-suppressed-class',
+          knowledgeNodeRefs: ['PID控制器_6_656b8b52'],
+          resourceId: 'trusted-suppressed-class-resource',
+          classId: 'class-small',
+          privacyClass: 'student-visible',
+        }),
+      ],
+      classOverlay: {
+        classId: 'class-small',
+        viewerRole: 'teacher',
+        authorized: true,
+        minimumDenominator: 3,
+        learnerStates: [
+          learnerState({ userId: 'learner-1', targetId: 'kn:autocontrol:controller-correction', score: 0.9, confidence: 0.8, evidenceCount: 4, classId: 'class-small' }),
+        ],
+      },
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-small',
+        trustedScope: true,
+      },
+    });
+    const serialized = JSON.stringify(payload.selectedNode?.associatedEvidence);
+
+    expect(payload.overlays.class).toBe('suppressed');
+    expect(payload.selectedNode?.associatedEvidence?.candidateRefs.retrievalChunkIds).not.toContain('chunk-sar-trusted-suppressed-class');
+    expect(payload.selectedNode?.associatedEvidence?.resourceGapSuggestions).toEqual([]);
+    expect(serialized).not.toContain('chunk-sar-trusted-suppressed-class');
+    expect(serialized).not.toContain('trusted-suppressed-class-resource');
+  });
+
   it('does not grant SAR class scope when the selected class overlay item is suppressed', () => {
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',

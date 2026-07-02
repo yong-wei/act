@@ -41,6 +41,12 @@ function normalizeGraphCenterClassView(view: string | null): GraphCenterClassVie
   return view === 'population' ? 'population' : 'diagnosis';
 }
 
+function resolveGraphCenterTraceDomain(nodeId: string | null): 'knowledge' | 'capability' | 'quality' {
+  if (nodeId?.startsWith('cap:')) return 'capability';
+  if (nodeId?.startsWith('qual:')) return 'quality';
+  return 'knowledge';
+}
+
 export default function ClassAnalyticsV2Page() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -53,6 +59,7 @@ export default function ClassAnalyticsV2Page() {
   const graphCenterView = normalizeGraphCenterClassView(searchParams.get('view'));
   const graphCenterPopulationActive = Boolean(graphCenterNodeId && graphCenterView === 'population');
   const graphCenterViewLabel = graphCenterPopulationActive ? '影响学生' : '薄弱节点诊断';
+  const graphCenterTraceDomain = resolveGraphCenterTraceDomain(graphCenterNodeId);
 
   const [insights, setInsights] = useState<TeacherClassInsightsPayload | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapData | null>(null);
@@ -437,6 +444,13 @@ export default function ClassAnalyticsV2Page() {
             <div className="mt-1">
               当前班级诊断已定位到图谱节点 <span className="font-mono text-xs text-foreground">{graphCenterNodeId}</span>。
             </div>
+            <Link
+              href={`/teacher/classes/${encodeURIComponent(classId)}/kaq-evidence-trace?domain=${graphCenterTraceDomain}&nodeId=${encodeURIComponent(graphCenterNodeId)}`}
+              className="mt-3 inline-flex rounded-md border border-border bg-card px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+              data-teacher-kaq-evidence-trace-entry="graph-center-context"
+            >
+              查看 K/A/Q 证据追踪
+            </Link>
           </section>
         ) : null}
         <div className="sr-only" role="status" aria-live="polite" data-teacher-report-delivery-status>
