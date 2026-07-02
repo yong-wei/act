@@ -223,6 +223,48 @@ describe('data completeness audit', () => {
     expect(serialized).not.toContain('杨帆');
   });
 
+  it('reports learner fixture state gaps beyond facts, cache, and path evidence', () => {
+    const report = buildDataCompletenessAuditReport({
+      canonicalLearner: {
+        displayName: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+      },
+      learnerCandidates: [{
+        userId: 'user-canonical',
+        name: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+        learningFactCount: 3,
+        knowledgeProgressCount: 0,
+        pathExecutionCount: 1,
+        pathExecutionEvidenceRefCount: 1,
+        competencySnapshotCount: 0,
+        profileSummaryCount: 0,
+        featureCache: {
+          sourceFactCount: 3,
+          sourceCoverage: { LearningFact: 'available' },
+        },
+        adaptiveAssessmentStateCount: 0,
+      }],
+    });
+
+    const layer = report.layers.find((entry) => entry.id === 'learnerFixtureReadiness');
+    expect(layer?.severity).toBe('partial');
+    expect(layer?.findings.map((finding) => finding.id)).toEqual(expect.arrayContaining([
+      'fixture-knowledge-progress-missing',
+      'fixture-competency-snapshot-missing',
+      'fixture-profile-summary-missing',
+      'fixture-adaptive-assessment-state-missing',
+    ]));
+    expect(report.followupBuckets).toEqual(expect.arrayContaining([
+      'refresh-competency-snapshots',
+      'refresh-profile-summaries',
+      'materialize-fixture-adaptive-assessment-state',
+    ]));
+    expect(report.learnerFixture.fixtureGenerationBlocked).toBe(false);
+  });
+
   it('does not leak canonical fixture display fields when the account is missing', () => {
     const report = buildDataCompletenessAuditReport({
       canonicalLearner: {

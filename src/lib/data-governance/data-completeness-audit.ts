@@ -446,11 +446,23 @@ function buildLearnerFixtureLayer(input: DataCompletenessAuditInput) {
     candidateForChecks && (candidateForChecks.learningFactCount ?? 0) === 0
       ? finding('fixture-learning-facts-missing', 'blocked', maskStableLearnerRef(candidateForChecks.userId), 'Canonical fixture has no LearningFact rows.', 'materialize-fixture-learning-evidence')
       : null,
+    candidateForChecks && (candidateForChecks.knowledgeProgressCount ?? 0) === 0
+      ? finding('fixture-knowledge-progress-missing', 'partial', maskStableLearnerRef(candidateForChecks.userId), 'Canonical fixture has no KnowledgeProgress coverage.', 'materialize-fixture-learning-evidence')
+      : null,
     candidateForChecks && (candidateForChecks.featureCache?.sourceFactCount ?? 0) === 0
       ? finding('fixture-feature-cache-missing', 'partial', maskStableLearnerRef(candidateForChecks.userId), 'Canonical fixture has no StudentEvidenceFeatureCache source facts.', 'refresh-student-evidence-feature-cache')
       : null,
     candidateForChecks && (candidateForChecks.pathExecutionEvidenceRefCount ?? 0) === 0
       ? finding('fixture-path-evidence-missing', 'partial', maskStableLearnerRef(candidateForChecks.userId), 'Canonical fixture has no path execution evidence refs.', 'materialize-fixture-path-evidence')
+      : null,
+    candidateForChecks && (candidateForChecks.competencySnapshotCount ?? 0) === 0
+      ? finding('fixture-competency-snapshot-missing', 'partial', maskStableLearnerRef(candidateForChecks.userId), 'Canonical fixture has no StudentCompetencySnapshot coverage.', 'refresh-competency-snapshots')
+      : null,
+    candidateForChecks && (candidateForChecks.profileSummaryCount ?? 0) === 0
+      ? finding('fixture-profile-summary-missing', 'advisory', maskStableLearnerRef(candidateForChecks.userId), 'Canonical fixture has no StudentProfileSummary coverage.', 'refresh-profile-summaries')
+      : null,
+    candidateForChecks && (candidateForChecks.adaptiveAssessmentStateCount ?? 0) === 0
+      ? finding('fixture-adaptive-assessment-state-missing', 'partial', maskStableLearnerRef(candidateForChecks.userId), 'Canonical fixture has no adaptive assessment state.', 'materialize-fixture-adaptive-assessment-state')
       : null,
   ].filter(Boolean) as DataCompletenessFinding[];
   const blockers = findings.filter((item) => item.severity === 'blocked').map((item) => item.id);
@@ -464,7 +476,10 @@ function buildLearnerFixtureLayer(input: DataCompletenessAuditInput) {
       knowledgeProgress: candidateForChecks?.knowledgeProgressCount ?? 0,
       pathExecutions: candidateForChecks?.pathExecutionCount ?? 0,
       pathExecutionEvidenceRefs: candidateForChecks?.pathExecutionEvidenceRefCount ?? 0,
+      competencySnapshots: candidateForChecks?.competencySnapshotCount ?? 0,
+      profileSummaries: candidateForChecks?.profileSummaryCount ?? 0,
       featureCacheSourceFacts: candidateForChecks?.featureCache?.sourceFactCount ?? 0,
+      adaptiveAssessmentState: candidateForChecks?.adaptiveAssessmentStateCount ?? 0,
     }, findings),
     fixture: {
       displayLabel: 'canonical-fixture-account' as const,
