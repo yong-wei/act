@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { SarDiagnosticsPanel } from '../data-governance-dashboard';
 import type { SarDiagnosticsReport } from '@/lib/data-governance/sar-diagnostics';
+import type { SarRefreshHealth } from '@/lib/data-governance/sar-refresh';
 
 function reportWithPrivateTrace(): SarDiagnosticsReport {
   return {
@@ -75,6 +76,46 @@ function reportWithPrivateTrace(): SarDiagnosticsReport {
   };
 }
 
+function refreshHealthWithPrivateLimitations(): SarRefreshHealth {
+  return {
+    generatedAt: '2026-06-30T10:01:00.000Z',
+    status: 'degraded',
+    lastAttemptedAt: '2026-06-30T10:01:00.000Z',
+    lastSuccessfulAt: '2026-06-30T10:01:00.000Z',
+    totals: {
+      sourceFamilyCount: 8,
+      projectedEventCount: 5,
+      projectedEntityCount: 6,
+      projectedRelationCount: 10,
+      staleSourceCount: 1,
+      failureCount: 0,
+    },
+    sources: [
+      {
+        family: 'arena-official',
+        status: 'degraded',
+        sourceVersion: 'control-correction-sar-refresh.v1',
+        highWaterMark: '2026-06-30T10:01:00.000Z',
+        lastAttemptedAt: '2026-06-30T10:01:00.000Z',
+        lastSuccessfulAt: '2026-06-30T10:01:00.000Z',
+        projectedEventCount: 0,
+        projectedEntityCount: 0,
+        projectedRelationCount: 0,
+        staleCount: 1,
+        failureCount: 0,
+        retryState: 'retry-scheduled',
+        limitations: ['restricted-health-detail-redacted'],
+      },
+    ],
+    limitations: [
+      'restricted-health-detail-redacted',
+      'private raw answer',
+      'hiddenArenaEvaluationInternalsPayload',
+      'private Konling memory',
+    ],
+  };
+}
+
 describe('SAR diagnostics admin panel', () => {
   it('renders aggregate SAR diagnostics and trace summaries', () => {
     const html = renderToStaticMarkup(createElement(SarDiagnosticsPanel, { report: reportWithPrivateTrace() }));
@@ -90,6 +131,22 @@ describe('SAR diagnostics admin panel', () => {
     expect(html).toContain('control-correction diagnosis');
     expect(html).toContain('2（隐私 1） / 1');
     expect(html).toContain('control-correction-demo');
+  });
+
+  it('renders SAR refresh health without raw private limitation strings', () => {
+    const html = renderToStaticMarkup(createElement(SarDiagnosticsPanel, {
+      report: reportWithPrivateTrace(),
+      refreshHealth: refreshHealthWithPrivateLimitations(),
+    }));
+
+    expect(html).toContain('data-admin-sar-refresh-health=\"degraded\"');
+    expect(html).toContain('SAR 投影刷新');
+    expect(html).toContain('arena-official');
+    expect(html).toContain('retry-scheduled');
+    expect(html).toContain('[redacted]');
+    expect(html).not.toContain('private raw answer');
+    expect(html).not.toContain('hiddenArenaEvaluationInternalsPayload');
+    expect(html).not.toContain('private Konling memory');
   });
 
   it('renders an explicit degraded state when SAR diagnostics are absent', () => {

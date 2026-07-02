@@ -1,5 +1,6 @@
 import type { AdminOperationLedgerEntry } from '@/lib/admin-operation-ledger';
 import type { SarDiagnosticsReport } from '@/lib/data-governance/sar-diagnostics';
+import type { SarRefreshHealth } from '@/lib/data-governance/sar-refresh';
 import type {
   GovernanceActionAuditRecord,
   GovernanceRiskDispositionStatus,
@@ -30,6 +31,7 @@ export type GovernanceStatusPayload = {
     preferredTab: 'sources' | 'cache' | 'overview';
   } | null;
   sarDiagnostics?: SarDiagnosticsReport;
+  sarRefreshHealth?: SarRefreshHealth;
   freshness: {
     lastSnapshotMinutes: number | null;
     status: string;
@@ -235,6 +237,19 @@ function buildSessionQualityCard(payload: GovernanceStatusPayload): SummaryCard 
   };
 }
 
+function sarRefreshStatusLabel(status: SarRefreshHealth['status']) {
+  if (status === 'fresh') return '新鲜';
+  if (status === 'stale') return '过期';
+  if (status === 'degraded') return '降级';
+  return '失败';
+}
+
+function sarRefreshTone(status: SarRefreshHealth['status']): SummaryCard['tone'] {
+  if (status === 'fresh') return 'success';
+  if (status === 'failed') return 'danger';
+  return 'default';
+}
+
 export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
   const tabs: GovernanceTab[] = [
     { id: 'overview', label: '总览' },
@@ -272,6 +287,14 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
   const sessionQualityCard = buildSessionQualityCard(payload);
   if (sessionQualityCard) {
     summaryCards.push(sessionQualityCard);
+  }
+  if (payload.sarRefreshHealth) {
+    summaryCards.push({
+      title: 'SAR 刷新',
+      value: sarRefreshStatusLabel(payload.sarRefreshHealth.status),
+      detail: `源族 ${payload.sarRefreshHealth.totals.sourceFamilyCount} · 过期 ${payload.sarRefreshHealth.totals.staleSourceCount} · 失败 ${payload.sarRefreshHealth.totals.failureCount}`,
+      tone: sarRefreshTone(payload.sarRefreshHealth.status),
+    });
   }
 
   const queueCards: QueueCard[] = Object.entries(payload.queues).map(([key, stats]) => ({
@@ -336,6 +359,18 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
       ? {
           title: '特征缓存健康',
           ...payload.featureCache,
+        }
+      : null,
+    sarRefreshHealthPanel: payload.sarRefreshHealth
+      ? {
+          title: 'SAR 刷新健康',
+          status: payload.sarRefreshHealth.status,
+          generatedAt: payload.sarRefreshHealth.generatedAt,
+          lastAttemptedAt: payload.sarRefreshHealth.lastAttemptedAt,
+          lastSuccessfulAt: payload.sarRefreshHealth.lastSuccessfulAt,
+          totals: payload.sarRefreshHealth.totals,
+          sources: payload.sarRefreshHealth.sources,
+          limitations: payload.sarRefreshHealth.limitations,
         }
       : null,
     riskPanel: {

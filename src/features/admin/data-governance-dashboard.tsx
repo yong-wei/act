@@ -37,6 +37,7 @@ type DataGovernanceDashboardProps = {
 };
 
 type SarDiagnosticsReport = NonNullable<GovernanceStatusPayload['sarDiagnostics']>;
+type SarRefreshHealth = NonNullable<GovernanceStatusPayload['sarRefreshHealth']>;
 type GovernanceDashboardTab = 'overview' | 'risks' | 'sessions' | 'sources' | 'cache';
 type GraphCenterAuditContext = 'resource-binding' | 'citation-readiness' | 'overlay-limitations' | 'custom';
 
@@ -62,7 +63,13 @@ function sanitizeVisibleDiagnosticText(value: string) {
   return forbiddenVisibleText.some((pattern) => pattern.test(value)) ? '[redacted]' : value;
 }
 
-export function SarDiagnosticsPanel({ report }: { report?: SarDiagnosticsReport | null }) {
+export function SarDiagnosticsPanel({
+  report,
+  refreshHealth,
+}: {
+  report?: SarDiagnosticsReport | null;
+  refreshHealth?: SarRefreshHealth | null;
+}) {
   if (!report) {
     return (
       <section
@@ -81,6 +88,20 @@ export function SarDiagnosticsPanel({ report }: { report?: SarDiagnosticsReport 
         <div className="admin-console-notice" data-admin-sar-diagnostics-state="degraded">
           SAR 诊断不可用；关联检索健康不能按完整状态展示。
         </div>
+        {refreshHealth ? (
+          <div
+            className="admin-console-surface-soft text-sm"
+            data-admin-sar-refresh-health={refreshHealth.status}
+          >
+            <span className="admin-console-kicker">SAR 投影刷新</span>
+            <div className="mt-2 admin-console-title font-semibold">
+              {refreshHealth.status} · {refreshHealth.totals.sourceFamilyCount} 个源族
+            </div>
+            <div className="admin-console-muted mt-2">
+              最近尝试 {new Date(refreshHealth.lastAttemptedAt).toLocaleString('zh-CN')} · 过期 {refreshHealth.totals.staleSourceCount} · 失败 {refreshHealth.totals.failureCount}
+            </div>
+          </div>
+        ) : null}
       </section>
     );
   }
@@ -156,6 +177,84 @@ export function SarDiagnosticsPanel({ report }: { report?: SarDiagnosticsReport 
           </div>
         ))}
       </div>
+
+      {refreshHealth ? (
+        <div
+          className="admin-console-surface-soft space-y-4"
+          data-admin-sar-refresh-health={refreshHealth.status}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <span className="admin-console-kicker">SAR 投影刷新</span>
+              <h3 className="admin-console-title mt-2 text-base font-semibold">
+                {refreshHealth.status} · {refreshHealth.totals.sourceFamilyCount} 个源族
+              </h3>
+            </div>
+            <span className="admin-console-chip">
+              {refreshHealth.totals.staleSourceCount.toLocaleString()} 过期 · {refreshHealth.totals.failureCount.toLocaleString()} 失败
+            </span>
+          </div>
+          <div className="grid gap-3 text-sm md:grid-cols-3">
+            <div>
+              <div className="admin-console-muted">最近尝试</div>
+              <div className="admin-console-title mt-1">{new Date(refreshHealth.lastAttemptedAt).toLocaleString('zh-CN')}</div>
+            </div>
+            <div>
+              <div className="admin-console-muted">最近成功</div>
+              <div className="admin-console-title mt-1">
+                {refreshHealth.lastSuccessfulAt ? new Date(refreshHealth.lastSuccessfulAt).toLocaleString('zh-CN') : '暂无成功记录'}
+              </div>
+            </div>
+            <div>
+              <div className="admin-console-muted">投影记录</div>
+              <div className="admin-console-title mt-1">
+                {refreshHealth.totals.projectedEventCount.toLocaleString()} / {refreshHealth.totals.projectedEntityCount.toLocaleString()} / {refreshHealth.totals.projectedRelationCount.toLocaleString()}
+              </div>
+            </div>
+          </div>
+          <div className="admin-console-table-shell p-0">
+            <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="SAR refresh health">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3">源族</th>
+                  <th className="px-4 py-3">状态</th>
+                  <th className="px-4 py-3">刷新时间</th>
+                  <th className="px-4 py-3">过期 / 失败</th>
+                  <th className="px-4 py-3">retry</th>
+                </tr>
+              </thead>
+              <tbody>
+                {refreshHealth.sources.slice(0, 8).map((source) => (
+                  <tr key={source.family}>
+                    <td className="px-4 py-3 admin-console-title font-medium" data-label="源族">{source.family}</td>
+                    <td className="px-4 py-3" data-label="状态">{source.status}</td>
+                    <td className="px-4 py-3" data-label="刷新时间">
+                      {source.highWaterMark ? new Date(source.highWaterMark).toLocaleString('zh-CN') : source.sourceVersion ?? '-'}
+                    </td>
+                    <td className="px-4 py-3" data-label="过期 / 失败">
+                      {source.staleCount.toLocaleString()} / {source.failureCount.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3" data-label="retry">{source.retryState}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {refreshHealth.limitations.length > 0 ? (
+            <div className="text-sm">
+              <span className="admin-console-muted">限制：</span>
+              {refreshHealth.limitations.slice(0, 4).map((limitation) => sanitizeVisibleDiagnosticText(limitation)).join(' · ')}
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div
+          className="admin-console-notice"
+          data-admin-sar-refresh-health="unavailable"
+        >
+          SAR 投影刷新健康尚未写入状态 payload。
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         {[
@@ -298,13 +397,20 @@ function governanceRefreshStateFromLedger(ledger: AdminOperationLedgerEntry) {
       sourceRoute: '/admin/data-governance',
       requestedAction: 'refresh',
     },
-    status: ledger.outcome === 'failed' ? 'failed' : 'succeeded',
+    status: governanceRefreshStatusFromLedgerOutcome(ledger.outcome),
     message: ledger.auditSummary,
     nextAction: '复核治理风险或导出风险文件',
     recoveryAction: ledger.recoveryState.action,
     recoveryKind: ledger.recoveryState.status,
     displayReference: ledger.idempotencyKey,
   });
+}
+
+function governanceRefreshStatusFromLedgerOutcome(outcome: AdminOperationLedgerEntry['outcome']) {
+  if (outcome === 'pending') return 'pending';
+  if (outcome === 'failed') return 'failed';
+  if (outcome === 'blocked') return 'blocked';
+  return 'succeeded';
 }
 
 function governanceActionStateFromLedger(
@@ -962,7 +1068,10 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
         )}
 
         {activeTab === 'overview' && (
-          <SarDiagnosticsPanel report={status.sarDiagnostics ?? null} />
+          <SarDiagnosticsPanel
+            report={status.sarDiagnostics ?? null}
+            refreshHealth={status.sarRefreshHealth ?? null}
+          />
         )}
 
         {activeTab === 'sources' && overview.sourceCatalogPanel && (

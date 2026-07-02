@@ -65,6 +65,38 @@ describe('buildGovernanceOverview', () => {
           LearningFact: { available: 8, missing: 1 },
         },
       },
+      sarRefreshHealth: {
+        generatedAt: '2026-03-19T08:46:00.000Z',
+        status: 'degraded',
+        lastAttemptedAt: '2026-03-19T08:46:00.000Z',
+        lastSuccessfulAt: '2026-03-19T08:46:00.000Z',
+        totals: {
+          sourceFamilyCount: 8,
+          projectedEventCount: 5,
+          projectedEntityCount: 6,
+          projectedRelationCount: 10,
+          staleSourceCount: 1,
+          failureCount: 0,
+        },
+        sources: [
+          {
+            family: 'arena-official',
+            status: 'degraded',
+            sourceVersion: 'control-correction-sar-refresh.v1',
+            highWaterMark: '2026-03-19T08:46:00.000Z',
+            lastAttemptedAt: '2026-03-19T08:46:00.000Z',
+            lastSuccessfulAt: '2026-03-19T08:46:00.000Z',
+            projectedEventCount: 0,
+            projectedEntityCount: 0,
+            projectedRelationCount: 0,
+            staleCount: 1,
+            failureCount: 0,
+            retryState: 'retry-scheduled',
+            limitations: ['arena-auxiliary-evidence-context-only'],
+          },
+        ],
+        limitations: ['arena-auxiliary-evidence-context-only'],
+      },
       sourceCoverage: {
         generatedAt: '2026-03-19T08:45:00.000Z',
         catalogVersion: '2026-05-19',
@@ -164,8 +196,13 @@ describe('buildGovernanceOverview', () => {
     });
 
     expect(overview.summaryCards.map((card) => card.title)).toEqual(
-      expect.arrayContaining(['系统状态', '数据新鲜度', '学习事实总量', '待处理风险', '课堂质量'])
+      expect.arrayContaining(['系统状态', '数据新鲜度', '学习事实总量', '待处理风险', '课堂质量', 'SAR 刷新'])
     );
+    expect(overview.summaryCards.find((card) => card.title === 'SAR 刷新')).toMatchObject({
+      value: '降级',
+      detail: '源族 8 · 过期 1 · 失败 0',
+      tone: 'default',
+    });
     expect(overview.summaryCards.find((card) => card.title === '课堂质量')).toMatchObject({
       value: '12/20',
       detail: '黄 5 · 红 3 · 未识别 0',
@@ -221,6 +258,16 @@ describe('buildGovernanceOverview', () => {
       staleEntries: 2,
       latestRefreshAt: '2026-03-19T08:40:00.000Z',
       totalSourceFacts: 42,
+    });
+    expect(overview.sarRefreshHealthPanel).toMatchObject({
+      title: 'SAR 刷新健康',
+      status: 'degraded',
+      totals: {
+        sourceFamilyCount: 8,
+        staleSourceCount: 1,
+        failureCount: 0,
+      },
+      limitations: ['arena-auxiliary-evidence-context-only'],
     });
     expect(overview.snapshotPanel.title).toBe('最新快照明细');
     expect(overview.riskPanel.rows[0]?.userName).toBe('张三');

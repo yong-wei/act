@@ -139,21 +139,11 @@ Adaptive path planning SHALL consume SAR candidates only as supplemental candida
 - **AND** it MAY keep it only as supporting evidence when allowed.
 
 ### Requirement: SAR exposes diagnostics and evaluation traces
-The system SHALL expose privacy-safe diagnostics for SAR projection and query behavior through service payloads and administrator-visible governance surfaces.
+The system SHALL expose privacy-safe diagnostics for SAR projection, refresh health, and query behavior through service payloads and administrator-visible governance surfaces.
 
 #### Scenario: Administrator reviews SAR health
 - **WHEN** an administrator opens SAR diagnostics or requests the SAR report payload
-- **THEN** the system SHALL expose event count, entity count, relation count, source type counts, privacy scope counts, query trace summaries, hop counts, privacy rejection counts, limitation counts, and downstream verified citation rate where available.
-
-#### Scenario: SAR trace is serialized
-- **WHEN** a SAR query trace is persisted, displayed, or exported
-- **THEN** the trace SHALL include seed entities, expanded entities, selected events, rejected refs, limitations, version refs, and downstream citation/source-pack handoff state
-- **AND** it SHALL omit raw private evidence and hidden internals.
-
-#### Scenario: SAR diagnostics are rendered for administrators
-- **WHEN** an administrator inspects SAR diagnostics in a governance UI
-- **THEN** the rendered report SHALL use the same privacy-safe summaries and redacted trace fields as the service payload
-- **AND** it SHALL distinguish SAR candidate refs from verified citation outcomes.
+- **THEN** the system SHALL expose event count, entity count, relation count, source type counts, privacy scope counts, refresh freshness, stale source counts, query trace summaries, hop counts, privacy rejection counts, limitation counts, and downstream verified citation rate where available.
 
 ### Requirement: SAR evaluation includes a multi-hop teaching demo
 The system SHALL provide a deterministic SAR demo fixture for multi-hop teaching retrieval.
@@ -194,3 +184,20 @@ The system SHALL define retention and minimization rules for persisted SAR query
 - **WHEN** a persisted SAR trace reaches its retention or minimization boundary
 - **THEN** the system SHALL delete, aggregate, or redact student-scoped trace details according to the retention policy
 - **AND** expired or restricted trace details SHALL NOT appear in administrator exports, teacher surfaces, or evaluation reports.
+
+### Requirement: SAR projection refresh is governed and observable
+The system SHALL refresh persisted SAR projections from governed platform sources through an auditable workflow.
+
+#### Scenario: SAR projection refresh runs
+- **WHEN** SAR refresh is triggered automatically or manually
+- **THEN** the system SHALL project governed K/A/Q graph, LearningGoal, ResourceNode, evidence corpus, LearningFact summary, simulation, Arena, and path summary sources through the SAR projection contract
+- **AND** persisted SAR records SHALL be updated idempotently without copying restricted raw content.
+
+#### Scenario: SAR source is stale or failed
+- **WHEN** a source family cannot be refreshed or its source version is stale
+- **THEN** SAR health SHALL record source family, stale or failed state, last attempted refresh, last successful refresh where available, limitation code, and retry status.
+
+#### Scenario: Arena source is refreshed
+- **WHEN** SAR refresh projects Arena evidence, summaries, or evaluation context
+- **THEN** official score, validity, ranking, attempt policy, and evaluation metrics SHALL be sourced only from persisted ArenaSubmission or official evaluation run records
+- **AND** LearningFact, SAR trace, KAQ writeback, or learner evidence summaries SHALL remain auxiliary learning evidence context, not official Arena result truth.
