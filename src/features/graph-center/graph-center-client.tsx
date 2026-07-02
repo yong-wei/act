@@ -18,6 +18,38 @@ import {
 
 type GraphCenterDisplayMode = 'resourceCoverage' | 'learner' | 'class';
 type SarReviewDecision = NonNullable<GraphCenterSarResourceGapSuggestion['review']>['availableActions'][number];
+type GraphCenterSarReviewRequest = {
+  decision: SarReviewDecision;
+  rationale: string;
+  resourceNodeId: string | null;
+  candidate: {
+    id: string;
+    target: {
+      graphNodeId: string;
+      objectiveId: string | null;
+    };
+    candidate: {
+      ref: string;
+      refType: GraphCenterSarResourceGapSuggestion['refType'];
+      resourceNodeId: string | null;
+      sourceRefs: string[];
+    };
+    missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
+    provenance: {
+      source: string;
+      basisEventIds: string[];
+      traceId: null;
+    };
+    traceSummary: {
+      seedEntityIds: string[];
+      expansionHopCount: number;
+      selectedRefCount: number;
+      rejectedRefCount: number;
+      limitations: string[];
+    };
+    limitations: string[];
+  };
+};
 type GraphCenterFieldCompletionSummary = NonNullable<
   NonNullable<GraphCenterPayload['selectedNode']>['resourceCoverage']['fieldCompletion']
 >;
@@ -351,44 +383,14 @@ function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterS
   const hasDraftCandidates = associated.resourceGapSuggestions.length > 0;
 
   async function submitReview(candidate: GraphCenterSarResourceGapSuggestion, decision: SarReviewDecision) {
-    if (!candidate.review || candidate.refType !== 'resource-node' || decision === 'accept') return;
+    const requestBody = buildGraphCenterSarReviewRequest(selectedNode, candidate, decision);
+    if (!requestBody) return;
     const key = `${candidate.refType}:${candidate.ref}`;
     setReviewStates((state) => ({ ...state, [key]: 'submitting' }));
     const response = await fetch('/api/teacher/sar-suggested-bindings/review', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        decision,
-        rationale: `Graph Center SAR ${decision}`,
-        resourceNodeId: candidate.ref,
-        candidate: {
-          id: candidate.review.auditPayload.candidateId,
-          target: {
-            graphNodeId: selectedNode.node.id,
-            objectiveId: selectedNode.objectives[0]?.id ?? null,
-          },
-          candidate: {
-            ref: candidate.review.auditPayload.candidateRef,
-            refType: candidate.review.auditPayload.candidateRefType,
-            resourceNodeId: candidate.refType === 'resource-node' ? candidate.ref : null,
-            sourceRefs: candidate.review.auditPayload.sourceRefs,
-          },
-          missingCoverageTypes: candidate.review.auditPayload.missingCoverageTypes,
-          provenance: {
-            source: candidate.review.auditPayload.provenance.source,
-            basisEventIds: candidate.review.auditPayload.provenance.basisEventIds,
-            traceId: null,
-          },
-          traceSummary: {
-            seedEntityIds: associated.traceSummary.seedEntityIds,
-            expansionHopCount: candidate.review.auditPayload.traceSummary.traceHopCount,
-            selectedRefCount: associated.traceSummary.selectedRefCount,
-            rejectedRefCount: associated.traceSummary.rejectedRefCount,
-            limitations: candidate.review.auditPayload.traceSummary.limitations,
-          },
-          limitations: associated.limitations,
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
     setReviewStates((state) => ({
       ...state,
@@ -419,7 +421,7 @@ function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterS
           {associated.resourceGapSuggestions.slice(0, 4).map((candidate) => {
             const key = `${candidate.refType}:${candidate.ref}`;
             const state = reviewStates[key];
-            const reviewableActions = candidate.review && candidate.refType === 'resource-node'
+            const reviewableActions = candidate.review
               ? candidate.review.availableActions.filter((action) => action !== 'accept')
               : [];
             return (
@@ -465,6 +467,47 @@ function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterS
       )}
     </div>
   );
+}
+
+export function buildGraphCenterSarReviewRequest(
+  selectedNode: GraphCenterSelectedNodeDetail,
+  candidate: GraphCenterSarResourceGapSuggestion,
+  decision: SarReviewDecision,
+): GraphCenterSarReviewRequest | null {
+  if (!candidate.review || decision === 'accept') return null;
+  const resourceNodeId = candidate.refType === 'resource-node' ? candidate.ref : null;
+  return {
+    decision,
+    rationale: `Graph Center SAR ${decision}`,
+    resourceNodeId,
+    candidate: {
+      id: candidate.review.auditPayload.candidateId,
+      target: {
+        graphNodeId: selectedNode.node.id,
+        objectiveId: selectedNode.objectives[0]?.id ?? null,
+      },
+      candidate: {
+        ref: candidate.review.auditPayload.candidateRef,
+        refType: candidate.review.auditPayload.candidateRefType,
+        resourceNodeId,
+        sourceRefs: candidate.review.auditPayload.sourceRefs,
+      },
+      missingCoverageTypes: candidate.review.auditPayload.missingCoverageTypes,
+      provenance: {
+        source: candidate.review.auditPayload.provenance.source,
+        basisEventIds: candidate.review.auditPayload.provenance.basisEventIds,
+        traceId: null,
+      },
+      traceSummary: {
+        seedEntityIds: selectedNode.associatedEvidence?.traceSummary.seedEntityIds ?? [],
+        expansionHopCount: candidate.review.auditPayload.traceSummary.traceHopCount,
+        selectedRefCount: selectedNode.associatedEvidence?.traceSummary.selectedRefCount ?? 0,
+        rejectedRefCount: selectedNode.associatedEvidence?.traceSummary.rejectedRefCount ?? 0,
+        limitations: candidate.review.auditPayload.traceSummary.limitations,
+      },
+      limitations: selectedNode.associatedEvidence?.limitations ?? [],
+    },
+  };
 }
 
 function GraphCenterActionGroup({ nodeId, actions }: { nodeId: string; actions: GraphCenterAction[] }) {

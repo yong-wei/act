@@ -2,11 +2,17 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import {
+  buildGraphCenterSarReviewRequest,
   filterGraphCenterPayload,
   GraphCenterClient,
   selectGraphCenterPayloadNode,
 } from '@/features/graph-center/graph-center-client';
-import { buildGraphCenterPayload, type ResourceFieldCompletionGraphSummary } from '../graph-center';
+import {
+  buildGraphCenterPayload,
+  type GraphCenterPayload,
+  type GraphCenterSarResourceGapSuggestion,
+  type ResourceFieldCompletionGraphSummary,
+} from '../graph-center';
 import {
   createLearningEvidenceCorpusChunk,
   type LearningEvidenceCorpusChunk,
@@ -194,6 +200,141 @@ describe('graph center client surface', () => {
     expect(html).toContain('data-graph-center-sar-review-action="defer"');
     expect(html).toContain('data-graph-center-sar-review-action="invalidate"');
     expect(html).not.toContain('data-graph-center-sar-review-action="accept"');
+  });
+
+  it('renders non-resource SAR draft review actions for teacher gap suggestions', () => {
+    const basePayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+    });
+    const selectedNode = basePayload.selectedNode;
+    if (!selectedNode) throw new Error('selected node missing');
+    const payload: GraphCenterPayload = {
+      ...basePayload,
+      selectedNode: {
+        ...selectedNode,
+        associatedEvidence: {
+          status: 'available',
+          eventCount: 1,
+          topEvents: [],
+          traceSummary: {
+            seedEntityIds: ['sar:entity:graph-node'],
+            expansionHopCount: 1,
+            selectedRefCount: 1,
+            rejectedRefCount: 0,
+            limitations: [],
+          },
+          candidateRefs: {
+            resourceNodeIds: [],
+            retrievalChunkIds: ['retrieval-chunk:owned-quiz:chunk-1'],
+            citationTargetIds: [],
+            planningUnitIds: [],
+            eventIds: ['sar:event:safe-1'],
+            entityIds: [],
+          },
+          resourceGapSuggestions: [{
+            id: 'sar-gap:retrieval-chunk-1',
+            ref: 'retrieval-chunk:owned-quiz:chunk-1',
+            refType: 'retrieval-chunk',
+            status: 'suggested',
+            draft: true,
+            review: {
+              state: 'suggested',
+              authoritative: false,
+              availableActions: ['reject', 'defer', 'invalidate'],
+              auditPayload: {
+                candidateId: 'sar-gap:retrieval-chunk-1',
+                candidateRef: 'retrieval-chunk:owned-quiz:chunk-1',
+                candidateRefType: 'retrieval-chunk',
+                sourceRefs: ['owned-quiz'],
+                missingCoverageTypes: ['linked-resource'],
+                provenance: {
+                  source: 'graph-center-sar',
+                  basisEventIds: ['sar:event:safe-1'],
+                },
+                traceSummary: {
+                  traceHopCount: 1,
+                  limitations: [],
+                },
+              },
+            },
+            suggestedForMissingCoverageTypes: ['linked-resource'],
+            rationale: {
+              basisEventIds: ['sar:event:safe-1'],
+              traceHopCount: 1,
+              reason: 'SAR associated this retrieval chunk with the selected graph node.',
+            },
+          }],
+          limitations: [],
+        },
+      },
+    };
+    const html = renderToStaticMarkup(createElement(GraphCenterClient, { initialPayload: payload }));
+
+    expect(html).toContain('data-graph-center-sar-candidate-type="retrieval-chunk"');
+    expect(html).toContain('data-graph-center-sar-review-action="reject"');
+    expect(html).toContain('data-graph-center-sar-review-action="defer"');
+    expect(html).toContain('data-graph-center-sar-review-action="invalidate"');
+    expect(html).not.toContain('data-graph-center-sar-review-action="accept"');
+  });
+
+  it('builds non-resource SAR review requests without a resource node audit target', () => {
+    const basePayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+    });
+    const selectedNode = basePayload.selectedNode;
+    if (!selectedNode) throw new Error('selected node missing');
+    const candidate: GraphCenterSarResourceGapSuggestion = {
+      id: 'sar-gap:retrieval-chunk-1',
+      ref: 'retrieval-chunk:owned-quiz:chunk-1',
+      refType: 'retrieval-chunk',
+      status: 'suggested',
+      draft: true,
+      review: {
+        state: 'suggested',
+        authoritative: false,
+        availableActions: ['reject', 'defer', 'invalidate'],
+        auditPayload: {
+          candidateId: 'sar-gap:retrieval-chunk-1',
+          candidateRef: 'retrieval-chunk:owned-quiz:chunk-1',
+          candidateRefType: 'retrieval-chunk',
+          sourceRefs: ['owned-quiz'],
+          missingCoverageTypes: ['linked-resource'],
+          provenance: {
+            source: 'graph-center-sar',
+            basisEventIds: ['sar:event:safe-1'],
+          },
+          traceSummary: {
+            traceHopCount: 1,
+            limitations: [],
+          },
+        },
+      },
+      suggestedForMissingCoverageTypes: ['linked-resource'],
+      rationale: {
+        basisEventIds: ['sar:event:safe-1'],
+        traceHopCount: 1,
+        reason: 'SAR associated this retrieval chunk with the selected graph node.',
+      },
+    };
+
+    const request = buildGraphCenterSarReviewRequest(selectedNode, candidate, 'reject');
+
+    expect(request).toMatchObject({
+      decision: 'reject',
+      resourceNodeId: null,
+      candidate: {
+        candidate: {
+          ref: 'retrieval-chunk:owned-quiz:chunk-1',
+          refType: 'retrieval-chunk',
+          resourceNodeId: null,
+        },
+      },
+    });
+    expect(buildGraphCenterSarReviewRequest(selectedNode, candidate, 'accept')).toBeNull();
   });
 
   it('renders class heat mode with suppression and denominator labels', () => {
