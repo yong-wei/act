@@ -86,6 +86,7 @@ describe('authoring resource flow source contracts', () => {
     expect(resourceNodeSource).toContain('API 任务消费');
     expect(knowledgeNodeSource).toContain('buildKnowledgeNodeAuthoringTasks');
     expect(knowledgeNodeSource).toContain('nodeSaveState');
+    expect(knowledgeNodeSource).toContain('} catch (error) {');
     expect(knowledgeNodeSource).not.toContain('limit={3}');
     expect(taskStripSource).toContain('data-authoring-api-task-surface={surface}');
     expect(taskStripSource).toContain("'data-authoring-api-task-state': task.status");

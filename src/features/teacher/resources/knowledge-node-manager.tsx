@@ -186,17 +186,22 @@ export function KnowledgeNodeManager({
     data: { name: string; description: string; metadata: any }
   ) => {
     setNodeSaveState((current) => ({ ...current, [id]: 'saving' }));
-    const res = await fetch(`/api/knowledge/nodes/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch(`/api/knowledge/nodes/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        setNodeSaveState((current) => ({ ...current, [id]: 'error' }));
+        throw new Error('Failed to update node');
+      }
+      setNodeSaveState((current) => ({ ...current, [id]: 'saved' }));
+      router.refresh();
+    } catch (error) {
       setNodeSaveState((current) => ({ ...current, [id]: 'error' }));
-      throw new Error('Failed to update node');
+      throw error;
     }
-    setNodeSaveState((current) => ({ ...current, [id]: 'saved' }));
-    router.refresh();
   };
 
   const renderTreeNode = (treeNode: TreeNode, depth: number = 0) => {
