@@ -1041,15 +1041,15 @@ function sarReviewResourceRefMatches(value: unknown, ref: string): boolean {
 }
 
 function canonicalSarResourceNodeRef(resourceRef: string): string {
-  const semanticPrefix = 'resource:';
-  const semanticRef = resourceRef.startsWith(semanticPrefix)
-    ? resourceRef.slice(semanticPrefix.length)
-    : resourceRef;
-  const teachingResourcePrefix = 'teaching-resource:';
-  if (semanticRef.startsWith(teachingResourcePrefix)) {
-    return semanticRef.slice(teachingResourcePrefix.length) || resourceRef;
+  const semanticTeachingResourcePrefix = 'resource:teaching-resource:';
+  if (resourceRef.startsWith(semanticTeachingResourcePrefix)) {
+    return resourceRef.slice(semanticTeachingResourcePrefix.length) || resourceRef;
   }
-  return semanticRef || resourceRef;
+  const teachingResourcePrefix = 'teaching-resource:';
+  if (resourceRef.startsWith(teachingResourcePrefix)) {
+    return resourceRef.slice(teachingResourcePrefix.length) || resourceRef;
+  }
+  return resourceRef;
 }
 
 function sarReviewEventAuthorizationRefs(
