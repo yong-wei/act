@@ -497,9 +497,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
     const relations = input.persistenceExport.relations
       .filter((record) => eventIds.has(record.eventId) && entityIds.has(record.entityId))
       .map(persistedRelationToSarRelation);
-    const verifiedCitationRefs = trace.handoffStatus === 'ready'
-      ? persistedVerifiedCitationRefs(trace.selectedRefs, eventById, eventBySourceRef)
-      : [];
+    const verifiedCitationRefs: string[] = [];
     const ordinarySourcePackRefs = persistedOrdinaryBaselineRefs(trace.selectedRefs, eventById, eventBySourceRef);
     const sarAssistedRefs = persistedSarAssistedRefs(trace.selectedRefs, eventById, eventBySourceRef, entityById, {
       ordinarySourcePackRefs,
@@ -528,7 +526,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
       id: trace.stableId,
       query: `${trace.queryRole} · ${trace.useCase} · ${shortPersistedQueryHash(trace.queryHash)}`,
       result,
-      sourcePackHandoffRefs: trace.handoffStatus === 'ready' ? ordinarySourcePackRefs : [],
+      sourcePackHandoffRefs: trace.handoffStatus === 'ready' ? sarAssistedRefs : [],
       verifiedCitationRefs,
       ordinarySourcePackRefs,
       sarAssistedRefs,
@@ -800,18 +798,6 @@ function persistedRelationToSarRelation(
   };
 }
 
-function persistedVerifiedCitationRefs(
-  selectedRefs: readonly string[],
-  eventById: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
-  eventBySourceRef: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
-): string[] {
-  return uniqueSorted(selectedRefs.flatMap((ref) => {
-    if (isPersistedCitationRef(ref)) return [ref];
-    const sourceRef = eventBySourceRef.get(ref)?.sourceRef.id ?? eventById.get(ref)?.sourceRef.id;
-    return sourceRef && isPersistedCitationRef(sourceRef) ? [sourceRef] : [];
-  }));
-}
-
 function persistedOrdinaryBaselineRefs(
   selectedRefs: readonly string[],
   eventById: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
@@ -865,10 +851,6 @@ function isPersistedRetrievalRef(ref: string): boolean {
     || normalized.includes('ordinary')
     || normalized.startsWith('retrieval-chunk:')
     || normalized.startsWith('chunk:');
-}
-
-function isPersistedCitationRef(ref: string): boolean {
-  return ref.startsWith('citation:') || ref.startsWith('citation-target:');
 }
 
 function shortPersistedQueryHash(queryHash: string): string {

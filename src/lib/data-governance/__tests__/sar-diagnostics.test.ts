@@ -1101,7 +1101,6 @@ describe('SAR diagnostics and evaluation report', () => {
           selectedRefs: [
             'sar:event:persisted-baseline',
             'sar:event:persisted-citation',
-            'retrieval-chunk:persisted-direct',
             'planning-unit:persisted-sar-candidate',
             'sar:entity:persisted-arena',
           ],
@@ -1145,19 +1144,19 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(report.querySet[0]).toMatchObject({
       id: 'sar:trace:sha256:persisted-live-eval',
       query: 'teacher-diagnostics · sar-live-evaluation · sha256:persist',
-      ordinaryRetrievalBaselineRefCount: 2,
-      sarCandidateRefCount: 1,
-      sarOnlyCandidateRefCount: 1,
-      verifiedCitationRefCount: 1,
+      ordinaryRetrievalBaselineRefCount: 1,
+      sarCandidateRefCount: 2,
+      sarOnlyCandidateRefCount: 2,
+      verifiedCitationRefCount: 0,
       multiHopHit: true,
     });
     expect(report.querySet[0]?.sourcePackHandoffRefCount).toBe(2);
     expect(report.metrics).toMatchObject({
       queryCount: 1,
-      ordinaryRetrievalBaselineRefCount: 2,
-      sarCandidateRefCount: 1,
-      sarOnlyCandidateRefCount: 1,
-      verifiedCitationRefCount: 1,
+      ordinaryRetrievalBaselineRefCount: 1,
+      sarCandidateRefCount: 2,
+      sarOnlyCandidateRefCount: 2,
+      verifiedCitationRefCount: 0,
       sourcePackHandoffRefCount: 2,
       feedbackRecordCount: 2,
     });

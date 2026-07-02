@@ -704,9 +704,10 @@ describe('GET /api/admin/data-governance/status', () => {
           queryCount: 1,
           feedbackRecordCount: 2,
           ordinaryRetrievalBaselineRefCount: 1,
-          sarCandidateRefCount: 1,
-          sarOnlyCandidateRefCount: 1,
-          verifiedCitationRefCount: 1,
+          sarCandidateRefCount: 2,
+          sarOnlyCandidateRefCount: 2,
+          verifiedCitationRefCount: 0,
+          sourcePackHandoffRefCount: 2,
         },
         arenaOfficialAuthority: {
           status: 'available',
