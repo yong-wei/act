@@ -91,6 +91,7 @@ describe('authoring resource flow source contracts', () => {
     expect(taskStripSource).toContain('data-authoring-api-task-surface={surface}');
     expect(taskStripSource).toContain("'data-authoring-api-task-state': task.status");
     expect(taskStripSource).toContain("'data-authoring-api-task-reason': task.reason");
+    expect(taskStripSource).toContain('{task.reason}；{task.recoveryAction}');
     expect(taskStripSource).toContain('return task.href ? (');
     expect(contractSource).toContain("'rolled-back'");
     expect(contractSource).toContain("'not-reversible'");
