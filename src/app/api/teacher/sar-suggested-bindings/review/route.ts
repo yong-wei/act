@@ -166,7 +166,7 @@ async function persistSarReviewOnResource(input: {
     ? currentPlanning.sarSuggestedBindingReviews.filter((item) => readObject(item))
     : [];
   const terminalReview = existingReviews.find((review) =>
-    stringValue(review.candidateId) === input.result.auditRecord.candidateId &&
+    isSameSarTerminalCandidate(review, input.result.auditRecord) &&
     isTerminalSarReviewState(stringValue(review.state))
   );
   if (terminalReview) {
@@ -221,6 +221,16 @@ function findSarReviewAuditResource(
 
 function isTerminalSarReviewState(state: string | null): boolean {
   return state === 'accepted' || state === 'rejected' || state === 'invalidated';
+}
+
+function isSameSarTerminalCandidate(
+  review: Record<string, unknown>,
+  auditRecord: Extract<SarSuggestedBindingReviewResult, { ok: true }>['auditRecord'],
+): boolean {
+  return stringValue(review.candidateId) === auditRecord.candidateId
+    && stringValue(review.candidateRef) === auditRecord.candidateRef
+    && stringValue(review.candidateRefType) === auditRecord.candidateRefType
+    && stringValue(review.targetGraphNodeId) === auditRecord.targetGraphNodeId;
 }
 
 function createScope(

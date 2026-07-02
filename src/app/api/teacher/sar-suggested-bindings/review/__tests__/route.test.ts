@@ -147,6 +147,7 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
             candidateId: 'sar-gap:owned-quiz',
             candidateRef: 'teaching-resource:owned-quiz',
             candidateRefType: 'resource-node',
+            targetGraphNodeId: 'kn-bode',
             state: 'accepted',
             decision: 'accept',
           }],
@@ -164,6 +165,55 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
       existingState: 'accepted',
     });
     expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
+  });
+
+  it('allows the same local SAR candidate id on a different graph target', async () => {
+    mocks.prisma.teachingResource.findMany.mockResolvedValue([{
+      ...ownedResource,
+      config: {
+        resourceNodePlanning: {
+          sarSuggestedBindingReviews: [{
+            candidateId: 'sar-gap:owned-quiz',
+            candidateRef: 'teaching-resource:owned-quiz',
+            candidateRefType: 'resource-node',
+            targetGraphNodeId: 'kn-root-locus',
+            state: 'accepted',
+            decision: 'accept',
+          }],
+        },
+      },
+    }]);
+
+    const response = await POST(reviewRequest({ decision: 'reject' }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      ok: true,
+      persisted: true,
+      persistedResourceId: 'owned-quiz',
+    });
+    expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'owned-quiz' },
+      data: expect.objectContaining({
+        config: expect.objectContaining({
+          resourceNodePlanning: expect.objectContaining({
+            sarSuggestedBindingReviews: expect.arrayContaining([
+              expect.objectContaining({
+                candidateId: 'sar-gap:owned-quiz',
+                targetGraphNodeId: 'kn-root-locus',
+                state: 'accepted',
+              }),
+              expect.objectContaining({
+                candidateId: 'sar-gap:owned-quiz',
+                targetGraphNodeId: 'kn-bode',
+                state: 'rejected',
+              }),
+            ]),
+          }),
+        }),
+      }),
+    }));
   });
 
   it('rejects accepted suggestions without an explicit governance patch', async () => {
