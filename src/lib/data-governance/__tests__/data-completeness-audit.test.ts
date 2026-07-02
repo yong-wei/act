@@ -450,6 +450,149 @@ describe('data completeness audit', () => {
     ]));
   });
 
+  it('blocks fixture generation when canonical evidence lineage is blocked', () => {
+    const report = buildDataCompletenessAuditReport({
+      interactionLogs: [{
+        id: 'canonical-log',
+        userId: 'user-canonical',
+        eventType: 'lesson_submit',
+        clientEventId: 'canonical-client-event',
+        attemptKey: 'attempt-1',
+        clientEventAt: null,
+        createdAt: null,
+      }],
+      learningFacts: [{
+        id: 'canonical-dangling-fact',
+        userId: 'user-canonical',
+        factType: 'question',
+        sourceEventId: 'missing-client-event',
+        sourceLogId: null,
+      }, {
+        id: 'canonical-dangling-log-fact',
+        userId: 'user-canonical',
+        factType: 'question',
+        sourceEventId: null,
+        sourceLogId: 'missing-log',
+      }],
+      canonicalLearner: {
+        displayName: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+      },
+      learnerCandidates: [{
+        userId: 'user-canonical',
+        name: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+        learningFactCount: 1,
+        knowledgeProgressCount: 1,
+        pathExecutionCount: 1,
+        pathExecutionEvidenceRefCount: 1,
+        competencySnapshotCount: 1,
+        profileSummaryCount: 1,
+        adaptiveAssessmentStateCount: 1,
+        featureCache: {
+          sourceFactCount: 1,
+          sourceCoverage: { LearningFact: 'available' },
+        },
+      }],
+    });
+
+    expect(report.learnerFixture.fixtureGenerationBlocked).toBe(true);
+    expect(report.learnerFixture.blockers).toContain('evidenceLineage:learning-fact-source-event-dangling');
+    expect(report.learnerFixture.blockers).toContain('evidenceLineage:learning-fact-source-log-dangling');
+    expect(report.learnerFixture.blockers).toContain('evidenceLineage:interaction-log-timestamp-missing');
+  });
+
+  it('blocks fixture generation when global evidence batches remain unprocessed', () => {
+    const report = buildDataCompletenessAuditReport({
+      learningEventBatches: [{
+        id: 'batch-unprocessed',
+        eventCount: 2,
+        processedAt: null,
+      }],
+      canonicalLearner: {
+        displayName: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+      },
+      learnerCandidates: [{
+        userId: 'user-canonical',
+        name: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+        learningFactCount: 1,
+        knowledgeProgressCount: 1,
+        pathExecutionCount: 1,
+        pathExecutionEvidenceRefCount: 1,
+        competencySnapshotCount: 1,
+        profileSummaryCount: 1,
+        adaptiveAssessmentStateCount: 1,
+        featureCache: {
+          sourceFactCount: 1,
+          sourceCoverage: { LearningFact: 'available' },
+        },
+      }],
+    });
+
+    expect(report.learnerFixture.fixtureGenerationBlocked).toBe(true);
+    expect(report.learnerFixture.blockers).toContain('evidenceLineage:learning-event-batch-unprocessed');
+  });
+
+  it('does not block canonical fixture generation for unrelated learner lineage blockers', () => {
+    const report = buildDataCompletenessAuditReport({
+      interactionLogs: [{
+        id: 'canonical-log',
+        userId: 'user-canonical',
+        eventType: 'lesson_submit',
+        clientEventId: 'canonical-client-event',
+        attemptKey: 'attempt-1',
+        createdAt: '2026-07-02T00:00:00.000Z',
+      }],
+      eventDictionaryTypes: ['lesson_submit'],
+      learningFacts: [{
+        id: 'canonical-fact',
+        userId: 'user-canonical',
+        factType: 'question',
+        sourceEventId: 'canonical-client-event',
+        sourceLogId: null,
+      }, {
+        id: 'other-dangling-fact',
+        userId: 'user-other',
+        factType: 'question',
+        sourceEventId: 'missing-client-event',
+        sourceLogId: null,
+      }],
+      canonicalLearner: {
+        displayName: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+      },
+      learnerCandidates: [{
+        userId: 'user-canonical',
+        name: 'Yang Fan',
+        email: 'yangfan@example.edu',
+        studentNumber: '20230010102605',
+        learningFactCount: 1,
+        knowledgeProgressCount: 1,
+        pathExecutionCount: 1,
+        pathExecutionEvidenceRefCount: 1,
+        competencySnapshotCount: 1,
+        profileSummaryCount: 1,
+        adaptiveAssessmentStateCount: 1,
+        featureCache: {
+          sourceFactCount: 1,
+          sourceCoverage: { LearningFact: 'available' },
+        },
+      }],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.severity).toBe('blocked');
+    expect(report.learnerFixture.fixtureGenerationBlocked).toBe(false);
+    expect(report.learnerFixture.blockers).not.toContain('evidenceLineage:learning-fact-source-event-dangling');
+  });
+
   it('does not leak canonical fixture display fields when the account is missing', () => {
     const report = buildDataCompletenessAuditReport({
       canonicalLearner: {

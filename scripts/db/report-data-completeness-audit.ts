@@ -82,10 +82,10 @@ async function main() {
         },
       },
     }),
-    loadAllLessonRuntimeResourceCatalogEntries().catch(() => []),
-    loadAllTextbookRuntimeResourceCatalogEntries().catch(() => []),
+    loadAllLessonRuntimeResourceCatalogEntries(),
+    loadAllTextbookRuntimeResourceCatalogEntries(),
     loadRuntimeResourceProjectionInputs(),
-    loadAllTextbookRuntimeSearchDocuments().catch(() => []),
+    loadAllTextbookRuntimeSearchDocuments(),
     prisma.interactionLog.findMany({
       select: {
         id: true,

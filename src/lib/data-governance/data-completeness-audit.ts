@@ -184,7 +184,7 @@ export function buildDataCompletenessAuditReport(input: DataCompletenessAuditInp
   const citationReadiness = buildCitationReadinessLayer(input.resourceRegistry, input.evidenceCorpus ?? []);
   const pathReadiness = buildPathReadinessLayer(input.resourceRegistry);
   const evidenceLineage = buildEvidenceLineageLayer(input);
-  const learnerFixtureReadiness = buildLearnerFixtureLayer(input, [resourceBinding, pathReadiness]);
+  const learnerFixtureReadiness = buildLearnerFixtureLayer(input, [resourceBinding, pathReadiness], evidenceLineage);
   const layers = [
     graphCore,
     resourceBinding,
@@ -430,6 +430,7 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
 function buildLearnerFixtureLayer(
   input: DataCompletenessAuditInput,
   blockingDependencyLayers: DataCompletenessLayerSummary[],
+  evidenceLineage: DataCompletenessLayerSummary,
 ) {
   const canonicalSpec = input.canonicalLearner ?? { displayName: 'Yang Fan', studentNumber: '20230010102605' };
   const candidates = input.learnerCandidates ?? [];
@@ -475,6 +476,7 @@ function buildLearnerFixtureLayer(
         .filter((item) => item.severity === 'blocked')
         .map((item) => `${dependencyLayer.id}:${item.id}`)
     ),
+    ...buildCanonicalEvidenceLineageBlockers(input, candidateForChecks, evidenceLineage),
   ]);
 
   return {
@@ -500,6 +502,37 @@ function buildLearnerFixtureLayer(
       blockers,
     },
   };
+}
+
+function buildCanonicalEvidenceLineageBlockers(
+  input: DataCompletenessAuditInput,
+  candidate: DataCompletenessLearnerCandidateInput | null,
+  evidenceLineage: DataCompletenessLayerSummary,
+): string[] {
+  const canonicalUserId = candidate?.userId ?? null;
+  const canonicalLearningFactIds = new Set((input.learningFacts ?? [])
+    .filter((fact) => canonicalUserId && fact.userId === canonicalUserId)
+    .map((fact) => fact.id));
+  const canonicalInteractionLogIds = new Set((input.interactionLogs ?? [])
+    .filter((log) => canonicalUserId && log.userId === canonicalUserId)
+    .map((log) => log.id));
+  const canonicalMaskedRef = canonicalUserId ? maskStableLearnerRef(canonicalUserId) : null;
+
+  return evidenceLineage.findings
+    .filter((item) => item.severity === 'blocked')
+    .filter((item) => {
+      if (item.id === 'learning-event-batch-unprocessed') return true;
+      if (canonicalMaskedRef && item.stableRef === canonicalMaskedRef) return true;
+      const learningFactId = item.stableRef.startsWith('LearningFact:')
+        ? item.stableRef.slice('LearningFact:'.length)
+        : null;
+      if (learningFactId && canonicalLearningFactIds.has(learningFactId)) return true;
+      const interactionLogId = item.stableRef.startsWith('InteractionLog:')
+        ? item.stableRef.slice('InteractionLog:'.length)
+        : null;
+      return Boolean(interactionLogId && canonicalInteractionLogIds.has(interactionLogId));
+    })
+    .map((item) => `evidenceLineage:${item.id}`);
 }
 
 function layer(id: DataCompletenessLayerId, totals: Record<string, number>, findings: DataCompletenessFinding[]): DataCompletenessLayerSummary {
