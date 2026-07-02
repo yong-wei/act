@@ -77,8 +77,9 @@ describe('authoring resource flow source contracts', () => {
     expect(interactiveSource).toContain('buildTeachingResourceAuthoringTasks');
     expect(interactiveSource).toContain('resourceSaveState');
     expect(interactiveSource).toContain('} catch (error) {');
+    expect(interactiveSource).toContain('canPreview: Boolean(resource.registryId)');
     expect(interactiveSource).toContain('canAttach: false');
-    expect(interactiveSource).toContain('previewHref: `/interactive-learning/resources/${encodeURIComponent(resource.id)}`');
+    expect(interactiveSource).toContain('previewHref: resource.registryId');
     expect(classroomSource).toContain('buildTeachingResourceAuthoringTasks');
     expect(classroomSource).toContain('canEdit: false');
     expect(classroomSource).toContain('canAttach: false');

@@ -146,10 +146,12 @@ export function InteractiveResourceList({
                   type: resource.type,
                   registryId: resource.registryId,
                   description: resource.description,
-                  canPreview: true,
+                  canPreview: Boolean(resource.registryId),
                   canEdit: true,
                   canAttach: false,
-                  previewHref: `/interactive-learning/resources/${encodeURIComponent(resource.id)}`,
+                  previewHref: resource.registryId
+                    ? `/interactive-learning/resources/${encodeURIComponent(resource.id)}`
+                    : undefined,
                   editState: resourceSaveState[resource.id] ?? 'idle',
                 });
                 return (
