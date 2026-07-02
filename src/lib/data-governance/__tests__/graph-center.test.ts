@@ -355,10 +355,27 @@ describe('graph center payload service', () => {
   });
 
   it('shows SAR resource gap suggestions without promoting candidates into official coverage', () => {
+    const resourceRegistry = buildResourceNodeRegistry({
+      teachingResources: [
+        {
+          id: 'semantic-simulation-gap',
+          title: 'Semantic simulation gap',
+          type: 'TEXT',
+          knowledgeNodeIds: ['unrelated-knowledge-node'],
+        },
+        {
+          id: 'kn-bode',
+          title: 'Knowledge id collision resource',
+          type: 'TEXT',
+          knowledgeNodeIds: ['unrelated-knowledge-node'],
+        },
+      ],
+    });
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',
       selectedNodeId: 'kn:autocontrol:simulation-validation',
       viewerRole: 'TEACHER',
+      resourceRegistry,
       evidenceCorpus: [
         ragChunk({
           id: 'chunk-sar-simulation-gap',
@@ -368,7 +385,7 @@ describe('graph center payload service', () => {
         ragChunk({
           id: 'chunk-sar-semantic-resource-gap',
           knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
-          resourceId: 'resource:semantic-simulation-gap',
+          resourceId: 'resource:teaching-resource:semantic-simulation-gap',
         }),
         ragChunk({
           id: 'chunk-sar-prefixed-knowledge-collision',
@@ -422,15 +439,19 @@ describe('graph center payload service', () => {
       suggestion.ref === 'external:sar-simulation-gap' && suggestion.refType === 'resource-node'
     );
     const semanticResourceNodeSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
-      suggestion.ref === 'semantic-simulation-gap' && suggestion.refType === 'resource-node'
+      suggestion.ref === 'teaching-resource:semantic-simulation-gap' && suggestion.refType === 'resource-node'
+    );
+    const prefixedKnowledgeCollisionSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
+      suggestion.ref === 'kn-bode' && suggestion.refType === 'resource-node'
     );
     expect(retrievalChunkSuggestion).not.toHaveProperty('review');
     expect(resourceNodeSuggestion).not.toHaveProperty('review');
-    expect(semanticResourceNodeSuggestion).not.toHaveProperty('review');
+    expect(prefixedKnowledgeCollisionSuggestion).not.toHaveProperty('review');
+    expect(semanticResourceNodeSuggestion?.review?.auditPayload.sourceRefs).toEqual(['semantic-simulation-gap']);
     const reviewSourceRefs = associated?.resourceGapSuggestions.flatMap((suggestion) =>
       suggestion.review?.auditPayload.sourceRefs ?? []
     ) ?? [];
-    expect(reviewSourceRefs).toEqual([]);
+    expect(new Set(reviewSourceRefs)).toEqual(new Set(['semantic-simulation-gap']));
     expect(associated?.resourceGapSuggestions[0]?.rationale.reason).toContain('ResourceNode governance review');
   });
 

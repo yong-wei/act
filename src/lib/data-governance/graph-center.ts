@@ -1042,8 +1042,14 @@ function sarReviewResourceRefMatches(value: unknown, ref: string): boolean {
 
 function canonicalSarResourceNodeRef(resourceRef: string): string {
   const semanticPrefix = 'resource:';
-  if (!resourceRef.startsWith(semanticPrefix)) return resourceRef;
-  return resourceRef.slice(semanticPrefix.length) || resourceRef;
+  const semanticRef = resourceRef.startsWith(semanticPrefix)
+    ? resourceRef.slice(semanticPrefix.length)
+    : resourceRef;
+  const teachingResourcePrefix = 'teaching-resource:';
+  if (semanticRef.startsWith(teachingResourcePrefix)) {
+    return semanticRef.slice(teachingResourcePrefix.length) || resourceRef;
+  }
+  return semanticRef || resourceRef;
 }
 
 function sarReviewEventAuthorizationRefs(
@@ -1054,11 +1060,19 @@ function sarReviewEventAuthorizationRefs(
   const resourceId = typeof event.metadata?.resourceId === 'string' ? event.metadata.resourceId : '';
   return uniqueSorted([
     refType === 'retrieval-chunk' && resourceId === candidateRef ? '' : sarReviewAuthorizationRef(resourceId),
-    event.eventType === 'resource-node' ? event.sourceRef.id : '',
+    event.eventType === 'resource-node' ? sarReviewAuthorizationRef(event.sourceRef.id) : '',
   ].filter((ref) => ref && !ref.startsWith('sar:event:')));
 }
 
 function sarReviewAuthorizationRef(ref: string): string {
+  const semanticPrefix = 'resource:';
+  const semanticRef = ref.startsWith(semanticPrefix)
+    ? ref.slice(semanticPrefix.length)
+    : ref;
+  const teachingResourcePrefix = 'teaching-resource:';
+  if (semanticRef.startsWith(teachingResourcePrefix)) {
+    return semanticRef.slice(teachingResourcePrefix.length) || ref;
+  }
   return ref;
 }
 
