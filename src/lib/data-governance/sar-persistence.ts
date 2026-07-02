@@ -1352,6 +1352,7 @@ function relationKey(relation: SarRetrievalEventEntity): string {
     relation.entityId,
     relation.role,
     relation.provenance,
+    relation.source,
   ].map(encodeURIComponent).join('|');
 }
 

@@ -1025,11 +1025,11 @@ describe('SAR persistence', () => {
     }
   });
 
-  it('updates stable relations when relation source text changes', () => {
+  it('updates stable relations for repeated relation sources', () => {
     const repository = createSarPersistenceRepository({ now: () => fixedNow });
     repository.upsertResult(sarResult());
     repository.upsertResult(sarResult({
-      relations: [relation({ source: 'updated matched KAQ objective summary' })],
+      relations: [relation({ confidence: 0.81 })],
     }), { now: '2026-07-01T03:00:00.000Z' });
 
     const relations = Object.values(repository.getSnapshot().relations);
@@ -1039,9 +1039,31 @@ describe('SAR persistence', () => {
       entityId: 'sar:entity:kaq:root-locus',
       role: 'about',
       provenance: 'deterministic-id',
-      source: 'updated matched KAQ objective summary',
+      source: 'matched KAQ objective id',
+      confidence: 0.81,
       updatedAt: '2026-07-01T03:00:00.000Z',
     });
+  });
+
+  it('preserves relation records from distinct SAR sources', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const write = repository.upsertResult(sarResult({
+      relations: [
+        relation({ source: 'expanded-goal-subgraph-remediation-candidate' }),
+        relation({ source: 'expanded-goal-subgraph-extension-candidate' }),
+        relation({ source: 'expanded-goal-subgraph-transfer-candidate' }),
+      ],
+    }));
+
+    expect(write.persisted).toBe(true);
+    const sources = Object.values(repository.getSnapshot().relations)
+      .map((record) => record.source)
+      .sort();
+    expect(sources).toEqual([
+      'expanded-goal-subgraph-extension-candidate',
+      'expanded-goal-subgraph-remediation-candidate',
+      'expanded-goal-subgraph-transfer-candidate',
+    ]);
   });
 
   it('rejects restored snapshots that contain raw query trace fields', () => {
