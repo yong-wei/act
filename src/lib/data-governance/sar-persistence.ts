@@ -380,18 +380,19 @@ export class SarPersistenceRepository {
   }
 
   rebuild(results: readonly SarRetrievalResult[], options: SarPersistResultOptions = {}): SarPersistenceWriteResult {
-    const next = createEmptySarPersistenceSnapshot(options.now ?? this.now());
+    const now = options.now ?? this.now();
+    const next = createEmptySarPersistenceSnapshot(now);
     for (const result of results) {
       const issues = validateSarResult(result).issues;
       if (issues.length > 0) return { persisted: false, issues };
       const versionRefs = options.versionRefs ?? result.trace.versionRefs;
       const persistenceIssues = validateResultPersistenceInput(result, versionRefs);
       if (persistenceIssues.length > 0) return { persisted: false, issues: persistenceIssues };
-      persistResultIntoSnapshot(next, result, versionRefs, options.now ?? this.now());
+      persistResultIntoSnapshot(next, result, versionRefs, now);
     }
     next.queryTraces = Object.fromEntries(
       Object.entries(this.snapshot.queryTraces)
-        .map(([id, trace]) => [id, normalizePersistedQueryTraceRefs(trace)]),
+        .map(([id, trace]) => [id, minimizeTraceIfExpired(normalizePersistedQueryTraceRefs(trace), now)]),
     );
     this.snapshot = next;
     this.flush();
@@ -420,13 +421,16 @@ export class SarPersistenceRepository {
     if (resultIssues.length > 0) return { persisted: false, issues: resultIssues };
     const traceIssues = validateSarTrace(input.result.trace).issues;
     if (traceIssues.length > 0) return { persisted: false, issues: traceIssues };
+    const queryIdentityHash = hashQueryIdentityForPersistence(input.queryIdentity);
     const persistenceIssues = [
       ...validateResultPersistenceInput(input.result, input.result.trace.versionRefs),
-      ...validateTracePersistenceInput(input),
+      ...queryIdentityHash.issues,
+      ...validateTracePersistenceInput(input, queryIdentityHash.queryHash),
     ];
     if (persistenceIssues.length > 0) return { persisted: false, issues: persistenceIssues };
 
     const now = input.now ?? this.now();
+    const queryHash = queryIdentityHash.queryHash;
     const entityIdMap = new Map(input.result.entities.map((entity) => [entity.id, persistedEntityId(entity)]));
     const trace = normalizePersistedTraceRefs(input.result.trace, entityIdMap);
     persistResultIntoSnapshot(this.snapshot, input.result, trace.versionRefs, now);
@@ -436,7 +440,7 @@ export class SarPersistenceRepository {
       stableId,
       queryRole: input.queryRole,
       useCase: input.useCase,
-      queryHash: hashSarQueryIdentity(input.queryIdentity),
+      queryHash,
       scope: { ...input.scope },
       retention: { ...input.retention },
       exportEligibility: input.exportEligibility,
@@ -450,7 +454,7 @@ export class SarPersistenceRepository {
       minimized: false,
       contentHash: stableHash({
         trace,
-        queryHash: hashSarQueryIdentity(input.queryIdentity),
+        queryHash,
         scope: input.scope,
         retention: input.retention,
         handoffStatus: input.handoffStatus,
@@ -811,12 +815,12 @@ function validateScopedEntityRef(ref: unknown, path: string): SarValidationIssue
   return [];
 }
 
-function validateTracePersistenceInput(input: SarPersistQueryTraceInput): SarValidationIssue[] {
+function validateTracePersistenceInput(input: SarPersistQueryTraceInput, queryHash: unknown): SarValidationIssue[] {
   return [
     ...validateRetention(input.retention),
     ...validateScopeRef(input.scope),
     ...validateTraceEnums(input.exportEligibility, input.handoffStatus),
-    ...validateQueryTraceIdentity(input.queryRole, input.useCase, hashSarQueryIdentity(input.queryIdentity)),
+    ...validateQueryTraceIdentity(input.queryRole, input.useCase, queryHash),
     ...validatePersistedTextBoundary({
       queryRole: input.queryRole,
       useCase: input.useCase,
@@ -841,12 +845,37 @@ function validateResultPersistenceInput(result: SarRetrievalResult, versionRefs:
       .map((issue) => ({ ...issue, path: `events.${index}.${issue.path}` })));
     issues.push(...validatePersistedTextBoundary(sanitizeSourceRef(event.sourceRef), `events.${index}.sourceRef`));
   });
+  result.entities.forEach((entity, index) => {
+    if (isScopedIdentityEntity(entity)) return;
+    collectRestrictedTraceText(entity.id, `entities.${index}.id`, issues);
+    collectRestrictedTraceText(entity.canonicalRef, `entities.${index}.canonicalRef`, issues);
+    collectRestrictedTraceText(entity.label, `entities.${index}.label`, issues);
+    collectRestrictedTraceText(entity.aliases, `entities.${index}.aliases`, issues);
+    issues.push(...validateScopedEntityRef(entity.id, `entities.${index}.id`));
+    issues.push(...validateScopedEntityRef(entity.canonicalRef, `entities.${index}.canonicalRef`));
+  });
   result.relations.forEach((relation, index) => {
     collectRestrictedTraceText(relation.eventId, `relations.${index}.eventId`, issues);
     collectRestrictedTraceText(relation.entityId, `relations.${index}.entityId`, issues, { allowStructuredScopedRefs: true });
     issues.push(...validatePersistedTextBoundary({ source: relation.source }, `relations.${index}`));
   });
   return issues;
+}
+
+function hashQueryIdentityForPersistence(identity: unknown): { queryHash: string; issues: SarValidationIssue[] } {
+  try {
+    const queryHash = hashSarQueryIdentity(identity);
+    return { queryHash, issues: [] };
+  } catch {
+    return {
+      queryHash: '',
+      issues: [{
+        code: 'invalid-trace',
+        path: 'queryIdentity',
+        message: 'Query identity must be present and stably serializable before persistence.',
+      }],
+    };
+  }
 }
 
 function validatePersistedQueryTraceRecord(record: unknown): SarValidationIssue[] {

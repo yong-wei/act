@@ -342,6 +342,42 @@ describe('SAR persistence', () => {
     expect(JSON.stringify(repository.getSnapshot())).not.toContain('A01');
   });
 
+  it('rejects raw learner and class refs in non-scoped entities before persistence', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    const result = sarResult({
+      entities: [entity({
+        id: 'sar:entity:learning-fact:student:learner-1',
+        entityType: 'learning-fact',
+        canonicalRef: 'class:raw-section',
+        label: 'Root locus safe label',
+        aliases: ['root locus safe alias'],
+      })],
+      relations: [relation({
+        entityId: 'sar:entity:learning-fact:student:learner-1',
+      })],
+      trace: trace({
+        seedEntityIds: ['sar:entity:learning-fact:student:learner-1'],
+        expansionHops: [],
+      }),
+    });
+
+    const write = repository.upsertResult(result);
+    expect(write.persisted).toBe(false);
+    expect(write.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'entities.0.id',
+      'entities.0.canonicalRef',
+    ]));
+
+    const queryWrite = repository.upsertQueryTrace(traceInput(result));
+    expect(queryWrite.persisted).toBe(false);
+    expect(queryWrite.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'entities.0.id',
+      'entities.0.canonicalRef',
+    ]));
+    expect(JSON.stringify(repository.getSnapshot())).not.toContain('learner-1');
+    expect(JSON.stringify(repository.exportSafeSnapshot())).not.toContain('raw-section');
+  });
+
   it('rejects raw identity labels in query trace metadata before persistence', () => {
     const repository = createSarPersistenceRepository({ now: () => fixedNow });
     const result = sarResult({
@@ -662,6 +698,33 @@ describe('SAR persistence', () => {
     expect(write.issues.map((issue) => issue.path)).toContain('scope.scope');
   });
 
+  it('returns validation issues for missing or unserializable query identity', () => {
+    const missingRepository = createSarPersistenceRepository({ now: () => fixedNow });
+    const missing = missingRepository.upsertQueryTrace({
+      ...traceInput(),
+      queryIdentity: undefined,
+    });
+
+    expect(missing.persisted).toBe(false);
+    expect(missing.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+      'queryIdentity',
+      'queryHash',
+    ]));
+    expect(missingRepository.getSnapshot().queryTraces).toEqual({});
+
+    const circularIdentity: Record<string, unknown> = { prompt: 'root locus' };
+    circularIdentity.self = circularIdentity;
+    const circularRepository = createSarPersistenceRepository({ now: () => fixedNow });
+    const circular = circularRepository.upsertQueryTrace({
+      ...traceInput(),
+      queryIdentity: circularIdentity,
+    });
+
+    expect(circular.persisted).toBe(false);
+    expect(circular.issues.map((issue) => issue.path)).toContain('queryIdentity');
+    expect(circularRepository.getSnapshot().queryTraces).toEqual({});
+  });
+
   it('minimizes expired traces and excludes them from safe exports', () => {
     const repository = createSarPersistenceRepository({ now: () => fixedNow });
     repository.upsertResult(sarResult());
@@ -673,6 +736,27 @@ describe('SAR persistence', () => {
     expect(traceRecord.minimized).toBe(true);
     expect(traceRecord.seedEntityIds).toEqual([]);
     expect(traceRecord.selectedRefs).toEqual([]);
+    expect(traceRecord.aggregateCounts).toMatchObject({
+      seedEntityIds: 1,
+      expansionHops: 1,
+      selectedRefs: 1,
+      rejectedRefs: 1,
+    });
+    expect(repository.exportSafeSnapshot('2026-07-04T00:00:00.000Z').queryTraces).toEqual([]);
+  });
+
+  it('minimizes expired traces while rebuilding the projection index', () => {
+    const repository = createSarPersistenceRepository({ now: () => fixedNow });
+    expect(repository.upsertQueryTrace(traceInput()).persisted).toBe(true);
+
+    const rebuild = repository.rebuild([sarResult()], { now: '2026-07-04T00:00:00.000Z' });
+    expect(rebuild.persisted).toBe(true);
+
+    const traceRecord = repository.getSnapshot().queryTraces['sar:trace:root-locus'];
+    expect(traceRecord.minimized).toBe(true);
+    expect(traceRecord.seedEntityIds).toEqual([]);
+    expect(traceRecord.selectedRefs).toEqual([]);
+    expect(traceRecord.rejectedRefs).toEqual([]);
     expect(traceRecord.aggregateCounts).toMatchObject({
       seedEntityIds: 1,
       expansionHops: 1,
