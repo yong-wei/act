@@ -86,7 +86,7 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
     mocks.prisma.teachingResource.findMany.mockResolvedValue([ownedResource]);
     mocks.prisma.teachingResource.update.mockResolvedValue(ownedResource);
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
-    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([]);
+    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([textbookEntry]);
     mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
   });
 
@@ -174,7 +174,42 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
     });
     expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
   });
+
+  it('authorizes textbook section SAR reviews with prefixed section source refs', async () => {
+    const response = await POST(reviewRequest({
+      decision: 'defer',
+      candidateId: 'sar-gap:textbook-section',
+      candidateRef: 'citation-target:dorf-modern-control-systems:ch10-sec01',
+      refType: 'citation-target',
+      resourceNodeId: null,
+      sourceRefs: ['textbook-section:dorf-modern-control-systems:ch10-sec01'],
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      ok: true,
+      persisted: false,
+      state: 'deferred',
+      auditRecord: {
+        candidateId: 'sar-gap:textbook-section',
+        decision: 'defer',
+      },
+    });
+  });
 });
+
+const textbookEntry = {
+  textbook: {
+    bookId: 'dorf-modern-control-systems',
+  },
+  sections: [
+    {
+      sectionId: 'ch10-sec01',
+      knowledgeNodeIds: ['kn-bode'],
+    },
+  ],
+};
 
 function reviewRequest(input: {
   decision: string;

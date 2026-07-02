@@ -208,6 +208,7 @@ function createScope(
   const textbookSourceRefs = runtimeTextbooks.flatMap((entry) => [
     entry.textbook.bookId,
     ...entry.sections.map((section) => `${entry.textbook.bookId}:${section.sectionId}`),
+    ...entry.sections.map((section) => `textbook-section:${entry.textbook.bookId}:${section.sectionId}`),
   ]);
   const textbookKnowledgeNodeIds = runtimeTextbooks.flatMap((entry) =>
     entry.sections.flatMap((section) => section.knowledgeNodeIds ?? [])
