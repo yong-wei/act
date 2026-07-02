@@ -777,7 +777,9 @@ describe('SAR diagnostics and evaluation report', () => {
       id: 'control-correction-demo',
       ordinaryRetrievalBaselineRefCount: 1,
       sarCandidateRefCount: 2,
+      citationTargetRefCount: 2,
       verifiedCitationRefCount: 1,
+      verifiedCitationRate: 0.5,
       sourcePackHandoffRefCount: 2,
       multiHopHit: true,
     });
@@ -785,7 +787,9 @@ describe('SAR diagnostics and evaluation report', () => {
       queryCount: 1,
       ordinaryRetrievalBaselineRefCount: 1,
       sarCandidateRefCount: 2,
+      citationTargetRefCount: 2,
       verifiedCitationRefCount: 1,
+      verifiedCitationRate: 0.5,
       sourcePackHandoffRefCount: 2,
       feedbackRecordCount: 2,
       multiHopHitRate: 1,
@@ -794,7 +798,9 @@ describe('SAR diagnostics and evaluation report', () => {
       ordinaryRetrievalBaselineRefCount: 1,
       sarCandidateRefCount: 2,
       sarOnlyCandidateRefCount: 1,
+      citationTargetRefCount: 2,
       verifiedCitationRefCount: 1,
+      verifiedCitationRate: 0.5,
     });
     expect(report.evaluationRecords).toHaveLength(2);
     expect(report.privacyBoundary).toMatchObject({
@@ -1101,6 +1107,7 @@ describe('SAR diagnostics and evaluation report', () => {
           selectedRefs: [
             'sar:event:persisted-baseline',
             'sar:event:persisted-citation',
+            'citation-target:persisted-direct-candidate',
             'planning-unit:persisted-sar-candidate',
             'sar:entity:persisted-arena',
           ],
@@ -1145,19 +1152,23 @@ describe('SAR diagnostics and evaluation report', () => {
       id: 'sar:trace:sha256:persisted-live-eval',
       query: 'teacher-diagnostics · sar-live-evaluation · sha256:persist',
       ordinaryRetrievalBaselineRefCount: 1,
-      sarCandidateRefCount: 2,
-      sarOnlyCandidateRefCount: 2,
+      sarCandidateRefCount: 3,
+      sarOnlyCandidateRefCount: 3,
+      citationTargetRefCount: 2,
       verifiedCitationRefCount: 0,
+      verifiedCitationRate: 0,
       multiHopHit: true,
     });
-    expect(report.querySet[0]?.sourcePackHandoffRefCount).toBe(2);
+    expect(report.querySet[0]?.sourcePackHandoffRefCount).toBe(3);
     expect(report.metrics).toMatchObject({
       queryCount: 1,
       ordinaryRetrievalBaselineRefCount: 1,
-      sarCandidateRefCount: 2,
-      sarOnlyCandidateRefCount: 2,
+      sarCandidateRefCount: 3,
+      sarOnlyCandidateRefCount: 3,
+      citationTargetRefCount: 2,
       verifiedCitationRefCount: 0,
-      sourcePackHandoffRefCount: 2,
+      verifiedCitationRate: 0,
+      sourcePackHandoffRefCount: 3,
       feedbackRecordCount: 2,
     });
     const pendingCitationReport = buildSarLiveEvaluationReportFromPersistenceExport({
@@ -1174,8 +1185,9 @@ describe('SAR diagnostics and evaluation report', () => {
     });
     expect(pendingCitationReport.querySet[0]).toMatchObject({
       verifiedCitationRefCount: 0,
-      sarCandidateRefCount: 2,
-      sarOnlyCandidateRefCount: 2,
+      verifiedCitationRate: 0,
+      sarCandidateRefCount: 3,
+      sarOnlyCandidateRefCount: 3,
     });
     expect(JSON.stringify(report)).not.toContain(fixture.query);
     expect(JSON.stringify(report)).not.toContain('control-correction-demo');

@@ -188,7 +188,9 @@ describe('SAR diagnostics admin panel', () => {
         ordinaryRetrievalBaselineRefCount: 1,
         sarCandidateRefCount: 2,
         sarOnlyCandidateRefCount: 1,
+        citationTargetRefCount: 2,
         verifiedCitationRefCount: 1,
+        verifiedCitationRate: 0.5,
         sourcePackHandoffRefCount: 2,
         multiHopHit: true,
         privacyRejectionCount: 1,
@@ -199,7 +201,9 @@ describe('SAR diagnostics admin panel', () => {
         ordinaryRetrievalBaselineRefCount: 1,
         sarCandidateRefCount: 2,
         sarOnlyCandidateRefCount: 1,
+        citationTargetRefCount: 2,
         verifiedCitationRefCount: 1,
+        verifiedCitationRate: 0.5,
         sourcePackHandoffRefCount: 2,
         privacyRejectionCount: 1,
         limitationCount: 2,
@@ -210,7 +214,9 @@ describe('SAR diagnostics admin panel', () => {
         ordinaryRetrievalBaselineRefCount: 1,
         sarCandidateRefCount: 2,
         sarOnlyCandidateRefCount: 1,
+        citationTargetRefCount: 2,
         verifiedCitationRefCount: 1,
+        verifiedCitationRate: 0.5,
       },
       evaluationRecords: [
         {
@@ -263,7 +269,8 @@ describe('SAR diagnostics admin panel', () => {
     expect(html).toContain('SAR live evaluation');
     expect(html).toContain('Baseline refs');
     expect(html).toContain('SAR candidates');
-    expect(html).toContain('Verified citations');
+    expect(html).toContain('Verified citation rate');
+    expect(html).toContain('50.0%');
     expect(html).toContain('100.0%');
     expect(html).toContain('ArenaSubmission');
     expect(html).toContain('ArenaEvaluationRun');

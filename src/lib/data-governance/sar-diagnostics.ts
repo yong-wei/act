@@ -128,7 +128,9 @@ export type SarLiveEvaluationReport = {
     ordinaryRetrievalBaselineRefCount: number;
     sarCandidateRefCount: number;
     sarOnlyCandidateRefCount: number;
+    citationTargetRefCount: number;
     verifiedCitationRefCount: number;
+    verifiedCitationRate: number;
     sourcePackHandoffRefCount: number;
     multiHopHit: boolean;
     privacyRejectionCount: number;
@@ -139,7 +141,9 @@ export type SarLiveEvaluationReport = {
     ordinaryRetrievalBaselineRefCount: number;
     sarCandidateRefCount: number;
     sarOnlyCandidateRefCount: number;
+    citationTargetRefCount: number;
     verifiedCitationRefCount: number;
+    verifiedCitationRate: number;
     sourcePackHandoffRefCount: number;
     privacyRejectionCount: number;
     limitationCount: number;
@@ -150,7 +154,9 @@ export type SarLiveEvaluationReport = {
     ordinaryRetrievalBaselineRefCount: number;
     sarCandidateRefCount: number;
     sarOnlyCandidateRefCount: number;
+    citationTargetRefCount: number;
     verifiedCitationRefCount: number;
+    verifiedCitationRate: number;
   };
   evaluationRecords: SarLiveEvaluationRecord[];
   limitations: string[];
@@ -368,6 +374,7 @@ export function buildSarLiveEvaluationReport(input: {
   let ordinaryRetrievalBaselineRefCount = 0;
   let sarCandidateRefCount = 0;
   let sarOnlyCandidateRefCount = 0;
+  let citationTargetRefCount = 0;
   let verifiedCitationRefCount = 0;
   let sourcePackHandoffRefCount = 0;
   let privacyRejectionCount = 0;
@@ -381,9 +388,10 @@ export function buildSarLiveEvaluationReport(input: {
     const sarRefs = exportableDiagnosticRefs(traceInput.sarAssistedRefs ?? result.retrievalChunkRefs, traceInput.result);
     const sarOnlyRefs = sarRefs.filter((ref) => !ordinaryRefs.includes(ref));
     const sourcePackHandoffRefs = exportableDiagnosticRefs(traceInput.sourcePackHandoffRefs ?? [], traceInput.result);
+    const citationTargetRefs = exportableDiagnosticRefs(result.citationTargetRefs, traceInput.result);
     const verifiedRefs = verifiedCitationTargetRefs(
       exportableDiagnosticRefs(traceInput.verifiedCitationRefs ?? [], traceInput.result),
-      result.citationTargetRefs,
+      citationTargetRefs,
     );
     const traceLimitations = mergedDiagnosticLimitations(result);
     const tracePrivacyRejectionCount = countPrivacyRejections(result.trace);
@@ -392,6 +400,7 @@ export function buildSarLiveEvaluationReport(input: {
     ordinaryRetrievalBaselineRefCount += ordinaryRefs.length;
     sarCandidateRefCount += sarRefs.length;
     sarOnlyCandidateRefCount += sarOnlyRefs.length;
+    citationTargetRefCount += citationTargetRefs.length;
     verifiedCitationRefCount += verifiedRefs.length;
     sourcePackHandoffRefCount += sourcePackHandoffRefs.length;
     privacyRejectionCount += tracePrivacyRejectionCount;
@@ -404,7 +413,9 @@ export function buildSarLiveEvaluationReport(input: {
       ordinaryRetrievalBaselineRefCount: ordinaryRefs.length,
       sarCandidateRefCount: sarRefs.length,
       sarOnlyCandidateRefCount: sarOnlyRefs.length,
+      citationTargetRefCount: citationTargetRefs.length,
       verifiedCitationRefCount: verifiedRefs.length,
+      verifiedCitationRate: rate(verifiedRefs.length, citationTargetRefs.length),
       sourcePackHandoffRefCount: sourcePackHandoffRefs.length,
       multiHopHit,
       privacyRejectionCount: tracePrivacyRejectionCount,
@@ -427,7 +438,9 @@ export function buildSarLiveEvaluationReport(input: {
       ordinaryRetrievalBaselineRefCount,
       sarCandidateRefCount,
       sarOnlyCandidateRefCount,
+      citationTargetRefCount,
       verifiedCitationRefCount,
+      verifiedCitationRate: rate(verifiedCitationRefCount, citationTargetRefCount),
       sourcePackHandoffRefCount,
       privacyRejectionCount,
       limitationCount,
@@ -438,7 +451,9 @@ export function buildSarLiveEvaluationReport(input: {
       ordinaryRetrievalBaselineRefCount,
       sarCandidateRefCount,
       sarOnlyCandidateRefCount,
+      citationTargetRefCount,
       verifiedCitationRefCount,
+      verifiedCitationRate: rate(verifiedCitationRefCount, citationTargetRefCount),
     },
     evaluationRecords: input.evaluationRecords.map(serializeLiveEvaluationRecord),
     limitations,
@@ -503,6 +518,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
       ordinarySourcePackRefs,
       verifiedCitationRefs,
     });
+    const citationTargetRefs = persistedCitationTargetRefs(sarAssistedRefs);
     const result: SarRetrievalResult = {
       id: `sar:result:persisted:${trace.stableId}`,
       trace: {
@@ -517,7 +533,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
       events,
       entities,
       relations,
-      citationTargetRefs: verifiedCitationRefs,
+      citationTargetRefs,
       retrievalChunkRefs: ordinarySourcePackRefs,
       limitations: trace.limitations,
     };
@@ -838,11 +854,19 @@ function persistedSarAssistedRefs(
   }));
 }
 
+function persistedCitationTargetRefs(sarAssistedRefs: readonly string[]): string[] {
+  return uniqueSorted(sarAssistedRefs.filter(isPersistedCitationTargetRef));
+}
+
 function isPersistedSarCandidateRef(ref: string): boolean {
   return ref.startsWith('citation:')
     || ref.startsWith('citation-target:')
     || ref.startsWith('planning-unit:')
     || ref.startsWith('resource-candidate:');
+}
+
+function isPersistedCitationTargetRef(ref: string): boolean {
+  return ref.startsWith('citation:') || ref.startsWith('citation-target:');
 }
 
 function isPersistedRetrievalRef(ref: string): boolean {

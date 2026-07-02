@@ -597,7 +597,9 @@ describe('GET /api/admin/data-governance/status', () => {
         feedbackRecordCount: 2,
         ordinaryRetrievalBaselineRefCount: 0,
         sarCandidateRefCount: 0,
+        citationTargetRefCount: 0,
         verifiedCitationRefCount: 0,
+        verifiedCitationRate: 0,
       },
       privacyBoundary: {
         restrictedRawContentExcluded: true,
@@ -706,7 +708,9 @@ describe('GET /api/admin/data-governance/status', () => {
           ordinaryRetrievalBaselineRefCount: 1,
           sarCandidateRefCount: 2,
           sarOnlyCandidateRefCount: 2,
+          citationTargetRefCount: 1,
           verifiedCitationRefCount: 0,
+          verifiedCitationRate: 0,
           sourcePackHandoffRefCount: 2,
         },
         arenaOfficialAuthority: {
