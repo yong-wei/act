@@ -448,9 +448,9 @@ describe('GET /api/admin/data-governance/status', () => {
       status: 'degraded',
       totals: {
         sourceFamilyCount: 8,
-        projectedEventCount: 5,
-        projectedEntityCount: 6,
-        projectedRelationCount: 10,
+        projectedEventCount: 12,
+        projectedEntityCount: 13,
+        projectedRelationCount: 17,
         staleSourceCount: 3,
         failureCount: 0,
       },
@@ -480,7 +480,6 @@ describe('GET /api/admin/data-governance/status', () => {
       limitations: [
         'arena-auxiliary-evidence-context-only',
         'control-correction-demo-fixture-projection',
-        'sar-projection-builder-unavailable',
         'source-rows-excluded',
       ],
     });
@@ -763,6 +762,54 @@ describe('GET /api/admin/data-governance/status', () => {
       expect(payload.operationLedger).toBeDefined();
       expect(existsSync(filePath)).toBe(true);
       expect(JSON.parse(readFileSync(filePath, 'utf8')).events).toHaveProperty('sar:event:arena-validation');
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SAR_PERSISTENCE_FILE_PATH;
+      } else {
+        process.env.SAR_PERSISTENCE_FILE_PATH = previous;
+      }
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('reuses recorded SAR persistence during automatic status reads', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-status-'));
+    const previous = process.env.SAR_PERSISTENCE_FILE_PATH;
+    const filePath = join(directory, 'sar.json');
+    process.env.SAR_PERSISTENCE_FILE_PATH = filePath;
+    try {
+      const refreshResponse = await GET(createRequest('?recordOperation=refresh'));
+      const refreshPayload = await refreshResponse.json();
+      const recordedSnapshot = JSON.parse(readFileSync(filePath, 'utf8'));
+
+      expect(refreshResponse.status).toBe(200);
+      expect(refreshPayload.operationLedger).toBeDefined();
+
+      mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([
+        {
+          userId: 'student-1',
+          snapshotAt: new Date('2026-05-19T08:00:00.000Z'),
+          factCount: 12,
+        },
+      ]);
+      mocks.prisma.learningFact.findMany.mockResolvedValue([
+        { factType: 'question' },
+        { factType: 'simulation' },
+      ]);
+
+      const readResponse = await GET(createRequest());
+      const readPayload = await readResponse.json();
+
+      expect(readResponse.status).toBe(200);
+      expect(readPayload.operationLedger).toBeUndefined();
+      expect(readPayload.sarRefreshHealth.lastSuccessfulAt).toBe(recordedSnapshot.generatedAt);
+      expect(readPayload.sarRefreshHealth.sources).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          family: 'kaq-graph',
+          lastSuccessfulAt: recordedSnapshot.generatedAt,
+        }),
+      ]));
+      expect(JSON.parse(readFileSync(filePath, 'utf8')).generatedAt).toBe(recordedSnapshot.generatedAt);
     } finally {
       if (previous === undefined) {
         delete process.env.SAR_PERSISTENCE_FILE_PATH;

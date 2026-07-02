@@ -19,18 +19,29 @@ describe('SAR projection refresh orchestration', () => {
       now,
     });
 
-    expect(first.writes).toHaveLength(1);
-    expect(first.writes[0]).toMatchObject({ family: 'path-summary', persisted: true });
+    expect(first.writes.map((write) => write.family).sort()).toEqual([
+      'arena-official',
+      'kaq-graph',
+      'learning-evidence',
+      'learning-fact-summary',
+      'learning-goal',
+      'path-summary',
+      'resource-node',
+      'simulation-summary',
+    ]);
+    expect(first.writes.every((write) => write.persisted)).toBe(true);
     expect(first.health.lastSuccessfulAt).toBe(now);
     expect(first.health.sources.find((source) => source.family === 'path-summary')?.lastSuccessfulAt).toBe(now);
+    expect(first.health.sources.find((source) => source.family === 'kaq-graph')?.lastSuccessfulAt).toBe(now);
+    expect(first.health.limitations).not.toContain('sar-projection-builder-unavailable');
     expect(first.health.totals).toMatchObject({
       sourceFamilyCount: 8,
-      projectedEventCount: 5,
-      projectedEntityCount: 6,
-      projectedRelationCount: 10,
+      projectedEventCount: 12,
+      projectedEntityCount: 13,
+      projectedRelationCount: 17,
     });
     expect(second.health.totals).toEqual(first.health.totals);
-    expect(Object.keys(second.repository.getSnapshot().events)).toHaveLength(5);
+    expect(Object.keys(second.repository.getSnapshot().events)).toHaveLength(12);
   });
 
   it('does not mark dry-run refreshes as newly successful', () => {
@@ -64,6 +75,25 @@ describe('SAR projection refresh orchestration', () => {
     expect(dryRun.writes).toHaveLength(0);
     expect(dryRun.health.totals.failureCount).toBe(0);
     expect(dryRun.health.lastSuccessfulAt).toBeNull();
+  });
+
+  it('reuses persisted source timestamps for ordinary dry-run health reads', () => {
+    const refreshTime = '2026-07-02T08:00:00.000Z';
+    const readTime = '2026-07-02T08:30:00.000Z';
+    const recorded = runSarProjectionRefresh({
+      sources: buildRefreshSourcesWithOfficialArena(refreshTime),
+      now: refreshTime,
+    });
+    const ordinaryRead = runSarProjectionRefresh({
+      repository: recorded.repository,
+      sources: buildRefreshSourcesWithOfficialArena(readTime),
+      now: readTime,
+      persist: false,
+    });
+
+    expect(ordinaryRead.writes).toHaveLength(0);
+    expect(ordinaryRead.health.lastSuccessfulAt).toBe(refreshTime);
+    expect(ordinaryRead.health.sources.find((source) => source.family === 'kaq-graph')?.lastSuccessfulAt).toBe(refreshTime);
   });
 
   it('reports stale and failed source health with retry state', () => {

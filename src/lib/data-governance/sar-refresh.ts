@@ -9,6 +9,9 @@ import type {
   SarRetrievalResult,
   SarValidationIssue,
 } from './structured-associative-retrieval';
+import {
+  projectGovernedSummaryToSar,
+} from './structured-associative-retrieval';
 
 export type SarRefreshSourceFamily =
   | 'kaq-graph'
@@ -139,6 +142,7 @@ export function runSarProjectionRefresh(input: {
 }): SarProjectionRefreshResult {
   const now = input.now ?? new Date().toISOString();
   const repository = input.repository ?? createSarPersistenceRepository({ now: () => now });
+  const persistedSnapshot = input.persist === false ? repository.getSnapshot() : null;
   const writes: SarProjectionRefreshResult['writes'] = [];
   const sourceRecords: SarRefreshSourceHealthRecord[] = [];
 
@@ -153,6 +157,11 @@ export function runSarProjectionRefresh(input: {
     let persisted = true;
     let writeIssues: SarValidationIssue[] = [];
     const persistenceResult = source.result ? persistenceSafeSarResult(source.result) : null;
+    const persistedLastSuccessfulAt = persistedSourceLastSuccessfulAt(
+      persistedSnapshot,
+      source,
+      persistenceResult,
+    );
     if (source.result && input.persist !== false) {
       const writeResult = repository.upsertResult(persistenceResult ?? source.result, { now });
       persisted = writeResult.persisted;
@@ -183,10 +192,10 @@ export function runSarProjectionRefresh(input: {
       highWaterMark: source.highWaterMark ?? null,
       lastAttemptedAt: now,
       lastSuccessfulAt: failureCount > 0
-        ? source.lastSuccessfulAt ?? null
+        ? source.lastSuccessfulAt ?? persistedLastSuccessfulAt
         : source.result && input.persist !== false
           ? now
-          : source.lastSuccessfulAt ?? null,
+          : source.lastSuccessfulAt ?? persistedLastSuccessfulAt,
       projectedEventCount: persistenceResult?.events.length ?? 0,
       projectedEntityCount: persistenceResult?.entities.length ?? 0,
       projectedRelationCount: persistenceResult?.relations.length ?? 0,
@@ -243,14 +252,14 @@ export function buildControlCorrectionSarRefreshSources(
     ? normalizeOfficialArenaCoverage(coverageByFamily.get('arena-official'))
     : coverageByFamily.get('arena-official');
   return [
-    source('kaq-graph', coverageByFamily.get('kaq-graph')),
-    source('learning-goal', coverageByFamily.get('learning-goal')),
-    source('resource-node', coverageByFamily.get('resource-node')),
-    source('learning-evidence', coverageByFamily.get('learning-evidence')),
-    source('learning-fact-summary', coverageByFamily.get('learning-fact-summary')),
-    source('simulation-summary', coverageByFamily.get('simulation-summary')),
+    source('kaq-graph', generatedAt, coverageByFamily.get('kaq-graph')),
+    source('learning-goal', generatedAt, coverageByFamily.get('learning-goal')),
+    source('resource-node', generatedAt, coverageByFamily.get('resource-node')),
+    source('learning-evidence', generatedAt, coverageByFamily.get('learning-evidence')),
+    source('learning-fact-summary', generatedAt, coverageByFamily.get('learning-fact-summary')),
+    source('simulation-summary', generatedAt, coverageByFamily.get('simulation-summary')),
     {
-      ...source('arena-official', arenaCoverage),
+      ...source('arena-official', generatedAt, arenaCoverage),
       arenaAuthority: input.arenaAuthority ?? {
         scoreSource: 'ArenaEvaluationRun',
         validitySource: 'ArenaEvaluationRun',
@@ -262,7 +271,7 @@ export function buildControlCorrectionSarRefreshSources(
       limitations: ['arena-auxiliary-evidence-context-only'],
     },
     {
-      ...source('path-summary', coverageByFamily.get('path-summary')),
+      ...source('path-summary', generatedAt, coverageByFamily.get('path-summary')),
       result: fixture.result,
       limitations: ['control-correction-demo-fixture-projection'],
     },
@@ -285,6 +294,7 @@ function normalizeOfficialArenaCoverage(coverage?: {
 
 function source(
   family: SarRefreshSourceFamily,
+  generatedAt: string,
   coverage?: {
     highWaterMark: string | null;
     staleCount: number;
@@ -299,7 +309,86 @@ function source(
     staleCount: coverage?.staleCount,
     failureCount: coverage?.failureCount,
     limitations: coverage?.limitations,
+    result: family === 'path-summary'
+      ? undefined
+      : buildSourceFamilySarResult(family, generatedAt, coverage),
   };
+}
+
+function buildSourceFamilySarResult(
+  family: Exclude<SarRefreshSourceFamily, 'path-summary'>,
+  generatedAt: string,
+  coverage?: {
+    highWaterMark: string | null;
+    staleCount: number;
+    failureCount: number;
+    limitations: string[];
+  },
+): SarRetrievalResult {
+  const titles: Record<Exclude<SarRefreshSourceFamily, 'path-summary'>, string> = {
+    'kaq-graph': 'K/A/Q graph projection health',
+    'learning-goal': 'Learning goal projection health',
+    'resource-node': 'Resource node projection health',
+    'learning-evidence': 'Learning evidence projection health',
+    'learning-fact-summary': 'Learning fact projection health',
+    'simulation-summary': 'Simulation summary projection health',
+    'arena-official': 'Arena official projection health',
+  };
+  const eventTypes: Record<Exclude<SarRefreshSourceFamily, 'path-summary'>, Parameters<typeof projectGovernedSummaryToSar>[0]['eventType']> = {
+    'kaq-graph': 'graph-node',
+    'learning-goal': 'path-summary',
+    'resource-node': 'resource-node',
+    'learning-evidence': 'corpus-chunk-summary',
+    'learning-fact-summary': 'learning-fact-summary',
+    'simulation-summary': 'simulation-summary',
+    'arena-official': 'arena-summary',
+  };
+  const entityTypes: Record<Exclude<SarRefreshSourceFamily, 'path-summary'>, Parameters<typeof projectGovernedSummaryToSar>[0]['entityRefs'] extends readonly (infer T)[] ? T extends { entityType: infer E } ? E : never : never> = {
+    'kaq-graph': 'graph-node',
+    'learning-goal': 'learning-goal',
+    'resource-node': 'resource-node',
+    'learning-evidence': 'learning-fact',
+    'learning-fact-summary': 'learning-fact',
+    'simulation-summary': 'path-node',
+    'arena-official': 'path-node',
+  };
+  const highWaterMark = coverage?.highWaterMark ?? generatedAt;
+  const staleCount = coverage?.staleCount ?? 0;
+  const failureCount = coverage?.failureCount ?? 0;
+  return projectGovernedSummaryToSar({
+    id: `sar-refresh:${family}`,
+    title: titles[family],
+    summary: `${titles[family]} at ${highWaterMark}: stale=${staleCount}, failures=${failureCount}.`,
+    sourceOwner: family,
+    sourceRefId: `sar-refresh:${family}`,
+    eventType: eventTypes[family],
+    privacyScope: 'admin-scoped',
+    authorityLevel: 'metadata-projected',
+    freshness: highWaterMark,
+    entityRefs: [{
+      entityType: entityTypes[family],
+      canonicalRef: `sar-refresh:${family}`,
+      label: titles[family],
+      privacyScope: 'admin-scoped',
+    }],
+    limitations: coverage?.limitations,
+    versionRefs: ['control-correction-sar-refresh.v1'],
+  });
+}
+
+function persistedSourceLastSuccessfulAt(
+  snapshot: ReturnType<SarPersistenceRepository['getSnapshot']> | null,
+  source: SarRefreshSourceInput,
+  result: SarRetrievalResult | null,
+): string | null {
+  if (!snapshot || !result) return null;
+  const owners = new Set([
+    source.family,
+    ...result.events.map((event) => event.sourceRef.owner),
+  ]);
+  const hasPersistedSource = Object.values(snapshot.events)
+    .some((event) => owners.has(event.sourceRef.owner));
+  return hasPersistedSource ? snapshot.generatedAt : null;
 }
 
 function summarizeCoverageByFamily(sources: readonly {

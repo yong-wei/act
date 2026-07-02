@@ -883,7 +883,7 @@ export async function GET(request: NextRequest) {
     );
     const sarRefresh = runSarProjectionRefresh({
       repository: createSarPersistenceRepository({
-        filePath: shouldRecordRefresh && !sarPersistencePathMissing ? sarPersistenceFilePath : undefined,
+        filePath: sarPersistencePathMissing ? undefined : sarPersistenceFilePath,
         now: () => completedAt,
       }),
       sources: sarRefreshSources,
