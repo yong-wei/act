@@ -406,7 +406,7 @@ describe('graph center payload service', () => {
             candidateRef: 'chunk-sar-simulation-gap',
             candidateRefType: 'retrieval-chunk',
             sourceRefs: expect.arrayContaining([
-              'kn:autocontrol:simulation-validation',
+              'external:sar-simulation-gap',
             ]),
             missingCoverageTypes: expect.arrayContaining([
               'linked-resource',
@@ -433,11 +433,12 @@ describe('graph center payload service', () => {
       suggestion.refType === 'resource-node'
     );
     expect(resourceNodeSuggestion?.review?.auditPayload.sourceRefs).toEqual([
-      'kn:autocontrol:simulation-validation',
+      'external:sar-simulation-gap',
     ]);
     const reviewPayload = retrievalChunkSuggestion?.review?.auditPayload;
     expect(reviewPayload?.sourceRefs.some((ref) => ref.startsWith('sar:event:'))).toBe(false);
     expect(reviewPayload?.sourceRefs).not.toContain('chunk-sar-simulation-gap');
+    expect(reviewPayload?.sourceRefs).not.toContain('kn:autocontrol:simulation-validation');
     expect(reviewPayload?.sourceRefs.length).toBeGreaterThan(0);
     const teacherReviewScope: TeacherResourceNodeScope = {
       role: 'TEACHER',

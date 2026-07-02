@@ -655,6 +655,7 @@ function sarCandidateMatchesResourceNode(
   candidate: SarSuggestedBindingReviewCandidate,
   resourceNode: ResourceNode,
 ): boolean {
+  if (candidate.candidate.refType !== 'resource-node') return false;
   const candidateResourceNodeId = candidate.candidate.resourceNodeId?.trim();
   const referencesResourceNode = candidateResourceNodeId
     ? candidateResourceNodeId === resourceNode.id

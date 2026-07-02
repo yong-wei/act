@@ -739,7 +739,6 @@ function buildGraphCenterAssociatedEvidence(input: {
     linkedResourceIdSet,
     pathEligibleResourceIdSet,
     reviewActionsAllowed: input.viewerRole === 'TEACHER' || input.viewerRole === 'ADMIN',
-    targetNodeId: input.node.id,
   });
   return {
     status: safeExpansion.events.length > 0 || resourceGapSuggestions.length > 0
@@ -939,7 +938,6 @@ function buildSarResourceGapSuggestions(input: {
   linkedResourceIdSet: ReadonlySet<string>;
   pathEligibleResourceIdSet: ReadonlySet<string>;
   reviewActionsAllowed: boolean;
-  targetNodeId: string;
 }): GraphCenterSarResourceGapSuggestion[] {
   if (input.missingCoverageTypes.length === 0) return [];
   const visibleExpansion = input.visibleExpansion ?? input.expansion;
@@ -958,20 +956,22 @@ function buildSarResourceGapSuggestions(input: {
   return refs.map(({ ref, refType }, index) => {
     const id = `sar-gap:${index + 1}`;
     const auditSourceRefs = buildSarReviewAuditSourceRefs({
+      expansion: visibleExpansion,
+      ref,
       refType,
-      targetNodeId: input.targetNodeId,
     });
+    const reviewActions = buildSarReviewAvailableActions(refType);
     return {
       id,
       ref,
       refType,
       status: 'suggested',
       draft: true,
-      ...(input.reviewActionsAllowed ? {
+      ...(input.reviewActionsAllowed && auditSourceRefs.length > 0 ? {
         review: {
           state: 'suggested',
           authoritative: false,
-          availableActions: buildSarReviewAvailableActions(refType),
+          availableActions: reviewActions,
           auditPayload: {
             candidateId: id,
             candidateRef: ref,
@@ -1000,10 +1000,45 @@ function buildSarResourceGapSuggestions(input: {
 }
 
 function buildSarReviewAuditSourceRefs(input: {
+  expansion: SarAssociationExpansionResult;
+  ref: string;
   refType: GraphCenterSarResourceGapSuggestion['refType'];
-  targetNodeId: string;
 }): string[] {
-  return uniqueSorted([input.targetNodeId]);
+  return uniqueSorted(input.expansion.events.flatMap((event) => {
+    if (!sarReviewEventSupportsCandidate(event, input.ref, input.refType)) return [];
+    return sarReviewEventAuthorizationRefs(event, input.ref, input.refType);
+  }));
+}
+
+function sarReviewEventSupportsCandidate(
+  event: SarAssociationExpansionResult['events'][number],
+  ref: string,
+  refType: GraphCenterSarResourceGapSuggestion['refType'],
+): boolean {
+  if (refType === 'retrieval-chunk') {
+    return event.sourceRef.id === ref || event.metadata?.chunkId === ref;
+  }
+  if (refType === 'resource-node') {
+    return event.sourceRef.id === ref || event.metadata?.resourceId === ref || event.metadata?.resourceNodeId === ref;
+  }
+  if (refType === 'citation-target') {
+    return event.metadata?.citationTargetId === ref
+      || (Array.isArray(event.metadata?.citationTargetIds) && event.metadata.citationTargetIds.includes(ref));
+  }
+  return event.metadata?.planningUnitId === ref;
+}
+
+function sarReviewEventAuthorizationRefs(
+  event: SarAssociationExpansionResult['events'][number],
+  candidateRef: string,
+  refType: GraphCenterSarResourceGapSuggestion['refType'],
+): string[] {
+  const resourceId = typeof event.metadata?.resourceId === 'string' ? event.metadata.resourceId : '';
+  return uniqueSorted([
+    refType === 'retrieval-chunk' && resourceId === candidateRef ? '' : resourceId,
+    event.eventType === 'resource-node' ? event.sourceRef.id : '',
+    event.sourceRef.classId ?? '',
+  ].filter((ref) => ref && !ref.startsWith('sar:event:')));
 }
 
 function buildSarReviewAvailableActions(

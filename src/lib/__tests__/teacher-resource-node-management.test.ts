@@ -940,6 +940,7 @@ describe('teacher ResourceNode management contracts', () => {
         candidate: {
           ref: 'retrieval-chunk:owned-quiz',
           refType: 'retrieval-chunk',
+          resourceNodeId: 'teaching-resource:owned-quiz',
           sourceRefs: ['owned-quiz'],
         },
       }),
