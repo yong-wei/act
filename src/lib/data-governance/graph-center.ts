@@ -213,6 +213,7 @@ export interface GraphCenterSarResourceGapSuggestion {
       candidateId: string;
       candidateRef: string;
       candidateRefType: GraphCenterSarResourceGapSuggestion['refType'];
+      sourceRefs: string[];
       missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
       provenance: {
         source: 'graph-center-sar';
@@ -952,6 +953,7 @@ function buildSarResourceGapSuggestions(input: {
     ...visibleExpansion.candidateRefs.citationTargetIds.map((ref) => ({ ref, refType: 'citation-target' as const })),
     ...visibleExpansion.candidateRefs.planningUnitIds.map((ref) => ({ ref, refType: 'planning-unit' as const })),
   ];
+  const auditSourceRefs = buildSarReviewAuditSourceRefs(visibleExpansion);
   return refs.map(({ ref, refType }, index) => {
     const id = `sar-gap:${index + 1}`;
     return {
@@ -962,23 +964,24 @@ function buildSarResourceGapSuggestions(input: {
       draft: true,
       ...(input.reviewActionsAllowed ? {
         review: {
-      state: 'suggested',
-      authoritative: false,
-      availableActions: ['accept', 'reject', 'defer', 'invalidate'],
-      auditPayload: {
-        candidateId: id,
-        candidateRef: ref,
-        candidateRefType: refType,
-        missingCoverageTypes: input.missingCoverageTypes,
-        provenance: {
-          source: 'graph-center-sar',
-          basisEventIds: visibleExpansion.candidateRefs.eventIds,
-        },
-        traceSummary: {
-          traceHopCount: visibleExpansion.trace.expansionHops.length,
-          limitations: visibleExpansion.limitations,
-        },
-      },
+          state: 'suggested',
+          authoritative: false,
+          availableActions: ['accept', 'reject', 'defer', 'invalidate'],
+          auditPayload: {
+            candidateId: id,
+            candidateRef: ref,
+            candidateRefType: refType,
+            sourceRefs: uniqueSorted([ref, ...auditSourceRefs]),
+            missingCoverageTypes: input.missingCoverageTypes,
+            provenance: {
+              source: 'graph-center-sar',
+              basisEventIds: visibleExpansion.candidateRefs.eventIds,
+            },
+            traceSummary: {
+              traceHopCount: visibleExpansion.trace.expansionHops.length,
+              limitations: visibleExpansion.limitations,
+            },
+          },
         },
       } : {}),
       suggestedForMissingCoverageTypes: input.missingCoverageTypes,
@@ -989,6 +992,12 @@ function buildSarResourceGapSuggestions(input: {
       },
     };
   });
+}
+
+function buildSarReviewAuditSourceRefs(expansion: SarAssociationExpansionResult): string[] {
+  return uniqueSorted([
+    ...expansion.events.map((event) => event.sourceRef.id),
+  ]);
 }
 
 function mergeSarResults(results: SarRetrievalResult[]): Pick<
