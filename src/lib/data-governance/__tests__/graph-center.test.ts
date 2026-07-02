@@ -855,6 +855,7 @@ describe('graph center payload service', () => {
         draft: true,
       }),
     ]));
+    expect(associated?.resourceGapSuggestions.every((suggestion) => !Object.hasOwn(suggestion, 'review'))).toBe(true);
     expect(serialized).not.toContain('chunk-sar-student-class-gap');
     expect(serialized).not.toContain('student-class-resource');
     expect(serialized).not.toContain('learner-1');

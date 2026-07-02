@@ -205,7 +205,7 @@ export interface GraphCenterSarResourceGapSuggestion {
   refType: 'resource-node' | 'retrieval-chunk' | 'citation-target' | 'planning-unit';
   status: 'suggested';
   draft: true;
-  review: {
+  review?: {
     state: 'suggested';
     authoritative: false;
     availableActions: ['accept', 'reject', 'defer', 'invalidate'];
@@ -737,6 +737,7 @@ function buildGraphCenterAssociatedEvidence(input: {
     missingCoverageTypes: input.resourceCoverage.missingCoverageTypes,
     linkedResourceIdSet,
     pathEligibleResourceIdSet,
+    reviewActionsAllowed: input.viewerRole === 'TEACHER' || input.viewerRole === 'ADMIN',
   });
   return {
     status: safeExpansion.events.length > 0 || resourceGapSuggestions.length > 0
@@ -935,6 +936,7 @@ function buildSarResourceGapSuggestions(input: {
   missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
   linkedResourceIdSet: ReadonlySet<string>;
   pathEligibleResourceIdSet: ReadonlySet<string>;
+  reviewActionsAllowed: boolean;
 }): GraphCenterSarResourceGapSuggestion[] {
   if (input.missingCoverageTypes.length === 0) return [];
   const visibleExpansion = input.visibleExpansion ?? input.expansion;
@@ -950,18 +952,21 @@ function buildSarResourceGapSuggestions(input: {
     ...visibleExpansion.candidateRefs.citationTargetIds.map((ref) => ({ ref, refType: 'citation-target' as const })),
     ...visibleExpansion.candidateRefs.planningUnitIds.map((ref) => ({ ref, refType: 'planning-unit' as const })),
   ];
-  return refs.map(({ ref, refType }, index) => ({
-    id: `sar-gap:${index + 1}`,
-    ref,
-    refType,
-    status: 'suggested',
-    draft: true,
-    review: {
+  return refs.map(({ ref, refType }, index) => {
+    const id = `sar-gap:${index + 1}`;
+    return {
+      id,
+      ref,
+      refType,
+      status: 'suggested',
+      draft: true,
+      ...(input.reviewActionsAllowed ? {
+        review: {
       state: 'suggested',
       authoritative: false,
       availableActions: ['accept', 'reject', 'defer', 'invalidate'],
       auditPayload: {
-        candidateId: `sar-gap:${index + 1}`,
+        candidateId: id,
         candidateRef: ref,
         candidateRefType: refType,
         missingCoverageTypes: input.missingCoverageTypes,
@@ -974,14 +979,16 @@ function buildSarResourceGapSuggestions(input: {
           limitations: visibleExpansion.limitations,
         },
       },
-    },
-    suggestedForMissingCoverageTypes: input.missingCoverageTypes,
-    rationale: {
-      basisEventIds: visibleExpansion.candidateRefs.eventIds,
-      traceHopCount: visibleExpansion.trace.expansionHops.length,
-      reason: 'SAR associated this candidate with the selected graph node; ResourceNode governance review is still required.',
-    },
-  }));
+        },
+      } : {}),
+      suggestedForMissingCoverageTypes: input.missingCoverageTypes,
+      rationale: {
+        basisEventIds: visibleExpansion.candidateRefs.eventIds,
+        traceHopCount: visibleExpansion.trace.expansionHops.length,
+        reason: 'SAR associated this candidate with the selected graph node; ResourceNode governance review is still required.',
+      },
+    };
+  });
 }
 
 function mergeSarResults(results: SarRetrievalResult[]): Pick<
