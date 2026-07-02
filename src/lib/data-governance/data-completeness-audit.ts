@@ -580,12 +580,31 @@ function classifyLearningFactSource(
   }
   if (
     sourceEventId.startsWith('arena-official:') ||
+    sourceEventId.startsWith('simulation-agent-evidence:') ||
+    sourceEventId.startsWith('adaptive-assessment:') ||
+    sourceEventId.startsWith('historical:StudentStepResponse:') ||
     sourceEventId.startsWith('control-correction-path:') ||
     sourceEventId.startsWith('learning-path:')
   ) {
     return 'governed-external';
   }
+  if (isArenaPreviewLearningFact(fact, sourceEventId)) return 'governed-external';
   return 'unknown';
+}
+
+function isArenaPreviewLearningFact(fact: DataCompletenessLearningFactInput, sourceEventId: string): boolean {
+  const context = readRecord(fact.contextJson);
+  const arena = readRecord(context.arena);
+  return fact.factType === 'arena_preview' ||
+    sourceEventId.includes('arena_simulation_run') ||
+    sourceEventId.includes('arena_virtual_simulation_import') ||
+    Object.keys(arena).length > 0;
+}
+
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
 }
 
 function normalizeKey(value: string | null | undefined): string | null {

@@ -9,6 +9,7 @@ import {
   renderDataCompletenessAuditMarkdown,
   type DataCompletenessLearnerCandidateInput,
 } from '../../src/lib/data-governance/data-completeness-audit';
+import { loadAllLessonRuntimeResourceCatalogEntries } from '../../src/lib/course-runtime';
 import {
   loadAllTextbookRuntimeResourceCatalogEntries,
   loadAllTextbookRuntimeSearchDocuments,
@@ -35,6 +36,7 @@ async function main() {
   const [
     knowledgeNodes,
     teachingResources,
+    runtimeLessons,
     runtimeTextbooks,
     runtimeResourceProjections,
     textbookDocuments,
@@ -80,6 +82,7 @@ async function main() {
         },
       },
     }),
+    loadAllLessonRuntimeResourceCatalogEntries().catch(() => []),
     loadAllTextbookRuntimeResourceCatalogEntries().catch(() => []),
     loadRuntimeResourceProjectionInputs(),
     loadAllTextbookRuntimeSearchDocuments().catch(() => []),
@@ -130,7 +133,7 @@ async function main() {
   const registry = buildResourceNodeRegistryFromTeachingResources(
     teachingResources,
     getAllRegisteredResourceMetadata(),
-    [],
+    runtimeLessons,
     runtimeTextbooks,
     runtimeResourceProjections,
   );
