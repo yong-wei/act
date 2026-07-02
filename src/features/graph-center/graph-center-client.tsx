@@ -479,7 +479,7 @@ export function buildGraphCenterSarReviewRequest(
   decision: SarReviewDecision,
 ): GraphCenterSarReviewRequest | null {
   if (!candidate.review) return null;
-  const resourceNodeId = candidate.refType === 'resource-node' ? candidate.ref : null;
+  const resourceNodeId = resolveGraphCenterSarResourceNodeId(candidate);
   const patch = decision === 'accept'
     ? buildGraphCenterSarAcceptPatch(selectedNode, candidate)
     : null;
@@ -517,6 +517,17 @@ export function buildGraphCenterSarReviewRequest(
       limitations: selectedNode.associatedEvidence?.limitations ?? [],
     },
   };
+}
+
+function resolveGraphCenterSarResourceNodeId(
+  candidate: GraphCenterSarResourceGapSuggestion,
+): string | null {
+  if (candidate.refType !== 'resource-node') return null;
+  if (candidate.ref.startsWith('teaching-resource:')) return candidate.ref;
+  if (candidate.review?.auditPayload.sourceRefs.includes(candidate.ref)) {
+    return `teaching-resource:${candidate.ref}`;
+  }
+  return candidate.ref;
 }
 
 function buildGraphCenterSarAcceptPatch(

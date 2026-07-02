@@ -264,6 +264,62 @@ describe('graph center client surface', () => {
     });
   });
 
+  it('normalizes bare TeachingResource SAR refs before submitting accept reviews', () => {
+    const basePayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+    });
+    const selectedNode = basePayload.selectedNode;
+    if (!selectedNode) throw new Error('selected node missing');
+    const candidate: GraphCenterSarResourceGapSuggestion = {
+      id: 'sar-gap:1',
+      ref: 'owned-quiz',
+      refType: 'resource-node',
+      status: 'suggested',
+      draft: true,
+      review: {
+        state: 'suggested',
+        authoritative: false,
+        availableActions: ['accept', 'reject', 'defer', 'invalidate'],
+        auditPayload: {
+          candidateId: 'sar-gap:1',
+          candidateRef: 'owned-quiz',
+          candidateRefType: 'resource-node',
+          sourceRefs: ['owned-quiz'],
+          missingCoverageTypes: ['linked-resource', 'path-eligible-resource'],
+          provenance: {
+            source: 'graph-center-sar',
+            basisEventIds: ['sar:event:safe-1'],
+          },
+          traceSummary: {
+            traceHopCount: 1,
+            limitations: [],
+          },
+        },
+      },
+      suggestedForMissingCoverageTypes: ['linked-resource', 'path-eligible-resource'],
+      rationale: {
+        basisEventIds: ['sar:event:safe-1'],
+        traceHopCount: 1,
+        reason: 'SAR associated this candidate with the selected graph node.',
+      },
+    };
+
+    const request = buildGraphCenterSarReviewRequest(selectedNode, candidate, 'accept');
+
+    expect(request).toMatchObject({
+      decision: 'accept',
+      resourceNodeId: 'teaching-resource:owned-quiz',
+      candidate: {
+        candidate: {
+          ref: 'owned-quiz',
+          resourceNodeId: 'teaching-resource:owned-quiz',
+        },
+      },
+    });
+  });
+
   it('renders non-resource SAR draft review actions for teacher gap suggestions', () => {
     const basePayload = buildGraphCenterPayload({
       domain: 'knowledge',
