@@ -55,6 +55,7 @@ RUN --mount=type=cache,target=/root/.npm \
 # Builder stage
 FROM base AS builder
 WORKDIR /app
+RUN apk add --no-cache python3
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 

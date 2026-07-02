@@ -515,18 +515,18 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
   db: any,
   input: T,
 ): Promise<T> {
-  if (input.resourceType !== 'adaptive_quiz' || input.status !== 'completed') return input;
+  if (!isAssessmentCompletionResourceType(input.resourceType) || input.status !== 'completed') return input;
   const ref = toRecord(input.liftMetadata?.adaptiveAssessmentRef);
   const id = readRefId(ref, ['id', 'answerId', 'sourceId', 'ref']);
   if (!id) {
-    return {
+    return downgradeUntrustedAdaptiveAssessmentCompletion({
       ...input,
       liftMetadata: {
         ...(input.liftMetadata ?? {}),
         adaptiveAssessmentRef: pendingOutcomeRef('AdaptiveAssessmentAnswer'),
       },
       evidenceRefs: sanitizeAdaptiveAssessmentEvidenceRefs(input.evidenceRefs, null),
-    };
+    });
   }
   const answer = await db.adaptiveAssessmentAnswer?.findFirst?.({
     where: {
@@ -536,6 +536,7 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
     select: {
       id: true,
       questionId: true,
+      isCorrect: true,
       score: true,
       abilityEstimate: true,
       answeredAt: true,
@@ -544,6 +545,7 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
           knowledgeTags: true,
           questionType: true,
           difficulty: true,
+          metadata: true,
         },
       },
       abilityEstimateSnapshot: {
@@ -553,13 +555,36 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
       },
     },
   });
+  const kaqMetadata = toRecord(answer?.questionRef?.metadata).kaq;
+  const kaqReview = toRecord(toRecord(kaqMetadata).review);
+  const kaqLearningGoalIds = arrayOfStrings(toRecord(kaqMetadata).learningGoalIds);
+  const reviewedKaqAnswer = firstString(kaqReview.state) === 'reviewed';
+  const kaqPurpose = firstString(toRecord(kaqMetadata).purpose);
+  const readinessGateEligible = reviewedKaqAnswer && kaqPurpose === 'readiness-gate';
+  const checkpointEligible = reviewedKaqAnswer && input.resourceType === 'checkpoint' && kaqPurpose === 'checkpoint';
+  const readinessCompletionEligible = input.resourceType === 'adaptive_quiz' && readinessGateEligible;
+  const pathCompletionEligible = readinessCompletionEligible || checkpointEligible;
+  const learningGoalMatches = typeof input.goalId === 'string' && input.goalId.trim().length > 0
+    ? kaqLearningGoalIds.includes(input.goalId)
+    : true;
+  const pathContextMatches = answer ? matchesAdaptiveAssessmentPathContext(answer, input) : false;
   const adaptiveAssessmentRef = answer
-    ? matchesAdaptiveAssessmentPathContext(answer, input)
+    ? pathContextMatches && pathCompletionEligible && learningGoalMatches
       ? compactObject({
         kind: 'AdaptiveAssessmentAnswer',
         id: answer.id,
         provenance: 'official',
         questionId: answer.questionId,
+        questionSnapshotId: firstString(toRecord(kaqMetadata).immutableContentHash),
+        reviewState: firstString(kaqReview.state),
+        readinessGateEligible,
+        pathCompletionEligible,
+        terminalValidationEligible: readinessGateEligible,
+        learningGoalIds: kaqLearningGoalIds.length > 0 ? kaqLearningGoalIds : undefined,
+        outcomeRefs: Array.isArray(toRecord(kaqMetadata).outcomeRefs)
+          ? toRecord(kaqMetadata).outcomeRefs
+          : undefined,
+        isCorrect: typeof answer.isCorrect === 'boolean' ? answer.isCorrect : undefined,
         score: readFinite(answer.score),
         abilityEstimate: readFinite(answer.abilityEstimate),
         knowledgeTags: Array.isArray(answer.questionRef?.knowledgeTags)
@@ -569,16 +594,67 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
         difficulty: readFinite(answer.questionRef?.difficulty),
         answeredAt: answer.answeredAt instanceof Date ? answer.answeredAt.toISOString() : undefined,
       })
-      : unknownEvidenceRef('AdaptiveAssessmentAnswer', id, 'adaptive-assessment-path-mismatch')
+      : unknownEvidenceRef(
+        'AdaptiveAssessmentAnswer',
+        id,
+        pathContextMatches
+          ? learningGoalMatches
+            ? 'adaptive-assessment-readiness-not-eligible'
+            : 'adaptive-assessment-goal-mismatch'
+          : 'adaptive-assessment-path-mismatch',
+      )
     : unknownEvidenceRef('AdaptiveAssessmentAnswer', id);
-  return {
+  return downgradeUntrustedAdaptiveAssessmentCompletion({
     ...input,
     liftMetadata: {
       ...(input.liftMetadata ?? {}),
       adaptiveAssessmentRef,
     },
     evidenceRefs: sanitizeAdaptiveAssessmentEvidenceRefs(input.evidenceRefs, adaptiveAssessmentRef),
+  });
+}
+
+function downgradeUntrustedAdaptiveAssessmentCompletion<T extends {
+  resourceType: string;
+  status: string;
+  completedAt?: unknown;
+  failedAt?: unknown;
+  liftMetadata?: Record<string, unknown>;
+}>(input: T): T {
+  if (
+    !isAssessmentCompletionResourceType(input.resourceType) ||
+    input.status !== 'completed' ||
+    isTrustedAdaptiveAssessmentPathCompletionRef(toRecord(input.liftMetadata).adaptiveAssessmentRef)
+  ) {
+    return input;
+  }
+  return {
+    ...input,
+    status: 'started',
+    completedAt: null,
+    failedAt: null,
   };
+}
+
+function isAssessmentCompletionResourceType(resourceType: string): boolean {
+  return resourceType === 'adaptive_quiz' || resourceType === 'checkpoint';
+}
+
+function isTrustedAdaptiveAssessmentPathCompletionRef(value: unknown): boolean {
+  const record = toRecord(value);
+  return firstString(record.kind) === 'AdaptiveAssessmentAnswer' &&
+    firstString(record.provenance) === 'official' &&
+    record.pathCompletionEligible === true &&
+    firstString(record.reviewState) === 'reviewed' &&
+    isPassingAdaptiveAssessmentPathCompletionRef(record);
+}
+
+function isPassingAdaptiveAssessmentPathCompletionRef(record: Record<string, unknown>): boolean {
+  if (record.isCorrect === true) return true;
+  if (record.isCorrect === false) return false;
+  const score = readFinite(record.score);
+  if (score !== undefined) return score <= 1 ? score >= 0.6 : score >= 60;
+  return false;
 }
 
 function resolveGovernedInstrumentedPathNodeOutcomeEvidence<T extends {

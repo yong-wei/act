@@ -15,6 +15,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { sanitizeAiVisibleContent } from '@/lib/ai-task-boundary-contracts';
+import { isModelAuthoredFootnoteHref } from './konling-citation-presentation';
 
 interface AIMessageContentProps {
   content: string;
@@ -33,7 +34,9 @@ interface AIMessageContentProps {
  */
 export function AIMessageContent({ content, className = '', sanitizeContent = true }: AIMessageContentProps) {
   if (!content) return null;
-  const visibleContent = sanitizeContent ? sanitizeAiVisibleContent(content) : content;
+  const visibleContent = sanitizeContent
+    ? sanitizeVerifiedCitationMarkdown(sanitizeAiVisibleContent(content))
+    : content;
 
   return (
     <div className={`ai-message-content ${className}`}>
@@ -129,6 +132,9 @@ export function AIMessageContent({ content, className = '', sanitizeContent = tr
           },
           // 链接
           a({ children, href }) {
+            if (isModelAuthoredFootnoteHref(href)) {
+              return <span data-suppressed-model-footnote-link>{children}</span>;
+            }
             return (
               <a
                 href={href}
@@ -149,3 +155,13 @@ export function AIMessageContent({ content, className = '', sanitizeContent = tr
 }
 
 export default AIMessageContent;
+
+export function sanitizeVerifiedCitationMarkdown(content: string): string {
+  return content
+    .replace(/^[ \t]*\[\^[^\]\n]+\]:[^\n]*(?:\n[ \t]{2,}[^\n]*)*/gm, '')
+    .replace(/\[([^\]\n]+)\]\((?:\/knowledge)?#user-content-fn(?:ref)?[^)]*\)/gi, '')
+    .replace(/\[\^[^\]\n]+\]/g, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}

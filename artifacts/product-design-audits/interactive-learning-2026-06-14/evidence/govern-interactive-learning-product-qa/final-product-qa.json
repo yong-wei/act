@@ -234,10 +234,10 @@
     "compactSpacingAuxiliaryCollisionFree": true
   },
   "temporaryExceptions": [],
-  "generatedAt": "2026-06-23T14:49:13.926Z",
-  "sourceCommit": "worktree:823897bf2471e322:standardize-sitewide-compact-spacing",
+  "generatedAt": "2026-07-01T00:00:00.000Z",
+  "sourceCommit": "worktree:audit-remediation-classroom-lifecycle-dialog-closure@94ae15d28ed2",
   "designHandoffSha256": "227cc9c1f7ecc4299a4d483be75b538e5b82a45c4df73ec4e697797de5088058",
-  "handoffMatrixSha256": "d5d0911fe72e658944d8a6a5b63d02b247420bf3efcba72d9abc270cfc9e60ff",
+  "handoffMatrixSha256": "29a6492e6c70b0e9e22959e38c1c62d25f15e30196c4f15ad40d10ac1a3129d8",
   "conceptImageSha256": {
     "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png": "eb6960134c4be24726775fd041d8eb461d1442e557d6e07a599901e77ac3b6bd",
     "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/02-course-entry-shell.png": "24bf8b8f33879594652bcaabcd118bafe3656643e61d17adf56a0e833e3b32d4",

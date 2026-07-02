@@ -59,6 +59,16 @@ describe('evidence browser entry points', () => {
 
     expect(source).toContain('contextBadges={contextParts}');
     expect(source).toContain('mergeTeacherEvidenceContext');
+    expect(source).toContain('ActionStatusPanel');
+    expect(source).toContain('data-teacher-evidence-remediation="context-status"');
+    expect(source).toContain('data-teacher-evidence-next-steps');
+    expect(source).toContain('data-teacher-evidence-remediation-task="disabled"');
+    expect(source).toContain("data-teacher-evidence-report-handoff={hasCompleteReportContext ? 'available' : undefined}");
+    expect(source).toContain("data-teacher-evidence-browse-return={hasCompleteReportContext ? undefined : 'available'}");
+    expect(source).toContain('data-teacher-evidence-mobile-actions="fixed"');
+    expect(source).toContain("data-teacher-evidence-mobile-report-handoff={hasCompleteReportContext ? 'available' : undefined}");
+    expect(source).toContain("data-teacher-evidence-mobile-browse-return={hasCompleteReportContext ? undefined : 'available'}");
+    expect(source).toContain('emptyBackHref={hasCompleteReportContext ? undefined : studentDetailHref}');
     expect(source).toContain("url.searchParams.set('gradingRunId', context.gradingRunId)");
     expect(source).toContain("url.searchParams.set('reportId', context.reportId)");
     expect(source).toContain("url.searchParams.set('source', context.source)");
@@ -66,11 +76,26 @@ describe('evidence browser entry points', () => {
     expect(browserSource).toContain('contextBadges.map');
   });
 
+  it('keeps plain teacher evidence browsing out of blocked report context state', () => {
+    const source = readSource('src/app/teacher/classes/[classId]/students/[studentId]/evidence/page.tsx');
+
+    expect(source).toContain('const hasReportContext = providedReportContext.length > 0;');
+    expect(source).toContain('const hasCompleteReportContext = hasReportContext && missingContext.length === 0;');
+    expect(source).toContain("].filter((item): item is string => Boolean(item)) : [];");
+    expect(source).toContain('证据页以普通浏览模式打开');
+    expect(source).toContain('const studentDetailHref = `/teacher/classes/${params.classId}/students/${params.studentId}`;');
+    expect(source).toContain(': studentDetailHref;');
+    expect(source).toContain("const primaryActionLabel = hasCompleteReportContext ? '回到报告交付' : '返回学生详情';");
+    expect(source).toContain('nextAction: hasCompleteReportContext');
+  });
+
   it('guards evidence browser state updates from stale filter requests', () => {
     const source = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
 
     expect(source).toContain('requestSequenceRef');
     expect(source).toContain('requestId !== requestSequenceRef.current');
+    expect(source).toContain('emptyBackHref?: string;');
+    expect(source).toContain('href={emptyBackHref ?? backHref}');
   });
 
   it('initializes the student evidence browser from lessonId query parameters', () => {

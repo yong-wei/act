@@ -1,0 +1,55 @@
+{
+  "capturedAt": "2026-06-26T13:44:24.263Z",
+  "checks": {
+    "dataCenterExport": {
+      "url": "http://localhost:3000/data-center",
+      "exportBefore": "ready",
+      "exportAfter": "downloaded",
+      "exportContract": "preparing-ready-downloaded-failed-retry",
+      "exportHrefBefore": "data:application/json;charset=",
+      "downloadSuggestedFilename": "data-center-snapshot-2025-2026-2.json",
+      "downloadedPath": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-data-center-simulation-workflow/playwright/downloaded-data-center-snapshot.json",
+      "snapshotStatus": "ready",
+      "requesterRole": "teacher",
+      "exportedAt": "2026-06-26T13:44:12.091Z",
+      "sourceWindowTo": "2026-05-30",
+      "exportedAtEqualsSourceWindowTo": false,
+      "redactionExcludedFamilies": [
+        "rawLearningFacts",
+        "competencySnapshots",
+        "riskFlags",
+        "classSnapshots",
+        "directStudentIds",
+        "privateEvidenceBodies"
+      ],
+      "hasRawEvidence": false,
+      "relevantConsoleEvents": [],
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-data-center-simulation-workflow/playwright/data-center-export-1440.png"
+    },
+    "destroyerMission": {
+      "url": "http://localhost:3000/simulations/destroyer?mission=audit-mission-676&assignment=report-control-design&criterion=simulation-evidence&status=completed&returnTo=/assessment/document-feedback",
+      "taskId": "audit-mission-676",
+      "taskTitle": "控制设计报告反馈 · 驱逐舰航向控制",
+      "saveBackStatus": "queued",
+      "returnFlowState": "completed",
+      "shellReturnTarget": "/assessment/document-feedback?assignment=report-control-design&criterion=simulation-evidence&status=completed",
+      "bottomToolbarStatus": "visible",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-data-center-simulation-workflow/playwright/destroyer-mission-context-1440.png"
+    },
+    "destroyerWrittenBack": {
+      "url": "http://localhost:3000/simulations/destroyer?mission=audit-mission-676&assignment=report-control-design&criterion=simulation-evidence&status=written-back&returnTo=/assessment/document-feedback",
+      "taskId": "audit-mission-676",
+      "taskTitle": "控制设计报告反馈 · 驱逐舰航向控制",
+      "saveBackStatus": "saved",
+      "returnFlowState": "written-back",
+      "shellReturnTarget": "/assessment/document-feedback?assignment=report-control-design&criterion=simulation-evidence&status=written-back",
+      "bottomToolbarStatus": "visible",
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-data-center-simulation-workflow/playwright/destroyer-written-back-context-1440.png"
+    },
+    "virtualLabCompatibility": {
+      "url": "http://localhost:3000/simulations?compat=virtual-lab",
+      "explanationVisible": true,
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-data-center-simulation-workflow/playwright/virtual-lab-compatibility-1440.png"
+    }
+  }
+}

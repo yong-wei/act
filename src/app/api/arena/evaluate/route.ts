@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { prismaArenaBlackBoxExperimentStore } from '@/features/arena/blackbox/experiment-service';
 import { ArenaSubmissionInputError, createPersistedArenaSubmission } from '@/features/arena/submissions/persistence';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
+import { persistArenaSubmissionEvidenceWriteback } from '@/features/arena/evidence-writeback-persistence';
 import {
   ArenaPlantAdapterSelectionError,
   getArenaPlantAdapterForOfficialEvaluationTaskId,
@@ -86,8 +87,16 @@ export async function POST(request: Request) {
       blackBoxExperimentStore: prismaArenaBlackBoxExperimentStore,
       identificationModelStore: prismaArenaBlackBoxExperimentStore,
     });
+    const persistedWriteback = await persistArenaSubmissionEvidenceWriteback(prisma as any, submission);
+    const evidenceWriteback = persistedWriteback.evidenceWriteback;
 
-    return NextResponse.json({ submission });
+    return NextResponse.json({
+      submission: {
+        ...submission,
+        evidenceWriteback,
+      },
+      evidenceWriteback,
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof ArenaPublicationAccessError) {

@@ -1109,7 +1109,7 @@ function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
   addTrustedOutcomeRef(refs, adaptiveAssessmentRef);
   addTrustedOutcomeRef(refs, controlWorkbenchRef);
 
-  if (input.resourceType === 'adaptive_quiz' && isTrustedAdaptiveAssessmentOutcomeRef(adaptiveAssessmentRef)) {
+  if (isAdaptiveAssessmentCompletionResourceType(input.resourceType) && isTrustedAdaptiveAssessmentOutcomeRef(adaptiveAssessmentRef)) {
     const assessmentId = firstString(
       adaptiveAssessmentRef.id,
       adaptiveAssessmentRef.answerId,
@@ -1159,6 +1159,10 @@ function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
   return [...refs];
 }
 
+function isAdaptiveAssessmentCompletionResourceType(resourceType: string): boolean {
+  return resourceType === 'adaptive_quiz' || resourceType === 'checkpoint';
+}
+
 function addTrustedOutcomeRef(refs: Set<string>, value: unknown): void {
   if (
     !isTrustedSimulationOutcomeRef(value) &&
@@ -1177,8 +1181,34 @@ function isTrustedAdaptiveAssessmentOutcomeRef(value: unknown): boolean {
   const provenance = readProvenance(record);
   return kind === 'AdaptiveAssessmentAnswer' &&
     provenance === 'official' &&
+    record.readinessGateEligible === true &&
+    firstString(record.reviewState) === 'reviewed' &&
+    isPassingAdaptiveAssessmentOutcomeRef(record) &&
     firstString(record.id, record.answerId, record.sourceId) !== undefined &&
     firstString(record.mismatchReason) === undefined;
+}
+
+function isTrustedAdaptiveAssessmentResultRef(resourceType: string, value: unknown): boolean {
+  const record = toRecord(value);
+  const kind = firstString(record.kind, record.sourceType);
+  const provenance = readProvenance(record);
+  return kind === 'AdaptiveAssessmentAnswer' &&
+    provenance === 'official' &&
+    firstString(record.reviewState) === 'reviewed' &&
+    isPassingAdaptiveAssessmentOutcomeRef(record) &&
+    firstString(record.id, record.answerId, record.sourceId) !== undefined &&
+    firstString(record.mismatchReason) === undefined &&
+    (resourceType === 'checkpoint'
+      ? record.pathCompletionEligible === true
+      : record.readinessGateEligible === true);
+}
+
+function isPassingAdaptiveAssessmentOutcomeRef(record: Record<string, unknown>): boolean {
+  if (record.isCorrect === true) return true;
+  if (record.isCorrect === false) return false;
+  const score = readNumber(record.score);
+  if (score !== undefined) return score <= 1 ? score >= 0.6 : score >= 60;
+  return false;
 }
 
 function isTrustedControlWorkbenchOutcomeRef(value: unknown): boolean {
@@ -1242,9 +1272,9 @@ function buildExecutionResultSummary(execution: any): PathExecutionResultSummary
   if (execution?.status !== 'completed') return null;
   const resourceType = typeof execution.resourceType === 'string' ? execution.resourceType : '';
   const metadata = toRecord(execution.liftMetadata);
-  if (resourceType === 'adaptive_quiz') {
+  if (isAdaptiveAssessmentCompletionResourceType(resourceType)) {
     const ref = toRecord(metadata.adaptiveAssessmentRef);
-    if (!isTrustedAdaptiveAssessmentOutcomeRef(ref)) return pendingResultSummary('adaptive-assessment', '自适应练习结果');
+    if (!isTrustedAdaptiveAssessmentResultRef(resourceType, ref)) return pendingResultSummary('adaptive-assessment', '自适应练习结果');
     return compactObject({
       state: 'available',
       kind: 'adaptive-assessment',

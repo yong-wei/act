@@ -75,3 +75,11 @@ The resource coverage overlay SHALL not conflate a linked resource with a path-e
 - **WHEN** a resource is linked to a LearningGoal only through provisional or model-assisted metadata
 - **THEN** the overlay SHALL count it separately from human-confirmed coverage
 - **AND** it SHALL NOT count it as baseline path coverage.
+
+### Requirement: Resource coverage overlay can display SAR candidate gaps
+The graph resource coverage overlay SHALL display SAR-backed candidate resources as suggestions without treating them as covered resources.
+
+#### Scenario: SAR suggests a resource for a coverage gap
+- **WHEN** SAR finds a candidate resource or evidence item for a graph node with missing coverage
+- **THEN** the overlay SHALL show the candidate separately from linked, path-eligible, citation-ready, and verified-citation counts
+- **AND** it SHALL expose the trace or rationale for teacher/admin review.

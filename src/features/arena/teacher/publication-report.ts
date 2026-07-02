@@ -1,7 +1,14 @@
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
 import type { ControllerMethod } from '../types';
-import type { ArenaPublicationGradingPolicy, ArenaPublicationVisibility } from './publication-store';
+import { getArenaChallengeTask } from '../data/seed-challenges';
+import {
+  buildArenaRankingExplanation,
+  buildMissingArenaSubmissionEvidenceWriteback,
+  getArenaAttemptStatus,
+  type ArenaAttemptStatus,
+} from '../evidence-writeback';
+import type { ArenaPublicationGradingPolicy, ArenaPublicationStatus, ArenaPublicationVisibility } from './publication-store';
 
 const WEAK_METRIC_THRESHOLD = 0.6;
 
@@ -13,6 +20,13 @@ export interface ArenaPublicationReportPublication {
   visibility: ArenaPublicationVisibility;
   leaderboardPolicyId: string;
   gradingPolicy: ArenaPublicationGradingPolicy;
+  status?: ArenaPublicationStatus;
+  context?: {
+    assignmentTitle?: string;
+    classTitle?: string;
+    teacherName?: string;
+    sourceLabel?: string;
+  };
 }
 
 export interface ArenaPublicationReportRosterStudent {
@@ -29,6 +43,35 @@ export interface BuildArenaPublicationReportInput {
 
 export interface ArenaPublicationReport {
   publication: ArenaPublicationReportPublication;
+  publicationContext: {
+    taskTitle: string;
+    assignmentTitle: string;
+    classTitle: string;
+    teacherLabel: string;
+    sourceLabel: string;
+    deadlineLabel: string;
+    reportTitle: string;
+  };
+  lifecycle: {
+    state: 'active' | 'expired' | 'report-ready' | 'late-only' | 'unavailable';
+    tone: 'success' | 'warning' | 'neutral' | 'muted';
+    primaryLabel: string;
+    detail: string;
+    actionLabel: string;
+  };
+  leaderboardBoundary: {
+    scope: 'global' | 'class' | 'assignment';
+    sourceLabel: string;
+    rankingSource: 'ArenaSubmission';
+    attemptPolicy: 'best-effective-attempt';
+    explanation: string;
+  };
+  deliveryActions: Array<{
+    id: 'export-report' | 'send-report' | 'lock-board' | 'copy-commentary';
+    label: string;
+    statusLabel: string;
+    available: boolean;
+  }>;
   attemptPolicy: {
     officialSubmissionLabel: string;
     rankingSource: 'best-effective-attempt';
@@ -53,6 +96,15 @@ export interface ArenaPublicationReport {
     validSubmissionCount: number;
     invalidSubmissionCount: number;
     validSubmissionRate: number;
+  };
+  evidenceWriteback: {
+    acceptedCount: number;
+    degradedCount: number;
+    blockedCount: number;
+    terminalValidationAcceptedCount: number;
+    latestLimitationCodes: string[];
+    studentVisibleRule: string;
+    teacherRecoveryRule: string;
   };
   scores: {
     average: number | null;
@@ -84,6 +136,7 @@ export interface ArenaPublicationReport {
     rankingExplanation: string;
     method: ControllerMethod;
     submittedAt: string;
+    evidenceWritebackStatus: 'accepted' | 'degraded' | 'blocked';
   }>;
   excellentSolutions: Array<{
     userId?: string;
@@ -128,24 +181,8 @@ export interface ArenaPublicationReport {
   };
 }
 
-type ArenaAttemptStatus = 'effective' | 'late' | 'zero-score' | 'invalid';
-
 function roundTwo(value: number): number {
   return Math.round(value * 100) / 100;
-}
-
-function getAttemptStatus(submission: ArenaSubmissionRecord): ArenaAttemptStatus {
-  if (!submission.evaluation.valid) return 'invalid';
-  if (submission.isLate) return 'late';
-  if (submission.evaluation.score <= 0) return 'zero-score';
-  return 'effective';
-}
-
-function buildRankingExplanation(status: ArenaAttemptStatus): string {
-  if (status === 'effective') return '有效尝试：计入个人最佳和优秀方案候选。';
-  if (status === 'late') return '迟交尝试：保留记录，但不作为优秀方案或正式排名依据。';
-  if (status === 'zero-score') return '零分尝试：保留诊断证据，但不标记为优秀方案。';
-  return '无效尝试：保留失败原因，用于课堂复盘。';
 }
 
 function buildAttemptPolicy(submissions: readonly ArenaSubmissionRecord[]): ArenaPublicationReport['attemptPolicy'] {
@@ -177,6 +214,175 @@ function buildAttemptPolicy(submissions: readonly ArenaSubmissionRecord[]): Aren
     invalidSubmissionCount,
     multipleSubmitterCount: Array.from(attemptsByStudent.values()).filter((count) => count > 1).length,
   };
+}
+
+function buildEvidenceWritebackSummary(
+  submissions: readonly ArenaSubmissionRecord[],
+): ArenaPublicationReport['evidenceWriteback'] {
+  const writebacks = submissions.map((submission) => (
+    submission.evidenceWriteback ?? buildMissingArenaSubmissionEvidenceWriteback(submission, { consumer: 'teacher' })
+  ));
+  const latestLimitationCodes = Array.from(new Set(writebacks.flatMap((writeback) => writeback.limitationCodes))).sort();
+  return {
+    acceptedCount: writebacks.filter((writeback) => writeback.status === 'accepted').length,
+    degradedCount: writebacks.filter((writeback) => writeback.status === 'degraded').length,
+    blockedCount: writebacks.filter((writeback) => writeback.status === 'blocked').length,
+    terminalValidationAcceptedCount: writebacks.filter((writeback) => writeback.terminalValidationAccepted).length,
+    latestLimitationCodes,
+    studentVisibleRule: '学生侧显示官方 ArenaSubmission 证据回流状态；迟交、零分和无效尝试只保留诊断证据。',
+    teacherRecoveryRule: '教师报告保留限制代码；可要求学生重新提交有效官方结果，或由管理员补充 KAQ 目标绑定后重试。',
+  };
+}
+
+function formatDateLabel(value: string): string {
+  return new Intl.DateTimeFormat('zh-CN', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+
+function buildPublicationContext(publication: ArenaPublicationReportPublication): ArenaPublicationReport['publicationContext'] {
+  const taskTitle = getArenaChallengeTask(publication.taskId)?.title ?? '未命名 Arena 任务';
+  const assignmentTitle = publication.context?.assignmentTitle ?? (
+    publication.visibility === 'class' ? '班级 Arena 发布' : '课程 Arena 发布'
+  );
+  const classTitle = publication.context?.classTitle ?? (
+    publication.visibility === 'public'
+      ? '公开挑战'
+      : publication.visibility === 'course'
+        ? '课程范围'
+        : `班级 ${publication.classId}`
+  );
+  const teacherLabel = publication.context?.teacherName ?? '教师发布';
+  const sourceLabel = publication.context?.sourceLabel ?? (
+    publication.visibility === 'public' ? '公开 Arena' : '课堂发布'
+  );
+
+  return {
+    taskTitle,
+    assignmentTitle,
+    classTitle,
+    teacherLabel,
+    sourceLabel,
+    deadlineLabel: formatDateLabel(publication.deadline),
+    reportTitle: `${taskTitle} · ${assignmentTitle}`,
+  };
+}
+
+function buildLifecycle(
+  publication: ArenaPublicationReportPublication,
+  submissions: readonly ArenaSubmissionRecord[],
+): ArenaPublicationReport['lifecycle'] {
+  const status = publication.status ?? 'active';
+  if (status === 'archived' || status === 'closed') {
+    return {
+      state: 'report-ready',
+      tone: 'neutral',
+      primaryLabel: '报告已归档',
+      detail: '挑战已结束，当前页面用于复盘官方提交与课堂证据。',
+      actionLabel: '查看报告',
+    };
+  }
+  if (status === 'draft' || status === 'paused') {
+    return {
+      state: 'unavailable',
+      tone: 'muted',
+      primaryLabel: status === 'draft' ? '尚未发布' : '已暂停',
+      detail: '当前发布不接受新的官方提交，保留上下文供教师确认。',
+      actionLabel: '查看上下文',
+    };
+  }
+
+  const isExpired = Date.now() > Date.parse(publication.deadline);
+  if (!isExpired) {
+    return {
+      state: 'active',
+      tone: 'success',
+      primaryLabel: '进行中',
+      detail: '学生仍可在截止前提交官方 Arena 结果。',
+      actionLabel: '查看挑战',
+    };
+  }
+  if (publication.gradingPolicy.allowLateSubmissions) {
+    return {
+      state: 'late-only',
+      tone: 'warning',
+      primaryLabel: '已截止，可接收迟交',
+      detail: `已有 ${submissions.length} 条官方提交；迟交保留记录但不进入优秀方案候选。`,
+      actionLabel: '查看迟交与报告',
+    };
+  }
+  return {
+    state: 'expired',
+    tone: 'warning',
+    primaryLabel: '已截止',
+    detail: '截止后不再接收新的正式提交，报告聚焦已形成的官方记录。',
+    actionLabel: '查看报告',
+  };
+}
+
+function buildLeaderboardBoundary(
+  publication: ArenaPublicationReportPublication,
+): ArenaPublicationReport['leaderboardBoundary'] {
+  if (publication.visibility === 'public') {
+    return {
+      scope: 'global',
+      sourceLabel: '公开全局榜单',
+      rankingSource: 'ArenaSubmission',
+      attemptPolicy: 'best-effective-attempt',
+      explanation: '公开榜单只使用服务端 ArenaSubmission 官方记录；LearningFact 仅作辅助学习证据。',
+    };
+  }
+  if (publication.visibility === 'course') {
+    return {
+      scope: 'assignment',
+      sourceLabel: '课程任务榜单',
+      rankingSource: 'ArenaSubmission',
+      attemptPolicy: 'best-effective-attempt',
+      explanation: '课程任务榜单按本发布的 ArenaSubmission 聚合，迟交、零分和无效尝试遵循提交口径说明。',
+    };
+  }
+  return {
+    scope: 'class',
+    sourceLabel: '班级发布榜单',
+    rankingSource: 'ArenaSubmission',
+    attemptPolicy: 'best-effective-attempt',
+    explanation: '班级榜单限定本发布与本班级的 ArenaSubmission；LearningFact Arena 上下文不能生成正式排名。',
+  };
+}
+
+function buildDeliveryActions(
+  lifecycle: ArenaPublicationReport['lifecycle'],
+  submissions: readonly ArenaSubmissionRecord[],
+): ArenaPublicationReport['deliveryActions'] {
+  const hasSubmissions = submissions.length > 0;
+  const isFinalState = lifecycle.state === 'expired' || lifecycle.state === 'report-ready';
+  return [
+    {
+      id: 'export-report',
+      label: '导出报告',
+      statusLabel: hasSubmissions ? '可导出当前官方提交报告' : '暂无提交，导出上下文摘要',
+      available: true,
+    },
+    {
+      id: 'send-report',
+      label: '发送/发布给学生',
+      statusLabel: isFinalState ? '可发布复盘说明' : '进行中，建议截止后发布',
+      available: isFinalState,
+    },
+    {
+      id: 'lock-board',
+      label: '锁定/定榜',
+      statusLabel: isFinalState ? '可锁定当前榜单口径' : '榜单仍随有效提交更新',
+      available: isFinalState,
+    },
+    {
+      id: 'copy-commentary',
+      label: '复制讲评',
+      statusLabel: hasSubmissions ? '可复制课堂复盘讲评' : '可复制发布背景说明',
+      available: true,
+    },
+  ];
 }
 
 function sortByScoreDesc(left: { score: number; submittedAt: string }, right: { score: number; submittedAt: string }): number {
@@ -278,8 +484,10 @@ function buildPersonalBests(submissions: readonly ArenaSubmissionRecord[]): Aren
   const bestByStudent = new Map<string, ArenaPublicationReport['personalBests'][number]>();
 
   for (const submission of submissions) {
+    if (!isArenaSubmissionEffectiveForRanking(submission)) continue;
     const userId = submission.userId ?? submission.studentLabel;
-    const attemptStatus = getAttemptStatus(submission);
+    const attemptStatus = getArenaAttemptStatus(submission);
+    const evidenceWriteback = submission.evidenceWriteback ?? buildMissingArenaSubmissionEvidenceWriteback(submission, { consumer: 'teacher' });
     const candidate = {
       userId,
       studentLabel: submission.studentLabel,
@@ -287,10 +495,11 @@ function buildPersonalBests(submissions: readonly ArenaSubmissionRecord[]): Aren
       score: submission.evaluation.score,
       valid: submission.evaluation.valid,
       attemptStatus,
-      effectiveForRanking: attemptStatus === 'effective',
-      rankingExplanation: buildRankingExplanation(attemptStatus),
+      effectiveForRanking: isArenaSubmissionEffectiveForRanking(submission),
+      rankingExplanation: buildArenaRankingExplanation(attemptStatus),
       method: submission.artifact.method,
       submittedAt: submission.submittedAt,
+      evidenceWritebackStatus: evidenceWriteback.status,
     };
     const current = bestByStudent.get(userId);
     if (!current || comparePersonalBest(candidate, current) < 0) {
@@ -399,8 +608,17 @@ function buildGradingMessage(publication: ArenaPublicationReportPublication): st
   return '当前发布不强制隐藏完整榜单，报告仍区分官方评价结果与作业评价解释。';
 }
 
+function withTeacherEvidenceWritebacks(
+  submissions: readonly ArenaSubmissionRecord[],
+): ArenaSubmissionRecord[] {
+  return submissions.map((submission) => ({
+    ...submission,
+    evidenceWriteback: submission.evidenceWriteback ?? buildMissingArenaSubmissionEvidenceWriteback(submission, { consumer: 'teacher' }),
+  }));
+}
+
 export function buildArenaPublicationReport(input: BuildArenaPublicationReportInput): ArenaPublicationReport {
-  const scopedSubmissions = filterPublicationSubmissions(input);
+  const scopedSubmissions = withTeacherEvidenceWritebacks(filterPublicationSubmissions(input));
   const participantUserIds = new Set(scopedSubmissions.map((submission) => submission.userId ?? submission.studentLabel));
   const roster = input.publication.visibility === 'class' ? input.roster ?? [] : [];
   const nonSubmitters = roster.filter((student) => !participantUserIds.has(student.userId));
@@ -409,9 +627,14 @@ export function buildArenaPublicationReport(input: BuildArenaPublicationReportIn
   const weakMetrics = buildWeakMetrics(scopedSubmissions);
   const methodDistribution = buildMethodDistribution(scopedSubmissions);
   const excellentSolutions = buildExcellentSolutions(scopedSubmissions, input.excellentSolutionLimit ?? 5);
+  const lifecycle = buildLifecycle(input.publication, scopedSubmissions);
 
   return {
     publication: input.publication,
+    publicationContext: buildPublicationContext(input.publication),
+    lifecycle,
+    leaderboardBoundary: buildLeaderboardBoundary(input.publication),
+    deliveryActions: buildDeliveryActions(lifecycle, scopedSubmissions),
     attemptPolicy: buildAttemptPolicy(scopedSubmissions),
     participation: {
       expectedStudentCount: roster.length,
@@ -425,6 +648,7 @@ export function buildArenaPublicationReport(input: BuildArenaPublicationReportIn
       invalidSubmissionCount: scopedSubmissions.length - validSubmissionCount,
       validSubmissionRate: scopedSubmissions.length > 0 ? validSubmissionCount / scopedSubmissions.length : 0,
     },
+    evidenceWriteback: buildEvidenceWritebackSummary(scopedSubmissions),
     scores: buildScoreSummary(scopedSubmissions),
     hardConstraintFailures,
     weakMetrics,

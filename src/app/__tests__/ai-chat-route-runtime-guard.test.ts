@@ -23,6 +23,10 @@ const streamingCitationFallbackSource = readFileSync(
   join(process.cwd(), 'src/lib/konling-streaming-citation-fallback.ts'),
   'utf8',
 );
+const finalCitationMetadataStreamSource = readFileSync(
+  join(process.cwd(), 'src/lib/konling-final-citation-metadata-stream.ts'),
+  'utf8',
+);
 const globalAISidebarSource = readFileSync(
   join(process.cwd(), 'src/components/ai/global-ai-sidebar.tsx'),
   'utf8',
@@ -160,7 +164,11 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools }');
     expect(chatRouteSource).toContain('knowledgeCapabilityContext: modeContract.groundingContext');
     expect(chatRouteSource).toContain('teachingAssistantMode: modeContract');
-    expect(chatRouteSource).toContain('serverModeContext: await resolveKonlingTeachingAssistantServerModeContext');
+    expect(chatRouteSource).toContain('const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext');
+    expect(chatRouteSource).toContain('teachingAssistantServerModeContext: serverModeContext');
+    expect(chatRouteSource).not.toContain('const preliminaryRuntimeContext = await buildKonlingRuntimeContext');
+    expect(chatRouteSource.indexOf('const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext'))
+      .toBeLessThan(chatRouteSource.indexOf('const runtimeContext = await buildKonlingRuntimeContext'));
     expect(chatRouteSource).toContain('targetUserId: runtimeTargetUserId');
     expect(chatRouteSource).toContain('classId: runtimeClassId');
     expect(chatRouteSource.indexOf('const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride'))
@@ -178,7 +186,11 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools }');
     expect(sessionMessagesRouteSource).toContain('knowledgeCapabilityContext: modeContract.groundingContext');
     expect(sessionMessagesRouteSource).toContain('teachingAssistantMode: modeContract');
-    expect(sessionMessagesRouteSource).toContain('serverModeContext: await resolveKonlingTeachingAssistantServerModeContext');
+    expect(sessionMessagesRouteSource).toContain('const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext');
+    expect(sessionMessagesRouteSource).toContain('teachingAssistantServerModeContext: serverModeContext');
+    expect(sessionMessagesRouteSource).not.toContain('const preliminaryRuntimeContext = await buildKonlingRuntimeContext');
+    expect(sessionMessagesRouteSource.indexOf('const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext'))
+      .toBeLessThan(sessionMessagesRouteSource.indexOf('const runtimeContext = await buildKonlingRuntimeContext'));
     expect(sessionMessagesRouteSource).toContain('targetUserId: runtimeTargetUserId');
     expect(sessionMessagesRouteSource).toContain('classId: runtimeClassId');
     expect(sessionMessagesRouteSource.indexOf('const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride'))
@@ -227,10 +239,39 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('citationNormalization: true');
     expect(sessionMessagesRouteSource).toContain('getConfiguredAIModel(undefined, modelRequirements)');
     expect(chatRouteSource).toContain("'X-Konling-Citation-Guard': citationGuardMetadata.status");
+    expect(chatRouteSource).toContain('const agentSessionStateUpdate = await prisma.agentSession.updateMany');
+    expect(chatRouteSource).toContain('konlingCitationGuard: citationGuardMetadataPayload');
+    expect(chatRouteSource).toContain('buildKonlingSarAssociatedGroundingMetadataPayload(');
+    expect(chatRouteSource).toContain('konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload');
+    expect(chatRouteSource).toContain('{ konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload }');
+    expect(chatRouteSource).not.toContain('konlingSarAssociatedGrounding: modeContract.groundingContext.sarAssociatedGrounding');
+    expect(chatRouteSource).toContain('AgentSession citation metadata persistence failed');
+    expect(chatRouteSource).toContain('ownerUserId: scope.scope.targetUserId');
+    expect(chatRouteSource).not.toContain('actorUserId: scope.scope.authenticatedUserId');
     expect(chatRouteSource).toContain('messageMetadata: ({ part })');
     expect(chatRouteSource).toContain('konlingCitationGuard');
-    expect(chatRouteSource).toContain('buildStreamingCitationFallbackNotice(citationGuardMetadata)');
+    expect(chatRouteSource).toContain('appendFinalCitationGuardMetadata');
+    expect(chatRouteSource).toContain('buildFinalCitationGuardMetadataPayload');
+    expect(chatRouteSource).toContain('buildKonlingCitationGuard(modeRuntimeContext, assistantContent)');
+    expect(finalCitationMetadataStreamSource).toContain("chunk.type === 'text-delta'");
+    expect(finalCitationMetadataStreamSource).toContain("type: 'message-metadata'");
+    expect(finalCitationMetadataStreamSource).toContain('konlingCitationGuard: buildFinalMetadata(assistantContent)');
+    expect(chatRouteSource).toContain('function buildCitationGuardMetadataPayload');
+    expect(chatRouteSource).toContain('diagnosticReasons: citationGuardMetadata.diagnosticReasons ?? []');
+    expect(chatRouteSource).toContain('personalizationAvailability: citationGuardMetadata.personalizationAvailability');
+    expect(chatRouteSource).toContain('missingContext,');
+    expect(chatRouteSource).toContain('retrievalSources: buildKonlingCitationRetrievalSources(citationGuardMetadata)');
+    expect(chatRouteSource).toContain('citations: citationGuardMetadata.citations.map');
+    expect(chatRouteSource).toContain('id: citation.id');
+    expect(chatRouteSource).toContain('citationChip: jsonSafe(citation.citationChip)');
+    expect(chatRouteSource).toContain('buildStreamingCitationFallbackNotice(citationGuardMetadataPayload)');
     expect(chatRouteSource).toContain('insertStreamingCitationFallbackNotice');
+    expect(streamingCitationFallbackSource).toContain('KONLING_STREAMING_CITATION_DEBUG_INJECTION');
+    expect(streamingCitationFallbackSource).toContain("process.env.NODE_ENV) !== 'production'");
+    expect(streamingCitationFallbackSource).toContain('diagnosticReasons?: string[]');
+    expect(streamingCitationFallbackSource).toContain('missingContext?: string[]');
+    expect(streamingCitationFallbackSource).toContain('personalizationAvailability?:');
+    expect(streamingCitationFallbackSource).toContain('retrievalSources?:');
     expect(streamingCitationFallbackSource).toContain('【控灵证据提示】');
     expect(chatRouteSource).toContain('createUIMessageStreamResponse');
     expect(chatRouteSource).toContain('trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId)');
@@ -238,11 +279,26 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('const citationGuard = buildKonlingCitationGuard(modeRuntimeContext, assistantContent)');
     expect(sessionMessagesRouteSource).toContain('const guardedAssistantContent = applyKonlingCitationFallback');
     expect(sessionMessagesRouteSource).toContain('assistantMessage: guardedAssistantContent');
+    expect(sessionMessagesRouteSource).toContain('metadata: {');
+    expect(sessionMessagesRouteSource).toContain('konlingCitationGuard: {');
+    expect(sessionMessagesRouteSource).toContain('const sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload');
+    expect(sessionMessagesRouteSource).toContain('konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload');
+    expect(sessionMessagesRouteSource).not.toContain('konlingSarAssociatedGrounding: modeContract.groundingContext.sarAssociatedGrounding');
+    expect(sessionMessagesRouteSource).toContain('diagnosticReasons: citationGuard.diagnosticReasons ?? []');
+    expect(sessionMessagesRouteSource).toContain('personalizationAvailability: citationGuard.personalizationAvailability');
+    expect(sessionMessagesRouteSource).toContain('missingContext: modeContract.groundingContext.missingContext');
+    expect(sessionMessagesRouteSource).toContain('retrievalSources: buildKonlingCitationRetrievalSources(citationGuard)');
+    expect(sessionMessagesRouteSource).toContain('citations: citationGuard.citations.map');
+    expect(sessionMessagesRouteSource).toContain('id: citation.id');
     expect(sessionMessagesRouteSource).toContain('citationGuard,');
+    const sessionRuntimeInputIndex = sessionMessagesRouteSource.indexOf('const runtimeInput = {');
+    const sessionTrustedIndex = sessionMessagesRouteSource.indexOf('trustedContentContext: true', sessionRuntimeInputIndex);
+    const sessionServerModeIndex = sessionMessagesRouteSource.indexOf('const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext');
     const sessionRuntimeContextIndex = sessionMessagesRouteSource.indexOf('const runtimeContext = await buildKonlingRuntimeContext');
-    const sessionTrustedIndex = sessionMessagesRouteSource.indexOf('trustedContentContext: true', sessionRuntimeContextIndex);
-    expect(sessionRuntimeContextIndex).toBeGreaterThanOrEqual(0);
-    expect(sessionTrustedIndex).toBeGreaterThan(sessionRuntimeContextIndex);
+    expect(sessionRuntimeInputIndex).toBeGreaterThanOrEqual(0);
+    expect(sessionTrustedIndex).toBeGreaterThan(sessionRuntimeInputIndex);
+    expect(sessionTrustedIndex).toBeLessThan(sessionServerModeIndex);
+    expect(sessionServerModeIndex).toBeLessThan(sessionRuntimeContextIndex);
   });
 
   it('does not write Konling runtime simulation state into the legacy global tool store', () => {

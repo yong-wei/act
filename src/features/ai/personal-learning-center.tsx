@@ -140,6 +140,8 @@ interface PersonalLearningCenterProps {
   userName?: string;
   taskIntent?: string;
   taskSource?: string;
+  taskAssignment?: string;
+  taskContextIntent?: string;
 }
 
 export function PersonalLearningCenter({
@@ -152,13 +154,21 @@ export function PersonalLearningCenter({
   userName = '智航学员',
   taskIntent,
   taskSource,
+  taskAssignment,
+  taskContextIntent,
 }: PersonalLearningCenterProps) {
   const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
   const [reportTaskSelection, setReportTaskSelection] = useState<{
     status: 'candidate' | 'adopted' | 'discarded' | 'pending-writeback';
     candidateId?: string;
   }>({ status: 'candidate' });
-  const reportFeedbackCandidates = taskIntent === 'report-feedback' ? buildReportFeedbackTaskCandidates() : [];
+  const reportFeedbackCandidates = taskIntent === 'report-feedback'
+    ? buildReportFeedbackTaskCandidates({
+      source: taskSource,
+      assignment: taskAssignment,
+      intent: taskContextIntent ?? taskIntent,
+    })
+    : [];
   const reportTaskState = taskIntent === 'report-feedback'
     ? buildAiAuditTaskState({
       taskType: 'report-feedback',
@@ -175,13 +185,16 @@ export function PersonalLearningCenter({
             ? '练习任务候选已标记为待写回，本页尚未保存到学习任务。'
             : '练习任务候选已丢弃。',
       nextAction: reportTaskSelection.status === 'candidate' ? '选择采用、丢弃或标记待写回' : '返回报告反馈页复核状态',
-      targetId: reportTaskSelection.candidateId ?? taskSource,
+      targetId: reportTaskSelection.candidateId ?? taskAssignment ?? taskSource,
     })
     : null;
   const reportTaskContract = taskIntent === 'report-feedback' ? getAiAuditTaskContract('report-feedback') : null;
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden bg-[#0a2a43] text-slate-200">
+    <div
+      className="flex h-screen w-full flex-col overflow-hidden bg-[#0a2a43] text-slate-200"
+      data-ai-task-focus-mode={taskIntent ? 'local-first' : undefined}
+    >
       {/* 顶部仪表盘 */}
       <LearningDashboard profile={profile} userName={userName} />
       {reportTaskState && reportTaskContract ? (
@@ -238,7 +251,11 @@ function ReportFeedbackTaskPanel({
   onMarkPendingWriteback: (candidateId: string) => void;
 }) {
   return (
-    <section className="border-b border-cyan-400/20 bg-slate-950/70 px-5 py-4" data-ai-task-boundary="report-feedback">
+    <section
+      className="border-b border-cyan-400/20 bg-slate-950/70 px-5 py-4"
+      data-ai-task-boundary="report-feedback"
+      data-task-workspace-zone="local-primary-input"
+    >
       <div className="grid w-full gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-3">
           <ActionStatusPanel state={state} />
@@ -251,8 +268,16 @@ function ReportFeedbackTaskPanel({
             <article key={candidate.id} className="rounded border border-cyan-400/30 bg-cyan-500/10 p-3 text-sm">
               <div className="font-medium text-cyan-100">{candidate.title}</div>
               <p className="mt-1 text-xs leading-5 text-cyan-100/75">{candidate.detail}</p>
+              <div className="mt-2 rounded border border-cyan-300/30 px-2 py-1 text-[11px] text-cyan-100/70">
+                来源：{candidate.source} · 任务：{candidate.assignment ?? 'report-feedback'} · 意图：{candidate.intent} · 输出：{candidate.outputTarget}
+              </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button type="button" onClick={() => onAdopt(candidate.id)} className="rounded bg-cyan-500 px-2 py-1 text-xs text-slate-950">
+                <button
+                  type="button"
+                  onClick={() => onAdopt(candidate.id)}
+                  className="rounded bg-cyan-500 px-2 py-1 text-xs text-slate-950"
+                  data-primary-task-input="ai-workshop-report-feedback"
+                >
                   采用
                 </button>
                 <button type="button" onClick={() => onMarkPendingWriteback(candidate.id)} className="rounded border border-cyan-300/60 px-2 py-1 text-xs text-cyan-100">

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
 export default function VirtualLabPage() {
-  redirect('/simulations');
+  redirect('/simulations?compat=virtual-lab');
 }

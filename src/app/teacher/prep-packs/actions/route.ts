@@ -27,15 +27,16 @@ export async function POST(request: NextRequest) {
   }
 
   const formData = await request.formData();
+  const reviewContext = readPrepPackReviewContext(formData);
   const packId = formString(formData, 'packId');
   const action = formString(formData, 'action') as PrepPackAction;
   if (!packId || !isPrepPackAction(action)) {
-    return redirectToReview(request, 'invalid-action');
+    return redirectToReview(request, 'invalid-action', undefined, undefined, reviewContext);
   }
 
   const pack = await loadCourseEnhancementPack(prisma, packId);
   if (!pack || pack.teacherId !== session.user.id) {
-    return redirectToReview(request, 'not-found');
+    return redirectToReview(request, 'not-found', undefined, undefined, reviewContext);
   }
 
   try {
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
       });
     } else if (action === 'rollback') {
       if (!hasActiveOverlay(pack)) {
-        return redirectToReview(request, 'invalid-lifecycle', packId);
+        return redirectToReview(request, 'invalid-lifecycle', packId, undefined, reviewContext);
       }
       await rollbackPersistedCourseEnhancementPack({
         client: prisma,
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
       });
     } else if (action === 'archive') {
       if (pack.status === 'archived') {
-        return redirectToReview(request, 'invalid-lifecycle', packId);
+        return redirectToReview(request, 'invalid-lifecycle', packId, undefined, reviewContext);
       }
       await archivePersistedCourseEnhancementPack({
         client: prisma,
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
     } else if (action === 'impact-evidence') {
       const itemId = formString(formData, 'itemId') || pack.items[0]?.id || '';
       if (!isActiveOverlayItem(pack, itemId)) {
-        return redirectToReview(request, 'invalid-lifecycle', packId);
+        return redirectToReview(request, 'invalid-lifecycle', packId, undefined, reviewContext);
       }
       await persistCourseEnhancementPack(prisma, recordCourseEnhancementPackImpactEvidence({
         pack,
@@ -89,11 +90,11 @@ export async function POST(request: NextRequest) {
       }));
     }
   } catch (error) {
-    return redirectToReview(request, 'action-failed', packId, error);
+    return redirectToReview(request, 'action-failed', packId, error, reviewContext);
   }
 
   revalidatePath('/teacher/prep-packs');
-  return redirectToReview(request, action, packId);
+  return redirectToReview(request, action, packId, undefined, reviewContext);
 }
 
 async function loadRuntimeContextForPack(pack: CourseEnhancementPack): Promise<CourseEnhancementRuntimeContext> {
@@ -169,6 +170,16 @@ function formString(formData: FormData, key: string): string {
   return typeof value === 'string' ? value : '';
 }
 
+function readPrepPackReviewContext(formData: FormData) {
+  return {
+    classId: formString(formData, 'classId'),
+    cluster: formString(formData, 'clusterId'),
+    graphNodeId: formString(formData, 'graphNodeId'),
+    learningGoalId: formString(formData, 'learningGoalId'),
+    resourceGapStatus: formString(formData, 'resourceGapStatus'),
+  };
+}
+
 function isPrepPackAction(action: string): action is PrepPackAction {
   return action === 'preview' ||
     action === 'activate' ||
@@ -182,10 +193,16 @@ function redirectToReview(
   status: string,
   packId?: string,
   error?: unknown,
+  reviewContext?: ReturnType<typeof readPrepPackReviewContext>,
 ) {
   const url = new URL('/teacher/prep-packs', request.url);
   url.searchParams.set('status', status);
   if (packId) url.searchParams.set('packId', packId);
   if (error instanceof Error) url.searchParams.set('error', error.message);
+  if (reviewContext?.classId) url.searchParams.set('classId', reviewContext.classId);
+  if (reviewContext?.cluster) url.searchParams.set('cluster', reviewContext.cluster);
+  if (reviewContext?.graphNodeId) url.searchParams.set('graphNodeId', reviewContext.graphNodeId);
+  if (reviewContext?.learningGoalId) url.searchParams.set('learningGoalId', reviewContext.learningGoalId);
+  if (reviewContext?.resourceGapStatus) url.searchParams.set('resourceGapStatus', reviewContext.resourceGapStatus);
   return NextResponse.redirect(url, 303);
 }

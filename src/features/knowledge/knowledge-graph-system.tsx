@@ -840,9 +840,10 @@ export function KnowledgeGraphSystem({
                     ref={(element) => {
                       desktopToolTriggerRefs.current[item.id] = element;
                     }}
-                    type="button"
-                    aria-controls={`${DESKTOP_TOOL_PANEL_ID_PREFIX}-${item.id}`}
-                    aria-expanded={active}
+	                    type="button"
+	                    aria-label={`${item.label}工具`}
+	                    aria-controls={`${DESKTOP_TOOL_PANEL_ID_PREFIX}-${item.id}`}
+	                    aria-expanded={active}
                     aria-pressed={active}
                     onClick={() => setDesktopActiveTool((current) => current === item.id ? null : item.id)}
                     className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-medium transition ${
@@ -1327,47 +1328,53 @@ export function KnowledgeGraphSystem({
                   placeholder="关键词搜索"
                   className="w-full rounded-md border border-platform-border bg-platform-surface px-2 py-1.5 text-xs text-platform-fg-primary outline-none"
                 />
-                <div className="grid grid-cols-3 gap-1 rounded-lg border border-platform-border p-0.5">
-                  {([
-                    ['structure', '结构优先'],
-                    ['focused', '焦点邻域'],
-                    ['all', '全部关系'],
-                  ] as const).map(([mode, label]) => (
-                    <button
-                      key={`mobile-density-${mode}`}
-                      type="button"
-                      aria-pressed={relationDensityMode === mode}
-                      onClick={() => setRelationDensityMode(mode)}
-                      className={`rounded px-2 py-1 text-[10px] transition-colors ${
-                        relationDensityMode === mode
-                          ? 'bg-platform-action-primary text-platform-fg-inverse'
-                          : 'text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {relationTypeStats.map((item) => {
-                    const selected = selectedRelationTypes.includes(item.type);
-                    return (
-                      <button
-                        type="button"
-                        key={`mobile-relation-${item.type}`}
-                        aria-pressed={selected}
-                        onClick={() => toggleRelationType(item.type)}
-                        className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
-                          selected
-                            ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
-                            : 'border-platform-border text-platform-fg-secondary'
-                        }`}
-                      >
-                        {getRelationLabel(item.type)} · {item.count}
-                      </button>
-                    );
-                  })}
-                </div>
+	                <details className="rounded-md border border-platform-border px-2 py-1.5" data-knowledge-mobile-filter-group="density-mode">
+	                  <summary className="cursor-pointer text-[11px] font-medium">密度模式 · {relationDensityMode === 'structure' ? '结构优先' : relationDensityMode === 'focused' ? '焦点邻域' : '全部关系'}</summary>
+	                  <div className="mt-2 grid grid-cols-3 gap-1 rounded-lg border border-platform-border p-0.5">
+	                    {([
+	                      ['structure', '结构优先'],
+	                      ['focused', '焦点邻域'],
+	                      ['all', '全部关系'],
+	                    ] as const).map(([mode, label]) => (
+	                      <button
+	                        key={`mobile-density-${mode}`}
+	                        type="button"
+	                        aria-pressed={relationDensityMode === mode}
+	                        onClick={() => setRelationDensityMode(mode)}
+	                        className={`rounded px-2 py-1 text-[10px] transition-colors ${
+	                          relationDensityMode === mode
+	                            ? 'bg-platform-action-primary text-platform-fg-inverse'
+	                            : 'text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+	                        }`}
+	                      >
+	                        {label}
+	                      </button>
+	                    ))}
+	                  </div>
+	                </details>
+	                <details className="rounded-md border border-platform-border px-2 py-1.5" data-knowledge-mobile-filter-group="relation-types">
+	                  <summary className="cursor-pointer text-[11px] font-medium">关系类型 · {selectedRelationTypes.length}/{relationTypeStats.length}</summary>
+	                  <div className="mt-2 flex flex-wrap gap-1.5">
+	                    {relationTypeStats.map((item) => {
+	                      const selected = selectedRelationTypes.includes(item.type);
+	                      return (
+	                        <button
+	                          type="button"
+	                          key={`mobile-relation-${item.type}`}
+	                          aria-pressed={selected}
+	                          onClick={() => toggleRelationType(item.type)}
+	                          className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
+	                            selected
+	                              ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
+	                              : 'border-platform-border text-platform-fg-secondary'
+	                          }`}
+	                        >
+	                          {getRelationLabel(item.type)} · {item.count}
+	                        </button>
+	                      );
+	                    })}
+	                  </div>
+	                </details>
                 <div className="grid gap-2">
                   <details className="rounded-md border border-platform-border px-2 py-1.5">
                     <summary className="cursor-pointer text-[11px] font-medium">{getGraphFilterLabel('category')}筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}</summary>
@@ -1402,27 +1409,32 @@ export function KnowledgeGraphSystem({
                     </div>
                   </details>
                 </div>
-                <label className="grid gap-1 text-[11px] text-platform-fg-secondary">
-                  <span>关系强度阈值：{minRelationStrength.toFixed(1)}</span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.1}
-                    value={minRelationStrength}
-                    onChange={(event) => setMinRelationStrength(Number(event.target.value))}
-                    className="w-full accent-[hsl(var(--platform-action-primary))]"
-                  />
-                </label>
-                <label className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
-                  <input
-                    type="checkbox"
-                    checked={showOnlyConnectedNodes}
-                    onChange={(event) => setShowOnlyConnectedNodes(event.target.checked)}
-                    className="accent-[hsl(var(--platform-action-primary))]"
-                  />
-                  <span>仅显示存在可见关系的节点</span>
-                </label>
+	                <details className="rounded-md border border-platform-border px-2 py-1.5" data-knowledge-mobile-filter-group="advanced-thresholds">
+	                  <summary className="cursor-pointer text-[11px] font-medium">进阶过滤 · 强度 {minRelationStrength.toFixed(1)}</summary>
+	                  <div className="mt-2 grid gap-2">
+	                    <label className="grid gap-1 text-[11px] text-platform-fg-secondary">
+	                      <span>关系强度阈值：{minRelationStrength.toFixed(1)}</span>
+	                      <input
+	                        type="range"
+	                        min={0}
+	                        max={1}
+	                        step={0.1}
+	                        value={minRelationStrength}
+	                        onChange={(event) => setMinRelationStrength(Number(event.target.value))}
+	                        className="w-full accent-[hsl(var(--platform-action-primary))]"
+	                      />
+	                    </label>
+	                    <label className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
+	                      <input
+	                        type="checkbox"
+	                        checked={showOnlyConnectedNodes}
+	                        onChange={(event) => setShowOnlyConnectedNodes(event.target.checked)}
+	                        className="accent-[hsl(var(--platform-action-primary))]"
+	                      />
+	                      <span>仅显示存在可见关系的节点</span>
+	                    </label>
+	                  </div>
+	                </details>
                 <button
                   type="button"
                   onClick={() => {

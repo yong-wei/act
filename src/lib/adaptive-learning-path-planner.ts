@@ -42,6 +42,12 @@ import {
   type KaqArtifactVersionRefs,
   type KaqVersionedArtifactMetadata,
 } from './kaq-artifact-versioning';
+import {
+  retrieveSourcePack,
+  type SourcePackCallerRole,
+  type SourcePackItem,
+  type SourcePackLimitation,
+} from './source-pack';
 
 export type AdaptiveLearningPathStatus = 'ready' | 'fallback';
 export type AdaptiveLearningPathPolicyFamily =
@@ -354,8 +360,39 @@ export interface AdaptiveLearningPathPlannerInput {
   allowExternalResources?: boolean;
   excludedNodeIds?: string[];
   preferredStyleId?: string;
+  sourcePackCandidates?: readonly SourcePackItem[];
+  sourcePackLimitations?: readonly SourcePackLimitation[];
+  sourcePackRole?: SourcePackCallerRole;
+  sarCandidateContext?: AdaptiveLearningPathSarCandidateContext;
   requestedAt?: string;
   now?: Date;
+}
+
+export interface AdaptiveLearningPathSarCandidateContext {
+  enabled?: boolean;
+  traceId?: string;
+  seedEntityRefs?: readonly string[];
+  candidates?: readonly AdaptiveLearningPathSarCandidateRef[];
+  limitations?: readonly string[];
+}
+
+export type AdaptiveLearningPathSarCandidateKind =
+  | 'resourceNode'
+  | 'planningUnit'
+  | 'retrievalChunk'
+  | 'citationTarget'
+  | 'resource'
+  | 'unknown';
+
+export interface AdaptiveLearningPathSarCandidateRef {
+  ref: string;
+  kind?: AdaptiveLearningPathSarCandidateKind;
+  resourceNodeId?: string;
+  planningUnitId?: string;
+  resourceId?: string;
+  retrievalChunkId?: string;
+  citationTargetId?: string;
+  requiredUse?: 'path-node' | 'terminal-validation' | 'supporting-evidence';
 }
 
 export interface AdaptiveLearningPathPlanNode {
@@ -408,6 +445,7 @@ export interface AdaptiveLearningPathExplanation {
   selectedReasons: string[];
   rejectedAlternatives: AdaptiveLearningPathAlternative[];
   fallbackReasons: string[];
+  associativeRetrieval?: AdaptiveLearningPathAssociativeRetrievalBasis;
 }
 
 export interface AdaptiveLearningPathScore {
@@ -450,6 +488,43 @@ export interface AdaptiveLearningPathEvidencePayload {
   prerequisiteReasons: Array<{ nodeId: string; prerequisiteNodeIds: string[] }>;
   teacherPolicy: Array<{ nodeId: string; policy: ResourceNode['planningMetadata']['teacherPolicy'] }>;
   alternatives: AdaptiveLearningPathAlternative[];
+  sourcePackEvidence?: AdaptiveLearningPathSourcePackEvidence | null;
+  associativeRetrieval?: AdaptiveLearningPathAssociativeRetrievalBasis;
+}
+
+export interface AdaptiveLearningPathAssociativeRetrievalBasis {
+  traceId: string | null;
+  seedEntityRefs: string[];
+  candidateResourceNodeIds: string[];
+  selectedCandidateNodeIds: string[];
+  rejectedCandidates: AdaptiveLearningPathRejectedSarCandidate[];
+  limitations: string[];
+}
+
+export interface AdaptiveLearningPathRejectedSarCandidate {
+  ref: string;
+  kind: AdaptiveLearningPathSarCandidateKind;
+  resourceNodeId?: string;
+  planningUnitId?: string;
+  reasonCodes: string[];
+}
+
+export interface AdaptiveLearningPathSourcePackEvidence {
+  packId: string;
+  profile: 'path-planning';
+  queryText: string;
+  itemRefs: string[];
+  pathEligibleItemRefs: string[];
+  citationOnlyItemRefs: string[];
+  capabilityTargetRefs: string[];
+  citationTargetIds: string[];
+  retrievalChunkIds: string[];
+  limitationCodes: string[];
+  coverage: {
+    eligibleItems: number;
+    returnedItems: number;
+    omittedItems: number;
+  };
 }
 
 export interface AdaptiveLearningPathVisualization {
@@ -703,6 +778,14 @@ interface SelectionState {
   coveredGoalTargets: Set<string>;
   includesRiskIntervention: boolean;
   remainingMinutes: number;
+}
+
+interface EvaluatedSarCandidates {
+  traceId: string | null;
+  seedEntityRefs: string[];
+  acceptedNodeIds: Set<string>;
+  rejectedCandidates: AdaptiveLearningPathRejectedSarCandidate[];
+  limitations: string[];
 }
 
 const EXCLUDED_POLICY_FAMILIES: AdaptiveLearningPathPlan['excludedPolicyFamilies'] = [
@@ -1717,6 +1800,14 @@ function buildAdaptiveLearningPathPlanInternal(
       ...expandedRegisteredKnowledgeTargets(input.goal, deficits, registeredGoal),
       ...(input.goal.competencyTargets ?? []),
     ]);
+  const sarCandidates = evaluateSarCandidates({
+    input,
+    pathEligible,
+    graphContext,
+    deficits,
+    registeredGoal,
+    completedNodeIds: requestedCompletedNodeIds,
+  });
   const rankerResult = rankResourceLearnerCandidates({
     candidates: pathEligible.map((node) => {
       const planningUnit = planningUnitForNode(node);
@@ -1759,6 +1850,7 @@ function buildAdaptiveLearningPathPlanInternal(
         resourceRanker,
         reasonCodes: unique([
           ...scoredNode.reasonCodes,
+          ...(sarCandidates?.acceptedNodeIds.has(node.id) ? ['sar-associated-candidate'] : []),
           ...(resourceRanker?.featureContributions
             .filter((contribution) => contribution.value > 0)
             .map((contribution) => `ranker:${contribution.feature}`) ?? []),
@@ -1892,10 +1984,14 @@ function buildAdaptiveLearningPathPlanInternal(
     selectedReasons: mainPath.flatMap((node) => node.reasonCodes),
     rejectedAlternatives: alternatives.filter((item) => item.blocked || !mainPath.some((node) => node.nodeId === item.nodeId)),
     fallbackReasons: uniqueFallbackReasons,
+    associativeRetrieval: sarCandidates
+      ? buildAssociativeRetrievalBasis(sarCandidates, mainPath)
+      : undefined,
   };
   const policyBundleRequest = resolvePolicyBundleRequest(input, confidence, registeredGoal);
   const capabilityTargets = resolveCapabilityTargets(input.goal, registeredGoal);
   const goal = attachLearningGoal(input.goal, registeredGoal);
+  const sourcePackEvidence = buildPathPlanningSourcePackEvidence(input, mainPath, goal);
 
   return {
     id: `adaptive-path:${input.studentId}:${input.goal.id}`,
@@ -1938,6 +2034,8 @@ function buildAdaptiveLearningPathPlanInternal(
       confidence,
       status,
       hasUsablePath: mainPath.length > 0,
+      sourcePackEvidence,
+      associativeRetrieval: explanations.associativeRetrieval,
       generatedAt: now,
     }),
     graphContext,
@@ -2384,6 +2482,206 @@ function partitionResourceNodes(
     eligible.push(node);
   }
   return { eligible, blocked };
+}
+
+function evaluateSarCandidates(input: {
+  input: AdaptiveLearningPathPlannerInput;
+  pathEligible: ResourceNode[];
+  graphContext?: AdaptiveLearningPathGraphContextSummary;
+  deficits: AdaptiveLearningPathDeficit[];
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null;
+  completedNodeIds: string[];
+}): EvaluatedSarCandidates | null {
+  const context = input.input.sarCandidateContext;
+  if (!context || context.enabled === false) return null;
+  const candidateRefs = context.candidates ?? [];
+  if (candidateRefs.length === 0 && (context.seedEntityRefs?.length ?? 0) === 0 && !context.traceId) return null;
+
+  const pathEligibleIds = new Set(input.pathEligible.map((node) => node.id));
+  const nodeById = new Map(input.input.registry.nodes.map((node) => [node.id, node]));
+  const nodeByResourceId = new Map(input.input.registry.nodes
+    .map((node) => {
+      const planningUnit = planningUnitForNode(node);
+      return planningUnit ? [planningUnit.resourceId, node] as const : null;
+    })
+    .filter((entry): entry is readonly [string, ResourceNode] => Boolean(entry)));
+  const nodeByPlanningUnitId = new Map(input.input.registry.nodes
+    .map((node) => {
+      const planningUnit = planningUnitForNode(node);
+      return planningUnit ? [planningUnit.id, node] as const : null;
+    })
+    .filter((entry): entry is readonly [string, ResourceNode] => Boolean(entry)));
+  const acceptedNodeIds = new Set<string>();
+  const rejectedCandidates: AdaptiveLearningPathRejectedSarCandidate[] = [];
+
+  for (const candidate of candidateRefs) {
+    const kind = candidate.kind ?? 'unknown';
+    const node = sarCandidateCanMapToPathNode(kind, candidate)
+      ? resolveSarCandidateNodeForPath(candidate, kind, nodeById, nodeByResourceId, nodeByPlanningUnitId)
+      : null;
+    if (!node) {
+      rejectedCandidates.push(toUnmappedRejectedSarCandidate(
+        candidate,
+        kind,
+        nodeById,
+        nodeByResourceId,
+        nodeByPlanningUnitId,
+        input.input.constraints,
+        rejectedCandidates.length,
+      ));
+      continue;
+    }
+
+    const reasons = unique([
+      ...blockingReasonCodes(node, input.input.constraints),
+      ...(pathEligibleIds.has(node.id) ? [] : ['path-ineligible']),
+      ...(input.input.excludedNodeIds?.includes(node.id) ? ['excluded-node'] : []),
+      ...(externalResourceAllowed(node, input.input, input.registeredGoal) ? [] : ['external-resource-disabled']),
+      ...(goalAllowsResourceNode(node, input.registeredGoal) ? [] : ['learning-goal-resource-mix-blocked']),
+      ...(nodeMatchesGoal(node, input.input.goal, input.deficits, input.graphContext)
+        ? []
+        : ['learning-goal-boundary-mismatch']),
+      ...sarReadinessReasonCodes(node, input.input.learnerState, input.input.constraints, input.completedNodeIds),
+      ...(candidate.requiredUse === 'terminal-validation' && !isTerminalValidationNode(node)
+        ? ['terminal-validation-insufficient']
+        : []),
+    ]);
+    if (reasons.length > 0) {
+      rejectedCandidates.push(toRejectedSarCandidate(candidate, kind, node, reasons, rejectedCandidates.length));
+      continue;
+    }
+
+    acceptedNodeIds.add(node.id);
+  }
+
+  return {
+    traceId: context.traceId ?? null,
+    seedEntityRefs: uniqueNonEmptyStrings(context.seedEntityRefs ?? []),
+    acceptedNodeIds,
+    rejectedCandidates,
+    limitations: uniqueNonEmptyStrings(context.limitations ?? []),
+  };
+}
+
+function sarCandidateCanMapToPathNode(
+  kind: AdaptiveLearningPathSarCandidateKind,
+  candidate: AdaptiveLearningPathSarCandidateRef,
+): boolean {
+  if (kind === 'retrievalChunk' || kind === 'citationTarget') {
+    return Boolean(candidate.resourceNodeId || candidate.planningUnitId || candidate.resourceId);
+  }
+  return kind === 'resourceNode' || kind === 'planningUnit' || kind === 'resource' || kind === 'unknown';
+}
+
+function toUnmappedRejectedSarCandidate(
+  candidate: AdaptiveLearningPathSarCandidateRef,
+  kind: AdaptiveLearningPathSarCandidateKind,
+  nodeById: Map<string, ResourceNode>,
+  nodeByResourceId: Map<string, ResourceNode>,
+  nodeByPlanningUnitId: Map<string, ResourceNode>,
+  constraints: AdaptiveLearningPathConstraints,
+  index: number,
+): AdaptiveLearningPathRejectedSarCandidate {
+  const possibleNode = resolveSarCandidateNode(candidate, nodeById, nodeByResourceId, nodeByPlanningUnitId);
+  const possibleReasons = possibleNode ? blockingReasonCodes(possibleNode, constraints) : [];
+  const reasonCodes = unique(['missing-resource-node-mapping', ...possibleReasons]);
+  if (
+    (possibleNode && shouldRedactBlockedNode(possibleNode, reasonCodes)) ||
+    (!possibleNode && Boolean(candidate.resourceNodeId || candidate.planningUnitId || candidate.resourceId))
+  ) {
+    return {
+      ref: `restricted:${index + 1}`,
+      kind,
+      reasonCodes,
+    };
+  }
+  return {
+    ref: candidate.ref,
+    kind,
+    reasonCodes,
+  };
+}
+
+function toRejectedSarCandidate(
+  candidate: AdaptiveLearningPathSarCandidateRef,
+  kind: AdaptiveLearningPathSarCandidateKind,
+  node: ResourceNode,
+  reasonCodes: string[],
+  index: number,
+): AdaptiveLearningPathRejectedSarCandidate {
+  if (shouldRedactBlockedNode(node, reasonCodes)) {
+    return {
+      ref: `restricted:${index + 1}`,
+      kind,
+      reasonCodes,
+    };
+  }
+  return {
+    ref: candidate.ref,
+    kind,
+    resourceNodeId: node.id,
+    planningUnitId: planningUnitForNode(node)?.id ?? candidate.planningUnitId,
+    reasonCodes,
+  };
+}
+
+function resolveSarCandidateNode(
+  candidate: AdaptiveLearningPathSarCandidateRef,
+  nodeById: Map<string, ResourceNode>,
+  nodeByResourceId: Map<string, ResourceNode>,
+  nodeByPlanningUnitId: Map<string, ResourceNode>,
+): ResourceNode | null {
+  return (candidate.resourceNodeId ? nodeById.get(candidate.resourceNodeId) : undefined) ??
+    (candidate.planningUnitId ? nodeByPlanningUnitId.get(candidate.planningUnitId) : undefined) ??
+    (candidate.resourceId ? nodeByResourceId.get(candidate.resourceId) : undefined) ??
+    nodeById.get(candidate.ref) ??
+    nodeByPlanningUnitId.get(candidate.ref) ??
+    nodeByResourceId.get(candidate.ref) ??
+    null;
+}
+
+function resolveSarCandidateNodeForPath(
+  candidate: AdaptiveLearningPathSarCandidateRef,
+  kind: AdaptiveLearningPathSarCandidateKind,
+  nodeById: Map<string, ResourceNode>,
+  nodeByResourceId: Map<string, ResourceNode>,
+  nodeByPlanningUnitId: Map<string, ResourceNode>,
+): ResourceNode | null {
+  if (kind === 'retrievalChunk' || kind === 'citationTarget') {
+    return (candidate.resourceNodeId ? nodeById.get(candidate.resourceNodeId) : undefined) ??
+      (candidate.planningUnitId ? nodeByPlanningUnitId.get(candidate.planningUnitId) : undefined) ??
+      (candidate.resourceId ? nodeByResourceId.get(candidate.resourceId) : undefined) ??
+      null;
+  }
+  return resolveSarCandidateNode(candidate, nodeById, nodeByResourceId, nodeByPlanningUnitId);
+}
+
+function sarReadinessReasonCodes(
+  node: ResourceNode,
+  learnerState: AdaptiveLearningPathLearnerState | null,
+  constraints: AdaptiveLearningPathConstraints,
+  completedNodeIds: string[],
+): string[] {
+  const readiness = evaluateNodeReadiness(node, learnerState, constraints, completedNodeIds);
+  return readiness.state === 'ready' ? [] : readiness.reasonCodes;
+}
+
+function buildAssociativeRetrievalBasis(
+  sarCandidates: EvaluatedSarCandidates,
+  mainPath: AdaptiveLearningPathPlanNode[],
+): AdaptiveLearningPathAssociativeRetrievalBasis {
+  const mainPathNodeIds = new Set(mainPath.map((node) => node.nodeId));
+  const selectedCandidateNodeIds = Array.from(sarCandidates.acceptedNodeIds)
+    .filter((nodeId) => mainPathNodeIds.has(nodeId))
+    .sort();
+  return {
+    traceId: sarCandidates.traceId,
+    seedEntityRefs: sarCandidates.seedEntityRefs,
+    candidateResourceNodeIds: Array.from(sarCandidates.acceptedNodeIds).sort(),
+    selectedCandidateNodeIds,
+    rejectedCandidates: sarCandidates.rejectedCandidates,
+    limitations: sarCandidates.limitations,
+  };
 }
 
 function blockingReasonCodes(node: ResourceNode, constraints: AdaptiveLearningPathConstraints): string[] {
@@ -4186,6 +4484,8 @@ function buildVisualization(input: {
   confidence: AdaptiveLearningPathPlan['confidence'];
   status: AdaptiveLearningPathStatus;
   hasUsablePath: boolean;
+  sourcePackEvidence: AdaptiveLearningPathSourcePackEvidence | null;
+  associativeRetrieval?: AdaptiveLearningPathAssociativeRetrievalBasis;
   generatedAt: string;
 }): AdaptiveLearningPathVisualization {
   const mainPathNodeIds = input.mainPath.map((node) => node.nodeId);
@@ -4217,8 +4517,75 @@ function buildVisualization(input: {
         .map((node) => ({ nodeId: node.nodeId, prerequisiteNodeIds: node.prerequisiteNodeIds })),
       teacherPolicy: input.mainPath.map((node) => ({ nodeId: node.nodeId, policy: node.teacherPolicy })),
       alternatives: input.alternatives,
+      sourcePackEvidence: input.sourcePackEvidence,
+      associativeRetrieval: input.associativeRetrieval,
     },
   };
+}
+
+function buildPathPlanningSourcePackEvidence(
+  input: AdaptiveLearningPathPlannerInput,
+  mainPath: AdaptiveLearningPathPlanNode[],
+  goal: AdaptiveLearningPathGoal,
+): AdaptiveLearningPathSourcePackEvidence | null {
+  const candidates = input.sourcePackCandidates ?? [];
+  if (candidates.length === 0) return null;
+  const capabilityTargetRefs = uniqueNonEmptyStrings([
+    ...(goal.competencyTargets ?? []),
+    ...(goal.capabilityTargets?.map((target) => target.id) ?? []),
+  ]);
+  const query = `${goal.title} ${goal.knowledgeTargets.join(' ')} ${(goal.competencyTargets ?? []).join(' ')} ${goal.capabilityTargets?.map((target) => `${target.id} ${target.behaviorVerb}`).join(' ') ?? ''}`.trim();
+
+  const result = retrieveSourcePack({
+    query,
+    profile: 'path-planning',
+    role: input.sourcePackRole ?? 'student',
+    caller: 'adaptive-learning-path-planner',
+    topK: 6,
+    graphNodeRefs: uniqueNonEmptyStrings([
+      ...goal.knowledgeTargets,
+      ...(input.graphContext?.selectedGraphNodeIds ?? []),
+      ...Object.values(input.graphContext?.expandedSubgraph.graphNodeIds ?? {}).flat(),
+    ]),
+    capabilityTargetRefs,
+    learningGoalIds: uniqueNonEmptyStrings([
+      goal.id,
+      input.graphContext?.learningGoalId,
+      goal.learningGoal?.id,
+    ]),
+    resourceIds: uniqueNonEmptyStrings(mainPath.flatMap((node) => [
+      node.resourceNodeId,
+      node.resourceId,
+      node.planningUnitId,
+    ])),
+    candidates,
+    limitations: input.sourcePackLimitations ?? [],
+  });
+  const itemRefs = result.pack.items.map((item) => item.id);
+  const pathEligibleItemRefs = result.pack.items
+    .filter((item) => Boolean(item.resourceNodeId || item.planningUnitId))
+    .map((item) => item.id);
+  return {
+    packId: result.pack.packId,
+    profile: 'path-planning',
+    queryText: result.pack.query.text,
+    itemRefs,
+    pathEligibleItemRefs,
+    citationOnlyItemRefs: itemRefs.filter((itemRef) => !pathEligibleItemRefs.includes(itemRef)),
+    capabilityTargetRefs,
+    citationTargetIds: result.pack.audit.citationTargetIds,
+    retrievalChunkIds: result.pack.audit.retrievalChunkIds,
+    limitationCodes: result.pack.limitations.map((limitation) => limitation.code),
+    coverage: {
+      eligibleItems: result.pack.coverage.eligibleItems ?? 0,
+      returnedItems: result.pack.coverage.returnedItems,
+      omittedItems: result.pack.coverage.omittedItems ?? 0,
+    },
+  };
+}
+
+function uniqueNonEmptyStrings(values: readonly (string | null | undefined)[]): string[] {
+  return [...new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)))];
 }
 
 function buildTimelinePayload(

@@ -407,3 +407,81 @@ The adaptive path center SHALL show node completion and next-node advancement fr
 - **WHEN** the student leaves the path center after selecting or completing part of a path and later returns
 - **THEN** the selected path, completed nodes, current node, evidence summary, and alternatives SHALL remain visible without requiring the original selection URL.
 
+### Requirement: Adaptive path entrypoints follow the LearningGoal catalog
+The adaptive learning center SHALL derive path generation entrypoints, goal selector options, labels, descriptions, route targets, and active-goal state from the registered `path-ready` LearningGoal catalog.
+
+#### Scenario: Student opens generic path generation
+- **WHEN** a student opens `/assessment/adaptive-practice` without a specific goal
+- **THEN** the page SHALL render all registered `path-ready` LearningGoals as selectable generation targets
+- **AND** the available target count SHALL match the backend LearningGoal catalog rather than a page-local hard-coded allow-list.
+
+#### Scenario: Student changes the generation goal
+- **WHEN** the student changes the learning goal in the generation panel
+- **THEN** the active goal, URL query, stored generation parameters, latest-path lookup, path selection, path execution links, and return context SHALL use the selected LearningGoal id
+- **AND** the page SHALL NOT coerce non-control-correction goals back to `control-correction`.
+
+#### Scenario: Student views a non-control-correction path
+- **WHEN** a generated or restored path belongs to any registered LearningGoal
+- **THEN** the path map, current-node panel, completed-path summary, evidence review links, and generate-new-path actions SHALL display the owning LearningGoal metadata
+- **AND** page state and helper behavior SHALL remain active-goal based rather than control-correction specific.
+
+#### Scenario: Unknown goal is requested
+- **WHEN** the route query names a goal id that is not present in the registered LearningGoal catalog
+- **THEN** the page SHALL render a student-safe unavailable state or fall back to the generic path center
+- **AND** it SHALL NOT generate a path, register a Konling context, or fetch latest paths for the unknown goal.
+
+### Requirement: Dynamic LearningGoal entrypoints expose student-facing metadata
+The adaptive learning center SHALL use LearningGoal metadata to explain every generation target before the student asks Konling or the planner to generate a path.
+
+#### Scenario: Path-ready goal option renders
+- **WHEN** a path-ready LearningGoal appears in the generation selector or entry surface
+- **THEN** the option SHALL show student-facing title, description or completion meaning, learning intent, recommended phase, terminal-validation expectation, and any student-safe limitation where available
+- **AND** the text SHALL come from the LearningGoal catalog projection rather than duplicated page literals.
+
+#### Scenario: Current catalog is audited
+- **WHEN** adaptive path center tests run against the current catalog
+- **THEN** all nine current path-ready LearningGoals SHALL be visible through the generation entrypoint projection
+- **AND** adding another path-ready LearningGoal without complete entrypoint metadata SHALL fail a catalog or UI contract test.
+
+### Requirement: Student path intents shall render truthful recovery states
+Adaptive path selection, execution, evidence review, and bad path contexts SHALL render truthful student-facing states instead of normal progress when the backing path or evidence is unavailable.
+
+#### Scenario: `path-selection`, `path-execution`, or `evidence-review` is opened without a valid active path or evidence context
+- **WHEN** `path-selection`, `path-execution`, or `evidence-review` is opened without a valid active path or evidence context
+- **THEN** the page SHALL explain the missing context, preserve the intended action, and offer generation, evidence review, or return actions.
+
+#### Scenario: a path node launches a resource
+- **WHEN** a path node launches a resource
+- **THEN** returning to the center SHALL restore path id, node id, goal id, completion state, and evidence summary when available.
+
+### Requirement: Student learning work shall write back or explain limits
+Student missions, adaptive practice, evidence review, growth recommendations, and portfolio actions SHALL either write governed completion evidence or show why writeback is unavailable.
+
+#### Scenario: a student completes a task, practice, review, or portfolio action
+- **WHEN** a student completes a task, practice, review, or portfolio action
+- **THEN** the surface SHALL show completion state, evidence source, review state, and effect on later recommendations.
+
+#### Scenario: evidence cannot be written or matched because of lessonId, sourceEventId, or slug mismatch
+- **WHEN** evidence cannot be written or matched because of lessonId, sourceEventId, or slug mismatch
+- **THEN** the UI SHALL expose a recovery state and the implementation SHALL avoid presenting fabricated completion.
+
+### Requirement: Adaptive path generation shall explain readiness blockers
+Adaptive path generation SHALL expose actionable readiness states when learner data, class binding, teacher binding, advisor permission, or services prevent generation.
+
+#### Scenario: generation preconditions are missing
+- **WHEN** a student opens path generation and class binding, teacher binding, learner state, advisor context, or evidence prerequisites are missing
+- **THEN** the UI SHALL show the specific safe blocker category, a student-facing next action, and a staff-facing remediation path when applicable.
+- **AND** it SHALL NOT display a normal path-generation action that can only fail with a generic retry message.
+
+#### Scenario: generation dependency service fails
+- **WHEN** learner-state, advisor-context, or planner support services return unavailable, forbidden, or retryable errors
+- **THEN** the generation surface SHALL distinguish unavailable, forbidden, and retryable states.
+- **AND** available citations, evidence summaries, or fallback learning suggestions SHALL remain visible at reduced personalization confidence.
+
+### Requirement: Adaptive generation audit closure shall avoid archived path-execution scope
+Adaptive generation readiness findings SHALL be closed only for precondition and service-error behavior, not for already archived path execution and recovery scope.
+
+#### Scenario: audit report is updated
+- **WHEN** this change updates the Product Design audit report
+- **THEN** every closed finding id SHALL reference readiness tests or UI evidence and SHALL explicitly avoid re-closing findings covered by `audit-remediation-student-path-evidence-loop-closure`.
+

@@ -5,6 +5,10 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
+import {
+  buildKaqQuizQuestionMetadata,
+  materializeKaqQuizOutcomeEvidence,
+} from '@/features/adaptive-assessment/kaq-quiz-foundation';
 
 import {
   buildSubmitAnswerResult,
@@ -18,6 +22,7 @@ import {
   submitAnswer,
   type AbilityReport,
   type AdaptiveAnswerRecord,
+  type AdaptiveQuestionScope,
   type DiagnosticResult,
   type PublicQuestion,
   type SubmitAnswerParams,
@@ -43,6 +48,7 @@ type PersistedAssessmentAnswerRow = {
   responseTimeSeconds?: number;
   answeredAt: Date;
   session?: {
+    id?: string;
     sessionKey?: string;
   };
   questionRef?: {
@@ -50,6 +56,7 @@ type PersistedAssessmentAnswerRow = {
     questionType?: string;
     domains?: string[];
     knowledgeTags?: string[];
+    metadata?: unknown;
   };
 };
 
@@ -75,6 +82,7 @@ type AdaptiveAssessmentPersistenceTx = {
       id: string;
       userId: string;
       questionId: string;
+      selectedOptionKey: string;
       isCorrect: boolean;
       score: number;
       responseTimeSeconds: number;
@@ -128,6 +136,13 @@ interface PersistedSubmission {
   masteryUpdateCount: number;
 }
 
+type PersistedAssessmentAnswerWithSession = PersistedAssessmentAnswerRow & {
+  session?: {
+    id?: string;
+    sessionKey?: string;
+  };
+};
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
@@ -144,6 +159,7 @@ function questionMetadataContentHash(question: SubmittedAnswerDetails['question'
     knowledgeTags: [...question.knowledgeTags].sort(),
     difficulty: Number(question.difficulty.toFixed(6)),
     optionCount: question.options.length,
+    kaq: buildKaqQuizQuestionMetadata(question).immutableContentHash,
   };
 
   return createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
@@ -178,6 +194,22 @@ function toQuestionDomains(value: unknown): QuestionDomain[] | undefined {
     typeof entry === 'string' && QUESTION_DOMAINS.has(entry as QuestionDomain)
   ));
   return domains.length > 0 ? domains : undefined;
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function isMasteryEligiblePersistedAnswer(row: PersistedAssessmentAnswerRow): boolean {
+  const kaqMetadata = toRecord(toRecord(row.questionRef?.metadata).kaq);
+  const review = toRecord(kaqMetadata.review);
+  if (kaqMetadata.learningFactEligible === false) return false;
+  if (Object.keys(kaqMetadata).length === 0) {
+    return row.questionId.startsWith('preset-q-');
+  }
+  return review.state === 'reviewed';
 }
 
 function abilityConfidenceInterval(theta: number, answerCount: number): [number, number] {
@@ -283,6 +315,15 @@ function buildAssessmentLearningEvent(params: {
   masteryConfidence?: number;
 }): LearningEvent {
   const occurredAt = new Date(params.details.record.createdAt).toISOString();
+  const kaqQuizEvidence = materializeKaqQuizOutcomeEvidence({
+    question: params.details.question,
+    sessionId: params.details.record.sessionId,
+    answerId: params.answerId,
+    isCorrect: params.details.record.isCorrect,
+    score: params.score,
+    scoringVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+    occurredAt,
+  });
 
   return {
     eventId: `adaptive-assessment:${params.answerId}`,
@@ -305,10 +346,17 @@ function buildAssessmentLearningEvent(params: {
       answerId: params.answerId,
       questionId: params.details.question.id,
       questionRefId: params.questionRefId,
+      questionSnapshotId: kaqQuizEvidence.questionSnapshotId,
+      quizSetId: kaqQuizEvidence.quizSetId,
+      attemptKey: kaqQuizEvidence.attemptKey,
       selectedOptionKey: params.details.selectedOptionKey,
       correctOptionKey: params.details.correctOptionKey,
       isCorrect: params.details.record.isCorrect,
       score: params.score,
+      denominator: kaqQuizEvidence.denominator,
+      retryPolicy: kaqQuizEvidence.retryPolicy,
+      scoringVersion: kaqQuizEvidence.scoringVersion,
+      rubricVersion: kaqQuizEvidence.rubricVersion,
       durationSeconds: params.details.record.timeSpent,
       knowledgeTags: params.details.question.knowledgeTags,
       abilityEstimate: params.details.result.estimatedAbility,
@@ -316,12 +364,64 @@ function buildAssessmentLearningEvent(params: {
       masteryConfidence: params.masteryConfidence,
       confidence: params.masteryConfidence,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      eventSource: kaqQuizEvidence.eventSource,
+      sourceLogId: kaqQuizEvidence.sourceLogId,
+      dedupeKey: kaqQuizEvidence.dedupeKey,
+      learningFactEligible: kaqQuizEvidence.learningFactEligible,
+      readinessGateEligible: kaqQuizEvidence.readinessGateEligible,
+      terminalValidationEligible: kaqQuizEvidence.terminalValidationEligible,
+      studentCompetencySnapshotEffect: kaqQuizEvidence.studentCompetencySnapshotEffect,
+      learningGoalIds: kaqQuizEvidence.learningGoalIds,
+      kaqObjectiveIds: kaqQuizEvidence.kaqObjectiveIds,
+      knowledgeObjectiveIds: kaqQuizEvidence.knowledgeObjectiveIds,
+      applicationObjectiveIds: kaqQuizEvidence.applicationObjectiveIds,
+      qualityObjectiveIds: kaqQuizEvidence.qualityObjectiveIds,
+      graphNodeIds: kaqQuizEvidence.graphNodeIds,
+      capabilityTargetIds: kaqQuizEvidence.capabilityTargetIds,
+      qualityTargetIds: kaqQuizEvidence.qualityTargetIds,
+      misconceptionTags: kaqQuizEvidence.misconceptionTags,
+      remediationResourceNodeIds: kaqQuizEvidence.remediationResourceNodeIds,
+      kaqQuizEvidence,
       ...(params.details.pathContext ? { pathExecution: params.details.pathContext } : {}),
       privacyLevel: 'restricted',
     },
     source: 'web',
     priority: 'core',
   };
+}
+
+async function findMatchingPathRetryAnswer(
+  tx: AdaptiveAssessmentPersistenceTx,
+  details: SubmittedAnswerDetails,
+): Promise<PersistedAssessmentAnswerWithSession | null> {
+  const retrySessionPrefix = `${details.record.sessionId}:retry-`;
+  const retryAnswers = await tx.adaptiveAssessmentAnswer.findMany({
+    where: {
+      userId: details.record.userId,
+      questionId: details.question.id,
+      selectedOptionKey: details.selectedOptionKey,
+      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      session: {
+        sessionKey: {
+          startsWith: retrySessionPrefix,
+        },
+      },
+    },
+    include: {
+      session: {
+        select: {
+          id: true,
+          sessionKey: true,
+        },
+      },
+    },
+    orderBy: [
+      { answeredAt: 'desc' },
+      { id: 'desc' },
+    ],
+  });
+
+  return retryAnswers.find((answer) => answer.session?.id && answer.session.sessionKey) ?? null;
 }
 
 async function persistAdaptiveAssessmentSubmission(
@@ -335,7 +435,7 @@ async function persistAdaptiveAssessmentSubmission(
   const algorithm = await upsertAdaptiveAssessmentAlgorithmVersion(tx, answeredAt);
   await lockAdaptiveAssessmentUserWrites(tx, details.record.userId);
 
-  const session = await tx.adaptiveAssessmentSession.upsert({
+  let session = await tx.adaptiveAssessmentSession.upsert({
     where: {
       userId_sessionKey: {
         userId: details.record.userId,
@@ -355,29 +455,78 @@ async function persistAdaptiveAssessmentSubmission(
     },
   });
 
-  const contentHash = questionMetadataContentHash(details.question);
+  let effectiveDetails = details;
+  if (details.pathContext) {
+    const existingPathAnswer = await tx.adaptiveAssessmentAnswer.findUnique({
+      where: {
+        sessionId_questionId: {
+          sessionId: session.id,
+          questionId: details.question.id,
+        },
+      },
+    });
+    if (
+      existingPathAnswer &&
+      !existingPathAnswer.isCorrect &&
+      existingPathAnswer.selectedOptionKey !== details.selectedOptionKey
+    ) {
+      const matchingRetryAnswer = await findMatchingPathRetryAnswer(tx, details);
+      const retrySessionId = matchingRetryAnswer?.session?.sessionKey ??
+        `${details.record.sessionId}:retry-${answeredAt.getTime()}`;
+      session = await tx.adaptiveAssessmentSession.upsert({
+        where: {
+          userId_sessionKey: {
+            userId: details.record.userId,
+            sessionKey: retrySessionId,
+          },
+        },
+        update: {
+          lastAnsweredAt: answeredAt,
+          algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+        },
+        create: {
+          userId: details.record.userId,
+          sessionKey: retrySessionId,
+          algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+          startedAt: answeredAt,
+          lastAnsweredAt: answeredAt,
+        },
+      });
+      effectiveDetails = {
+        ...details,
+        record: {
+          ...details.record,
+          sessionId: retrySessionId,
+        },
+      };
+    }
+  }
+
+  const contentHash = questionMetadataContentHash(effectiveDetails.question);
+  const kaqMetadata = buildKaqQuizQuestionMetadata(effectiveDetails.question);
   const questionRef = await tx.adaptiveAssessmentItemRef.upsert({
     where: {
       questionId_algorithmVersion_contentHash: {
-        questionId: details.question.id,
+        questionId: effectiveDetails.question.id,
         algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
         contentHash,
       },
     },
     update: {},
     create: {
-      questionId: details.question.id,
+      questionId: effectiveDetails.question.id,
       contentHash,
-      source: questionSource(details.question.id),
-      questionType: details.question.type,
-      domains: details.question.domains,
-      knowledgeTags: details.question.knowledgeTags,
-      difficulty: details.question.difficulty,
-      optionCount: details.question.options.length,
+      source: questionSource(effectiveDetails.question.id),
+      questionType: effectiveDetails.question.type,
+      domains: effectiveDetails.question.domains,
+      knowledgeTags: effectiveDetails.question.knowledgeTags,
+      difficulty: effectiveDetails.question.difficulty,
+      optionCount: effectiveDetails.question.options.length,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-      metadata: details.question.generatedMetadata
-        ? { generatedMetadata: details.question.generatedMetadata }
-        : {},
+      metadata: {
+        kaq: kaqMetadata,
+        ...(effectiveDetails.question.generatedMetadata ? { generatedMetadata: effectiveDetails.question.generatedMetadata } : {}),
+      },
     },
   });
 
@@ -398,6 +547,7 @@ async function persistAdaptiveAssessmentSubmission(
           questionType: true,
           domains: true,
           knowledgeTags: true,
+          metadata: true,
         },
       },
     },
@@ -411,34 +561,35 @@ async function persistAdaptiveAssessmentSubmission(
     where: {
       sessionId_questionId: {
         sessionId: session.id,
-        questionId: details.question.id,
+        questionId: effectiveDetails.question.id,
       },
     },
   });
-  const persistedAnswerRecords = toAdaptiveAnswerRecords(persistedAnswersBefore);
+  const eligiblePersistedAnswersBefore = persistedAnswersBefore.filter(isMasteryEligiblePersistedAnswer);
+  const persistedAnswerRecords = toAdaptiveAnswerRecords(eligiblePersistedAnswersBefore);
   const answerHistory = existingAnswer
     ? persistedAnswerRecords
-    : [...persistedAnswerRecords, details.record];
-  const result = buildSubmitAnswerResult(details, answerHistory);
+    : [...persistedAnswerRecords, effectiveDetails.record];
+  const result = buildSubmitAnswerResult(effectiveDetails, answerHistory);
 
   const answer = await tx.adaptiveAssessmentAnswer.upsert({
     where: {
       sessionId_questionId: {
         sessionId: session.id,
-        questionId: details.question.id,
+        questionId: effectiveDetails.question.id,
       },
     },
     update: {},
     create: {
-      userId: details.record.userId,
+      userId: effectiveDetails.record.userId,
       sessionId: session.id,
       questionRefId: questionRef.id,
-      questionId: details.question.id,
-      selectedOptionKey: details.selectedOptionKey,
-      correctOptionKey: details.correctOptionKey,
-      isCorrect: details.record.isCorrect,
+      questionId: effectiveDetails.question.id,
+      selectedOptionKey: effectiveDetails.selectedOptionKey,
+      correctOptionKey: effectiveDetails.correctOptionKey,
+      isCorrect: effectiveDetails.record.isCorrect,
       score,
-      responseTimeSeconds: details.record.timeSpent,
+      responseTimeSeconds: effectiveDetails.record.timeSpent,
       abilityEstimate: result.estimatedAbility,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       answeredAt,
@@ -454,12 +605,30 @@ async function persistAdaptiveAssessmentSubmission(
       result,
     };
   }
+  const kaqQuizEvidence = materializeKaqQuizOutcomeEvidence({
+    question: effectiveDetails.question,
+    sessionId: effectiveDetails.record.sessionId,
+    answerId: answer.id,
+    isCorrect: effectiveDetails.record.isCorrect,
+    score,
+    scoringVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+    occurredAt: answeredAt.toISOString(),
+  });
+  if (!kaqQuizEvidence.learningFactEligible) {
+    return {
+      durableSessionId: session.id,
+      durableAnswerId: answer.id,
+      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      masteryUpdateCount: 0,
+      result,
+    };
+  }
 
   const confidenceInterval = abilityConfidenceInterval(result.estimatedAbility, answerHistory.length);
 
   await tx.adaptiveAssessmentAbilityEstimate.create({
     data: {
-      userId: details.record.userId,
+      userId: effectiveDetails.record.userId,
       sessionId: session.id,
       answerId: answer.id,
       theta: result.estimatedAbility,
@@ -468,8 +637,8 @@ async function persistAdaptiveAssessmentSubmission(
       dimensions: {
         source: 'adaptive-assessment',
         answerCount: answerHistory.length,
-        ...(details.pathContext ? {
-          pathExecution: details.pathContext,
+        ...(effectiveDetails.pathContext ? {
+          pathExecution: effectiveDetails.pathContext,
         } : {}),
       },
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
@@ -478,13 +647,13 @@ async function persistAdaptiveAssessmentSubmission(
   });
 
   const rebuiltUpdates = rebuildMasteryUpdatesFromAnswers([
-    ...toMasteryAnswers(persistedAnswersBefore),
+    ...toMasteryAnswers(eligiblePersistedAnswersBefore),
     {
       id: answer.id,
-      questionId: details.question.id,
-      isCorrect: details.record.isCorrect,
+      questionId: effectiveDetails.question.id,
+      isCorrect: effectiveDetails.record.isCorrect,
       answeredAt,
-      knowledgeTags: details.question.knowledgeTags,
+      knowledgeTags: effectiveDetails.question.knowledgeTags,
     },
   ], {
     algorithmVersion: algorithm.version,
@@ -493,7 +662,7 @@ async function persistAdaptiveAssessmentSubmission(
   const currentUpdates = rebuiltUpdates.filter((update) => update.answerId === answer.id);
   const masteryResult = await tx.adaptiveMasteryUpdate.createMany({
     data: currentUpdates.map((update) => ({
-      userId: details.record.userId,
+      userId: effectiveDetails.record.userId,
       sessionId: session.id,
       answerId: answer.id,
       questionId: update.questionId,
@@ -512,7 +681,7 @@ async function persistAdaptiveAssessmentSubmission(
   const masteryPosterior = average(currentUpdates.map((update) => update.posteriorMastery));
   const masteryConfidence = average(currentUpdates.map((update) => update.confidence));
   const durableDetails = {
-    ...details,
+    ...effectiveDetails,
     result,
   };
 
@@ -594,6 +763,7 @@ async function loadPersistedAnswerRecords(
           questionType: true,
           domains: true,
           knowledgeTags: true,
+          metadata: true,
         },
       },
     },
@@ -688,7 +858,7 @@ export async function getDiagnosticWithPersistenceFallback(
 }
 
 export async function selectNextQuestionWithPersistenceFallback(
-  params: { userId: string; sessionId: string },
+  params: { userId: string; sessionId: string; goalId?: string | null; questionScope?: AdaptiveQuestionScope },
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<{

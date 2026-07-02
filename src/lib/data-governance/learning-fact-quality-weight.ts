@@ -13,7 +13,10 @@ export type LearningFactProfilePolicyReason =
   | 'legacy_evidence_context_only'
   | 'missing_evidence_context_only'
   | 'official_arena_evaluation'
-  | 'adaptive_assessment_evidence';
+  | 'arena_client_evaluation_context_only'
+  | 'adaptive_assessment_evidence'
+  | 'adaptive_assessment_provisional_context_only'
+  | 'adaptive_assessment_missing_kaq_context_only';
 
 export interface LearningFactEvidenceGovernance {
   evidenceQuality: SubmissionEvidenceQuality;
@@ -37,6 +40,76 @@ function readFiniteNumber(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
+function readNonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
+function hasStringArray(value: unknown): boolean {
+  return Array.isArray(value)
+    && value.length > 0
+    && value.every((item) => readNonEmptyString(item) !== null);
+}
+
+function hasKaqQuizVersionRefs(value: unknown): boolean {
+  const refs = readRecord(value);
+  return [
+    'artifactVersioningVersion',
+    'learningGoalPackageVersion',
+    'objectiveCatalogVersion',
+    'graphCatalogVersion',
+    'resourceRegistryVersion',
+    'resourceProjectionVersion',
+    'overlayVersion',
+    'plannerVersion',
+    'groundingVersion',
+    'questionBankVersion',
+  ].every((ref) => readNonEmptyString(refs[ref]) !== null);
+}
+
+function hasGovernedKaqQuizEvidence(value: Record<string, unknown>): boolean {
+  const reviewAudit = readRecord(value.reviewAudit);
+  const confidence = readRecord(value.confidence);
+  const retryPolicy = readRecord(value.retryPolicy);
+  const denominator = readFiniteNumber(value.denominator);
+  const score = readFiniteNumber(value.score);
+  return value.learningFactEligible === true
+    && value.studentCompetencySnapshotEffect === 'update'
+    && value.reviewState === 'reviewed'
+    && readNonEmptyString(value.questionSnapshotId) !== null
+    && readNonEmptyString(value.quizSetId) !== null
+    && readNonEmptyString(value.attemptKey) !== null
+    && readNonEmptyString(value.scoringVersion) !== null
+    && readNonEmptyString(value.rubricVersion) !== null
+    && readNonEmptyString(value.sourceLogId) !== null
+    && readNonEmptyString(value.dedupeKey) !== null
+    && readNonEmptyString(value.occurredAt) !== null
+    && value.eventSource === 'adaptive_assessment'
+    && value.eventType === 'answer_submit'
+    && score !== null
+    && score >= 0
+    && score <= 100
+    && typeof value.isCorrect === 'boolean'
+    && denominator !== null
+    && denominator >= 1
+    && readFiniteNumber(retryPolicy.maxAttemptsAffectingMastery) !== null
+    && readNonEmptyString(retryPolicy.idempotencyScope) !== null
+    && hasStringArray(value.learningGoalIds)
+    && hasStringArray(value.kaqObjectiveIds)
+    && hasStringArray(value.knowledgeObjectiveIds)
+    && hasStringArray(value.applicationObjectiveIds)
+    && hasStringArray(value.qualityObjectiveIds)
+    && hasStringArray(value.graphNodeIds)
+    && hasStringArray(value.capabilityTargetIds)
+    && hasStringArray(value.qualityTargetIds)
+    && hasKaqQuizVersionRefs(value.versionRefs)
+    && reviewAudit.state === 'reviewed'
+    && readNonEmptyString(reviewAudit.reviewBatchId) !== null
+    && readNonEmptyString(reviewAudit.sourceHash) !== null
+    && readNonEmptyString(reviewAudit.metadataVersionRef) !== null
+    && readNonEmptyString(confidence.level) !== null
+    && readFiniteNumber(confidence.score) !== null;
+}
+
 function toJsonObject(value: LearningFactEvidenceGovernance): Prisma.InputJsonObject {
   return Object.fromEntries(
     Object.entries(value).filter(([, entry]) => entry !== undefined),
@@ -48,6 +121,43 @@ export function resolveLearningFactEvidenceGovernance(
   payload: Record<string, unknown>,
 ): Prisma.InputJsonObject | null {
   if (actionType === 'answer_submit' && payload.assessmentSource === 'adaptive_assessment') {
+    const kaqQuizEvidence = readRecord(payload.kaqQuizEvidence);
+    if (Object.keys(kaqQuizEvidence).length === 0) {
+      return toJsonObject({
+        evidenceQuality: 'partial',
+        payloadEvidenceQuality: 'partial',
+        sourceState: 'manifest-submission-v2',
+        evidenceReason: 'adaptive_assessment_missing_kaq_evidence',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'adaptive_assessment_missing_kaq_context_only',
+      });
+    }
+    if (
+      kaqQuizEvidence.learningFactEligible === false ||
+      kaqQuizEvidence.studentCompetencySnapshotEffect === 'no-op'
+    ) {
+      return toJsonObject({
+        evidenceQuality: 'partial',
+        payloadEvidenceQuality: 'partial',
+        sourceState: 'manifest-submission-v2',
+        evidenceReason: 'adaptive_assessment_provisional',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'adaptive_assessment_provisional_context_only',
+      });
+    }
+    if (!hasGovernedKaqQuizEvidence(kaqQuizEvidence)) {
+      return toJsonObject({
+        evidenceQuality: 'partial',
+        payloadEvidenceQuality: 'partial',
+        sourceState: 'manifest-submission-v2',
+        evidenceReason: 'adaptive_assessment_incomplete_kaq_evidence',
+        profileWeight: 0,
+        skipProfileContribution: true,
+        policyReason: 'adaptive_assessment_missing_kaq_context_only',
+      });
+    }
     return toJsonObject({
       evidenceQuality: 'rich',
       payloadEvidenceQuality: 'rich',
@@ -102,10 +212,10 @@ export function resolveLearningFactEvidenceGovernance(
     && typeof payload.valid === 'boolean'
   ) {
     return toJsonObject({
-      evidenceQuality: 'rich',
-      profileWeight: 1,
-      skipProfileContribution: false,
-      policyReason: 'official_arena_evaluation',
+      evidenceQuality: 'partial',
+      profileWeight: 0,
+      skipProfileContribution: true,
+      policyReason: 'arena_client_evaluation_context_only',
     });
   }
 

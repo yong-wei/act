@@ -2,6 +2,7 @@ export type AuditedActionCategory =
   | 'submit'
   | 'save'
   | 'filter'
+  | 'refresh'
   | 'export'
   | 'download'
   | 'send'
@@ -9,7 +10,11 @@ export type AuditedActionCategory =
   | 'writeback'
   | 'model-test'
   | 'governance-resolve'
-  | 'governance-assign';
+  | 'governance-assign'
+  | 'governance-evidence'
+  | 'governance-ignore'
+  | 'governance-reopen'
+  | 'governance-undo';
 
 export type AuditedActionStatus =
   | 'idle'
@@ -36,6 +41,8 @@ export interface AuditedActionState {
   message: string;
   recoveryAction?: string;
   nextAction?: string;
+  displayReference?: string;
+  recoveryKind?: string;
   announcement: string;
   severity: AuditedActionSeverity;
   httpStatus?: number;
@@ -61,6 +68,7 @@ export const AUDITED_ACTION_CATEGORIES: readonly AuditedActionCategory[] = [
   'submit',
   'save',
   'filter',
+  'refresh',
   'export',
   'download',
   'send',
@@ -69,12 +77,17 @@ export const AUDITED_ACTION_CATEGORIES: readonly AuditedActionCategory[] = [
   'model-test',
   'governance-resolve',
   'governance-assign',
+  'governance-evidence',
+  'governance-ignore',
+  'governance-reopen',
+  'governance-undo',
 ];
 
 const ACTION_LABELS: Record<AuditedActionCategory, string> = {
   submit: '提交',
   save: '保存',
   filter: '筛选',
+  refresh: '刷新',
   export: '导出',
   download: '下载',
   send: '发送',
@@ -83,12 +96,20 @@ const ACTION_LABELS: Record<AuditedActionCategory, string> = {
   'model-test': '模型测试',
   'governance-resolve': '治理处置',
   'governance-assign': '治理分派',
+  'governance-evidence': '治理证据',
+  'governance-ignore': '治理忽略',
+  'governance-reopen': '治理重开',
+  'governance-undo': '治理撤销',
 };
 
 const ROUTE_ACTION_ALIASES: Readonly<Record<string, AuditedActionCategory>> = {
   test: 'model-test',
   resolve: 'governance-resolve',
   assign: 'governance-assign',
+  evidence: 'governance-evidence',
+  ignore: 'governance-ignore',
+  reopen: 'governance-reopen',
+  undo: 'governance-undo',
 };
 
 export function isAuditedActionCategory(value: unknown): value is AuditedActionCategory {
@@ -101,6 +122,8 @@ export function createAuditedActionState(input: {
   message: string;
   recoveryAction?: string;
   nextAction?: string;
+  displayReference?: string;
+  recoveryKind?: string;
   httpStatus?: number;
   downloadFilename?: string | null;
 }): AuditedActionState {
@@ -118,6 +141,8 @@ export function createAuditedActionState(input: {
     message: input.message,
     recoveryAction: input.recoveryAction,
     nextAction: input.nextAction,
+    displayReference: input.displayReference,
+    recoveryKind: input.recoveryKind,
     announcement,
     severity,
     httpStatus: input.httpStatus,

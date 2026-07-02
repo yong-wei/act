@@ -1,6 +1,5 @@
 import type { AdaptivePathResourceKind } from '@/lib/adaptive-path-option-display';
-
-export type AdaptivePracticeGoalId = 'control-correction' | 'frequency-response-foundations';
+import type { AdaptivePracticeGoalId } from '@/lib/adaptive-path-goal-options';
 
 export type GenerationDifficultyRhythm = 'gentle' | 'steady' | 'challenge';
 export type GenerationCheckpointPreference = 'light' | 'standard' | 'dense';

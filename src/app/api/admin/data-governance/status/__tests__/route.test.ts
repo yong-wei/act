@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '@/lib/data-governance/student-evidence-feature-cache';
 
 const mocks = vi.hoisted(() => ({
@@ -76,6 +79,9 @@ const mocks = vi.hoisted(() => ({
     },
     user: {
       findMany: vi.fn(),
+    },
+    adminOperationLedger: {
+      upsert: vi.fn(),
     },
   },
   rethrowIfNextDynamicError: vi.fn(),
@@ -224,12 +230,28 @@ describe('GET /api/admin/data-governance/status', () => {
         createdAt: new Date('2026-05-20T08:13:00.000Z'),
       },
     ]);
-    mocks.prisma.arenaSubmission.findMany.mockResolvedValue([]);
+    mocks.prisma.arenaSubmission.findMany.mockResolvedValue([
+      {
+        id: 'arena-submission-official',
+        userId: 'student-1',
+        taskId: 'unit-5-2-regression-fixture',
+        classId: 'class-1',
+        seasonId: 'season-1',
+        publicationId: 'publication-1',
+        score: 86,
+        valid: true,
+        submissionAttemptKey: 'attempt-official-1',
+        submittedAt: new Date('2026-05-20T08:18:00.000Z'),
+        evaluationRunId: 'arena-eval-support-only',
+      },
+    ]);
     mocks.prisma.arenaEvaluationRun.findMany.mockResolvedValue([
       {
         id: 'arena-eval-support-only',
         taskId: 'unit-5-2-regression-fixture',
         metadata: { source: 'real' },
+        metrics: { settlingTime: 1.2 },
+        protocolVersion: 'arena-protocol.v1',
         completedAt: new Date('2026-05-20T08:20:00.000Z'),
       },
     ]);
@@ -288,6 +310,7 @@ describe('GET /api/admin/data-governance/status', () => {
     mocks.prisma.user.findMany.mockResolvedValue([
       { id: 'student-1', name: '张三', email: 'student@example.test' },
     ]);
+    mocks.prisma.adminOperationLedger.upsert.mockResolvedValue({});
   });
 
   afterEach(() => {
@@ -342,6 +365,12 @@ describe('GET /api/admin/data-governance/status', () => {
           readinessGapCounts: {},
         }),
         expect.objectContaining({
+          id: 'ArenaSubmission',
+          eligibility: 'eligible',
+          totalRows: 1,
+          eligibleRows: 1,
+        }),
+        expect.objectContaining({
           id: 'ArenaEvaluationRun',
           eligibility: 'unsupported',
           totalRows: 1,
@@ -352,8 +381,8 @@ describe('GET /api/admin/data-governance/status', () => {
     );
     expect(payload.sourceCoverage).toMatchObject({
       totals: {
-        totalRows: 7,
-        eligibleRows: 4,
+        totalRows: 8,
+        eligibleRows: 5,
         excludedRows: 2,
         unsupportedRows: 1,
       },
@@ -393,6 +422,69 @@ describe('GET /api/admin/data-governance/status', () => {
       totalSourceFacts: 4,
       payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
     });
+    expect(payload.sarDiagnostics).toMatchObject({
+      totals: {
+        eventCount: 5,
+        entityCount: 6,
+        relationCount: 10,
+        queryCount: 1,
+        privacyRejectionCount: 1,
+        verifiedCitationRate: 0.5,
+      },
+      eventTypeCounts: expect.objectContaining({
+        'learning-fact-summary': 1,
+        'simulation-summary': 1,
+        'arena-summary': 1,
+      }),
+      demoFixtureStatus: expect.objectContaining({
+        id: 'control-correction-demo',
+        deterministic: true,
+        sourcePackHandoff: true,
+      }),
+    });
+    expect(JSON.stringify(payload.sarDiagnostics)).not.toContain('private raw answer');
+    expect(JSON.stringify(payload.sarDiagnostics)).not.toContain('hiddenArenaEvaluationInternalsPayload');
+    expect(payload.sarRefreshHealth).toMatchObject({
+      status: 'degraded',
+      totals: {
+        sourceFamilyCount: 8,
+        projectedEventCount: 8,
+        projectedEntityCount: 8,
+        projectedRelationCount: 8,
+        staleSourceCount: 3,
+        failureCount: 0,
+      },
+      sources: expect.arrayContaining([
+        expect.objectContaining({
+          family: 'arena-official',
+          status: 'degraded',
+          retryState: 'not-needed',
+          arenaAuthority: expect.objectContaining({
+            officialSources: ['ArenaEvaluationRun', 'ArenaSubmission'],
+            auxiliarySources: ['KAQWriteback', 'LearningFact', 'SARTrace'],
+            officialRecordSummary: {
+              submissionCount: 1,
+              evaluationRunCount: 1,
+              latestSubmissionAt: '2026-05-20T08:18:00.000Z',
+              latestEvaluationCompletedAt: '2026-05-20T08:20:00.000Z',
+            },
+          }),
+        }),
+        expect.objectContaining({
+          family: 'path-summary',
+          projectedEventCount: 1,
+          projectedEntityCount: 1,
+          projectedRelationCount: 1,
+        }),
+      ]),
+      limitations: [
+        'arena-auxiliary-evidence-context-only',
+        'source-materialization-future',
+        'source-rows-excluded',
+      ],
+    });
+    expect(JSON.stringify(payload.sarRefreshHealth)).not.toContain('private raw answer');
+    expect(JSON.stringify(payload.sarRefreshHealth)).not.toContain('hiddenArenaEvaluationInternalsPayload');
     expect(payload.sessionQuality).toEqual({
       recentSessions: 3,
       green: 1,
@@ -429,6 +521,24 @@ describe('GET /api/admin/data-governance/status', () => {
       description: '较早待处理风险',
       triggeredAt: new Date('2026-05-18T08:00:00.000Z'),
       isResolved: false,
+      resolvedAt: null,
+      resolutionNote: null,
+      evidenceJson: {
+        adminGovernance: {
+          currentAssignee: 'admin-1',
+          auditLog: [
+            {
+              actorId: 'admin-1',
+              action: 'assign',
+              riskId: 'risk-older',
+              assignee: 'admin-1',
+              outcome: 'assigned',
+              undoAvailable: false,
+              recordedAt: '2026-05-18T09:00:00.000Z',
+            },
+          ],
+        },
+      },
       user: { name: '张三', email: 'student@example.test' },
     });
 
@@ -437,13 +547,124 @@ describe('GET /api/admin/data-governance/status', () => {
 
     expect(response.status).toBe(200);
     expect(mocks.prisma.studentRiskFlag.findUnique).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'risk-older', isResolved: false },
+      where: { id: 'risk-older' },
     }));
     expect(payload.targetRiskFlag).toMatchObject({
       id: 'risk-older',
       userId: 'student-1',
       userName: '张三',
       isResolved: false,
+      safeLabel: '张三 · participation · high',
+      affectedObjectLabel: 'student:student-1',
+      evidenceHref: '/admin/data-governance?tab=risks&riskId=risk-older&action=evidence',
+      currentAssignee: 'admin-1',
+      dispositionStatus: 'open',
+      undoAvailable: false,
+      auditTrail: [
+        expect.objectContaining({ action: 'assign', outcome: 'assigned' }),
+      ],
+    });
+  });
+
+  it('uses lastDisposition as the safe governance state source for legacy audit payloads', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue({
+      id: 'risk-legacy-ignored',
+      userId: 'student-1234567890',
+      flagType: 'participation',
+      severity: 'medium',
+      description: '旧格式忽略风险',
+      triggeredAt: new Date('2026-05-18T08:00:00.000Z'),
+      isResolved: true,
+      resolvedAt: new Date('2026-05-18T10:00:00.000Z'),
+      resolutionNote: null,
+      evidenceJson: {
+        adminGovernance: {
+          lastDisposition: 'ignored',
+        },
+      },
+      user: { name: null, email: 'student@example.test' },
+    });
+
+    const response = await GET(createRequest('?tab=risks&riskId=risk-legacy-ignored'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.targetRiskFlag).toMatchObject({
+      id: 'risk-legacy-ignored',
+      userName: '学生 student-1234',
+      safeLabel: '学生 student-1234 · participation · medium',
+      affectedObjectLabel: 'student:student-1234',
+      dispositionStatus: 'ignored',
+      auditTrail: [],
+    });
+    expect(payload.targetRiskFlag.safeLabel).not.toContain('@');
+  });
+
+  it('falls back to resolutionNote when legacy ignored risks lack governance disposition metadata', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue({
+      id: 'risk-note-ignored',
+      userId: 'student-1234567890',
+      flagType: 'participation',
+      severity: 'medium',
+      description: '旧备注忽略风险',
+      triggeredAt: new Date('2026-05-18T08:00:00.000Z'),
+      isResolved: true,
+      resolvedAt: new Date('2026-05-18T10:00:00.000Z'),
+      resolutionNote: '管理员从数据治理工作台忽略该风险',
+      evidenceJson: {},
+      user: { name: null, email: 'student@example.test' },
+    });
+
+    const response = await GET(createRequest('?tab=risks&riskId=risk-note-ignored'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.targetRiskFlag).toMatchObject({
+      id: 'risk-note-ignored',
+      dispositionStatus: 'ignored',
+      auditTrail: [],
+    });
+  });
+
+  it('returns resolved target risks so URL intents can show already-handled recovery', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue({
+      id: 'risk-resolved',
+      userId: 'student-1',
+      flagType: 'participation',
+      severity: 'medium',
+      description: '已处理风险',
+      triggeredAt: new Date('2026-05-18T08:00:00.000Z'),
+      isResolved: true,
+      resolvedAt: new Date('2026-05-18T10:00:00.000Z'),
+      resolutionNote: '管理员从数据治理工作台忽略该风险',
+      evidenceJson: {
+        adminGovernance: {
+          auditLog: [
+            {
+              actorId: 'admin-1',
+              action: 'ignore',
+              riskId: 'risk-resolved',
+              assignee: null,
+              outcome: 'ignored',
+              undoAvailable: true,
+              recordedAt: '2026-05-18T10:00:00.000Z',
+            },
+          ],
+        },
+      },
+      user: { name: '张三', email: 'student@example.test' },
+    });
+
+    const response = await GET(createRequest('?tab=risks&action=resolve&riskId=risk-resolved'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.targetRiskFlag).toMatchObject({
+      id: 'risk-resolved',
+      isResolved: true,
+      dispositionStatus: 'ignored',
+      resolvedAt: '2026-05-18T10:00:00.000Z',
+      resolutionNote: '管理员从数据治理工作台忽略该风险',
     });
   });
 
@@ -462,6 +683,249 @@ describe('GET /api/admin/data-governance/status', () => {
       reportHref: '/admin/data-governance?surface=authoring&tab=reports&lessonPlanId=plan-1',
       recoveryHref: '/admin/lesson-plans/plan-1/edit?returnTo=%2Fadmin%2Fdata-governance',
     });
+  });
+
+  it('blocks audited manual SAR refresh when persistence path is missing', async () => {
+    const previous = process.env.SAR_PERSISTENCE_FILE_PATH;
+    delete process.env.SAR_PERSISTENCE_FILE_PATH;
+    try {
+      const response = await GET(createRequest('?recordOperation=refresh&riskId=risk-1'));
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.operationLedger).toMatchObject({
+        kind: 'admin-governance-refresh',
+        actorId: 'admin-1',
+        outcome: 'blocked',
+        idempotencyKey: expect.stringMatching(/^admin-op:/),
+        auditSummary: expect.stringContaining('数据治理状态刷新被阻止'),
+        recoveryState: expect.objectContaining({
+          status: 'retry',
+          action: '配置 SAR_PERSISTENCE_FILE_PATH 后重试刷新',
+        }),
+      });
+      expect(payload.sarRefreshHealth.status).toBe('failed');
+      expect(payload.sarRefreshHealth.limitations).toContain('sar-persistence-file-path-required');
+      expect(payload.sarRefreshHealth.operationEvidence).toMatchObject({
+        operationId: payload.operationLedger.operationId,
+        idempotencyKey: payload.operationLedger.idempotencyKey,
+      });
+      expect(response.headers.get('x-admin-operation-outcome')).toBe('blocked');
+      expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+        create: expect.objectContaining({
+          kind: 'admin-governance-refresh',
+          scope: 'admin-data-governance-status',
+          outcome: 'blocked',
+        }),
+      }));
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SAR_PERSISTENCE_FILE_PATH;
+      } else {
+        process.env.SAR_PERSISTENCE_FILE_PATH = previous;
+      }
+    }
+  });
+
+  it('does not write SAR persistence during automatic status reads', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-status-'));
+    const previous = process.env.SAR_PERSISTENCE_FILE_PATH;
+    const filePath = join(directory, 'sar.json');
+    process.env.SAR_PERSISTENCE_FILE_PATH = filePath;
+    try {
+      const response = await GET(createRequest());
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.sarRefreshHealth.status).toBe('degraded');
+      expect(existsSync(filePath)).toBe(false);
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SAR_PERSISTENCE_FILE_PATH;
+      } else {
+        process.env.SAR_PERSISTENCE_FILE_PATH = previous;
+      }
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('writes SAR persistence only for audited manual refresh requests', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-status-'));
+    const previous = process.env.SAR_PERSISTENCE_FILE_PATH;
+    const filePath = join(directory, 'sar.json');
+    process.env.SAR_PERSISTENCE_FILE_PATH = filePath;
+    try {
+      const response = await GET(createRequest('?recordOperation=refresh'));
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.operationLedger).toBeDefined();
+      expect(existsSync(filePath)).toBe(true);
+      const snapshot = JSON.parse(readFileSync(filePath, 'utf8'));
+      expect(snapshot.events).toHaveProperty('sar:event:path-summary:sar-refresh:path-summary');
+      expect(snapshot.events).not.toHaveProperty('sar:event:arena-validation');
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SAR_PERSISTENCE_FILE_PATH;
+      } else {
+        process.env.SAR_PERSISTENCE_FILE_PATH = previous;
+      }
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('records failed outcome when audited SAR refresh health fails', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-status-'));
+    const previous = process.env.SAR_PERSISTENCE_FILE_PATH;
+    const filePath = join(directory, 'sar.json');
+    process.env.SAR_PERSISTENCE_FILE_PATH = filePath;
+    mocks.prisma.arenaSubmission.findMany.mockResolvedValue([]);
+    mocks.prisma.arenaEvaluationRun.findMany.mockResolvedValue([]);
+    try {
+      const response = await GET(createRequest('?recordOperation=refresh'));
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.sarRefreshHealth.status).toBe('failed');
+      expect(payload.sarRefreshHealth.totals.failureCount).toBeGreaterThan(0);
+      expect(payload.operationLedger).toMatchObject({
+        outcome: 'failed',
+        auditSummary: expect.stringContaining('数据治理状态刷新失败'),
+        recoveryState: expect.objectContaining({
+          status: 'retry',
+          action: '修复 SAR 刷新失败源后重试刷新',
+        }),
+      });
+      expect(response.headers.get('x-admin-operation-outcome')).toBe('failed');
+      expect(mocks.prisma.adminOperationLedger.upsert).toHaveBeenCalledWith(expect.objectContaining({
+        create: expect.objectContaining({
+          outcome: 'failed',
+        }),
+      }));
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SAR_PERSISTENCE_FILE_PATH;
+      } else {
+        process.env.SAR_PERSISTENCE_FILE_PATH = previous;
+      }
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('reuses recorded SAR persistence during automatic status reads', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sar-status-'));
+    const previous = process.env.SAR_PERSISTENCE_FILE_PATH;
+    const filePath = join(directory, 'sar.json');
+    process.env.SAR_PERSISTENCE_FILE_PATH = filePath;
+    try {
+      const refreshResponse = await GET(createRequest('?recordOperation=refresh'));
+      const refreshPayload = await refreshResponse.json();
+      const recordedSnapshot = JSON.parse(readFileSync(filePath, 'utf8'));
+
+      expect(refreshResponse.status).toBe(200);
+      expect(refreshPayload.operationLedger).toBeDefined();
+
+      mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([
+        {
+          userId: 'student-1',
+          snapshotAt: new Date('2026-05-19T08:00:00.000Z'),
+          factCount: 12,
+        },
+      ]);
+      mocks.prisma.learningFact.findMany.mockResolvedValue([
+        { factType: 'question' },
+        { factType: 'simulation' },
+      ]);
+
+      const readResponse = await GET(createRequest());
+      const readPayload = await readResponse.json();
+
+      expect(readResponse.status).toBe(200);
+      expect(readPayload.operationLedger).toBeUndefined();
+      expect(readPayload.sarRefreshHealth.lastSuccessfulAt).toBe(recordedSnapshot.generatedAt);
+      expect(readPayload.sarRefreshHealth.sources).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          family: 'kaq-graph',
+          lastSuccessfulAt: recordedSnapshot.generatedAt,
+        }),
+      ]));
+      expect(JSON.parse(readFileSync(filePath, 'utf8')).generatedAt).toBe(recordedSnapshot.generatedAt);
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SAR_PERSISTENCE_FILE_PATH;
+      } else {
+        process.env.SAR_PERSISTENCE_FILE_PATH = previous;
+      }
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('uses submission-linked Arena evaluation runs for official SAR authority', async () => {
+    mocks.prisma.arenaSubmission.findMany.mockResolvedValue([
+      {
+        id: 'arena-submission-with-reused-run',
+        userId: 'student-1',
+        taskId: 'unit-5-2-regression-fixture',
+        classId: 'class-1',
+        seasonId: 'season-1',
+        publicationId: 'publication-1',
+        score: 91,
+        valid: true,
+        submissionAttemptKey: 'attempt-reused-1',
+        submittedAt: new Date('2026-05-20T08:18:00.000Z'),
+        evaluationRunId: 'arena-eval-reused-old',
+      },
+    ]);
+    mocks.prisma.arenaEvaluationRun.findMany
+      .mockResolvedValueOnce([
+        {
+          id: 'arena-eval-latest-unrelated',
+          taskId: 'other-task',
+          metadata: { source: 'real' },
+          completedAt: new Date('2026-05-20T09:00:00.000Z'),
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'arena-eval-reused-old',
+          taskId: 'unit-5-2-regression-fixture',
+          metrics: { settlingTime: 1.5 },
+          protocolVersion: 'arena-protocol.v1',
+          completedAt: new Date('2026-05-18T08:20:00.000Z'),
+        },
+      ]);
+
+    const response = await GET(createRequest());
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.arenaEvaluationRun.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: { in: ['arena-eval-reused-old'] } },
+    }));
+    expect(payload.sarRefreshHealth.sources).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        family: 'arena-official',
+        arenaAuthority: expect.objectContaining({
+          officialRecordSummary: {
+            submissionCount: 1,
+            evaluationRunCount: 1,
+            latestSubmissionAt: '2026-05-20T08:18:00.000Z',
+            latestEvaluationCompletedAt: '2026-05-18T08:20:00.000Z',
+          },
+        }),
+      }),
+    ]));
+    expect(payload.sarRefreshHealth.totals.failureCount).toBe(0);
+  });
+
+  it('does not record an admin operation ledger entry for automatic status reads', async () => {
+    const response = await GET(createRequest());
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.operationLedger).toBeUndefined();
+    expect(response.headers.get('x-admin-operation-id')).toBeNull();
+    expect(mocks.prisma.adminOperationLedger.upsert).not.toHaveBeenCalled();
   });
 
   it('marks missing lesson plans in authoring report context', async () => {

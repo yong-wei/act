@@ -14,6 +14,11 @@ import {
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
 import {
+  buildAdminOperationId,
+  buildAdminOperationIdempotencyKey,
+  type AdminOperationLedgerEntry,
+} from '@/lib/admin-operation-ledger';
+import {
   buildGovernanceOverview,
   type GovernanceStatusPayload,
 } from '@/features/admin/data-governance-overview';
@@ -21,6 +26,7 @@ import {
   buildGovernanceActionContract,
   type GovernanceActionQuery,
   type GovernanceActionAuditRecord,
+  type GovernanceRiskAction,
 } from '@/features/admin/admin-governance-action-contract';
 import { AdminConsoleHeader } from './admin-console-header';
 import type { AdminConsoleUser } from './admin-console-config';
@@ -30,7 +36,296 @@ type DataGovernanceDashboardProps = {
   initialActionQuery?: GovernanceActionQuery | null;
 };
 
+type SarDiagnosticsReport = NonNullable<GovernanceStatusPayload['sarDiagnostics']>;
+type SarRefreshHealth = NonNullable<GovernanceStatusPayload['sarRefreshHealth']>;
+type GovernanceDashboardTab = 'overview' | 'risks' | 'sessions' | 'sources' | 'cache';
 type GraphCenterAuditContext = 'resource-binding' | 'citation-readiness' | 'overlay-limitations' | 'custom';
+
+function formatDiagnosticRate(value: number) {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+function diagnosticRecordEntries(record: Record<string, number>, limit = 4) {
+  return Object.entries(record)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit);
+}
+
+function sanitizeVisibleDiagnosticText(value: string) {
+  const forbiddenVisibleText = [
+    /\braw[_ -]?(answer|answers|evidence|submission|submissions|trace|traces|payload)\b/i,
+    /\braw\b.*\b(answer|answers|evidence|submission|submissions|trace|traces|payload)\b/i,
+    /\bhidden(?:Arena|ArenaEvaluation|Evaluation)?Internals?\w*\b/i,
+    /\bhidden\b.*\b(arena|evaluation|internals)\b/i,
+    /\bprivate[_ -]?konling[_ -]?memory\b/i,
+    /\baudit[_ -]?only[_ -]?trace\b/i,
+  ];
+  return forbiddenVisibleText.some((pattern) => pattern.test(value)) ? '[redacted]' : value;
+}
+
+export function SarDiagnosticsPanel({
+  report,
+  refreshHealth,
+}: {
+  report?: SarDiagnosticsReport | null;
+  refreshHealth?: SarRefreshHealth | null;
+}) {
+  if (!report) {
+    return (
+      <section
+        className="admin-console-surface space-y-4"
+        data-admin-sar-diagnostics="unavailable"
+      >
+        <div className="flex items-center gap-3">
+          <span className="admin-console-icon-badge">
+            <Database className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="admin-console-title text-xl font-semibold">SAR 诊断</h2>
+            <p className="admin-console-muted text-sm">当前状态 payload 未返回 SAR 诊断报告。</p>
+          </div>
+        </div>
+        <div className="admin-console-notice" data-admin-sar-diagnostics-state="degraded">
+          SAR 诊断不可用；关联检索健康不能按完整状态展示。
+        </div>
+        {refreshHealth ? (
+          <div
+            className="admin-console-surface-soft text-sm"
+            data-admin-sar-refresh-health={refreshHealth.status}
+          >
+            <span className="admin-console-kicker">SAR 投影刷新</span>
+            <div className="mt-2 admin-console-title font-semibold">
+              {refreshHealth.status} · {refreshHealth.totals.sourceFamilyCount} 个源族
+            </div>
+            <div className="admin-console-muted mt-2">
+              最近尝试 {new Date(refreshHealth.lastAttemptedAt).toLocaleString('zh-CN')} · 过期 {refreshHealth.totals.staleSourceCount} · 失败 {refreshHealth.totals.failureCount}
+            </div>
+          </div>
+        ) : null}
+      </section>
+    );
+  }
+
+  const traceRows = report.queryTraceSummaries.slice(0, 4);
+  const countCards = [
+    ['事件', report.totals.eventCount],
+    ['实体', report.totals.entityCount],
+    ['关系', report.totals.relationCount],
+    ['查询', report.totals.queryCount],
+  ];
+  const downstreamCards = [
+    ['Source Pack 交接', report.totals.sourcePackHandoffCount.toLocaleString()],
+    ['Verified citation rate', formatDiagnosticRate(report.totals.verifiedCitationRate)],
+    ['SAR candidate adopted', report.totals.sarCandidateAdoptionCount.toLocaleString()],
+    ['SAR candidate rejected', report.totals.sarCandidateRejectionCount.toLocaleString()],
+    ['隐私拒绝', report.totals.privacyRejectionCount.toLocaleString()],
+    ['限制项', report.totals.limitationCount.toLocaleString()],
+  ];
+  const comparisonCards = [
+    ['Ordinary Source Pack refs', report.comparison.ordinarySourcePackRefCount.toLocaleString()],
+    ['SAR-assisted refs', report.comparison.sarAssistedRefCount.toLocaleString()],
+    ['Adopted refs', report.comparison.adoptedRefCount.toLocaleString()],
+    ['Rejected refs', report.comparison.rejectedRefCount.toLocaleString()],
+  ];
+
+  return (
+    <section
+      className="admin-console-surface space-y-5"
+      data-admin-sar-diagnostics="available"
+      data-admin-sar-demo-fixture={report.demoFixtureStatus?.id ?? 'missing'}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="admin-console-icon-badge">
+            <Database className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="admin-console-title text-xl font-semibold">SAR 诊断</h2>
+            <p className="admin-console-muted text-sm">
+              {new Date(report.generatedAt).toLocaleString('zh-CN')} 生成 · 平均 {report.totals.averageHopCount.toFixed(1)} 跳
+            </p>
+          </div>
+        </div>
+        <span className="admin-console-chip">
+          {report.demoFixtureStatus?.deterministic ? 'demo fixture stable' : 'demo fixture degraded'}
+        </span>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        {countCards.map(([label, value]) => (
+          <div key={label} className="admin-console-surface-soft">
+            <div className="admin-console-muted text-sm">{label}</div>
+            <div className="admin-console-title mt-2 text-2xl font-semibold">{Number(value).toLocaleString()}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        {downstreamCards.map(([label, value]) => (
+          <div key={label} className="admin-console-surface-soft">
+            <div className="admin-console-muted text-sm">{label}</div>
+            <div className="admin-console-title mt-2 text-lg font-semibold">{value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4" aria-label="SAR candidates and verified citation comparison">
+        {comparisonCards.map(([label, value]) => (
+          <div key={label} className="admin-console-surface-soft">
+            <div className="admin-console-muted text-sm">{label}</div>
+            <div className="admin-console-title mt-2 text-lg font-semibold">{value}</div>
+          </div>
+        ))}
+      </div>
+
+      {refreshHealth ? (
+        <div
+          className="admin-console-surface-soft space-y-4"
+          data-admin-sar-refresh-health={refreshHealth.status}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <span className="admin-console-kicker">SAR 投影刷新</span>
+              <h3 className="admin-console-title mt-2 text-base font-semibold">
+                {refreshHealth.status} · {refreshHealth.totals.sourceFamilyCount} 个源族
+              </h3>
+            </div>
+            <span className="admin-console-chip">
+              {refreshHealth.totals.staleSourceCount.toLocaleString()} 过期 · {refreshHealth.totals.failureCount.toLocaleString()} 失败
+            </span>
+          </div>
+          <div className="grid gap-3 text-sm md:grid-cols-3">
+            <div>
+              <div className="admin-console-muted">最近尝试</div>
+              <div className="admin-console-title mt-1">{new Date(refreshHealth.lastAttemptedAt).toLocaleString('zh-CN')}</div>
+            </div>
+            <div>
+              <div className="admin-console-muted">最近成功</div>
+              <div className="admin-console-title mt-1">
+                {refreshHealth.lastSuccessfulAt ? new Date(refreshHealth.lastSuccessfulAt).toLocaleString('zh-CN') : '暂无成功记录'}
+              </div>
+            </div>
+            <div>
+              <div className="admin-console-muted">投影记录</div>
+              <div className="admin-console-title mt-1">
+                {refreshHealth.totals.projectedEventCount.toLocaleString()} / {refreshHealth.totals.projectedEntityCount.toLocaleString()} / {refreshHealth.totals.projectedRelationCount.toLocaleString()}
+              </div>
+            </div>
+          </div>
+          <div className="admin-console-table-shell p-0">
+            <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="SAR refresh health">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3">源族</th>
+                  <th className="px-4 py-3">状态</th>
+                  <th className="px-4 py-3">刷新时间</th>
+                  <th className="px-4 py-3">过期 / 失败</th>
+                  <th className="px-4 py-3">retry</th>
+                </tr>
+              </thead>
+              <tbody>
+                {refreshHealth.sources.slice(0, 8).map((source) => (
+                  <tr key={source.family}>
+                    <td className="px-4 py-3 admin-console-title font-medium" data-label="源族">{source.family}</td>
+                    <td className="px-4 py-3" data-label="状态">{source.status}</td>
+                    <td className="px-4 py-3" data-label="刷新时间">
+                      {source.highWaterMark ? new Date(source.highWaterMark).toLocaleString('zh-CN') : source.sourceVersion ?? '-'}
+                    </td>
+                    <td className="px-4 py-3" data-label="过期 / 失败">
+                      {source.staleCount.toLocaleString()} / {source.failureCount.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3" data-label="retry">{source.retryState}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {refreshHealth.limitations.length > 0 ? (
+            <div className="text-sm">
+              <span className="admin-console-muted">限制：</span>
+              {refreshHealth.limitations.slice(0, 4).map((limitation) => sanitizeVisibleDiagnosticText(limitation)).join(' · ')}
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div
+          className="admin-console-notice"
+          data-admin-sar-refresh-health="unavailable"
+        >
+          SAR 投影刷新健康尚未写入状态 payload。
+        </div>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        {[
+          ['Source owner', report.sourceOwnerCounts],
+          ['Privacy scope', report.privacyScopeCounts],
+          ['Authority level', report.authorityLevelCounts],
+        ].map(([label, record]) => (
+          <div key={label as string} className="admin-console-surface-soft">
+            <h3 className="admin-console-title text-sm font-semibold">{label as string}</h3>
+            <div className="mt-3 space-y-2 text-sm">
+              {diagnosticRecordEntries(record as Record<string, number>).map(([name, count]) => (
+                <div key={name} className="flex items-center justify-between gap-3">
+                  <span className="admin-console-muted">{name}</span>
+                  <span className="admin-console-title font-medium">{count.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="admin-console-table-shell p-0">
+        <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="SAR 诊断 trace summaries">
+          <thead>
+            <tr>
+              <th className="px-4 py-3">查询</th>
+              <th className="px-4 py-3">跳数</th>
+              <th className="px-4 py-3">事件/实体</th>
+              <th className="px-4 py-3">拒绝/限制</th>
+              <th className="px-4 py-3">引用</th>
+            </tr>
+          </thead>
+          <tbody>
+            {traceRows.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
+                  暂无 SAR trace summary。
+                </td>
+              </tr>
+            ) : traceRows.map((trace) => (
+              <tr key={trace.id}>
+                <td className="px-4 py-3 admin-console-title font-medium" data-label="查询">{trace.query}</td>
+                <td className="px-4 py-3" data-label="跳数">{trace.hopCount}</td>
+                <td className="px-4 py-3" data-label="事件/实体">
+                  {trace.selectedEventCount.toLocaleString()} / {trace.selectedEntityCount.toLocaleString()}
+                </td>
+                <td className="px-4 py-3" data-label="拒绝/限制">
+                  {trace.rejectedRefCount.toLocaleString()}（隐私 {trace.privacyRejectionCount.toLocaleString()}） / {trace.limitationCount.toLocaleString()}
+                </td>
+                <td className="px-4 py-3" data-label="引用">
+                  {trace.sourcePackHandoffCount.toLocaleString()} · {formatDiagnosticRate(trace.verifiedCitationRate)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {report.demoFixtureStatus ? (
+        <div className="admin-console-surface-soft text-sm">
+          <span className="admin-console-kicker">Control-correction demo fixture</span>
+          <div className="mt-2 grid gap-2 md:grid-cols-3">
+            <div>Query：{sanitizeVisibleDiagnosticText(report.demoFixtureStatus.query)}</div>
+            <div>Source Pack：{report.demoFixtureStatus.sourcePackHandoff ? 'available' : 'missing'}</div>
+            <div>Verified citation：{report.demoFixtureStatus.verifiedCitationOutcome}</div>
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
 
 export function normalizeGraphCenterAuditContext(audit: string | null | undefined): GraphCenterAuditContext | null {
   const trimmed = audit?.trim();
@@ -45,10 +340,100 @@ export function normalizeGraphCenterAuditContext(audit: string | null | undefine
   return 'custom';
 }
 
-export function graphCenterAuditInitialTab(audit: GraphCenterAuditContext | null): 'overview' | 'sessions' | 'sources' | 'cache' {
+export function graphCenterAuditInitialTab(audit: GraphCenterAuditContext | null): GovernanceDashboardTab {
   if (audit === 'resource-binding' || audit === 'citation-readiness') return 'sources';
   if (audit === 'overlay-limitations') return 'cache';
   return 'overview';
+}
+
+function governanceActionLabel(action: GovernanceRiskAction) {
+  if (action === 'assign') return '治理分派';
+  if (action === 'ignore') return '治理忽略';
+  if (action === 'reopen') return '治理重开';
+  if (action === 'undo') return '治理撤销';
+  return '治理处置';
+}
+
+function governanceActionCategory(action: GovernanceRiskAction) {
+  if (action === 'assign') return 'governance-assign';
+  if (action === 'ignore') return 'governance-ignore';
+  if (action === 'reopen') return 'governance-reopen';
+  if (action === 'undo') return 'governance-undo';
+  return 'governance-resolve';
+}
+
+function compactAdminIdentifier(value: string | null | undefined) {
+  return value ? `${value.slice(0, 8)}...` : '-';
+}
+
+function isAssigneeFailure(message: string) {
+  return message.includes('负责人不存在') || message.includes('缺少负责人');
+}
+
+function governanceFailureOutcome(responseStatus: number, message: string): GovernanceActionAuditRecord['outcome'] {
+  if (isAssigneeFailure(message)) return 'missing-assignee';
+  if (responseStatus === 404) return 'missing-risk';
+  if (message.includes('仍处于待处理')) return 'already-open';
+  if (message.includes('没有可撤销')) return 'undo-unavailable';
+  if (message.includes('已解决') || message.includes('已处理')) return 'already-handled';
+  return 'unsupported';
+}
+
+function governanceFailureRecovery(responseStatus: number, message: string) {
+  if (isAssigneeFailure(message)) return '重新选择负责人后提交分派';
+  if (responseStatus === 404) return '返回风险列表并刷新数据';
+  if (message.includes('仍处于待处理')) return '继续分派、处置或忽略该风险';
+  if (message.includes('没有可撤销')) return '查看审计记录，或使用重开恢复为待处理';
+  if (responseStatus === 409) return '查看审计记录，或使用重开/撤销恢复为待处理';
+  return '刷新治理列表后重试';
+}
+
+function governanceRefreshStateFromLedger(ledger: AdminOperationLedgerEntry) {
+  return createAuditedActionState({
+    identity: {
+      id: ledger.operationId,
+      category: 'refresh',
+      label: '数据治理刷新',
+      sourceRoute: '/admin/data-governance',
+      requestedAction: 'refresh',
+    },
+    status: governanceRefreshStatusFromLedgerOutcome(ledger.outcome),
+    message: ledger.auditSummary,
+    nextAction: '复核治理风险或导出风险文件',
+    recoveryAction: ledger.recoveryState.action,
+    recoveryKind: ledger.recoveryState.status,
+    displayReference: ledger.idempotencyKey,
+  });
+}
+
+function governanceRefreshStatusFromLedgerOutcome(outcome: AdminOperationLedgerEntry['outcome']) {
+  if (outcome === 'pending') return 'pending';
+  if (outcome === 'failed') return 'failed';
+  if (outcome === 'blocked') return 'blocked';
+  return 'succeeded';
+}
+
+function governanceActionStateFromLedger(
+  ledger: AdminOperationLedgerEntry,
+  input: { action: GovernanceRiskAction; riskId: string },
+) {
+  const label = governanceActionLabel(input.action);
+  return createAuditedActionState({
+    identity: {
+      id: ledger.operationId,
+      category: governanceActionCategory(input.action),
+      label,
+      sourceRoute: '/admin/data-governance',
+      targetId: input.riskId,
+      requestedAction: input.action,
+    },
+    status: ledger.outcome === 'failed' ? 'failed' : 'succeeded',
+    message: ledger.auditSummary,
+    nextAction: '刷新治理列表并复核风险状态',
+    recoveryAction: ledger.recoveryState.action,
+    recoveryKind: ledger.recoveryState.status,
+    displayReference: ledger.idempotencyKey,
+  });
 }
 
 export function DataGovernanceDashboard({ currentUser, initialActionQuery }: DataGovernanceDashboardProps) {
@@ -56,25 +441,65 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const initialGraphCenterAuditContext = normalizeGraphCenterAuditContext(initialActionQuery?.audit);
-  const initialTab = initialActionQuery?.surface === 'authoring' && initialActionQuery?.tab === 'reports'
-    ? 'sessions'
-    : graphCenterAuditInitialTab(initialGraphCenterAuditContext);
-  const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'sources' | 'cache'>(initialTab);
+  const initialTab: GovernanceDashboardTab = initialActionQuery?.tab === 'risks' || initialActionQuery?.riskId || initialActionQuery?.action
+    ? 'risks'
+    : initialActionQuery?.surface === 'authoring' && initialActionQuery?.tab === 'reports'
+      ? 'sessions'
+      : graphCenterAuditInitialTab(initialGraphCenterAuditContext);
+  const [activeTab, setActiveTab] = useState<GovernanceDashboardTab>(initialTab);
   const [executedActionState, setExecutedActionState] = useState<AuditedActionState | null>(null);
   const [executedAuditRecord, setExecutedAuditRecord] = useState<GovernanceActionAuditRecord | null>(null);
+  const [refreshActionState, setRefreshActionState] = useState<AuditedActionState | null>(null);
+  const [retainedRiskQuery, setRetainedRiskQuery] = useState<{ riskId: string; tab: GovernanceDashboardTab } | null>(
+    initialActionQuery?.riskId
+      ? { riskId: initialActionQuery.riskId, tab: 'risks' }
+      : null,
+  );
 
-  const fetchStatus = useCallback(async () => {
+  const fetchStatus = useCallback(async (
+    manual = false,
+    overrideQuery?: { riskId?: string | null; tab?: GovernanceDashboardTab | null },
+  ) => {
+    const requestedRiskId = overrideQuery?.riskId ?? retainedRiskQuery?.riskId ?? initialActionQuery?.riskId ?? '';
+    const requestedTab = overrideQuery?.tab ?? retainedRiskQuery?.tab ?? initialActionQuery?.tab ?? '';
+    const idempotencyKey = buildAdminOperationIdempotencyKey([
+      'admin-governance-refresh',
+      currentUser.id,
+      requestedRiskId,
+      initialActionQuery?.surface ?? '',
+      initialActionQuery?.audit ?? '',
+    ]);
+    const operationId = buildAdminOperationId({
+      kind: 'admin-governance-refresh',
+      scope: 'admin-data-governance-status',
+      seed: idempotencyKey,
+    });
     try {
       setLoading(true);
+      if (manual) {
+        setRefreshActionState(createAuditedActionState({
+          identity: {
+            id: operationId,
+            category: 'refresh',
+            label: '数据治理刷新',
+            sourceRoute: '/admin/data-governance',
+            requestedAction: 'refresh',
+          },
+          status: 'pending',
+          message: '正在刷新数据治理状态，操作账本已记录刷新范围。',
+          nextAction: '等待状态接口返回',
+          displayReference: idempotencyKey,
+        }));
+      }
       const params = new URLSearchParams();
-      if (initialActionQuery?.riskId?.trim()) {
-        params.set('riskId', initialActionQuery.riskId.trim());
+      if (requestedRiskId.trim()) {
+        params.set('riskId', requestedRiskId.trim());
       }
       if (initialActionQuery?.surface === 'authoring') {
         params.set('surface', 'authoring');
       }
-      if (initialActionQuery?.tab?.trim()) {
-        params.set('tab', initialActionQuery.tab.trim());
+      if (requestedTab.trim()) {
+        params.set('tab', requestedTab.trim());
       }
       if (initialActionQuery?.lessonPlanId?.trim()) {
         params.set('lessonPlanId', initialActionQuery.lessonPlanId.trim());
@@ -85,6 +510,9 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
       if (initialActionQuery?.audit?.trim()) {
         params.set('audit', initialActionQuery.audit.trim());
       }
+      if (manual) {
+        params.set('recordOperation', 'refresh');
+      }
       const response = await fetch(`/api/admin/data-governance/status${params.size ? `?${params}` : ''}`, {
         cache: 'no-store',
       });
@@ -94,18 +522,55 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
       const data = (await response.json()) as GovernanceStatusPayload;
       setStatus(data);
       setError(null);
+      if (manual) {
+        setRefreshActionState(data.operationLedger
+          ? governanceRefreshStateFromLedger(data.operationLedger)
+          : createAuditedActionState({
+              identity: {
+                id: operationId,
+                category: 'refresh',
+                label: '数据治理刷新',
+                sourceRoute: '/admin/data-governance',
+                requestedAction: 'refresh',
+              },
+              status: 'succeeded',
+              message: `数据治理状态已刷新，当前状态 ${data.status}，最近风险 ${data.recentRiskFlags.length} 条。`,
+              nextAction: '复核治理风险或导出风险文件',
+              displayReference: idempotencyKey,
+            }));
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '获取数据治理状态失败');
+      const message = err instanceof Error ? err.message : '获取数据治理状态失败';
+      setError(message);
+      if (manual) {
+        setRefreshActionState(createAuditedActionState({
+          identity: {
+            id: operationId,
+            category: 'refresh',
+            label: '数据治理刷新',
+            sourceRoute: '/admin/data-governance',
+            requestedAction: 'refresh',
+          },
+          status: 'failed',
+          message,
+          recoveryAction: '检查数据治理状态接口后重试刷新',
+          displayReference: idempotencyKey,
+          httpStatus: 500,
+        }));
+      }
     } finally {
       setLoading(false);
     }
   }, [
+    currentUser.id,
     initialActionQuery?.audit,
     initialActionQuery?.graphNodeId,
     initialActionQuery?.lessonPlanId,
     initialActionQuery?.riskId,
     initialActionQuery?.surface,
     initialActionQuery?.tab,
+    retainedRiskQuery?.riskId,
+    retainedRiskQuery?.tab,
   ]);
 
   useEffect(() => {
@@ -136,7 +601,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
 
   const visibleActionState = executedActionState ?? actionContract.state;
   const visibleAuditRecord = executedAuditRecord ?? actionContract.auditRecord;
-  const routeRiskAction = initialActionQuery?.action === 'resolve' || initialActionQuery?.action === 'assign'
+  const routeRiskAction = isDashboardRiskAction(initialActionQuery?.action)
     ? initialActionQuery.action
     : null;
   const routeRiskActionTarget = routeRiskAction
@@ -163,15 +628,17 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
   const graphCenterAuditContext = normalizeGraphCenterAuditContext(status?.graphCenterAudit?.audit ?? initialActionQuery?.audit);
 
   const executeGovernanceAction = async (input: {
-    action: 'resolve' | 'assign';
+    action: GovernanceRiskAction;
     riskId: string;
     assignee?: string | null;
   }) => {
+    const label = governanceActionLabel(input.action);
+    setExecutedAuditRecord(null);
     setExecutedActionState(createAuditedActionState({
       identity: {
         id: `admin-governance-${input.action}:${input.riskId}`,
-        category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
-        label: input.action === 'assign' ? '治理分派' : '治理处置',
+        category: governanceActionCategory(input.action),
+        label,
         sourceRoute: '/admin/data-governance',
         targetId: input.riskId,
         requestedAction: input.action,
@@ -179,6 +646,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
       status: 'pending',
       message: '治理动作正在提交。',
     }));
+    let responseStatus = 500;
     try {
       const response = await fetch(`/api/admin/data-governance/risks/${encodeURIComponent(input.riskId)}/actions`, {
         method: 'POST',
@@ -188,43 +656,60 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
           assignee: input.assignee ?? null,
         }),
       });
+      responseStatus = response.status;
       const payload = await response.json().catch(() => null) as {
         auditRecord?: GovernanceActionAuditRecord;
+        operationLedger?: AdminOperationLedgerEntry;
         error?: string;
       } | null;
       if (!response.ok) {
         throw new Error(payload?.error || '治理动作失败');
       }
       setExecutedAuditRecord(payload?.auditRecord ?? null);
-      setExecutedActionState(createAuditedActionState({
-        identity: {
-          id: `admin-governance-${input.action}:${input.riskId}`,
-          category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
-          label: input.action === 'assign' ? '治理分派' : '治理处置',
-          sourceRoute: '/admin/data-governance',
-          targetId: input.riskId,
-          requestedAction: input.action,
-        },
-        status: 'succeeded',
-        message: input.action === 'assign' ? '治理风险已保存分派审计记录。' : '治理风险已标记处理并保存审计记录。',
-        nextAction: '刷新治理列表并复核风险状态',
-      }));
-      fetchStatus();
+      setExecutedActionState(payload?.operationLedger
+        ? governanceActionStateFromLedger(payload.operationLedger, input)
+        : createAuditedActionState({
+            identity: {
+              id: `admin-governance-${input.action}:${input.riskId}`,
+              category: governanceActionCategory(input.action),
+              label,
+              sourceRoute: '/admin/data-governance',
+              targetId: input.riskId,
+              requestedAction: input.action,
+            },
+            status: 'succeeded',
+            message: `${label}已保存审计记录。`,
+            nextAction: '刷新治理列表并复核风险状态',
+          }));
+      setRetainedRiskQuery({ riskId: input.riskId, tab: 'risks' });
+      setActiveTab('risks');
+      fetchStatus(false, { riskId: input.riskId, tab: 'risks' });
     } catch (err) {
+      const message = err instanceof Error ? err.message : '治理动作失败';
+      const outcome = governanceFailureOutcome(responseStatus, message);
       setExecutedActionState(createAuditedActionState({
         identity: {
           id: `admin-governance-${input.action}:${input.riskId}`,
-          category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
-          label: input.action === 'assign' ? '治理分派' : '治理处置',
+          category: governanceActionCategory(input.action),
+          label,
           sourceRoute: '/admin/data-governance',
           targetId: input.riskId,
           requestedAction: input.action,
         },
-        status: 'failed',
-        message: err instanceof Error ? err.message : '治理动作失败',
-        recoveryAction: '刷新治理列表后重试',
-        httpStatus: 500,
+        status: responseStatus === 409 ? 'blocked' : 'failed',
+        message,
+        recoveryAction: governanceFailureRecovery(responseStatus, message),
+        httpStatus: responseStatus,
       }));
+      setExecutedAuditRecord({
+        actorId: currentUser.id,
+        action: input.action,
+        riskId: input.riskId,
+        assignee: input.assignee ?? null,
+        outcome,
+        undoAvailable: false,
+        recordedAt: new Date().toISOString(),
+      });
     }
   };
 
@@ -324,7 +809,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
         }
         actions={
           <button type="button"
-            onClick={fetchStatus}
+            onClick={() => fetchStatus(true)}
             className="admin-console-button-primary"
             disabled={loading}
             aria-label="刷新数据治理状态"
@@ -387,24 +872,30 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
                   assignee: routeRiskAction === 'assign' ? initialActionQuery?.assignee?.trim() || currentUser.id : null,
                 })}
                 className="admin-console-button px-3 py-1.5"
-                aria-label={routeRiskAction === 'assign' ? '提交治理风险分派' : '提交治理风险处置'}
+                aria-label={`提交${governanceActionLabel(routeRiskAction)}`}
               >
-                {routeRiskAction === 'assign' ? '提交分派' : '提交处置'}
+                提交{governanceActionLabel(routeRiskAction).replace('治理', '')}
               </button>
             ) : null}
           />
+        ) : null}
+        {refreshActionState ? (
+          <ActionStatusPanel state={refreshActionState} />
         ) : null}
 
         {visibleAuditRecord ? (
           <section className="admin-console-surface-soft text-sm">
             <span className="admin-console-kicker">动作审计</span>
             <div className="mt-3 grid gap-2 md:grid-cols-3">
-              <div>操作者：{visibleAuditRecord.actorId}</div>
+              <div>操作者：{compactAdminIdentifier(visibleAuditRecord.actorId)}</div>
               <div>动作：{visibleAuditRecord.action}</div>
               <div>结果：{visibleAuditRecord.outcome}</div>
               <div>风险：{visibleAuditRecord.riskId ?? '-'}</div>
-              <div>负责人：{visibleAuditRecord.assignee ?? '-'}</div>
+              <div>负责人：{compactAdminIdentifier(visibleAuditRecord.assignee)}</div>
               <div>回滚可用：{visibleAuditRecord.undoAvailable ? '是' : '否'}</div>
+              <div className="break-all">操作：{visibleAuditRecord.operationId ?? '-'}</div>
+              <div className="break-all">去重键：{visibleAuditRecord.idempotencyKey ?? '-'}</div>
+              <div>保留策略：{visibleAuditRecord.retentionPolicy ?? 'admin-operation-ledger-30d'}</div>
             </div>
           </section>
         ) : null}
@@ -574,6 +1065,13 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
             </div>
           </div>
         </section>
+        )}
+
+        {activeTab === 'overview' && (
+          <SarDiagnosticsPanel
+            report={status.sarDiagnostics ?? null}
+            refreshHealth={status.sarRefreshHealth ?? null}
+          />
         )}
 
         {activeTab === 'sources' && overview.sourceCatalogPanel && (
@@ -813,7 +1311,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
           </section>
         )}
 
-        {activeTab === 'overview' && (
+        {(activeTab === 'overview' || activeTab === 'risks') && (
           <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
           <div className="admin-console-surface space-y-4">
             <div className="flex items-center gap-3">
@@ -823,19 +1321,24 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
               <div>
                 <h2 className="admin-console-title text-xl font-semibold">{overview.riskPanel.title}</h2>
                 <p className="admin-console-muted text-sm">
-                  最近触发的未解决风险按严重级别展开，方便直接查看“谁、何时、为什么被标记”。
+                  风险行现在包含证据入口、负责人、处置状态和审计记录，避免停留在只读列表。
                 </p>
               </div>
             </div>
             <div className="admin-console-table-shell p-0">
-              <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="未解决治理风险">
+              <table
+                className="admin-console-table"
+                data-admin-mobile-cards="true"
+                data-admin-risk-governance-table
+                aria-label="治理风险对象化工作流"
+              >
                 <thead>
                   <tr>
-                    <th className="px-4 py-3">学生</th>
-                    <th className="px-4 py-3">风险类型</th>
+                    <th className="px-4 py-3">风险对象</th>
+                    <th className="px-4 py-3">证据</th>
+                    <th className="px-4 py-3">负责人</th>
                     <th className="px-4 py-3">级别</th>
-                    <th className="px-4 py-3">触发时间</th>
-                    <th className="px-4 py-3">说明</th>
+                    <th className="px-4 py-3">审计</th>
                     <th className="px-4 py-3 text-right">操作</th>
                   </tr>
                 </thead>
@@ -848,37 +1351,121 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
                     </tr>
                   ) : (
                     overview.riskPanel.rows.map((risk) => (
-                      <tr key={risk.id}>
-                        <td className="px-4 py-3" data-label="学生">
-                          <div className="admin-console-title font-medium">{risk.userName}</div>
-                          <div className="admin-console-table-subtle text-xs">{risk.userId}</div>
+                      <tr
+                        key={risk.id}
+                        data-admin-risk-governance-row={risk.id}
+                        data-admin-risk-governance-disposition={risk.dispositionStatus ?? (risk.isResolved ? 'resolved' : 'open')}
+                      >
+                        <td className="px-4 py-3" data-label="风险对象">
+                          <div className="admin-console-title font-medium">{risk.safeLabel ?? `${risk.userName} · ${risk.flagLabel}`}</div>
+                          <div className="admin-console-table-subtle text-xs">{risk.affectedObjectLabel ?? `student:${risk.userId}`}</div>
+                          <div className="admin-console-table-subtle mt-1 text-xs">{risk.description}</div>
+                          <div className="admin-console-table-subtle mt-1 text-xs">
+                            触发：{new Date(risk.triggeredAt).toLocaleString('zh-CN')}
+                          </div>
                         </td>
-                        <td className="px-4 py-3" data-label="风险类型">{risk.flagLabel}</td>
+                        <td className="px-4 py-3" data-label="证据">
+                          <a
+                            href={risk.evidenceHref ?? `/admin/data-governance?tab=risks&riskId=${encodeURIComponent(risk.id)}&action=evidence`}
+                            className="admin-console-button px-3 py-1.5 text-xs"
+                            data-admin-risk-governance-evidence={risk.id}
+                            data-admin-risk-governance-evidence-state={risk.auditTrail && risk.auditTrail.length > 0 ? 'available' : 'unavailable'}
+                            aria-label={`查看治理风险证据 ${risk.flagLabel} ${risk.userName}`}
+                          >
+                            查看证据
+                          </a>
+                          <div className="admin-console-table-subtle mt-2 text-xs">
+                            {risk.auditTrail && risk.auditTrail.length > 0
+                              ? '治理动作可通过审计链回溯。'
+                              : '暂无附加证据记录，请按风险来源复核。'}
+                          </div>
+                          <div className="admin-console-table-subtle mt-2 text-xs break-all">{risk.id}</div>
+                        </td>
+                        <td className="px-4 py-3" data-label="负责人">
+                          <span
+                            className="admin-console-chip"
+                            data-admin-risk-governance-assignment={risk.currentAssignee ?? 'unassigned'}
+                          >
+                            {risk.currentAssignee ?? '未分派'}
+                          </span>
+                        </td>
                         <td className="px-4 py-3" data-label="级别">
                           <span className="admin-console-chip">{risk.severityLabel}</span>
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle" data-label="触发时间">
-                          {new Date(risk.triggeredAt).toLocaleString('zh-CN')}
+                        <td className="px-4 py-3" data-label="审计">
+                          <details data-admin-risk-governance-audit={risk.id}>
+                            <summary className="cursor-pointer admin-console-title text-sm">
+                              {risk.auditTrail?.length ?? 0} 条记录
+                            </summary>
+                            <div className="mt-2 space-y-1 admin-console-table-subtle text-xs">
+                              {risk.auditTrail && risk.auditTrail.length > 0 ? (
+                                risk.auditTrail.slice(-3).map((record) => (
+                                  <div key={`${record.action}-${record.recordedAt}`}>
+                                    {record.action} · {record.previousState ?? '-'} → {record.newState ?? record.outcome} · {compactAdminIdentifier(record.actorId)}
+                                  </div>
+                                ))
+                              ) : (
+                                <div>暂无审计记录。</div>
+                              )}
+                            </div>
+                          </details>
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle" data-label="说明">{risk.description}</td>
                         <td className="px-4 py-3" data-label="操作">
                           <div className="flex flex-wrap justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => executeGovernanceAction({ action: 'resolve', riskId: risk.id })}
-                              className="admin-console-button px-3 py-1.5 text-xs"
-                              aria-label={`处置治理风险 ${risk.flagLabel} ${risk.userName}`}
-                            >
-                              处置
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => executeGovernanceAction({ action: 'assign', riskId: risk.id, assignee: currentUser.id })}
-                              className="admin-console-button px-3 py-1.5 text-xs"
-                              aria-label={`分派治理风险 ${risk.flagLabel} ${risk.userName}`}
-                            >
-                              分派
-                            </button>
+                            {risk.isResolved ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => executeGovernanceAction({ action: 'reopen', riskId: risk.id })}
+                                  className="admin-console-button px-3 py-1.5 text-xs"
+                                  data-admin-risk-governance-disposition-action="reopen"
+                                  aria-label={`重开治理风险 ${risk.flagLabel} ${risk.userName}`}
+                                >
+                                  重开
+                                </button>
+                                {risk.undoAvailable ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => executeGovernanceAction({ action: 'undo', riskId: risk.id })}
+                                    className="admin-console-button px-3 py-1.5 text-xs"
+                                    data-admin-risk-governance-disposition-action="undo"
+                                    aria-label={`撤销治理风险处置 ${risk.flagLabel} ${risk.userName}`}
+                                  >
+                                    撤销
+                                  </button>
+                                ) : null}
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => executeGovernanceAction({ action: 'resolve', riskId: risk.id })}
+                                  className="admin-console-button px-3 py-1.5 text-xs"
+                                  data-admin-risk-governance-disposition-action="resolve"
+                                  aria-label={`处置治理风险 ${risk.flagLabel} ${risk.userName}`}
+                                >
+                                  处置
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => executeGovernanceAction({ action: 'ignore', riskId: risk.id })}
+                                  className="admin-console-button px-3 py-1.5 text-xs"
+                                  data-admin-risk-governance-disposition-action="ignore"
+                                  aria-label={`忽略治理风险 ${risk.flagLabel} ${risk.userName}`}
+                                >
+                                  忽略
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => executeGovernanceAction({ action: 'assign', riskId: risk.id, assignee: currentUser.id })}
+                                  className="admin-console-button px-3 py-1.5 text-xs"
+                                  data-admin-risk-governance-disposition-action="assign"
+                                  aria-label={`分派治理风险 ${risk.flagLabel} ${risk.userName}`}
+                                >
+                                  分派
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -969,4 +1556,12 @@ export function resolveGovernanceRouteRiskActionTarget(
     return status.targetRiskFlag;
   }
   return status.recentRiskFlags.find((risk) => risk.id === targetId) ?? null;
+}
+
+function isDashboardRiskAction(value: string | null | undefined): value is GovernanceRiskAction {
+  return value === 'resolve'
+    || value === 'assign'
+    || value === 'ignore'
+    || value === 'reopen'
+    || value === 'undo';
 }

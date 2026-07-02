@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Loader2, Users } from 'lucide-react';
 
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
+import { requestClassroomEndConfirmation } from '@/features/classroom/classroom-lifecycle-dialog';
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
@@ -177,7 +178,7 @@ export function UNIT_2_2TeacherPage({
 
   const handleEndSession = useCallback(async () => {
     if (!sessionInfo) return;
-    if (!window.confirm('确定要结束课堂吗？结束后学生将停止同步课堂进度。')) return;
+    if (!(await requestClassroomEndConfirmation())) return;
 
     setEndingSession(true);
     try {

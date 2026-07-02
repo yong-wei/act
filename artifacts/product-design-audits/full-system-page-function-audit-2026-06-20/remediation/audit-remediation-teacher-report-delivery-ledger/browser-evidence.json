@@ -1,0 +1,89 @@
+{
+  "capturedAt": "2026-06-27T08:20:00.000Z",
+  "issue": 678,
+  "change": "audit-remediation-teacher-report-delivery-ledger",
+  "evidenceType": "route-source-contract",
+  "status": "ready",
+  "surfaces": [
+    {
+      "surface": "teacher-home",
+      "route": "/teacher",
+      "source": "src/features/teacher/teacher-dashboard.tsx",
+      "ledgerState": "ready",
+      "checks": [
+        "analytics attention card links to buildTeacherReportDeliveryHref",
+        "history and analytics cards expose data-report-ledger-surface",
+        "assistant-effect slot is degraded and deferred, not deliverable",
+        "surface=teacher-home is preserved in the delivery href"
+      ]
+    },
+    {
+      "surface": "class-analytics",
+      "route": "/teacher/classes/:classId/analytics-v2",
+      "source": "src/app/teacher/classes/[classId]/analytics-v2/page.tsx",
+      "ledgerState": "ready",
+      "checks": [
+        "desktop report delivery panel exposes action id, idempotency key, redacted artifact ref, redaction policy, and delivery status",
+        "mobile fixed action dock exposes the same ledger action id and delivery status",
+        "export/download and copy-summary actions remain status-bearing",
+        "URL surface parameter is normalized and consumed by the shared ledger builder",
+        "send/publish, grading handoff, and retry states are visible as status-bearing degraded or ready states"
+      ]
+    },
+    {
+      "surface": "history",
+      "route": "/teacher/history",
+      "source": "src/app/teacher/history/page.tsx",
+      "ledgerState": "ready-or-missing-context",
+      "checks": [
+        "each finished session has a report ledger action",
+        "class-bound sessions open class analytics with session context",
+        "unarchived sessions show missing-context recovery marker",
+        "surface=history is preserved in the delivery href"
+      ]
+    },
+    {
+      "surface": "classroom-review",
+      "route": "/classroom/teacher/:sessionId/review",
+      "source": "src/app/classroom/teacher/[sessionId]/review/page.tsx",
+      "ledgerState": "ready",
+      "checks": [
+        "review page first-screen ledger section preserves class, session, lesson, and returnTo context",
+        "footer link targets teacher report delivery instead of internal review aggregation",
+        "redaction policy is student-safe-summary-only",
+        "surface=classroom-review is preserved in the delivery href"
+      ]
+    },
+    {
+      "surface": "report-book",
+      "route": "/teacher/grading-workbench",
+      "source": "src/app/(teacher-report-ledger)/teacher/layout.tsx",
+      "ledgerState": "degraded",
+      "checks": [
+        "report-book layout builds its ledger entry and route state through teacher-report-grading-contracts",
+        "recovery directs teachers to class analytics with class context",
+        "grading route blocked states remain handled by buildTeacherGradingMissingRunState"
+      ]
+    }
+  ],
+  "sourceContractTests": [
+    "src/lib/__tests__/teacher-report-grading-contracts.test.ts",
+    "src/lib/__tests__/teacher-report-grading-ui-source.test.ts"
+  ],
+  "forbiddenEndpoints": [
+    {
+      "endpoint": "/review/extracurricular-showcase",
+      "status": "removed-from-classroom-review-delivery-exit"
+    }
+  ],
+  "redactionPolicy": "student-safe-summary-only",
+  "opaqueDisplayRefs": [
+    "artifactRef",
+    "deliveryScope",
+    "idempotencyKey",
+    "actionId report segment"
+  ],
+  "validation": [
+    "rtk npm run test:unit -- src/lib/__tests__/teacher-report-grading-contracts.test.ts src/lib/__tests__/teacher-report-grading-ui-source.test.ts"
+  ]
+}

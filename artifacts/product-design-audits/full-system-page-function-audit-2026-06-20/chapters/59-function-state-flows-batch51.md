@@ -106,6 +106,8 @@ API 关键结果：
 
 建议：评分工作台应读取来源参数并展示候选材料；API 不支持 GET 时，页面需要产品化空态和正确入口。
 
+整改记录：`audit-remediation-teacher-evidence-intervention-closure` 已把教师报告、学生画像推荐、学生证据审核和评分工作台的后续动作统一为 intervention action，记录来源证据、学生侧目标、写回状态和恢复动作；证据见 `../remediation/audit-remediation-teacher-evidence-intervention-closure/evidence.md`。
+
 ### 354. P1：管理员用户无匹配搜索口径仍不一致
 
 `/admin/users?source=batch51&q=zzzz-batch51-no-match` 初始态仍显示 298 用户；填入可见搜索框后页面列表变为 0 条，但 `/api/admin/users?q=zzzz-batch51-no-match&page=1&pageSize=5` 仍返回 `total:298`。此前 Batch48 曾观察到 API no-match 改善，本批说明 URL、页面筛选和 API 结果没有共享同一合同。

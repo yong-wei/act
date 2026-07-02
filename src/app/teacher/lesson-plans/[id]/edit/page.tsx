@@ -42,6 +42,7 @@ export default async function TeacherEditLessonPlanPage({ params, searchParams }
         planId={id}
         listHref="/teacher/lesson-plans"
         createHref="/teacher/lesson-plans/new?returnTo=%2Fteacher%2Flesson-plans"
+        sourceRoute="/teacher/lesson-plans/[id]/edit"
         title="未找到可编辑教案"
         description="该教案可能已被删除、归档，或不属于当前教师。请返回列表选择仍可编辑的教案，或新建一个教案继续编排。"
       />

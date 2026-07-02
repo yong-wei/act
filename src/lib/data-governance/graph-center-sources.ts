@@ -200,6 +200,7 @@ async function buildLearnerOverlayInput(input: {
   return {
     state,
     requestedLearnerId,
+    classId: scope.classId,
     viewerRole: input.viewerRole,
     authorized: true,
   };

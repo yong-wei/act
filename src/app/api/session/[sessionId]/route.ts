@@ -19,8 +19,54 @@ import { logClassroomEvent } from '@/lib/classroom-observability';
 import { redisClient } from '@/lib/redis-client';
 import { classroomRateLimiter } from '@/lib/rate-limiter';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import {
+  buildClassroomIdentityPayload,
+  buildClassroomLifecycleEvidenceFields,
+  normalizeClassroomLifecycleClientEventAt,
+} from '@/lib/classroom-lifecycle-contract';
+import {
+  canAccessClassroomSession,
+  canManageClassroomSession,
+  normalizeClassroomActorRole,
+} from '@/lib/classroom-session-access';
 
 export const dynamic = 'force-dynamic';
+
+function normalizeClassroomEvent(
+  input: unknown,
+  sessionId: string,
+  fallbackItemId: string | null | undefined,
+  actorRole: 'teacher' | 'student',
+) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return { event: null, error: null };
+  }
+
+  const event = input as Record<string, unknown>;
+  if (typeof event.eventType !== 'string' || event.eventType.trim().length === 0) {
+    return { event: null, error: null };
+  }
+
+  const clientEventId = typeof event.clientEventId === 'string' ? event.clientEventId.trim() : '';
+  const clientEventAt = normalizeClassroomLifecycleClientEventAt(event.clientEventAt);
+  if (
+    clientEventId.length === 0
+    || clientEventAt === null
+  ) {
+    return { event: null, error: 'Lifecycle event requires clientEventId and clientEventAt' };
+  }
+
+  return { event: buildClassroomLifecycleEvidenceFields({
+    eventType: event.eventType,
+    actorRole,
+    sessionId,
+    stepId: typeof event.stepId === 'string' ? event.stepId : fallbackItemId ?? null,
+    cardId: typeof event.cardId === 'string' ? event.cardId : null,
+    clientEventId,
+    sourceLogId: typeof event.sourceLogId === 'string' ? event.sourceLogId : null,
+    clientEventAt,
+  }), error: null };
+}
 
 async function inferAndPersistSessionClass(sessionId: string, teacherId: string) {
   const session = await prisma.classSession.findUnique({
@@ -129,19 +175,29 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
     // 验证课堂存在且属于当前教师
     const existingSession = await prisma.classSession.findUnique({
       where: { id: sessionId },
-      select: { teacherId: true, status: true }
+      select: { teacherId: true, status: true, classId: true }
     });
 
     if (!existingSession) {
       return NextResponse.json({ error: '课堂不存在' }, { status: 404 });
     }
 
-    if (existingSession.teacherId !== session.user.id && session.user.role !== 'ADMIN') {
+    if (!canManageClassroomSession(existingSession, session.user)) {
       return NextResponse.json({ error: '无权限修改此课堂' }, { status: 403 });
     }
 
     const body = await request.json();
     const { currentItemId, currentStage, status } = body;
+    const normalizedClassroomEvent = normalizeClassroomEvent(
+      body.classroomEvent,
+      sessionId,
+      currentItemId,
+      normalizeClassroomActorRole(session.user.role),
+    );
+    if (normalizedClassroomEvent.error) {
+      return NextResponse.json({ error: normalizedClassroomEvent.error }, { status: 400 });
+    }
+    const classroomEvent = normalizedClassroomEvent.event;
 
     // 构建更新数据 - 始终更新updatedAt以触发版本号递增
     const updateData: {
@@ -176,7 +232,11 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
 
     let updatedSession = await prisma.classSession.update({
       where: { id: sessionId },
-      data: updateData
+      data: updateData,
+      include: {
+        plan: { select: { title: true } },
+        class: { select: { name: true } },
+      },
     });
 
     if (status === 'FINISHED' && !updatedSession.classId) {
@@ -192,10 +252,13 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
     // 同步到 Redis 用于快速读取和 SSE 广播
     if (redisClient.isReady()) {
       const redisState = {
+        joinCode: updatedSession.joinCode,
         classId: updatedSession.classId,
+        className: updatedSession.class?.name ?? null,
         currentItemId: updatedSession.currentItemId,
         currentStage: updatedSession.currentStage,
         status: updatedSession.status,
+        planTitle: updatedSession.plan.title,
         updatedAt: updatedSession.updatedAt?.getTime() || Date.now(),
       };
 
@@ -217,6 +280,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
         currentItemId: currentItemId ?? null,
         currentStage: currentStage ?? null,
         status: status ?? null,
+        classroomEvent,
       });
     }
 
@@ -242,6 +306,42 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
   const params = await props.params;
   try {
       const { sessionId } = params;
+      const userSession = await getServerSession(authOptions);
+      if (!userSession?.user?.id) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      const [accessUser, sessionAccess] = await Promise.all([
+          prisma.user.findUnique({
+              where: { id: userSession.user.id },
+              select: {
+                  id: true,
+                  role: true,
+                  profile: { select: { classId: true } },
+              },
+          }),
+          prisma.classSession.findUnique({
+              where: { id: sessionId },
+              select: {
+                  teacherId: true,
+                  classId: true,
+              },
+          }),
+      ]);
+
+      if (!accessUser) {
+          return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      if (!sessionAccess) {
+          return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      }
+      if (!canAccessClassroomSession(sessionAccess, {
+          id: accessUser.id,
+          role: accessUser.role,
+          profile: accessUser.profile ?? userSession.user.profile ?? null,
+      })) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
 
       // 优先从 Redis 读取会话状态（高性能缓存）
       if (redisClient.isReady()) {
@@ -251,11 +351,19 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
                   id: sessionId,
                   joinCode: typeof cachedState.joinCode === 'string' ? cachedState.joinCode : '',
                   classId: typeof cachedState.classId === 'string' ? cachedState.classId : null,
+                  class: typeof cachedState.className === 'string' ? { name: cachedState.className } : null,
                   currentItemId: cachedState.currentItemId ?? null,
                   currentStage: cachedState.currentStage ?? null,
                   status: cachedState.status ?? 'ACTIVE',
                   updatedAt: cachedState.updatedAt ?? Date.now(),
                   planTitle: typeof cachedState.planTitle === 'string' ? cachedState.planTitle : '',
+                  classroomIdentity: buildClassroomIdentityPayload({
+                      id: sessionId,
+                      joinCode: typeof cachedState.joinCode === 'string' ? cachedState.joinCode : '',
+                      classId: typeof cachedState.classId === 'string' ? cachedState.classId : null,
+                      class: typeof cachedState.className === 'string' ? { name: cachedState.className } : null,
+                      planTitle: typeof cachedState.planTitle === 'string' ? cachedState.planTitle : '',
+                  }),
               });
           }
       }
@@ -274,6 +382,9 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
               // Include minimal plan info for student check
               plan: {
                   select: { title: true }
+              },
+              class: {
+                  select: { name: true }
               }
           }
       });
@@ -285,6 +396,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
           await redisClient.setSessionState(sessionId, {
               joinCode: session.joinCode,
               classId: session.classId,
+              className: session.class?.name ?? null,
               currentItemId: session.currentItemId,
               currentStage: session.currentStage,
               status: session.status,
@@ -296,6 +408,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
       return NextResponse.json({
           ...session,
           planTitle: session.plan.title,
+          classroomIdentity: buildClassroomIdentityPayload(session),
       });
   } catch (error) {
       rethrowIfNextDynamicError(error);

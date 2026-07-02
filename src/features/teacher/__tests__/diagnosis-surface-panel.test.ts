@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import { TeacherPrepPackReviewSurface } from '@/features/teacher/teacher-prep-pack-review-surface';
+import { createAuditedActionState } from '@/lib/action-status-contract';
 import type { CourseEnhancementPack } from '@/lib/data-governance/teacher-prep-pack-generation';
 import type { RoleBasedLearningDiagnosis } from '@/lib/data-governance/role-based-learning-diagnosis';
 
@@ -114,6 +115,7 @@ const prepPackFixture: CourseEnhancementPack = {
     prepPackItemId: 'prep-item-1',
     itemType: 'interactive-question',
     title: '控制校正复盘卡',
+    rationale: '班级诊断显示终端验证证据不足，需要在参与式学习阶段补充复盘卡。',
     insertionTarget: {
       type: 'lesson-step',
       lessonId: 'lesson-3-6',
@@ -145,6 +147,23 @@ const prepPackFixture: CourseEnhancementPack = {
         privacyVisibility: 'redacted',
         limitationState: null,
       },
+    }],
+    confidence: {
+      state: 'medium',
+      score: 0.68,
+      limitations: ['stale-overlay', 'resource-coverage-gap:knowledge-card'],
+    },
+    resourceCoverageGaps: [{
+      graphNodeId: 'kn:autocontrol:terminal-validation',
+      coverageState: 'partial',
+      missingCoverageTypes: ['knowledge-card'],
+      resourceNodeIds: ['resource-node-1'],
+      citationRefs: ['diagnosis-1'],
+      versionRefs: ['graph:v1'],
+    }],
+    sourceDiagnosisRefs: [{
+      clusterId: 'cluster-terminal-validation',
+      claimIds: ['diagnosis-1'],
     }],
     methodologyNotes: ['班级诊断显示终端验证证据不足。'],
     privacyScope: 'aggregate-and-redacted-only',
@@ -263,12 +282,28 @@ describe('DiagnosisSurfacePanel', () => {
     const html = renderToStaticMarkup(
       React.createElement(TeacherPrepPackReviewSurface, {
         pack: prepPackFixture,
+        entryContext: {
+          classId: 'class-1',
+          clusterId: 'cluster-terminal-validation',
+          graphNodeId: 'kn:autocontrol:terminal-validation',
+          learningGoalId: 'control-correction',
+          resourceGapStatus: 'partial',
+        },
       })
     );
 
     expect(html).toContain('课前包复核');
     expect(html).toContain('控制校正复盘卡');
     expect(html).toContain('班级诊断显示终端验证证据不足');
+    expect(html).toContain('需要在参与式学习阶段补充复盘卡');
+    expect(html).toContain('终端验证证据不足');
+    expect(html).toContain('Citation diagnosis-1');
+    expect(html).toContain('verified');
+    expect(html).toContain('data-prep-pack-selection-conditions');
+    expect(html).toContain('Limitation: graph overlay must refresh to current evidence');
+    expect(html).toContain('Resource gap kn:autocontrol:terminal-validation: partial');
+    expect(html).toContain('Source diagnosis cluster-terminal-validation');
+    expect(html).toContain('Selection would change when');
     expect(html).toContain('data-report-ledger-surface="teacher-prep-pack-review"');
     expect(html).toContain('data-prep-pack-rationale');
     expect(html).toContain('data-prep-pack-source-evidence');
@@ -278,11 +313,70 @@ describe('DiagnosisSurfacePanel', () => {
     expect(html).toContain('data-prep-pack-action="rollback"');
     expect(html).toContain('data-prep-pack-action="impact-evidence"');
     expect(html).toContain('data-prep-pack-action-disabled="false"');
+    expect(html).toContain('data-prep-pack-entry-class-id="class-1"');
+    expect(html).toContain('data-prep-pack-entry-cluster-id="cluster-terminal-validation"');
+    expect(html).toContain('data-prep-pack-entry-graph-node-id="kn:autocontrol:terminal-validation"');
     expect(html).toContain('action="/teacher/prep-packs/actions"');
     expect(html).toContain('method="post"');
     expect(html).toContain('name="packId" value="enhancement-pack-1"');
     expect(html).toContain('name="itemId" value="item-1"');
+    expect(html).toContain('name="clusterId" value="cluster-terminal-validation"');
+    expect(html).toContain('name="resourceGapStatus" value="partial"');
     expect(html).toContain('data-operations-mutates-base-manifest="false"');
+  });
+
+  it('renders prep-pack lifecycle action receipts on the review surface', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(TeacherPrepPackReviewSurface, {
+        pack: prepPackFixture,
+        actionReceipt: createAuditedActionState({
+          identity: {
+            id: 'teacher-prep-pack:enhancement-pack-1:activate',
+            category: 'governance-resolve',
+            label: '课前包动作回执',
+            sourceRoute: '/teacher/prep-packs',
+            targetId: 'enhancement-pack-1',
+            requestedAction: 'activate',
+          },
+          status: 'succeeded',
+          message: '课前包 overlay 已激活，复核页已刷新当前包状态。',
+          nextAction: '继续复核课前包或返回教师工作台',
+          displayReference: 'enhancement-pack-1',
+        }),
+      })
+    );
+
+    expect(html).toContain('data-audited-action-id="teacher-prep-pack:enhancement-pack-1:activate"');
+    expect(html).toContain('data-audited-action-status="succeeded"');
+    expect(html).toContain('课前包 overlay 已激活');
+    expect(html).toContain('继续复核课前包或返回教师工作台');
+  });
+
+  it('does not render reversible low-denominator evidence distributions in prep-pack review surface', () => {
+    const pack: CourseEnhancementPack = {
+      ...prepPackFixture,
+      items: [{
+        ...prepPackFixture.items[0],
+        evidenceBasis: [{
+          ...prepPackFixture.items[0].evidenceBasis[0],
+          capsule: 'Low-denominator diagnosis evidence capsule suppressed; use citation reference for audit.',
+        }],
+        confidence: {
+          state: 'low',
+          score: 0.42,
+          limitations: ['low-denominator-suppressed'],
+        },
+      }],
+    };
+    const html = renderToStaticMarkup(
+      React.createElement(TeacherPrepPackReviewSurface, {
+        pack,
+      })
+    );
+
+    expect(html).toContain('Low-denominator diagnosis evidence capsule suppressed');
+    expect(html).toContain('sample size must reach the privacy threshold');
+    expect(html).not.toMatch(/\b(?:0|1)\/3\b/);
   });
 
   it('renders degraded state when no governed snapshot is available', () => {

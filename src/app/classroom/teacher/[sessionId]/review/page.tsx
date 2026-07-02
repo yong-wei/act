@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, ArrowUpRight, BookOpen, Brain } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, BookOpen, Brain, Clipboard, Download } from 'lucide-react'
 import { getServerAuthSession } from '@/lib/auth'
 import {
   buildClassroomSessionStatistics,
@@ -21,6 +21,7 @@ import {
 import { getClassExtracurricularAnalytics } from '@/lib/extracurricular-analytics'
 import { normalizeInteractiveRuntimeManifest, type InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest'
 import { prisma } from '@/lib/prisma'
+import { buildTeacherReportDeliveryHref } from '@/lib/teacher-report-grading-contracts'
 
 interface PageProps {
   params: Promise<{ sessionId: string }>
@@ -506,6 +507,7 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
       status: true,
       plan: {
         select: {
+          id: true,
           title: true,
         },
       },
@@ -742,9 +744,25 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
     reportData: session.classSessionReports[0]?.reportData,
   })
   const governanceSummary = sessionStatistics.governanceSummary
+  const reviewLessonId = lessonIds[0] ?? session.plan.id
+  const reportDeliveryHref = buildTeacherReportDeliveryHref({
+    classId: classContext.class.id,
+    action: 'export',
+    sessionId: session.id,
+    lessonId: reviewLessonId,
+    source: 'classroom-review',
+    surface: 'classroom-review',
+    returnTo: `/classroom/teacher/${session.id}/review`,
+  })
+  const gradingHref = buildTeacherReviewGradingHref({
+    classId: classContext.class.id,
+    sessionId: session.id,
+    lessonId: reviewLessonId,
+    returnTo: `/classroom/teacher/${session.id}/review`,
+  })
 
   return (
-    <main className="surface-page mx-auto max-w-[1300px] px-6 py-8">
+    <main className="surface-page mx-auto max-w-[1300px] px-6 pb-28 pt-8 md:pb-8">
       <Link
         href={`/teacher/classes/${classContext.class.id}`}
         className="mb-6 inline-flex items-center gap-2 text-sm text-subtle transition hover:text-foreground"
@@ -784,6 +802,40 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
           <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-sky-300">
             课程聚焦：{focusDimensionLabels.length > 0 ? focusDimensionLabels.join('、') : '未标注'}
           </span>
+        </div>
+      </section>
+
+      <section
+        className="surface-card mb-6 p-6"
+        data-report-ledger-surface="classroom-review-report-delivery"
+        data-report-ledger-session-id={session.id}
+        data-report-ledger-delivery-state="ready"
+        data-report-ledger-redaction-policy="student-safe-summary-only"
+      >
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-medium text-subtle">教师报告交付账本</p>
+            <h2 className="mt-2 text-lg font-semibold text-foreground">课堂复盘已连接班级报告交付</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">
+              当前课堂、班级和课程上下文会带入报告交付页；导出、摘要复制和后续学生交付只展示学生安全摘要，不暴露内部分析 JSON。
+            </p>
+          </div>
+          <Link
+            href={reportDeliveryHref}
+            className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm"
+            data-teacher-report-delivery-link="classroom-review"
+          >
+            打开报告交付
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href={gradingHref}
+            className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm"
+            data-teacher-grading-handoff-link="classroom-review"
+          >
+            进入评分工作台
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 
@@ -905,12 +957,54 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
       </section>
 
       <Link
-        href="/review/extracurricular-showcase"
+        href={reportDeliveryHref}
         className="inline-flex items-center gap-2 rounded-lg border border-primary/45 bg-primary/10 px-4 py-2 text-sm text-primary transition hover:bg-primary/20"
+        data-teacher-report-delivery-link="classroom-review-footer"
       >
-        前往评审聚合入口
+        前往教师报告交付
         <ArrowUpRight className="h-4 w-4" />
       </Link>
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 shadow-lg backdrop-blur md:hidden"
+        data-teacher-report-delivery="mobile-fixed-actions"
+        data-report-ledger-surface="classroom-review"
+        data-report-ledger-session-id={session.id}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-foreground">课堂复盘交付</p>
+            <p className="text-xs text-subtle">报告交付与评分入口固定可达。</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link href={reportDeliveryHref} className="btn-ghost-themed inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs" aria-label="打开课堂复盘报告交付">
+              <Download className="h-4 w-4" />
+              交付
+            </Link>
+            <Link href={gradingHref} className="btn-ghost-themed inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs" aria-label="打开课堂复盘评分工作台">
+              <Clipboard className="h-4 w-4" />
+              评分
+            </Link>
+          </div>
+        </div>
+      </div>
     </main>
   )
+}
+
+function buildTeacherReviewGradingHref(input: {
+  classId: string
+  sessionId: string
+  lessonId: string
+  returnTo: string
+}) {
+  const params = new URLSearchParams({
+    status: 'draft',
+    source: 'classroom-review',
+    reportId: 'control-correction',
+    classId: input.classId,
+    sessionId: input.sessionId,
+    lessonId: input.lessonId,
+    returnTo: input.returnTo,
+  })
+  return `/teacher/grading-workbench?${params.toString()}`
 }

@@ -7,6 +7,10 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Loader2, LogIn, Presentation, Users } from 'lucide-react';
 
+import {
+  requestClassroomConflictChoice,
+  type ClassroomConflictIdentity,
+} from '@/features/classroom/classroom-lifecycle-dialog';
 import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
 import { LessonEntryRuntimeSections } from '@/features/interactive/shared/lesson-entry-runtime-sections';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
@@ -31,6 +35,9 @@ export interface PremiumLessonEntryPageConfig {
 interface JoinSessionResponse {
   id: string;
   studentHref?: string;
+  existingSessionId?: string;
+  requiresExplicitChoice?: boolean;
+  error?: string;
 }
 
 function normalizeRole(raw: string | null | undefined): NormalizedRole {
@@ -88,6 +95,31 @@ export function PremiumLessonEntryPage({
 
     setIsCreating(true);
     try {
+      const preflightRes = await fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          launchContext: 'temporary',
+          sourcePresetKey: config.presetKey,
+        }),
+      });
+      const preflightData = (await preflightRes.json()) as JoinSessionResponse & { classroomIdentity?: unknown };
+      if (preflightRes.status === 409 && preflightData.existingSessionId && preflightData.requiresExplicitChoice) {
+        setIsCreating(false);
+        const choice = await requestClassroomConflictChoice({
+          identity: preflightData.classroomIdentity as ClassroomConflictIdentity | undefined,
+          message: preflightData.error,
+        });
+        if (choice === 'reuse') {
+          router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${preflightData.existingSessionId}`);
+          return;
+        }
+        if (choice !== 'new-session') return;
+        setIsCreating(true);
+      } else if (!preflightRes.ok && preflightRes.status !== 400) {
+        throw new Error(preflightData.error || '课堂查重失败');
+      }
+
       const cloneRes = await fetch('/api/teacher/preset-lessons/clone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,9 +133,14 @@ export function PremiumLessonEntryPage({
       const createRes = await fetch('/api/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId: cloneData.lessonPlanId }),
+        body: JSON.stringify({
+          planId: cloneData.lessonPlanId,
+          launchContext: 'temporary',
+          sourcePresetKey: config.presetKey,
+          duplicateAction: 'new-session',
+        }),
       });
-      const createData = (await createRes.json()) as JoinSessionResponse & { error?: string };
+      const createData = (await createRes.json()) as JoinSessionResponse;
       if (!createRes.ok || !createData.id) {
         throw new Error(createData.error || '课堂创建失败');
       }

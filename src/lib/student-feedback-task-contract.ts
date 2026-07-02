@@ -1,5 +1,6 @@
 import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
 import type { EvidenceTimelinePage } from '@/lib/data-governance/evidence-timeline';
+import { buildStudentVisibleTeacherIntervention } from '@/lib/teacher-evidence-intervention-contract';
 
 export type FeedbackTaskLifecycleState =
   | 'returned'
@@ -21,6 +22,11 @@ export interface FeedbackTaskQuery {
   action?: string | string[] | null;
   returnTo?: string | string[] | null;
   intent?: string | string[] | null;
+  teacherInterventionId?: string | string[] | null;
+}
+
+export interface FeedbackTaskContextOptions {
+  verifiedTeacherInterventionId?: string | null;
 }
 
 export interface StudentFeedbackTaskContext {
@@ -33,9 +39,11 @@ export interface StudentFeedbackTaskContext {
   action: string | null;
   intent: string | null;
   returnTo: string | null;
+  teacherInterventionId: string | null;
   returnHref: string;
   completionTarget: 'evidence-growth-portfolio' | 'unsupported';
   supported: boolean;
+  teacherIntervention: ReturnType<typeof buildStudentVisibleTeacherIntervention>;
   summary: string;
   badges: string[];
 }
@@ -79,7 +87,10 @@ const STATE_LABELS: Record<FeedbackTaskLifecycleState, string> = {
   unsupported: '暂不支持',
 };
 
-export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedbackTaskContext | null {
+export function buildFeedbackTaskContext(
+  query: FeedbackTaskQuery,
+  options: FeedbackTaskContextOptions = {},
+): StudentFeedbackTaskContext | null {
   const assignmentId = firstQueryValue(query.assignment);
   if (!assignmentId) return null;
 
@@ -87,7 +98,16 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
   const source = firstQueryValue(query.feedbackSource) ?? firstQueryValue(query.source);
   const action = firstQueryValue(query.action);
   const intent = firstQueryValue(query.intent);
-  const lifecycleState = resolveLifecycleState(firstQueryValue(query.status), action, intent);
+  const teacherInterventionId = firstQueryValue(query.teacherInterventionId);
+  const requestedLifecycleState = resolveLifecycleState(firstQueryValue(query.status), action, intent);
+  const hasTeacherVisibleInterventionRequest =
+    Boolean(teacherInterventionId)
+    && (requestedLifecycleState === 'teacher-visible' || requestedLifecycleState === 'written-back');
+  const hasVerifiedTeacherIntervention =
+    Boolean(teacherInterventionId) && teacherInterventionId === options.verifiedTeacherInterventionId;
+  const hasUnverifiedTeacherIntervention =
+    hasTeacherVisibleInterventionRequest && !hasVerifiedTeacherIntervention;
+  const lifecycleState = hasUnverifiedTeacherIntervention ? 'completed' : requestedLifecycleState;
   const returnTo = sanitizeReturnTo(firstQueryValue(query.returnTo));
   const isDocumentFeedbackAssignment = source === 'document-feedback' && Boolean(criterionId);
   const supported = assignmentId === REPORT_CONTROL_DESIGN.assignmentId || isDocumentFeedbackAssignment;
@@ -104,8 +124,17 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
     action: action ?? null,
     intent: intent ?? null,
     returnTo,
+    teacherInterventionId,
     completionTarget: supported ? 'evidence-growth-portfolio' : 'unsupported',
     supported,
+    teacherIntervention: supported && !hasUnverifiedTeacherIntervention
+      ? buildStudentVisibleTeacherIntervention({
+        assignmentId,
+        status: lifecycleState,
+        source,
+        teacherInterventionId,
+      })
+      : null,
   };
   const returnHref = buildFeedbackTaskHref(returnTo ?? '/assessment/document-feedback', context, {
     status: context.lifecycleState,
@@ -119,9 +148,14 @@ export function buildFeedbackTaskContext(query: FeedbackTaskQuery): StudentFeedb
   };
 }
 
+export function shouldRenderPortfolioFeedbackTask(query: FeedbackTaskQuery): boolean {
+  return firstQueryValue(query.intent) === 'collect' && Boolean(buildFeedbackTaskContext(query)?.supported);
+}
+
 export function buildFeedbackTaskHref(
   baseHref: string,
-  context: Pick<StudentFeedbackTaskContext, 'assignmentId' | 'criterionId' | 'source' | 'lifecycleState' | 'returnTo'>,
+  context: Pick<StudentFeedbackTaskContext, 'assignmentId' | 'criterionId' | 'source' | 'lifecycleState' | 'returnTo'>
+    & Partial<Pick<StudentFeedbackTaskContext, 'teacherInterventionId'>>,
   options: {
     status?: FeedbackTaskLifecycleState;
     intent?: string;
@@ -146,10 +180,59 @@ export function buildFeedbackTaskHref(
   }
   if (options.intent) params.set('intent', options.intent);
   if (options.action) params.set('action', options.action);
+  if (context.teacherInterventionId) params.set('teacherInterventionId', context.teacherInterventionId);
   if (!options.omitReturnTo && context.returnTo) params.set('returnTo', context.returnTo);
   const query = params.toString();
   const hrefWithQuery = query ? `${path}?${query}` : path;
   return rawHash === undefined ? hrefWithQuery : `${hrefWithQuery}#${rawHash}`;
+}
+
+export async function resolveVerifiedTeacherInterventionId(input: {
+  db: {
+    evidenceOutbox: {
+      findFirst: (args: any) => Promise<{ causationId: string; payload: unknown } | null>;
+    };
+  };
+  userId?: string | null;
+  teacherInterventionId?: string | string[] | null;
+  assignment?: string | string[] | null;
+}) {
+  const teacherInterventionId = firstQueryValue(input.teacherInterventionId);
+  const assignmentId = firstQueryValue(input.assignment);
+  if (!input.userId || !teacherInterventionId) return null;
+  const row = await input.db.evidenceOutbox.findFirst({
+    where: {
+      ownerUserId: input.userId,
+      causationId: teacherInterventionId,
+      eventType: { startsWith: 'teacher_evidence_intervention.' },
+    },
+    select: { causationId: true, payload: true },
+  });
+  if (!row || !isVerifiedTeacherInterventionOutboxPayload(row.payload, teacherInterventionId, assignmentId)) {
+    return null;
+  }
+  return row.causationId;
+}
+
+function isVerifiedTeacherInterventionOutboxPayload(
+  payload: unknown,
+  teacherInterventionId: string,
+  assignmentId: string | null,
+) {
+  if (!payload || typeof payload !== 'object') return false;
+  const intervention = (payload as { intervention?: unknown }).intervention;
+  if (!intervention || typeof intervention !== 'object') return false;
+  const record = intervention as {
+    id?: unknown;
+    status?: unknown;
+    studentFacingTarget?: { href?: unknown; surface?: unknown };
+  };
+  if (record.id !== teacherInterventionId || record.status !== 'student-visible') return false;
+  if (!assignmentId) return true;
+  const href = typeof record.studentFacingTarget?.href === 'string' ? record.studentFacingTarget.href : null;
+  if (!href) return false;
+  const query = href.split('?')[1] ?? '';
+  return new URLSearchParams(query).get('assignment') === assignmentId;
 }
 
 function isExternalHref(href: string): boolean {
@@ -197,7 +280,9 @@ export function buildFeedbackTaskStatusState(
     return createAuditedActionState({
       identity,
       status: 'succeeded',
-      message: '反馈任务已写回学习证据、成长记录和作品集候选。',
+      message: context.teacherIntervention
+        ? '教师处置已写回学习证据、成长记录和作品集候选，并对学生可见。'
+        : '反馈任务已写回学习证据、成长记录和作品集候选。',
       nextAction: '查看证据、成长和作品集候选',
     });
   }
@@ -303,6 +388,7 @@ function buildFeedbackTaskBadges(context: Omit<StudentFeedbackTaskContext, 'badg
     `反馈任务：${context.assignmentTitle}`,
     context.criterionLabel ? `量规项：${context.criterionLabel}` : null,
     `状态：${STATE_LABELS[context.lifecycleState]}`,
+    context.teacherIntervention ? context.teacherIntervention.label : null,
     context.source ? `来源：${context.source}` : null,
   ].filter((item): item is string => Boolean(item));
 }

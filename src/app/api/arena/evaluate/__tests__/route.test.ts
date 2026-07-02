@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   createPersistedArenaSubmission: vi.fn(),
+  persistArenaSubmissionEvidenceWriteback: vi.fn(),
   getArenaPlantAdapterForOfficialEvaluationTaskId: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
 }));
@@ -18,6 +19,10 @@ vi.mock('@/features/arena/submissions/persistence', () => ({
 
 vi.mock('@/features/arena/submissions/prisma-store', () => ({
   prismaArenaSubmissionStore: { marker: 'store' },
+}));
+
+vi.mock('@/features/arena/evidence-writeback-persistence', () => ({
+  persistArenaSubmissionEvidenceWriteback: mocks.persistArenaSubmissionEvidenceWriteback,
 }));
 
 vi.mock('@/features/arena/teacher/publication-store', () => ({
@@ -44,6 +49,36 @@ const artifact: ControllerArtifact = {
   params: { kp: 2.4, ki: 0.8, kd: 0.35 },
   createdAt: '2026-05-10T10:00:00.000Z',
 };
+
+function acceptedWriteback(submissionId: string) {
+  return {
+    status: 'accepted' as const,
+    sourceRef: { kind: 'ArenaSubmission' as const, id: submissionId },
+    attemptStatus: 'effective' as const,
+    visibilityState: 'materialized' as const,
+    targetLabel: '控制校正 Arena 官方迁移验证',
+    summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+    recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
+    limitationCodes: [],
+    overlayCount: 1,
+    terminalValidationAccepted: true,
+  };
+}
+
+function duplicateOnlyWriteback(submissionId: string) {
+  return {
+    status: 'blocked' as const,
+    sourceRef: { kind: 'ArenaSubmission' as const, id: submissionId },
+    attemptStatus: 'duplicate-only' as const,
+    visibilityState: 'diagnostic-only' as const,
+    targetLabel: '控制校正 Arena 官方迁移验证',
+    summary: '重复官方提交复用既有评测，只保留诊断记录，不新增终端掌握判定。',
+    recoveryAction: '重新提交一次截止前、有效且非零分的官方 Arena 结果；若仍无法写回，请由教师在报告中复核证据绑定。',
+    limitationCodes: [],
+    overlayCount: 0,
+    terminalValidationAccepted: false,
+  };
+}
 
 function postJson(body: unknown) {
   return POST(new Request('http://localhost/api/arena/evaluate', {
@@ -87,6 +122,13 @@ describe('POST /api/arena/evaluate', () => {
       submittedAt: input.submittedAt,
       reusedEvaluation: input.artifact.id === 'artifact-route-b',
     }));
+    mocks.persistArenaSubmissionEvidenceWriteback.mockImplementation(async (_db, submission) => ({
+      evidenceWriteback: submission.reusedEvaluation
+        ? duplicateOnlyWriteback(submission.id)
+        : acceptedWriteback(submission.id),
+      dedupeKey: `dedupe-${submission.id}`,
+      learningFactCreated: !submission.reusedEvaluation,
+    }));
   });
 
   it('requires an authenticated user', async () => {
@@ -129,6 +171,89 @@ describe('POST /api/arena/evaluate', () => {
     expect(payload.error).toBe('Arena evaluation failed');
   });
 
+  it('allows retrying the same contextual artifact after writeback persistence fails before accepted outbox publication', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
+    mocks.persistArenaSubmissionEvidenceWriteback
+      .mockRejectedValueOnce(new Error('LearningFact write failed before outbox publication'))
+      .mockImplementationOnce(async (_db, submission) => ({
+        evidenceWriteback: acceptedWriteback(submission.id),
+        dedupeKey: `dedupe-${submission.id}`,
+        learningFactCreated: true,
+      }));
+    mocks.createPersistedArenaSubmission
+      .mockImplementationOnce(async (input) => ({
+        id: 'submission-orphan',
+        taskId: input.taskId,
+        userId: input.userId,
+        publicationId: input.publicationId,
+        classId: input.classId,
+        seasonId: input.seasonId,
+        isLate: input.isLate,
+        studentLabel: input.studentLabel,
+        artifactHash: 'artifact-route-hash',
+        artifact: input.artifact,
+        evaluation: {
+          taskId: input.taskId,
+          artifact: input.artifact,
+          valid: true,
+          score: 88,
+          metrics: {},
+          satisfaction: {},
+          hardConstraintResults: [],
+          penalties: [],
+          explanation: ['评测完成'],
+        },
+        submittedAt: input.submittedAt,
+        reusedEvaluation: false,
+      }))
+      .mockImplementationOnce(async (input) => ({
+        id: 'submission-retry',
+        taskId: input.taskId,
+        userId: input.userId,
+        publicationId: input.publicationId,
+        classId: input.classId,
+        seasonId: input.seasonId,
+        isLate: input.isLate,
+        studentLabel: input.studentLabel,
+        artifactHash: 'artifact-route-hash',
+        artifact: input.artifact,
+        evaluation: {
+          taskId: input.taskId,
+          artifact: input.artifact,
+          valid: true,
+          score: 88,
+          metrics: {},
+          satisfaction: {},
+          hardConstraintResults: [],
+          penalties: [],
+          explanation: ['评测完成'],
+        },
+        submittedAt: input.submittedAt,
+        reusedEvaluation: false,
+      }));
+
+    const first = await postJson({
+      taskId: artifact.taskId,
+      artifact,
+      publicationId: 'publication-1',
+    });
+    const second = await postJson({
+      taskId: artifact.taskId,
+      artifact: { ...artifact, id: 'artifact-route-retry' },
+      publicationId: 'publication-1',
+    });
+    const payload = await second.json();
+
+    expect(first.status).toBe(500);
+    expect(second.status).toBe(200);
+    expect(payload.submission.reusedEvaluation).toBe(false);
+    expect(payload.evidenceWriteback).toMatchObject({
+      status: 'accepted',
+      sourceRef: { kind: 'ArenaSubmission', id: 'submission-retry' },
+      terminalValidationAccepted: true,
+    });
+  });
+
   it('reports pending Arena database migrations as a specific Chinese error', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
     const migrationError = Object.assign(
@@ -159,7 +284,7 @@ describe('POST /api/arena/evaluate', () => {
     expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
   });
 
-  it('persists duplicate evaluation reuse through the Arena submission store', async () => {
+  it('persists duplicate evaluation reuse as diagnostic-only writeback without mastery evidence', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
 
     const first = await postJson({ taskId: artifact.taskId, artifact });
@@ -169,6 +294,16 @@ describe('POST /api/arena/evaluate', () => {
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(payload.submission.reusedEvaluation).toBe(true);
+    expect(payload.evidenceWriteback).toMatchObject({
+      status: 'blocked',
+      sourceRef: { kind: 'ArenaSubmission', id: 'submission-artifact-route-b' },
+      attemptStatus: 'duplicate-only',
+      limitationCodes: [],
+    });
+    expect(payload.submission.evidenceWriteback).toMatchObject({
+      status: 'blocked',
+      terminalValidationAccepted: false,
+    });
     expect(mocks.getArenaPlantAdapterForOfficialEvaluationTaskId).toHaveBeenCalledWith(artifact.taskId);
     expect(mocks.createPersistedArenaSubmission).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',

@@ -145,8 +145,9 @@ export function SimulationLocalToolWorkspace({
         <div
           role="group"
           aria-label="仿真局部工具"
-          className="hidden"
+          className="order-2 mt-3 flex min-h-10 flex-wrap items-center gap-2 rounded-lg border border-platform-border-strong bg-platform-surface/92 px-3 py-2 shadow-lg"
           data-simulation-local-bottom-toolbar
+          data-simulation-local-bottom-toolbar-status="visible"
           data-simulation-dock-offset-anchor="bottom-toolbar"
           data-simulation-state-role="replay"
           data-task-workspace-zone="bottom-tools"

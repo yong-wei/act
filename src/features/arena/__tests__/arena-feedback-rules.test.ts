@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import { buildArenaSubmissionFeedback } from '../student/arena-feedback-rules';
 import { ArenaPersonalFeedback } from '../student/arena-personal-feedback';
+import { buildArenaSubmissionEvidenceWriteback } from '../evidence-writeback';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { ControllerArtifact, ControllerMethod } from '../types';
 
@@ -16,7 +17,7 @@ function artifact(input: {
 }): ControllerArtifact {
   return {
     id: input.id,
-    taskId: 'task-feedback',
+    taskId: 'task-second-order-lead-pid',
     method: input.method ?? 'pid',
     params: input.params ?? { kp: 2.4, ki: 0.8, kd: 0.35 },
     createdAt: '2026-05-16T08:00:00.000Z',
@@ -36,18 +37,19 @@ function submission(input: {
   metadata?: Record<string, unknown>;
   evaluationProtocolVersion?: string;
   isLate?: boolean;
+  reusedEvaluation?: boolean;
 }): ArenaSubmissionRecord {
   const currentArtifact = artifact({ id: `artifact-${input.id}`, method: input.method, params: input.params });
 
-  return {
+  const record: ArenaSubmissionRecord = {
     id: input.id,
-    taskId: 'task-feedback',
+    taskId: 'task-second-order-lead-pid',
     userId: 'student-a',
     studentLabel: '学生甲',
     artifactHash: `hash-${input.id}`,
     artifact: currentArtifact,
     evaluation: {
-      taskId: 'task-feedback',
+      taskId: 'task-second-order-lead-pid',
       artifact: currentArtifact,
       valid: input.valid,
       score: input.score,
@@ -73,14 +75,26 @@ function submission(input: {
     evaluationProtocolVersion: input.evaluationProtocolVersion,
     isLate: input.isLate,
     submittedAt: input.submittedAt,
-    reusedEvaluation: false,
+    reusedEvaluation: input.reusedEvaluation ?? false,
+  };
+  return {
+    ...record,
+    evidenceWriteback: buildArenaSubmissionEvidenceWriteback(record),
+  };
+}
+
+function withPersistedStudentWriteback(record: ArenaSubmissionRecord): ArenaSubmissionRecord {
+  return {
+    ...record,
+    evidenceWriteback: buildArenaSubmissionEvidenceWriteback(record),
   };
 }
 
 describe('arena student diagnostic feedback rules', () => {
   it('explains a valid ranked official submission with strongest and weakest metrics', () => {
+    const latest = submission({ id: 'latest', score: 86, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' });
     const feedback = buildArenaSubmissionFeedback({
-      latest: submission({ id: 'latest', score: 86, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' }),
+      latest: withPersistedStudentWriteback(latest),
       mode: 'white-box',
     });
 
@@ -89,7 +103,54 @@ describe('arena student diagnostic feedback rules', () => {
     expect(feedback.summary).toContain('86');
     expect(feedback.strongestMetric).toMatchObject({ metricId: 'steadyStateError', satisfaction: 0.92 });
     expect(feedback.weakestMetric).toMatchObject({ metricId: 'controlEnergy', satisfaction: 0.63 });
+    expect(feedback.evidenceWriteback).toMatchObject({
+      status: 'accepted',
+      visibilityState: 'materialized',
+      sourceRef: { kind: 'ArenaSubmission', id: 'latest' },
+      terminalValidationAccepted: true,
+      limitationCodes: [],
+    });
     expect(feedback.nextStepSuggestion).toContain('控制能量');
+  });
+
+  it('does not recompute accepted evidence writeback when persisted outcome is missing', () => {
+    const latest = submission({ id: 'missing-writeback', score: 86, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' });
+    delete latest.evidenceWriteback;
+    const feedback = buildArenaSubmissionFeedback({
+      latest,
+      mode: 'white-box',
+    });
+
+    expect(feedback.evidenceWriteback).toMatchObject({
+      status: 'degraded',
+      sourceRef: { kind: 'ArenaSubmission', id: 'missing-writeback' },
+      visibilityState: 'unavailable',
+      terminalValidationAccepted: false,
+      limitationCodes: [],
+    });
+  });
+
+  it('keeps duplicate-only reused evaluations out of official ranking feedback', () => {
+    const duplicate = submission({
+      id: 'duplicate-only',
+      score: 91,
+      valid: true,
+      reusedEvaluation: true,
+      submittedAt: '2026-05-16T08:20:00.000Z',
+    });
+
+    const feedback = buildArenaSubmissionFeedback({
+      latest: withPersistedStudentWriteback(duplicate),
+      mode: 'white-box',
+    });
+
+    expect(feedback.rankingStatus).toBe('not_ranked');
+    expect(feedback.title).toContain('未进入正式排名');
+    expect(feedback.evidenceWriteback).toMatchObject({
+      status: 'blocked',
+      attemptStatus: 'duplicate-only',
+      terminalValidationAccepted: false,
+    });
   });
 
   it('explains hard-constraint failures as not ranked with Chinese repair suggestions', () => {
@@ -121,33 +182,48 @@ describe('arena student diagnostic feedback rules', () => {
       submittedAt: '2026-05-16T08:00:00.000Z',
     });
     const zeroScore = buildArenaSubmissionFeedback({
-      latest: submission({ id: 'zero-score', score: 0, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' }),
+      latest: withPersistedStudentWriteback(submission({ id: 'zero-score', score: 0, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' })),
       previousSubmissions: [previousEffective],
       mode: 'white-box',
     });
     const late = buildArenaSubmissionFeedback({
-      latest: submission({ id: 'late', score: 92, valid: true, isLate: true, submittedAt: '2026-05-16T08:21:00.000Z' }),
+      latest: withPersistedStudentWriteback(submission({ id: 'late', score: 92, valid: true, isLate: true, submittedAt: '2026-05-16T08:21:00.000Z' })),
       previousSubmissions: [previousEffective],
       mode: 'white-box',
     });
     const invalid = buildArenaSubmissionFeedback({
-      latest: submission({ id: 'invalid-latest', score: 95, valid: false, submittedAt: '2026-05-16T08:22:00.000Z' }),
+      latest: withPersistedStudentWriteback(submission({ id: 'invalid-latest', score: 95, valid: false, submittedAt: '2026-05-16T08:22:00.000Z' })),
       previousSubmissions: [previousEffective],
       mode: 'white-box',
     });
 
     expect(zeroScore.rankingStatus).toBe('not_ranked');
     expect(zeroScore.title).toContain('未进入正式排名');
-    expect(zeroScore.personalBestComparison).toEqual({ state: 'none', delta: 0 });
+    expect(zeroScore.personalBestComparison).toEqual({ state: 'none', delta: 0, reason: 'zero-score' });
     expect(zeroScore.summary).toBe('本次官方评测得分 0 分。');
+    expect(zeroScore.evidenceWriteback).toMatchObject({
+      status: 'blocked',
+      visibilityState: 'diagnostic-only',
+      limitationCodes: [],
+    });
     expect(late.rankingStatus).toBe('not_ranked');
     expect(late.title).toContain('未进入正式排名');
-    expect(late.personalBestComparison).toEqual({ state: 'none', delta: 0 });
+    expect(late.personalBestComparison).toEqual({ state: 'none', delta: 0, reason: 'late' });
     expect(late.summary).toBe('本次官方评测得分 92 分。');
+    expect(late.evidenceWriteback).toMatchObject({
+      status: 'blocked',
+      visibilityState: 'diagnostic-only',
+      limitationCodes: [],
+    });
     expect(invalid.rankingStatus).toBe('not_ranked');
     expect(invalid.title).toContain('未进入正式排名');
-    expect(invalid.personalBestComparison).toEqual({ state: 'none', delta: 0 });
+    expect(invalid.personalBestComparison).toEqual({ state: 'none', delta: 0, reason: 'invalid' });
     expect(invalid.summary).toBe('本次官方评测得分 95 分。');
+    expect(invalid.evidenceWriteback).toMatchObject({
+      status: 'blocked',
+      visibilityState: 'diagnostic-only',
+      limitationCodes: [],
+    });
   });
 
   it('compares the latest submission with the previous personal best', () => {
@@ -435,6 +511,9 @@ describe('arena personal feedback component', () => {
     expect(html).toContain('官方评测');
     expect(html).toContain('隐藏场景最差表现');
     expect(html).toContain('仅官方评测后显示');
+    expect(html).toContain('证据回流');
+    expect(html).not.toContain('missing-target-binding');
+    expect(html).not.toContain('attempt-not-effective');
   });
 
   it('uses the shared feedback component in the white-box submission panel', () => {

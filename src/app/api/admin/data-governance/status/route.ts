@@ -10,6 +10,12 @@ import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { redisClient } from '@/lib/redis-client';
+import {
+  buildAdminOperationIdempotencyKey,
+  buildAdminOperationLedgerEntry,
+  operationLedgerHeaders,
+} from '@/lib/admin-operation-ledger';
+import { persistAdminOperationLedger } from '@/lib/admin-operation-ledger-runtime';
 import { summarizeLearningFactTypes } from '@/features/admin/states/system-usage-data';
 import {
   buildEvidenceSourceCoverageReport,
@@ -18,7 +24,19 @@ import {
   type EvidenceSourceCoverageReport,
 } from '@/lib/data-governance/evidence-source-catalog';
 import { getStudentEvidenceFeatureCacheAdminSummary } from '@/lib/data-governance/student-evidence-feature-cache';
+import { buildControlCorrectionSarDemoFixture } from '@/lib/data-governance/sar-diagnostics';
+import { createSarPersistenceRepository } from '@/lib/data-governance/sar-persistence';
+import {
+  buildControlCorrectionSarRefreshSources,
+  runSarProjectionRefresh,
+  type SarArenaAuthorityInput,
+  type SarRefreshSourceInput,
+} from '@/lib/data-governance/sar-refresh';
 import { parseSessionGovernanceSummary } from '@/lib/classroom-session-statistics';
+import type {
+  GovernanceActionAuditRecord,
+  GovernanceRiskDispositionStatus,
+} from '@/features/admin/admin-governance-action-contract';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +57,109 @@ function compactSourceLabel(...values: unknown[]): string | null {
 
 function readString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function readGovernanceAuditLog(value: unknown): GovernanceActionAuditRecord[] {
+  const governance = readObject(readObject(value).adminGovernance);
+  return Array.isArray(governance.auditLog)
+    ? governance.auditLog.filter((item): item is GovernanceActionAuditRecord => (
+        Boolean(
+          item
+          && typeof item === 'object'
+          && !Array.isArray(item)
+          && typeof (item as Record<string, unknown>).actorId === 'string'
+          && typeof (item as Record<string, unknown>).action === 'string'
+          && typeof (item as Record<string, unknown>).riskId === 'string'
+          && typeof (item as Record<string, unknown>).recordedAt === 'string'
+        )
+      ))
+    : [];
+}
+
+function readGovernanceAssignee(value: unknown): string | null {
+  const governance = readObject(readObject(value).adminGovernance);
+  return readString(governance.currentAssignee) ?? null;
+}
+
+function readUndoAvailable(value: unknown): boolean {
+  const auditLog = readGovernanceAuditLog(value);
+  const latestDisposition = [...auditLog].reverse().find((item) => (
+    item.action === 'resolve'
+    || item.action === 'ignore'
+    || item.action === 'reopen'
+    || item.action === 'undo'
+  ));
+  return Boolean(
+    latestDisposition
+    && (latestDisposition.action === 'resolve' || latestDisposition.action === 'ignore')
+    && latestDisposition.undoAvailable === true
+  );
+}
+
+function readGovernanceDisposition(value: {
+  isResolved: boolean;
+  resolutionNote?: string | null;
+  evidenceJson: unknown;
+}): GovernanceRiskDispositionStatus {
+  const lastDisposition = readString(readObject(readObject(value.evidenceJson).adminGovernance).lastDisposition);
+  if (value.isResolved && (lastDisposition === 'ignored' || lastDisposition === 'resolved')) {
+    return lastDisposition;
+  }
+  if (!value.isResolved && lastDisposition === 'open') {
+    return 'open';
+  }
+  const auditLog = readGovernanceAuditLog(value.evidenceJson);
+  const latestDisposition = [...auditLog].reverse().find((item) => (
+    item.action === 'resolve'
+    || item.action === 'ignore'
+    || item.action === 'reopen'
+    || item.action === 'undo'
+  ));
+  if (!value.isResolved) return 'open';
+  if (latestDisposition?.action === 'ignore' || latestDisposition?.outcome === 'ignored') return 'ignored';
+  if (value.resolutionNote?.includes('忽略')) return 'ignored';
+  return 'resolved';
+}
+
+function mapGovernanceRiskPayload(risk: {
+  id: string;
+  userId: string;
+  flagType: string;
+  severity: string;
+  description: string;
+  triggeredAt: Date;
+  isResolved: boolean;
+  resolvedAt?: Date | null;
+  resolutionNote?: string | null;
+  evidenceJson: unknown;
+  user: {
+    name: string | null;
+    email: string | null;
+  };
+}) {
+  const userToken = risk.userId.slice(0, 12);
+  const userName = risk.user.name || `学生 ${userToken}`;
+  const safeLabel = `${userName} · ${risk.flagType} · ${risk.severity}`;
+  const affectedObjectLabel = `student:${userToken}`;
+  return {
+    id: risk.id,
+    userId: risk.userId,
+    userName,
+    flagType: risk.flagType,
+    severity: risk.severity,
+    description: risk.description,
+    triggeredAt: risk.triggeredAt.toISOString(),
+    isResolved: risk.isResolved,
+    resolvedAt: risk.resolvedAt?.toISOString() ?? null,
+    resolutionNote: risk.resolutionNote ?? null,
+    safeLabel,
+    affectedObjectLabel,
+    evidenceHref: `/admin/data-governance?tab=risks&riskId=${encodeURIComponent(risk.id)}&action=evidence`,
+    currentAssignee: readGovernanceAssignee(risk.evidenceJson),
+    dispositionStatus: readGovernanceDisposition(risk),
+    undoAvailable: readUndoAvailable(risk.evidenceJson),
+    auditTrail: readGovernanceAuditLog(risk.evidenceJson),
+  };
 }
 
 function buildArenaPreviewBoundaryMetadata(row: {
@@ -422,6 +543,88 @@ async function collectEvidenceSourceCoverageReport(): Promise<EvidenceSourceCove
   return buildEvidenceSourceCoverageReport({ rowsBySource });
 }
 
+async function collectSarArenaOfficialAuthority(): Promise<SarArenaAuthorityInput> {
+  const submissions = await prisma.arenaSubmission.findMany({
+    orderBy: { submittedAt: 'desc' },
+    take: SOURCE_COVERAGE_ROW_LIMIT,
+    select: {
+      id: true,
+      taskId: true,
+      score: true,
+      valid: true,
+      submissionAttemptKey: true,
+      submittedAt: true,
+      evaluationRunId: true,
+    },
+  });
+  const submissionEvaluationRunIds = Array.from(new Set(
+    submissions.map((submission) => submission.evaluationRunId),
+  )).sort((left, right) => left.localeCompare(right));
+  const evaluationRuns = submissionEvaluationRunIds.length
+    ? await prisma.arenaEvaluationRun.findMany({
+        where: { id: { in: submissionEvaluationRunIds } },
+        orderBy: { completedAt: 'desc' },
+        select: {
+          id: true,
+          taskId: true,
+          metrics: true,
+          protocolVersion: true,
+          completedAt: true,
+        },
+      })
+    : [];
+  const returnedEvaluationRunIds = new Set(evaluationRuns.map((run) => run.id));
+  const officialSubmissions = submissions.filter((submission) => (
+    returnedEvaluationRunIds.has(submission.evaluationRunId)
+  ));
+  const latestEvaluationCompletedAt = evaluationRuns
+    .map((run) => run.completedAt.toISOString())
+    .sort()
+    .at(-1) ?? null;
+
+  return {
+    scoreSource: 'ArenaSubmission',
+    validitySource: 'ArenaSubmission',
+    rankingSource: 'ArenaSubmission',
+    attemptPolicySource: 'ArenaSubmission',
+    evaluationMetricsSource: 'ArenaEvaluationRun',
+    auxiliarySources: ['LearningFact', 'SARTrace', 'KAQWriteback'],
+    officialRecords: {
+      submissionCount: officialSubmissions.length,
+      evaluationRunCount: evaluationRuns.length,
+      latestSubmissionAt: officialSubmissions[0]?.submittedAt.toISOString() ?? null,
+      latestEvaluationCompletedAt,
+      scoreRefs: officialSubmissions.map((submission) => `ArenaSubmission:${submission.id}:score:${submission.score}`),
+      validityRefs: officialSubmissions.map((submission) => `ArenaSubmission:${submission.id}:valid:${submission.valid}`),
+      rankingRefs: officialSubmissions.map((submission) => `ArenaSubmission:${submission.taskId}:score-rank`),
+      attemptPolicyRefs: officialSubmissions.map((submission) => (
+        `ArenaSubmission:${submission.id}:attempt:${submission.submissionAttemptKey ?? 'submission-order'}`
+      )),
+      evaluationMetricRefs: evaluationRuns.map((run) => `ArenaEvaluationRun:${run.id}:metrics:${run.protocolVersion}`),
+    },
+  };
+}
+
+function markSarRefreshPersistenceBlocked(
+  sources: SarRefreshSourceInput[],
+  blocked: boolean,
+): SarRefreshSourceInput[] {
+  if (!blocked) return sources;
+  return sources.map((source) => (
+    source.result
+      ? {
+          ...source,
+          failureCount: Math.max(source.failureCount ?? 0, 1),
+          retryState: 'blocked',
+          limitations: [
+            ...(source.limitations ?? []),
+            'sar-persistence-file-path-required',
+          ],
+        }
+      : source
+  ));
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -434,6 +637,7 @@ export async function GET(request: NextRequest) {
     const requestedTab = request.nextUrl.searchParams.get('tab')?.trim() || null;
     const requestedGraphNodeId = request.nextUrl.searchParams.get('graphNodeId')?.trim() || null;
     const requestedGraphAudit = request.nextUrl.searchParams.get('audit')?.trim() || null;
+    const shouldRecordRefresh = request.nextUrl.searchParams.get('recordOperation') === 'refresh';
     const graphCenterAudit = requestedGraphNodeId
       ? {
           graphNodeId: requestedGraphNodeId,
@@ -502,6 +706,7 @@ export async function GET(request: NextRequest) {
       featureCache,
       recentSessionQualityReports,
       sourceCoverageReport,
+      sarArenaAuthority,
     ] = await Promise.all([
       prisma.studentCompetencySnapshot.count(),
       prisma.classCompetencySnapshot.count(),
@@ -539,6 +744,9 @@ export async function GET(request: NextRequest) {
           description: true,
           triggeredAt: true,
           isResolved: true,
+          resolvedAt: true,
+          resolutionNote: true,
+          evidenceJson: true,
           user: {
             select: {
               name: true,
@@ -574,10 +782,11 @@ export async function GET(request: NextRequest) {
         },
       }),
       collectEvidenceSourceCoverageReport(),
+      collectSarArenaOfficialAuthority(),
     ]);
     const targetRiskFlag = requestedRiskId && !recentRiskFlags.some((risk) => risk.id === requestedRiskId)
       ? await prisma.studentRiskFlag.findUnique({
-          where: { id: requestedRiskId, isResolved: false },
+          where: { id: requestedRiskId },
           select: {
             id: true,
             userId: true,
@@ -586,6 +795,9 @@ export async function GET(request: NextRequest) {
             description: true,
             triggeredAt: true,
             isResolved: true,
+            resolvedAt: true,
+            resolutionNote: true,
+            evidenceJson: true,
             user: {
               select: {
                 name: true,
@@ -658,9 +870,85 @@ export async function GET(request: NextRequest) {
       {},
     );
 
-    return NextResponse.json({
+    const completedAt = new Date().toISOString();
+    const sarDiagnostics = buildControlCorrectionSarDemoFixture(completedAt).report;
+    const sarPersistenceFilePath = process.env.SAR_PERSISTENCE_FILE_PATH?.trim() || undefined;
+    const sarPersistencePathMissing = shouldRecordRefresh && !sarPersistenceFilePath;
+    const sarRefreshSources = markSarRefreshPersistenceBlocked(
+      buildControlCorrectionSarRefreshSources(completedAt, {
+        coverageSources: sourceCoverageReport.sources,
+        arenaAuthority: sarArenaAuthority,
+      }),
+      sarPersistencePathMissing,
+    );
+    const sarRefresh = runSarProjectionRefresh({
+      repository: createSarPersistenceRepository({
+        filePath: sarPersistencePathMissing ? undefined : sarPersistenceFilePath,
+        now: () => completedAt,
+      }),
+      sources: sarRefreshSources,
+      now: completedAt,
+      persist: shouldRecordRefresh && !sarPersistencePathMissing,
+    });
+    const sarRefreshHealth = sarRefresh.health;
+    const sarRefreshFailed = sarRefreshHealth.status === 'failed'
+      || sarRefreshHealth.totals.failureCount > 0;
+    const sarRefreshOperationOutcome = sarPersistencePathMissing
+      ? 'blocked'
+      : sarRefreshFailed
+        ? 'failed'
+        : 'completed';
+    const sarRefreshAuditStatus = sarPersistencePathMissing
+      ? '被阻止'
+      : sarRefreshFailed
+        ? '失败'
+        : '已完成';
+    const operationLedger = shouldRecordRefresh
+      ? buildAdminOperationLedgerEntry({
+          kind: 'admin-governance-refresh',
+          actorId: session.user.id,
+          actorRole: session.user.role,
+          scope: 'admin-data-governance-status',
+          startedAt: completedAt,
+          completedAt,
+          outcome: sarRefreshOperationOutcome,
+          idempotencyKey: buildAdminOperationIdempotencyKey([
+            'admin-governance-refresh',
+            session.user.id,
+            requestedRiskId ?? '',
+            requestedSurface ?? '',
+            requestedGraphNodeId ?? '',
+            requestedGraphAudit ?? '',
+          ]),
+          rollback: {
+            available: false,
+            rationale: '数据治理刷新只读取状态，不修改业务数据，无需回滚。',
+          },
+          auditSummary: `数据治理状态刷新${sarRefreshAuditStatus}：activeRiskFlags=${riskFlagCount}，learningFacts=${learningFactCount}，sarRefresh=${sarRefreshHealth.status}，sarStaleSources=${sarRefreshHealth.totals.staleSourceCount}，sarFailures=${sarRefreshHealth.totals.failureCount}。`,
+          recoveryState: {
+            status: sarPersistencePathMissing || sarRefreshFailed ? 'retry' : 'available',
+            action: sarPersistencePathMissing
+              ? '配置 SAR_PERSISTENCE_FILE_PATH 后重试刷新'
+              : sarRefreshFailed
+                ? '修复 SAR 刷新失败源后重试刷新'
+              : '复核治理风险或导出风险文件',
+          },
+        })
+      : null;
+    if (operationLedger) {
+      sarRefreshHealth.operationEvidence = {
+        operationId: operationLedger.operationId,
+        idempotencyKey: operationLedger.idempotencyKey,
+      };
+    }
+    if (operationLedger) {
+      await persistAdminOperationLedger(operationLedger);
+    }
+
+    const payload = {
       status: 'healthy',
-      timestamp: new Date().toISOString(),
+      timestamp: completedAt,
+      operationLedger: operationLedger ?? undefined,
       authoringContext,
       graphCenterAudit,
       queues: queueStats,
@@ -687,31 +975,13 @@ export async function GET(request: NextRequest) {
         snapshotAt: item.snapshotAt.toISOString(),
         factCount: item.factCount,
       })),
-      recentRiskFlags: recentRiskFlags.map((risk) => ({
-        id: risk.id,
-        userId: risk.userId,
-        userName: risk.user.name || risk.user.email || risk.userId.slice(0, 8),
-        flagType: risk.flagType,
-        severity: risk.severity,
-        description: risk.description,
-        triggeredAt: risk.triggeredAt.toISOString(),
-        isResolved: risk.isResolved,
-      })),
-      targetRiskFlag: targetRiskFlag
-        ? {
-            id: targetRiskFlag.id,
-            userId: targetRiskFlag.userId,
-            userName: targetRiskFlag.user.name || targetRiskFlag.user.email || targetRiskFlag.userId.slice(0, 8),
-            flagType: targetRiskFlag.flagType,
-            severity: targetRiskFlag.severity,
-            description: targetRiskFlag.description,
-            triggeredAt: targetRiskFlag.triggeredAt.toISOString(),
-            isResolved: targetRiskFlag.isResolved,
-          }
-        : null,
+      recentRiskFlags: recentRiskFlags.map(mapGovernanceRiskPayload),
+      targetRiskFlag: targetRiskFlag ? mapGovernanceRiskPayload(targetRiskFlag) : null,
       factTypeDistribution: summarizeLearningFactTypes(learningFacts),
       sessionQuality: summarizeSessionQuality(recentSessionQualityReports),
       featureCache,
+      sarDiagnostics,
+      sarRefreshHealth,
       sourceCoverage: sourceCoverageReport,
       sourceCatalog: {
         totalSources: getEvidenceSourceCatalog().length,
@@ -735,6 +1005,9 @@ export async function GET(request: NextRequest) {
           };
         }),
       },
+    };
+    return NextResponse.json(payload, {
+      headers: operationLedger ? operationLedgerHeaders(operationLedger) : undefined,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);

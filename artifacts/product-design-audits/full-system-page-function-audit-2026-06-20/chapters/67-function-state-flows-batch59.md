@@ -133,3 +133,10 @@
 - 443 已关闭：报告反馈页把修订、采用、完成、待写回、已写回和教师可见纳入反馈任务状态机，并提供缺失对象恢复信息；写回成功不再由 `action=writeback` 直接伪造。
 - 444 已关闭：自适应练习、任务大厅、仿真任务、互动资源、证据、成长和作品集共用 `assignment/criterion/origin/returnTo/completionTarget` 上下文，作品集使用候选草稿表达收录前状态。
 - 451 的学生反馈、任务启动和作品集候选部分已关闭：相关目标页通过统一状态面板呈现当前状态和下一步；真实持久化写回、配置测试、统计导出等仍由后续垂直变更关闭。
+
+## #749 教师证据处置闭环整改记录（2026-06-30）
+
+整改变更：`audit-remediation-teacher-evidence-intervention-closure`。证据：`../remediation/audit-remediation-teacher-evidence-intervention-closure/evidence.md`。
+
+- 445、446、447 的教师后续处置部分已关闭：报告交付、评分审批和教师学生证据 deep link 现在共享 intervention action，学生侧目标、幂等键、来源证据和上下文恢复可追踪。
+- 451 的教师处置状态部分已关闭：教师处置结果通过结构化状态和学生反馈任务 `teacherInterventionId` 贯通；管理员配置和统计导出仍由对应变更跟踪。

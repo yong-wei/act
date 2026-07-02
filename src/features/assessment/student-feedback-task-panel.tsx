@@ -40,6 +40,8 @@ export function StudentFeedbackTaskPanel({
       data-student-feedback-assignment={context.assignmentId}
       data-student-feedback-state={context.lifecycleState}
       data-student-feedback-writeback={context.completionTarget}
+      data-student-feedback-teacher-intervention-id={context.teacherIntervention?.id ?? undefined}
+      data-student-feedback-teacher-intervention-status={context.teacherIntervention?.status ?? undefined}
     >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
@@ -60,6 +62,14 @@ export function StudentFeedbackTaskPanel({
           <Link href={portfolioHref} className="btn-ghost-themed rounded px-3 py-2 text-xs">作品集候选</Link>
         </div>
       </div>
+      {context.teacherIntervention ? (
+        <div
+          className="mt-4 rounded border border-border/70 px-3 py-2 text-xs text-subtle"
+          data-student-visible-teacher-intervention="feedback-task"
+        >
+          {context.teacherIntervention.label}；来源：{context.teacherIntervention.source}。
+        </div>
+      ) : null}
       <ActionStatusPanel state={state} className="mt-4" />
       {context.returnHref ? (
         <Link href={context.returnHref} className="mt-3 inline-flex text-sm text-primary hover:underline">

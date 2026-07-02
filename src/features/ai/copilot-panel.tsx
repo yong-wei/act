@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { type SimulationState, type SimulationMetrics } from '@/resources/simulations/types';
 import { KonlingAvatar } from '@/components/ai/konling-avatar';
 import { AIMessageContent } from '@/components/ai/ai-message-content';
+import { KonlingCitationPanel, extractKonlingCitationMetadata } from '@/components/ai/konling-citation-presentation';
 import { KONLING_BRAND } from '@/lib/ai-branding';
 import { usePageAIContext } from '@/hooks/usePageAIContext';
 
@@ -246,6 +247,7 @@ function MessageBubble({ message }: { message: Message }) {
         {message.content && (
           <div className="text-sm leading-relaxed">
             <AIMessageContent content={message.content} sanitizeContent={!isUser} />
+            {!isUser ? <KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} /> : null}
           </div>
         )}
       </div>

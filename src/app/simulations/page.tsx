@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Anchor,
   BookOpen,
@@ -265,11 +266,18 @@ function simulationTaskFit(simulation: SimulationInfo) {
 // ============ 页面组件 ============
 
 export default function SimulationsPage() {
+  const searchParams = useSearchParams();
+  const compatibilitySource = searchParams.get('compat');
   const [selectedSimulation, setSelectedSimulation] = useState<SimulationInfo | null>(null);
   const [query, setQuery] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<'all' | SimulationInfo['difficulty']>('all');
   const [mode, setMode] = useState<CatalogMode>('all');
   const [viewMode, setViewMode] = useState<CatalogViewMode>('list');
+  const resetSimulationFilters = () => {
+    setQuery('');
+    setDifficultyFilter('all');
+    setMode('all');
+  };
 
   const normalizedQuery = query.trim().toLowerCase();
   const filteredSimulations = simulations.filter((simulation) => {
@@ -315,6 +323,15 @@ export default function SimulationsPage() {
         data-simulation-entry-map="scenario-fleet"
         data-simulation-catalog-source="canonical"
       >
+        {compatibilitySource === 'virtual-lab' ? (
+          <section
+            className="surface-card rounded-lg border-platform-action-primary/35 p-4 text-sm text-subtle"
+            data-virtual-lab-compatibility-explanation="redirected-to-simulations"
+          >
+            `/virtual-lab` 已统一到虚拟仿真目录；这里保留课程任务、自由探索和仿真对象入口，后续任务上下文会继续在仿真页面显示。
+          </section>
+        ) : null}
+
         <section className="surface-card rounded-lg p-5" data-entry-current-context="simulation-hub">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-3xl">
@@ -399,6 +416,14 @@ export default function SimulationsPage() {
               <span className="font-semibold text-foreground">{filteredSimulations.length} 个仿真</span>
             </div>
           </div>
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-3 text-xs text-subtle"
+            data-simulation-catalog-live-status="filtered-result-count"
+          >
+            当前筛选实时匹配 {filteredSimulations.length} 个仿真；目录来源为 canonical，未命中时可清除筛选恢复全部对象。
+          </p>
           <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="仿真目录分组">
             {catalogModes.map((item) => (
               <button
@@ -447,8 +472,16 @@ export default function SimulationsPage() {
             </div>
           )}
           {filteredSimulations.length === 0 ? (
-            <div className="surface-card mt-4 rounded-lg p-6 text-sm text-subtle">
-              没有匹配的仿真对象。请调整搜索词或筛选条件。
+            <div className="surface-card mt-4 rounded-lg p-6 text-sm text-subtle" data-simulation-catalog-empty-state="recoverable">
+              <p>没有匹配的仿真对象。请调整搜索词或筛选条件。</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={resetSimulationFilters} data-simulation-catalog-reset-filters>
+                  清除筛选
+                </Button>
+                <Button asChild size="sm" className="cta-primary">
+                  <Link href="/simulations">返回全部仿真</Link>
+                </Button>
+              </div>
             </div>
           ) : null}
         </section>

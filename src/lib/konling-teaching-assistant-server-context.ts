@@ -111,7 +111,7 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
   db: KonlingTeachingAssistantServerContextDb;
   modeId?: string | null;
   scope: KonlingRuntimeScope;
-  runtimeContext: KonlingRuntimeContext;
+  runtimeContext?: KonlingRuntimeContext | null;
   clientContextHints?: Record<string, unknown> | null;
 }): Promise<KonlingTeachingAssistantServerModeContext> {
   const mode = resolveKonlingTeachingAssistantMode(input.modeId);
@@ -298,7 +298,7 @@ async function teacherOwnsClass(
 async function resolveClassSummarizerModeContext(input: {
   db: KonlingTeachingAssistantServerContextDb;
   scope: KonlingRuntimeScope;
-  runtimeContext: KonlingRuntimeContext;
+  runtimeContext?: KonlingRuntimeContext | null;
   clientContextHints?: Record<string, unknown> | null;
 }): Promise<KonlingTeachingAssistantServerModeContext> {
   if (input.scope.role !== 'teacher' && input.scope.role !== 'admin') return {};

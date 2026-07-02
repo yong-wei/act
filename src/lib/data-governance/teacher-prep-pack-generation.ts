@@ -18,6 +18,7 @@ import type {
 } from './learning-evidence-rag-corpus';
 import type {
   RoleBasedLearningDiagnosis,
+  RoleBasedLearningDiagnosisGraphContext,
   RoleBasedLearningDiagnosisRootCauseCluster,
 } from './role-based-learning-diagnosis';
 
@@ -56,9 +57,10 @@ export interface TeacherPrepPackEvidenceBasis {
 export interface TeacherPrepPackAffectedGroup {
   kind: 'class' | 'cluster' | 'subset';
   label: string;
-  count: number;
-  denominator: number;
+  count: number | null;
+  denominator: number | null;
   dimensionId?: string;
+  visibility?: 'exact' | 'low-denominator-suppressed';
 }
 
 export interface TeacherPrepPackInsertionTarget {
@@ -69,6 +71,25 @@ export interface TeacherPrepPackInsertionTarget {
   resourceNodeId?: string;
   classSessionId?: string;
   draftRequestReason?: string;
+}
+
+export interface TeacherPrepPackGraphTargets {
+  learningGoalIds: string[];
+  graphNodeIds: string[];
+}
+
+export interface TeacherPrepPackResourceCoverageGap {
+  graphNodeId: string;
+  coverageState: string;
+  missingCoverageTypes: string[];
+  resourceNodeIds: string[];
+  citationRefs: string[];
+  versionRefs: string[];
+}
+
+export interface TeacherPrepPackSourceDiagnosisRef {
+  clusterId: string;
+  claimIds: string[];
 }
 
 export interface TeacherPrepPackCandidateItem {
@@ -85,6 +106,9 @@ export interface TeacherPrepPackCandidateItem {
     score: number;
     limitations: string[];
   };
+  graphTargets?: TeacherPrepPackGraphTargets;
+  resourceCoverageGaps?: TeacherPrepPackResourceCoverageGap[];
+  sourceDiagnosisRefs?: TeacherPrepPackSourceDiagnosisRef[];
   methodologyNotes: string[];
   review: {
     state: TeacherPrepPackReviewState;
@@ -152,6 +176,8 @@ export interface TeacherPrepPackInput {
   now?: Date;
 }
 
+const LOW_DENOMINATOR_SUPPRESSION_THRESHOLD = 5;
+
 export interface TeacherPrepPackExportPayload {
   prepPackId: string;
   classId: string;
@@ -204,6 +230,8 @@ export interface CourseEnhancementImpactEvidenceRef {
   displayTitle: string;
   collectedAt: string;
   safeForTeacherReport: boolean;
+  targetGraphNodeId?: string;
+  sourceDiagnosisRefs?: string[];
 }
 
 export interface CourseEnhancementPackItem {
@@ -211,10 +239,15 @@ export interface CourseEnhancementPackItem {
   prepPackItemId: string;
   itemType: TeacherPrepPackCandidateType;
   title: string;
+  rationale: string;
   insertionTarget: TeacherPrepPackInsertionTarget;
   linkedResource: NonNullable<TeacherPrepPackCandidateItem['linkedResource']>;
   estimatedTimeMinutes: number;
   evidenceBasis: TeacherPrepPackEvidenceBasis[];
+  confidence: TeacherPrepPackCandidateItem['confidence'];
+  graphTargets?: TeacherPrepPackGraphTargets;
+  resourceCoverageGaps?: TeacherPrepPackResourceCoverageGap[];
+  sourceDiagnosisRefs?: TeacherPrepPackSourceDiagnosisRef[];
   methodologyNotes: string[];
   privacyScope: 'aggregate-and-redacted-only';
   lifecycle: {
@@ -523,6 +556,15 @@ export function createCourseEnhancementPackFromPrepPack(input: {
     for (const evidence of item.evidenceBasis) {
       evidenceRefs.add(`${evidence.sourceType}:${evidence.sourceId}`);
     }
+    for (const graphNodeId of item.graphTargets?.graphNodeIds ?? []) {
+      evidenceRefs.add(`graph-node:${graphNodeId}`);
+    }
+    for (const learningGoalId of item.graphTargets?.learningGoalIds ?? []) {
+      evidenceRefs.add(`learning-goal:${learningGoalId}`);
+    }
+    for (const diagnosisRef of item.sourceDiagnosisRefs ?? []) {
+      evidenceRefs.add(`role-diagnosis:${diagnosisRef.clusterId}`);
+    }
   }
 
   return {
@@ -548,10 +590,15 @@ export function createCourseEnhancementPackFromPrepPack(input: {
       prepPackItemId: item.id,
       itemType: item.itemType,
       title: item.title,
+      rationale: item.rationale,
       insertionTarget: item.insertionTarget,
       linkedResource: item.linkedResource!,
       estimatedTimeMinutes: item.estimatedTimeMinutes,
       evidenceBasis: item.evidenceBasis,
+      confidence: item.confidence,
+      ...(item.graphTargets ? { graphTargets: item.graphTargets } : {}),
+      ...(item.resourceCoverageGaps ? { resourceCoverageGaps: item.resourceCoverageGaps } : {}),
+      ...(item.sourceDiagnosisRefs ? { sourceDiagnosisRefs: item.sourceDiagnosisRefs } : {}),
       methodologyNotes: item.methodologyNotes,
       privacyScope: 'aggregate-and-redacted-only',
       lifecycle: {
@@ -707,15 +754,21 @@ export function recordCourseEnhancementPackImpactEvidence(input: {
   evidenceRef: CourseEnhancementImpactEvidenceRef;
   teacherFeedback?: { teacherId: string; note: string; recordedAt: string };
 }): CourseEnhancementPack {
-  if (!input.pack.items.some((item) => item.id === input.itemId)) {
+  const targetItem = input.pack.items.find((item) => item.id === input.itemId);
+  if (!targetItem) {
     throw new Error(`unknown enhancement pack item: ${input.itemId}`);
   }
+  const evidenceRef = {
+    ...input.evidenceRef,
+    targetGraphNodeId: input.evidenceRef.targetGraphNodeId ?? targetItem.graphTargets?.graphNodeIds[0],
+    sourceDiagnosisRefs: input.evidenceRef.sourceDiagnosisRefs ?? targetItem.sourceDiagnosisRefs?.map((ref) => `role-diagnosis:${ref.clusterId}`),
+  };
   return {
     ...input.pack,
-    updatedAt: input.evidenceRef.collectedAt,
+    updatedAt: evidenceRef.collectedAt,
     items: input.pack.items.map((item) => item.id === input.itemId ? {
       ...item,
-      impactEvidence: [...item.impactEvidence, input.evidenceRef],
+      impactEvidence: [...item.impactEvidence, evidenceRef],
     } : item),
     teacherFeedback: input.teacherFeedback ? [...input.pack.teacherFeedback, input.teacherFeedback] : input.pack.teacherFeedback,
     auditLog: [
@@ -723,8 +776,8 @@ export function recordCourseEnhancementPackImpactEvidence(input: {
       {
         action: 'impact-evidence',
         actorId: input.teacherFeedback?.teacherId ?? input.pack.teacherId,
-        at: input.evidenceRef.collectedAt,
-        detail: input.evidenceRef.sourceId,
+        at: evidenceRef.collectedAt,
+        detail: evidenceRef.sourceId,
       },
     ],
   };
@@ -883,6 +936,7 @@ export function isTeacherPrepPackInsertionEligible(
   authorizedReviewerIds?: string[],
 ): boolean {
   return isTeacherPrepPackItemApprovedByAuthorizedReviewer(item, pack, authorizedReviewerIds) &&
+    item.affectedGroup.visibility !== 'low-denominator-suppressed' &&
     Boolean(item.linkedResource) &&
     item.insertionTarget.type !== 'draft-resource-request';
 }
@@ -903,13 +957,33 @@ export function validateTeacherPrepPack(pack: TeacherPrepPack): string[] {
 
 export function validateTeacherPrepPackItem(item: TeacherPrepPackCandidateItem): string[] {
   const errors: string[] = [];
+  const affectedGroup = item.affectedGroup;
   if (!item.id) errors.push('item-missing-id');
   if (!item.title) errors.push('item-missing-title');
   if (!item.itemType) errors.push('item-missing-type');
   if (!item.rationale) errors.push('item-missing-rationale');
-  if (!item.affectedGroup || item.affectedGroup.denominator <= 0) errors.push('item-missing-affected-group');
-  if (item.affectedGroup && (item.affectedGroup.count < 0 || item.affectedGroup.count > item.affectedGroup.denominator)) {
+  if (!affectedGroup) {
+    errors.push('item-missing-affected-group');
+  } else if (affectedGroup.visibility === 'low-denominator-suppressed') {
+    if (affectedGroup.count !== null || affectedGroup.denominator !== null) {
+      errors.push('item-low-denominator-group-not-suppressed');
+    }
+  } else if (
+    affectedGroup.count === null ||
+    affectedGroup.denominator === null ||
+    affectedGroup.denominator <= 0
+  ) {
+    errors.push('item-missing-affected-group');
+  } else if (affectedGroup.count < 0 || affectedGroup.count > affectedGroup.denominator) {
     errors.push('item-invalid-affected-group');
+  }
+  if (affectedGroup?.visibility === 'low-denominator-suppressed') {
+    if (item.insertionTarget.type !== 'draft-resource-request') {
+      errors.push('item-low-denominator-target-not-draft');
+    }
+    if (!item.draftResourceRequest?.requiredReview) {
+      errors.push('item-low-denominator-missing-review');
+    }
   }
   if (!Array.isArray(item.evidenceBasis) || item.evidenceBasis.length === 0) errors.push('item-missing-evidence');
   if (item.evidenceBasis?.some((evidence) => !evidence.citationChip)) errors.push('item-missing-citation-chip');
@@ -938,24 +1012,33 @@ function candidatesFromDiagnosis(input: TeacherPrepPackInput): TeacherPrepPackCa
   return diagnosis.rootCauseClusters
     .filter((cluster) => cluster.interventionPriority !== 'low')
     .map((cluster) => {
-      const resource = matchResource(input, cluster.dimensionId, ['quiz', 'knowledge_card', 'lesson_step']);
+      const resource = matchResource(input, cluster.dimensionId, ['quiz', 'knowledge_card', 'lesson_step'], cluster.graphContext);
+      const graphLimitations = graphLimitationsForCluster(cluster, resource);
+      const lowDenominator = isLowDenominator(cluster.affectedPopulation, cluster.denominator);
       return candidate({
         input,
         itemType: resource?.type === 'knowledge_card' ? 'knowledge-card' : 'interactive-question',
         title: `${cluster.label} 针对性课堂补强`,
-        rationale: `${cluster.affectedPopulation}/${cluster.denominator} 名学生在 ${cluster.label} 上需要关注。`,
+        rationale: rationaleFromCluster(cluster),
         affectedGroup: affectedGroupFromCluster(cluster),
         evidenceBasis: [
           evidenceFromDiagnosisCluster(cluster),
-          ...evidenceFromDiagnosisRefs(diagnosis).slice(0, 2),
+          ...evidenceFromDiagnosisRefs(diagnosis, { suppressCapsules: lowDenominator }).slice(0, 2),
         ],
         resource,
         target: targetForResource(resource, input, 'participatory-learning'),
         estimatedTimeMinutes: resource?.planningMetadata.estimatedTimeMinutes ?? 8,
-        confidence: confidenceScore(cluster.confidence, cluster.affectedPopulation, cluster.denominator),
+        confidence: confidenceScoreWithLimitations(cluster.confidence, cluster.affectedPopulation, cluster.denominator, graphLimitations),
+        graphTargets: graphTargetsFor(cluster.graphContext),
+        resourceCoverageGaps: resourceCoverageGapsFor(cluster.graphContext),
+        sourceDiagnosisRefs: sourceDiagnosisRefsFor(diagnosis, cluster),
+        forceDraftRequestReason: lowDenominator
+          ? 'Low-denominator diagnosis signals require additional teacher evidence before runtime insertion.'
+          : undefined,
         methodologyNotes: [
           'Generated from teacher-class diagnosis root-cause clusters.',
           'Candidate remains draft until teacher approval.',
+          ...graphMethodologyNotes(cluster.graphContext),
         ],
       });
     });
@@ -968,23 +1051,35 @@ function candidatesFromTeacherNotes(input: TeacherPrepPackInput): TeacherPrepPac
   if (clusters.length === 0) return [];
   const topCluster = clusters[0];
   const resource = matchResource(input, `${topCluster.dimensionId} teacher note`, ['lesson_step', 'handout', 'knowledge_card']);
+  const lowDenominator = isLowDenominator(topCluster.affectedPopulation, topCluster.denominator);
   return [candidate({
     input,
     itemType: 'teacher-note',
     title: `${input.nextLesson.title} 教师备课提示`,
-    rationale: `下一课需要优先关注 ${topCluster.label}，并保留课堂观察记录。`,
-    affectedGroup: {
+    rationale: lowDenominator
+      ? `下一课需要关注 ${topCluster.label} 的低样本诊断信号，并补充课堂观察记录。`
+      : `下一课需要优先关注 ${topCluster.label}，并保留课堂观察记录。`,
+    affectedGroup: lowDenominator ? affectedGroupFromCluster(topCluster) : {
       kind: 'class',
       label: '下一课教师备课关注点',
       count: Math.max(...clusters.map((cluster) => cluster.affectedPopulation)),
       denominator: Math.max(...clusters.map((cluster) => cluster.denominator)),
       dimensionId: topCluster.dimensionId,
+      visibility: 'exact',
     },
     evidenceBasis: clusters.slice(0, 3).map(evidenceFromDiagnosisCluster),
     resource,
     target: targetForResource(resource, input, 'bridge-in'),
     estimatedTimeMinutes: resource?.planningMetadata.estimatedTimeMinutes ?? 4,
-    confidence: confidenceScore(topCluster.confidence, topCluster.affectedPopulation, topCluster.denominator),
+    confidence: confidenceScoreWithLimitations(
+      topCluster.confidence,
+      topCluster.affectedPopulation,
+      topCluster.denominator,
+      graphLimitationsForCluster(topCluster, resource),
+    ),
+    forceDraftRequestReason: lowDenominator
+      ? 'Low-denominator diagnosis signals require additional teacher evidence before runtime insertion.'
+      : undefined,
     methodologyNotes: [
       'Generated as a teacher-facing prep note from class diagnosis clusters.',
       'Teacher note is not automatically inserted unless a governed resource is linked and approved.',
@@ -1122,12 +1217,18 @@ function candidate(input: {
   target: TeacherPrepPackInsertionTarget;
   estimatedTimeMinutes: number;
   confidence: TeacherPrepPackCandidateItem['confidence'];
+  graphTargets?: TeacherPrepPackGraphTargets;
+  resourceCoverageGaps?: TeacherPrepPackResourceCoverageGap[];
+  sourceDiagnosisRefs?: TeacherPrepPackSourceDiagnosisRef[];
+  forceDraftRequestReason?: string;
   methodologyNotes: string[];
 }): TeacherPrepPackCandidateItem {
-  const draftRequest = input.resource ? undefined : {
-    reason: 'No governed ResourceNode matched this candidate; teacher review is required before creating a draft resource.',
+  const draftRequestReason = input.forceDraftRequestReason ??
+    (input.resource ? undefined : 'No governed ResourceNode matched this candidate; teacher review is required before creating a draft resource.');
+  const draftRequest = draftRequestReason ? {
+    reason: draftRequestReason,
     requiredReview: true as const,
-  };
+  } : undefined;
   return {
     id: 'pending',
     itemType: input.itemType,
@@ -1135,14 +1236,17 @@ function candidate(input: {
     rationale: sanitizeText(input.rationale),
     affectedGroup: input.affectedGroup,
     evidenceBasis: input.evidenceBasis.map(sanitizeEvidence),
-    insertionTarget: input.resource ? input.target : {
+    insertionTarget: draftRequest ? {
       type: 'draft-resource-request',
       lessonId: input.input.nextLesson.lessonId,
       lessonStage: input.target.lessonStage,
       draftRequestReason: draftRequest!.reason,
-    },
+    } : input.target,
     estimatedTimeMinutes: input.estimatedTimeMinutes,
     confidence: input.confidence,
+    ...(input.graphTargets ? { graphTargets: input.graphTargets } : {}),
+    ...(input.resourceCoverageGaps && input.resourceCoverageGaps.length > 0 ? { resourceCoverageGaps: input.resourceCoverageGaps } : {}),
+    ...(input.sourceDiagnosisRefs && input.sourceDiagnosisRefs.length > 0 ? { sourceDiagnosisRefs: input.sourceDiagnosisRefs } : {}),
     methodologyNotes: input.methodologyNotes,
     review: {
       state: 'draft',
@@ -1168,10 +1272,26 @@ function candidate(input: {
   };
 }
 
-function matchResource(input: TeacherPrepPackInput, dimensionOrNeedle: string, preferredTypes: Array<ResourceNode['type']>): ResourceNode | null {
+function matchResource(
+  input: TeacherPrepPackInput,
+  dimensionOrNeedle: string,
+  preferredTypes: Array<ResourceNode['type']>,
+  graphContext?: RoleBasedLearningDiagnosisGraphContext,
+): ResourceNode | null {
   const normalizedNeedle = dimensionOrNeedle.toLowerCase();
+  const graphNeedles = [
+    ...(graphContext?.graphNodeIds ?? []),
+    ...(graphContext?.learningGoalIds ?? []),
+    ...(graphContext?.resourceCoverage.resourceNodeIds ?? []),
+  ].map((item) => item.toLowerCase());
   return (input.resourceNodes ?? []).find((node) => {
     const planningAudit = buildResourceNodeHighConfidencePlanningAudit(node);
+    const resourceKeys = [
+      node.id,
+      node.title,
+      ...node.planningMetadata.knowledgeCoverage,
+      ...Object.keys(node.planningMetadata.abilityImpact),
+    ].map((item) => item.toLowerCase());
     return preferredTypes.includes(node.type) &&
       (node.courseModule === null || node.courseModule === input.goalId) &&
       node.planningMetadata.availability === 'available' &&
@@ -1179,7 +1299,8 @@ function matchResource(input: TeacherPrepPackInput, dimensionOrNeedle: string, p
       node.planningMetadata.privacyLevel !== 'admin-scoped' &&
       planningAudit.pathEligible &&
       !planningAudit.hasBlockingIssue &&
-      (node.planningMetadata.knowledgeCoverage.some((item) => item.toLowerCase().includes(normalizedNeedle)) ||
+      (graphNeedles.some((needle) => resourceKeys.some((key) => key.includes(needle))) ||
+        node.planningMetadata.knowledgeCoverage.some((item) => item.toLowerCase().includes(normalizedNeedle)) ||
         node.title.toLowerCase().includes(normalizedNeedle) ||
         Object.keys(node.planningMetadata.abilityImpact).some((key) => key.toLowerCase().includes(normalizedNeedle)));
   }) ?? null;
@@ -1203,13 +1324,31 @@ function targetForResource(
 }
 
 function affectedGroupFromCluster(cluster: RoleBasedLearningDiagnosisRootCauseCluster): TeacherPrepPackAffectedGroup {
+  if (isLowDenominator(cluster.affectedPopulation, cluster.denominator)) {
+    return {
+      kind: 'cluster',
+      label: '低样本学习诊断群组',
+      count: null,
+      denominator: null,
+      dimensionId: cluster.dimensionId,
+      visibility: 'low-denominator-suppressed',
+    };
+  }
   return {
     kind: 'cluster',
     label: sanitizeText(cluster.label),
     count: cluster.affectedPopulation,
     denominator: cluster.denominator,
     dimensionId: cluster.dimensionId,
+    visibility: 'exact',
   };
+}
+
+function rationaleFromCluster(cluster: RoleBasedLearningDiagnosisRootCauseCluster): string {
+  if (isLowDenominator(cluster.affectedPopulation, cluster.denominator)) {
+    return `${cluster.label} 存在低样本诊断信号，需结合课堂观察确认后处理。`;
+  }
+  return `${cluster.affectedPopulation}/${cluster.denominator} 名学生在 ${cluster.label} 上需要关注。`;
 }
 
 function isRuntimeCourseEnhancementTarget(target: TeacherPrepPackInsertionTarget): boolean {
@@ -1225,17 +1364,21 @@ function affectedGroupFromMetric(metric: ControlCorrectionReportMetric): Teacher
     label: sanitizeText(metric.label),
     count: metric.denominator - metric.includedPopulation,
     denominator: metric.denominator,
+    visibility: 'exact',
   };
 }
 
 function evidenceFromDiagnosisCluster(cluster: RoleBasedLearningDiagnosisRootCauseCluster): TeacherPrepPackEvidenceBasis {
+  const lowDenominator = isLowDenominator(cluster.affectedPopulation, cluster.denominator);
   return {
     sourceType: 'role-diagnosis',
     sourceId: cluster.id,
     displayTitle: sanitizeText(cluster.label),
-    capsule: `${cluster.affectedPopulation}/${cluster.denominator} learners affected; confidence ${cluster.confidence}.`,
+    capsule: lowDenominator
+      ? `Low-denominator learner group suppressed; confidence ${cluster.confidence}.`
+      : `${cluster.affectedPopulation}/${cluster.denominator} learners affected; confidence ${cluster.confidence}.`,
     confidence: cluster.confidence,
-    privacy: 'aggregate',
+    privacy: lowDenominator ? 'redacted-capsule' : 'aggregate',
     citationChip: prepCitationChip({
       chunkId: cluster.id,
       displayTitle: sanitizeText(cluster.label),
@@ -1247,12 +1390,99 @@ function evidenceFromDiagnosisCluster(cluster: RoleBasedLearningDiagnosisRootCau
   };
 }
 
-function evidenceFromDiagnosisRefs(diagnosis: RoleBasedLearningDiagnosis): TeacherPrepPackEvidenceBasis[] {
+function graphTargetsFor(graphContext?: RoleBasedLearningDiagnosisGraphContext): TeacherPrepPackGraphTargets | undefined {
+  if (!graphContext || (graphContext.learningGoalIds.length === 0 && graphContext.graphNodeIds.length === 0)) return undefined;
+  return {
+    learningGoalIds: graphContext.learningGoalIds,
+    graphNodeIds: graphContext.graphNodeIds,
+  };
+}
+
+function resourceCoverageGapsFor(graphContext?: RoleBasedLearningDiagnosisGraphContext): TeacherPrepPackResourceCoverageGap[] {
+  if (!graphContext) return [];
+  const coverageByNode = graphContext.resourceCoverageByNode ?? graphContext.graphNodeIds.map((graphNodeId) => ({
+    graphNodeId,
+    coverageState: graphContext.resourceCoverage.coverageState,
+    missingCoverageTypes: graphContext.resourceCoverage.missingCoverageTypes,
+    resourceNodeIds: graphContext.resourceCoverage.resourceNodeIds,
+    citationRefs: graphContext.resourceCoverage.citationRefs,
+    versionRefs: graphContext.resourceCoverage.versionRefs,
+  }));
+  return coverageByNode
+    .filter((coverage) =>
+      coverage.coverageState !== 'sufficient' ||
+      coverage.missingCoverageTypes.length > 0
+    )
+    .map((coverage) => ({
+      graphNodeId: coverage.graphNodeId,
+      coverageState: coverage.coverageState,
+      missingCoverageTypes: coverage.missingCoverageTypes,
+      resourceNodeIds: coverage.resourceNodeIds,
+      citationRefs: coverage.citationRefs,
+      versionRefs: coverage.versionRefs,
+    }));
+}
+
+function sourceDiagnosisRefsFor(
+  diagnosis: RoleBasedLearningDiagnosis,
+  cluster: RoleBasedLearningDiagnosisRootCauseCluster,
+): TeacherPrepPackSourceDiagnosisRef[] {
+  const claimIds = diagnosis.claims
+    .filter((claim) => claim.dimensionId === cluster.dimensionId)
+    .map((claim) => claim.id);
+  return claimIds.length > 0 ? [{ clusterId: cluster.id, claimIds }] : [];
+}
+
+function graphLimitationsForCluster(cluster: RoleBasedLearningDiagnosisRootCauseCluster, resource: ResourceNode | null): string[] {
+  const limitations: string[] = [];
+  if (isLowDenominator(cluster.affectedPopulation, cluster.denominator)) limitations.push('low-denominator-suppressed');
+  if (!resource) limitations.push('missing-resource-coverage');
+  const coverage = cluster.graphContext?.resourceCoverage;
+  for (const missingType of coverage?.missingCoverageTypes ?? []) {
+    limitations.push(`resource-coverage-gap:${missingType}`);
+  }
+  if (cluster.graphContext?.overlay.state === 'stale') limitations.push('stale-overlay');
+  if (cluster.evidenceCoverage.ready === 0) limitations.push('missing-evidence');
+  return Array.from(new Set(limitations));
+}
+
+function isLowDenominator(count: number, denominator: number): boolean {
+  return denominator > 0 && denominator < LOW_DENOMINATOR_SUPPRESSION_THRESHOLD;
+}
+
+function confidenceScoreWithLimitations(
+  confidence: LearningEvidenceConfidence,
+  count: number,
+  denominator: number,
+  limitations: string[],
+): TeacherPrepPackCandidateItem['confidence'] {
+  const base = confidenceScore(confidence, count, denominator);
+  const state = limitations.includes('low-denominator-suppressed') || limitations.includes('stale-overlay')
+    ? minConfidenceValue(base.state, 'low')
+    : base.state;
+  return {
+    ...base,
+    state,
+    limitations: Array.from(new Set([...base.limitations, ...limitations])),
+  };
+}
+
+function graphMethodologyNotes(graphContext?: RoleBasedLearningDiagnosisGraphContext): string[] {
+  if (!graphContext || graphContext.graphNodeIds.length === 0 || graphContext.learningGoalIds.length === 0) return [];
+  return [`Targets K/A/Q graph node ${graphContext.graphNodeIds.join(', ')} for LearningGoal ${graphContext.learningGoalIds.join(', ')}.`];
+}
+
+function evidenceFromDiagnosisRefs(
+  diagnosis: RoleBasedLearningDiagnosis,
+  options: { suppressCapsules?: boolean } = {},
+): TeacherPrepPackEvidenceBasis[] {
   return diagnosis.claims.flatMap((claim) => claim.evidenceRefs.map((ref) => ({
     sourceType: ref.sourceType,
     sourceId: ref.chunkId,
     displayTitle: sanitizeText(ref.displayTitle),
-    capsule: sanitizeText(ref.capsule),
+    capsule: options.suppressCapsules
+      ? 'Low-denominator diagnosis evidence capsule suppressed; use citation reference for audit.'
+      : sanitizeText(ref.capsule),
     confidence: ref.confidence,
     privacy: 'redacted-capsule' as const,
     citationChip: ref.citationChip ?? prepCitationChip({
@@ -1328,6 +1558,11 @@ function confidenceScore(confidence: LearningEvidenceConfidence, count: number, 
     score: round((base + coverage) / 2),
     limitations: confidence === 'low' || confidence === 'none' ? ['low-confidence-evidence'] : [],
   };
+}
+
+function minConfidenceValue(left: LearningEvidenceConfidence, right: LearningEvidenceConfidence): LearningEvidenceConfidence {
+  const score = { none: 0, low: 1, medium: 2, high: 3 };
+  return score[left] <= score[right] ? left : right;
 }
 
 function materializationInputs(input: TeacherPrepPackInput): string[] {

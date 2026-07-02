@@ -66,6 +66,33 @@ describe('TeacherPrepPacksPage', () => {
     });
   });
 
+  it('loads a prep pack by the Graph Center graph-node context', async () => {
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({
+        classId: 'class-1',
+        graphNodeId: 'kn:autocontrol:feedback-loop',
+        learningGoalId: 'knowledge:autocontrol:feedback-loop',
+        resourceGapStatus: 'partial',
+      }),
+    });
+
+    expect(mocks.findFirstCourseEnhancementPack).toHaveBeenCalledWith({
+      where: {
+        teacherId: 'teacher-1',
+        classId: 'class-1',
+        source: {
+          path: ['sourceEvidenceRefs'],
+          array_contains: ['graph-node:kn:autocontrol:feedback-loop'],
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      select: { id: true },
+    });
+    expect(element).toMatchObject({
+      props: { pack: { id: 'enhancement-pack-1' } },
+    });
+  });
+
   it('renders the empty review state when a diagnosis cluster has no matching pack', async () => {
     mocks.findFirstCourseEnhancementPack.mockResolvedValue(null);
 
@@ -98,5 +125,75 @@ describe('TeacherPrepPacksPage', () => {
       },
     });
     expect(mocks.loadCourseEnhancementPack).not.toHaveBeenCalled();
+  });
+
+  it('passes lifecycle action receipts to the review surface', async () => {
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({
+        packId: 'enhancement-pack-1',
+        status: 'activate',
+      }),
+    });
+
+    expect(element).toMatchObject({
+      props: {
+        actionReceipt: expect.objectContaining({
+          status: 'succeeded',
+          message: expect.stringContaining('overlay 已激活'),
+          displayReference: 'enhancement-pack-1',
+        }),
+      },
+    });
+  });
+
+  it('passes failed lifecycle action receipts with recovery evidence', async () => {
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({
+        packId: 'enhancement-pack-1',
+        status: 'action-failed',
+        error: 'overlay write failed',
+      }),
+    });
+
+    expect(element).toMatchObject({
+      props: {
+        actionReceipt: expect.objectContaining({
+          status: 'failed',
+          message: expect.stringContaining('overlay write failed'),
+          recoveryAction: expect.stringContaining('重新执行动作'),
+        }),
+      },
+    });
+  });
+
+  it('does not pass an action receipt when no lifecycle status is present', async () => {
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({ packId: 'enhancement-pack-1' }),
+    });
+
+    expect(element).toMatchObject({
+      props: {
+        actionReceipt: null,
+      },
+    });
+  });
+
+  it('passes blocked lifecycle action receipts for invalid states', async () => {
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({
+        packId: 'enhancement-pack-1',
+        status: 'invalid-lifecycle',
+      }),
+    });
+
+    expect(element).toMatchObject({
+      props: {
+        actionReceipt: expect.objectContaining({
+          status: 'blocked',
+          message: expect.stringContaining('生命周期状态不允许'),
+          recoveryAction: expect.stringContaining('重新执行动作'),
+        }),
+      },
+    });
   });
 });

@@ -1,0 +1,295 @@
+import type { ArenaSubmissionEvidenceWriteback } from './evidence-writeback';
+import { buildArenaSubmissionEvidenceWriteback } from './evidence-writeback';
+import type { ArenaSubmissionRecord } from './submissions/submission-service';
+
+type ArenaEvidenceWritebackConsumer = 'student' | 'teacher' | 'admin' | 'service';
+
+type ArenaWritebackDb = {
+  $transaction?<T>(fn: (tx: ArenaWritebackDb) => Promise<T>): Promise<T>;
+  learningFact?: {
+    createMany(args: {
+      data: Array<Record<string, unknown>>;
+      skipDuplicates?: boolean;
+    }): Promise<{ count: number }>;
+  };
+  evidenceOutbox?: {
+    upsert(args: Record<string, unknown>): Promise<unknown>;
+    findMany?(args: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
+  };
+};
+
+type ArenaWritebackReadDb = {
+  evidenceOutbox?: {
+    findMany?(args: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
+  };
+};
+
+export interface PersistedArenaEvidenceWritebackOutcome {
+  evidenceWriteback: ArenaSubmissionEvidenceWriteback;
+  dedupeKey: string;
+  learningFactCreated: boolean;
+}
+
+export const ARENA_EVIDENCE_WRITEBACK_EVENT_TYPE = 'arena.kaq_evidence_writeback';
+
+function readRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${stableJson(entry)}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function buildArenaWritebackDedupeKey(
+  submission: ArenaSubmissionRecord,
+  evidenceWriteback: ArenaSubmissionEvidenceWriteback,
+): string {
+  const audit = evidenceWriteback.projected?.audit;
+  const targetRefs = audit?.targetRefs?.map((target) => stableJson(target)).sort().join('|') ?? 'no-target-refs';
+  const versionRefs = audit?.versionRefs ? stableJson(audit.versionRefs) : 'no-version-refs';
+  return [
+    'arena-official',
+    submission.publicationId ?? 'no-publication',
+    submission.taskId,
+    submission.id,
+    submission.userId ?? 'no-student',
+    submission.artifactHash,
+    evidenceWriteback.targetLabel,
+    targetRefs,
+    versionRefs,
+  ].join(':');
+}
+
+function toDate(value: string): Date {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
+function buildOutboxPayload(input: {
+  submission: ArenaSubmissionRecord;
+  evidenceWriteback: ArenaSubmissionEvidenceWriteback;
+  dedupeKey: string;
+}) {
+  return {
+    schemaVersion: 'arena-evidence-writeback-outcome.v1',
+    dedupeKey: input.dedupeKey,
+    evidenceWriteback: input.evidenceWriteback,
+    arena: {
+      submissionId: input.submission.id,
+      taskId: input.submission.taskId,
+      userId: input.submission.userId ?? null,
+      classId: input.submission.classId ?? null,
+      seasonId: input.submission.seasonId ?? null,
+      publicationId: input.submission.publicationId ?? null,
+      artifactHash: input.submission.artifactHash,
+      score: input.submission.evaluation.score,
+      valid: input.submission.evaluation.valid,
+      isLate: input.submission.isLate === true,
+      submittedAt: input.submission.submittedAt,
+    },
+  };
+}
+
+function buildLearningFact(input: {
+  submission: ArenaSubmissionRecord;
+  evidenceWriteback: ArenaSubmissionEvidenceWriteback;
+  dedupeKey: string;
+}) {
+  const evidenceWriteback = input.evidenceWriteback;
+  const overlayUpdates = evidenceWriteback.projected?.overlayUpdates ?? [];
+  const confidence = evidenceWriteback.projected?.audit?.confidence;
+  const sourceEventId = input.dedupeKey;
+  return {
+    userId: input.submission.userId,
+    factType: 'design',
+    moduleId: input.submission.taskId,
+    sessionId: input.submission.publicationId ?? input.submission.seasonId ?? null,
+    startedAt: toDate(input.submission.submittedAt),
+    finishedAt: toDate(input.submission.submittedAt),
+    outcome: 'success',
+    score: input.submission.evaluation.score,
+    competencyContribution: {
+      arenaTransfer: {
+        confidence: typeof confidence === 'number' ? confidence : null,
+        terminalValidationAccepted: evidenceWriteback.terminalValidationAccepted,
+        overlayCount: evidenceWriteback.overlayCount,
+        targets: overlayUpdates.map((update) => update.targetRef),
+      },
+    },
+    sourceEventId,
+    sourceLogId: input.submission.id,
+    courseId: 'control-correction',
+    lessonId: input.submission.taskId,
+    contextJson: {
+      arena: {
+        official: true,
+        evaluationMode: 'official',
+        evaluationVisibility: 'official',
+        taskId: input.submission.taskId,
+        publicationId: input.submission.publicationId ?? null,
+        classId: input.submission.classId ?? null,
+        seasonId: input.submission.seasonId ?? null,
+        artifactHash: input.submission.artifactHash,
+        score: input.submission.evaluation.score,
+        valid: input.submission.evaluation.valid,
+        evidenceWriteback,
+        writebackDedupeKey: input.dedupeKey,
+      },
+    },
+  };
+}
+
+function projectPersistedEvidenceWriteback(
+  evidenceWriteback: ArenaSubmissionEvidenceWriteback,
+  consumer: ArenaEvidenceWritebackConsumer,
+): ArenaSubmissionEvidenceWriteback {
+  if (consumer === 'teacher' || consumer === 'admin' || consumer === 'service') {
+    return evidenceWriteback;
+  }
+  return {
+    ...evidenceWriteback,
+    limitationCodes: [],
+    projected: evidenceWriteback.projected
+      ? {
+          ...evidenceWriteback.projected,
+          audit: null,
+          overlayUpdates: evidenceWriteback.projected.overlayUpdates.map((update) => ({
+            ...update,
+            sourceId: null,
+            sourceRef: null,
+            citationRefs: null,
+          })),
+        }
+      : undefined,
+  };
+}
+
+function parsePersistedEvidenceWriteback(
+  row: Record<string, unknown>,
+  consumer: ArenaEvidenceWritebackConsumer,
+): ArenaSubmissionEvidenceWriteback | null {
+  const payload = readRecord(row.payload);
+  const evidenceWriteback = readRecord(payload?.evidenceWriteback);
+  if (!evidenceWriteback) return null;
+  if (
+    evidenceWriteback.status !== 'accepted' &&
+    evidenceWriteback.status !== 'degraded' &&
+    evidenceWriteback.status !== 'blocked'
+  ) {
+    return null;
+  }
+  if (evidenceWriteback.status === 'accepted' && row.status !== 'processed') {
+    return null;
+  }
+  if (!readRecord(evidenceWriteback.sourceRef)) return null;
+  return projectPersistedEvidenceWriteback(
+    evidenceWriteback as unknown as ArenaSubmissionEvidenceWriteback,
+    consumer,
+  );
+}
+
+export async function persistArenaSubmissionEvidenceWriteback(
+  db: ArenaWritebackDb,
+  submission: ArenaSubmissionRecord,
+): Promise<PersistedArenaEvidenceWritebackOutcome> {
+  const evidenceWriteback = buildArenaSubmissionEvidenceWriteback(submission, {
+    actorId: 'arena-evaluator',
+    consumer: 'service',
+  });
+  const dedupeKey = buildArenaWritebackDedupeKey(submission, evidenceWriteback);
+  const payload = buildOutboxPayload({ submission, evidenceWriteback, dedupeKey });
+  const materializedAt = toDate(submission.submittedAt);
+  const outboxStatus = evidenceWriteback.status === 'accepted'
+    ? 'processed'
+    : evidenceWriteback.status;
+
+  const writeOutcome = async (tx: ArenaWritebackDb): Promise<boolean> => {
+    if (typeof tx.evidenceOutbox?.upsert !== 'function') {
+      throw new Error('Arena evidence writeback requires EvidenceOutbox persistence.');
+    }
+
+    let learningFactCreated = false;
+    if (evidenceWriteback.status === 'accepted') {
+      if (!submission.userId || typeof tx.learningFact?.createMany !== 'function') {
+        throw new Error('Accepted Arena evidence writeback requires LearningFact persistence.');
+      }
+      const result = await tx.learningFact.createMany({
+        data: [buildLearningFact({ submission, evidenceWriteback, dedupeKey })],
+        skipDuplicates: true,
+      });
+      learningFactCreated = result.count > 0;
+    }
+
+    await tx.evidenceOutbox.upsert({
+      where: { dedupeKey },
+      update: {
+        payload,
+        status: outboxStatus,
+        availableAt: materializedAt,
+        processedAt: evidenceWriteback.status === 'accepted' ? materializedAt : null,
+      },
+      create: {
+        eventType: ARENA_EVIDENCE_WRITEBACK_EVENT_TYPE,
+        correlationId: submission.publicationId ?? submission.taskId,
+        causationId: submission.id,
+        ownerUserId: submission.userId ?? `arena-submission:${submission.id}`,
+        payload,
+        dedupeKey,
+        status: outboxStatus,
+        availableAt: materializedAt,
+        processedAt: evidenceWriteback.status === 'accepted' ? materializedAt : null,
+      },
+    });
+    return learningFactCreated;
+  };
+
+  const learningFactCreated = db.$transaction
+    ? await db.$transaction(writeOutcome)
+    : await writeOutcome(db);
+
+  return {
+    evidenceWriteback: projectPersistedEvidenceWriteback(evidenceWriteback, 'student'),
+    dedupeKey,
+    learningFactCreated,
+  };
+}
+
+export async function readArenaSubmissionEvidenceWritebacks(
+  db: ArenaWritebackReadDb,
+  submissionIds: readonly string[],
+  consumer: ArenaEvidenceWritebackConsumer = 'student',
+): Promise<Map<string, ArenaSubmissionEvidenceWriteback>> {
+  const uniqueSubmissionIds = Array.from(new Set(submissionIds.filter(Boolean)));
+  if (!uniqueSubmissionIds.length || typeof db.evidenceOutbox?.findMany !== 'function') {
+    return new Map();
+  }
+  const rows = await db.evidenceOutbox.findMany({
+    where: {
+      eventType: ARENA_EVIDENCE_WRITEBACK_EVENT_TYPE,
+      causationId: { in: uniqueSubmissionIds },
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+
+  const outcomes = new Map<string, ArenaSubmissionEvidenceWriteback>();
+  for (const row of rows) {
+    const causationId = typeof row.causationId === 'string' ? row.causationId : null;
+    if (!causationId) continue;
+    const evidenceWriteback = parsePersistedEvidenceWriteback(row, consumer);
+    if (evidenceWriteback) {
+      const existing = outcomes.get(causationId);
+      if (existing?.status === 'accepted') continue;
+      outcomes.set(causationId, evidenceWriteback);
+    }
+  }
+  return outcomes;
+}

@@ -26,6 +26,7 @@ import { expandLearningGoalSubgraph } from '../graphs/goal-subgraph-expansion-se
 import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
 import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '../resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
+import type { SourcePackItem } from '../source-pack';
 
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
   const registry = buildResourceNodeRegistry({
@@ -450,6 +451,297 @@ describe('adaptive learning path planner', () => {
         evidenceBehavior: projection.planningUnit!.pathSemantics.evidenceBehavior,
       }),
     ]));
+  });
+
+  it('uses path-planning Source Packs as evidence without promoting citation-only items', () => {
+    const citationOnlyItem: SourcePackItem = {
+      id: 'source-pack:citation-only:bode-reference',
+      title: 'Bode reference citation',
+      sourceKind: 'textbook',
+      modality: 'text',
+      excerpt: 'Bode plots support frequency-domain correction decisions.',
+      inclusionRationale: 'Supports the target knowledge node but has no ResourceNode or PlanningUnit audit.',
+      retrievalChunkId: 'retrieval-chunk:bode-reference',
+      citationTargetId: 'citation-target:bode-reference',
+      scores: {
+        relevance: 0.9,
+        graphAlignment: 0.8,
+        authority: 0.9,
+        eligibility: 0.2,
+        freshness: 0.8,
+        final: 0.74,
+      },
+      access: {
+        visibility: 'student',
+        aiUseAllowed: true,
+      },
+      citation: {
+        citationTargetId: 'citation-target:bode-reference',
+        sourceId: 'textbook:bode-reference',
+        displayTitle: 'Bode reference citation',
+        href: '/course-runtime/resources/textbooks/bode-reference.md#chunk-1',
+        resolver: 'course-runtime',
+        verified: true,
+      },
+      metadata: {
+        reviewStatus: 'human-confirmed',
+        knowledgeNodeRefs: ['kn-bode'],
+        capabilityTargetRefs: ['parameterDesign'],
+      },
+    };
+
+    const input = plannerInput();
+    const plan = buildAdaptiveLearningPathPlan({
+      ...input,
+      goal: {
+        ...input.goal,
+        capabilityTargets: [{
+          id: 'capability:nyquist-stability',
+          knowledgeNodeRef: 'kn-bode',
+          competencyDimensions: ['parameterDesign'],
+          capabilityLevel: 'analyze',
+          behaviorVerb: '判别',
+          successCriteria: ['能够依据频域曲线判断稳定裕度'],
+          observableEvidenceType: 'question',
+        }],
+      },
+      sourcePackCandidates: [citationOnlyItem],
+      sourcePackLimitations: [{
+        code: 'citation-target-raw-ref',
+        severity: 'warning',
+        message: 'Textbook adapter preserved a raw citation target limitation.',
+        source: 'corpus-adapters',
+        recoverable: true,
+      }],
+    });
+
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain(citationOnlyItem.id);
+    expect(plan.visualization.evidence.sourcePackEvidence).toMatchObject({
+      profile: 'path-planning',
+      queryText: expect.stringContaining('capability:nyquist-stability 判别'),
+      capabilityTargetRefs: expect.arrayContaining(['parameterDesign', 'capability:nyquist-stability']),
+      itemRefs: [citationOnlyItem.id],
+      citationOnlyItemRefs: [citationOnlyItem.id],
+      pathEligibleItemRefs: [],
+      citationTargetIds: ['citation-target:bode-reference'],
+      retrievalChunkIds: ['retrieval-chunk:bode-reference'],
+      limitationCodes: expect.arrayContaining(['upstream-limitations-redacted', 'path-planning-citation-only-evidence']),
+    });
+  });
+
+  it('uses SAR candidates only after ResourceNode and PlanningUnit mapping gates', () => {
+    const input = plannerInput();
+    const teacherOnlyNode = input.registry.nodes.find((node) => node.id === 'reflection_prompt:reflection-bode');
+    expect(teacherOnlyNode).toBeDefined();
+    teacherOnlyNode!.planningMetadata.teacherPolicy = 'teacher-only';
+    const plan = buildAdaptiveLearningPathPlan({
+      ...input,
+      sarCandidateContext: {
+        enabled: true,
+        traceId: 'sar-trace:path-bode',
+        seedEntityRefs: ['LearningGoal:goal-bode', 'GraphNode:kn-bode'],
+        candidates: [
+          {
+            ref: 'sar-candidate:bode-card',
+            kind: 'resourceNode',
+            resourceNodeId: 'registry:bode-card',
+          },
+          {
+            ref: 'registry:bode-card',
+            kind: 'retrievalChunk',
+          },
+          {
+            ref: 'registry:bode-card',
+            kind: 'retrievalChunk',
+            resourceNodeId: 'missing-resource-node',
+          },
+          {
+            ref: 'retrieval-chunk:bode-reference',
+            kind: 'retrievalChunk',
+            retrievalChunkId: 'retrieval-chunk:bode-reference',
+          },
+          {
+            ref: 'retrieval-chunk:cruise-simulation',
+            kind: 'retrievalChunk',
+            resourceNodeId: 'simulation:cruise',
+            retrievalChunkId: 'retrieval-chunk:cruise-simulation',
+          },
+          {
+            ref: 'registry:hidden-admin',
+            kind: 'retrievalChunk',
+            resourceNodeId: 'registry:hidden-admin',
+            retrievalChunkId: 'retrieval-chunk:teacher-private',
+          },
+          {
+            ref: 'citation-target:bode-reference',
+            kind: 'citationTarget',
+            citationTargetId: 'citation-target:bode-reference',
+          },
+          {
+            ref: 'sar-candidate:hidden-admin',
+            kind: 'resourceNode',
+            resourceNodeId: 'registry:hidden-admin',
+          },
+          {
+            ref: 'sar-candidate:teacher-only-reflection',
+            kind: 'resourceNode',
+            resourceNodeId: 'reflection_prompt:reflection-bode',
+          },
+        ],
+      },
+    });
+
+    const sarBasis = plan.explanations.associativeRetrieval;
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('registry:bode-card');
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('retrieval-chunk:bode-reference');
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('citation-target:bode-reference');
+    expect(sarBasis).toMatchObject({
+      traceId: 'sar-trace:path-bode',
+      seedEntityRefs: ['LearningGoal:goal-bode', 'GraphNode:kn-bode'],
+      candidateResourceNodeIds: ['registry:bode-card', 'simulation:cruise'],
+      selectedCandidateNodeIds: ['registry:bode-card', 'simulation:cruise'],
+    });
+    expect(sarBasis?.rejectedCandidates).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        ref: 'retrieval-chunk:bode-reference',
+        reasonCodes: ['missing-resource-node-mapping'],
+      }),
+      expect.objectContaining({
+        ref: 'registry:bode-card',
+        reasonCodes: ['missing-resource-node-mapping'],
+      }),
+      expect.objectContaining({
+        ref: 'citation-target:bode-reference',
+        reasonCodes: ['missing-resource-node-mapping'],
+      }),
+      expect.objectContaining({
+        ref: expect.stringMatching(/^restricted:/),
+        reasonCodes: expect.arrayContaining(['privacy-scope-blocked', 'path-ineligible']),
+      }),
+      expect.objectContaining({
+        ref: expect.stringMatching(/^restricted:/),
+        reasonCodes: expect.arrayContaining(['teacher-policy-teacher-only']),
+      }),
+    ]));
+    expect(JSON.stringify(sarBasis)).not.toContain('registry:hidden-admin');
+    expect(JSON.stringify(sarBasis)).not.toContain('reflection_prompt:reflection-bode');
+    expect(plan.visualization.evidence.associativeRetrieval).toEqual(sarBasis);
+  });
+
+  it('rejects SAR candidates that fail readiness or terminal validation gates', () => {
+    const input = plannerInput({
+      constraints: {
+        ...plannerInput().constraints,
+        completedNodeIds: [],
+      },
+      sarCandidateContext: {
+        enabled: true,
+        traceId: 'sar-trace:path-locked',
+        seedEntityRefs: ['LearningGoal:goal-bode'],
+        candidates: [
+          {
+            ref: 'sar-candidate:cruise',
+            kind: 'resourceNode',
+            resourceNodeId: 'simulation:cruise',
+          },
+          {
+            ref: 'sar-candidate:bode-card-terminal',
+            kind: 'resourceNode',
+            resourceNodeId: 'registry:bode-card',
+            requiredUse: 'terminal-validation',
+          },
+        ],
+      },
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(input);
+
+    expect(plan.explanations.associativeRetrieval?.rejectedCandidates).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceNodeId: 'simulation:cruise',
+        reasonCodes: expect.arrayContaining(['readiness-required-completion']),
+      }),
+      expect.objectContaining({
+        resourceNodeId: 'registry:bode-card',
+        reasonCodes: expect.arrayContaining(['terminal-validation-insufficient']),
+      }),
+    ]));
+    expect(plan.explanations.associativeRetrieval?.selectedCandidateNodeIds).not.toContain('simulation:cruise');
+  });
+
+  it('keeps planner output stable when SAR candidates are disabled', () => {
+    const input = plannerInput();
+    const baseline = buildAdaptiveLearningPathPlan(input);
+    const disabled = buildAdaptiveLearningPathPlan({
+      ...input,
+      sarCandidateContext: {
+        enabled: false,
+        traceId: 'sar-trace:disabled',
+        seedEntityRefs: ['LearningGoal:goal-bode'],
+        candidates: [{
+          ref: 'sar-candidate:bode-card',
+          kind: 'resourceNode',
+          resourceNodeId: 'registry:bode-card',
+        }],
+      },
+    });
+
+    expect(disabled.mainPath).toEqual(baseline.mainPath);
+    expect(disabled.alternatives).toEqual(baseline.alternatives);
+    expect(disabled.explanations.associativeRetrieval).toBeUndefined();
+    expect(disabled.visualization.evidence.associativeRetrieval).toBeUndefined();
+  });
+
+  it('filters teacher-scoped Source Pack evidence from student-visible path payloads', () => {
+    const teacherOnlyItem: SourcePackItem = {
+      id: 'source-pack:teacher-only:private-planning-note',
+      title: 'Teacher-only planning note',
+      sourceKind: 'reference',
+      modality: 'text',
+      excerpt: 'Teacher-only planning rationale.',
+      inclusionRationale: 'Teacher-only citation evidence must not persist into student paths.',
+      retrievalChunkId: 'retrieval-chunk:teacher-private-note',
+      citationTargetId: 'citation-target:teacher-private-note',
+      scores: {
+        relevance: 0.95,
+        graphAlignment: 0.85,
+        authority: 0.9,
+        eligibility: 0.1,
+        freshness: 0.8,
+        final: 0.75,
+      },
+      access: {
+        visibility: 'teacher',
+        aiUseAllowed: true,
+      },
+      citation: {
+        citationTargetId: 'citation-target:teacher-private-note',
+        sourceId: 'teacher-note:private-planning-note',
+        displayTitle: 'Teacher-only planning note',
+        resolver: 'course-runtime',
+        verified: true,
+      },
+      metadata: {
+        reviewStatus: 'teacher-approved',
+        knowledgeNodeRefs: ['kn-bode'],
+        capabilityTargetRefs: ['parameterDesign'],
+      },
+    };
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      sourcePackRole: 'student',
+      sourcePackCandidates: [teacherOnlyItem],
+    }));
+
+    expect(plan.visualization.evidence.sourcePackEvidence).toMatchObject({
+      profile: 'path-planning',
+      itemRefs: [],
+      pathEligibleItemRefs: [],
+      citationOnlyItemRefs: [],
+      limitationCodes: expect.arrayContaining(['profile-filtered-visibility', 'source-pack-no-eligible-candidates']),
+    });
+    expect(JSON.stringify(plan.visualization.evidence.sourcePackEvidence)).not.toContain('teacher-private-note');
   });
 
   it('uses resource ranker scores when selecting the primary path candidate', () => {
@@ -1401,6 +1693,7 @@ describe('adaptive learning path planner', () => {
         learnerOverlay: {
           status: 'low-confidence',
           learnerId: 'student-1',
+          classId: 'class-1',
           generatedAt: '2026-06-22T00:00:00.000Z',
           items: {},
           limitations: [{ code: 'learner-overlay-low-confidence', message: 'overlay confidence is low' }],

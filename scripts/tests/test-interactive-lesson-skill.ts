@@ -7,6 +7,10 @@ const skillPath = path.join(
   '.agents/skills/interactive-lesson/SKILL.md',
 );
 const skill = fs.readFileSync(skillPath, 'utf8');
+const lessonSkill = fs.readFileSync(path.join(
+  process.cwd(),
+  '.agents/skills/lesson/SKILL.md',
+), 'utf8');
 
 assert.equal(
   skill.includes('学生端使用移动设备较多'),
@@ -75,6 +79,17 @@ assert.equal(
     skill.includes('export-runtime.sh'),
   true,
   '互动课程技能应要求 runtime 为唯一运行时来源，并默认通过 export-runtime.sh 迁移',
+);
+
+assert.equal(
+  lessonSkill.includes('npm run source:pack') &&
+    lessonSkill.includes('--profile lesson-authoring') &&
+    lessonSkill.includes('--candidates') &&
+    lessonSkill.includes('source-pack.md') &&
+    lessonSkill.includes('source-pack.json') &&
+    lessonSkill.includes('source-pack.audit.json'),
+  true,
+  '课程作者态技能应要求大型教材/参考书先生成 lesson-authoring Source Pack，并保留 Markdown、JSON 和 audit 输出',
 );
 
 assert.equal(

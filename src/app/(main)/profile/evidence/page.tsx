@@ -2,7 +2,13 @@ import { AppShell } from '@/components/platform/app-shell';
 import { EvidenceTimelineBrowser } from '@/features/data-governance/evidence-timeline-browser';
 import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
-import { buildFeedbackTaskContext, type FeedbackTaskQuery } from '@/lib/student-feedback-task-contract';
+import { getServerAuthSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import {
+  buildFeedbackTaskContext,
+  resolveVerifiedTeacherInterventionId,
+  type FeedbackTaskQuery,
+} from '@/lib/student-feedback-task-contract';
 
 const learnerDataShell = buildLearnerDataRouteShell('/profile/evidence');
 
@@ -20,9 +26,16 @@ function readSingleSearchParam(value: string | string[] | undefined): string | u
 
 export default async function StudentEvidencePage({ searchParams }: StudentEvidencePageProps) {
   const params = await searchParams;
+  const session = await getServerAuthSession();
   const initialLessonId = readSingleSearchParam(params?.lessonId);
   const initialSessionId = readSingleSearchParam(params?.sessionId);
-  const feedbackContext = buildFeedbackTaskContext(params ?? {});
+  const verifiedTeacherInterventionId = await resolveVerifiedTeacherInterventionId({
+    db: prisma,
+    userId: session?.user?.id,
+    teacherInterventionId: params?.teacherInterventionId,
+    assignment: params?.assignment,
+  });
+  const feedbackContext = buildFeedbackTaskContext(params ?? {}, { verifiedTeacherInterventionId });
 
   return (
     <AppShell

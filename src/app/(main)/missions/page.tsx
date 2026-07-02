@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import { MissionCard, MissionCardSkeleton, type MissionData } from '@/features/mission/mission-card';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 
@@ -33,7 +34,7 @@ export default function MissionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'unlocked' | 'completed'>('all');
-  const feedbackContext = buildFeedbackTaskContext({
+  const localFeedbackContext = buildFeedbackTaskContext({
     assignment: searchParams.get('assignment') ?? searchParams.get('q'),
     criterion: searchParams.get('criterion'),
     source: searchParams.get('source'),
@@ -42,7 +43,9 @@ export default function MissionsPage() {
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
     intent: searchParams.get('intent'),
+    teacherInterventionId: searchParams.get('teacherInterventionId'),
   });
+  const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams);
 
   const fetchMissions = useCallback(async (paramsKey = searchParamsKey) => {
     try {
@@ -59,6 +62,7 @@ export default function MissionsPage() {
       if (currentParams.get('action')) missionQuery.set('action', currentParams.get('action') ?? '');
       if (currentParams.get('returnTo')) missionQuery.set('returnTo', currentParams.get('returnTo') ?? '');
       if (currentParams.get('intent')) missionQuery.set('intent', currentParams.get('intent') ?? '');
+      if (currentParams.get('teacherInterventionId')) missionQuery.set('teacherInterventionId', currentParams.get('teacherInterventionId') ?? '');
       const response = await fetch(`/api/missions?${missionQuery.toString()}`);
       if (!response.ok) {
         throw new Error('获取任务列表失败');

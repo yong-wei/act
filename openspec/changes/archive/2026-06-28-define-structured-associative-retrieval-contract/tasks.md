@@ -1,0 +1,5 @@
+- [x] Define SAR event, entity, relation, trace, and result types.
+- [x] Add validation helpers for required source refs, canonical refs, privacy scope, and confidence range.
+- [x] Add contract tests for missing source refs, missing canonical refs, invalid confidence, and restricted raw content rejection.
+- [x] Document the Source Pack and CitationChip boundary in the implementation comments or README.
+- [x] Run `openspec validate define-structured-associative-retrieval-contract --strict`.

@@ -308,6 +308,74 @@ function buildArenaLearningContext(actionType: string, payload: Record<string, u
   };
 }
 
+function buildKaqQuizEvidenceContext(payload: Record<string, unknown>): Prisma.InputJsonObject | undefined {
+  const evidence = readRecord(payload.kaqQuizEvidence);
+  if (!evidence) return undefined;
+  const confidence = readRecord(evidence.confidence) ?? {};
+  const retryPolicy = readRecord(evidence.retryPolicy) ?? {};
+  const reviewAudit = readRecord(evidence.reviewAudit) ?? {};
+
+  return compactJsonObject({
+    questionSnapshotId: readString(evidence.questionSnapshotId),
+    quizSetId: readString(evidence.quizSetId),
+    questionId: readString(evidence.questionId),
+    answerId: readString(evidence.answerId),
+    sessionId: readString(evidence.sessionId),
+    attemptKey: readString(evidence.attemptKey),
+    scoringVersion: readString(evidence.scoringVersion),
+    rubricVersion: readString(evidence.rubricVersion),
+    denominator: readFiniteNumber(evidence.denominator),
+    retryPolicy: compactJsonObject({
+      maxAttemptsAffectingMastery: readFiniteNumber(retryPolicy.maxAttemptsAffectingMastery),
+      idempotencyScope: readString(retryPolicy.idempotencyScope),
+    }),
+    eventSource: readString(evidence.eventSource),
+    eventType: readString(evidence.eventType),
+    clientEventId: readString(evidence.clientEventId),
+    sourceLogId: readString(evidence.sourceLogId),
+    dedupeKey: readString(evidence.dedupeKey),
+    occurredAt: readString(evidence.occurredAt),
+    score: readFiniteNumber(evidence.score),
+    isCorrect: typeof evidence.isCorrect === 'boolean' ? evidence.isCorrect : undefined,
+    confidence: compactJsonObject({
+      level: readString(confidence.level),
+      score: readFiniteNumber(confidence.score),
+      basis: readString(confidence.basis),
+    }),
+    reviewState: readString(evidence.reviewState),
+    reviewAudit: compactJsonObject({
+      state: readString(reviewAudit.state),
+      reviewerId: readString(reviewAudit.reviewerId),
+      reviewerRole: readString(reviewAudit.reviewerRole),
+      reviewedAt: readString(reviewAudit.reviewedAt),
+      reviewBatchId: readString(reviewAudit.reviewBatchId),
+      sourceHash: readString(reviewAudit.sourceHash),
+      metadataVersionRef: readString(reviewAudit.metadataVersionRef),
+      generationTool: readString(reviewAudit.generationTool),
+      generationModel: readString(reviewAudit.generationModel),
+      generationPromptVersion: readString(reviewAudit.generationPromptVersion),
+      staleInvalidationRules: readStringArray(reviewAudit.staleInvalidationRules),
+    }),
+    learningGoalIds: readStringArray(evidence.learningGoalIds),
+    kaqObjectiveIds: readStringArray(evidence.kaqObjectiveIds),
+    knowledgeObjectiveIds: readStringArray(evidence.knowledgeObjectiveIds),
+    applicationObjectiveIds: readStringArray(evidence.applicationObjectiveIds),
+    qualityObjectiveIds: readStringArray(evidence.qualityObjectiveIds),
+    knowledgeNodeIds: readStringArray(evidence.knowledgeNodeIds),
+    graphNodeIds: readStringArray(evidence.graphNodeIds),
+    capabilityTargetIds: readStringArray(evidence.capabilityTargetIds),
+    qualityTargetIds: readStringArray(evidence.qualityTargetIds),
+    misconceptionTags: readStringArray(evidence.misconceptionTags),
+    learningFactEligible: typeof evidence.learningFactEligible === 'boolean' ? evidence.learningFactEligible : undefined,
+    readinessGateEligible: typeof evidence.readinessGateEligible === 'boolean' ? evidence.readinessGateEligible : undefined,
+    terminalValidationEligible: typeof evidence.terminalValidationEligible === 'boolean' ? evidence.terminalValidationEligible : undefined,
+    studentCompetencySnapshotEffect: readString(evidence.studentCompetencySnapshotEffect),
+    outcomeRefs: readStringArray(evidence.outcomeRefs),
+    remediationResourceNodeIds: readStringArray(evidence.remediationResourceNodeIds),
+    versionRefs: readJsonObject(evidence.versionRefs),
+  });
+}
+
 function buildAdaptiveAssessmentContext(
   actionType: string,
   payload: Record<string, unknown>,
@@ -336,6 +404,7 @@ function buildAdaptiveAssessmentContext(
       masteryPosterior: typeof payload.masteryPosterior === 'number' ? payload.masteryPosterior : undefined,
       masteryConfidence: typeof payload.masteryConfidence === 'number' ? payload.masteryConfidence : undefined,
       confidence: typeof payload.confidence === 'number' ? payload.confidence : undefined,
+      kaqQuizEvidence: buildKaqQuizEvidenceContext(payload),
       privacyLevel: readString(payload.privacyLevel) ?? 'restricted',
     }),
   };
@@ -393,6 +462,12 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
     typeof score === 'number'
       ? { ...payload, score }
       : payload;
+  const evidenceGovernance = resolveLearningFactEvidenceGovernance(actionType, payload);
+  const policyReason = readRecord(evidenceGovernance)?.policyReason;
+  const suppressCompetencyContribution =
+    policyReason === 'arena_client_evaluation_context_only' ||
+    policyReason === 'adaptive_assessment_provisional_context_only' ||
+    policyReason === 'adaptive_assessment_missing_kaq_context_only';
   const fact: Prisma.LearningFactCreateManyInput & { contextJson?: Prisma.InputJsonValue } = {
     userId: event.userId,
     factType: mapActionTypeToFactType(actionType),
@@ -403,11 +478,13 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
     outcome: deriveFactOutcome(actionType, payloadWithDerivedScore),
     score,
     timeSpent: deriveFactTimeSpent(payload),
-    competencyContribution: resolveCompetencyContribution(
-      actionType,
-      payload,
-      event.derivedMetrics,
-    ) as Prisma.InputJsonValue,
+    competencyContribution: suppressCompetencyContribution
+      ? {}
+      : resolveCompetencyContribution(
+        actionType,
+        payload,
+        event.derivedMetrics,
+      ) as Prisma.InputJsonValue,
     sourceEventId: event.eventId,
     sourceLogId: readString(payload.sourceLogId),
     courseId: event.courseId ?? readString(payload.courseId),
@@ -415,7 +492,6 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
   };
   const arenaContext = buildArenaLearningContext(actionType, payload);
   const adaptiveAssessmentContext = buildAdaptiveAssessmentContext(actionType, payload);
-  const evidenceGovernance = resolveLearningFactEvidenceGovernance(actionType, payload);
   const contextJson = compactJsonObject({
     ...(readRecord(arenaContext) ?? {}),
     ...(readRecord(adaptiveAssessmentContext) ?? {}),

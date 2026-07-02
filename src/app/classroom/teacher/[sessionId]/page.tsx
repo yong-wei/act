@@ -1,8 +1,12 @@
 
 import { notFound, redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
 import { TeacherPlayer } from '@/features/lesson-engine/teacher-player';
 import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
+import { buildClassroomIdentityPayload } from '@/lib/classroom-lifecycle-contract';
+import { canManageClassroomSession, isClassroomTeacherOrAdmin } from '@/lib/classroom-session-access';
 
 interface PageProps {
   params: Promise<{ sessionId: string }>;
@@ -10,6 +14,14 @@ interface PageProps {
 
 export default async function TeacherSessionPage(props: PageProps) {
   const params = await props.params;
+  const userSession = await getServerSession(authOptions);
+  if (!userSession?.user?.id) {
+    redirect('/login');
+  }
+  if (!isClassroomTeacherOrAdmin(userSession.user.role)) {
+    notFound();
+  }
+
   const session = await prisma.classSession.findUnique({
     where: { id: params.sessionId },
     include: {
@@ -18,13 +30,19 @@ export default async function TeacherSessionPage(props: PageProps) {
           items: {
             include: { resource: true, knowledgeNode: true },
             orderBy: [{ stage: 'asc' }, { order: 'asc' }] // Need to confirm Enum order logic or mapping
-          }
-        }
-      }
+          },
+        },
+      },
+      class: {
+        select: { name: true },
+      },
     }
   });
 
   if (!session) notFound();
+  if (!canManageClassroomSession(session, userSession.user)) {
+    notFound();
+  }
 
   const teacherHref = buildSessionParticipantHref({
     role: 'teacher',
@@ -33,6 +51,9 @@ export default async function TeacherSessionPage(props: PageProps) {
   });
   if (teacherHref !== `/classroom/teacher/${session.id}`) {
     redirect(teacherHref);
+  }
+  if (session.status === 'FINISHED') {
+    redirect(`/classroom/teacher/${session.id}/review`);
   }
 
   // Prisma Enum ordering is by definition order in schema. 
@@ -59,6 +80,8 @@ export default async function TeacherSessionPage(props: PageProps) {
       id: session.plan.id,
       title: session.plan.title,
     },
+    class: session.class,
+    classroomIdentity: buildClassroomIdentityPayload(session),
   };
 
   return <TeacherPlayer session={sessionData} initialItems={sortedItems} />;

@@ -346,6 +346,27 @@ function officialArenaSubmission(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function acceptedArenaWritebackOutboxRow(submissionId = 'arena-submission-1') {
+  return {
+    causationId: submissionId,
+    status: 'processed',
+    payload: {
+      evidenceWriteback: {
+        status: 'accepted',
+        sourceRef: { kind: 'ArenaSubmission', id: submissionId },
+        attemptStatus: 'effective',
+        visibilityState: 'materialized',
+        targetLabel: '控制校正 Arena 官方迁移验证',
+        summary: '官方 Arena 结果已写入学生证据时间线，并可作为终端验证证据。',
+        recoveryAction: '无需处理；教师报告可直接引用该官方证据。',
+        limitationCodes: [],
+        overlayCount: 1,
+        terminalValidationAccepted: true,
+      },
+    },
+  };
+}
+
 function adaptiveLearnerStateFeature(overrides: Record<string, unknown> = {}) {
   return {
     payloadVersion: 'adaptive-learner-state.v1',
@@ -684,6 +705,60 @@ describe('adaptive learner state service', () => {
       'AdaptiveMasteryUpdate',
       'StudentEvidenceFeatureCache',
     ]));
+  });
+
+  it('distinguishes no evidence, no active path, and stale feature-cache states', async () => {
+    const noEvidenceState = await readAdaptiveLearnerState(createDb({
+      studentCompetencySnapshot: { findFirst: async () => null },
+      studentProfileSummary: { findUnique: async () => null },
+      studentEvidenceFeatureCache: { findUnique: async () => null },
+      learningFact: { findMany: async () => [] },
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      adaptiveAssessmentAbilityEstimate: { findFirst: async () => null },
+      studentRiskFlag: { findMany: async () => [] },
+      learningPath: { findMany: async () => [] },
+    }), {
+      userId: 'student-sparse',
+      role: 'student',
+      goal: 'control-correction',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+    const staleState = await readAdaptiveLearnerState(createDb({
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-03-01T00:00:00.000Z'),
+          evidenceWindow: evidenceWindow(),
+          sourceCounts: { LearningFact: 1 },
+          sourceCoverage: { LearningFact: 'available' },
+          confidenceMarkers: { level: 'medium', score: 0.6, evidenceCount: 1, sourceCompleteness: 0.5 },
+          statusMarkers: [],
+          features: {
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+          },
+        }),
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      goal: 'control-correction',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    expect(noEvidenceState.evidence.readState).toBe('missing');
+    expect(noEvidenceState.evidence.statusMarkers).toEqual(expect.arrayContaining(['missing-source', 'low-confidence']));
+    expect(noEvidenceState.pathContext).toMatchObject({
+      activeControlCorrectionPath: { state: 'none' },
+      statusMarkers: ['missing'],
+    });
+    expect(noEvidenceState.goalSlices?.controlCorrection?.dimensions.every((dimension) =>
+      dimension.fallbackMarkers.includes('missing-governed-evidence')
+    )).toBe(true);
+    expect(staleState.evidence.readState).toBe('stale');
+    expect(staleState.goalSlices?.controlCorrection?.dimensions.some((dimension) =>
+      dimension.fallbackMarkers.includes('stale')
+    )).toBe(true);
   });
 
   it('keeps the active control-correction path even when recent generic paths fill the general window', async () => {
@@ -1700,9 +1775,9 @@ describe('adaptive learner state service', () => {
           }),
         ],
       },
-	      arenaSubmission: {
-	        findMany: async () => [
-	          officialArenaSubmission(),
+      arenaSubmission: {
+        findMany: async () => [
+          officialArenaSubmission(),
 	          officialArenaSubmission({
 	            id: 'arena-submission-other-task',
 	            taskId: 'unrelated-arena-task',
@@ -1716,6 +1791,9 @@ describe('adaptive learner state service', () => {
             valid: false,
           }),
         ],
+      },
+      evidenceOutbox: {
+        findMany: async () => [acceptedArenaWritebackOutboxRow()],
       },
     }), {
       userId: 'student-1',
@@ -2026,6 +2104,9 @@ describe('adaptive learner state service', () => {
       arenaSubmission: {
         findMany: async () => [officialArenaSubmission()],
       },
+      evidenceOutbox: {
+        findMany: async () => [acceptedArenaWritebackOutboxRow()],
+      },
     }), {
       userId: 'student-1',
       role: 'student',
@@ -2040,6 +2121,90 @@ describe('adaptive learner state service', () => {
       evidenceProvenance: expect.objectContaining({ arena: 'official' }),
       confidence: expect.objectContaining({ sourceCompleteness: 1 }),
     });
+  });
+
+  it('excludes blocked persisted Arena writeback outcomes from official control-correction evidence', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
+          evidenceWindow: evidenceWindow(),
+          sourceCounts: {
+            LearningFact: 1,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { arena: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'high',
+            score: 0.9,
+            evidenceCount: 1,
+            sourceCompleteness: 1,
+          },
+          statusMarkers: [],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-05-20T00:00:00.000Z',
+                factCount: 12,
+                calculationVersion: 'competency-v2',
+                competencyVector: strongSnapshotVector,
+              },
+            },
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+          },
+        }),
+      },
+      learningFact: {
+        findMany: async () => [],
+      },
+      arenaSubmission: {
+        findMany: async () => [officialArenaSubmission({
+          id: 'arena-submission-blocked',
+        })],
+      },
+      evidenceOutbox: {
+        findMany: async () => [
+          {
+            causationId: 'arena-submission-blocked',
+            payload: {
+              evidenceWriteback: {
+                status: 'blocked',
+                sourceRef: { kind: 'ArenaSubmission', id: 'arena-submission-blocked' },
+                attemptStatus: 'duplicate-only',
+                visibilityState: 'diagnostic-only',
+                targetLabel: '控制校正 Arena 官方迁移验证',
+                summary: '重复官方提交只保留诊断证据，不写入终端掌握判定。',
+                recoveryAction: '提交新的有效官方结果。',
+                limitationCodes: ['attempt-not-effective:duplicate-only'],
+                overlayCount: 0,
+                terminalValidationAccepted: false,
+              },
+            },
+          },
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'system',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const arenaTransfer = state.goalSlices?.controlCorrection?.dimensions.find((dimension) => dimension.id === 'arena-transfer');
+    expect(arenaTransfer).toMatchObject({
+      sourceCoverage: expect.objectContaining({ arena: 'missing' }),
+      evidenceCount: 0,
+      evidenceProvenance: expect.objectContaining({ arena: 'missing' }),
+    });
+    expect(arenaTransfer?.fallbackMarkers).toContain('missing-governed-evidence');
   });
 
   it('marks control-correction dimensions with missing, stale, partial, and low-confidence fallback states', async () => {

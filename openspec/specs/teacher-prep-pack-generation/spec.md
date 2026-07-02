@@ -4,7 +4,7 @@
 Define how governed diagnosis, evidence summaries, path outcomes, grading summaries, and ResourceNode metadata become reviewable teacher prep packs for upcoming lessons. Prep packs keep generated interventions in a draft state until teacher approval, separate export from automatic insertion eligibility, and preserve privacy by carrying only aggregate or redacted evidence.
 ## Requirements
 ### Requirement: Prep packs convert diagnosis into teacher actions
-The system SHALL generate reviewable teacher prep packs from governed class diagnosis and evidence, and prep packs SHALL be accessible from teacher diagnosis surfaces as reviewable interventions.
+The system SHALL generate reviewable teacher prep packs from governed class diagnosis, K/A/Q graph weak points, resource coverage gaps, and evidence, and prep packs SHALL be accessible from teacher diagnosis and Graph Center surfaces as reviewable interventions.
 
 #### Scenario: Prep pack is generated
 - **WHEN** a teacher generates a prep pack from class diagnosis
@@ -15,6 +15,11 @@ The system SHALL generate reviewable teacher prep packs from governed class diag
 #### Scenario: Candidate has no source support
 - **WHEN** an intervention candidate cannot be tied to governed diagnosis, ResourceNode metadata, lesson context, grading summary, or path evidence
 - **THEN** it SHALL be marked as draft-request or excluded from automatic insertion.
+
+#### Scenario: Graph-aware prep pack is generated
+- **WHEN** a teacher generates a prep pack from K/A/Q class diagnosis or a Graph Center weak-node action
+- **THEN** each candidate SHALL include target LearningGoal or graph node ids, source diagnosis evidence, target class or lesson context, insertion target, evidence citations, resource coverage or gap refs, expected learner impact, confidence, and teacher review state
+- **AND** unsupported candidates SHALL become draft-resource requests or be excluded from automatic insertion.
 
 ### Requirement: Teacher review gates publication
 Prep packs SHALL require teacher review before they affect students or class sessions, and teacher review SHALL provide visible approve, reject, edit, preview, activate, rollback, and archive states.
@@ -71,7 +76,7 @@ Course enhancement packs SHALL require teacher activation before affecting stude
 - **AND** activation, rollback, and impact evidence history SHALL remain auditable.
 
 ### Requirement: Enhancement impact is traceable
-Activated enhancement packs SHALL be linkable to subsequent learning evidence and teacher feedback, and prep-pack impact SHALL be available to effect-report and teacher reflection workflows.
+Activated enhancement packs SHALL be linkable to subsequent learning evidence, graph-node targets, and teacher feedback, and prep-pack impact SHALL be available to effect-report and teacher reflection workflows.
 
 #### Scenario: Post-class evidence is collected
 - **WHEN** learners interact with activated overlay items
@@ -79,3 +84,8 @@ Activated enhancement packs SHALL be linkable to subsequent learning evidence an
 - **AND** generated learning evidence SHALL reference the pack item where safe
 - **AND** teacher reports SHALL be able to compare post-activation evidence with the diagnosis that motivated the pack
 - **AND** effect-report code SHALL be able to aggregate impact without raw private evidence.
+
+#### Scenario: Post-class evidence is collected for graph-aware prep item
+- **WHEN** learners interact with activated overlay items tied to K/A/Q graph nodes
+- **THEN** the system SHALL record impact evidence linked to pack id, item id, lesson/session scope, source diagnosis, target graph node where safe, and privacy-safe references
+- **AND** effect-report and teacher reflection code SHALL be able to aggregate impact without raw private evidence.

@@ -1,5 +1,9 @@
 import { createAuditedActionState, type AuditedActionIdentity, type AuditedActionState } from '@/lib/action-status-contract';
 import { resolveScopedReturnTarget, type ReturnTargetParam } from '@/lib/navigation-return-target';
+import {
+  buildTeacherEvidenceInterventionAction,
+  type TeacherEvidenceInterventionActionRecord,
+} from '@/lib/teacher-evidence-intervention-contract';
 
 export type TeacherReportDeliveryAction =
   | 'export'
@@ -10,13 +14,73 @@ export type TeacherReportDeliveryAction =
   | 'summary'
   | 'reinforcement';
 
+export type TeacherReportDeliveryLedgerStatus =
+  | 'draft'
+  | 'ready'
+  | 'exported'
+  | 'sent'
+  | 'copied'
+  | 'blocked'
+  | 'missing-context'
+  | 'degraded'
+  | 'unavailable';
+
+export type TeacherReportDeliverySurface =
+  | 'teacher-home'
+  | 'class-analytics'
+  | 'history'
+  | 'classroom-review'
+  | 'report-book';
+
+export type TeacherReportDeliveryRecipientScope = 'class' | 'student' | 'teacher-review' | 'none';
+
 export interface TeacherReportDeliveryQuery {
   action: TeacherReportDeliveryAction | 'unsupported' | null;
+  surface: TeacherReportDeliverySurface;
   reportId: string;
   versionId: string;
   format: string;
   studentId: string | null;
+  classId: string;
+  sessionId: string | null;
+  lessonId: string | null;
+  gradingRunId: string | null;
+  source: string | null;
+  actorId: string | null;
+  actorRole: string;
+  recipientScope: TeacherReportDeliveryRecipientScope;
   returnTo: string;
+}
+
+export interface TeacherReportDeliveryLedgerEntry {
+  surface: TeacherReportDeliverySurface;
+  reportId: string;
+  reportType: string;
+  classId: string | null;
+  studentId: string | null;
+  sessionId: string | null;
+  lessonId: string | null;
+  gradingRunId: string | null;
+  source: string | null;
+  contextState: 'ready' | 'missing-class' | 'missing-session' | 'missing-lesson' | 'missing-student';
+  actorId: string | null;
+  actorRole: string;
+  action: TeacherReportDeliveryAction | 'unsupported';
+  actionId: string;
+  idempotencyKey: string;
+  actionTimestamp: string;
+  recipientScope: TeacherReportDeliveryRecipientScope;
+  deliveryScope: string;
+  deliveryStatus: TeacherReportDeliveryLedgerStatus;
+  exportState: TeacherReportDeliveryLedgerStatus;
+  sendState: TeacherReportDeliveryLedgerStatus;
+  copySummaryState: TeacherReportDeliveryLedgerStatus;
+  studentHandoffState: TeacherReportDeliveryLedgerStatus;
+  artifactRef: string;
+  redactionPolicy: 'student-safe-summary-only';
+  studentSafeSummary: string;
+  interventionAction: TeacherEvidenceInterventionActionRecord;
+  recoveryAction?: string;
 }
 
 export interface TeacherGradingRouteQuery {
@@ -27,6 +91,10 @@ export interface TeacherGradingRouteQuery {
   classId: string | null;
   studentId: string | null;
   assignment: string | null;
+  sessionId: string | null;
+  lessonId: string | null;
+  reportId: string | null;
+  source: string | null;
   returnTo: string;
 }
 
@@ -47,6 +115,14 @@ export function normalizeTeacherReportDeliveryQuery(input: {
   version?: string | string[] | null;
   format?: string | string[] | null;
   studentId?: string | string[] | null;
+  sessionId?: string | string[] | null;
+  lessonId?: string | string[] | null;
+  gradingRunId?: string | string[] | null;
+  source?: string | string[] | null;
+  actorId?: string | string[] | null;
+  actorRole?: string | string[] | null;
+  recipientScope?: string | string[] | null;
+  surface?: string | string[] | null;
   returnTo?: ReturnTargetParam | null;
 }, classId: string): TeacherReportDeliveryQuery {
   const action = firstQueryValue(input.action);
@@ -60,18 +136,31 @@ export function normalizeTeacherReportDeliveryQuery(input: {
   const version = firstQueryValue(input.version);
   return {
     action: normalizedAction,
+    surface: normalizeDeliverySurface(firstQueryValue(input.surface)),
     reportId,
     versionId: version ?? `${classId}:${reportId}:latest`,
     format: firstQueryValue(input.format) ?? 'json',
     studentId: firstQueryValue(input.studentId),
+    classId,
+    sessionId: firstQueryValue(input.sessionId),
+    lessonId: firstQueryValue(input.lessonId),
+    gradingRunId: firstQueryValue(input.gradingRunId),
+    source: firstQueryValue(input.source),
+    actorId: firstQueryValue(input.actorId),
+    actorRole: firstQueryValue(input.actorRole) ?? 'teacher',
+    recipientScope: normalizeRecipientScope(firstQueryValue(input.recipientScope), firstQueryValue(input.studentId)),
     returnTo: resolveTeacherReturnTo(input.returnTo, `/teacher/classes/${classId}/analytics-v2`),
   };
 }
 
 export function buildTeacherReportDeliveryState(query: TeacherReportDeliveryQuery): AuditedActionState | null {
   if (!query.action) return null;
+  const ledgerEntry = buildTeacherReportDeliveryLedgerEntry({
+    query,
+    surface: query.surface,
+  });
   const identity: AuditedActionIdentity = {
-    id: `teacher-report:${query.action}:${query.reportId}`,
+    id: ledgerEntry.actionId,
     category: getReportDeliveryCategory(query.action),
     label: '教师报告交付',
     sourceRoute: query.returnTo,
@@ -84,15 +173,17 @@ export function buildTeacherReportDeliveryState(query: TeacherReportDeliveryQuer
       status: 'unsupported',
       message: '当前教师报告链接包含不支持的交付动作。',
       recoveryAction: '使用页面固定交付动作区重新选择操作',
+      displayReference: ledgerEntry.artifactRef,
     });
   }
-  if ((query.action === 'send' || query.action === 'deliver') && isMissingIdentifier(query.studentId)) {
+  if (ledgerEntry.deliveryStatus === 'missing-context') {
     return createAuditedActionState({
       identity,
       status: 'blocked',
-      message: `无法交付报告：学生 ${query.studentId} 不存在或不在当前教师可见范围。`,
-      recoveryAction: '回到班级学生列表选择有效学生',
+      message: ledgerEntry.studentSafeSummary,
+      recoveryAction: ledgerEntry.recoveryAction ?? '回到班级学生列表选择有效对象',
       httpStatus: 404,
+      displayReference: ledgerEntry.artifactRef,
     });
   }
   if (query.action === 'export' || query.action === 'download') {
@@ -101,6 +192,7 @@ export function buildTeacherReportDeliveryState(query: TeacherReportDeliveryQuer
       status: 'pending',
       message: `报告 ${query.versionId} 已准备导出为 ${query.format.toUpperCase()}。`,
       nextAction: '使用固定交付动作区下载报告文件',
+      displayReference: ledgerEntry.artifactRef,
     });
   }
   if (query.action === 'lock') {
@@ -109,6 +201,17 @@ export function buildTeacherReportDeliveryState(query: TeacherReportDeliveryQuer
       status: 'blocked',
       message: `报告 ${query.versionId} 需要生成稳定版本后才能锁定。`,
       recoveryAction: '先导出或刷新报告，再锁定交付版本',
+      displayReference: ledgerEntry.artifactRef,
+    });
+  }
+  if (ledgerEntry.deliveryStatus === 'blocked') {
+    return createAuditedActionState({
+      identity,
+      status: 'blocked',
+      message: ledgerEntry.studentSafeSummary,
+      recoveryAction: ledgerEntry.recoveryAction ?? '回到班级学生列表选择有效对象',
+      httpStatus: 404,
+      displayReference: ledgerEntry.artifactRef,
     });
   }
   return createAuditedActionState({
@@ -116,7 +219,129 @@ export function buildTeacherReportDeliveryState(query: TeacherReportDeliveryQuer
     status: 'pending',
     message: `报告 ${query.versionId} 已保留 ${query.action} 上下文。`,
     nextAction: '确认报告版本后继续交付流程',
+    displayReference: ledgerEntry.artifactRef,
   });
+}
+
+export function buildTeacherReportDeliveryLedgerEntry(input: {
+  query: TeacherReportDeliveryQuery;
+  surface: TeacherReportDeliverySurface;
+  now?: Date;
+  reportType?: string;
+  studentSafeSummary?: string;
+}): TeacherReportDeliveryLedgerEntry {
+  const { query } = input;
+  const action = query.action ?? 'export';
+  const surface = input.surface ?? query.surface;
+  const reportType = input.reportType ?? 'class-session-summary';
+  const timestamp = (input.now ?? new Date()).toISOString();
+  const contextState = getDeliveryContextState(query, action, surface);
+  const missingContext = contextState !== 'ready';
+  const deliveryStatus = getDeliveryLedgerStatus(action, missingContext);
+  const deliveryScope = query.studentId
+    ? `student:${opaqueRef(query.studentId)}`
+    : `class:${opaqueRef(query.classId)}`;
+  const artifactRef = `teacher-report-artifact:${opaqueRef(`${query.reportId}:${query.versionId}`)}`;
+  const actionId = `teacher-report:${surface}:${action}:${opaqueRef(query.reportId)}`;
+  const idempotencyKey = `teacher-report-idempotency:${opaqueRef([
+    surface,
+    query.classId || 'missing-class',
+    query.sessionId || 'missing-session',
+    query.lessonId || 'missing-lesson',
+    query.gradingRunId || 'missing-grading-run',
+    query.source || surface,
+    query.reportId,
+    query.versionId,
+    action,
+    query.recipientScope,
+    query.studentId || 'class-recipient',
+  ].join(':'))}`;
+  const fallbackSummary = missingContext
+    ? getDeliveryMissingContextSummary(query, contextState)
+    : `教师报告 ${query.reportId} 已进入 ${action} 交付账本，范围为 ${query.recipientScope}。`;
+  const interventionAction = buildTeacherEvidenceInterventionAction({
+    kind: action === 'reinforcement'
+      ? 'reinforcement-task'
+      : action === 'send' || action === 'deliver'
+        ? 'feedback'
+        : 'grading-writeback',
+    surface: 'report-ledger',
+    teacherId: query.actorId,
+    actorRole: query.actorRole,
+    studentId: query.studentId,
+    classId: query.classId,
+    sessionId: query.sessionId,
+    lessonId: query.lessonId,
+    reportId: query.reportId,
+    gradingRunId: query.gradingRunId,
+    source: query.source ?? surface,
+    sourceEvidenceRefs: [
+      `teacher-report:${query.reportId}:${query.versionId}`,
+      query.gradingRunId ? `grading-run:${query.gradingRunId}` : null,
+      query.sessionId ? `class-session:${query.sessionId}` : null,
+    ].filter((ref): ref is string => Boolean(ref)),
+    learnerState: query.studentId ? 'ready' : 'missing',
+    now: input.now,
+  });
+
+  return {
+    surface,
+    reportId: query.reportId,
+    reportType,
+    classId: query.classId || null,
+    studentId: query.studentId,
+    sessionId: query.sessionId,
+    lessonId: query.lessonId,
+    gradingRunId: query.gradingRunId,
+    source: query.source,
+    contextState,
+    actorId: query.actorId,
+    actorRole: query.actorRole,
+    action,
+    actionId,
+    idempotencyKey,
+    actionTimestamp: timestamp,
+    recipientScope: query.recipientScope,
+    deliveryScope,
+    deliveryStatus,
+    exportState: action === 'export' || action === 'download' ? deliveryStatus : 'ready',
+    sendState: action === 'send' || action === 'deliver' ? deliveryStatus : 'draft',
+    copySummaryState: action === 'summary' ? deliveryStatus : 'ready',
+    studentHandoffState: action === 'reinforcement' ? deliveryStatus : 'draft',
+    artifactRef,
+    redactionPolicy: 'student-safe-summary-only',
+    studentSafeSummary: input.studentSafeSummary ?? fallbackSummary,
+    interventionAction,
+    recoveryAction: missingContext ? getDeliveryRecoveryAction(contextState) : undefined,
+  };
+}
+
+export function buildTeacherReportDeliveryHref(input: {
+  classId: string | null | undefined;
+  action?: TeacherReportDeliveryAction;
+  reportId?: string;
+  sessionId?: string | null;
+  lessonId?: string | null;
+  gradingRunId?: string | null;
+  source?: string | null;
+  studentId?: string | null;
+  surface?: TeacherReportDeliverySurface;
+  returnTo?: string;
+}) {
+  const classId = input.classId && !isMissingIdentifier(input.classId) ? input.classId : null;
+  if (!classId) return '/teacher/classes';
+  const params = new URLSearchParams({
+    action: input.action ?? 'export',
+    report: input.reportId ?? 'control-correction',
+    surface: input.surface ?? 'class-analytics',
+    returnTo: input.returnTo ?? '/teacher',
+  });
+  if (input.sessionId) params.set('sessionId', input.sessionId);
+  if (input.lessonId) params.set('lessonId', input.lessonId);
+  if (input.gradingRunId) params.set('gradingRunId', input.gradingRunId);
+  if (input.source) params.set('source', input.source);
+  if (input.studentId) params.set('studentId', input.studentId);
+  return `/teacher/classes/${classId}/analytics-v2?${params.toString()}`;
 }
 
 export function normalizeTeacherGradingRouteQuery(input: {
@@ -127,6 +352,10 @@ export function normalizeTeacherGradingRouteQuery(input: {
   classId?: string | string[] | null;
   studentId?: string | string[] | null;
   assignment?: string | string[] | null;
+  sessionId?: string | string[] | null;
+  lessonId?: string | string[] | null;
+  reportId?: string | string[] | null;
+  source?: string | string[] | null;
   returnTo?: ReturnTargetParam | null;
 }): TeacherGradingRouteQuery {
   return {
@@ -137,6 +366,10 @@ export function normalizeTeacherGradingRouteQuery(input: {
     classId: firstQueryValue(input.classId),
     studentId: firstQueryValue(input.studentId),
     assignment: firstQueryValue(input.assignment),
+    sessionId: firstQueryValue(input.sessionId),
+    lessonId: firstQueryValue(input.lessonId),
+    reportId: firstQueryValue(input.reportId),
+    source: firstQueryValue(input.source),
     returnTo: resolveTeacherReturnTo(input.returnTo, '/teacher/grading-workbench'),
   };
 }
@@ -149,7 +382,7 @@ export function buildTeacherGradingRouteState(query: TeacherGradingRouteQuery): 
     category: getGradingActionCategory(requestedAction),
     label: '报告评分工作台',
     sourceRoute: query.returnTo,
-    targetId: query.gradingRunId ?? query.studentId ?? query.assignment,
+    targetId: query.gradingRunId ?? query.studentId ?? query.assignment ?? query.reportId,
     requestedAction,
   };
   if (query.method && query.method.toLowerCase() === 'get') {
@@ -185,7 +418,9 @@ export function buildTeacherGradingRouteState(query: TeacherGradingRouteQuery): 
       status: 'pending',
       message: query.assignment
         ? `正在等待 ${query.assignment} 的评分草稿。`
-        : '当前评分草稿处于待审批状态。',
+        : query.source === 'report-ledger'
+          ? `当前评分草稿处于待审批状态，已保留报告 ${query.reportId ?? 'control-correction'} 与课堂上下文。`
+          : '当前评分草稿处于待审批状态。',
       nextAction: '打开有效 gradingRunId 后审批或返回学生修改',
     });
   }
@@ -210,7 +445,7 @@ export function buildTeacherGradingMissingRunState(query: TeacherGradingRouteQue
 }
 
 export function resolveTeacherReturnTo(value: ReturnTargetParam | null | undefined, fallback: string) {
-  return resolveScopedReturnTarget(value ?? undefined, fallback, ['/teacher']);
+  return resolveScopedReturnTarget(value ?? undefined, fallback, ['/teacher', '/classroom/teacher']);
 }
 
 function firstQueryValue(value: string | string[] | null | undefined): string | null {
@@ -220,6 +455,85 @@ function firstQueryValue(value: string | string[] | null | undefined): string | 
 
 function isMissingIdentifier(value: string | null | undefined) {
   return typeof value === 'string' && value.toLowerCase().startsWith('missing');
+}
+
+function getDeliveryContextState(
+  query: TeacherReportDeliveryQuery,
+  action: TeacherReportDeliveryAction | 'unsupported',
+  surface: TeacherReportDeliverySurface,
+): TeacherReportDeliveryLedgerEntry['contextState'] {
+  if (!query.classId || isMissingIdentifier(query.classId)) return 'missing-class';
+  if (surface === 'classroom-review' && (!query.sessionId || isMissingIdentifier(query.sessionId))) return 'missing-session';
+  if (surface === 'classroom-review' && (!query.lessonId || isMissingIdentifier(query.lessonId))) return 'missing-lesson';
+  if ((action === 'send' || action === 'deliver') && isMissingIdentifier(query.studentId)) return 'missing-student';
+  return 'ready';
+}
+
+function getDeliveryMissingContextSummary(
+  query: TeacherReportDeliveryQuery,
+  contextState: TeacherReportDeliveryLedgerEntry['contextState'],
+) {
+  if (contextState === 'missing-session') {
+    return `无法交付报告：课堂复盘缺少有效 sessionId，报告 ${query.reportId} 不能脱离课堂上下文继续。`;
+  }
+  if (contextState === 'missing-lesson') {
+    return `无法交付报告：课堂复盘缺少有效 lessonId，报告 ${query.reportId} 不能脱离教案上下文继续。`;
+  }
+  if (contextState === 'missing-student') {
+    return `无法交付报告：学生 ${query.studentId} 不存在或不在当前教师可见范围。`;
+  }
+  return '无法交付报告：班级不存在或不在当前教师可见范围。';
+}
+
+function getDeliveryRecoveryAction(contextState: TeacherReportDeliveryLedgerEntry['contextState']) {
+  if (contextState === 'missing-session') return '回到课堂历史选择有效课堂复盘后再进入报告交付';
+  if (contextState === 'missing-lesson') return '回到课堂历史选择带有有效教案的课堂复盘后再进入报告交付';
+  if (contextState === 'missing-student') return '回到班级学生列表选择有效学生后再发送报告';
+  return '回到班级、课堂历史或学生列表选择有效上下文';
+}
+
+function normalizeRecipientScope(
+  value: string | null,
+  studentId: string | null,
+): TeacherReportDeliveryRecipientScope {
+  if (value === 'class' || value === 'student' || value === 'teacher-review' || value === 'none') return value;
+  return studentId ? 'student' : 'class';
+}
+
+function normalizeDeliverySurface(value: string | null): TeacherReportDeliverySurface {
+  if (
+    value === 'teacher-home'
+    || value === 'class-analytics'
+    || value === 'history'
+    || value === 'classroom-review'
+    || value === 'report-book'
+  ) {
+    return value;
+  }
+  return 'class-analytics';
+}
+
+function getDeliveryLedgerStatus(
+  action: TeacherReportDeliveryAction | 'unsupported',
+  missingContext: boolean,
+): TeacherReportDeliveryLedgerStatus {
+  if (missingContext) return 'missing-context';
+  if (action === 'unsupported') return 'blocked';
+  if (action === 'export' || action === 'download') return 'ready';
+  if (action === 'send' || action === 'deliver' || action === 'summary') return 'ready';
+  if (action === 'reinforcement') return 'degraded';
+  if (action === 'lock') return 'blocked';
+  return 'ready';
+}
+
+function opaqueRef(value: string | null | undefined) {
+  const source = value && value.trim() ? value.trim() : 'missing';
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `ref-${(hash >>> 0).toString(36).padStart(7, '0')}`;
 }
 
 function getReportDeliveryCategory(action: TeacherReportDeliveryQuery['action']) {

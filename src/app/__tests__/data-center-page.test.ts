@@ -50,9 +50,45 @@ describe('DataCenterPage role access', () => {
   it('redirects authenticated students to learner evidence instead of rendering data center', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
 
-    await expect(DataCenterPage()).rejects.toThrow('redirect:/profile/evidence');
+    await expect(DataCenterPage()).rejects.toThrow(
+      'redirect:/profile/evidence?origin=%2Fdata-center&reason=student-role-boundary&targetScope=learner-evidence-review&sourceBoundary=teacher-admin-aggregate-only',
+    );
 
     expect(mocks.presentationDataCenter).not.toHaveBeenCalled();
+  });
+
+  it('keeps learner return targets local and annotates the role boundary', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+
+    await expect(DataCenterPage({
+      searchParams: Promise.resolve({ returnTo: '/profile/growth?tab=evidence' }),
+    })).rejects.toThrow(
+      'redirect:/profile/growth?tab=evidence&origin=%2Fdata-center&reason=student-role-boundary&targetScope=learner-evidence-review&sourceBoundary=teacher-admin-aggregate-only',
+    );
+
+    await expect(DataCenterPage({
+      searchParams: Promise.resolve({ returnTo: '//example.test' }),
+    })).rejects.toThrow(
+      'redirect:/profile/evidence?origin=%2Fdata-center&reason=student-role-boundary&targetScope=learner-evidence-review&sourceBoundary=teacher-admin-aggregate-only',
+    );
+
+    await expect(DataCenterPage({
+      searchParams: Promise.resolve({ returnTo: '/\\evil.example' }),
+    })).rejects.toThrow(
+      'redirect:/profile/evidence?origin=%2Fdata-center&reason=student-role-boundary&targetScope=learner-evidence-review&sourceBoundary=teacher-admin-aggregate-only',
+    );
+
+    await expect(DataCenterPage({
+      searchParams: Promise.resolve({ returnTo: '/profile/evidence#timeline' }),
+    })).rejects.toThrow(
+      'redirect:/profile/evidence?origin=%2Fdata-center&reason=student-role-boundary&targetScope=learner-evidence-review&sourceBoundary=teacher-admin-aggregate-only#timeline',
+    );
+
+    await expect(DataCenterPage({
+      searchParams: Promise.resolve({ returnTo: '/data-center#export' }),
+    })).rejects.toThrow(
+      'redirect:/profile/evidence?origin=%2Fdata-center&reason=student-role-boundary&targetScope=learner-evidence-review&sourceBoundary=teacher-admin-aggregate-only',
+    );
   });
 
   it('renders data center for teacher and administrator roles with demo label policy', async () => {

@@ -1,7 +1,11 @@
 import { notFound, redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
 import { StudentPlayer } from '@/features/lesson-engine/student-player';
 import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
+import { buildClassroomIdentityPayload } from '@/lib/classroom-lifecycle-contract';
+import { canAccessClassroomSession } from '@/lib/classroom-session-access';
 
 interface PageProps {
   params: Promise<{ sessionId: string }>;
@@ -9,6 +13,11 @@ interface PageProps {
 
 export default async function StudentSessionPage(props: PageProps) {
   const params = await props.params;
+  const userSession = await getServerSession(authOptions);
+  if (!userSession?.user?.id) {
+    redirect('/login');
+  }
+
   const session = await prisma.classSession.findUnique({
     where: { id: params.sessionId },
     include: {
@@ -17,13 +26,19 @@ export default async function StudentSessionPage(props: PageProps) {
           items: {
             include: { resource: true, knowledgeNode: true },
             orderBy: [{ stage: 'asc' }, { order: 'asc' }]
-          }
-        }
-      }
+          },
+        },
+      },
+      class: {
+        select: { name: true },
+      },
     }
   });
 
   if (!session) notFound();
+  if (!canAccessClassroomSession(session, userSession.user)) {
+    notFound();
+  }
 
   const studentHref = buildSessionParticipantHref({
     role: 'student',
@@ -55,7 +70,9 @@ export default async function StudentSessionPage(props: PageProps) {
     currentItemId: session.currentItemId,
     currentStage: session.currentStage,
     classId: session.classId,
-    plan: { id: session.plan.id, title: session.plan.title }
+    plan: { id: session.plan.id, title: session.plan.title },
+    class: session.class,
+    classroomIdentity: buildClassroomIdentityPayload(session),
   };
 
   return <StudentPlayer session={sessionInfo} items={sortedItems} />;

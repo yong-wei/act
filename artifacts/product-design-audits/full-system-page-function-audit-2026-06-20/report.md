@@ -2,7 +2,7 @@
 
 日期：2026-06-20
 基线：`dev1` 对齐 `origin/integration`，HEAD `60c88246c9`
-状态：审计已收口。本文件是全量审计报告的主索引与首批审计稿；认证态角色流程已拆入 `chapters/02-authenticated-role-flows.md`，profile/review/仿真深层页面已拆入 `chapters/03-profile-review-simulation-depth.md`，课程入口全集已拆入 `chapters/04-course-entry-all.md`，课程学生 demo 运行态全集已拆入 `chapters/05-course-student-runtime-demo-all.md`，课程教师等待页与投影运行态全集已拆入 `chapters/06-course-teacher-waiting-runtime-demo-all.md`，详情操作态与 AI/评估辅助页已拆入 `chapters/07-detail-auxiliary-pages.md`，结构化剩余路线和 Arena 发布报告已拆入 `chapters/08-structured-remaining-routes.md`，五十九批功能状态流已拆入 `chapters/09-function-state-flows.md`、`chapters/10-function-state-flows-batch2.md`、`chapters/11-function-state-flows-batch3.md`、`chapters/12-function-state-flows-batch4.md`、`chapters/13-function-state-flows-batch5.md`、`chapters/14-function-state-flows-batch6.md`、`chapters/15-function-state-flows-batch7.md`、`chapters/16-function-state-flows-batch8.md`、`chapters/17-function-state-flows-batch9.md`、`chapters/18-function-state-flows-batch10.md`、`chapters/19-function-state-flows-batch11.md`、`chapters/20-function-state-flows-batch12.md`、`chapters/21-function-state-flows-batch13.md`、`chapters/22-function-state-flows-batch14.md`、`chapters/23-function-state-flows-batch15.md`、`chapters/24-function-state-flows-batch16.md`、`chapters/25-function-state-flows-batch17.md`、`chapters/26-function-state-flows-batch18.md`、`chapters/27-function-state-flows-batch19.md`、`chapters/28-function-state-flows-batch20.md`、`chapters/29-function-state-flows-batch21.md`、`chapters/30-function-state-flows-batch22.md`、`chapters/31-function-state-flows-batch23.md`、`chapters/32-function-state-flows-batch24.md`、`chapters/33-function-state-flows-batch25.md`、`chapters/34-function-state-flows-batch26.md`、`chapters/35-function-state-flows-batch27.md`、`chapters/36-function-state-flows-batch28.md`、`chapters/37-function-state-flows-batch29.md`、`chapters/38-function-state-flows-batch30.md`、`chapters/39-function-state-flows-batch31.md`、`chapters/40-function-state-flows-batch32.md`、`chapters/41-function-state-flows-batch33.md`、`chapters/42-function-state-flows-batch34.md`、`chapters/43-function-state-flows-batch35.md`、`chapters/44-function-state-flows-batch36.md`、`chapters/45-function-state-flows-batch37.md`、`chapters/46-function-state-flows-batch38.md`、`chapters/47-function-state-flows-batch39.md`、`chapters/48-function-state-flows-batch40.md`、`chapters/49-function-state-flows-batch41.md`、`chapters/50-function-state-flows-batch42.md`、`chapters/51-function-state-flows-batch43.md`、`chapters/52-function-state-flows-batch44.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md`、`chapters/57-function-state-flows-batch49.md`、`chapters/58-function-state-flows-batch50.md`、`chapters/59-function-state-flows-batch51.md`、`chapters/60-function-state-flows-batch52.md`、`chapters/61-function-state-flows-batch53.md`、`chapters/62-function-state-flows-batch54.md`、`chapters/63-function-state-flows-batch55.md`、`chapters/64-function-state-flows-batch56.md`、`chapters/65-function-state-flows-batch57.md`、`chapters/66-function-state-flows-batch58.md` 和 `chapters/67-function-state-flows-batch59.md`。页面模板级证据已补齐，登录/注册、课堂加入、Arena 交互、Arena 到控制工作台、学生官方提交、移动端官方提交、学生移动端主路径/筛选空态、自适应学习路径动作与提交结果、任务工作区支持工具/提交结果、教师移动长列表/分析/资源空态、管理员移动筛选/统计/模态/批量导入/配置校验、教师建班/教案/课堂发起/课堂结束/有效复盘/Arena 预览/真实发布提交报告、Arena 多次提交/榜单归属/学生证据回流、管理员用户/配置/批量导入/AI provider 测试、导入后治理动作、模态键盘行为、关联数据删除影响范围、截止后 Arena 报告、课程入口课堂码、真实课堂码加入、教师等待/投影二维码工具、真实课堂发放作答/学生提交/教师汇总/结束课堂/学生证据回流、教师历史/进行中课堂、数据治理真实标签页、批量导入多类文件状态、教师课后复盘、学生证据回查、教师班级成员管理、教师侧学生证据链、教师教案编排器、教师资源管理、教师直发课堂、班级绑定课堂学生加入/双人提交/复盘、课后复盘深层动作、报告导出/发送入口、Arena 正式发布/榜单/报告、管理员治理深层动作、学生证据详情/题目级复盘/补练生成路径、控制工作台任务区合同、已结束课堂教师直达态、教师课前包复核阻断、管理员治理处置/导出/撤销缺口、跨角色 a11y/键盘路径、报告交付/评分反馈/管理员配置导入治理状态、跨角色权限边界、全局菜单/改密、浮动工具、AI 侧栏、移动壳层导航、AI 工坊、独立 Copilot、Prompt 评估、作品集 AI 入口、任务大厅和作品集空态动作、数据中心角色边界/治理动作/导出按钮、教师侧学生诊断与证据遗留路由、知识图谱筛选/节点深链、播放列表创建/保存/开始上课、移动端知识图谱/课程流、仿真目录筛选/课程设计弹窗/兼容重定向、仿真运行态局部工具和 Arena 任务入口、自适应学习路径生成/选择/执行/证据回看和移动端路径状态、全局壳层、浮动工具、AI 侧栏、移动抽屉、主题切换、Global AI 真实对话、上下文注入、引用核验提示、清空/重试/停止状态、管理员治理 AI、移动端 AI 首屏、报告账本、导出下载、教师复盘交付、数据中心快照导出、管理员模板下载、治理处置、无效深链、失效对象、错误恢复和列表搜索/筛选/分页/空态、表单校验、下载导入、配置保存、治理加载、学习完成态、提示词评价、证据后续动作、报告交付、导出下载、治理处置、移动端完成态、学生任务与作品集回流、教师评分/写回工作台、管理员用户导入批次治理和移动用户页、自适应 demo 作答、Prompt autodemo、学生个人中心下一步、教师班级报告/分析/课前包、管理员治理/数据中心、真实学习路径空态/执行、教师报告账本到学生证据/评分落点、320px 管理员治理和移动状态，以及学生任务/证据/成长/作品集完成态、教师交付/评分/课前包、管理员批量导入/搜索/配置/治理处置、教师备课/资源治理、管理员教案治理、学生课程目录和课程流创建、直接深链、编辑器、播放入口和知识节点定位，以及报告反馈、Prompt/AI/Copilot、作品集反思、报告账本、评分工作台、数据中心交接、治理分派、配置审计、后续入口目标页、参数化报告/评分/治理动作、移动目标页，以及 API/UI 语义不一致与恢复状态、搜索筛选与方法边界、动作闭环与状态播报等功能状态已补完整审计证据；全站 a11y 断点已完成证据收口，修复阶段仍需建立统一 status/live 合同。
+状态：审计已收口；整改状态已按 2026-06-30 当前远端与 `codex/preserve-local-2e12061-20260630` 保留分支取并集回写。本文件是全量审计报告的主索引与首批审计稿；认证态角色流程已拆入 `chapters/02-authenticated-role-flows.md`，profile/review/仿真深层页面已拆入 `chapters/03-profile-review-simulation-depth.md`，课程入口全集已拆入 `chapters/04-course-entry-all.md`，课程学生 demo 运行态全集已拆入 `chapters/05-course-student-runtime-demo-all.md`，课程教师等待页与投影运行态全集已拆入 `chapters/06-course-teacher-waiting-runtime-demo-all.md`，详情操作态与 AI/评估辅助页已拆入 `chapters/07-detail-auxiliary-pages.md`，结构化剩余路线和 Arena 发布报告已拆入 `chapters/08-structured-remaining-routes.md`，五十九批功能状态流已拆入 `chapters/09-function-state-flows.md`、`chapters/10-function-state-flows-batch2.md`、`chapters/11-function-state-flows-batch3.md`、`chapters/12-function-state-flows-batch4.md`、`chapters/13-function-state-flows-batch5.md`、`chapters/14-function-state-flows-batch6.md`、`chapters/15-function-state-flows-batch7.md`、`chapters/16-function-state-flows-batch8.md`、`chapters/17-function-state-flows-batch9.md`、`chapters/18-function-state-flows-batch10.md`、`chapters/19-function-state-flows-batch11.md`、`chapters/20-function-state-flows-batch12.md`、`chapters/21-function-state-flows-batch13.md`、`chapters/22-function-state-flows-batch14.md`、`chapters/23-function-state-flows-batch15.md`、`chapters/24-function-state-flows-batch16.md`、`chapters/25-function-state-flows-batch17.md`、`chapters/26-function-state-flows-batch18.md`、`chapters/27-function-state-flows-batch19.md`、`chapters/28-function-state-flows-batch20.md`、`chapters/29-function-state-flows-batch21.md`、`chapters/30-function-state-flows-batch22.md`、`chapters/31-function-state-flows-batch23.md`、`chapters/32-function-state-flows-batch24.md`、`chapters/33-function-state-flows-batch25.md`、`chapters/34-function-state-flows-batch26.md`、`chapters/35-function-state-flows-batch27.md`、`chapters/36-function-state-flows-batch28.md`、`chapters/37-function-state-flows-batch29.md`、`chapters/38-function-state-flows-batch30.md`、`chapters/39-function-state-flows-batch31.md`、`chapters/40-function-state-flows-batch32.md`、`chapters/41-function-state-flows-batch33.md`、`chapters/42-function-state-flows-batch34.md`、`chapters/43-function-state-flows-batch35.md`、`chapters/44-function-state-flows-batch36.md`、`chapters/45-function-state-flows-batch37.md`、`chapters/46-function-state-flows-batch38.md`、`chapters/47-function-state-flows-batch39.md`、`chapters/48-function-state-flows-batch40.md`、`chapters/49-function-state-flows-batch41.md`、`chapters/50-function-state-flows-batch42.md`、`chapters/51-function-state-flows-batch43.md`、`chapters/52-function-state-flows-batch44.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md`、`chapters/57-function-state-flows-batch49.md`、`chapters/58-function-state-flows-batch50.md`、`chapters/59-function-state-flows-batch51.md`、`chapters/60-function-state-flows-batch52.md`、`chapters/61-function-state-flows-batch53.md`、`chapters/62-function-state-flows-batch54.md`、`chapters/63-function-state-flows-batch55.md`、`chapters/64-function-state-flows-batch56.md`、`chapters/65-function-state-flows-batch57.md`、`chapters/66-function-state-flows-batch58.md` 和 `chapters/67-function-state-flows-batch59.md`。页面模板级证据已补齐，登录/注册、课堂加入、Arena 交互、Arena 到控制工作台、学生官方提交、移动端官方提交、学生移动端主路径/筛选空态、自适应学习路径动作与提交结果、任务工作区支持工具/提交结果、教师移动长列表/分析/资源空态、管理员移动筛选/统计/模态/批量导入/配置校验、教师建班/教案/课堂发起/课堂结束/有效复盘/Arena 预览/真实发布提交报告、Arena 多次提交/榜单归属/学生证据回流、管理员用户/配置/批量导入/AI provider 测试、导入后治理动作、模态键盘行为、关联数据删除影响范围、截止后 Arena 报告、课程入口课堂码、真实课堂码加入、教师等待/投影二维码工具、真实课堂发放作答/学生提交/教师汇总/结束课堂/学生证据回流、教师历史/进行中课堂、数据治理真实标签页、批量导入多类文件状态、教师课后复盘、学生证据回查、教师班级成员管理、教师侧学生证据链、教师教案编排器、教师资源管理、教师直发课堂、班级绑定课堂学生加入/双人提交/复盘、课后复盘深层动作、报告导出/发送入口、Arena 正式发布/榜单/报告、管理员治理深层动作、学生证据详情/题目级复盘/补练生成路径、控制工作台任务区合同、已结束课堂教师直达态、教师课前包复核阻断、管理员治理处置/导出/撤销缺口、跨角色 a11y/键盘路径、报告交付/评分反馈/管理员配置导入治理状态、跨角色权限边界、全局菜单/改密、浮动工具、AI 侧栏、移动壳层导航、AI 工坊、独立 Copilot、Prompt 评估、作品集 AI 入口、任务大厅和作品集空态动作、数据中心角色边界/治理动作/导出按钮、教师侧学生诊断与证据遗留路由、知识图谱筛选/节点深链、播放列表创建/保存/开始上课、移动端知识图谱/课程流、仿真目录筛选/课程设计弹窗/兼容重定向、仿真运行态局部工具和 Arena 任务入口、自适应学习路径生成/选择/执行/证据回看和移动端路径状态、全局壳层、浮动工具、AI 侧栏、移动抽屉、主题切换、Global AI 真实对话、上下文注入、引用核验提示、清空/重试/停止状态、管理员治理 AI、移动端 AI 首屏、报告账本、导出下载、教师复盘交付、数据中心快照导出、管理员模板下载、治理处置、无效深链、失效对象、错误恢复和列表搜索/筛选/分页/空态、表单校验、下载导入、配置保存、治理加载、学习完成态、提示词评价、证据后续动作、报告交付、导出下载、治理处置、移动端完成态、学生任务与作品集回流、教师评分/写回工作台、管理员用户导入批次治理和移动用户页、自适应 demo 作答、Prompt autodemo、学生个人中心下一步、教师班级报告/分析/课前包、管理员治理/数据中心、真实学习路径空态/执行、教师报告账本到学生证据/评分落点、320px 管理员治理和移动状态，以及学生任务/证据/成长/作品集完成态、教师交付/评分/课前包、管理员批量导入/搜索/配置/治理处置、教师备课/资源治理、管理员教案治理、学生课程目录和课程流创建、直接深链、编辑器、播放入口和知识节点定位，以及报告反馈、Prompt/AI/Copilot、作品集反思、报告账本、评分工作台、数据中心交接、治理分派、配置审计、后续入口目标页、参数化报告/评分/治理动作、移动目标页，以及 API/UI 语义不一致与恢复状态、搜索筛选与方法边界、动作闭环与状态播报等功能状态已补完整审计证据；全站 a11y 断点已完成证据收口，修复阶段仍需建立统一 status/live 合同。
 
 ## 1. 审计目标与边界
 
@@ -14,16 +14,48 @@
 
 | Change | 范围 | 主要审计证据 | 当前状态 |
 | --- | --- | --- | --- |
-| `audit-remediation-p0-stability` | 注册、空教案发课、教师投影、课前包 500 | `chapters/09-function-state-flows.md`、`chapters/10-function-state-flows-batch2.md`、`chapters/06-course-teacher-waiting-runtime-demo-all.md`、`chapters/02-authenticated-role-flows.md`、`chapters/38-function-state-flows-batch30.md`、`chapters/57-function-state-flows-batch49.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-p0-stability/evidence.md` |
+| `audit-remediation-p0-stability` | 注册、空教案发课、教师投影、课前包 500 | `chapters/09-function-state-flows.md`、`chapters/10-function-state-flows-batch2.md`、`chapters/06-course-teacher-waiting-runtime-demo-all.md`、`chapters/02-authenticated-role-flows.md`、`chapters/38-function-state-flows-batch30.md`、`chapters/57-function-state-flows-batch49.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-p0-stability/evidence.md`；2026-06-29 台账映射清理：finding 132/133/328 已从未标记阻断集合移出，证据：`remediation/audit-report-closure-ledger-cleanup/evidence.md` |
 | `audit-remediation-action-status-contract` | 全站动作状态、下载/导出、提交/审批/写回、`alert/live` | `chapters/49-function-state-flows-batch41.md`、`chapters/50-function-state-flows-batch42.md`、`chapters/51-function-state-flows-batch43.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | foundation remediated 2026-06-21；证据：`remediation/audit-remediation-action-status-contract/evidence.md`；具体页面缺陷待后续垂直变更关闭 |
 | `audit-remediation-api-ui-contracts` | URL 参数、搜索筛选、分页、坏 ID、API/UI 口径 | `chapters/52-function-state-flows-batch44.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | foundation + admin users no-match remediated 2026-06-21；证据：`remediation/audit-remediation-api-ui-contracts/evidence.md`；其余 deep link 页面待后续垂直变更关闭 |
-| `audit-remediation-student-learning-closure` | 学生报告反馈、任务、自适应练习、证据、成长、作品集写回 | `chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | proposed |
+| `audit-remediation-platform-recovery-deeplink-contracts` | 坏路由、Arena deep link、班级加入码 API/UI 恢复语义 | `chapters/52-function-state-flows-batch44.md`、`chapters/64-function-state-flows-batch56.md`、`chapters/65-function-state-flows-batch57.md` 至 `chapters/67-function-state-flows-batch59.md` | partial remediated 2026-06-30；证据：`remediation/audit-remediation-platform-recovery-deeplink-contracts/evidence.md`；playlist、handout print、课堂 runtime、教师学生、学习路径和学生证据坏筛选仍待后续垂直变更关闭 |
+| `audit-remediation-student-learning-closure` | 学生报告反馈、任务、自适应练习、证据、成长、作品集写回 | `chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | archived 2026-06-22；证据：`remediation/audit-remediation-student-learning-closure/evidence.md` |
+| `audit-remediation-student-path-evidence-loop-closure` | 自适应学习路径真实空路径、坏 pathId、selection/execution/evidence-review 恢复态 | `chapters/55-function-state-flows-batch47.md`、`chapters/63-function-state-flows-batch55.md`、本报告 finding 123-124、229-231、334、336 | remediated 2026-06-29；证据：`remediation/audit-remediation-student-path-evidence-loop-closure/evidence.md` |
 | `audit-remediation-teacher-report-grading` | 教师报告交付、评分审批、学生证据 deep link、移动长报告主动作 | `chapters/51-function-state-flows-batch43.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-teacher-report-grading/evidence.md`；学生反馈、管理员治理等非教师线缺陷待后续垂直变更关闭 |
-| `audit-remediation-admin-governance-workflows` | 管理员治理、用户导入、用户筛选导出、配置测试、统计导出 | `chapters/51-function-state-flows-batch43.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/56-function-state-flows-batch48.md` 至 `chapters/67-function-state-flows-batch59.md` | proposed |
+| `audit-remediation-teacher-classroom-review-delivery-closure` | 教师课堂复盘、报告交付上下文、评分交接、学生证据处置、课前包入口、已结束课堂删除 | `chapters/32-function-state-flows-batch24.md`、`chapters/57-function-state-flows-batch49.md`、`chapters/64-function-state-flows-batch56.md`、`chapters/67-function-state-flows-batch59.md` | remediated 2026-06-29；证据：`remediation/audit-remediation-teacher-classroom-review-delivery-closure/evidence.md` |
+| `audit-remediation-admin-governance-workflows` | 管理员治理、用户导入、用户筛选导出、配置测试、统计导出 | `chapters/51-function-state-flows-batch43.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/56-function-state-flows-batch48.md` 至 `chapters/67-function-state-flows-batch59.md` | archived 2026-06-21；证据：`remediation/audit-remediation-admin-governance-workflows/evidence.md` |
+| `audit-remediation-admin-governance-operation-states` | 管理员治理处置/分派、用户导入失败行下载、搜索筛选导出、配置保存与模型测试、移动表格状态 | `chapters/51-function-state-flows-batch43.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/56-function-state-flows-batch48.md` 至 `chapters/67-function-state-flows-batch59.md` | remediated 2026-06-29；证据：`remediation/audit-remediation-admin-governance-operation-states/evidence.md` |
 | `audit-remediation-mobile-a11y-shell` | 320px/390px 移动布局、横向溢出、浮动工具避让、焦点与命名 | `chapters/49-function-state-flows-batch41.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md`、`chapters/57-function-state-flows-batch49.md`、`chapters/58-function-state-flows-batch50.md`、`chapters/59-function-state-flows-batch51.md`、`chapters/62-function-state-flows-batch54.md`、`chapters/64-function-state-flows-batch56.md`、`chapters/67-function-state-flows-batch59.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-mobile-a11y-shell/evidence.md`；已关闭代表页面移动/a11y 壳层问题，业务状态机缺口待后续垂直变更关闭 |
+| `audit-remediation-mobile-a11y-status-sweep` | 垂直整改后的移动/a11y/status 收尾 gate，复证代表页面 320px/390px 宽度、固定动作、焦点 containment 与状态播报 | `chapters/49-function-state-flows-batch41.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/57-function-state-flows-batch49.md`、`chapters/58-function-state-flows-batch50.md`、`chapters/59-function-state-flows-batch51.md`、`chapters/62-function-state-flows-batch54.md`、`chapters/64-function-state-flows-batch56.md`、`chapters/67-function-state-flows-batch59.md` | remediated 2026-06-30；证据：`remediation/audit-remediation-mobile-a11y-status-sweep/evidence.md`；只关闭已有垂直行为证据支撑的横向移动/a11y 部分，未具名页面的聚合 status/live 缺口继续保留 |
 | `audit-remediation-ai-task-boundaries` | AI、Prompt、Copilot 任务边界、上下文脱敏、持久输出 | `chapters/50-function-state-flows-batch42.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/62-function-state-flows-batch54.md`、`chapters/63-function-state-flows-batch55.md` | remediated 2026-06-21；证据：`remediation/audit-remediation-ai-task-boundaries/evidence.md`；自适应完整链路、学生报告反馈完整状态机和管理员治理 AI 待后续垂直变更关闭 |
-| `audit-remediation-arena-classroom-evidence` | Arena 结果解释、多次/逾期/0 分、课堂状态、证据回流 | `chapters/10-function-state-flows-batch2.md`、`chapters/34-function-state-flows-batch26.md`、`chapters/54-function-state-flows-batch46.md` 及课堂/Arena 相关批次 | proposed |
-| `audit-remediation-authoring-resource-flows` | 教案、ResourceNode、播放列表、课程流、知识节点与作者态治理 | `chapters/60-function-state-flows-batch52.md`、`chapters/61-function-state-flows-batch53.md` 及本报告资源/作者态问题项 | proposed |
+| `audit-remediation-arena-classroom-evidence` | Arena 结果解释、多次/逾期/0 分、课堂状态、证据回流 | `chapters/10-function-state-flows-batch2.md`、`chapters/34-function-state-flows-batch26.md`、`chapters/54-function-state-flows-batch46.md` 及课堂/Arena 相关批次 | archived 2026-06-21；证据：`remediation/audit-remediation-arena-classroom-evidence/evidence.md`；official submission/report/evidence writeback subset 于 2026-06-30 由 `audit-remediation-arena-submission-report-evidence-closure` 部分关闭 |
+| `audit-remediation-arena-submission-report-evidence-closure` | Arena 官方提交、报告证据汇总、迟交/零分/无效提交状态、学生反馈证据回流、移动报告动作 | `chapters/10-function-state-flows-batch2.md`、`chapters/34-function-state-flows-batch26.md`、`chapters/54-function-state-flows-batch46.md` 及课堂/Arena 相关批次 | partial remediated 2026-06-30；证据：`remediation/audit-remediation-arena-submission-report-evidence-closure/evidence.md`；课堂状态与全局播报缺口仍待后续垂直变更关闭 |
+| `audit-remediation-authoring-resource-flows` | 教案、ResourceNode、播放列表、课程流、知识节点与作者态治理 | `chapters/60-function-state-flows-batch52.md`、`chapters/61-function-state-flows-batch53.md` 及本报告资源/作者态问题项 | archived 2026-06-22；证据：归档任务 `openspec/changes/archive/2026-06-22-audit-remediation-authoring-resource-flows/tasks.md`、本报告 361-380 的内联整改记录，以及课程流/知识节点深链任务对 381-382 的覆盖；2026-06-30 由 `audit-remediation-authoring-knowledge-flow-polish` 部分补充课程流播放恢复、课程流构建器状态、知识图谱筛选和作者态控件命名证据：`remediation/audit-remediation-authoring-knowledge-flow-polish/evidence.md` |
+| `audit-remediation-admin-operations-ledger` | 管理员导入、下载、配置保存、模型测试、治理刷新和统计导出的持久操作账本 | `chapters/12-function-state-flows-batch4.md`、`chapters/13-function-state-flows-batch5.md`、`chapters/15-function-state-flows-batch7.md`、`chapters/27-function-state-flows-batch19.md`、`chapters/39-function-state-flows-batch31.md` | archived 2026-06-25；证据：`../admin-operations-ledger-674/evidence.json` |
+| `audit-remediation-platform-error-status-a11y` | 平台错误恢复、权限边界、菜单/弹窗/浮层焦点和状态播报 | `chapters/40-function-state-flows-batch32.md`、`chapters/42-function-state-flows-batch34.md`、`chapters/49-function-state-flows-batch41.md`、`chapters/52-function-state-flows-batch44.md` 及后续状态流 | archived 2026-06-25；证据：`remediation/audit-remediation-platform-error-status-a11y/evidence.md` |
+| `audit-remediation-teacher-classroom-lifecycle` | 班级/临时课堂身份、实时课堂送达、学生结束态和教师投影恢复 | `chapters/31-function-state-flows-batch23.md`、`chapters/32-function-state-flows-batch24.md`、`chapters/37-function-state-flows-batch29.md`、`chapters/40-function-state-flows-batch32.md`、`chapters/54-function-state-flows-batch46.md` | archived 2026-06-25；证据：`remediation/audit-remediation-teacher-classroom-lifecycle/evidence.md` |
+| `audit-remediation-arena-publication-context` | Arena 发布上下文、active/expired 区分、报告命名、榜单来源边界和移动动作 | `chapters/15-function-state-flows-batch7.md`、`chapters/20-function-state-flows-batch12.md`、`chapters/34-function-state-flows-batch26.md`、`chapters/51-function-state-flows-batch43.md` | archived 2026-06-26；证据：`../arena-publication-context-675/evidence.json` |
+| `audit-remediation-data-center-simulation-workflow` | 数据中心角色/来源边界、导出状态、仿真任务上下文、仿真目录状态 | `chapters/44-function-state-flows-batch36.md`、`chapters/45-function-state-flows-batch37.md`、`chapters/47-function-state-flows-batch39.md`、`chapters/51-function-state-flows-batch43.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/58-function-state-flows-batch50.md` | archived 2026-06-26；证据：`remediation/audit-remediation-data-center-simulation-workflow/evidence.md` |
+| `audit-remediation-ai-prompt-workspace-polish` | Prompt/AI/Copilot/作品集反思的页面本地任务优先级、候选状态和上下文保留 | `chapters/43-function-state-flows-batch35.md`、`chapters/44-function-state-flows-batch36.md`、`chapters/50-function-state-flows-batch42.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/62-function-state-flows-batch54.md`、`chapters/63-function-state-flows-batch55.md` | archived 2026-06-27；证据：`remediation/audit-remediation-ai-prompt-workspace-polish/evidence.md` |
+| `audit-remediation-teacher-report-delivery-ledger` | 教师首页、课堂复盘、班级分析、历史和报告账本的交付台账 | `chapters/32-function-state-flows-batch24.md`、`chapters/33-function-state-flows-batch25.md`、`chapters/41-function-state-flows-batch33.md`、`chapters/51-function-state-flows-batch43.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md` | archived 2026-06-27；证据：`remediation/audit-remediation-teacher-report-delivery-ledger/evidence.md` |
+
+### 1.2 整改状态台账
+
+本节按 2026-06-30 当前远端与 `codex/preserve-local-2e12061-20260630` 保留分支的并集整理。归档变更已经经过子代理审查和 PR 审查，本报告直接采用归档变更、归档任务和 evidence 工件作为可信关闭依据，不再重复审查同一证据。当前 canonical finding 共 450 个，编号范围为 1-451，其中没有 320 号。
+
+| 状态 | 数量 | Finding 编号 |
+| --- | ---: | --- |
+| 已关闭 | 229 | 2-3、6、32、81-119、123-124、126-127、129-133、138-146、155-164、166、170、172-188、192、194、197、201-205、220-225、229-231、235-237、239、242-245、247-265、277、285、287、296、299-306、308、310-318、322、328、330、332、334、336、343、355-357、361-371、373-381、383-387、390-392、395-401、404-405、408-411、416-417、420-421、423、428-430、432-437、439-441、443-444、448-450 |
+| 部分关闭 | 26 | 266、271、273-276、288、297、307、309、319、331、333、344-345、359-360、372、382、393-394、418-419、422、442、451 |
+| 未标记关闭 | 195 | 未出现在上两行的编号 finding。其状态保持 open，后续需要新的垂直整改或在已有归档变更之外补证。 |
+
+解释：
+
+- `已关闭` 表示对应 finding 已被某个归档 `audit-remediation-*` 变更覆盖，或已在本报告内写入明确整改记录。
+- `部分关闭` 表示归档变更关闭了该 finding 的基础合同、代表页面或子场景，但报告中仍保留业务状态机、特定页面、数据写回或完整垂直链路未闭环部分。
+- `未标记关闭` 不等于未做任何改善，只表示当前报告没有足够的归档变更映射把该编号整体关掉。
+- 本次并集新增关闭编号为 123、124、132、133、229、230、231、334、336；328 已在原台账关闭集合中，不重复计数。Arena 官方提交/报告/证据回写属于 `audit-remediation-arena-submission-report-evidence-closure` 的部分关闭范围，在 1.1 索引中记录，后续如需调整 finding 级编号应由对应垂直整改补充映射。
+
+台账维护规则：归档 OpenSpec 整改已经明确覆盖并留存验证证据的 finding，不应继续留在未标记阻断集合中。此类项目按 mapping-cleaned 记录归档 change id、证据路径和日期；相邻但未由该证据覆盖的功能完整性、入口动作、移动布局或后续状态机 finding 继续保留未关闭状态，等待对应垂直整改。
 
 审计对象以当前 App Router 页面为准：
 
@@ -701,6 +733,8 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 276. P2：API 与 UI 的错误语义没有对齐。
    API 能返回“学习路径目标未注册”“班级不存在”等明确错误；UI 层要么默认 404，要么泛化为“获取失败”，要么继续展示正常状态。
 
+   2026-06-30 / `audit-remediation-platform-recovery-deeplink-contracts`：已补根级 unknown route、Arena challenge bad task/publication deep link、Arena teacher publication report 和班级加入码 API/UI 恢复语义；证据见 `remediation/audit-remediation-platform-recovery-deeplink-contracts/evidence.md`。playlist、handout print、课堂 runtime、教师学生、学习路径和学生证据坏筛选仍保留为后续垂直整改范围。
+
 277. P1：管理员用户无匹配搜索的 API、总览和列表口径不一致。
    无匹配搜索 API 返回 `total=298` 和 12 个用户，页面列表显示“暂无账号数据/共 0 条”，但总览仍显示用户资产 298、学生 293、教师 4。
 
@@ -787,6 +821,7 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 305. P1：管理员治理风险清单仍不可处置。
    管理员治理页能展示 170 个风险和风险清单，但没有查看证据、分派、标记处理、导出、批量处置或撤销入口。
+   台账状态（2026-07-01，`audit-remediation-admin-risk-governance-workflow-closure`）：closed for row-level risk governance workflow。风险行已具备证据入口、负责人状态、处置/忽略、重开/撤销和审计记录；本条不关闭批量处置、导出、移动宽度或批量导入范围。
 
 306. P2：管理员总览动作缺少状态反馈。
    管理员总览中的刷新、查看、治理相关动作尝试后没有 `role=status` 或页面内状态变化。
@@ -854,9 +889,11 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 328. P0：教师课前包真实班级路由返回 500。
    `/teacher/prep-packs?classId=cmma7g0590004g9q2nl2jyzdf` 在桌面和移动都返回 500，只剩 Next 错误页和 Reload。
+   台账状态（2026-06-29，`audit-report-closure-ledger-cleanup`）：mapping-cleaned / closed by archived evidence。`audit-remediation-p0-stability` 任务 3.2 已覆盖 class-scoped 课前包恢复态，`chapters/57-function-state-flows-batch49.md` 已在 2026-06-21 标记该 finding 已修复；本次同步主报告映射，证据见 `remediation/audit-remediation-p0-stability/evidence.md` 与 `remediation/audit-report-closure-ledger-cleanup/evidence.md`。
 
 329. P1：管理员治理风险仍不可处置。
    治理页和 API 都能展示 170 个风险，但 drilldown 后没有进入证据、分派、标记处理、批量处置、撤销或审计记录。
+   台账状态（2026-07-01，`audit-remediation-admin-risk-governance-workflow-closure`）：closed for risk objectization。`tab=risks`、`riskId` 与 `action=assign/resolve/ignore/reopen/undo` 进入风险动作上下文，status API 返回目标风险、分派、处置状态和审计链，action API 持久化 actor、previous/new state、note 与 affected object；批量处置和导出仍属于其他 finding。
 
 330. P1：数据中心导出和治理入口命中不稳定。
    数据中心管理员态点击导出演示快照没有 download event；治理入口点击时定位到隐藏 `数据治理` 文本并超时。
@@ -872,12 +909,15 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 334. P1：真实学习路径 API 为空时 UI 仍展示进度和执行入口
    真实 latest path 返回 `path:null`，learner-state 返回 503，path-advisor-context 返回 403，但页面仍显示 24% 进度、入门诊断和路径执行入口。
+   台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed for path-context recovery。真实空路径和坏 pathId 不再进入 selection/execution/evidence-review 的正常路径内容；学习者状态 503 与路径顾问 403 的前置条件说明仍归路径顾问/服务错误状态后续处理。
 
 335. P1：路径生成动作没有解决前置条件
    路径生成设置可见，点击后只提示“路径生成上下文还在准备，请稍后重试”，没有解释缺少班级信息、服务不可用或需要教师绑定。
+   台账状态（2026-07-01，`audit-remediation-adaptive-generation-readiness-closure`）：closed for generation readiness preconditions。路径生成入口、`path-advisor-context` 和 `path-advisor-tool` 现在共享 readiness contract，区分缺少班级绑定、缺少教师绑定、学习者状态不可用、路径顾问权限不足、服务不可用、证据不足和可重试失败；UI 暴露学生下一步、教师/管理员处理路径和 DOM 状态标记，生成按钮不再在缺少前置条件时只落入通用“稍后重试”。本关闭仅覆盖路径生成前置条件和服务错误，不重复关闭 `audit-remediation-student-path-evidence-loop-closure` 已覆盖的空路径、坏 pathId、selection/execution/evidence-review 恢复范围；证据见 `openspec/changes/audit-remediation-adaptive-generation-readiness-closure/evidence.md`。
 
 336. P1：path-selection、path-execution 和坏 pathId 状态仍被普通页面吞掉
    无真实 path 时，选择和执行 intent 仍显示路径/练习资源；坏 pathId 也没有“路径不存在/已过期/重新生成”状态。
+   台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed by implementation。selection/execution/evidence-review 对无活动路径和坏 pathId 渲染统一恢复态，保留 intent/pathId/source 上下文并提供生成路径、查看证据和返回来源动作。
 
 337. P1：教师报告 surface query 没有切换到报告账本
    `analytics-v2?surface=report-ledger` 仍展示完整班级分析页。旧 `/analytics` 入口也静默落到 v2，没有提示兼容跳转。
@@ -896,6 +936,7 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 342. P1：治理风险清单仍是只读表
    加载后可见 170 个风险和风险说明，但风险行没有查看证据、分派、标记处理、批量处置、导出或撤销。
+   台账状态（2026-07-01，`audit-remediation-admin-risk-governance-workflow-closure`）：closed for row-level actions。风险清单已从只读行扩展为 evidence、assignment、disposition、undo/reopen 和 audit trail 的对象化工作流；移动横向溢出、批量处置和导出事件不在本次关闭范围。
 
 343. P1：数据中心 returnTo、导出和治理交接都未闭环
    `returnTo=/admin/data-governance` 没有形成可见返回治理交接；导出没有 download event；治理入口仍命中隐藏文本。
@@ -986,15 +1027,19 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 369. P1：课程流创建器一次性暴露 820 个知识节点
    `/playlists/new` 桌面高 60,902px，移动端高 61,359px；API 返回 820 个知识节点，填入标题和点击动作后仍停留知识库长列表，没有可见已选节点、保存结果或恢复动作。
    2026-06-22 / #618：课程流创建器默认分页显示知识节点、显示已选数量、防重复添加，并在保存成功后跳到 `/playlists/{id}/play?intent=start-class`；`POST /api/knowledge/playlists` 写入 KNOWLEDGE_NODE `LessonItem`。
+   2026-06-30 / #730：课程流构建器增加保存/校验/增删节点的 inline status 区、移动端分段结构标记和已选环节按钮命名；证据见 `remediation/audit-remediation-authoring-knowledge-flow-polish/evidence.md`。
 
 370. P2：移动备课与资源页长度不可操作
    390px 下教师预置教案高 23,144px、教师教案高 18,670px、教师资源高 7,936px、ResourceNode 高 92,909px；320px 管理员教案高 24,697px；学生课程流移动端高 61,359px。
+   2026-06-30 / #730：课程流构建器和知识图谱移动筛选面板改为有明确分组的紧凑结构，ResourceNode/知识节点列表补充可访问命名；原始批次中的其他备课与资源页长页仍未由本变更关闭。
 
 371. P2：作者态 API 有数据但 UI 缺任务化消费
    `/api/lesson-plans`、`/api/resources`、`/api/teacher/resource-nodes`、`/api/knowledge/nodes` 均返回数据，但 UI 主要表现为长列表或静态清单，没有把 API 数据组织成可完成的编辑、治理、引用、保存或回滚任务。
+   2026-07-02 / #754：教案、资源、ResourceNode 和知识节点作者态表面新增 `data-authoring-api-task-*` 任务消费合同，将 API 记录映射为编辑、校验、预览、加入教案、映射审查、阻断处理、引用、保存和不可回滚说明；状态覆盖 available、disabled、pending、saved、failed、rolled-back、not-reversible，并在缺字段、无效引用、blocked ResourceNode、权限和不支持回滚时给出恢复动作。证据见 `remediation/audit-remediation-authoring-api-task-consumption-closure/evidence.md`；本条只关闭 API-consumption finding 371，不重复关闭课程流保存/播放、图谱筛选、移动构建器或按钮命名范围。
 
 372. P2：第 52 批 31 个状态仍全部缺少 alert/live
    31 个 DOM/a11y JSON 均没有捕获到 `alert`。预置教案使用、教案搜索、新建教案、资源搜索、ResourceNode 筛选、治理加载、课程目录 query 和课程流创建都缺少状态播报。
+   2026-06-30 / #730：课程流创建器移除原生 alert，新增 `role="status"` / `aria-live="polite"` 的保存、校验、添加和移除状态；本变更只关闭课程流创建器相关状态缺口。
 
 373. P1：教师教案编辑直达动作会丢到公开首页
    教师教案编辑直达页能加载 `cmqlsyjrb0003vmyfz0ju3lqh`，API 也返回该教案；但该教案 `items: 0`，页面仍显示资源库与 BOPPPS 编排壳层。动作探测后最终落到公开首页 `/`，教师作者态上下文、教案 id 和恢复入口都丢失。
@@ -1023,16 +1068,20 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 379. P1：播放列表直达播放会丢失播放意图
    公开播放列表 API 返回 3 条，直达 `/playlists/cmkaxvc11000n11d46jntz6nf/play` 时路由响应 200，但最终落到公开首页 `/`；动作后进入 `/interactive-learning`，仍没有播放列表标题、playlistId、继续播放或错误说明。
    2026-06-22 / #618：播放列表 play 路由不再硬重定向，改为展示 `PlaylistPlayLauncher`，保留 playlistId、标题、环节数和 `intent=start-class`，并通过 `/api/session` 启动课堂。
+   2026-06-30 / #730：缺失或不可见课程流进入统一恢复态，保留返回课程流列表或登录动作，不泄露私有标题或原始 id。
 
 380. P2：知识节点直达能打开但缺加入课程流或学习任务后置状态
    知识节点 detail API 可返回 `鞍点_8_292242f6`，`/knowledge?nodeId=...` 也停留在知识图谱；但页面没有把该节点转成加入课程流、开始学习、查看关联资源或生成学习任务的后续状态，动作探测后仍无变化。
    2026-06-22 / #618：知识图谱同时识别 `node` 与 `nodeId`；知识节点检查器新增加入课程流和创建学习任务动作，教师知识节点管理页也提供加入课程流入口。
+   2026-06-30 / #730：知识图谱桌面工具补充稳定可访问名称，课程流构建器为选择后续动作提供状态反馈；知识节点深链的实际运行态仍按 #618 证据闭环。
 
 381. P2：移动直达状态仍依赖超长列表或静默改道
    390px 教师教案编辑仍是作者态壳层，390px ResourceNode blocked 高 92,909px；320px 管理员教案编辑只呈资源库壳层，320px 治理 authoring 缺失教案仍显示通用治理；390px 播放列表直达播放仍落到公开首页。
+   2026-06-30 / #730：课程流播放缺失/不可见状态不再静默改道，课程流构建器和知识图谱移动筛选补充紧凑结构；教师/管理员教案、治理 authoring 等其他移动直达状态仍待后续变更。
 
 382. P2：第 53 批 24 个状态仍全部缺少 alert/live
    24 个 DOM/a11y JSON 均没有捕获到 `alert`。教案直达、缺失模板、blocked query、坏教案、治理缺失 lessonPlanId、播放列表直达、知识节点直达和移动深链状态都缺少状态播报。
+   2026-06-30 / #730：课程流播放恢复态、课程流构建器保存/校验状态和移动知识图谱筛选分组已补充源码合同；其他作者态深链状态未由本变更关闭。
 
 
 
@@ -1587,9 +1636,11 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 123. P1：路径生成空状态与进度文案冲突。
    `/api/learning-paths/latest?goal=control-correction` 返回 `path=null`，页面仍显示“当前节点 入门诊断”和“本周完成 24%”。
+   台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed by implementation。路径上下文加载失败或真实空路径时，`/assessment/adaptive-practice` 的 selection/execution/evidence-review intent 进入显式恢复态，不再展示进度或执行入口；证据见 `remediation/audit-remediation-student-path-evidence-loop-closure/evidence.md`。
 
 124. P1：evidence-review intent 未形成证据复盘视图。
    `/assessment/adaptive-practice?intent=evidence-review&goal=control-correction` 仍是泛化路径中心，没有证据摘要和错题上下文。
+   台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed for missing-path recovery。空路径或坏 pathId 下先展示证据恢复动作和来源保留，不再退回泛化路径中心；题目级错题上下文继续由学生证据/补练链路处理。
 
 125. P2：学生证据移动端受浮层和长字段影响。
    课次字段截断，控灵浮层压住第一张证据卡局部。
@@ -1614,9 +1665,11 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 132. P0：教师课前包复核页当前返回 500。
    `/teacher/prep-packs` 桌面和移动端均返回 500，页面只显示 Next 错误层。
+   台账状态（2026-06-29，`audit-report-closure-ledger-cleanup`）：mapping-cleaned / closed by archived evidence。`audit-remediation-p0-stability` 已在 2026-06-21 覆盖 `/teacher/prep-packs` root 与 cluster 路由恢复态，证据见 `remediation/audit-remediation-p0-stability/evidence.md`；本次仅清理主报告未标记映射，证据见 `remediation/audit-report-closure-ledger-cleanup/evidence.md`。
 
 133. P0：`CourseEnhancementPack` 表缺失阻断复核页。
    manifest 记录 `prisma.courseEnhancementPack.findFirst()` 失败，错误为 `The table public.CourseEnhancementPack does not exist in the current database.`
+   台账状态（2026-06-29，`audit-report-closure-ledger-cleanup`）：mapping-cleaned / closed by archived evidence。`audit-remediation-p0-stability` 已把缺表、无候选包和 cluster/class 深链导向受控恢复/空态，不再返回 500；证据见 `remediation/audit-remediation-p0-stability/evidence.md`。finding 134-136 仍是课前包入口、近场动作和恢复体验完整性问题，不随本映射清理关闭。
 
 134. P1：教师工作台课前包入口通向阻断页。
    桌面和移动端都有 `/teacher/prep-packs` 入口，但点击后无法进入复核体验。
@@ -1909,12 +1962,15 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 
 229. P1：`evidence-review` 意图在空路径下没有形成证据回看视图。
      页面识别 `workspaceIntent=evidence-review`，但真实空路径下 `evidenceSurface=false`，只显示选择历史。
+     台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed for empty-path recovery。空路径 evidence-review 渲染 `data-adaptive-path-recovery-state` 并提供证据页恢复动作，不再只显示选择历史。
 
 230. P1：`path-selection` 在真实 `path:null` 下仍展示 3 条可比较路径。
      空路径真实会话仍展示 3 条方案和选择/调整/解释差异等动作，容易被误解为已经生成了可执行路径。
+     台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed by implementation。selection intent 在无已加载路径上下文时关闭路径方案列表，改为生成路径/查看证据/返回来源。
 
 231. P1：`path-execution` 无活动路径时降级为练习资源入口。
      无路线、无节点、无证据记录时仍显示“路径资源入口”和“检查节点练习已准备”，没有解释当前没有活动路径。
+     台账状态（2026-06-29，`audit-remediation-student-path-evidence-loop-closure`）：closed by implementation。execution intent 在无活动路径时关闭路径资源入口，改为说明当前没有可执行路径。
 
 232. P2：无显式 goal 的生成入口缺少目标选择上下文。
      `/assessment/adaptive-practice?intent=contextual-recommendation` 打开生成面板，但 `controlCorrectionGoal` 为空，目标绑定不清。
@@ -2050,9 +2106,9 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 - 当前已补四十六批功能状态流；新增确认课堂码失败分支无反馈、管理员新建账号空提交渲染 `[object Object]`、桌面数据治理长时间加载、教师班级成员维护动作不稳定、管理员新建账号缺 dialog 语义、模板下载缺完成状态、批量导入无 file chooser 或预览状态、配置保存缺影响审计、模型测试入口命名不稳、移动数据治理横向溢出、动作状态缺 alert/live。
 - 当前已补四十七批功能状态流；新增确认自适应练习 URL 与可执行任务不一致、提示词评价输入被全局 AI 抢占、证据复盘仍停留列表筛选、教师历史和课堂复盘缺真实交付、班级分析动作不承接报告或补强、数据中心导出无下载事件、管理员治理风险清单不可处置、管理员总览动作无反馈、移动治理横向溢出、移动完成态缺固定主动作区、完成态缺 alert/live。
 - 当前已补四十八批功能状态流；新增确认任务启动不带完成和作品集回写合同、作品集空态缺收录规则、评分工作台空态缺真实来源路径、坏评分运行标识恢复跳首页、报告 API 可用但 UI 未承接交付、管理员批量导入入口无 file chooser/预览、管理员无匹配搜索 API 已改善但缺状态播报、移动用户页仍 945px 横向布局、任务/评分/导入状态缺 alert/live。
-- 当前已补四十九批功能状态流；新增确认自适应 demo 作答缺 durable 完成/写回状态、真实 latest path 仍为 `path:null`、Prompt autodemo 输入被全局 AI 抢占、个人中心下一步不继承上下文、教师报告/分析动作不承接交付、控制报告 raw JSON、助手效果报告 404、课前包 500、治理风险不可处置、数据中心导出无下载且治理入口命中隐藏文本、移动治理宽度异常、32 个状态缺 alert/live。
+- 当前已补四十九批功能状态流；新增确认自适应 demo 作答缺 durable 完成/写回状态、真实 latest path 仍为 `path:null`、Prompt autodemo 输入被全局 AI 抢占、个人中心下一步不继承上下文、教师报告/分析动作不承接交付、控制报告 raw JSON、助手效果报告 404、治理风险不可处置、数据中心导出无下载且治理入口命中隐藏文本、移动治理宽度异常、32 个状态缺 alert/live。
 - 当前已补五十批功能状态流；新增确认真实学习路径空态仍伪装成可执行路径、路径顾问缺班级信息未产品化、坏 pathId 被静默吞掉、路径选择不写入真实 pathId、教师分析页不能进入报告交付、报告账本到学生证据/评分工作台缺处理合同、管理员治理 query 与动作不进入风险处置、数据中心 returnTo 与治理入口不闭环、320px 管理员治理仍横向溢出、32 个状态缺 alert/live。
-- 第五十一批已补学生任务/证据/成长/作品集、教师报告交付/评分/课前包、管理员导入/配置/治理和移动管理页状态；确认学生完成态不回流、证据完成筛选不生效、成长建议缺行动落点、作品集缺收录状态机、教师报告交付仍停留列表/长页、学生画像推荐不创建补强任务、证据审核只有停留动作、评分 API 与工作台断开、课前包 500、管理员 no-match URL 初始态、页面筛选和 API 结果口径不一致、批量导入无 file chooser、配置缺影响审计、治理处置 query 不闭环、管理员教案缺搜索空态、移动用户 945px 与治理 568px 横向溢出、35 个状态缺 alert/live。
+- 第五十一批已补学生任务/证据/成长/作品集、教师报告交付/评分/课前包、管理员导入/配置/治理和移动管理页状态；确认学生完成态不回流、证据完成筛选不生效、成长建议缺行动落点、作品集缺收录状态机、教师报告交付仍停留列表/长页、学生画像推荐不创建补强任务、证据审核只有停留动作、评分 API 与工作台断开、管理员 no-match URL 初始态、页面筛选和 API 结果口径不一致、批量导入无 file chooser、配置缺影响审计、治理处置 query 不闭环、管理员教案缺搜索空态、移动用户 945px 与治理 568px 横向溢出、35 个状态缺 alert/live。
 - 第五十二批已补预置教案、教案列表/新建、资源治理、治理 authoring 和课程流创建状态；确认模板克隆无反馈、教案缺稳定搜索/编辑入口、教师新建教案空标题动作丢到首页、资源搜索缺结果播报、ResourceNode 和课程流巨型清单不可操作、治理 authoring surface 不形成质量报告、学生课程目录 query 被忽略、移动备课与资源页超长、31 个状态缺 alert/live。
 - 第五十三批已补直达深链、坏对象、播放列表播放、知识节点直达和移动深链状态；确认教师/管理员教案编辑直达动作丢上下文、缺失 templateId 不形成恢复、ResourceNode blocked 过滤仍是超长清单、管理员坏教案编辑只有默认 404、治理 authoring 缺失 lessonPlanId 不形成报告、播放列表直达播放静默改道、知识节点直达缺任务化后置状态、移动端仍依赖超长列表或静默改道、24 个状态缺 alert/live。
 - 当前已补五十四批功能状态流；新增确认文档反馈后续动作仍是证据链接集合、Prompt autodemo 与历史 API 口径不一致、AI 工坊任务动作没有形成学习任务状态、Copilot evidence 上下文仍暴露内部对象、作品集 reflection query 与默认空态不一致、教师 report-ledger surface 落泛化班级分析、评分工作台 ready 状态没有打开评分草稿、数据中心 returnTo 没有形成返回或治理交接、治理 assign query 不进入分派处置流、系统配置 focus=audit 没有审计工作区、移动报告/AI/评分/治理状态缺固定主动作、30 个状态缺 alert/live。
@@ -2061,7 +2117,7 @@ Profile、review 与仿真深层页面详见 `chapters/03-profile-review-simulat
 - 当前已补五十七批功能状态流；新增确认报告反馈 actionable 目标不形成 adopted/completed、证据 completed assignment API 继续 404、缺失 lesson/sourceEvent 被普通证据页吞掉、自适应 writeback completed 不回写、教师报告导出无下载事件、补强建任务仍停长分析页、评分 GET/POST 方法边界无恢复、管理员 no-match 与角色分页 API 不遵守同一过滤合同、治理 resolve 缺失 riskId 无恢复、治理 JSON 导出无下载事件、配置缺失 provider/model 测试参数被忽略、32 个状态缺 alert/live。
 - 当前已补五十八批功能状态流；新增确认报告反馈采用/写回不改变状态、任务大厅不承接反馈任务查询和 returnTo、作品集反馈收录没有候选证据或草稿、教师报告 PDF 下载无事件、发送缺失学生与评分审批会跳公开首页、教师班级学生直达页 404 但 API no-match 返回真实学生、管理员用户重置/导出继续忽略 q、治理分派缺失对象和 XLSX 导出没有闭环、已知 provider 下缺失 model 测试被通用配置页吞掉、33 个状态缺 alert/live。
 - 当前已补五十九批功能状态流；新增确认报告反馈仍无状态机、反馈任务纵向链路不承接 assignment/returnTo、教师移动长报告有 API 数据但没有交付闭环、评分审批方法边界未产品化、教师学生证据 deep link 丢失评分上下文、管理员用户 no-match 继续返回真实用户且横向溢出、治理 risk resolve 仍是只读长看板、配置测试和统计导出缺状态反馈、26 个状态缺 alert/live；审计覆盖已收口，后续进入修复。
-- 有效导入后的通知/撤销链路、关联数据账号删除影响范围不透明、Arena 多次提交规则不清、逾期提交口径不清、控制工作台 `bottom-tools` 缺失、控制工作台移动端关键动作被长仪表流稀释、浮层避让不足、课程目录搜索无反馈、课堂加入无效码无反馈、扫码/链接加入两步状态不清、课程入口课堂码错误区分不足、真实课堂发放/提交/汇总/结束状态播报不足、学生结束后入口断裂、已结束 session 投影仍像直播课堂且缺少复盘/报告转场、自适应路径动作态不清、自适应练习完成态不清、批量导入缺少可见确认层、导入错误状态不持久、导入成功/更新缺少批次治理、数据治理移动风险表不可读、数据治理缺少处置动作、数据治理缺少导出入口、治理刷新缺少完成播报、用户批量导入缺少预览/失败行导出/通知/撤销/批次审计、用户导入 file input 可访问名称错误、系统配置保存缺少影响范围和完成状态、管理员移动端缺少固定关键治理动作区、注册短密码 runtime error、课堂码错误缺少 alert/live、全局控灵过早进入 Tab 顺序、学生证据复盘焦点顺序不服务证据任务、教师添加学生弹窗缺少 dialog 语义和焦点陷阱、教师班级分析刷新和图表摘要缺少可访问状态、教案编排器搜索空态和拖拽等价操作不足、内部 review 移动页不能替代真实移动验收、教师课后复盘缺导出/发送/补强动作、教师报告账本缺节次级交付状态、报告评分工作台空态缺少真实来源路径、学生报告反馈后续动作状态不清、文档评分工作流缺少完成状态播报、数据治理风险清单仍是只读列表、教师课前包复核页 500、`CourseEnhancementPack` 表缺失、课前包入口通向阻断页、班级诊断结果缺少就地课前包复核动作、课前包错误态缺少产品级恢复动作、证据 lessonId 与课程 route slug 不一致、证据复盘动作停留在列表过滤、错题证据缺少直接补练、补练入口未继承 evidence 上下文、latest path 返回 `path=null` 但页面仍显示进度、evidence-review intent 未形成证据复盘视图、刷新/导出/下载完成态不足、数据治理标签切换播报不足、学生证据来源定位不足、教师班级学生清单缺少搜索/筛选/批量治理、班级移除学生影响范围不透明、添加学生弹窗语义不足、班级学生导入缺批次治理、教师个体学情推荐动作不可执行、教师侧证据审核缺处置闭环、教案删除影响范围不透明、教案编排器依赖拖拽、空标题校验使用原生 alert、资源预览缺加入阶段动作、资源编辑缺使用影响说明、知识节点列表规模和无名按钮过多、直发课堂缺班级绑定、无班级 ACTIVE session 可重复创建、结束后落点不承接课后工作流、直发课堂复盘被未绑定班级阻断、跨角色访问静默重定向、权限边界缺可审计状态、账户菜单缺菜单语义、改密弹窗缺 dialog/focus trap、改密错误缺 alert/live、全局工具缺弹出层语义、主题切换缺状态播报、AI 侧栏缺区域语义和焦点 containment、AI 侧栏 Escape 后焦点恢复不稳定、移动端导航入口不统一、移动端 AI 先于主任务进入焦点路径、AI 工坊任务选择只改变视觉状态、AI 工坊与真实学习任务上下文断开、Copilot 暴露证据核验内部诊断、Copilot 回答缺少生成/引用核验播报、Global AI 回答暴露上下文 JSON、Global AI 低置信提示产品化不足、AI 发送按钮无可访问名称、AI 清空动作阻塞、Prompt 评估缺少学习任务上下文、Prompt 评价/校验/演示生成缺少完成播报、Prompt demo 轨迹与真实学生历史边界不清、作品集提示词动作指向 404、作品集反思入口不保留上下文、任务卡整卡链接与内部按钮重复、任务筛选缺少结果播报、学习路径 query 上下文被忽略、任务启动后仿真页不继承任务标题/目标/回写规则、作品集课堂作品/仿真设计/伦理整改空态动作泛化、作品集收录规则不可见、作品集移动端标签语义不足、学生访问数据中心静默改道、数据中心演示数据与正式壳层边界不足、教师数据中心治理动作泛化、数据中心导出按钮被浮层截获、教师学生详情刷新缺状态、教师侧学生证据缺审核处置闭环、教师遗留路由跨角色拒绝缺权限说明、学习路径空路径进度误导、路径生成前置条件不可见、evidence-review 空路径无证据回看、path-selection 空路径伪展示方案、path-execution 空路径伪装成练习节点、无 goal 生成上下文不稳、学习路径状态缺少播报、浮动工具面板缺语义、AI 侧栏焦点 containment 缺失、关闭态 AI 输入框抢占 Tab 顺序、移动学习路径浮层避让缺失、教师/管理员遗留壳层策略标记缺失、管理员用户移动页横向溢出、教师课堂复盘交付缺失、复盘外链丢失上下文、数据中心导出被浮层阻断、管理员治理风险缺处置闭环、模板下载后缺批量导入状态机、Arena 报告缺交付命令、学生文档反馈状态不清、系统配置保存缺影响审计、坏 ID 默认 404 缺产品恢复、错误页全局浮层优先级过高、教师坏对象状态泛化、学习路径坏上下文被忽略、管理员用户搜索无匹配早期曾返回全量且 Batch48 已确认 API 返回 `total:0` 但缺状态播报、任务启动缺完成/回写/收录合同、坏评分运行标识恢复路径错误、移动管理员用户页仍 945px 横向布局、自适应 demo 作答缺 durable 完成/写回、Prompt autodemo 输入被全局 AI 抢占、教师报告/分析动作不承接交付、控制报告 raw JSON、助手效果报告 404、教师课前包 500、治理风险不可处置、数据中心导出无下载且治理入口命中隐藏文本、移动治理宽度异常、真实路径 API 空/禁用/缺班级时 UI 仍显示进度、教师 report-ledger surface 不生效、评分工作台忽略 classId/source、治理页 loading 不稳定、数据中心 returnTo/导出/治理交接不闭环、学生完成态不回流、管理员 no-match URL/页面/API 口径不一致、批量导入无 file chooser、配置缺影响审计、治理处置 query 不闭环、移动用户 945px 与治理 568px 横向溢出、反馈任务纵向链路不承接 assignment/returnTo、教师移动报告交付缺闭环、评分 deep link 丢失上下文、治理 risk resolve 和统计导出无状态均已确认；课堂加入/Arena/教师复盘/管理员统计/数据治理/学生成长/教师班级分析/学生移动筛选/教师移动空态/管理员移动表格与模态/教师班级成员管理/教师教案与资源管理/教师直发课堂/控制工作台任务区/课前包入口/管理员治理动作/跨角色键盘路径/报告交付与评分反馈/系统壳层 a11y/AI 与作品集入口/任务大厅/数据中心/学习路径状态/Global AI 真实对话/报告导出交付/失效路由恢复/任务作品集回流/评分工作台/用户导入批次抽查已补证，修复阶段应统一处理 status/live、移动布局和动作状态机。
+- 有效导入后的通知/撤销链路、关联数据账号删除影响范围不透明、Arena 多次提交规则不清、逾期提交口径不清、控制工作台 `bottom-tools` 缺失、控制工作台移动端关键动作被长仪表流稀释、浮层避让不足、课程目录搜索无反馈、课堂加入无效码无反馈、扫码/链接加入两步状态不清、课程入口课堂码错误区分不足、真实课堂发放/提交/汇总/结束状态播报不足、学生结束后入口断裂、已结束 session 投影仍像直播课堂且缺少复盘/报告转场、自适应路径动作态不清、自适应练习完成态不清、批量导入缺少可见确认层、导入错误状态不持久、导入成功/更新缺少批次治理、数据治理移动风险表不可读、数据治理缺少处置动作、数据治理缺少导出入口、治理刷新缺少完成播报、用户批量导入缺少预览/失败行导出/通知/撤销/批次审计、用户导入 file input 可访问名称错误、系统配置保存缺少影响范围和完成状态、管理员移动端缺少固定关键治理动作区、注册短密码 runtime error、课堂码错误缺少 alert/live、全局控灵过早进入 Tab 顺序、学生证据复盘焦点顺序不服务证据任务、教师添加学生弹窗缺少 dialog 语义和焦点陷阱、教师班级分析刷新和图表摘要缺少可访问状态、教案编排器搜索空态和拖拽等价操作不足、内部 review 移动页不能替代真实移动验收、教师课后复盘缺导出/发送/补强动作、教师报告账本缺节次级交付状态、报告评分工作台空态缺少真实来源路径、学生报告反馈后续动作状态不清、文档评分工作流缺少完成状态播报、数据治理风险清单仍是只读列表、课前包入口通向阻断页、班级诊断结果缺少就地课前包复核动作、课前包错误态缺少产品级恢复动作、证据 lessonId 与课程 route slug 不一致、证据复盘动作停留在列表过滤、错题证据缺少直接补练、补练入口未继承 evidence 上下文、latest path 返回 `path=null` 但页面仍显示进度、evidence-review intent 未形成证据复盘视图、刷新/导出/下载完成态不足、数据治理标签切换播报不足、学生证据来源定位不足、教师班级学生清单缺少搜索/筛选/批量治理、班级移除学生影响范围不透明、添加学生弹窗语义不足、班级学生导入缺批次治理、教师个体学情推荐动作不可执行、教师侧证据审核缺处置闭环、教案删除影响范围不透明、教案编排器依赖拖拽、空标题校验使用原生 alert、资源预览缺加入阶段动作、资源编辑缺使用影响说明、知识节点列表规模和无名按钮过多、直发课堂缺班级绑定、无班级 ACTIVE session 可重复创建、结束后落点不承接课后工作流、直发课堂复盘被未绑定班级阻断、跨角色访问静默重定向、权限边界缺可审计状态、账户菜单缺菜单语义、改密弹窗缺 dialog/focus trap、改密错误缺 alert/live、全局工具缺弹出层语义、主题切换缺状态播报、AI 侧栏缺区域语义和焦点 containment、AI 侧栏 Escape 后焦点恢复不稳定、移动端导航入口不统一、移动端 AI 先于主任务进入焦点路径、AI 工坊任务选择只改变视觉状态、AI 工坊与真实学习任务上下文断开、Copilot 暴露证据核验内部诊断、Copilot 回答缺少生成/引用核验播报、Global AI 回答暴露上下文 JSON、Global AI 低置信提示产品化不足、AI 发送按钮无可访问名称、AI 清空动作阻塞、Prompt 评估缺少学习任务上下文、Prompt 评价/校验/演示生成缺少完成播报、Prompt demo 轨迹与真实学生历史边界不清、作品集提示词动作指向 404、作品集反思入口不保留上下文、任务卡整卡链接与内部按钮重复、任务筛选缺少结果播报、学习路径 query 上下文被忽略、任务启动后仿真页不继承任务标题/目标/回写规则、作品集课堂作品/仿真设计/伦理整改空态动作泛化、作品集收录规则不可见、作品集移动端标签语义不足、学生访问数据中心静默改道、数据中心演示数据与正式壳层边界不足、教师数据中心治理动作泛化、数据中心导出按钮被浮层截获、教师学生详情刷新缺状态、教师侧学生证据缺审核处置闭环、教师遗留路由跨角色拒绝缺权限说明、学习路径空路径进度误导、路径生成前置条件不可见、evidence-review 空路径无证据回看、path-selection 空路径伪展示方案、path-execution 空路径伪装成练习节点、无 goal 生成上下文不稳、学习路径状态缺少播报、浮动工具面板缺语义、AI 侧栏焦点 containment 缺失、关闭态 AI 输入框抢占 Tab 顺序、移动学习路径浮层避让缺失、教师/管理员遗留壳层策略标记缺失、管理员用户移动页横向溢出、教师课堂复盘交付缺失、复盘外链丢失上下文、数据中心导出被浮层阻断、管理员治理风险缺处置闭环、模板下载后缺批量导入状态机、Arena 报告缺交付命令、学生文档反馈状态不清、系统配置保存缺影响审计、坏 ID 默认 404 缺产品恢复、错误页全局浮层优先级过高、教师坏对象状态泛化、学习路径坏上下文被忽略、管理员用户搜索无匹配早期曾返回全量且 Batch48 已确认 API 返回 `total:0` 但缺状态播报、任务启动缺完成/回写/收录合同、坏评分运行标识恢复路径错误、移动管理员用户页仍 945px 横向布局、自适应 demo 作答缺 durable 完成/写回、Prompt autodemo 输入被全局 AI 抢占、教师报告/分析动作不承接交付、控制报告 raw JSON、助手效果报告 404、治理风险不可处置、数据中心导出无下载且治理入口命中隐藏文本、移动治理宽度异常、真实路径 API 空/禁用/缺班级时 UI 仍显示进度、教师 report-ledger surface 不生效、评分工作台忽略 classId/source、治理页 loading 不稳定、数据中心 returnTo/导出/治理交接不闭环、学生完成态不回流、管理员 no-match URL/页面/API 口径不一致、批量导入无 file chooser、配置缺影响审计、治理处置 query 不闭环、移动用户 945px 与治理 568px 横向溢出、反馈任务纵向链路不承接 assignment/returnTo、教师移动报告交付缺闭环、评分 deep link 丢失上下文、治理 risk resolve 和统计导出无状态均已确认；课堂加入/Arena/教师复盘/管理员统计/数据治理/学生成长/教师班级分析/学生移动筛选/教师移动空态/管理员移动表格与模态/教师班级成员管理/教师教案与资源管理/教师直发课堂/控制工作台任务区/课前包入口/管理员治理动作/跨角色键盘路径/报告交付与评分反馈/系统壳层 a11y/AI 与作品集入口/任务大厅/数据中心/学习路径状态/Global AI 真实对话/报告导出交付/失效路由恢复/任务作品集回流/评分工作台/用户导入批次抽查已补证，修复阶段应统一处理 status/live、移动布局和动作状态机。
 - 教师/管理员/登录态学生已使用固定账号上下文；错误账号访问非归属班级的截图已在第 7 章标记为审计夹具限制，不纳入产品缺陷结论。
 - Arena 发布报告已覆盖本地审计夹具空态、真实教师发布后学生提交态、多次提交、榜单归属和截止后报告夹具；全站级读屏语义缺口已形成证据清单，后续进入修复。
 

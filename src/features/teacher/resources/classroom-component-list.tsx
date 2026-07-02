@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { Presentation, Info } from 'lucide-react';
+import { buildTeachingResourceAuthoringTasks } from '@/lib/authoring-api-task-consumption';
+import { AuthoringApiTaskStrip } from './authoring-api-task-strip';
 
 interface Resource {
   id: string;
@@ -73,6 +75,19 @@ export function ClassroomComponentList({
                     </span>
                   )}
                 </div>
+                <AuthoringApiTaskStrip
+                  surface="resource"
+                  tasks={buildTeachingResourceAuthoringTasks({
+                    id: resource.id,
+                    title: resource.title,
+                    type: resource.type,
+                    registryId: resource.registryId,
+                    description: resource.description,
+                    canPreview: false,
+                    canEdit: false,
+                    canAttach: false,
+                  })}
+                />
               </div>
             </div>
           </div>

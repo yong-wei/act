@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { BarChart3, ClipboardList, ShieldAlert, Trophy, Users } from 'lucide-react';
+import { BarChart3, ClipboardList, Copy, DatabaseZap, FileDown, LockKeyhole, Send, ShieldAlert, Trophy, Users } from 'lucide-react';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { ArenaRouteRecovery } from '@/features/arena/arena-route-recovery';
 import {
   ArenaPublicationPermissionError,
   prismaArenaPublicationStore,
@@ -29,18 +30,44 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
-function formatAttemptStatus(value: 'effective' | 'late' | 'zero-score' | 'invalid'): string {
+function formatAttemptStatus(value: 'effective' | 'late' | 'zero-score' | 'invalid' | 'duplicate-only'): string {
   if (value === 'effective') return '有效尝试';
   if (value === 'late') return '迟交';
   if (value === 'zero-score') return '零分';
+  if (value === 'duplicate-only') return '重复提交';
   return '无效';
+}
+
+function formatEvidenceWritebackStatus(value: 'accepted' | 'degraded' | 'blocked'): string {
+  if (value === 'accepted') return '证据已写入';
+  if (value === 'degraded') return '证据受限';
+  return '诊断保留';
+}
+
+function lifecycleToneClass(tone: 'success' | 'warning' | 'neutral' | 'muted'): string {
+  if (tone === 'neutral') return 'border-primary/35 bg-primary/10 text-primary';
+  if (tone === 'success' || tone === 'warning') return 'border-primary/35 bg-primary/10 text-primary';
+  return 'border-border bg-muted/40 text-subtle';
 }
 
 export default async function ArenaPublicationReportPage(props: ArenaPublicationReportPageProps) {
   const params = await props.params;
   const session = await getServerAuthSession();
+  const reportPath = `/teacher/arena/publications/${encodeURIComponent(params.publicationId)}`;
   if (!session?.user?.id || !['TEACHER', 'ADMIN'].includes(session.user.role ?? '')) {
-    notFound();
+    return (
+      <ArenaRouteRecovery
+        kind="permission-boundary"
+        sourceRoute="/teacher/arena/publications/[publicationId]"
+        targetLabel="Arena 发布报告"
+        displayReference={params.publicationId}
+        message="请使用教师或管理员账号打开该 Arena 发布报告。"
+        recoveryAction="登录教师/管理员账号或返回工作台"
+        primaryHref={session?.user?.id ? '/dashboard' : buildLoginRedirectForPath(reportPath)}
+        primaryLabel={session?.user?.id ? '返回工作台' : '去登录'}
+        surface="teacher-publication-permission"
+      />
+    );
   }
 
   try {
@@ -51,23 +78,55 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
 
     return (
       <main className="surface-page min-h-screen">
-        <section className="mx-auto max-w-[1600px] px-6 py-10">
+        <section className="mx-auto max-w-[1600px] px-6 pb-[calc(env(safe-area-inset-bottom,0px)+8rem)] pt-10">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-sm text-subtle">竞技场发布报告</p>
-              <h1 className="mt-2 text-3xl font-semibold text-foreground">{report.publication.taskId}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <h1 className="text-3xl font-semibold text-foreground">{report.publicationContext.reportTitle}</h1>
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${lifecycleToneClass(report.lifecycle.tone)}`}>
+                  {report.lifecycle.primaryLabel}
+                </span>
+              </div>
               <p className="mt-2 text-sm text-subtle">
-                {report.publication.classId} · 截止 {formatDate(report.publication.deadline)} · {report.publication.visibility}
+                {report.publicationContext.classTitle} · {report.publicationContext.teacherLabel} · 截止 {report.publicationContext.deadlineLabel}
               </p>
               <p className="mt-1 text-xs text-subtle">
-                榜单策略 {report.publication.leaderboardPolicyId} ·
-                {report.publication.gradingPolicy.hideFullLeaderboardBeforeDeadline ? '截止前隐藏完整同伴榜单' : '榜单实时可见'}
+                {report.publicationContext.sourceLabel} · {report.lifecycle.detail}
               </p>
             </div>
             <Link href="/teacher/arena" className="btn-ghost-themed rounded-lg border px-3 py-2 text-sm">
               返回竞技场配置
             </Link>
           </div>
+
+          <section className="surface-card mt-6 p-5" data-arena-publication-context={report.lifecycle.state}>
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">发布上下文</h2>
+                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                  <SignalRow label="任务" value={report.publicationContext.taskTitle} />
+                  <SignalRow label="班级/范围" value={report.publicationContext.classTitle} />
+                  <SignalRow label="来源" value={report.publicationContext.sourceLabel} />
+                  <SignalRow label="榜单边界" value={report.leaderboardBoundary.sourceLabel} />
+                </div>
+                <p className="mt-4 rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm leading-6 text-subtle">
+                  {report.leaderboardBoundary.explanation}
+                </p>
+              </div>
+              <div
+                className="rounded-lg border border-border/70 bg-card/55 p-4"
+                data-arena-publication-mobile-actions="safe-area"
+              >
+                <h2 className="text-sm font-semibold text-foreground">报告交付</h2>
+                <div className="mt-3 grid gap-2">
+                  {report.deliveryActions.map((action) => (
+                    <DeliveryActionRow key={action.id} action={action} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <MetricPanel
@@ -95,6 +154,31 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
               detail={`零分 ${report.attemptPolicy.zeroScoreSubmissionCount} 次不标记优秀`}
             />
           </div>
+
+          <section className="surface-card mt-6 p-5" data-arena-evidence-writeback-report="visible">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">证据回流</h2>
+                <p className="mt-2 text-sm leading-6 text-subtle">{report.evidenceWriteback.studentVisibleRule}</p>
+              </div>
+              <div className="rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-xs font-medium text-subtle">
+                终端验证 {report.evidenceWriteback.terminalValidationAcceptedCount} 条
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <SignalRow label="已写入" value={`${report.evidenceWriteback.acceptedCount} 条`} />
+              <SignalRow label="受限证据" value={`${report.evidenceWriteback.degradedCount} 条`} />
+              <SignalRow label="未写入" value={`${report.evidenceWriteback.blockedCount} 条`} />
+            </div>
+            <div className="mt-4 rounded-lg border border-border/70 bg-card/55 px-3 py-2 text-sm leading-6 text-subtle">
+              {report.evidenceWriteback.teacherRecoveryRule}
+              {report.evidenceWriteback.latestLimitationCodes.length > 0 ? (
+                <span className="block text-xs text-muted-foreground">
+                  限制代码：{report.evidenceWriteback.latestLimitationCodes.join('、')}
+                </span>
+              ) : null}
+            </div>
+          </section>
 
           <section className="surface-card mt-6 p-5" data-arena-attempt-policy="visible">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -181,7 +265,7 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
                     key={best.userId}
                     label={best.studentLabel}
                     score={best.score}
-                    detail={`${best.method} · ${formatAttemptStatus(best.attemptStatus)} · ${best.rankingExplanation} · ${formatDate(best.submittedAt)}`}
+                    detail={`${best.method} · ${formatAttemptStatus(best.attemptStatus)} · ${formatEvidenceWritebackStatus(best.evidenceWritebackStatus)} · ${best.rankingExplanation} · ${formatDate(best.submittedAt)}`}
                   />
                 ))}
               </div>
@@ -258,12 +342,29 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
               <span>当前发布还没有官方提交。报告仍保留任务、班级、截止时间、可见性和榜单策略上下文。</span>
             </div>
           ) : null}
+          <div className="sr-only" data-task-workspace-zone="floating-dock-safe-area">
+            Arena 发布报告交付动作避让全局浮动控件，并保留移动端底部安全区。
+          </div>
+          <div className="sr-only" data-arena-evidence-writeback-mobile-action="reachable">
+            Arena 发布报告在移动端保留证据回流状态、限制代码和教师恢复动作。
+          </div>
         </section>
       </main>
     );
   } catch (error) {
     if (error instanceof ArenaPublicationPermissionError) {
-      notFound();
+      return (
+        <ArenaRouteRecovery
+          kind="missing-object"
+          sourceRoute="/teacher/arena/publications/[publicationId]"
+          targetLabel="Arena 发布报告"
+          message="Arena 发布报告不存在或当前账号不可见。"
+          recoveryAction="返回 Arena 配置页并从可见发布列表重新进入"
+          primaryHref="/teacher/arena"
+          primaryLabel="返回 Arena 配置"
+          surface="teacher-publication-report"
+        />
+      );
     }
     throw error;
   }
@@ -297,6 +398,36 @@ function MetricPanel({
       </div>
       <div className="mt-3 text-3xl font-semibold text-foreground">{value}</div>
       <div className="mt-2 text-xs text-subtle">{detail}</div>
+    </div>
+  );
+}
+
+function DeliveryActionRow({
+  action,
+}: {
+  action: {
+    id: 'export-report' | 'send-report' | 'lock-board' | 'copy-commentary';
+    label: string;
+    statusLabel: string;
+    available: boolean;
+  };
+}) {
+  const Icon = action.id === 'export-report'
+    ? FileDown
+    : action.id === 'send-report'
+      ? Send
+      : action.id === 'lock-board'
+        ? LockKeyhole
+        : Copy;
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/65 px-3 py-2 text-sm">
+      <span className="flex items-center gap-2 text-foreground">
+        <Icon className="h-4 w-4 text-primary" />
+        {action.label}
+      </span>
+      <span className={action.available ? 'text-subtle' : 'text-muted-foreground'}>
+        {action.statusLabel}
+      </span>
     </div>
   );
 }

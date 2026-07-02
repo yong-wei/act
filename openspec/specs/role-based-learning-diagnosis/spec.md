@@ -3,7 +3,7 @@
 Provide a stable, governed diagnosis layer that materializes student, teacher, and service-facing learning diagnosis views from privacy-safe evidence. The layer standardizes judgments, root causes, confidence limits, next actions, and evidence references for future student profile, teacher consultation, prep-pack, grading, and Konling surfaces.
 ## Requirements
 ### Requirement: Diagnosis views are role-specific
-The system SHALL materialize role-specific learning diagnosis views for students, teachers, and service consumers.
+The system SHALL materialize role-specific learning diagnosis views for students, teachers, and service consumers, including graph-aware class diagnosis when K/A/Q context is available.
 
 #### Scenario: Student diagnosis is requested
 - **WHEN** a student opens a learning overview for a registered goal
@@ -22,6 +22,11 @@ The system SHALL materialize role-specific learning diagnosis views for students
 - **WHEN** a teacher-student diagnosis is requested without an explicit target student
 - **THEN** the diagnosis SHALL expose a missing target student limitation
 - **AND** it SHALL NOT materialize student path details, learner-state dimensions, class-wide learner evidence, or target-scoped next-action links.
+
+#### Scenario: Teacher graph-node diagnosis is requested
+- **WHEN** an authorized teacher opens a class diagnosis from Graph Center or a graph-aware prep-pack flow
+- **THEN** the diagnosis SHALL include target LearningGoal or graph node scope, overlay distribution, affected population, denominator, confidence, resource coverage gaps, evidence refs, citation refs, version refs, and intervention priority
+- **AND** any student drilldown SHALL remain scoped to students in the teacher's class.
 
 ### Requirement: Diagnosis claims are evidence-backed
 Diagnosis output SHALL not present a personalized claim without evidence and confidence metadata.
@@ -48,6 +53,11 @@ Role-based diagnosis surfaces SHALL expose different summaries from the same gov
 - **WHEN** a teacher opens a class diagnosis surface
 - **THEN** the surface SHALL show cohort distributions, weak-point clusters, affected population, denominator, source coverage, confidence, evidence drilldown, limitation states, prep-pack entry state, and available prep-pack actions
 - **AND** any student drilldown SHALL remain scoped to students in the teacher's class.
+
+#### Scenario: Teacher opens graph-aware class diagnosis surface
+- **WHEN** a teacher opens diagnosis for K/A/Q graph weak points
+- **THEN** the surface SHALL show weak graph nodes, resource gap status, prep-pack entry state, source coverage, confidence, evidence drilldown, and limitation states
+- **AND** it SHALL not expose raw private dialogue, hidden Arena internals, raw submissions, or reversible low-denominator distributions.
 
 ### Requirement: Evidence drilldowns preserve privacy
 Evidence drilldowns SHALL be inspectable and privacy-safe.

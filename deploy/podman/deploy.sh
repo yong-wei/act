@@ -28,11 +28,24 @@ for env_file in "$PROJECT_DIR/.env.server" "$SCRIPT_DIR/.env.server" "$PROJECT_D
   fi
 done
 
+operator_adaptive_learner_state_service_enabled_was_set=0
+operator_adaptive_learner_state_service_enabled=""
+if [ "${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED+x}" = "x" ]; then
+  operator_adaptive_learner_state_service_enabled_was_set=1
+  operator_adaptive_learner_state_service_enabled="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
+fi
+
 if [ -f "$RUNTIME_ENV_FILE" ]; then
   set -a
   # shellcheck disable=SC1090
   . "$RUNTIME_ENV_FILE"
   set +a
+fi
+
+if [ "$operator_adaptive_learner_state_service_enabled_was_set" = "1" ]; then
+  ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$operator_adaptive_learner_state_service_enabled"
+else
+  unset ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED
 fi
 
 derive_db_password() {
@@ -121,6 +134,7 @@ REDIS_IMAGE="${REDIS_IMAGE:-docker.io/redis:7-alpine}"
 NODE_ENV="${NODE_ENV:-production}"
 NEXT_TELEMETRY_DISABLED="${NEXT_TELEMETRY_DISABLED:-1}"
 WORKER_CONCURRENCY="${WORKER_CONCURRENCY:-2}"
+ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED:-true}"
 REDIS_MAXMEMORY="${REDIS_MAXMEMORY:-512mb}"
 REDIS_MAXMEMORY_POLICY="${REDIS_MAXMEMORY_POLICY:-noeviction}"
 RUN_MIGRATIONS_ON_START="${RUN_MIGRATIONS_ON_START:-}"
@@ -561,6 +575,7 @@ SHARED_ENV_ARGS=(
   -e POSTGRES_PASSWORD="$DB_PASSWORD"
   -e APP_DOMAIN="$APP_DOMAIN"
   -e REDIS_URL="$REDIS_URL"
+  -e ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
 )
 
 APP_ENV_ARGS=(

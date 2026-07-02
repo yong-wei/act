@@ -106,6 +106,64 @@ function getArenaHallEntryLabel(source: ChallengeObjectSource | undefined, works
     : '控制工作台';
 }
 
+function getArenaHallPublicationLifecycle(publication: ArenaPublicationRecord): {
+  state: 'active' | 'expired' | 'late-only' | 'report-ready' | 'unavailable';
+  label: string;
+  actionLabel: string;
+} {
+  if (publication.status === 'draft' || publication.status === 'paused') {
+    return {
+      state: 'unavailable',
+      label: '发布暂不可用',
+      actionLabel: '等待教师开放',
+    };
+  }
+
+  if (publication.status === 'closed' || publication.status === 'archived') {
+    return {
+      state: 'report-ready',
+      label: '报告/复盘可用',
+      actionLabel: '查看发布报告',
+    };
+  }
+
+  const deadlineTime = new Date(publication.deadline).getTime();
+  const expired = Number.isFinite(deadlineTime) && deadlineTime < Date.now();
+
+  if (expired) {
+    if (publication.gradingPolicy.allowLateSubmissions === true) {
+      return {
+        state: 'late-only',
+        label: '已截止，可迟交',
+        actionLabel: '迟交不进入正式榜单',
+      };
+    }
+    return {
+      state: 'expired',
+      label: '发布已截止',
+      actionLabel: '报告/复盘可用',
+    };
+  }
+
+  return {
+    state: 'active',
+    label: '发布进行中',
+    actionLabel: '继续正式提交',
+  };
+}
+
+function getArenaHallPublicationBoundary(publication: ArenaPublicationRecord): string {
+  if (publication.visibility === 'public' || publication.studentVisibility === 'public') {
+    return '公开榜单：官方提交';
+  }
+
+  if (publication.visibility === 'course') {
+    return '课程榜单：本发布官方提交';
+  }
+
+  return '班级榜单：本发布官方提交';
+}
+
 export function ArenaHall({
   taskStats = {},
   studentPublications = [],
@@ -288,6 +346,9 @@ export function ArenaHall({
                       const challengeHref = publication
                         ? `/arena/challenges/${challenge.id}?publicationId=${publication.id}`
                         : `/arena/challenges/${challenge.id}`;
+                      const publicationLifecycle = publication
+                        ? getArenaHallPublicationLifecycle(publication)
+                        : null;
 
                       return (
                         <article key={challenge.id} className="surface-card rounded-lg p-5">
@@ -307,9 +368,18 @@ export function ArenaHall({
                                 <p className="mt-1 text-xs text-muted-foreground">对象：{object.name}</p>
                               ) : null}
                               <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">{challenge.training.goal}</p>
-                              {publication ? (
-                                <div className="mt-3 inline-flex rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
-                                  班级发布 · 截止 {new Date(publication.deadline).toLocaleString('zh-CN')}
+                              {publication && publicationLifecycle ? (
+                                <div
+                                  className="mt-3 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary"
+                                  data-arena-publication-lifecycle={publicationLifecycle.state}
+                                >
+                                  <span>{publicationLifecycle.label}</span>
+                                  <span>·</span>
+                                  <span>{getArenaHallPublicationBoundary(publication)}</span>
+                                  <span>·</span>
+                                  <span>截止 {new Date(publication.deadline).toLocaleString('zh-CN')}</span>
+                                  <span>·</span>
+                                  <span>{publicationLifecycle.actionLabel}</span>
                                 </div>
                               ) : null}
                             </div>

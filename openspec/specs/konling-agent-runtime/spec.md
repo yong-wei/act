@@ -310,3 +310,145 @@ Konling SHALL ground supported teaching-assistant answers in server-owned knowle
 - **WHEN** Konling generates grading explanation, mastery advice, or diagnosis-affecting output
 - **THEN** generated text SHALL remain explanatory unless a governed tool run, approved grading workflow, or materialized evidence summary records the outcome
 - **AND** raw assistant narrative SHALL NOT directly update learner mastery.
+
+### Requirement: Konling path-advisor entrypoints follow registered LearningGoals
+Konling SHALL expose adaptive path-advisor entrypoints for every registered `path-ready` LearningGoal that the adaptive path center can display.
+
+#### Scenario: Student opens a registered goal path center
+- **WHEN** an authenticated student opens `/assessment/adaptive-practice?goal=<goal-id>` for any registered `path-ready` LearningGoal
+- **THEN** Konling SHALL receive a server-owned `path-advisor` context for that LearningGoal
+- **AND** the context SHALL include the LearningGoal id, title, goal-specific topic, learning objectives, class scope, page id, and mode context token.
+
+#### Scenario: Goal-specific quick prompts are shown
+- **WHEN** Konling path-advisor quick prompts are built for a registered LearningGoal
+- **THEN** the prompts SHALL name the active LearningGoal and its student-facing purpose
+- **AND** they SHALL NOT be hard-coded to control-correction or frequency-response copy unless that is the active LearningGoal.
+
+#### Scenario: LearningGoal context is incomplete
+- **WHEN** a registered LearningGoal lacks metadata needed for path-advisor title, topic, objectives, quick prompts, or graph grounding
+- **THEN** catalog or Konling entrypoint contract tests SHALL fail before the change can pass
+- **AND** Konling SHALL NOT present generic advice as if it were grounded in a specific LearningGoal.
+
+#### Scenario: Unknown goal requests path advisor
+- **WHEN** a client requests path-advisor context for an unknown LearningGoal id
+- **THEN** Konling SHALL reject the request through the governed registered-goal error path
+- **AND** it SHALL NOT mint a mode context token for the unknown goal.
+
+### Requirement: Konling streaming citation diagnostics are environment-gated
+Konling SHALL separate user-visible streaming answer text from citation-guard debugging diagnostics.
+
+#### Scenario: Development debug injection is enabled
+- **WHEN** Konling streams an answer in a development environment or an explicitly enabled debug-injection environment
+- **THEN** the runtime MAY inject complete citation guard diagnostics into the stream for debugging
+- **AND** the injected diagnostics SHALL include missing context and low-confidence reasons for any authenticated development user account.
+
+#### Scenario: Production debug injection is disabled
+- **WHEN** Konling streams an answer in production and citation-debug injection is not explicitly enabled
+- **THEN** the runtime SHALL NOT inject raw citation guard diagnostics into user-visible answer text
+- **AND** raw tokens such as `assistant-citations-unverified-stream`, `missing-learner-state`, and `missing-path-execution` SHALL remain outside the visible assistant message.
+
+#### Scenario: Citation diagnostics are persisted
+- **WHEN** Konling produces a streaming or persisted-session reply
+- **THEN** the runtime SHALL persist citation guard status, missing citation classes, low-confidence reasons, retrieval source summaries, and personalization availability metadata with the conversation or agent session
+- **AND** support review SHALL be possible without exposing raw diagnostics as normal student-facing prose.
+
+### Requirement: Konling citation requirements follow answer intent
+Konling SHALL determine required citation classes from the answer intent and the claims made by the response.
+
+#### Scenario: Concept explanation has content citations
+- **WHEN** a user asks for a course concept explanation from graph center or another content-grounded surface
+- **THEN** Konling SHALL generate a cited answer when authorized content, graph, textbook, handout, or knowledge-card citations are available
+- **AND** missing learner-state or path-execution data SHALL NOT by itself make the content citation guard fail.
+
+#### Scenario: Personalized answer lacks learner data
+- **WHEN** a user asks for personalized diagnosis, path advice, remediation, grading explanation, report explanation, or intervention advice and learner-state or path-execution data is missing
+- **THEN** Konling SHALL still return a cited answer from available teaching content and retrieval sources where possible
+- **AND** it SHALL mark personalization as limited instead of fabricating learner-specific claims.
+
+#### Scenario: Personalized answer uses learner data
+- **WHEN** authorized learner-state, path-execution, or evidence citations are available and the answer makes personalized claims
+- **THEN** Konling SHALL use those citations to shape answer scope, style, emphasis, and recommendations
+- **AND** the response metadata SHALL distinguish available personalization evidence from general content citations.
+
+#### Scenario: Content citations are unavailable
+- **WHEN** no authorized content or retrieval citation is available for a content-grounded claim
+- **THEN** Konling SHALL block, redact, downgrade, or provide a user-safe limitation
+- **AND** it SHALL NOT treat missing learner-state data as a substitute for missing content evidence.
+
+### Requirement: Konling visible limitations are user-safe
+Konling SHALL translate internal citation and personalization limitations into student-safe explanations when a visible limitation is needed.
+
+#### Scenario: Visible limitation is needed
+- **WHEN** a response must disclose limited personalization or citation confidence to a student
+- **THEN** the visible text SHALL describe the limitation in product language such as insufficient personal learning record or limited path history
+- **AND** it SHALL NOT expose raw field names, debug tokens, provider diagnostics, hidden context ids, or audit-only reason codes.
+
+### Requirement: Konling degrades personalization without blocking cited replies
+Konling SHALL use learner-state and path-execution data when available, but missing personalization data SHALL not prevent content-grounded cited answers.
+
+#### Scenario: Learner-state is available
+- **WHEN** Konling answers a student and the Learner State Service returns authorized learner-state data
+- **THEN** Konling SHALL use that data to shape answer scope, style, emphasis, and personalized recommendations
+- **AND** learner-state citation metadata SHALL be available to the response guard.
+
+#### Scenario: Learner-state is missing
+- **WHEN** Konling answers a student and learner-state data is sparse, missing, or low confidence
+- **THEN** Konling SHALL still generate a response with verified teaching-content citations when content citations are available
+- **AND** the response SHALL mark personalization as limited rather than failing retrieval.
+
+#### Scenario: Path execution is missing
+- **WHEN** Konling answers outside an active path execution context or the learner has no path execution records
+- **THEN** Konling SHALL not require path-execution citations for ordinary concept explanations
+- **AND** path advice or personalized recommendation responses SHALL disclose the missing path-execution context as a personalization limitation.
+
+#### Scenario: Production learner-state service is disabled
+- **WHEN** production Konling detects that the learner-state service flag is disabled
+- **THEN** the runtime SHALL record an operational missing-context diagnostic
+- **AND** it SHALL still answer with available teaching-content citations where possible instead of treating the disabled flag as a content citation failure.
+
+### Requirement: Konling renders verified citations from server-owned metadata
+Konling SHALL present answer citations from server-owned citation metadata rather than model-authored Markdown footnotes.
+
+#### Scenario: Final assistant message includes citation metadata
+- **WHEN** a Konling assistant message includes `konlingCitationGuard`, Source Pack citations, or CitationChip payloads
+- **THEN** the UI SHALL render citations from that metadata with display title, source type, confidence, limitation state, and click target
+- **AND** model-authored Markdown footnotes SHALL NOT be treated as verified citations.
+
+#### Scenario: Citation metadata is limited or unavailable
+- **WHEN** a citation has missing, restricted, stale, low-confidence, or unavailable address metadata
+- **THEN** the UI SHALL show the limitation state
+- **AND** it SHALL NOT navigate to a meaningless page anchor or present the citation as fully verified.
+
+### Requirement: Konling assistant prose suppresses fake citation footnotes
+Konling SHALL prevent model-authored GFM footnotes and generated `#user-content-fn*` anchors from appearing as platform citations.
+
+#### Scenario: Model emits duplicate Markdown footnotes
+- **WHEN** model prose contains repeated GFM footnotes such as duplicate `[1]` references or `[^content]` definitions
+- **THEN** the message renderer SHALL strip, disable, or normalize those footnotes so they are not displayed as verified citations
+- **AND** verified citation numbering SHALL be derived only from server-owned citation metadata.
+
+#### Scenario: Model emits current-page footnote anchors
+- **WHEN** model prose contains links to `#user-content-fn*` or `#user-content-fnref*`
+- **THEN** those links SHALL NOT be rendered as clickable verified citation links
+- **AND** the user SHALL not be routed to `/knowledge#user-content-*` as if it were a source.
+
+### Requirement: Konling distinguishes streaming diagnostics from final citation state
+Konling SHALL keep development diagnostics separate from the final user-facing citation presentation.
+
+#### Scenario: Streaming answer has not completed final citation verification
+- **WHEN** the response is still streaming and diagnostics are enabled
+- **THEN** the UI MAY show a development diagnostic notice
+- **AND** that notice SHALL be visually and semantically distinct from verified citations.
+
+#### Scenario: Final answer completes citation verification
+- **WHEN** final message metadata is available
+- **THEN** the UI SHALL render the final verified, limited, or missing citation state from metadata
+- **AND** it SHALL not rely on diagnostic text embedded in the prose as the citation UI.
+
+### Requirement: Konling grounding includes structured associative context
+Konling runtime SHALL include structured associative context when SAR association expansion is available for the current mode and scope.
+
+#### Scenario: Scoped learning question is answered
+- **WHEN** Konling answers a graph, path, resource, diagnosis, grading, or prep-pack question with available SAR context
+- **THEN** the runtime SHALL include SAR seed refs, associated event refs, trace summary, candidate evidence refs, and limitations in server-owned metadata
+- **AND** final citations SHALL still be rendered from verified CitationChip or Source Pack citation metadata.

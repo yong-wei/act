@@ -1,3 +1,11 @@
+import type { AdminOperationLedgerEntry } from '@/lib/admin-operation-ledger';
+import type { SarDiagnosticsReport } from '@/lib/data-governance/sar-diagnostics';
+import type { SarRefreshHealth } from '@/lib/data-governance/sar-refresh';
+import type {
+  GovernanceActionAuditRecord,
+  GovernanceRiskDispositionStatus,
+} from '@/features/admin/admin-governance-action-contract';
+
 export type GovernanceQueueStats = {
   waiting: number;
   active: number;
@@ -8,6 +16,7 @@ export type GovernanceQueueStats = {
 export type GovernanceStatusPayload = {
   status: string;
   timestamp: string;
+  operationLedger?: AdminOperationLedgerEntry;
   authoringContext?: {
     surface: 'authoring';
     lessonPlanId: string | null;
@@ -21,6 +30,8 @@ export type GovernanceStatusPayload = {
     audit: string | null;
     preferredTab: 'sources' | 'cache' | 'overview';
   } | null;
+  sarDiagnostics?: SarDiagnosticsReport;
+  sarRefreshHealth?: SarRefreshHealth;
   freshness: {
     lastSnapshotMinutes: number | null;
     status: string;
@@ -112,6 +123,15 @@ export type GovernanceStatusPayload = {
     description: string;
     triggeredAt: string;
     isResolved: boolean;
+    resolvedAt?: string | null;
+    resolutionNote?: string | null;
+    safeLabel?: string;
+    affectedObjectLabel?: string;
+    evidenceHref?: string;
+    currentAssignee?: string | null;
+    dispositionStatus?: GovernanceRiskDispositionStatus;
+    undoAvailable?: boolean;
+    auditTrail?: GovernanceActionAuditRecord[];
   }>;
   targetRiskFlag?: {
     id: string;
@@ -122,6 +142,15 @@ export type GovernanceStatusPayload = {
     description: string;
     triggeredAt: string;
     isResolved: boolean;
+    resolvedAt?: string | null;
+    resolutionNote?: string | null;
+    safeLabel?: string;
+    affectedObjectLabel?: string;
+    evidenceHref?: string;
+    currentAssignee?: string | null;
+    dispositionStatus?: GovernanceRiskDispositionStatus;
+    undoAvailable?: boolean;
+    auditTrail?: GovernanceActionAuditRecord[];
   } | null;
   recentSnapshots: Array<{
     userId: string;
@@ -153,7 +182,7 @@ type QueueCard = {
 };
 
 type GovernanceTab = {
-  id: 'overview' | 'sessions' | 'sources' | 'cache';
+  id: 'overview' | 'risks' | 'sessions' | 'sources' | 'cache';
   label: string;
 };
 
@@ -208,9 +237,23 @@ function buildSessionQualityCard(payload: GovernanceStatusPayload): SummaryCard 
   };
 }
 
+function sarRefreshStatusLabel(status: SarRefreshHealth['status']) {
+  if (status === 'fresh') return '新鲜';
+  if (status === 'stale') return '过期';
+  if (status === 'degraded') return '降级';
+  return '失败';
+}
+
+function sarRefreshTone(status: SarRefreshHealth['status']): SummaryCard['tone'] {
+  if (status === 'fresh') return 'success';
+  if (status === 'failed') return 'danger';
+  return 'default';
+}
+
 export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
   const tabs: GovernanceTab[] = [
     { id: 'overview', label: '总览' },
+    { id: 'risks', label: '风险治理' },
     { id: 'sessions', label: '课堂质量' },
     { id: 'sources', label: '证据源' },
     { id: 'cache', label: '缓存健康' },
@@ -245,6 +288,14 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
   if (sessionQualityCard) {
     summaryCards.push(sessionQualityCard);
   }
+  if (payload.sarRefreshHealth) {
+    summaryCards.push({
+      title: 'SAR 刷新',
+      value: sarRefreshStatusLabel(payload.sarRefreshHealth.status),
+      detail: `源族 ${payload.sarRefreshHealth.totals.sourceFamilyCount} · 过期 ${payload.sarRefreshHealth.totals.staleSourceCount} · 失败 ${payload.sarRefreshHealth.totals.failureCount}`,
+      tone: sarRefreshTone(payload.sarRefreshHealth.status),
+    });
+  }
 
   const queueCards: QueueCard[] = Object.entries(payload.queues).map(([key, stats]) => ({
     title: QUEUE_LABELS[key as keyof GovernanceStatusPayload['queues']],
@@ -254,7 +305,10 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
     failed: stats.failed,
   }));
 
-  const riskRows: RiskRow[] = payload.recentRiskFlags.map((risk) => ({
+  const riskSourceRows = payload.targetRiskFlag
+    ? [payload.targetRiskFlag, ...payload.recentRiskFlags.filter((risk) => risk.id !== payload.targetRiskFlag?.id)]
+    : payload.recentRiskFlags;
+  const riskRows: RiskRow[] = riskSourceRows.map((risk) => ({
     ...risk,
     severityLabel: RISK_SEVERITY_LABELS[risk.severity] || risk.severity,
     flagLabel: RISK_TYPE_LABELS[risk.flagType] || risk.flagType,
@@ -305,6 +359,18 @@ export function buildGovernanceOverview(payload: GovernanceStatusPayload) {
       ? {
           title: '特征缓存健康',
           ...payload.featureCache,
+        }
+      : null,
+    sarRefreshHealthPanel: payload.sarRefreshHealth
+      ? {
+          title: 'SAR 刷新健康',
+          status: payload.sarRefreshHealth.status,
+          generatedAt: payload.sarRefreshHealth.generatedAt,
+          lastAttemptedAt: payload.sarRefreshHealth.lastAttemptedAt,
+          lastSuccessfulAt: payload.sarRefreshHealth.lastSuccessfulAt,
+          totals: payload.sarRefreshHealth.totals,
+          sources: payload.sarRefreshHealth.sources,
+          limitations: payload.sarRefreshHealth.limitations,
         }
       : null,
     riskPanel: {

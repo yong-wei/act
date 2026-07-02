@@ -206,6 +206,50 @@ model LlmSession {
   @@index([userId])
 }
 
+model AdminOperationLedger {
+  id              String   @id @default(cuid())
+  operationId     String   @unique
+  kind            String
+  actorId         String
+  actorRole       String
+  scope           String
+  startedAt       DateTime
+  completedAt     DateTime?
+  outcome         String
+  idempotencyKey  String   @unique
+  sourceFileHash  String?
+  artifactRefs    Json     @default("[]")
+  retentionPolicy Json     @default("{}")
+  rollback        Json     @default("{}")
+  auditSummary    String
+  recoveryState   Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([actorId, createdAt])
+  @@index([kind, createdAt])
+  @@index([scope, createdAt])
+}
+
+model AdminOperationArtifact {
+  id              String   @id @default(cuid())
+  artifactId      String   @unique
+  operationId     String
+  kind            String
+  label           String
+  authorizedRoles Json     @default("[]")
+  piiMinimized    Boolean  @default(true)
+  rowCount        Int?
+  expiresAt       DateTime?
+  revokedAt       DateTime?
+  payload         Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([operationId])
+  @@index([expiresAt])
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -1618,6 +1662,7 @@ model ArenaSubmission {
   method               String
   score                Float
   valid                Boolean
+  submissionAttemptKey String?  @unique
   submittedAt          DateTime
   createdAt            DateTime @default(now())
 

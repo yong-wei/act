@@ -13,6 +13,7 @@ import { usePageFloatingControls } from '@/components/shared/page-floating-contr
 
 export function GlobalAIFloatingButton() {
   const [mounted, setMounted] = useState(false);
+  const [localTaskMode, setLocalTaskMode] = useState(false);
   const { shouldShowButton, isOpen, toggleSidebar, unreadCount } = useGlobalAI();
   const { registerControl } = usePageFloatingControls();
   const knowledgeProductQaEnabled = mounted
@@ -28,19 +29,35 @@ export function GlobalAIFloatingButton() {
   }, []);
 
   useEffect(() => {
+    if (!mounted) return undefined;
+    const syncLocalTaskMode = () => {
+      setLocalTaskMode(Boolean(document.querySelector('[data-ai-local-task-surface][data-ai-task-focus-mode="local-first"]')));
+    };
+    syncLocalTaskMode();
+    const observer = new MutationObserver(syncLocalTaskMode);
+    observer.observe(document.body, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+      attributeFilter: ['data-ai-local-task-surface', 'data-ai-task-focus-mode'],
+    });
+    return () => observer.disconnect();
+  }, [mounted]);
+
+  useEffect(() => {
     if (!mounted || (!shouldShowButton && !knowledgeProductQaEnabled) || isOpen) return undefined;
     return registerControl({
       id: 'konling-global-ai',
       label: '控灵 AI助手',
-      ariaLabel: '呼出控灵 AI助手',
-      priority: 10,
+      ariaLabel: localTaskMode ? '呼出次级控灵 AI助手' : '呼出控灵 AI助手',
+      priority: localTaskMode ? 90 : 10,
       icon: <KonlingAvatar size="sm" />,
       badge: unreadCount > 0
         ? <span className="rounded-full bg-platform-evidence-unsupported px-1.5 py-0.5 text-[10px] font-bold text-platform-fg-inverse">{unreadCount > 9 ? '9+' : unreadCount}</span>
         : undefined,
       onSelect: toggleSidebar,
     });
-  }, [isOpen, knowledgeProductQaEnabled, mounted, registerControl, shouldShowButton, toggleSidebar, unreadCount]);
+  }, [isOpen, knowledgeProductQaEnabled, localTaskMode, mounted, registerControl, shouldShowButton, toggleSidebar, unreadCount]);
 
   return null;
 }

@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
+import { createHash } from 'node:crypto';
 import { hash } from 'bcryptjs';
 import { UserRole, type Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireAdminSession } from '@/lib/admin';
 import { initializeUserProgress } from '@/lib/user-sync';
 import { loadFirstWorksheetRows } from '@/lib/server-spreadsheet';
+import {
+  buildAdminOperationIdempotencyKey,
+  buildAdminOperationLedgerEntry,
+  buildFailedImportArtifact,
+  minimizeFailedImportRows,
+} from '@/lib/admin-operation-ledger';
+import { persistAdminOperationLedger } from '@/lib/admin-operation-ledger-runtime';
 
 type ImportRow = {
   account: string;
@@ -22,6 +30,55 @@ type ImportError = {
   account: string;
   reason: string;
 };
+
+type PublicImportError = {
+  row: number;
+  accountFingerprint: string | null;
+  reason: string;
+};
+
+type ImportDb = Pick<
+  typeof prisma,
+  'user' | 'studentProfile' | 'mission' | 'userProgress' | 'adminOperationLedger' | 'adminOperationArtifact'
+>;
+
+type ImportUserWithProfile = Prisma.UserGetPayload<{
+  include: {
+    profile: {
+      select: {
+        id: true;
+      };
+    };
+  };
+}>;
+
+type PlannedImportOperation =
+  | {
+      type: 'create';
+      rowNumber: number;
+      row: ImportRow;
+      role: UserRole;
+      passwordHash: string;
+    }
+  | {
+      type: 'update';
+      rowNumber: number;
+      userId: string;
+      hasProfile: boolean;
+      row: ImportRow;
+      role: UserRole;
+      passwordHash: string | null;
+    };
+
+class ImportWriteError extends Error {
+  constructor(
+    readonly row: number,
+    readonly account: string,
+    readonly cause: unknown
+  ) {
+    super('导入写入失败，请检查该行账号、邮箱或学生档案是否与现有数据冲突');
+  }
+}
 
 const HEADER_ALIASES = {
   account: [
@@ -99,6 +156,10 @@ function getCellValue(row: unknown[], index: number) {
   return normalizeValue(row[index]);
 }
 
+function sha256Hex(buffer: ArrayBuffer) {
+  return createHash('sha256').update(Buffer.from(buffer)).digest('hex');
+}
+
 function pickNonEmptyProfileUpdate(row: ImportRow): Prisma.StudentProfileUpdateInput {
   const data: Prisma.StudentProfileUpdateInput = {};
 
@@ -115,10 +176,13 @@ function pickNonEmptyProfileUpdate(row: ImportRow): Prisma.StudentProfileUpdateI
   return data;
 }
 
-async function createUserFromImport(row: ImportRow, role: UserRole) {
-  const passwordHash = await hash(row.password || '123456', 10);
-
-  const user = await prisma.user.create({
+async function createUserFromImport(
+  db: ImportDb,
+  row: ImportRow,
+  role: UserRole,
+  passwordHash: string
+) {
+  const user = await db.user.create({
     data: {
       name: row.name,
       email: row.email || null,
@@ -149,15 +213,17 @@ async function createUserFromImport(row: ImportRow, role: UserRole) {
   });
 
   if (role === UserRole.STUDENT) {
-    await initializeUserProgress(user.id);
+    await initializeUserProgress(user.id, db);
   }
 }
 
 async function updateUserByAccount(
+  db: ImportDb,
   userId: string,
   hasProfile: boolean,
   row: ImportRow,
-  role: UserRole
+  role: UserRole,
+  passwordHash: string | null
 ) {
   const userUpdateData: Prisma.UserUpdateInput = {
     name: row.name,
@@ -169,11 +235,11 @@ async function updateUserByAccount(
     userUpdateData.email = row.email;
   }
 
-  if (row.password) {
-    userUpdateData.passwordHash = await hash(row.password, 10);
+  if (passwordHash) {
+    userUpdateData.passwordHash = passwordHash;
   }
 
-  await prisma.user.update({
+  await db.user.update({
     where: { id: userId },
     data: userUpdateData,
   });
@@ -185,7 +251,7 @@ async function updateUserByAccount(
   const profilePatch = pickNonEmptyProfileUpdate(row);
 
   if (hasProfile) {
-    await prisma.studentProfile.update({
+    await db.studentProfile.update({
       where: { userId },
       data: {
         studentNumber: row.account,
@@ -193,7 +259,7 @@ async function updateUserByAccount(
       },
     });
   } else {
-    await prisma.studentProfile.create({
+    await db.studentProfile.create({
       data: {
         userId,
         studentNumber: row.account,
@@ -204,7 +270,7 @@ async function updateUserByAccount(
         ethicsScore: 100,
       },
     });
-    await initializeUserProgress(userId);
+    await initializeUserProgress(userId, db);
   }
 }
 
@@ -224,8 +290,11 @@ export async function POST(request: Request) {
   }
 
   let rows: unknown[][] | null;
+  let sourceFileHash: string;
   try {
-    rows = await loadFirstWorksheetRows(await file.arrayBuffer());
+    const fileBuffer = await file.arrayBuffer();
+    sourceFileHash = sha256Hex(fileBuffer);
+    rows = await loadFirstWorksheetRows(fileBuffer);
   } catch {
     return NextResponse.json(
       { error: '无法解析 Excel 文件，请使用官方模板重新填写' },
@@ -263,6 +332,55 @@ export async function POST(request: Request) {
   const errors: ImportError[] = [];
   const batchId = `admin-user-import-${Date.now().toString(36)}`;
   const seenAccounts = new Map<string, number>();
+  const seenEmails = new Map<string, number>();
+  const plannedOperations: PlannedImportOperation[] = [];
+
+  const findExistingUsersByAccount = (account: string) =>
+    prisma.user.findMany({
+      where: {
+        OR: [
+          {
+            employeeNumber: {
+              equals: account,
+              mode: 'insensitive',
+            },
+          },
+          {
+            profile: {
+              is: {
+                studentNumber: {
+                  equals: account,
+                  mode: 'insensitive',
+                },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        profile: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    }) as Promise<ImportUserWithProfile[]>;
+
+  const emailBelongsToAnotherUser = async (email: string, existingUserId?: string) => {
+    const usersWithEmail = await prisma.user.findMany({
+      where: {
+        email: {
+          equals: email,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return usersWithEmail.some((user) => user.id !== existingUserId);
+  };
 
   for (let i = 1; i < rows.length; i += 1) {
     const row = rows[i] ?? [];
@@ -315,72 +433,208 @@ export async function POST(request: Request) {
     }
     seenAccounts.set(accountKey, rowNumber);
 
-    try {
-      const matchedUsers = await prisma.user.findMany({
-        where: {
-          OR: [
-            {
-              employeeNumber: {
-                equals: importRow.account,
-                mode: 'insensitive',
-              },
-            },
-            {
-              profile: {
-                is: {
-                  studentNumber: {
-                    equals: importRow.account,
-                    mode: 'insensitive',
-                  },
-                },
-              },
-            },
-          ],
-        },
-        include: {
-          profile: {
-            select: {
-              id: true,
-            },
-          },
-        },
-      });
-
-      if (matchedUsers.length > 1) {
+    if (importRow.email) {
+      const emailKey = importRow.email.trim().toLowerCase();
+      const firstSeenEmailRow = seenEmails.get(emailKey);
+      if (firstSeenEmailRow) {
         errors.push({
           row: rowNumber,
           account: importRow.account,
-          reason: '同一账号匹配到多个用户，请先清理重复数据',
+          reason: `同批次重复邮箱，已在第 ${firstSeenEmailRow} 行出现`,
         });
         continue;
       }
+      seenEmails.set(emailKey, rowNumber);
+    }
 
-      const existing = matchedUsers[0];
-      if (!existing) {
-        if (mode === 'commit') {
-          await createUserFromImport(importRow, role);
-        }
-        created += 1;
-        continue;
-      }
+    const matchedUsers = await findExistingUsersByAccount(importRow.account);
 
-      if (mode === 'commit') {
-        await updateUserByAccount(
-          existing.id,
-          Boolean(existing.profile),
-          importRow,
-          role
-        );
-      }
-      updated += 1;
-    } catch (error) {
+    if (matchedUsers.length > 1) {
       errors.push({
         row: rowNumber,
         account: importRow.account,
-        reason: error instanceof Error ? error.message : '导入失败',
+        reason: '同一账号匹配到多个用户，请先清理重复数据',
+      });
+      continue;
+    }
+
+    const existing = matchedUsers[0];
+    if (
+      importRow.email
+      && await emailBelongsToAnotherUser(importRow.email, existing?.id)
+    ) {
+      errors.push({
+        row: rowNumber,
+        account: importRow.account,
+        reason: '邮箱已被其他用户使用',
+      });
+      continue;
+    }
+
+    if (!existing) {
+      if (mode === 'commit') {
+        plannedOperations.push({
+          type: 'create',
+          rowNumber,
+          row: importRow,
+          role,
+          passwordHash: await hash(importRow.password || '123456', 10),
+        });
+      }
+      created += 1;
+      continue;
+    }
+
+    if (mode === 'commit') {
+      plannedOperations.push({
+        type: 'update',
+        rowNumber,
+        userId: existing.id,
+        hasProfile: Boolean(existing.profile),
+        row: importRow,
+        role,
+        passwordHash: importRow.password ? await hash(importRow.password, 10) : null,
       });
     }
+    updated += 1;
   }
+
+  const persistImportLedger = async (db: ImportDb) => {
+    const completedAt = new Date().toISOString();
+    const failedRows = minimizeFailedImportRows(errors);
+    const publicErrors = failedRows.map((row): PublicImportError => ({
+      row: row.row,
+      accountFingerprint: row.accountFingerprint,
+      reason: row.reason,
+    }));
+    const failedRowArtifact = buildFailedImportArtifact({
+      batchId,
+      artifactSeed: sourceFileHash,
+      failedRows,
+      generatedAt: completedAt,
+    });
+    const failedRowArtifactWithDownload = failedRowArtifact
+      ? {
+          ...failedRowArtifact,
+          downloadUrl: `/api/admin/operations/artifacts/${encodeURIComponent(failedRowArtifact.id)}`,
+        }
+      : null;
+    const artifactRefs = failedRowArtifactWithDownload ? [failedRowArtifactWithDownload] : [];
+    const outcome = errors.length > 0 ? 'completed-with-errors' : 'completed';
+    const idempotencyKey = buildAdminOperationIdempotencyKey([
+      'admin-user-import',
+      mode,
+      sourceFileHash,
+      session.user.id,
+    ]);
+    const operationLedger = buildAdminOperationLedgerEntry({
+      kind: 'admin-user-import',
+      actorId: session.user.id,
+      actorRole: session.user.role,
+      scope: `admin-users-import:${mode}`,
+      startedAt: completedAt,
+      completedAt,
+      outcome,
+      idempotencyKey,
+      sourceFileHash,
+      artifactRefs,
+      retentionPolicy: {
+        policy: 'admin-import-failed-row-artifacts-7d',
+        expiresAt: failedRowArtifactWithDownload?.expiresAt,
+        revocable: true,
+      },
+      rollback: {
+        available: false,
+        rationale: mode === 'preview'
+          ? '预览不会写入账号，无需回滚。'
+          : '批量账号导入会合并新建、更新与初始化进度；当前阶段保留审计与失败行证据，不启用自动回滚。',
+      },
+      auditSummary: `${mode === 'preview' ? '预览' : '提交'}完成：新增 ${created}，更新 ${updated}，失败 ${errors.length}，空行 ${skippedEmpty}。`,
+      recoveryState: errors.length > 0
+        ? {
+            status: 'download-artifact',
+            action: '下载 PII 最小化失败行后修正源文件',
+          }
+        : {
+            status: mode === 'preview' ? 'available' : 'not-available',
+            action: mode === 'preview' ? '确认导入或更换文件重新预览' : '通过批次审计记录复核导入结果',
+          },
+    });
+    await persistAdminOperationLedger(
+      operationLedger,
+      failedRowArtifactWithDownload
+        ? [{
+            ref: failedRowArtifactWithDownload,
+            operationId: operationLedger.operationId,
+            payload: { failedRows },
+          }]
+        : [],
+      db,
+    );
+    return {
+      completedAt,
+      failedRows,
+      publicErrors,
+      failedRowArtifactWithDownload,
+      outcome,
+      idempotencyKey,
+      operationLedger,
+    };
+  };
+
+  const applyPlannedOperations = async (db: ImportDb) => {
+    for (const operation of plannedOperations) {
+      try {
+        if (operation.type === 'create') {
+          await createUserFromImport(db, operation.row, operation.role, operation.passwordHash);
+          continue;
+        }
+
+        await updateUserByAccount(
+          db,
+          operation.userId,
+          operation.hasProfile,
+          operation.row,
+          operation.role,
+          operation.passwordHash
+        );
+      } catch (error) {
+        throw new ImportWriteError(operation.rowNumber, operation.row.account, error);
+      }
+    }
+  };
+
+  const {
+    completedAt,
+    failedRows,
+    publicErrors,
+    failedRowArtifactWithDownload,
+    outcome,
+    idempotencyKey,
+    operationLedger,
+  } = mode === 'commit'
+    ? await prisma.$transaction(async (tx) => {
+        const db = tx as ImportDb;
+        await applyPlannedOperations(db);
+        return persistImportLedger(db);
+      }).catch(async (error) => {
+        if (!(error instanceof ImportWriteError)) {
+          throw error;
+        }
+        for (const operation of plannedOperations) {
+          errors.push({
+            row: operation.rowNumber,
+            account: operation.row.account,
+            reason: operation.rowNumber === error.row
+              ? error.message
+              : '本批次事务已回滚，该行未提交',
+          });
+        }
+        created = 0;
+        updated = 0;
+        return persistImportLedger(prisma);
+      })
+    : await persistImportLedger(prisma);
 
   return NextResponse.json({
     batchId,
@@ -391,18 +645,25 @@ export async function POST(request: Request) {
     failed: errors.length,
     skippedEmpty,
     totalRows: Math.max(rows.length - 1, 0),
-    errors,
+    errors: publicErrors,
+    failedRowArtifact: failedRowArtifactWithDownload,
+    failedRows,
+    operationLedger,
     auditRecord: {
       actorId: session.user.id,
       action: 'admin-users-import',
       batchId,
       mode,
-      outcome: errors.length > 0 ? 'completed-with-errors' : 'completed',
+      outcome,
       created,
       updated,
       failed: errors.length,
       rollbackAvailable: false,
-      recordedAt: new Date().toISOString(),
+      rollbackRationale: operationLedger.rollback.rationale,
+      operationId: operationLedger.operationId,
+      idempotencyKey,
+      retentionPolicy: operationLedger.retentionPolicy.policy,
+      recordedAt: completedAt,
     },
   });
 }

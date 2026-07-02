@@ -28,6 +28,7 @@ import {
 import { AppShell } from '@/components/platform/app-shell';
 import { UserMenu } from '@/components/shared/user-menu';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import { buildFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
@@ -103,6 +104,18 @@ export default function GrowthPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
+  const localFeedbackContext = buildFeedbackTaskContext({
+    assignment: searchParams.get('assignment'),
+    criterion: searchParams.get('criterion'),
+    source: searchParams.get('source'),
+    feedbackSource: searchParams.get('feedbackSource'),
+    status: searchParams.get('status'),
+    action: searchParams.get('action'),
+    returnTo: searchParams.get('returnTo'),
+    intent: searchParams.get('intent'),
+    teacherInterventionId: searchParams.get('teacherInterventionId'),
+  });
+  const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams);
 
   const fetchData = useCallback(async () => {
     try {
@@ -227,16 +240,6 @@ export default function GrowthPage() {
   const hasCompetencyChartData = (snapshot?.currentSnapshot?.factCount ?? 0) > 0
     && barData.some((entry) => entry.score > 0 || entry.confidence > 0);
   const groupedGrowthRecords = groupGrowthTimelineRecords(growthRecords);
-  const feedbackContext = buildFeedbackTaskContext({
-    assignment: searchParams.get('assignment'),
-    criterion: searchParams.get('criterion'),
-    source: searchParams.get('source'),
-    feedbackSource: searchParams.get('feedbackSource'),
-    status: searchParams.get('status'),
-    action: searchParams.get('action'),
-    returnTo: searchParams.get('returnTo'),
-    intent: searchParams.get('intent'),
-  });
 
   return (
     <AppShell

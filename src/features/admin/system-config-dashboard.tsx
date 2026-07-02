@@ -16,6 +16,11 @@ import {
 } from 'lucide-react';
 
 import { ActionStatusPanel } from '@/components/platform/action-status';
+import {
+  buildAdminOperationId,
+  buildAdminOperationIdempotencyKey,
+  type AdminOperationLedgerEntry,
+} from '@/lib/admin-operation-ledger';
 import { createAuditedActionState } from '@/lib/action-status-contract';
 import { AdminConsoleHeader } from './admin-console-header';
 import type { AdminConsoleUser } from './admin-console-config';
@@ -59,6 +64,22 @@ interface AIProviderSettings {
   providers: AIProviderSetting[];
 }
 
+type AIProviderSettingsResponse = AIProviderSettings & {
+  operationLedger?: AdminOperationLedgerEntry;
+};
+
+type PlatformSettingsResponse = {
+  homeDynamicModelEnabled?: boolean;
+  dataCenterShowDemoSourceLabels?: boolean;
+  operationLedger?: AdminOperationLedgerEntry;
+};
+
+type AdminConfigSaveErrorResponse = {
+  error?: string;
+  issues?: string[];
+  operationLedger?: AdminOperationLedgerEntry;
+};
+
 interface SystemConfig {
   siteName: string;
   maintenanceMode: boolean;
@@ -75,6 +96,9 @@ interface SystemConfig {
 
 interface ModelTestResult {
   status: 'running' | 'success' | 'error';
+  operationId?: string;
+  idempotencyKey?: string;
+  auditSummary?: string;
   elapsedMs?: number;
   chars?: number;
   text?: string;
@@ -147,6 +171,72 @@ type SystemConfigDashboardProps = {
   initialTestQuery?: ConfigModelTestQuery | null;
 };
 
+type ConfigLedgerSnapshot = {
+  homeDynamicModelEnabled: boolean;
+  dataCenterShowDemoSourceLabels: boolean;
+  activeProvider: string;
+  providerCount: number;
+  enabledProviderCount: number;
+  selectedModel: string;
+};
+
+function buildConfigLedgerSnapshot(config: SystemConfig, aiSettings: AIProviderSettings): ConfigLedgerSnapshot {
+  const activeProvider = aiSettings.providers.find((provider) => provider.id === aiSettings.activeProvider);
+  return {
+    homeDynamicModelEnabled: config.homeDynamicModelEnabled,
+    dataCenterShowDemoSourceLabels: config.dataCenterShowDemoSourceLabels,
+    activeProvider: aiSettings.activeProvider,
+    providerCount: aiSettings.providers.length,
+    enabledProviderCount: aiSettings.providers.filter((provider) => provider.enabled).length,
+    selectedModel: activeProvider?.selectedModel ?? '',
+  };
+}
+
+function summarizeConfigDiff(before: ConfigLedgerSnapshot | null, after: ConfigLedgerSnapshot) {
+  if (!before) return '首次保存当前系统配置快照。';
+  const changed = Object.entries(after)
+    .filter(([key, value]) => before[key as keyof ConfigLedgerSnapshot] !== value)
+    .map(([key]) => key);
+  return changed.length > 0 ? `变更字段：${changed.join('、')}。` : '配置内容未变化，本次保存复用相同 idempotency key。';
+}
+
+function statusFromLedgerOutcome(outcome: AdminOperationLedgerEntry['outcome']) {
+  if (outcome === 'pending') return 'pending';
+  if (outcome === 'failed') return 'failed';
+  if (outcome === 'blocked') return 'blocked';
+  return 'succeeded';
+}
+
+function actionStateFromLedger(input: {
+  ledger: AdminOperationLedgerEntry;
+  label: string;
+  category: 'save' | 'model-test';
+  sourceRoute: string;
+  targetId?: string;
+  requestedAction: string;
+  messagePrefix?: string;
+  nextAction?: string;
+  httpStatus?: number;
+}) {
+  return createAuditedActionState({
+    identity: {
+      id: input.ledger.operationId,
+      category: input.category,
+      label: input.label,
+      sourceRoute: input.sourceRoute,
+      targetId: input.targetId,
+      requestedAction: input.requestedAction,
+    },
+    status: statusFromLedgerOutcome(input.ledger.outcome),
+    message: `${input.messagePrefix ?? ''}${input.ledger.auditSummary}`,
+    nextAction: input.nextAction,
+    recoveryAction: input.ledger.recoveryState.action,
+    recoveryKind: input.ledger.recoveryState.status,
+    displayReference: input.ledger.idempotencyKey,
+    httpStatus: input.httpStatus,
+  });
+}
+
 export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemConfigDashboardProps) {
   const [config, setConfig] = useState<SystemConfig>({
     siteName: 'AI-OBE 船舶智控平台',
@@ -181,6 +271,9 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
     description: string;
   } | null>(null);
   const [testResults, setTestResults] = useState<Record<string, ModelTestResult>>({});
+  const [configSaveStates, setConfigSaveStates] = useState<Array<ReturnType<typeof createAuditedActionState>>>([]);
+  const [modelTestActionState, setModelTestActionState] = useState<ReturnType<typeof createAuditedActionState> | null>(null);
+  const lastSavedConfigRef = useRef<ConfigLedgerSnapshot | null>(null);
   const noticeTimeoutRef = useRef<number | null>(null);
   const clearNoticeTimer = useCallback(() => {
     if (noticeTimeoutRef.current) {
@@ -212,7 +305,7 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
           homeDynamicModelEnabled?: boolean;
           dataCenterShowDemoSourceLabels?: boolean;
         };
-        const aiPayload = aiResponse.ok ? await aiResponse.json() as AIProviderSettings : DEFAULT_AI_SETTINGS;
+        const aiPayload = aiResponse.ok ? await aiResponse.json() as AIProviderSettingsResponse : DEFAULT_AI_SETTINGS;
         if (controller.signal.aborted) return;
         const activeProvider = aiPayload.providers.find((provider) => provider.id === aiPayload.activeProvider) ?? aiPayload.providers[0];
         setConfig((prev) => ({
@@ -224,6 +317,19 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
           aiModelName: activeProvider?.selectedModel ?? '',
         }));
         setAiSettings(aiPayload);
+        lastSavedConfigRef.current = buildConfigLedgerSnapshot({
+          siteName: 'AI-OBE 船舶智控平台',
+          maintenanceMode: false,
+          maxStudentsPerClass: 100,
+          defaultPassword: '123456',
+          homeDynamicModelEnabled: payload.homeDynamicModelEnabled === true,
+          dataCenterShowDemoSourceLabels: payload.dataCenterShowDemoSourceLabels === true,
+          aiProvider: aiPayload.activeProvider,
+          aiModelEndpoint: activeProvider?.baseURL ?? '',
+          aiModelName: activeProvider?.selectedModel ?? '',
+          enableNotifications: true,
+          ethicsAlertThreshold: 3,
+        }, aiPayload);
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
         setNotice({ type: 'error', message: '读取平台配置失败，已使用默认值' });
@@ -249,6 +355,83 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
 
   const handleSave = async () => {
     setSaving(true);
+    const nextSnapshot = buildConfigLedgerSnapshot(config, aiSettings);
+    const diffSummary = summarizeConfigDiff(lastSavedConfigRef.current, nextSnapshot);
+    const impactScope = `运行时供应商 ${nextSnapshot.activeProvider} / 模型 ${nextSnapshot.selectedModel || '未选择'} / 启用供应商 ${nextSnapshot.enabledProviderCount}`;
+    const platformIdempotencyKey = buildAdminOperationIdempotencyKey([
+      'admin-config-save',
+      'platform-settings',
+      config.homeDynamicModelEnabled,
+      config.dataCenterShowDemoSourceLabels,
+      currentUser.id,
+    ]);
+    const aiIdempotencyKey = buildAdminOperationIdempotencyKey([
+      'admin-config-save',
+      'ai-settings',
+      JSON.stringify(nextSnapshot),
+      currentUser.id,
+    ]);
+    const platformOperationId = buildAdminOperationId({
+      kind: 'admin-config-save',
+      scope: 'admin-config-platform-settings',
+      seed: platformIdempotencyKey,
+    });
+    const aiOperationId = buildAdminOperationId({
+      kind: 'admin-config-save',
+      scope: `admin-config-ai-settings:${nextSnapshot.activeProvider}`,
+      seed: aiIdempotencyKey,
+    });
+    const invalidProviderName = aiSettings.providers.find((provider) => !provider.name.trim());
+    if (invalidProviderName) {
+      setConfigSaveStates([
+        createAuditedActionState({
+          identity: {
+            id: aiOperationId,
+            category: 'save',
+            label: 'AI 设置保存',
+            sourceRoute: '/admin/config',
+            targetId: invalidProviderName.id,
+            requestedAction: 'save-ai-settings',
+          },
+          status: 'blocked',
+          message: `${diffSummary}影响范围：${impactScope}。审计输出：供应商名称不能为空，保存未提交。`,
+          recoveryAction: '补全供应商名称后重新保存',
+          displayReference: aiIdempotencyKey,
+          httpStatus: 400,
+        }),
+      ]);
+      showNotice('error', '供应商名称不能为空');
+      setSaving(false);
+      return;
+    }
+    setConfigSaveStates([
+      createAuditedActionState({
+        identity: {
+          id: platformOperationId,
+          category: 'save',
+          label: '平台参数保存',
+          sourceRoute: '/admin/config',
+          requestedAction: 'save-platform-settings',
+        },
+        status: 'pending',
+        message: `${diffSummary}影响范围：${impactScope}。`,
+        nextAction: '等待平台参数保存完成',
+        displayReference: platformIdempotencyKey,
+      }),
+      createAuditedActionState({
+        identity: {
+          id: aiOperationId,
+          category: 'save',
+          label: 'AI 设置保存',
+          sourceRoute: '/admin/config',
+          requestedAction: 'save-ai-settings',
+        },
+        status: 'pending',
+        message: `${diffSummary}影响范围：${impactScope}。`,
+        nextAction: '等待 AI 设置保存完成',
+        displayReference: aiIdempotencyKey,
+      }),
+    ]);
     try {
       const [platformResponse, aiResponse] = await Promise.all([
         fetch('/api/admin/platform-settings', {
@@ -265,13 +448,106 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
           body: JSON.stringify(aiSettings),
         }),
       ]);
+      const platformPayload = await platformResponse.json().catch(() => null) as (PlatformSettingsResponse & AdminConfigSaveErrorResponse) | null;
+      const aiPayload = await aiResponse.json().catch(() => null) as (AIProviderSettingsResponse & AdminConfigSaveErrorResponse) | null;
+      const platformState =
+        platformResponse.ok && platformPayload?.operationLedger
+          ? actionStateFromLedger({
+              ledger: platformPayload.operationLedger,
+              label: '平台参数保存',
+              category: 'save',
+              sourceRoute: '/admin/config',
+              requestedAction: 'save-platform-settings',
+              messagePrefix: `${diffSummary}影响范围：${impactScope}。审计输出：`,
+              nextAction: '执行模型测试或返回业务页面复核效果',
+            })
+          : createAuditedActionState({
+              identity: {
+                id: platformPayload?.operationLedger?.operationId ?? platformOperationId,
+                category: 'save',
+                label: '平台参数保存',
+                sourceRoute: '/admin/config',
+                requestedAction: 'save-platform-settings',
+              },
+              status: platformResponse.ok ? 'succeeded' : 'failed',
+              message: platformResponse.ok
+                ? `${diffSummary}影响范围：${impactScope}。审计输出：平台参数保存完成。`
+                : `${diffSummary}影响范围：${impactScope}。审计输出：${platformPayload?.error ?? '平台参数保存失败'}。`,
+              nextAction: platformResponse.ok ? '执行模型测试或返回业务页面复核效果' : undefined,
+              recoveryAction: platformResponse.ok ? '需要回退时按 diff summary 手动恢复上一组配置' : '检查平台参数接口后重试相同保存',
+              displayReference: platformPayload?.operationLedger?.idempotencyKey ?? platformIdempotencyKey,
+              httpStatus: platformResponse.ok ? undefined : platformResponse.status,
+            });
+      const aiIssues = aiPayload?.issues?.join('；');
+      const aiState =
+        aiResponse.ok && aiPayload?.operationLedger
+          ? actionStateFromLedger({
+              ledger: aiPayload.operationLedger,
+              label: 'AI 设置保存',
+              category: 'save',
+              sourceRoute: '/admin/config',
+              requestedAction: 'save-ai-settings',
+              messagePrefix: `${diffSummary}影响范围：${impactScope}。审计输出：`,
+              nextAction: '执行模型测试或返回业务页面复核效果',
+            })
+          : createAuditedActionState({
+              identity: {
+                id: aiPayload?.operationLedger?.operationId ?? aiOperationId,
+                category: 'save',
+                label: 'AI 设置保存',
+                sourceRoute: '/admin/config',
+                requestedAction: 'save-ai-settings',
+              },
+              status: aiResponse.ok ? 'succeeded' : 'failed',
+              message: aiResponse.ok
+                ? `${diffSummary}影响范围：${impactScope}。审计输出：AI 设置保存完成。`
+                : `${diffSummary}影响范围：${impactScope}。审计输出：${aiIssues || aiPayload?.error || 'AI 设置保存失败'}。`,
+              nextAction: aiResponse.ok ? '执行模型测试或返回业务页面复核效果' : undefined,
+              recoveryAction: aiResponse.ok ? '需要回退时按 diff summary 手动恢复上一组配置' : '检查 AI 设置接口后重试相同保存',
+              displayReference: aiPayload?.operationLedger?.idempotencyKey ?? aiIdempotencyKey,
+              httpStatus: aiResponse.ok ? undefined : aiResponse.status,
+            });
+      setConfigSaveStates([platformState, aiState]);
       if (!platformResponse.ok || !aiResponse.ok) {
-        throw new Error('保存失败');
+        showNotice('error', '保存失败');
+        return;
       }
-      const savedAiSettings = await aiResponse.json() as AIProviderSettings;
-      setAiSettings(savedAiSettings);
+      if (aiPayload) {
+        setAiSettings(aiPayload);
+        lastSavedConfigRef.current = buildConfigLedgerSnapshot(config, aiPayload);
+      }
       showNotice('success', '配置已保存');
     } catch {
+      setConfigSaveStates([
+        createAuditedActionState({
+          identity: {
+            id: platformOperationId,
+            category: 'save',
+            label: '平台参数保存',
+            sourceRoute: '/admin/config',
+            requestedAction: 'save-platform-settings',
+          },
+          status: 'failed',
+          message: `${diffSummary}影响范围：${impactScope}。审计输出：平台参数保存请求未完成。`,
+          recoveryAction: '检查网络与平台参数接口后重试相同保存',
+          displayReference: platformIdempotencyKey,
+          httpStatus: 500,
+        }),
+        createAuditedActionState({
+          identity: {
+            id: aiOperationId,
+            category: 'save',
+            label: 'AI 设置保存',
+            sourceRoute: '/admin/config',
+            requestedAction: 'save-ai-settings',
+          },
+          status: 'failed',
+          message: `${diffSummary}影响范围：${impactScope}。审计输出：AI 设置保存请求未完成。`,
+          recoveryAction: '检查网络与 AI 设置接口后重试相同保存',
+          displayReference: aiIdempotencyKey,
+          httpStatus: 500,
+        }),
+      ]);
       showNotice('error', '保存失败');
     } finally {
       setSaving(false);
@@ -316,12 +592,16 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
 
   const selectProvider = (providerId: string) => {
     const provider = aiSettings.providers.find((item) => item.id === providerId);
+    if (!provider) {
+      showNotice('error', '供应商不存在，不能设为当前供应商');
+      return;
+    }
     setAiSettings((prev) => ({ ...prev, activeProvider: providerId }));
     setConfig((prev) => ({
       ...prev,
       aiProvider: providerId,
-      aiModelEndpoint: provider?.baseURL ?? '',
-      aiModelName: provider?.selectedModel ?? '',
+      aiModelEndpoint: provider.baseURL,
+      aiModelName: provider.selectedModel,
     }));
   };
 
@@ -330,6 +610,16 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
   };
 
   const addProvider = () => {
+    const providerName = newProvider.name.trim();
+    const baseURL = newProvider.baseURL.trim();
+    if (!providerName) {
+      showNotice('error', '供应商名称不能为空');
+      return;
+    }
+    if (!baseURL) {
+      showNotice('error', 'API 端点不能为空');
+      return;
+    }
     const id = makeId(newProvider.id || newProvider.name, `provider-${aiSettings.providers.length + 1}`);
     if (aiSettings.providers.some((provider) => provider.id === id)) {
       showNotice('error', '供应商 ID 已存在');
@@ -337,9 +627,9 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
     }
     const provider: AIProviderSetting = {
       id,
-      name: newProvider.name.trim() || id,
+      name: providerName,
       providerKind: newProvider.providerKind,
-      baseURL: newProvider.baseURL.trim(),
+      baseURL,
       authMode: 'bearer-api-key',
       secretRef: newProvider.secretRef.trim() || defaultSecretRef(id),
       selectedModel: '',
@@ -366,11 +656,11 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
       models: [],
     };
     setAiSettings((prev) => ({
-      activeProvider: id,
+      activeProvider: prev.activeProvider,
       providers: [...prev.providers, provider],
     }));
     setNewProvider({ id: '', name: '', providerKind: 'openai-compatible', baseURL: '', secretRef: '' });
-    setConfig((prev) => ({ ...prev, aiProvider: id, aiModelEndpoint: provider.baseURL, aiModelName: '' }));
+    showNotice('success', '供应商已加入列表，需显式选用后才会影响运行时配置');
   };
 
   const removeProvider = (providerId: string) => {
@@ -462,7 +752,41 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
 
   const testModel = async (providerId: string, model: string) => {
     const key = `${providerId}:${model}`;
-    setTestResults((prev) => ({ ...prev, [key]: { status: 'running' } }));
+    const idempotencyKey = buildAdminOperationIdempotencyKey([
+      'admin-config-model-test',
+      providerId,
+      model,
+      currentUser.id,
+    ]);
+    const operationId = buildAdminOperationId({
+      kind: 'admin-config-model-test',
+      scope: `admin-config-model-test:${providerId}:${model}`,
+      seed: idempotencyKey,
+    });
+    let failedOperationLedger: AdminOperationLedgerEntry | null = null;
+    setTestResults((prev) => ({
+      ...prev,
+      [key]: {
+        status: 'running',
+        operationId,
+        idempotencyKey,
+        auditSummary: `模型测试已排队：${providerId}/${model}`,
+      },
+    }));
+    setModelTestActionState(createAuditedActionState({
+      identity: {
+        id: operationId,
+        category: 'model-test',
+        label: '模型测试',
+        sourceRoute: '/admin/config',
+        targetId: model,
+        requestedAction: 'test',
+      },
+      status: 'pending',
+      message: `模型 ${model} 测试已开始。审计输出：模型测试已排队。`,
+      nextAction: '等待供应商响应',
+      displayReference: idempotencyKey,
+    }));
     try {
       const response = await fetch('/api/admin/ai-settings/test', {
         method: 'POST',
@@ -470,31 +794,102 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
         body: JSON.stringify({ providerId, model }),
       });
       if (!response.ok) {
-        const payload = await response.json().catch(() => null) as { error?: string } | null;
+        const payload = await response.json().catch(() => null) as {
+          error?: string;
+          operationLedger?: AdminOperationLedgerEntry;
+        } | null;
+        if (payload?.operationLedger) {
+          failedOperationLedger = payload.operationLedger;
+          setModelTestActionState(actionStateFromLedger({
+            ledger: payload.operationLedger,
+            label: '模型测试',
+            category: 'model-test',
+            sourceRoute: '/admin/config',
+            targetId: model,
+            requestedAction: 'test',
+            messagePrefix: `模型 ${model} 测试失败。审计输出：`,
+            httpStatus: response.status,
+          }));
+        }
         throw new Error(payload?.error || '测试失败');
       }
       const payload = await response.json() as {
+        operationLedger?: AdminOperationLedgerEntry;
         elapsedMs: number;
         chars: number;
         text: string;
       };
+      const successOperationId = payload.operationLedger?.operationId ?? operationId;
+      const successIdempotencyKey = payload.operationLedger?.idempotencyKey ?? idempotencyKey;
       setTestResults((prev) => ({
         ...prev,
         [key]: {
           status: 'success',
+          operationId: successOperationId,
+          idempotencyKey: successIdempotencyKey,
+          auditSummary: payload.operationLedger?.auditSummary ?? `模型测试成功：${providerId}/${model}`,
           elapsedMs: payload.elapsedMs,
           chars: payload.chars,
           text: payload.text,
         },
       }));
+      setModelTestActionState(payload.operationLedger
+        ? actionStateFromLedger({
+            ledger: payload.operationLedger,
+            label: '模型测试',
+            category: 'model-test',
+            sourceRoute: '/admin/config',
+            targetId: model,
+            requestedAction: 'test',
+            messagePrefix: `模型 ${model} 测试成功，用时 ${payload.elapsedMs}ms。审计输出：`,
+            nextAction: '保存供应商配置',
+          })
+        : createAuditedActionState({
+            identity: {
+              id: operationId,
+              category: 'model-test',
+              label: '模型测试',
+              sourceRoute: '/admin/config',
+              targetId: model,
+              requestedAction: 'test',
+            },
+            status: 'succeeded',
+            message: `模型 ${model} 测试成功，用时 ${payload.elapsedMs}ms。审计输出：模型测试成功。`,
+            nextAction: '保存供应商配置',
+            displayReference: idempotencyKey,
+          }));
     } catch (error) {
+      const failedOperationId = failedOperationLedger?.operationId ?? operationId;
+      const failedIdempotencyKey = failedOperationLedger?.idempotencyKey ?? idempotencyKey;
       setTestResults((prev) => ({
         ...prev,
         [key]: {
           status: 'error',
+          operationId: failedOperationId,
+          idempotencyKey: failedIdempotencyKey,
+          auditSummary: failedOperationLedger?.auditSummary ?? `模型测试失败：${providerId}/${model}`,
           error: error instanceof Error ? error.message : '测试失败',
         },
       }));
+      setModelTestActionState((current) => failedOperationLedger
+        ? current
+        : current?.identity.id !== operationId
+        ? current
+        : createAuditedActionState({
+            identity: {
+              id: operationId,
+              category: 'model-test',
+              label: '模型测试',
+              sourceRoute: '/admin/config',
+              targetId: model,
+              requestedAction: 'test',
+            },
+            status: 'failed',
+            message: error instanceof Error ? error.message : '测试失败',
+            recoveryAction: '检查密钥、模型 ID 和供应商能力后重试',
+            displayReference: idempotencyKey,
+            httpStatus: 500,
+          }));
     }
   };
 
@@ -606,12 +1001,17 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
       },
       status: result?.status === 'success' ? 'succeeded' : result?.status === 'error' ? 'failed' : 'pending',
       message: result?.status === 'success'
-        ? `模型 ${model.model} 测试成功，用时 ${result.elapsedMs ?? 0}ms。`
+        ? `模型 ${model.model} 测试成功，用时 ${result.elapsedMs ?? 0}ms。审计输出：${result.auditSummary ?? '模型测试已完成'}。`
         : result?.status === 'error'
           ? result.error ?? '模型测试失败。'
           : `模型 ${model.model} 已定位，可从模型列表执行测试。`,
       nextAction: result?.status === 'success' ? '保存供应商配置' : undefined,
       recoveryAction: result?.status === 'error' ? '检查密钥、模型 ID 和供应商能力后重试' : undefined,
+      displayReference: result?.operationId ?? buildAdminOperationId({
+        kind: 'admin-config-model-test',
+        scope: `admin-config-model-test:${provider.id}:${model.model}`,
+        seed: buildAdminOperationIdempotencyKey(['admin-config-model-test', provider.id, model.model, currentUser.id]),
+      }),
       httpStatus: result?.status === 'error' ? 500 : undefined,
     });
   })();
@@ -680,6 +1080,12 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
       <main className="admin-console-container py-8">
         {routeModelTestState ? (
           <ActionStatusPanel state={routeModelTestState} className="mb-6" />
+        ) : null}
+        {configSaveStates.map((state) => (
+          <ActionStatusPanel key={state.identity.id} state={state} className="mb-6" />
+        ))}
+        {modelTestActionState ? (
+          <ActionStatusPanel state={modelTestActionState} className="mb-6" />
         ) : null}
 
         {notice && (
@@ -976,7 +1382,7 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
                                 {model.description && <p className="mt-1 text-xs text-slate-500">{model.description}</p>}
                               </div>
                             )}
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center justify-end gap-2">
                               {isEditing ? (
                                 <>
                                   <button type="button" onClick={saveEditedModel} className="rounded-md border border-emerald-500/50 p-1.5 text-emerald-200 transition hover:bg-emerald-500/10" aria-label="保存模型">
@@ -1014,6 +1420,9 @@ export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemC
                               ) : (
                                 <p>{result.error}</p>
                               )}
+                              <p className="mt-2 break-all text-platform-fg-muted">
+                                操作：{result.operationId} · 去重键：{result.idempotencyKey}
+                              </p>
                             </div>
                           )}
                         </div>

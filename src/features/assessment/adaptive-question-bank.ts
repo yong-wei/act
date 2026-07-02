@@ -25,6 +25,9 @@ export interface CrossDomainQuestion {
     model: string;
     generationTime: number;
     validatedBy: string[];
+    learningGoalIds?: string[];
+    ownerUserId?: string;
+    sessionId?: string;
   };
 }
 
@@ -125,7 +128,12 @@ export function buildGeneratedQuestion(
   stem: string,
   difficulty: number,
   domains: QuestionDomain[],
-  knowledgeTags: string[]
+  knowledgeTags: string[],
+  generatedMetadata?: {
+    learningGoalIds?: string[];
+    ownerUserId?: string;
+    sessionId?: string;
+  },
 ): CrossDomainQuestion {
   return {
     id,
@@ -143,6 +151,11 @@ export function buildGeneratedQuestion(
       model: 'rule-based-generator',
       generationTime: Date.now(),
       validatedBy: ['system-auto-check'],
+      ...(generatedMetadata?.learningGoalIds?.length ? {
+        learningGoalIds: generatedMetadata.learningGoalIds,
+      } : {}),
+      ...(generatedMetadata?.ownerUserId ? { ownerUserId: generatedMetadata.ownerUserId } : {}),
+      ...(generatedMetadata?.sessionId ? { sessionId: generatedMetadata.sessionId } : {}),
     },
   };
 }

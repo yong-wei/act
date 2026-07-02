@@ -1998,6 +1998,8 @@ describe('control-correction path rounds', () => {
           kind: 'AdaptiveAssessmentAnswer',
           id: 'answer-1',
           provenance: 'official',
+          reviewState: 'reviewed',
+          readinessGateEligible: true,
           score: 100,
         },
       },
@@ -2012,6 +2014,75 @@ describe('control-correction path rounds', () => {
         nodeId: 'control-workbench:lead-design',
         status: 'current',
         readiness: expect.objectContaining({ state: 'ready' }),
+      }),
+    ]));
+  });
+
+  it('does not unlock adaptive outcome gates from governed checkpoint assessment refs', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'checkpoint:control-correction-review',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'checkpoint:control-correction-review',
+          'control-workbench:lead-design',
+        ],
+        planNodes: [
+          { nodeId: 'checkpoint:control-correction-review', type: 'checkpoint', status: 'current' },
+          {
+            nodeId: 'control-workbench:lead-design',
+            type: 'control_workbench',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成阶段测评结果同步后会自动进入。',
+              unlockMessage: '完成阶段测评结果同步后会自动进入。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['checkpoint:control-correction-review'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'checkpoint:control-correction-review',
+      resourceType: 'checkpoint',
+      status: 'completed',
+      idempotencyKey: 'complete-checkpoint-assessment',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-1',
+          provenance: 'official',
+          reviewState: 'reviewed',
+          readinessGateEligible: false,
+          pathCompletionEligible: true,
+          score: 100,
+        },
+      },
+    });
+
+    const updateArg = vi.mocked(db.learningPath.update).mock.calls[0]?.[0];
+    expect(updateArg.data.currentNodeId).toBe('checkpoint:control-correction-review');
+    expect(updateArg.data.lastExecutionMetadata.completedNodeIds)
+      .toEqual(expect.arrayContaining(['checkpoint:control-correction-review']));
+    expect(updateArg.data.lastExecutionMetadata.availableOutcomeRefs).toEqual([]);
+    expect(updateArg.data.pathPayload.planNodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'control-workbench:lead-design',
+        status: 'locked',
+        readiness: expect.objectContaining({ state: 'locked' }),
       }),
     ]));
   });
@@ -2063,6 +2134,149 @@ describe('control-correction path rounds', () => {
           kind: 'AdaptiveAssessmentAnswer',
           id: 'answer-1',
           provenance: 'unknown',
+        },
+      },
+    });
+
+    const updateArg = vi.mocked(db.learningPath.update).mock.calls[0]?.[0];
+    expect(updateArg.data.currentNodeId).toBe('adaptive-quiz:control-target-check');
+    expect(updateArg.data.lastExecutionMetadata.availableOutcomeRefs ?? [])
+      .not.toContain('adaptive_assessment:answer-1');
+    expect(updateArg.data.pathPayload.planNodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'control-workbench:lead-design',
+        status: 'locked',
+        readiness: expect.objectContaining({
+          state: 'locked',
+          missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+        }),
+      }),
+    ]));
+  });
+
+  it('keeps adaptive outcome gates locked when reviewed readiness quiz failed', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'adaptive-quiz:control-target-check',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'adaptive-quiz:control-target-check',
+          'control-workbench:lead-design',
+        ],
+        planNodes: [
+          { nodeId: 'adaptive-quiz:control-target-check', type: 'adaptive_quiz', status: 'current' },
+          {
+            nodeId: 'control-workbench:lead-design',
+            type: 'control_workbench',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成自适应练习结果同步后会自动进入。',
+              unlockMessage: '完成自适应练习结果同步后会自动进入。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['adaptive-quiz:control-target-check'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-adaptive-quiz-failed',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-1',
+          provenance: 'official',
+          reviewState: 'reviewed',
+          readinessGateEligible: true,
+          isCorrect: false,
+          score: 0,
+        },
+      },
+    });
+
+    const updateArg = vi.mocked(db.learningPath.update).mock.calls[0]?.[0];
+    expect(updateArg.data.currentNodeId).toBe('adaptive-quiz:control-target-check');
+    expect(updateArg.data.lastExecutionMetadata.availableOutcomeRefs ?? [])
+      .not.toContain('adaptive_assessment:answer-1');
+    expect(updateArg.data.pathPayload.planNodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'control-workbench:lead-design',
+        status: 'locked',
+        readiness: expect.objectContaining({
+          state: 'locked',
+          missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+        }),
+      }),
+    ]));
+  });
+
+  it('keeps adaptive outcome gates locked when readiness ref lacks assessment score', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'adaptive-quiz:control-target-check',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'adaptive-quiz:control-target-check',
+          'control-workbench:lead-design',
+        ],
+        planNodes: [
+          { nodeId: 'adaptive-quiz:control-target-check', type: 'adaptive_quiz', status: 'current' },
+          {
+            nodeId: 'control-workbench:lead-design',
+            type: 'control_workbench',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成自适应练习结果同步后会自动进入。',
+              unlockMessage: '完成自适应练习结果同步后会自动进入。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['adaptive-quiz:control-target-check'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['adaptive_assessment:answer-1'],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-adaptive-quiz-unscored',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-1',
+          provenance: 'official',
+          reviewState: 'reviewed',
+          readinessGateEligible: true,
+          completionResult: {
+            success: true,
+          },
         },
       },
     });
@@ -2723,6 +2937,27 @@ describe('control-correction path rounds', () => {
               kind: 'AdaptiveAssessmentAnswer',
               id: 'answer-1',
               provenance: 'official',
+              reviewState: 'reviewed',
+              readinessGateEligible: true,
+              score: 100,
+              privatePayload: 'hidden',
+            },
+          },
+        },
+        {
+          id: 'exec-checkpoint',
+          nodeId: 'checkpoint:control-correction-review',
+          resourceType: 'checkpoint',
+          status: 'completed',
+          liftMetadata: {
+            adaptiveAssessmentRef: {
+              kind: 'AdaptiveAssessmentAnswer',
+              id: 'answer-checkpoint-1',
+              provenance: 'official',
+              reviewState: 'reviewed',
+              readinessGateEligible: false,
+              pathCompletionEligible: true,
+              isCorrect: true,
               score: 100,
               privatePayload: 'hidden',
             },
@@ -2780,6 +3015,15 @@ describe('control-correction path rounds', () => {
     expect(view?.executions).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'exec-adaptive',
+        resultSummary: expect.objectContaining({
+          state: 'available',
+          label: '自适应练习结果',
+          evidenceSource: 'AdaptiveAssessmentAnswer',
+          primaryMetric: '得分 100',
+        }),
+      }),
+      expect.objectContaining({
+        id: 'exec-checkpoint',
         resultSummary: expect.objectContaining({
           state: 'available',
           label: '自适应练习结果',

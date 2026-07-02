@@ -63,3 +63,33 @@ The admin governance UI SHALL connect system/user changes to governance status, 
 - **WHEN** user import, role permission, system configuration, source coverage, session data quality, or privacy scope affects governance status
 - **THEN** the UI SHALL show affected object, freshness or quality state, repair or review action, restricted-state explanation, and redacted report/export availability where applicable
 - **AND** governance status SHALL NOT be presented as decorative metrics without an actionable path.
+
+### Requirement: Admin data governance can inspect SAR diagnostics
+The admin data governance surface SHALL provide a SAR diagnostics entry point and visible administrator report, not only a raw API payload.
+
+#### Scenario: SAR diagnostics are available
+- **WHEN** an administrator inspects AI/data-governance retrieval health
+- **THEN** the dashboard or API SHALL include SAR projection counts, query trace summaries, privacy rejection counts, Source Pack handoff counts, verified citation rate, and demo fixture status.
+
+#### Scenario: Administrator opens the SAR diagnostics report
+- **WHEN** an administrator opens `/admin/data-governance` or a linked SAR diagnostics route while `sarDiagnostics` is available
+- **THEN** the UI SHALL render event, entity, relation, privacy-scope, limitation, Source Pack handoff, verified citation rate, and demo fixture status summaries
+- **AND** the UI SHALL expose trace health as safe aggregate or redacted diagnostic rows.
+
+#### Scenario: SAR diagnostics are unavailable
+- **WHEN** the admin data-governance status payload has no `sarDiagnostics`
+- **THEN** the UI SHALL show an explicit unavailable or degraded diagnostics state
+- **AND** it SHALL NOT silently imply SAR health is complete.
+
+#### Scenario: SAR diagnostics contain restricted fixture data
+- **WHEN** diagnostic fixtures include private learner answers, hidden Arena internals, private Konling memory, or raw audit-only traces
+- **THEN** the administrator UI SHALL omit those raw values
+- **AND** tests SHALL assert that known forbidden raw fixture strings are absent from the rendered output.
+
+### Requirement: Admin dashboard exposes SAR refresh health
+The admin data governance dashboard SHALL show whether the persisted SAR projection index is fresh, stale, degraded, or failed.
+
+#### Scenario: SAR refresh health is available
+- **WHEN** an administrator opens the data governance dashboard after SAR refresh health has been recorded
+- **THEN** the UI or payload SHALL show last attempted refresh, last successful refresh, projected source families, stale source counts, failure counts, retry state, and limitation summaries
+- **AND** the dashboard SHALL NOT expose raw learner answers, hidden Arena internals, private Konling memory, or raw audit traces.

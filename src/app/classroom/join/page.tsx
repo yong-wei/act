@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, LogIn, Users, Loader2, AlertCircle } from 'lucide-react';
 
+import { ActionStatusPanel } from '@/components/platform/action-status';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 
 type JoinMode = 'session' | 'class';
 
@@ -26,6 +28,12 @@ interface ClassJoinInfo {
   id: string;
   name: string;
   teacherName: string;
+}
+
+interface ClassJoinState {
+  state: string;
+  recoveryAction: string;
+  evidenceWriteback: string;
 }
 
 interface JoinRecoveryLink {
@@ -68,6 +76,7 @@ function JoinClassroomContent() {
   const [recoveryLink, setRecoveryLink] = useState<JoinRecoveryLink | null>(null);
   const [sessionInfo, setSessionInfo] = useState<SessionJoinInfo | null>(null);
   const [classInfo, setClassInfo] = useState<ClassJoinInfo | null>(null);
+  const [classJoinState, setClassJoinState] = useState<ClassJoinState | null>(null);
   const autoLookupKeyRef = useRef<string | null>(null);
 
   const resetResult = () => {
@@ -75,6 +84,7 @@ function JoinClassroomContent() {
     setRecoveryLink(null);
     setSessionInfo(null);
     setClassInfo(null);
+    setClassJoinState(null);
   };
 
   const handleModeChange = (mode: JoinMode) => {
@@ -147,12 +157,15 @@ function JoinClassroomContent() {
       }
 
       if (!res.ok) {
-        setError(data.error || '加入班级失败');
+        const recoveryAction = typeof data.classJoinState?.recoveryAction === 'string' ? data.classJoinState.recoveryAction : null;
+        setError([data.error || '加入班级失败', recoveryAction].filter(Boolean).join('。'));
+        setClassJoinState(typeof data.classJoinState?.state === 'string' ? data.classJoinState : null);
         setRecoveryLink(null);
         return;
       }
 
       setClassInfo(data.class);
+      setClassJoinState(typeof data.classJoinState?.state === 'string' ? data.classJoinState : null);
     } catch {
       setError('网络错误，请重试');
     } finally {
@@ -202,6 +215,7 @@ function JoinClassroomContent() {
       recoveryLink={recoveryLink}
       sessionInfo={sessionInfo}
       classInfo={classInfo}
+      classJoinState={classJoinState}
       onModeChange={handleModeChange}
       onCodeChange={handleCodeChange}
       onLookup={() => {
@@ -226,6 +240,7 @@ function JoinClassroomShell({
   recoveryLink = null,
   sessionInfo = null,
   classInfo = null,
+  classJoinState = null,
   onModeChange,
   onCodeChange,
   onLookup,
@@ -239,6 +254,7 @@ function JoinClassroomShell({
   recoveryLink?: JoinRecoveryLink | null;
   sessionInfo?: SessionJoinInfo | null;
   classInfo?: ClassJoinInfo | null;
+  classJoinState?: ClassJoinState | null;
   onModeChange?: (mode: JoinMode) => void;
   onCodeChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onLookup?: () => void;
@@ -247,6 +263,16 @@ function JoinClassroomShell({
 }) {
   const isClassMode = joinMode === 'class';
   const hasResult = Boolean(sessionInfo || classInfo);
+  const joinErrorState = error
+    ? buildPlatformRecoveryState({
+        kind: 'classroom-code-error',
+        sourceRoute: '/classroom/join',
+        targetLabel: isClassMode ? '班级加入码' : '课堂码',
+        displayReference: joinCode || null,
+        message: error,
+        recoveryAction: recoveryLink ? '查看个人课堂证据或重新输入加入码' : undefined,
+      })
+    : null;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
@@ -299,26 +325,22 @@ function JoinClassroomShell({
             />
           </div>
 
-          {error && (
-            <div
-              className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400"
-              role="alert"
-              aria-live="polite"
-              data-classroom-join-state="recoverable-error"
-            >
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-              {recoveryLink ? (
-                <Link
-                  href={recoveryLink.href}
-                  className="mt-3 inline-flex h-9 items-center justify-center rounded-lg border border-red-400/40 px-3 text-xs font-semibold text-red-100 transition hover:border-red-300 hover:bg-red-400/10"
-                  data-classroom-join-recovery-link="review-evidence"
-                >
-                  {recoveryLink.label}
-                </Link>
-              ) : null}
+          {joinErrorState && (
+            <div data-classroom-join-state="recoverable-error">
+              <ActionStatusPanel
+                state={joinErrorState}
+                className="mb-4 border-red-500/30 bg-red-500/10 text-red-100"
+                action={recoveryLink ? (
+                  <Link
+                    href={recoveryLink.href}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-red-400/40 px-3 text-xs font-semibold text-red-100 transition hover:border-red-300 hover:bg-red-400/10"
+                    data-classroom-join-recovery-link="review-evidence"
+                  >
+                    <AlertCircle className="mr-2 h-4 w-4 flex-shrink-0" />
+                    {recoveryLink.label}
+                  </Link>
+                ) : null}
+              />
             </div>
           )}
 
@@ -348,6 +370,11 @@ function JoinClassroomShell({
               </div>
               <div className="font-bold text-white">{classInfo.name}</div>
               <div className="mt-1 text-sm text-slate-400">教师: {classInfo.teacherName}</div>
+              {classJoinState?.evidenceWriteback ? (
+                <div className="mt-3 rounded-lg border border-emerald-500/20 bg-slate-950/50 px-3 py-2 text-xs leading-5 text-emerald-100/80">
+                  {classJoinState.evidenceWriteback}
+                </div>
+              ) : null}
             </div>
           )}
 

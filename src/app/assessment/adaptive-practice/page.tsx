@@ -27,6 +27,7 @@ import {
 import { AppShell } from '@/components/platform/app-shell';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
+import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
   buildAdaptivePathLaunchHref,
@@ -54,7 +55,25 @@ import {
   type GenerationDifficultyRhythm,
   type PathGenerationPanelState,
 } from '@/lib/adaptive-path-generation-panel';
-import { resolveAdaptivePathExecutionNodeStatus } from '@/lib/adaptive-path-execution-state';
+import {
+  adaptiveGenerationReadinessFromHttp,
+  buildAdaptiveGenerationReadiness,
+  selectAdaptiveGenerationReadiness,
+  type AdaptiveGenerationReadiness,
+} from '@/lib/adaptive-generation-readiness';
+import { restoreAdaptiveLearningPathPlanFromRound } from '@/lib/adaptive-path-round-restore';
+import {
+  adaptivePracticeGoalLabel,
+  getAdaptivePracticeGoalOptions,
+  isAdaptivePracticeGoalId,
+  type AdaptivePathAdvisorQuickPrompt,
+  type AdaptivePracticeGoalId,
+} from '@/lib/adaptive-path-goal-options';
+import {
+  resolveAdaptivePathContextRecoveryState,
+  resolveAdaptivePathExecutionNodeStatus,
+  type AdaptivePathContextLoadState,
+} from '@/lib/adaptive-path-execution-state';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 
@@ -127,9 +146,11 @@ interface PathAdvisorContextResponse {
   classId: string;
   graphNodeId?: string | null;
   modeContextToken: string;
+  readiness?: AdaptiveGenerationReadiness;
   courseTitle: string;
   topic: string;
   learningObjectives: string[];
+  quickPrompts?: AdaptivePathAdvisorQuickPrompt[];
 }
 
 interface LearningPathRoundResponse {
@@ -156,6 +177,37 @@ type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
+
+function readAdaptiveGenerationReadiness(payload: unknown): AdaptiveGenerationReadiness | null {
+  const record = getRecord(payload);
+  const readiness = getRecord(record.readiness);
+  const status = typeof readiness.status === 'string' ? readiness.status : '';
+  const reason = typeof readiness.reason === 'string' ? readiness.reason : '';
+  const studentAction = typeof readiness.studentAction === 'string' ? readiness.studentAction : '';
+  const staffAction = typeof readiness.staffAction === 'string' ? readiness.staffAction : '';
+  const studentMessage = typeof readiness.studentMessage === 'string' ? readiness.studentMessage : '';
+  const staffMessage = typeof readiness.staffMessage === 'string' ? readiness.staffMessage : '';
+  const evidence = getRecord(readiness.evidence);
+  const source = typeof evidence.source === 'string' ? evidence.source : '';
+  const diagnosticCode = typeof evidence.diagnosticCode === 'string' ? evidence.diagnosticCode : '';
+  const safeLabel = typeof evidence.safeLabel === 'string' ? evidence.safeLabel : '';
+  if (!status || !reason || !studentAction || !staffAction || !studentMessage || !staffMessage || !source || !diagnosticCode) {
+    return null;
+  }
+  return {
+    status,
+    reason,
+    studentAction,
+    staffAction,
+    studentMessage,
+    staffMessage,
+    evidence: {
+      source,
+      diagnosticCode,
+      safeLabel: safeLabel || diagnosticCode,
+    },
+  } as AdaptiveGenerationReadiness;
+}
 
 interface PathSelectionHistoryView {
   type: string;
@@ -546,18 +598,7 @@ const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = 
   konling: MessageSquare,
 };
 
-const generationGoalOptions: Array<{ id: AdaptivePracticeGoalId; label: string; detail: string }> = [
-  {
-    id: 'control-correction',
-    label: '控制系统校正设计',
-    detail: '面向时域指标、根轨迹设计、仿真验证和 Arena 迁移。',
-  },
-  {
-    id: 'frequency-response-foundations',
-    label: '频率响应基础',
-    detail: '面向 Bode 图、频域稳定性和基础练习。',
-  },
-];
+const generationGoalOptions = getAdaptivePracticeGoalOptions();
 
 function percentLabel(value: number): string {
   return `${Math.round(value)}%`;
@@ -611,17 +652,6 @@ function resolveControlCorrectionIntent(intentParam: string | null): ControlCorr
     return intentParam;
   }
   return 'practice';
-}
-
-type AdaptivePracticeGoalId = 'control-correction' | 'frequency-response-foundations';
-
-function isAdaptivePracticeGoalId(value: string | null): value is AdaptivePracticeGoalId {
-  return value === 'control-correction' || value === 'frequency-response-foundations';
-}
-
-function adaptivePracticeGoalLabel(goalId: AdaptivePracticeGoalId): string {
-  if (goalId === 'frequency-response-foundations') return '频率响应基础';
-  return '控制校正';
 }
 
 function resolveAdaptivePracticeGoalId(
@@ -682,95 +712,40 @@ function compactPathNodeTitle(title?: string): string {
   return title.length > 12 ? '入门诊断' : title;
 }
 
-function restoreLearningPathPlan(round: LearningPathRoundResponse['path']): AdaptiveLearningPathPlan | null {
-  if (!round || !isAdaptivePracticeGoalId(round.goalId)) return null;
-  const payload = round.pathPayload ?? {};
-  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
-  const alternatives = Array.isArray(payload.alternatives)
-    ? payload.alternatives
-    : Array.isArray(round.alternativePayload)
-      ? round.alternativePayload
-      : [];
-  const explanations = typeof round.explanationPayload === 'object' && round.explanationPayload
-    ? round.explanationPayload
-    : payload.explanations;
-
-  return {
-    id: round.id,
-    userId: round.userId,
-    goal: {
-      id: round.goalId,
-      title: round.title,
-      knowledgeTargets: [],
-    },
-    stage: 'stage-1-rules-graph',
-    policyFamily: typeof payload.policyFamily === 'string' ? payload.policyFamily as AdaptiveLearningPathPlan['policyFamily'] : 'rules-plus-graph-search',
-    policyMetadata: payload.policyMetadata as AdaptiveLearningPathPlan['policyMetadata'],
-    policyBundle: payload.policyBundle as AdaptiveLearningPathPlan['policyBundle'],
-    excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
-    status: round.pathStatus === 'active' || round.pathStatus === 'completed' ? 'ready' : 'fallback',
-    currentNodeId: round.currentNodeId ?? null,
-    mainPath: planNodes as AdaptiveLearningPathPlan['mainPath'],
-    alternatives: alternatives as AdaptiveLearningPathPlan['alternatives'],
-    score: payload.score as AdaptiveLearningPathPlan['score'],
-    confidence: payload.confidence as AdaptiveLearningPathPlan['confidence'] ?? {
-      level: 'unknown',
-      score: 0,
-      sourceCoverage: 0,
-    },
-    explanations: (explanations as AdaptiveLearningPathPlan['explanations']) ?? {
-      selectedReasons: [],
-      rejectedAlternatives: [],
-      fallbackReasons: [],
-    },
-    executionStatus: payload.executionStatus as AdaptiveLearningPathPlan['executionStatus'],
-    deviations: payload.deviations as AdaptiveLearningPathPlan['deviations'] ?? [],
-    corrections: payload.corrections as AdaptiveLearningPathPlan['corrections'] ?? [],
-    feedbackEvents: Array.isArray(payload.feedbackEvents)
-      ? payload.feedbackEvents as AdaptiveLearningPathPlan['feedbackEvents']
-      : Array.isArray(payload.selectionHistory)
-        ? payload.selectionHistory.map((item) => {
-            const history = getRecord(item);
-            return {
-              id: typeof history.id === 'string' ? history.id : `selection-history:${Math.random().toString(36).slice(2)}`,
-              type: typeof history.type === 'string' ? history.type as AdaptiveLearningPathPlan['feedbackEvents'][number]['type'] : 'selection',
-              nodeId: null,
-              createdAt: typeof history.createdAt === 'string' ? history.createdAt : new Date().toISOString(),
-              helpful: typeof history.helpful === 'boolean' ? history.helpful : undefined,
-              context: {
-                selectedStyleId: typeof history.selectedStyleId === 'string' ? history.selectedStyleId : undefined,
-                previousStyleId: typeof history.previousStyleId === 'string' ? history.previousStyleId : undefined,
-                rejectedStyleIds: getStringArray(history.rejectedStyleIds),
-                helpful: typeof history.helpful === 'boolean' ? history.helpful : undefined,
-              },
-            };
-          }) as AdaptiveLearningPathPlan['feedbackEvents']
-        : [],
-    visualization: payload.visualization as AdaptiveLearningPathPlan['visualization'],
-  };
-}
+type LearningPathRoundLoadResult =
+  | { status: 'loaded'; round: LearningPathRoundView; plan: AdaptiveLearningPathPlan }
+  | { status: 'missing' }
+  | { status: 'failed' };
 
 async function fetchLearningPathRound(
   pathId: string,
   goalId: AdaptivePracticeGoalId,
-): Promise<{ round: LearningPathRoundView; plan: AdaptiveLearningPathPlan } | null> {
-  const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}`);
-  if (!pathResponse.ok) return null;
-  const payload = (await pathResponse.json()) as LearningPathRoundResponse;
-  const restoredPlan = restoreLearningPathPlan(payload.path ?? null);
-  if (payload.path?.goalId !== goalId || !restoredPlan) return null;
-  return { round: payload.path, plan: restoredPlan };
+): Promise<LearningPathRoundLoadResult> {
+  try {
+    const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}`);
+    if (!pathResponse.ok) return pathResponse.status === 404 ? { status: 'missing' } : { status: 'failed' };
+    const payload = (await pathResponse.json()) as LearningPathRoundResponse;
+    const restoredPlan = restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null);
+    if (payload.path?.goalId !== goalId || !restoredPlan) return { status: 'missing' };
+    return { status: 'loaded', round: payload.path, plan: restoredPlan };
+  } catch {
+    return { status: 'failed' };
+  }
 }
 
 async function fetchLatestLearningPathRound(
   goalId: AdaptivePracticeGoalId,
-): Promise<{ round: LearningPathRoundView; plan: AdaptiveLearningPathPlan } | null> {
-  const pathResponse = await fetch(`/api/learning-paths/latest?goal=${encodeURIComponent(goalId)}`);
-  if (!pathResponse.ok) return null;
-  const payload = (await pathResponse.json()) as LearningPathRoundResponse;
-  const restoredPlan = restoreLearningPathPlan(payload.path ?? null);
-  if (payload.path?.goalId !== goalId || !restoredPlan) return null;
-  return { round: payload.path, plan: restoredPlan };
+): Promise<LearningPathRoundLoadResult> {
+  try {
+    const pathResponse = await fetch(`/api/learning-paths/latest?goal=${encodeURIComponent(goalId)}`);
+    if (!pathResponse.ok) return { status: 'failed' };
+    const payload = (await pathResponse.json()) as LearningPathRoundResponse;
+    const restoredPlan = restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null);
+    if (payload.path?.goalId !== goalId || !restoredPlan) return { status: 'missing' };
+    return { status: 'loaded', round: payload.path, plan: restoredPlan };
+  } catch {
+    return { status: 'failed' };
+  }
 }
 
 function controlCorrectionAlternativeCount(view: ControlCorrectionLearningCenterView): number {
@@ -943,10 +918,14 @@ function getEstimatedMinutes(node: Record<string, unknown>): number {
 }
 
 function isComplexOutcomeNode(type: string): boolean {
-  return type === 'adaptive_quiz' ||
+  return isPathAssessmentResultNode(type) ||
     type === 'control_workbench' ||
     type === 'simulation' ||
     type === 'arena_task';
+}
+
+function isPathAssessmentResultNode(type: string): boolean {
+  return type === 'adaptive_quiz' || type === 'checkpoint';
 }
 
 function readPathNodeResultSummary(record: Record<string, unknown>, type: string): PathNodeResultCardView | null {
@@ -1324,7 +1303,7 @@ export default function AdaptivePracticePage() {
   const isDemoMode = searchParams.get('demo') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
-  const feedbackContext = buildFeedbackTaskContext({
+  const localFeedbackContext = buildFeedbackTaskContext({
     assignment: searchParams.get('assignment'),
     criterion: searchParams.get('criterion'),
     source: searchParams.get('source'),
@@ -1333,7 +1312,9 @@ export default function AdaptivePracticePage() {
     action: searchParams.get('action'),
     returnTo: searchParams.get('returnTo'),
     intent: searchParams.get('intent'),
+    teacherInterventionId: searchParams.get('teacherInterventionId'),
   });
+  const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams);
   const withFeedbackTaskHref = useCallback((href: string, options?: Parameters<typeof buildFeedbackTaskHref>[2]) => (
     feedbackContext
       ? buildFeedbackTaskHref(href, feedbackContext, {
@@ -1345,7 +1326,9 @@ export default function AdaptivePracticePage() {
   const requestedGoal = searchParams.get('goal');
   const requestedIntent = searchParams.get('intent');
   const explicitGoal = isAdaptivePracticeGoalId(requestedGoal) ? requestedGoal : null;
-  const shouldRecoverDefaultPath = !explicitGoal &&
+  const hasInvalidRequestedGoal = requestedGoal !== null && !explicitGoal;
+  const shouldRecoverDefaultPath = !hasInvalidRequestedGoal &&
+    !explicitGoal &&
     !requestedGoal &&
     !requestedIntent &&
     !searchParams.get('pathId') &&
@@ -1370,7 +1353,7 @@ export default function AdaptivePracticePage() {
   const showSelectionWorkspace = workspaceIntent === 'selection';
   const showExecutionWorkspace = workspaceIntent === 'execution';
   const showEvidenceWorkspace = workspaceIntent === 'evidence-review';
-  const showPresetGoalCards = false;
+  const showPresetGoalCards = showLandingWorkspace && !hasInvalidRequestedGoal && !explicitGoal;
   const activePathId = searchParams.get('pathId');
   const activeNodeId = searchParams.get('nodeId');
   const activeGraphNodeId = searchParams.get('graphNodeId');
@@ -1383,18 +1366,8 @@ export default function AdaptivePracticePage() {
   const activeGoalContextHref = withFeedbackTaskHref(activeGoal
     ? `/assessment/adaptive-practice?${activeGoalQuery?.toString() ?? ''}`
     : '/assessment/adaptive-practice');
-  const controlCorrectionQuery = new URLSearchParams({ goal: 'control-correction', intent: routeIntent });
-  if (activePathId) controlCorrectionQuery.set('pathId', activePathId);
-  if (activeNodeId) controlCorrectionQuery.set('nodeId', activeNodeId);
-  if (activeOptionId) controlCorrectionQuery.set('optionId', activeOptionId);
-  const controlCorrectionContextHref = withFeedbackTaskHref(`/assessment/adaptive-practice?${controlCorrectionQuery.toString()}`);
-  const controlCorrectionGenerationHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';
-  const frequencyResponseGenerationHref = '/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation';
   const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';
-  const feedbackControlCorrectionGenerationHref = withFeedbackTaskHref(controlCorrectionGenerationHref);
-  const feedbackFrequencyResponseGenerationHref = withFeedbackTaskHref(frequencyResponseGenerationHref);
   const feedbackGenericPathGenerationHref = withFeedbackTaskHref(genericPathGenerationHref);
-  const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoalContextHref)}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
   const { assistantEntryPoint, openAssistantEntryPoint, updatePageContext } = useGlobalAI();
   const searchParamsKey = searchParams.toString();
@@ -1416,15 +1389,28 @@ export default function AdaptivePracticePage() {
   const [loading, setLoading] = useState(false);
   const [questionStartAt, setQuestionStartAt] = useState<number>(Date.now());
   const [error, setError] = useState<string | null>(null);
-  const [controlCorrectionLearnerState, setControlCorrectionLearnerState] = useState<AdaptiveLearnerState | null>(null);
-  const [controlCorrectionPathPlan, setControlCorrectionPathPlan] = useState<AdaptiveLearningPathPlan | null>(null);
-  const [controlCorrectionPathRound, setControlCorrectionPathRound] = useState<LearningPathRoundView | null>(null);
+  const [activeLearnerState, setActiveLearnerState] = useState<AdaptiveLearnerState | null>(null);
+  const [learnerStateLoadState, setLearnerStateLoadState] = useState<'idle' | 'loading' | 'ready'>('idle');
+  const [activePathPlan, setActivePathPlan] = useState<AdaptiveLearningPathPlan | null>(null);
+  const [activePathRound, setActivePathRound] = useState<LearningPathRoundView | null>(null);
+  const [pathContextLoadState, setPathContextLoadState] = useState<AdaptivePathContextLoadState>('idle');
+  const [loadedPathContextKey, setLoadedPathContextKey] = useState<string | null>(null);
   const [pathChoicePending, setPathChoicePending] = useState<string | null>(null);
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
+  const [pathAdvisorReadiness, setPathAdvisorReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
+  const [learnerStateReadiness, setLearnerStateReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
   const [pathAdvisorAgentSessionId, setPathAdvisorAgentSessionId] = useState<string | null>(null);
-  const pathAdvisorContextGoal = activeGoal ?? (showGenerationWorkspace ? pathGenerationPanel.goalId : null);
+  const loginCallbackHref = showGenerationWorkspace
+    ? activeGoal
+      ? withFeedbackTaskHref(buildPathGenerationGoalHref(activeGoal, pathGenerationPanel))
+      : feedbackGenericPathGenerationHref
+    : activeGoalContextHref;
+  const loginHref = `/login?callbackUrl=${encodeURIComponent(loginCallbackHref)}`;
+  const pathAdvisorContextGoal = hasInvalidRequestedGoal
+    ? null
+    : activeGoal ?? (showGenerationWorkspace ? pathGenerationPanel.goalId : null);
   const [pathNodeCompletionPending, setPathNodeCompletionPending] = useState<string | null>(null);
   const [skipCandidateNode, setSkipCandidateNode] = useState<PathExecutionNodeView | null>(null);
   const [pathActivityPending, setPathActivityPending] = useState<string | null>(null);
@@ -1437,31 +1423,112 @@ export default function AdaptivePracticePage() {
     confidenceInterval: questionState?.confidenceInterval,
     actionHref: activeGoalContextHref,
   }), [activeGoalContextHref, diagnostic, questionState]);
-  const controlCorrectionCenter = useMemo(() => activeGoal
+  const adaptivePathCenter = useMemo(() => activeGoal
     ? buildControlCorrectionLearningCenterView({
         featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
         goalId: activeGoal,
         goalLabel: activeGoalLabel,
-        learnerState: controlCorrectionLearnerState,
-        pathPlan: controlCorrectionPathPlan,
+        learnerState: activeLearnerState,
+        pathPlan: activePathPlan,
         routeIntent,
         entrySource: routeIntent === 'contextual-recommendation' ? 'contextual-recommendation' : 'adaptive-practice',
-        networkError: Boolean(error) && !controlCorrectionLearnerState && !controlCorrectionPathPlan,
+        networkError: Boolean(error) && !activeLearnerState && !activePathPlan,
         questionAvailable: Boolean(questionState),
       })
-    : null, [activeGoal, activeGoalLabel, controlCorrectionLearnerState, controlCorrectionPathPlan, error, questionState, routeIntent]);
-  const pathOptions = useMemo(() => getPathOptions(controlCorrectionCenter), [controlCorrectionCenter]);
+    : null, [activeGoal, activeGoalLabel, activeLearnerState, activePathPlan, error, questionState, routeIntent]);
+  const pathOptions = useMemo(() => getPathOptions(adaptivePathCenter), [adaptivePathCenter]);
   const visiblePathOptions = useMemo(() => buildAdaptivePathOptionDisplays(pathOptions), [pathOptions]);
   const selectedExecutionOption = useMemo(
     () => pathOptions.find((option) => option.optionId === activeOptionId) ?? null,
     [activeOptionId, pathOptions],
   );
-  const pathSelectionHistory = useMemo(() => getPathSelectionHistory(controlCorrectionCenter), [controlCorrectionCenter]);
-  const pathOptionFallback = useMemo(() => getPathOptionFallback(controlCorrectionCenter), [controlCorrectionCenter]);
+  const pathSelectionHistory = useMemo(() => getPathSelectionHistory(adaptivePathCenter), [adaptivePathCenter]);
+  const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
+  const evidenceReadiness = useMemo(() => (
+    showGenerationWorkspace &&
+      !isDemoMode &&
+      authStatus === 'authenticated' &&
+      learnerStateLoadState === 'ready' &&
+      !activeLearnerState
+      ? buildAdaptiveGenerationReadiness({ reason: 'insufficient-evidence', source: 'ui' })
+      : null
+  ), [activeLearnerState, authStatus, isDemoMode, learnerStateLoadState, showGenerationWorkspace]);
+  const learnerStatePendingReadiness = useMemo(() => (
+    showGenerationWorkspace &&
+      !isDemoMode &&
+      authStatus === 'authenticated' &&
+      Boolean(pathAdvisorContextGoal) &&
+      learnerStateLoadState !== 'ready'
+      ? buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'learner-state' })
+      : null
+  ), [authStatus, isDemoMode, learnerStateLoadState, pathAdvisorContextGoal, showGenerationWorkspace]);
+  const authRequiredGenerationReadiness = useMemo(() => (
+    showGenerationWorkspace &&
+      !isDemoMode &&
+      authStatus === 'unauthenticated'
+      ? buildAdaptiveGenerationReadiness({ reason: 'auth-required', source: 'session' })
+      : null
+  ), [authStatus, isDemoMode, showGenerationWorkspace]);
+  const pathGenerationReadiness = useMemo(() => selectAdaptiveGenerationReadiness([
+    authRequiredGenerationReadiness,
+    pathAdvisorReadiness,
+    learnerStateReadiness,
+    learnerStatePendingReadiness,
+    evidenceReadiness,
+  ]), [authRequiredGenerationReadiness, evidenceReadiness, learnerStatePendingReadiness, learnerStateReadiness, pathAdvisorReadiness]);
+  const pathGenerationDegradedReadiness = learnerStateReadiness?.status === 'degraded'
+    ? learnerStateReadiness
+    : evidenceReadiness?.status === 'degraded'
+      ? evidenceReadiness
+      : null;
+  const hasPathAdvisorModeContext = assistantEntryPoint?.mode === 'path-advisor' &&
+    Boolean(assistantEntryPoint.serverContext.modeContextToken);
+  const canRetryPathGeneration = pathGenerationReadiness.status === 'retryable' &&
+    pathAdvisorReadiness?.status === 'retryable' &&
+    !pathGenerationDegradedReadiness &&
+    hasPathAdvisorModeContext;
+  const canSubmitPathGeneration = (pathGenerationReadiness.status === 'ready' && hasPathAdvisorModeContext) || canRetryPathGeneration;
+  const pathGenerationContextReadiness = pathGenerationReadiness.status === 'ready' &&
+    pathAdvisorContextGoal &&
+    !hasPathAdvisorModeContext
+    ? buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'path-advisor' })
+    : null;
+  const pathGenerationDisplayReadiness = pathGenerationContextReadiness ??
+    (pathGenerationReadiness.status === 'retryable' && pathGenerationDegradedReadiness
+    ? pathGenerationDegradedReadiness
+    : pathGenerationReadiness);
   const pathExecutionNodes = useMemo(
-    () => getPathExecutionNodes(controlCorrectionPathPlan, controlCorrectionPathRound, selectedExecutionOption),
-    [controlCorrectionPathPlan, controlCorrectionPathRound, selectedExecutionOption],
+    () => getPathExecutionNodes(activePathPlan, activePathRound, selectedExecutionOption),
+    [activePathPlan, activePathRound, selectedExecutionOption],
   );
+  const requestedPathContextKey = activeGoal
+    ? `${activeGoal}:${activePathId ? `path:${activePathId}` : 'implicit'}`
+    : null;
+  const hasLoadedCurrentPathContext = Boolean(
+    (activePathPlan || activePathRound) &&
+    requestedPathContextKey &&
+    loadedPathContextKey === requestedPathContextKey,
+  );
+  const pathContextRecoveryState = useMemo(() => resolveAdaptivePathContextRecoveryState({
+    workspaceIntent,
+    activeGoal: Boolean(activeGoal),
+    authStatus,
+    isDemoMode,
+    requestedPathId: activePathId,
+    hasLoadedPathContext: hasLoadedCurrentPathContext,
+    loadState: pathContextLoadState,
+  }), [activeGoal, activePathId, authStatus, hasLoadedCurrentPathContext, isDemoMode, pathContextLoadState, workspaceIntent]);
+  const showPathContextRecovery = pathContextRecoveryState.shouldRecover;
+  const pathContextRecoveryEvidenceHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (activeGoal) params.set('goal', activeGoal);
+    if (activePathId) params.set('pathId', activePathId);
+    if (activeNodeId) params.set('nodeId', activeNodeId);
+    params.set('source', 'adaptive-path-center');
+    const query = params.toString();
+    return withFeedbackTaskHref(`/profile/evidence${query ? `?${query}` : ''}`);
+  }, [activeGoal, activeNodeId, activePathId, withFeedbackTaskHref]);
+  const pathContextRecoveryReturnHref = feedbackContext?.returnHref ?? withFeedbackTaskHref('/assessment/adaptive-practice');
   useEffect(() => {
     if (activeNodeId) setSelectedPathNodeId(activeNodeId);
   }, [activeNodeId]);
@@ -1485,21 +1552,21 @@ export default function AdaptivePracticePage() {
     pathExecutionNodes[0] ??
     null
   ), [pathExecutionNodes, selectedPathNodeId]);
-  const activeExecutionPathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id ?? activePathId;
-  const activeExecutionGoalId = activeGoal ?? resolveAdaptivePracticeGoalId(controlCorrectionPathPlan?.goal.id ?? controlCorrectionPathRound?.goalId ?? null);
+  const activeExecutionPathId = activePathRound?.id ?? activePathPlan?.id ?? activePathId;
+  const activeExecutionGoalId = activeGoal ?? resolveAdaptivePracticeGoalId(activePathPlan?.goal.id ?? activePathRound?.goalId ?? null);
   const pathExecutionSummary = useMemo(
-    () => getPathExecutionSummary(pathExecutionNodes, controlCorrectionPathRound),
-    [controlCorrectionPathRound, pathExecutionNodes],
+    () => getPathExecutionSummary(pathExecutionNodes, activePathRound),
+    [activePathRound, pathExecutionNodes],
   );
   const showRecoveredExecutionWorkspace = showLandingWorkspace &&
-    controlCorrectionPathRound?.pathStatus === 'active' &&
+    activePathRound?.pathStatus === 'active' &&
     pathExecutionNodes.length > 0;
   const showCompletedPathSummary = showLandingWorkspace &&
-    controlCorrectionPathRound?.pathStatus === 'completed' &&
+    activePathRound?.pathStatus === 'completed' &&
     pathExecutionNodes.length > 0;
   const pathActivityTimeline = useMemo(
-    () => getPathActivityTimeline(pathExecutionNodes, controlCorrectionPathRound),
-    [controlCorrectionPathRound, pathExecutionNodes],
+    () => getPathActivityTimeline(pathExecutionNodes, activePathRound),
+    [activePathRound, pathExecutionNodes],
   );
   const evidenceSourceSummary = useMemo(
     () => buildEvidenceSourceSummary(pathExecutionNodes),
@@ -1527,6 +1594,13 @@ export default function AdaptivePracticePage() {
     setPathChoiceMessage('请先登录并生成路径后再记录选择。');
   }, []);
 
+  const clearLoadedPathContext = useCallback((loadState: AdaptivePathContextLoadState) => {
+    setActivePathRound(null);
+    setActivePathPlan(null);
+    setLoadedPathContextKey(null);
+    setPathContextLoadState(loadState);
+  }, []);
+
   const openPathGenerationAdvisor = useCallback(() => {
     if (!assistantEntryPoint || assistantEntryPoint.mode !== 'path-advisor') return;
     openAssistantEntryPoint(assistantEntryPoint);
@@ -1535,6 +1609,7 @@ export default function AdaptivePracticePage() {
   useEffect(() => {
     if (!pathAdvisorContextGoal || isDemoMode) {
       updatePageContext({ assistantEntryPoint: null });
+      setPathAdvisorReadiness(null);
       return;
     }
     const contextGoal = pathAdvisorContextGoal;
@@ -1543,6 +1618,7 @@ export default function AdaptivePracticePage() {
 
     if (authStatus !== 'authenticated') {
       updatePageContext({ assistantEntryPoint: null });
+      setPathAdvisorReadiness(null);
       return;
     }
 
@@ -1553,11 +1629,20 @@ export default function AdaptivePracticePage() {
         if (activeGraphNodeId) contextQuery.set('graphNodeId', activeGraphNodeId);
         const response = await fetch(`/api/adaptive/path-advisor-context?${contextQuery.toString()}`);
         if (!response.ok) {
-          if (!cancelled) updatePageContext({ assistantEntryPoint: null });
+          const payload = await response.json().catch(() => ({}));
+          if (!cancelled) {
+            updatePageContext({ assistantEntryPoint: null });
+            setPathAdvisorReadiness(readAdaptiveGenerationReadiness(payload) ?? adaptiveGenerationReadinessFromHttp({
+              status: response.status,
+              source: 'path-advisor',
+              fallbackReason: response.status === 401 ? 'auth-required' : 'service-unavailable',
+            }));
+          }
           return;
         }
         const payload = (await response.json()) as PathAdvisorContextResponse;
         if (cancelled) return;
+        setPathAdvisorReadiness(payload.readiness ?? buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor' }));
         updatePageContext({
           pageType: 'practice',
           stepId: 'adaptive-path-center',
@@ -1567,7 +1652,7 @@ export default function AdaptivePracticePage() {
           courseTitle: payload.courseTitle,
           topic: payload.topic,
           learningObjectives: payload.learningObjectives,
-          quickQuestions: [
+          quickQuestions: payload.quickPrompts ?? [
             {
               label: '生成路径',
               question: payload.graphNodeId
@@ -1593,7 +1678,10 @@ export default function AdaptivePracticePage() {
           },
         });
       } catch {
-        if (!cancelled) updatePageContext({ assistantEntryPoint: null });
+        if (!cancelled) {
+          updatePageContext({ assistantEntryPoint: null });
+          setPathAdvisorReadiness(buildAdaptiveGenerationReadiness({ reason: 'retryable', source: 'path-advisor' }));
+        }
       }
     }
 
@@ -1610,8 +1698,8 @@ export default function AdaptivePracticePage() {
     setQuestionState(demoData.questionState);
     setSelectedOption(demoData.defaultSelectedOption);
     setFeedback(demoData.feedback);
-    setControlCorrectionPathPlan(activeGoal === 'control-correction' ? DEMO_CONTROL_CORRECTION_PATH_PLAN : null);
-    setControlCorrectionPathRound(activeGoal === 'control-correction' ? DEMO_CONTROL_CORRECTION_PATH_ROUND : null);
+    setActivePathPlan(activeGoal === 'control-correction' ? DEMO_CONTROL_CORRECTION_PATH_PLAN : null);
+    setActivePathRound(activeGoal === 'control-correction' ? DEMO_CONTROL_CORRECTION_PATH_ROUND : null);
     setQuestionStartAt(Date.now());
     setLoading(false);
     setError(null);
@@ -1670,100 +1758,208 @@ export default function AdaptivePracticePage() {
 
   useEffect(() => {
     if (!activeGoal) {
-      setControlCorrectionLearnerState(null);
-      setControlCorrectionPathPlan(null);
-      setControlCorrectionPathRound(null);
+      setActiveLearnerState(null);
+      setActivePathPlan(null);
+      setActivePathRound(null);
+      setLearnerStateLoadState('idle');
+      setLearnerStateReadiness(null);
+      setPathContextLoadState('idle');
+      setLoadedPathContextKey(null);
       return;
     }
 
     if (isDemoMode) {
-      setControlCorrectionLearnerState(null);
+      setActiveLearnerState(null);
+      setLearnerStateLoadState('ready');
+      setLearnerStateReadiness(null);
+      setPathContextLoadState('ready');
+      setLoadedPathContextKey(requestedPathContextKey);
       return;
     }
 
     if (authStatus === 'loading') {
+      setLearnerStateLoadState('loading');
+      setPathContextLoadState('loading');
       return;
     }
 
     if (authStatus === 'unauthenticated') {
-      setControlCorrectionLearnerState(null);
-      setControlCorrectionPathPlan(null);
-      setControlCorrectionPathRound(null);
+      setActiveLearnerState(null);
+      setActivePathPlan(null);
+      setActivePathRound(null);
+      setLearnerStateLoadState('idle');
+      setLearnerStateReadiness(null);
+      setPathContextLoadState('missing');
+      setLoadedPathContextKey(null);
       return;
     }
 
     const goalToLoad = activeGoal;
+    const requestContextKey = requestedPathContextKey;
     let cancelled = false;
-    async function loadControlCorrectionCenterData() {
+    async function loadAdaptivePathCenterData() {
+      const requiresRoutePathContext = showSelectionWorkspace || showExecutionWorkspace || showEvidenceWorkspace;
+      setLearnerStateLoadState('loading');
+      setLearnerStateReadiness(null);
+      setPathContextLoadState(requiresRoutePathContext || activePathId ? 'loading' : 'idle');
+      setLoadedPathContextKey(null);
+      if (requiresRoutePathContext || activePathId) {
+        setActivePathPlan(null);
+        setActivePathRound(null);
+      }
       let learnerState: AdaptiveLearnerState | null = null;
       try {
         const learnerResponse = await fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(goalToLoad)}`);
         if (!cancelled && learnerResponse.ok) {
           learnerState = (await learnerResponse.json()) as AdaptiveLearnerState;
-          setControlCorrectionLearnerState(learnerState);
+          setActiveLearnerState(learnerState);
+          setLearnerStateReadiness(null);
+          setLearnerStateLoadState('ready');
         } else if (!cancelled) {
-          setControlCorrectionLearnerState(null);
+          setActiveLearnerState(null);
+          setLearnerStateReadiness(adaptiveGenerationReadinessFromHttp({
+            status: learnerResponse.status,
+            source: 'learner-state',
+            fallbackReason: 'learner-state-unavailable',
+          }));
+          setLearnerStateLoadState('ready');
         }
       } catch {
         if (!cancelled) {
-          setControlCorrectionLearnerState(null);
+          setActiveLearnerState(null);
+          setLearnerStateReadiness(buildAdaptiveGenerationReadiness({
+            reason: 'learner-state-unavailable',
+            source: 'learner-state',
+          }));
+          setLearnerStateLoadState('ready');
         }
       }
 
-      const fallbackPathIds = goalToLoad === 'control-correction'
-        ? [learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null]
-        : learnerState?.pathContext.recentPathIds ?? [];
-      const pathIdsToTry = uniquePathIds([activePathId, ...fallbackPathIds]);
+      const fallbackPathIds = [
+        ...(goalToLoad === 'control-correction'
+          ? [learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null]
+          : []),
+        ...(learnerState?.pathContext.recentPathIds ?? []),
+      ];
+      const pathIdsToTry = activePathId
+        ? uniquePathIds([activePathId])
+        : uniquePathIds(fallbackPathIds);
       let loadedMatchingPath = false;
+      let pathLoadFailed = false;
       for (const pathIdToLoad of pathIdsToTry) {
         if (cancelled) return;
-        try {
-          const loaded = await fetchLearningPathRound(pathIdToLoad, goalToLoad);
-          if (!cancelled && loaded) {
-            setControlCorrectionPathRound(loaded.round);
-            setControlCorrectionPathPlan(loaded.plan);
-            loadedMatchingPath = true;
-            break;
-          }
-        } catch {
-          // Try the next recent path before falling back to an empty center.
+        const loaded = await fetchLearningPathRound(pathIdToLoad, goalToLoad);
+        if (loaded.status === 'failed') {
+          pathLoadFailed = true;
+          continue;
+        }
+        if (!cancelled && loaded.status === 'loaded') {
+          setActivePathRound(loaded.round);
+          setActivePathPlan(loaded.plan);
+          setPathContextLoadState('ready');
+          setLoadedPathContextKey(requestContextKey);
+          loadedMatchingPath = true;
+          break;
         }
       }
       if (!loadedMatchingPath && !activePathId && !cancelled) {
-        try {
-          const latest = await fetchLatestLearningPathRound(goalToLoad);
-          if (!cancelled && latest) {
-            setControlCorrectionPathRound(latest.round);
-            setControlCorrectionPathPlan(latest.plan);
-            loadedMatchingPath = true;
-          }
-        } catch {
-          // Keep the center in cold-start mode when no latest path is available.
+        const latest = await fetchLatestLearningPathRound(goalToLoad);
+        if (latest.status === 'failed') {
+          pathLoadFailed = true;
+        }
+        if (!cancelled && latest.status === 'loaded') {
+          setActivePathRound(latest.round);
+          setActivePathPlan(latest.plan);
+          setPathContextLoadState('ready');
+          setLoadedPathContextKey(requestContextKey);
+          loadedMatchingPath = true;
         }
       }
       if (!loadedMatchingPath && !cancelled) {
-        setControlCorrectionPathPlan(null);
-        setControlCorrectionPathRound(null);
+        setActivePathPlan(null);
+        setActivePathRound(null);
+        setPathContextLoadState(pathLoadFailed ? 'failed' : requiresRoutePathContext || activePathId ? 'missing' : 'idle');
+        setLoadedPathContextKey(null);
       }
+      if (cancelled) return;
     }
 
-    void loadControlCorrectionCenterData();
+    void loadAdaptivePathCenterData();
     return () => {
       cancelled = true;
     };
-  }, [activeGoal, activeGoalLabel, activePathId, authStatus, isDemoMode]);
+  }, [activeGoal, activeGoalLabel, activePathId, authStatus, isDemoMode, requestedPathContextKey, showEvidenceWorkspace, showExecutionWorkspace, showSelectionWorkspace]);
 
-  const reloadControlCorrectionPath = useCallback(async () => {
-    const pathIdToLoad = controlCorrectionPathRound?.id ?? activePathId ?? controlCorrectionLearnerState?.pathContext.activeControlCorrectionPath.pathId;
+  useEffect(() => {
+    if (activeGoal || !pathAdvisorContextGoal || !showGenerationWorkspace || isDemoMode) return;
+
+    if (authStatus === 'loading') {
+      setLearnerStateLoadState('loading');
+      setLearnerStateReadiness(null);
+      return;
+    }
+
+    if (authStatus !== 'authenticated') {
+      setActiveLearnerState(null);
+      setLearnerStateLoadState('idle');
+      setLearnerStateReadiness(null);
+      return;
+    }
+
+    const generationGoal = pathAdvisorContextGoal;
+    let cancelled = false;
+    async function loadPathGenerationLearnerState() {
+      setLearnerStateLoadState('loading');
+      setLearnerStateReadiness(null);
+      try {
+        const learnerResponse = await fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(generationGoal)}`);
+        if (cancelled) return;
+        if (learnerResponse.ok) {
+          setActiveLearnerState((await learnerResponse.json()) as AdaptiveLearnerState);
+          setLearnerStateReadiness(null);
+          setLearnerStateLoadState('ready');
+          return;
+        }
+        setActiveLearnerState(null);
+        setLearnerStateReadiness(adaptiveGenerationReadinessFromHttp({
+          status: learnerResponse.status,
+          source: 'learner-state',
+          fallbackReason: 'learner-state-unavailable',
+        }));
+        setLearnerStateLoadState('ready');
+      } catch {
+        if (!cancelled) {
+          setActiveLearnerState(null);
+          setLearnerStateReadiness(buildAdaptiveGenerationReadiness({
+            reason: 'learner-state-unavailable',
+            source: 'learner-state',
+          }));
+          setLearnerStateLoadState('ready');
+        }
+      }
+    }
+
+    void loadPathGenerationLearnerState();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeGoal, authStatus, isDemoMode, pathAdvisorContextGoal, showGenerationWorkspace]);
+
+  const reloadActiveLearningPath = useCallback(async () => {
+    const pathIdToLoad = activePathRound?.id ??
+      activePathId ??
+      (activeGoal === 'control-correction' ? activeLearnerState?.pathContext.activeControlCorrectionPath.pathId : null) ??
+      activeLearnerState?.pathContext.recentPathIds?.[0];
     if (!pathIdToLoad) return;
     const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`);
     if (!pathResponse.ok) {
       throw new Error('路径状态刷新失败');
     }
     const payload = (await pathResponse.json()) as LearningPathRoundResponse;
-    setControlCorrectionPathRound(payload.path ?? null);
-    setControlCorrectionPathPlan(restoreLearningPathPlan(payload.path ?? null));
-  }, [activePathId, controlCorrectionLearnerState, controlCorrectionPathRound]);
+    setActivePathRound(payload.path ?? null);
+    setActivePathPlan(restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null));
+    setLoadedPathContextKey(payload.path ? requestedPathContextKey : null);
+  }, [activeGoal, activePathId, activeLearnerState, activePathRound, requestedPathContextKey]);
 
   const refreshLatestLearningPathAfterKonling = useCallback(async () => {
     if (!activeGoal || isDemoMode || authStatus !== 'authenticated') return;
@@ -1773,55 +1969,60 @@ export default function AdaptivePracticePage() {
       const learnerResponse = await fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(activeGoal)}`);
       if (learnerResponse.ok) {
         learnerState = (await learnerResponse.json()) as AdaptiveLearnerState;
-        setControlCorrectionLearnerState(learnerState);
+        setActiveLearnerState(learnerState);
       }
     } catch {
       learnerState = null;
     }
 
     if (activePathId) {
-      try {
-        const loaded = await fetchLearningPathRound(activePathId, activeGoal);
-        if (loaded) {
-          setControlCorrectionPathRound(loaded.round);
-          setControlCorrectionPathPlan(loaded.plan);
-        }
-      } catch {
-        // Keep the explicit URL path stable instead of switching to latest.
+      const loaded = await fetchLearningPathRound(activePathId, activeGoal);
+      if (loaded.status === 'loaded') {
+        setActivePathRound(loaded.round);
+        setActivePathPlan(loaded.plan);
+        setLoadedPathContextKey(requestedPathContextKey);
+        setPathContextLoadState('ready');
+      } else {
+        clearLoadedPathContext(loaded.status === 'failed' ? 'failed' : 'missing');
       }
       return;
     }
 
-    try {
-      const latest = await fetchLatestLearningPathRound(activeGoal);
-      if (latest) {
-        setControlCorrectionPathRound(latest.round);
-        setControlCorrectionPathPlan(latest.plan);
+    const latest = await fetchLatestLearningPathRound(activeGoal);
+    if (latest.status === 'loaded') {
+      setActivePathRound(latest.round);
+      setActivePathPlan(latest.plan);
+      setLoadedPathContextKey(requestedPathContextKey);
+      setPathContextLoadState('ready');
+      setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
+      return;
+    }
+
+    const fallbackPathIds = [
+      ...(activeGoal === 'control-correction'
+        ? [learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null]
+        : []),
+      ...(learnerState?.pathContext.recentPathIds ?? []),
+    ];
+    const pathIdsToTry = uniquePathIds(fallbackPathIds);
+    let pathLoadFailed = latest.status === 'failed';
+    for (const pathIdToLoad of pathIdsToTry) {
+      const loaded = await fetchLearningPathRound(pathIdToLoad, activeGoal);
+      if (loaded.status === 'failed') {
+        pathLoadFailed = true;
+        continue;
+      }
+      if (loaded.status === 'loaded') {
+        setActivePathRound(loaded.round);
+        setActivePathPlan(loaded.plan);
+        setLoadedPathContextKey(requestedPathContextKey);
+        setPathContextLoadState('ready');
         setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
         return;
       }
-    } catch {
-      // Fall back to learner-state hints when the latest path is not readable yet.
     }
-
-    const fallbackPathIds = activeGoal === 'control-correction'
-      ? [learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null]
-      : learnerState?.pathContext.recentPathIds ?? [];
-    const pathIdsToTry = uniquePathIds(fallbackPathIds);
-    for (const pathIdToLoad of pathIdsToTry) {
-      try {
-        const loaded = await fetchLearningPathRound(pathIdToLoad, activeGoal);
-        if (loaded) {
-          setControlCorrectionPathRound(loaded.round);
-          setControlCorrectionPathPlan(loaded.plan);
-          setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
-          return;
-        }
-      } catch {
-        // Try the next path id.
-      }
-    }
-  }, [activeGoal, activePathId, authStatus, isDemoMode]);
+    clearLoadedPathContext(pathLoadFailed ? 'failed' : 'missing');
+  }, [activeGoal, activePathId, authStatus, clearLoadedPathContext, isDemoMode, requestedPathContextKey]);
 
   useEffect(() => {
     const handleAdaptivePathUpdated = () => {
@@ -1851,6 +2052,14 @@ export default function AdaptivePracticePage() {
       setPathChoiceMessage('请先登录后再生成学习路径。');
       return;
     }
+    if (hasInvalidRequestedGoal) {
+      setPathChoiceMessage('学习路径目标未注册，请先选择可用目标。');
+      return;
+    }
+    if (!canSubmitPathGeneration) {
+      setPathChoiceMessage(pathGenerationDisplayReadiness.studentMessage);
+      return;
+    }
     const modeContextToken = assistantEntryPoint?.mode === 'path-advisor'
       ? assistantEntryPoint.serverContext.modeContextToken
       : null;
@@ -1861,7 +2070,7 @@ export default function AdaptivePracticePage() {
       setPathChoiceMessage('路径生成上下文还在准备，请稍后重试。');
       return;
     }
-    const currentPathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id ?? activePathId;
+    const currentPathId = activePathRound?.id ?? activePathPlan?.id ?? activePathId;
     if (operation !== 'generate' && !currentPathId) {
       setPathChoiceMessage('请先生成路径后再请求调整或解释。');
       return;
@@ -1908,8 +2117,14 @@ export default function AdaptivePracticePage() {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
+        const readiness = readAdaptiveGenerationReadiness(payload);
+        if (readiness) {
+          setPathAdvisorReadiness(readiness);
+          throw new Error(readiness.studentMessage);
+        }
         throw new Error(typeof payload.error === 'string' ? payload.error : '学习路径生成失败');
       }
+      setPathAdvisorReadiness(readAdaptiveGenerationReadiness(payload) ?? buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor-tool' }));
       if (typeof payload.agentSessionId === 'string') {
         setPathAdvisorAgentSessionId(payload.agentSessionId);
       }
@@ -1959,11 +2174,14 @@ export default function AdaptivePracticePage() {
     activePathId,
     assistantEntryPoint,
     authStatus,
-    controlCorrectionPathPlan,
-    controlCorrectionPathRound,
+    canSubmitPathGeneration,
+    hasInvalidRequestedGoal,
+    activePathPlan,
+    activePathRound,
     pathAdvisorAgentSessionId,
     pathExecutionNodes,
     pathGenerationPanel,
+    pathGenerationDisplayReadiness,
     pathOptions,
     refreshLatestLearningPathAfterKonling,
     routeIntent,
@@ -1975,7 +2193,7 @@ export default function AdaptivePracticePage() {
     option: PathOptionView,
     helpful?: boolean,
   ) => {
-    const pathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id;
+    const pathId = activePathRound?.id ?? activePathPlan?.id;
     if (!pathId) {
       setPathChoiceMessage('当前没有可写入的学习路径。');
       return;
@@ -1993,17 +2211,17 @@ export default function AdaptivePracticePage() {
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径选择写入失败');
       }
       const pathUpdate = getRecord(payload.pathUpdate);
-      await reloadControlCorrectionPath();
+      await reloadActiveLearningPath();
       if (action === 'selection' || action === 'switch') {
         const executionQuery = new URLSearchParams({
-          goal: activeGoal ?? controlCorrectionPathPlan?.goal.id ?? 'control-correction',
+          goal: activeGoal ?? activePathPlan?.goal.id ?? 'control-correction',
           intent: 'path-execution',
           pathId,
           optionId: option.optionId,
         });
         const currentNodeId = typeof pathUpdate.currentNodeId === 'string'
           ? pathUpdate.currentNodeId
-          : option.activeNodeIds?.[0] ?? option.nodeIds?.[0] ?? controlCorrectionPathPlan?.currentNodeId ?? controlCorrectionPathRound?.currentNodeId;
+          : option.activeNodeIds?.[0] ?? option.nodeIds?.[0] ?? activePathPlan?.currentNodeId ?? activePathRound?.currentNodeId;
         if (currentNodeId) executionQuery.set('nodeId', currentNodeId);
         window.location.assign(withFeedbackTaskHref(`/assessment/adaptive-practice?${executionQuery.toString()}`));
         return;
@@ -2016,11 +2234,11 @@ export default function AdaptivePracticePage() {
     }
   }, [
     activeGoal,
-    controlCorrectionPathPlan,
-    controlCorrectionPathRound,
+    activePathPlan,
+    activePathRound,
     pathOptions,
     pathSelectionHistory,
-    reloadControlCorrectionPath,
+    reloadActiveLearningPath,
     withFeedbackTaskHref,
   ]);
 
@@ -2048,10 +2266,10 @@ export default function AdaptivePracticePage() {
   }, [launchPathNodeAction]);
 
   const launchNextAction = useCallback(async () => {
-    const nextAction = controlCorrectionCenter?.nextAction;
+    const nextAction = adaptivePathCenter?.nextAction;
     if (!nextAction || !isPostLearningPathNodeAction(nextAction)) return;
     await launchPathNodeAction(nextAction);
-  }, [controlCorrectionCenter, launchPathNodeAction]);
+  }, [adaptivePathCenter, launchPathNodeAction]);
 
   const completePathNodeAction = useCallback(async (
     nodeId: string,
@@ -2069,24 +2287,24 @@ export default function AdaptivePracticePage() {
         const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径节点完成确认失败');
       }
-      await reloadControlCorrectionPath();
+      await reloadActiveLearningPath();
       setError(null);
     } catch (completionError) {
       setError(completionError instanceof Error ? completionError.message : '路径节点完成确认失败');
     } finally {
       setPathNodeCompletionPending(null);
     }
-  }, [reloadControlCorrectionPath]);
+  }, [reloadActiveLearningPath]);
 
   const completePathNode = useCallback(async (node: PracticeEntryRouteNode) => {
     await completePathNodeAction(node.nodeId, node.action.completionAction);
   }, [completePathNodeAction]);
 
   const completeNextAction = useCallback(async () => {
-    const nextAction = controlCorrectionCenter?.nextAction;
+    const nextAction = adaptivePathCenter?.nextAction;
     if (!nextAction?.nodeId) return;
     await completePathNodeAction(nextAction.nodeId, nextAction.completionAction);
-  }, [completePathNodeAction, controlCorrectionCenter]);
+  }, [completePathNodeAction, adaptivePathCenter]);
 
   const writePathNodeActivity = useCallback(async (
     node: PathExecutionNodeView,
@@ -2094,7 +2312,7 @@ export default function AdaptivePracticePage() {
     status: 'started' | 'completed' | 'failed' = 'started',
     outcomeMetadata?: Record<string, unknown>,
   ): Promise<boolean> => {
-    const pathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id;
+    const pathId = activePathRound?.id ?? activePathPlan?.id;
     if (!pathId) return false;
     setPathActivityPending(`${activityKind}:${node.nodeId}`);
     try {
@@ -2116,7 +2334,7 @@ export default function AdaptivePracticePage() {
         const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径活动写入失败');
       }
-      await reloadControlCorrectionPath();
+      await reloadActiveLearningPath();
       setError(null);
       return true;
     } catch (activityError) {
@@ -2125,12 +2343,12 @@ export default function AdaptivePracticePage() {
     } finally {
       setPathActivityPending(null);
     }
-  }, [controlCorrectionPathPlan, controlCorrectionPathRound, reloadControlCorrectionPath]);
+  }, [activePathPlan, activePathRound, reloadActiveLearningPath]);
 
   const syncAdaptiveAssessmentPathResult = useCallback(async (result: SubmitAnswerResponse) => {
     if (!activePathId || !activeNodeId || !result.durableAnswerId) return;
     const targetNode = pathExecutionNodes.find((node) => node.nodeId === activeNodeId);
-    if (!targetNode || targetNode.type !== 'adaptive_quiz') return;
+    if (!targetNode || !isPathAssessmentResultNode(targetNode.type)) return;
     await writePathNodeActivity(targetNode, 'initial-completion', 'completed', {
       adaptiveAssessmentRef: {
         id: result.durableAnswerId,
@@ -2139,7 +2357,7 @@ export default function AdaptivePracticePage() {
   }, [activeNodeId, activePathId, pathExecutionNodes, writePathNodeActivity]);
 
   const skipPathNode = useCallback(async (node: PathExecutionNodeView) => {
-    const pathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id;
+    const pathId = activePathRound?.id ?? activePathPlan?.id;
     if (!pathId) return;
     setPathActivityPending(`skip:${node.nodeId}`);
     try {
@@ -2148,7 +2366,7 @@ export default function AdaptivePracticePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           deviationType: 'skip',
-          priorNodeId: controlCorrectionPathPlan?.currentNodeId ?? controlCorrectionPathRound?.currentNodeId ?? null,
+          priorNodeId: activePathPlan?.currentNodeId ?? activePathRound?.currentNodeId ?? null,
           targetNodeId: node.nodeId,
           evidenceConfidence: 'medium',
           idempotencyKey: `skip:${pathId}:${node.nodeId}:${Date.now()}`,
@@ -2162,7 +2380,7 @@ export default function AdaptivePracticePage() {
         const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径偏离写入失败');
       }
-      await reloadControlCorrectionPath();
+      await reloadActiveLearningPath();
       setSkipCandidateNode(null);
       setError(null);
     } catch (skipError) {
@@ -2170,7 +2388,7 @@ export default function AdaptivePracticePage() {
     } finally {
       setPathActivityPending(null);
     }
-  }, [controlCorrectionPathPlan, controlCorrectionPathRound, reloadControlCorrectionPath]);
+  }, [activePathPlan, activePathRound, reloadActiveLearningPath]);
 
   const launchExecutionNode = useCallback(async (node: PathExecutionNodeView) => {
     const activityWritten = await writePathNodeActivity(
@@ -2181,12 +2399,12 @@ export default function AdaptivePracticePage() {
     if (!activityWritten) return;
     window.location.assign(withFeedbackTaskHref(pathNodeContextHref(node, {
       goalId: resolveAdaptivePracticeGoalId(
-        controlCorrectionPathPlan?.goal.id ?? controlCorrectionPathRound?.goalId ?? activeGoal,
+        activePathPlan?.goal.id ?? activePathRound?.goalId ?? activeGoal,
         activeGoal ?? 'control-correction',
       ),
-      pathId: controlCorrectionPathPlan?.id ?? controlCorrectionPathRound?.id,
+      pathId: activePathPlan?.id ?? activePathRound?.id,
     })));
-  }, [activeGoal, controlCorrectionPathPlan, controlCorrectionPathRound, withFeedbackTaskHref, writePathNodeActivity]);
+  }, [activeGoal, activePathPlan, activePathRound, withFeedbackTaskHref, writePathNodeActivity]);
 
   const retryNextQuestion = useCallback(async () => {
     setPracticeQuestionExpanded(true);
@@ -2296,6 +2514,7 @@ export default function AdaptivePracticePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          sessionId,
           targetKnowledgeTags: diagnostic.weakAreas,
           difficultyTarget: 0.6,
           domains: ['time', 'frequency', 'complex'],
@@ -2318,10 +2537,10 @@ export default function AdaptivePracticePage() {
     }
   };
 
-    const completedPathLearningTime = formatCompletedPathLearningTime(controlCorrectionPathPlan, Boolean(diagnostic));
+    const completedPathLearningTime = formatCompletedPathLearningTime(activePathPlan, Boolean(diagnostic));
     const currentNode = practiceRouteNodes.find((node) => node.state === 'current') ?? practiceRouteNodes[0];
     const compactCurrentNodeTitle = compactPathNodeTitle(currentNode?.title);
-    const nextPathAction = controlCorrectionCenter?.nextAction ?? null;
+    const nextPathAction = adaptivePathCenter?.nextAction ?? null;
     const canLaunchNextPathAction = nextPathAction
       ? isPostLearningPathNodeAction(nextPathAction) && Boolean(nextPathAction.body && nextPathAction.redirectHref)
       : false;
@@ -2383,18 +2602,18 @@ export default function AdaptivePracticePage() {
           data-learner-record-surface={learnerDataShell.archetype}
           data-learner-record-priority="current-path"
           data-learner-record-next-action="generate-and-compare-path"
-          data-learner-record-evidence-confidence={controlCorrectionCenter?.nextAction.confidence ?? 'unknown'}
-          data-learner-record-evidence-need={controlCorrectionCenter?.readinessGate.missing.length ? 'learning-task-evidence-needed' : 'generic-path-center'}
+          data-learner-record-evidence-confidence={adaptivePathCenter?.nextAction.confidence ?? 'unknown'}
+          data-learner-record-evidence-need={adaptivePathCenter?.readinessGate.missing.length ? 'learning-task-evidence-needed' : 'generic-path-center'}
         >
           <StudentFeedbackTaskPanel context={feedbackContext} surface="adaptive-practice" />
-          {controlCorrectionCenter ? (
+          {adaptivePathCenter ? (
             <span
               className="sr-only"
               data-control-correction-center="adaptive-practice"
-              data-control-correction-goal={controlCorrectionCenter.goalId}
-              data-control-correction-intent={controlCorrectionCenter.entry.routeIntent}
-              data-control-correction-ready={String(controlCorrectionCenter.readinessGate.ready)}
-              data-control-correction-alternative-count={controlCorrectionAlternativeCount(controlCorrectionCenter)}
+              data-control-correction-goal={adaptivePathCenter.goalId}
+              data-control-correction-intent={adaptivePathCenter.entry.routeIntent}
+              data-control-correction-ready={String(adaptivePathCenter.readinessGate.ready)}
+              data-control-correction-alternative-count={controlCorrectionAlternativeCount(adaptivePathCenter)}
             />
           ) : null}
           <header className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.6fr)]">
@@ -2415,12 +2634,14 @@ export default function AdaptivePracticePage() {
                   <button
                     type="button"
                     onClick={openPathGenerationAdvisor}
-                    disabled={assistantEntryPoint?.mode !== 'path-advisor'}
+                    disabled={assistantEntryPoint?.mode !== 'path-advisor' || !canSubmitPathGeneration}
                     data-adaptive-path-generation-action="open-in-page-path-advisor"
+                    data-adaptive-generation-readiness-status={pathGenerationDisplayReadiness.status}
+                    data-adaptive-generation-readiness-reason={pathGenerationDisplayReadiness.reason}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
                   >
                     <Sparkles className="size-4" aria-hidden="true" />
-                    {assistantEntryPoint?.mode === 'path-advisor' ? '请控灵生成路径' : '路径顾问准备中'}
+                    {assistantEntryPoint?.mode === 'path-advisor' && canSubmitPathGeneration ? '请控灵生成路径' : '路径顾问准备中'}
                   </button>
                 ) : (
                   <Link
@@ -2486,8 +2707,8 @@ export default function AdaptivePracticePage() {
                   ['已完成节点时长', completedPathLearningTime],
                   ['预计总时长', '3 小时 10 分'],
                   ['本周完成情况', percentLabel(weeklyProgress)],
-                  ['证据覆盖', controlCorrectionCenter ? formatConfidence(controlCorrectionCenter.nextAction.confidence) : '待积累'],
-                  ['缺失证据', controlCorrectionCenter?.readinessGate.missing.length ? '需要继续完成学习任务' : '暂无完整路径证据'],
+                  ['证据覆盖', adaptivePathCenter ? formatConfidence(adaptivePathCenter.nextAction.confidence) : '待积累'],
+                  ['缺失证据', adaptivePathCenter?.readinessGate.missing.length ? '需要继续完成学习任务' : '暂无完整路径证据'],
                   ['下一步', nextPathActionLabel],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-lg border border-border bg-muted/35 p-3">
@@ -2559,6 +2780,10 @@ export default function AdaptivePracticePage() {
               data-adaptive-path-generation-panel="editable"
               data-adaptive-path-generation-mobile-sheet="bottom-sheet"
               data-konling-citation-slot="cited-explanation"
+              data-adaptive-generation-readiness-status={pathGenerationDisplayReadiness.status}
+              data-adaptive-generation-readiness-reason={pathGenerationDisplayReadiness.reason}
+              data-adaptive-generation-student-action={pathGenerationDisplayReadiness.studentAction}
+              data-adaptive-generation-staff-action={pathGenerationDisplayReadiness.staffAction}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2568,6 +2793,28 @@ export default function AdaptivePracticePage() {
                 </div>
                 <MessageSquare className="size-5 text-primary" aria-hidden="true" />
               </div>
+              {pathGenerationDisplayReadiness.status !== 'ready' ? (
+                <div
+                  className="mt-4 rounded-lg border border-border bg-muted/45 p-3"
+                  role="status"
+                  aria-live="polite"
+                  data-adaptive-generation-readiness-card={pathGenerationDisplayReadiness.reason}
+                >
+                  <p className="text-sm font-medium text-foreground">{pathGenerationDisplayReadiness.studentMessage}</p>
+                  <p className="mt-1 text-xs leading-5 text-subtle">
+                    如仍无法继续，请把当前状态转交给教师或管理员处理。
+                  </p>
+                  {pathGenerationDisplayReadiness.studentAction === 'login' ? (
+                    <Link
+                      href={loginHref}
+                      className="mt-3 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                    >
+                      <ExternalLink className="size-3.5" aria-hidden="true" />
+                      登录后继续
+                    </Link>
+                  ) : null}
+                </div>
+              ) : null}
               <div className="mt-4 grid gap-3" data-adaptive-path-generation-request="structured-panel">
                 <label className="block rounded-lg border border-border bg-background/45 p-3">
                   <span className="text-xs text-subtle">学习目标</span>
@@ -2702,8 +2949,9 @@ export default function AdaptivePracticePage() {
                 <button
                   type="button"
                   onClick={() => submitPathGeneration('generate')}
-                  disabled={pathGenerationPending !== null}
+                  disabled={pathGenerationPending !== null || hasInvalidRequestedGoal || !canSubmitPathGeneration}
                   data-adaptive-path-generation-action="submit-panel-request"
+                  data-adaptive-generation-readiness-action={pathGenerationDisplayReadiness.studentAction}
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
                 >
                   <Sparkles className="size-4" aria-hidden="true" />
@@ -2712,7 +2960,7 @@ export default function AdaptivePracticePage() {
                 <button
                   type="button"
                   onClick={openPathGenerationAdvisor}
-                  disabled={assistantEntryPoint?.mode !== 'path-advisor'}
+                  disabled={assistantEntryPoint?.mode !== 'path-advisor' || !canSubmitPathGeneration}
                   className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary disabled:opacity-60"
                 >
                   <MessageSquare className="size-4" aria-hidden="true" />
@@ -2740,74 +2988,148 @@ export default function AdaptivePracticePage() {
                 </p>
               </div>
               <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
-                2 个目标
+                {generationGoalOptions.length} 个目标
               </span>
             </div>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div
-                className="rounded-lg border border-border bg-background/55 p-4"
-                data-adaptive-path-generation-goal="control-correction"
-                data-adaptive-path-generation-ready="true"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
-                    <GitBranch className="size-5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className="text-xs text-subtle">目标一</p>
-                    <h3 className="text-base font-semibold text-foreground">控制系统校正设计</h3>
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {generationGoalOptions.map((goal, index) => {
+                const GoalIcon = goal.intentType === 'controller-design'
+                  ? GitBranch
+                  : goal.intentType === 'simulation-validation'
+                    ? Compass
+                    : Target;
+                return (
+                  <div
+                    key={goal.id}
+                    className="rounded-lg border border-border bg-background/55 p-4"
+                    data-adaptive-path-generation-goal={goal.id}
+                    data-adaptive-path-generation-ready="catalog"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
+                        <GoalIcon className="size-5" aria-hidden="true" />
+                      </span>
+                      <div>
+                        <p className="text-xs text-subtle">目标 {index + 1}</p>
+                        <h3 className="text-base font-semibold text-foreground">{goal.label}</h3>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-subtle">{goal.detail}</p>
+                    <p className="mt-2 text-xs leading-5 text-subtle">{goal.terminalValidationSummary}</p>
+                    <Link
+                      href={withFeedbackTaskHref(goal.hrefs.generation)}
+                      data-adaptive-path-generation-action="enter-registered-goal-context"
+                      className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                    >
+                      <Sparkles className="size-3.5" aria-hidden="true" />
+                      生成该目标路径
+                    </Link>
                   </div>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-subtle">
-                  面向时域指标、根轨迹设计、仿真验证和 Arena 迁移，适合生成可执行的校正学习路径。
-                </p>
-                <Link
-                  href={feedbackControlCorrectionGenerationHref}
-                  data-adaptive-path-generation-action="enter-registered-goal-context"
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
-                >
-                  <Sparkles className="size-3.5" aria-hidden="true" />
-                  生成该目标路径
-                </Link>
-              </div>
-
-              <div
-                className="rounded-lg border border-border bg-background/55 p-4"
-                data-adaptive-path-generation-goal="frequency-response-foundations"
-                data-adaptive-path-generation-ready="evidence-first"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
-                    <Compass className="size-5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className="text-xs text-subtle">目标二</p>
-                    <h3 className="text-base font-semibold text-foreground">频率响应基础</h3>
-                  </div>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-subtle">
-                  面向 Bode 图、频域稳定性和基础练习，适合先补齐学习证据，再进入可比较路径。
-                </p>
-                <Link
-                  href={feedbackFrequencyResponseGenerationHref}
-                  data-adaptive-path-generation-action="enter-registered-goal-context"
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
-                >
-                  <Sparkles className="size-3.5" aria-hidden="true" />
-                  生成该目标路径
-                </Link>
-              </div>
+                );
+              })}
             </div>
           </section>
           ) : null}
 
           {pathChoiceMessage && (showGenerationWorkspace || showSelectionWorkspace) ? (
-            <p className="rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground">
+            <p
+              className="rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground"
+              role="status"
+              aria-live="polite"
+            >
               {pathChoiceMessage}
             </p>
           ) : null}
 
-          {showSelectionWorkspace ? (
+          {showPathContextRecovery ? (
+            <section
+              className="surface-card p-5"
+              role="status"
+              aria-live="polite"
+              data-adaptive-path-recovery-state={pathContextRecoveryState.reason}
+              data-adaptive-path-recovery-intent={workspaceIntent}
+              data-adaptive-path-recovery-path-id={activePathId ?? 'missing'}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium text-primary">路径恢复</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">{pathContextRecoveryState.title}</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-subtle">{pathContextRecoveryState.detail}</p>
+                </div>
+                <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
+                  {workspaceIntent === 'evidence-review'
+                    ? '证据复核'
+                    : workspaceIntent === 'execution'
+                      ? '路径执行'
+                      : '路径选择'}
+                </span>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <div className="rounded-lg border border-border bg-muted/30 p-3">
+                  <p className="text-xs text-subtle">请求动作</p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">
+                    {workspaceIntent === 'evidence-review'
+                      ? '复核路径证据'
+                      : workspaceIntent === 'execution'
+                        ? '继续执行路径'
+                        : '选择学习路径'}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/30 p-3">
+                  <p className="text-xs text-subtle">路径来源</p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">
+                    {pathContextRecoveryState.reason === 'path-load-failed'
+                      ? '路径服务暂时不可用'
+                      : activePathId
+                        ? '链接中的路径不可用'
+                        : '当前目标尚未生成路径'}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/30 p-3">
+                  <p className="text-xs text-subtle">当前状态</p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">暂不展示进度或执行入口</p>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {pathContextRecoveryState.reason === 'auth-required' ? (
+                  <Link
+                    href={loginHref}
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                  >
+                    <ExternalLink className="size-4" aria-hidden="true" />
+                    登录后继续
+                  </Link>
+                ) : (
+                  <Link
+                    href={activeGoal ? withFeedbackTaskHref(buildPathGenerationGoalHref(activeGoal, pathGenerationPanel)) : feedbackGenericPathGenerationHref}
+                    data-adaptive-path-recovery-action="generate-path"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                  >
+                    <Sparkles className="size-4" aria-hidden="true" />
+                    生成学习路径
+                  </Link>
+                )}
+                <Link
+                  href={pathContextRecoveryEvidenceHref}
+                  data-adaptive-path-recovery-action="review-evidence"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+                >
+                  <History className="size-4" aria-hidden="true" />
+                  查看学习证据
+                </Link>
+                <Link
+                  href={pathContextRecoveryReturnHref}
+                  data-adaptive-path-recovery-action="return-to-task"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+                >
+                  <ExternalLink className="size-4" aria-hidden="true" />
+                  返回来源
+                </Link>
+              </div>
+            </section>
+          ) : null}
+
+          {showSelectionWorkspace && !showPathContextRecovery ? (
             <section
               className="surface-card p-5"
               data-learning-path-product-surface="path-options-selection-history-terminal-validation"
@@ -3122,9 +3444,9 @@ export default function AdaptivePracticePage() {
               </div>
               <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
                 {[
-                  ['路径名称', controlCorrectionPathRound?.title ?? controlCorrectionPathPlan?.goal.title ?? '学习路径'],
+                  ['路径名称', activePathRound?.title ?? activePathPlan?.goal.title ?? '学习路径'],
                   ['完成节点', pathExecutionSummary.completed],
-                  ['完成时间', formatPathCompletionTime(controlCorrectionPathRound)],
+                  ['完成时间', formatPathCompletionTime(activePathRound)],
                   ['证据状态', pathExecutionNodes.some((node) => node.result?.state === 'pending') ? '结果待同步' : '已记录'],
                   ['下一步', '生成新路径或切换目标'],
                 ].map(([label, value]) => (
@@ -3137,7 +3459,7 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          {(showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
+          {!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
             <section className="grid gap-4">
               {showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
               <div className="surface-card p-5" data-adaptive-path-execution-surface="active-route">
@@ -3282,7 +3604,7 @@ export default function AdaptivePracticePage() {
                             <div className="mt-3 flex flex-wrap gap-2">
                               <button
                                 type="button"
-                                onClick={() => void reloadControlCorrectionPath()}
+                                onClick={() => void reloadActiveLearningPath()}
                                 className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
                               >
                                 刷新结果
@@ -3318,7 +3640,7 @@ export default function AdaptivePracticePage() {
                               继续互动
                             </button>
                             <Link
-                              href={`/profile/evidence?goal=control-correction&pathId=${encodeURIComponent(controlCorrectionPathPlan?.id ?? '')}&nodeId=${encodeURIComponent(focusedPathNode.nodeId)}`}
+                              href={`/profile/evidence?goal=${encodeURIComponent(activeExecutionGoalId)}&pathId=${encodeURIComponent(activePathPlan?.id ?? '')}&nodeId=${encodeURIComponent(focusedPathNode.nodeId)}`}
                               className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
                             >
                               查看证据
@@ -3441,7 +3763,7 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          {showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace ? (
+          {!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) ? (
           <section className="grid gap-4">
             {showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
             <div className="surface-card p-5" data-adaptive-practice-resource="path-node">

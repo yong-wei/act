@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  assessPromptQuality,
+  getPromptHistory,
+} from '@/features/evaluation/prompt-quality';
+import {
   buildAiAuditTaskState,
   buildPortfolioReflectionDraft,
   buildReportFeedbackTaskCandidates,
@@ -249,6 +253,10 @@ describe('ai task boundary contracts', () => {
   });
 
   it('declares output targets for prompt, report feedback, and reflection tasks', () => {
+    expect(getAiAuditTaskContract('global-ai')).toMatchObject({
+      outputTarget: 'answer',
+      writebackBehavior: 'none',
+    });
     expect(getAiAuditTaskContract('prompt-evaluation')).toMatchObject({
       outputTarget: 'prompt-history',
       writebackBehavior: 'explicit-save',
@@ -264,10 +272,31 @@ describe('ai task boundary contracts', () => {
   });
 
   it('creates scoped task candidates and audited status states', () => {
+    expect(buildReportFeedbackTaskCandidates({
+      source: 'batch55',
+      assignment: 'report-control-design',
+      intent: 'report-feedback',
+    })).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        source: 'batch55',
+        assignment: 'report-control-design',
+        intent: 'report-feedback',
+        outputTarget: 'practice-candidate',
+        promotionPolicy: 'explicit-save-or-submit',
+        status: 'candidate',
+      }),
+    ]));
     expect(buildReportFeedbackTaskCandidates()).toHaveLength(3);
-    expect(buildPortfolioReflectionDraft('copilot')).toMatchObject({
+    expect(buildPortfolioReflectionDraft('copilot', {
+      assignment: 'ai-collaboration',
+      intent: 'create',
+    })).toMatchObject({
       id: 'portfolio-reflection-copilot',
       status: 'draft',
+      assignment: 'ai-collaboration',
+      intent: 'create',
+      outputTarget: 'portfolio-draft',
+      promotionPolicy: 'explicit-save-or-submit',
     });
     expect(buildAiAuditTaskState({
       taskType: 'report-feedback',
@@ -278,6 +307,39 @@ describe('ai task boundary contracts', () => {
       identity: {
         category: 'save',
         sourceRoute: '/ai?task=report-feedback',
+      },
+    });
+  });
+
+  it('persists prompt audit task context in prompt history', () => {
+    const userId = `prompt-context-${Date.now()}`;
+    assessPromptQuality({
+      userId,
+      sessionId: 'prompt-context-session',
+      prompt: '控制对象：船舶航向系统\n性能目标：超调 < 15%\n约束条件：相位裕度 > 30°',
+      structuredData: {
+        'control-object': '船舶航向系统',
+        'performance-goals': '超调 < 15%',
+        constraints: '相位裕度 > 30°',
+      },
+      auditTaskContext: {
+        source: 'batch55',
+        assignment: 'report-control-design',
+        intent: 'prompt-history-review',
+        outputTarget: 'prompt-history',
+      },
+      context: {
+        taskType: 'controller-design',
+        difficulty: 'intermediate',
+      },
+    });
+
+    expect(getPromptHistory(userId).at(-1)).toMatchObject({
+      auditTaskContext: {
+        source: 'batch55',
+        assignment: 'report-control-design',
+        intent: 'prompt-history-review',
+        outputTarget: 'prompt-history',
       },
     });
   });

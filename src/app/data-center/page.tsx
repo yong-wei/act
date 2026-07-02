@@ -24,13 +24,29 @@ function firstValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function appendLearnerBoundaryContext(target: string): string {
+  const hashIndex = target.indexOf('#');
+  const targetWithoutHash = hashIndex >= 0 ? target.slice(0, hashIndex) : target;
+  const hash = hashIndex >= 0 ? target.slice(hashIndex) : '';
+  const [path, query = ''] = targetWithoutHash.split('?');
+  const params = new URLSearchParams(query);
+  params.set('origin', '/data-center');
+  params.set('reason', 'student-role-boundary');
+  params.set('targetScope', 'learner-evidence-review');
+  params.set('sourceBoundary', 'teacher-admin-aggregate-only');
+  return `${path}?${params.toString()}${hash}`;
+}
+
 function resolveLearnerRedirectTarget(returnTo: string | undefined): string {
-  if (!returnTo) return '/profile/evidence';
-  if (!returnTo.startsWith('/') || returnTo.startsWith('//')) return '/profile/evidence';
-  if (returnTo === '/data-center' || returnTo.startsWith('/data-center?') || returnTo.startsWith('/data-center/')) {
-    return '/profile/evidence';
+  if (!returnTo) return appendLearnerBoundaryContext('/profile/evidence');
+  if (!returnTo.startsWith('/') || returnTo.startsWith('//') || returnTo.includes('\\')) {
+    return appendLearnerBoundaryContext('/profile/evidence');
   }
-  return returnTo;
+  const [returnPath] = returnTo.split(/[?#]/);
+  if (returnPath === '/data-center' || returnPath.startsWith('/data-center/')) {
+    return appendLearnerBoundaryContext('/profile/evidence');
+  }
+  return appendLearnerBoundaryContext(returnTo);
 }
 
 export default async function DataCenterPage({ searchParams }: DataCenterPageProps = {}) {
