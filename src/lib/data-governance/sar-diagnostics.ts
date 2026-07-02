@@ -499,6 +499,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
       .map(persistedRelationToSarRelation);
     const verifiedCitationRefs = persistedVerifiedCitationRefs(trace.selectedRefs, eventById, eventBySourceRef);
     const ordinarySourcePackRefs = persistedOrdinaryBaselineRefs(trace.selectedRefs, eventById, eventBySourceRef);
+    const sarAssistedRefs = persistedSarAssistedRefs(trace.selectedRefs, eventById, eventBySourceRef);
     const result: SarRetrievalResult = {
       id: `sar:result:persisted:${trace.stableId}`,
       trace: {
@@ -525,7 +526,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
       sourcePackHandoffRefs: trace.handoffStatus === 'ready' ? ordinarySourcePackRefs : [],
       verifiedCitationRefs,
       ordinarySourcePackRefs,
-      sarAssistedRefs: trace.selectedRefs,
+      sarAssistedRefs,
     };
   });
   const missingTraceLimitations = traces.length === 0 ? ['sar-live-evaluation-persisted-traces-missing'] : [];
@@ -821,6 +822,17 @@ function persistedOrdinaryBaselineRefs(
     }
     if (isPersistedRetrievalRef(ref)) return [ref];
     return [];
+  }));
+}
+
+function persistedSarAssistedRefs(
+  selectedRefs: readonly string[],
+  eventById: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
+  eventBySourceRef: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
+): string[] {
+  return uniqueSorted(selectedRefs.map((ref) => {
+    const eventRecord = eventById.get(ref) ?? eventBySourceRef.get(ref);
+    return eventRecord?.sourceRef.id ?? ref;
   }));
 }
 

@@ -1146,6 +1146,7 @@ describe('SAR diagnostics and evaluation report', () => {
       query: 'teacher-diagnostics · sar-live-evaluation · sha256:persist',
       ordinaryRetrievalBaselineRefCount: 2,
       sarCandidateRefCount: 4,
+      sarOnlyCandidateRefCount: 2,
       verifiedCitationRefCount: 1,
       multiHopHit: true,
     });
@@ -1154,6 +1155,7 @@ describe('SAR diagnostics and evaluation report', () => {
       queryCount: 1,
       ordinaryRetrievalBaselineRefCount: 2,
       sarCandidateRefCount: 4,
+      sarOnlyCandidateRefCount: 2,
       verifiedCitationRefCount: 1,
       sourcePackHandoffRefCount: 2,
       feedbackRecordCount: 2,
