@@ -950,7 +950,7 @@ describe('SAR diagnostics and evaluation report', () => {
       exportedAt: '2026-07-02T09:00:00.000Z',
       events: [
         {
-          stableId: 'sar:event:persisted-source-pack-baseline',
+          stableId: 'sar:event:persisted-baseline',
           eventType: 'resource-node',
           title: 'Persisted Source Pack baseline',
           safeSummary: 'Persisted ordinary retrieval baseline selected a source pack resource.',
@@ -1032,7 +1032,7 @@ describe('SAR diagnostics and evaluation report', () => {
       relations: [
         {
           stableId: 'relation-baseline',
-          eventId: 'sar:event:persisted-source-pack-baseline',
+          eventId: 'sar:event:persisted-baseline',
           entityId: 'sar:entity:persisted-goal',
           role: 'supports',
           confidence: 0.9,
@@ -1099,9 +1099,10 @@ describe('SAR diagnostics and evaluation report', () => {
             confidence: 0.91,
           }],
           selectedRefs: [
-            'source-pack:persisted-baseline',
+            'sar:event:persisted-baseline',
             'sar:event:persisted-citation',
-            'citation:persisted-arena-official',
+            'retrieval-chunk:persisted-direct',
+            'sar:entity:persisted-arena',
           ],
           rejectedRefs: [{ ref: 'sar:event:blocked-private', reason: 'privacy scope unavailable' }],
           limitations: ['persisted-trace-limited-sample'],
@@ -1143,16 +1144,18 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(report.querySet[0]).toMatchObject({
       id: 'sar:trace:sha256:persisted-live-eval',
       query: 'teacher-diagnostics · sar-live-evaluation · sha256:persist',
-      ordinaryRetrievalBaselineRefCount: 1,
-      sarCandidateRefCount: 3,
+      ordinaryRetrievalBaselineRefCount: 2,
+      sarCandidateRefCount: 4,
       verifiedCitationRefCount: 1,
       multiHopHit: true,
     });
+    expect(report.querySet[0]?.sourcePackHandoffRefCount).toBe(2);
     expect(report.metrics).toMatchObject({
       queryCount: 1,
-      ordinaryRetrievalBaselineRefCount: 1,
-      sarCandidateRefCount: 3,
+      ordinaryRetrievalBaselineRefCount: 2,
+      sarCandidateRefCount: 4,
       verifiedCitationRefCount: 1,
+      sourcePackHandoffRefCount: 2,
       feedbackRecordCount: 2,
     });
     expect(JSON.stringify(report)).not.toContain(fixture.query);

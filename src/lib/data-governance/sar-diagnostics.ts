@@ -497,7 +497,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
     const relations = input.persistenceExport.relations
       .filter((record) => eventIds.has(record.eventId) && entityIds.has(record.entityId))
       .map(persistedRelationToSarRelation);
-    const verifiedCitationRefs = persistedVerifiedCitationRefs(trace.selectedRefs, eventBySourceRef);
+    const verifiedCitationRefs = persistedVerifiedCitationRefs(trace.selectedRefs, eventById, eventBySourceRef);
     const ordinarySourcePackRefs = persistedOrdinaryBaselineRefs(trace.selectedRefs, eventById, eventBySourceRef);
     const result: SarRetrievalResult = {
       id: `sar:result:persisted:${trace.stableId}`,
@@ -514,7 +514,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
       entities,
       relations,
       citationTargetRefs: verifiedCitationRefs,
-      retrievalChunkRefs: trace.selectedRefs,
+      retrievalChunkRefs: ordinarySourcePackRefs,
       limitations: trace.limitations,
     };
 
@@ -522,7 +522,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
       id: trace.stableId,
       query: `${trace.queryRole} · ${trace.useCase} · ${shortPersistedQueryHash(trace.queryHash)}`,
       result,
-      sourcePackHandoffRefs: trace.handoffStatus === 'ready' ? trace.selectedRefs : [],
+      sourcePackHandoffRefs: trace.handoffStatus === 'ready' ? ordinarySourcePackRefs : [],
       verifiedCitationRefs,
       ordinarySourcePackRefs,
       sarAssistedRefs: trace.selectedRefs,
@@ -796,11 +796,14 @@ function persistedRelationToSarRelation(
 
 function persistedVerifiedCitationRefs(
   selectedRefs: readonly string[],
+  eventById: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
   eventBySourceRef: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
 ): string[] {
-  return uniqueSorted(selectedRefs.filter((ref) => (
-    isPersistedCitationRef(ref) || isPersistedCitationRef(eventBySourceRef.get(ref)?.sourceRef.id ?? '')
-  )));
+  return uniqueSorted(selectedRefs.flatMap((ref) => {
+    if (isPersistedCitationRef(ref)) return [ref];
+    const sourceRef = eventBySourceRef.get(ref)?.sourceRef.id ?? eventById.get(ref)?.sourceRef.id;
+    return sourceRef && isPersistedCitationRef(sourceRef) ? [sourceRef] : [];
+  }));
 }
 
 function persistedOrdinaryBaselineRefs(
@@ -808,13 +811,25 @@ function persistedOrdinaryBaselineRefs(
   eventById: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
   eventBySourceRef: ReadonlyMap<string, SarPersistenceExport['events'][number]>,
 ): string[] {
-  return uniqueSorted(selectedRefs.filter((ref) => {
+  return uniqueSorted(selectedRefs.flatMap((ref) => {
     const eventRecord = eventById.get(ref) ?? eventBySourceRef.get(ref);
-    return ref.toLowerCase().includes('source-pack')
-      || ref.toLowerCase().includes('ordinary')
-      || eventRecord?.eventType === 'resource-node'
-      || eventRecord?.sourceRef.owner === 'ResourceNode';
+    if (eventRecord) {
+      if (eventRecord.eventType === 'resource-node' || eventRecord.sourceRef.owner === 'ResourceNode') {
+        return [eventRecord.sourceRef.id];
+      }
+      return [];
+    }
+    if (isPersistedRetrievalRef(ref)) return [ref];
+    return [];
   }));
+}
+
+function isPersistedRetrievalRef(ref: string): boolean {
+  const normalized = ref.toLowerCase();
+  return normalized.includes('source-pack')
+    || normalized.includes('ordinary')
+    || normalized.startsWith('retrieval-chunk:')
+    || normalized.startsWith('chunk:');
 }
 
 function isPersistedCitationRef(ref: string): boolean {
