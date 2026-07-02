@@ -202,6 +202,7 @@ describe('SAR diagnostics admin panel', () => {
         verifiedCitationRefCount: 1,
         verifiedCitationRefs: ['citation:persisted-arena-official'],
         verifiedCitationRate: 0.5,
+        verifiedCitationEvidenceStatus: 'available',
         sourcePackHandoffRefCount: 2,
         sourcePackHandoffRefs: ['chunk:source-pack:frequency-margin', 'planning-unit:persisted-sar-candidate'],
         adoptedCandidateRefs: ['planning-unit:persisted-sar-candidate'],
@@ -218,6 +219,7 @@ describe('SAR diagnostics admin panel', () => {
         citationTargetRefCount: 2,
         verifiedCitationRefCount: 1,
         verifiedCitationRate: 0.5,
+        verifiedCitationEvidenceStatus: 'available',
         sourcePackHandoffRefCount: 2,
         privacyRejectionCount: 1,
         limitationCount: 2,
@@ -231,6 +233,7 @@ describe('SAR diagnostics admin panel', () => {
         citationTargetRefCount: 2,
         verifiedCitationRefCount: 1,
         verifiedCitationRate: 0.5,
+        verifiedCitationEvidenceStatus: 'available',
       },
       evaluationRecords: [
         {
@@ -292,5 +295,9 @@ describe('SAR diagnostics admin panel', () => {
     expect(html).not.toContain('private raw answer');
     expect(html).not.toContain('hiddenArenaEvaluationInternalsPayload');
     expect(html).not.toContain('private Konling memory');
+
+    report.liveEvaluation.metrics.verifiedCitationEvidenceStatus = 'unavailable';
+    const unavailableHtml = renderToStaticMarkup(createElement(SarDiagnosticsPanel, { report }));
+    expect(unavailableHtml).toContain('Unavailable');
   });
 });

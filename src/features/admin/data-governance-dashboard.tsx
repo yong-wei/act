@@ -131,7 +131,12 @@ export function SarDiagnosticsPanel({
   const liveEvaluationCards = liveEvaluation ? [
     ['Baseline refs', liveEvaluation.metrics.ordinaryRetrievalBaselineRefCount.toLocaleString()],
     ['SAR candidates', liveEvaluation.metrics.sarCandidateRefCount.toLocaleString()],
-    ['Verified citation rate', formatDiagnosticRate(liveEvaluation.metrics.verifiedCitationRate)],
+    [
+      'Verified citation rate',
+      liveEvaluation.metrics.verifiedCitationEvidenceStatus === 'unavailable'
+        ? 'Unavailable'
+        : formatDiagnosticRate(liveEvaluation.metrics.verifiedCitationRate),
+    ],
     ['Multi-hop hit rate', formatDiagnosticRate(liveEvaluation.metrics.multiHopHitRate)],
     ['Feedback records', liveEvaluation.metrics.feedbackRecordCount.toLocaleString()],
     ['Privacy rejections', liveEvaluation.metrics.privacyRejectionCount.toLocaleString()],

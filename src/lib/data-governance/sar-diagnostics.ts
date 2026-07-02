@@ -24,9 +24,12 @@ export type SarDiagnosticsTraceInput = {
   result: SarRetrievalResult;
   sourcePackHandoffRefs?: readonly string[];
   verifiedCitationRefs?: readonly string[];
+  verifiedCitationEvidenceStatus?: SarVerifiedCitationEvidenceStatus;
   ordinarySourcePackRefs?: readonly string[];
   sarAssistedRefs?: readonly string[];
 };
+
+export type SarVerifiedCitationEvidenceStatus = 'available' | 'unavailable';
 
 export type SarDiagnosticsTraceSummary = {
   id: string;
@@ -136,6 +139,7 @@ export type SarLiveEvaluationReport = {
     verifiedCitationRefCount: number;
     verifiedCitationRefs: string[];
     verifiedCitationRate: number;
+    verifiedCitationEvidenceStatus: SarVerifiedCitationEvidenceStatus;
     sourcePackHandoffRefCount: number;
     sourcePackHandoffRefs: string[];
     adoptedCandidateRefs: string[];
@@ -152,6 +156,7 @@ export type SarLiveEvaluationReport = {
     citationTargetRefCount: number;
     verifiedCitationRefCount: number;
     verifiedCitationRate: number;
+    verifiedCitationEvidenceStatus: SarVerifiedCitationEvidenceStatus;
     sourcePackHandoffRefCount: number;
     privacyRejectionCount: number;
     limitationCount: number;
@@ -165,6 +170,7 @@ export type SarLiveEvaluationReport = {
     citationTargetRefCount: number;
     verifiedCitationRefCount: number;
     verifiedCitationRate: number;
+    verifiedCitationEvidenceStatus: SarVerifiedCitationEvidenceStatus;
   };
   evaluationRecords: SarLiveEvaluationRecord[];
   limitations: string[];
@@ -377,6 +383,7 @@ export function buildSarLiveEvaluationReport(input: {
   evaluationRecords: readonly SarLiveEvaluationRecord[];
   arenaAuthority?: SarArenaAuthorityInput | null;
   limitations?: readonly string[];
+  verifiedCitationEvidenceStatus?: SarVerifiedCitationEvidenceStatus;
 }): SarLiveEvaluationReport {
   const querySet: SarLiveEvaluationReport['querySet'] = [];
   let ordinaryRetrievalBaselineRefCount = 0;
@@ -388,7 +395,11 @@ export function buildSarLiveEvaluationReport(input: {
   let privacyRejectionCount = 0;
   let limitationCount = 0;
   let multiHopHitCount = 0;
+  let verifiedCitationEvidenceUnavailable = input.verifiedCitationEvidenceStatus === 'unavailable';
   const liveTraceLimitations: string[] = [];
+  if (verifiedCitationEvidenceUnavailable) {
+    liveTraceLimitations.push('verified-citation-evidence-unavailable');
+  }
 
   for (const traceInput of input.traces) {
     const result = exportableSarResult(traceInput.result);
@@ -402,12 +413,17 @@ export function buildSarLiveEvaluationReport(input: {
       exportableDiagnosticRefs(traceInput.verifiedCitationRefs ?? [], traceInput.result),
       citationTargetRefs,
     );
+    const verifiedCitationEvidenceStatus = traceInput.verifiedCitationEvidenceStatus ?? 'available';
     const adoptedCandidateRefs = sarOnlyRefs.filter((ref) => sourcePackHandoffRefs.includes(ref));
     const traceLimitations = mergedDiagnosticLimitations(result);
     const tracePrivacyRejectionCount = countPrivacyRejections(result.trace);
     const multiHopHit = result.trace.expansionHops.length > 1 && sarRefs.length > 0;
     const nonExportableRefs = nonExportableDiagnosticRefs(traceInput.result);
     liveTraceLimitations.push(...traceLimitations);
+    if (verifiedCitationEvidenceStatus === 'unavailable') {
+      verifiedCitationEvidenceUnavailable = true;
+      liveTraceLimitations.push('verified-citation-evidence-unavailable');
+    }
 
     ordinaryRetrievalBaselineRefCount += ordinaryRefs.length;
     sarCandidateRefCount += sarRefs.length;
@@ -433,6 +449,7 @@ export function buildSarLiveEvaluationReport(input: {
       verifiedCitationRefCount: verifiedRefs.length,
       verifiedCitationRefs: redactRefList(verifiedRefs, sensitiveRefs),
       verifiedCitationRate: rate(verifiedRefs.length, citationTargetRefs.length),
+      verifiedCitationEvidenceStatus,
       sourcePackHandoffRefCount: sourcePackHandoffRefs.length,
       sourcePackHandoffRefs: redactRefList(sourcePackHandoffRefs, sensitiveRefs),
       adoptedCandidateRefs: redactRefList(adoptedCandidateRefs, sensitiveRefs),
@@ -464,6 +481,7 @@ export function buildSarLiveEvaluationReport(input: {
       citationTargetRefCount,
       verifiedCitationRefCount,
       verifiedCitationRate: rate(verifiedCitationRefCount, citationTargetRefCount),
+      verifiedCitationEvidenceStatus: verifiedCitationEvidenceUnavailable ? 'unavailable' : 'available',
       sourcePackHandoffRefCount,
       privacyRejectionCount,
       limitationCount,
@@ -477,6 +495,7 @@ export function buildSarLiveEvaluationReport(input: {
       citationTargetRefCount,
       verifiedCitationRefCount,
       verifiedCitationRate: rate(verifiedCitationRefCount, citationTargetRefCount),
+      verifiedCitationEvidenceStatus: verifiedCitationEvidenceUnavailable ? 'unavailable' : 'available',
     },
     evaluationRecords: input.evaluationRecords.map(serializeLiveEvaluationRecord),
     limitations,
@@ -570,6 +589,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
       result,
       sourcePackHandoffRefs: trace.handoffStatus === 'ready' ? sarAssistedRefs : [],
       verifiedCitationRefs,
+      verifiedCitationEvidenceStatus: 'unavailable',
       ordinarySourcePackRefs,
       sarAssistedRefs,
     };
@@ -587,6 +607,7 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
       ...missingTraceLimitations,
       `sar-persistence-exported-at:${input.persistenceExport.exportedAt}`,
     ],
+    verifiedCitationEvidenceStatus: 'unavailable',
   });
 }
 

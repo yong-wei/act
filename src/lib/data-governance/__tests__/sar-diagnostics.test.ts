@@ -780,6 +780,7 @@ describe('SAR diagnostics and evaluation report', () => {
       citationTargetRefCount: 2,
       verifiedCitationRefCount: 1,
       verifiedCitationRate: 0.5,
+      verifiedCitationEvidenceStatus: 'available',
       sourcePackHandoffRefCount: 2,
       multiHopHit: true,
     });
@@ -800,6 +801,7 @@ describe('SAR diagnostics and evaluation report', () => {
       citationTargetRefCount: 2,
       verifiedCitationRefCount: 1,
       verifiedCitationRate: 0.5,
+      verifiedCitationEvidenceStatus: 'available',
       sourcePackHandoffRefCount: 2,
       feedbackRecordCount: 2,
       multiHopHitRate: 1,
@@ -811,6 +813,7 @@ describe('SAR diagnostics and evaluation report', () => {
       citationTargetRefCount: 2,
       verifiedCitationRefCount: 1,
       verifiedCitationRate: 0.5,
+      verifiedCitationEvidenceStatus: 'available',
     });
     expect(report.evaluationRecords).toHaveLength(2);
     expect(report.privacyBoundary).toMatchObject({
@@ -1192,6 +1195,7 @@ describe('SAR diagnostics and evaluation report', () => {
       citationTargetRefCount: 2,
       verifiedCitationRefCount: 0,
       verifiedCitationRate: 0,
+      verifiedCitationEvidenceStatus: 'unavailable',
       multiHopHit: true,
     });
     expect(report.querySet[0]?.ordinaryRetrievalBaselineRefs).toEqual(['source-pack:persisted-baseline']);
@@ -1228,10 +1232,12 @@ describe('SAR diagnostics and evaluation report', () => {
       citationTargetRefCount: 2,
       verifiedCitationRefCount: 0,
       verifiedCitationRate: 0,
+      verifiedCitationEvidenceStatus: 'unavailable',
       sourcePackHandoffRefCount: 3,
       feedbackRecordCount: 2,
     });
     expect(report.limitations).toContain('persisted-trace-limited-sample');
+    expect(report.limitations).toContain('verified-citation-evidence-unavailable');
     expect(JSON.stringify(report)).not.toContain('sar-retrieval-index');
     expect(JSON.stringify(report)).not.toContain('non-evaluation-trace-should-not-export');
     const pendingCitationReport = buildSarLiveEvaluationReportFromPersistenceExport({
@@ -1249,9 +1255,26 @@ describe('SAR diagnostics and evaluation report', () => {
     expect(pendingCitationReport.querySet[0]).toMatchObject({
       verifiedCitationRefCount: 0,
       verifiedCitationRate: 0,
+      verifiedCitationEvidenceStatus: 'unavailable',
       sarCandidateRefCount: 3,
       sarOnlyCandidateRefCount: 3,
     });
+    const emptyTraceReport = buildSarLiveEvaluationReportFromPersistenceExport({
+      generatedAt: '2026-07-02T09:10:00.000Z',
+      persistenceExport: {
+        ...persistedExport,
+        queryTraces: [],
+      },
+      diagnostics: fixture.report,
+      evaluationRecords: [],
+    });
+    expect(emptyTraceReport.querySet).toHaveLength(0);
+    expect(emptyTraceReport.metrics.verifiedCitationEvidenceStatus).toBe('unavailable');
+    expect(emptyTraceReport.baselineComparison.verifiedCitationEvidenceStatus).toBe('unavailable');
+    expect(emptyTraceReport.limitations).toEqual(expect.arrayContaining([
+      'sar-live-evaluation-persisted-traces-missing',
+      'verified-citation-evidence-unavailable',
+    ]));
     expect(JSON.stringify(report)).not.toContain(fixture.query);
     expect(JSON.stringify(report)).not.toContain('control-correction-demo');
   });

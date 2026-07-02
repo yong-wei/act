@@ -600,6 +600,7 @@ describe('GET /api/admin/data-governance/status', () => {
         citationTargetRefCount: 0,
         verifiedCitationRefCount: 0,
         verifiedCitationRate: 0,
+        verifiedCitationEvidenceStatus: 'unavailable',
       },
       privacyBoundary: {
         restrictedRawContentExcluded: true,
@@ -622,6 +623,7 @@ describe('GET /api/admin/data-governance/status', () => {
     });
     expect(payload.sarDiagnostics.liveEvaluation.evaluationRecords).toHaveLength(2);
     expect(payload.sarDiagnostics.liveEvaluation.limitations).toContain('sar-live-evaluation-persisted-traces-missing');
+    expect(payload.sarDiagnostics.liveEvaluation.limitations).toContain('verified-citation-evidence-unavailable');
     expect(payload.sarRefreshHealth).toMatchObject({
       status: 'degraded',
       totals: {
