@@ -524,7 +524,7 @@ export function reviewSarSuggestedBinding(input: {
   const patchResult = applyTeacherResourceNodePatch({
     node: input.resourceNode,
     scope: input.scope,
-    patch: input.patch,
+    patch: mergeSarAcceptPatch(input.resourceNode, input.patch),
   });
   if (!patchResult.ok) {
     return {
@@ -567,6 +567,24 @@ export function reviewSarSuggestedBinding(input: {
         persistablePatch: patchResult.persistablePatch,
       },
     }),
+  };
+}
+
+function mergeSarAcceptPatch(
+  resourceNode: ResourceNode,
+  patch: TeacherResourceNodePatch,
+): TeacherResourceNodePatch {
+  const planningMetadata = patch.planningMetadata;
+  if (!isRecord(planningMetadata) || !Array.isArray(planningMetadata.knowledgeCoverage)) return patch;
+  return {
+    ...patch,
+    planningMetadata: {
+      ...planningMetadata,
+      knowledgeCoverage: uniqueSorted([
+        ...resourceNode.planningMetadata.knowledgeCoverage,
+        ...planningMetadata.knowledgeCoverage.filter(isString),
+      ]),
+    },
   };
 }
 

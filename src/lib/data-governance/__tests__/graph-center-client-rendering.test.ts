@@ -171,7 +171,7 @@ describe('graph center client surface', () => {
                 candidateRef: 'teaching-resource:owned-quiz',
                 candidateRefType: 'resource-node',
                 sourceRefs: ['owned-quiz'],
-                missingCoverageTypes: ['linked-resource'],
+                missingCoverageTypes: ['linked-resource', 'path-eligible-resource'],
                 provenance: {
                   source: 'graph-center-sar',
                   basisEventIds: ['sar:event:safe-1'],
@@ -182,7 +182,7 @@ describe('graph center client surface', () => {
                 },
               },
             },
-            suggestedForMissingCoverageTypes: ['linked-resource'],
+            suggestedForMissingCoverageTypes: ['linked-resource', 'path-eligible-resource'],
             rationale: {
               basisEventIds: ['sar:event:safe-1'],
               traceHopCount: 1,
@@ -199,7 +199,69 @@ describe('graph center client surface', () => {
     expect(html).toContain('data-graph-center-sar-review-action="reject"');
     expect(html).toContain('data-graph-center-sar-review-action="defer"');
     expect(html).toContain('data-graph-center-sar-review-action="invalidate"');
-    expect(html).not.toContain('data-graph-center-sar-review-action="accept"');
+    expect(html).toContain('data-graph-center-sar-review-action="accept"');
+  });
+
+  it('builds accepted resource-node SAR review requests with a governance patch', () => {
+    const basePayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+    });
+    const selectedNode = basePayload.selectedNode;
+    if (!selectedNode) throw new Error('selected node missing');
+    const candidate: GraphCenterSarResourceGapSuggestion = {
+      id: 'sar-gap:1',
+      ref: 'teaching-resource:owned-quiz',
+      refType: 'resource-node',
+      status: 'suggested',
+      draft: true,
+      review: {
+        state: 'suggested',
+        authoritative: false,
+        availableActions: ['accept', 'reject', 'defer', 'invalidate'],
+        auditPayload: {
+          candidateId: 'sar-gap:1',
+          candidateRef: 'teaching-resource:owned-quiz',
+          candidateRefType: 'resource-node',
+          sourceRefs: ['owned-quiz'],
+          missingCoverageTypes: ['linked-resource', 'path-eligible-resource'],
+          provenance: {
+            source: 'graph-center-sar',
+            basisEventIds: ['sar:event:safe-1'],
+          },
+          traceSummary: {
+            traceHopCount: 1,
+            limitations: [],
+          },
+        },
+      },
+      suggestedForMissingCoverageTypes: ['linked-resource', 'path-eligible-resource'],
+      rationale: {
+        basisEventIds: ['sar:event:safe-1'],
+        traceHopCount: 1,
+        reason: 'SAR associated this candidate with the selected graph node.',
+      },
+    };
+
+    const request = buildGraphCenterSarReviewRequest(selectedNode, candidate, 'accept');
+
+    expect(request).toMatchObject({
+      decision: 'accept',
+      resourceNodeId: 'teaching-resource:owned-quiz',
+      patch: {
+        planningMetadata: {
+          knowledgeCoverage: ['kn:autocontrol:simulation-validation'],
+          pathEligible: true,
+        },
+      },
+      candidate: {
+        candidate: {
+          resourceNodeId: 'teaching-resource:owned-quiz',
+          sourceRefs: ['owned-quiz'],
+        },
+      },
+    });
   });
 
   it('renders non-resource SAR draft review actions for teacher gap suggestions', () => {

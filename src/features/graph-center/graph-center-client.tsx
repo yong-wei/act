@@ -22,6 +22,12 @@ type GraphCenterSarReviewRequest = {
   decision: SarReviewDecision;
   rationale: string;
   resourceNodeId: string | null;
+  patch?: {
+    planningMetadata: {
+      knowledgeCoverage: string[];
+      pathEligible?: boolean;
+    };
+  };
   candidate: {
     id: string;
     target: {
@@ -421,9 +427,7 @@ function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterS
           {associated.resourceGapSuggestions.slice(0, 4).map((candidate) => {
             const key = `${candidate.refType}:${candidate.ref}`;
             const state = reviewStates[key];
-            const reviewableActions = candidate.review
-              ? candidate.review.availableActions.filter((action) => action !== 'accept')
-              : [];
+            const reviewableActions = candidate.review?.availableActions ?? [];
             return (
               <span
                 key={key}
@@ -474,12 +478,17 @@ export function buildGraphCenterSarReviewRequest(
   candidate: GraphCenterSarResourceGapSuggestion,
   decision: SarReviewDecision,
 ): GraphCenterSarReviewRequest | null {
-  if (!candidate.review || decision === 'accept') return null;
+  if (!candidate.review) return null;
   const resourceNodeId = candidate.refType === 'resource-node' ? candidate.ref : null;
+  const patch = decision === 'accept'
+    ? buildGraphCenterSarAcceptPatch(selectedNode, candidate)
+    : null;
+  if (decision === 'accept' && !patch) return null;
   return {
     decision,
     rationale: `Graph Center SAR ${decision}`,
     resourceNodeId,
+    ...(patch ? { patch } : {}),
     candidate: {
       id: candidate.review.auditPayload.candidateId,
       target: {
@@ -506,6 +515,21 @@ export function buildGraphCenterSarReviewRequest(
         limitations: candidate.review.auditPayload.traceSummary.limitations,
       },
       limitations: selectedNode.associatedEvidence?.limitations ?? [],
+    },
+  };
+}
+
+function buildGraphCenterSarAcceptPatch(
+  selectedNode: GraphCenterSelectedNodeDetail,
+  candidate: GraphCenterSarResourceGapSuggestion,
+): GraphCenterSarReviewRequest['patch'] | null {
+  if (candidate.refType !== 'resource-node') return null;
+  return {
+    planningMetadata: {
+      knowledgeCoverage: [selectedNode.node.id],
+      ...(candidate.review?.auditPayload.missingCoverageTypes.includes('path-eligible-resource')
+        ? { pathEligible: true }
+        : {}),
     },
   };
 }

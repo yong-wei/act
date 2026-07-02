@@ -646,7 +646,7 @@ describe('teacher ResourceNode management contracts', () => {
       resourceNode,
       patch: {
         planningMetadata: {
-          knowledgeCoverage: ['kn-bode', 'kn-frequency-response'],
+          knowledgeCoverage: ['kn-frequency-response'],
           pathEligible: true,
         },
       },
