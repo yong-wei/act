@@ -32,12 +32,12 @@ describe('teacher K/A/Q evidence trace payload', () => {
       domain: 'knowledge',
       selectedNodeId: 'kn:autocontrol:controller-correction',
       viewerRole: 'TEACHER',
-      classOverlay: {
-        classId: 'class-1',
-        viewerRole: 'teacher',
-        authorized: true,
-        learnerStates: [],
-      },
+	      classOverlay: {
+	        classId: 'class-1',
+	        viewerRole: 'teacher',
+	        authorized: true,
+	        learnerStates: classOverlayLearnerStates(),
+	      },
       sarAssociation: {
         enabled: true,
         classId: 'class-1',
@@ -77,12 +77,12 @@ describe('teacher K/A/Q evidence trace payload', () => {
       domain: 'knowledge',
       selectedNodeId: 'kn:autocontrol:controller-correction',
       viewerRole: 'TEACHER',
-      classOverlay: {
-        classId: 'class-1',
-        viewerRole: 'teacher',
-        authorized: true,
-        learnerStates: [],
-      },
+	      classOverlay: {
+	        classId: 'class-1',
+	        viewerRole: 'teacher',
+	        authorized: true,
+	        learnerStates: classOverlayLearnerStates(),
+	      },
       sarAssociation: {
         enabled: true,
         classId: 'class-1',
@@ -156,6 +156,73 @@ describe('teacher K/A/Q evidence trace payload', () => {
     expect(graphCenterPageSource).not.toContain('trustedScope: true');
   });
 });
+
+function classOverlayLearnerStates() {
+  return [1, 2, 3, 4, 5].map((index) => ({
+    userId: `learner-${index}`,
+    roleScope: {
+      role: 'student',
+      classId: 'class-1',
+      privacyScopes: ['student-visible'],
+    },
+    generatedAt: '2026-06-21T00:00:00.000Z',
+    authority: 'server-owned',
+    knowledgeMastery: {
+      coverage: 'available',
+      tags: {
+        'kn:autocontrol:controller-correction': {
+          posteriorMastery: 0.6 + index * 0.05,
+          confidence: 0.8,
+          evidenceCount: 3,
+          source: 'adaptive-assessment',
+          algorithmVersion: 'test',
+          lastUpdatedAt: '2026-06-20T00:00:00.000Z',
+          supportingEvidenceRefs: [],
+          sourceCoverage: {
+            supportingEvidenceCount: 3,
+            missingRequiredEvidenceTypes: [],
+            freshness: 'current',
+          },
+        },
+      },
+    },
+    masteryTraceability: {
+      knowledgeTargets: {
+        'kn:autocontrol:controller-correction': {
+          targetId: 'kn:autocontrol:controller-correction',
+          targetKind: 'knowledge',
+          masteryLevel: 0.6 + index * 0.05,
+          confidence: 0.8,
+          freshness: 'current',
+          supportingEvidenceRefs: [],
+          sourceCoverage: {
+            AdaptiveMasteryUpdate: 'available',
+            LearningFact: 'available',
+            ArenaSubmission: 'missing',
+            AgentToolRun: 'missing',
+            StudentEvidenceFeatureCache: 'available',
+          },
+          limitations: [],
+        },
+      },
+      capabilityTargets: {},
+      qualityTargets: {},
+      limitations: [],
+    },
+    pathContext: {
+      activeControlCorrectionPath: {
+        state: 'none',
+        pathId: null,
+        status: null,
+        currentNodeId: null,
+        terminalValidationState: null,
+        lowConfidenceMarkers: [],
+      },
+    },
+    recommendations: [],
+    limitations: [],
+  }));
+}
 
 function teacherVisibleChunk(input: {
   id: string;

@@ -484,12 +484,13 @@ export function buildGraphCenterPayload(input: GraphCenterPayloadInput = {}): Gr
     resourceRegistry,
     evidenceCorpus,
     limitations,
-    {
-      viewerRole: input.viewerRole,
-      learnerOverlay,
-      classOverlay,
-      sarAssociation: input.sarAssociation,
-    },
+	    {
+	      viewerRole: input.viewerRole,
+	      learnerOverlay,
+	      classOverlay,
+	      hasClassOverlayInput: Boolean(input.classOverlay),
+	      sarAssociation: input.sarAssociation,
+	    },
   );
 
   return {
@@ -583,12 +584,13 @@ function buildNodeDetails(
   resourceRegistry: ResourceNodeRegistry,
   evidenceCorpus: LearningEvidenceCorpusChunk[],
   limitations: GraphCenterLimitation[],
-  actionContext: {
-    viewerRole: GraphCenterViewerRole;
-    learnerOverlay: GraphCenterLearnerOverlay;
-    classOverlay: GraphCenterClassOverlay;
-    sarAssociation?: GraphCenterSarAssociationInput;
-  },
+	  actionContext: {
+	    viewerRole: GraphCenterViewerRole;
+	    learnerOverlay: GraphCenterLearnerOverlay;
+	    classOverlay: GraphCenterClassOverlay;
+	    hasClassOverlayInput: boolean;
+	    sarAssociation?: GraphCenterSarAssociationInput;
+	  },
 ): Record<string, GraphCenterSelectedNodeDetail> {
   return Object.fromEntries(nodes.map((node) => {
     const objectives = node.objectiveIds
@@ -614,9 +616,10 @@ function buildNodeDetails(
         viewerRole: actionContext.viewerRole,
         sarAssociation: actionContext.sarAssociation,
         authorizedScope: sarAuthorizedScope({
-          learnerOverlay: actionContext.learnerOverlay,
-          classOverlay: actionContext.classOverlay,
-          nodeId: node.id,
+	          learnerOverlay: actionContext.learnerOverlay,
+	          classOverlay: actionContext.classOverlay,
+	          hasClassOverlayInput: actionContext.hasClassOverlayInput,
+	          nodeId: node.id,
           requestedStudentId: actionContext.sarAssociation?.studentId ?? null,
           trustedClassId: actionContext.sarAssociation?.trustedScope
             ? actionContext.sarAssociation.classId ?? null
@@ -756,12 +759,16 @@ interface GraphCenterSarAuthorizedScope {
 function sarAuthorizedScope(input: {
   learnerOverlay: GraphCenterLearnerOverlay;
   classOverlay: GraphCenterClassOverlay;
-  nodeId: string;
-  requestedStudentId: string | null;
-  trustedClassId: string | null;
-}): GraphCenterSarAuthorizedScope {
+	  nodeId: string;
+	  requestedStudentId: string | null;
+	  trustedClassId: string | null;
+	  hasClassOverlayInput: boolean;
+	}): GraphCenterSarAuthorizedScope {
   const { learnerOverlay, classOverlay, requestedStudentId, trustedClassId } = input;
-  if (trustedClassId) {
+  if (
+    trustedClassId &&
+    canUseTrustedClassScope(classOverlay, input.nodeId, trustedClassId, input.hasClassOverlayInput)
+  ) {
     return { classId: trustedClassId, learnerId: requestedStudentId };
   }
   if (
@@ -785,6 +792,18 @@ function sarAuthorizedScope(input: {
 
 function canUseClassOverlayForSarScope(classOverlay: GraphCenterClassOverlay, nodeId: string): boolean {
   return classOverlay.status === 'available' && classOverlay.items[nodeId]?.suppressionReason === 'none';
+}
+
+function canUseTrustedClassScope(
+  classOverlay: GraphCenterClassOverlay,
+  nodeId: string,
+  trustedClassId: string,
+  hasClassOverlayInput: boolean,
+): boolean {
+  if (hasClassOverlayInput && classOverlay.classId !== trustedClassId) return false;
+  if (canUseClassOverlayForSarScope(classOverlay, nodeId)) return true;
+  if (hasClassOverlayInput) return false;
+  return !classOverlay.items[nodeId];
 }
 
 function canProjectEvidenceChunkToGraphCenterSar(input: {
