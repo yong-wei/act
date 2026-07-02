@@ -202,9 +202,7 @@ export function runSarProjectionRefresh(input: {
     generatedAt: now,
     status: aggregateStatus(sourceRecords),
     lastAttemptedAt: now,
-    lastSuccessfulAt: sourceRecords.some((record) => record.failureCount > 0)
-      ? latestSuccessfulAt(sourceRecords)
-      : now,
+    lastSuccessfulAt: latestSuccessfulAt(sourceRecords),
     totals: {
       sourceFamilyCount: new Set(sourceRecords.map((record) => record.family)).size,
       projectedEventCount: sourceRecords.reduce((total, record) => total + record.projectedEventCount, 0),

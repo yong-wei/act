@@ -21,6 +21,8 @@ describe('SAR projection refresh orchestration', () => {
 
     expect(first.writes).toHaveLength(1);
     expect(first.writes[0]).toMatchObject({ family: 'path-summary', persisted: true });
+    expect(first.health.lastSuccessfulAt).toBe(now);
+    expect(first.health.sources.find((source) => source.family === 'path-summary')?.lastSuccessfulAt).toBe(now);
     expect(first.health.totals).toMatchObject({
       sourceFamilyCount: 8,
       projectedEventCount: 5,
@@ -29,6 +31,39 @@ describe('SAR projection refresh orchestration', () => {
     });
     expect(second.health.totals).toEqual(first.health.totals);
     expect(Object.keys(second.repository.getSnapshot().events)).toHaveLength(5);
+  });
+
+  it('does not mark dry-run refreshes as newly successful', () => {
+    const now = '2026-07-02T08:00:00.000Z';
+    const previousSuccess = '2026-07-01T08:00:00.000Z';
+    const dryRun = runSarProjectionRefresh({
+      sources: buildRefreshSourcesWithOfficialArena(now).map((source) => (
+        source.family === 'path-summary'
+          ? { ...source, lastSuccessfulAt: previousSuccess }
+          : source
+      )),
+      now,
+      persist: false,
+    });
+
+    expect(dryRun.writes).toHaveLength(0);
+    expect(dryRun.health.totals.failureCount).toBe(0);
+    expect(dryRun.health.status).toBe('degraded');
+    expect(dryRun.health.sources.find((source) => source.family === 'path-summary')?.lastSuccessfulAt).toBe(previousSuccess);
+    expect(dryRun.health.lastSuccessfulAt).toBe(previousSuccess);
+  });
+
+  it('keeps dry-run last successful time empty when no source has succeeded before', () => {
+    const now = '2026-07-02T08:00:00.000Z';
+    const dryRun = runSarProjectionRefresh({
+      sources: buildRefreshSourcesWithOfficialArena(now),
+      now,
+      persist: false,
+    });
+
+    expect(dryRun.writes).toHaveLength(0);
+    expect(dryRun.health.totals.failureCount).toBe(0);
+    expect(dryRun.health.lastSuccessfulAt).toBeNull();
   });
 
   it('reports stale and failed source health with retry state', () => {
@@ -168,3 +203,32 @@ describe('SAR projection refresh orchestration', () => {
     });
   });
 });
+
+function buildRefreshSourcesWithOfficialArena(now: string): ReturnType<typeof buildControlCorrectionSarRefreshSources> {
+  return buildControlCorrectionSarRefreshSources(now).map((source) => (
+    source.family === 'arena-official'
+      ? {
+          ...source,
+          arenaAuthority: {
+            scoreSource: 'ArenaEvaluationRun',
+            validitySource: 'ArenaEvaluationRun',
+            rankingSource: 'ArenaSubmission',
+            attemptPolicySource: 'ArenaSubmission',
+            evaluationMetricsSource: 'ArenaEvaluationRun',
+            auxiliarySources: ['LearningFact', 'SARTrace', 'KAQWriteback'],
+            officialRecords: {
+              submissionCount: 1,
+              evaluationRunCount: 1,
+              latestSubmissionAt: '2026-07-02T07:55:00.000Z',
+              latestEvaluationCompletedAt: '2026-07-02T07:56:00.000Z',
+              scoreRefs: ['ArenaSubmission:submission-1:score:86'],
+              validityRefs: ['ArenaSubmission:submission-1:valid:true'],
+              rankingRefs: ['ArenaSubmission:task-1:score-rank'],
+              attemptPolicyRefs: ['ArenaSubmission:submission-1:attempt:attempt-1'],
+              evaluationMetricRefs: ['ArenaEvaluationRun:run-1:metrics:arena-protocol.v1'],
+            },
+          },
+        }
+      : source
+  ));
+}
