@@ -171,7 +171,13 @@ describe('SAR diagnostics admin panel', () => {
     'private Konling memory',
   ])('redacts forbidden visible demo fixture text: %s', (query) => {
     const report = reportWithPrivateTrace();
-    report.demoFixtureStatus = { ...report.demoFixtureStatus, query };
+    report.demoFixtureStatus = {
+      id: report.demoFixtureStatus?.id ?? 'control-correction-demo',
+      deterministic: report.demoFixtureStatus?.deterministic ?? true,
+      sourcePackHandoff: report.demoFixtureStatus?.sourcePackHandoff ?? true,
+      verifiedCitationOutcome: report.demoFixtureStatus?.verifiedCitationOutcome ?? 'available',
+      query,
+    };
     const html = renderToStaticMarkup(createElement(SarDiagnosticsPanel, { report }));
 
     expect(html).toContain('[redacted]');
@@ -186,12 +192,20 @@ describe('SAR diagnostics admin panel', () => {
         id: 'trace-safe',
         query: 'control-correction diagnosis',
         ordinaryRetrievalBaselineRefCount: 1,
+        ordinaryRetrievalBaselineRefs: ['chunk:source-pack:frequency-margin'],
         sarCandidateRefCount: 2,
+        sarCandidateRefs: ['chunk:source-pack:frequency-margin', 'planning-unit:persisted-sar-candidate'],
         sarOnlyCandidateRefCount: 1,
+        sarOnlyCandidateRefs: ['planning-unit:persisted-sar-candidate'],
         citationTargetRefCount: 2,
+        citationTargetRefs: ['citation-target:persisted-direct-candidate', 'citation:persisted-arena-official'],
         verifiedCitationRefCount: 1,
+        verifiedCitationRefs: ['citation:persisted-arena-official'],
         verifiedCitationRate: 0.5,
         sourcePackHandoffRefCount: 2,
+        sourcePackHandoffRefs: ['chunk:source-pack:frequency-margin', 'planning-unit:persisted-sar-candidate'],
+        adoptedCandidateRefs: ['planning-unit:persisted-sar-candidate'],
+        rejectedCandidateRefs: [{ ref: '[redacted]', reason: '[redacted]' }],
         multiHopHit: true,
         privacyRejectionCount: 1,
         limitationCount: 1,

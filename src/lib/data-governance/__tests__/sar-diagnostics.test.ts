@@ -783,6 +783,16 @@ describe('SAR diagnostics and evaluation report', () => {
       sourcePackHandoffRefCount: 2,
       multiHopHit: true,
     });
+    expect(report.querySet[0]?.ordinaryRetrievalBaselineRefs).toEqual(['chunk:source-pack:frequency-margin']);
+    expect(report.querySet[0]?.sarCandidateRefs).toEqual(expect.arrayContaining(fixture.result.retrievalChunkRefs));
+    expect(report.querySet[0]?.sarOnlyCandidateRefs).toEqual(expect.arrayContaining(
+      fixture.result.retrievalChunkRefs.filter((ref) => ref !== 'chunk:source-pack:frequency-margin'),
+    ));
+    expect(report.querySet[0]?.sourcePackHandoffRefs).toEqual(expect.arrayContaining(fixture.result.retrievalChunkRefs));
+    expect(report.querySet[0]?.adoptedCandidateRefs).toEqual(expect.arrayContaining(
+      fixture.result.retrievalChunkRefs.filter((ref) => ref !== 'chunk:source-pack:frequency-margin'),
+    ));
+    expect(report.querySet[0]?.rejectedCandidateRefs.length).toBeGreaterThan(0);
     expect(report.metrics).toMatchObject({
       queryCount: 1,
       ordinaryRetrievalBaselineRefCount: 1,
@@ -1119,6 +1129,30 @@ describe('SAR diagnostics and evaluation report', () => {
           writtenAt: '2026-07-02T08:59:00.000Z',
           updatedAt: '2026-07-02T08:59:00.000Z',
         },
+        {
+          stableId: 'sar:trace:sha256:persisted-index-trace',
+          queryRole: 'teacher-diagnostics',
+          useCase: 'sar-retrieval-index',
+          queryHash: 'sha256:index-query-hash',
+          scope: { scope: 'teacher', teacherIdHash: 'teacher-hash' },
+          retention: {
+            storedAt: '2026-07-02T08:58:00.000Z',
+            retainUntil: '2026-08-02T08:58:00.000Z',
+            minimizationPolicy: 'aggregate-after-retention',
+          },
+          exportEligibility: 'teacher-export',
+          handoffStatus: 'ready',
+          seedEntityIds: ['sar:entity:persisted-goal'],
+          expansionHops: [],
+          selectedRefs: ['sar:event:persisted-baseline'],
+          rejectedRefs: [],
+          limitations: ['non-evaluation-trace-should-not-export'],
+          versionRefs: ['sar-persistence.v1'],
+          minimized: false,
+          contentHash: 'index-trace-content-hash',
+          writtenAt: '2026-07-02T08:58:00.000Z',
+          updatedAt: '2026-07-02T08:58:00.000Z',
+        },
       ],
     };
 
@@ -1148,6 +1182,7 @@ describe('SAR diagnostics and evaluation report', () => {
       ],
     });
 
+    expect(report.querySet).toHaveLength(1);
     expect(report.querySet[0]).toMatchObject({
       id: 'sar:trace:sha256:persisted-live-eval',
       query: 'teacher-diagnostics · sar-live-evaluation · sha256:persist',
@@ -1158,6 +1193,31 @@ describe('SAR diagnostics and evaluation report', () => {
       verifiedCitationRefCount: 0,
       verifiedCitationRate: 0,
       multiHopHit: true,
+    });
+    expect(report.querySet[0]?.ordinaryRetrievalBaselineRefs).toEqual(['source-pack:persisted-baseline']);
+    expect(report.querySet[0]?.sarCandidateRefs).toEqual(expect.arrayContaining([
+      'citation-target:persisted-direct-candidate',
+      'citation:persisted-arena-official',
+      'planning-unit:persisted-sar-candidate',
+    ]));
+    expect(report.querySet[0]?.sarOnlyCandidateRefs).toEqual(expect.arrayContaining([
+      'citation-target:persisted-direct-candidate',
+      'citation:persisted-arena-official',
+      'planning-unit:persisted-sar-candidate',
+    ]));
+    expect(report.querySet[0]?.sourcePackHandoffRefs).toEqual(expect.arrayContaining([
+      'citation-target:persisted-direct-candidate',
+      'citation:persisted-arena-official',
+      'planning-unit:persisted-sar-candidate',
+    ]));
+    expect(report.querySet[0]?.adoptedCandidateRefs).toEqual(expect.arrayContaining([
+      'citation-target:persisted-direct-candidate',
+      'citation:persisted-arena-official',
+      'planning-unit:persisted-sar-candidate',
+    ]));
+    expect(report.querySet[0]?.rejectedCandidateRefs).toContainEqual({
+      ref: '[redacted]',
+      reason: '[redacted]',
     });
     expect(report.querySet[0]?.sourcePackHandoffRefCount).toBe(3);
     expect(report.metrics).toMatchObject({
@@ -1172,6 +1232,8 @@ describe('SAR diagnostics and evaluation report', () => {
       feedbackRecordCount: 2,
     });
     expect(report.limitations).toContain('persisted-trace-limited-sample');
+    expect(JSON.stringify(report)).not.toContain('sar-retrieval-index');
+    expect(JSON.stringify(report)).not.toContain('non-evaluation-trace-should-not-export');
     const pendingCitationReport = buildSarLiveEvaluationReportFromPersistenceExport({
       generatedAt: '2026-07-02T09:05:00.000Z',
       persistenceExport: {

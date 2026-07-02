@@ -126,12 +126,20 @@ export type SarLiveEvaluationReport = {
     id: string;
     query: string;
     ordinaryRetrievalBaselineRefCount: number;
+    ordinaryRetrievalBaselineRefs: string[];
     sarCandidateRefCount: number;
+    sarCandidateRefs: string[];
     sarOnlyCandidateRefCount: number;
+    sarOnlyCandidateRefs: string[];
     citationTargetRefCount: number;
+    citationTargetRefs: string[];
     verifiedCitationRefCount: number;
+    verifiedCitationRefs: string[];
     verifiedCitationRate: number;
     sourcePackHandoffRefCount: number;
+    sourcePackHandoffRefs: string[];
+    adoptedCandidateRefs: string[];
+    rejectedCandidateRefs: Array<{ ref: string; reason: string }>;
     multiHopHit: boolean;
     privacyRejectionCount: number;
     limitationCount: number;
@@ -394,9 +402,11 @@ export function buildSarLiveEvaluationReport(input: {
       exportableDiagnosticRefs(traceInput.verifiedCitationRefs ?? [], traceInput.result),
       citationTargetRefs,
     );
+    const adoptedCandidateRefs = sarOnlyRefs.filter((ref) => sourcePackHandoffRefs.includes(ref));
     const traceLimitations = mergedDiagnosticLimitations(result);
     const tracePrivacyRejectionCount = countPrivacyRejections(result.trace);
     const multiHopHit = result.trace.expansionHops.length > 1 && sarRefs.length > 0;
+    const nonExportableRefs = nonExportableDiagnosticRefs(traceInput.result);
     liveTraceLimitations.push(...traceLimitations);
 
     ordinaryRetrievalBaselineRefCount += ordinaryRefs.length;
@@ -413,12 +423,22 @@ export function buildSarLiveEvaluationReport(input: {
       id: redactSensitiveDiagnosticRef(traceInput.id, sensitiveRefs),
       query: redactSensitiveDiagnosticText(traceInput.query),
       ordinaryRetrievalBaselineRefCount: ordinaryRefs.length,
+      ordinaryRetrievalBaselineRefs: redactRefList(ordinaryRefs, sensitiveRefs),
       sarCandidateRefCount: sarRefs.length,
+      sarCandidateRefs: redactRefList(sarRefs, sensitiveRefs),
       sarOnlyCandidateRefCount: sarOnlyRefs.length,
+      sarOnlyCandidateRefs: redactRefList(sarOnlyRefs, sensitiveRefs),
       citationTargetRefCount: citationTargetRefs.length,
+      citationTargetRefs: redactRefList(citationTargetRefs, sensitiveRefs),
       verifiedCitationRefCount: verifiedRefs.length,
+      verifiedCitationRefs: redactRefList(verifiedRefs, sensitiveRefs),
       verifiedCitationRate: rate(verifiedRefs.length, citationTargetRefs.length),
       sourcePackHandoffRefCount: sourcePackHandoffRefs.length,
+      sourcePackHandoffRefs: redactRefList(sourcePackHandoffRefs, sensitiveRefs),
+      adoptedCandidateRefs: redactRefList(adoptedCandidateRefs, sensitiveRefs),
+      rejectedCandidateRefs: result.trace.rejectedRefs.map((item) => (
+        serializeRejectedRef(item, traceInput.result, nonExportableRefs, sensitiveRefs)
+      )),
       multiHopHit,
       privacyRejectionCount: tracePrivacyRejectionCount,
       limitationCount: traceLimitations.length,
@@ -487,7 +507,10 @@ export function buildSarLiveEvaluationReportFromPersistenceExport(input: {
   const eventById = new Map(input.persistenceExport.events.map((record) => [record.stableId, record]));
   const eventBySourceRef = new Map(input.persistenceExport.events.map((record) => [record.sourceRef.id, record]));
   const entityById = new Map(input.persistenceExport.entities.map((record) => [record.stableId, record]));
-  const traces = input.persistenceExport.queryTraces.map((trace): SarDiagnosticsTraceInput => {
+  const evaluationTraces = input.persistenceExport.queryTraces.filter((trace) =>
+    trace.useCase === 'sar-live-evaluation'
+  );
+  const traces = evaluationTraces.map((trace): SarDiagnosticsTraceInput => {
     const eventIds = new Set<string>();
     const entityIds = new Set<string>();
     for (const ref of trace.selectedRefs) {
