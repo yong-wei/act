@@ -262,6 +262,40 @@ describe('Konling verified citation presentation', () => {
     ]);
   });
 
+  it('deduplicates source-pack entries by governed citation target before item id', () => {
+    const presentation = normalizeKonlingCitationPresentation({
+      konlingCitationGuard: {
+        status: 'verified',
+        citations: [
+          {
+            id: 'source-pack-item-a',
+            citationTargetId: 'citation-target:time-constant',
+            sourceType: 'content',
+            displayTitle: '时间常数教材片段',
+            href: '/course-runtime/resources/textbooks/control/ch02.md#time-constant',
+            confidence: 'high',
+            evidenceBasis: 'source-pack',
+          },
+          {
+            id: 'source-pack-item-b',
+            citationTargetId: 'citation-target:time-constant',
+            sourceType: 'content',
+            displayTitle: '时间常数教材片段',
+            href: '/course-runtime/resources/textbooks/control/ch02.md#time-constant',
+            confidence: 'high',
+            evidenceBasis: 'source-pack',
+          },
+        ],
+      },
+    }) as any;
+
+    expect(presentation.items).toHaveLength(1);
+    expect(presentation.items[0]).toMatchObject({
+      key: 'content:citation-target:time-constant',
+      displayIndex: 1,
+    });
+  });
+
   it('renders a missing verified citation state separately from diagnostics', () => {
     const html = renderToStaticMarkup(
       React.createElement(KonlingCitationPanel, {

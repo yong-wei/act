@@ -187,14 +187,14 @@ function normalizeSourceType(value: unknown) {
 
 function buildCitationKey(sourceType: string, citation: CitationLike, href: string | null) {
   const identity = firstString([
-    citation.key,
-    citation.id,
     contentIdentity(citation),
     knowledgeIdentity(citation),
     textbookIdentity(citation),
     pathIdentity(citation),
     learnerStateIdentity(citation),
     citation.citationChip?.chunkId,
+    citation.key,
+    citation.id,
     href,
     `${citation.title ?? citation.displayTitle ?? 'untitled'}:${citation.evidenceBasis ?? 'unknown'}`,
   ]) ?? 'unknown';
