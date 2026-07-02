@@ -680,6 +680,9 @@ function buildGraphCenterAssociatedEvidence(input: {
 
   const linkedResourceIdSet = new Set(input.resourceCoverage.linkedResourceIds);
   const pathEligibleResourceIdSet = new Set(input.resourceCoverage.pathEligibleResourceIds);
+  const persistableSarReviewSourceRefSet = new Set(input.resourceRegistry.nodes
+    .filter((resource) => resource.sourceKind === 'teaching_resource')
+    .map((resource) => resource.sourceRef));
   const coverageRefSet = new Set([input.node.id, ...coverageRefs]);
   const graphProjection = projectKaqGraphNodeToSar({
     node: input.node,
@@ -738,6 +741,7 @@ function buildGraphCenterAssociatedEvidence(input: {
     missingCoverageTypes: input.resourceCoverage.missingCoverageTypes,
     linkedResourceIdSet,
     pathEligibleResourceIdSet,
+    persistableSarReviewSourceRefSet,
     reviewActionsAllowed: input.viewerRole === 'TEACHER' || input.viewerRole === 'ADMIN',
   });
   return {
@@ -937,6 +941,7 @@ function buildSarResourceGapSuggestions(input: {
   missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
   linkedResourceIdSet: ReadonlySet<string>;
   pathEligibleResourceIdSet: ReadonlySet<string>;
+  persistableSarReviewSourceRefSet: ReadonlySet<string>;
   reviewActionsAllowed: boolean;
 }): GraphCenterSarResourceGapSuggestion[] {
   if (input.missingCoverageTypes.length === 0) return [];
@@ -959,7 +964,7 @@ function buildSarResourceGapSuggestions(input: {
       expansion: visibleExpansion,
       ref,
       refType,
-    });
+    }).filter((sourceRef) => input.persistableSarReviewSourceRefSet.has(sourceRef));
     const reviewActions = buildSarReviewAvailableActions(refType);
     return {
       id,

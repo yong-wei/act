@@ -17,11 +17,7 @@ import {
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 import { textbookSearchDocumentsToLearningEvidenceCorpus } from '../graph-center-evidence';
 import { teachingResourceWhereForGraphCenter } from '../graph-center-source-scope';
-import {
-  filterTeacherResourceNodes,
-  reviewSarSuggestedBinding,
-} from '../../teacher-resource-node-management';
-import type { TeacherResourceNodeScope } from '../../teacher-resource-node-management';
+import { filterTeacherResourceNodes } from '../../teacher-resource-node-management';
 import { buildResourceNodeRegistry } from '../../resource-node-registry';
 import type { TextbookRuntimeSearchDocument } from '../../textbook-runtime-resources';
 
@@ -413,28 +409,6 @@ describe('graph center payload service', () => {
         refType: 'retrieval-chunk',
         status: 'suggested',
         draft: true,
-        review: expect.objectContaining({
-          state: 'suggested',
-          authoritative: false,
-          availableActions: ['reject', 'defer', 'invalidate'],
-          auditPayload: expect.objectContaining({
-            candidateRef: 'chunk-sar-simulation-gap',
-            candidateRefType: 'retrieval-chunk',
-            sourceRefs: expect.arrayContaining([
-              'external:sar-simulation-gap',
-            ]),
-            missingCoverageTypes: expect.arrayContaining([
-              'linked-resource',
-              'path-eligible-resource',
-            ]),
-            provenance: expect.objectContaining({
-              source: 'graph-center-sar',
-            }),
-            traceSummary: expect.objectContaining({
-              traceHopCount: expect.any(Number),
-            }),
-          }),
-        }),
         suggestedForMissingCoverageTypes: expect.arrayContaining([
           'linked-resource',
           'path-eligible-resource',
@@ -450,107 +424,13 @@ describe('graph center payload service', () => {
     const semanticResourceNodeSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
       suggestion.ref === 'semantic-simulation-gap' && suggestion.refType === 'resource-node'
     );
-    expect(resourceNodeSuggestion?.review?.auditPayload.sourceRefs).toEqual([
-      'external:sar-simulation-gap',
-    ]);
-    expect(semanticResourceNodeSuggestion?.review).toMatchObject({
-      availableActions: ['accept', 'reject', 'defer', 'invalidate'],
-      auditPayload: expect.objectContaining({
-        candidateRef: 'semantic-simulation-gap',
-        candidateRefType: 'resource-node',
-        sourceRefs: ['resource:semantic-simulation-gap'],
-      }),
-    });
+    expect(retrievalChunkSuggestion).not.toHaveProperty('review');
+    expect(resourceNodeSuggestion).not.toHaveProperty('review');
+    expect(semanticResourceNodeSuggestion).not.toHaveProperty('review');
     const reviewSourceRefs = associated?.resourceGapSuggestions.flatMap((suggestion) =>
       suggestion.review?.auditPayload.sourceRefs ?? []
     ) ?? [];
-    expect(reviewSourceRefs).toContain('resource:kn-bode');
-    expect(reviewSourceRefs).toContain('textbook-section:kn-bode');
-    expect(reviewSourceRefs).not.toContain('kn-bode');
-    const reviewPayload = retrievalChunkSuggestion?.review?.auditPayload;
-    expect(reviewPayload?.sourceRefs.some((ref) => ref.startsWith('sar:event:'))).toBe(false);
-    expect(reviewPayload?.sourceRefs).not.toContain('chunk-sar-simulation-gap');
-    expect(reviewPayload?.sourceRefs).not.toContain('kn:autocontrol:simulation-validation');
-    expect(reviewPayload?.sourceRefs).not.toContain('class-1');
-    expect(reviewPayload?.sourceRefs.length).toBeGreaterThan(0);
-    const teacherReviewScope: TeacherResourceNodeScope = {
-      role: 'TEACHER',
-      teacherId: 'teacher-1',
-      editableSourceRefs: new Set(),
-      readableSourceRefs: new Set(reviewPayload?.sourceRefs ?? []),
-    };
-    const reviewResult = reviewSarSuggestedBinding({
-      candidate: {
-        id: reviewPayload?.candidateId ?? 'missing',
-        target: {
-          graphNodeId: 'kn:autocontrol:simulation-validation',
-          objectiveId: null,
-        },
-        candidate: {
-          ref: reviewPayload?.candidateRef ?? 'missing',
-          refType: reviewPayload?.candidateRefType ?? 'retrieval-chunk',
-          sourceRefs: reviewPayload?.sourceRefs ?? [],
-        },
-        missingCoverageTypes: reviewPayload?.missingCoverageTypes ?? [],
-        provenance: {
-          source: reviewPayload?.provenance.source ?? 'graph-center-sar',
-          basisEventIds: reviewPayload?.provenance.basisEventIds ?? [],
-          traceId: null,
-        },
-        traceSummary: {
-          seedEntityIds: associated?.traceSummary.seedEntityIds ?? [],
-          expansionHopCount: reviewPayload?.traceSummary.traceHopCount ?? 0,
-          selectedRefCount: associated?.traceSummary.selectedRefCount ?? 0,
-          rejectedRefCount: associated?.traceSummary.rejectedRefCount ?? 0,
-          limitations: reviewPayload?.traceSummary.limitations ?? [],
-        },
-        limitations: reviewPayload?.traceSummary.limitations ?? [],
-      },
-      scope: teacherReviewScope,
-      decision: 'reject',
-      rationale: '教师拒绝该 SAR 候选。',
-      reviewedAt: '2026-07-02T12:00:00.000Z',
-    });
-    expect(reviewResult).toMatchObject({ ok: true, status: 200, state: 'rejected' });
-    const resourceNodeReviewPayload = resourceNodeSuggestion?.review?.auditPayload;
-    const resourceNodeRejectResult = reviewSarSuggestedBinding({
-      candidate: {
-        id: resourceNodeReviewPayload?.candidateId ?? 'missing',
-        target: {
-          graphNodeId: 'kn:autocontrol:simulation-validation',
-          objectiveId: null,
-        },
-        candidate: {
-          ref: resourceNodeReviewPayload?.candidateRef ?? 'missing',
-          refType: resourceNodeReviewPayload?.candidateRefType ?? 'resource-node',
-          sourceRefs: resourceNodeReviewPayload?.sourceRefs ?? [],
-        },
-        missingCoverageTypes: resourceNodeReviewPayload?.missingCoverageTypes ?? [],
-        provenance: {
-          source: resourceNodeReviewPayload?.provenance.source ?? 'graph-center-sar',
-          basisEventIds: resourceNodeReviewPayload?.provenance.basisEventIds ?? [],
-          traceId: null,
-        },
-        traceSummary: {
-          seedEntityIds: associated?.traceSummary.seedEntityIds ?? [],
-          expansionHopCount: resourceNodeReviewPayload?.traceSummary.traceHopCount ?? 0,
-          selectedRefCount: associated?.traceSummary.selectedRefCount ?? 0,
-          rejectedRefCount: associated?.traceSummary.rejectedRefCount ?? 0,
-          limitations: resourceNodeReviewPayload?.traceSummary.limitations ?? [],
-        },
-        limitations: resourceNodeReviewPayload?.traceSummary.limitations ?? [],
-      },
-      scope: {
-        role: 'TEACHER',
-        teacherId: 'teacher-1',
-        editableSourceRefs: new Set(),
-        readableSourceRefs: new Set(resourceNodeReviewPayload?.sourceRefs ?? []),
-      },
-      decision: 'reject',
-      rationale: '教师拒绝该 ResourceNode 候选。',
-      reviewedAt: '2026-07-02T12:05:00.000Z',
-    });
-    expect(resourceNodeRejectResult).toMatchObject({ ok: true, status: 200, state: 'rejected' });
+    expect(reviewSourceRefs).toEqual([]);
     expect(associated?.resourceGapSuggestions[0]?.rationale.reason).toContain('ResourceNode governance review');
   });
 
