@@ -480,6 +480,7 @@ describe('GET /api/admin/data-governance/status', () => {
       limitations: [
         'arena-auxiliary-evidence-context-only',
         'control-correction-demo-fixture-projection',
+        'source-materialization-future',
         'source-rows-excluded',
       ],
     });

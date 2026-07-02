@@ -232,6 +232,55 @@ describe('SAR projection refresh orchestration', () => {
       auxiliarySources: ['KAQWriteback', 'LearningFact', 'SARTrace'],
     });
   });
+
+  it('keeps Arena coverage limitations when adding auxiliary context warnings', () => {
+    const refresh = runSarProjectionRefresh({
+      now: '2026-07-02T08:00:00.000Z',
+      sources: buildControlCorrectionSarRefreshSources('2026-07-02T08:00:00.000Z', {
+        coverageSources: [{
+          sourceId: 'ArenaSubmission',
+          totalRows: 3,
+          eligibleRows: 1,
+          excludedRows: 1,
+          unsupportedRows: 0,
+          lastObservedAt: '2026-07-02T07:55:00.000Z',
+          materializationReadiness: 'ready',
+          readinessGapCounts: { demoRowsExcluded: 1 },
+        }],
+        arenaAuthority: {
+          scoreSource: 'ArenaEvaluationRun',
+          validitySource: 'ArenaEvaluationRun',
+          rankingSource: 'ArenaSubmission',
+          attemptPolicySource: 'ArenaSubmission',
+          evaluationMetricsSource: 'ArenaEvaluationRun',
+          auxiliarySources: ['LearningFact', 'SARTrace', 'KAQWriteback'],
+          officialRecords: {
+            submissionCount: 1,
+            evaluationRunCount: 1,
+            latestSubmissionAt: '2026-07-02T07:55:00.000Z',
+            latestEvaluationCompletedAt: '2026-07-02T07:56:00.000Z',
+            scoreRefs: ['ArenaSubmission:submission-1:score:86'],
+            validityRefs: ['ArenaSubmission:submission-1:valid:true'],
+            rankingRefs: ['ArenaSubmission:task-1:score-rank'],
+            attemptPolicyRefs: ['ArenaSubmission:submission-1:attempt:attempt-1'],
+            evaluationMetricRefs: ['ArenaEvaluationRun:run-1:metrics:arena-protocol.v1'],
+          },
+        },
+      }),
+    });
+    const arena = refresh.health.sources.find((source) => source.family === 'arena-official');
+
+    expect(arena?.limitations).toEqual([
+      'arena-auxiliary-evidence-context-only',
+      'readiness-gap:demoRowsExcluded',
+      'source-rows-excluded',
+    ]);
+    expect(refresh.health.limitations).toEqual(expect.arrayContaining([
+      'arena-auxiliary-evidence-context-only',
+      'readiness-gap:demoRowsExcluded',
+      'source-rows-excluded',
+    ]));
+  });
 });
 
 function buildRefreshSourcesWithOfficialArena(now: string): ReturnType<typeof buildControlCorrectionSarRefreshSources> {

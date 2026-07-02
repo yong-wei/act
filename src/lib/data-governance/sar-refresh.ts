@@ -268,7 +268,10 @@ export function buildControlCorrectionSarRefreshSources(
         evaluationMetricsSource: 'ArenaEvaluationRun',
         auxiliarySources: ['LearningFact', 'SARTrace', 'KAQWriteback'],
       },
-      limitations: ['arena-auxiliary-evidence-context-only'],
+      limitations: uniqueSorted([
+        ...(arenaCoverage?.limitations ?? []),
+        'arena-auxiliary-evidence-context-only',
+      ]),
     },
     {
       ...source('path-summary', generatedAt, coverageByFamily.get('path-summary')),
