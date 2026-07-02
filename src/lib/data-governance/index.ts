@@ -51,3 +51,4 @@ export * from './structured-associative-retrieval-types';
 export * from './structured-associative-retrieval';
 export * from './sar-association-expansion';
 export * from './sar-persistence';
+export * from './sar-refresh';

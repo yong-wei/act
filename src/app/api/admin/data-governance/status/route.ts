@@ -25,6 +25,12 @@ import {
 } from '@/lib/data-governance/evidence-source-catalog';
 import { getStudentEvidenceFeatureCacheAdminSummary } from '@/lib/data-governance/student-evidence-feature-cache';
 import { buildControlCorrectionSarDemoFixture } from '@/lib/data-governance/sar-diagnostics';
+import { createSarPersistenceRepository } from '@/lib/data-governance/sar-persistence';
+import {
+  buildControlCorrectionSarRefreshSources,
+  runSarProjectionRefresh,
+  type SarArenaAuthorityInput,
+} from '@/lib/data-governance/sar-refresh';
 import { parseSessionGovernanceSummary } from '@/lib/classroom-session-statistics';
 import type {
   GovernanceActionAuditRecord,
@@ -536,6 +542,65 @@ async function collectEvidenceSourceCoverageReport(): Promise<EvidenceSourceCove
   return buildEvidenceSourceCoverageReport({ rowsBySource });
 }
 
+async function collectSarArenaOfficialAuthority(): Promise<SarArenaAuthorityInput> {
+  const [submissions, evaluationRuns] = await Promise.all([
+    prisma.arenaSubmission.findMany({
+      orderBy: { submittedAt: 'desc' },
+      take: SOURCE_COVERAGE_ROW_LIMIT,
+      select: {
+        id: true,
+        taskId: true,
+        score: true,
+        valid: true,
+        submissionAttemptKey: true,
+        submittedAt: true,
+        evaluationRunId: true,
+      },
+    }),
+    prisma.arenaEvaluationRun.findMany({
+      orderBy: { completedAt: 'desc' },
+      take: SOURCE_COVERAGE_ROW_LIMIT,
+      select: {
+        id: true,
+        taskId: true,
+        metrics: true,
+        protocolVersion: true,
+        completedAt: true,
+      },
+    }),
+  ]);
+  const evaluationRunIds = new Set(evaluationRuns.map((run) => run.id));
+  const officialSubmissions = submissions.filter((submission) => (
+    evaluationRunIds.has(submission.evaluationRunId)
+  ));
+  const latestEvaluationCompletedAt = evaluationRuns
+    .map((run) => run.completedAt.toISOString())
+    .sort()
+    .at(-1) ?? null;
+
+  return {
+    scoreSource: 'ArenaSubmission',
+    validitySource: 'ArenaSubmission',
+    rankingSource: 'ArenaSubmission',
+    attemptPolicySource: 'ArenaSubmission',
+    evaluationMetricsSource: 'ArenaEvaluationRun',
+    auxiliarySources: ['LearningFact', 'SARTrace', 'KAQWriteback'],
+    officialRecords: {
+      submissionCount: officialSubmissions.length,
+      evaluationRunCount: evaluationRuns.length,
+      latestSubmissionAt: officialSubmissions[0]?.submittedAt.toISOString() ?? null,
+      latestEvaluationCompletedAt,
+      scoreRefs: officialSubmissions.map((submission) => `ArenaSubmission:${submission.id}:score:${submission.score}`),
+      validityRefs: officialSubmissions.map((submission) => `ArenaSubmission:${submission.id}:valid:${submission.valid}`),
+      rankingRefs: officialSubmissions.map((submission) => `ArenaSubmission:${submission.taskId}:score-rank`),
+      attemptPolicyRefs: officialSubmissions.map((submission) => (
+        `ArenaSubmission:${submission.id}:attempt:${submission.submissionAttemptKey ?? 'submission-order'}`
+      )),
+      evaluationMetricRefs: evaluationRuns.map((run) => `ArenaEvaluationRun:${run.id}:metrics:${run.protocolVersion}`),
+    },
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -617,6 +682,7 @@ export async function GET(request: NextRequest) {
       featureCache,
       recentSessionQualityReports,
       sourceCoverageReport,
+      sarArenaAuthority,
     ] = await Promise.all([
       prisma.studentCompetencySnapshot.count(),
       prisma.classCompetencySnapshot.count(),
@@ -692,6 +758,7 @@ export async function GET(request: NextRequest) {
         },
       }),
       collectEvidenceSourceCoverageReport(),
+      collectSarArenaOfficialAuthority(),
     ]);
     const targetRiskFlag = requestedRiskId && !recentRiskFlags.some((risk) => risk.id === requestedRiskId)
       ? await prisma.studentRiskFlag.findUnique({
@@ -781,6 +848,20 @@ export async function GET(request: NextRequest) {
 
     const completedAt = new Date().toISOString();
     const sarDiagnostics = buildControlCorrectionSarDemoFixture(completedAt).report;
+    const sarPersistenceFilePath = process.env.SAR_PERSISTENCE_FILE_PATH?.trim() || undefined;
+    const sarRefresh = runSarProjectionRefresh({
+      repository: createSarPersistenceRepository({
+        filePath: shouldRecordRefresh ? sarPersistenceFilePath : undefined,
+        now: () => completedAt,
+      }),
+      sources: buildControlCorrectionSarRefreshSources(completedAt, {
+        coverageSources: sourceCoverageReport.sources,
+        arenaAuthority: sarArenaAuthority,
+      }),
+      now: completedAt,
+      persist: shouldRecordRefresh,
+    });
+    const sarRefreshHealth = sarRefresh.health;
     const operationLedger = shouldRecordRefresh
       ? buildAdminOperationLedgerEntry({
           kind: 'admin-governance-refresh',
@@ -802,13 +883,19 @@ export async function GET(request: NextRequest) {
             available: false,
             rationale: '数据治理刷新只读取状态，不修改业务数据，无需回滚。',
           },
-          auditSummary: `数据治理状态已刷新：activeRiskFlags=${riskFlagCount}，learningFacts=${learningFactCount}。`,
+          auditSummary: `数据治理状态已刷新：activeRiskFlags=${riskFlagCount}，learningFacts=${learningFactCount}，sarRefresh=${sarRefreshHealth.status}，sarStaleSources=${sarRefreshHealth.totals.staleSourceCount}，sarFailures=${sarRefreshHealth.totals.failureCount}。`,
           recoveryState: {
             status: 'available',
             action: '复核治理风险或导出风险文件',
           },
         })
       : null;
+    if (operationLedger) {
+      sarRefreshHealth.operationEvidence = {
+        operationId: operationLedger.operationId,
+        idempotencyKey: operationLedger.idempotencyKey,
+      };
+    }
     if (operationLedger) {
       await persistAdminOperationLedger(operationLedger);
     }
@@ -849,6 +936,7 @@ export async function GET(request: NextRequest) {
       sessionQuality: summarizeSessionQuality(recentSessionQualityReports),
       featureCache,
       sarDiagnostics,
+      sarRefreshHealth,
       sourceCoverage: sourceCoverageReport,
       sourceCatalog: {
         totalSources: getEvidenceSourceCatalog().length,
