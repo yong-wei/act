@@ -117,6 +117,12 @@ async function persistSarSuggestedBindingReview(input: {
     return NextResponse.json(input.result, { status: input.result.status });
   }
   if (!input.resourceNode || input.resourceNode.sourceKind !== 'teaching_resource') {
+    if (input.result.state !== 'accepted') {
+      return NextResponse.json({
+        ...input.result,
+        persisted: false,
+      }, { status: input.result.status });
+    }
     return NextResponse.json({
       ok: false,
       status: 400,

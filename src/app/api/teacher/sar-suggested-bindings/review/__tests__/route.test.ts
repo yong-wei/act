@@ -149,9 +149,44 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
     });
     expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
   });
+
+  it('allows non-accept reviews for authorized non-ResourceNode candidates without a ResourceNode audit target', async () => {
+    const response = await POST(reviewRequest({
+      decision: 'reject',
+      candidateId: 'sar-gap:chunk-bode-gap',
+      candidateRef: 'chunk-bode-gap',
+      refType: 'retrieval-chunk',
+      resourceNodeId: null,
+      sourceRefs: ['owned-quiz'],
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      ok: true,
+      persisted: false,
+      state: 'rejected',
+      auditRecord: {
+        candidateId: 'sar-gap:chunk-bode-gap',
+        candidateRef: 'chunk-bode-gap',
+        decision: 'reject',
+      },
+    });
+    expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
+  });
 });
 
-function reviewRequest(input: { decision: string }): Request {
+function reviewRequest(input: {
+  decision: string;
+  candidateId?: string;
+  candidateRef?: string;
+  refType?: 'resource-node' | 'retrieval-chunk' | 'citation-target' | 'planning-unit';
+  resourceNodeId?: string | null;
+  sourceRefs?: string[];
+}): Request {
+  const candidateId = input.candidateId ?? 'sar-gap:owned-quiz';
+  const candidateRef = input.candidateRef ?? 'teaching-resource:owned-quiz';
+  const refType = input.refType ?? 'resource-node';
   return new Request('http://localhost/api/teacher/sar-suggested-bindings/review', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -159,16 +194,16 @@ function reviewRequest(input: { decision: string }): Request {
       decision: input.decision,
       rationale: '教师审查 SAR 建议绑定。',
       candidate: {
-        id: 'sar-gap:owned-quiz',
+        id: candidateId,
         target: {
           graphNodeId: 'kn-bode',
           objectiveId: 'objective:frequency-domain',
         },
         candidate: {
-          ref: 'teaching-resource:owned-quiz',
-          refType: 'resource-node',
-          resourceNodeId: 'teaching-resource:owned-quiz',
-          sourceRefs: ['owned-quiz'],
+          ref: candidateRef,
+          refType,
+          resourceNodeId: input.resourceNodeId === undefined ? 'teaching-resource:owned-quiz' : input.resourceNodeId,
+          sourceRefs: input.sourceRefs ?? ['owned-quiz'],
         },
         missingCoverageTypes: ['linked-resource'],
         provenance: {
