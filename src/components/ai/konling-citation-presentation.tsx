@@ -11,6 +11,8 @@ type CitationChipLike = {
   privacyVisibility?: string | null;
   freshnessBucket?: string | null;
   displayHref?: string | null;
+  displayTitle?: string | null;
+  confidence?: CitationConfidence | string | null;
   chunkId?: string | null;
 };
 
@@ -166,12 +168,12 @@ function dedupePresentationCitations(citations: CitationLike[]): PresentationCit
 function normalizePresentationCitation(citation: CitationLike): PresentationCitation {
   const sourceType = normalizeSourceType(citation.sourceType);
   const href = safeCitationHref(citation.href ?? citation.citationChip?.displayHref);
-  const confidence = confidenceValue(citation.confidence);
+  const confidence = confidenceValue(citation.confidence ?? citation.citationChip?.confidence);
   return {
     key: buildCitationKey(sourceType, citation, href),
     displayIndex: 0,
     sourceType,
-    title: stringValue(citation.displayTitle ?? citation.title, '未命名引用'),
+    title: stringValue(citation.displayTitle ?? citation.title ?? citation.citationChip?.displayTitle, '未命名引用'),
     href,
     confidence,
     evidenceBasis: stringValue(citation.evidenceBasis, 'server-owned metadata'),
@@ -187,11 +189,7 @@ function normalizeSourceType(value: unknown) {
 
 function buildCitationKey(sourceType: string, citation: CitationLike, href: string | null) {
   const identity = firstString([
-    contentIdentity(citation),
-    knowledgeIdentity(citation),
-    textbookIdentity(citation),
-    pathIdentity(citation),
-    learnerStateIdentity(citation),
+    ...sourceTypeIdentities(sourceType, citation),
     citation.citationChip?.chunkId,
     citation.key,
     citation.id,
@@ -199,6 +197,52 @@ function buildCitationKey(sourceType: string, citation: CitationLike, href: stri
     `${citation.title ?? citation.displayTitle ?? 'untitled'}:${citation.evidenceBasis ?? 'unknown'}`,
   ]) ?? 'unknown';
   return `${sourceType}:${identity}`;
+}
+
+function sourceTypeIdentities(sourceType: string, citation: CitationLike) {
+  switch (sourceType) {
+    case 'knowledge-node':
+      return [
+        knowledgeIdentity(citation),
+        contentIdentity(citation),
+        textbookIdentity(citation),
+        pathIdentity(citation),
+        learnerStateIdentity(citation),
+      ];
+    case 'textbook':
+      return [
+        textbookIdentity(citation),
+        contentIdentity(citation),
+        knowledgeIdentity(citation),
+        pathIdentity(citation),
+        learnerStateIdentity(citation),
+      ];
+    case 'path-execution':
+      return [
+        pathIdentity(citation),
+        contentIdentity(citation),
+        knowledgeIdentity(citation),
+        textbookIdentity(citation),
+        learnerStateIdentity(citation),
+      ];
+    case 'learner-state':
+      return [
+        learnerStateIdentity(citation),
+        contentIdentity(citation),
+        knowledgeIdentity(citation),
+        textbookIdentity(citation),
+        pathIdentity(citation),
+      ];
+    case 'content':
+    default:
+      return [
+        contentIdentity(citation),
+        knowledgeIdentity(citation),
+        textbookIdentity(citation),
+        pathIdentity(citation),
+        learnerStateIdentity(citation),
+      ];
+  }
 }
 
 function contentIdentity(citation: CitationLike) {

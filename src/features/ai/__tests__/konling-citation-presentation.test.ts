@@ -296,6 +296,64 @@ describe('Konling verified citation presentation', () => {
     });
   });
 
+  it('uses CitationChip display metadata when top-level citation fields are missing', () => {
+    const presentation = normalizeKonlingCitationPresentation({
+      konlingCitationGuard: {
+        status: 'verified',
+        citations: [{
+          sourceType: 'content',
+          citationChip: {
+            displayTitle: 'CitationChip 教材片段',
+            displayHref: '/course-runtime/resources/textbooks/control/ch02.md#chip',
+            confidence: 'high',
+          },
+          evidenceBasis: 'citation-chip',
+        }],
+      },
+    }) as any;
+
+    expect(presentation.items[0]).toMatchObject({
+      title: 'CitationChip 教材片段',
+      href: '/course-runtime/resources/textbooks/control/ch02.md#chip',
+      confidence: 'high',
+      limitation: null,
+    });
+  });
+
+  it('chooses source-type governed identity before cross-type fallbacks', () => {
+    const presentation = normalizeKonlingCitationPresentation({
+      konlingCitationGuard: {
+        status: 'verified',
+        citations: [
+          {
+            sourceType: 'knowledge-node',
+            knowledgeNodeId: 'kn:node-a',
+            resourceNodeId: 'resource-node:shared',
+            displayTitle: '知识节点 A',
+            href: '/knowledge?node=kn%3Anode-a',
+            confidence: 'high',
+            evidenceBasis: 'knowledge-node',
+          },
+          {
+            sourceType: 'knowledge-node',
+            knowledgeNodeId: 'kn:node-b',
+            resourceNodeId: 'resource-node:shared',
+            displayTitle: '知识节点 B',
+            href: '/knowledge?node=kn%3Anode-b',
+            confidence: 'high',
+            evidenceBasis: 'knowledge-node',
+          },
+        ],
+      },
+    }) as any;
+
+    expect(presentation.items).toHaveLength(2);
+    expect(presentation.items.map((item: any) => item.key)).toEqual([
+      'knowledge-node:kn:node-a',
+      'knowledge-node:kn:node-b',
+    ]);
+  });
+
   it('renders a missing verified citation state separately from diagnostics', () => {
     const html = renderToStaticMarkup(
       React.createElement(KonlingCitationPanel, {
