@@ -567,7 +567,7 @@ function buildCorpusProjectionIndex(evidenceCorpus: LearningEvidenceCorpusChunk[
         }
       }
     }
-    if (!chunk.citationAddress) continue;
+    if (!hasResolvableCitationHref(chunk)) continue;
     for (const ref of normalizedRefs) {
       indexedResourceRefsWithCitationAddress.add(ref);
       if (isLongformTextbookSectionRef(ref)) {
@@ -586,6 +586,10 @@ function buildCorpusProjectionIndex(evidenceCorpus: LearningEvidenceCorpusChunk[
     longformCorpusChunks,
     longformCorpusChunksWithCitationAddress,
   };
+}
+
+function hasResolvableCitationHref(chunk: LearningEvidenceCorpusChunk): boolean {
+  return typeof chunk.citationAddress?.href === 'string' && chunk.citationAddress.href.trim().length > 0;
 }
 
 function applyCorpusCitationReadiness(

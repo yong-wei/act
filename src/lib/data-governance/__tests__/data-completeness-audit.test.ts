@@ -239,6 +239,34 @@ describe('data completeness audit', () => {
       expect.objectContaining({ id: 'retrieval-chunk-not-indexed' }),
       expect.objectContaining({ id: 'corpus-chunk-citation-address-missing' }),
     ]));
+
+    const missingHrefReport = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [{
+        ...indexedChunk,
+        id: 'textbook-search:sec-1:chunk-without-href',
+        citationAddress: {
+          ...indexedChunk.citationAddress!,
+          href: null,
+        },
+      }],
+    });
+    const missingHrefCitationReadiness = missingHrefReport.layers.find((layer) =>
+      layer.id === 'citationReadiness'
+    );
+
+    expect(missingHrefCitationReadiness?.totals).toMatchObject({
+      verifiedCitationTargets: 0,
+      mappedRetrievalChunks: 0,
+      longformSections: 1,
+      mappedLongformSections: 0,
+      longformCorpusChunks: 1,
+      mappedLongformCorpusChunks: 0,
+      corpusChunksMissingCitationAddress: 0,
+    });
+    expect(missingHrefCitationReadiness?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'retrieval-chunk-not-indexed' }),
+    ]));
   });
 
   it('does not auto-confirm resources outside the reviewed core path readiness batch', () => {
