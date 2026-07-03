@@ -28,6 +28,7 @@ import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
+  buildResourceNodeSourcePackCandidate,
   buildKonlingSarAssociatedGroundingMetadataPayload,
   buildKonlingStreamingCitationGuard,
   buildScopedKonlingAiTools,
@@ -55,6 +56,7 @@ import {
   type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
+import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
 
 function createScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRuntimeScope {
   return {
@@ -276,6 +278,27 @@ function textbookRuntimeCatalogFixture() {
         knowledgeNodeIds: ['Bode图_1_1', '频域响应_1_1', '正弦稳态响应_5_b6dc1100'],
         capabilityTargetIds: ['controlModeling', 'parameterDesign'],
         estimatedTimeMinutes: 8,
+        planningOverride: {
+          readiness: {
+            minimumCompetency: { controlModeling: 0.1, parameterDesign: 0.1 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: 'Reviewed textbook section fixture is ready for path planning.',
+            fallbackNodeIds: [],
+          },
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Reviewed textbook section fixture for Konling path generation tests.',
+            sourceFamily: 'textbook_section',
+            stableSourceRef: 'dorf-modern-control-systems:ch08-example-0801',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'konling-runtime-test-review',
+          },
+        },
       },
     ],
   }];
@@ -8113,7 +8136,7 @@ describe('konling agent runtime', () => {
         }),
       ]),
     });
-    expect(JSON.stringify(result.pathOptions)).toContain('textbook-section:dorf-modern-control-systems:ch08-example-0801');
+    expect(JSON.stringify(result.pathOptions)).toContain('registry:frequency-precheck');
     expect(db.agentToolRun.create).toHaveBeenCalled();
     expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
       create: expect.objectContaining({
@@ -9935,5 +9958,56 @@ describe('konling agent runtime', () => {
       }),
     }));
     expect(JSON.stringify(db.konlingMemory.create.mock.calls)).not.toContain('promptContent');
+  });
+
+  it('builds citeable Source Pack candidates for reviewed path-eligible core resources', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'core-lesson',
+        label: 'Core lesson',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/resources/core-lesson',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          abilityImpact: { controlModeling: 0.25 },
+          evidenceInstrumentation: ['lesson_step_view'],
+          privacyLevel: 'student-visible',
+          readiness: {
+            minimumCompetency: { controlModeling: 0.1 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成必要证据后进入。',
+            fallbackNodeIds: [],
+          },
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Reviewed core lesson path node.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'core-lesson',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'core-resource-path-readiness-review',
+          },
+        },
+      }],
+    });
+    const node = registry.nodes.find((item) => item.id === 'registry:core-lesson')!;
+    const candidate = buildResourceNodeSourcePackCandidate(node);
+
+    expect(candidate).toMatchObject({
+      resourceNodeId: 'registry:core-lesson',
+      planningUnitId: 'planning-unit:registry:core-lesson',
+      citation: {
+        href: '/resources/core-lesson',
+        verified: true,
+      },
+      metadata: {
+        pathEligible: 'true',
+        resourceType: 'lesson_step',
+      },
+    });
   });
 });
