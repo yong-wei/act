@@ -227,9 +227,18 @@ function isSameSarTerminalCandidate(
   review: Record<string, unknown>,
   auditRecord: Extract<SarSuggestedBindingReviewResult, { ok: true }>['auditRecord'],
 ): boolean {
-  return stringValue(review.candidateRef) === auditRecord.candidateRef
+  return canonicalSarCandidateRef(stringValue(review.candidateRef), stringValue(review.candidateRefType))
+      === canonicalSarCandidateRef(auditRecord.candidateRef, auditRecord.candidateRefType)
     && stringValue(review.candidateRefType) === auditRecord.candidateRefType
     && stringValue(review.targetGraphNodeId) === auditRecord.targetGraphNodeId;
+}
+
+function canonicalSarCandidateRef(ref: string | null, refType: string | null): string | null {
+  if (!ref) return null;
+  if (refType === 'resource-node' && !ref.startsWith('teaching-resource:')) {
+    return `teaching-resource:${ref}`;
+  }
+  return ref;
 }
 
 function createScope(

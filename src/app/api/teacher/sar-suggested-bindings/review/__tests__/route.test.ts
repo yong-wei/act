@@ -199,6 +199,39 @@ describe('POST /api/teacher/sar-suggested-bindings/review', () => {
     expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
   });
 
+  it('rejects duplicate terminal SAR candidates when resource-node refs differ only by teaching-resource prefix', async () => {
+    mocks.prisma.teachingResource.findMany.mockResolvedValue([{
+      ...ownedResource,
+      config: {
+        resourceNodePlanning: {
+          sarSuggestedBindingReviews: [{
+            candidateId: 'sar-gap:old-index',
+            candidateRef: 'owned-quiz',
+            candidateRefType: 'resource-node',
+            targetGraphNodeId: 'kn-bode',
+            state: 'accepted',
+            decision: 'accept',
+          }],
+        },
+      },
+    }]);
+
+    const response = await POST(reviewRequest({
+      decision: 'reject',
+      candidateId: 'sar-gap:new-index',
+      candidateRef: 'teaching-resource:owned-quiz',
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      ok: false,
+      code: 'SAR_REVIEW_CANDIDATE_ALREADY_TERMINAL',
+      existingState: 'accepted',
+    });
+    expect(mocks.prisma.teachingResource.update).not.toHaveBeenCalled();
+  });
+
   it('allows the same local SAR candidate id on a different graph target', async () => {
     mocks.prisma.teachingResource.findMany.mockResolvedValue([{
       ...ownedResource,

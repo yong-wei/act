@@ -391,7 +391,7 @@ function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterS
   const hasDraftCandidates = associated.resourceGapSuggestions.length > 0;
 
   async function submitReview(candidate: GraphCenterSarResourceGapSuggestion, decision: SarReviewDecision) {
-    const key = graphCenterSarCandidateKey(candidate);
+    const key = graphCenterSarCandidateKey(selectedNode, candidate);
     const requestBody = buildGraphCenterSarReviewRequest(
       selectedNode,
       candidate,
@@ -432,7 +432,7 @@ function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterS
       {hasDraftCandidates && (
         <DetailGroup label="候选资源缺口">
           {associated.resourceGapSuggestions.slice(0, 4).map((candidate) => {
-            const key = graphCenterSarCandidateKey(candidate);
+            const key = graphCenterSarCandidateKey(selectedNode, candidate);
             const state = reviewStates[key];
             const reviewableActions = candidate.review?.availableActions ?? [];
             const auditPayload = candidate.review?.auditPayload;
@@ -555,8 +555,14 @@ export function buildGraphCenterSarReviewRequest(
   };
 }
 
-function graphCenterSarCandidateKey(candidate: GraphCenterSarResourceGapSuggestion): string {
-  return candidate.review?.auditPayload.candidateId ?? `${candidate.refType}:${candidate.ref}`;
+function graphCenterSarCandidateKey(
+  selectedNode: GraphCenterSelectedNodeDetail,
+  candidate: GraphCenterSarResourceGapSuggestion,
+): string {
+  return [
+    selectedNode.node.id,
+    candidate.review?.auditPayload.candidateId ?? `${candidate.refType}:${candidate.ref}`,
+  ].join(':');
 }
 
 function formatGraphCenterSarCandidateTitle(candidate: GraphCenterSarResourceGapSuggestion): string {

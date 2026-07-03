@@ -201,7 +201,7 @@ describe('graph center client surface', () => {
     expect(html).toContain('resource-node · teaching-resource:owned-quiz · 建议/草稿');
     expect(html).toContain('缺口 缺少关联资源、缺少路径可用资源');
     expect(html).toContain('来源 owned-quiz');
-    expect(html).toContain('data-graph-center-sar-review-rationale="sar-gap:1"');
+    expect(html).toContain('data-graph-center-sar-review-rationale="kn:autocontrol:simulation-validation:sar-gap:1"');
     expect(html).toContain('data-graph-center-sar-review-action="reject"');
     expect(html).toContain('data-graph-center-sar-review-action="defer"');
     expect(html).toContain('data-graph-center-sar-review-action="invalidate"');
@@ -591,8 +591,8 @@ describe('graph center client surface', () => {
 
     expect(html).toContain('data-graph-center-sar-candidate-id="sar-gap:1"');
     expect(html).toContain('data-graph-center-sar-candidate-id="sar-gap:2"');
-    expect(html).toContain('data-graph-center-sar-review-rationale="sar-gap:1"');
-    expect(html).toContain('data-graph-center-sar-review-rationale="sar-gap:2"');
+    expect(html).toContain('data-graph-center-sar-review-rationale="kn:autocontrol:simulation-validation:sar-gap:1"');
+    expect(html).toContain('data-graph-center-sar-review-rationale="kn:autocontrol:simulation-validation:sar-gap:2"');
     expect(html).toContain('来源 owned-quiz-source-1');
     expect(html).toContain('来源 owned-quiz-source-2');
   });
