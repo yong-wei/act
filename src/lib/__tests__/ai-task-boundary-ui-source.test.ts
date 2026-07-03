@@ -22,21 +22,27 @@ describe('ai task boundary UI source contracts', () => {
     const globalSidebar = readSource('src/components/ai/global-ai-sidebar.tsx');
     const copilot = readSource('src/app/ai/copilot/page.tsx');
     const konlingSidebar = readSource('src/components/ai/konling-sidebar.tsx');
+    const sharedRenderer = readSource('src/components/ai/konling-chat-renderer.tsx');
     const copilotPanel = readSource('src/features/ai/copilot-panel.tsx');
     const interactiveAiPanel = readSource('src/features/interactive/InteractiveAIPanel.tsx');
 
     expect(messageContent).toContain('sanitizeVerifiedCitationMarkdown(sanitizeAiVisibleContent(content))');
+    expect(sharedRenderer).toContain('data-konling-chat-renderer="shared"');
+    expect(sharedRenderer).toContain("sanitizeContent={!isUser}");
+    expect(sharedRenderer).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
+    expect(sharedRenderer).toContain('summarizeAiToolResult(tool.toolName)');
+    expect(sharedRenderer).toContain('flex-[0_1_75%]');
+    expect(sharedRenderer).toContain('called ${tools.length}');
     expect(globalSidebar).toContain("role={isOpen ? 'dialog' : undefined}");
     expect(globalSidebar).toContain("aria-modal={isOpen ? 'true' : undefined}");
     expect(globalSidebar).toContain("aria-hidden={isOpen ? undefined : 'true'}");
     expect(globalSidebar).toContain('inert={!isOpen}');
     expect(globalSidebar).toContain('data-ai-task-status="global-sidebar"');
-    expect(globalSidebar).toContain('summarizeAiToolResult(tool.toolName)');
+    expect(globalSidebar).toContain('<KonlingChatMessageList messages={messages} styles={styles} />');
+    expect(globalSidebar).toContain('konlingPromptInputClassName');
     expect(globalSidebar).toContain('发送 AI 问题');
-    expect(globalSidebar).toContain('sanitizeContent={!isUser}');
-    expect(globalSidebar).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
-    expect(copilot).toContain('summarizeAiToolResult(tool.toolName)');
-    expect(copilot).toContain("sanitizeContent={message.role !== 'user'}");
+    expect(copilot).toContain('<KonlingChatMessageList messages={messages} />');
+    expect(copilot).toContain('konlingPromptInputClassName');
     expect(copilot).toContain("context === 'portfolio-reflection'");
     expect(copilot).toContain("context === 'evidence'");
     expect(copilot).toContain('const evidenceSummary = useMemo');
@@ -44,14 +50,15 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).toContain('pageContext: copilotPageContext');
     expect(copilot).toContain('taskContext: evidenceSummary');
     expect(copilot).toContain('证据来源：${evidenceSummary.source}');
-    expect(konlingSidebar).toContain('sanitizeContent={!isUser}');
-    expect(konlingSidebar).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
-    expect(copilotPanel).toContain('sanitizeContent={!isUser}');
-    expect(copilotPanel).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
-    expect(interactiveAiPanel).toContain('sanitizeContent={!isUser}');
-    expect(interactiveAiPanel).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
+    expect(konlingSidebar).toContain('<KonlingChatMessageList messages={messages} styles={styles} />');
+    expect(konlingSidebar).toContain('konlingPromptInputClassName');
+    expect(copilotPanel).toContain('<KonlingChatMessageList messages={messages} />');
+    expect(copilotPanel).toContain('konlingPromptInputClassName');
+    expect(interactiveAiPanel).toContain('<KonlingChatMessageList messages={ai.messages} />');
+    expect(interactiveAiPanel).toContain('konlingPromptInputClassName');
 
     [
+      sharedRenderer,
       globalSidebar,
       copilot,
       konlingSidebar,
@@ -138,7 +145,8 @@ describe('ai task boundary UI source contracts', () => {
     expect(portfolio).toContain('data-ai-task-boundary="portfolio-reflection-draft"');
     expect(portfolio).toContain('buildPortfolioReflectionDraft');
     expect(portfolio).toContain('shouldRenderPortfolioFeedbackTask');
-    expect(portfolio).toContain('const feedbackContext = shouldRenderPortfolioFeedbackTask(feedbackQuery)');
+    expect(portfolio).toContain('const localFeedbackContext = shouldRenderPortfolioFeedbackTask(feedbackQuery)');
+    expect(portfolio).toContain('const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams)');
     expect(readSource('src/lib/student-feedback-task-contract.ts')).toContain('Boolean(buildFeedbackTaskContext(query)?.supported)');
     expect(portfolio).toContain('const hasLocalPortfolioTask = Boolean(reflectionDraft || feedbackPortfolioDraft)');
     expect(portfolio).toContain("hasLocalPortfolioTask ? 'reflections' : 'works'");

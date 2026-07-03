@@ -415,7 +415,7 @@ export function KonlingCitationPanel({ metadata }: { metadata: unknown }) {
       )}
       {process.env.NODE_ENV !== 'production' && presentation.summary.diagnostics.length > 0 ? (
         <div className="mt-1 text-[10px] text-slate-500" data-konling-citation-diagnostics>
-          开发诊断：{presentation.summary.diagnostics.slice(0, 2).join('；')}
+          开发模式诊断：{presentation.summary.diagnostics.slice(0, 2).join('；')}
         </div>
       ) : null}
     </div>

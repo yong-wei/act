@@ -6,13 +6,12 @@
  * 集成到仿真界面的 AI 助手聊天组件
  */
 
-import { useChat, type Message } from '@/hooks/useLegacyChat';
+import { useChat } from '@/hooks/useLegacyChat';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { type SimulationState, type SimulationMetrics } from '@/resources/simulations/types';
 import { KonlingAvatar } from '@/components/ai/konling-avatar';
-import { AIMessageContent } from '@/components/ai/ai-message-content';
-import { KonlingCitationPanel, extractKonlingCitationMetadata } from '@/components/ai/konling-citation-presentation';
+import { KonlingChatMessageList, konlingPromptInputClassName } from '@/components/ai/konling-chat-renderer';
 import { KONLING_BRAND } from '@/lib/ai-branding';
 import { usePageAIContext } from '@/hooks/usePageAIContext';
 
@@ -175,9 +174,7 @@ export function CopilotPanel({
             </div>
           </div>
         ) : (
-          messages.map((message, index) => (
-            <MessageBubble key={index} message={message} />
-          ))
+          <KonlingChatMessageList messages={messages} />
         )}
         {isLoading && (
           <div className="flex items-center gap-2 text-sm text-slate-400">
@@ -208,7 +205,7 @@ export function CopilotPanel({
             value={input}
             onChange={handleInputChange}
             placeholder="请输入您的问题..."
-            className="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+            className={`${konlingPromptInputClassName} rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none`}
             disabled={isLoading}
           />
           {isLoading ? (
@@ -222,64 +219,6 @@ export function CopilotPanel({
           )}
         </div>
       </form>
-    </div>
-  );
-}
-
-// 消息气泡组件
-function MessageBubble({ message }: { message: Message }) {
-  const isUser = message.role === 'user';
-
-  return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div
-        className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
-          isUser
-            ? 'bg-amber-600 text-white'
-            : 'bg-slate-800 text-slate-200'
-        }`}
-      >
-        {/* 处理工具调用结果 */}
-        {message.toolInvocations?.map((tool, index) => (
-          <ToolResultDisplay key={index} tool={tool} />
-        ))}
-        {/* 普通文本消息 */}
-        {message.content && (
-          <div className="text-sm leading-relaxed">
-            <AIMessageContent content={message.content} sanitizeContent={!isUser} />
-            {!isUser ? <KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} /> : null}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// 工具调用结果展示
-function ToolResultDisplay({ tool }: { tool: NonNullable<Message['toolInvocations']>[number] }) {
-  if (tool.state !== 'result') {
-    return (
-      <div className="mb-2 rounded bg-slate-700/50 p-2 text-xs text-slate-400">
-        正在调用工具: {tool.toolName}...
-      </div>
-    );
-  }
-
-  const result = tool.result as Record<string, unknown>;
-
-  return (
-    <div className="mb-2 rounded-lg border border-slate-600 bg-slate-900/50 p-3">
-      <div className="mb-2 flex items-center gap-2 text-xs text-amber-400">
-        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-        </svg>
-        {tool.toolName === 'get_simulation_status' && '仿真状态'}
-        {tool.toolName === 'set_simulation_params' && '参数修改'}
-        {tool.toolName === 'analyze_result' && '结果分析'}
-      </div>
-      <pre className="overflow-x-auto text-xs text-slate-300">
-        {JSON.stringify(result, null, 2)}
-      </pre>
     </div>
   );
 }

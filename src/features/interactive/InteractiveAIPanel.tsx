@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2, X, Sparkles } from 'lucide-react';
-import { AIMessageContent } from '@/components/ai/ai-message-content';
-import { KonlingCitationPanel, extractKonlingCitationMetadata } from '@/components/ai/konling-citation-presentation';
-import { KonlingAvatar } from '@/components/ai/konling-avatar';
-import type { AIMessage, InteractiveAIContextValue } from './types';
+import { Bot, Send, Loader2, X, Sparkles } from 'lucide-react';
+import { KonlingChatMessageList, konlingPromptInputClassName } from '@/components/ai/konling-chat-renderer';
+import type { InteractiveAIContextValue } from './types';
 
 interface InteractiveAIPanelProps {
   ai: InteractiveAIContextValue;
@@ -97,9 +95,7 @@ export function InteractiveAIPanel({
             <p className="text-xs mt-1 text-slate-500">有任何问题都可以问我</p>
           </div>
         ) : (
-          ai.messages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} />
-          ))
+          <KonlingChatMessageList messages={ai.messages} />
         )}
         {ai.isLoading && (
           <div className="flex items-center gap-2 text-slate-400">
@@ -129,7 +125,7 @@ export function InteractiveAIPanel({
             onKeyDown={handleKeyDown}
             placeholder="输入问题..."
             rows={1}
-            className="flex-1 resize-none bg-slate-800 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className={`${konlingPromptInputClassName} resize-none bg-slate-800 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
             style={{ minHeight: '40px', maxHeight: '120px' }}
           />
           <button type="button"
@@ -140,33 +136,6 @@ export function InteractiveAIPanel({
             <Send className="h-4 w-4" />
           </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-// 消息气泡组件
-function MessageBubble({ message }: { message: AIMessage }) {
-  const isUser = message.role === 'user';
-
-  return (
-    <div className={`flex gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
-      {isUser ? (
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
-          <User className="h-3.5 w-3.5" />
-        </div>
-      ) : (
-        <KonlingAvatar size="sm" className="mt-0.5 shrink-0 self-start" />
-      )}
-      <div
-        className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-          isUser
-            ? 'bg-emerald-500/15 text-emerald-100'
-            : 'bg-slate-800 text-slate-200'
-        }`}
-      >
-        <AIMessageContent content={message.content} sanitizeContent={!isUser} />
-        {!isUser ? <KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} /> : null}
       </div>
     </div>
   );
