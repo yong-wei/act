@@ -197,10 +197,11 @@ describe('data completeness audit', () => {
 
     expect(disposition?.totals).toMatchObject({
       resourceNodes: 3,
-      reviewedDispositions: 2,
+      reviewedDispositions: 1,
+      missingHumanReview: 2,
       missingParentPlanningUnit: 1,
       missingExclusionRationale: 1,
-      invalidPromotion: 1,
+      invalidPromotion: 3,
     });
     expect(disposition?.findings).toEqual(expect.arrayContaining([
       expect.objectContaining({
@@ -218,9 +219,107 @@ describe('data completeness audit', () => {
         stableRef: 'ResourceDisposition:resource_registry:provisional-path-node',
         followupBucket: 'audit-path-disposition-promotions',
       }),
+      expect.objectContaining({
+        id: 'invalid-path-disposition-promotion',
+        stableRef: 'ResourceDisposition:resource_registry:citation-card',
+        followupBucket: 'audit-path-disposition-promotions',
+      }),
     ]));
     expect(report.layers.find((layer) => layer.id === 'citationReadiness')).toBeDefined();
     expect(report.layers.find((layer) => layer.id === 'pathReadiness')).toBeDefined();
+  });
+
+  it('keeps reviewed non-path dispositions out of path readiness blockers', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'supporting-citation',
+        label: 'Supporting citation',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/supporting-citation.png',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'supporting-citation',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Citation support only.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'supporting-citation',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'evidence-producing',
+        label: 'Evidence producing',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'evidence-producing',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Evidence capture only.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'evidence-producing',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'excluded-with-rationale',
+        label: 'Excluded with rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/excluded.png',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'excluded-with-rationale',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Excluded from independent path planning.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'excluded-with-rationale',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }],
+    });
+
+    const report = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [],
+    });
+    const resourceBinding = report.layers.find((layer) => layer.id === 'resourceBinding');
+    const pathReadiness = report.layers.find((layer) => layer.id === 'pathReadiness');
+    const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
+
+    expect(resourceBinding?.totals).toMatchObject({
+      resourceNodes: 3,
+    });
+    expect(pathReadiness?.totals).toMatchObject({
+      resourceNodes: 0,
+      planningUnits: 0,
+      blockedPathNodes: 0,
+    });
+    expect([
+      ...resourceBinding!.findings,
+      ...pathReadiness!.findings,
+    ]).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'invalid-path-disposition-promotion',
+      }),
+    ]));
+    expect(disposition?.totals).toMatchObject({
+      resourceNodes: 3,
+      reviewedDispositions: 3,
+      invalidPromotion: 3,
+    });
   });
 
   it('does not treat non-path registry nodes as path readiness blockers', () => {

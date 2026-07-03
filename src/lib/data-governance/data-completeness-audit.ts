@@ -4,6 +4,7 @@ import {
   auditResourcePathPlanningDisposition,
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
+  isResourcePathPlanningDispositionHumanReviewed,
   type ResourceNode,
   type ResourceNodeRegistry,
 } from '@/lib/resource-node-registry';
@@ -382,7 +383,7 @@ function buildResourceDispositionLayer(registry: ResourceNodeRegistry | undefine
   return layer('resourceDisposition', {
     resourceNodes: nodes.length,
     reviewedDispositions: nodes.filter((node) =>
-      node.planningMetadata.pathDisposition?.reviewStatus === 'human-confirmed'
+      isResourcePathPlanningDispositionHumanReviewed(node.planningMetadata.pathDisposition)
     ).length,
     missingDisposition: countFindings(findings, 'missing-path-disposition'),
     missingHumanReview: countFindings(findings, 'missing-disposition-review'),
@@ -486,7 +487,9 @@ function buildPathAuditEntries(registry: ResourceNodeRegistry | undefined) {
       audit: buildResourceNodeHighConfidencePlanningAudit(node),
       projection: buildResourceSemanticProjection(node),
     }))
-    .filter(({ node, projection }) => projection.planningUnit || isPathAuditCandidate(node));
+    .filter(({ node, projection }) =>
+      projection.planningUnit || (isPathAuditCandidate(node) && isPathDispositionAuditCandidate(node))
+    );
 }
 
 function isPathAuditCandidate(node: ResourceNode): boolean {
@@ -495,6 +498,11 @@ function isPathAuditCandidate(node: ResourceNode): boolean {
   if (node.sourceKind === 'runtime_lesson_step') return false;
   if (node.sourceKind === 'runtime_handout') return false;
   return node.type !== 'knowledge_node' && node.type !== 'textbook';
+}
+
+function isPathDispositionAuditCandidate(node: ResourceNode): boolean {
+  const disposition = node.planningMetadata.pathDisposition;
+  return !disposition || disposition.kind === 'path-plannable';
 }
 
 function isCitationAuditCandidate(node: ResourceNode): boolean {

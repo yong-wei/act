@@ -1142,11 +1142,12 @@ export function auditResourcePathPlanningDisposition(node: ResourceNode): Resour
   }
 
   const issues: ResourceNodeAuditIssue[] = [];
-  if (disposition.reviewStatus !== 'human-confirmed') {
+  const reviewEvidenceComplete = isResourcePathPlanningDispositionHumanReviewed(disposition);
+  if (!reviewEvidenceComplete) {
     issues.push({
       code: 'missing-disposition-review',
       severity: 'warning',
-      message: `Resource path-planning disposition is ${disposition.reviewStatus}.`,
+      message: 'Resource path-planning disposition requires human review status, reviewer, review time, and source version.',
     });
   }
   if (disposition.kind === 'excluded-with-rationale' && (!disposition.rationale || !disposition.sourceVersionRef)) {
@@ -1164,9 +1165,11 @@ export function auditResourcePathPlanningDisposition(node: ResourceNode): Resour
     });
   }
   if (disposition.kind === 'path-plannable') {
-    const highConfidenceAudit = buildResourceNodeHighConfidencePlanningAudit(node);
+    const highConfidenceAudit = buildResourceNodeHighConfidencePlanningAuditInternal(node, {
+      includeDispositionPromotion: false,
+    });
     if (
-      disposition.reviewStatus !== 'human-confirmed' ||
+      !reviewEvidenceComplete ||
       !highConfidenceAudit.pathEligible ||
       !node.planningMetadata.readiness
     ) {
@@ -1176,9 +1179,27 @@ export function auditResourcePathPlanningDisposition(node: ResourceNode): Resour
         message: 'Path-plannable disposition requires human review, path audit clearance, and readiness metadata.',
       });
     }
+  } else if (node.launchTarget || node.renderTarget) {
+    issues.push({
+      code: 'invalid-path-disposition-promotion',
+      severity: 'blocking',
+      message: `Resource disposition ${disposition.kind} cannot directly create a PlanningUnit.`,
+    });
   }
 
   return issues;
+}
+
+export function isResourcePathPlanningDispositionHumanReviewed(
+  disposition: ResourcePathPlanningDisposition | null | undefined,
+): disposition is ResourcePathPlanningDisposition {
+  return Boolean(
+    disposition &&
+    disposition.reviewStatus === 'human-confirmed' &&
+    disposition.reviewerId &&
+    disposition.reviewedAt &&
+    disposition.sourceVersionRef,
+  );
 }
 
 export function buildResourceSemanticProjection(node: ResourceNode): ResourceSemanticProjection {
@@ -2408,6 +2429,19 @@ export function buildResourceNodeHighConfidencePlanningAudit(node: ResourceNode)
   issues: ResourceNodeAuditIssue[];
   hasBlockingIssue: boolean;
 } {
+  return buildResourceNodeHighConfidencePlanningAuditInternal(node, {
+    includeDispositionPromotion: true,
+  });
+}
+
+function buildResourceNodeHighConfidencePlanningAuditInternal(
+  node: ResourceNode,
+  options: { includeDispositionPromotion: boolean },
+): {
+  pathEligible: boolean;
+  issues: ResourceNodeAuditIssue[];
+  hasBlockingIssue: boolean;
+} {
   const hasCapabilityMapping = Object.keys(node.planningMetadata.abilityImpact).length > 0;
   const hasEvidenceInstrumentation = node.planningMetadata.evidenceInstrumentation.length > 0;
   const issues = node.eligibility.auditIssues.map((issue) => (
@@ -2434,6 +2468,27 @@ export function buildResourceNodeHighConfidencePlanningAudit(node: ResourceNode)
       message: 'ResourceNode has no evidence instrumentation mapping.',
       severity: 'blocking',
     });
+  }
+  if (options.includeDispositionPromotion) {
+    const disposition = node.planningMetadata.pathDisposition;
+    if (disposition) {
+      if (disposition.kind !== 'path-plannable') {
+        issues.push({
+          code: 'invalid-path-disposition-promotion',
+          message: `Resource disposition ${disposition.kind} cannot directly create a PlanningUnit.`,
+          severity: 'blocking',
+        });
+      } else if (
+        !isResourcePathPlanningDispositionHumanReviewed(disposition) ||
+        !node.planningMetadata.readiness
+      ) {
+        issues.push({
+          code: 'invalid-path-disposition-promotion',
+          message: 'Path-plannable disposition requires human review evidence and readiness metadata.',
+          severity: 'blocking',
+        });
+      }
+    }
   }
 
   return {

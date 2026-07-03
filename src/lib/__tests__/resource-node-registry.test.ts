@@ -442,6 +442,33 @@ describe('resource node registry', () => {
           },
         },
       }, {
+        id: 'human-confirmed-without-evidence',
+        label: 'Human confirmed without evidence',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          readiness: {
+            minimumCompetency: { controlModeling: 0.2 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成基础学习后进入。',
+            fallbackNodeIds: [],
+          },
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Marked reviewed without durable reviewer evidence.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'human-confirmed-without-evidence',
+            sourceVersionRef: null,
+            parentResourceNodeId: null,
+            reviewedAt: null,
+            reviewerId: null,
+          },
+        },
+      }, {
         id: 'evidence-producing-disposition',
         label: 'Evidence producing resource',
         type: 'INTERACTIVE_COMP',
@@ -498,6 +525,25 @@ describe('resource node registry', () => {
             reviewerId: 'resource-governance-review',
           },
         },
+      }, {
+        id: 'excluded-with-rationale',
+        label: 'Excluded with rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/excluded.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'excluded-with-rationale',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Outdated support asset retained only for citation traceability.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'excluded-with-rationale',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
       }],
     });
 
@@ -510,15 +556,37 @@ describe('resource node registry', () => {
       expect.objectContaining({ code: 'missing-disposition-review' }),
       expect.objectContaining({ code: 'invalid-path-disposition-promotion', severity: 'blocking' }),
     ]));
-    expect(auditResourcePathPlanningDisposition(node('supporting-citation-disposition'))).toEqual([]);
-    expect(auditResourcePathPlanningDisposition(node('evidence-producing-disposition'))).toEqual([]);
+    expect(auditResourcePathPlanningDisposition(node('human-confirmed-without-evidence'))).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'missing-disposition-review' }),
+      expect.objectContaining({ code: 'invalid-path-disposition-promotion', severity: 'blocking' }),
+    ]));
+    expect(auditResourcePathPlanningDisposition(node('supporting-citation-disposition'))).toContainEqual(expect.objectContaining({
+      code: 'invalid-path-disposition-promotion',
+      severity: 'blocking',
+    }));
+    expect(auditResourcePathPlanningDisposition(node('evidence-producing-disposition'))).toContainEqual(expect.objectContaining({
+      code: 'invalid-path-disposition-promotion',
+      severity: 'blocking',
+    }));
     expect(auditResourcePathPlanningDisposition(node('embedded-without-parent'))).toContainEqual(expect.objectContaining({
       code: 'missing-parent-planning-unit',
     }));
     expect(auditResourcePathPlanningDisposition(node('excluded-without-rationale'))).toContainEqual(expect.objectContaining({
       code: 'missing-disposition-rationale',
     }));
+    expect(auditResourcePathPlanningDisposition(node('excluded-with-rationale'))).toEqual([
+      expect.objectContaining({
+        code: 'invalid-path-disposition-promotion',
+        severity: 'blocking',
+      }),
+    ]);
     expect(node('provisional-path-disposition').eligibility.pathEligible).toBe(true);
+    expect(buildResourceSemanticProjection(node('supporting-citation-disposition')).planningUnit).toBeNull();
+    expect(buildResourceSemanticProjection(node('supporting-citation-disposition')).resource.projectionStatus.planning)
+      .toBe('blocked');
+    expect(buildResourceSemanticProjection(node('evidence-producing-disposition')).planningUnit).toBeNull();
+    expect(buildResourceSemanticProjection(node('excluded-with-rationale')).planningUnit).toBeNull();
+    expect(buildResourceSemanticProjection(node('human-confirmed-without-evidence')).planningUnit).toBeNull();
   });
 
   it('can require evidence instrumentation as a blocking audit gate without changing the default registry policy', () => {
