@@ -424,6 +424,7 @@ async function collectRuntimeManifestCandidates() {
         privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
         generatedBy: step.ai_context_spec ? 'template' : null,
         humanConfirmed: Boolean(reviewedCompletionCurrent),
+        currentPathEligible: Boolean(reviewedCompletionCurrent),
         readiness: reviewedCompletionCurrent ? reviewedRuntimeStepReadiness(reviewedCompletionCurrent) : null,
         reviewEvidence: reviewedCompletionCurrent
           ? {

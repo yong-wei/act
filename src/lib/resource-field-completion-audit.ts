@@ -94,6 +94,7 @@ export interface ResourceFieldCompletionCandidate {
   privacyScope?: ResourceNodePrivacyLevel | null;
   generatedBy?: 'local-model' | 'external-tool' | 'template' | null;
   humanConfirmed?: boolean;
+  currentPathEligible?: boolean;
   contentHash?: string | null;
   versionRef?: string | null;
   blockingDependency?: string | null;
@@ -452,7 +453,7 @@ function rowFromCandidate(
         confidence: candidate.reviewEvidence?.confidence,
       })
       : emptyReviewAudit(candidate),
-    currentPathEligible: false,
+    currentPathEligible: candidate.currentPathEligible === true,
     versionRefs,
     sourceHash: candidate.contentHash ?? null,
     sourceVersionRef: candidate.versionRef ?? null,

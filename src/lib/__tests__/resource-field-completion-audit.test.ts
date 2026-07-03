@@ -380,6 +380,7 @@ describe('resource field completion audit', () => {
         versionRef: 'external-resource.v1',
         generatedBy: 'local-model',
         humanConfirmed: true,
+        currentPathEligible: true,
         reviewEvidence: {
           reviewerId: 'teacher-reviewer-1',
           reviewerRole: 'curriculum-data-governance',
@@ -410,6 +411,7 @@ describe('resource field completion audit', () => {
         privacyScope: true,
       },
       pathEligibility: {
+        current: true,
         afterCompletion: true,
         masteryAffecting: true,
         blockedBy: [],
@@ -495,7 +497,11 @@ describe('resource field completion audit', () => {
     expect(matrix.rows).toHaveLength(9);
     expect(matrix.totals.reviewedBindings).toBe(reviewedBindings.length);
     expect(matrix.totals.limited).toBe(9);
-    expect(reviewedBindings.length).toBe(0);
+    expect(reviewedBindings.length).toBeGreaterThan(0);
+    expect(reviewedBindings.some((binding) => (
+      binding.resourceId === 'runtime-step:1-1:step-04' &&
+      binding.pathEligible === true
+    ))).toBe(true);
     for (const row of matrix.rows) {
       expect(row.requiredCategories).toEqual(expect.arrayContaining([
         'concept',
