@@ -2807,7 +2807,7 @@ async function buildAdaptivePathSourcePackCandidates(
   };
 }
 
-function buildResourceNodeSourcePackCandidate(node: ResourceNode): SourcePackItem {
+export function buildResourceNodeSourcePackCandidate(node: ResourceNode): SourcePackItem {
   const pathEligible = node.eligibility.pathEligible === true;
   const citationTargetId = `citation-target:${node.id}:primary`;
   const citationHref = sourcePackCitationHrefForResourceNode(node);

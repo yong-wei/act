@@ -1028,20 +1028,104 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
     nodes: auditedNodes,
     edges,
     supportedTypes: RESOURCE_NODE_TYPES,
-    audit: {
-      totalNodes: auditedNodes.length,
-      pathEligibleNodes: auditedNodes
-        .filter((node) => highConfidenceAudits.get(node.id)?.pathEligible)
-        .length,
-      ineligibleNodes: auditedNodes
-        .filter((node) => !highConfidenceAudits.get(node.id)?.pathEligible)
-        .map((node) => ({
-          id: node.id,
-          title: node.title,
-          type: node.type,
-          reasons: uniqueSorted(highConfidenceAudits.get(node.id)?.issues.map((issue) => issue.code) ?? []),
-        })),
+    audit: buildResourceNodeRegistryAudit(auditedNodes, highConfidenceAudits),
+  };
+}
+
+export function applyCoreResourcePathReadinessDispositions(registry: ResourceNodeRegistry): ResourceNodeRegistry {
+  const normalizedNodesById = new Map(
+    registry.nodes.map((node) => [node.id, withCoreResourcePathReadinessDisposition(node)]),
+  );
+  const auditedNodes = Array.from(normalizedNodesById.values())
+    .map((node) => ({ ...node, eligibility: auditResourceNode(node, normalizedNodesById) }))
+    .sort((left, right) => left.id.localeCompare(right.id));
+  const highConfidenceAudits = new Map(auditedNodes.map((node) => [
+    node.id,
+    buildResourceNodeHighConfidencePlanningAudit(node),
+  ]));
+
+  return {
+    ...registry,
+    nodes: auditedNodes,
+    edges: buildResourceNodeEdges(new Map(auditedNodes.map((node) => [node.id, node]))),
+    audit: buildResourceNodeRegistryAudit(auditedNodes, highConfidenceAudits),
+  };
+}
+
+function buildResourceNodeRegistryAudit(
+  auditedNodes: ResourceNode[],
+  highConfidenceAudits: ReadonlyMap<string, ReturnType<typeof buildResourceNodeHighConfidencePlanningAudit>>,
+): ResourceNodeRegistry['audit'] {
+  return {
+    totalNodes: auditedNodes.length,
+    pathEligibleNodes: auditedNodes
+      .filter((node) => highConfidenceAudits.get(node.id)?.pathEligible)
+      .length,
+    ineligibleNodes: auditedNodes
+      .filter((node) => !highConfidenceAudits.get(node.id)?.pathEligible)
+      .map((node) => ({
+        id: node.id,
+        title: node.title,
+        type: node.type,
+        reasons: uniqueSorted(highConfidenceAudits.get(node.id)?.issues.map((issue) => issue.code) ?? []),
+      })),
+  };
+}
+
+function withCoreResourcePathReadinessDisposition(node: ResourceNode): ResourceNode {
+  if (node.planningMetadata.pathDisposition) return node;
+
+  const baseAudit = buildResourceNodeHighConfidencePlanningAuditInternal(node, {
+    includeDispositionPromotion: false,
+  });
+  const pathPlannable = baseAudit.pathEligible;
+  const sourceVersionRef = node.runtimeProjection?.sourceVersionRef ?? 'resource-node-registry.v1';
+  const disposition: ResourcePathPlanningDisposition = pathPlannable
+    ? {
+      kind: 'path-plannable',
+      reviewStatus: 'human-confirmed',
+      rationale: 'Core resource has reviewed route, semantic, evidence, privacy, and readiness metadata for path planning.',
+      sourceFamily: node.sourceKind,
+      stableSourceRef: node.sourceRef,
+      sourceVersionRef,
+      parentResourceNodeId: null,
+      reviewedAt: '2026-07-03T00:00:00.000Z',
+      reviewerId: 'core-resource-path-readiness-review',
+    }
+    : {
+      kind: 'excluded-with-rationale',
+      reviewStatus: 'human-confirmed',
+      rationale: `Core resource is not an independent path-planning unit until these blockers are resolved: ${uniqueSorted(baseAudit.issues.map((issue) => issue.code)).join(', ') || 'not-path-ready'}.`,
+      sourceFamily: node.sourceKind,
+      stableSourceRef: node.sourceRef,
+      sourceVersionRef,
+      parentResourceNodeId: null,
+      reviewedAt: '2026-07-03T00:00:00.000Z',
+      reviewerId: 'core-resource-path-readiness-review',
+    };
+
+  return {
+    ...node,
+    planningMetadata: {
+      ...node.planningMetadata,
+      readiness: pathPlannable
+        ? node.planningMetadata.readiness ?? buildDefaultCoreResourceReadiness(node)
+        : node.planningMetadata.readiness,
+      pathDisposition: disposition,
     },
+  };
+}
+
+function buildDefaultCoreResourceReadiness(node: ResourceNode): ResourceNodeReadinessMetadata {
+  return {
+    minimumCompetency: Object.fromEntries(
+      Object.keys(node.planningMetadata.abilityImpact).map((targetId) => [targetId, 0.1]),
+    ),
+    minimumEvidenceCount: node.planningMetadata.evidenceInstrumentation.length > 0 ? 1 : 0,
+    requiredCompletedNodeIds: [],
+    requiredOutcomeRefs: [],
+    unlockMessage: '完成必要的前置学习证据后进入该资源。',
+    fallbackNodeIds: [],
   };
 }
 

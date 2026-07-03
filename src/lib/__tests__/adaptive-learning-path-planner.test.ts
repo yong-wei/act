@@ -26,6 +26,7 @@ import { expandLearningGoalSubgraph } from '../graphs/goal-subgraph-expansion-se
 import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
 import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '../resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
+import { buildResourceNodeRegistryFromTeachingResources } from '../teacher-resource-node-data';
 import type { SourcePackItem } from '../source-pack';
 
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
@@ -927,6 +928,75 @@ describe('adaptive learning path planner', () => {
     });
 
     expect(missingPlanningUnitRanking.rejected[0].rejectionReasons).toEqual(['missing-planning-unit-projection']);
+  });
+
+  it('ranks multiple reviewed core resource types without hard-coded goal names', () => {
+    const teachingResources = [{
+      id: 'core-lesson-resource',
+      title: 'Core lesson resource',
+      type: 'INTERACTIVE_COMP',
+      registryId: 'core-lesson',
+      knowledgeNodes: [{
+        id: 'kn-controller',
+        name: 'Controller correction',
+        resources: [],
+        tags: ['correction'],
+      }],
+    }, {
+      id: 'core-simulation-resource',
+      title: 'Core simulation resource',
+      type: 'SIMULATION_APP',
+      registryId: 'core-simulation',
+      knowledgeNodes: [{
+        id: 'kn-controller',
+        name: 'Controller correction',
+        resources: [],
+        tags: ['correction'],
+      }],
+    }];
+    const registry = buildResourceNodeRegistryFromTeachingResources(teachingResources, [{
+      id: 'core-lesson',
+      label: 'Core lesson',
+      type: 'INTERACTIVE_COMP',
+      renderTarget: '/resources/core-lesson',
+      knowledgeNodeIds: ['kn-controller'],
+      planningOverride: {
+        abilityImpact: { controlModeling: 0.25 },
+        evidenceInstrumentation: ['lesson_step_view'],
+        privacyLevel: 'student-visible',
+      },
+    }, {
+      id: 'core-simulation',
+      label: 'Core simulation',
+      type: 'SIMULATION_APP',
+      launchTarget: '/resources/core-simulation',
+      knowledgeNodeIds: ['kn-controller'],
+      planningOverride: {
+        abilityImpact: { controlModeling: 0.3 },
+        evidenceInstrumentation: ['simulation_run'],
+        privacyLevel: 'student-visible',
+      },
+    }]);
+    const candidates = registry.nodes
+      .map((node) => ({
+        node,
+        planningUnit: buildResourceSemanticProjection(node).planningUnit,
+      }))
+      .filter((candidate) => candidate.planningUnit);
+    const ranking = rankResourceLearnerCandidates({
+      candidates,
+      scene: 'path',
+      targetGraphNodeIds: ['kn-controller'],
+      learnerState: null,
+      timeBudgetMinutes: 30,
+      registry,
+    });
+
+    expect(new Set(ranking.ranked.map((candidate) => candidate.node.type))).toEqual(new Set([
+      'lesson_step',
+      'simulation',
+    ]));
+    expect(ranking.rejected).toHaveLength(0);
   });
 
   it('uses stable tie-breaks for same-score resource candidates', () => {

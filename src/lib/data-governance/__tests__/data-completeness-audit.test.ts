@@ -119,6 +119,84 @@ describe('data completeness audit', () => {
     ]));
   });
 
+  it('classifies core teaching resource disposition gaps in the aggregate registry path', () => {
+    const teachingResources = [{
+      id: 'core-resource',
+      title: 'Core resource',
+      type: 'INTERACTIVE_COMP',
+      registryId: 'core-path-node',
+      knowledgeNodes: [{
+        id: 'kn-controller',
+        name: 'Controller correction',
+        resources: [],
+        tags: ['correction'],
+      }],
+    }, {
+      id: 'blocked-resource',
+      title: 'Blocked resource',
+      type: 'INTERACTIVE_COMP',
+      registryId: 'blocked-path-node',
+      knowledgeNodes: [{
+        id: 'kn-controller',
+        name: 'Controller correction',
+        resources: [],
+        tags: ['correction'],
+      }],
+    }];
+    const registry = buildResourceNodeRegistryFromTeachingResources(teachingResources, [{
+      id: 'core-path-node',
+      label: 'Reviewed core path node',
+      type: 'INTERACTIVE_COMP',
+      renderTarget: '/teacher/resources/core-path-node',
+      knowledgeNodeIds: ['kn-controller'],
+      planningOverride: {
+        abilityImpact: { controlModeling: 0.25 },
+        evidenceInstrumentation: ['resource_open'],
+        privacyLevel: 'student-visible',
+      },
+    }, {
+      id: 'blocked-path-node',
+      label: 'Blocked core path node',
+      type: 'INTERACTIVE_COMP',
+      knowledgeNodeIds: ['kn-controller'],
+      planningOverride: {
+        abilityImpact: { controlModeling: 0.25 },
+        evidenceInstrumentation: ['resource_open'],
+        privacyLevel: 'student-visible',
+      },
+    }]);
+
+    const pathNode = registry.nodes.find((node) => node.id === 'registry:core-path-node');
+    const blockedNode = registry.nodes.find((node) => node.id === 'registry:blocked-path-node');
+    const report = buildDataCompletenessAuditReport({
+      teachingResources,
+      resourceRegistry: registry,
+    });
+    const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
+
+    expect(pathNode?.planningMetadata.pathDisposition).toMatchObject({
+      kind: 'path-plannable',
+      reviewStatus: 'human-confirmed',
+      reviewerId: 'core-resource-path-readiness-review',
+    });
+    expect(pathNode?.planningMetadata.readiness).toMatchObject({
+      minimumCompetency: { controlModeling: 0.1 },
+      minimumEvidenceCount: 1,
+    });
+    expect(blockedNode?.planningMetadata.pathDisposition).toMatchObject({
+      kind: 'excluded-with-rationale',
+      reviewStatus: 'human-confirmed',
+      reviewerId: 'core-resource-path-readiness-review',
+    });
+    expect(disposition?.totals).toMatchObject({
+      resourceNodes: 6,
+      reviewedDispositions: 6,
+      missingDisposition: 0,
+      missingExclusionRationale: 0,
+      invalidPromotion: 0,
+    });
+  });
+
   it('reports resource disposition gaps separately from path and citation readiness', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [{
