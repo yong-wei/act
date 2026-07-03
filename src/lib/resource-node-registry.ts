@@ -1157,11 +1157,11 @@ export function auditResourcePathPlanningDisposition(
       message: 'Resource path-planning disposition requires human review status, reviewer, review time, and source version.',
     });
   }
-  if (disposition.kind === 'excluded-with-rationale' && (!disposition.rationale || !disposition.sourceVersionRef)) {
+  if (!disposition.rationale) {
     issues.push({
       code: 'missing-disposition-rationale',
       severity: 'warning',
-      message: 'Excluded resources require reviewer-visible rationale and source/version reference.',
+      message: 'Resource path-planning dispositions require reviewer-visible rationale.',
     });
   }
   if (disposition.kind === 'embedded-asset') {

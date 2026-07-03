@@ -395,6 +395,7 @@ function buildResourceDispositionLayer(
     ).length,
     missingDisposition: countFindings(findings, 'missing-path-disposition'),
     missingHumanReview: countFindings(findings, 'missing-disposition-review'),
+    missingDispositionRationale: countFindings(findings, 'missing-disposition-rationale'),
     missingExclusionRationale: countFindings(findings, 'missing-disposition-rationale'),
     missingParentPlanningUnit: countFindings(findings, 'missing-parent-planning-unit'),
     missingEvidenceInstrumentation: countFindings(findings, 'missing-evidence-instrumentation'),
@@ -428,8 +429,14 @@ function buildCorpusProjectionDispositionFindings(
   for (const chunk of evidenceCorpus) {
     if (!chunk.resourceProjection) continue;
     const projectionRef = corpusProjectionDispositionRef(chunk);
-    if (coveredRefs.has(projectionRef) || coveredRefs.has(chunk.sourceRef.id) || (
-      chunk.sourceRef.resourceId && coveredRefs.has(chunk.sourceRef.resourceId)
+    const hasExplicitProjectionRef = Boolean(chunk.resourceProjection.resourceId);
+    if (coveredRefs.has(projectionRef)) {
+      continue;
+    }
+    if (!hasExplicitProjectionRef && (
+      coveredRefs.has(chunk.sourceRef.id) || (
+        chunk.sourceRef.resourceId && coveredRefs.has(chunk.sourceRef.resourceId)
+      )
     )) {
       continue;
     }
@@ -454,7 +461,7 @@ function corpusProjectionDispositionRef(chunk: LearningEvidenceCorpusChunk): str
 
 function followupBucketForDispositionIssue(code: string): string {
   if (code === 'missing-parent-planning-unit') return 'link-embedded-resource-parents';
-  if (code === 'missing-disposition-rationale') return 'review-resource-exclusions';
+  if (code === 'missing-disposition-rationale') return 'review-resource-disposition-rationales';
   if (code === 'missing-evidence-instrumentation') return 'instrument-evidence-producing-resources';
   if (code === 'invalid-path-disposition-promotion') return 'audit-path-disposition-promotions';
   return 'review-resource-path-dispositions';

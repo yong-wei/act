@@ -467,6 +467,25 @@ describe('resource node registry', () => {
           },
         },
       }, {
+        id: 'supporting-citation-without-rationale',
+        label: 'Supporting citation without rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/supporting-citation-without-rationale.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'supporting-citation',
+            reviewStatus: 'human-confirmed',
+            rationale: null,
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'supporting-citation-without-rationale',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
         id: 'human-confirmed-without-evidence',
         label: 'Human confirmed without evidence',
         type: 'INTERACTIVE_COMP',
@@ -664,6 +683,9 @@ describe('resource node registry', () => {
       expect.objectContaining({ code: 'invalid-path-disposition-promotion', severity: 'blocking' }),
     ]));
     expect(auditResourcePathPlanningDisposition(node('supporting-citation-disposition'))).toEqual([]);
+    expect(auditResourcePathPlanningDisposition(node('supporting-citation-without-rationale'))).toContainEqual(
+      expect.objectContaining({ code: 'missing-disposition-rationale' }),
+    );
     expect(auditResourcePathPlanningDisposition(node('evidence-producing-disposition'))).toEqual([]);
     expect(auditResourcePathPlanningDisposition(node('evidence-producing-without-instrumentation'))).toContainEqual(expect.objectContaining({
       code: 'missing-evidence-instrumentation',
