@@ -134,6 +134,7 @@ async function main() {
         sourceFactCount: true,
         sourceCoverage: true,
         refreshedAt: true,
+        statusMarkers: true,
       },
     }),
   ]);
@@ -248,6 +249,7 @@ async function collectLearnerCandidates(
         sourceFactCount: true,
         sourceCoverage: true,
         refreshedAt: true,
+        statusMarkers: true,
       },
     }),
     prisma.adaptiveAssessmentSession.groupBy({ by: ['userId'], where: { userId: { in: userIds } }, _count: { _all: true } }),
@@ -290,6 +292,7 @@ async function collectLearnerCandidates(
             sourceFactCount: featureCache.sourceFactCount,
             sourceCoverage: featureCache.sourceCoverage,
             refreshedAt: featureCache.refreshedAt,
+            statusMarkers: featureCache.statusMarkers,
           }
         : null,
       adaptiveAssessmentStateCount: (

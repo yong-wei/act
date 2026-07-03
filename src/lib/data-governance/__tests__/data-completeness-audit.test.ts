@@ -6,6 +6,7 @@ import {
   buildDataCompletenessAuditReport,
   renderDataCompletenessAuditMarkdown,
 } from '../data-completeness-audit';
+import type { LearningEvidenceCorpusChunk } from '../learning-evidence-rag-corpus';
 
 describe('data completeness audit', () => {
   it('reports graph, resource, citation, path, lineage, and learner readiness separately', () => {
@@ -316,6 +317,84 @@ describe('data completeness audit', () => {
     expect(lineage?.totals.featureCachesMissingSourceCoverage).toBe(2);
     expect(lineage?.findings.filter((finding) =>
       finding.id === 'student-evidence-feature-cache-source-coverage-missing'
+    )).toHaveLength(2);
+  });
+
+  it('reports corpus chunks without citation addresses as citation readiness follow-up work', () => {
+    const chunkWithoutCitationAddress: LearningEvidenceCorpusChunk = {
+      id: 'chunk-missing-address',
+      family: 'course-content',
+      sourceType: 'course-content',
+      sourceRef: { id: 'section-1' },
+      spanRef: { kind: 'text-range', start: 0, end: 12 },
+      display: { title: 'Grounded section', href: null, capsule: 'Section' },
+      content: { text: 'content', redactedSummary: null, hash: 'hash' },
+      privacyClass: 'public',
+      confidence: 'high',
+      freshness: {
+        indexedAt: '2026-07-02T00:00:00.000Z',
+        sourceUpdatedAt: null,
+        expiresAt: null,
+        stale: false,
+      },
+      authority: {
+        level: 'canonical',
+        knowledgeTags: [],
+        pageAnchor: null,
+        freshnessBucket: 'current',
+        scopeRule: { visibility: 'public', allowedRoles: ['student', 'teacher'] },
+      },
+      retrieval: {
+        tags: [],
+        goals: [],
+        useCases: ['diagnosis'],
+      },
+    };
+
+    const report = buildDataCompletenessAuditReport({
+      evidenceCorpus: [chunkWithoutCitationAddress],
+    });
+
+    const citationReadiness = report.layers.find((layer) => layer.id === 'citationReadiness');
+    expect(citationReadiness?.totals.corpusChunksWithCitationAddress).toBe(0);
+    expect(citationReadiness?.totals.corpusChunksMissingCitationAddress).toBe(1);
+    expect(citationReadiness?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'corpus-chunk-citation-address-missing',
+        severity: 'partial',
+        stableRef: 'CorpusChunk:chunk-missing-address',
+      }),
+    ]));
+  });
+
+  it('treats stale feature caches as incomplete even when source coverage is available', () => {
+    const report = buildDataCompletenessAuditReport({
+      generatedAt: '2026-07-02T00:00:00.000Z',
+      studentEvidenceFeatureCaches: [{
+        userId: 'student-old-cache',
+        sourceFactCount: 2,
+        sourceCoverage: { LearningFact: 'available' },
+        refreshedAt: '2026-05-01T00:00:00.000Z',
+      }, {
+        userId: 'student-marker-cache',
+        sourceFactCount: 2,
+        sourceCoverage: { LearningFact: 'available' },
+        refreshedAt: '2026-07-01T00:00:00.000Z',
+        statusMarkers: ['stale'],
+      }, {
+        userId: 'student-ready-cache',
+        sourceFactCount: 2,
+        sourceCoverage: { LearningFact: 'available' },
+        refreshedAt: '2026-07-01T00:00:00.000Z',
+        statusMarkers: [],
+      }],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.featureCachesMissingSourceCoverage).toBe(0);
+    expect(lineage?.totals.staleFeatureCaches).toBe(2);
+    expect(lineage?.findings.filter((finding) =>
+      finding.id === 'student-evidence-feature-cache-stale'
     )).toHaveLength(2);
   });
 

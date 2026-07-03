@@ -91,6 +91,7 @@ export interface DataCompletenessFeatureCacheInput {
   sourceFactCount?: number;
   sourceCoverage?: unknown;
   refreshedAt?: Date | string | null;
+  statusMarkers?: string[];
 }
 
 export interface DataCompletenessLearnerCandidateInput {
@@ -108,6 +109,7 @@ export interface DataCompletenessLearnerCandidateInput {
     sourceFactCount?: number;
     sourceCoverage?: unknown;
     refreshedAt?: Date | string | null;
+    statusMarkers?: string[];
   } | null;
   adaptiveAssessmentStateCount?: number;
 }
@@ -329,6 +331,7 @@ function buildCitationReadinessLayer(
   const projections = (registry?.nodes ?? []).map(buildResourceSemanticProjection);
   const citationTargets = projections.flatMap((projection) => projection.citationTargets);
   const retrievalChunks = projections.flatMap((projection) => projection.retrievalChunks);
+  const chunksMissingCitationAddress = evidenceCorpus.filter((chunk) => !chunk.citationAddress);
   const findings = [
     ...citationTargets
       .filter((target) => target.status !== 'resolvable' || !target.readiness.verified)
@@ -342,6 +345,14 @@ function buildCitationReadinessLayer(
     ...retrievalChunks
       .filter((chunk) => chunk.projectionStatus !== 'mapped')
       .map((chunk) => finding('retrieval-chunk-not-indexed', 'partial', chunk.id, `Retrieval chunk is ${chunk.projectionStatus}.`, 'index-retrieval-corpus')),
+    ...chunksMissingCitationAddress
+      .map((chunk) => finding(
+        'corpus-chunk-citation-address-missing',
+        'partial',
+        `CorpusChunk:${chunk.id}`,
+        'Evidence corpus chunk lacks a citation address.',
+        'complete-citation-targets',
+      )),
   ];
 
   return layer('citationReadiness', {
@@ -352,6 +363,7 @@ function buildCitationReadinessLayer(
     mappedRetrievalChunks: retrievalChunks.filter((chunk) => chunk.projectionStatus === 'mapped').length,
     corpusChunks: evidenceCorpus.length,
     corpusChunksWithCitationAddress: evidenceCorpus.filter((chunk) => Boolean(chunk.citationAddress)).length,
+    corpusChunksMissingCitationAddress: countFindings(findings, 'corpus-chunk-citation-address-missing'),
   }, findings);
 }
 
@@ -416,6 +428,7 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
   const snapshots = input.studentCompetencySnapshots ?? [];
   const summaries = input.studentProfileSummaries ?? [];
   const caches = input.studentEvidenceFeatureCaches ?? [];
+  const generatedAt = parseDate(input.generatedAt) ?? new Date();
   const historicalSourceLogIds = new Set(
     (input.historicalSourceLogIds ?? [])
       .map(normalizeKey)
@@ -451,6 +464,7 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
     ...factUsers.filter((userId) => !summaryUsers.has(userId)).map((userId) => finding('student-profile-summary-missing', 'advisory', maskStableLearnerRef(userId), 'LearningFact user lacks StudentProfileSummary coverage.', 'refresh-profile-summaries')),
     ...factUsers.filter((userId) => !cacheUsers.has(userId)).map((userId) => finding('student-evidence-feature-cache-missing', 'partial', maskStableLearnerRef(userId), 'LearningFact user lacks StudentEvidenceFeatureCache coverage.', 'refresh-student-evidence-feature-cache')),
     ...caches.filter((cache) => (cache.sourceFactCount ?? 0) === 0 || !hasCompleteSourceCoverage(cache.sourceCoverage)).map((cache) => finding('student-evidence-feature-cache-source-coverage-missing', 'partial', maskStableLearnerRef(cache.userId), 'StudentEvidenceFeatureCache lacks source fact coverage.', 'refresh-student-evidence-feature-cache')),
+    ...caches.filter((cache) => isStaleFeatureCache(cache, generatedAt)).map((cache) => finding('student-evidence-feature-cache-stale', 'partial', maskStableLearnerRef(cache.userId), 'StudentEvidenceFeatureCache is stale and should be refreshed.', 'refresh-student-evidence-feature-cache')),
   ];
 
   return layer('evidenceLineage', {
@@ -475,6 +489,7 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
     studentEvidenceFeatureCaches: caches.length,
     usersMissingFeatureCaches: countFindings(findings, 'student-evidence-feature-cache-missing'),
     featureCachesMissingSourceCoverage: countFindings(findings, 'student-evidence-feature-cache-source-coverage-missing'),
+    staleFeatureCaches: countFindings(findings, 'student-evidence-feature-cache-stale'),
   }, findings);
 }
 
@@ -785,6 +800,22 @@ function hasObjectKeys(value: unknown): boolean {
 function hasCompleteSourceCoverage(value: unknown): boolean {
   if (!hasObjectKeys(value)) return false;
   return Object.values(value as Record<string, unknown>).every((status) => status === 'available');
+}
+
+const FEATURE_CACHE_STALE_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
+
+function isStaleFeatureCache(cache: DataCompletenessFeatureCacheInput, generatedAt: Date): boolean {
+  if (cache.statusMarkers?.includes('stale')) return true;
+  const refreshedAt = parseDate(cache.refreshedAt);
+  if (!refreshedAt) return true;
+  return generatedAt.getTime() - refreshedAt.getTime() > FEATURE_CACHE_STALE_AFTER_MS;
+}
+
+function parseDate(value: Date | string | null | undefined): Date | null {
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (typeof value !== 'string') return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function uniqueSorted(values: string[]): string[] {
