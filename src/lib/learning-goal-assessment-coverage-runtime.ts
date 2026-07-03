@@ -15,9 +15,20 @@ const coverageByGoalId = new Map((matrix.rows ?? []).map((row) => [row.learningG
 
 export function getLearningGoalAssessmentCoverageForPlanner(
   learningGoalId: string,
-): PlannerLearningGoalAssessmentCoverage | null {
+): PlannerLearningGoalAssessmentCoverage {
   const row = coverageByGoalId.get(learningGoalId);
-  if (!row) return null;
+  if (!row) {
+    return {
+      coverageState: 'limited',
+      incompleteStages: ['readiness', 'practice', 'checkpoint', 'remediation'],
+      reviewedPathEligibleItemCount: 0,
+      limitationReason: `learning-goal-assessment-coverage-missing:${learningGoalId}`,
+      matrixVersion: matrix.artifactVersion ?? 'learning-goal-assessment-coverage.unavailable',
+      generatedAt: matrix.generatedAt ?? null,
+      terminalValidationRequired: true,
+      assessmentItemsReplaceTerminalEvidence: false,
+    };
+  }
   return {
     coverageState: row.assessmentCoverageState,
     incompleteStages: row.incompleteStages,
