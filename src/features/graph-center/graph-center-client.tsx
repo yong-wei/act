@@ -25,6 +25,7 @@ type GraphCenterSarReviewRequest = {
   patch?: {
     planningMetadata: {
       knowledgeCoverage: string[];
+      availability?: 'available';
       pathEligible?: boolean;
     };
   };
@@ -605,7 +606,7 @@ function buildGraphCenterSarAcceptPatch(
     planningMetadata: {
       knowledgeCoverage: [selectedNode.node.id],
       ...(candidate.review?.auditPayload.missingCoverageTypes.includes('path-eligible-resource')
-        ? { pathEligible: true }
+        ? { availability: 'available', pathEligible: true }
         : {}),
     },
   };

@@ -10,6 +10,7 @@ import {
 import {
   buildGraphCenterPayload,
   type GraphCenterPayload,
+  type GraphCenterResourceCoverageMissingType,
   type GraphCenterSarResourceGapSuggestion,
   type ResourceFieldCompletionGraphSummary,
 } from '../graph-center';
@@ -258,6 +259,7 @@ describe('graph center client surface', () => {
       patch: {
         planningMetadata: {
           knowledgeCoverage: ['kn:autocontrol:simulation-validation'],
+          availability: 'available',
           pathEligible: true,
         },
       },
