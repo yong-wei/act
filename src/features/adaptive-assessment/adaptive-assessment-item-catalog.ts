@@ -147,7 +147,13 @@ type IcourseObjectiveBankRecord = {
   question_id?: string;
   source_question_id?: number | string;
   question_kind?: string;
+  choice_mode?: string;
   stem?: string;
+  options?: Array<{
+    key?: string;
+    text?: string;
+    is_correct?: boolean;
+  }>;
   correct_answers?: unknown[];
   knowledge_tags?: string[];
   adaptive_metadata?: {
@@ -180,6 +186,8 @@ type KaqReviewedItemRecord = {
     versionRefs?: Record<string, string>;
   };
 };
+
+type CurrentKaqQuestionMetadata = ReturnType<typeof buildKaqQuizQuestionMetadata>;
 
 export interface AdaptiveAssessmentCatalogInput {
   presetQuestions?: CrossDomainQuestion[];
@@ -259,6 +267,48 @@ function allowedStagesFor(reviewState: AdaptiveAssessmentCatalogReviewState, pur
   return [...stages].sort();
 }
 
+function kaqReviewMismatchReasons(
+  kaqMetadata: KaqReviewedItemRecord['metadata'] | undefined,
+  currentKaqMetadata: CurrentKaqQuestionMetadata,
+): string[] {
+  if (kaqMetadata?.review?.state !== 'reviewed') {
+    return ['missing-kaq-reviewed-metadata'];
+  }
+
+  const reasons = [
+    kaqMetadata.review.sourceHash === currentKaqMetadata.review.sourceHash
+      ? ''
+      : 'kaq-review-source-hash-mismatch',
+    kaqMetadata.immutableContentHash === currentKaqMetadata.immutableContentHash
+      ? ''
+      : 'kaq-review-immutable-content-hash-mismatch',
+    kaqMetadata.review.metadataVersionRef === currentKaqMetadata.review.metadataVersionRef
+      ? ''
+      : 'kaq-review-metadata-version-mismatch',
+    stableJson(kaqMetadata.versionRefs ?? {}) === stableJson(currentKaqMetadata.versionRefs)
+      ? ''
+      : 'kaq-review-version-ref-mismatch',
+  ].filter(Boolean);
+
+  return uniqueSorted(reasons);
+}
+
+function icourseQuestionContentSnapshot(record: IcourseObjectiveBankRecord) {
+  return {
+    questionKind: record.question_kind ?? null,
+    choiceMode: record.choice_mode ?? null,
+    stem: record.stem ?? null,
+    options: Array.isArray(record.options)
+      ? record.options.map((option) => ({
+        key: option.key ?? null,
+        text: option.text ?? null,
+        isCorrect: option.is_correct === true,
+      })).sort((left, right) => String(left.key ?? '').localeCompare(String(right.key ?? '')))
+      : [],
+    correctAnswers: Array.isArray(record.correct_answers) ? record.correct_answers.map(String).sort() : [],
+  };
+}
+
 function buildPresetItems(
   questions: CrossDomainQuestion[],
   kaqReviewedByQuestionId: Map<string, KaqReviewedItemRecord>,
@@ -267,11 +317,8 @@ function buildPresetItems(
     const kaq = kaqReviewedByQuestionId.get(question.id);
     const kaqMetadata = kaq?.metadata;
     const currentKaqMetadata = buildKaqQuizQuestionMetadata(question);
-    const reviewSourceHashMatches = Boolean(
-      kaqMetadata?.review?.sourceHash
-      && currentKaqMetadata.review.sourceHash === kaqMetadata.review.sourceHash,
-    );
-    const reviewState: AdaptiveAssessmentCatalogReviewState = kaqMetadata?.review?.state === 'reviewed' && reviewSourceHashMatches
+    const reviewMismatchReasons = kaqReviewMismatchReasons(kaqMetadata, currentKaqMetadata);
+    const reviewState: AdaptiveAssessmentCatalogReviewState = reviewMismatchReasons.length === 0
       ? 'path-eligible'
       : 'imported-unreviewed';
     const sourceHash = sha256({
@@ -321,10 +368,7 @@ function buildPresetItems(
       },
       limitations: reviewState === 'path-eligible'
         ? []
-        : uniqueSorted([
-          kaqMetadata?.review?.state === 'reviewed' ? 'kaq-review-source-hash-mismatch' : 'missing-kaq-reviewed-metadata',
-          'not-path-eligible',
-        ]),
+        : uniqueSorted([...reviewMismatchReasons, 'not-path-eligible']),
       adaptiveAssessmentItemRef: snapshotRelationship(),
     };
   });
@@ -435,7 +479,7 @@ function buildAcqStaticItems(records: AcqStaticQuestionRecord[]): AdaptiveAssess
 function buildIcourseItems(records: IcourseObjectiveBankRecord[]): AdaptiveAssessmentCatalogItem[] {
   return records.map((record) => {
     const sourceId = record.question_id ?? String(record.source_question_id ?? 'unknown-icourse-question');
-    const sourceHash = sha256(record);
+    const sourceHash = sha256(icourseQuestionContentSnapshot(record));
     const reviewState: AdaptiveAssessmentCatalogReviewState = record.adaptive_metadata?.review_status === 'verified'
       ? 'semantically-reviewed'
       : 'imported-unreviewed';

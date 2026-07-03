@@ -148,4 +148,123 @@ describe('adaptive assessment item catalog', () => {
       'not-path-eligible',
     ]));
   });
+
+  it('does not trust K/A/Q review metadata with stale version references', async () => {
+    const sources = await loadAdaptiveAssessmentCatalogSources();
+    const staleReview = sources.kaqReviewedItems.find((item) => item.questionId === 'preset-q-01');
+    expect(staleReview).toBeTruthy();
+    const artifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [{
+        ...staleReview!,
+        metadata: {
+          ...staleReview!.metadata,
+          versionRefs: {
+            ...staleReview!.metadata?.versionRefs,
+            objectiveCatalogVersion: 'stale-objective-catalog.v0',
+          },
+        },
+      }],
+    });
+    const item = artifacts.items[0];
+
+    expect(item.reviewState).toBe('imported-unreviewed');
+    expect(item.allowedStages).toEqual(['low-stakes-practice']);
+    expect(item.limitations).toEqual(expect.arrayContaining([
+      'kaq-review-version-ref-mismatch',
+      'not-path-eligible',
+    ]));
+  });
+
+  it('keeps iCourse content hashes stable when only governance metadata changes', () => {
+    const baseRecord = {
+      question_id: 'icourse-q-1',
+      question_kind: 'single-choice',
+      choice_mode: 'single',
+      stem: '单位阶跃响应的稳态误差由哪个量决定？',
+      options: [
+        { key: 'A', text: '系统型别', is_correct: true },
+        { key: 'B', text: '采样周期', is_correct: false },
+      ],
+      correct_answers: ['A'],
+      knowledge_tags: ['steady-state-error'],
+      adaptive_metadata: {
+        difficulty_seed: 0.42,
+        review_status: 'verified',
+      },
+      search_text: '治理检索文本',
+      source_bundle: {
+        exportedAt: '2026-07-01T00:00:00.000Z',
+      },
+    };
+    const artifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      icourseObjectiveBankItems: [
+        baseRecord,
+        {
+          ...baseRecord,
+          question_id: 'icourse-q-1-copy',
+          adaptive_metadata: {
+            ...baseRecord.adaptive_metadata,
+            review_status: 'pending',
+          },
+          search_text: '更新后的检索文本',
+          source_bundle: {
+            exportedAt: '2026-07-02T00:00:00.000Z',
+          },
+        },
+      ],
+      icourseObjectiveBankIndexTotal: 2,
+    });
+
+    const [first, second] = artifacts.items
+      .filter((item) => item.sourceFamily === 'icourse-objective-bank')
+      .sort((left, right) => left.sourceId.localeCompare(right.sourceId));
+
+    expect(first.contentHash).toBe(second.contentHash);
+    expect(first.lineage.sourceHash).toBe(second.lineage.sourceHash);
+    expect(first.reviewState).toBe('semantically-reviewed');
+    expect(second.reviewState).toBe('imported-unreviewed');
+  });
+
+  it('changes iCourse content hashes when option text changes', () => {
+    const baseRecord = {
+      question_id: 'icourse-q-option-1',
+      question_kind: 'single-choice',
+      choice_mode: 'single',
+      stem: '闭环系统稳定性与哪一项最直接相关？',
+      options: [
+        { key: 'A', text: '闭环特征根位置', is_correct: true },
+        { key: 'B', text: '输入信号颜色', is_correct: false },
+      ],
+      correct_answers: ['A'],
+      knowledge_tags: ['stability'],
+      adaptive_metadata: {
+        difficulty_seed: 0.35,
+        review_status: 'verified',
+      },
+    };
+    const artifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      icourseObjectiveBankItems: [
+        baseRecord,
+        {
+          ...baseRecord,
+          question_id: 'icourse-q-option-2',
+          options: [
+            { key: 'A', text: '闭环极点位置', is_correct: true },
+            { key: 'B', text: '输入信号颜色', is_correct: false },
+          ],
+        },
+      ],
+      icourseObjectiveBankIndexTotal: 2,
+    });
+
+    const [first, second] = artifacts.items
+      .filter((item) => item.sourceFamily === 'icourse-objective-bank')
+      .sort((left, right) => left.sourceId.localeCompare(right.sourceId));
+
+    expect(first.contentHash).not.toBe(second.contentHash);
+    expect(first.lineage.sourceHash).not.toBe(second.lineage.sourceHash);
+  });
 });
