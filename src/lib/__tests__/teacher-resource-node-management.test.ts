@@ -8,6 +8,8 @@ import {
   buildTeacherResourceNodeManagementSummary,
   createTeacherResourceNodeView,
   filterTeacherResourceNodes,
+  reviewSarSuggestedBinding,
+  type SarSuggestedBindingReviewCandidate,
   type TeacherResourceNodePatch,
   type TeacherResourceNodeScope,
 } from '../teacher-resource-node-management';
@@ -57,6 +59,44 @@ const teacherScope: TeacherResourceNodeScope = {
   editableSourceRefs: new Set(['owned-quiz', 'owned-broken']),
   readableSourceRefs: new Set(['owned-quiz', 'owned-broken', 'kn-bode']),
 };
+
+const teacherScopeWithRegistryRefs: TeacherResourceNodeScope = {
+  ...teacherScope,
+  readableSourceRefs: new Set([...teacherScope.readableSourceRefs, 'lesson12-bode-post-quiz']),
+};
+
+function sarSuggestedBindingCandidate(
+  overrides: Partial<SarSuggestedBindingReviewCandidate> = {},
+): SarSuggestedBindingReviewCandidate {
+  return {
+    id: 'sar-gap:owned-quiz',
+    target: {
+      graphNodeId: 'kn-bode',
+      objectiveId: 'objective:frequency-domain',
+    },
+    candidate: {
+      ref: 'teaching-resource:owned-quiz',
+      refType: 'resource-node',
+      resourceNodeId: 'teaching-resource:owned-quiz',
+      sourceRefs: ['owned-quiz'],
+    },
+    missingCoverageTypes: ['linked-resource', 'path-eligible-resource'],
+    provenance: {
+      source: 'graph-center-sar',
+      basisEventIds: ['sar-event:safe-1'],
+      traceId: 'sar:trace:graph-center',
+    },
+    traceSummary: {
+      seedEntityIds: ['sar-entity:graph-node'],
+      expansionHopCount: 1,
+      selectedRefCount: 2,
+      rejectedRefCount: 0,
+      limitations: ['source-pack-ranking-required'],
+    },
+    limitations: ['citation-hydration-required'],
+    ...overrides,
+  };
+}
 
 describe('teacher ResourceNode management contracts', () => {
   it('filters browse results by type, knowledge mapping, policy, privacy, and path eligibility', () => {
@@ -470,6 +510,494 @@ describe('teacher ResourceNode management contracts', () => {
         },
       }),
     ]);
+  });
+
+  it('records SAR suggested binding rejection without producing ResourceNode mutations', () => {
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate(),
+      scope: teacherScope,
+      decision: 'reject',
+      rationale: '资源与当前知识点不匹配。',
+      reviewedAt: '2026-07-02T10:00:00.000Z',
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.state).toBe('rejected');
+    expect(result.persistablePatch).toBeUndefined();
+    expect(result.auditRecord).toMatchObject({
+      candidateId: 'sar-gap:owned-quiz',
+      candidateRef: 'teaching-resource:owned-quiz',
+      candidateRefType: 'resource-node',
+      targetGraphNodeId: 'kn-bode',
+      targetObjectiveId: 'objective:frequency-domain',
+      missingCoverageTypes: ['linked-resource', 'path-eligible-resource'],
+      decision: 'reject',
+      state: 'rejected',
+      rationale: '资源与当前知识点不匹配。',
+      reviewedAt: '2026-07-02T10:00:00.000Z',
+      governanceEffect: null,
+      reviewer: {
+        id: 'teacher-1',
+        role: 'TEACHER',
+      },
+    });
+    expect(result.auditRecord.affectedRefs).toEqual([
+      'kn-bode',
+      'objective:frequency-domain',
+      'owned-quiz',
+      'teaching-resource:owned-quiz',
+    ]);
+    expect(result.auditRecord.traceSummary).toMatchObject({
+      expansionHopCount: 1,
+      selectedRefCount: 2,
+      rejectedRefCount: 0,
+      limitations: ['citation-hydration-required', 'source-pack-ranking-required'],
+    });
+  });
+
+  it('records authorized SAR defer and invalidate decisions without ResourceNode mutations', () => {
+    const deferResult = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate(),
+      scope: teacherScope,
+      decision: 'defer',
+      rationale: '需要等待教材引用补齐。',
+      reviewedAt: '2026-07-02T10:02:00.000Z',
+    });
+    const invalidateResult = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate(),
+      scope: teacherScope,
+      decision: 'invalidate',
+      rationale: '候选资源已下线。',
+      reviewedAt: '2026-07-02T10:03:00.000Z',
+    });
+
+    expect(deferResult.ok).toBe(true);
+    expect(invalidateResult.ok).toBe(true);
+    if (!deferResult.ok) throw new Error(deferResult.error);
+    if (!invalidateResult.ok) throw new Error(invalidateResult.error);
+    expect(deferResult.state).toBe('deferred');
+    expect(invalidateResult.state).toBe('invalidated');
+    expect(deferResult.persistablePatch).toBeUndefined();
+    expect(invalidateResult.persistablePatch).toBeUndefined();
+    expect(deferResult.auditRecord).toMatchObject({
+      decision: 'defer',
+      state: 'deferred',
+      governanceEffect: null,
+    });
+    expect(invalidateResult.auditRecord).toMatchObject({
+      decision: 'invalidate',
+      state: 'invalidated',
+      governanceEffect: null,
+    });
+  });
+
+  it('does not authorize namespace-prefixed SAR refs by stripping prefixes', () => {
+    const resourceResult = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'chunk:kn-bode',
+          refType: 'retrieval-chunk',
+          sourceRefs: ['resource:kn-bode'],
+        },
+      }),
+      scope: teacherScope,
+      decision: 'reject',
+      rationale: '确认 resource: 前缀不会通过知识节点可读权限。',
+      reviewedAt: '2026-07-02T10:04:00.000Z',
+    });
+    const textbookResult = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'textbook-section:kn-bode',
+          refType: 'retrieval-chunk',
+          sourceRefs: ['textbook-section:kn-bode'],
+        },
+      }),
+      scope: teacherScope,
+      decision: 'defer',
+      rationale: '确认 textbook-section: 前缀不会通过知识节点可读权限。',
+      reviewedAt: '2026-07-02T10:04:30.000Z',
+    });
+
+    expect(resourceResult.ok).toBe(false);
+    expect(textbookResult.ok).toBe(false);
+    if (resourceResult.ok) throw new Error('resource-prefixed ref should not be authorized');
+    if (textbookResult.ok) throw new Error('textbook-prefixed ref should not be authorized');
+    expect(resourceResult.code).toBe('SAR_SUGGESTED_BINDING_FORBIDDEN');
+    expect(textbookResult.code).toBe('SAR_SUGGESTED_BINDING_FORBIDDEN');
+  });
+
+  it('accepts SAR suggested bindings only through existing ResourceNode governance validation', () => {
+    const resourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'teaching-resource:owned-quiz',
+          refType: 'resource-node',
+          resourceNodeId: 'teaching-resource:owned-quiz',
+          sourceRefs: ['kn-bode'],
+        },
+      }),
+      scope: teacherScopeWithRegistryRefs,
+      decision: 'accept',
+      rationale: '确认该资源可补齐路径资源覆盖。',
+      reviewedAt: '2026-07-02T10:05:00.000Z',
+      resourceNode,
+      patch: {
+        planningMetadata: {
+          knowledgeCoverage: ['kn-frequency-response'],
+          pathEligible: true,
+        },
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.state).toBe('accepted');
+    expect(result.persistablePatch).toEqual({
+      resourceNodePlanning: {
+        knowledgeCoverage: ['kn-bode', 'kn-frequency-response'],
+        teacherPolicy: 'allowed',
+      },
+    });
+    expect(result.auditRecord.governanceEffect).toEqual({
+      type: 'resource-node-planning-patch',
+      persistablePatch: result.persistablePatch,
+    });
+    expect(result.auditRecord.affectedRefs).toEqual([
+      'kn-bode',
+      'objective:frequency-domain',
+      'owned-quiz',
+      'teaching-resource:owned-quiz',
+    ]);
+  });
+
+  it('rejects unauthorized SAR suggested binding reviews without exposing restricted evidence', () => {
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'teaching-resource:foreign-project',
+          refType: 'resource-node',
+          resourceNodeId: 'teaching-resource:foreign-project',
+          sourceRefs: ['foreign-project'],
+        },
+        provenance: {
+          source: 'graph-center-sar',
+          basisEventIds: ['private-event-for-class-2'],
+          traceId: 'private-trace',
+        },
+      }),
+      scope: teacherScope,
+      decision: 'defer',
+      rationale: '稍后复核。',
+      reviewedAt: '2026-07-02T10:10:00.000Z',
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      status: 403,
+      code: 'SAR_SUGGESTED_BINDING_FORBIDDEN',
+      error: '建议绑定不存在或无权审查。',
+    });
+    expect(JSON.stringify(result)).not.toContain('private-event-for-class-2');
+    expect(JSON.stringify(result)).not.toContain('private-trace');
+    expect(JSON.stringify(result)).not.toContain('foreign-project');
+  });
+
+  it('rejects SAR reviews when a readable ResourceNode does not match restricted candidate refs', () => {
+    const ownedResourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'teaching-resource:foreign-project',
+          refType: 'resource-node',
+          resourceNodeId: 'teaching-resource:foreign-project',
+          sourceRefs: ['foreign-project'],
+        },
+        provenance: {
+          source: 'graph-center-sar',
+          basisEventIds: ['private-event-for-class-2'],
+          traceId: 'private-trace',
+        },
+      }),
+      scope: teacherScope,
+      decision: 'accept',
+      rationale: '恶意把外部候选套到可读资源。',
+      reviewedAt: '2026-07-02T10:12:00.000Z',
+      resourceNode: ownedResourceNode,
+      patch: {
+        planningMetadata: {
+          knowledgeCoverage: ['kn-bode'],
+        },
+      },
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      status: 403,
+      code: 'SAR_SUGGESTED_BINDING_FORBIDDEN',
+      error: '建议绑定不存在或无权审查。',
+    });
+    expect(JSON.stringify(result)).not.toContain('private-event-for-class-2');
+    expect(JSON.stringify(result)).not.toContain('private-trace');
+    expect(JSON.stringify(result)).not.toContain('foreign-project');
+  });
+
+  it('rejects SAR reviews when candidate sourceRefs mix a readable resource with restricted refs', () => {
+    const ownedResourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'teaching-resource:owned-quiz',
+          refType: 'resource-node',
+          resourceNodeId: 'teaching-resource:owned-quiz',
+          sourceRefs: ['owned-quiz', 'foreign-private-source'],
+        },
+        provenance: {
+          source: 'graph-center-sar',
+          basisEventIds: ['private-event-for-class-2'],
+          traceId: 'private-trace',
+        },
+      }),
+      scope: teacherScope,
+      decision: 'accept',
+      rationale: '恶意混入外部候选来源。',
+      reviewedAt: '2026-07-02T10:13:00.000Z',
+      resourceNode: ownedResourceNode,
+      patch: {
+        planningMetadata: {
+          knowledgeCoverage: ['kn-bode'],
+        },
+      },
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      status: 403,
+      code: 'SAR_SUGGESTED_BINDING_FORBIDDEN',
+      error: '建议绑定不存在或无权审查。',
+    });
+    expect(JSON.stringify(result)).not.toContain('private-event-for-class-2');
+    expect(JSON.stringify(result)).not.toContain('private-trace');
+    expect(JSON.stringify(result)).not.toContain('foreign-private-source');
+  });
+
+  it('rejects SAR reviews when a supplied ResourceNode itself mixes readable and restricted candidate refs', () => {
+    const ownedResourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
+    const mixedSourceResourceNode = {
+      ...ownedResourceNode,
+      sourceRefs: [
+        ...ownedResourceNode.sourceRefs,
+        { kind: 'teaching_resource' as const, ref: 'foreign-private-source' },
+      ],
+    };
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'teaching-resource:owned-quiz',
+          refType: 'resource-node',
+          resourceNodeId: 'teaching-resource:owned-quiz',
+          sourceRefs: ['owned-quiz', 'foreign-private-source'],
+        },
+        provenance: {
+          source: 'graph-center-sar',
+          basisEventIds: ['private-event-for-class-2'],
+          traceId: 'private-trace',
+        },
+      }),
+      scope: teacherScope,
+      decision: 'defer',
+      rationale: '恶意通过 ResourceNode 混合来源绕过审查。',
+      reviewedAt: '2026-07-02T10:13:30.000Z',
+      resourceNode: mixedSourceResourceNode,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      status: 403,
+      code: 'SAR_SUGGESTED_BINDING_FORBIDDEN',
+      error: '建议绑定不存在或无权审查。',
+    });
+    expect(JSON.stringify(result)).not.toContain('private-event-for-class-2');
+    expect(JSON.stringify(result)).not.toContain('private-trace');
+    expect(JSON.stringify(result)).not.toContain('foreign-private-source');
+  });
+
+  it('rejects SAR reviews when candidate refs are readable but ResourceNode has restricted refs', () => {
+    const ownedResourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
+    const mixedSourceResourceNode = {
+      ...ownedResourceNode,
+      sourceRefs: [
+        ...ownedResourceNode.sourceRefs,
+        { kind: 'teaching_resource' as const, ref: 'foreign-private-source' },
+      ],
+    };
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'teaching-resource:owned-quiz',
+          refType: 'resource-node',
+          resourceNodeId: 'teaching-resource:owned-quiz',
+          sourceRefs: ['owned-quiz'],
+        },
+        provenance: {
+          source: 'graph-center-sar',
+          basisEventIds: ['private-event-for-class-2'],
+          traceId: 'private-trace',
+        },
+      }),
+      scope: teacherScope,
+      decision: 'accept',
+      rationale: '恶意通过 ResourceNode 额外来源绕过审查。',
+      reviewedAt: '2026-07-02T10:13:40.000Z',
+      resourceNode: mixedSourceResourceNode,
+      patch: {
+        planningMetadata: {
+          knowledgeCoverage: ['kn-bode'],
+        },
+      },
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      status: 403,
+      code: 'SAR_SUGGESTED_BINDING_FORBIDDEN',
+      error: '建议绑定不存在或无权审查。',
+    });
+    expect(JSON.stringify(result)).not.toContain('private-event-for-class-2');
+    expect(JSON.stringify(result)).not.toContain('private-trace');
+    expect(JSON.stringify(result)).not.toContain('foreign-private-source');
+  });
+
+  it('rejects SAR reviews when candidate sourceRefs are omitted but ResourceNode has restricted refs', () => {
+    const ownedResourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
+    const mixedSourceResourceNode = {
+      ...ownedResourceNode,
+      sourceRefs: [
+        ...ownedResourceNode.sourceRefs,
+        { kind: 'teaching_resource' as const, ref: 'foreign-private-source' },
+      ],
+    };
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'teaching-resource:owned-quiz',
+          refType: 'resource-node',
+          resourceNodeId: 'teaching-resource:owned-quiz',
+          sourceRefs: [],
+        },
+        provenance: {
+          source: 'graph-center-sar',
+          basisEventIds: ['private-event-for-class-2'],
+          traceId: 'private-trace',
+        },
+      }),
+      scope: teacherScope,
+      decision: 'reject',
+      rationale: '恶意省略候选来源引用。',
+      reviewedAt: '2026-07-02T10:13:45.000Z',
+      resourceNode: mixedSourceResourceNode,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      status: 403,
+      code: 'SAR_SUGGESTED_BINDING_FORBIDDEN',
+      error: '建议绑定不存在或无权审查。',
+    });
+    expect(JSON.stringify(result)).not.toContain('private-event-for-class-2');
+    expect(JSON.stringify(result)).not.toContain('private-trace');
+    expect(JSON.stringify(result)).not.toContain('foreign-private-source');
+  });
+
+  it('rejects non-accept SAR reviews when candidate sourceRefs mix readable and restricted refs', () => {
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'teaching-resource:owned-quiz',
+          refType: 'resource-node',
+          resourceNodeId: 'teaching-resource:owned-quiz',
+          sourceRefs: ['owned-quiz', 'foreign-private-source'],
+        },
+        provenance: {
+          source: 'graph-center-sar',
+          basisEventIds: ['private-event-for-class-2'],
+          traceId: 'private-trace',
+        },
+      }),
+      scope: teacherScope,
+      decision: 'defer',
+      rationale: '恶意混入外部候选来源。',
+      reviewedAt: '2026-07-02T10:14:00.000Z',
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      status: 403,
+      code: 'SAR_SUGGESTED_BINDING_FORBIDDEN',
+      error: '建议绑定不存在或无权审查。',
+    });
+    expect(JSON.stringify(result)).not.toContain('private-event-for-class-2');
+    expect(JSON.stringify(result)).not.toContain('private-trace');
+    expect(JSON.stringify(result)).not.toContain('foreign-private-source');
+  });
+
+  it('does not accept SAR suggestions when ResourceNode validation rejects the governance patch', () => {
+    const resourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate(),
+      scope: teacherScopeWithRegistryRefs,
+      decision: 'accept',
+      rationale: '尝试写入系统字段。',
+      reviewedAt: '2026-07-02T10:15:00.000Z',
+      resourceNode,
+      patch: {
+        sourceRef: 'different-source',
+      } as never,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.status).toBe(400);
+    if (result.ok) throw new Error('expected SAR accept rejection');
+    expect(result.code).toBe('IMMUTABLE_RESOURCE_NODE_FIELDS');
+    expect(result.persistablePatch).toBeUndefined();
+    expect(result.auditRecord).toMatchObject({
+      decision: 'accept',
+      state: 'suggested',
+      governanceEffect: null,
+    });
+  });
+
+  it('does not accept non-ResourceNode SAR candidates by matching readable sourceRefs', () => {
+    const resourceNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
+    const result = reviewSarSuggestedBinding({
+      candidate: sarSuggestedBindingCandidate({
+        candidate: {
+          ref: 'retrieval-chunk:owned-quiz',
+          refType: 'retrieval-chunk',
+          resourceNodeId: 'teaching-resource:owned-quiz',
+          sourceRefs: ['owned-quiz'],
+        },
+      }),
+      scope: teacherScopeWithRegistryRefs,
+      decision: 'accept',
+      rationale: '尝试把 chunk 候选当作 ResourceNode 接受。',
+      reviewedAt: '2026-07-02T10:16:00.000Z',
+      resourceNode,
+      patch: {
+        planningMetadata: {
+          knowledgeCoverage: ['kn-bode'],
+        },
+      },
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      status: 403,
+      code: 'SAR_SUGGESTED_BINDING_FORBIDDEN',
+      error: '建议绑定不存在或无权审查。',
+    });
   });
 
   it('reports coverage dashboards, policy review counts, and system-owned issue triage markers', () => {

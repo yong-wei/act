@@ -260,6 +260,54 @@ describe('graph center payload service', () => {
     expect(payload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toEqual(['registry:linked-ready']);
   });
 
+  it('keeps linked but path-ineligible SAR resource candidates reviewable', () => {
+    const resourceRegistry = buildResourceNodeRegistry({
+      teachingResources: [
+        {
+          id: 'path-blocked-sar-resource',
+          title: 'Path blocked SAR resource',
+          type: 'TEXT',
+          knowledgeNodeIds: ['反馈_1_1'],
+        },
+      ],
+    });
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:feedback-loop',
+      viewerRole: 'TEACHER',
+      resourceRegistry,
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-path-blocked-sar-resource',
+          knowledgeNodeRefs: ['反馈_1_1'],
+          resourceId: 'resource:teaching-resource:path-blocked-sar-resource',
+        }),
+      ],
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-1',
+      },
+    });
+    const associated = payload.selectedNode?.associatedEvidence;
+    const resourceNodeSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
+      suggestion.refType === 'resource-node' && suggestion.ref.includes('path-blocked-sar-resource')
+    );
+
+    expect(payload.selectedNode?.resourceCoverage.linkedResourceIds).toEqual(['teaching-resource:path-blocked-sar-resource']);
+    expect(payload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toEqual([]);
+    expect(payload.selectedNode?.resourceCoverage.missingCoverageTypes).toContain('path-eligible-resource');
+    expect(resourceNodeSuggestion).toEqual(expect.objectContaining({
+      refType: 'resource-node',
+      suggestedForMissingCoverageTypes: expect.arrayContaining(['path-eligible-resource']),
+      review: expect.objectContaining({
+        availableActions: expect.arrayContaining(['accept']),
+        auditPayload: expect.objectContaining({
+          sourceRefs: ['path-blocked-sar-resource'],
+        }),
+      }),
+    }));
+  });
+
   it('keeps RAG-indexed, citation-ready, and verified-citation counts distinct', () => {
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',
@@ -355,15 +403,47 @@ describe('graph center payload service', () => {
   });
 
   it('shows SAR resource gap suggestions without promoting candidates into official coverage', () => {
+    const resourceRegistry = buildResourceNodeRegistry({
+      teachingResources: [
+        {
+          id: 'semantic-simulation-gap',
+          title: 'Semantic simulation gap',
+          type: 'TEXT',
+          knowledgeNodeIds: ['unrelated-knowledge-node'],
+        },
+        {
+          id: 'kn-bode',
+          title: 'Knowledge id collision resource',
+          type: 'TEXT',
+          knowledgeNodeIds: ['unrelated-knowledge-node'],
+        },
+      ],
+    });
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',
       selectedNodeId: 'kn:autocontrol:simulation-validation',
       viewerRole: 'TEACHER',
+      resourceRegistry,
       evidenceCorpus: [
         ragChunk({
           id: 'chunk-sar-simulation-gap',
           knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
           resourceId: 'external:sar-simulation-gap',
+        }),
+        ragChunk({
+          id: 'chunk-sar-semantic-resource-gap',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'resource:teaching-resource:semantic-simulation-gap',
+        }),
+        ragChunk({
+          id: 'chunk-sar-prefixed-knowledge-collision',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'resource:kn-bode',
+        }),
+        ragChunk({
+          id: 'chunk-sar-textbook-collision',
+          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
+          resourceId: 'textbook-section:kn-bode',
         }),
         ragChunk({
           id: 'chunk-sar-unrelated-gap',
@@ -383,7 +463,7 @@ describe('graph center payload service', () => {
     expect(coverage?.pathEligibleResourceCount).toBe(0);
     expect(coverage?.citationReadyCount).toBe(0);
     expect(coverage?.verifiedCitationCount).toBe(0);
-    expect(coverage?.ragIndexedCount).toBe(1);
+    expect(coverage?.ragIndexedCount).toBe(4);
     expect(associated?.status).toBe('available');
     expect(associated?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-simulation-gap');
     expect(JSON.stringify(associated)).not.toContain('chunk-sar-unrelated-gap');
@@ -400,6 +480,26 @@ describe('graph center payload service', () => {
         ]),
       }),
     ]));
+    const retrievalChunkSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
+      suggestion.ref === 'chunk-sar-simulation-gap'
+    );
+    const resourceNodeSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
+      suggestion.ref === 'external:sar-simulation-gap' && suggestion.refType === 'resource-node'
+    );
+    const semanticResourceNodeSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
+      suggestion.ref === 'teaching-resource:semantic-simulation-gap' && suggestion.refType === 'resource-node'
+    );
+    const prefixedKnowledgeCollisionSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
+      suggestion.ref === 'kn-bode' && suggestion.refType === 'resource-node'
+    );
+    expect(retrievalChunkSuggestion).not.toHaveProperty('review');
+    expect(resourceNodeSuggestion).not.toHaveProperty('review');
+    expect(prefixedKnowledgeCollisionSuggestion).not.toHaveProperty('review');
+    expect(semanticResourceNodeSuggestion?.review?.auditPayload.sourceRefs).toEqual(['semantic-simulation-gap']);
+    const reviewSourceRefs = associated?.resourceGapSuggestions.flatMap((suggestion) =>
+      suggestion.review?.auditPayload.sourceRefs ?? []
+    ) ?? [];
+    expect(new Set(reviewSourceRefs)).toEqual(new Set(['semantic-simulation-gap']));
     expect(associated?.resourceGapSuggestions[0]?.rationale.reason).toContain('ResourceNode governance review');
   });
 
@@ -836,6 +936,7 @@ describe('graph center payload service', () => {
         draft: true,
       }),
     ]));
+    expect(associated?.resourceGapSuggestions.every((suggestion) => !Object.hasOwn(suggestion, 'review'))).toBe(true);
     expect(serialized).not.toContain('chunk-sar-student-class-gap');
     expect(serialized).not.toContain('student-class-resource');
     expect(serialized).not.toContain('learner-1');
@@ -2019,6 +2120,7 @@ function ragChunk(input: {
   citationAddress?: LearningEvidenceCorpusChunk['citationAddress'];
   contentHash?: string;
   resourceId?: string;
+  sourceRefId?: string;
   ownerUserId?: string | null;
   classId?: string | null;
   privacyClass?: LearningEvidenceCorpusChunk['privacyClass'];
@@ -2031,7 +2133,7 @@ function ragChunk(input: {
     family: 'course-content',
     sourceType: 'course-content',
     sourceRef: {
-      id: input.id,
+      id: input.sourceRefId ?? input.id,
       ownerUserId: input.ownerUserId ?? null,
       classId: input.classId ?? null,
       goalId: 'graph-resource-coverage',
