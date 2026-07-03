@@ -92,6 +92,7 @@ export interface AssessmentItemSemanticCoverageReport {
   sourceFamilies: Array<{
     family: AdaptiveAssessmentCatalogSourceFamily;
     role: 'item-source' | 'review-overlay';
+    sourceTotal: number | null;
     itemTotal: number;
     reviewedTotal: number;
     pathEligibleTotal: number;
@@ -269,7 +270,7 @@ export function buildKaqFoundationSemanticReviewDecisions(
     const item = itemsBySourceId.get(`preset-adaptive-question:${reviewedItem.questionId}`);
     const metadata = reviewedItem.metadata;
     const review = metadata?.review;
-    if (!item || item.reviewState !== 'path-eligible' || review?.state !== 'reviewed') return [];
+    if (!item || review?.state !== 'reviewed') return [];
     return [{
       catalogItemId: item.catalogItemId,
       decisionKind: 'human-review',
@@ -278,7 +279,9 @@ export function buildKaqFoundationSemanticReviewDecisions(
       reviewerRole: review.reviewerRole,
       reviewedAt: review.reviewedAt,
       reviewBatchId: review.reviewBatchId ?? review.metadataVersionRef,
-      sourceContentHash: item.contentHash,
+      sourceContentHash: item.reviewState === 'path-eligible'
+        ? item.contentHash
+        : metadata?.immutableContentHash ?? review.sourceHash ?? '',
       selectedLearningGoalIds: uniqueSorted(metadata?.learningGoalIds ?? []),
       selectedKaqObjectiveIds: uniqueSorted(metadata?.kaqObjectiveIds ?? []),
       selectedGraphNodeIds: uniqueSorted(metadata?.graphNodeIds ?? []),
@@ -301,6 +304,7 @@ export function buildAssessmentItemSemanticCoverageReport(
   const sourceFamilyCounts = new Map<AdaptiveAssessmentCatalogSourceFamily, {
     family: AdaptiveAssessmentCatalogSourceFamily;
     role: 'item-source' | 'review-overlay';
+    sourceTotal: number | null;
     itemTotal: number;
     reviewedTotal: number;
     pathEligibleTotal: number;
@@ -319,6 +323,7 @@ export function buildAssessmentItemSemanticCoverageReport(
     sourceFamilyCounts.set(sourceFamily.family, {
       family: sourceFamily.family,
       role: sourceFamily.role,
+      sourceTotal: sourceFamily.sourceTotal,
       itemTotal: 0,
       reviewedTotal: 0,
       pathEligibleTotal: 0,
@@ -326,7 +331,7 @@ export function buildAssessmentItemSemanticCoverageReport(
       staleTotal: 0,
       rejectedTotal: 0,
       deprecatedTotal: 0,
-      blockedTotal: 0,
+      blockedTotal: sourceFamily.blockedTotal,
       ...(sourceFamily.reviewOverlayTotal ? { reviewOverlayTotal: sourceFamily.reviewOverlayTotal } : {}),
     });
   }
@@ -335,6 +340,7 @@ export function buildAssessmentItemSemanticCoverageReport(
     const sourceCounts = sourceFamilyCounts.get(item.sourceFamily) ?? {
       family: item.sourceFamily,
       role: 'item-source' as const,
+      sourceTotal: 0,
       itemTotal: 0,
       reviewedTotal: 0,
       pathEligibleTotal: 0,
@@ -346,6 +352,9 @@ export function buildAssessmentItemSemanticCoverageReport(
     };
     sourceFamilyCounts.set(item.sourceFamily, sourceCounts);
     sourceCounts.itemTotal += 1;
+    if (typeof sourceCounts.sourceTotal === 'number' && sourceCounts.sourceTotal < sourceCounts.itemTotal) {
+      sourceCounts.sourceTotal = sourceCounts.itemTotal;
+    }
 
     const decision = findDecision(decisionsByItemId, item);
     const itemDecisionIssues = decisionFieldIssues(item, decision, input);

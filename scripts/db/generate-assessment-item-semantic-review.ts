@@ -85,6 +85,7 @@ async function main() {
     staleReviewCount: artifacts.coverage.staleReviewCount,
     sourceFamilies: artifacts.coverage.sourceFamilies.map((family) => ({
       family: family.family,
+      sourceTotal: family.sourceTotal,
       itemTotal: family.itemTotal,
       reviewedTotal: family.reviewedTotal,
       pathEligibleTotal: family.pathEligibleTotal,

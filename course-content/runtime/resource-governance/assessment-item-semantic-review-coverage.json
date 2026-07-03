@@ -11,6 +11,7 @@
     {
       "family": "acq-static-question",
       "role": "item-source",
+      "sourceTotal": 167,
       "itemTotal": 167,
       "reviewedTotal": 0,
       "pathEligibleTotal": 0,
@@ -23,6 +24,7 @@
     {
       "family": "checkpoint-authored-question",
       "role": "item-source",
+      "sourceTotal": 0,
       "itemTotal": 0,
       "reviewedTotal": 0,
       "pathEligibleTotal": 0,
@@ -35,6 +37,7 @@
     {
       "family": "generated-adaptive-question",
       "role": "item-source",
+      "sourceTotal": 0,
       "itemTotal": 0,
       "reviewedTotal": 0,
       "pathEligibleTotal": 0,
@@ -47,6 +50,7 @@
     {
       "family": "icourse-objective-bank",
       "role": "item-source",
+      "sourceTotal": 226,
       "itemTotal": 226,
       "reviewedTotal": 0,
       "pathEligibleTotal": 0,
@@ -59,6 +63,7 @@
     {
       "family": "kaq-foundation-reviewed",
       "role": "review-overlay",
+      "sourceTotal": 50,
       "itemTotal": 0,
       "reviewedTotal": 0,
       "pathEligibleTotal": 0,
@@ -72,6 +77,7 @@
     {
       "family": "preset-adaptive-question",
       "role": "item-source",
+      "sourceTotal": 50,
       "itemTotal": 50,
       "reviewedTotal": 50,
       "pathEligibleTotal": 50,
@@ -84,6 +90,7 @@
     {
       "family": "prisma-question",
       "role": "item-source",
+      "sourceTotal": null,
       "itemTotal": 0,
       "reviewedTotal": 0,
       "pathEligibleTotal": 0,

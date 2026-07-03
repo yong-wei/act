@@ -108,6 +108,36 @@ describe('adaptive assessment semantic review workflow', () => {
     ]));
   });
 
+  it('keeps stale K/A/Q human review overlays visible as stale decisions', async () => {
+    const sources = await loadAdaptiveAssessmentCatalogSources();
+    const staleReview = sources.kaqReviewedItems.find((item) => item.questionId === 'preset-q-01');
+    expect(staleReview).toBeTruthy();
+    const staleReviewedItem = {
+      ...staleReview!,
+      metadata: {
+        ...staleReview!.metadata,
+        review: {
+          ...staleReview!.metadata?.review,
+          sourceHash: 'stale-source-hash',
+        },
+      },
+    };
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [staleReviewedItem],
+    });
+    const reviewedSnapshots = buildKaqFoundationSemanticReviewDecisions(catalog.items, [staleReviewedItem]);
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: catalog.items,
+      decisions: reviewedSnapshots,
+    });
+
+    expect(catalog.items[0].reviewState).toBe('imported-unreviewed');
+    expect(reviewedSnapshots).toHaveLength(1);
+    expect(report.staleReviewCount).toBe(1);
+    expect(report.issues.map((issue) => issue.reason)).toContain('stale-source-hash');
+  });
+
   it('keeps invalid path eligibility out of gate counts without dropping the item', () => {
     const sources = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
@@ -137,6 +167,24 @@ describe('adaptive assessment semantic review workflow', () => {
     ]));
   });
 
+  it('inherits source-family blocked totals from catalog summaries', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      icourseObjectiveBankItems: [],
+      icourseObjectiveBankIndexTotal: 2,
+    });
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: catalog.items,
+      sourceFamilies: catalog.manifest.sourceFamilies,
+    });
+
+    expect(report.sourceFamilies.find((family) => family.family === 'icourse-objective-bank')).toMatchObject({
+      sourceTotal: 2,
+      itemTotal: 0,
+      blockedTotal: 2,
+    });
+  });
+
   it('builds current repository reviewed snapshots from K/A/Q human review overlays', async () => {
     const sources = await loadAdaptiveAssessmentCatalogSources();
     const catalog = buildAdaptiveAssessmentItemCatalog({
@@ -162,6 +210,7 @@ describe('adaptive assessment semantic review workflow', () => {
     });
     expect(artifacts.coverage.sourceFamilies.find((family) => family.family === 'kaq-foundation-reviewed')).toMatchObject({
       role: 'review-overlay',
+      sourceTotal: 50,
       itemTotal: 0,
       reviewOverlayTotal: 50,
     });
