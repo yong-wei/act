@@ -19,8 +19,33 @@ import {
 } from '../resource-field-completion-audit';
 import { buildKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
 import { buildResourceNodeRegistry } from '../resource-node-registry';
+import {
+  reviewedRuntimeStepCompletionForSource,
+  type ReviewedRuntimeStepCompletion,
+} from '../../../scripts/db/generate-resource-field-completion-audit';
 
 describe('resource field completion audit', () => {
+  it('requires reviewed runtime step completions to match the reviewed source hash', () => {
+    const reviewedCompletion: ReviewedRuntimeStepCompletion = {
+      capabilityTargetIds: ['controlModeling'],
+      estimatedTimeMinutes: 6,
+      reviewedSourceHash: 'sha256:reviewed-manifest',
+    };
+
+    expect(reviewedRuntimeStepCompletionForSource(
+      reviewedCompletion,
+      'sha256:reviewed-manifest',
+    )).toBe(reviewedCompletion);
+    expect(reviewedRuntimeStepCompletionForSource(
+      reviewedCompletion,
+      'sha256:changed-manifest',
+    )).toBeNull();
+    expect(reviewedRuntimeStepCompletionForSource(
+      undefined,
+      'sha256:reviewed-manifest',
+    )).toBeNull();
+  });
+
   it('keeps the generated runtime audit artifact broad enough for remediation planning', () => {
     const summary = JSON.parse(readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-field-completion-summary.json'),
