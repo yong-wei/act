@@ -192,19 +192,22 @@ function decisionFieldIssues(
   input: AssessmentItemSemanticReviewInput,
 ): string[] {
   if (!decision) return uniqueSorted(['missing-review-decision', ...missingSemanticBlockers(item)]);
-  if (decision.outcome !== 'approved') return [];
 
   const knownLearningGoals = new Set(input.knownLearningGoalIds ?? []);
   const knownKaqObjectives = new Set(input.knownKaqObjectiveIds ?? []);
   const knownGraphNodes = new Set(input.knownGraphNodeIds ?? []);
   const knownRemediationResourceNodes = new Set(input.knownRemediationResourceNodeIds ?? []);
   const shouldValidateRemediationRefs = Array.isArray(input.knownRemediationResourceNodeIds);
-  const missing = [
-    decision.decisionKind === 'human-review' ? '' : 'script-only-review-rejected',
+  const staleIssues = [
     decision.sourceContentHash === item.contentHash ? '' : 'stale-source-hash',
     versionRefsMatch(decision.metadataVersionRefs, semanticReviewVersionRefs(item))
       ? ''
       : 'stale-metadata-version-refs',
+  ];
+  if (decision.outcome !== 'approved') return uniqueSorted(staleIssues);
+  const missing = [
+    decision.decisionKind === 'human-review' ? '' : 'script-only-review-rejected',
+    ...staleIssues,
     decision.reviewerId || decision.reviewerRole ? '' : 'missing-reviewer',
     decision.reviewedAt ? '' : 'missing-reviewed-at',
     decision.reviewBatchId ? '' : 'missing-review-batch-id',
@@ -419,14 +422,14 @@ export function buildAssessmentItemSemanticCoverageReport(
 
     if (!decision) {
       sourceCounts.unreviewedTotal += 1;
+    } else if (itemDecisionIssues.some((issue) => issue.startsWith('stale-'))) {
+      sourceCounts.staleTotal += 1;
     } else if (decision.outcome === 'rejected') {
       sourceCounts.rejectedTotal += 1;
     } else if (decision.outcome === 'deprecated') {
       sourceCounts.deprecatedTotal += 1;
     } else if (decision.outcome === 'blocked') {
       sourceCounts.blockedTotal += 1;
-    } else if (itemDecisionIssues.some((issue) => issue.startsWith('stale-'))) {
-      sourceCounts.staleTotal += 1;
     } else if (isApprovedDecisionValid(item, decision, input)) {
       sourceCounts.reviewedTotal += 1;
       if (item.eligibilityState === 'path-eligible') sourceCounts.pathEligibleTotal += 1;

@@ -114,6 +114,26 @@ describe('adaptive assessment semantic review workflow', () => {
     ]));
   });
 
+  it('reports stale hashes for non-approved human decisions', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      decisions: [{
+        ...baseDecision(item),
+        outcome: 'blocked',
+        sourceContentHash: 'stale-source-content-hash',
+      }],
+    });
+
+    expect(report.blockedItemCount).toBe(0);
+    expect(report.staleReviewCount).toBe(1);
+    expect(report.issues.map((issue) => issue.reason)).toContain('stale-source-hash');
+  });
+
   it('reports stale metadata version refs even when source content is unchanged', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],

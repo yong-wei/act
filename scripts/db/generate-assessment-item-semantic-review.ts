@@ -9,6 +9,7 @@ import {
   assessmentItemSemanticReviewArtifactsToFiles,
   buildAssessmentItemSemanticReviewArtifacts,
   buildKaqFoundationSemanticReviewDecisions,
+  type AssessmentItemSemanticReviewDecision,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
@@ -28,13 +29,37 @@ type LearningGoalResourceBaselineMatrix = {
     };
     targetGraphNodeIds?: string[];
     categories?: Record<string, {
-        pathEligibleResourceIds?: string[];
+      pathEligibleResourceIds?: string[];
     }>;
   }>;
 };
 
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
+}
+
+async function readExistingReviewSnapshots(): Promise<AssessmentItemSemanticReviewDecision[]> {
+  try {
+    const input = await readFile(SNAPSHOTS_PATH, 'utf8');
+    return input
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as AssessmentItemSemanticReviewDecision);
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+function mergeReviewSnapshots(
+  existingSnapshots: AssessmentItemSemanticReviewDecision[],
+  generatedSnapshots: AssessmentItemSemanticReviewDecision[],
+): AssessmentItemSemanticReviewDecision[] {
+  const snapshotsByItemId = new Map<string, AssessmentItemSemanticReviewDecision>();
+  for (const snapshot of generatedSnapshots) snapshotsByItemId.set(snapshot.catalogItemId, snapshot);
+  for (const snapshot of existingSnapshots) snapshotsByItemId.set(snapshot.catalogItemId, snapshot);
+  return [...snapshotsByItemId.values()].sort((left, right) => left.catalogItemId.localeCompare(right.catalogItemId));
 }
 
 async function loadRegisteredSemanticIds() {
@@ -65,7 +90,10 @@ async function main() {
     icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
     kaqReviewedItems: sources.kaqReviewedItems,
   });
-  const reviewedSnapshots = buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems);
+  const reviewedSnapshots = mergeReviewSnapshots(
+    await readExistingReviewSnapshots(),
+    buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
+  );
   const registeredSemanticIds = await loadRegisteredSemanticIds();
   const artifacts = buildAssessmentItemSemanticReviewArtifacts({
     items: catalog.items,
