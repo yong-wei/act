@@ -227,8 +227,7 @@ function isSameSarTerminalCandidate(
   review: Record<string, unknown>,
   auditRecord: Extract<SarSuggestedBindingReviewResult, { ok: true }>['auditRecord'],
 ): boolean {
-  return stringValue(review.candidateId) === auditRecord.candidateId
-    && stringValue(review.candidateRef) === auditRecord.candidateRef
+  return stringValue(review.candidateRef) === auditRecord.candidateRef
     && stringValue(review.candidateRefType) === auditRecord.candidateRefType
     && stringValue(review.targetGraphNodeId) === auditRecord.targetGraphNodeId;
 }

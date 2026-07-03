@@ -218,7 +218,8 @@ export type SarSuggestedBindingReviewResult =
         | TeacherResourceNodePatchErrorCode
         | 'SAR_SUGGESTED_BINDING_FORBIDDEN'
         | 'SAR_ACCEPT_REQUIRES_RESOURCE_NODE'
-        | 'SAR_ACCEPT_REQUIRES_PATCH';
+        | 'SAR_ACCEPT_REQUIRES_PATCH'
+        | 'SAR_ACCEPT_PATCH_DOES_NOT_COVER_TARGET';
       error: string;
       auditRecord?: SarSuggestedBindingAuditRecord;
       persistablePatch?: undefined;
@@ -544,6 +545,29 @@ export function reviewSarSuggestedBinding(input: {
       }),
     };
   }
+  const targetCoverageResult = validateSarAcceptTargetCoverage({
+    candidate: input.candidate,
+    resourceNode: input.resourceNode,
+    persistablePatch: patchResult.persistablePatch,
+  });
+  if (!targetCoverageResult.ok) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'SAR_ACCEPT_PATCH_DOES_NOT_COVER_TARGET',
+      error: targetCoverageResult.error,
+      auditRecord: buildSarSuggestedBindingAuditRecord({
+        candidate: input.candidate,
+        scope: input.scope,
+        decision: input.decision,
+        state: 'suggested',
+        rationale: input.rationale,
+        reviewedAt: input.reviewedAt,
+        governanceEffect: null,
+        affectedRefs: sarSuggestedBindingAffectedRefs(input.candidate),
+      }),
+    };
+  }
 
   const affectedRefs = uniqueSorted([
     ...sarSuggestedBindingAffectedRefs(input.candidate),
@@ -586,6 +610,38 @@ function mergeSarAcceptPatch(
       ]),
     },
   };
+}
+
+function validateSarAcceptTargetCoverage(input: {
+  candidate: SarSuggestedBindingReviewCandidate;
+  resourceNode: ResourceNode;
+  persistablePatch: TeacherResourceNodePersistablePatch;
+}): { ok: true } | { ok: false; error: string } {
+  const planningPatch = input.persistablePatch.resourceNodePlanning;
+  if (!planningPatch.knowledgeCoverage?.includes(input.candidate.target.graphNodeId)) {
+    return {
+      ok: false,
+      error: '接受 SAR 建议绑定的治理补丁必须覆盖目标知识节点。',
+    };
+  }
+  if (sarAcceptRequiresPathAvailability(input.candidate.missingCoverageTypes)) {
+    const availability = planningPatch.availability ?? input.resourceNode.planningMetadata.availability;
+    const teacherPolicy = planningPatch.teacherPolicy ?? input.resourceNode.planningMetadata.teacherPolicy;
+    if (availability !== 'available' || teacherPolicy === 'blocked') {
+      return {
+        ok: false,
+        error: '接受 SAR 建议绑定的治理补丁必须打开目标资源的路径可用性。',
+      };
+    }
+  }
+  return { ok: true };
+}
+
+function sarAcceptRequiresPathAvailability(missingCoverageTypes: readonly string[]): boolean {
+  return missingCoverageTypes.some((type) => {
+    const normalized = type.toLowerCase();
+    return normalized.includes('path') || normalized === 'linked-resource';
+  });
 }
 
 export function buildTeacherResourceNodeOperationsReadiness(
