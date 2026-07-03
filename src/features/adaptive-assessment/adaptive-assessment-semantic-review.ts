@@ -210,6 +210,12 @@ function decisionFieldIssues(
 ): string[] {
   if (!decision) return uniqueSorted(['missing-review-decision', ...missingSemanticBlockers(item)]);
 
+  const metadataVersionRefs = decision.metadataVersionRefs ?? {};
+  const selectedLearningGoalIds = decision.selectedLearningGoalIds ?? [];
+  const selectedKaqObjectiveIds = decision.selectedKaqObjectiveIds ?? [];
+  const selectedGraphNodeIds = decision.selectedGraphNodeIds ?? [];
+  const misconceptionRefs = decision.misconceptionRefs ?? [];
+  const remediationRefs = decision.remediationRefs ?? [];
   const knownLearningGoals = new Set(input.knownLearningGoalIds ?? []);
   const knownKaqObjectives = new Set(input.knownKaqObjectiveIds ?? []);
   const knownGraphNodes = new Set(input.knownGraphNodeIds ?? []);
@@ -217,7 +223,7 @@ function decisionFieldIssues(
   const shouldValidateRemediationRefs = Array.isArray(input.knownRemediationResourceNodeIds);
   const staleIssues = [
     decision.sourceContentHash === item.contentHash ? '' : 'stale-source-hash',
-    versionRefsMatch(decision.metadataVersionRefs, semanticReviewVersionRefs(item))
+    versionRefsMatch(metadataVersionRefs, semanticReviewVersionRefs(item))
       ? ''
       : 'stale-metadata-version-refs',
   ];
@@ -228,28 +234,28 @@ function decisionFieldIssues(
   const missing = [
     ...reviewDecisionAuditIssues(decision),
     ...staleIssues,
-    decision.selectedLearningGoalIds.length ? '' : 'missing-learning-goal-binding',
-    decision.selectedKaqObjectiveIds.length ? '' : 'missing-kaq-objective-ids',
-    decision.selectedGraphNodeIds.length ? '' : 'missing-graph-node-refs',
+    selectedLearningGoalIds.length ? '' : 'missing-learning-goal-binding',
+    selectedKaqObjectiveIds.length ? '' : 'missing-kaq-objective-ids',
+    selectedGraphNodeIds.length ? '' : 'missing-graph-node-refs',
     decision.selectedStagePurpose ? '' : 'missing-assessment-stage',
     !decision.selectedStagePurpose || item.allowedStages.includes(reviewDecisionStage(item, decision) as AdaptiveAssessmentCatalogStage)
       ? ''
       : `invalid-assessment-stage:${decision.selectedStagePurpose}`,
     typeof decision.difficulty === 'number' ? '' : 'missing-difficulty',
     decision.cognitiveLevel ? '' : 'missing-cognitive-level',
-    decision.misconceptionRefs.length ? '' : 'missing-misconception-refs',
-    decision.remediationRefs.length ? '' : 'missing-remediation-refs',
-    Object.keys(decision.metadataVersionRefs).length ? '' : 'missing-metadata-version-refs',
-    ...decision.selectedLearningGoalIds
+    misconceptionRefs.length ? '' : 'missing-misconception-refs',
+    remediationRefs.length ? '' : 'missing-remediation-refs',
+    Object.keys(metadataVersionRefs).length ? '' : 'missing-metadata-version-refs',
+    ...selectedLearningGoalIds
       .filter((id) => knownLearningGoals.size > 0 && !knownLearningGoals.has(id))
       .map((id) => `invalid-learning-goal:${id}`),
-    ...decision.selectedKaqObjectiveIds
+    ...selectedKaqObjectiveIds
       .filter((id) => knownKaqObjectives.size > 0 && !knownKaqObjectives.has(id))
       .map((id) => `invalid-kaq-objective:${id}`),
-    ...decision.selectedGraphNodeIds
+    ...selectedGraphNodeIds
       .filter((id) => knownGraphNodes.size > 0 && !knownGraphNodes.has(id))
       .map((id) => `invalid-graph-node:${id}`),
-    ...decision.remediationRefs
+    ...remediationRefs
       .filter((id) => shouldValidateRemediationRefs && !knownRemediationResourceNodes.has(id))
       .map((id) => `invalid-remediation-ref:${id}`),
   ];

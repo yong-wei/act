@@ -289,6 +289,38 @@ describe('adaptive assessment semantic review workflow', () => {
     expect(report.issues.map((issue) => issue.reason)).toContain('stale-metadata-version-refs');
   });
 
+  it('reports missing fields for incomplete persisted human decisions without crashing', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const incompleteDecision = {
+      ...baseDecision(item),
+      metadataVersionRefs: undefined,
+      selectedLearningGoalIds: undefined,
+      selectedKaqObjectiveIds: undefined,
+      selectedGraphNodeIds: undefined,
+      misconceptionRefs: undefined,
+      remediationRefs: undefined,
+    } as unknown as AssessmentItemSemanticReviewDecision;
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      decisions: [incompleteDecision],
+    });
+
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.issues.map((issue) => issue.reason)).toEqual(expect.arrayContaining([
+      'missing-learning-goal-binding',
+      'missing-kaq-objective-ids',
+      'missing-graph-node-refs',
+      'missing-misconception-refs',
+      'missing-remediation-refs',
+      'missing-metadata-version-refs',
+      'stale-metadata-version-refs',
+    ]));
+  });
+
   it('rejects remediation refs that are not in the governed resource baseline', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
