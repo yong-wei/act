@@ -167,8 +167,13 @@ function redactToolResult(value: unknown, depth: number): unknown {
   if (Array.isArray(value)) return value.slice(0, 8).map((item) => redactToolResult(item, depth + 1));
   if (!value || typeof value !== 'object') return value;
 
+  const entries = Object.entries(value as Record<string, unknown>);
+  const sortedEntries = [
+    ...entries.filter(([key]) => !shouldRedactToolKey(key)),
+    ...entries.filter(([key]) => shouldRedactToolKey(key)),
+  ];
   return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).slice(0, 20).map(([key, item]) => [
+    sortedEntries.slice(0, 20).map(([key, item]) => [
       key,
       shouldRedactToolKey(key) ? '[redacted]' : redactToolResult(item, depth + 1),
     ]),
@@ -176,5 +181,9 @@ function redactToolResult(value: unknown, depth: number): unknown {
 }
 
 function shouldRedactToolKey(key: string): boolean {
-  return /(email|phone|token|secret|password|session|userId|studentId|targetUserId|classId|courseId|pageId|pathNodeId|resourceId|goalId|prepPackId|selectedNodeId|requestedNodeId|agentSessionId|registryId|assetId|rubricId|assignmentId|classReportId|citation|provider|payload|raw|private|diagnostic|context|memory)/i.test(key);
+  return [
+    /(^|[^a-z])id$/i,
+    /[a-z](Id|ID)s?$/,
+    /(email|phone|token|secret|password|session|citation|provider|payload|raw|private|diagnostic|context|memory)/i,
+  ].some((pattern) => pattern.test(key));
 }

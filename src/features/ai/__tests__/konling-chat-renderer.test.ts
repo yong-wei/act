@@ -89,6 +89,16 @@ describe('Konling shared chat renderer', () => {
 
   it('redacts internal context fields used by expanded tool result previews', () => {
     const expandedText = sanitizeKonlingToolResultPreview({
+      id: 'kg-node-secret',
+      nodeId: 'node-secret',
+      graphNodeId: 'graph-node-secret',
+      candidateId: 'candidate-secret',
+      trace_id: 'trace-secret',
+      nodeIds: ['node-list-secret'],
+      nextNodeIds: ['next-node-secret'],
+      completedNodeIds: ['completed-node-secret'],
+      terminalValidationNodeIds: ['terminal-node-secret'],
+      knowledgeNodeIds: ['knowledge-node-secret'],
       userId: 'student-1',
       studentId: 'student-2',
       classId: 'class-secret',
@@ -101,10 +111,26 @@ describe('Konling shared chat renderer', () => {
       citation: 'citation-secret',
       payload: { raw: 'raw-secret' },
       safeSummary: '可见摘要',
+      readinessSummary: {
+        message: '可以展示的准备摘要',
+      },
+      valid: true,
     });
 
     expect(expandedText).toContain('可见摘要');
+    expect(expandedText).toContain('可以展示的准备摘要');
+    expect(expandedText).toContain('"valid": true');
     [
+      'kg-node-secret',
+      'node-secret',
+      'graph-node-secret',
+      'candidate-secret',
+      'trace-secret',
+      'node-list-secret',
+      'next-node-secret',
+      'completed-node-secret',
+      'terminal-node-secret',
+      'knowledge-node-secret',
       'student-1',
       'student-2',
       'class-secret',
