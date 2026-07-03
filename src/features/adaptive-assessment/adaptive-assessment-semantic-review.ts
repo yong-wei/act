@@ -179,6 +179,14 @@ function semanticReviewVersionRefs(item: AdaptiveAssessmentCatalogItem): Record<
   return Object.keys(semanticRefs).length ? semanticRefs : item.versionRefs;
 }
 
+function reviewDecisionStage(item: AdaptiveAssessmentCatalogItem, decision: AssessmentItemSemanticReviewDecision): string {
+  if (decision.selectedStagePurpose === 'precheck' || decision.selectedStagePurpose === 'readiness-gate') {
+    return 'readiness';
+  }
+  if (decision.selectedStagePurpose === 'practice') return 'low-stakes-practice';
+  return decision.selectedStagePurpose ?? item.semanticRefs.assessmentStage ?? '';
+}
+
 function findDecision(
   decisionsByItemId: Map<string, AssessmentItemSemanticReviewDecision[]>,
   item: AdaptiveAssessmentCatalogItem,
@@ -215,6 +223,9 @@ function decisionFieldIssues(
     decision.selectedKaqObjectiveIds.length ? '' : 'missing-kaq-objective-ids',
     decision.selectedGraphNodeIds.length ? '' : 'missing-graph-node-refs',
     decision.selectedStagePurpose ? '' : 'missing-assessment-stage',
+    !decision.selectedStagePurpose || item.allowedStages.includes(reviewDecisionStage(item, decision) as AdaptiveAssessmentCatalogStage)
+      ? ''
+      : `invalid-assessment-stage:${decision.selectedStagePurpose}`,
     typeof decision.difficulty === 'number' ? '' : 'missing-difficulty',
     decision.cognitiveLevel ? '' : 'missing-cognitive-level',
     decision.misconceptionRefs.length ? '' : 'missing-misconception-refs',
@@ -292,7 +303,7 @@ export function buildAssessmentItemSemanticReviewPackets(
     },
     missingBlockers: missingSemanticBlockers(item),
     sourceHash: item.contentHash,
-    packetVersionRefs: item.versionRefs,
+    packetVersionRefs: semanticReviewVersionRefs(item),
     machineSuggestions: {
       fieldsAreSuggestionsOnly: true,
       maySetReviewedState: false,

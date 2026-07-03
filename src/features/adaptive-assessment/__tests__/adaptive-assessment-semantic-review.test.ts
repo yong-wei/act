@@ -67,6 +67,25 @@ describe('adaptive assessment semantic review workflow', () => {
     ]));
   });
 
+  it('uses semantic review version refs in review packets', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = {
+      ...catalog.items[0],
+      versionRefs: {
+        catalogVersion: 'adaptive-assessment-item-catalog.v1',
+        resourceRegistryVersion: 'resource-registry.v1',
+      },
+    };
+    const [packet] = buildAssessmentItemSemanticReviewPackets([item]);
+
+    expect(packet.packetVersionRefs).toEqual({
+      resourceRegistryVersion: 'resource-registry.v1',
+    });
+  });
+
   it('rejects script-only review decisions and missing required semantic fields', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
@@ -112,6 +131,30 @@ describe('adaptive assessment semantic review workflow', () => {
       'stale-source-hash',
       'invalid-kaq-objective:knowledge:autocontrol:missing-objective',
     ]));
+  });
+
+  it('rejects decisions whose selected stage is not allowed for the item', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = {
+      ...catalog.items[0],
+      reviewState: 'path-eligible' as const,
+      eligibilityState: 'path-eligible' as const,
+      allowedStages: ['readiness' as const],
+    };
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      decisions: [{
+        ...baseDecision(item),
+        selectedStagePurpose: 'checkpoint',
+      }],
+    });
+
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.pathEligibleItemCount).toBe(0);
+    expect(report.issues.map((issue) => issue.reason)).toContain('invalid-assessment-stage:checkpoint');
   });
 
   it('reports stale hashes for non-approved human decisions', () => {
