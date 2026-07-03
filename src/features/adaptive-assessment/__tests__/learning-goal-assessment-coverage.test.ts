@@ -174,4 +174,51 @@ describe('LearningGoal assessment coverage', () => {
       reviewedPathEligibleItemCount: 0,
     });
   });
+
+  it('does not count approved decisions with invalid known K/A/Q graph or remediation refs', async () => {
+    const sources = await loadAdaptiveAssessmentCatalogSources();
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: PRESET_QUESTIONS,
+      acqStaticQuestions: sources.acqStaticQuestions,
+      icourseObjectiveBankItems: sources.icourseObjectiveBankItems,
+      icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
+      kaqReviewedItems: sources.kaqReviewedItems,
+    });
+    const validDecision = buildCheckpointAuthoredSemanticReviewDecisions(catalog.items)
+      .find((decision) => decision.selectedLearningGoalIds.includes(goals()[0].id));
+    expect(validDecision).toBeDefined();
+    const item = catalog.items.find((candidate) => candidate.catalogItemId === validDecision!.catalogItemId);
+    expect(item).toBeDefined();
+    const invalidDecision = {
+      ...validDecision!,
+      selectedKaqObjectiveIds: ['knowledge:not-a-kaq-objective'],
+      selectedGraphNodeIds: ['kn:not-a-graph-node'],
+      remediationRefs: ['registry:not-a-remediation-resource'],
+    };
+
+    const oldPathArtifacts = buildLearningGoalAssessmentCoverageArtifacts({
+      items: [item!],
+      decisions: [invalidDecision],
+      goals: [goals()[0]],
+      generatedAt: '2026-07-03T00:00:00.000Z',
+    });
+    expect(oldPathArtifacts.matrix.rows[0].reviewedPathEligibleItemCount).toBe(1);
+
+    const artifacts = buildLearningGoalAssessmentCoverageArtifacts({
+      items: [item!],
+      decisions: [invalidDecision],
+      goals: [goals()[0]],
+      knownLearningGoalIds: [goals()[0].id],
+      knownKaqObjectiveIds: item!.semanticRefs.kaqObjectiveIds,
+      knownGraphNodeIds: item!.semanticRefs.graphNodeIds,
+      knownRemediationResourceNodeIds: item!.semanticRefs.remediationResourceNodeIds,
+      generatedAt: '2026-07-03T00:00:00.000Z',
+    });
+
+    expect(artifacts.matrix.rows[0].stageCoverage.flatMap((stage) => stage.countedCatalogItemIds)).toEqual([]);
+    expect(artifacts.matrix.rows[0]).toMatchObject({
+      assessmentCoverageState: 'limited',
+      reviewedPathEligibleItemCount: 0,
+    });
+  });
 });

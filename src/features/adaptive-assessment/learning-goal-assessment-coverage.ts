@@ -84,6 +84,13 @@ interface CountableAssessmentItem {
   decision: AssessmentItemSemanticReviewDecision;
 }
 
+interface SemanticReviewKnownIds {
+  knownLearningGoalIds?: string[];
+  knownKaqObjectiveIds?: string[];
+  knownGraphNodeIds?: string[];
+  knownRemediationResourceNodeIds?: string[];
+}
+
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
 }
@@ -101,6 +108,7 @@ function decisionStage(decision: AssessmentItemSemanticReviewDecision): Learning
 function isCountableReviewedPathEligibleItem(
   item: AdaptiveAssessmentCatalogItem,
   decision: AssessmentItemSemanticReviewDecision | undefined,
+  knownIds: SemanticReviewKnownIds,
 ): decision is AssessmentItemSemanticReviewDecision {
   return Boolean(
     decision
@@ -113,7 +121,7 @@ function isCountableReviewedPathEligibleItem(
     && item.eligibilityState === 'path-eligible'
     && item.reviewState === 'path-eligible'
     && item.sourceFamily !== 'generated-adaptive-question'
-    && getAssessmentItemSemanticReviewDecisionIssues(item, decision).length === 0
+    && getAssessmentItemSemanticReviewDecisionIssues(item, decision, knownIds).length === 0
   );
 }
 
@@ -172,13 +180,19 @@ export function buildLearningGoalAssessmentCoverageArtifacts(input: {
   decisions: AssessmentItemSemanticReviewDecision[];
   goals: LearningGoalAssessmentCoverageGoal[];
   generatedAt?: string;
-}): LearningGoalAssessmentCoverageArtifacts {
+} & SemanticReviewKnownIds): LearningGoalAssessmentCoverageArtifacts {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
   const itemsById = new Map(input.items.map((item) => [item.catalogItemId, item]));
   const countableByGoal = new Map<string, CountableAssessmentItem[]>();
+  const knownIds: SemanticReviewKnownIds = {
+    knownLearningGoalIds: input.knownLearningGoalIds,
+    knownKaqObjectiveIds: input.knownKaqObjectiveIds,
+    knownGraphNodeIds: input.knownGraphNodeIds,
+    knownRemediationResourceNodeIds: input.knownRemediationResourceNodeIds,
+  };
   for (const decision of input.decisions) {
     const item = itemsById.get(decision.catalogItemId);
-    if (!item || !isCountableReviewedPathEligibleItem(item, decision)) continue;
+    if (!item || !isCountableReviewedPathEligibleItem(item, decision, knownIds)) continue;
     for (const learningGoalId of decision.selectedLearningGoalIds) {
       const list = countableByGoal.get(learningGoalId) ?? [];
       list.push({ item, decision });
