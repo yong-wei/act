@@ -194,6 +194,46 @@ describe('adaptive assessment semantic review workflow', () => {
     );
   });
 
+  it('allows non K/A/Q sources to satisfy version refs with their catalog snapshot', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      icourseObjectiveBankItems: [{
+        question_id: 'icourse-version-check',
+        stem: '哪一项用于判断闭环稳定裕度？',
+        choice_mode: 'single',
+        options: [
+          { key: 'A', text: '相位裕度', is_correct: true },
+          { key: 'B', text: '字体大小', is_correct: false },
+        ],
+        correct_answers: ['A'],
+        knowledge_tags: ['frequency-response'],
+        adaptive_metadata: {
+          review_status: 'verified',
+          difficulty_seed: 0.4,
+        },
+      }],
+      kaqReviewedItems: [],
+    });
+    const item = {
+      ...catalog.items[0],
+      reviewState: 'path-eligible' as const,
+      eligibilityState: 'path-eligible' as const,
+      allowedStages: ['readiness' as const],
+    };
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      knownLearningGoalIds: ['control-correction'],
+      knownKaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
+      knownGraphNodeIds: ['kn:autocontrol:controller-correction'],
+      knownRemediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
+      decisions: [baseDecision(item)],
+    });
+
+    expect(report.reviewedItemCount).toBe(1);
+    expect(report.pathEligibleItemCount).toBe(1);
+    expect(report.issues.map((issue) => issue.reason)).not.toContain('stale-metadata-version-refs');
+    expect(report.issues.map((issue) => issue.reason)).not.toContain('missing-metadata-version-refs');
+  });
+
   it('keeps stale K/A/Q human review overlays visible as stale decisions', async () => {
     const sources = await loadAdaptiveAssessmentCatalogSources();
     const staleReview = sources.kaqReviewedItems.find((item) => item.questionId === 'preset-q-01');

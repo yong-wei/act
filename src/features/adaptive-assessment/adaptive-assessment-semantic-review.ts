@@ -173,9 +173,10 @@ function versionRefsMatch(left: Record<string, string>, right: Record<string, st
 }
 
 function semanticReviewVersionRefs(item: AdaptiveAssessmentCatalogItem): Record<string, string> {
-  return Object.fromEntries(
+  const semanticRefs = Object.fromEntries(
     Object.entries(item.versionRefs).filter(([key]) => !SEMANTIC_REVIEW_VERSION_REF_EXCLUSIONS.has(key)),
   );
+  return Object.keys(semanticRefs).length ? semanticRefs : item.versionRefs;
 }
 
 function findDecision(
