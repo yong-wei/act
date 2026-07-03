@@ -30,6 +30,16 @@ describe('runtime resource projections', () => {
           contentHash: 'sha256:step',
           versionRef: 'interactive-manifest.v2',
           humanConfirmed: true,
+          readiness: {
+            minimumCompetency: {
+              controlModeling: 0.2,
+            },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成本单元前序学习证据后进入该步骤。',
+            fallbackNodeIds: [],
+          },
         },
         {
           id: 'runtime-module:unit-demo:step-1:figure',
@@ -139,6 +149,13 @@ describe('runtime resource projections', () => {
         status: 'human-confirmed',
         reviewedSourceHash: 'sha256:step',
         reviewedVersionRef: 'interactive-manifest.v2',
+      },
+      readiness: {
+        minimumCompetency: {
+          controlModeling: 0.2,
+        },
+        minimumEvidenceCount: 1,
+        unlockMessage: '完成本单元前序学习证据后进入该步骤。',
       },
     });
     expect(artifact.rows.find((row) => row.id === 'runtime-module:unit-demo:step-1:figure')).toMatchObject({

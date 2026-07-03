@@ -141,6 +141,7 @@ function rowToRuntimeProjection(
     teacherPolicy: 'allowed',
     evidenceContract,
     reviewAudit,
+    readiness: row.readiness,
     segmentRefs: segmentRefsForRow(row),
     citationTargets: row.citationTargets,
     retrievalChunk: {

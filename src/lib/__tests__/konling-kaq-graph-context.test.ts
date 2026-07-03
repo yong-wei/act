@@ -169,6 +169,43 @@ describe('Konling K/A/Q graph context', () => {
     expect(context.advisoryOnly).toBe(true);
   });
 
+  it('carries governed runtime resource citation refs into graph context', () => {
+    const runtimeCitation = {
+      id: 'resource:runtime-step:1-1:step-04',
+      sourceType: 'content' as const,
+      owner: 'answer' as const,
+      displayTitle: '开环诊断的七个问题',
+      href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo?step=step-04',
+      confidence: 'high' as const,
+      evidenceBasis: 'reviewed runtime resource projection',
+    };
+    const context = buildKonlingKaqGraphContext({
+      scope: {
+        courseId: 'control-correction',
+        role: 'student',
+        targetUserId: 'student-1',
+        classId: null,
+      },
+      selectedGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+      learnerOverlay: learnerOverlay() as never,
+      planContext: planContext(),
+      citationContext: {
+        ...citationContext(),
+        contentCitations: [
+          ...citationContext().contentCitations,
+          runtimeCitation,
+        ],
+      },
+    });
+
+    expect(context.citationRefs).toContain('resource:runtime-step:1-1:step-04');
+    expect(context.missingGrounding).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        class: 'citation',
+      }),
+    ]));
+  });
+
   it('returns missing-grounding limitations instead of treating generic advice as graph-grounded', () => {
     const context = buildKonlingKaqGraphContext({
       scope: {

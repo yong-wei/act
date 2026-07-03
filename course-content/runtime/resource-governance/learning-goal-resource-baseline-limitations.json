@@ -1,9 +1,9 @@
 {
   "artifactVersion": "learning-goal-resource-baseline.v1",
-  "generatedAt": "2026-06-22T15:15:02.987Z",
+  "generatedAt": "2026-07-03T09:13:39.204Z",
   "sourceWindow": {
     "from": null,
-    "to": "2026-06-22T15:15:02.987Z"
+    "to": "2026-07-03T09:13:39.204Z"
   },
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
@@ -20,7 +20,7 @@
     "learningGoals": 9,
     "limited": 9,
     "missingCategoryCounts": {
-      "concept": 9,
+      "concept": 3,
       "diagnostic": 9,
       "practice": 9,
       "checkpoint": 9,
@@ -34,9 +34,8 @@
       "learningGoalId": "control-correction",
       "title": "控制系统校正设计",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation,terminal-validation",
+      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation,terminal-validation",
       "missingBaselineCategories": [
-        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -122,11 +121,6 @@
         "registry:widget-argument-principle",
         "registry:widget-physics-elec",
         "registry:widget-physics-mech",
-        "runtime-step:1-1:step-04",
-        "runtime-step:1-1:step-05",
-        "runtime-step:1-1:step-06",
-        "runtime-step:1-1:step-07",
-        "runtime-step:1-1:step-08",
         "runtime-step:2-2:step-09",
         "runtime-step:2-2:step-10",
         "runtime-step:2-2:step-11",
@@ -174,7 +168,19 @@
         "runtime-step:4-7:step-07",
         "runtime-step:5-1:step-12",
         "runtime-step:5-1:step-13",
-        "runtime-step:5-1:step-14"
+        "runtime-step:5-1:step-14",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
       ],
       "blockedHighComplexityResourceIds": [
         "registry:arena-challenge-workbench",
@@ -193,10 +199,10 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 6,
-        "reviewedBindingCount": 0,
+        "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T09:13:39.204Z"
         }
       }
     },
@@ -204,9 +210,8 @@
       "learningGoalId": "frequency-response-foundations",
       "title": "频率响应基础",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation",
+      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation",
       "missingBaselineCategories": [
-        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -232,11 +237,6 @@
         "runtime-media:1-1:1-1-slides",
         "runtime-media:2-3:2-3-slides",
         "runtime-media:2-4:2-4-slides",
-        "runtime-step:1-1:step-04",
-        "runtime-step:1-1:step-05",
-        "runtime-step:1-1:step-06",
-        "runtime-step:1-1:step-07",
-        "runtime-step:1-1:step-08",
         "runtime-step:2-3:step-01",
         "runtime-step:2-3:step-02",
         "runtime-step:2-3:step-03",
@@ -251,16 +251,17 @@
         "runtime-step:2-3:step-14",
         "runtime-step:2-3:step-15",
         "runtime-step:2-4:step-09",
-        "runtime-step:2-4:step-10"
+        "runtime-step:2-4:step-10",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001"
       ],
       "blockedHighComplexityResourceIds": [],
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 5,
-        "reviewedBindingCount": 0,
+        "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T09:13:39.204Z"
         }
       }
     },
@@ -268,9 +269,8 @@
       "learningGoalId": "feedback-loop-concept-foundations",
       "title": "反馈与闭环结构基础",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation",
+      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation",
       "missingBaselineCategories": [
-        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -372,8 +372,17 @@
         "registry:widget-argument-principle",
         "registry:widget-physics-elec",
         "registry:widget-physics-mech",
-        "runtime-step:1-1:step-09",
-        "runtime-step:1-1:step-10"
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001"
       ],
       "blockedHighComplexityResourceIds": [
         "registry:lesson13-cruise-typhoon-sim",
@@ -390,10 +399,10 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 5,
-        "reviewedBindingCount": 0,
+        "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T09:13:39.204Z"
         }
       }
     },
@@ -401,9 +410,8 @@
       "learningGoalId": "transfer-function-modeling-foundations",
       "title": "传递函数建模基础",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation",
+      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation",
       "missingBaselineCategories": [
-        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -517,7 +525,18 @@
         "runtime-step:1-2:step-14",
         "runtime-step:2-1:step-06",
         "runtime-step:2-1:step-07",
-        "runtime-step:2-1:step-08"
+        "runtime-step:2-1:step-08",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001"
       ],
       "blockedHighComplexityResourceIds": [
         "registry:lesson13-cruise-typhoon-sim",
@@ -534,10 +553,10 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 5,
-        "reviewedBindingCount": 0,
+        "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T09:13:39.204Z"
         }
       }
     },
@@ -545,9 +564,8 @@
       "learningGoalId": "time-domain-response-analysis",
       "title": "时域响应与性能指标分析",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation",
+      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation",
       "missingBaselineCategories": [
-        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -669,7 +687,22 @@
         "runtime-step:3-7:step-05",
         "runtime-step:3-7:step-06",
         "runtime-step:3-7:step-07",
-        "runtime-step:3-7:step-08"
+        "runtime-step:3-7:step-08",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
       ],
       "blockedHighComplexityResourceIds": [
         "registry:arena-challenge-workbench",
@@ -688,10 +721,10 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 5,
-        "reviewedBindingCount": 0,
+        "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T09:13:39.204Z"
         }
       }
     },
@@ -699,9 +732,8 @@
       "learningGoalId": "root-locus-analysis-foundations",
       "title": "根轨迹分析基础",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation",
+      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation",
       "missingBaselineCategories": [
-        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -823,7 +855,21 @@
         "runtime-step:3-6:step-03",
         "runtime-step:3-6:step-04",
         "runtime-step:3-6:step-05",
-        "runtime-step:3-6:step-06"
+        "runtime-step:3-6:step-06",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
       ],
       "blockedHighComplexityResourceIds": [
         "registry:arena-challenge-workbench",
@@ -842,10 +888,10 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 5,
-        "reviewedBindingCount": 0,
+        "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T09:13:39.204Z"
         }
       }
     },
@@ -955,7 +1001,15 @@
         "runtime-step:4-1:step-08",
         "runtime-step:4-1:step-09",
         "runtime-step:4-5:step-01",
-        "runtime-step:4-5:step-02"
+        "runtime-step:4-5:step-02",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
       ],
       "blockedHighComplexityResourceIds": [
         "registry:arena-challenge-workbench",
@@ -976,7 +1030,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T09:13:39.204Z"
         }
       }
     },
@@ -1045,7 +1099,15 @@
         "runtime-step:5-4:step-09",
         "runtime-step:5-4:step-10",
         "runtime-step:5-4:step-11",
-        "runtime-step:5-4:step-12"
+        "runtime-step:5-4:step-12",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
       ],
       "blockedHighComplexityResourceIds": [
         "registry:arena-challenge-workbench",
@@ -1066,7 +1128,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T09:13:39.204Z"
         }
       }
     },
@@ -1140,7 +1202,15 @@
         "runtime-step:5-3:step-12",
         "runtime-step:5-3:step-13",
         "runtime-step:5-3:step-14",
-        "runtime-step:5-3:step-15"
+        "runtime-step:5-3:step-15",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+        "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
       ],
       "blockedHighComplexityResourceIds": [
         "registry:arena-challenge-workbench",
@@ -1162,7 +1232,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T09:13:39.204Z"
         }
       }
     }

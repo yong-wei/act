@@ -1,11 +1,13 @@
 import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import {
   loadAllTextbookRuntimeResourceCatalogEntries,
   loadAllTextbookRuntimeSearchDocuments,
 } from '@/lib/textbook-runtime-resources';
+import type { RuntimeLessonMediaKind } from '@/lib/course-runtime';
 import {
   buildResourceFieldCompletionAudit,
   type ResourceFieldCompletionCandidate,
@@ -32,6 +34,89 @@ const INFOGRAPH_MANIFEST_PATH = path.join(process.cwd(), 'course-content/runtime
 const AUTHORING_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/authoring/resources/textbooks');
 const STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE = 'student-visible' satisfies ResourceFieldCompletionCandidate['privacyScope'];
 const UNCLASSIFIED_AUDIT_PRIVACY_SCOPE = null satisfies ResourceFieldCompletionCandidate['privacyScope'];
+const REVIEWED_GRAPH_RESOURCE_BATCH_ID = 'graph-resource-semantic-coverage-2026-07-03-lesson-1-1';
+const REVIEWED_GRAPH_RESOURCE_REVIEWED_AT = '2026-07-03T00:00:00.000Z';
+const REVIEWED_GRAPH_RESOURCE_REVIEWER = {
+  reviewerId: 'graph-resource-governance-review',
+  reviewerRole: 'curriculum-data-governance',
+};
+
+export interface ReviewedRuntimeStepCompletion {
+  capabilityTargetIds: string[];
+  estimatedTimeMinutes: number;
+  reviewedSourceHash: string;
+}
+
+const REVIEWED_LESSON_1_1_MANIFEST_HASH =
+  'sha256:7efb274f8afa3826e386452061b7bb464eeb1ac77f19a755305c8b1f1720cf7e';
+
+const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCompletion>([
+  ['1-1:step-04', {
+    capabilityTargetIds: ['controlModeling'],
+    estimatedTimeMinutes: 6,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+  }],
+  ['1-1:step-05', {
+    capabilityTargetIds: ['controlModeling'],
+    estimatedTimeMinutes: 7,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+  }],
+  ['1-1:step-06', {
+    capabilityTargetIds: ['controlModeling'],
+    estimatedTimeMinutes: 7,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+  }],
+  ['1-1:step-07', {
+    capabilityTargetIds: ['controlModeling'],
+    estimatedTimeMinutes: 7,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+  }],
+  ['1-1:step-08', {
+    capabilityTargetIds: ['controlModeling'],
+    estimatedTimeMinutes: 6,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+  }],
+  ['1-1:step-09', {
+    capabilityTargetIds: ['controlModeling', 'parameterDesign'],
+    estimatedTimeMinutes: 8,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+  }],
+  ['1-1:step-10', {
+    capabilityTargetIds: ['controlModeling', 'parameterDesign'],
+    estimatedTimeMinutes: 8,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+  }],
+  ['1-1:step-11', {
+    capabilityTargetIds: ['selfDirectedLearning'],
+    estimatedTimeMinutes: 5,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+  }],
+  ['1-1:step-15', {
+    capabilityTargetIds: ['selfDirectedLearning', 'inquiryReflection'],
+    estimatedTimeMinutes: 5,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+  }],
+]);
+
+function reviewedRuntimeStepReadiness(completion: ReviewedRuntimeStepCompletion) {
+  return {
+    minimumCompetency: Object.fromEntries(
+      completion.capabilityTargetIds.map((targetId) => [targetId, 0.2]),
+    ),
+    minimumEvidenceCount: 1,
+    requiredCompletedNodeIds: [],
+    requiredOutcomeRefs: [],
+    unlockMessage: '完成本单元前序学习证据后进入该步骤。',
+    fallbackNodeIds: [],
+  };
+}
+
+export function reviewedRuntimeStepCompletionForSource(
+  completion: ReviewedRuntimeStepCompletion | undefined,
+  sourceHash: string | null,
+): ReviewedRuntimeStepCompletion | null {
+  return completion && completion.reviewedSourceHash === sourceHash ? completion : null;
+}
 
 interface RuntimeInteractiveManifest {
   lesson_id?: string;
@@ -86,9 +171,13 @@ interface RuntimeLessonCatalogEntry {
   mediaResources: Array<{
     id: string;
     title: string;
-    kind: string;
+    kind: RuntimeLessonMediaKind;
     url: string | null;
-    filename: string | null;
+    filename: string;
+    accessMode: 'dialog';
+    embedMode: 'iframe' | 'none';
+    status: 'ready';
+    featured: boolean;
   }>;
 }
 
@@ -311,6 +400,14 @@ async function collectRuntimeManifestCandidates() {
         stepId,
         routeIndex,
       });
+      const reviewedCompletionCurrent = reviewedRuntimeStepCompletionForSource(
+        REVIEWED_RUNTIME_STEP_COMPLETIONS.get(`${lessonId}:${stepId}`),
+        manifestHash,
+      );
+      const manifestCitationTarget = `${projectPath(manifestPath)}#${stepId}`;
+      const evidenceInstrumentation = reviewedCompletionCurrent
+        ? ['interactive_step_event', 'lesson_step_view']
+        : step.telemetry_spec ? ['interactive_step_event'] : [];
       candidates.push({
         id: `runtime-step:${lessonId}:${stepId}`,
         title: step.title ?? stepId,
@@ -318,15 +415,25 @@ async function collectRuntimeManifestCandidates() {
         sourcePathOrUrl: projectPath(manifestPath),
         sourceRecord: `${lessonId}:${stepId}`,
         knowledgeNodeIds: stepKnowledgeNodeIds.get(stepId) ?? [],
-        capabilityTargetIds: [],
+        capabilityTargetIds: reviewedCompletionCurrent?.capabilityTargetIds ?? [],
         segmentRefs: [stepId],
-        citationTargets: [],
+        citationTargets: reviewedCompletionCurrent ? [manifestCitationTarget] : [],
         pathTarget: verifiedStepPath,
-        estimatedTimeMinutes: normalizeEstimatedTimeMinutes(step.duration_minutes),
-        evidenceInstrumentation: step.telemetry_spec ? ['interactive_step_event'] : [],
+        estimatedTimeMinutes: reviewedCompletionCurrent?.estimatedTimeMinutes ?? normalizeEstimatedTimeMinutes(step.duration_minutes),
+        evidenceInstrumentation,
         privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
         generatedBy: step.ai_context_spec ? 'template' : null,
-        humanConfirmed: false,
+        humanConfirmed: Boolean(reviewedCompletionCurrent),
+        currentPathEligible: Boolean(reviewedCompletionCurrent),
+        readiness: reviewedCompletionCurrent ? reviewedRuntimeStepReadiness(reviewedCompletionCurrent) : null,
+        reviewEvidence: reviewedCompletionCurrent
+          ? {
+            ...REVIEWED_GRAPH_RESOURCE_REVIEWER,
+            reviewedAt: REVIEWED_GRAPH_RESOURCE_REVIEWED_AT,
+            reviewBatchId: REVIEWED_GRAPH_RESOURCE_BATCH_ID,
+            confidence: 0.91,
+          }
+          : undefined,
         contentHash: manifestHash,
         versionRef: 'interactive-manifest.v2',
       });
@@ -543,6 +650,10 @@ function parseRuntimeLessonMediaResources(markdown: string, lessonDirName: strin
         kind,
         url: currentUrl,
         filename: currentFilename,
+        accessMode: 'dialog',
+        embedMode: kind === 'video' || kind === 'audio' ? 'none' : 'iframe',
+        status: 'ready',
+        featured: false,
       });
     }
     currentFilename = null;
@@ -883,7 +994,7 @@ async function resolveCitationTarget(baseDir: string, source: string | null | un
   }
 }
 
-function inferRuntimeMediaKind(filename: string) {
+function inferRuntimeMediaKind(filename: string): RuntimeLessonMediaKind {
   const ext = path.extname(filename).toLowerCase();
   if (ext === '.mp4' || ext === '.webm') return 'video';
   if (ext === '.m4a' || ext === '.mp3' || ext === '.wav') return 'audio';
@@ -926,7 +1037,9 @@ function sha256(value: string | Buffer) {
   return createHash('sha256').update(value).digest('hex');
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
