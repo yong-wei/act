@@ -7,6 +7,7 @@ import {
   COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES,
   PLATFORM_ENTRYPOINT_SMOKE_ROUTES,
   STUDENT_LEARNING_INTENT_GROUPS,
+  getStudentLearningIntentNavigationGroups,
 } from '@/lib/platform-role-navigation';
 
 const rootDir = path.resolve(__dirname, '../../..');
@@ -42,6 +43,9 @@ describe('platform entrypoint smoke contracts', () => {
 
   it('migrates homepage to shared student entries and a 320px mobile menu', () => {
     const source = readSource('src/app/page.tsx');
+    const homepageEntryLabels = getStudentLearningIntentNavigationGroups()
+      .flatMap((group) => group.entries)
+      .map((entry) => entry.label);
 
     expect(source).toContain('getStudentLearningIntentNavigationGroups');
     expect(source).toContain('getCommercialStudentEntryIntentGroups');
@@ -52,6 +56,8 @@ describe('platform entrypoint smoke contracts', () => {
     expect(source).toContain('aria-label="移动平台入口菜单"');
     expect(source).toContain('md:hidden');
     expect(source).not.toContain('const moduleLinks = [');
+    expect(homepageEntryLabels).toEqual(['知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台']);
+    expect(homepageEntryLabels).not.toContain('个人中心');
   });
 
   it('reuses one credential login form for page and embedded login', () => {

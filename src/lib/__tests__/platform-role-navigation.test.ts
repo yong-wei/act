@@ -37,12 +37,12 @@ describe('platform role navigation', () => {
 
     expect(entries.map((entry) => entry.id)).toEqual(STUDENT_CORE_ENTRY_IDS);
     expect(entries.map((entry) => entry.href)).toEqual([
-      '/simulations',
       '/knowledge',
-      '/arena',
-      '/interactive-learning/control-workbench',
-      '/assessment/adaptive-practice',
       '/interactive-learning',
+      '/assessment/adaptive-practice',
+      '/arena',
+      '/simulations',
+      '/interactive-learning/control-workbench',
     ]);
     expect(entries.every((entry) => entry.group === 'student-core')).toBe(true);
     expect(entries.map((entry) => entry.id)).not.toContain('student-profile');
@@ -178,8 +178,15 @@ describe('platform role navigation', () => {
 
   it('groups student destinations by learning intent and preserves compatibility aliases', () => {
     const intentGroups = getStudentLearningIntentNavigationGroups();
+    const intentGroupsWithProfile = getStudentLearningIntentNavigationGroups({ includeProfileGroup: true });
 
     expect(intentGroups.map((group) => group.intent)).toEqual([
+      'learn',
+      'practice',
+      'challenge',
+      'experiment',
+    ]);
+    expect(intentGroupsWithProfile.map((group) => group.intent)).toEqual([
       'learn',
       'practice',
       'challenge',
@@ -1064,7 +1071,7 @@ describe('platform role navigation', () => {
     expect(simulationsSource).not.toContain('任务链开放');
     expect(simulationsSource).not.toContain('已部署');
     expect(simulationsSource).not.toContain('筹备中');
-    expect(virtualLabSource).toContain("redirect('/simulations')");
+    expect(virtualLabSource).toContain("redirect('/simulations?compat=virtual-lab')");
     expect(virtualLabSource).not.toContain('已上架模型');
     expect(virtualLabSource).not.toContain('当前开放');
     expect(virtualLabSource).not.toContain('筹备中');
