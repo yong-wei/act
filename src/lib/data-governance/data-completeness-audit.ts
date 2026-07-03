@@ -229,7 +229,7 @@ export function buildDataCompletenessAuditReport(input: DataCompletenessAuditInp
     input.resourceRegistry,
     input.runtimeArtifactErrors ?? [],
   );
-  const resourceDisposition = buildResourceDispositionLayer(input.resourceRegistry);
+  const resourceDisposition = buildResourceDispositionLayer(input.resourceRegistry, input.evidenceCorpus ?? []);
   const citationReadiness = buildCitationReadinessLayer(input.resourceRegistry, input.evidenceCorpus ?? []);
   const pathReadiness = buildPathReadinessLayer(input.resourceRegistry);
   const evidenceLineage = buildEvidenceLineageLayer(input);
@@ -368,10 +368,14 @@ function buildResourceBindingLayer(
   }, findings);
 }
 
-function buildResourceDispositionLayer(registry: ResourceNodeRegistry | undefined): DataCompletenessLayerSummary {
+function buildResourceDispositionLayer(
+  registry: ResourceNodeRegistry | undefined,
+  evidenceCorpus: LearningEvidenceCorpusChunk[],
+): DataCompletenessLayerSummary {
   const nodes = registry?.nodes ?? [];
   const nodesById = new Map(nodes.map((node) => [node.id, node]));
-  const findings = nodes.flatMap((node) =>
+  const coveredRefs = collectResourceDispositionCoveredRefs(nodes);
+  const registryFindings = nodes.flatMap((node) =>
     auditResourcePathPlanningDisposition(node, { nodesById }).map((issue) => finding(
       issue.code,
       issue.severity === 'blocking' ? 'blocked' : 'partial',
@@ -380,9 +384,12 @@ function buildResourceDispositionLayer(registry: ResourceNodeRegistry | undefine
       followupBucketForDispositionIssue(issue.code),
     ))
   );
+  const corpusFindings = buildCorpusProjectionDispositionFindings(evidenceCorpus, coveredRefs);
+  const findings = [...registryFindings, ...corpusFindings];
 
   return layer('resourceDisposition', {
     resourceNodes: nodes.length,
+    corpusResourceProjections: countCorpusResourceProjections(evidenceCorpus),
     reviewedDispositions: nodes.filter((node) =>
       isResourcePathPlanningDispositionHumanReviewed(node.planningMetadata.pathDisposition)
     ).length,
@@ -392,7 +399,56 @@ function buildResourceDispositionLayer(registry: ResourceNodeRegistry | undefine
     missingParentPlanningUnit: countFindings(findings, 'missing-parent-planning-unit'),
     missingEvidenceInstrumentation: countFindings(findings, 'missing-evidence-instrumentation'),
     invalidPromotion: countFindings(findings, 'invalid-path-disposition-promotion'),
+    unmatchedCorpusResourceProjections: corpusFindings.length,
   }, findings);
+}
+
+function collectResourceDispositionCoveredRefs(nodes: ResourceNode[]): Set<string> {
+  const refs = new Set<string>();
+  for (const node of nodes) {
+    refs.add(node.id);
+    refs.add(node.sourceRef);
+    refs.add(`${node.sourceKind}:${node.sourceRef}`);
+  }
+  return refs;
+}
+
+function countCorpusResourceProjections(evidenceCorpus: LearningEvidenceCorpusChunk[]): number {
+  return new Set(evidenceCorpus
+    .filter((chunk) => Boolean(chunk.resourceProjection))
+    .map(corpusProjectionDispositionRef)).size;
+}
+
+function buildCorpusProjectionDispositionFindings(
+  evidenceCorpus: LearningEvidenceCorpusChunk[],
+  coveredRefs: ReadonlySet<string>,
+): DataCompletenessFinding[] {
+  const findingsByRef = new Map<string, DataCompletenessFinding>();
+  for (const chunk of evidenceCorpus) {
+    if (!chunk.resourceProjection) continue;
+    const projectionRef = corpusProjectionDispositionRef(chunk);
+    if (coveredRefs.has(projectionRef) || coveredRefs.has(chunk.sourceRef.id) || (
+      chunk.sourceRef.resourceId && coveredRefs.has(chunk.sourceRef.resourceId)
+    )) {
+      continue;
+    }
+    if (findingsByRef.has(projectionRef)) continue;
+    findingsByRef.set(projectionRef, finding(
+      'missing-path-disposition',
+      'partial',
+      `ResourceDisposition:corpus:${projectionRef}`,
+      `${chunk.display.title} has a corpus resourceProjection but no reviewed path-planning disposition.`,
+      'review-resource-path-dispositions',
+    ));
+  }
+  return [...findingsByRef.values()];
+}
+
+function corpusProjectionDispositionRef(chunk: LearningEvidenceCorpusChunk): string {
+  return chunk.resourceProjection?.resourceId ??
+    chunk.sourceRef.resourceId ??
+    chunk.sourceRef.id ??
+    chunk.id;
 }
 
 function followupBucketForDispositionIssue(code: string): string {

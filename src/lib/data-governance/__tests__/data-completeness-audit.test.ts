@@ -208,23 +208,67 @@ describe('data completeness audit', () => {
         },
       }],
     });
+    const corpusOnlyProjection: LearningEvidenceCorpusChunk = {
+      id: 'corpus-only-section-chunk',
+      family: 'course-content',
+      sourceType: 'course-content',
+      sourceRef: { id: 'corpus-only-section' },
+      spanRef: { kind: 'text-range', start: 0, end: 12 },
+      display: { title: 'Corpus only section', href: null, capsule: 'Section' },
+      content: { text: 'content', redactedSummary: null, hash: 'hash' },
+      resourceProjection: {
+        resourceId: 'corpus-only-section',
+        segmentRef: 'corpus-only-section',
+        citationTargetRef: 'course-content/runtime/corpus-only-section.md',
+        knowledgeNodeRefs: ['kn-controller'],
+        capabilityTargetRefs: [],
+      },
+      privacyClass: 'public',
+      confidence: 'high',
+      freshness: {
+        indexedAt: '2026-07-02T00:00:00.000Z',
+        sourceUpdatedAt: null,
+        expiresAt: null,
+        stale: false,
+      },
+      authority: {
+        level: 'canonical',
+        knowledgeTags: [],
+        pageAnchor: null,
+        freshnessBucket: 'current',
+        scopeRule: { visibility: 'public', allowedRoles: ['student', 'teacher'] },
+      },
+      retrieval: {
+        tags: [],
+        goals: [],
+        useCases: ['diagnosis'],
+      },
+    };
 
     const report = buildDataCompletenessAuditReport({
       resourceRegistry: registry,
-      evidenceCorpus: [],
+      evidenceCorpus: [corpusOnlyProjection],
     });
     const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
 
     expect(disposition?.totals).toMatchObject({
       resourceNodes: 4,
+      corpusResourceProjections: 1,
       reviewedDispositions: 2,
+      missingDisposition: 1,
       missingHumanReview: 2,
       missingParentPlanningUnit: 1,
       missingExclusionRationale: 1,
       missingEvidenceInstrumentation: 1,
       invalidPromotion: 1,
+      unmatchedCorpusResourceProjections: 1,
     });
     expect(disposition?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'missing-path-disposition',
+        stableRef: 'ResourceDisposition:corpus:corpus-only-section',
+        followupBucket: 'review-resource-path-dispositions',
+      }),
       expect.objectContaining({
         id: 'missing-parent-planning-unit',
         stableRef: 'ResourceDisposition:resource_registry:citation-card',
