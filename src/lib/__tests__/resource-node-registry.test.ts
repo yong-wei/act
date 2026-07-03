@@ -1091,6 +1091,16 @@ describe('resource node registry', () => {
         capability: ['controlModeling'],
         quality: [],
       },
+      readiness: {
+        minimumCompetency: {
+          controlModeling: 0.2,
+        },
+        minimumEvidenceCount: 1,
+        requiredCompletedNodeIds: [],
+        requiredOutcomeRefs: [],
+        unlockMessage: '完成本单元前序学习证据后进入该步骤。',
+        fallbackNodeIds: [],
+      },
       reviewAudit: {
         status: 'human-confirmed',
         reviewerId: 'teacher-1',
@@ -1230,6 +1240,13 @@ describe('resource node registry', () => {
       knowledgeCoverage: ['kn-demo'],
       graphNodeRefs: {
         capability: ['controlModeling'],
+      },
+      readiness: {
+        minimumCompetency: {
+          controlModeling: 0.2,
+        },
+        minimumEvidenceCount: 1,
+        unlockMessage: '完成本单元前序学习证据后进入该步骤。',
       },
     });
     expect(confirmedSemanticProjection.resource.contentHash).toBe('sha256:step');

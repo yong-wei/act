@@ -32,6 +32,69 @@ const INFOGRAPH_MANIFEST_PATH = path.join(process.cwd(), 'course-content/runtime
 const AUTHORING_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/authoring/resources/textbooks');
 const STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE = 'student-visible' satisfies ResourceFieldCompletionCandidate['privacyScope'];
 const UNCLASSIFIED_AUDIT_PRIVACY_SCOPE = null satisfies ResourceFieldCompletionCandidate['privacyScope'];
+const REVIEWED_GRAPH_RESOURCE_BATCH_ID = 'graph-resource-semantic-coverage-2026-07-03-lesson-1-1';
+const REVIEWED_GRAPH_RESOURCE_REVIEWED_AT = '2026-07-03T00:00:00.000Z';
+const REVIEWED_GRAPH_RESOURCE_REVIEWER = {
+  reviewerId: 'graph-resource-governance-review',
+  reviewerRole: 'curriculum-data-governance',
+};
+
+interface ReviewedRuntimeStepCompletion {
+  capabilityTargetIds: string[];
+  estimatedTimeMinutes: number;
+}
+
+const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCompletion>([
+  ['1-1:step-04', {
+    capabilityTargetIds: ['controlModeling'],
+    estimatedTimeMinutes: 6,
+  }],
+  ['1-1:step-05', {
+    capabilityTargetIds: ['controlModeling'],
+    estimatedTimeMinutes: 7,
+  }],
+  ['1-1:step-06', {
+    capabilityTargetIds: ['controlModeling'],
+    estimatedTimeMinutes: 7,
+  }],
+  ['1-1:step-07', {
+    capabilityTargetIds: ['controlModeling'],
+    estimatedTimeMinutes: 7,
+  }],
+  ['1-1:step-08', {
+    capabilityTargetIds: ['controlModeling'],
+    estimatedTimeMinutes: 6,
+  }],
+  ['1-1:step-09', {
+    capabilityTargetIds: ['controlModeling', 'parameterDesign'],
+    estimatedTimeMinutes: 8,
+  }],
+  ['1-1:step-10', {
+    capabilityTargetIds: ['controlModeling', 'parameterDesign'],
+    estimatedTimeMinutes: 8,
+  }],
+  ['1-1:step-11', {
+    capabilityTargetIds: ['selfDirectedLearning'],
+    estimatedTimeMinutes: 5,
+  }],
+  ['1-1:step-15', {
+    capabilityTargetIds: ['selfDirectedLearning', 'inquiryReflection'],
+    estimatedTimeMinutes: 5,
+  }],
+]);
+
+function reviewedRuntimeStepReadiness(completion: ReviewedRuntimeStepCompletion) {
+  return {
+    minimumCompetency: Object.fromEntries(
+      completion.capabilityTargetIds.map((targetId) => [targetId, 0.2]),
+    ),
+    minimumEvidenceCount: 1,
+    requiredCompletedNodeIds: [],
+    requiredOutcomeRefs: [],
+    unlockMessage: '完成本单元前序学习证据后进入该步骤。',
+    fallbackNodeIds: [],
+  };
+}
 
 interface RuntimeInteractiveManifest {
   lesson_id?: string;
@@ -311,6 +374,11 @@ async function collectRuntimeManifestCandidates() {
         stepId,
         routeIndex,
       });
+      const reviewedCompletion = REVIEWED_RUNTIME_STEP_COMPLETIONS.get(`${lessonId}:${stepId}`);
+      const manifestCitationTarget = `${projectPath(manifestPath)}#${stepId}`;
+      const evidenceInstrumentation = reviewedCompletion
+        ? ['interactive_step_event', 'lesson_step_view']
+        : step.telemetry_spec ? ['interactive_step_event'] : [];
       candidates.push({
         id: `runtime-step:${lessonId}:${stepId}`,
         title: step.title ?? stepId,
@@ -318,15 +386,24 @@ async function collectRuntimeManifestCandidates() {
         sourcePathOrUrl: projectPath(manifestPath),
         sourceRecord: `${lessonId}:${stepId}`,
         knowledgeNodeIds: stepKnowledgeNodeIds.get(stepId) ?? [],
-        capabilityTargetIds: [],
+        capabilityTargetIds: reviewedCompletion?.capabilityTargetIds ?? [],
         segmentRefs: [stepId],
-        citationTargets: [],
+        citationTargets: reviewedCompletion ? [manifestCitationTarget] : [],
         pathTarget: verifiedStepPath,
-        estimatedTimeMinutes: normalizeEstimatedTimeMinutes(step.duration_minutes),
-        evidenceInstrumentation: step.telemetry_spec ? ['interactive_step_event'] : [],
+        estimatedTimeMinutes: reviewedCompletion?.estimatedTimeMinutes ?? normalizeEstimatedTimeMinutes(step.duration_minutes),
+        evidenceInstrumentation,
         privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
         generatedBy: step.ai_context_spec ? 'template' : null,
-        humanConfirmed: false,
+        humanConfirmed: Boolean(reviewedCompletion),
+        readiness: reviewedCompletion ? reviewedRuntimeStepReadiness(reviewedCompletion) : null,
+        reviewEvidence: reviewedCompletion
+          ? {
+            ...REVIEWED_GRAPH_RESOURCE_REVIEWER,
+            reviewedAt: REVIEWED_GRAPH_RESOURCE_REVIEWED_AT,
+            reviewBatchId: REVIEWED_GRAPH_RESOURCE_BATCH_ID,
+            confidence: 0.91,
+          }
+          : undefined,
         contentHash: manifestHash,
         versionRef: 'interactive-manifest.v2',
       });

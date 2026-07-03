@@ -11,6 +11,7 @@ import {
   type ResourceGraphNodeRefs,
   type ResourceNodeRegistry,
   type ResourceNodePrivacyLevel,
+  type ResourceNodeReadinessMetadata,
 } from './resource-node-registry';
 
 export const RESOURCE_FIELD_COMPLETION_AUDIT_VERSION = 'resource-field-completion-audit.v1';
@@ -97,6 +98,14 @@ export interface ResourceFieldCompletionCandidate {
   versionRef?: string | null;
   blockingDependency?: string | null;
   sourceWindow?: ResourceFieldSourceWindow;
+  readiness?: ResourceNodeReadinessMetadata | null;
+  reviewEvidence?: {
+    reviewerId: string;
+    reviewerRole: string;
+    reviewedAt: string;
+    reviewBatchId: string;
+    confidence?: number | null;
+  };
 }
 
 export interface ResourceEvidenceContractCompleteness {
@@ -144,6 +153,7 @@ export interface ResourceFieldCompletionAuditRow {
   sourceHash: string | null;
   sourceVersionRef: string | null;
   citationTargets: string[];
+  readiness: ResourceNodeReadinessMetadata | null;
   graphNodeRefs: ResourceGraphNodeRefs;
   missingFieldCodes: ResourceFieldMissingCode[];
   completionMethod: ResourceFieldCompletionMethod;
@@ -367,6 +377,7 @@ function rowFromResourceNode(
     pathTarget: node.launchTarget ?? node.renderTarget,
     estimatedTimeMinutes: node.planningMetadata.estimatedTimeMinutes,
     citationTargets: projection.citationTargets.map((target) => target.target).filter((value): value is string => Boolean(value)),
+    readiness: node.planningMetadata.readiness,
     graphNodeRefs: {
       knowledge: node.planningMetadata.knowledgeCoverage,
       capability: Object.keys(node.planningMetadata.abilityImpact).sort((left, right) => left.localeCompare(right)),
@@ -433,9 +444,12 @@ function rowFromCandidate(
       ? confirmedReviewAudit({
         sourceHash: candidate.contentHash ?? null,
         versionRef: candidate.versionRef ?? null,
-        reviewBatchId: candidate.versionRef ?? null,
+        reviewBatchId: candidate.reviewEvidence?.reviewBatchId ?? candidate.versionRef ?? null,
         generationToolOrModel: candidate.generatedBy,
-        reviewedAt: defaultSourceWindow.to,
+        reviewedAt: candidate.reviewEvidence?.reviewedAt ?? defaultSourceWindow.to,
+        reviewerId: candidate.reviewEvidence?.reviewerId,
+        reviewerRole: candidate.reviewEvidence?.reviewerRole,
+        confidence: candidate.reviewEvidence?.confidence,
       })
       : emptyReviewAudit(candidate),
     currentPathEligible: false,
@@ -445,6 +459,7 @@ function rowFromCandidate(
     pathTarget: candidate.pathTarget ?? null,
     estimatedTimeMinutes: candidate.estimatedTimeMinutes ?? null,
     citationTargets: candidate.citationTargets ?? [],
+    readiness: candidate.readiness ?? null,
     graphNodeRefs: {
       knowledge: candidate.knowledgeNodeIds ?? [],
       capability: candidate.capabilityTargetIds ?? [],
@@ -478,6 +493,7 @@ function buildRow(input: {
   pathTarget: string | null;
   estimatedTimeMinutes: number | null;
   citationTargets: string[];
+  readiness: ResourceNodeReadinessMetadata | null;
   graphNodeRefs: ResourceGraphNodeRefs;
   sourceWindow: ResourceFieldSourceWindow;
   versionRefs: KaqArtifactVersionRefs;
@@ -506,6 +522,7 @@ function buildRow(input: {
     sourceHash: input.sourceHash,
     sourceVersionRef: input.sourceVersionRef,
     citationTargets: uniqueSorted(input.citationTargets),
+    readiness: input.readiness,
     graphNodeRefs: {
       knowledge: uniqueSorted(input.graphNodeRefs.knowledge),
       capability: uniqueSorted(input.graphNodeRefs.capability),
@@ -697,17 +714,20 @@ function confirmedReviewAudit(input: {
   reviewBatchId: string | null;
   generationToolOrModel?: ResourceFieldCompletionCandidate['generatedBy'];
   reviewedAt: string | null;
+  reviewerId?: string;
+  reviewerRole?: string;
+  confidence?: number | null;
 }): ResourceFieldReviewAudit {
   return {
-    reviewerId: 'system-governed',
-    reviewerRole: 'governance-policy',
+    reviewerId: input.reviewerId ?? 'system-governed',
+    reviewerRole: input.reviewerRole ?? 'governance-policy',
     reviewedAt: input.reviewedAt,
     reviewBatchId: input.reviewBatchId,
     reviewedSourceHash: input.sourceHash,
     reviewedVersionRef: input.versionRef,
     generationToolOrModel: input.generationToolOrModel ?? null,
     promptOrManifestHash: null,
-    confidence: 0.9,
+    confidence: input.confidence ?? 0.9,
     staleInvalidationRule: 'stale when source hash, version ref, prompt hash, or generation tool version changes',
   };
 }

@@ -355,6 +355,13 @@ describe('resource field completion audit', () => {
         versionRef: 'external-resource.v1',
         generatedBy: 'local-model',
         humanConfirmed: true,
+        reviewEvidence: {
+          reviewerId: 'teacher-reviewer-1',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'review-batch-1',
+          confidence: 0.96,
+        },
       }],
     });
 
@@ -366,9 +373,12 @@ describe('resource field completion audit', () => {
       reviewAudit: {
         reviewedSourceHash: 'sha256:confirmed',
         reviewedVersionRef: 'external-resource.v1',
-        reviewedAt: '2026-06-22T00:00:00.000Z',
-        reviewBatchId: 'external-resource.v1',
+        reviewedAt: '2026-07-03T00:00:00.000Z',
+        reviewerId: 'teacher-reviewer-1',
+        reviewerRole: 'curriculum-data-governance',
+        reviewBatchId: 'review-batch-1',
         generationToolOrModel: 'local-model',
+        confidence: 0.96,
       },
       evidenceContract: {
         complete: true,
@@ -383,6 +393,48 @@ describe('resource field completion audit', () => {
     expect(result.rows[0].missingFieldCodes).not.toContain('provisional-metadata');
     expect(result.rows[0].pathEligibility.blockedBy).not.toContain('provisional-metadata');
     expect(result.rows[0].missingFieldCodes).not.toContain('missing-evidence-contract');
+  });
+
+  it('keeps citation-only runtime media out of path eligibility while preserving citation readiness', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'runtime-media:1-1:overview-map.png',
+        title: 'Overview map',
+        family: 'runtime-lesson-media',
+        sourcePathOrUrl: 'course-content/runtime/lessons/1-1/media/overview-map.png',
+        sourceRecord: '1-1:overview-map.png',
+        knowledgeNodeIds: ['课程总图_1_1'],
+        segmentRefs: ['overview-map.png'],
+        citationTargets: ['course-content/runtime/lessons/1-1/media/overview-map.png'],
+        pathTarget: '/course-runtime/lessons/1-1/media/overview-map.png',
+        contentHash: 'sha256:overview-map',
+        versionRef: 'runtime-lesson-media.v1',
+        generatedBy: 'external-tool',
+        humanConfirmed: false,
+        privacyScope: 'student-visible',
+      }],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      groundingEligibility: {
+        retrievalReady: true,
+        citationReady: true,
+      },
+      pathEligibility: {
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: expect.arrayContaining([
+          'missing-capability-target',
+          'missing-evidence-contract',
+          'missing-human-review',
+          'provisional-metadata',
+        ]),
+      },
+    });
+    expect(result.rows[0].missingFieldCodes).not.toContain('missing-citation-target');
+    expect(result.rows[0].missingFieldCodes).not.toContain('missing-segment-ref');
   });
 
   it('materializes LearningGoal baseline artifacts for the fixed first batch', () => {
@@ -779,8 +831,21 @@ describe('resource field completion audit', () => {
   });
 
   it('does not count checkpoint rows as terminal validation unless the LearningGoal policy accepts checkpoints', () => {
+    const controlCorrectionWithoutCheckpointTerminal = {
+      ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'],
+      learningGoal: {
+        ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!,
+        terminalValidationPolicy: {
+          ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!.terminalValidationPolicy,
+          terminalNodeTypes: ['simulation'],
+        },
+      },
+    };
     const result = buildLearningGoalResourceBaselineArtifacts({
-      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      registeredGoals: {
+        ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+        'control-correction': controlCorrectionWithoutCheckpointTerminal,
+      },
       generatedAt: '2026-06-24T00:00:00.000Z',
       auditRows: [{
         ...baselineAuditRow('checkpoint:control-correction-review', 'checkpoint'),
@@ -1126,6 +1191,7 @@ function baselineAuditRow(
     sourceHash: `sha256:${resourceId}`,
     sourceVersionRef: 'resource-node-registry.v1',
     citationTargets: [`/resources/${resourceId}`],
+    readiness: null,
     graphNodeRefs: {
       knowledge: [],
       capability: [],

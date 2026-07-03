@@ -1,9 +1,9 @@
 {
   "artifactVersion": "learning-goal-resource-baseline.v1",
-  "generatedAt": "2026-06-22T15:15:02.987Z",
+  "generatedAt": "2026-07-03T05:50:45.778Z",
   "sourceWindow": {
     "from": null,
-    "to": "2026-06-22T15:15:02.987Z"
+    "to": "2026-07-03T05:50:45.778Z"
   },
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
@@ -122,10 +122,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 116,
-          "humanConfirmed": 0,
+          "linked": 130,
+          "humanConfirmed": 7,
           "pathEligible": 0,
-          "citationReady": 63,
+          "citationReady": 82,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -198,6 +198,8 @@
             "runtime-step:1-1:step-06",
             "runtime-step:1-1:step-07",
             "runtime-step:1-1:step-08",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10",
             "runtime-step:2-2:step-09",
             "runtime-step:2-2:step-10",
             "runtime-step:2-2:step-11",
@@ -245,7 +247,19 @@
             "runtime-step:4-7:step-07",
             "runtime-step:5-1:step-12",
             "runtime-step:5-1:step-13",
-            "runtime-step:5-1:step-14"
+            "runtime-step:5-1:step-14",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [],
@@ -313,11 +327,6 @@
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
             "registry:widget-physics-mech",
-            "runtime-step:1-1:step-04",
-            "runtime-step:1-1:step-05",
-            "runtime-step:1-1:step-06",
-            "runtime-step:1-1:step-07",
-            "runtime-step:1-1:step-08",
             "runtime-step:2-2:step-09",
             "runtime-step:2-2:step-10",
             "runtime-step:2-2:step-11",
@@ -365,7 +374,19 @@
             "runtime-step:4-7:step-07",
             "runtime-step:5-1:step-12",
             "runtime-step:5-1:step-13",
-            "runtime-step:5-1:step-14"
+            "runtime-step:5-1:step-14",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -479,10 +500,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 78,
-          "humanConfirmed": 0,
+          "linked": 97,
+          "humanConfirmed": 7,
           "pathEligible": 0,
-          "citationReady": 78,
+          "citationReady": 97,
           "assessment": 5,
           "checkpoint": 0,
           "highComplexityLocked": 12,
@@ -564,7 +585,26 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [
@@ -659,7 +699,19 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -733,7 +785,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T05:50:45.778Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -804,10 +856,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 37,
-          "humanConfirmed": 0,
+          "linked": 38,
+          "humanConfirmed": 5,
           "pathEligible": 0,
-          "citationReady": 17,
+          "citationReady": 23,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -848,7 +900,8 @@
             "runtime-step:2-3:step-14",
             "runtime-step:2-3:step-15",
             "runtime-step:2-4:step-09",
-            "runtime-step:2-4:step-10"
+            "runtime-step:2-4:step-10",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [],
@@ -870,11 +923,6 @@
             "runtime-media:1-1:1-1-slides",
             "runtime-media:2-3:2-3-slides",
             "runtime-media:2-4:2-4-slides",
-            "runtime-step:1-1:step-04",
-            "runtime-step:1-1:step-05",
-            "runtime-step:1-1:step-06",
-            "runtime-step:1-1:step-07",
-            "runtime-step:1-1:step-08",
             "runtime-step:2-3:step-01",
             "runtime-step:2-3:step-02",
             "runtime-step:2-3:step-03",
@@ -889,7 +937,8 @@
             "runtime-step:2-3:step-14",
             "runtime-step:2-3:step-15",
             "runtime-step:2-4:step-09",
-            "runtime-step:2-4:step-10"
+            "runtime-step:2-4:step-10",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001"
           ],
           "missing": true
         },
@@ -962,10 +1011,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 19,
-          "humanConfirmed": 0,
+          "linked": 25,
+          "humanConfirmed": 5,
           "pathEligible": 0,
-          "citationReady": 19,
+          "citationReady": 25,
           "assessment": 2,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -988,7 +1037,13 @@
             "runtime-handout:legacy/L-2c",
             "runtime-media:1-1:1-1-slides",
             "runtime-media:2-3:2-3-slides",
-            "runtime-media:2-4:2-4-slides"
+            "runtime-media:2-4:2-4-slides",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [],
@@ -1011,7 +1066,8 @@
             "runtime-handout:legacy/L-2c",
             "runtime-media:1-1:1-1-slides",
             "runtime-media:2-3:2-3-slides",
-            "runtime-media:2-4:2-4-slides"
+            "runtime-media:2-4:2-4-slides",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001"
           ],
           "missing": true
         },
@@ -1045,7 +1101,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T05:50:45.778Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -1112,10 +1168,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 65,
-          "humanConfirmed": 0,
+          "linked": 81,
+          "humanConfirmed": 7,
           "pathEligible": 0,
-          "citationReady": 63,
+          "citationReady": 81,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -1183,8 +1239,24 @@
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
             "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
             "runtime-step:1-1:step-09",
-            "runtime-step:1-1:step-10"
+            "runtime-step:1-1:step-10",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [],
@@ -1252,8 +1324,17 @@
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
             "registry:widget-physics-mech",
-            "runtime-step:1-1:step-09",
-            "runtime-step:1-1:step-10"
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001"
           ],
           "missing": true
         },
@@ -1437,10 +1518,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 95,
-          "humanConfirmed": 0,
+          "linked": 113,
+          "humanConfirmed": 7,
           "pathEligible": 0,
-          "citationReady": 95,
+          "citationReady": 113,
           "assessment": 22,
           "checkpoint": 0,
           "highComplexityLocked": 10,
@@ -1539,7 +1620,25 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [
@@ -1649,7 +1748,18 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001"
           ],
           "missing": true
         },
@@ -1683,7 +1793,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T05:50:45.778Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -1750,10 +1860,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 76,
-          "humanConfirmed": 0,
+          "linked": 94,
+          "humanConfirmed": 7,
           "pathEligible": 0,
-          "citationReady": 67,
+          "citationReady": 85,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -1825,6 +1935,13 @@
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
             "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10",
             "runtime-step:1-2:step-01",
             "runtime-step:1-2:step-02",
             "runtime-step:1-2:step-03",
@@ -1833,7 +1950,18 @@
             "runtime-step:1-2:step-14",
             "runtime-step:2-1:step-06",
             "runtime-step:2-1:step-07",
-            "runtime-step:2-1:step-08"
+            "runtime-step:2-1:step-08",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [],
@@ -1913,7 +2041,18 @@
             "runtime-step:1-2:step-14",
             "runtime-step:2-1:step-06",
             "runtime-step:2-1:step-07",
-            "runtime-step:2-1:step-08"
+            "runtime-step:2-1:step-08",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001"
           ],
           "missing": true
         },
@@ -2097,10 +2236,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 99,
-          "humanConfirmed": 0,
+          "linked": 117,
+          "humanConfirmed": 7,
           "pathEligible": 0,
-          "citationReady": 99,
+          "citationReady": 117,
           "assessment": 22,
           "checkpoint": 0,
           "highComplexityLocked": 10,
@@ -2203,7 +2342,25 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [
@@ -2317,7 +2474,18 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001"
           ],
           "missing": true
         },
@@ -2351,7 +2519,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T05:50:45.778Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -2420,10 +2588,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 82,
-          "humanConfirmed": 0,
+          "linked": 104,
+          "humanConfirmed": 7,
           "pathEligible": 0,
-          "citationReady": 73,
+          "citationReady": 95,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -2501,6 +2669,13 @@
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
             "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10",
             "runtime-step:2-2:step-09",
             "runtime-step:2-2:step-10",
             "runtime-step:2-2:step-11",
@@ -2509,7 +2684,22 @@
             "runtime-step:3-7:step-05",
             "runtime-step:3-7:step-06",
             "runtime-step:3-7:step-07",
-            "runtime-step:3-7:step-08"
+            "runtime-step:3-7:step-08",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [],
@@ -2595,7 +2785,22 @@
             "runtime-step:3-7:step-05",
             "runtime-step:3-7:step-06",
             "runtime-step:3-7:step-07",
-            "runtime-step:3-7:step-08"
+            "runtime-step:3-7:step-08",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -2785,10 +2990,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 107,
-          "humanConfirmed": 0,
+          "linked": 129,
+          "humanConfirmed": 7,
           "pathEligible": 0,
-          "citationReady": 107,
+          "citationReady": 129,
           "assessment": 24,
           "checkpoint": 0,
           "highComplexityLocked": 12,
@@ -2899,7 +3104,29 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [
@@ -3023,7 +3250,22 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -3057,7 +3299,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T05:50:45.778Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -3125,10 +3367,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 79,
-          "humanConfirmed": 0,
+          "linked": 100,
+          "humanConfirmed": 7,
           "pathEligible": 0,
-          "citationReady": 70,
+          "citationReady": 91,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -3203,6 +3445,13 @@
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
             "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10",
             "runtime-step:3-5:step-01",
             "runtime-step:3-5:step-02",
             "runtime-step:3-5:step-03",
@@ -3211,7 +3460,21 @@
             "runtime-step:3-6:step-03",
             "runtime-step:3-6:step-04",
             "runtime-step:3-6:step-05",
-            "runtime-step:3-6:step-06"
+            "runtime-step:3-6:step-06",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [],
@@ -3294,7 +3557,21 @@
             "runtime-step:3-6:step-03",
             "runtime-step:3-6:step-04",
             "runtime-step:3-6:step-05",
-            "runtime-step:3-6:step-06"
+            "runtime-step:3-6:step-06",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -3496,10 +3773,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 107,
-          "humanConfirmed": 0,
+          "linked": 128,
+          "humanConfirmed": 7,
           "pathEligible": 0,
-          "citationReady": 107,
+          "citationReady": 128,
           "assessment": 27,
           "checkpoint": 0,
           "highComplexityLocked": 12,
@@ -3610,7 +3887,28 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "runtime-step:1-1:step-04",
+            "runtime-step:1-1:step-05",
+            "runtime-step:1-1:step-06",
+            "runtime-step:1-1:step-07",
+            "runtime-step:1-1:step-08",
+            "runtime-step:1-1:step-09",
+            "runtime-step:1-1:step-10",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [
@@ -3734,7 +4032,21 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec04",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -3768,7 +4080,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T05:50:45.778Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -3843,10 +4155,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 81,
+          "linked": 89,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 35,
+          "citationReady": 43,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -3931,7 +4243,15 @@
             "runtime-step:4-1:step-08",
             "runtime-step:4-1:step-09",
             "runtime-step:4-5:step-01",
-            "runtime-step:4-5:step-02"
+            "runtime-step:4-5:step-02",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [],
@@ -4016,7 +4336,15 @@
             "runtime-step:4-1:step-08",
             "runtime-step:4-1:step-09",
             "runtime-step:4-5:step-01",
-            "runtime-step:4-5:step-02"
+            "runtime-step:4-5:step-02",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -4123,10 +4451,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 48,
+          "linked": 56,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 48,
+          "citationReady": 56,
           "assessment": 4,
           "checkpoint": 0,
           "highComplexityLocked": 11,
@@ -4178,7 +4506,15 @@
             "registry:sim-scene-lng",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [
@@ -4242,7 +4578,15 @@
             "registry:sim-scene-lng",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -4276,7 +4620,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T05:50:45.778Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -4344,10 +4688,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 41,
+          "linked": 49,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 32,
+          "citationReady": 40,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -4392,7 +4736,15 @@
             "runtime-step:5-4:step-09",
             "runtime-step:5-4:step-10",
             "runtime-step:5-4:step-11",
-            "runtime-step:5-4:step-12"
+            "runtime-step:5-4:step-12",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [],
@@ -4437,7 +4789,15 @@
             "runtime-step:5-4:step-09",
             "runtime-step:5-4:step-10",
             "runtime-step:5-4:step-11",
-            "runtime-step:5-4:step-12"
+            "runtime-step:5-4:step-12",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -4534,10 +4894,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 43,
+          "linked": 51,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 43,
+          "citationReady": 51,
           "assessment": 2,
           "checkpoint": 0,
           "highComplexityLocked": 11,
@@ -4584,7 +4944,15 @@
             "registry:sim-scene-lng",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [
@@ -4643,7 +5011,15 @@
             "registry:sim-scene-lng",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -4708,7 +5084,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T05:50:45.778Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -4786,10 +5162,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 45,
+          "linked": 53,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 34,
+          "citationReady": 42,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -4838,7 +5214,15 @@
             "runtime-step:5-3:step-12",
             "runtime-step:5-3:step-13",
             "runtime-step:5-3:step-14",
-            "runtime-step:5-3:step-15"
+            "runtime-step:5-3:step-15",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [],
@@ -4887,7 +5271,15 @@
             "runtime-step:5-3:step-12",
             "runtime-step:5-3:step-13",
             "runtime-step:5-3:step-14",
-            "runtime-step:5-3:step-15"
+            "runtime-step:5-3:step-15",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -4987,10 +5379,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 46,
+          "linked": 54,
           "humanConfirmed": 0,
           "pathEligible": 0,
-          "citationReady": 46,
+          "citationReady": 54,
           "assessment": 2,
           "checkpoint": 0,
           "highComplexityLocked": 12,
@@ -5040,7 +5432,15 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [],
           "highComplexityLockedResourceIds": [
@@ -5103,7 +5503,15 @@
             "registry:widget-analogy-mapper",
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
-            "registry:widget-physics-mech"
+            "registry:widget-physics-mech",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec11",
+            "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "missing": true
         },
@@ -5177,7 +5585,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-06-22T15:15:02.987Z"
+          "to": "2026-07-03T05:50:45.778Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -5205,6 +5613,6 @@
     "complete": 0,
     "limited": 9,
     "reviewedBindings": 0,
-    "provisionalLinkedResources": 291
+    "provisionalLinkedResources": 299
   }
 }
