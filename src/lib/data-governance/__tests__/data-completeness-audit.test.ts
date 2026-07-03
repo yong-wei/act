@@ -386,6 +386,70 @@ describe('data completeness audit', () => {
     expect(JSON.stringify(report)).not.toContain('student-2:shared-client-event');
   });
 
+  it('treats governed historical materialization sources as valid external lineage', () => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [
+        {
+          id: 'fact-historical-simulation',
+          userId: 'student-1',
+          factType: 'simulation',
+          sourceEventId: 'historical:SimulationLog:simulation-1:completed',
+          sourceLogId: 'historical:SimulationLog:simulation-1',
+        },
+        {
+          id: 'fact-historical-answer',
+          userId: 'student-1',
+          factType: 'answer',
+          sourceEventId: 'historical:UserAnswer:answer-1:graded',
+          sourceLogId: 'historical:UserAnswer:answer-1',
+        },
+        {
+          id: 'fact-historical-ability',
+          userId: 'student-1',
+          factType: 'ability_assessment',
+          sourceEventId: 'historical:AbilityAssessment:assessment-1:score',
+          sourceLogId: 'historical:AbilityAssessment:assessment-1',
+        },
+        {
+          id: 'fact-historical-prompt',
+          userId: 'student-1',
+          factType: 'prompt_assessment',
+          sourceEventId: 'historical:PromptAssessment:prompt-1:rubric',
+          sourceLogId: 'historical:PromptAssessment:prompt-1',
+        },
+        {
+          id: 'fact-historical-design',
+          userId: 'student-1',
+          factType: 'design_session',
+          sourceEventId: 'historical:DesignSession:design-1:checkpoint',
+          sourceLogId: 'historical:DesignSession:design-1',
+        },
+        {
+          id: 'fact-historical-arena',
+          userId: 'student-1',
+          factType: 'arena_submission',
+          sourceEventId: 'historical:ArenaSubmission:submission-1:official',
+          sourceLogId: 'historical:ArenaSubmission:submission-1',
+        },
+        {
+          id: 'fact-historical-arena-evaluation',
+          userId: 'student-1',
+          factType: 'arena_evaluation',
+          sourceEventId: 'historical:ArenaEvaluationRun:evaluation-1:official',
+          sourceLogId: 'historical:ArenaEvaluationRun:evaluation-1',
+        },
+      ],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceEvents).toBe(0);
+    expect(lineage?.totals.danglingLearningFactSourceLogs).toBe(0);
+    expect(lineage?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'learning-fact-source-event-dangling' }),
+      expect.objectContaining({ id: 'learning-fact-source-log-dangling' }),
+    ]));
+  });
+
   it('masks Yang Fan fixture identifiers and reports duplicates as diagnostics only', () => {
     const report = buildDataCompletenessAuditReport({
       canonicalLearner: {

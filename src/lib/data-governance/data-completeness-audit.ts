@@ -178,6 +178,17 @@ const LAYER_LABELS: Record<DataCompletenessLayerId, string> = {
   learnerFixtureReadiness: 'Learner fixture readiness',
 };
 
+const GOVERNED_HISTORICAL_SOURCE_PREFIXES = [
+  'historical:StudentStepResponse:',
+  'historical:SimulationLog:',
+  'historical:UserAnswer:',
+  'historical:AbilityAssessment:',
+  'historical:PromptAssessment:',
+  'historical:DesignSession:',
+  'historical:ArenaSubmission:',
+  'historical:ArenaEvaluationRun:',
+];
+
 export function buildDataCompletenessAuditReport(input: DataCompletenessAuditInput): DataCompletenessAuditReport {
   const graphCore = buildGraphCoreLayer(input.knowledgeNodes ?? []);
   const resourceBinding = buildResourceBindingLayer(input.teachingResources ?? [], input.resourceRegistry);
@@ -676,7 +687,7 @@ function classifyLearningFactSource(
     sourceEventId.startsWith('arena-official:') ||
     sourceEventId.startsWith('simulation-agent-evidence:') ||
     sourceEventId.startsWith('adaptive-assessment:') ||
-    sourceEventId.startsWith('historical:StudentStepResponse:') ||
+    GOVERNED_HISTORICAL_SOURCE_PREFIXES.some((prefix) => sourceEventId.startsWith(prefix)) ||
     sourceEventId.startsWith('control-correction-path:') ||
     sourceEventId.startsWith('learning-path:')
   ) {
