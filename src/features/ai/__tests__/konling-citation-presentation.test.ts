@@ -183,7 +183,7 @@ describe('Konling verified citation presentation', () => {
     expect(html).toContain('已验证引用');
     expect(html).toContain('data-citation-target="/course-runtime/resources/textbooks/control/ch02.md#time-constant"');
     expect(html).toContain('data-konling-citation-diagnostics');
-    expect(html).toContain('开发诊断：assistant-citations-unverified-stream');
+    expect(html).toContain('开发模式诊断：assistant-citations-unverified-stream');
   });
 
   it('deduplicates citations by governed identity without merging source types by title', () => {

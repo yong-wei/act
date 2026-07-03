@@ -12,7 +12,7 @@ import { useRef, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 import { KonlingAvatar } from '@/components/ai/konling-avatar';
-import { AIMessageContent } from '@/components/ai/ai-message-content';
+import { KonlingChatMessageList, konlingPromptInputClassName } from '@/components/ai/konling-chat-renderer';
 import { KONLING_BRAND } from '@/lib/ai-branding';
 import { usePageAIContext } from '@/hooks/usePageAIContext';
 import { useSearchParams } from 'next/navigation';
@@ -21,7 +21,6 @@ import {
   buildAiAuditTaskState,
   buildPortfolioReflectionDraft,
   getAiAuditTaskContract,
-  summarizeAiToolResult,
 } from '@/lib/ai-task-boundary-contracts';
 
 export default function CopilotPage() {
@@ -268,40 +267,7 @@ export default function CopilotPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-2xl px-5 py-3 ${
-                        message.role === 'user'
-                          ? 'bg-amber-600 text-white'
-                          : 'bg-slate-800 text-slate-200'
-                      }`}
-                    >
-                      {/* 工具调用结果 */}
-                      {message.toolInvocations?.map((tool, i) => (
-                        <div key={i} className="mb-3 rounded-lg border border-slate-600 bg-slate-900/80 p-3">
-                          <div className="mb-2 text-xs text-amber-400">
-                            {tool.toolName === 'get_simulation_status' && '📊 仿真状态'}
-                            {tool.toolName === 'set_simulation_params' && '⚙️ 参数修改'}
-                            {tool.toolName === 'analyze_result' && '📈 结果分析'}
-                          </div>
-                          {tool.state === 'result' ? (
-                            <p className="text-xs text-slate-400">{summarizeAiToolResult(tool.toolName)}</p>
-                          ) : null}
-                        </div>
-                      ))}
-                      {/* 文本消息 */}
-                      {message.content && (
-                        <div className="text-sm leading-relaxed">
-                          <AIMessageContent content={message.content} sanitizeContent={message.role !== 'user'} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                <KonlingChatMessageList messages={messages} />
                 {isLoading && (
                   <div className="flex items-center gap-2 text-sm text-slate-400">
                     <div className="flex space-x-1">
@@ -334,7 +300,7 @@ export default function CopilotPage() {
                 onChange={handleInputChange}
                 placeholder="请输入您的问题，例如：如何减少航迹误差？"
                 data-primary-task-input={localTaskMode ? 'copilot-local-task' : undefined}
-                className="flex-1 rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                className={`${konlingPromptInputClassName} rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20`}
                 disabled={isLoading}
               />
               {messages.length > 0 ? (

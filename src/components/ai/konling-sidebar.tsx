@@ -6,12 +6,11 @@
 
 'use client';
 
-import { useChat, type Message } from '@/hooks/useLegacyChat';
+import { useChat } from '@/hooks/useLegacyChat';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { X, Send, Sparkles, MessageSquare, Trash2 } from 'lucide-react';
 import { KonlingAvatar } from './konling-avatar';
-import { AIMessageContent } from './ai-message-content';
-import { KonlingCitationPanel, extractKonlingCitationMetadata } from './konling-citation-presentation';
+import { KonlingChatMessageList, konlingPromptInputClassName } from './konling-chat-renderer';
 import { KONLING_BRAND, getQuickQuestions } from '@/lib/ai-branding';
 import { useAIThemeStyles, TRANSITION_CLASSES } from '@/lib/ai-theme-styles';
 import type { PageContext, UserProfile } from '@/types/ai-context';
@@ -227,9 +226,7 @@ export function KonlingSidebar({
             </div>
           ) : (
             <div className="space-y-4">
-              {messages.map((message, index) => (
-                <MessageBubble key={index} message={message} styles={styles} />
-              ))}
+              <KonlingChatMessageList messages={messages} styles={styles} />
               {isLoading && (
                 <div className={`flex items-center gap-2 text-sm ${styles.text.muted}`}>
                   <div className="flex space-x-1">
@@ -264,7 +261,7 @@ export function KonlingSidebar({
               onChange={handleInputChange}
               placeholder="请输入你的问题..."
               className={`
-                flex-1 rounded-lg border px-4 py-2.5 text-sm
+                ${konlingPromptInputClassName} rounded-lg border px-4 py-2.5 text-sm
                 focus:outline-none focus:ring-2
                 ${styles.input}
               `}
@@ -298,55 +295,5 @@ export function KonlingSidebar({
         </form>
       </div>
     </>
-  );
-}
-
-/**
- * 消息气泡组件
- */
-function MessageBubble({
-  message,
-  styles,
-}: {
-  message: Message;
-  styles: ReturnType<typeof useAIThemeStyles>;
-}) {
-  const isUser = message.role === 'user';
-
-  return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className="flex max-w-[85%] gap-2">
-        {!isUser && <KonlingAvatar size="sm" className="mt-0.5 shrink-0 self-start" />}
-        <div
-          className={`
-            rounded-2xl px-4 py-2.5 text-sm leading-relaxed
-            ${isUser ? styles.message.user : styles.message.assistant}
-          `}
-        >
-          {/* 工具调用结果 */}
-          {message.toolInvocations?.map((tool, index) => (
-            <div key={index} className="mb-2 rounded-lg border border-slate-600/30 bg-slate-900/50 p-2">
-              <div className={`mb-1 text-xs ${styles.text.secondary}`}>
-                {tool.toolName === 'get_simulation_status' && '📊 仿真状态'}
-                {tool.toolName === 'set_simulation_params' && '⚙️ 参数修改'}
-                {tool.toolName === 'analyze_result' && '📈 结果分析'}
-              </div>
-              {tool.state === 'result' && (
-                <pre className={`overflow-x-auto text-xs ${styles.text.muted}`}>
-                  {JSON.stringify(tool.result, null, 2)}
-                </pre>
-              )}
-            </div>
-          ))}
-          {/* 文本消息 */}
-          {message.content && (
-            <>
-              <AIMessageContent content={message.content} sanitizeContent={!isUser} />
-              {!isUser ? <KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} /> : null}
-            </>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
