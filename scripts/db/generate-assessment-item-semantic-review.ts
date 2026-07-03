@@ -57,8 +57,8 @@ function mergeReviewSnapshots(
   generatedSnapshots: AssessmentItemSemanticReviewDecision[],
 ): AssessmentItemSemanticReviewDecision[] {
   const snapshotsByItemId = new Map<string, AssessmentItemSemanticReviewDecision>();
-  for (const snapshot of generatedSnapshots) snapshotsByItemId.set(snapshot.catalogItemId, snapshot);
   for (const snapshot of existingSnapshots) snapshotsByItemId.set(snapshot.catalogItemId, snapshot);
+  for (const snapshot of generatedSnapshots) snapshotsByItemId.set(snapshot.catalogItemId, snapshot);
   return [...snapshotsByItemId.values()].sort((left, right) => left.catalogItemId.localeCompare(right.catalogItemId));
 }
 

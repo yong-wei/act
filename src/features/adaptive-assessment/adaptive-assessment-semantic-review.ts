@@ -187,6 +187,15 @@ function reviewDecisionStage(item: AdaptiveAssessmentCatalogItem, decision: Asse
   return decision.selectedStagePurpose ?? item.semanticRefs.assessmentStage ?? '';
 }
 
+function reviewDecisionAuditIssues(decision: AssessmentItemSemanticReviewDecision): string[] {
+  return [
+    decision.decisionKind === 'human-review' ? '' : 'script-only-review-rejected',
+    decision.reviewerId || decision.reviewerRole ? '' : 'missing-reviewer',
+    decision.reviewedAt ? '' : 'missing-reviewed-at',
+    decision.reviewBatchId ? '' : 'missing-review-batch-id',
+  ];
+}
+
 function findDecision(
   decisionsByItemId: Map<string, AssessmentItemSemanticReviewDecision[]>,
   item: AdaptiveAssessmentCatalogItem,
@@ -212,13 +221,13 @@ function decisionFieldIssues(
       ? ''
       : 'stale-metadata-version-refs',
   ];
-  if (decision.outcome !== 'approved') return uniqueSorted(staleIssues);
-  const missing = [
-    decision.decisionKind === 'human-review' ? '' : 'script-only-review-rejected',
+  if (decision.outcome !== 'approved') return uniqueSorted([
+    ...reviewDecisionAuditIssues(decision),
     ...staleIssues,
-    decision.reviewerId || decision.reviewerRole ? '' : 'missing-reviewer',
-    decision.reviewedAt ? '' : 'missing-reviewed-at',
-    decision.reviewBatchId ? '' : 'missing-review-batch-id',
+  ]);
+  const missing = [
+    ...reviewDecisionAuditIssues(decision),
+    ...staleIssues,
     decision.selectedLearningGoalIds.length ? '' : 'missing-learning-goal-binding',
     decision.selectedKaqObjectiveIds.length ? '' : 'missing-kaq-objective-ids',
     decision.selectedGraphNodeIds.length ? '' : 'missing-graph-node-refs',
@@ -435,6 +444,8 @@ export function buildAssessmentItemSemanticCoverageReport(
       sourceCounts.unreviewedTotal += 1;
     } else if (itemDecisionIssues.some((issue) => issue.startsWith('stale-'))) {
       sourceCounts.staleTotal += 1;
+    } else if (decision.outcome !== 'approved' && itemDecisionIssues.length) {
+      sourceCounts.unreviewedTotal += 1;
     } else if (decision.outcome === 'rejected') {
       sourceCounts.rejectedTotal += 1;
     } else if (decision.outcome === 'deprecated') {

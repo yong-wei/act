@@ -177,6 +177,34 @@ describe('adaptive assessment semantic review workflow', () => {
     expect(report.issues.map((issue) => issue.reason)).toContain('stale-source-hash');
   });
 
+  it('rejects non-approved machine suggestions as reviewed decisions', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      decisions: [{
+        ...baseDecision(item),
+        decisionKind: 'machine-suggestion',
+        outcome: 'rejected',
+        reviewerId: undefined,
+        reviewedAt: undefined,
+        reviewBatchId: undefined,
+      }],
+    });
+
+    expect(report.rejectedItemCount).toBe(0);
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.issues.map((issue) => issue.reason)).toEqual(expect.arrayContaining([
+      'script-only-review-rejected',
+      'missing-reviewer',
+      'missing-reviewed-at',
+      'missing-review-batch-id',
+    ]));
+  });
+
   it('reports stale metadata version refs even when source content is unchanged', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
