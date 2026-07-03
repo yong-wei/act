@@ -298,6 +298,21 @@ function isApprovedDecisionValid(
   );
 }
 
+export function getAssessmentItemSemanticReviewDecisionIssues(
+  item: AdaptiveAssessmentCatalogItem,
+  decision: AssessmentItemSemanticReviewDecision | null,
+  input: Pick<
+    AssessmentItemSemanticReviewInput,
+    'knownLearningGoalIds' | 'knownKaqObjectiveIds' | 'knownGraphNodeIds' | 'knownRemediationResourceNodeIds'
+  > = {},
+): string[] {
+  return decisionFieldIssues(item, decision, {
+    items: [item],
+    decisions: decision ? [decision] : [],
+    ...input,
+  });
+}
+
 function issueSeverity(reason: string): AssessmentItemSemanticCoverageIssue['severity'] {
   if (reason === 'missing-review-decision') return 'warning';
   if (reason.startsWith('missing-')) return 'warning';

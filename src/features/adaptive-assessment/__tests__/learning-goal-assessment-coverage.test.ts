@@ -127,4 +127,51 @@ describe('LearningGoal assessment coverage', () => {
       incompleteStages: ['readiness', 'practice', 'checkpoint', 'remediation'],
     });
   });
+
+  it('does not count approved decisions that fail semantic review field validation', async () => {
+    const sources = await loadAdaptiveAssessmentCatalogSources();
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: PRESET_QUESTIONS,
+      acqStaticQuestions: sources.acqStaticQuestions,
+      icourseObjectiveBankItems: sources.icourseObjectiveBankItems,
+      icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
+      kaqReviewedItems: sources.kaqReviewedItems,
+    });
+    const item = catalog.items.find((candidate) =>
+      candidate.reviewState === 'path-eligible' &&
+      candidate.allowedStages.includes('readiness') &&
+      !candidate.allowedStages.includes('checkpoint')
+    );
+    expect(item).toBeDefined();
+
+    const artifacts = buildLearningGoalAssessmentCoverageArtifacts({
+      items: [item!],
+      decisions: [{
+        catalogItemId: item!.catalogItemId,
+        decisionKind: 'human-review',
+        outcome: 'approved',
+        reviewerId: 'semantic-reviewer',
+        reviewedAt: '2026-07-03T00:00:00.000Z',
+        reviewBatchId: 'semantic-review-regression.v1',
+        sourceContentHash: item!.contentHash,
+        selectedLearningGoalIds: [goals()[0].id],
+        selectedKaqObjectiveIds: item!.semanticRefs.kaqObjectiveIds,
+        selectedGraphNodeIds: item!.semanticRefs.graphNodeIds,
+        selectedStagePurpose: 'checkpoint',
+        difficulty: item!.semanticRefs.difficulty ?? undefined,
+        cognitiveLevel: item!.semanticRefs.cognitiveLevel ?? undefined,
+        misconceptionRefs: [],
+        remediationRefs: item!.semanticRefs.remediationResourceNodeIds,
+        metadataVersionRefs: item!.versionRefs,
+      }],
+      goals: [goals()[0]],
+      generatedAt: '2026-07-03T00:00:00.000Z',
+    });
+
+    expect(artifacts.matrix.rows[0].stageCoverage.flatMap((stage) => stage.countedCatalogItemIds)).toEqual([]);
+    expect(artifacts.matrix.rows[0]).toMatchObject({
+      assessmentCoverageState: 'limited',
+      reviewedPathEligibleItemCount: 0,
+    });
+  });
 });

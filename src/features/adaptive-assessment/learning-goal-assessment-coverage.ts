@@ -2,7 +2,10 @@ import type {
   AdaptiveAssessmentCatalogItem,
   AdaptiveAssessmentCatalogSourceFamily,
 } from './adaptive-assessment-item-catalog';
-import type { AssessmentItemSemanticReviewDecision } from './adaptive-assessment-semantic-review';
+import {
+  getAssessmentItemSemanticReviewDecisionIssues,
+  type AssessmentItemSemanticReviewDecision,
+} from './adaptive-assessment-semantic-review';
 
 export const LEARNING_GOAL_ASSESSMENT_COVERAGE_VERSION = 'learning-goal-assessment-coverage.v1';
 
@@ -110,6 +113,7 @@ function isCountableReviewedPathEligibleItem(
     && item.eligibilityState === 'path-eligible'
     && item.reviewState === 'path-eligible'
     && item.sourceFamily !== 'generated-adaptive-question'
+    && getAssessmentItemSemanticReviewDecisionIssues(item, decision).length === 0
   );
 }
 
