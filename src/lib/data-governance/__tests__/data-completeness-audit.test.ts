@@ -438,6 +438,40 @@ describe('data completeness audit', () => {
           sourceEventId: 'historical:ArenaEvaluationRun:evaluation-1:official',
           sourceLogId: 'historical:ArenaEvaluationRun:evaluation-1',
         },
+        {
+          id: 'fact-legacy-migrated-simulation',
+          userId: 'student-1',
+          factType: 'simulation',
+          sourceEventId: null,
+          sourceLogId: 'simulation-log-legacy-1',
+        },
+        {
+          id: 'fact-legacy-migrated-answer',
+          userId: 'student-1',
+          factType: 'question',
+          sourceEventId: null,
+          sourceLogId: 'user-answer-legacy-1',
+        },
+        {
+          id: 'fact-legacy-migrated-ai-intervention',
+          userId: 'student-1',
+          factType: 'ai_intervention',
+          sourceEventId: null,
+          sourceLogId: 'ai-intervention-legacy-1',
+        },
+        {
+          id: 'fact-legacy-migrated-prompt',
+          userId: 'student-1',
+          factType: 'prompt_design',
+          sourceEventId: null,
+          sourceLogId: 'prompt-assessment-legacy-1',
+        },
+      ],
+      historicalSourceLogIds: [
+        'simulation-log-legacy-1',
+        'user-answer-legacy-1',
+        'ai-intervention-legacy-1',
+        'prompt-assessment-legacy-1',
       ],
     });
 

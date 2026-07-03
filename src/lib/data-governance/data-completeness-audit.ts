@@ -122,6 +122,7 @@ export interface DataCompletenessAuditInput {
   eventDictionaryTypes?: string[];
   learningEventBatches?: DataCompletenessLearningEventBatchInput[];
   learningFacts?: DataCompletenessLearningFactInput[];
+  historicalSourceLogIds?: string[];
   studentCompetencySnapshots?: DataCompletenessDerivedEvidenceInput[];
   studentProfileSummaries?: DataCompletenessDerivedEvidenceInput[];
   studentEvidenceFeatureCaches?: DataCompletenessFeatureCacheInput[];
@@ -182,6 +183,7 @@ const GOVERNED_HISTORICAL_SOURCE_PREFIXES = [
   'historical:StudentStepResponse:',
   'historical:SimulationLog:',
   'historical:UserAnswer:',
+  'historical:AIIntervention:',
   'historical:AbilityAssessment:',
   'historical:PromptAssessment:',
   'historical:DesignSession:',
@@ -414,6 +416,11 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
   const snapshots = input.studentCompetencySnapshots ?? [];
   const summaries = input.studentProfileSummaries ?? [];
   const caches = input.studentEvidenceFeatureCaches ?? [];
+  const historicalSourceLogIds = new Set(
+    (input.historicalSourceLogIds ?? [])
+      .map(normalizeKey)
+      .filter((value): value is string => Boolean(value)),
+  );
   const factUsers = uniqueSorted(facts.map((fact) => fact.userId));
   const snapshotUsers = new Set(snapshots.map((snapshot) => snapshot.userId));
   const summaryUsers = new Set(summaries.map((summary) => summary.userId));
@@ -435,7 +442,7 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
     ...batches.filter((batch) => !batch.processedAt).map((batch) => finding('learning-event-batch-unprocessed', 'blocked', `LearningEventBatch:${batch.id}`, `${batch.eventCount} source events are not processed.`, 'process-learning-event-batches')),
     ...facts.filter((fact) => !fact.sourceEventId && !fact.sourceLogId).map((fact) => finding('learning-fact-source-ref-missing', 'partial', `LearningFact:${fact.id}`, `${fact.factType} fact lacks sourceEventId/sourceLogId.`, 'repair-learning-fact-attribution')),
     ...facts
-      .filter((fact) => hasDanglingLearningFactSourceLog(fact, logIds, sourceEventIndex))
+      .filter((fact) => hasDanglingLearningFactSourceLog(fact, logIds, sourceEventIndex, historicalSourceLogIds))
       .map((fact) => finding('learning-fact-source-log-dangling', 'blocked', `LearningFact:${fact.id}`, `${fact.factType} fact references a missing sourceLogId.`, 'repair-learning-fact-attribution')),
     ...facts
       .filter((fact) => hasDanglingLearningFactSourceEvent(fact, sourceEventIndex))
@@ -649,11 +656,12 @@ function hasDanglingLearningFactSourceLog(
   fact: DataCompletenessLearningFactInput,
   logIds: Set<string>,
   sourceEventIndex: ReturnType<typeof buildValidSourceEventIndex>,
+  historicalSourceLogIds: Set<string>,
 ): boolean {
   const sourceLogId = normalizeKey(fact.sourceLogId);
   if (!sourceLogId) return false;
   if (logIds.has(sourceLogId)) return false;
-  return classifyLearningFactSource(fact, sourceEventIndex) !== 'governed-external';
+  return classifyLearningFactSource(fact, sourceEventIndex, historicalSourceLogIds) !== 'governed-external';
 }
 
 function hasDanglingLearningFactSourceEvent(
@@ -665,15 +673,21 @@ function hasDanglingLearningFactSourceEvent(
   if (sourceEventIndex.logDerivedIds.has(sourceEventId)) return false;
   const factUserId = normalizeKey(fact.userId);
   if (factUserId && sourceEventIndex.clientEventIdsByUser.get(factUserId)?.has(sourceEventId)) return false;
-  return classifyLearningFactSource(fact, sourceEventIndex) !== 'governed-external';
+  return classifyLearningFactSource(fact, sourceEventIndex, new Set()) !== 'governed-external';
 }
 
 function classifyLearningFactSource(
   fact: DataCompletenessLearningFactInput,
   sourceEventIndex: ReturnType<typeof buildValidSourceEventIndex>,
+  historicalSourceLogIds: Set<string>,
 ): 'interaction-log' | 'governed-external' | 'unknown' {
   const sourceEventId = normalizeKey(fact.sourceEventId);
-  if (!sourceEventId) return 'unknown';
+  const sourceLogId = normalizeKey(fact.sourceLogId);
+  if (!sourceEventId) {
+    return isKnownHistoricalSourceLog(fact, sourceLogId ?? '', historicalSourceLogIds)
+      ? 'governed-external'
+      : 'unknown';
+  }
   if (sourceEventIndex.logDerivedIds.has(sourceEventId)) return 'interaction-log';
   const factUserId = normalizeKey(fact.userId);
   if (factUserId && sourceEventIndex.clientEventIdsByUser.get(factUserId)?.has(sourceEventId)) return 'interaction-log';
@@ -697,6 +711,21 @@ function classifyLearningFactSource(
   return 'unknown';
 }
 
+function isKnownHistoricalSourceLog(
+  fact: DataCompletenessLearningFactInput,
+  sourceLogId: string,
+  historicalSourceLogIds: Set<string>,
+): boolean {
+  if (!sourceLogId) return false;
+  if (GOVERNED_HISTORICAL_SOURCE_PREFIXES.some((prefix) => sourceLogId.startsWith(prefix))) return true;
+  if (historicalSourceLogIds.has(sourceLogId)) return true;
+  const context = readRecord(fact.contextJson);
+  const materialization = readRecord(context.historicalMaterialization);
+  const sourceId = normalizeUnknownString(materialization.sourceId);
+  const sourceRecordId = normalizeUnknownString(materialization.sourceRecordId);
+  return Boolean(sourceId && sourceRecordId === sourceLogId);
+}
+
 function isArenaPreviewLearningFact(fact: DataCompletenessLearningFactInput, sourceEventId: string): boolean {
   const context = readRecord(fact.contextJson);
   const arena = readRecord(context.arena);
@@ -715,6 +744,10 @@ function readRecord(value: unknown): Record<string, unknown> {
 function normalizeKey(value: string | null | undefined): string | null {
   const normalized = value?.trim();
   return normalized || null;
+}
+
+function normalizeUnknownString(value: unknown): string | null {
+  return typeof value === 'string' ? normalizeKey(value) : null;
 }
 
 function maskLearnerCandidate(candidate: DataCompletenessLearnerCandidateInput): MaskedLearnerCandidate {
