@@ -6,6 +6,7 @@ import {
   GOVERNED_PATH_NODE_TYPES,
   PATH_NODE_SEMANTICS,
   RESOURCE_NODE_TYPES,
+  auditResourcePathPlanningDisposition,
   auditResourceNode,
   buildMediaSourceManifestSemanticProjection,
   buildResourceSemanticProjection,
@@ -384,6 +385,345 @@ describe('resource node registry', () => {
         code: 'missing-readiness-metadata',
         severity: 'warning',
       }));
+  });
+
+  it('audits path-planning dispositions and syncs canonical planner eligibility', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'parent-path-node',
+        label: 'Parent path node',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-bode'],
+      }, {
+        id: 'non-plannable-parent',
+        label: 'Non plannable parent',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/non-plannable-parent.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'supporting-citation',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Citation-only parent candidate.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'non-plannable-parent',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'missing-disposition',
+        label: 'Missing disposition resource',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-bode'],
+      }, {
+        id: 'provisional-path-disposition',
+        label: 'Provisional path disposition',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          readiness: {
+            minimumCompetency: { controlModeling: 0.2 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成基础学习后进入。',
+            fallbackNodeIds: [],
+          },
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'generated-provisional',
+            rationale: 'Script suggested this resource as a path node.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'provisional-path-disposition',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: null,
+            reviewerId: null,
+          },
+        },
+      }, {
+        id: 'supporting-citation-disposition',
+        label: 'Supporting citation resource',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/supporting-citation.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'supporting-citation',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Citation-only support for a lesson explanation.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'supporting-citation-disposition',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'supporting-citation-without-rationale',
+        label: 'Supporting citation without rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/supporting-citation-without-rationale.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'supporting-citation',
+            reviewStatus: 'human-confirmed',
+            rationale: null,
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'supporting-citation-without-rationale',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'human-confirmed-without-evidence',
+        label: 'Human confirmed without evidence',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          readiness: {
+            minimumCompetency: { controlModeling: 0.2 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成基础学习后进入。',
+            fallbackNodeIds: [],
+          },
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Marked reviewed without durable reviewer evidence.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'human-confirmed-without-evidence',
+            sourceVersionRef: null,
+            parentResourceNodeId: null,
+            reviewedAt: null,
+            reviewerId: null,
+          },
+        },
+      }, {
+        id: 'evidence-producing-disposition',
+        label: 'Evidence producing resource',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'evidence-producing',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Produces learner evidence without being the independent path target.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'evidence-producing-disposition',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'evidence-producing-without-instrumentation',
+        label: 'Evidence producing without instrumentation',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          evidenceInstrumentation: [],
+          pathDisposition: {
+            kind: 'evidence-producing',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Claims evidence production without instrumentation.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'evidence-producing-without-instrumentation',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'embedded-without-parent',
+        label: 'Embedded asset without parent',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/embedded.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'embedded-asset',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Illustrates a parent lesson step.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'embedded-without-parent',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'embedded-with-valid-parent',
+        label: 'Embedded asset with valid parent',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/embedded-valid.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'embedded-asset',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Illustrates a valid parent path node.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'embedded-with-valid-parent',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: 'registry:parent-path-node',
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'embedded-with-missing-parent',
+        label: 'Embedded asset with missing parent',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/embedded-missing.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'embedded-asset',
+            reviewStatus: 'human-confirmed',
+            rationale: 'References a missing parent path node.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'embedded-with-missing-parent',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: 'registry:missing-parent',
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'embedded-with-non-plannable-parent',
+        label: 'Embedded asset with non-plannable parent',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/embedded-non-plannable.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'embedded-asset',
+            reviewStatus: 'human-confirmed',
+            rationale: 'References a non-plannable parent resource.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'embedded-with-non-plannable-parent',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: 'registry:non-plannable-parent',
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'excluded-without-rationale',
+        label: 'Excluded without rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/obsolete.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'excluded-with-rationale',
+            reviewStatus: 'human-confirmed',
+            rationale: null,
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'excluded-without-rationale',
+            sourceVersionRef: null,
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'excluded-with-rationale',
+        label: 'Excluded with rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/excluded.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'excluded-with-rationale',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Outdated support asset retained only for citation traceability.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'excluded-with-rationale',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }],
+    });
+
+    const node = (id: string) => registry.nodes.find((item) => item.id === `registry:${id}`)!;
+    const nodesById = new Map(registry.nodes.map((item) => [item.id, item]));
+
+    expect(auditResourcePathPlanningDisposition(node('missing-disposition'))).toContainEqual(expect.objectContaining({
+      code: 'missing-path-disposition',
+    }));
+    expect(auditResourcePathPlanningDisposition(node('provisional-path-disposition'))).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'missing-disposition-review' }),
+      expect.objectContaining({ code: 'invalid-path-disposition-promotion', severity: 'blocking' }),
+    ]));
+    expect(auditResourcePathPlanningDisposition(node('human-confirmed-without-evidence'))).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'missing-disposition-review' }),
+      expect.objectContaining({ code: 'invalid-path-disposition-promotion', severity: 'blocking' }),
+    ]));
+    expect(auditResourcePathPlanningDisposition(node('supporting-citation-disposition'))).toEqual([]);
+    expect(auditResourcePathPlanningDisposition(node('supporting-citation-without-rationale'))).toContainEqual(
+      expect.objectContaining({ code: 'missing-disposition-rationale' }),
+    );
+    expect(auditResourcePathPlanningDisposition(node('evidence-producing-disposition'))).toEqual([]);
+    expect(auditResourcePathPlanningDisposition(node('evidence-producing-without-instrumentation'))).toContainEqual(expect.objectContaining({
+      code: 'missing-evidence-instrumentation',
+    }));
+    expect(auditResourcePathPlanningDisposition(node('embedded-without-parent'))).toContainEqual(expect.objectContaining({
+      code: 'missing-parent-planning-unit',
+    }));
+    expect(auditResourcePathPlanningDisposition(
+      node('embedded-with-valid-parent'),
+      { nodesById },
+    )).toEqual([]);
+    expect(auditResourcePathPlanningDisposition(
+      node('embedded-with-missing-parent'),
+      { nodesById },
+    )).toContainEqual(expect.objectContaining({
+      code: 'missing-parent-planning-unit',
+    }));
+    expect(auditResourcePathPlanningDisposition(
+      node('embedded-with-non-plannable-parent'),
+      { nodesById },
+    )).toContainEqual(expect.objectContaining({
+      code: 'missing-parent-planning-unit',
+    }));
+    expect(auditResourcePathPlanningDisposition(node('excluded-without-rationale'))).toContainEqual(expect.objectContaining({
+      code: 'missing-disposition-rationale',
+    }));
+    expect(auditResourcePathPlanningDisposition(node('excluded-with-rationale'))).toEqual([]);
+    expect(node('provisional-path-disposition').eligibility.pathEligible).toBe(false);
+    expect(node('supporting-citation-disposition').eligibility.pathEligible).toBe(false);
+    expect(node('supporting-citation-disposition').eligibility.reasons).toContain('invalid-path-disposition-promotion');
+    expect(node('evidence-producing-disposition').eligibility.pathEligible).toBe(false);
+    expect(node('excluded-with-rationale').eligibility.pathEligible).toBe(false);
+    expect(buildResourceSemanticProjection(node('supporting-citation-disposition')).planningUnit).toBeNull();
+    expect(buildResourceSemanticProjection(node('supporting-citation-disposition')).resource.projectionStatus.planning)
+      .toBe('blocked');
+    expect(buildResourceSemanticProjection(node('evidence-producing-disposition')).planningUnit).toBeNull();
+    expect(buildResourceSemanticProjection(node('excluded-with-rationale')).planningUnit).toBeNull();
+    expect(buildResourceSemanticProjection(node('human-confirmed-without-evidence')).planningUnit).toBeNull();
   });
 
   it('can require evidence instrumentation as a blocking audit gate without changing the default registry policy', () => {
@@ -1067,6 +1407,7 @@ describe('resource node registry', () => {
         availability: 'teacher_only',
         teacherPolicy: 'teacher-only',
         privacyLevel: 'teacher-scoped',
+        pathDisposition: null,
         auditIssueCodes: [],
       },
     };

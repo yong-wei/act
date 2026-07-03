@@ -62,11 +62,16 @@ describe('data completeness audit', () => {
     expect(report.layers.map((layer) => layer.id)).toEqual([
       'graphCore',
       'resourceBinding',
+      'resourceDisposition',
       'citationReadiness',
       'pathReadiness',
       'evidenceLineage',
       'learnerFixtureReadiness',
     ]);
+    expect(report.layers.find((layer) => layer.id === 'resourceDisposition')?.totals).toMatchObject({
+      resourceNodes: 1,
+      missingDisposition: 1,
+    });
     expect(report.layers.find((layer) => layer.id === 'citationReadiness')?.totals).toMatchObject({
       citationTargets: 1,
       resolvableCitationTargets: 1,
@@ -112,6 +117,358 @@ describe('data completeness audit', () => {
         stableRef: 'TeachingResource:resource-typo',
       }),
     ]));
+  });
+
+  it('reports resource disposition gaps separately from path and citation readiness', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'citation-card',
+        label: 'Citation card',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/citation-card.png',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'embedded-asset',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Supports a parent lesson step.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'citation-card',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'excluded-without-rationale',
+        label: 'Excluded without rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/obsolete.png',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'excluded-with-rationale',
+            reviewStatus: 'human-confirmed',
+            rationale: null,
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'excluded-without-rationale',
+            sourceVersionRef: null,
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'citation-without-rationale',
+        label: 'Citation without rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/citation-without-rationale.png',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'supporting-citation',
+            reviewStatus: 'human-confirmed',
+            rationale: null,
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'citation-without-rationale',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'evidence-producing-without-instrumentation',
+        label: 'Evidence producing without instrumentation',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          evidenceInstrumentation: [],
+          pathDisposition: {
+            kind: 'evidence-producing',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Claims to produce evidence but has no instrumentation.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'evidence-producing-without-instrumentation',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'provisional-path-node',
+        label: 'Provisional path node',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          readiness: {
+            minimumCompetency: { controlModeling: 0.2 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成基础学习后进入。',
+            fallbackNodeIds: [],
+          },
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'generated-provisional',
+            rationale: 'Generated suggestion.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'provisional-path-node',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: null,
+            reviewerId: null,
+          },
+        },
+      }],
+    });
+    const corpusOnlyProjection: LearningEvidenceCorpusChunk = {
+      id: 'corpus-only-section-chunk',
+      family: 'course-content',
+      sourceType: 'course-content',
+      sourceRef: { id: 'corpus-only-section' },
+      spanRef: { kind: 'text-range', start: 0, end: 12 },
+      display: { title: 'Corpus only section', href: null, capsule: 'Section' },
+      content: { text: 'content', redactedSummary: null, hash: 'hash' },
+      resourceProjection: {
+        resourceId: 'corpus-only-section',
+        segmentRef: 'corpus-only-section',
+        citationTargetRef: 'course-content/runtime/corpus-only-section.md',
+        knowledgeNodeRefs: ['kn-controller'],
+        capabilityTargetRefs: [],
+      },
+      privacyClass: 'public',
+      confidence: 'high',
+      freshness: {
+        indexedAt: '2026-07-02T00:00:00.000Z',
+        sourceUpdatedAt: null,
+        expiresAt: null,
+        stale: false,
+      },
+      authority: {
+        level: 'canonical',
+        knowledgeTags: [],
+        pageAnchor: null,
+        freshnessBucket: 'current',
+        scopeRule: { visibility: 'public', allowedRoles: ['student', 'teacher'] },
+      },
+      retrieval: {
+        tags: [],
+        goals: [],
+        useCases: ['diagnosis'],
+      },
+    };
+    const registryCoveredCorpusProjection: LearningEvidenceCorpusChunk = {
+      ...corpusOnlyProjection,
+      id: 'registry-covered-section-chunk',
+      sourceRef: { id: 'external-corpus-source' },
+      display: { title: 'Registry covered section', href: null, capsule: 'Section' },
+      resourceProjection: {
+        resourceId: 'resource:registry:provisional-path-node',
+        segmentRef: 'registry-covered-section',
+        citationTargetRef: 'course-content/runtime/registry-covered-section.md',
+        knowledgeNodeRefs: ['kn-controller'],
+        capabilityTargetRefs: [],
+      },
+    };
+    const explicitProjectionWithCollidingSourceRef: LearningEvidenceCorpusChunk = {
+      ...corpusOnlyProjection,
+      id: 'explicit-projection-colliding-source-ref-chunk',
+      sourceRef: { id: 'registry:provisional-path-node' },
+      display: { title: 'Explicit projection with colliding source ref', href: null, capsule: 'Section' },
+      resourceProjection: {
+        resourceId: 'resource:corpus-explicit-unmatched',
+        segmentRef: 'corpus-explicit-unmatched',
+        citationTargetRef: 'course-content/runtime/corpus-explicit-unmatched.md',
+        knowledgeNodeRefs: ['kn-controller'],
+        capabilityTargetRefs: [],
+      },
+    };
+    const crossFamilySourceRefCollisionProjection: LearningEvidenceCorpusChunk = {
+      ...corpusOnlyProjection,
+      id: 'cross-family-source-ref-collision-chunk',
+      sourceRef: { id: 'provisional-path-node' },
+      display: { title: 'Cross family source ref collision', href: null, capsule: 'Section' },
+      resourceProjection: {
+        resourceId: 'provisional-path-node',
+        segmentRef: 'cross-family-source-ref-collision',
+        citationTargetRef: 'course-content/runtime/cross-family-source-ref-collision.md',
+        knowledgeNodeRefs: ['kn-controller'],
+        capabilityTargetRefs: [],
+      },
+    };
+
+    const report = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [
+        corpusOnlyProjection,
+        registryCoveredCorpusProjection,
+        explicitProjectionWithCollidingSourceRef,
+        crossFamilySourceRefCollisionProjection,
+      ],
+    });
+    const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
+
+    expect(disposition?.totals).toMatchObject({
+      resourceNodes: 5,
+      corpusResourceProjections: 4,
+      reviewedDispositions: 3,
+      missingDisposition: 3,
+      missingHumanReview: 2,
+      missingParentPlanningUnit: 1,
+      missingDispositionRationale: 2,
+      missingExclusionRationale: 1,
+      missingEvidenceInstrumentation: 1,
+      invalidPromotion: 1,
+      unmatchedCorpusResourceProjections: 3,
+    });
+    expect(disposition?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'missing-path-disposition',
+        stableRef: 'ResourceDisposition:corpus:corpus-only-section',
+        followupBucket: 'review-resource-path-dispositions',
+      }),
+      expect.objectContaining({
+        id: 'missing-path-disposition',
+        stableRef: 'ResourceDisposition:corpus:resource:corpus-explicit-unmatched',
+        followupBucket: 'review-resource-path-dispositions',
+      }),
+      expect.objectContaining({
+        id: 'missing-path-disposition',
+        stableRef: 'ResourceDisposition:corpus:provisional-path-node',
+        followupBucket: 'review-resource-path-dispositions',
+      }),
+      expect.objectContaining({
+        id: 'missing-parent-planning-unit',
+        stableRef: 'ResourceDisposition:resource_registry:citation-card',
+        followupBucket: 'link-embedded-resource-parents',
+      }),
+      expect.objectContaining({
+        id: 'missing-disposition-rationale',
+        stableRef: 'ResourceDisposition:resource_registry:excluded-without-rationale',
+        followupBucket: 'review-resource-disposition-rationales',
+      }),
+      expect.objectContaining({
+        id: 'missing-disposition-rationale',
+        stableRef: 'ResourceDisposition:resource_registry:citation-without-rationale',
+        followupBucket: 'review-resource-disposition-rationales',
+      }),
+      expect.objectContaining({
+        id: 'invalid-path-disposition-promotion',
+        stableRef: 'ResourceDisposition:resource_registry:provisional-path-node',
+        followupBucket: 'audit-path-disposition-promotions',
+      }),
+      expect.objectContaining({
+        id: 'missing-evidence-instrumentation',
+        stableRef: 'ResourceDisposition:resource_registry:evidence-producing-without-instrumentation',
+        followupBucket: 'instrument-evidence-producing-resources',
+      }),
+    ]));
+    expect(disposition?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        stableRef: 'ResourceDisposition:corpus:resource:registry:provisional-path-node',
+      }),
+    ]));
+    expect(report.layers.find((layer) => layer.id === 'citationReadiness')).toBeDefined();
+    expect(report.layers.find((layer) => layer.id === 'pathReadiness')).toBeDefined();
+  });
+
+  it('keeps reviewed non-path dispositions out of path readiness blockers', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'supporting-citation',
+        label: 'Supporting citation',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/supporting-citation.png',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'supporting-citation',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Citation support only.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'supporting-citation',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'evidence-producing',
+        label: 'Evidence producing',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'evidence-producing',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Evidence capture only.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'evidence-producing',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'excluded-with-rationale',
+        label: 'Excluded with rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/excluded.png',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'excluded-with-rationale',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Excluded from independent path planning.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'excluded-with-rationale',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }],
+    });
+
+    const report = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [],
+    });
+    const resourceBinding = report.layers.find((layer) => layer.id === 'resourceBinding');
+    const pathReadiness = report.layers.find((layer) => layer.id === 'pathReadiness');
+    const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
+
+    expect(resourceBinding?.totals).toMatchObject({
+      resourceNodes: 3,
+    });
+    expect(pathReadiness?.totals).toMatchObject({
+      resourceNodes: 0,
+      planningUnits: 0,
+      blockedPathNodes: 0,
+    });
+    expect([
+      ...resourceBinding!.findings,
+      ...pathReadiness!.findings,
+    ]).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'invalid-path-disposition-promotion',
+      }),
+    ]));
+    expect(disposition?.totals).toMatchObject({
+      resourceNodes: 3,
+      reviewedDispositions: 3,
+      invalidPromotion: 0,
+    });
   });
 
   it('does not treat non-path registry nodes as path readiness blockers', () => {

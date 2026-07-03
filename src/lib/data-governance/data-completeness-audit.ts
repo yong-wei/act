@@ -1,8 +1,10 @@
 import { createHash } from 'node:crypto';
 
 import {
+  auditResourcePathPlanningDisposition,
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
+  isResourcePathPlanningDispositionHumanReviewed,
   type ResourceNode,
   type ResourceNodeRegistry,
 } from '@/lib/resource-node-registry';
@@ -11,6 +13,7 @@ import type { LearningEvidenceCorpusChunk } from './learning-evidence-rag-corpus
 export type DataCompletenessLayerId =
   | 'graphCore'
   | 'resourceBinding'
+  | 'resourceDisposition'
   | 'citationReadiness'
   | 'pathReadiness'
   | 'evidenceLineage'
@@ -188,6 +191,7 @@ export interface MaskedLearnerCandidate {
 const LAYER_LABELS: Record<DataCompletenessLayerId, string> = {
   graphCore: 'Graph core',
   resourceBinding: 'Resource binding',
+  resourceDisposition: 'Resource disposition',
   citationReadiness: 'Citation readiness',
   pathReadiness: 'Path readiness',
   evidenceLineage: 'Evidence lineage',
@@ -225,6 +229,7 @@ export function buildDataCompletenessAuditReport(input: DataCompletenessAuditInp
     input.resourceRegistry,
     input.runtimeArtifactErrors ?? [],
   );
+  const resourceDisposition = buildResourceDispositionLayer(input.resourceRegistry, input.evidenceCorpus ?? []);
   const citationReadiness = buildCitationReadinessLayer(input.resourceRegistry, input.evidenceCorpus ?? []);
   const pathReadiness = buildPathReadinessLayer(input.resourceRegistry);
   const evidenceLineage = buildEvidenceLineageLayer(input);
@@ -232,6 +237,7 @@ export function buildDataCompletenessAuditReport(input: DataCompletenessAuditInp
   const layers = [
     graphCore,
     resourceBinding,
+    resourceDisposition,
     citationReadiness,
     pathReadiness,
     evidenceLineage,
@@ -362,6 +368,121 @@ function buildResourceBindingLayer(
   }, findings);
 }
 
+function buildResourceDispositionLayer(
+  registry: ResourceNodeRegistry | undefined,
+  evidenceCorpus: LearningEvidenceCorpusChunk[],
+): DataCompletenessLayerSummary {
+  const nodes = registry?.nodes ?? [];
+  const nodesById = new Map(nodes.map((node) => [node.id, node]));
+  const coveredRefs = collectResourceDispositionCoveredRefs(nodes);
+  const registryFindings = nodes.flatMap((node) =>
+    auditResourcePathPlanningDisposition(node, { nodesById }).map((issue) => finding(
+      issue.code,
+      issue.severity === 'blocking' ? 'blocked' : 'partial',
+      `ResourceDisposition:${node.sourceKind}:${node.sourceRef}`,
+      `${node.title}: ${issue.message}`,
+      followupBucketForDispositionIssue(issue.code),
+    ))
+  );
+  const corpusFindings = buildCorpusProjectionDispositionFindings(evidenceCorpus, coveredRefs);
+  const findings = [...registryFindings, ...corpusFindings];
+
+  return layer('resourceDisposition', {
+    resourceNodes: nodes.length,
+    corpusResourceProjections: countCorpusResourceProjections(evidenceCorpus),
+    reviewedDispositions: nodes.filter((node) =>
+      isResourcePathPlanningDispositionHumanReviewed(node.planningMetadata.pathDisposition)
+    ).length,
+    missingDisposition: countFindings(findings, 'missing-path-disposition'),
+    missingHumanReview: countFindings(findings, 'missing-disposition-review'),
+    missingDispositionRationale: countFindings(findings, 'missing-disposition-rationale'),
+    missingExclusionRationale: countMissingExclusionRationaleFindings(nodes, findings),
+    missingParentPlanningUnit: countFindings(findings, 'missing-parent-planning-unit'),
+    missingEvidenceInstrumentation: countFindings(findings, 'missing-evidence-instrumentation'),
+    invalidPromotion: countFindings(findings, 'invalid-path-disposition-promotion'),
+    unmatchedCorpusResourceProjections: corpusFindings.length,
+  }, findings);
+}
+
+function countMissingExclusionRationaleFindings(
+  nodes: ResourceNode[],
+  findings: DataCompletenessFinding[],
+): number {
+  const excludedRefs = new Set(nodes
+    .filter((node) => node.planningMetadata.pathDisposition?.kind === 'excluded-with-rationale')
+    .map(resourceDispositionStableRef));
+  return findings.filter((finding) => (
+    finding.id === 'missing-disposition-rationale' &&
+    excludedRefs.has(finding.stableRef)
+  )).length;
+}
+
+function resourceDispositionStableRef(node: ResourceNode): string {
+  return `ResourceDisposition:${node.sourceKind}:${node.sourceRef}`;
+}
+
+function collectResourceDispositionCoveredRefs(nodes: ResourceNode[]): Set<string> {
+  const refs = new Set<string>();
+  for (const node of nodes) {
+    refs.add(node.id);
+    refs.add(`resource:${node.id}`);
+    refs.add(`${node.sourceKind}:${node.sourceRef}`);
+  }
+  return refs;
+}
+
+function countCorpusResourceProjections(evidenceCorpus: LearningEvidenceCorpusChunk[]): number {
+  return new Set(evidenceCorpus
+    .filter((chunk) => Boolean(chunk.resourceProjection))
+    .map(corpusProjectionDispositionRef)).size;
+}
+
+function buildCorpusProjectionDispositionFindings(
+  evidenceCorpus: LearningEvidenceCorpusChunk[],
+  coveredRefs: ReadonlySet<string>,
+): DataCompletenessFinding[] {
+  const findingsByRef = new Map<string, DataCompletenessFinding>();
+  for (const chunk of evidenceCorpus) {
+    if (!chunk.resourceProjection) continue;
+    const projectionRef = corpusProjectionDispositionRef(chunk);
+    const hasExplicitProjectionRef = Boolean(chunk.resourceProjection.resourceId);
+    if (coveredRefs.has(projectionRef)) {
+      continue;
+    }
+    if (!hasExplicitProjectionRef && (
+      coveredRefs.has(chunk.sourceRef.id) || (
+        chunk.sourceRef.resourceId && coveredRefs.has(chunk.sourceRef.resourceId)
+      )
+    )) {
+      continue;
+    }
+    if (findingsByRef.has(projectionRef)) continue;
+    findingsByRef.set(projectionRef, finding(
+      'missing-path-disposition',
+      'partial',
+      `ResourceDisposition:corpus:${projectionRef}`,
+      `${chunk.display.title} has a corpus resourceProjection but no reviewed path-planning disposition.`,
+      'review-resource-path-dispositions',
+    ));
+  }
+  return [...findingsByRef.values()];
+}
+
+function corpusProjectionDispositionRef(chunk: LearningEvidenceCorpusChunk): string {
+  return chunk.resourceProjection?.resourceId ??
+    chunk.sourceRef.resourceId ??
+    chunk.sourceRef.id ??
+    chunk.id;
+}
+
+function followupBucketForDispositionIssue(code: string): string {
+  if (code === 'missing-parent-planning-unit') return 'link-embedded-resource-parents';
+  if (code === 'missing-disposition-rationale') return 'review-resource-disposition-rationales';
+  if (code === 'missing-evidence-instrumentation') return 'instrument-evidence-producing-resources';
+  if (code === 'invalid-path-disposition-promotion') return 'audit-path-disposition-promotions';
+  return 'review-resource-path-dispositions';
+}
+
 function buildCitationReadinessLayer(
   registry: ResourceNodeRegistry | undefined,
   evidenceCorpus: LearningEvidenceCorpusChunk[],
@@ -449,7 +570,9 @@ function buildPathAuditEntries(registry: ResourceNodeRegistry | undefined) {
       audit: buildResourceNodeHighConfidencePlanningAudit(node),
       projection: buildResourceSemanticProjection(node),
     }))
-    .filter(({ node, projection }) => projection.planningUnit || isPathAuditCandidate(node));
+    .filter(({ node, projection }) =>
+      projection.planningUnit || (isPathAuditCandidate(node) && isPathDispositionAuditCandidate(node))
+    );
 }
 
 function isPathAuditCandidate(node: ResourceNode): boolean {
@@ -458,6 +581,11 @@ function isPathAuditCandidate(node: ResourceNode): boolean {
   if (node.sourceKind === 'runtime_lesson_step') return false;
   if (node.sourceKind === 'runtime_handout') return false;
   return node.type !== 'knowledge_node' && node.type !== 'textbook';
+}
+
+function isPathDispositionAuditCandidate(node: ResourceNode): boolean {
+  const disposition = node.planningMetadata.pathDisposition;
+  return !disposition || disposition.kind === 'path-plannable';
 }
 
 function isCitationAuditCandidate(node: ResourceNode): boolean {

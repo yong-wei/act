@@ -214,6 +214,7 @@ export interface ResourceNodePlanningMetadata {
   terminalConstraints: string[];
   evidenceInstrumentation: string[];
   readiness: ResourceNodeReadinessMetadata | null;
+  pathDisposition?: ResourcePathPlanningDisposition | null;
 }
 
 export interface ResourceNodeReadinessMetadata {
@@ -223,6 +224,30 @@ export interface ResourceNodeReadinessMetadata {
   requiredOutcomeRefs: string[];
   unlockMessage: string;
   fallbackNodeIds: string[];
+}
+
+export type ResourcePathPlanningDispositionKind =
+  | 'path-plannable'
+  | 'supporting-citation'
+  | 'embedded-asset'
+  | 'evidence-producing'
+  | 'excluded-with-rationale';
+
+export type ResourcePathPlanningDispositionReviewStatus =
+  | 'not-reviewed'
+  | 'generated-provisional'
+  | 'human-confirmed';
+
+export interface ResourcePathPlanningDisposition {
+  kind: ResourcePathPlanningDispositionKind;
+  reviewStatus: ResourcePathPlanningDispositionReviewStatus;
+  rationale: string | null;
+  sourceFamily: string;
+  stableSourceRef: string;
+  sourceVersionRef: string | null;
+  parentResourceNodeId: string | null;
+  reviewedAt: string | null;
+  reviewerId: string | null;
 }
 
 export interface ResourceNodeAuditIssue {
@@ -247,6 +272,11 @@ export interface ResourceNodeAuditIssue {
     | 'missing-checkpoint-required-evidence'
     | 'missing-checkpoint-remediation'
     | 'missing-readiness-metadata'
+    | 'missing-path-disposition'
+    | 'missing-disposition-review'
+    | 'missing-disposition-rationale'
+    | 'missing-parent-planning-unit'
+    | 'invalid-path-disposition-promotion'
     | 'textbook-container-not-path-node'
     | 'missing-runtime-projection-sidecar'
     | 'runtime-projection-not-path-resource'
@@ -517,6 +547,7 @@ export interface Resource {
     availability: ResourceNodeAvailability;
     teacherPolicy: ResourceNodeTeacherPolicy;
     privacyLevel: ResourceNodePrivacyLevel;
+    pathDisposition: ResourcePathPlanningDisposition | null;
     auditIssueCodes: string[];
   };
 }
@@ -814,6 +845,7 @@ export type ResourceNodePlanningOverride = Partial<Pick<
   | 'terminalConstraints'
   | 'evidenceInstrumentation'
   | 'readiness'
+  | 'pathDisposition'
 >>;
 
 export interface RegisteredResourceNodeInput {
@@ -1090,6 +1122,7 @@ export function auditResourceNode(
   issues.push(...auditExternalResourceNode(node));
   issues.push(...auditCheckpointNode(node));
   issues.push(...auditRuntimeProjectionPlanning(node));
+  issues.push(...auditPathDispositionPlanningEligibility(node));
 
   const blockingIssues = issues.filter((issue) => issue.severity === 'blocking');
   return {
@@ -1097,6 +1130,97 @@ export function auditResourceNode(
     reasons: issues.map((issue) => issue.code),
     auditIssues: issues,
   };
+}
+
+export interface ResourcePathPlanningDispositionAuditContext {
+  nodesById?: ReadonlyMap<string, ResourceNode>;
+}
+
+export function auditResourcePathPlanningDisposition(
+  node: ResourceNode,
+  context: ResourcePathPlanningDispositionAuditContext = {},
+): ResourceNodeAuditIssue[] {
+  const disposition = node.planningMetadata.pathDisposition;
+  if (!disposition) {
+    return [{
+      code: 'missing-path-disposition',
+      severity: 'warning',
+      message: 'ResourceNode has no reviewed path-planning disposition.',
+    }];
+  }
+
+  const issues: ResourceNodeAuditIssue[] = [];
+  const reviewEvidenceComplete = isResourcePathPlanningDispositionHumanReviewed(disposition);
+  if (!reviewEvidenceComplete) {
+    issues.push({
+      code: 'missing-disposition-review',
+      severity: 'warning',
+      message: 'Resource path-planning disposition requires human review status, reviewer, review time, and source version.',
+    });
+  }
+  if (!disposition.rationale) {
+    issues.push({
+      code: 'missing-disposition-rationale',
+      severity: 'warning',
+      message: 'Resource path-planning dispositions require reviewer-visible rationale.',
+    });
+  }
+  if (disposition.kind === 'embedded-asset') {
+    const parentResourceNodeId = disposition.parentResourceNodeId;
+    if (!parentResourceNodeId) {
+      issues.push({
+        code: 'missing-parent-planning-unit',
+        severity: 'warning',
+        message: 'Embedded assets require a parent ResourceNode or PlanningUnit link.',
+      });
+    } else if (context.nodesById) {
+      const parent = context.nodesById.get(parentResourceNodeId);
+      if (!parent || !buildResourceSemanticProjection(parent).planningUnit) {
+        issues.push({
+          code: 'missing-parent-planning-unit',
+          severity: 'warning',
+          message: 'Embedded assets require parentResourceNodeId to reference an existing path-plannable ResourceNode.',
+        });
+      }
+    }
+  }
+  if (disposition.kind === 'evidence-producing' && node.planningMetadata.evidenceInstrumentation.length === 0) {
+    issues.push({
+      code: 'missing-evidence-instrumentation',
+      severity: 'warning',
+      message: 'Evidence-producing resources require learner evidence instrumentation.',
+    });
+  }
+  if (disposition.kind === 'path-plannable') {
+    const highConfidenceAudit = buildResourceNodeHighConfidencePlanningAuditInternal(node, {
+      includeDispositionPromotion: false,
+    });
+    if (
+      !reviewEvidenceComplete ||
+      !highConfidenceAudit.pathEligible ||
+      !node.planningMetadata.readiness
+    ) {
+      issues.push({
+        code: 'invalid-path-disposition-promotion',
+        severity: 'blocking',
+        message: 'Path-plannable disposition requires human review, path audit clearance, and readiness metadata.',
+      });
+    }
+  }
+
+  return issues;
+}
+
+export function isResourcePathPlanningDispositionHumanReviewed(
+  disposition: ResourcePathPlanningDisposition | null | undefined,
+): disposition is ResourcePathPlanningDisposition {
+  return Boolean(
+    disposition &&
+    disposition.reviewStatus === 'human-confirmed' &&
+    disposition.reviewerId &&
+    disposition.reviewedAt &&
+    disposition.sourceVersionRef,
+  );
 }
 
 export function buildResourceSemanticProjection(node: ResourceNode): ResourceSemanticProjection {
@@ -1141,6 +1265,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
       availability: node.planningMetadata.availability,
       teacherPolicy: node.planningMetadata.teacherPolicy,
       privacyLevel: node.planningMetadata.privacyLevel,
+      pathDisposition: node.planningMetadata.pathDisposition ?? null,
       auditIssueCodes,
     },
   };
@@ -1404,6 +1529,7 @@ export function buildMediaSourceManifestSemanticProjection(
       availability: 'available',
       teacherPolicy: 'allowed',
       privacyLevel,
+      pathDisposition: null,
       auditIssueCodes: validation.issues,
     },
   };
@@ -2037,6 +2163,12 @@ function createNode(input: {
       terminalConstraints: uniqueSorted(planningOverride.terminalConstraints ?? (input.type === 'project' ? ['terminal-node'] : [])),
       evidenceInstrumentation: uniqueSorted(planningOverride.evidenceInstrumentation ?? input.evidenceInstrumentation),
       readiness: normalizeReadinessMetadata(planningOverride.readiness),
+      pathDisposition: normalizePathPlanningDisposition(
+        planningOverride.pathDisposition,
+        input.sourceKind,
+        input.sourceRef,
+        input.id,
+      ),
     },
     sourceOfRecord: input.sourceOfRecord,
     runtimeProjection: input.runtimeProjection ?? null,
@@ -2152,6 +2284,10 @@ function parsePlanningOverride(config?: Record<string, unknown> | null): Resourc
   if (readiness) {
     override.readiness = readiness;
   }
+  const pathDisposition = normalizePathPlanningDisposition(raw.pathDisposition);
+  if (pathDisposition) {
+    override.pathDisposition = pathDisposition;
+  }
 
   return Object.keys(override).length > 0 ? override : undefined;
 }
@@ -2207,6 +2343,7 @@ function mergeOverlappingSources(nodes: ResourceNode[]): Map<string, ResourceNod
           ...node.planningMetadata.evidenceInstrumentation,
         ]),
         readiness: existing.planningMetadata.readiness ?? node.planningMetadata.readiness,
+        pathDisposition: existing.planningMetadata.pathDisposition ?? node.planningMetadata.pathDisposition,
       },
       sourceOfRecord: {
         content: existing.sourceOfRecord.content,
@@ -2313,6 +2450,19 @@ export function buildResourceNodeHighConfidencePlanningAudit(node: ResourceNode)
   issues: ResourceNodeAuditIssue[];
   hasBlockingIssue: boolean;
 } {
+  return buildResourceNodeHighConfidencePlanningAuditInternal(node, {
+    includeDispositionPromotion: true,
+  });
+}
+
+function buildResourceNodeHighConfidencePlanningAuditInternal(
+  node: ResourceNode,
+  options: { includeDispositionPromotion: boolean },
+): {
+  pathEligible: boolean;
+  issues: ResourceNodeAuditIssue[];
+  hasBlockingIssue: boolean;
+} {
   const hasCapabilityMapping = Object.keys(node.planningMetadata.abilityImpact).length > 0;
   const hasEvidenceInstrumentation = node.planningMetadata.evidenceInstrumentation.length > 0;
   const issues = node.eligibility.auditIssues.map((issue) => (
@@ -2340,6 +2490,13 @@ export function buildResourceNodeHighConfidencePlanningAudit(node: ResourceNode)
       severity: 'blocking',
     });
   }
+  if (options.includeDispositionPromotion) {
+    for (const issue of auditPathDispositionPlanningEligibility(node)) {
+      if (!issues.some((existing) => existing.code === issue.code)) {
+        issues.push(issue);
+      }
+    }
+  }
 
   return {
     pathEligible: node.eligibility.pathEligible &&
@@ -2349,6 +2506,26 @@ export function buildResourceNodeHighConfidencePlanningAudit(node: ResourceNode)
     issues,
     hasBlockingIssue: issues.some((issue) => issue.severity === 'blocking'),
   };
+}
+
+function auditPathDispositionPlanningEligibility(node: ResourceNode): ResourceNodeAuditIssue[] {
+  const disposition = node.planningMetadata.pathDisposition;
+  if (!disposition) return [];
+  if (disposition.kind !== 'path-plannable') {
+    return [{
+      code: 'invalid-path-disposition-promotion',
+      message: `Resource disposition ${disposition.kind} cannot directly create a PlanningUnit.`,
+      severity: 'blocking',
+    }];
+  }
+  if (!isResourcePathPlanningDispositionHumanReviewed(disposition) || !node.planningMetadata.readiness) {
+    return [{
+      code: 'invalid-path-disposition-promotion',
+      message: 'Path-plannable disposition requires human review evidence and readiness metadata.',
+      severity: 'blocking',
+    }];
+  }
+  return [];
 }
 
 function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIssue[] {
@@ -3149,6 +3326,48 @@ function normalizeReadinessMetadata(value: unknown): ResourceNodeReadinessMetada
     unlockMessage,
     fallbackNodeIds,
   };
+}
+
+function normalizePathPlanningDisposition(
+  value: unknown,
+  fallbackSourceFamily?: string,
+  fallbackSourceRef?: string,
+  fallbackNodeId?: string,
+): ResourcePathPlanningDisposition | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const raw = value as Record<string, unknown>;
+  if (!isResourcePathPlanningDispositionKind(raw.kind)) return null;
+  const sourceFamily = normalizeOptionalString(raw.sourceFamily) ?? fallbackSourceFamily ?? 'resource-node';
+  const stableSourceRef = normalizeOptionalString(raw.stableSourceRef) ?? fallbackSourceRef ?? fallbackNodeId ?? '';
+  if (!stableSourceRef) return null;
+
+  return {
+    kind: raw.kind,
+    reviewStatus: isResourcePathPlanningDispositionReviewStatus(raw.reviewStatus)
+      ? raw.reviewStatus
+      : 'not-reviewed',
+    rationale: normalizeOptionalString(raw.rationale),
+    sourceFamily,
+    stableSourceRef,
+    sourceVersionRef: normalizeOptionalString(raw.sourceVersionRef),
+    parentResourceNodeId: normalizeOptionalString(raw.parentResourceNodeId),
+    reviewedAt: normalizeOptionalString(raw.reviewedAt),
+    reviewerId: normalizeOptionalString(raw.reviewerId),
+  };
+}
+
+function isResourcePathPlanningDispositionKind(value: unknown): value is ResourcePathPlanningDispositionKind {
+  return value === 'path-plannable' ||
+    value === 'supporting-citation' ||
+    value === 'embedded-asset' ||
+    value === 'evidence-producing' ||
+    value === 'excluded-with-rationale';
+}
+
+function isResourcePathPlanningDispositionReviewStatus(
+  value: unknown,
+): value is ResourcePathPlanningDispositionReviewStatus {
+  return value === 'not-reviewed' || value === 'generated-provisional' || value === 'human-confirmed';
 }
 
 function normalizeNumericRecord(value: unknown): Record<string, number> {
