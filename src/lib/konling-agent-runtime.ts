@@ -2414,6 +2414,9 @@ function buildBlockedAdaptivePathGenerationMessage(fallbackReasons: readonly str
   if (fallbackReasons.includes('learning-goal-baseline-incomplete')) {
     return '当前目标缺少已审核的基线资源，暂不能生成可执行学习路径。';
   }
+  if (fallbackReasons.includes('learning-goal-assessment-coverage-incomplete')) {
+    return '当前目标缺少已审核的评估题目覆盖，暂不能生成可执行学习路径。';
+  }
   if (fallbackReasons.includes('time-budget-insufficient')) {
     return '当前时间预算不足以生成可执行学习路径，请增加学习时长或减少限制条件。';
   }
