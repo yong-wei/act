@@ -1,0 +1,2024 @@
+{
+  "artifactVersion": "learning-goal-assessment-coverage.v1",
+  "generatedAt": "2026-07-03T17:36:19.421Z",
+  "batchLearningGoalIds": [
+    "control-correction",
+    "frequency-response-foundations",
+    "feedback-loop-concept-foundations",
+    "transfer-function-modeling-foundations",
+    "time-domain-response-analysis",
+    "root-locus-analysis-foundations",
+    "stability-margin-frequency-analysis",
+    "simulation-validation-practice",
+    "ship-ocean-transfer-application"
+  ],
+  "stageRequirements": {
+    "readiness": 3,
+    "practice": 6,
+    "checkpoint": 3,
+    "remediation": 3
+  },
+  "rows": [
+    {
+      "learningGoalId": "control-correction",
+      "title": "控制系统校正设计",
+      "assessmentCoverageState": "complete",
+      "incompleteStages": [],
+      "reviewedPathEligibleItemCount": 16,
+      "stageCoverage": [
+        {
+          "stage": "readiness",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 4,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-01",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-10",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-37",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-46"
+          ],
+          "sourceMix": {
+            "preset-adaptive-question": 4
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:synthesize-controller-correction",
+            "capability:autocontrol:transfer-to-ship-ocean-mission",
+            "capability:autocontrol:validate-with-simulation-evidence",
+            "knowledge:autocontrol:controller-correction",
+            "knowledge:autocontrol:root-locus",
+            "knowledge:autocontrol:simulation-validation",
+            "knowledge:autocontrol:time-domain-performance",
+            "quality:autocontrol:evidence-integrity",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:synthesize-controller-correction",
+            "cap:autocontrol:transfer-to-ship-ocean-mission",
+            "cap:autocontrol:validate-with-simulation-evidence",
+            "kn:autocontrol:controller-correction",
+            "kn:autocontrol:root-locus",
+            "kn:autocontrol:simulation-validation",
+            "kn:autocontrol:time-domain-performance",
+            "qual:autocontrol:evidence-integrity",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 1,
+            "high": 2
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 1,
+            "evaluate": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:controller-tuning",
+            "misconception:disturbance-rejection",
+            "misconception:gain-margin",
+            "misconception:phase-margin",
+            "misconception:pole-stability",
+            "misconception:robustness",
+            "misconception:settling-time"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson09-correction-precheck",
+            "registry:lesson13-cruise-typhoon-sim"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "practice",
+          "requiredCount": 6,
+          "reviewedPathEligibleCount": 6,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-01",
+            "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-02",
+            "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-03",
+            "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-04",
+            "adaptive-assessment-item:checkpoint-authored-question:control-correction-practice-05",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-19"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 5,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:synthesize-controller-correction",
+            "capability:autocontrol:transfer-to-ship-ocean-mission",
+            "capability:autocontrol:validate-with-simulation-evidence",
+            "knowledge:autocontrol:controller-correction",
+            "knowledge:autocontrol:root-locus",
+            "knowledge:autocontrol:simulation-validation",
+            "knowledge:autocontrol:time-domain-performance",
+            "quality:autocontrol:evidence-integrity",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:synthesize-controller-correction",
+            "cap:autocontrol:transfer-to-ship-ocean-mission",
+            "cap:autocontrol:validate-with-simulation-evidence",
+            "kn:autocontrol:controller-correction",
+            "kn:autocontrol:root-locus",
+            "kn:autocontrol:simulation-validation",
+            "kn:autocontrol:time-domain-performance",
+            "qual:autocontrol:evidence-integrity",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 5,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "analyze": 3,
+            "evaluate": 3
+          },
+          "misconceptionCoverage": [
+            "misconception:control-correction:confuses-overshoot-with-steady-error",
+            "misconception:control-correction:ignores-actuator-cost",
+            "misconception:control-correction:ignores-root-locus-geometry",
+            "misconception:control-correction:misuses-lead-compensation",
+            "misconception:control-correction:single-metric-design",
+            "misconception:damping-ratio",
+            "misconception:robustness"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson09-correction-precheck",
+            "registry:lesson13-cruise-typhoon-sim"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "checkpoint",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:control-correction-checkpoint-01",
+            "adaptive-assessment-item:checkpoint-authored-question:control-correction-checkpoint-02",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-28"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 2,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:synthesize-controller-correction",
+            "capability:autocontrol:transfer-to-ship-ocean-mission",
+            "capability:autocontrol:validate-with-simulation-evidence",
+            "knowledge:autocontrol:controller-correction",
+            "knowledge:autocontrol:root-locus",
+            "knowledge:autocontrol:simulation-validation",
+            "knowledge:autocontrol:time-domain-performance",
+            "quality:autocontrol:evidence-integrity",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:synthesize-controller-correction",
+            "cap:autocontrol:transfer-to-ship-ocean-mission",
+            "cap:autocontrol:validate-with-simulation-evidence",
+            "kn:autocontrol:controller-correction",
+            "kn:autocontrol:root-locus",
+            "kn:autocontrol:simulation-validation",
+            "kn:autocontrol:time-domain-performance",
+            "qual:autocontrol:evidence-integrity",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 1,
+            "high": 2
+          },
+          "cognitiveLevelDistribution": {
+            "evaluate": 3
+          },
+          "misconceptionCoverage": [
+            "misconception:comfort-constraint",
+            "misconception:control-correction:missing-design-rationale",
+            "misconception:control-correction:omits-stability-margin",
+            "misconception:pole-stability"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson09-correction-precheck",
+            "registry:lesson13-cruise-typhoon-sim"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "remediation",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:control-correction-remediation-01",
+            "adaptive-assessment-item:checkpoint-authored-question:control-correction-remediation-02",
+            "adaptive-assessment-item:checkpoint-authored-question:control-correction-remediation-03"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:synthesize-controller-correction",
+            "knowledge:autocontrol:controller-correction",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:synthesize-controller-correction",
+            "kn:autocontrol:controller-correction",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 3,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:control-correction:confuses-dynamic-and-steady-error",
+            "misconception:control-correction:gain-only-design",
+            "misconception:control-correction:ignores-implementation-constraint"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson09-correction-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        }
+      ],
+      "terminalValidationSupport": {
+        "required": true,
+        "acceptedEvidenceTypes": [
+          "simulation-run",
+          "arena-official-evaluation",
+          "question"
+        ],
+        "assessmentItemsReplaceTerminalEvidence": false,
+        "limitationReason": "assessment-items-support-diagnosis-but-do-not-replace-typed-terminal-evidence"
+      },
+      "limitationReason": null
+    },
+    {
+      "learningGoalId": "frequency-response-foundations",
+      "title": "频率响应基础",
+      "assessmentCoverageState": "complete",
+      "incompleteStages": [],
+      "reviewedPathEligibleItemCount": 15,
+      "stageCoverage": [
+        {
+          "stage": "readiness",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-02",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-29",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-38"
+          ],
+          "sourceMix": {
+            "preset-adaptive-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:frequency-response",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:frequency-response",
+            "kn:autocontrol:stability-margin",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 0,
+            "high": 2
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 1,
+            "evaluate": 2
+          },
+          "misconceptionCoverage": [
+            "misconception:comfort-constraint",
+            "misconception:damping-ratio",
+            "misconception:overshoot",
+            "misconception:pole-stability",
+            "misconception:robustness"
+          ],
+          "remediationResourceNodeIds": [
+            "knowledge-card:Bode图_1_1",
+            "knowledge-card:Bode首轮骨架_5_1e07d9da",
+            "registry:lesson12-bode-post-quiz",
+            "registry:lesson12-frequency-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "practice",
+          "requiredCount": 6,
+          "reviewedPathEligibleCount": 6,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-01",
+            "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-02",
+            "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-03",
+            "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-practice-04",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-11",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-47"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 4,
+            "preset-adaptive-question": 2
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:frequency-response",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:frequency-response",
+            "kn:autocontrol:stability-margin",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 4,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "analyze": 3,
+            "evaluate": 2,
+            "apply": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:controller-tuning",
+            "misconception:disturbance-rejection",
+            "misconception:frequency-response-foundations:bandwidth-is-always-better",
+            "misconception:frequency-response-foundations:ignores-phase-margin",
+            "misconception:frequency-response-foundations:reads-bode-as-picture",
+            "misconception:frequency-response-foundations:skips-critical-point-meaning",
+            "misconception:gain-margin",
+            "misconception:pole-stability"
+          ],
+          "remediationResourceNodeIds": [
+            "knowledge-card:Bode图_1_1",
+            "knowledge-card:Bode首轮骨架_5_1e07d9da",
+            "registry:lesson12-bode-post-quiz",
+            "registry:lesson12-frequency-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "checkpoint",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-checkpoint-01",
+            "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-checkpoint-02",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-20"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 2,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:frequency-response",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:frequency-response",
+            "kn:autocontrol:stability-margin",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 2,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "evaluate": 3
+          },
+          "misconceptionCoverage": [
+            "misconception:controller-tuning",
+            "misconception:frequency-response-foundations:margin-without-tradeoff",
+            "misconception:frequency-response-foundations:unexplained-bode-reading",
+            "misconception:phase-margin"
+          ],
+          "remediationResourceNodeIds": [
+            "knowledge-card:Bode图_1_1",
+            "knowledge-card:Bode首轮骨架_5_1e07d9da",
+            "registry:lesson12-bode-post-quiz",
+            "registry:lesson12-frequency-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "remediation",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-remediation-01",
+            "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-remediation-02",
+            "adaptive-assessment-item:checkpoint-authored-question:frequency-response-foundations-remediation-03"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:frequency-response",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:frequency-response",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 2,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:frequency-response-foundations:amplitude-only-stability",
+            "misconception:frequency-response-foundations:db-linear-confusion",
+            "misconception:frequency-response-foundations:phase-source-missing"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson12-frequency-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        }
+      ],
+      "terminalValidationSupport": {
+        "required": false,
+        "acceptedEvidenceTypes": [
+          "question",
+          "simulation-run"
+        ],
+        "assessmentItemsReplaceTerminalEvidence": false,
+        "limitationReason": null
+      },
+      "limitationReason": null
+    },
+    {
+      "learningGoalId": "feedback-loop-concept-foundations",
+      "title": "反馈与闭环结构基础",
+      "assessmentCoverageState": "complete",
+      "incompleteStages": [],
+      "reviewedPathEligibleItemCount": 15,
+      "stageCoverage": [
+        {
+          "stage": "readiness",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-readiness-01",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-21",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-30"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 1,
+            "preset-adaptive-question": 2
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:model-feedback-system",
+            "knowledge:autocontrol:feedback-loop",
+            "quality:autocontrol:model-boundary-awareness"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:model-feedback-system",
+            "kn:autocontrol:feedback-loop",
+            "qual:autocontrol:model-boundary-awareness"
+          ],
+          "difficultyDistribution": {
+            "low": 2,
+            "medium": 0,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "evaluate": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:controller-tuning",
+            "misconception:feedback-loop-concept-foundations:signal-role-confusion",
+            "misconception:gain-margin",
+            "misconception:phase-margin",
+            "misconception:pole-stability"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1",
+            "registry:lesson02-laplace-exit-quiz-v1",
+            "registry:lesson02-laplace-precheck-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "practice",
+          "requiredCount": 6,
+          "reviewedPathEligibleCount": 6,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-01",
+            "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-02",
+            "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-03",
+            "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-practice-04",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-03",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-39"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 4,
+            "preset-adaptive-question": 2
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:model-feedback-system",
+            "knowledge:autocontrol:feedback-loop",
+            "quality:autocontrol:model-boundary-awareness"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:model-feedback-system",
+            "kn:autocontrol:feedback-loop",
+            "qual:autocontrol:model-boundary-awareness"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 4,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "analyze": 3,
+            "evaluate": 2,
+            "apply": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:damping-ratio",
+            "misconception:feedback-loop-concept-foundations:assumes-unity-feedback",
+            "misconception:feedback-loop-concept-foundations:gain-always-good",
+            "misconception:feedback-loop-concept-foundations:ignores-summing-sign",
+            "misconception:feedback-loop-concept-foundations:single-channel-thinking",
+            "misconception:phase-margin",
+            "misconception:robustness",
+            "misconception:settling-time"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1",
+            "registry:lesson02-laplace-exit-quiz-v1",
+            "registry:lesson02-laplace-precheck-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "checkpoint",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-checkpoint-01",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-12",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-48"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 1,
+            "preset-adaptive-question": 2
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:model-feedback-system",
+            "knowledge:autocontrol:feedback-loop",
+            "quality:autocontrol:model-boundary-awareness"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:model-feedback-system",
+            "kn:autocontrol:feedback-loop",
+            "qual:autocontrol:model-boundary-awareness"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 1,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "evaluate": 2,
+            "apply": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:comfort-constraint",
+            "misconception:damping-ratio",
+            "misconception:feedback-loop-concept-foundations:formula-without-structure",
+            "misconception:overshoot",
+            "misconception:pole-stability"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1",
+            "registry:lesson02-laplace-exit-quiz-v1",
+            "registry:lesson02-laplace-precheck-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "remediation",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-remediation-01",
+            "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-remediation-02",
+            "adaptive-assessment-item:checkpoint-authored-question:feedback-loop-concept-foundations-remediation-03"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:model-feedback-system",
+            "knowledge:autocontrol:feedback-loop",
+            "quality:autocontrol:model-boundary-awareness"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:model-feedback-system",
+            "kn:autocontrol:feedback-loop",
+            "qual:autocontrol:model-boundary-awareness"
+          ],
+          "difficultyDistribution": {
+            "low": 2,
+            "medium": 1,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:feedback-loop-concept-foundations:error-sign-confusion",
+            "misconception:feedback-loop-concept-foundations:feedback-equals-output",
+            "misconception:feedback-loop-concept-foundations:gain-stability-confusion"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson01-feedback-precheck-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        }
+      ],
+      "terminalValidationSupport": {
+        "required": false,
+        "acceptedEvidenceTypes": [
+          "question"
+        ],
+        "assessmentItemsReplaceTerminalEvidence": false,
+        "limitationReason": null
+      },
+      "limitationReason": null
+    },
+    {
+      "learningGoalId": "transfer-function-modeling-foundations",
+      "title": "传递函数建模基础",
+      "assessmentCoverageState": "complete",
+      "incompleteStages": [],
+      "reviewedPathEligibleItemCount": 15,
+      "stageCoverage": [
+        {
+          "stage": "readiness",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-13",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-22",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-49"
+          ],
+          "sourceMix": {
+            "preset-adaptive-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:model-feedback-system",
+            "knowledge:autocontrol:transfer-function-model",
+            "quality:autocontrol:model-boundary-awareness"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:model-feedback-system",
+            "kn:autocontrol:transfer-function-model",
+            "qual:autocontrol:model-boundary-awareness"
+          ],
+          "difficultyDistribution": {
+            "low": 2,
+            "medium": 0,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "evaluate": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:damping-ratio",
+            "misconception:overshoot",
+            "misconception:phase-margin",
+            "misconception:robustness",
+            "misconception:settling-time"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1",
+            "registry:lesson02-laplace-exit-quiz-v1",
+            "registry:lesson02-laplace-precheck-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "practice",
+          "requiredCount": 6,
+          "reviewedPathEligibleCount": 6,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-01",
+            "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-02",
+            "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-03",
+            "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-04",
+            "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-practice-05",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-31"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 5,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:model-feedback-system",
+            "knowledge:autocontrol:transfer-function-model",
+            "quality:autocontrol:model-boundary-awareness"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:model-feedback-system",
+            "kn:autocontrol:transfer-function-model",
+            "qual:autocontrol:model-boundary-awareness"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 5,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "analyze": 3,
+            "evaluate": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:gain-margin",
+            "misconception:pole-stability",
+            "misconception:transfer-function-modeling-foundations:ignores-zero-initial-condition",
+            "misconception:transfer-function-modeling-foundations:invalid-block-reduction",
+            "misconception:transfer-function-modeling-foundations:lost-system-order",
+            "misconception:transfer-function-modeling-foundations:measurement-path-omitted",
+            "misconception:transfer-function-modeling-foundations:untracked-physical-variables"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1",
+            "registry:lesson02-laplace-exit-quiz-v1",
+            "registry:lesson02-laplace-precheck-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "checkpoint",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-checkpoint-01",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-04",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-40"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 1,
+            "preset-adaptive-question": 2
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:model-feedback-system",
+            "knowledge:autocontrol:transfer-function-model",
+            "quality:autocontrol:model-boundary-awareness"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:model-feedback-system",
+            "kn:autocontrol:transfer-function-model",
+            "qual:autocontrol:model-boundary-awareness"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 2,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "evaluate": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:controller-tuning",
+            "misconception:disturbance-rejection",
+            "misconception:gain-margin",
+            "misconception:phase-margin",
+            "misconception:transfer-function-modeling-foundations:formula-without-assumptions"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1",
+            "registry:lesson02-laplace-exit-quiz-v1",
+            "registry:lesson02-laplace-precheck-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "remediation",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-remediation-01",
+            "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-remediation-02",
+            "adaptive-assessment-item:checkpoint-authored-question:transfer-function-modeling-foundations-remediation-03"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:model-feedback-system",
+            "knowledge:autocontrol:transfer-function-model",
+            "quality:autocontrol:model-boundary-awareness"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:model-feedback-system",
+            "kn:autocontrol:transfer-function-model",
+            "qual:autocontrol:model-boundary-awareness"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 3,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:transfer-function-modeling-foundations:initial-condition-mixed-in",
+            "misconception:transfer-function-modeling-foundations:invalid-block-diagram-transform",
+            "misconception:transfer-function-modeling-foundations:undefined-input-output"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson02-laplace-precheck-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        }
+      ],
+      "terminalValidationSupport": {
+        "required": false,
+        "acceptedEvidenceTypes": [
+          "question"
+        ],
+        "assessmentItemsReplaceTerminalEvidence": false,
+        "limitationReason": null
+      },
+      "limitationReason": null
+    },
+    {
+      "learningGoalId": "time-domain-response-analysis",
+      "title": "时域响应与性能指标分析",
+      "assessmentCoverageState": "complete",
+      "incompleteStages": [],
+      "reviewedPathEligibleItemCount": 16,
+      "stageCoverage": [
+        {
+          "stage": "readiness",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 4,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-05",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-14",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-41",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-50"
+          ],
+          "sourceMix": {
+            "preset-adaptive-question": 4
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:time-domain-performance",
+            "quality:autocontrol:evidence-integrity"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:time-domain-performance",
+            "qual:autocontrol:evidence-integrity"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 2,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "analyze": 2,
+            "apply": 1,
+            "evaluate": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:comfort-constraint",
+            "misconception:controller-tuning",
+            "misconception:disturbance-rejection",
+            "misconception:gain-margin",
+            "misconception:overshoot",
+            "misconception:phase-margin",
+            "misconception:pole-stability"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "practice",
+          "requiredCount": 6,
+          "reviewedPathEligibleCount": 6,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-01",
+            "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-02",
+            "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-03",
+            "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-04",
+            "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-practice-05",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-23"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 5,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:time-domain-performance",
+            "quality:autocontrol:evidence-integrity"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:time-domain-performance",
+            "qual:autocontrol:evidence-integrity"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 5,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 3,
+            "analyze": 2,
+            "evaluate": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:phase-margin",
+            "misconception:settling-time",
+            "misconception:time-domain-response-analysis:damping-effect-reversed",
+            "misconception:time-domain-response-analysis:misses-overshoot-metric",
+            "misconception:time-domain-response-analysis:settling-rise-confusion",
+            "misconception:time-domain-response-analysis:steady-error-as-instability",
+            "misconception:time-domain-response-analysis:unstructured-response-comparison"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1",
+            "registry:lesson09-correction-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "checkpoint",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-checkpoint-01",
+            "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-checkpoint-02",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-32"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 2,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:time-domain-performance",
+            "quality:autocontrol:evidence-integrity"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:time-domain-performance",
+            "qual:autocontrol:evidence-integrity"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 2,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "evaluate": 2,
+            "apply": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:damping-ratio",
+            "misconception:overshoot",
+            "misconception:time-domain-response-analysis:curve-without-metrics",
+            "misconception:time-domain-response-analysis:time-metric-confusion"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1",
+            "registry:lesson09-correction-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "remediation",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-remediation-01",
+            "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-remediation-02",
+            "adaptive-assessment-item:checkpoint-authored-question:time-domain-response-analysis-remediation-03"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:time-domain-performance",
+            "quality:autocontrol:evidence-integrity"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:time-domain-performance",
+            "qual:autocontrol:evidence-integrity"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 2,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:time-domain-response-analysis:metric-evidence-missing",
+            "misconception:time-domain-response-analysis:oscillation-equals-unstable",
+            "misconception:time-domain-response-analysis:overshoot-definition-missing"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson09-correction-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        }
+      ],
+      "terminalValidationSupport": {
+        "required": false,
+        "acceptedEvidenceTypes": [
+          "question",
+          "simulation-run"
+        ],
+        "assessmentItemsReplaceTerminalEvidence": false,
+        "limitationReason": null
+      },
+      "limitationReason": null
+    },
+    {
+      "learningGoalId": "root-locus-analysis-foundations",
+      "title": "根轨迹分析基础",
+      "assessmentCoverageState": "complete",
+      "incompleteStages": [],
+      "reviewedPathEligibleItemCount": 15,
+      "stageCoverage": [
+        {
+          "stage": "readiness",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-06",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-33",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-42"
+          ],
+          "sourceMix": {
+            "preset-adaptive-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:root-locus",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:root-locus",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 2,
+            "medium": 1,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "analyze": 1,
+            "apply": 2
+          },
+          "misconceptionCoverage": [
+            "misconception:damping-ratio",
+            "misconception:overshoot",
+            "misconception:phase-margin",
+            "misconception:robustness",
+            "misconception:settling-time"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "practice",
+          "requiredCount": 6,
+          "reviewedPathEligibleCount": 6,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-01",
+            "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-02",
+            "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-03",
+            "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-04",
+            "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-practice-05",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-15"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 5,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:root-locus",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:root-locus",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 6,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 1,
+            "analyze": 4,
+            "evaluate": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:comfort-constraint",
+            "misconception:overshoot",
+            "misconception:root-locus-analysis-foundations:asymptote-centroid-error",
+            "misconception:root-locus-analysis-foundations:imaginary-crossing-ignored",
+            "misconception:root-locus-analysis-foundations:root-locus-endpoint-confusion",
+            "misconception:root-locus-analysis-foundations:wrong-real-axis-rule",
+            "misconception:root-locus-analysis-foundations:zero-without-target-region"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1",
+            "registry:lesson09-correction-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "checkpoint",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-checkpoint-01",
+            "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-checkpoint-02",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-24"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 2,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:root-locus",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:root-locus",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 3,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "evaluate": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:disturbance-rejection",
+            "misconception:gain-margin",
+            "misconception:root-locus-analysis-foundations:missing-gain-direction",
+            "misconception:root-locus-analysis-foundations:unannotated-root-locus"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson01-feedback-exit-quiz-v1",
+            "registry:lesson01-feedback-precheck-v1",
+            "registry:lesson09-correction-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "remediation",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-remediation-01",
+            "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-remediation-02",
+            "adaptive-assessment-item:checkpoint-authored-question:root-locus-analysis-foundations-remediation-03"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:interpret-time-frequency-response",
+            "knowledge:autocontrol:root-locus",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:interpret-time-frequency-response",
+            "kn:autocontrol:root-locus",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 2,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:root-locus-analysis-foundations:open-closed-pole-confusion",
+            "misconception:root-locus-analysis-foundations:real-axis-rule-missing",
+            "misconception:root-locus-analysis-foundations:stability-range-missing"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson09-correction-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        }
+      ],
+      "terminalValidationSupport": {
+        "required": false,
+        "acceptedEvidenceTypes": [
+          "question"
+        ],
+        "assessmentItemsReplaceTerminalEvidence": false,
+        "limitationReason": null
+      },
+      "limitationReason": null
+    },
+    {
+      "learningGoalId": "stability-margin-frequency-analysis",
+      "title": "稳定裕度与频域安全边界",
+      "assessmentCoverageState": "complete",
+      "incompleteStages": [],
+      "reviewedPathEligibleItemCount": 15,
+      "stageCoverage": [
+        {
+          "stage": "readiness",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-readiness-01",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-25",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-34"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 1,
+            "preset-adaptive-question": 2
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:trade-off-engineering-constraints",
+            "knowledge:autocontrol:frequency-response",
+            "quality:autocontrol:safety-responsibility",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:trade-off-engineering-constraints",
+            "kn:autocontrol:frequency-response",
+            "kn:autocontrol:stability-margin",
+            "qual:autocontrol:safety-responsibility",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 2,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 1,
+            "analyze": 2
+          },
+          "misconceptionCoverage": [
+            "misconception:comfort-constraint",
+            "misconception:disturbance-rejection",
+            "misconception:gain-margin",
+            "misconception:overshoot",
+            "misconception:stability-margin-frequency-analysis:crossing-frequency-missing"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson12-frequency-precheck",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-phase-concept-quiz"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "practice",
+          "requiredCount": 6,
+          "reviewedPathEligibleCount": 6,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-01",
+            "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-02",
+            "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-03",
+            "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-practice-04",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-07",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-43"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 4,
+            "preset-adaptive-question": 2
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:trade-off-engineering-constraints",
+            "knowledge:autocontrol:frequency-response",
+            "quality:autocontrol:safety-responsibility",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:trade-off-engineering-constraints",
+            "kn:autocontrol:frequency-response",
+            "kn:autocontrol:stability-margin",
+            "qual:autocontrol:safety-responsibility",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 4,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "analyze": 2,
+            "evaluate": 3,
+            "apply": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:controller-tuning",
+            "misconception:disturbance-rejection",
+            "misconception:phase-margin",
+            "misconception:settling-time",
+            "misconception:stability-margin-frequency-analysis:bandwidth-margin-tradeoff-missing",
+            "misconception:stability-margin-frequency-analysis:gain-margin-meaning-missing",
+            "misconception:stability-margin-frequency-analysis:ignores-actuator-safety",
+            "misconception:stability-margin-frequency-analysis:negative-margin-misread"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson12-frequency-precheck",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-phase-concept-quiz"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "checkpoint",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-checkpoint-01",
+            "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-checkpoint-02",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-16"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 2,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:trade-off-engineering-constraints",
+            "knowledge:autocontrol:frequency-response",
+            "quality:autocontrol:safety-responsibility",
+            "quality:autocontrol:system-tradeoff"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:trade-off-engineering-constraints",
+            "kn:autocontrol:frequency-response",
+            "kn:autocontrol:stability-margin",
+            "qual:autocontrol:safety-responsibility",
+            "qual:autocontrol:system-tradeoff"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 2,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "evaluate": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:robustness",
+            "misconception:settling-time",
+            "misconception:stability-margin-frequency-analysis:margin-without-numeric-evidence",
+            "misconception:stability-margin-frequency-analysis:margin-without-safety-context"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson12-frequency-precheck",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-phase-concept-quiz"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "remediation",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-remediation-01",
+            "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-remediation-02",
+            "adaptive-assessment-item:checkpoint-authored-question:stability-margin-frequency-analysis-remediation-03"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:trade-off-engineering-constraints",
+            "knowledge:autocontrol:frequency-response",
+            "quality:autocontrol:safety-responsibility"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:trade-off-engineering-constraints",
+            "kn:autocontrol:stability-margin",
+            "qual:autocontrol:safety-responsibility"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 2,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:stability-margin-frequency-analysis:gain-crossover-missing",
+            "misconception:stability-margin-frequency-analysis:margin-type-confusion",
+            "misconception:stability-margin-frequency-analysis:speed-over-safety"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:lesson12-frequency-precheck"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        }
+      ],
+      "terminalValidationSupport": {
+        "required": false,
+        "acceptedEvidenceTypes": [
+          "question",
+          "simulation-run"
+        ],
+        "assessmentItemsReplaceTerminalEvidence": false,
+        "limitationReason": null
+      },
+      "limitationReason": null
+    },
+    {
+      "learningGoalId": "simulation-validation-practice",
+      "title": "仿真验证实践",
+      "assessmentCoverageState": "complete",
+      "incompleteStages": [],
+      "reviewedPathEligibleItemCount": 15,
+      "stageCoverage": [
+        {
+          "stage": "readiness",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-readiness-01",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-17",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-26"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 1,
+            "preset-adaptive-question": 2
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:validate-with-simulation-evidence",
+            "knowledge:autocontrol:simulation-validation",
+            "quality:autocontrol:evidence-integrity"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:validate-with-simulation-evidence",
+            "kn:autocontrol:simulation-validation",
+            "qual:autocontrol:evidence-integrity"
+          ],
+          "difficultyDistribution": {
+            "low": 1,
+            "medium": 1,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 1,
+            "evaluate": 1,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:controller-tuning",
+            "misconception:disturbance-rejection",
+            "misconception:robustness",
+            "misconception:settling-time",
+            "misconception:simulation-validation-practice:simulation-setup-missing"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:sim-pid-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "practice",
+          "requiredCount": 6,
+          "reviewedPathEligibleCount": 6,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-01",
+            "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-02",
+            "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-03",
+            "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-04",
+            "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-practice-05",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-35"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 5,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:validate-with-simulation-evidence",
+            "knowledge:autocontrol:simulation-validation",
+            "quality:autocontrol:evidence-integrity"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:validate-with-simulation-evidence",
+            "kn:autocontrol:simulation-validation",
+            "qual:autocontrol:evidence-integrity"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 6,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "analyze": 2,
+            "evaluate": 4
+          },
+          "misconceptionCoverage": [
+            "misconception:comfort-constraint",
+            "misconception:overshoot",
+            "misconception:simulation-validation-practice:hides-validation-limits",
+            "misconception:simulation-validation-practice:invalid-simulation-comparison",
+            "misconception:simulation-validation-practice:missing-run-provenance",
+            "misconception:simulation-validation-practice:simulation-evidence-not-linked",
+            "misconception:simulation-validation-practice:unexplained-simulation-gap"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:sim-pid-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "checkpoint",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-checkpoint-01",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-08",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-44"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 1,
+            "preset-adaptive-question": 2
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:validate-with-simulation-evidence",
+            "knowledge:autocontrol:simulation-validation",
+            "quality:autocontrol:evidence-integrity"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:validate-with-simulation-evidence",
+            "kn:autocontrol:simulation-validation",
+            "qual:autocontrol:evidence-integrity"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 1,
+            "high": 2
+          },
+          "cognitiveLevelDistribution": {
+            "evaluate": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:comfort-constraint",
+            "misconception:disturbance-rejection",
+            "misconception:gain-margin",
+            "misconception:pole-stability",
+            "misconception:simulation-validation-practice:quiz-replaces-simulation"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:sim-pid-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "remediation",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-remediation-01",
+            "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-remediation-02",
+            "adaptive-assessment-item:checkpoint-authored-question:simulation-validation-practice-remediation-03"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:validate-with-simulation-evidence",
+            "knowledge:autocontrol:simulation-validation",
+            "quality:autocontrol:evidence-integrity"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:validate-with-simulation-evidence",
+            "kn:autocontrol:simulation-validation",
+            "qual:autocontrol:evidence-integrity"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 3,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:simulation-validation-practice:cherry-picked-simulation",
+            "misconception:simulation-validation-practice:parameter-provenance-missing",
+            "misconception:simulation-validation-practice:uncontrolled-simulation-input"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:sim-pid-v1"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        }
+      ],
+      "terminalValidationSupport": {
+        "required": true,
+        "acceptedEvidenceTypes": [
+          "simulation-run"
+        ],
+        "assessmentItemsReplaceTerminalEvidence": false,
+        "limitationReason": "assessment-items-support-diagnosis-but-do-not-replace-typed-terminal-evidence"
+      },
+      "limitationReason": null
+    },
+    {
+      "learningGoalId": "ship-ocean-transfer-application",
+      "title": "船海场景迁移应用",
+      "assessmentCoverageState": "complete",
+      "incompleteStages": [],
+      "reviewedPathEligibleItemCount": 15,
+      "stageCoverage": [
+        {
+          "stage": "readiness",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-09",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-18",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-45"
+          ],
+          "sourceMix": {
+            "preset-adaptive-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:transfer-to-ship-ocean-mission",
+            "knowledge:autocontrol:modern-transfer",
+            "knowledge:autocontrol:simulation-validation",
+            "quality:autocontrol:model-boundary-awareness",
+            "quality:autocontrol:ship-ocean-mission"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:transfer-to-ship-ocean-mission",
+            "kn:autocontrol:modern-transfer",
+            "kn:autocontrol:simulation-validation",
+            "qual:autocontrol:model-boundary-awareness",
+            "qual:autocontrol:ship-ocean-mission"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 1,
+            "high": 2
+          },
+          "cognitiveLevelDistribution": {
+            "evaluate": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:comfort-constraint",
+            "misconception:damping-ratio",
+            "misconception:overshoot",
+            "misconception:pole-stability",
+            "misconception:robustness"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "practice",
+          "requiredCount": 6,
+          "reviewedPathEligibleCount": 6,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-01",
+            "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-02",
+            "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-03",
+            "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-04",
+            "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-practice-05",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-27"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 5,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:transfer-to-ship-ocean-mission",
+            "knowledge:autocontrol:modern-transfer",
+            "knowledge:autocontrol:simulation-validation",
+            "quality:autocontrol:model-boundary-awareness",
+            "quality:autocontrol:ship-ocean-mission"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:transfer-to-ship-ocean-mission",
+            "kn:autocontrol:modern-transfer",
+            "kn:autocontrol:simulation-validation",
+            "qual:autocontrol:model-boundary-awareness",
+            "qual:autocontrol:ship-ocean-mission"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 5,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "analyze": 2,
+            "evaluate": 4
+          },
+          "misconceptionCoverage": [
+            "misconception:controller-tuning",
+            "misconception:disturbance-rejection",
+            "misconception:ship-ocean-transfer-application:arena-evidence-missing",
+            "misconception:ship-ocean-transfer-application:assumption-transfer-missing",
+            "misconception:ship-ocean-transfer-application:copies-controller-without-context",
+            "misconception:ship-ocean-transfer-application:ignores-ocean-disturbance",
+            "misconception:ship-ocean-transfer-application:single-objective-transfer"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "checkpoint",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-checkpoint-01",
+            "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-checkpoint-02",
+            "adaptive-assessment-item:preset-adaptive-question:preset-q-36"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 2,
+            "preset-adaptive-question": 1
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:transfer-to-ship-ocean-mission",
+            "knowledge:autocontrol:modern-transfer",
+            "knowledge:autocontrol:simulation-validation",
+            "quality:autocontrol:model-boundary-awareness",
+            "quality:autocontrol:ship-ocean-mission"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:transfer-to-ship-ocean-mission",
+            "kn:autocontrol:modern-transfer",
+            "kn:autocontrol:simulation-validation",
+            "qual:autocontrol:model-boundary-awareness",
+            "qual:autocontrol:ship-ocean-mission"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 2,
+            "high": 1
+          },
+          "cognitiveLevelDistribution": {
+            "evaluate": 2,
+            "analyze": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:robustness",
+            "misconception:settling-time",
+            "misconception:ship-ocean-transfer-application:missing-operational-envelope",
+            "misconception:ship-ocean-transfer-application:quiz-replaces-transfer-evidence"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench",
+            "registry:arena-cruise-blackbox-workbench",
+            "registry:lesson13-cruise-typhoon-sim",
+            "registry:lesson13-physics-builder-simple"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        },
+        {
+          "stage": "remediation",
+          "requiredCount": 3,
+          "reviewedPathEligibleCount": 3,
+          "status": "complete",
+          "countedCatalogItemIds": [
+            "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-remediation-01",
+            "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-remediation-02",
+            "adaptive-assessment-item:checkpoint-authored-question:ship-ocean-transfer-application-remediation-03"
+          ],
+          "sourceMix": {
+            "checkpoint-authored-question": 3
+          },
+          "kaqObjectiveCoverage": [
+            "capability:autocontrol:transfer-to-ship-ocean-mission",
+            "knowledge:autocontrol:modern-transfer",
+            "quality:autocontrol:ship-ocean-mission"
+          ],
+          "graphNodeCoverage": [
+            "cap:autocontrol:transfer-to-ship-ocean-mission",
+            "kn:autocontrol:modern-transfer",
+            "qual:autocontrol:ship-ocean-mission"
+          ],
+          "difficultyDistribution": {
+            "low": 0,
+            "medium": 3,
+            "high": 0
+          },
+          "cognitiveLevelDistribution": {
+            "apply": 1,
+            "analyze": 1,
+            "evaluate": 1
+          },
+          "misconceptionCoverage": [
+            "misconception:ship-ocean-transfer-application:comfort-precision-tradeoff-missing",
+            "misconception:ship-ocean-transfer-application:missing-failure-envelope",
+            "misconception:ship-ocean-transfer-application:parameter-copying"
+          ],
+          "remediationResourceNodeIds": [
+            "registry:arena-challenge-workbench"
+          ],
+          "blockers": [],
+          "limitationReasons": []
+        }
+      ],
+      "terminalValidationSupport": {
+        "required": true,
+        "acceptedEvidenceTypes": [
+          "arena-official-evaluation",
+          "simulation-run"
+        ],
+        "assessmentItemsReplaceTerminalEvidence": false,
+        "limitationReason": "assessment-items-support-diagnosis-but-do-not-replace-typed-terminal-evidence"
+      },
+      "limitationReason": null
+    }
+  ],
+  "totals": {
+    "learningGoalCount": 9,
+    "complete": 9,
+    "limited": 0,
+    "reviewedPathEligibleItemCount": 137
+  }
+}

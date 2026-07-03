@@ -5,6 +5,10 @@ import type {
   AdaptiveAssessmentCatalogStage,
   KaqReviewedItemRecord,
 } from './adaptive-assessment-item-catalog';
+import {
+  LEARNING_GOAL_CHECKPOINT_QUESTION_SET_REVIEWER_ID,
+  LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
+} from './learning-goal-checkpoint-question-sets';
 
 export type AssessmentItemSemanticReviewOutcome = 'approved' | 'rejected' | 'deprecated' | 'blocked';
 
@@ -185,6 +189,22 @@ function reviewDecisionStage(item: AdaptiveAssessmentCatalogItem, decision: Asse
   }
   if (decision.selectedStagePurpose === 'practice') return 'low-stakes-practice';
   return decision.selectedStagePurpose ?? item.semanticRefs.assessmentStage ?? '';
+}
+
+function reviewStagePurpose(value: string | undefined): AssessmentItemSemanticReviewDecision['selectedStagePurpose'] {
+  if (
+    value === 'practice' ||
+    value === 'precheck' ||
+    value === 'readiness-gate' ||
+    value === 'low-stakes-practice' ||
+    value === 'readiness' ||
+    value === 'checkpoint' ||
+    value === 'remediation' ||
+    value === 'terminal-validation'
+  ) {
+    return value;
+  }
+  return undefined;
 }
 
 function reviewDecisionAuditIssues(decision: AssessmentItemSemanticReviewDecision): string[] {
@@ -378,7 +398,7 @@ export function buildKaqFoundationSemanticReviewDecisions(
       selectedLearningGoalIds: uniqueSorted(metadata?.learningGoalIds ?? []),
       selectedKaqObjectiveIds: uniqueSorted(metadata?.kaqObjectiveIds ?? []),
       selectedGraphNodeIds: uniqueSorted(metadata?.graphNodeIds ?? []),
-      selectedStagePurpose: metadata?.purpose,
+      selectedStagePurpose: reviewStagePurpose(metadata?.purpose),
       difficulty: metadata?.difficulty,
       cognitiveLevel: metadata?.cognitiveLevel,
       misconceptionRefs: uniqueSorted(metadata?.misconceptionTags ?? []),
@@ -387,6 +407,35 @@ export function buildKaqFoundationSemanticReviewDecisions(
       reviewSourceHash: review.sourceHash,
     }];
   });
+}
+
+export function buildCheckpointAuthoredSemanticReviewDecisions(
+  items: AdaptiveAssessmentCatalogItem[],
+): AssessmentItemSemanticReviewDecision[] {
+  return items
+    .filter((item) => item.sourceFamily === 'checkpoint-authored-question')
+    .map((item) => ({
+      catalogItemId: item.catalogItemId,
+      decisionKind: 'human-review',
+      outcome: 'approved',
+      reviewerId: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_REVIEWER_ID,
+      reviewerRole: 'assessment-content-reviewer',
+      reviewedAt: '2026-07-03T00:00:00.000Z',
+      reviewBatchId: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
+      sourceContentHash: item.contentHash,
+      selectedLearningGoalIds: item.semanticRefs.learningGoalIds,
+      selectedKaqObjectiveIds: item.semanticRefs.kaqObjectiveIds,
+      selectedGraphNodeIds: item.semanticRefs.graphNodeIds,
+      selectedStagePurpose: item.semanticRefs.assessmentStage as AdaptiveAssessmentCatalogStage | 'readiness-gate' | 'precheck' | 'practice',
+      difficulty: item.semanticRefs.difficulty ?? undefined,
+      cognitiveLevel: item.semanticRefs.cognitiveLevel ?? undefined,
+      misconceptionRefs: item.semanticRefs.misconceptionTags,
+      remediationRefs: item.semanticRefs.remediationResourceNodeIds,
+      metadataVersionRefs: {
+        checkpointQuestionSetVersion: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
+      },
+      reviewSourceHash: item.lineage.sourceHash,
+    }));
 }
 
 export function buildAssessmentItemSemanticCoverageReport(

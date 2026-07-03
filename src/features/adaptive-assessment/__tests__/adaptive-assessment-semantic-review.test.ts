@@ -11,6 +11,7 @@ import {
   buildAssessmentItemSemanticCoverageReport,
   buildAssessmentItemSemanticReviewArtifacts,
   buildAssessmentItemSemanticReviewPackets,
+  buildCheckpointAuthoredSemanticReviewDecisions,
   buildKaqFoundationSemanticReviewDecisions,
   mergeAssessmentItemSemanticReviewDecisions,
   type AssessmentItemSemanticReviewDecision,
@@ -41,6 +42,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('generates review packets with suggestions separated from decisions', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const [packet] = buildAssessmentItemSemanticReviewPackets(catalog.items);
@@ -71,6 +73,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('uses semantic review version refs in review packets', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = {
@@ -90,6 +93,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('preserves existing human-edited snapshots over generated K/A/Q decisions', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -111,6 +115,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('refreshes existing generated K/A/Q snapshots from the source overlay across batch versions', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -133,6 +138,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('rejects script-only review decisions and missing required semantic fields', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -155,6 +161,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('reports stale source hashes and invalid objective ids', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -180,6 +187,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('rejects decisions whose selected stage is not allowed for the item', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = {
@@ -204,6 +212,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('reports stale hashes for non-approved human decisions', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -224,6 +233,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('rejects non-approved machine suggestions as reviewed decisions', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -252,6 +262,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('reports stale metadata version refs even when source content is unchanged', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -272,6 +283,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('reports stale metadata version refs when a decision omits current version keys', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -292,6 +304,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('reports missing fields for incomplete persisted human decisions without crashing', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -324,6 +337,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('rejects remediation refs that are not in the governed resource baseline', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -345,6 +359,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('accepts remediation refs when the governed baseline marks them path eligible', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = catalog.items[0];
@@ -379,6 +394,7 @@ describe('adaptive assessment semantic review workflow', () => {
         },
       }],
       kaqReviewedItems: [],
+      checkpointQuestions: [],
     });
     const item = {
       ...catalog.items[0],
@@ -417,6 +433,7 @@ describe('adaptive assessment semantic review workflow', () => {
     };
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [staleReviewedItem],
     });
     const reviewedSnapshots = buildKaqFoundationSemanticReviewDecisions(catalog.items, [staleReviewedItem]);
@@ -447,6 +464,7 @@ describe('adaptive assessment semantic review workflow', () => {
     };
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [staleReviewedItem],
     });
     const reviewedSnapshots = buildKaqFoundationSemanticReviewDecisions(catalog.items, [staleReviewedItem]);
@@ -476,6 +494,7 @@ describe('adaptive assessment semantic review workflow', () => {
     };
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [staleReviewedItem],
     });
     const reviewedSnapshots = buildKaqFoundationSemanticReviewDecisions(catalog.items, [staleReviewedItem]);
@@ -493,6 +512,7 @@ describe('adaptive assessment semantic review workflow', () => {
   it('keeps invalid path eligibility out of gate counts without dropping the item', () => {
     const sources = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [],
     });
     const item = {
@@ -556,7 +576,7 @@ describe('adaptive assessment semantic review workflow', () => {
 
     expect(reviewedSnapshots).toHaveLength(50);
     expect(artifacts.coverage).toMatchObject({
-      itemCount: 443,
+      itemCount: 530,
       reviewedItemCount: 0,
       pathEligibleItemCount: 0,
       staleReviewCount: 0,
@@ -581,6 +601,10 @@ describe('adaptive assessment semantic review workflow', () => {
       pathEligibleTotal: 0,
       unreviewedTotal: 50,
     });
+    expect(artifacts.coverage.sourceFamilies.find((family) => family.family === 'checkpoint-authored-question')).toMatchObject({
+      itemTotal: 87,
+      unreviewedTotal: 87,
+    });
     expect(artifacts.coverage.issues.map((issue) => issue.reason)).toEqual(expect.arrayContaining([
       'invalid-remediation-ref:knowledge-card:Bode图_1_1',
       'missing-review-decision',
@@ -588,5 +612,36 @@ describe('adaptive assessment semantic review workflow', () => {
       'missing-kaq-objective-ids',
       'missing-graph-node-refs',
     ]));
+  });
+
+  it('counts authored checkpoint review decisions when ResourceNode remediation refs are known', async () => {
+    const sources = await loadAdaptiveAssessmentCatalogSources();
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: PRESET_QUESTIONS,
+      acqStaticQuestions: sources.acqStaticQuestions,
+      icourseObjectiveBankItems: sources.icourseObjectiveBankItems,
+      icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
+      kaqReviewedItems: sources.kaqReviewedItems,
+    });
+    const reviewedSnapshots = [
+      ...buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
+      ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
+    ];
+    const remediationRefs = reviewedSnapshots.flatMap((decision) => decision.remediationRefs);
+    const artifacts = buildAssessmentItemSemanticReviewArtifacts({
+      items: catalog.items,
+      decisions: reviewedSnapshots,
+      sourceFamilies: catalog.manifest.sourceFamilies,
+      knownRemediationResourceNodeIds: remediationRefs,
+    });
+
+    expect(reviewedSnapshots).toHaveLength(137);
+    expect(artifacts.coverage.reviewedItemCount).toBe(137);
+    expect(artifacts.coverage.pathEligibleItemCount).toBe(137);
+    expect(artifacts.coverage.sourceFamilies.find((family) => family.family === 'checkpoint-authored-question')).toMatchObject({
+      itemTotal: 87,
+      reviewedTotal: 87,
+      pathEligibleTotal: 87,
+    });
   });
 });

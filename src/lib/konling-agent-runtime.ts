@@ -59,6 +59,7 @@ import {
   type SourcePackSourceKind,
 } from '@/lib/source-pack';
 import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-resource-baseline-runtime';
+import { getLearningGoalAssessmentCoverageForPlanner } from '@/lib/learning-goal-assessment-coverage-runtime';
 import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-center';
 import {
   applyCoreResourcePathReadinessDispositions,
@@ -2443,6 +2444,7 @@ function buildAdaptivePathPlannerGraphContext(
     learnerOverlay: graphContext.learnerOverlay,
     classOverlay: graphContext.classOverlay,
     learningGoalBaseline: getLearningGoalResourceBaselineForPlanner(graphContext.learningGoal.id),
+    assessmentCoverage: getLearningGoalAssessmentCoverageForPlanner(graphContext.learningGoal.id),
     versionRefs: graphContext.versionRefs ?? undefined,
   };
 }

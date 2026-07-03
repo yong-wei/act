@@ -47,9 +47,15 @@ describe('adaptive assessment item catalog', () => {
       limitationReasons: ['prisma-question-count-requires-database-query'],
     });
     expect(byFamily.get('generated-adaptive-question')?.limitationReasons).toContain('generated-provisional-not-path-eligible');
-    expect(byFamily.get('checkpoint-authored-question')?.limitationReasons).toContain('future-checkpoint-items-not-authored-in-this-change');
-    expect(artifacts.items.length).toBeGreaterThanOrEqual(50 + 167 + 226);
+    expect(byFamily.get('checkpoint-authored-question')).toMatchObject({
+      sourceTotal: 87,
+      importedTotal: 87,
+      blockedTotal: 0,
+      limitationReasons: [],
+    });
+    expect(artifacts.items.length).toBeGreaterThanOrEqual(50 + 167 + 226 + 87);
     expect(artifacts.items.some((item) => item.sourceFamily === 'kaq-foundation-reviewed')).toBe(false);
+    expect(artifacts.items.filter((item) => item.sourceFamily === 'checkpoint-authored-question')).toHaveLength(87);
   });
 
   it('keeps catalog identity separate from immutable answer-time snapshots', () => {
@@ -62,6 +68,7 @@ describe('adaptive assessment item catalog', () => {
     );
     const artifacts = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       prismaQuestions: [{
         id: 'prisma-question-1',
         stem: 'Prisma 题干',
@@ -121,12 +128,40 @@ describe('adaptive assessment item catalog', () => {
     expect(eligibleItem?.semanticRefs.learningGoalIds).toContain('control-correction');
   });
 
+  it('registers authored checkpoint items as reviewed path-eligible catalog records', () => {
+    const artifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: undefined,
+    });
+    const authoredItem = artifacts.items.find((item) =>
+      item.sourceFamily === 'checkpoint-authored-question' &&
+      item.sourceId === 'feedback-loop-concept-foundations-readiness-01'
+    );
+
+    expect(authoredItem).toMatchObject({
+      reviewState: 'path-eligible',
+      eligibilityState: 'path-eligible',
+      allowedStages: expect.arrayContaining(['low-stakes-practice', 'readiness']),
+      semanticRefs: {
+        learningGoalIds: ['feedback-loop-concept-foundations'],
+        cognitiveLevel: 'apply',
+      },
+      questionRefs: {
+        answerKey: ['A'],
+        choiceMode: 'single',
+      },
+    });
+    expect(authoredItem?.allowedStages).not.toContain('remediation');
+    expect(authoredItem?.contentHash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
   it('does not trust stale K/A/Q review metadata for path eligibility', async () => {
     const sources = await loadAdaptiveAssessmentCatalogSources();
     const staleReview = sources.kaqReviewedItems.find((item) => item.questionId === 'preset-q-01');
     expect(staleReview).toBeTruthy();
     const artifacts = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [{
         ...staleReview!,
         metadata: {
@@ -155,6 +190,7 @@ describe('adaptive assessment item catalog', () => {
     expect(staleReview).toBeTruthy();
     const artifacts = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [{
         ...staleReview!,
         metadata: {

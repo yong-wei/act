@@ -8,10 +8,14 @@ import {
 import {
   assessmentItemSemanticReviewArtifactsToFiles,
   buildAssessmentItemSemanticReviewArtifacts,
+  buildCheckpointAuthoredSemanticReviewDecisions,
   buildKaqFoundationSemanticReviewDecisions,
   mergeAssessmentItemSemanticReviewDecisions,
   type AssessmentItemSemanticReviewDecision,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
+import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
+import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const PACKETS_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-packets.jsonl');
@@ -67,9 +71,15 @@ async function loadRegisteredSemanticIds() {
       ...(row.objectiveBoundary?.qualityObjectiveIds ?? []),
     ])),
     graphNodeIds: uniqueSorted(rows.flatMap((row) => row.targetGraphNodeIds ?? [])),
-    remediationResourceNodeIds: uniqueSorted(rows.flatMap((row) =>
-      Object.values(row.categories ?? {}).flatMap((category) => category.pathEligibleResourceIds ?? []),
-    )),
+    remediationResourceNodeIds: uniqueSorted([
+      ...rows.flatMap((row) =>
+        Object.values(row.categories ?? {}).flatMap((category) => category.pathEligibleResourceIds ?? [])
+      ),
+      ...buildResourceNodeRegistry({
+        registeredResources: getAllRegisteredResourceMetadata(),
+      }).nodes.map((node) => node.id),
+      ...CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewedSourceRefs.map((ref) => ref.split('|')[0]),
+    ]),
   };
 }
 
@@ -83,7 +93,10 @@ async function main() {
   });
   const reviewedSnapshots = mergeAssessmentItemSemanticReviewDecisions(
     await readExistingReviewSnapshots(),
-    buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
+    [
+      ...buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
+      ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
+    ],
   );
   const registeredSemanticIds = await loadRegisteredSemanticIds();
   const artifacts = buildAssessmentItemSemanticReviewArtifacts({
