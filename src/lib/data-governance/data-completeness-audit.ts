@@ -370,8 +370,9 @@ function buildResourceBindingLayer(
 
 function buildResourceDispositionLayer(registry: ResourceNodeRegistry | undefined): DataCompletenessLayerSummary {
   const nodes = registry?.nodes ?? [];
+  const nodesById = new Map(nodes.map((node) => [node.id, node]));
   const findings = nodes.flatMap((node) =>
-    auditResourcePathPlanningDisposition(node).map((issue) => finding(
+    auditResourcePathPlanningDisposition(node, { nodesById }).map((issue) => finding(
       issue.code,
       issue.severity === 'blocking' ? 'blocked' : 'partial',
       `ResourceDisposition:${node.sourceKind}:${node.sourceRef}`,
@@ -389,6 +390,7 @@ function buildResourceDispositionLayer(registry: ResourceNodeRegistry | undefine
     missingHumanReview: countFindings(findings, 'missing-disposition-review'),
     missingExclusionRationale: countFindings(findings, 'missing-disposition-rationale'),
     missingParentPlanningUnit: countFindings(findings, 'missing-parent-planning-unit'),
+    missingEvidenceInstrumentation: countFindings(findings, 'missing-evidence-instrumentation'),
     invalidPromotion: countFindings(findings, 'invalid-path-disposition-promotion'),
   }, findings);
 }
@@ -396,6 +398,7 @@ function buildResourceDispositionLayer(registry: ResourceNodeRegistry | undefine
 function followupBucketForDispositionIssue(code: string): string {
   if (code === 'missing-parent-planning-unit') return 'link-embedded-resource-parents';
   if (code === 'missing-disposition-rationale') return 'review-resource-exclusions';
+  if (code === 'missing-evidence-instrumentation') return 'instrument-evidence-producing-resources';
   if (code === 'invalid-path-disposition-promotion') return 'audit-path-disposition-promotions';
   return 'review-resource-path-dispositions';
 }

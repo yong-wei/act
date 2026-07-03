@@ -160,6 +160,26 @@ describe('data completeness audit', () => {
           },
         },
       }, {
+        id: 'evidence-producing-without-instrumentation',
+        label: 'Evidence producing without instrumentation',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          evidenceInstrumentation: [],
+          pathDisposition: {
+            kind: 'evidence-producing',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Claims to produce evidence but has no instrumentation.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'evidence-producing-without-instrumentation',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
         id: 'provisional-path-node',
         label: 'Provisional path node',
         type: 'INTERACTIVE_COMP',
@@ -196,11 +216,12 @@ describe('data completeness audit', () => {
     const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
 
     expect(disposition?.totals).toMatchObject({
-      resourceNodes: 3,
-      reviewedDispositions: 1,
+      resourceNodes: 4,
+      reviewedDispositions: 2,
       missingHumanReview: 2,
       missingParentPlanningUnit: 1,
       missingExclusionRationale: 1,
+      missingEvidenceInstrumentation: 1,
       invalidPromotion: 1,
     });
     expect(disposition?.findings).toEqual(expect.arrayContaining([
@@ -218,6 +239,11 @@ describe('data completeness audit', () => {
         id: 'invalid-path-disposition-promotion',
         stableRef: 'ResourceDisposition:resource_registry:provisional-path-node',
         followupBucket: 'audit-path-disposition-promotions',
+      }),
+      expect.objectContaining({
+        id: 'missing-evidence-instrumentation',
+        stableRef: 'ResourceDisposition:resource_registry:evidence-producing-without-instrumentation',
+        followupBucket: 'instrument-evidence-producing-resources',
       }),
     ]));
     expect(report.layers.find((layer) => layer.id === 'citationReadiness')).toBeDefined();

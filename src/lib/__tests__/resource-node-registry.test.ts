@@ -390,6 +390,31 @@ describe('resource node registry', () => {
   it('audits path-planning dispositions without changing planner eligibility', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [{
+        id: 'parent-path-node',
+        label: 'Parent path node',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-bode'],
+      }, {
+        id: 'non-plannable-parent',
+        label: 'Non plannable parent',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/non-plannable-parent.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'supporting-citation',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Citation-only parent candidate.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'non-plannable-parent',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
         id: 'missing-disposition',
         label: 'Missing disposition resource',
         type: 'INTERACTIVE_COMP',
@@ -488,6 +513,26 @@ describe('resource node registry', () => {
           },
         },
       }, {
+        id: 'evidence-producing-without-instrumentation',
+        label: 'Evidence producing without instrumentation',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          evidenceInstrumentation: [],
+          pathDisposition: {
+            kind: 'evidence-producing',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Claims evidence production without instrumentation.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'evidence-producing-without-instrumentation',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
         id: 'embedded-without-parent',
         label: 'Embedded asset without parent',
         type: 'STATIC_MEDIA',
@@ -502,6 +547,63 @@ describe('resource node registry', () => {
             stableSourceRef: 'embedded-without-parent',
             sourceVersionRef: 'resource-node-registry.v1',
             parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'embedded-with-valid-parent',
+        label: 'Embedded asset with valid parent',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/embedded-valid.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'embedded-asset',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Illustrates a valid parent path node.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'embedded-with-valid-parent',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: 'registry:parent-path-node',
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'embedded-with-missing-parent',
+        label: 'Embedded asset with missing parent',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/embedded-missing.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'embedded-asset',
+            reviewStatus: 'human-confirmed',
+            rationale: 'References a missing parent path node.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'embedded-with-missing-parent',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: 'registry:missing-parent',
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'embedded-with-non-plannable-parent',
+        label: 'Embedded asset with non-plannable parent',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/embedded-non-plannable.png',
+        knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'embedded-asset',
+            reviewStatus: 'human-confirmed',
+            rationale: 'References a non-plannable parent resource.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'embedded-with-non-plannable-parent',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: 'registry:non-plannable-parent',
             reviewedAt: '2026-07-03T00:00:00.000Z',
             reviewerId: 'resource-governance-review',
           },
@@ -548,6 +650,7 @@ describe('resource node registry', () => {
     });
 
     const node = (id: string) => registry.nodes.find((item) => item.id === `registry:${id}`)!;
+    const nodesById = new Map(registry.nodes.map((item) => [item.id, item]));
 
     expect(auditResourcePathPlanningDisposition(node('missing-disposition'))).toContainEqual(expect.objectContaining({
       code: 'missing-path-disposition',
@@ -562,7 +665,26 @@ describe('resource node registry', () => {
     ]));
     expect(auditResourcePathPlanningDisposition(node('supporting-citation-disposition'))).toEqual([]);
     expect(auditResourcePathPlanningDisposition(node('evidence-producing-disposition'))).toEqual([]);
+    expect(auditResourcePathPlanningDisposition(node('evidence-producing-without-instrumentation'))).toContainEqual(expect.objectContaining({
+      code: 'missing-evidence-instrumentation',
+    }));
     expect(auditResourcePathPlanningDisposition(node('embedded-without-parent'))).toContainEqual(expect.objectContaining({
+      code: 'missing-parent-planning-unit',
+    }));
+    expect(auditResourcePathPlanningDisposition(
+      node('embedded-with-valid-parent'),
+      { nodesById },
+    )).toEqual([]);
+    expect(auditResourcePathPlanningDisposition(
+      node('embedded-with-missing-parent'),
+      { nodesById },
+    )).toContainEqual(expect.objectContaining({
+      code: 'missing-parent-planning-unit',
+    }));
+    expect(auditResourcePathPlanningDisposition(
+      node('embedded-with-non-plannable-parent'),
+      { nodesById },
+    )).toContainEqual(expect.objectContaining({
       code: 'missing-parent-planning-unit',
     }));
     expect(auditResourcePathPlanningDisposition(node('excluded-without-rationale'))).toContainEqual(expect.objectContaining({

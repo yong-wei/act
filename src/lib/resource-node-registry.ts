@@ -1131,7 +1131,14 @@ export function auditResourceNode(
   };
 }
 
-export function auditResourcePathPlanningDisposition(node: ResourceNode): ResourceNodeAuditIssue[] {
+export interface ResourcePathPlanningDispositionAuditContext {
+  nodesById?: ReadonlyMap<string, ResourceNode>;
+}
+
+export function auditResourcePathPlanningDisposition(
+  node: ResourceNode,
+  context: ResourcePathPlanningDispositionAuditContext = {},
+): ResourceNodeAuditIssue[] {
   const disposition = node.planningMetadata.pathDisposition;
   if (!disposition) {
     return [{
@@ -1157,11 +1164,30 @@ export function auditResourcePathPlanningDisposition(node: ResourceNode): Resour
       message: 'Excluded resources require reviewer-visible rationale and source/version reference.',
     });
   }
-  if (disposition.kind === 'embedded-asset' && !disposition.parentResourceNodeId) {
+  if (disposition.kind === 'embedded-asset') {
+    const parentResourceNodeId = disposition.parentResourceNodeId;
+    if (!parentResourceNodeId) {
+      issues.push({
+        code: 'missing-parent-planning-unit',
+        severity: 'warning',
+        message: 'Embedded assets require a parent ResourceNode or PlanningUnit link.',
+      });
+    } else if (context.nodesById) {
+      const parent = context.nodesById.get(parentResourceNodeId);
+      if (!parent || !buildResourceSemanticProjection(parent).planningUnit) {
+        issues.push({
+          code: 'missing-parent-planning-unit',
+          severity: 'warning',
+          message: 'Embedded assets require parentResourceNodeId to reference an existing path-plannable ResourceNode.',
+        });
+      }
+    }
+  }
+  if (disposition.kind === 'evidence-producing' && node.planningMetadata.evidenceInstrumentation.length === 0) {
     issues.push({
-      code: 'missing-parent-planning-unit',
+      code: 'missing-evidence-instrumentation',
       severity: 'warning',
-      message: 'Embedded assets require a parent ResourceNode or PlanningUnit link.',
+      message: 'Evidence-producing resources require learner evidence instrumentation.',
     });
   }
   if (disposition.kind === 'path-plannable') {
