@@ -27,11 +27,9 @@ type LearningGoalResourceBaselineMatrix = {
       qualityObjectiveIds?: string[];
     };
     targetGraphNodeIds?: string[];
-    categories?: {
-      remediation?: {
+    categories?: Record<string, {
         pathEligibleResourceIds?: string[];
-      };
-    };
+    }>;
   }>;
 };
 
@@ -54,7 +52,7 @@ async function loadRegisteredSemanticIds() {
     ])),
     graphNodeIds: uniqueSorted(rows.flatMap((row) => row.targetGraphNodeIds ?? [])),
     remediationResourceNodeIds: uniqueSorted(rows.flatMap((row) =>
-      row.categories?.remediation?.pathEligibleResourceIds ?? [],
+      Object.values(row.categories ?? {}).flatMap((category) => category.pathEligibleResourceIds ?? []),
     )),
   };
 }

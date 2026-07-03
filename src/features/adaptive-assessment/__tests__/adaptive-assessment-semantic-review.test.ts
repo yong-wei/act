@@ -175,6 +175,25 @@ describe('adaptive assessment semantic review workflow', () => {
     );
   });
 
+  it('accepts remediation refs when the governed baseline marks them path eligible', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      knownRemediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
+      decisions: [baseDecision(item)],
+    });
+
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.pathEligibleItemCount).toBe(0);
+    expect(report.issues.map((issue) => issue.reason)).not.toContain(
+      'invalid-remediation-ref:registry:lesson09-correction-precheck',
+    );
+  });
+
   it('keeps stale K/A/Q human review overlays visible as stale decisions', async () => {
     const sources = await loadAdaptiveAssessmentCatalogSources();
     const staleReview = sources.kaqReviewedItems.find((item) => item.questionId === 'preset-q-01');
