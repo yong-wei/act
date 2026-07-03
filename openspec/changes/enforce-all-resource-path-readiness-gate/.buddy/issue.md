@@ -15,7 +15,7 @@ depends_on:
   - add-assessment-item-semantic-review-workflow
   - complete-learning-goal-checkpoint-question-sets
   - wire-adaptive-engine-to-reviewed-item-catalog
-parent_issue:
+parent_issue: 786
 blocked_by:
   - define-resource-path-disposition-governance
   - complete-core-teaching-resource-path-readiness

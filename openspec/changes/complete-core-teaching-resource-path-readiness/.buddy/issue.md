@@ -9,7 +9,7 @@ required_branch:
 depends_on:
   - define-resource-path-disposition-governance
   - complete-graph-resource-semantic-coverage
-parent_issue:
+parent_issue: 786
 blocked_by:
   - define-resource-path-disposition-governance
   - complete-graph-resource-semantic-coverage
