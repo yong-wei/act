@@ -260,6 +260,54 @@ describe('graph center payload service', () => {
     expect(payload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toEqual(['registry:linked-ready']);
   });
 
+  it('keeps linked but path-ineligible SAR resource candidates reviewable', () => {
+    const resourceRegistry = buildResourceNodeRegistry({
+      teachingResources: [
+        {
+          id: 'path-blocked-sar-resource',
+          title: 'Path blocked SAR resource',
+          type: 'TEXT',
+          knowledgeNodeIds: ['反馈_1_1'],
+        },
+      ],
+    });
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:feedback-loop',
+      viewerRole: 'TEACHER',
+      resourceRegistry,
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-path-blocked-sar-resource',
+          knowledgeNodeRefs: ['反馈_1_1'],
+          resourceId: 'resource:teaching-resource:path-blocked-sar-resource',
+        }),
+      ],
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-1',
+      },
+    });
+    const associated = payload.selectedNode?.associatedEvidence;
+    const resourceNodeSuggestion = associated?.resourceGapSuggestions.find((suggestion) =>
+      suggestion.refType === 'resource-node' && suggestion.ref.includes('path-blocked-sar-resource')
+    );
+
+    expect(payload.selectedNode?.resourceCoverage.linkedResourceIds).toEqual(['teaching-resource:path-blocked-sar-resource']);
+    expect(payload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toEqual([]);
+    expect(payload.selectedNode?.resourceCoverage.missingCoverageTypes).toContain('path-eligible-resource');
+    expect(resourceNodeSuggestion).toEqual(expect.objectContaining({
+      refType: 'resource-node',
+      suggestedForMissingCoverageTypes: expect.arrayContaining(['path-eligible-resource']),
+      review: expect.objectContaining({
+        availableActions: expect.arrayContaining(['accept']),
+        auditPayload: expect.objectContaining({
+          sourceRefs: ['path-blocked-sar-resource'],
+        }),
+      }),
+    }));
+  });
+
   it('keeps RAG-indexed, citation-ready, and verified-citation counts distinct', () => {
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',

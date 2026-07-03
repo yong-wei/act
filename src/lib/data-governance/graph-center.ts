@@ -946,13 +946,17 @@ function buildSarResourceGapSuggestions(input: {
 }): GraphCenterSarResourceGapSuggestion[] {
   if (input.missingCoverageTypes.length === 0) return [];
   const visibleExpansion = input.visibleExpansion ?? input.expansion;
+  const preserveLinkedPathCandidates = input.missingCoverageTypes.includes('path-eligible-resource');
   const refs: Array<{ ref: string; refType: GraphCenterSarResourceGapSuggestion['refType'] }> = [
     ...input.expansion.candidateRefs.resourceNodeIds
       .map((ref, index) => ({
         rawRef: ref,
         visibleRef: visibleExpansion.candidateRefs.resourceNodeIds[index] ?? 'resource-candidate:redacted',
       }))
-      .filter(({ rawRef }) => !input.linkedResourceIdSet.has(rawRef) && !input.pathEligibleResourceIdSet.has(rawRef))
+      .filter(({ rawRef }) => {
+        if (input.pathEligibleResourceIdSet.has(rawRef)) return false;
+        return preserveLinkedPathCandidates || !input.linkedResourceIdSet.has(rawRef);
+      })
       .map(({ visibleRef }) => ({ ref: visibleRef, refType: 'resource-node' as const })),
     ...visibleExpansion.candidateRefs.retrievalChunkIds.map((ref) => ({ ref, refType: 'retrieval-chunk' as const })),
     ...visibleExpansion.candidateRefs.citationTargetIds.map((ref) => ({ ref, refType: 'citation-target' as const })),
