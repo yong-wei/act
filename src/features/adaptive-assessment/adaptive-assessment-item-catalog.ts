@@ -164,7 +164,7 @@ type IcourseObjectiveBankRecord = {
   source_bundle?: unknown;
 };
 
-type KaqReviewedItemRecord = {
+export type KaqReviewedItemRecord = {
   questionId?: string;
   metadata?: {
     immutableContentHash?: string;
@@ -180,8 +180,13 @@ type KaqReviewedItemRecord = {
     remediationResourceNodeIds?: string[];
     review?: {
       state?: string;
+      reviewerId?: string;
+      reviewerRole?: string;
+      reviewedAt?: string;
+      reviewBatchId?: string;
       sourceHash?: string;
       metadataVersionRef?: string;
+      staleInvalidationRules?: string[];
     };
     versionRefs?: Record<string, string>;
   };
