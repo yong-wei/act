@@ -119,6 +119,10 @@ export interface StudentLearningIntentNavigationGroup extends StudentLearningInt
   entries: PlatformRoleNavigationItem[];
 }
 
+export interface StudentLearningIntentNavigationOptions {
+  includeProfileGroup?: boolean;
+}
+
 export interface CommercialStudentEntryIntentGroup {
   intent: CommercialStudentEntryIntent;
   label: string;
@@ -422,12 +426,18 @@ export const PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS = [
 ] as const;
 
 export const STUDENT_CORE_ENTRY_IDS = [
-  'student-simulations',
   'student-knowledge',
-  'student-arena',
-  'student-control-workbench',
-  'student-adaptive-learning',
   'student-interactive-learning',
+  'student-adaptive-learning',
+  'student-arena',
+  'student-simulations',
+  'student-control-workbench',
+] as const;
+
+export const STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS = [
+  'public-home',
+  ...STUDENT_CORE_ENTRY_IDS,
+  'student-profile',
 ] as const;
 
 export const PLATFORM_ENTRYPOINT_SMOKE_ROUTES = [
@@ -2035,7 +2045,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '虚拟仿真',
     href: '/simulations',
     role: 'student',
-    order: 100,
+    order: 150,
     group: 'student-core',
     description: '进入船舶与海工对象仿真任务，观察控制响应和指标变化。',
     iconKey: 'ship',
@@ -2059,7 +2069,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '竞技场',
     href: '/arena',
     role: 'student',
-    order: 120,
+    order: 140,
     group: 'student-core',
     description: '进入挑战详情、公开实验、正式提交和榜单比较。',
     iconKey: 'arena',
@@ -2071,7 +2081,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '控制工作台',
     href: '/interactive-learning/control-workbench',
     role: 'student',
-    order: 130,
+    order: 160,
     group: 'student-core',
     description: '在统一工作台中连接对象、模型、控制器和响应图。',
     iconKey: 'workbench',
@@ -2084,7 +2094,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '学习路径',
     href: '/assessment/adaptive-practice',
     role: 'student',
-    order: 140,
+    order: 130,
     group: 'student-core',
     description: '生成、比较并执行个性化学习路径。',
     iconKey: 'adaptive',
@@ -2101,7 +2111,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '互动学习',
     href: '/interactive-learning',
     role: 'student',
-    order: 150,
+    order: 120,
     group: 'student-core',
     description: '进入跨域探索、互动课程和章节互动组件。',
     iconKey: 'interactive',
@@ -2113,7 +2123,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '个人中心',
     href: '/profile',
     role: 'student',
-    order: 160,
+    order: 170,
     group: 'role-cockpit',
     description: '查看能力画像、活动轨迹、成长建议和学习档案。',
     iconKey: 'profile',
@@ -2408,6 +2418,11 @@ export function resolvePlatformRouteInventory(href: string): PlatformPrimaryRout
   ));
 }
 
+function isProfileRouteFamilyHref(href: string) {
+  const path = normalizeInventoryHref(href);
+  return path === '/profile' || path.startsWith('/profile/');
+}
+
 export function getPlatformRouteNavigation(
   href: string,
   role: PlatformRoleNavigationAudience,
@@ -2423,15 +2438,17 @@ export function getPlatformRouteNavigation(
     return true;
   };
   if (!route) return navigation;
-  if (route.navigationLayers.includes('global-product') && route.navigationLayers.includes('role-cockpit')) {
+  const usesStudentPrimaryNavigation = role === 'student' && isProfileRouteFamilyHref(route.href);
+  if (
+    route.navigationLayers.includes('global-product')
+    && route.navigationLayers.includes('role-cockpit')
+    && !usesStudentPrimaryNavigation
+  ) {
     return navigation;
   }
-  if (route.navigationLayers.includes('role-cockpit')) {
-    return navigation.filter((entry) => entry.group === 'role-cockpit' || entry.group === 'teacher-cockpit' || entry.group === 'admin-cockpit');
-  }
-  if (route.navigationLayers.includes('global-product')) {
+  if (route.navigationLayers.includes('global-product') || usesStudentPrimaryNavigation) {
     const globalEntries = PLATFORM_ROLE_NAVIGATION_GROUPS.filter((entry) => (
-      (entry.group === 'public' || entry.group === 'student-core')
+      (entry.group === 'public' || entry.group === 'student-core' || entry.id === 'student-profile')
       && (
         entry.role === role
         || entry.role === 'all'
@@ -2446,7 +2463,20 @@ export function getPlatformRouteNavigation(
         byHref.set(entry.href, entry);
       }
     }
-    return Array.from(byHref.values());
+    const dedupedEntries = Array.from(byHref.values());
+    if (role === 'student') {
+      const canonicalOrder = new Map(STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS.map((entryId, index) => [entryId, index]));
+      return dedupedEntries
+        .filter((entry) => canonicalOrder.has(entry.id as (typeof STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS)[number]))
+        .sort((left, right) => (
+          canonicalOrder.get(left.id as (typeof STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS)[number])!
+          - canonicalOrder.get(right.id as (typeof STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS)[number])!
+        ));
+    }
+    return dedupedEntries;
+  }
+  if (route.navigationLayers.includes('role-cockpit')) {
+    return navigation.filter((entry) => entry.group === 'role-cockpit' || entry.group === 'teacher-cockpit' || entry.group === 'admin-cockpit');
   }
   return [];
 }
@@ -2456,9 +2486,14 @@ export function getStudentCoreNavigationEntries(): PlatformRoleNavigationItem[] 
   return getPlatformRoleNavigation('student').filter((entry) => coreIds.has(entry.id));
 }
 
-export function getStudentLearningIntentNavigationGroups(): StudentLearningIntentNavigationGroup[] {
+export function getStudentLearningIntentNavigationGroups(
+  options: StudentLearningIntentNavigationOptions = {},
+): StudentLearningIntentNavigationGroup[] {
   const entriesById = new Map(getPlatformRoleNavigation('student').map((entry) => [entry.id, entry]));
-  return STUDENT_LEARNING_INTENT_GROUPS.map((group) => ({
+  const groups = options.includeProfileGroup
+    ? STUDENT_LEARNING_INTENT_GROUPS
+    : STUDENT_LEARNING_INTENT_GROUPS.filter((group) => group.intent !== 'review-profile');
+  return groups.map((group) => ({
     ...group,
     entries: group.entryIds.flatMap((entryId) => {
       const entry = entriesById.get(entryId);

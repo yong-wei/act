@@ -46,7 +46,12 @@ import {
   resolveTeacherOperationsNavHref,
 } from '@/features/teacher/teacher-operations-nav';
 import { resolveTeacherOperationsClassHref } from '@/features/teacher/teacher-dashboard';
-import { PLATFORM_PRIMARY_ROUTE_INVENTORY, resolvePlatformRouteInventory } from '@/lib/platform-role-navigation';
+import {
+  PLATFORM_PRIMARY_ROUTE_INVENTORY,
+  STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS,
+  getPlatformRouteNavigation,
+  resolvePlatformRouteInventory,
+} from '@/lib/platform-role-navigation';
 
 const rootDir = path.resolve(__dirname, '../../..');
 
@@ -57,6 +62,15 @@ interface ReactElementLike {
 
 function readSource(relativePath: string) {
   return readFileSync(path.join(rootDir, relativePath), 'utf8');
+}
+
+function expectNeedlesInOrder(source: string, needles: readonly string[]) {
+  let previousIndex = -1;
+  for (const needle of needles) {
+    const nextIndex = source.indexOf(needle);
+    expect(nextIndex).toBeGreaterThan(previousIndex);
+    previousIndex = nextIndex;
+  }
 }
 
 function listSourceFiles(relativeDir: string): string[] {
@@ -1088,6 +1102,62 @@ describe('platform UI contracts', () => {
     expect(collapsedSidebarMarkup).toContain('data-platform-navigation-icon="knowledge"');
     expect(collapsedSidebarMarkup).not.toContain('知识资源知');
     expect(collapsedSidebarMarkup).not.toContain('>知</a>');
+  });
+
+  it('keeps student primary navigation in canonical order across AppShell states', () => {
+    const expectedLabels = ['首页', '知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台', '个人中心'];
+    const representativeRoutes = [
+      '/knowledge',
+      '/interactive-learning',
+      '/assessment/adaptive-practice',
+      '/arena',
+      '/simulations',
+      '/interactive-learning/control-workbench',
+      '/profile',
+      '/profile/growth',
+      '/profile/evidence',
+      '/profile/portfolio',
+    ];
+
+    for (const route of representativeRoutes) {
+      const navigation = getPlatformRouteNavigation(route, 'student');
+      expect(navigation.map((entry) => entry.id)).toEqual([...STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS]);
+      expect(navigation.map((entry) => entry.label)).toEqual(expectedLabels);
+    }
+    const teacherProfileNavigationIds = getPlatformRouteNavigation('/profile/growth', 'teacher').map((entry) => entry.id);
+    const adminProfileNavigationIds = getPlatformRouteNavigation('/profile/evidence', 'admin').map((entry) => entry.id);
+    expect(teacherProfileNavigationIds[0]).toBe('teacher-cockpit');
+    expect(adminProfileNavigationIds[0]).toBe('admin-cockpit');
+    expect(teacherProfileNavigationIds).not.toEqual([...STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS]);
+    expect(adminProfileNavigationIds).not.toEqual([...STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS]);
+    expect(teacherProfileNavigationIds).not.toContain('student-profile');
+    expect(adminProfileNavigationIds).not.toContain('student-profile');
+
+    const navigation = getPlatformRouteNavigation('/assessment/adaptive-practice', 'student');
+    const expandedSidebar = asElement(
+      AppSidebar({
+        activeHref: '/assessment/adaptive-practice',
+        collapsed: false,
+        navigation,
+      }),
+    );
+    const collapsedSidebar = asElement(
+      AppSidebar({
+        activeHref: '/assessment/adaptive-practice',
+        collapsed: true,
+        navigation,
+      }),
+    );
+    const expandedMarkup = renderToStaticMarkup(expandedSidebar as never);
+    const collapsedMarkup = renderToStaticMarkup(collapsedSidebar as never);
+
+    expect(expandedSidebar.props?.['data-shell-navigation-state']).toBe('expanded');
+    expect(collapsedSidebar.props?.['data-shell-navigation-state']).toBe('collapsed');
+    expectNeedlesInOrder(expandedMarkup, expectedLabels.map((label) => `>${label}</span>`));
+    expectNeedlesInOrder(collapsedMarkup, expectedLabels.map((label) => `aria-label="${label}"`));
+    expect(expandedMarkup).toMatch(/aria-current="page"[^>]+href="\/assessment\/adaptive-practice"/);
+    expect(collapsedMarkup).toMatch(/aria-current="page"[^>]+href="\/assessment\/adaptive-practice"/);
+    expect(collapsedMarkup).toContain('title="个人中心"');
   });
 
   it('persists AppShell desktop navigation preference with a collapsed fallback', () => {
