@@ -148,12 +148,32 @@ describe('adaptive assessment item catalog', () => {
         cognitiveLevel: 'apply',
       },
       questionRefs: {
-        answerKey: ['A'],
+        answerKey: expect.any(Array),
         choiceMode: 'single',
       },
     });
+    const correctOption = authoredItem?.questionRefs.options.find((option) => option.isCorrect);
+    expect(authoredItem?.questionRefs.answerKey).toEqual(correctOption ? [correctOption.key] : []);
     expect(authoredItem?.allowedStages).not.toContain('remediation');
     expect(authoredItem?.contentHash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('distributes authored checkpoint correct option positions across stable answer keys', () => {
+    const artifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: undefined,
+    });
+    const authoredItems = artifacts.items.filter((item) => item.sourceFamily === 'checkpoint-authored-question');
+    const answerKeys = new Set<string>();
+
+    for (const item of authoredItems) {
+      const correctOptions = item.questionRefs.options.filter((option) => option.isCorrect);
+      expect(correctOptions).toHaveLength(1);
+      expect(item.questionRefs.answerKey).toEqual([correctOptions[0].key]);
+      answerKeys.add(correctOptions[0].key);
+    }
+
+    expect(Array.from(answerKeys).sort()).toEqual(['A', 'B', 'C']);
   });
 
   it('does not trust stale K/A/Q review metadata for path eligibility', async () => {

@@ -53,6 +53,9 @@ interface AuthoredQuestionSeed {
   misconception: string;
 }
 
+const OPTION_KEYS = ['A', 'B', 'C'] as const;
+type OptionKey = typeof OPTION_KEYS[number];
+
 function seed(
   stage: AuthoredStage,
   stem: string,
@@ -315,39 +318,64 @@ function stagePurpose(stage: AuthoredStage): CheckpointAuthoredQuestionRecord['s
   return stage;
 }
 
+function stableOptionIndex(seedValue: string): number {
+  let hash = 0;
+  for (const char of seedValue) {
+    hash = (hash * 31 + char.charCodeAt(0)) % 9973;
+  }
+  return hash % OPTION_KEYS.length;
+}
+
+function authoredOptions(
+  id: string,
+  seedItem: AuthoredQuestionSeed,
+): {
+  options: CheckpointAuthoredQuestionRecord['options'];
+  answerKeys: CheckpointAuthoredQuestionRecord['answerKeys'];
+} {
+  const correctKey = OPTION_KEYS[stableOptionIndex(`${id}:${seedItem.stem}`)];
+  const distractorKeys = OPTION_KEYS.filter((key) => key !== correctKey);
+  const byKey = new Map<OptionKey, CheckpointAuthoredQuestionRecord['options'][number]>([
+    [correctKey, {
+      key: correctKey,
+      text: seedItem.correct,
+      isCorrect: true,
+      explanation: seedItem.explanation,
+    }],
+    [distractorKeys[0], {
+      key: distractorKeys[0],
+      text: seedItem.distractors[0],
+      isCorrect: false,
+      explanation: `该选项对应误区：${seedItem.misconception}。`,
+    }],
+    [distractorKeys[1], {
+      key: distractorKeys[1],
+      text: seedItem.distractors[1],
+      isCorrect: false,
+      explanation: '该选项缺少本 LearningGoal 要求的证据或边界判断。',
+    }],
+  ]);
+  return {
+    options: OPTION_KEYS.map((key) => byKey.get(key)!),
+    answerKeys: [correctKey],
+  };
+}
+
 function authoredQuestion(
   target: GoalReviewTarget,
   seedItem: AuthoredQuestionSeed,
   ordinal: number,
 ): CheckpointAuthoredQuestionRecord {
   const id = `${target.id}-${seedItem.stage}-${String(ordinal).padStart(2, '0')}`;
+  const { options, answerKeys } = authoredOptions(id, seedItem);
   return {
     id,
     learningGoalId: target.id,
     learningGoalTitle: target.title,
     stagePurpose: stagePurpose(seedItem.stage),
     stem: seedItem.stem,
-    options: [
-      {
-        key: 'A',
-        text: seedItem.correct,
-        isCorrect: true,
-        explanation: seedItem.explanation,
-      },
-      {
-        key: 'B',
-        text: seedItem.distractors[0],
-        isCorrect: false,
-        explanation: `该选项对应误区：${seedItem.misconception}。`,
-      },
-      {
-        key: 'C',
-        text: seedItem.distractors[1],
-        isCorrect: false,
-        explanation: '该选项缺少本 LearningGoal 要求的证据或边界判断。',
-      },
-    ],
-    answerKeys: ['A'],
+    options,
+    answerKeys,
     explanation: seedItem.explanation,
     difficulty: seedItem.difficulty,
     cognitiveLevel: seedItem.cognitiveLevel,
