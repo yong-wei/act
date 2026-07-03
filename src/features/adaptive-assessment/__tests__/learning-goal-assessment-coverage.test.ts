@@ -221,4 +221,91 @@ describe('LearningGoal assessment coverage', () => {
       reviewedPathEligibleItemCount: 0,
     });
   });
+
+  it('does not count globally known semantic refs outside the selected LearningGoal boundary', async () => {
+    const sources = await loadAdaptiveAssessmentCatalogSources();
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: PRESET_QUESTIONS,
+      acqStaticQuestions: sources.acqStaticQuestions,
+      icourseObjectiveBankItems: sources.icourseObjectiveBankItems,
+      icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
+      kaqReviewedItems: sources.kaqReviewedItems,
+    });
+    const validDecision = buildCheckpointAuthoredSemanticReviewDecisions(catalog.items)
+      .find((decision) => decision.selectedLearningGoalIds.includes(goals()[0].id));
+    expect(validDecision).toBeDefined();
+    const item = catalog.items.find((candidate) => candidate.catalogItemId === validDecision!.catalogItemId);
+    expect(item).toBeDefined();
+
+    const knownIds = {
+      knownLearningGoalIds: [goals()[0].id],
+      knownKaqObjectiveIds: [
+        ...item!.semanticRefs.kaqObjectiveIds,
+        'knowledge:other-goal-known-objective',
+      ],
+      knownGraphNodeIds: [
+        ...item!.semanticRefs.graphNodeIds,
+        'kn:other-goal-known-node',
+      ],
+      knownRemediationResourceNodeIds: [
+        ...item!.semanticRefs.remediationResourceNodeIds,
+        'registry:other-goal-known-remediation',
+      ],
+    };
+    const crossGoalMutations = [
+      {
+        field: 'selectedKaqObjectiveIds',
+        decision: {
+          ...validDecision!,
+          selectedKaqObjectiveIds: ['knowledge:other-goal-known-objective'],
+        },
+      },
+      {
+        field: 'selectedGraphNodeIds',
+        decision: {
+          ...validDecision!,
+          selectedGraphNodeIds: ['kn:other-goal-known-node'],
+        },
+      },
+      {
+        field: 'remediationRefs',
+        decision: {
+          ...validDecision!,
+          remediationRefs: ['registry:other-goal-known-remediation'],
+        },
+      },
+    ];
+
+    for (const mutation of crossGoalMutations) {
+      const globallyKnownArtifacts = buildLearningGoalAssessmentCoverageArtifacts({
+        items: [item!],
+        decisions: [mutation.decision],
+        goals: [goals()[0]],
+        ...knownIds,
+        generatedAt: '2026-07-03T00:00:00.000Z',
+      });
+      expect(globallyKnownArtifacts.matrix.rows[0].reviewedPathEligibleItemCount).toBe(1);
+
+      const artifacts = buildLearningGoalAssessmentCoverageArtifacts({
+        items: [item!],
+        decisions: [mutation.decision],
+        goals: [{
+          ...goals()[0],
+          semanticBoundary: {
+            kaqObjectiveIds: item!.semanticRefs.kaqObjectiveIds,
+            graphNodeIds: item!.semanticRefs.graphNodeIds,
+            remediationResourceNodeIds: item!.semanticRefs.remediationResourceNodeIds,
+          },
+        }],
+        ...knownIds,
+        generatedAt: '2026-07-03T00:00:00.000Z',
+      });
+
+      expect(artifacts.matrix.rows[0].stageCoverage.flatMap((stage) => stage.countedCatalogItemIds), mutation.field).toEqual([]);
+      expect(artifacts.matrix.rows[0], mutation.field).toMatchObject({
+        assessmentCoverageState: 'limited',
+        reviewedPathEligibleItemCount: 0,
+      });
+    }
+  });
 });

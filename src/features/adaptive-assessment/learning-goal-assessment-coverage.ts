@@ -24,6 +24,11 @@ export interface LearningGoalAssessmentCoverageGoal {
   title: string;
   terminalValidationRequired: boolean;
   acceptedTerminalEvidenceTypes: string[];
+  semanticBoundary?: {
+    kaqObjectiveIds?: string[];
+    graphNodeIds?: string[];
+    remediationResourceNodeIds?: string[];
+  };
 }
 
 export interface LearningGoalAssessmentCoverageStageRow {
@@ -125,6 +130,20 @@ function isCountableReviewedPathEligibleItem(
   );
 }
 
+function decisionMatchesGoalBoundary(
+  decision: AssessmentItemSemanticReviewDecision,
+  goal: LearningGoalAssessmentCoverageGoal,
+): boolean {
+  const boundary = goal.semanticBoundary;
+  if (!boundary) return true;
+  const kaqObjectiveIds = new Set(boundary.kaqObjectiveIds ?? []);
+  const graphNodeIds = new Set(boundary.graphNodeIds ?? []);
+  const remediationResourceNodeIds = new Set(boundary.remediationResourceNodeIds ?? []);
+  return decision.selectedKaqObjectiveIds.every((id) => kaqObjectiveIds.has(id))
+    && decision.selectedGraphNodeIds.every((id) => graphNodeIds.has(id))
+    && decision.remediationRefs.every((id) => remediationResourceNodeIds.has(id));
+}
+
 function itemCountsForStage(
   entry: CountableAssessmentItem,
   stage: LearningGoalAssessmentStage,
@@ -184,6 +203,7 @@ export function buildLearningGoalAssessmentCoverageArtifacts(input: {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
   const itemsById = new Map(input.items.map((item) => [item.catalogItemId, item]));
   const countableByGoal = new Map<string, CountableAssessmentItem[]>();
+  const goalsById = new Map(input.goals.map((goal) => [goal.id, goal]));
   const knownIds: SemanticReviewKnownIds = {
     knownLearningGoalIds: input.knownLearningGoalIds,
     knownKaqObjectiveIds: input.knownKaqObjectiveIds,
@@ -194,6 +214,8 @@ export function buildLearningGoalAssessmentCoverageArtifacts(input: {
     const item = itemsById.get(decision.catalogItemId);
     if (!item || !isCountableReviewedPathEligibleItem(item, decision, knownIds)) continue;
     for (const learningGoalId of decision.selectedLearningGoalIds) {
+      const goal = goalsById.get(learningGoalId);
+      if (!goal || !decisionMatchesGoalBoundary(decision, goal)) continue;
       const list = countableByGoal.get(learningGoalId) ?? [];
       list.push({ item, decision });
       countableByGoal.set(learningGoalId, list);

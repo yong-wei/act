@@ -1,6 +1,6 @@
 {
   "artifactVersion": "learning-goal-assessment-coverage.v1",
-  "generatedAt": "2026-07-03T22:06:53.497Z",
+  "generatedAt": "2026-07-03T22:37:19.780Z",
   "batchLearningGoalIds": [
     "control-correction",
     "frequency-response-foundations",
@@ -1025,7 +1025,7 @@
             "registry:arena-cruise-blackbox-workbench",
             "registry:lesson01-feedback-exit-quiz-v1",
             "registry:lesson01-feedback-precheck-v1",
-            "registry:lesson09-correction-precheck"
+            "registry:lesson07-response-explorer"
           ],
           "blockers": [],
           "limitationReasons": []
@@ -1074,7 +1074,7 @@
             "registry:arena-cruise-blackbox-workbench",
             "registry:lesson01-feedback-exit-quiz-v1",
             "registry:lesson01-feedback-precheck-v1",
-            "registry:lesson09-correction-precheck"
+            "registry:lesson07-response-explorer"
           ],
           "blockers": [],
           "limitationReasons": []
@@ -1117,7 +1117,7 @@
             "misconception:time-domain-response-analysis:overshoot-definition-missing"
           ],
           "remediationResourceNodeIds": [
-            "registry:lesson09-correction-precheck"
+            "registry:lesson07-response-explorer"
           ],
           "blockers": [],
           "limitationReasons": []
@@ -1401,9 +1401,9 @@
           "remediationResourceNodeIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
-            "registry:lesson12-frequency-precheck",
             "registry:lesson13-cruise-typhoon-sim",
-            "registry:lesson13-phase-concept-quiz"
+            "registry:lesson13-phase-concept-quiz",
+            "registry:lesson14-margin-tradeoff-lab"
           ],
           "blockers": [],
           "limitationReasons": []
@@ -1461,9 +1461,9 @@
           "remediationResourceNodeIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
-            "registry:lesson12-frequency-precheck",
             "registry:lesson13-cruise-typhoon-sim",
-            "registry:lesson13-phase-concept-quiz"
+            "registry:lesson13-phase-concept-quiz",
+            "registry:lesson14-margin-tradeoff-lab"
           ],
           "blockers": [],
           "limitationReasons": []
@@ -1513,9 +1513,9 @@
           "remediationResourceNodeIds": [
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
-            "registry:lesson12-frequency-precheck",
             "registry:lesson13-cruise-typhoon-sim",
-            "registry:lesson13-phase-concept-quiz"
+            "registry:lesson13-phase-concept-quiz",
+            "registry:lesson14-margin-tradeoff-lab"
           ],
           "blockers": [],
           "limitationReasons": []
@@ -1558,7 +1558,7 @@
             "misconception:stability-margin-frequency-analysis:speed-over-safety"
           ],
           "remediationResourceNodeIds": [
-            "registry:lesson12-frequency-precheck"
+            "registry:lesson14-margin-tradeoff-lab"
           ],
           "blockers": [],
           "limitationReasons": []

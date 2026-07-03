@@ -35,6 +35,7 @@ type LearningGoalResourceBaselineMatrix = {
     };
     targetGraphNodeIds?: string[];
     categories?: Record<string, {
+      resourceIds?: string[];
       pathEligibleResourceIds?: string[];
     }>;
   }>;
@@ -81,6 +82,27 @@ async function loadRegisteredSemanticIds() {
   };
 }
 
+async function loadLearningGoalSemanticBoundaries() {
+  const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
+  return new Map((matrix.rows ?? [])
+    .filter((row): row is Required<Pick<LearningGoalResourceBaselineMatrix['rows'][number], 'learningGoalId'>> & NonNullable<LearningGoalResourceBaselineMatrix['rows'][number]> =>
+      Boolean(row.learningGoalId)
+    )
+    .map((row) => [
+      row.learningGoalId,
+      {
+        kaqObjectiveIds: uniqueSorted([
+          ...(row.objectiveBoundary?.knowledgeObjectiveIds ?? []),
+          ...(row.objectiveBoundary?.capabilityObjectiveIds ?? []),
+          ...(row.objectiveBoundary?.qualityObjectiveIds ?? []),
+        ]),
+        graphNodeIds: uniqueSorted(row.targetGraphNodeIds ?? []),
+        remediationResourceNodeIds: uniqueSorted(Object.values(row.categories ?? {})
+          .flatMap((category) => category.resourceIds ?? [])),
+      },
+    ]));
+}
+
 async function main() {
   const sources = await loadAdaptiveAssessmentCatalogSources();
   const catalog = buildAdaptiveAssessmentItemCatalog({
@@ -96,6 +118,7 @@ async function main() {
       ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
     ],
   );
+  const learningGoalSemanticBoundaries = await loadLearningGoalSemanticBoundaries();
   const goals = FIRST_BATCH_LEARNING_GOAL_IDS.map((goalId) => {
     const definition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId].learningGoal!;
     return {
@@ -103,6 +126,7 @@ async function main() {
       title: definition.title,
       terminalValidationRequired: definition.terminalValidationPolicy.required,
       acceptedTerminalEvidenceTypes: definition.terminalValidationPolicy.acceptedEvidenceTypes,
+      semanticBoundary: learningGoalSemanticBoundaries.get(definition.id),
     };
   });
   const registeredSemanticIds = await loadRegisteredSemanticIds();

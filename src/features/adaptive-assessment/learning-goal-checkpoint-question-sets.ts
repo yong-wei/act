@@ -188,7 +188,7 @@ const GOAL_REVIEW_TARGETS: GoalReviewTarget[] = [
       'cap:autocontrol:interpret-time-frequency-response',
       'qual:autocontrol:evidence-integrity',
     ],
-    remediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
+    remediationResourceNodeIds: ['registry:lesson07-response-explorer'],
     seeds: [
       seed('practice', '阶跃响应首次峰值明显超过稳态值时，应练习读出什么？', '最大超调量和峰值时间。', ['只读稳态误差。', '只看曲线颜色深浅。'], '时域响应分析需要从曲线读出动态指标。', 0.45, 'apply', 'misses-overshoot-metric'),
       seed('practice', '响应进入并保持在允许误差带内，应练习计算什么？', '调节时间。', ['上升时间。', '系统型别。'], '调节时间描述响应最终稳定到指标带的过程。', 0.44, 'apply', 'settling-rise-confusion'),
@@ -242,7 +242,7 @@ const GOAL_REVIEW_TARGETS: GoalReviewTarget[] = [
       'cap:autocontrol:trade-off-engineering-constraints',
       'qual:autocontrol:safety-responsibility',
     ],
-    remediationResourceNodeIds: ['registry:lesson12-frequency-precheck'],
+    remediationResourceNodeIds: ['registry:lesson14-margin-tradeoff-lab'],
     seeds: [
       seed('readiness', '进入稳定裕度学习前，应先能读出哪两个频率点？', '增益穿越频率和相位穿越频率。', ['峰值时间和上升时间。', '采样频率和显示刷新率。'], '稳定裕度建立在穿越频率识别上。', 0.36, 'apply', 'crossing-frequency-missing'),
       seed('practice', '相位裕度为负时，应练习哪项结论？', '闭环稳定风险高，不能只凭低频增益判断安全。', ['相位裕度负值说明响应更快且安全。', '只要幅值裕度大就一定安全。'], '相位裕度直接指向稳定安全边界。', 0.54, 'analyze', 'negative-margin-misread'),
