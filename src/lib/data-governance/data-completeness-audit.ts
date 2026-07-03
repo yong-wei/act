@@ -590,8 +590,8 @@ function buildCorpusProjectionIndex(
         }
       }
     }
-    if (!hasSafeCitationAddress(chunk)) continue;
     if (longform) {
+      if (!hasServerOwnedCitationAddress(chunk)) continue;
       const registeredLongformRefs = longformRefs.filter((ref) => longformSectionRefs.has(ref));
       if (registeredLongformRefs.length === 0) continue;
       for (const ref of registeredLongformRefs) {
@@ -601,6 +601,7 @@ function buildCorpusProjectionIndex(
       longformCorpusChunksWithCitationAddress += 1;
       continue;
     }
+    if (!hasSafeCitationAddress(chunk)) continue;
     for (const ref of normalizedRefs) {
       indexedResourceRefsWithCitationAddress.add(ref);
     }
@@ -631,6 +632,23 @@ function hasSafeCitationAddress(chunk: LearningEvidenceCorpusChunk): boolean {
     chunk.citationAddress.href.trim().length > 0 &&
     isSafeCitationAddress(chunk.citationAddress),
   );
+}
+
+function hasServerOwnedCitationAddress(chunk: LearningEvidenceCorpusChunk): boolean {
+  return hasSafeCitationAddress(chunk) && isSafeServerOwnedAddress(chunk.citationAddress?.href);
+}
+
+function isSafeServerOwnedAddress(href: string | null | undefined): boolean {
+  if (typeof href !== 'string' || !href.startsWith('/') || href.startsWith('//') || href.includes('..')) {
+    return false;
+  }
+  return href === '/knowledge' ||
+    href.startsWith('/knowledge?') ||
+    href.startsWith('/course-runtime/lessons/') ||
+    href.startsWith('/course-runtime/knowledge/') ||
+    href.startsWith('/course-runtime/resources/textbooks/') ||
+    href.startsWith('/interactive-learning/') ||
+    href.startsWith('/learning-paths/');
 }
 
 function applyCorpusCitationReadiness(

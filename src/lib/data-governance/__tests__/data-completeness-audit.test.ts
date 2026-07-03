@@ -295,6 +295,62 @@ describe('data completeness audit', () => {
     expect(unsafeHrefCitationReadiness?.findings).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'retrieval-chunk-not-indexed' }),
     ]));
+
+    const externalHrefReport = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [{
+        ...indexedChunk,
+        id: 'textbook-search:sec-1:chunk-external-href',
+        citationAddress: {
+          ...indexedChunk.citationAddress!,
+          href: 'https://example.com/demo-book/sec-1#chunk-1',
+        },
+      }],
+    });
+    const externalHrefCitationReadiness = externalHrefReport.layers.find((layer) =>
+      layer.id === 'citationReadiness'
+    );
+
+    expect(externalHrefCitationReadiness?.totals).toMatchObject({
+      verifiedCitationTargets: 0,
+      mappedRetrievalChunks: 0,
+      longformSections: 1,
+      mappedLongformSections: 0,
+      longformCorpusChunks: 1,
+      mappedLongformCorpusChunks: 0,
+      corpusChunksMissingCitationAddress: 0,
+    });
+    expect(externalHrefCitationReadiness?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'retrieval-chunk-not-indexed' }),
+    ]));
+
+    const genericInternalHrefReport = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [{
+        ...indexedChunk,
+        id: 'textbook-search:sec-1:chunk-generic-internal-href',
+        citationAddress: {
+          ...indexedChunk.citationAddress!,
+          href: '/not-course-runtime/demo-book/sec-1#chunk-1',
+        },
+      }],
+    });
+    const genericInternalHrefCitationReadiness = genericInternalHrefReport.layers.find((layer) =>
+      layer.id === 'citationReadiness'
+    );
+
+    expect(genericInternalHrefCitationReadiness?.totals).toMatchObject({
+      verifiedCitationTargets: 0,
+      mappedRetrievalChunks: 0,
+      longformSections: 1,
+      mappedLongformSections: 0,
+      longformCorpusChunks: 1,
+      mappedLongformCorpusChunks: 0,
+      corpusChunksMissingCitationAddress: 0,
+    });
+    expect(genericInternalHrefCitationReadiness?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'retrieval-chunk-not-indexed' }),
+    ]));
   });
 
   it('uses registered long-form sections as citation readiness denominators', () => {
