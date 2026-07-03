@@ -210,10 +210,9 @@ describe('data completeness audit', () => {
       mappedLongformCorpusChunks: 1,
       corpusChunksMissingCitationAddress: 0,
     });
-    expect(citationReadiness?.findings).not.toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'retrieval-chunk-not-indexed' }),
-      expect.objectContaining({ id: 'resolvable' }),
-    ]));
+    const indexedFindingIds = citationReadiness?.findings.map((finding) => finding.id) ?? [];
+    expect(indexedFindingIds).not.toContain('retrieval-chunk-not-indexed');
+    expect(indexedFindingIds).not.toContain('resolvable');
 
     const missingAddressReport = buildDataCompletenessAuditReport({
       resourceRegistry: registry,
