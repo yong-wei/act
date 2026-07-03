@@ -107,12 +107,15 @@ describe('platform entrypoint smoke contracts', () => {
       readSource('src/app/assessment/adaptive-practice/page.tsx'),
     ];
     const courseCatalogSource = readSource('src/app/interactive-learning/courses/page.tsx');
+    const arenaShellSource = readSource('src/features/arena/arena-page-shell.tsx');
 
     for (const source of routeSources) {
       expect(source).toContain('getCommercialStudentEntryIntentGroups');
       expect(source).toContain('data-commercial-student-entry-route');
       expect(source).toContain('data-commercial-entry-intent');
     }
+    expect(arenaShellSource).toContain("getPlatformRouteNavigation('/arena', 'student')");
+    expect(arenaShellSource).not.toContain('getStudentLearningIntentNavigationGroups().flatMap');
     expect(routeSources[2]).toContain('resolveControlCorrectionIntent');
     expect(routeSources[2]).toContain("routeIntent === 'contextual-recommendation'");
     expect(routeSources[2]).toContain('data-learner-record-surface={learnerDataShell.archetype}');

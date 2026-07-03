@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { User } from 'lucide-react';
 
 import { AppShell, type AppShellRouteMetadata } from '@/components/platform/app-shell';
-import { getStudentLearningIntentNavigationGroups } from '@/lib/platform-role-navigation';
+import { getPlatformRouteNavigation } from '@/lib/platform-role-navigation';
 
 interface ArenaBreadcrumb {
   label: string;
@@ -21,7 +21,7 @@ interface ArenaPageShellProps {
   children: ReactNode;
 }
 
-const projectEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries);
+const projectEntries = getPlatformRouteNavigation('/arena', 'student');
 
 const arenaRouteMetadata: AppShellRouteMetadata = {
   frame: 'mission-workspace',
