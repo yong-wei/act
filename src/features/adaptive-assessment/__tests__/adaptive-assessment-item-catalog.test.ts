@@ -418,4 +418,61 @@ describe('adaptive assessment item catalog', () => {
     expect(first?.contentHash).not.toBe(second?.contentHash);
     expect(first?.lineage.sourceHash).not.toBe(second?.lineage.sourceHash);
   });
+
+  it('changes checkpoint content hashes when coverage semantic fields change', () => {
+    const baseRecord: CheckpointAuthoredQuestionRecord = {
+      id: 'checkpoint-semantic-hash-1',
+      learningGoalId: 'control-correction',
+      learningGoalTitle: '控制系统校正设计',
+      stagePurpose: 'checkpoint',
+      stem: '校正设计完成后，哪一项最适合作为检查点题？',
+      options: [
+        { key: 'A', text: '检查相位裕度与稳态误差是否同时满足要求', isCorrect: true, explanation: '检查点题应验证设计指标是否闭环满足。' },
+        { key: 'B', text: '只观察开环增益是否最大', isCorrect: false, explanation: '开环增益不是完整校正目标。' },
+      ],
+      answerKeys: ['A'],
+      explanation: '校正设计检查点需要围绕闭环性能指标进行验证。',
+      difficulty: 0.55,
+      cognitiveLevel: 'analyze',
+      kaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
+      graphNodeIds: ['kn:autocontrol:controller-correction'],
+      knowledgeTags: ['controller-correction'],
+      misconceptionTags: ['open-loop-gain-only'],
+      remediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
+      reviewedAt: '2026-07-03T00:00:00.000Z',
+      reviewerId: 'reviewer:checkpoint-content',
+      reviewBatchId: 'learning-goal-checkpoint-question-sets.v1',
+      sourceRef: 'unit-test:checkpoint-semantic-hash-1',
+    };
+    const baseArtifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: [baseRecord],
+      kaqReviewedItems: [],
+    });
+    const base = baseArtifacts.items.find((item) => item.sourceFamily === 'checkpoint-authored-question');
+    const semanticChanges: Array<Partial<CheckpointAuthoredQuestionRecord>> = [
+      { difficulty: 0.7 },
+      { cognitiveLevel: 'evaluate' },
+      { knowledgeTags: ['controller-correction', 'stability-margin'] },
+      { misconceptionTags: ['open-loop-gain-only', 'missing-stability-margin'] },
+      {
+        remediationResourceNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'registry:lesson12-frequency-precheck',
+        ],
+      },
+    ];
+
+    for (const change of semanticChanges) {
+      const changedArtifacts = buildAdaptiveAssessmentItemCatalog({
+        presetQuestions: [],
+        checkpointQuestions: [{ ...baseRecord, ...change }],
+        kaqReviewedItems: [],
+      });
+      const changed = changedArtifacts.items.find((item) => item.sourceFamily === 'checkpoint-authored-question');
+
+      expect(changed?.contentHash).not.toBe(base?.contentHash);
+      expect(changed?.lineage.sourceHash).not.toBe(base?.lineage.sourceHash);
+    }
+  });
 });

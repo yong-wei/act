@@ -626,7 +626,12 @@ function buildCheckpointAuthoredItems(records: CheckpointAuthoredQuestionRecord[
         learningGoalId: record.learningGoalId,
         kaqObjectiveIds: record.kaqObjectiveIds,
         graphNodeIds: record.graphNodeIds,
+        knowledgeTags: record.knowledgeTags,
+        misconceptionTags: record.misconceptionTags,
+        remediationResourceNodeIds: record.remediationResourceNodeIds,
         stagePurpose: record.stagePurpose,
+        difficulty: record.difficulty,
+        cognitiveLevel: record.cognitiveLevel,
       },
     });
     return {
