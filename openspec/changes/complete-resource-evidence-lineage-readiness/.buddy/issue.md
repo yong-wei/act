@@ -1,0 +1,90 @@
+---
+change_id: complete-resource-evidence-lineage-readiness
+claim_branch: complete-resource-evidence-lineage-readiness
+series: resource-path-readiness
+coupling_group: resource-path-readiness-2026-07
+execution_mode: stacked
+base_branch: integration
+required_branch:
+depends_on:
+  - define-resource-path-disposition-governance
+  - complete-core-teaching-resource-path-readiness
+  - complete-longform-resource-path-readiness
+  - unify-adaptive-assessment-item-catalog
+  - add-assessment-item-semantic-review-workflow
+  - complete-learning-goal-checkpoint-question-sets
+  - wire-adaptive-engine-to-reviewed-item-catalog
+parent_issue:
+blocked_by:
+  - define-resource-path-disposition-governance
+  - complete-core-teaching-resource-path-readiness
+  - complete-longform-resource-path-readiness
+  - unify-adaptive-assessment-item-catalog
+  - add-assessment-item-semantic-review-workflow
+  - complete-learning-goal-checkpoint-question-sets
+  - wire-adaptive-engine-to-reviewed-item-catalog
+blocking:
+  - seed-yangfan-diagnostic-learning-state
+  - enforce-all-resource-path-readiness-gate
+openspec_path: openspec/changes/complete-resource-evidence-lineage-readiness
+risk: high
+area: data-governance
+---
+
+## Goal
+
+Complete source-event lineage for all reviewed path-relevant core, long-form, and assessment/practice resources so resource execution can produce governed path, mastery, checkpoint, and personalization evidence.
+
+## Scope
+
+- Use the helper to isolate evidence-lineage blockers after upstream core, long-form, and assessment resource reviews are complete.
+- Complete EventDictionary, clientEventId, attemptKey, source-event, LearningFact, feature-cache, and path evidenceRef contracts for path-relevant resources.
+- Preserve privacy-minimized diagnostics.
+
+## Out of Scope
+
+- Creating Yang Fan fixture data.
+- Repairing unrelated legacy logs that are not consumed by current path planning.
+- Changing Arena official scoring authority.
+
+## Acceptance Checklist
+
+- [ ] AC-1: Helper evidence-lineage blockers for all reviewed path-relevant resources are resolved or have reviewed limitation states. Owner: independent reviewer.
+  Evidence: before/after helper output with layer totals, finding counts, follow-up buckets, evidence-lineage blockers, and Yang Fan fixture blockers.
+- [ ] AC-2: Evidence-producing ResourceNodes declare complete event attribution, dedupe, timestamp, LearningFact, confidence, and privacy behavior. Owner: independent reviewer.
+  Evidence: ResourceNode/evidence contract tests.
+- [ ] AC-3: Path execution can attach evidenceRefs for governed resource events. Owner: independent reviewer.
+  Evidence: targeted path execution or materialization tests.
+- [ ] AC-4: Learner fixture generation remains blocked unless evidence lineage is sufficient. Owner: independent reviewer.
+  Evidence: fixture precondition test or helper output.
+
+## Tasks
+
+- [ ] Task 1: Audit path-relevant evidence-lineage blockers.
+  Covers: AC-1
+  Acceptance: Evidence-lineage gaps are grouped by path relevance and source family after core, long-form, and assessment resources are reviewed.
+  Evidence: helper report.
+  Reviewer Check: Confirm legacy-only gaps are not mixed with current path blockers.
+- [ ] Task 2: Complete evidence contracts and instrumentation.
+  Covers: AC-2, AC-3
+  Acceptance: Path-relevant resource events have governed lineage and path evidenceRefs.
+  Evidence: code/data changes and targeted tests.
+  Reviewer Check: Confirm private raw payloads are not exposed.
+- [ ] Task 3: Enforce fixture preconditions.
+  Covers: AC-4
+  Acceptance: Yang Fan fixture scripts cannot proceed on incomplete resource evidence lineage.
+  Evidence: fixture precondition test or dry-run report.
+  Reviewer Check: Confirm this issue does not create fixture data.
+- [ ] Task 4: Validate OpenSpec and helper.
+  Covers: AC-1, AC-2, AC-3, AC-4
+  Acceptance: OpenSpec validation and targeted tests pass.
+  Evidence: `rtk openspec validate complete-resource-evidence-lineage-readiness --strict`.
+  Reviewer Check: Confirm downstream issue dependencies remain accurate.
+
+## Agent Guardrails
+
+- Start by running the helper and preserve before/after output.
+- Complete semantic and evidence fields manually where interpretation is required.
+- Do not use scripts to infer final knowledge, capability, or LearningGoal mappings.
+- Preserve Arena official scoring and ranking authority.
+- Do not execute other planned OpenSpec changes.
