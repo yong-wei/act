@@ -8,6 +8,7 @@ import {
   buildDataCompletenessAuditReport,
   renderDataCompletenessAuditMarkdown,
   type DataCompletenessLearnerCandidateInput,
+  type DataCompletenessRuntimeArtifactErrorInput,
 } from '../../src/lib/data-governance/data-completeness-audit';
 import {
   loadAllTextbookRuntimeResourceCatalogEntries,
@@ -32,6 +33,7 @@ async function main() {
   const format = readOption('--format') ?? (hasFlag('--markdown') ? 'markdown' : 'json');
   const canonicalEmail = readOption('--canonical-email');
   const canonicalStudentNumber = readOption('--canonical-student-number') ?? '20230010102605';
+  const runtimeArtifactErrors: DataCompletenessRuntimeArtifactErrorInput[] = [];
 
   const [
     knowledgeNodes,
@@ -86,7 +88,7 @@ async function main() {
         },
       },
     }),
-    loadAllLessonRuntimeResourceCatalogEntriesForAudit(),
+    loadRuntimeLessonsWithArtifactAudit(runtimeArtifactErrors),
     loadAllTextbookRuntimeResourceCatalogEntries(),
     loadRuntimeResourceProjectionInputs(),
     loadAllTextbookRuntimeSearchDocuments(),
@@ -167,6 +169,7 @@ async function main() {
       knowledgeNodeIds: resource.knowledgeNodes.map((node) => node.id),
     })),
     resourceRegistry: registry,
+    runtimeArtifactErrors,
     evidenceCorpus: textbookSearchDocumentsToLearningEvidenceCorpus(textbookDocuments),
     interactionLogs,
     eventDictionaryTypes: eventDictionary.map((event) => event.eventType),
@@ -193,6 +196,20 @@ async function main() {
     console.log(renderDataCompletenessAuditMarkdown(report));
   } else {
     console.log(JSON.stringify(report, null, hasFlag('--compact') ? 0 : 2));
+  }
+}
+
+async function loadRuntimeLessonsWithArtifactAudit(
+  runtimeArtifactErrors: DataCompletenessRuntimeArtifactErrorInput[],
+) {
+  try {
+    return await loadAllLessonRuntimeResourceCatalogEntriesForAudit();
+  } catch (error) {
+    runtimeArtifactErrors.push({
+      id: 'runtime-lessons',
+      message: normalizeErrorMessage(error),
+    });
+    return [];
   }
 }
 
@@ -306,6 +323,10 @@ async function collectLearnerCandidates(
 
 function countByUser(rows: Array<{ userId: string; _count: { _all: number } }>) {
   return new Map(rows.map((row) => [row.userId, row._count._all]));
+}
+
+function normalizeErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 main()

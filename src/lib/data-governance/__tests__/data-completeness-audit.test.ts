@@ -367,6 +367,27 @@ describe('data completeness audit', () => {
     ]));
   });
 
+  it('reports runtime artifact loader errors instead of hiding missing resources', () => {
+    const report = buildDataCompletenessAuditReport({
+      runtimeArtifactErrors: [{
+        id: 'runtime-lessons',
+        message: 'Missing runtime handout for unit-missing-handout',
+      }],
+    });
+
+    const resourceBinding = report.layers.find((layer) => layer.id === 'resourceBinding');
+    expect(resourceBinding?.severity).toBe('blocked');
+    expect(resourceBinding?.totals.runtimeArtifactErrors).toBe(1);
+    expect(resourceBinding?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'runtime-artifact-unavailable',
+        stableRef: 'RuntimeArtifact:runtime-lessons',
+        followupBucket: 'repair-runtime-artifacts',
+      }),
+    ]));
+    expect(report.followupBuckets).toEqual(expect.arrayContaining(['repair-runtime-artifacts']));
+  });
+
   it('treats stale feature caches as incomplete even when source coverage is available', () => {
     const report = buildDataCompletenessAuditReport({
       generatedAt: '2026-07-02T00:00:00.000Z',
@@ -463,6 +484,110 @@ describe('data completeness audit', () => {
     ]));
     expect(JSON.stringify(report)).not.toContain('student-1:shared-client-event');
     expect(JSON.stringify(report)).not.toContain('student-2:shared-client-event');
+  });
+
+  it('validates sourceLogId against the learning fact user', () => {
+    const report = buildDataCompletenessAuditReport({
+      interactionLogs: [{
+        id: 'shared-log-id',
+        userId: 'student-owner',
+        eventType: 'lesson_submit',
+        clientEventId: 'owner-client-event',
+        attemptKey: 'attempt-owner',
+        createdAt: '2026-07-02T00:00:00.000Z',
+      }],
+      eventDictionaryTypes: ['lesson_submit'],
+      learningFacts: [{
+        id: 'fact-owner-log',
+        userId: 'student-owner',
+        factType: 'question',
+        sourceEventId: null,
+        sourceLogId: 'shared-log-id',
+      }, {
+        id: 'fact-cross-user-log',
+        userId: 'student-other',
+        factType: 'question',
+        sourceEventId: null,
+        sourceLogId: 'shared-log-id',
+      }],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceLogs).toBe(1);
+    expect(lineage?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-log-dangling',
+        stableRef: 'LearningFact:fact-cross-user-log',
+      }),
+    ]));
+    expect(lineage?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-log-dangling',
+        stableRef: 'LearningFact:fact-owner-log',
+      }),
+    ]));
+  });
+
+  it('validates derived InteractionLog sourceEventId against the learning fact user', () => {
+    const report = buildDataCompletenessAuditReport({
+      interactionLogs: [{
+        id: 'owner-log-id',
+        userId: 'student-owner',
+        eventType: 'lesson_submit',
+        clientEventId: 'owner-client-event',
+        attemptKey: 'attempt-owner',
+        createdAt: '2026-07-02T00:00:00.000Z',
+      }],
+      eventDictionaryTypes: ['lesson_submit'],
+      learningFacts: [{
+        id: 'fact-owner-source-event',
+        userId: 'student-owner',
+        factType: 'question',
+        sourceEventId: 'interaction-log:owner-log-id',
+        sourceLogId: null,
+      }, {
+        id: 'fact-owner-historical-event',
+        userId: 'student-owner',
+        factType: 'question',
+        sourceEventId: 'historical:InteractionLog:owner-log-id:lesson_submit',
+        sourceLogId: null,
+      }, {
+        id: 'fact-cross-user-source-event',
+        userId: 'student-other',
+        factType: 'question',
+        sourceEventId: 'interaction-log:owner-log-id',
+        sourceLogId: null,
+      }, {
+        id: 'fact-cross-user-historical-event',
+        userId: 'student-other',
+        factType: 'question',
+        sourceEventId: 'historical:InteractionLog:owner-log-id:lesson_submit',
+        sourceLogId: null,
+      }],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceEvents).toBe(2);
+    expect(lineage?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-event-dangling',
+        stableRef: 'LearningFact:fact-cross-user-source-event',
+      }),
+      expect.objectContaining({
+        id: 'learning-fact-source-event-dangling',
+        stableRef: 'LearningFact:fact-cross-user-historical-event',
+      }),
+    ]));
+    expect(lineage?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-event-dangling',
+        stableRef: 'LearningFact:fact-owner-source-event',
+      }),
+      expect.objectContaining({
+        id: 'learning-fact-source-event-dangling',
+        stableRef: 'LearningFact:fact-owner-historical-event',
+      }),
+    ]));
   });
 
   it('treats governed historical materialization sources as valid external lineage', () => {

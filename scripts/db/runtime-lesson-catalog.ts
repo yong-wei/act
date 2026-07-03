@@ -243,11 +243,17 @@ function parseRuntimeLessonMediaResources(
   return resources;
 }
 
-async function resolveExistingProjectPath(candidates: string[]) {
+async function findExistingProjectPath(candidates: string[]) {
   for (const candidate of Array.from(new Set(candidates))) {
     if (await fileExists(path.join(process.cwd(), candidate))) return candidate;
   }
-  return candidates[0];
+  return null;
+}
+
+async function resolveRequiredProjectPath(candidates: string[], label: string) {
+  const existingPath = await findExistingProjectPath(candidates);
+  if (existingPath) return existingPath;
+  throw new Error(`${label} missing. Checked: ${Array.from(new Set(candidates)).join(', ')}`);
 }
 
 export async function loadAllLessonRuntimeResourceCatalogEntriesForAudit(): Promise<
@@ -270,30 +276,31 @@ async function loadLessonRuntimeResourceCatalogEntryForAudit(
   const handoutPdfFilename = `${canonicalLessonId}-handout.pdf`;
   const preferredHandoutSourcePath =
     lesson.handout_source_path ?? `course-content/runtime/lessons/${runtimeLessonFragment}/${handoutFilename}`;
-  const handoutSourcePath = await resolveExistingProjectPath([
+  const handoutSourcePath = await resolveRequiredProjectPath([
     preferredHandoutSourcePath,
     `course-content/runtime/lessons/${runtimeLessonFragment}/${handoutFilename}`,
     `course-content/runtime/lessons/${runtimeLessonFragment}/handout.md`,
-  ]);
+  ], `Missing runtime handout for ${runtimeLessonFragment}`);
   const handoutPath = lesson.handout_path && handoutSourcePath === preferredHandoutSourcePath
     ? lesson.handout_path
     : `/course-runtime/lessons/${runtimeLessonFragment}/${path.basename(handoutSourcePath)}`;
   const preferredHandoutPdfSourcePath =
     lesson.handout_pdf_source_path ?? `course-content/runtime/lessons/${runtimeLessonFragment}/${handoutPdfFilename}`;
-  const handoutPdfSourcePath = await resolveExistingProjectPath([
+  const handoutPdfSourcePath = await findExistingProjectPath([
     preferredHandoutPdfSourcePath,
     `course-content/runtime/lessons/${runtimeLessonFragment}/${handoutPdfFilename}`,
     `course-content/runtime/lessons/${runtimeLessonFragment}/handout.pdf`,
   ]);
   const handoutPdfPathCandidate =
-    lesson.handout_pdf_path && handoutPdfSourcePath === preferredHandoutPdfSourcePath
+    handoutPdfSourcePath && lesson.handout_pdf_path && handoutPdfSourcePath === preferredHandoutPdfSourcePath
       ? lesson.handout_pdf_path
-      : `/course-runtime/lessons/${runtimeLessonFragment}/${path.basename(handoutPdfSourcePath)}`;
+      : handoutPdfSourcePath
+        ? `/course-runtime/lessons/${runtimeLessonFragment}/${path.basename(handoutPdfSourcePath)}`
+        : null;
   const mediaIndexSourcePath =
     lesson.media_index_source_path
     ?? `course-content/runtime/lessons/${runtimeLessonFragment}/media/${canonicalLessonId}-media.md`;
-  const [handoutPdfExists, mediaIndexExists] = await Promise.all([
-    fileExists(path.join(process.cwd(), handoutPdfSourcePath)),
+  const [mediaIndexExists] = await Promise.all([
     fileExists(path.join(process.cwd(), mediaIndexSourcePath)),
   ]);
   const mediaResources = mediaIndexExists
@@ -319,7 +326,7 @@ async function loadLessonRuntimeResourceCatalogEntryForAudit(
     },
     handoutPath,
     handoutSourcePath,
-    handoutPdfPath: handoutPdfExists ? handoutPdfPathCandidate : null,
+    handoutPdfPath: handoutPdfPathCandidate,
     mediaResources,
   };
 }

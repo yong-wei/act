@@ -114,11 +114,17 @@ export interface DataCompletenessLearnerCandidateInput {
   adaptiveAssessmentStateCount?: number;
 }
 
+export interface DataCompletenessRuntimeArtifactErrorInput {
+  id: string;
+  message: string;
+}
+
 export interface DataCompletenessAuditInput {
   generatedAt?: string;
   knowledgeNodes?: DataCompletenessKnowledgeNodeInput[];
   teachingResources?: DataCompletenessTeachingResourceInput[];
   resourceRegistry?: ResourceNodeRegistry;
+  runtimeArtifactErrors?: DataCompletenessRuntimeArtifactErrorInput[];
   evidenceCorpus?: LearningEvidenceCorpusChunk[];
   interactionLogs?: DataCompletenessInteractionLogInput[];
   eventDictionaryTypes?: string[];
@@ -195,7 +201,11 @@ const GOVERNED_HISTORICAL_SOURCE_PREFIXES = [
 
 export function buildDataCompletenessAuditReport(input: DataCompletenessAuditInput): DataCompletenessAuditReport {
   const graphCore = buildGraphCoreLayer(input.knowledgeNodes ?? []);
-  const resourceBinding = buildResourceBindingLayer(input.teachingResources ?? [], input.resourceRegistry);
+  const resourceBinding = buildResourceBindingLayer(
+    input.teachingResources ?? [],
+    input.resourceRegistry,
+    input.runtimeArtifactErrors ?? [],
+  );
   const citationReadiness = buildCitationReadinessLayer(input.resourceRegistry, input.evidenceCorpus ?? []);
   const pathReadiness = buildPathReadinessLayer(input.resourceRegistry);
   const evidenceLineage = buildEvidenceLineageLayer(input);
@@ -291,6 +301,7 @@ function buildGraphCoreLayer(nodes: DataCompletenessKnowledgeNodeInput[]): DataC
 function buildResourceBindingLayer(
   resources: DataCompletenessTeachingResourceInput[],
   registry: ResourceNodeRegistry | undefined,
+  runtimeArtifactErrors: DataCompletenessRuntimeArtifactErrorInput[],
 ): DataCompletenessLayerSummary {
   const registeredResourceIds = collectRegisteredResourceIds(registry);
   const registryFindings = buildPathAuditEntries(registry).flatMap(({ node, audit }) =>
@@ -311,7 +322,14 @@ function buildResourceBindingLayer(
       ? finding('teaching-resource-knowledge-missing', 'partial', `TeachingResource:${resource.id}`, `${resource.title} has no knowledge-node binding.`, 'bind-teaching-resources')
       : null,
   ].filter(Boolean) as DataCompletenessFinding[]);
-  const findings = [...registryFindings, ...resourceFindings];
+  const runtimeArtifactFindings = runtimeArtifactErrors.map((error) => finding(
+    'runtime-artifact-unavailable',
+    'blocked',
+    `RuntimeArtifact:${error.id}`,
+    error.message,
+    'repair-runtime-artifacts',
+  ));
+  const findings = [...registryFindings, ...resourceFindings, ...runtimeArtifactFindings];
 
   return layer('resourceBinding', {
     teachingResources: resources.length,
@@ -321,6 +339,7 @@ function buildResourceBindingLayer(
     teachingResourcesMissingRegistry: countFindings(findings, 'teaching-resource-registry-missing'),
     teachingResourcesUnregisteredRegistry: countFindings(findings, 'teaching-resource-registry-unregistered'),
     teachingResourcesMissingKnowledge: countFindings(findings, 'teaching-resource-knowledge-missing'),
+    runtimeArtifactErrors: countFindings(findings, 'runtime-artifact-unavailable'),
   }, findings);
 }
 
@@ -642,12 +661,15 @@ function clientEventDedupeKey(log: DataCompletenessInteractionLogInput): string 
 
 function buildValidSourceEventIndex(logs: DataCompletenessInteractionLogInput[]): {
   logDerivedIds: Set<string>;
+  logIdsByUser: Map<string, Set<string>>;
   clientEventIdsByUser: Map<string, Set<string>>;
 } {
   const logDerivedIds = new Set<string>();
+  const logIdsByUser = new Map<string, Set<string>>();
   const clientEventIdsByUser = new Map<string, Set<string>>();
   for (const log of logs) {
     const id = normalizeKey(log.id);
+    const userId = normalizeKey(log.userId);
     if (id) {
       logDerivedIds.add(id);
       logDerivedIds.add(`interaction-log:${id}`);
@@ -655,16 +677,25 @@ function buildValidSourceEventIndex(logs: DataCompletenessInteractionLogInput[])
       if (log.eventType) {
         logDerivedIds.add(`historical:InteractionLog:${id}:${log.eventType}`);
       }
+      if (userId) {
+        const ids = logIdsByUser.get(userId) ?? new Set<string>();
+        ids.add(id);
+        ids.add(`interaction-log:${id}`);
+        ids.add(`historical:InteractionLog:${id}`);
+        if (log.eventType) {
+          ids.add(`historical:InteractionLog:${id}:${log.eventType}`);
+        }
+        logIdsByUser.set(userId, ids);
+      }
     }
     const clientEventId = normalizeKey(log.clientEventId);
-    const userId = normalizeKey(log.userId);
     if (clientEventId && userId) {
       const ids = clientEventIdsByUser.get(userId) ?? new Set<string>();
       ids.add(clientEventId);
       clientEventIdsByUser.set(userId, ids);
     }
   }
-  return { logDerivedIds, clientEventIdsByUser };
+  return { logDerivedIds, logIdsByUser, clientEventIdsByUser };
 }
 
 function hasDanglingLearningFactSourceLog(
@@ -675,7 +706,10 @@ function hasDanglingLearningFactSourceLog(
 ): boolean {
   const sourceLogId = normalizeKey(fact.sourceLogId);
   if (!sourceLogId) return false;
-  if (logIds.has(sourceLogId)) return false;
+  const factUserId = normalizeKey(fact.userId);
+  if (factUserId && sourceEventIndex.logIdsByUser.get(factUserId)?.has(sourceLogId)) return false;
+  if (!factUserId && logIds.has(sourceLogId)) return false;
+  if (logIds.has(sourceLogId) || sourceEventIndex.logDerivedIds.has(sourceLogId)) return true;
   return classifyLearningFactSource(fact, sourceEventIndex, historicalSourceLogIds) !== 'governed-external';
 }
 
@@ -685,9 +719,11 @@ function hasDanglingLearningFactSourceEvent(
 ): boolean {
   const sourceEventId = normalizeKey(fact.sourceEventId);
   if (!sourceEventId) return false;
-  if (sourceEventIndex.logDerivedIds.has(sourceEventId)) return false;
   const factUserId = normalizeKey(fact.userId);
+  if (factUserId && sourceEventIndex.logIdsByUser.get(factUserId)?.has(sourceEventId)) return false;
+  if (!factUserId && sourceEventIndex.logDerivedIds.has(sourceEventId)) return false;
   if (factUserId && sourceEventIndex.clientEventIdsByUser.get(factUserId)?.has(sourceEventId)) return false;
+  if (sourceEventIndex.logDerivedIds.has(sourceEventId) || isInteractionLogSourceEventId(sourceEventId)) return true;
   return classifyLearningFactSource(fact, sourceEventIndex, new Set()) !== 'governed-external';
 }
 
@@ -703,13 +739,11 @@ function classifyLearningFactSource(
       ? 'governed-external'
       : 'unknown';
   }
-  if (sourceEventIndex.logDerivedIds.has(sourceEventId)) return 'interaction-log';
   const factUserId = normalizeKey(fact.userId);
+  if (factUserId && sourceEventIndex.logIdsByUser.get(factUserId)?.has(sourceEventId)) return 'interaction-log';
+  if (!factUserId && sourceEventIndex.logDerivedIds.has(sourceEventId)) return 'interaction-log';
   if (factUserId && sourceEventIndex.clientEventIdsByUser.get(factUserId)?.has(sourceEventId)) return 'interaction-log';
-  if (
-    sourceEventId.startsWith('interaction-log:') ||
-    sourceEventId.startsWith('historical:InteractionLog:')
-  ) {
+  if (isInteractionLogSourceEventId(sourceEventId)) {
     return 'interaction-log';
   }
   if (
@@ -739,6 +773,11 @@ function isKnownHistoricalSourceLog(
   const sourceId = normalizeUnknownString(materialization.sourceId);
   const sourceRecordId = normalizeUnknownString(materialization.sourceRecordId);
   return Boolean(sourceId && sourceRecordId === sourceLogId);
+}
+
+function isInteractionLogSourceEventId(sourceEventId: string): boolean {
+  return sourceEventId.startsWith('interaction-log:')
+    || sourceEventId.startsWith('historical:InteractionLog:');
 }
 
 function isArenaPreviewLearningFact(fact: DataCompletenessLearningFactInput, sourceEventId: string): boolean {

@@ -115,6 +115,31 @@ describe('runtime lesson catalog audit helper', () => {
     expect(entries[0]?.mediaResources.map((resource) => resource.title)).not.toContain('5-1 媒体链接登记');
   });
 
+  it('rejects runtime lessons with missing handout markdown', async () => {
+    const project = await createTempProject();
+    const lessonDir = path.join(project, 'course-content/runtime/lessons/unit-missing-handout');
+    await mkdir(lessonDir, { recursive: true });
+    await writeFile(
+      path.join(lessonDir, 'lesson.json'),
+      JSON.stringify({
+        lesson_id: 'unit-missing-handout',
+        title: 'Missing handout',
+      }),
+    );
+    await writeFile(
+      path.join(lessonDir, 'graph-overlay.json'),
+      JSON.stringify({
+        lesson_id: 'unit-missing-handout',
+        focus_node_ids: ['kn:missing'],
+        nodes: [{ id: 'kn:missing', name: 'Missing handout node' }],
+      }),
+    );
+    const { loadAllLessonRuntimeResourceCatalogEntriesForAudit } = await import('../../../../scripts/db/runtime-lesson-catalog');
+
+    await expect(loadAllLessonRuntimeResourceCatalogEntriesForAudit())
+      .rejects.toThrow(/Missing runtime handout/);
+  });
+
   it('propagates corrupted runtime lesson JSON', async () => {
     const project = await createTempProject();
     const lessonDir = path.join(project, 'course-content/runtime/lessons/unit-bad');
