@@ -9,12 +9,12 @@ import {
   renderDataCompletenessAuditMarkdown,
   type DataCompletenessLearnerCandidateInput,
 } from '../../src/lib/data-governance/data-completeness-audit';
-import { loadAllLessonRuntimeResourceCatalogEntries } from '../../src/lib/course-runtime';
 import {
   loadAllTextbookRuntimeResourceCatalogEntries,
   loadAllTextbookRuntimeSearchDocuments,
 } from '../../src/lib/textbook-runtime-resources';
 import { textbookSearchDocumentsToLearningEvidenceCorpus } from '../../src/lib/data-governance/graph-center-evidence';
+import { loadAllLessonRuntimeResourceCatalogEntriesForAudit } from './runtime-lesson-catalog';
 
 const prisma = createPrismaClient();
 
@@ -82,7 +82,7 @@ async function main() {
         },
       },
     }),
-    loadAllLessonRuntimeResourceCatalogEntries(),
+    loadAllLessonRuntimeResourceCatalogEntriesForAudit(),
     loadAllTextbookRuntimeResourceCatalogEntries(),
     loadRuntimeResourceProjectionInputs(),
     loadAllTextbookRuntimeSearchDocuments(),
