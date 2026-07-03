@@ -289,6 +289,19 @@ describe('data completeness audit', () => {
         capabilityTargetRefs: [],
       },
     };
+    const crossFamilySourceRefCollisionProjection: LearningEvidenceCorpusChunk = {
+      ...corpusOnlyProjection,
+      id: 'cross-family-source-ref-collision-chunk',
+      sourceRef: { id: 'provisional-path-node' },
+      display: { title: 'Cross family source ref collision', href: null, capsule: 'Section' },
+      resourceProjection: {
+        resourceId: 'provisional-path-node',
+        segmentRef: 'cross-family-source-ref-collision',
+        citationTargetRef: 'course-content/runtime/cross-family-source-ref-collision.md',
+        knowledgeNodeRefs: ['kn-controller'],
+        capabilityTargetRefs: [],
+      },
+    };
 
     const report = buildDataCompletenessAuditReport({
       resourceRegistry: registry,
@@ -296,22 +309,23 @@ describe('data completeness audit', () => {
         corpusOnlyProjection,
         registryCoveredCorpusProjection,
         explicitProjectionWithCollidingSourceRef,
+        crossFamilySourceRefCollisionProjection,
       ],
     });
     const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
 
     expect(disposition?.totals).toMatchObject({
       resourceNodes: 5,
-      corpusResourceProjections: 3,
+      corpusResourceProjections: 4,
       reviewedDispositions: 3,
-      missingDisposition: 2,
+      missingDisposition: 3,
       missingHumanReview: 2,
       missingParentPlanningUnit: 1,
       missingDispositionRationale: 2,
       missingExclusionRationale: 1,
       missingEvidenceInstrumentation: 1,
       invalidPromotion: 1,
-      unmatchedCorpusResourceProjections: 2,
+      unmatchedCorpusResourceProjections: 3,
     });
     expect(disposition?.findings).toEqual(expect.arrayContaining([
       expect.objectContaining({
@@ -322,6 +336,11 @@ describe('data completeness audit', () => {
       expect.objectContaining({
         id: 'missing-path-disposition',
         stableRef: 'ResourceDisposition:corpus:resource:corpus-explicit-unmatched',
+        followupBucket: 'review-resource-path-dispositions',
+      }),
+      expect.objectContaining({
+        id: 'missing-path-disposition',
+        stableRef: 'ResourceDisposition:corpus:provisional-path-node',
         followupBucket: 'review-resource-path-dispositions',
       }),
       expect.objectContaining({

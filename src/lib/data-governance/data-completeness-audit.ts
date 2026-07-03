@@ -426,7 +426,6 @@ function collectResourceDispositionCoveredRefs(nodes: ResourceNode[]): Set<strin
   for (const node of nodes) {
     refs.add(node.id);
     refs.add(`resource:${node.id}`);
-    refs.add(node.sourceRef);
     refs.add(`${node.sourceKind}:${node.sourceRef}`);
   }
   return refs;
