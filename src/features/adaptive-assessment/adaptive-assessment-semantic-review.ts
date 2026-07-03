@@ -149,6 +149,12 @@ function missingSemanticBlockers(item: AdaptiveAssessmentCatalogItem): string[] 
   ]);
 }
 
+function versionRefsMatch(left: Record<string, string>, right: Record<string, string>): boolean {
+  const leftEntries = Object.entries(left).sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey));
+  const rightEntries = Object.entries(right).sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey));
+  return JSON.stringify(leftEntries) === JSON.stringify(rightEntries);
+}
+
 function findDecision(
   decisionsByItemId: Map<string, AssessmentItemSemanticReviewDecision[]>,
   item: AdaptiveAssessmentCatalogItem,
@@ -170,6 +176,9 @@ function decisionFieldIssues(
   const missing = [
     decision.decisionKind === 'human-review' ? '' : 'script-only-review-rejected',
     decision.sourceContentHash === item.contentHash ? '' : 'stale-source-hash',
+    versionRefsMatch(decision.metadataVersionRefs, item.versionRefs)
+      ? ''
+      : 'stale-metadata-version-refs',
     decision.reviewerId || decision.reviewerRole ? '' : 'missing-reviewer',
     decision.reviewedAt ? '' : 'missing-reviewed-at',
     decision.reviewBatchId ? '' : 'missing-review-batch-id',
@@ -290,7 +299,7 @@ export function buildKaqFoundationSemanticReviewDecisions(
       cognitiveLevel: metadata?.cognitiveLevel,
       misconceptionRefs: uniqueSorted(metadata?.misconceptionTags ?? []),
       remediationRefs: uniqueSorted(metadata?.remediationResourceNodeIds ?? []),
-      metadataVersionRefs: metadata?.versionRefs ?? {},
+      metadataVersionRefs: item.versionRefs,
       reviewSourceHash: review.sourceHash,
     }];
   });

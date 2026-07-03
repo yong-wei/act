@@ -32,9 +32,7 @@ function baseDecision(item: AdaptiveAssessmentCatalogItem): AssessmentItemSemant
     cognitiveLevel: 'analyze',
     misconceptionRefs: ['misconception:controller-tuning'],
     remediationRefs: ['registry:lesson09-correction-precheck'],
-    metadataVersionRefs: {
-      objectiveCatalogVersion: 'autocontrol-kaq-objectives.v1',
-    },
+    metadataVersionRefs: item.versionRefs,
   };
 }
 
@@ -106,6 +104,46 @@ describe('adaptive assessment semantic review workflow', () => {
       'stale-source-hash',
       'invalid-kaq-objective:knowledge:autocontrol:missing-objective',
     ]));
+  });
+
+  it('reports stale metadata version refs even when source content is unchanged', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      decisions: [{
+        ...baseDecision(item),
+        metadataVersionRefs: {
+          catalogVersion: 'stale-catalog-version.v0',
+        },
+      }],
+    });
+
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.issues.map((issue) => issue.reason)).toContain('stale-metadata-version-refs');
+  });
+
+  it('reports stale metadata version refs when a decision omits current version keys', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      decisions: [{
+        ...baseDecision(item),
+        metadataVersionRefs: {
+          catalogVersion: item.versionRefs.catalogVersion,
+        },
+      }],
+    });
+
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.issues.map((issue) => issue.reason)).toContain('stale-metadata-version-refs');
   });
 
   it('keeps stale K/A/Q human review overlays visible as stale decisions', async () => {
