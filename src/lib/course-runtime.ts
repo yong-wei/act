@@ -177,9 +177,19 @@ async function fileExists(absolutePath: string): Promise<boolean> {
   try {
     await fs.access(absolutePath);
     return true;
-  } catch {
+  } catch (error) {
+    if (!isMissingPathError(error)) {
+      throw error;
+    }
     return false;
   }
+}
+
+function isMissingPathError(error: unknown): boolean {
+  return typeof error === 'object'
+    && error !== null
+    && 'code' in error
+    && (error as NodeJS.ErrnoException).code === 'ENOENT';
 }
 
 async function resolveExistingSourcePath(candidates: string[]) {
@@ -221,7 +231,10 @@ async function loadRuntimeLessonFragmentsFromContent(): Promise<string[]> {
   let entries: Dirent[];
   try {
     entries = await fs.readdir(RUNTIME_LESSONS_DIR, { withFileTypes: true });
-  } catch {
+  } catch (error) {
+    if (!isMissingPathError(error)) {
+      throw error;
+    }
     return [];
   }
 
