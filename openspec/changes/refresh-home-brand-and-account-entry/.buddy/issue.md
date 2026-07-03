@@ -8,7 +8,7 @@ base_branch: integration
 required_branch:
 depends_on:
   - standardize-primary-navigation-order
-parent_issue:
+parent_issue: 796
 blocked_by: []
 blocking: []
 openspec_path: openspec/changes/refresh-home-brand-and-account-entry

@@ -9,7 +9,7 @@ required_branch:
 depends_on:
   - standardize-primary-navigation-order
   - refresh-home-brand-and-account-entry
-parent_issue:
+parent_issue: 796
 blocked_by: []
 blocking: []
 openspec_path: openspec/changes/simplify-konling-floating-entry

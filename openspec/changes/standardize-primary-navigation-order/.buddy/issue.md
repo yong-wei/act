@@ -7,7 +7,7 @@ execution_mode: isolated
 base_branch: integration
 required_branch:
 depends_on: []
-parent_issue:
+parent_issue: 796
 blocked_by: []
 blocking:
   - refresh-home-brand-and-account-entry
