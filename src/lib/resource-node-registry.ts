@@ -1122,6 +1122,7 @@ export function auditResourceNode(
   issues.push(...auditExternalResourceNode(node));
   issues.push(...auditCheckpointNode(node));
   issues.push(...auditRuntimeProjectionPlanning(node));
+  issues.push(...auditPathDispositionPlanningEligibility(node));
 
   const blockingIssues = issues.filter((issue) => issue.severity === 'blocking');
   return {
@@ -2490,23 +2491,9 @@ function buildResourceNodeHighConfidencePlanningAuditInternal(
     });
   }
   if (options.includeDispositionPromotion) {
-    const disposition = node.planningMetadata.pathDisposition;
-    if (disposition) {
-      if (disposition.kind !== 'path-plannable') {
-        issues.push({
-          code: 'invalid-path-disposition-promotion',
-          message: `Resource disposition ${disposition.kind} cannot directly create a PlanningUnit.`,
-          severity: 'blocking',
-        });
-      } else if (
-        !isResourcePathPlanningDispositionHumanReviewed(disposition) ||
-        !node.planningMetadata.readiness
-      ) {
-        issues.push({
-          code: 'invalid-path-disposition-promotion',
-          message: 'Path-plannable disposition requires human review evidence and readiness metadata.',
-          severity: 'blocking',
-        });
+    for (const issue of auditPathDispositionPlanningEligibility(node)) {
+      if (!issues.some((existing) => existing.code === issue.code)) {
+        issues.push(issue);
       }
     }
   }
@@ -2519,6 +2506,26 @@ function buildResourceNodeHighConfidencePlanningAuditInternal(
     issues,
     hasBlockingIssue: issues.some((issue) => issue.severity === 'blocking'),
   };
+}
+
+function auditPathDispositionPlanningEligibility(node: ResourceNode): ResourceNodeAuditIssue[] {
+  const disposition = node.planningMetadata.pathDisposition;
+  if (!disposition) return [];
+  if (disposition.kind !== 'path-plannable') {
+    return [{
+      code: 'invalid-path-disposition-promotion',
+      message: `Resource disposition ${disposition.kind} cannot directly create a PlanningUnit.`,
+      severity: 'blocking',
+    }];
+  }
+  if (!isResourcePathPlanningDispositionHumanReviewed(disposition) || !node.planningMetadata.readiness) {
+    return [{
+      code: 'invalid-path-disposition-promotion',
+      message: 'Path-plannable disposition requires human review evidence and readiness metadata.',
+      severity: 'blocking',
+    }];
+  }
+  return [];
 }
 
 function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIssue[] {

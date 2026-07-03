@@ -387,7 +387,7 @@ describe('resource node registry', () => {
       }));
   });
 
-  it('audits path-planning dispositions without changing planner eligibility', () => {
+  it('audits path-planning dispositions and syncs canonical planner eligibility', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [{
         id: 'parent-path-node',
@@ -713,7 +713,11 @@ describe('resource node registry', () => {
       code: 'missing-disposition-rationale',
     }));
     expect(auditResourcePathPlanningDisposition(node('excluded-with-rationale'))).toEqual([]);
-    expect(node('provisional-path-disposition').eligibility.pathEligible).toBe(true);
+    expect(node('provisional-path-disposition').eligibility.pathEligible).toBe(false);
+    expect(node('supporting-citation-disposition').eligibility.pathEligible).toBe(false);
+    expect(node('supporting-citation-disposition').eligibility.reasons).toContain('invalid-path-disposition-promotion');
+    expect(node('evidence-producing-disposition').eligibility.pathEligible).toBe(false);
+    expect(node('excluded-with-rationale').eligibility.pathEligible).toBe(false);
     expect(buildResourceSemanticProjection(node('supporting-citation-disposition')).planningUnit).toBeNull();
     expect(buildResourceSemanticProjection(node('supporting-citation-disposition')).resource.projectionStatus.planning)
       .toBe('blocked');

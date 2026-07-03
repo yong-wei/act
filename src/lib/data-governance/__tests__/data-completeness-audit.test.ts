@@ -160,6 +160,25 @@ describe('data completeness audit', () => {
           },
         },
       }, {
+        id: 'citation-without-rationale',
+        label: 'Citation without rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/citation-without-rationale.png',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'supporting-citation',
+            reviewStatus: 'human-confirmed',
+            rationale: null,
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'citation-without-rationale',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
         id: 'evidence-producing-without-instrumentation',
         label: 'Evidence producing without instrumentation',
         type: 'INTERACTIVE_COMP',
@@ -282,13 +301,13 @@ describe('data completeness audit', () => {
     const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
 
     expect(disposition?.totals).toMatchObject({
-      resourceNodes: 4,
+      resourceNodes: 5,
       corpusResourceProjections: 3,
-      reviewedDispositions: 2,
+      reviewedDispositions: 3,
       missingDisposition: 2,
       missingHumanReview: 2,
       missingParentPlanningUnit: 1,
-      missingDispositionRationale: 1,
+      missingDispositionRationale: 2,
       missingExclusionRationale: 1,
       missingEvidenceInstrumentation: 1,
       invalidPromotion: 1,
@@ -313,6 +332,11 @@ describe('data completeness audit', () => {
       expect.objectContaining({
         id: 'missing-disposition-rationale',
         stableRef: 'ResourceDisposition:resource_registry:excluded-without-rationale',
+        followupBucket: 'review-resource-disposition-rationales',
+      }),
+      expect.objectContaining({
+        id: 'missing-disposition-rationale',
+        stableRef: 'ResourceDisposition:resource_registry:citation-without-rationale',
         followupBucket: 'review-resource-disposition-rationales',
       }),
       expect.objectContaining({

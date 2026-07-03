@@ -396,12 +396,29 @@ function buildResourceDispositionLayer(
     missingDisposition: countFindings(findings, 'missing-path-disposition'),
     missingHumanReview: countFindings(findings, 'missing-disposition-review'),
     missingDispositionRationale: countFindings(findings, 'missing-disposition-rationale'),
-    missingExclusionRationale: countFindings(findings, 'missing-disposition-rationale'),
+    missingExclusionRationale: countMissingExclusionRationaleFindings(nodes, findings),
     missingParentPlanningUnit: countFindings(findings, 'missing-parent-planning-unit'),
     missingEvidenceInstrumentation: countFindings(findings, 'missing-evidence-instrumentation'),
     invalidPromotion: countFindings(findings, 'invalid-path-disposition-promotion'),
     unmatchedCorpusResourceProjections: corpusFindings.length,
   }, findings);
+}
+
+function countMissingExclusionRationaleFindings(
+  nodes: ResourceNode[],
+  findings: DataCompletenessFinding[],
+): number {
+  const excludedRefs = new Set(nodes
+    .filter((node) => node.planningMetadata.pathDisposition?.kind === 'excluded-with-rationale')
+    .map(resourceDispositionStableRef));
+  return findings.filter((finding) => (
+    finding.id === 'missing-disposition-rationale' &&
+    excludedRefs.has(finding.stableRef)
+  )).length;
+}
+
+function resourceDispositionStableRef(node: ResourceNode): string {
+  return `ResourceDisposition:${node.sourceKind}:${node.sourceRef}`;
 }
 
 function collectResourceDispositionCoveredRefs(nodes: ResourceNode[]): Set<string> {
