@@ -4,7 +4,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import {
   ArrowUpRight,
@@ -14,9 +13,11 @@ import {
   GraduationCap,
   Layers,
   Menu,
+  Moon,
   Play,
   Ship,
   Sparkles,
+  Sun,
   Trophy,
   User,
   Wrench,
@@ -33,19 +34,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { getShipModelPosterPath } from '@/resources/simulations/ship-model-assets'
-import { LoginModal } from '@/components/shared/login-modal'
+import { PlatformBrandLockup } from '@/components/shared/platform-brand-lockup'
 import { useTheme } from '@/components/providers/theme-provider'
 import { resolveHomeModelRenderMode, type ConnectionHint } from '@/lib/model-render-policy'
 import { getHomepageScenarioBackgroundClass } from '@/lib/homepage-theme'
 import {
-  getCommercialStudentEntryIntentGroups,
-  getPlatformCockpitHref,
   getStudentLearningIntentNavigationGroups,
   resolveCommercialEntryHref,
   type PlatformNavigationIconKey,
 } from '@/lib/platform-role-navigation'
-
-type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN'
 
 const shipScenarios = [
   {
@@ -135,7 +132,6 @@ const shipScenarios = [
 ]
 
 const homepageStudentEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries)
-const homepageEntryIntentGroups = getCommercialStudentEntryIntentGroups()
 
 const homepageIconMap: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = {
   adaptive: Sparkles,
@@ -164,34 +160,15 @@ const ShipModelPreview = dynamic(
 )
 
 export default function HomePage() {
-  const router = useRouter()
   const { data: session } = useSession()
-  const { mounted, theme } = useTheme()
+  const { mounted, theme, toggleTheme } = useTheme()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
-  const [showLoginModal, setShowLoginModal] = useState(false)
   const [showCourseDesignDialog, setShowCourseDesignDialog] = useState(false)
   const [showMobileNavigation, setShowMobileNavigation] = useState(false)
   const [homeDynamicModelEnabled, setHomeDynamicModelEnabled] = useState(false)
   const [connectionHint, setConnectionHint] = useState<ConnectionHint | undefined>(undefined)
   const totalSlides = shipScenarios.length
-
-  const routeByRole = (role?: UserRole | string | null) => {
-    router.push(getPlatformCockpitHref(role))
-  }
-
-  const handleEnterCockpit = () => {
-    if (!session) {
-      setShowLoginModal(true)
-      return
-    }
-    routeByRole(session.user?.role as UserRole | undefined)
-  }
-
-  const handleLoginSuccess = (role: UserRole) => {
-    setShowLoginModal(false)
-    routeByRole(role)
-  }
 
   useEffect(() => {
     let active = true
@@ -271,6 +248,8 @@ export default function HomePage() {
     theme,
     scenarioGradient: currentScenario.bgGradient,
   })
+  const personalCenterHref = resolveCommercialEntryHref('account-profile', Boolean(session))
+  const isDarkTheme = mounted && theme === 'dark'
 
   return (
     <div
@@ -289,16 +268,8 @@ export default function HomePage() {
 
         <nav className="surface-topbar relative z-10">
           <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-                <Ship className="h-6 w-6" />
-              </div>
-              <div>
-                <div className="text-lg font-semibold tracking-wide text-foreground">AI-OBE船舶智控平台</div>
-                <div className="text-xs text-subtle">Mission Control for Maritime Education</div>
-              </div>
-            </div>
-            <div className="hidden items-center gap-5 text-sm text-muted-foreground md:flex">
+            <PlatformBrandLockup className="mr-4" />
+            <div className="hidden flex-1 items-center justify-center gap-5 text-sm text-muted-foreground lg:flex">
               {homepageStudentEntries.map((entry) => (
                 <Link
                   key={entry.id}
@@ -310,39 +281,50 @@ export default function HomePage() {
                 </Link>
               ))}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Button
+                asChild
+                className="cta-primary hidden lg:inline-flex"
+                data-entry-secondary-action="account-profile"
+              >
+                <Link href={personalCenterHref}>
+                  <User className="mr-2 h-4 w-4" />
+                  个人中心
+                </Link>
+              </Button>
+              <Link
+                href={personalCenterHref}
+                aria-label="个人中心"
+                title="个人中心"
+                className="btn-ghost-themed inline-flex h-10 w-10 items-center justify-center rounded-lg border lg:hidden"
+                data-entry-secondary-action="account-profile"
+              >
+                <User className="h-5 w-5" />
+              </Link>
+              <button
+                type="button"
+                aria-label={isDarkTheme ? '切换到浅色主题' : '切换到深色主题'}
+                onClick={toggleTheme}
+                className="btn-ghost-themed inline-flex h-10 w-10 items-center justify-center rounded-lg border"
+                data-homepage-theme-switch
+              >
+                {isDarkTheme ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
               <button
                 type="button"
                 aria-label={showMobileNavigation ? '关闭平台入口菜单' : '打开平台入口菜单'}
                 aria-expanded={showMobileNavigation}
                 onClick={() => setShowMobileNavigation((value) => !value)}
-                className="btn-ghost-themed inline-flex h-10 w-10 items-center justify-center rounded-lg border md:hidden"
+                className="btn-ghost-themed inline-flex h-10 w-10 items-center justify-center rounded-lg border lg:hidden"
               >
                 {showMobileNavigation ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
-              {session ? (
-                <Button
-                  onClick={handleEnterCockpit}
-                  className="cta-primary"
-                  data-entry-secondary-action="student-cockpit"
-                >
-                  进入驾驶舱
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => setShowLoginModal(true)}
-                  className="cta-primary"
-                  data-entry-secondary-action="student-cockpit"
-                >
-                  进入驾驶舱
-                </Button>
-              )}
             </div>
           </div>
           {showMobileNavigation ? (
             <nav
               aria-label="移动平台入口菜单"
-              className="mx-auto grid max-w-[1600px] gap-2 border-t border-border/60 px-6 py-3 md:hidden"
+              className="mx-auto grid max-w-[1600px] gap-2 border-t border-border/60 px-6 py-3 lg:hidden"
             >
               {homepageStudentEntries.map((entry) => (
                 <Link
@@ -356,6 +338,15 @@ export default function HomePage() {
                   <ArrowUpRight className="h-4 w-4 text-subtle" />
                 </Link>
               ))}
+              <Link
+                href={personalCenterHref}
+                onClick={() => setShowMobileNavigation(false)}
+                className="surface-card-soft flex min-h-11 items-center justify-between rounded-lg px-3 py-2 text-sm text-foreground"
+                data-entry-secondary-action="account-profile"
+              >
+                <span>个人中心</span>
+                <User className="h-4 w-4 text-subtle" />
+              </Link>
             </nav>
           ) : null}
         </nav>
@@ -471,15 +462,13 @@ export default function HomePage() {
                   <div className="text-xs text-subtle">商业入口 · 学习意图</div>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  {homepageEntryIntentGroups.map((intentGroup) => {
-                    const entry = homepageStudentEntries.find((candidate) => intentGroup.entryIds.includes(candidate.id))
-                    const ModuleIcon = entry ? homepageIconMap[entry.iconKey as PlatformNavigationIconKey] ?? Layers : Layers
-                    const entryHref = entry?.href ?? resolveCommercialEntryHref(intentGroup.intent, Boolean(session))
+                  {homepageStudentEntries.map((entry) => {
+                    const ModuleIcon = homepageIconMap[entry.iconKey as PlatformNavigationIconKey] ?? Layers
                     return (
                       <Link
-                        key={intentGroup.intent}
-                        href={entryHref}
-                        prefetch={entry?.href.startsWith('/simulations') ? false : undefined}
+                        key={entry.id}
+                        href={entry.href}
+                        prefetch={entry.href.startsWith('/simulations') ? false : undefined}
                         className="surface-card-soft group p-4 transition hover:-translate-y-1 hover:border-primary/45"
                       >
                         <div className="flex items-center justify-between">
@@ -488,9 +477,9 @@ export default function HomePage() {
                           </div>
                           <ArrowUpRight className="h-4 w-4 text-subtle group-hover:text-primary" />
                         </div>
-                        <div className="mt-4 text-xs font-medium text-primary">{intentGroup.label}</div>
-                        <div className="mt-1 text-sm font-semibold text-foreground">{entry?.label ?? intentGroup.label}</div>
-                        <div className="mt-2 text-xs text-subtle">{intentGroup.summary}</div>
+                        <div className="mt-4 text-xs font-medium text-primary">核心入口</div>
+                        <div className="mt-1 text-sm font-semibold text-foreground">{entry.label}</div>
+                        <div className="mt-2 text-xs text-subtle">{entry.description}</div>
                       </Link>
                     )
                   })}
@@ -553,12 +542,6 @@ export default function HomePage() {
         </DialogContent>
       </Dialog>
 
-      {/* 登录弹窗 */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSuccess={handleLoginSuccess}
-      />
     </div>
   )
 }
