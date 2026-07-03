@@ -117,42 +117,23 @@ ResourceNodes that can appear in adaptive learning paths SHALL expose readiness 
 - **AND** the node MAY appear only as a locked future milestone with a student-facing preparation message.
 
 ### Requirement: Resource field completion audit protects path quality
-The system SHALL audit path-eligible resources.
+The system SHALL audit path-eligible resources and expose a worklist suitable for staged human completion of existing project resources.
 
 #### Scenario: Resource field completion is audited
 - **WHEN** a resource candidate is inventoried for future path planning
 - **THEN** the audit SHALL record missing identity, source, graph binding, path profile, evidence, readiness, grounding, version, and review-state fields
 - **AND** it SHALL classify each missing field by completion method: manual, local-model-assisted, external-tool-assisted, generated-provisional, already-governed, or blocked.
 - **AND** it SHALL record evidence-contract completeness, including event source, event type, client event id policy, attempt key, source log id, dedupe key, timestamps, LearningFact materialization policy, confidence policy, and privacy scope.
-
-#### Scenario: Generated metadata is provisional
-- **WHEN** local model, vision model, transcript tooling, OCR, prompt extraction, or another automated process supplies resource semantics
-- **THEN** the resulting fields SHALL remain provisional until a human-confirmed review state is recorded
-- **AND** provisional fields SHALL NOT make a ResourceNode path-eligible, mastery-affecting, or terminal-validation-capable.
+- **AND** it SHALL preserve stable candidate ids that can be used by the data completeness helper and subsequent human review batches.
 
 #### Scenario: Human confirmation is audited
 - **WHEN** a provisional or manually completed field set is promoted to human-confirmed
 - **THEN** the audit SHALL record reviewer id, reviewer role, reviewed time, review batch id, reviewed source hash, reviewed version ref, generation tool or model where applicable, prompt or manifest hash where applicable, confidence, and stale invalidation rules
 - **AND** a source hash, version, prompt hash, or generation-tool version change SHALL make the confirmed field set stale until it is reviewed again.
-
-#### Scenario: Evidence contract is incomplete
-- **WHEN** a ResourceNode lacks event attribution, dedupe, attempt, timestamp, LearningFact policy, confidence, or privacy fields required by its evidence behavior
-- **THEN** the ResourceNode SHALL be blocked from path eligibility or mastery effect according to policy
-- **AND** diagnostics SHALL identify the missing evidence-contract field.
-
-#### Scenario: Completion audit feeds diagnostics
-- **WHEN** a ResourceNode or resource segment is blocked from PlanningUnit creation
-- **THEN** diagnostics SHALL expose the exact missing field codes and review state
-- **AND** it SHALL distinguish path eligibility from retrieval, citation, and authoring-triage readiness.
+- **AND** only human-confirmed semantic fields MAY make a ResourceNode path-eligible, mastery-affecting, or terminal-validation-capable.
 
 ### Requirement: Runtime ResourceNode projections preserve source-of-record ownership
 The system SHALL keep planning metadata, semantic resource mappings, and projection status separate from records that own renderable content and teacher-editable resource metadata.
-
-#### Scenario: Runtime projection sidecar is consumed
-- **WHEN** a runtime lesson, knowledge card collection, infograph manifest, handout, or media asset has a projection sidecar
-- **THEN** production ResourceNode registry builders SHALL load the runtime projection sidecar artifact before registry construction
-- **AND** the ResourceNode registry SHALL consume only stable identity, source refs, graph bindings, path profile, evidence, readiness, review, and version metadata from the sidecar
-- **AND** it SHALL keep the runtime manifest, markdown, media file, and generated image as the content source of record.
 
 #### Scenario: Runtime step becomes a PlanningUnit
 - **WHEN** a runtime lesson step is projected as a path resource
@@ -160,13 +141,9 @@ The system SHALL keep planning metadata, semantic resource mappings, and project
 - **AND** verified route targets SHALL match an actual interactive course App Router base, student session, or teacher session page pattern
 - **AND** missing or provisional fields SHALL prevent PlanningUnit creation.
 - **AND** runtime projection blockers SHALL also make the base ResourceNode eligibility path-ineligible.
+- **AND** long-form sections, transcript chunks, figures, and other citation-only records SHALL NOT become PlanningUnits unless they are separately reviewed with path profile and evidence policy.
 
-#### Scenario: Runtime projection evidence contract is missing
-- **WHEN** a projected runtime resource lacks event source, event type, client event id policy, attempt key, source log id, dedupe key, timestamps, LearningFact policy, confidence policy, or privacy scope
-- **THEN** it SHALL NOT create a PlanningUnit or mastery-affecting path node
-- **AND** it MAY remain available for retrieval, citation, or authoring diagnostics according to scene policy.
-
-#### Scenario: Runtime module is only a segment
-- **WHEN** a module inside a lesson step lacks its own launch target and evidence contract
-- **THEN** it MAY be projected as a ResourceSegment or CitationTarget
-- **AND** it SHALL NOT become a PathNode without an audited ResourceNode projection.
+#### Scenario: Arena resource preserves official scoring boundary
+- **WHEN** an Arena resource is mapped as path-plannable or evidence-producing context
+- **THEN** ResourceNode and LearningFact metadata MAY represent auxiliary learning evidence, preview behavior, preparation progress, or terminal validation context
+- **AND** official Arena score, validity, ranking, leaderboard position, and official submission result semantics SHALL remain sourced only from `ArenaSubmission` and governed official Arena evaluation records.
