@@ -27,6 +27,11 @@ type LearningGoalResourceBaselineMatrix = {
       qualityObjectiveIds?: string[];
     };
     targetGraphNodeIds?: string[];
+    categories?: {
+      remediation?: {
+        pathEligibleResourceIds?: string[];
+      };
+    };
   }>;
 };
 
@@ -48,6 +53,9 @@ async function loadRegisteredSemanticIds() {
       ...(row.objectiveBoundary?.qualityObjectiveIds ?? []),
     ])),
     graphNodeIds: uniqueSorted(rows.flatMap((row) => row.targetGraphNodeIds ?? [])),
+    remediationResourceNodeIds: uniqueSorted(rows.flatMap((row) =>
+      row.categories?.remediation?.pathEligibleResourceIds ?? [],
+    )),
   };
 }
 
@@ -68,6 +76,7 @@ async function main() {
     knownLearningGoalIds: registeredSemanticIds.learningGoalIds,
     knownKaqObjectiveIds: registeredSemanticIds.kaqObjectiveIds,
     knownGraphNodeIds: registeredSemanticIds.graphNodeIds,
+    knownRemediationResourceNodeIds: registeredSemanticIds.remediationResourceNodeIds,
   });
   const files = assessmentItemSemanticReviewArtifactsToFiles(artifacts);
 

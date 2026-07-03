@@ -55,6 +55,14 @@ export interface AdaptiveAssessmentCatalogItem {
     stem: string | null;
     answerKey: string[] | null;
     rubricRef: string | null;
+    options?: Array<{
+      key: string | null;
+      text: string;
+      isCorrect: boolean | null;
+      explanation: string | null;
+    }> | null;
+    explanation?: string | null;
+    choiceMode?: string | null;
   };
   semanticRefs: {
     learningGoalIds: string[];
@@ -349,6 +357,12 @@ function buildPresetItems(
         stem: question.stem,
         answerKey: question.options.filter((option) => option.isCorrect).map((option) => option.label).sort(),
         rubricRef: kaqMetadata?.review?.metadataVersionRef ?? null,
+        options: question.options.map((option) => ({
+          key: option.label,
+          text: option.text,
+          isCorrect: option.isCorrect,
+          explanation: option.explanation,
+        })),
       },
       semanticRefs: {
         learningGoalIds: uniqueSorted(kaqMetadata?.learningGoalIds ?? []),
@@ -369,7 +383,7 @@ function buildPresetItems(
       },
       versionRefs: {
         ...ARTIFACT_VERSION_REFS,
-        ...(kaqMetadata?.versionRefs ?? {}),
+        ...currentKaqMetadata.versionRefs,
       },
       limitations: reviewState === 'path-eligible'
         ? []
@@ -407,6 +421,7 @@ function buildPrismaQuestionItems(rows: PrismaQuestionCatalogRow[]): AdaptiveAss
         stem: row.stem,
         answerKey: [row.correctAnswer],
         rubricRef: null,
+        explanation: row.explanation ?? null,
       },
       semanticRefs: {
         learningGoalIds: [],
@@ -456,6 +471,7 @@ function buildAcqStaticItems(records: AcqStaticQuestionRecord[]): AdaptiveAssess
         stem: record.stem_md ?? null,
         answerKey: null,
         rubricRef: record.rubric?.length ? `${sourceId}#rubric` : null,
+        explanation: record.solution_md ?? null,
       },
       semanticRefs: {
         learningGoalIds: [],
@@ -502,6 +518,15 @@ function buildIcourseItems(records: IcourseObjectiveBankRecord[]): AdaptiveAsses
         stem: record.stem ?? null,
         answerKey: Array.isArray(record.correct_answers) ? record.correct_answers.map(String).sort() : null,
         rubricRef: null,
+        choiceMode: record.choice_mode ?? null,
+        options: Array.isArray(record.options)
+          ? record.options.map((option) => ({
+            key: option.key ?? null,
+            text: option.text ?? '',
+            isCorrect: typeof option.is_correct === 'boolean' ? option.is_correct : null,
+            explanation: null,
+          })).sort((left, right) => String(left.key ?? '').localeCompare(String(right.key ?? '')))
+          : null,
       },
       semanticRefs: {
         learningGoalIds: [],
@@ -546,6 +571,12 @@ function buildGeneratedItems(rows: GeneratedQuestionCatalogRow[]): AdaptiveAsses
         stem: question.stem,
         answerKey: question.options.filter((option) => option.isCorrect).map((option) => option.label).sort(),
         rubricRef: null,
+        options: question.options.map((option) => ({
+          key: option.label,
+          text: option.text,
+          isCorrect: option.isCorrect,
+          explanation: option.explanation,
+        })),
       },
       semanticRefs: {
         learningGoalIds: uniqueSorted(question.generatedMetadata?.learningGoalIds ?? []),

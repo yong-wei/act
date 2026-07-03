@@ -47,6 +47,14 @@ describe('adaptive assessment semantic review workflow', () => {
     expect(packet).toMatchObject({
       packetVersion: 'assessment-item-semantic-review-packet.v1',
       catalogItemId: catalog.items[0].catalogItemId,
+      question: {
+        options: expect.arrayContaining([
+          expect.objectContaining({
+            text: expect.any(String),
+            isCorrect: expect.any(Boolean),
+          }),
+        ]),
+      },
       machineSuggestions: {
         fieldsAreSuggestionsOnly: true,
         maySetReviewedState: false,
@@ -146,6 +154,27 @@ describe('adaptive assessment semantic review workflow', () => {
     expect(report.issues.map((issue) => issue.reason)).toContain('stale-metadata-version-refs');
   });
 
+  it('rejects remediation refs that are not in the governed resource baseline', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      knownRemediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
+      decisions: [{
+        ...baseDecision(item),
+        remediationRefs: ['registry:not-a-real-remediation'],
+      }],
+    });
+
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.issues.map((issue) => issue.reason)).toContain(
+      'invalid-remediation-ref:registry:not-a-real-remediation',
+    );
+  });
+
   it('keeps stale K/A/Q human review overlays visible as stale decisions', async () => {
     const sources = await loadAdaptiveAssessmentCatalogSources();
     const staleReview = sources.kaqReviewedItems.find((item) => item.questionId === 'preset-q-01');
@@ -174,6 +203,65 @@ describe('adaptive assessment semantic review workflow', () => {
     expect(reviewedSnapshots).toHaveLength(1);
     expect(report.staleReviewCount).toBe(1);
     expect(report.issues.map((issue) => issue.reason)).toContain('stale-source-hash');
+  });
+
+  it('keeps K/A/Q review-time version refs so stale review metadata is counted', async () => {
+    const sources = await loadAdaptiveAssessmentCatalogSources();
+    const reviewed = sources.kaqReviewedItems.find((item) => item.questionId === 'preset-q-01');
+    expect(reviewed).toBeTruthy();
+    const staleReviewedItem = {
+      ...reviewed!,
+      metadata: {
+        ...reviewed!.metadata,
+        versionRefs: {
+          ...(reviewed!.metadata?.versionRefs ?? {}),
+          objectiveCatalogVersion: 'autocontrol-kaq-objectives.v0',
+        },
+      },
+    };
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [staleReviewedItem],
+    });
+    const reviewedSnapshots = buildKaqFoundationSemanticReviewDecisions(catalog.items, [staleReviewedItem]);
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: catalog.items,
+      decisions: reviewedSnapshots,
+    });
+
+    expect(reviewedSnapshots[0].metadataVersionRefs.objectiveCatalogVersion).toBe('autocontrol-kaq-objectives.v0');
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.staleReviewCount).toBe(1);
+    expect(report.issues.map((issue) => issue.reason)).toContain('stale-metadata-version-refs');
+  });
+
+  it('does not backfill missing K/A/Q review-time version refs from the current catalog item', async () => {
+    const sources = await loadAdaptiveAssessmentCatalogSources();
+    const reviewed = sources.kaqReviewedItems.find((item) => item.questionId === 'preset-q-01');
+    expect(reviewed).toBeTruthy();
+    const versionRefs = { ...(reviewed!.metadata?.versionRefs ?? {}) };
+    delete versionRefs.resourceRegistryVersion;
+    const staleReviewedItem = {
+      ...reviewed!,
+      metadata: {
+        ...reviewed!.metadata,
+        versionRefs,
+      },
+    };
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [staleReviewedItem],
+    });
+    const reviewedSnapshots = buildKaqFoundationSemanticReviewDecisions(catalog.items, [staleReviewedItem]);
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: catalog.items,
+      decisions: reviewedSnapshots,
+    });
+
+    expect(reviewedSnapshots[0].metadataVersionRefs.resourceRegistryVersion).toBeUndefined();
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.staleReviewCount).toBe(1);
+    expect(report.issues.map((issue) => issue.reason)).toContain('stale-metadata-version-refs');
   });
 
   it('keeps invalid path eligibility out of gate counts without dropping the item', () => {
@@ -237,13 +325,14 @@ describe('adaptive assessment semantic review workflow', () => {
       items: catalog.items,
       decisions: reviewedSnapshots,
       sourceFamilies: catalog.manifest.sourceFamilies,
+      knownRemediationResourceNodeIds: [],
     });
 
     expect(reviewedSnapshots).toHaveLength(50);
     expect(artifacts.coverage).toMatchObject({
       itemCount: 443,
-      reviewedItemCount: 50,
-      pathEligibleItemCount: 50,
+      reviewedItemCount: 0,
+      pathEligibleItemCount: 0,
       staleReviewCount: 0,
     });
     expect(artifacts.coverage.sourceFamilies.find((family) => family.family === 'kaq-foundation-reviewed')).toMatchObject({
@@ -260,7 +349,14 @@ describe('adaptive assessment semantic review workflow', () => {
       itemTotal: 226,
       unreviewedTotal: 226,
     });
+    expect(artifacts.coverage.sourceFamilies.find((family) => family.family === 'preset-adaptive-question')).toMatchObject({
+      itemTotal: 50,
+      reviewedTotal: 0,
+      pathEligibleTotal: 0,
+      unreviewedTotal: 50,
+    });
     expect(artifacts.coverage.issues.map((issue) => issue.reason)).toEqual(expect.arrayContaining([
+      'invalid-remediation-ref:knowledge-card:Bode图_1_1',
       'missing-review-decision',
       'missing-learning-goal-binding',
       'missing-kaq-objective-ids',

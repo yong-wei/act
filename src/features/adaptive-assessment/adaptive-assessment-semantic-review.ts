@@ -46,6 +46,14 @@ export interface AssessmentItemSemanticReviewPacket {
     stem: string | null;
     answerKey: string[] | null;
     rubricRef: string | null;
+    options?: Array<{
+      key: string | null;
+      text: string;
+      isCorrect: boolean | null;
+      explanation: string | null;
+    }> | null;
+    explanation?: string | null;
+    choiceMode?: string | null;
   };
   candidateSemantics: {
     learningGoalIds: string[];
@@ -122,6 +130,7 @@ export interface AssessmentItemSemanticReviewInput {
   knownLearningGoalIds?: string[];
   knownKaqObjectiveIds?: string[];
   knownGraphNodeIds?: string[];
+  knownRemediationResourceNodeIds?: string[];
 }
 
 const PATH_GATE_STAGES = new Set<AdaptiveAssessmentCatalogStage>([
@@ -129,6 +138,14 @@ const PATH_GATE_STAGES = new Set<AdaptiveAssessmentCatalogStage>([
   'checkpoint',
   'remediation',
   'terminal-validation',
+]);
+
+const SEMANTIC_REVIEW_VERSION_REF_EXCLUSIONS = new Set([
+  'catalogVersion',
+  'adaptiveAssessmentSnapshotVersion',
+  'kaqFoundationVersion',
+  'acqStaticQuestionBankVersion',
+  'icourseObjectiveBankVersion',
 ]);
 
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
@@ -155,6 +172,12 @@ function versionRefsMatch(left: Record<string, string>, right: Record<string, st
   return JSON.stringify(leftEntries) === JSON.stringify(rightEntries);
 }
 
+function semanticReviewVersionRefs(item: AdaptiveAssessmentCatalogItem): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(item.versionRefs).filter(([key]) => !SEMANTIC_REVIEW_VERSION_REF_EXCLUSIONS.has(key)),
+  );
+}
+
 function findDecision(
   decisionsByItemId: Map<string, AssessmentItemSemanticReviewDecision[]>,
   item: AdaptiveAssessmentCatalogItem,
@@ -173,10 +196,12 @@ function decisionFieldIssues(
   const knownLearningGoals = new Set(input.knownLearningGoalIds ?? []);
   const knownKaqObjectives = new Set(input.knownKaqObjectiveIds ?? []);
   const knownGraphNodes = new Set(input.knownGraphNodeIds ?? []);
+  const knownRemediationResourceNodes = new Set(input.knownRemediationResourceNodeIds ?? []);
+  const shouldValidateRemediationRefs = Array.isArray(input.knownRemediationResourceNodeIds);
   const missing = [
     decision.decisionKind === 'human-review' ? '' : 'script-only-review-rejected',
     decision.sourceContentHash === item.contentHash ? '' : 'stale-source-hash',
-    versionRefsMatch(decision.metadataVersionRefs, item.versionRefs)
+    versionRefsMatch(decision.metadataVersionRefs, semanticReviewVersionRefs(item))
       ? ''
       : 'stale-metadata-version-refs',
     decision.reviewerId || decision.reviewerRole ? '' : 'missing-reviewer',
@@ -200,6 +225,9 @@ function decisionFieldIssues(
     ...decision.selectedGraphNodeIds
       .filter((id) => knownGraphNodes.size > 0 && !knownGraphNodes.has(id))
       .map((id) => `invalid-graph-node:${id}`),
+    ...decision.remediationRefs
+      .filter((id) => shouldValidateRemediationRefs && !knownRemediationResourceNodes.has(id))
+      .map((id) => `invalid-remediation-ref:${id}`),
   ];
   return uniqueSorted(missing);
 }
@@ -280,6 +308,10 @@ export function buildKaqFoundationSemanticReviewDecisions(
     const metadata = reviewedItem.metadata;
     const review = metadata?.review;
     if (!item || review?.state !== 'reviewed') return [];
+    const contentReviewIsCurrent = !item.limitations.some((reason) =>
+      reason === 'kaq-review-source-hash-mismatch'
+      || reason === 'kaq-review-immutable-content-hash-mismatch'
+    );
     return [{
       catalogItemId: item.catalogItemId,
       decisionKind: 'human-review',
@@ -288,7 +320,7 @@ export function buildKaqFoundationSemanticReviewDecisions(
       reviewerRole: review.reviewerRole,
       reviewedAt: review.reviewedAt,
       reviewBatchId: review.reviewBatchId ?? review.metadataVersionRef,
-      sourceContentHash: item.reviewState === 'path-eligible'
+      sourceContentHash: contentReviewIsCurrent
         ? item.contentHash
         : metadata?.immutableContentHash ?? review.sourceHash ?? '',
       selectedLearningGoalIds: uniqueSorted(metadata?.learningGoalIds ?? []),
@@ -299,7 +331,7 @@ export function buildKaqFoundationSemanticReviewDecisions(
       cognitiveLevel: metadata?.cognitiveLevel,
       misconceptionRefs: uniqueSorted(metadata?.misconceptionTags ?? []),
       remediationRefs: uniqueSorted(metadata?.remediationResourceNodeIds ?? []),
-      metadataVersionRefs: item.versionRefs,
+      metadataVersionRefs: metadata?.versionRefs ?? {},
       reviewSourceHash: review.sourceHash,
     }];
   });
@@ -392,7 +424,7 @@ export function buildAssessmentItemSemanticCoverageReport(
       sourceCounts.deprecatedTotal += 1;
     } else if (decision.outcome === 'blocked') {
       sourceCounts.blockedTotal += 1;
-    } else if (itemDecisionIssues.includes('stale-source-hash')) {
+    } else if (itemDecisionIssues.some((issue) => issue.startsWith('stale-'))) {
       sourceCounts.staleTotal += 1;
     } else if (isApprovedDecisionValid(item, decision, input)) {
       sourceCounts.reviewedTotal += 1;
