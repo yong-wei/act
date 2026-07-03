@@ -267,6 +267,137 @@ describe('data completeness audit', () => {
     expect(missingHrefCitationReadiness?.findings).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'retrieval-chunk-not-indexed' }),
     ]));
+
+    const unsafeHrefReport = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [{
+        ...indexedChunk,
+        id: 'textbook-search:sec-1:chunk-unsafe-href',
+        citationAddress: {
+          ...indexedChunk.citationAddress!,
+          href: 'javascript:void(0)',
+        },
+      }],
+    });
+    const unsafeHrefCitationReadiness = unsafeHrefReport.layers.find((layer) =>
+      layer.id === 'citationReadiness'
+    );
+
+    expect(unsafeHrefCitationReadiness?.totals).toMatchObject({
+      verifiedCitationTargets: 0,
+      mappedRetrievalChunks: 0,
+      longformSections: 1,
+      mappedLongformSections: 0,
+      longformCorpusChunks: 1,
+      mappedLongformCorpusChunks: 0,
+      corpusChunksMissingCitationAddress: 0,
+    });
+    expect(unsafeHrefCitationReadiness?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'retrieval-chunk-not-indexed' }),
+    ]));
+  });
+
+  it('uses registered long-form sections as citation readiness denominators', () => {
+    const registry = buildResourceNodeRegistry({
+      textbooks: [{
+        bookId: 'demo-book',
+        title: 'Demo textbook',
+        sourceHref: '/course-runtime/resources/textbooks/demo-book',
+        knowledgeNodeIds: ['kn-controller'],
+      }],
+      textbookSections: [{
+        bookId: 'demo-book',
+        sectionId: 'sec-1',
+        title: 'Indexed section',
+        citationHref: '/course-runtime/resources/textbooks/demo-book/sections/sec-1.md',
+        knowledgeNodeIds: ['kn-controller'],
+        estimatedTimeMinutes: 12,
+      }, {
+        bookId: 'demo-book',
+        sectionId: 'sec-2',
+        title: 'Registered but unindexed section',
+        citationHref: '/course-runtime/resources/textbooks/demo-book/sections/sec-2.md',
+        knowledgeNodeIds: ['kn-controller'],
+        estimatedTimeMinutes: 10,
+      }],
+    });
+    const indexedChunk: LearningEvidenceCorpusChunk = {
+      id: 'textbook-search:sec-1:chunk-1',
+      family: 'course-content',
+      sourceType: 'course-content',
+      sourceRef: {
+        id: 'textbook-search:sec-1:chunk-1',
+        resourceId: 'textbook-section:demo-book:sec-1',
+      },
+      spanRef: { kind: 'text-range', locator: 'chunk-1' },
+      display: {
+        title: 'Section chunk',
+        href: '/course-runtime/resources/textbooks/demo-book/sections/sec-1.md#chunk-1',
+        capsule: 'Section chunk',
+      },
+      citationAddress: {
+        kind: 'text',
+        sourceRefId: 'chunk-1',
+        href: '/course-runtime/resources/textbooks/demo-book/sections/sec-1.md#chunk-1',
+        locator: 'chunk-1',
+        contentHash: 'hash-1',
+      },
+      content: {
+        text: null,
+        redactedSummary: 'Section chunk',
+        hash: 'hash-1',
+      },
+      resourceProjection: {
+        resourceId: 'textbook-section:demo-book:sec-1',
+        segmentRef: 'sec-1',
+        citationTargetRef: 'chunk-1',
+        knowledgeNodeRefs: ['kn-controller'],
+        capabilityTargetRefs: [],
+      },
+      privacyClass: 'public',
+      confidence: 'high',
+      freshness: {
+        indexedAt: '2026-07-03T00:00:00.000Z',
+        sourceUpdatedAt: null,
+        expiresAt: null,
+        stale: false,
+      },
+      authority: {
+        level: 'canonical',
+        knowledgeTags: ['kn-controller'],
+        pageAnchor: 'chunk-1',
+        freshnessBucket: 'current',
+        scopeRule: { visibility: 'public', allowedRoles: ['student', 'teacher'] },
+      },
+      retrieval: {
+        tags: ['textbook-section'],
+        goals: ['demo-book', 'sec-1'],
+        useCases: ['konling', 'recommendation'],
+      },
+    };
+
+    const report = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [indexedChunk],
+    });
+    const citationReadiness = report.layers.find((layer) => layer.id === 'citationReadiness');
+
+    expect(citationReadiness?.totals).toMatchObject({
+      citationTargets: 2,
+      verifiedCitationTargets: 1,
+      retrievalChunks: 2,
+      mappedRetrievalChunks: 1,
+      longformSections: 2,
+      mappedLongformSections: 1,
+      longformCorpusChunks: 1,
+      mappedLongformCorpusChunks: 1,
+    });
+    expect(citationReadiness?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'retrieval-chunk-not-indexed',
+        stableRef: 'retrieval-chunk:textbook-section:demo-book:sec-2:primary',
+      }),
+    ]));
   });
 
   it('does not auto-confirm resources outside the reviewed core path readiness batch', () => {

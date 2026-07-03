@@ -8,9 +8,13 @@ import {
   type CitationTarget,
   type ResourceNode,
   type ResourceNodeRegistry,
+  type ResourceSemanticProjection,
   type RetrievalChunk,
 } from '@/lib/resource-node-registry';
-import type { LearningEvidenceCorpusChunk } from './learning-evidence-rag-corpus';
+import {
+  isSafeCitationAddress,
+  type LearningEvidenceCorpusChunk,
+} from './learning-evidence-rag-corpus';
 
 export type DataCompletenessLayerId =
   | 'graphCore'
@@ -489,10 +493,10 @@ function buildCitationReadinessLayer(
   registry: ResourceNodeRegistry | undefined,
   evidenceCorpus: LearningEvidenceCorpusChunk[],
 ): DataCompletenessLayerSummary {
-  const corpusProjectionIndex = buildCorpusProjectionIndex(evidenceCorpus);
   const projections = (registry?.nodes ?? [])
     .filter(isCitationAuditCandidate)
     .map(buildResourceSemanticProjection);
+  const corpusProjectionIndex = buildCorpusProjectionIndex(evidenceCorpus, projections);
   const citationTargets = projections
     .flatMap((projection) => projection.citationTargets)
     .map((target) => applyCorpusCitationReadiness(target, corpusProjectionIndex));
@@ -547,12 +551,19 @@ interface CorpusProjectionIndex {
   longformCorpusChunksWithCitationAddress: number;
 }
 
-function buildCorpusProjectionIndex(evidenceCorpus: LearningEvidenceCorpusChunk[]): CorpusProjectionIndex {
+function buildCorpusProjectionIndex(
+  evidenceCorpus: LearningEvidenceCorpusChunk[],
+  projections: ResourceSemanticProjection[] = [],
+): CorpusProjectionIndex {
   const indexedResourceRefsWithCitationAddress = new Set<string>();
   const longformSectionRefs = new Set<string>();
   const longformSectionRefsWithCitationAddress = new Set<string>();
   let longformCorpusChunks = 0;
   let longformCorpusChunksWithCitationAddress = 0;
+
+  for (const projection of projections) {
+    addLongformSectionRefs(longformSectionRefs, projection.resource.id);
+  }
 
   for (const chunk of evidenceCorpus) {
     const resourceRef = chunk.resourceProjection?.resourceId ?? chunk.sourceRef.resourceId ?? null;
@@ -567,7 +578,7 @@ function buildCorpusProjectionIndex(evidenceCorpus: LearningEvidenceCorpusChunk[
         }
       }
     }
-    if (!hasResolvableCitationHref(chunk)) continue;
+    if (!hasSafeCitationAddress(chunk)) continue;
     for (const ref of normalizedRefs) {
       indexedResourceRefsWithCitationAddress.add(ref);
       if (isLongformTextbookSectionRef(ref)) {
@@ -588,8 +599,21 @@ function buildCorpusProjectionIndex(evidenceCorpus: LearningEvidenceCorpusChunk[
   };
 }
 
-function hasResolvableCitationHref(chunk: LearningEvidenceCorpusChunk): boolean {
-  return typeof chunk.citationAddress?.href === 'string' && chunk.citationAddress.href.trim().length > 0;
+function addLongformSectionRefs(target: Set<string>, resourceRef: string): void {
+  for (const ref of corpusResourceRefCandidates(resourceRef)) {
+    if (isLongformTextbookSectionRef(ref)) {
+      target.add(ref);
+    }
+  }
+}
+
+function hasSafeCitationAddress(chunk: LearningEvidenceCorpusChunk): boolean {
+  return Boolean(
+    chunk.citationAddress &&
+    typeof chunk.citationAddress.href === 'string' &&
+    chunk.citationAddress.href.trim().length > 0 &&
+    isSafeCitationAddress(chunk.citationAddress),
+  );
 }
 
 function applyCorpusCitationReadiness(
