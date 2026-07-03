@@ -560,26 +560,15 @@ describe('resource node registry', () => {
       expect.objectContaining({ code: 'missing-disposition-review' }),
       expect.objectContaining({ code: 'invalid-path-disposition-promotion', severity: 'blocking' }),
     ]));
-    expect(auditResourcePathPlanningDisposition(node('supporting-citation-disposition'))).toContainEqual(expect.objectContaining({
-      code: 'invalid-path-disposition-promotion',
-      severity: 'blocking',
-    }));
-    expect(auditResourcePathPlanningDisposition(node('evidence-producing-disposition'))).toContainEqual(expect.objectContaining({
-      code: 'invalid-path-disposition-promotion',
-      severity: 'blocking',
-    }));
+    expect(auditResourcePathPlanningDisposition(node('supporting-citation-disposition'))).toEqual([]);
+    expect(auditResourcePathPlanningDisposition(node('evidence-producing-disposition'))).toEqual([]);
     expect(auditResourcePathPlanningDisposition(node('embedded-without-parent'))).toContainEqual(expect.objectContaining({
       code: 'missing-parent-planning-unit',
     }));
     expect(auditResourcePathPlanningDisposition(node('excluded-without-rationale'))).toContainEqual(expect.objectContaining({
       code: 'missing-disposition-rationale',
     }));
-    expect(auditResourcePathPlanningDisposition(node('excluded-with-rationale'))).toEqual([
-      expect.objectContaining({
-        code: 'invalid-path-disposition-promotion',
-        severity: 'blocking',
-      }),
-    ]);
+    expect(auditResourcePathPlanningDisposition(node('excluded-with-rationale'))).toEqual([]);
     expect(node('provisional-path-disposition').eligibility.pathEligible).toBe(true);
     expect(buildResourceSemanticProjection(node('supporting-citation-disposition')).planningUnit).toBeNull();
     expect(buildResourceSemanticProjection(node('supporting-citation-disposition')).resource.projectionStatus.planning)

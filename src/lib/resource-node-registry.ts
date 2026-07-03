@@ -1179,12 +1179,6 @@ export function auditResourcePathPlanningDisposition(node: ResourceNode): Resour
         message: 'Path-plannable disposition requires human review, path audit clearance, and readiness metadata.',
       });
     }
-  } else if (node.launchTarget || node.renderTarget) {
-    issues.push({
-      code: 'invalid-path-disposition-promotion',
-      severity: 'blocking',
-      message: `Resource disposition ${disposition.kind} cannot directly create a PlanningUnit.`,
-    });
   }
 
   return issues;

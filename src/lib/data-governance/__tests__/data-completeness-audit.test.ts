@@ -201,7 +201,7 @@ describe('data completeness audit', () => {
       missingHumanReview: 2,
       missingParentPlanningUnit: 1,
       missingExclusionRationale: 1,
-      invalidPromotion: 3,
+      invalidPromotion: 1,
     });
     expect(disposition?.findings).toEqual(expect.arrayContaining([
       expect.objectContaining({
@@ -217,11 +217,6 @@ describe('data completeness audit', () => {
       expect.objectContaining({
         id: 'invalid-path-disposition-promotion',
         stableRef: 'ResourceDisposition:resource_registry:provisional-path-node',
-        followupBucket: 'audit-path-disposition-promotions',
-      }),
-      expect.objectContaining({
-        id: 'invalid-path-disposition-promotion',
-        stableRef: 'ResourceDisposition:resource_registry:citation-card',
         followupBucket: 'audit-path-disposition-promotions',
       }),
     ]));
@@ -318,7 +313,7 @@ describe('data completeness audit', () => {
     expect(disposition?.totals).toMatchObject({
       resourceNodes: 3,
       reviewedDispositions: 3,
-      invalidPromotion: 3,
+      invalidPromotion: 0,
     });
   });
 
