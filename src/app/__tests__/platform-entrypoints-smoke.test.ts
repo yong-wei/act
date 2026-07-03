@@ -48,16 +48,56 @@ describe('platform entrypoint smoke contracts', () => {
       .map((entry) => entry.label);
 
     expect(source).toContain('getStudentLearningIntentNavigationGroups');
-    expect(source).toContain('getCommercialStudentEntryIntentGroups');
     expect(source).toContain('resolveCommercialEntryHref');
     expect(source).toContain('showMobileNavigation');
     expect(source).toContain('aria-label={');
     expect(source).toContain('打开平台入口菜单');
     expect(source).toContain('aria-label="移动平台入口菜单"');
-    expect(source).toContain('md:hidden');
+    expect(source).toContain('lg:hidden');
+    expect(source).toContain('PlatformBrandLockup');
+    expect(source).toContain('data-homepage-theme-switch');
+    expect(source).toContain('data-entry-secondary-action="account-profile"');
+    expect(source).toContain('homepageStudentEntries.map((entry)');
+    expect(source).not.toContain('进入驾驶舱');
+    expect(source).not.toContain('homepageEntryIntentGroups');
+    expect(source).not.toContain('intentGroup.entryIds.includes');
     expect(source).not.toContain('const moduleLinks = [');
     expect(homepageEntryLabels).toEqual(['知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台']);
     expect(homepageEntryLabels).not.toContain('个人中心');
+  });
+
+  it('keeps Deep Blue brand assets behind the shared lockup contract', () => {
+    const lockupSource = readSource('src/components/shared/platform-brand-lockup.tsx');
+    const metadataPath = path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-meta.json');
+    const metadata = JSON.parse(readFileSync(metadataPath, 'utf8')) as {
+      brand?: string;
+      asset?: string;
+      sourceAsset?: string;
+      generator?: string;
+      modelFamily?: string;
+      owningChange?: string;
+      lightDarkTreatment?: { light?: string; dark?: string };
+      fallbackBehavior?: { textAlternative?: string; componentFallback?: string };
+    };
+
+    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo.png'))).toBe(true);
+    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-source.png'))).toBe(true);
+    expect(lockupSource).toContain('DEEPBLUE_SMART_CONTROL_LOGO_PATH');
+    expect(lockupSource).toContain('data-platform-brand-lockup="deepblue-smart-control"');
+    expect(lockupSource).toContain('alt="深蓝智控"');
+    expect(lockupSource).toContain('基于学科垂类大模型的船舶智控教学平台');
+    expect(metadata).toMatchObject({
+      brand: '深蓝智控',
+      asset: '/assets/platform-brand/deepblue-smart-control-logo.png',
+      sourceAsset: '/assets/platform-brand/deepblue-smart-control-logo-source.png',
+      generator: 'image2 via Codex image_gen',
+      modelFamily: 'image2',
+      owningChange: 'refresh-home-brand-and-account-entry',
+    });
+    expect(metadata.lightDarkTreatment?.light).toContain('light');
+    expect(metadata.lightDarkTreatment?.dark).toContain('dark');
+    expect(metadata.fallbackBehavior?.textAlternative).toBe('深蓝智控');
+    expect(metadata.fallbackBehavior?.componentFallback).toContain('visible Chinese platform description');
   });
 
   it('reuses one credential login form for page and embedded login', () => {
