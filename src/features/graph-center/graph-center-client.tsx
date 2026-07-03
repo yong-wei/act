@@ -385,13 +385,19 @@ export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplay
 function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterSelectedNodeDetail }) {
   const associated = selectedNode.associatedEvidence;
   const [reviewStates, setReviewStates] = useState<Record<string, string>>({});
+  const [reviewRationales, setReviewRationales] = useState<Record<string, string>>({});
   if (!associated) return null;
   const hasDraftCandidates = associated.resourceGapSuggestions.length > 0;
 
   async function submitReview(candidate: GraphCenterSarResourceGapSuggestion, decision: SarReviewDecision) {
-    const requestBody = buildGraphCenterSarReviewRequest(selectedNode, candidate, decision);
+    const key = graphCenterSarCandidateKey(candidate);
+    const requestBody = buildGraphCenterSarReviewRequest(
+      selectedNode,
+      candidate,
+      decision,
+      reviewRationales[key],
+    );
     if (!requestBody) return;
-    const key = `${candidate.refType}:${candidate.ref}`;
     setReviewStates((state) => ({ ...state, [key]: 'submitting' }));
     const response = await fetch('/api/teacher/sar-suggested-bindings/review', {
       method: 'POST',
@@ -425,19 +431,47 @@ function AssociatedEvidenceDetail({ selectedNode }: { selectedNode: GraphCenterS
       {hasDraftCandidates && (
         <DetailGroup label="候选资源缺口">
           {associated.resourceGapSuggestions.slice(0, 4).map((candidate) => {
-            const key = `${candidate.refType}:${candidate.ref}`;
+            const key = graphCenterSarCandidateKey(candidate);
             const state = reviewStates[key];
             const reviewableActions = candidate.review?.availableActions ?? [];
+            const auditPayload = candidate.review?.auditPayload;
             return (
               <span
                 key={key}
-                className="space-y-1"
+                className="space-y-1 rounded border border-platform-border bg-platform-canvas px-2 py-1"
                 data-graph-center-sar-candidate="suggested"
                 data-graph-center-sar-candidate-type={candidate.refType}
+                data-graph-center-sar-candidate-id={auditPayload?.candidateId ?? candidate.id}
               >
-                <span>{candidate.refType} · 建议/草稿</span>
+                <span className="block font-medium">{formatGraphCenterSarCandidateTitle(candidate)}</span>
+                <span className="block text-[11px] text-platform-fg-muted">
+                  缺口 {candidate.suggestedForMissingCoverageTypes.map(missingCoverageLabel).join('、') || '未声明'}
+                </span>
+                <span className="block text-[11px] text-platform-fg-muted">
+                  来源 {(auditPayload?.sourceRefs ?? []).join('、') || candidate.rationale.basisEventIds.join('、') || '无'}
+                </span>
+                <span className="block text-[11px] text-platform-fg-muted">
+                  trace hops {auditPayload?.traceSummary.traceHopCount ?? candidate.rationale.traceHopCount}
+                  {auditPayload?.traceSummary.limitations.length
+                    ? ` · ${auditPayload.traceSummary.limitations.slice(0, 2).join('、')}`
+                    : ''}
+                </span>
                 {reviewableActions.length > 0 && (
                   <span className="flex flex-wrap gap-1">
+                    <label className="min-w-[12rem] flex-1 text-[11px] text-platform-fg-muted">
+                      <span className="sr-only">审查理由</span>
+                      <input
+                        type="text"
+                        value={reviewRationales[key] ?? ''}
+                        onChange={(event) => setReviewRationales((state) => ({
+                          ...state,
+                          [key]: event.target.value,
+                        }))}
+                        placeholder="审查理由"
+                        className="w-full rounded border border-platform-border bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-primary"
+                        data-graph-center-sar-review-rationale={key}
+                      />
+                    </label>
                     {reviewableActions.map((action) => (
                       <button
                         key={action}
@@ -477,6 +511,7 @@ export function buildGraphCenterSarReviewRequest(
   selectedNode: GraphCenterSelectedNodeDetail,
   candidate: GraphCenterSarResourceGapSuggestion,
   decision: SarReviewDecision,
+  rationale?: string,
 ): GraphCenterSarReviewRequest | null {
   if (!candidate.review) return null;
   const resourceNodeId = resolveGraphCenterSarResourceNodeId(candidate);
@@ -486,7 +521,7 @@ export function buildGraphCenterSarReviewRequest(
   if (decision === 'accept' && !patch) return null;
   return {
     decision,
-    rationale: `Graph Center SAR ${decision}`,
+    rationale: buildGraphCenterSarReviewRationale(candidate, decision, rationale),
     resourceNodeId,
     ...(patch ? { patch } : {}),
     candidate: {
@@ -517,6 +552,37 @@ export function buildGraphCenterSarReviewRequest(
       limitations: selectedNode.associatedEvidence?.limitations ?? [],
     },
   };
+}
+
+function graphCenterSarCandidateKey(candidate: GraphCenterSarResourceGapSuggestion): string {
+  return candidate.review?.auditPayload.candidateId ?? `${candidate.refType}:${candidate.ref}`;
+}
+
+function formatGraphCenterSarCandidateTitle(candidate: GraphCenterSarResourceGapSuggestion): string {
+  return [
+    candidate.refType,
+    candidate.review?.auditPayload.candidateRef ?? candidate.ref,
+    '建议/草稿',
+  ].join(' · ');
+}
+
+function buildGraphCenterSarReviewRationale(
+  candidate: GraphCenterSarResourceGapSuggestion,
+  decision: SarReviewDecision,
+  rationale?: string,
+): string {
+  const trimmed = rationale?.trim();
+  if (trimmed) return trimmed;
+  const auditPayload = candidate.review?.auditPayload;
+  const missingTypes = auditPayload?.missingCoverageTypes ?? candidate.suggestedForMissingCoverageTypes;
+  const basisEventIds = auditPayload?.provenance.basisEventIds ?? candidate.rationale.basisEventIds;
+  return [
+    `Graph Center SAR ${decision}`,
+    `${candidate.refType}:${auditPayload?.candidateRef ?? candidate.ref}`,
+    `missing:${missingTypes.join(',') || 'none'}`,
+    `source:${(auditPayload?.sourceRefs ?? []).join(',') || 'none'}`,
+    `basis:${basisEventIds.join(',') || 'none'}`,
+  ].join('; ');
 }
 
 function resolveGraphCenterSarResourceNodeId(

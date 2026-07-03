@@ -196,6 +196,11 @@ describe('graph center client surface', () => {
     const html = renderToStaticMarkup(createElement(GraphCenterClient, { initialPayload: payload }));
 
     expect(html).toContain('data-graph-center-sar-candidate="suggested"');
+    expect(html).toContain('data-graph-center-sar-candidate-id="sar-gap:1"');
+    expect(html).toContain('resource-node · teaching-resource:owned-quiz · 建议/草稿');
+    expect(html).toContain('缺口 缺少关联资源、缺少路径可用资源');
+    expect(html).toContain('来源 owned-quiz');
+    expect(html).toContain('data-graph-center-sar-review-rationale="sar-gap:1"');
     expect(html).toContain('data-graph-center-sar-review-action="reject"');
     expect(html).toContain('data-graph-center-sar-review-action="defer"');
     expect(html).toContain('data-graph-center-sar-review-action="invalidate"');
@@ -248,6 +253,7 @@ describe('graph center client surface', () => {
 
     expect(request).toMatchObject({
       decision: 'accept',
+      rationale: 'Graph Center SAR accept; resource-node:teaching-resource:owned-quiz; missing:linked-resource,path-eligible-resource; source:owned-quiz; basis:sar:event:safe-1',
       resourceNodeId: 'teaching-resource:owned-quiz',
       patch: {
         planningMetadata: {
@@ -453,6 +459,140 @@ describe('graph center client surface', () => {
       },
     });
     expect(buildGraphCenterSarReviewRequest(selectedNode, candidate, 'accept')).toBeNull();
+  });
+
+  it('preserves teacher SAR review rationale in governance requests', () => {
+    const basePayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+    });
+    const selectedNode = basePayload.selectedNode;
+    if (!selectedNode) throw new Error('selected node missing');
+    const candidate: GraphCenterSarResourceGapSuggestion = {
+      id: 'sar-gap:retrieval-chunk-1',
+      ref: 'retrieval-chunk:owned-quiz:chunk-1',
+      refType: 'retrieval-chunk',
+      status: 'suggested',
+      draft: true,
+      review: {
+        state: 'suggested',
+        authoritative: false,
+        availableActions: ['reject', 'defer', 'invalidate'],
+        auditPayload: {
+          candidateId: 'sar-gap:retrieval-chunk-1',
+          candidateRef: 'retrieval-chunk:owned-quiz:chunk-1',
+          candidateRefType: 'retrieval-chunk',
+          sourceRefs: ['owned-quiz'],
+          missingCoverageTypes: ['linked-resource'],
+          provenance: {
+            source: 'graph-center-sar',
+            basisEventIds: ['sar:event:safe-1'],
+          },
+          traceSummary: {
+            traceHopCount: 1,
+            limitations: [],
+          },
+        },
+      },
+      suggestedForMissingCoverageTypes: ['linked-resource'],
+      rationale: {
+        basisEventIds: ['sar:event:safe-1'],
+        traceHopCount: 1,
+        reason: 'SAR associated this retrieval chunk with the selected graph node.',
+      },
+    };
+
+    const request = buildGraphCenterSarReviewRequest(
+      selectedNode,
+      candidate,
+      'reject',
+      'Chunk overlaps with an unrelated objective.',
+    );
+
+    expect(request).toMatchObject({
+      decision: 'reject',
+      rationale: 'Chunk overlaps with an unrelated objective.',
+    });
+  });
+
+  it('renders distinct SAR review controls for candidates that share a ref', () => {
+    const basePayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:simulation-validation',
+      viewerRole: 'TEACHER',
+    });
+    const selectedNode = basePayload.selectedNode;
+    if (!selectedNode) throw new Error('selected node missing');
+    const payload: GraphCenterPayload = {
+      ...basePayload,
+      selectedNode: {
+        ...selectedNode,
+        associatedEvidence: {
+          status: 'available',
+          eventCount: 2,
+          topEvents: [],
+          traceSummary: {
+            seedEntityIds: ['sar:entity:graph-node'],
+            expansionHopCount: 2,
+            selectedRefCount: 2,
+            rejectedRefCount: 0,
+            limitations: [],
+          },
+          candidateRefs: {
+            resourceNodeIds: ['teaching-resource:owned-quiz'],
+            retrievalChunkIds: [],
+            citationTargetIds: [],
+            planningUnitIds: [],
+            eventIds: ['sar:event:safe-1', 'sar:event:safe-2'],
+            entityIds: [],
+          },
+          resourceGapSuggestions: ['linked-resource', 'path-eligible-resource'].map((missingType, index) => ({
+            id: `sar-gap:${index + 1}`,
+            ref: 'teaching-resource:owned-quiz',
+            refType: 'resource-node',
+            status: 'suggested',
+            draft: true,
+            review: {
+              state: 'suggested',
+              authoritative: false,
+              availableActions: ['reject'],
+              auditPayload: {
+                candidateId: `sar-gap:${index + 1}`,
+                candidateRef: 'teaching-resource:owned-quiz',
+                candidateRefType: 'resource-node',
+                sourceRefs: [`owned-quiz-source-${index + 1}`],
+                missingCoverageTypes: [missingType as GraphCenterResourceCoverageMissingType],
+                provenance: {
+                  source: 'graph-center-sar',
+                  basisEventIds: [`sar:event:safe-${index + 1}`],
+                },
+                traceSummary: {
+                  traceHopCount: index + 1,
+                  limitations: [],
+                },
+              },
+            },
+            suggestedForMissingCoverageTypes: [missingType as GraphCenterResourceCoverageMissingType],
+            rationale: {
+              basisEventIds: [`sar:event:safe-${index + 1}`],
+              traceHopCount: index + 1,
+              reason: `SAR associated candidate ${index + 1}.`,
+            },
+          })),
+          limitations: [],
+        },
+      },
+    };
+
+    const html = renderToStaticMarkup(createElement(GraphCenterClient, { initialPayload: payload }));
+
+    expect(html).toContain('data-graph-center-sar-candidate-id="sar-gap:1"');
+    expect(html).toContain('data-graph-center-sar-candidate-id="sar-gap:2"');
+    expect(html).toContain('data-graph-center-sar-review-rationale="sar-gap:1"');
+    expect(html).toContain('data-graph-center-sar-review-rationale="sar-gap:2"');
+    expect(html).toContain('来源 owned-quiz-source-1');
+    expect(html).toContain('来源 owned-quiz-source-2');
   });
 
   it('renders class heat mode with suppression and denominator labels', () => {
