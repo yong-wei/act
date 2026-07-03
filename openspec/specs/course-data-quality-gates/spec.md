@@ -169,3 +169,11 @@ The system SHALL provide a read-only data completeness helper for agents and rev
 #### Scenario: Canonical fixture account is audited
 - **WHEN** the helper audits a named canonical fixture account such as Yang Fan
 - **THEN** it SHALL report canonical identity, duplicate-account candidates, LearningFact coverage, KnowledgeProgress coverage, path execution evidenceRefs, adaptive assessment state, StudentEvidenceFeatureCache source coverage, and fixture-generation blockers.
+
+### Requirement: Data completeness helper audits resource disposition coverage
+The data completeness helper SHALL report whether all discovered resources have a reviewed path-planning disposition before full resource coverage can be accepted.
+
+#### Scenario: Full resource coverage audit runs
+- **WHEN** the helper audits graph, resource, citation, path-planning, evidence-lineage, and learner-fixture readiness
+- **THEN** it SHALL also report resources missing path-planning disposition, reviewed semantic fields, parent planning-unit links, or exclusion rationale
+- **AND** it SHALL keep these findings separate from citation readiness and retrieval indexing.
