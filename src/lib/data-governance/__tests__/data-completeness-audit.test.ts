@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
+import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
 import {
   buildDataCompletenessAuditReport,
@@ -119,7 +119,7 @@ describe('data completeness audit', () => {
     ]));
   });
 
-  it('classifies core teaching resource disposition gaps in the aggregate registry path', () => {
+  it('does not auto-confirm resources outside the reviewed core path readiness batch', () => {
     const teachingResources = [{
       id: 'core-resource',
       title: 'Core resource',
@@ -175,24 +175,56 @@ describe('data completeness audit', () => {
     const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
 
     expect(pathNode?.planningMetadata.pathDisposition).toMatchObject({
+      kind: 'excluded-with-rationale',
+      reviewStatus: 'generated-provisional',
+      reviewerId: null,
+    });
+    expect(blockedNode?.planningMetadata.pathDisposition).toMatchObject({
+      kind: 'excluded-with-rationale',
+      reviewStatus: 'generated-provisional',
+      reviewerId: null,
+    });
+    expect(buildResourceSemanticProjection(pathNode!).planningUnit).toBeNull();
+    expect(disposition?.totals).toMatchObject({
+      resourceNodes: 6,
+      reviewedDispositions: 0,
+      missingDisposition: 0,
+      missingHumanReview: 6,
+      missingExclusionRationale: 0,
+      invalidPromotion: 0,
+    });
+  });
+
+  it('classifies reviewed core teaching resource dispositions only for the pinned review batch', () => {
+    const registry = buildResourceNodeRegistryFromTeachingResources([], [{
+      id: 'control-odyssey-v1',
+      label: 'Control Odyssey reviewed resource',
+      type: 'INTERACTIVE_COMP',
+      renderTarget: '/interactive-learning/resources/control-odyssey-v1/ship',
+      knowledgeNodeIds: ['kn-controller'],
+      planningOverride: {
+        abilityImpact: { controlModeling: 0.25 },
+        evidenceInstrumentation: ['resource_open'],
+        privacyLevel: 'student-visible',
+      },
+    }]);
+    const pathNode = registry.nodes.find((node) => node.id === 'registry:control-odyssey-v1');
+    const report = buildDataCompletenessAuditReport({ resourceRegistry: registry });
+    const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
+
+    expect(pathNode?.planningMetadata.pathDisposition).toMatchObject({
       kind: 'path-plannable',
       reviewStatus: 'human-confirmed',
       reviewerId: 'core-resource-path-readiness-review',
     });
     expect(pathNode?.planningMetadata.readiness).toMatchObject({
-      minimumCompetency: { controlModeling: 0.1 },
-      minimumEvidenceCount: 1,
-    });
-    expect(blockedNode?.planningMetadata.pathDisposition).toMatchObject({
-      kind: 'excluded-with-rationale',
-      reviewStatus: 'human-confirmed',
-      reviewerId: 'core-resource-path-readiness-review',
+      minimumCompetency: {},
+      minimumEvidenceCount: 0,
     });
     expect(disposition?.totals).toMatchObject({
-      resourceNodes: 6,
-      reviewedDispositions: 6,
+      resourceNodes: 1,
+      reviewedDispositions: 1,
       missingDisposition: 0,
-      missingExclusionRationale: 0,
       invalidPromotion: 0,
     });
   });

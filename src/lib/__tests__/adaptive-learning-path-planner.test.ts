@@ -24,7 +24,11 @@ import {
 } from '../data-governance/autocontrol-kaq-graph-catalog';
 import { expandLearningGoalSubgraph } from '../graphs/goal-subgraph-expansion-service';
 import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
-import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '../resource-node-registry';
+import {
+  applyCoreResourcePathReadinessDispositions,
+  buildResourceNodeRegistry,
+  buildResourceSemanticProjection,
+} from '../resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
 import { buildResourceNodeRegistryFromTeachingResources } from '../teacher-resource-node-data';
 import type { SourcePackItem } from '../source-pack';
@@ -964,6 +968,25 @@ describe('adaptive learning path planner', () => {
         abilityImpact: { controlModeling: 0.25 },
         evidenceInstrumentation: ['lesson_step_view'],
         privacyLevel: 'student-visible',
+        readiness: {
+          minimumCompetency: { controlModeling: 0.1 },
+          minimumEvidenceCount: 1,
+          requiredCompletedNodeIds: [],
+          requiredOutcomeRefs: [],
+          unlockMessage: 'Core lesson is ready for path planning.',
+          fallbackNodeIds: [],
+        },
+        pathDisposition: {
+          kind: 'path-plannable',
+          reviewStatus: 'human-confirmed',
+          rationale: 'Synthetic reviewed lesson resource for type-coverage ranking.',
+          sourceFamily: 'resource_registry',
+          stableSourceRef: 'core-lesson',
+          sourceVersionRef: 'resource-node-registry.v1',
+          parentResourceNodeId: null,
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewerId: 'planner-test-review',
+        },
       },
     }, {
       id: 'core-simulation',
@@ -975,6 +998,25 @@ describe('adaptive learning path planner', () => {
         abilityImpact: { controlModeling: 0.3 },
         evidenceInstrumentation: ['simulation_run'],
         privacyLevel: 'student-visible',
+        readiness: {
+          minimumCompetency: { controlModeling: 0.1 },
+          minimumEvidenceCount: 1,
+          requiredCompletedNodeIds: [],
+          requiredOutcomeRefs: [],
+          unlockMessage: 'Core simulation is ready for path planning.',
+          fallbackNodeIds: [],
+        },
+        pathDisposition: {
+          kind: 'path-plannable',
+          reviewStatus: 'human-confirmed',
+          rationale: 'Synthetic reviewed simulation resource for type-coverage ranking.',
+          sourceFamily: 'resource_registry',
+          stableSourceRef: 'core-simulation',
+          sourceVersionRef: 'resource-node-registry.v1',
+          parentResourceNodeId: null,
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewerId: 'planner-test-review',
+        },
       },
     }]);
     const candidates = registry.nodes
@@ -997,6 +1039,53 @@ describe('adaptive learning path planner', () => {
       'simulation',
     ]));
     expect(ranking.rejected).toHaveLength(0);
+  });
+
+  it('keeps future direct registry resources out of paths until the review batch includes them', () => {
+    const registry = applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'future-direct-node',
+        label: 'Future direct resource',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/interactive-learning/resources/future-direct-node',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          abilityImpact: { controlModeling: 0.35 },
+          evidenceInstrumentation: ['resource_open'],
+          privacyLevel: 'student-visible',
+          readiness: {
+            minimumCompetency: { controlModeling: 0.1 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: 'Future resource requires review before path planning.',
+            fallbackNodeIds: [],
+          },
+        },
+      }],
+    }));
+    const node = registry.nodes.find((item) => item.id === 'registry:future-direct-node')!;
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: 'future-direct-goal',
+        title: 'Future direct resource goal',
+        knowledgeTargets: ['kn-controller'],
+        competencyTargets: ['controlModeling'],
+      },
+      registry,
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(node.planningMetadata.pathDisposition).toMatchObject({
+      kind: 'excluded-with-rationale',
+      reviewStatus: 'generated-provisional',
+      reviewerId: null,
+    });
+    expect(buildResourceSemanticProjection(node).planningUnit).toBeNull();
+    expect(plan.mainPath.map((pathNode) => pathNode.nodeId)).not.toContain('registry:future-direct-node');
   });
 
   it('uses stable tie-breaks for same-score resource candidates', () => {

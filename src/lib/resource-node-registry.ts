@@ -1,4 +1,9 @@
 import { buildKaqArtifactVersionRefs, type KaqArtifactVersionRefs } from './kaq-artifact-versioning';
+import {
+  CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH,
+  coreResourcePathReadinessReviewRef,
+  isCoreResourcePathReadinessReviewedNode,
+} from './resource-node-path-readiness-review-batch';
 
 export const RESOURCE_NODE_TYPES = [
   'lesson_step',
@@ -1074,6 +1079,26 @@ function buildResourceNodeRegistryAudit(
 
 function withCoreResourcePathReadinessDisposition(node: ResourceNode): ResourceNode {
   if (node.planningMetadata.pathDisposition) return node;
+  if (!isCoreResourcePathReadinessReviewedNode(node)) {
+    return {
+      ...node,
+      planningMetadata: {
+        ...node.planningMetadata,
+        pathDisposition: {
+          kind: 'excluded-with-rationale',
+          reviewStatus: 'generated-provisional',
+          rationale: `Resource source ${coreResourcePathReadinessReviewRef(node)} is outside ${CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.id}.`,
+          sourceFamily: node.sourceKind,
+          stableSourceRef: node.sourceRef,
+          sourceVersionRef: node.runtimeProjection?.sourceVersionRef ??
+            CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.defaultSourceVersionRef,
+          parentResourceNodeId: null,
+          reviewedAt: null,
+          reviewerId: null,
+        },
+      },
+    };
+  }
 
   const baseAudit = buildResourceNodeHighConfidencePlanningAuditInternal(node, {
     includeDispositionPromotion: false,
@@ -1089,8 +1114,8 @@ function withCoreResourcePathReadinessDisposition(node: ResourceNode): ResourceN
       stableSourceRef: node.sourceRef,
       sourceVersionRef,
       parentResourceNodeId: null,
-      reviewedAt: '2026-07-03T00:00:00.000Z',
-      reviewerId: 'core-resource-path-readiness-review',
+      reviewedAt: CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewedAt,
+      reviewerId: CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewerId,
     }
     : {
       kind: 'excluded-with-rationale',
@@ -1100,8 +1125,8 @@ function withCoreResourcePathReadinessDisposition(node: ResourceNode): ResourceN
       stableSourceRef: node.sourceRef,
       sourceVersionRef,
       parentResourceNodeId: null,
-      reviewedAt: '2026-07-03T00:00:00.000Z',
-      reviewerId: 'core-resource-path-readiness-review',
+      reviewedAt: CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewedAt,
+      reviewerId: CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewerId,
     };
 
   return {
@@ -1118,10 +1143,8 @@ function withCoreResourcePathReadinessDisposition(node: ResourceNode): ResourceN
 
 function buildDefaultCoreResourceReadiness(node: ResourceNode): ResourceNodeReadinessMetadata {
   return {
-    minimumCompetency: Object.fromEntries(
-      Object.keys(node.planningMetadata.abilityImpact).map((targetId) => [targetId, 0.1]),
-    ),
-    minimumEvidenceCount: node.planningMetadata.evidenceInstrumentation.length > 0 ? 1 : 0,
+    minimumCompetency: {},
+    minimumEvidenceCount: 0,
     requiredCompletedNodeIds: [],
     requiredOutcomeRefs: [],
     unlockMessage: '完成必要的前置学习证据后进入该资源。',

@@ -61,6 +61,7 @@ import {
 import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-resource-baseline-runtime';
 import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-center';
 import {
+  applyCoreResourcePathReadinessDispositions,
   buildResourceNodeRegistry,
   type ResourceNode,
   type ResourceNodeRegistry,
@@ -2777,16 +2778,16 @@ async function resolveAdaptivePathGenerationRegistry(goalId: string) {
     ),
   };
   if (goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
-    return buildResourceNodeRegistry({
+    return applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
       registeredResources: getAllRegisteredResourceMetadata(),
       ...runtimeTextbookInput,
-    });
+    }));
   }
   if (goalId === 'frequency-response-foundations') {
-    return buildResourceNodeRegistry({
+    return applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
       ...buildFrequencyResponseFoundationsResourceSeedInput(),
       ...runtimeTextbookInput,
-    });
+    }));
   }
   throw new KonlingRuntimeScopeError(403, '当前学习目标还没有可生成的路径资源注册表。');
 }
