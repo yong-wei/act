@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import {
+  auditResourcePathPlanningDisposition,
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
   type ResourceNode,
@@ -11,6 +12,7 @@ import type { LearningEvidenceCorpusChunk } from './learning-evidence-rag-corpus
 export type DataCompletenessLayerId =
   | 'graphCore'
   | 'resourceBinding'
+  | 'resourceDisposition'
   | 'citationReadiness'
   | 'pathReadiness'
   | 'evidenceLineage'
@@ -188,6 +190,7 @@ export interface MaskedLearnerCandidate {
 const LAYER_LABELS: Record<DataCompletenessLayerId, string> = {
   graphCore: 'Graph core',
   resourceBinding: 'Resource binding',
+  resourceDisposition: 'Resource disposition',
   citationReadiness: 'Citation readiness',
   pathReadiness: 'Path readiness',
   evidenceLineage: 'Evidence lineage',
@@ -225,6 +228,7 @@ export function buildDataCompletenessAuditReport(input: DataCompletenessAuditInp
     input.resourceRegistry,
     input.runtimeArtifactErrors ?? [],
   );
+  const resourceDisposition = buildResourceDispositionLayer(input.resourceRegistry);
   const citationReadiness = buildCitationReadinessLayer(input.resourceRegistry, input.evidenceCorpus ?? []);
   const pathReadiness = buildPathReadinessLayer(input.resourceRegistry);
   const evidenceLineage = buildEvidenceLineageLayer(input);
@@ -232,6 +236,7 @@ export function buildDataCompletenessAuditReport(input: DataCompletenessAuditInp
   const layers = [
     graphCore,
     resourceBinding,
+    resourceDisposition,
     citationReadiness,
     pathReadiness,
     evidenceLineage,
@@ -360,6 +365,38 @@ function buildResourceBindingLayer(
     teachingResourcesMissingKnowledge: countFindings(findings, 'teaching-resource-knowledge-missing'),
     runtimeArtifactErrors: countFindings(findings, 'runtime-artifact-unavailable'),
   }, findings);
+}
+
+function buildResourceDispositionLayer(registry: ResourceNodeRegistry | undefined): DataCompletenessLayerSummary {
+  const nodes = registry?.nodes ?? [];
+  const findings = nodes.flatMap((node) =>
+    auditResourcePathPlanningDisposition(node).map((issue) => finding(
+      issue.code,
+      issue.severity === 'blocking' ? 'blocked' : 'partial',
+      `ResourceDisposition:${node.sourceKind}:${node.sourceRef}`,
+      `${node.title}: ${issue.message}`,
+      followupBucketForDispositionIssue(issue.code),
+    ))
+  );
+
+  return layer('resourceDisposition', {
+    resourceNodes: nodes.length,
+    reviewedDispositions: nodes.filter((node) =>
+      node.planningMetadata.pathDisposition?.reviewStatus === 'human-confirmed'
+    ).length,
+    missingDisposition: countFindings(findings, 'missing-path-disposition'),
+    missingHumanReview: countFindings(findings, 'missing-disposition-review'),
+    missingExclusionRationale: countFindings(findings, 'missing-disposition-rationale'),
+    missingParentPlanningUnit: countFindings(findings, 'missing-parent-planning-unit'),
+    invalidPromotion: countFindings(findings, 'invalid-path-disposition-promotion'),
+  }, findings);
+}
+
+function followupBucketForDispositionIssue(code: string): string {
+  if (code === 'missing-parent-planning-unit') return 'link-embedded-resource-parents';
+  if (code === 'missing-disposition-rationale') return 'review-resource-exclusions';
+  if (code === 'invalid-path-disposition-promotion') return 'audit-path-disposition-promotions';
+  return 'review-resource-path-dispositions';
 }
 
 function buildCitationReadinessLayer(

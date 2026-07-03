@@ -62,11 +62,16 @@ describe('data completeness audit', () => {
     expect(report.layers.map((layer) => layer.id)).toEqual([
       'graphCore',
       'resourceBinding',
+      'resourceDisposition',
       'citationReadiness',
       'pathReadiness',
       'evidenceLineage',
       'learnerFixtureReadiness',
     ]);
+    expect(report.layers.find((layer) => layer.id === 'resourceDisposition')?.totals).toMatchObject({
+      resourceNodes: 1,
+      missingDisposition: 1,
+    });
     expect(report.layers.find((layer) => layer.id === 'citationReadiness')?.totals).toMatchObject({
       citationTargets: 1,
       resolvableCitationTargets: 1,
@@ -112,6 +117,110 @@ describe('data completeness audit', () => {
         stableRef: 'TeachingResource:resource-typo',
       }),
     ]));
+  });
+
+  it('reports resource disposition gaps separately from path and citation readiness', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'citation-card',
+        label: 'Citation card',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/citation-card.png',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'embedded-asset',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Supports a parent lesson step.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'citation-card',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'excluded-without-rationale',
+        label: 'Excluded without rationale',
+        type: 'STATIC_MEDIA',
+        renderTarget: '/course-runtime/assets/obsolete.png',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          pathDisposition: {
+            kind: 'excluded-with-rationale',
+            reviewStatus: 'human-confirmed',
+            rationale: null,
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'excluded-without-rationale',
+            sourceVersionRef: null,
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'resource-governance-review',
+          },
+        },
+      }, {
+        id: 'provisional-path-node',
+        label: 'Provisional path node',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/teacher/resources',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          readiness: {
+            minimumCompetency: { controlModeling: 0.2 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成基础学习后进入。',
+            fallbackNodeIds: [],
+          },
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'generated-provisional',
+            rationale: 'Generated suggestion.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'provisional-path-node',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: null,
+            reviewerId: null,
+          },
+        },
+      }],
+    });
+
+    const report = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [],
+    });
+    const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
+
+    expect(disposition?.totals).toMatchObject({
+      resourceNodes: 3,
+      reviewedDispositions: 2,
+      missingParentPlanningUnit: 1,
+      missingExclusionRationale: 1,
+      invalidPromotion: 1,
+    });
+    expect(disposition?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'missing-parent-planning-unit',
+        stableRef: 'ResourceDisposition:resource_registry:citation-card',
+        followupBucket: 'link-embedded-resource-parents',
+      }),
+      expect.objectContaining({
+        id: 'missing-disposition-rationale',
+        stableRef: 'ResourceDisposition:resource_registry:excluded-without-rationale',
+        followupBucket: 'review-resource-exclusions',
+      }),
+      expect.objectContaining({
+        id: 'invalid-path-disposition-promotion',
+        stableRef: 'ResourceDisposition:resource_registry:provisional-path-node',
+        followupBucket: 'audit-path-disposition-promotions',
+      }),
+    ]));
+    expect(report.layers.find((layer) => layer.id === 'citationReadiness')).toBeDefined();
+    expect(report.layers.find((layer) => layer.id === 'pathReadiness')).toBeDefined();
   });
 
   it('does not treat non-path registry nodes as path readiness blockers', () => {
