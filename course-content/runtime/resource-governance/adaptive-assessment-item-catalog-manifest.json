@@ -1,0 +1,136 @@
+{
+  "artifactVersion": "adaptive-assessment-item-catalog.v1",
+  "itemCount": 443,
+  "pathEligibleItemCount": 50,
+  "sourceFamilies": [
+    {
+      "family": "preset-adaptive-question",
+      "role": "item-source",
+      "sourceTotal": 50,
+      "importedTotal": 50,
+      "blockedTotal": 0,
+      "limitationReasons": [],
+      "versionRefs": {
+        "catalogVersion": "adaptive-assessment-item-catalog.v1",
+        "adaptiveAssessmentSnapshotVersion": "adaptive-assessment-item-ref.v1",
+        "kaqFoundationVersion": "kaq-quiz-foundation-bank.v1",
+        "acqStaticQuestionBankVersion": "acq-static-question-bank.v1",
+        "icourseObjectiveBankVersion": "icourse-bank-bankType4.v1"
+      }
+    },
+    {
+      "family": "prisma-question",
+      "role": "item-source",
+      "sourceTotal": null,
+      "importedTotal": 0,
+      "blockedTotal": 0,
+      "limitationReasons": [
+        "prisma-question-count-requires-database-query"
+      ],
+      "versionRefs": {
+        "catalogVersion": "adaptive-assessment-item-catalog.v1",
+        "adaptiveAssessmentSnapshotVersion": "adaptive-assessment-item-ref.v1",
+        "kaqFoundationVersion": "kaq-quiz-foundation-bank.v1",
+        "acqStaticQuestionBankVersion": "acq-static-question-bank.v1",
+        "icourseObjectiveBankVersion": "icourse-bank-bankType4.v1"
+      }
+    },
+    {
+      "family": "acq-static-question",
+      "role": "item-source",
+      "sourceTotal": 167,
+      "importedTotal": 167,
+      "blockedTotal": 0,
+      "limitationReasons": [
+        "requires-semantic-review"
+      ],
+      "versionRefs": {
+        "catalogVersion": "adaptive-assessment-item-catalog.v1",
+        "adaptiveAssessmentSnapshotVersion": "adaptive-assessment-item-ref.v1",
+        "kaqFoundationVersion": "kaq-quiz-foundation-bank.v1",
+        "acqStaticQuestionBankVersion": "acq-static-question-bank.v1",
+        "icourseObjectiveBankVersion": "icourse-bank-bankType4.v1"
+      }
+    },
+    {
+      "family": "icourse-objective-bank",
+      "role": "item-source",
+      "sourceTotal": 226,
+      "importedTotal": 226,
+      "blockedTotal": 0,
+      "limitationReasons": [
+        "requires-path-eligibility-review"
+      ],
+      "versionRefs": {
+        "catalogVersion": "adaptive-assessment-item-catalog.v1",
+        "adaptiveAssessmentSnapshotVersion": "adaptive-assessment-item-ref.v1",
+        "kaqFoundationVersion": "kaq-quiz-foundation-bank.v1",
+        "acqStaticQuestionBankVersion": "acq-static-question-bank.v1",
+        "icourseObjectiveBankVersion": "icourse-bank-bankType4.v1"
+      }
+    },
+    {
+      "family": "kaq-foundation-reviewed",
+      "role": "review-overlay",
+      "appliesToFamily": "preset-adaptive-question",
+      "sourceTotal": 50,
+      "importedTotal": 0,
+      "blockedTotal": 0,
+      "reviewOverlayTotal": 50,
+      "limitationReasons": [],
+      "versionRefs": {
+        "catalogVersion": "adaptive-assessment-item-catalog.v1",
+        "adaptiveAssessmentSnapshotVersion": "adaptive-assessment-item-ref.v1",
+        "kaqFoundationVersion": "kaq-quiz-foundation-bank.v1",
+        "acqStaticQuestionBankVersion": "acq-static-question-bank.v1",
+        "icourseObjectiveBankVersion": "icourse-bank-bankType4.v1"
+      }
+    },
+    {
+      "family": "generated-adaptive-question",
+      "role": "item-source",
+      "sourceTotal": 0,
+      "importedTotal": 0,
+      "blockedTotal": 0,
+      "limitationReasons": [
+        "generated-provisional-not-path-eligible"
+      ],
+      "versionRefs": {
+        "catalogVersion": "adaptive-assessment-item-catalog.v1",
+        "adaptiveAssessmentSnapshotVersion": "adaptive-assessment-item-ref.v1",
+        "kaqFoundationVersion": "kaq-quiz-foundation-bank.v1",
+        "acqStaticQuestionBankVersion": "acq-static-question-bank.v1",
+        "icourseObjectiveBankVersion": "icourse-bank-bankType4.v1"
+      }
+    },
+    {
+      "family": "checkpoint-authored-question",
+      "role": "item-source",
+      "sourceTotal": 0,
+      "importedTotal": 0,
+      "blockedTotal": 0,
+      "limitationReasons": [
+        "future-checkpoint-items-not-authored-in-this-change"
+      ],
+      "versionRefs": {
+        "catalogVersion": "adaptive-assessment-item-catalog.v1",
+        "adaptiveAssessmentSnapshotVersion": "adaptive-assessment-item-ref.v1",
+        "kaqFoundationVersion": "kaq-quiz-foundation-bank.v1",
+        "acqStaticQuestionBankVersion": "acq-static-question-bank.v1",
+        "icourseObjectiveBankVersion": "icourse-bank-bankType4.v1"
+      }
+    }
+  ],
+  "artifacts": {
+    "manifestPath": "course-content/runtime/resource-governance/adaptive-assessment-item-catalog-manifest.json",
+    "itemsPath": "course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl",
+    "limitationsPath": "course-content/runtime/resource-governance/adaptive-assessment-item-catalog-limitations.json"
+  },
+  "versionRefs": {
+    "catalogVersion": "adaptive-assessment-item-catalog.v1",
+    "adaptiveAssessmentSnapshotVersion": "adaptive-assessment-item-ref.v1",
+    "kaqFoundationVersion": "kaq-quiz-foundation-bank.v1",
+    "acqStaticQuestionBankVersion": "acq-static-question-bank.v1",
+    "icourseObjectiveBankVersion": "icourse-bank-bankType4.v1"
+  }
+}
