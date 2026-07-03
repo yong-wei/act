@@ -1,0 +1,4151 @@
+{
+  "artifactVersion": "adaptive-assessment-item-catalog-limitations.v1",
+  "rows": [
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0001",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0001",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0001",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0002",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0002",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0002",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0003",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0003",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0003",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0004",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0004",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0004",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0005",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0005",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0005",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0006",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0006",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0006",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0007",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0007",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0007",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0008",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0008",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0008",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0009",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0009",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0009",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0010",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0010",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0010",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0011",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0011",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0011",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0012",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0012",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0013",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0013",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0013",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0014",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0014",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0014",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0015",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0015",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0016",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0016",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0016",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0017",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0017",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0017",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0018",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0018",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0018",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0019",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0019",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0019",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0020",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0020",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0021",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0021",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0022",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0022",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0022",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0023",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0023",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0024",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0024",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0024",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0025",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0025",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0025",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0026",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0026",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0026",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0027",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0027",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0028",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0028",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0028",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0029",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0029",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0029",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0030",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0030",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0030",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0031",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0031",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0032",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0032",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0032",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0033",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0033",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0033",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0034",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0034",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0034",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0035",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0035",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0035",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0036",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0036",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0037",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0037",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0037",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0038",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0038",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0039",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0039",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0039",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0040",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0040",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0040",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0041",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0041",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0041",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0042",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0042",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0042",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0043",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0043",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0043",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0044",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0044",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0044",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0045",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0045",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0046",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0046",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0047",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0047",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0048",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0048",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0048",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0049",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0049",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0050",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0050",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0050",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0051",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0051",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0051",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0052",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0052",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0052",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0053",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0053",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0053",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0054",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0054",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0054",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0055",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0055",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0055",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0056",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0056",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0056",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0057",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0057",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0057",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0058",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0058",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0058",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0059",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0059",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0059",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0060",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0060",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0060",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0061",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0061",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0061",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0062",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0062",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0062",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0063",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0063",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0063",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0064",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0064",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0064",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0065",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0065",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0065",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0066",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0066",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0066",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0067",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0067",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0067",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0068",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0068",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0068",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0069",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0069",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0070",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0070",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0071",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0071",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0071",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0072",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0072",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0072",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0073",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0073",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0073",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0074",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0074",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0075",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0075",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0075",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0076",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0076",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0077",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0077",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0078",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0078",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0078",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0079",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0079",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0079",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0080",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0080",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0080",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0081",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0081",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0081",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0082",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0082",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0082",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0083",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0083",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0084",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0084",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0084",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0085",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0085",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0085",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0086",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0086",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0086",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0087",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0087",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0087",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0088",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0088",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0088",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0089",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0089",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0089",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0090",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0090",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0090",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0091",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0091",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0091",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0092",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0092",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0092",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0093",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0093",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0094",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0094",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0095",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0095",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0095",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0096",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0096",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0097",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0097",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0097",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0098",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0098",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0098",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0099",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0099",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0099",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0100",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0100",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0100",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0101",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0101",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0102",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0102",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0103",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0103",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0103",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0104",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0104",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0104",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0105",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0105",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0106",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0106",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0106",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0107",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0107",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0107",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0108",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0108",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0108",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0109",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0109",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0109",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0110",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0110",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0111",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0111",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0111",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0112",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0112",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0113",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0113",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0113",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0114",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0114",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0114",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0115",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0115",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0115",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0116",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0116",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0116",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0117",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0117",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0117",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0118",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0118",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0118",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0119",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0119",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0120",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0120",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0121",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0121",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0122",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0122",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0123",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0123",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0124",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0124",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0125",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0125",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0125",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0126",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0126",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0127",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0127",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0127",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0128",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0128",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0128",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0129",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0129",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0129",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0130",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0130",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0130",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0131",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0131",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0131",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0132",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0132",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0132",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0133",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0133",
+      "reason": "missing-solution",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0133",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0133",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0134",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0134",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0134",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0135",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0135",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0135",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0136",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0136",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0136",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0137",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0137",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0137",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0138",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0138",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0138",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0139",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0139",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0139",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0140",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0140",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0140",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0141",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0141",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0142",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0142",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0142",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0143",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0143",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0144",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0144",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0145",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0145",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0145",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0146",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0146",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0146",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0147",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0147",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0147",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0148",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0148",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0148",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0149",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0149",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0149",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0150",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0150",
+      "reason": "missing-solution",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0150",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0150",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0151",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0151",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0151",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0152",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0152",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0152",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0153",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0153",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0153",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0154",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0154",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0154",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0155",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0155",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0155",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0156",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0156",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0156",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0157",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0157",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0157",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0158",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0158",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0158",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0159",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0159",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0160",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0160",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0161",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0161",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0162",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0162",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0163",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0163",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0163",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0164",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0164",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0164",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0165",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0165",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0165",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0166",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0166",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0166",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0167",
+      "reason": "missing-rubric",
+      "severity": "warning"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0167",
+      "reason": "not-path-eligible",
+      "severity": "info"
+    },
+    {
+      "family": "acq-static-question",
+      "sourceId": "AC-Q-0167",
+      "reason": "requires-semantic-review",
+      "severity": "info"
+    },
+    {
+      "family": "checkpoint-authored-question",
+      "sourceId": null,
+      "reason": "future-checkpoint-items-not-authored-in-this-change",
+      "severity": "info"
+    },
+    {
+      "family": "generated-adaptive-question",
+      "sourceId": null,
+      "reason": "generated-questions-are-runtime-provisional-not-static-artifact",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0001",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0002",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0003",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0004",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0005",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0006",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0007",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0008",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0009",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0010",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0011",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0012",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0013",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0014",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0015",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0016",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0017",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0018",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0019",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0020",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0021",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0022",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0023",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0024",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0025",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0026",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0027",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0028",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0029",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0030",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0031",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0032",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0033",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0034",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0035",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0036",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0037",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0038",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0039",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0040",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0041",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0042",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0043",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0044",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0045",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0046",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0047",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0048",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0049",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0050",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0051",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0052",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0053",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0054",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0055",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0056",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0057",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0058",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0059",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0060",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0061",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0062",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0063",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0064",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0065",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0066",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0067",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0068",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0069",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0070",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0071",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0072",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0073",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0074",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0075",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0076",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0077",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0078",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0079",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0080",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0084",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0086",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0087",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0088",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0089",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0090",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0091",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0092",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0093",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0094",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0095",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0096",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0097",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0098",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0099",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0100",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0101",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0106",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0107",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0108",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0109",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0110",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0115",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0116",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0117",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0118",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0119",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0120",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0121",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0122",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0123",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0124",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0125",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0126",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0127",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0128",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0129",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0130",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0131",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0138",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0139",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0140",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0141",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0142",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0143",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0144",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0145",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0146",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0147",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0148",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0149",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0150",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0151",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0152",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0153",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0165",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0166",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0168",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0169",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0170",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0171",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0172",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0173",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0174",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0175",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0176",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0177",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0178",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0179",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0187",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0188",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0189",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0190",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0191",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0192",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0193",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0194",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0195",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0196",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0197",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0198",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0199",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0200",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0201",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0206",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0207",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0208",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0209",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0210",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0211",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0212",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0213",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0214",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0215",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0216",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0217",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0218",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0219",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0220",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0221",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0222",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0223",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0224",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0225",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0226",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0227",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0228",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0229",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0230",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0231",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0232",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0233",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0234",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0235",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0236",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0237",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0238",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0239",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0240",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0241",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0242",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0243",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0250",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0251",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0253",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0254",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0255",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0256",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0259",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0260",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0261",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0262",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0263",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0266",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0267",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0268",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0269",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0270",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0271",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0272",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0273",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0274",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0275",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0276",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0277",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "icourse-objective-bank",
+      "sourceId": "IC-B4-0278",
+      "reason": "requires-path-eligibility-review",
+      "severity": "info"
+    },
+    {
+      "family": "prisma-question",
+      "sourceId": null,
+      "reason": "prisma-question-count-requires-database-query",
+      "severity": "warning"
+    }
+  ]
+}

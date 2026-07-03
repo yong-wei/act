@@ -72,6 +72,7 @@
     "db:evidence-source-coverage": "tsx ./scripts/db/report-evidence-source-coverage.ts",
     "db:data-completeness-audit": "tsx ./scripts/db/report-data-completeness-audit.ts",
     "db:kaq-quiz-foundation": "tsx ./scripts/db/generate-kaq-quiz-foundation.ts",
+    "db:adaptive-assessment-item-catalog": "tsx ./scripts/db/generate-adaptive-assessment-item-catalog.ts",
     "db:resource-field-completion-audit": "tsx ./scripts/db/generate-resource-field-completion-audit.ts",
     "db:export-textbook-resources": "python3 course-content/scripts/export_textbook_resources.py --book hu-shousong-exercise-analysis-3rd",
     "db:textbook-media-grounding": "npm run db:export-textbook-resources && tsx ./scripts/db/generate-textbook-media-grounding.ts",
