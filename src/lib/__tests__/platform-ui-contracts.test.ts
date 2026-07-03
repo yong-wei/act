@@ -1114,6 +1114,9 @@ describe('platform UI contracts', () => {
       '/simulations',
       '/interactive-learning/control-workbench',
       '/profile',
+      '/profile/growth',
+      '/profile/evidence',
+      '/profile/portfolio',
     ];
 
     for (const route of representativeRoutes) {
@@ -1121,6 +1124,14 @@ describe('platform UI contracts', () => {
       expect(navigation.map((entry) => entry.id)).toEqual([...STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS]);
       expect(navigation.map((entry) => entry.label)).toEqual(expectedLabels);
     }
+    const teacherProfileNavigationIds = getPlatformRouteNavigation('/profile/growth', 'teacher').map((entry) => entry.id);
+    const adminProfileNavigationIds = getPlatformRouteNavigation('/profile/evidence', 'admin').map((entry) => entry.id);
+    expect(teacherProfileNavigationIds[0]).toBe('teacher-cockpit');
+    expect(adminProfileNavigationIds[0]).toBe('admin-cockpit');
+    expect(teacherProfileNavigationIds).not.toEqual([...STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS]);
+    expect(adminProfileNavigationIds).not.toEqual([...STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS]);
+    expect(teacherProfileNavigationIds).not.toContain('student-profile');
+    expect(adminProfileNavigationIds).not.toContain('student-profile');
 
     const navigation = getPlatformRouteNavigation('/assessment/adaptive-practice', 'student');
     const expandedSidebar = asElement(

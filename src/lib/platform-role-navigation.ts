@@ -2418,6 +2418,11 @@ export function resolvePlatformRouteInventory(href: string): PlatformPrimaryRout
   ));
 }
 
+function isProfileRouteFamilyHref(href: string) {
+  const path = normalizeInventoryHref(href);
+  return path === '/profile' || path.startsWith('/profile/');
+}
+
 export function getPlatformRouteNavigation(
   href: string,
   role: PlatformRoleNavigationAudience,
@@ -2433,7 +2438,7 @@ export function getPlatformRouteNavigation(
     return true;
   };
   if (!route) return navigation;
-  const usesStudentPrimaryNavigation = role === 'student' && route.href === '/profile';
+  const usesStudentPrimaryNavigation = role === 'student' && isProfileRouteFamilyHref(route.href);
   if (
     route.navigationLayers.includes('global-product')
     && route.navigationLayers.includes('role-cockpit')
