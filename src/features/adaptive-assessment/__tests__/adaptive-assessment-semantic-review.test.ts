@@ -12,6 +12,7 @@ import {
   buildAssessmentItemSemanticReviewArtifacts,
   buildAssessmentItemSemanticReviewPackets,
   buildKaqFoundationSemanticReviewDecisions,
+  mergeAssessmentItemSemanticReviewDecisions,
   type AssessmentItemSemanticReviewDecision,
 } from '../adaptive-assessment-semantic-review';
 
@@ -84,6 +85,49 @@ describe('adaptive assessment semantic review workflow', () => {
     expect(packet.packetVersionRefs).toEqual({
       resourceRegistryVersion: 'resource-registry.v1',
     });
+  });
+
+  it('preserves existing human-edited snapshots over generated K/A/Q decisions', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const generated = {
+      ...baseDecision(item),
+      reviewerId: 'openspec-buddy:kaq-quiz-foundation-bank',
+      reviewBatchId: 'kaq-quiz-foundation-bank.v1',
+    };
+    const manual = {
+      ...generated,
+      outcome: 'blocked' as const,
+      reviewerId: 'reviewer:manual-assessment-content',
+      reviewBatchId: 'manual-review.v1',
+    };
+
+    expect(mergeAssessmentItemSemanticReviewDecisions([manual], [generated])).toEqual([manual]);
+  });
+
+  it('refreshes existing generated K/A/Q snapshots from the source overlay across batch versions', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const generated = {
+      ...baseDecision(item),
+      reviewerId: 'openspec-buddy:kaq-quiz-foundation-bank',
+      reviewBatchId: 'kaq-quiz-foundation-bank.v2',
+      selectedKaqObjectiveIds: ['knowledge:autocontrol:updated-objective'],
+    };
+    const existingGenerated = {
+      ...generated,
+      reviewBatchId: 'kaq-quiz-foundation-bank.v1',
+      sourceContentHash: 'old-source-hash',
+      selectedKaqObjectiveIds: ['knowledge:autocontrol:old-objective'],
+    };
+
+    expect(mergeAssessmentItemSemanticReviewDecisions([existingGenerated], [generated])).toEqual([generated]);
   });
 
   it('rejects script-only review decisions and missing required semantic fields', () => {

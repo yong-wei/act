@@ -321,6 +321,28 @@ export function buildAssessmentItemSemanticReviewPackets(
   }));
 }
 
+function canGeneratedDecisionReplaceExisting(
+  existing: AssessmentItemSemanticReviewDecision,
+  generated: AssessmentItemSemanticReviewDecision,
+): boolean {
+  return Boolean(existing.reviewerId && existing.reviewerId === generated.reviewerId);
+}
+
+export function mergeAssessmentItemSemanticReviewDecisions(
+  existingDecisions: AssessmentItemSemanticReviewDecision[],
+  generatedDecisions: AssessmentItemSemanticReviewDecision[],
+): AssessmentItemSemanticReviewDecision[] {
+  const decisionsByItemId = new Map<string, AssessmentItemSemanticReviewDecision>();
+  for (const decision of existingDecisions) decisionsByItemId.set(decision.catalogItemId, decision);
+  for (const decision of generatedDecisions) {
+    const existing = decisionsByItemId.get(decision.catalogItemId);
+    if (!existing || canGeneratedDecisionReplaceExisting(existing, decision)) {
+      decisionsByItemId.set(decision.catalogItemId, decision);
+    }
+  }
+  return [...decisionsByItemId.values()].sort((left, right) => left.catalogItemId.localeCompare(right.catalogItemId));
+}
+
 export function buildKaqFoundationSemanticReviewDecisions(
   items: AdaptiveAssessmentCatalogItem[],
   kaqReviewedItems: KaqReviewedItemRecord[],

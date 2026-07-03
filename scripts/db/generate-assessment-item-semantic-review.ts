@@ -9,6 +9,7 @@ import {
   assessmentItemSemanticReviewArtifactsToFiles,
   buildAssessmentItemSemanticReviewArtifacts,
   buildKaqFoundationSemanticReviewDecisions,
+  mergeAssessmentItemSemanticReviewDecisions,
   type AssessmentItemSemanticReviewDecision,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 
@@ -52,16 +53,6 @@ async function readExistingReviewSnapshots(): Promise<AssessmentItemSemanticRevi
   }
 }
 
-function mergeReviewSnapshots(
-  existingSnapshots: AssessmentItemSemanticReviewDecision[],
-  generatedSnapshots: AssessmentItemSemanticReviewDecision[],
-): AssessmentItemSemanticReviewDecision[] {
-  const snapshotsByItemId = new Map<string, AssessmentItemSemanticReviewDecision>();
-  for (const snapshot of existingSnapshots) snapshotsByItemId.set(snapshot.catalogItemId, snapshot);
-  for (const snapshot of generatedSnapshots) snapshotsByItemId.set(snapshot.catalogItemId, snapshot);
-  return [...snapshotsByItemId.values()].sort((left, right) => left.catalogItemId.localeCompare(right.catalogItemId));
-}
-
 async function loadRegisteredSemanticIds() {
   const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
   const rows = matrix.rows ?? [];
@@ -90,7 +81,7 @@ async function main() {
     icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
     kaqReviewedItems: sources.kaqReviewedItems,
   });
-  const reviewedSnapshots = mergeReviewSnapshots(
+  const reviewedSnapshots = mergeAssessmentItemSemanticReviewDecisions(
     await readExistingReviewSnapshots(),
     buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
   );
