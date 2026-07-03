@@ -244,16 +244,29 @@ describe('data completeness audit', () => {
         useCases: ['diagnosis'],
       },
     };
+    const registryCoveredCorpusProjection: LearningEvidenceCorpusChunk = {
+      ...corpusOnlyProjection,
+      id: 'registry-covered-section-chunk',
+      sourceRef: { id: 'external-corpus-source' },
+      display: { title: 'Registry covered section', href: null, capsule: 'Section' },
+      resourceProjection: {
+        resourceId: 'resource:registry:provisional-path-node',
+        segmentRef: 'registry-covered-section',
+        citationTargetRef: 'course-content/runtime/registry-covered-section.md',
+        knowledgeNodeRefs: ['kn-controller'],
+        capabilityTargetRefs: [],
+      },
+    };
 
     const report = buildDataCompletenessAuditReport({
       resourceRegistry: registry,
-      evidenceCorpus: [corpusOnlyProjection],
+      evidenceCorpus: [corpusOnlyProjection, registryCoveredCorpusProjection],
     });
     const disposition = report.layers.find((layer) => layer.id === 'resourceDisposition');
 
     expect(disposition?.totals).toMatchObject({
       resourceNodes: 4,
-      corpusResourceProjections: 1,
+      corpusResourceProjections: 2,
       reviewedDispositions: 2,
       missingDisposition: 1,
       missingHumanReview: 2,
@@ -288,6 +301,11 @@ describe('data completeness audit', () => {
         id: 'missing-evidence-instrumentation',
         stableRef: 'ResourceDisposition:resource_registry:evidence-producing-without-instrumentation',
         followupBucket: 'instrument-evidence-producing-resources',
+      }),
+    ]));
+    expect(disposition?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        stableRef: 'ResourceDisposition:corpus:resource:registry:provisional-path-node',
       }),
     ]));
     expect(report.layers.find((layer) => layer.id === 'citationReadiness')).toBeDefined();
