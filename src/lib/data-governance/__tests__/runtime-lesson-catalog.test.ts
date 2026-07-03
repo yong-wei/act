@@ -140,6 +140,23 @@ describe('runtime lesson catalog audit helper', () => {
       .rejects.toThrow(/Missing runtime handout/);
   });
 
+  it('rejects lesson-id-map entries with missing runtime lesson JSON', async () => {
+    const project = await createTempProject();
+    await writeFile(
+      path.join(project, 'course-content/authoring/shared/lesson-id-map.json'),
+      JSON.stringify({
+        entries: [{
+          request_ids: ['1-3'],
+          runtime_lesson_dir: '1-3',
+        }],
+      }),
+    );
+    const { loadAllLessonRuntimeResourceCatalogEntriesForAudit } = await import('../../../../scripts/db/runtime-lesson-catalog');
+
+    await expect(loadAllLessonRuntimeResourceCatalogEntriesForAudit())
+      .rejects.toThrow(/Missing runtime lesson JSON/);
+  });
+
   it('propagates corrupted runtime lesson JSON', async () => {
     const project = await createTempProject();
     const lessonDir = path.join(project, 'course-content/runtime/lessons/unit-bad');

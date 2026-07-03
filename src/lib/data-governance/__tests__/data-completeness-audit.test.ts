@@ -161,6 +161,28 @@ describe('data completeness audit', () => {
     ]));
   });
 
+  it('does not treat container registry nodes as citation readiness blockers', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeNodes: [{
+        id: 'kn-container',
+        name: 'Container knowledge node',
+        tags: ['container'],
+      }],
+    });
+    const report = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+    });
+
+    const citationReadiness = report.layers.find((layer) => layer.id === 'citationReadiness');
+    expect(citationReadiness?.severity).toBe('advisory');
+    expect(citationReadiness?.totals.citationTargets).toBe(0);
+    expect(citationReadiness?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'missing-target',
+      }),
+    ]));
+  });
+
   it('audits evidence lineage without exposing raw event payloads', () => {
     const report = buildDataCompletenessAuditReport({
       interactionLogs: [{
@@ -685,6 +707,127 @@ describe('data completeness audit', () => {
     expect(lineage?.findings).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'learning-fact-source-event-dangling' }),
       expect.objectContaining({ id: 'learning-fact-source-log-dangling' }),
+    ]));
+  });
+
+  it('validates historical sourceLogId against the learning fact user when ownership is known', () => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [{
+        id: 'fact-owned-historical-source',
+        userId: 'student-owner',
+        factType: 'question',
+        sourceEventId: null,
+        sourceLogId: 'answer-owned',
+      }, {
+        id: 'fact-cross-user-historical-source',
+        userId: 'student-other',
+        factType: 'question',
+        sourceEventId: null,
+        sourceLogId: 'answer-owned',
+      }],
+      historicalSourceLogIds: [{
+        id: 'answer-owned',
+        userId: 'student-owner',
+      }],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceLogs).toBe(1);
+    expect(lineage?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-log-dangling',
+        stableRef: 'LearningFact:fact-cross-user-historical-source',
+      }),
+    ]));
+    expect(lineage?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-log-dangling',
+        stableRef: 'LearningFact:fact-owned-historical-source',
+      }),
+    ]));
+  });
+
+  it('keeps ownerless historical sourceLogId entries valid when mixed with owned entries', () => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [{
+        id: 'fact-global-legacy-source',
+        userId: 'student-owner',
+        factType: 'question',
+        sourceEventId: null,
+        sourceLogId: 'legacy-global-id',
+      }, {
+        id: 'fact-owned-source',
+        userId: 'student-owner',
+        factType: 'question',
+        sourceEventId: null,
+        sourceLogId: 'owned-id',
+      }, {
+        id: 'fact-cross-owned-source',
+        userId: 'student-other',
+        factType: 'question',
+        sourceEventId: null,
+        sourceLogId: 'owned-id',
+      }],
+      historicalSourceLogIds: [
+        'legacy-global-id',
+        { id: 'owned-id', userId: 'student-owner' },
+      ],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceLogs).toBe(1);
+    expect(lineage?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-log-dangling',
+        stableRef: 'LearningFact:fact-cross-owned-source',
+      }),
+    ]));
+    expect(lineage?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-log-dangling',
+        stableRef: 'LearningFact:fact-global-legacy-source',
+      }),
+      expect.objectContaining({
+        id: 'learning-fact-source-log-dangling',
+        stableRef: 'LearningFact:fact-owned-source',
+      }),
+    ]));
+  });
+
+  it('prefers known historical sourceLogId ownership over duplicate ownerless entries', () => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [{
+        id: 'fact-owned-duplicate-source',
+        userId: 'student-owner',
+        factType: 'question',
+        sourceEventId: null,
+        sourceLogId: 'duplicate-id',
+      }, {
+        id: 'fact-cross-duplicate-source',
+        userId: 'student-other',
+        factType: 'question',
+        sourceEventId: null,
+        sourceLogId: 'duplicate-id',
+      }],
+      historicalSourceLogIds: [
+        'duplicate-id',
+        { id: 'duplicate-id', userId: 'student-owner' },
+      ],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceLogs).toBe(1);
+    expect(lineage?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-log-dangling',
+        stableRef: 'LearningFact:fact-cross-duplicate-source',
+      }),
+    ]));
+    expect(lineage?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-log-dangling',
+        stableRef: 'LearningFact:fact-owned-duplicate-source',
+      }),
     ]));
   });
 

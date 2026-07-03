@@ -146,9 +146,17 @@ async function loadRuntimeLessonFragments(): Promise<string[]> {
       return await fileExists(lessonJsonPath) ? fragment : null;
     }),
   );
+  const missingIndexedFragments = Object.values(index).filter((fragment) => !existingFragments.includes(fragment));
+  if (missingIndexedFragments.length > 0) {
+    throw new Error(`Missing runtime lesson JSON for mapped lessons: ${uniqueSorted(missingIndexedFragments).join(', ')}`);
+  }
   return existingFragments
     .filter((fragment): fragment is string => Boolean(fragment))
     .sort((left, right) => left.localeCompare(right));
+}
+
+function uniqueSorted(values: string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean))).sort((left, right) => left.localeCompare(right));
 }
 
 function inferRuntimeMediaKind(filename: string): RuntimeLessonMediaKind {
