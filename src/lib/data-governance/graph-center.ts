@@ -1021,7 +1021,11 @@ function sarReviewEventSupportsCandidate(
   refType: GraphCenterSarResourceGapSuggestion['refType'],
 ): boolean {
   if (refType === 'retrieval-chunk') {
-    return event.sourceRef.id === ref || event.metadata?.chunkId === ref;
+    return event.sourceRef.id === ref
+      || event.metadata?.chunkId === ref
+      || event.metadata?.retrievalChunkId === ref
+      || (Array.isArray(event.metadata?.chunkIds) && event.metadata.chunkIds.includes(ref))
+      || (Array.isArray(event.metadata?.retrievalChunkIds) && event.metadata.retrievalChunkIds.includes(ref));
   }
   if (refType === 'resource-node') {
     return sarReviewResourceRefMatches(event.sourceRef.id, ref)
