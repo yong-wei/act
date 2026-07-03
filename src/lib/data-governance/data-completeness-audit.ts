@@ -5,8 +5,10 @@ import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
   isResourcePathPlanningDispositionHumanReviewed,
+  type CitationTarget,
   type ResourceNode,
   type ResourceNodeRegistry,
+  type RetrievalChunk,
 } from '@/lib/resource-node-registry';
 import type { LearningEvidenceCorpusChunk } from './learning-evidence-rag-corpus';
 
@@ -487,11 +489,16 @@ function buildCitationReadinessLayer(
   registry: ResourceNodeRegistry | undefined,
   evidenceCorpus: LearningEvidenceCorpusChunk[],
 ): DataCompletenessLayerSummary {
+  const corpusProjectionIndex = buildCorpusProjectionIndex(evidenceCorpus);
   const projections = (registry?.nodes ?? [])
     .filter(isCitationAuditCandidate)
     .map(buildResourceSemanticProjection);
-  const citationTargets = projections.flatMap((projection) => projection.citationTargets);
-  const retrievalChunks = projections.flatMap((projection) => projection.retrievalChunks);
+  const citationTargets = projections
+    .flatMap((projection) => projection.citationTargets)
+    .map((target) => applyCorpusCitationReadiness(target, corpusProjectionIndex));
+  const retrievalChunks = projections
+    .flatMap((projection) => projection.retrievalChunks)
+    .map((chunk) => applyCorpusRetrievalMapping(chunk, corpusProjectionIndex));
   const chunksMissingCitationAddress = evidenceCorpus.filter((chunk) => !chunk.citationAddress);
   const findings = [
     ...citationTargets
@@ -522,10 +529,122 @@ function buildCitationReadinessLayer(
     verifiedCitationTargets: citationTargets.filter((target) => target.readiness.verified).length,
     retrievalChunks: retrievalChunks.length,
     mappedRetrievalChunks: retrievalChunks.filter((chunk) => chunk.projectionStatus === 'mapped').length,
+    longformSections: corpusProjectionIndex.longformSectionRefs.size,
+    mappedLongformSections: corpusProjectionIndex.longformSectionRefsWithCitationAddress.size,
+    longformCorpusChunks: corpusProjectionIndex.longformCorpusChunks,
+    mappedLongformCorpusChunks: corpusProjectionIndex.longformCorpusChunksWithCitationAddress,
     corpusChunks: evidenceCorpus.length,
     corpusChunksWithCitationAddress: evidenceCorpus.filter((chunk) => Boolean(chunk.citationAddress)).length,
     corpusChunksMissingCitationAddress: countFindings(findings, 'corpus-chunk-citation-address-missing'),
   }, findings);
+}
+
+interface CorpusProjectionIndex {
+  indexedResourceRefsWithCitationAddress: Set<string>;
+  longformSectionRefs: Set<string>;
+  longformSectionRefsWithCitationAddress: Set<string>;
+  longformCorpusChunks: number;
+  longformCorpusChunksWithCitationAddress: number;
+}
+
+function buildCorpusProjectionIndex(evidenceCorpus: LearningEvidenceCorpusChunk[]): CorpusProjectionIndex {
+  const indexedResourceRefsWithCitationAddress = new Set<string>();
+  const longformSectionRefs = new Set<string>();
+  const longformSectionRefsWithCitationAddress = new Set<string>();
+  let longformCorpusChunks = 0;
+  let longformCorpusChunksWithCitationAddress = 0;
+
+  for (const chunk of evidenceCorpus) {
+    const resourceRef = chunk.resourceProjection?.resourceId ?? chunk.sourceRef.resourceId ?? null;
+    if (!resourceRef) continue;
+    const normalizedRefs = corpusResourceRefCandidates(resourceRef);
+    const longform = normalizedRefs.some(isLongformTextbookSectionRef);
+    if (longform) {
+      longformCorpusChunks += 1;
+      for (const ref of normalizedRefs) {
+        if (isLongformTextbookSectionRef(ref)) {
+          longformSectionRefs.add(ref);
+        }
+      }
+    }
+    if (!chunk.citationAddress) continue;
+    for (const ref of normalizedRefs) {
+      indexedResourceRefsWithCitationAddress.add(ref);
+      if (isLongformTextbookSectionRef(ref)) {
+        longformSectionRefsWithCitationAddress.add(ref);
+      }
+    }
+    if (longform) {
+      longformCorpusChunksWithCitationAddress += 1;
+    }
+  }
+
+  return {
+    indexedResourceRefsWithCitationAddress,
+    longformSectionRefs,
+    longformSectionRefsWithCitationAddress,
+    longformCorpusChunks,
+    longformCorpusChunksWithCitationAddress,
+  };
+}
+
+function applyCorpusCitationReadiness(
+  target: CitationTarget,
+  corpusProjectionIndex: CorpusProjectionIndex,
+): CitationTarget {
+  if (!hasIndexedLongformCorpus(target.resourceId, corpusProjectionIndex)) {
+    return target;
+  }
+  return {
+    ...target,
+    readiness: {
+      status: 'verified',
+      verified: true,
+      limitations: [],
+    },
+  };
+}
+
+function applyCorpusRetrievalMapping(
+  chunk: RetrievalChunk,
+  corpusProjectionIndex: CorpusProjectionIndex,
+): RetrievalChunk {
+  if (!hasIndexedLongformCorpus(chunk.resourceId, corpusProjectionIndex)) {
+    return chunk;
+  }
+  return {
+    ...chunk,
+    projectionStatus: 'mapped',
+    citationReadiness: {
+      status: 'verified',
+      verified: true,
+      limitations: [],
+    },
+  };
+}
+
+function hasIndexedLongformCorpus(
+  resourceId: string,
+  corpusProjectionIndex: CorpusProjectionIndex,
+): boolean {
+  return corpusResourceRefCandidates(resourceId).some((ref) => (
+    isLongformTextbookSectionRef(ref) &&
+    corpusProjectionIndex.indexedResourceRefsWithCitationAddress.has(ref)
+  ));
+}
+
+function corpusResourceRefCandidates(resourceRef: string): string[] {
+  const refs = new Set([resourceRef]);
+  const withoutResourcePrefix = resourceRef.startsWith('resource:')
+    ? resourceRef.slice('resource:'.length)
+    : resourceRef;
+  refs.add(withoutResourcePrefix);
+  refs.add(`resource:${withoutResourcePrefix}`);
+  return Array.from(refs);
+}
+
+function isLongformTextbookSectionRef(resourceRef: string): boolean {
+  return resourceRef.startsWith('textbook-section:');
 }
 
 function buildPathReadinessLayer(registry: ResourceNodeRegistry | undefined): DataCompletenessLayerSummary {

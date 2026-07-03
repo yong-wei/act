@@ -119,6 +119,129 @@ describe('data completeness audit', () => {
     ]));
   });
 
+  it('counts indexed long-form corpus chunks as verified section citation support', () => {
+    const registry = buildResourceNodeRegistry({
+      textbooks: [{
+        bookId: 'demo-book',
+        title: 'Demo textbook',
+        sourceHref: '/course-runtime/resources/textbooks/demo-book',
+        knowledgeNodeIds: ['kn-controller'],
+      }],
+      textbookSections: [{
+        bookId: 'demo-book',
+        sectionId: 'sec-1',
+        title: 'Reviewed section',
+        citationHref: '/course-runtime/resources/textbooks/demo-book/sections/sec-1.md',
+        knowledgeNodeIds: ['kn-controller'],
+        capabilityTargetIds: ['controlModeling'],
+        estimatedTimeMinutes: 12,
+      }],
+    });
+    const indexedChunk: LearningEvidenceCorpusChunk = {
+      id: 'textbook-search:sec-1:chunk-1',
+      family: 'course-content',
+      sourceType: 'course-content',
+      sourceRef: {
+        id: 'textbook-search:sec-1:chunk-1',
+        resourceId: 'textbook-section:demo-book:sec-1',
+      },
+      spanRef: { kind: 'text-range', locator: 'chunk-1' },
+      display: {
+        title: 'Section chunk',
+        href: '/course-runtime/resources/textbooks/demo-book/sections/sec-1.md#chunk-1',
+        capsule: 'Section chunk',
+      },
+      citationAddress: {
+        kind: 'text',
+        sourceRefId: 'chunk-1',
+        href: '/course-runtime/resources/textbooks/demo-book/sections/sec-1.md#chunk-1',
+        locator: 'chunk-1',
+        contentHash: 'hash-1',
+      },
+      content: {
+        text: null,
+        redactedSummary: 'Section chunk',
+        hash: 'hash-1',
+      },
+      resourceProjection: {
+        resourceId: 'textbook-section:demo-book:sec-1',
+        segmentRef: 'sec-1',
+        citationTargetRef: 'chunk-1',
+        knowledgeNodeRefs: ['kn-controller'],
+        capabilityTargetRefs: ['controlModeling'],
+      },
+      privacyClass: 'public',
+      confidence: 'high',
+      freshness: {
+        indexedAt: '2026-07-03T00:00:00.000Z',
+        sourceUpdatedAt: null,
+        expiresAt: null,
+        stale: false,
+      },
+      authority: {
+        level: 'canonical',
+        knowledgeTags: ['kn-controller'],
+        pageAnchor: 'chunk-1',
+        freshnessBucket: 'current',
+        scopeRule: { visibility: 'public', allowedRoles: ['student', 'teacher'] },
+      },
+      retrieval: {
+        tags: ['textbook-section'],
+        goals: ['demo-book', 'sec-1'],
+        useCases: ['konling', 'recommendation'],
+      },
+    };
+
+    const report = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [indexedChunk],
+    });
+    const citationReadiness = report.layers.find((layer) => layer.id === 'citationReadiness');
+
+    expect(citationReadiness?.totals).toMatchObject({
+      citationTargets: 1,
+      resolvableCitationTargets: 1,
+      verifiedCitationTargets: 1,
+      retrievalChunks: 1,
+      mappedRetrievalChunks: 1,
+      longformSections: 1,
+      mappedLongformSections: 1,
+      longformCorpusChunks: 1,
+      mappedLongformCorpusChunks: 1,
+      corpusChunksMissingCitationAddress: 0,
+    });
+    expect(citationReadiness?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'retrieval-chunk-not-indexed' }),
+      expect.objectContaining({ id: 'resolvable' }),
+    ]));
+
+    const missingAddressReport = buildDataCompletenessAuditReport({
+      resourceRegistry: registry,
+      evidenceCorpus: [{
+        ...indexedChunk,
+        id: 'textbook-search:sec-1:chunk-without-address',
+        citationAddress: undefined,
+      }],
+    });
+    const missingAddressCitationReadiness = missingAddressReport.layers.find((layer) =>
+      layer.id === 'citationReadiness'
+    );
+
+    expect(missingAddressCitationReadiness?.totals).toMatchObject({
+      verifiedCitationTargets: 0,
+      mappedRetrievalChunks: 0,
+      longformSections: 1,
+      mappedLongformSections: 0,
+      longformCorpusChunks: 1,
+      mappedLongformCorpusChunks: 0,
+      corpusChunksMissingCitationAddress: 1,
+    });
+    expect(missingAddressCitationReadiness?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'retrieval-chunk-not-indexed' }),
+      expect.objectContaining({ id: 'corpus-chunk-citation-address-missing' }),
+    ]));
+  });
+
   it('does not auto-confirm resources outside the reviewed core path readiness batch', () => {
     const teachingResources = [{
       id: 'core-resource',
