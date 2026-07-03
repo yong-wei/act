@@ -628,11 +628,6 @@ function buildCheckpointAuthoredItems(records: CheckpointAuthoredQuestionRecord[
         graphNodeIds: record.graphNodeIds,
         stagePurpose: record.stagePurpose,
       },
-      review: {
-        reviewerId: record.reviewerId,
-        reviewedAt: record.reviewedAt,
-        reviewBatchId: record.reviewBatchId,
-      },
     });
     return {
       catalogItemId: catalogItemId('checkpoint-authored-question', record.id),

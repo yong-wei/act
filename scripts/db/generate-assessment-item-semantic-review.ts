@@ -13,9 +13,7 @@ import {
   mergeAssessmentItemSemanticReviewDecisions,
   type AssessmentItemSemanticReviewDecision,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
-import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
-import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const PACKETS_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-packets.jsonl');
@@ -75,9 +73,6 @@ async function loadRegisteredSemanticIds() {
       ...rows.flatMap((row) =>
         Object.values(row.categories ?? {}).flatMap((category) => category.pathEligibleResourceIds ?? [])
       ),
-      ...buildResourceNodeRegistry({
-        registeredResources: getAllRegisteredResourceMetadata(),
-      }).nodes.map((node) => node.id),
       ...CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewedSourceRefs.map((ref) => ref.split('|')[0]),
     ]),
   };
