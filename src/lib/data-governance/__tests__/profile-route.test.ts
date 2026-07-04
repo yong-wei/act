@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => {
       },
       studentProfile: {
         findUnique: vi.fn(),
+        upsert: vi.fn(),
       },
       studentCompetencySnapshot: {
         findFirst: vi.fn(),
@@ -29,15 +30,20 @@ const mocks = vi.hoisted(() => {
         findUnique: vi.fn(),
       },
       simulationLog: {
+        aggregate: vi.fn(),
         findMany: vi.fn(),
       },
       ethicalLog: {
         findMany: vi.fn(),
       },
       userProgress: {
+        findUnique: vi.fn(),
+        create: vi.fn(),
+        upsert: vi.fn(),
         findMany: vi.fn(),
       },
       mission: {
+        findFirst: vi.fn(),
         count: vi.fn(),
       },
       interactionLog: {
@@ -313,6 +319,11 @@ describe('GET /api/user/profile', () => {
       techScore: 88,
       ethicsScore: 96,
     });
+    mocks.prisma.studentProfile.upsert.mockResolvedValue({
+      userId: 'student-1',
+      techScore: 0,
+      ethicsScore: 100,
+    });
 
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue({
       competencyVector: {
@@ -344,6 +355,11 @@ describe('GET /api/user/profile', () => {
         duration: 1200,
       },
     ]);
+    mocks.prisma.simulationLog.aggregate.mockResolvedValue({
+      _count: { _all: 25 },
+      _sum: { duration: 72000 },
+      _avg: { score: 84.4 },
+    });
 
     mocks.prisma.ethicalLog.findMany.mockResolvedValue([]);
 
@@ -351,6 +367,26 @@ describe('GET /api/user/profile', () => {
       { status: 'COMPLETED', mission: { id: 'mission-1', title: '任务 1' } },
       { status: 'UNLOCKED', mission: { id: 'mission-2', title: '任务 2' } },
     ]);
+    mocks.prisma.userProgress.findUnique.mockResolvedValue({
+      userId: 'student-1',
+      missionId: 'mission-1',
+      status: 'UNLOCKED',
+    });
+    mocks.prisma.userProgress.upsert.mockResolvedValue({
+      userId: 'student-1',
+      missionId: 'mission-1',
+      status: 'UNLOCKED',
+    });
+    mocks.prisma.userProgress.create.mockResolvedValue({
+      userId: 'student-1',
+      missionId: 'mission-1',
+      status: 'UNLOCKED',
+    });
+    mocks.prisma.mission.findFirst.mockResolvedValue({
+      id: 'mission-1',
+      order: 1,
+      isActive: true,
+    });
 
     mocks.prisma.mission.count.mockResolvedValue(5);
 
@@ -543,7 +579,35 @@ describe('GET /api/user/profile', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledWith({
+      where: { userId: 'student-1' },
+      update: {},
+      create: {
+        userId: 'student-1',
+        techScore: 0,
+        ethicsScore: 100,
+      },
+    });
+    expect(mocks.prisma.userProgress.upsert).toHaveBeenCalledWith({
+      where: {
+        userId_missionId: {
+          userId: 'student-1',
+          missionId: 'mission-1',
+        },
+      },
+      update: {},
+      create: {
+        userId: 'student-1',
+        missionId: 'mission-1',
+        status: 'UNLOCKED',
+      },
+    });
     expect(body.profile.studentNumber).toBe('2023001001');
+    expect(body.statistics).toMatchObject({
+      totalSimulations: 25,
+      totalSimulationTime: 72000,
+      averageScore: 84,
+    });
     expect(body.competency.dimensions).toHaveLength(6);
     expect(body.competency.dimensions.map((item: { key: string }) => item.key)).toEqual([
       'controlModeling',
@@ -647,6 +711,36 @@ describe('GET /api/user/profile', () => {
         source: 'latest-snapshot',
       },
     });
+  });
+
+  it('does not initialize profile data for a stale student session when the database user is no longer a student', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    mocks.prisma.user.findUnique.mockResolvedValue({
+      id: 'student-1',
+      name: 'Teacher Now',
+      email: 'teacher@example.com',
+      role: 'TEACHER',
+    });
+
+    const response = await GET();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
+    expect(mocks.prisma.userProgress.upsert).not.toHaveBeenCalled();
+  });
+
+  it('returns not found before initializing when the session user no longer exists in the database', async () => {
+    mocks.prisma.user.findUnique.mockResolvedValue(null);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body).toEqual({ error: '用户不存在' });
+    expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
+    expect(mocks.prisma.userProgress.upsert).not.toHaveBeenCalled();
   });
 
   it('marks profile evidence status missing when the governed feature cache is absent', async () => {

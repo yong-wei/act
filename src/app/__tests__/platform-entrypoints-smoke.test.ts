@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest';
 import {
   COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES,
   PLATFORM_ENTRYPOINT_SMOKE_ROUTES,
-  STUDENT_LEARNING_INTENT_GROUPS,
   getStudentLearningIntentNavigationGroups,
 } from '@/lib/platform-role-navigation';
 
@@ -105,25 +104,28 @@ describe('platform entrypoint smoke contracts', () => {
     expect(readSource('src/components/shared/login-modal.tsx')).toContain('CredentialLoginForm');
   });
 
-  it('keeps dashboard and profile tied to shared navigation contracts', () => {
+  it('keeps dashboard compatibility and profile tied to shared navigation contracts', () => {
     const dashboardSource = readSource('src/app/(main)/dashboard/page.tsx');
     const profileSource = readSource('src/app/(main)/profile/page.tsx');
+    const profileApiSource = readSource('src/app/api/user/profile/route.ts');
 
-    expect(dashboardSource).toContain('getStudentLearningIntentNavigationGroups');
-    expect(dashboardSource).toContain('getCommercialStudentEntryIntentGroups');
-    expect(dashboardSource).toContain('resolveCommercialEntryHref');
-    expect(dashboardSource).toContain('account-profile');
-    expect(dashboardSource).toContain('/profile');
-    expect(dashboardSource).toContain('dashboardCommercialEntries');
-    expect(dashboardSource).toContain('intentGroup.entryIds.flatMap');
-    expect(dashboardSource).toContain('quickStartEntryIds.flatMap');
-    expect(dashboardSource).not.toContain('intentGroup.entryIds.includes(candidate.id)');
-    for (const entryId of STUDENT_LEARNING_INTENT_GROUPS.flatMap((group) => group.entryIds)) {
-      expect(dashboardSource).toContain(entryId);
-    }
+    expect(dashboardSource).toContain("redirect('/profile')");
+    expect(dashboardSource).toContain('getPlatformCockpitHref');
+    expect(dashboardSource).not.toContain('<AppShell');
     expect(profileSource).toContain('getPlatformCockpitHref');
     expect(profileSource).toContain('getCommercialStudentEntryIntentGroups');
     expect(profileSource).toContain('buildLoginRedirectForPath');
+    expect(profileSource).toContain('学习入口地图');
+    expect(profileSource).toContain('PersonalCenterEntryCard');
+    expect(profileSource).toContain('getPlatformRoleNavigation');
+    expect(profileSource).toContain('.flatMap((intent)');
+    expect(profileSource).toContain('intent.hrefs.map((href)');
+    expect(profileSource).toContain('studentEntryByHref.get(href)');
+    expect(profileSource).toContain("prefetch={href.startsWith('/simulations') ? false : undefined}");
+    expect(profileApiSource).toContain('ensureUserProfile');
+    expect(profileApiSource).toContain('initializeUserProgress');
+    expect(profileApiSource).toContain('await Promise.all([');
+    expect(profileApiSource.indexOf('ensureUserProfile(userId)')).toBeLessThan(profileApiSource.indexOf('prisma.studentProfile.findUnique'));
   });
 
   it('keeps login error states tied to the same callback destination contract', () => {

@@ -203,7 +203,7 @@ function JoinClassroomContent() {
   };
 
   const returnToDashboard = () => {
-    router.push('/dashboard');
+    router.push('/profile');
   };
 
   return (

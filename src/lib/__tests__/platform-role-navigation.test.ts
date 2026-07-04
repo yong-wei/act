@@ -50,8 +50,11 @@ describe('platform role navigation', () => {
 
   it('defines student, teacher, admin, and guest navigation groups', () => {
     expect(getPlatformRoleNavigation('student').map((entry) => entry.href)).toEqual(
-      expect.arrayContaining(['/dashboard', '/simulations', '/knowledge', '/arena', '/interactive-learning', '/profile']),
+      expect.arrayContaining(['/simulations', '/knowledge', '/arena', '/interactive-learning', '/profile']),
     );
+    expect(getPlatformRoleNavigation('student').filter((entry) => entry.group === 'role-cockpit').map((entry) => entry.href)).toEqual([
+      '/profile',
+    ]);
     expect(getPlatformRoleNavigation('student').map((entry) => entry.href)).not.toContain('/data-center');
     expect(getPlatformRoleNavigation('student').map((entry) => entry.href)).not.toContain('/virtual-lab');
     expect(getPlatformRoleNavigation('teacher').map((entry) => entry.href)).toEqual(
@@ -78,15 +81,15 @@ describe('platform role navigation', () => {
 
   it('keeps role cockpit destinations compatible with auth roles', () => {
     expect(PLATFORM_ROLE_COCKPIT_HREFS).toEqual({
-      student: '/dashboard',
+      student: '/profile',
       teacher: '/teacher',
       admin: '/admin',
     });
-    expect(getPlatformCockpitHref('STUDENT')).toBe('/dashboard');
+    expect(getPlatformCockpitHref('STUDENT')).toBe('/profile');
     expect(getPlatformCockpitHref('TEACHER')).toBe('/teacher');
     expect(getPlatformCockpitHref('ADMIN')).toBe('/admin');
-    expect(getPlatformCockpitHref('AUDIT')).toBe('/dashboard');
-    expect(getPlatformCockpitHref(null)).toBe('/dashboard');
+    expect(getPlatformCockpitHref('AUDIT')).toBe('/profile');
+    expect(getPlatformCockpitHref(null)).toBe('/profile');
   });
 
   it('keeps future destinations explicit without exposing dead links by default', () => {
@@ -225,8 +228,8 @@ describe('platform role navigation', () => {
         expect.objectContaining({
           audience: 'student',
           profileHref: '/profile',
-          cockpitHref: '/dashboard',
-          primaryWorkspaceAction: 'cockpit',
+          cockpitHref: '/profile',
+          primaryWorkspaceAction: 'account',
         }),
         expect.objectContaining({
           audience: 'teacher',
@@ -978,7 +981,7 @@ describe('platform role navigation', () => {
     expect(COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES.map((route) => [route.href, route.currentIntent])).toEqual([
       ['/', 'experiment'],
       ['/login?callbackUrl=%2Fprofile', 'account-profile'],
-      ['/dashboard', 'learn'],
+      ['/dashboard', 'review'],
       ['/interactive-learning', 'learn'],
       ['/interactive-learning/courses', 'learn'],
       ['/interactive-learning/courses/unit-4-1-design-task-expression', 'learn'],
@@ -1029,7 +1032,7 @@ describe('platform role navigation', () => {
     expect(homeSource).toContain('data-commercial-student-entry-route="/"');
     expect(homeSource).toContain('data-commercial-entry-intent="experiment"');
     expect(homeSource).toContain('data-entry-primary-action="current-experiment"');
-    expect(homeSource).toContain('data-entry-secondary-action="student-cockpit"');
+    expect(homeSource).toContain('data-entry-secondary-action="account-profile"');
     expect(loginSource).toContain('data-auth-callback-target={callbackTarget ??');
     expect(loginSource).toContain('data-auth-route-trace="callback-to-role-cockpit"');
     expect(loginSource).toContain('data-auth-error-state="destination-preserved"');

@@ -390,6 +390,12 @@ describe('adaptive learning center UI contracts', () => {
     for (const route of getLearnerDataSurfaceRoutes()) {
       const source = readFileSync(join(repoRoot, route.routeFile), 'utf8');
 
+      if (route.href === '/dashboard') {
+        expect(source).toContain("redirect('/profile')");
+        expect(source).toContain('getPlatformCockpitHref');
+        continue;
+      }
+
       expect(source).toContain('buildLearnerDataRouteShell');
       expect(source).toContain(`buildLearnerDataRouteShell('${route.href}')`);
       expect(source).toContain('learnerDataShell');
@@ -515,20 +521,19 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('rejectedStyleIds');
   });
 
-  it('prioritizes current path, next action, evidence confidence, and missing source on dashboard and profile', () => {
+  it('prioritizes current path, next action, evidence confidence, and missing source on profile', () => {
     const dashboard = readFileSync(join(repoRoot, 'src/app/(main)/dashboard/page.tsx'), 'utf8');
     const profile = readFileSync(join(repoRoot, 'src/app/(main)/profile/page.tsx'), 'utf8');
 
-    for (const source of [dashboard, profile]) {
+    expect(dashboard).toContain("redirect('/profile')");
+
+    for (const source of [profile]) {
       expect(source).toContain('data-learner-record-priority="current-path"');
       expect(source).toContain('data-learner-record-next-action');
       expect(source).toContain('data-learner-record-evidence-confidence');
       expect(source).toContain('data-learner-record-missing-source');
     }
 
-    expect(dashboard.indexOf('data-learner-record-priority="current-path"')).toBeLessThan(
-      dashboard.indexOf('欢迎回来'),
-    );
     expect(profile.indexOf('data-learner-record-priority="current-path"')).toBeLessThan(
       profile.indexOf('<h3 className="text-lg font-semibold text-foreground">能力画像</h3>'),
     );
