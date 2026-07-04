@@ -1,6 +1,7 @@
 {
   "brand": "深蓝智控",
   "asset": "/assets/platform-brand/deepblue-smart-control-logo.png",
+  "darkAsset": "/assets/platform-brand/deepblue-smart-control-logo-dark.png",
   "sourceAsset": "/assets/platform-brand/deepblue-smart-control-logo-source.png",
   "generator": "image2 via Codex image_gen",
   "modelFamily": "image2",
@@ -12,13 +13,13 @@
   ],
   "lightDarkTreatment": {
     "light": "Use the transparent PNG directly on light surface-topbar backgrounds; keep the navy/cyan strokes visible without inversion.",
-    "dark": "Use the same transparent PNG on dark surface-topbar backgrounds with brightness, saturation, and drop-shadow enhancement from the shared lockup component."
+    "dark": "Use the dedicated high-contrast transparent PNG with cool-white and cyan brush strokes on dark surface-topbar backgrounds; switch through the shared lockup component when the root dark theme class is active."
   },
   "fallbackBehavior": {
     "textAlternative": "深蓝智控",
     "componentFallback": "If the image fails, the shared lockup keeps the accessible label and visible Chinese platform description."
   },
-  "promptSummary": "Modern Chinese brush-calligraphy wordmark for 深蓝智控, deep navy ink with cyan highlights, generated on chroma-key background and converted to alpha PNG.",
+  "promptSummary": "Modern Chinese brush-calligraphy wordmark for 深蓝智控, deep navy ink with cyan highlights, generated on chroma-key background and converted to alpha PNG; dark asset preserves the generated alpha shape and remaps visible strokes for dark-mode contrast.",
   "backgroundTreatment": "Source image generated on #00ff00-style chroma key; final asset uses transparent alpha.",
   "reviewNotes": [
     "Use through src/components/shared/platform-brand-lockup.tsx rather than embedding asset paths in route pages.",
