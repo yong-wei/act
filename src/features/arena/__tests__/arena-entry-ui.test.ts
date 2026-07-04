@@ -145,7 +145,8 @@ describe('arena student entry UI boundaries', () => {
     expect(shellSource).toContain('sidebarMode="collapsible"');
     expect(shellSource).toContain("mobileNavigation: 'drawer'");
     expect(shellSource).toContain('data-arena-workspace-shell="true"');
-    expect(shellSource).toContain('href="/profile"');
+    expect(shellSource).not.toContain('userMenu={');
+    expect(shellSource).not.toContain('href="/profile"');
     expect(shellSource).toContain('data-mobile-navigation="drawer"');
     const appShellSource = readRepoFile('src/components/platform/app-shell.tsx');
     expect(appShellSource).toContain('data-shell-navigation-state');

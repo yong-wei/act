@@ -64,6 +64,60 @@ export const UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_HREFS = [
   '/profile',
 ] as const;
 
+export const UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS = [
+  1440,
+  1280,
+  1024,
+  768,
+  390,
+  320,
+] as const;
+
+export const UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_MATRIX = [
+  {
+    href: '/knowledge',
+    label: '知识资源',
+    localCommandZone: 'knowledge-canvas-local-panels',
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+  },
+  {
+    href: '/interactive-learning',
+    label: '互动学习',
+    localCommandZone: 'interactive-learning-body-actions',
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+  },
+  {
+    href: '/assessment/adaptive-practice',
+    label: '学习路径',
+    localCommandZone: 'adaptive-path-local-toolbar',
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+  },
+  {
+    href: '/arena',
+    label: '竞技场',
+    localCommandZone: 'arena-page-toolbar',
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+  },
+  {
+    href: '/simulations',
+    label: '虚拟仿真',
+    localCommandZone: 'simulation-local-tools',
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+  },
+  {
+    href: '/interactive-learning/control-workbench',
+    label: '控制工作台',
+    localCommandZone: 'control-workbench-context-strip',
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+  },
+  {
+    href: '/profile',
+    label: '个人中心',
+    localCommandZone: 'profile-body-actions',
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+  },
+] as const;
+
 export const UNIVERSAL_APP_SHELL_HEADER_ACTION_ORDER: readonly UniversalAppShellHeaderAction[] = [
   {
     id: 'theme-switch',

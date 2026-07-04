@@ -11,9 +11,11 @@ import {
   UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_HREFS,
   UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_ORDER,
   UNIVERSAL_APP_SHELL_HEADER_ACTION_ORDER,
+  UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_MATRIX,
+  UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
   UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS,
 } from '@/lib/platform-appshell-contract';
-import { getPlatformRouteNavigation } from '@/lib/platform-role-navigation';
+import { getPlatformRouteNavigation, resolvePlatformRouteInventory } from '@/lib/platform-role-navigation';
 
 type RouteCoverage =
   | { kind: 'home-route'; evidence: string }
@@ -353,6 +355,47 @@ describe('universal AppShell frame contract', () => {
     expect(navigation.map((item) => item.label)).toEqual(UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_ORDER);
     expect(navigation.map((item) => item.href)).toEqual(UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_HREFS);
     expect(navigation.at(-1)).toMatchObject({ label: '个人中心', href: '/profile' });
+  });
+
+  it('defines the primary route AppShell matrix and responsive evidence widths', () => {
+    expect(UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS).toEqual([
+      1440,
+      1280,
+      1024,
+      768,
+      390,
+      320,
+    ]);
+    expect(UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_MATRIX.map((route) => route.href)).toEqual([
+      '/knowledge',
+      '/interactive-learning',
+      '/assessment/adaptive-practice',
+      '/arena',
+      '/simulations',
+      '/interactive-learning/control-workbench',
+      '/profile',
+    ]);
+
+    for (const route of UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_MATRIX) {
+      const inventory = resolvePlatformRouteInventory(route.href);
+      expect(inventory?.desktopNavigation, route.href).toBe('collapsible');
+      expect(inventory?.mobileNavigation, route.href).toBe('drawer');
+      expect(route.requiredWidths, route.href).toEqual(UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS);
+      expect(route.localCommandZone, route.href).toBeTruthy();
+    }
+  });
+
+  it('keeps non-student profile navigation role-scoped while the profile entry uses primary drawer chrome', () => {
+    const profileInventory = resolvePlatformRouteInventory('/profile');
+    const teacherNavigation = getPlatformRouteNavigation('/profile', 'teacher');
+    const adminNavigation = getPlatformRouteNavigation('/profile', 'admin');
+
+    expect(profileInventory?.desktopNavigation).toBe('collapsible');
+    expect(profileInventory?.mobileNavigation).toBe('drawer');
+    expect(teacherNavigation[0]).toMatchObject({ id: 'teacher-cockpit', href: '/teacher' });
+    expect(adminNavigation[0]).toMatchObject({ id: 'admin-cockpit', href: '/admin' });
+    expect(teacherNavigation.map((entry) => entry.id)).not.toContain('student-profile');
+    expect(adminNavigation.map((entry) => entry.id)).not.toContain('student-profile');
   });
 
   it('keeps the shell-owned top-right pair after route-local actions', () => {

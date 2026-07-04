@@ -687,6 +687,8 @@ describe('platform UI contracts', () => {
     expect(knowledgeSource).toContain('getServerAuthSession');
     expect(knowledgeSource).toContain('viewerRole={shellRole}');
     expect(knowledgeSource).toContain('sidebarMode="collapsible"');
+    expect(knowledgeSource).toContain("{ label: '首页', href: '/' }");
+    expect(knowledgeSource).toContain("{ label: '知识资源' }");
     expect(knowledgeSource).toContain("?? 'student'");
     expect(knowledgeSource).not.toContain('if (!shellRole)');
     expect(knowledgeSource).not.toContain('<main');
@@ -719,6 +721,9 @@ describe('platform UI contracts', () => {
     expect(adaptivePracticeSource).toContain('data-learning-path-options-slot="three-style"');
     expect(adaptivePracticeSource).toContain('data-learning-path-history-slot="selection-history"');
     expect(adaptivePracticeSource).toContain('data-konling-citation-slot="cited-explanation"');
+    expect(adaptivePracticeSource).toContain('data-adaptive-path-local-command="path-management"');
+    expect(adaptivePracticeSource).toContain('data-primary-route-local-command-zone="adaptive-path-local-toolbar"');
+    expect(adaptivePracticeSource).not.toContain("id: 'adaptive-path-management'");
   });
 
   it('keeps Interactive Learning first-hop surfaces on the unified learning-atlas shell', () => {
@@ -1254,6 +1259,24 @@ describe('platform UI contracts', () => {
     expect(expandedMarkup).toMatch(/aria-current="page"[^>]+href="\/assessment\/adaptive-practice"/);
     expect(collapsedMarkup).toMatch(/aria-current="page"[^>]+href="\/assessment\/adaptive-practice"/);
     expect(collapsedMarkup).toContain('title="个人中心"');
+  });
+
+  it('keeps primary route local commands outside the shell account action pair', () => {
+    const adaptivePracticeSource = readSource('src/app/assessment/adaptive-practice/page.tsx');
+    const controlWorkbenchSource = readSource('src/features/control-workbench/shell/control-workbench-shell.tsx');
+    const arenaShellSource = readSource('src/features/arena/arena-page-shell.tsx');
+    const interactiveLearningShellSource = readSource('src/features/interactive/interactive-learning-shell.tsx');
+
+    expect(adaptivePracticeSource).toContain('data-adaptive-path-local-command="path-management"');
+    expect(adaptivePracticeSource).toContain('data-primary-route-local-command-zone="adaptive-path-local-toolbar"');
+    expect(adaptivePracticeSource).not.toContain("id: 'adaptive-path-management'");
+    expect(controlWorkbenchSource).toContain('data-control-workbench-local-command="contextual-return"');
+    expect(controlWorkbenchSource).toContain('data-primary-route-local-command-zone="control-workbench-context-strip"');
+    expect(controlWorkbenchSource).not.toContain('actions={(');
+    expect(arenaShellSource).not.toContain('userMenu={');
+    expect(arenaShellSource).not.toContain('href="/profile"');
+    expect(interactiveLearningShellSource).toContain("{ label: '首页', href: '/' }");
+    expect(interactiveLearningShellSource).not.toContain("{ label: '学习', href: '/dashboard' }");
   });
 
   it('persists AppShell desktop navigation preference with a collapsed fallback', () => {
