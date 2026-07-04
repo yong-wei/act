@@ -4404,6 +4404,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('focusEvidence,');
     expect(captureScriptSource).toContain("'src/features/knowledge/graph/knowledge-graph-2d.tsx'");
     expect(captureScriptSource).toContain("'src/app/knowledge/page.tsx'");
+    expect(captureScriptSource).toContain("'src/app/assessment/adaptive-practice/page.tsx'");
     expect(captureScriptSource).toContain("'src/features/knowledge/graph/visual-config.ts'");
     expect(captureScriptSource).toContain("'src/components/ai/global-ai-button.tsx'");
     expect(captureScriptSource).toContain("'src/components/ai/global-ai-sidebar.tsx'");
@@ -4411,6 +4412,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'src/app/globals.css'");
     expect(captureScriptSource).toContain('__ACT_KNOWLEDGE_PRODUCT_QA__');
     expect(globalAiButtonSource).toContain("process.env.NODE_ENV !== 'production'");
+    expect(globalAiButtonSource).toContain("['/knowledge', '/assessment/adaptive-practice'].includes(window.location.pathname)");
     expect(globalAiButtonSource).toContain('(window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__ === true');
     expect(globalAiButtonSource).toContain("window.localStorage.getItem('act:knowledge-product-qa') === 'true'");
     expect(globalAiButtonSource).toContain("new URLSearchParams(window.location.search).get('qa') === 'knowledge-product'");
@@ -4457,7 +4459,9 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('const canvasRect = rectFor(canvas);');
     expect(captureScriptSource).toContain('canvas: canvasRect');
     expect(captureScriptSource).toContain("openDesktopTool(page, 'chapter-directory')");
-    expect(captureScriptSource).toContain('button[aria-label="呼出控灵 AI助手"]');
+    expect(captureScriptSource).toContain('[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
+    expect(captureScriptSource).toContain('[data-platform-floating-dock] button[data-platform-floating-dock-secondary-trigger]');
+    expect(captureScriptSource).not.toContain('button[aria-label="呼出控灵 AI助手"]');
     expect(captureScriptSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
     expect(captureScriptSource).toContain('konlingAssistantSurface');
     expect(captureScriptSource).toContain('konlingInspectorAvoidance');
@@ -4479,8 +4483,9 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('`${name}:tablet-local-tool-panel-not-suspended-while-konling-open`');
     expect(scriptSource).toContain('`${name}:expanded-dock-overlaps-tools`');
     expect(scriptSource).toContain("'desktop-selected-page-tools-menu-dark'");
-    expect(scriptSource).toContain('`${name}:dock-inspector-avoidance-missing`');
-    expect(scriptSource).toContain('`${name}:dock-overlaps-inspector`');
+    expect(scriptSource).toContain("const isAdaptivePracticeDockState = name === 'desktop-selected-page-tools-menu-dark';");
+    expect(scriptSource).toContain("const expectedRoute = isAdaptivePracticeDockState ? '/assessment/adaptive-practice' : '/knowledge';");
+    expect(scriptSource).toContain('`${name}:expanded-dock-missing`');
     expect(globalsSource).toContain('@media (min-width: 1024px) and (max-width: 1279px)');
     expect(globalsSource).toContain('body:has([data-knowledge-inspector="floating-right-edge"]) [data-page-floating-controls]');
     expect(globalsSource).toContain('[data-knowledge-desktop-command-system] {\n      display: none !important;');

@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
-import { Moon, Settings, Sun } from 'lucide-react';
+import { Settings } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@/components/providers/theme-provider';
 
 export type PageFloatingControlRegistration = {
   id: string;
@@ -20,7 +19,7 @@ export type PageFloatingControlRegistration = {
 
 export type PageFloatingDockBehavior = 'enabled' | 'collapsed' | 'hidden';
 
-type PageFloatingControlMenuItem = Omit<PageFloatingControlRegistration, 'onSelect'> & {
+export type PageFloatingControlMenuItem = Omit<PageFloatingControlRegistration, 'onSelect'> & {
   onSelect?: () => void;
 };
 
@@ -31,21 +30,19 @@ type PageFloatingControlsContextValue = {
 
 const PageFloatingControlsContext = createContext<PageFloatingControlsContextValue | null>(null);
 
-const THEME_CONTROL: PageFloatingControlMenuItem = {
-  id: 'theme',
-  label: '主题切换',
-  priority: 0,
-};
-
 export function buildFloatingControlMenu(
   registrations: PageFloatingControlRegistration[],
 ): PageFloatingControlMenuItem[] {
-  return [
-    THEME_CONTROL,
-    ...registrations
-      .filter((item, index, array) => array.findIndex((candidate) => candidate.id === item.id) === index)
-      .sort((left, right) => (left.priority ?? 50) - (right.priority ?? 50)),
-  ];
+  return registrations
+    .filter((item, index, array) => array.findIndex((candidate) => candidate.id === item.id) === index)
+    .sort((left, right) => (left.priority ?? 50) - (right.priority ?? 50));
+}
+
+export function selectPrimaryFloatingControl(
+  menu: PageFloatingControlMenuItem[],
+): PageFloatingControlMenuItem | null {
+  const konlingControls = menu.filter((item) => isKonlingControl(item));
+  return konlingControls.filter((item) => !item.disabled).at(-1) ?? konlingControls.at(-1) ?? null;
 }
 
 export function PageFloatingControlsProvider({ children }: { children: ReactNode }) {
@@ -99,14 +96,16 @@ function PageFloatingControls({
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const secondaryTriggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const { mounted, theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [announcement, setAnnouncement] = useState('页面工具菜单已就绪。');
+  const [announcement, setAnnouncement] = useState('页面浮动控件已就绪。');
   const menu = buildFloatingControlMenu(registrations);
-  const isDark = theme === 'dark';
-  const primaryControl = menu.find((item) => item.id !== 'theme');
-  const triggerLabel = primaryControl?.label.includes('控灵') ? '控灵' : primaryControl ? '工具' : '工具';
+  const primaryControl = selectPrimaryFloatingControl(menu);
+  const secondaryControls = primaryControl
+    ? menu.filter((item) => item.id !== primaryControl.id)
+    : menu;
+  const triggerLabel = primaryControl ? '控灵' : '';
   const panelId = 'page-floating-controls-panel';
   const panelTitleId = 'page-floating-controls-title';
   const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
@@ -130,7 +129,7 @@ function PageFloatingControls({
 
   useEffect(() => {
     if (!isMenuOpen) return;
-    setAnnouncement('页面工具菜单已打开。');
+    setAnnouncement('页面辅助控件菜单已打开。');
     window.requestAnimationFrame(() => {
       panelRef.current?.querySelector<HTMLButtonElement>('button:not([disabled])')?.focus();
     });
@@ -143,9 +142,13 @@ function PageFloatingControls({
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsMenuOpen(false);
-        setAnnouncement('页面工具菜单已关闭。');
+        setAnnouncement('页面浮动控件菜单已关闭。');
         window.requestAnimationFrame(() => {
-          triggerRef.current?.focus();
+          if (secondaryTriggerRef.current) {
+            secondaryTriggerRef.current.focus();
+          } else {
+            triggerRef.current?.focus();
+          }
         });
       }
     };
@@ -158,26 +161,16 @@ function PageFloatingControls({
     };
   }, [isMenuOpen]);
 
-  if (!mounted || behavior === 'hidden') {
+  if (behavior === 'hidden' || (!primaryControl && secondaryControls.length === 0)) {
     return null;
   }
 
   const renderItemIcon = (item: PageFloatingControlMenuItem) => {
-    if (item.id === 'theme') {
-      return isDark ? <Sun className="h-4 w-4 text-amber-500" /> : <Moon className="h-4 w-4 text-sky-600" />;
-    }
     return item.icon ?? <Settings className="h-4 w-4 text-muted-foreground" />;
   };
 
   const handleSelect = (item: PageFloatingControlMenuItem) => {
     if (item.disabled) return;
-
-    if (item.id === 'theme') {
-      toggleTheme();
-      setIsMenuOpen(false);
-      setAnnouncement(`主题已切换为${isDark ? '浅色' : '深色'}模式。`);
-      return;
-    }
 
     item.onSelect?.();
     setIsMenuOpen(false);
@@ -196,7 +189,7 @@ function PageFloatingControls({
       data-platform-floating-dock-safe-area="bottom-right"
       data-platform-floating-dock-inspector-avoidance={knowledgeInspectorAvoidanceActive ? 'active' : undefined}
     >
-      {isMenuOpen ? (
+      {isMenuOpen && secondaryControls.length > 0 ? (
         <div
           ref={panelRef}
           id={panelId}
@@ -206,9 +199,9 @@ function PageFloatingControls({
           aria-labelledby={panelTitleId}
         >
           <div id={panelTitleId} className="sr-only">
-            页面工具菜单
+            页面辅助控件菜单
           </div>
-          {menu.map((item) => (
+          {secondaryControls.map((item) => (
             <button
               key={item.id}
               type="button"
@@ -219,33 +212,53 @@ function PageFloatingControls({
             >
               {renderItemIcon(item)}
               <span className="flex-1">{item.label}</span>
-              {item.id === 'theme' ? (
-                <span className="text-xs text-muted-foreground">{isDark ? '浅色' : '深色'}</span>
-              ) : (
-                item.badge
-              )}
+              {item.badge}
             </button>
           ))}
         </div>
       ) : null}
 
-      <Button
-        ref={triggerRef}
-        type="button"
-        variant="ghost"
-        onClick={() => setIsMenuOpen((prev) => !prev)}
-        aria-expanded={isMenuOpen}
-        aria-controls={isMenuOpen ? panelId : undefined}
-        aria-label={`打开${triggerLabel}与页面工具菜单`}
-        className="btn-ghost-themed h-10 w-auto gap-2 rounded-full border px-3 text-xs font-semibold shadow-lg"
-        data-platform-floating-dock-trigger-label={triggerLabel}
-      >
-        {primaryControl ? renderItemIcon(primaryControl) : <Settings className="h-4 w-4" />}
-        <span>{triggerLabel}</span>
-      </Button>
+      {secondaryControls.length > 0 ? (
+        <Button
+          ref={secondaryTriggerRef}
+          type="button"
+          variant="ghost"
+          onClick={() => setIsMenuOpen((prev) => !prev)}
+          aria-expanded={isMenuOpen}
+          aria-controls={isMenuOpen ? panelId : undefined}
+          aria-label="打开页面辅助控件菜单"
+          title="页面辅助控件"
+          className="btn-ghost-themed mb-2 h-9 w-9 rounded-full border p-0 shadow-lg"
+          data-platform-floating-dock-secondary-trigger="true"
+        >
+          <Settings className="h-4 w-4" />
+        </Button>
+      ) : null}
+      {primaryControl ? (
+        <Button
+          ref={triggerRef}
+          type="button"
+          variant="ghost"
+          onClick={() => handleSelect(primaryControl)}
+          disabled={primaryControl.disabled}
+          aria-label={`打开${triggerLabel}`}
+          className="btn-ghost-themed h-10 w-auto gap-2 rounded-full border px-3 text-xs font-semibold shadow-lg"
+          data-platform-floating-dock-trigger-label={triggerLabel}
+          data-platform-floating-dock-primary="konling"
+          data-platform-floating-dock-direct-action="true"
+        >
+          {renderItemIcon(primaryControl)}
+          <span>{triggerLabel}</span>
+        </Button>
+      ) : null}
       <span className="sr-only" role="status" aria-live="polite" data-platform-floating-dock-status>
         {announcement}
       </span>
     </div>
   );
+}
+
+function isKonlingControl(item: PageFloatingControlMenuItem) {
+  const id = item.id.toLowerCase();
+  return id.includes('konling') || item.label.includes('控灵');
 }

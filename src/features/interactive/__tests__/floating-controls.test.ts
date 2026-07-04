@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildFloatingControlMenu,
+  selectPrimaryFloatingControl,
   type PageFloatingControlRegistration,
 } from '@/components/shared/page-floating-controls';
 import { buildClassroomJoinUrl } from '@/features/interactive/shared/teacher-join-qr-dialog';
@@ -17,14 +18,13 @@ import {
 const repoRoot = process.cwd();
 
 describe('page floating controls', () => {
-  it('keeps theme switching as the default menu outside interactive lesson steps', () => {
+  it('does not inject theme switching into the bottom floating menu', () => {
     const menu = buildFloatingControlMenu([]);
 
-    expect(menu.map((item) => item.id)).toEqual(['theme']);
-    expect(menu[0]?.label).toBe('主题切换');
+    expect(menu).toEqual([]);
   });
 
-  it('adds context registered lesson controls after the default theme item', () => {
+  it('keeps context registered controls ordered without a theme fallback', () => {
     const registrations: PageFloatingControlRegistration[] = [
       {
         id: 'knowledge-card',
@@ -36,7 +36,52 @@ describe('page floating controls', () => {
 
     const menu = buildFloatingControlMenu(registrations);
 
-    expect(menu.map((item) => item.id)).toEqual(['theme', 'knowledge-card']);
+    expect(menu.map((item) => item.id)).toEqual(['knowledge-card']);
+  });
+
+  it('keeps an enabled global Konling launcher primary when a page Konling control is disabled', () => {
+    const registrations: PageFloatingControlRegistration[] = [
+      {
+        id: 'konling-global-ai',
+        label: '控灵全局助手',
+        priority: 10,
+        onSelect: () => undefined,
+      },
+      {
+        id: 'adaptive-path-konling',
+        label: '控灵路径顾问',
+        priority: 20,
+        disabled: true,
+        onSelect: () => undefined,
+      },
+    ];
+
+    const primary = selectPrimaryFloatingControl(buildFloatingControlMenu(registrations));
+
+    expect(primary?.id).toBe('konling-global-ai');
+    expect(primary?.disabled).toBeFalsy();
+  });
+
+  it('keeps an enabled page Konling launcher primary over the global launcher', () => {
+    const registrations: PageFloatingControlRegistration[] = [
+      {
+        id: 'konling-global-ai',
+        label: '控灵全局助手',
+        priority: 10,
+        onSelect: () => undefined,
+      },
+      {
+        id: 'adaptive-path-konling',
+        label: '控灵路径顾问',
+        priority: 20,
+        onSelect: () => undefined,
+      },
+    ];
+
+    const primary = selectPrimaryFloatingControl(buildFloatingControlMenu(registrations));
+
+    expect(primary?.id).toBe('adaptive-path-konling');
+    expect(primary?.disabled).toBeFalsy();
   });
 
   it('moves the knowledge card entry out of fixed per-lesson button markup', () => {
@@ -60,7 +105,26 @@ describe('page floating controls', () => {
     expect(source).toContain('aria-labelledby={panelTitleId}');
     expect(source).toContain('aria-controls={isMenuOpen ? panelId : undefined}');
     expect(source).toContain('data-platform-floating-dock-status');
-    expect(source).toContain('主题已切换为');
+    expect(source).toContain('selectPrimaryFloatingControl(menu)');
+    expect(source).toContain('konlingControls.filter((item) => !item.disabled).at(-1)');
+    expect(source).toContain('menu.filter((item) => item.id !== primaryControl.id)');
+    expect(source).toContain('data-platform-floating-dock-primary="konling"');
+    expect(source).toContain('data-platform-floating-dock-direct-action="true"');
+    expect(source).toContain('data-platform-floating-dock-secondary-trigger="true"');
+    expect(source).not.toContain('konlingControl ?? menu[0]');
+    expect(source).not.toContain('&& !isKonlingControl(item)');
+    expect(source).not.toContain('主题已切换为');
+  });
+
+  it('keeps non-Konling AppShell dock controls in the header action area', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/components/platform/app-shell.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain("dockControls.filter((control) => control.control === 'konling')");
+    expect(source).toContain("dockControls.filter((control) => control.control !== 'konling')");
+    expect(source).toContain('data-platform-shell-dock-action={control.control}');
   });
 
   it('keeps the global AI sidebar named and focus contained while open', () => {

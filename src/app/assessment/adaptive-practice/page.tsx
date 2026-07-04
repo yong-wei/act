@@ -2570,9 +2570,8 @@ export default function AdaptivePracticePage() {
             id: 'adaptive-path-konling',
             label: '控灵助手',
             control: 'konling',
-            href: pathAdvisorContextGoal
-              ? withFeedbackTaskHref(`/assessment/adaptive-practice?goal=${pathAdvisorContextGoal}&intent=contextual-recommendation`)
-              : feedbackGenericPathGenerationHref,
+            onSelect: openPathGenerationAdvisor,
+            disabled: !canSubmitPathGeneration,
             icon: <BrainCircuit className="h-4 w-4 text-primary" />,
           },
           {
