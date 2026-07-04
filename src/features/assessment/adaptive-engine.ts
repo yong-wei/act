@@ -6,7 +6,9 @@ import {
   type QuestionType,
 } from '@/features/assessment/adaptive-question-bank';
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import { selectCatalogBackedAssessmentItem } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import {
+  checkpointAuthoredQuestionRuntimeId,
   getCheckpointAuthoredQuestionRecordByRuntimeId,
   checkpointAuthoredQuestionToRuntimeQuestion,
   REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS,
@@ -37,6 +39,7 @@ export interface SubmitAnswerParams {
     nodeId: string;
     goalId?: string | null;
     routeIntent?: string | null;
+    questionScope?: AdaptiveQuestionScope;
   };
 }
 
@@ -82,7 +85,7 @@ export interface PublicQuestion extends Omit<CrossDomainQuestion, 'options'> {
   options: Array<{ label: string; text: string; explanation: string }>;
 }
 
-export type AdaptiveQuestionScope = 'practice' | 'readiness' | 'checkpoint';
+export type AdaptiveQuestionScope = 'practice' | 'readiness' | 'checkpoint' | 'remediation';
 
 export interface AbilityReport {
   userId: string;
@@ -380,12 +383,35 @@ export function selectNextQuestionFromAnswers(
     ? params.goalId.trim()
     : null;
   const questionScope = params.questionScope ?? 'practice';
-  const candidates = filterQuestionsByGoal(allQuestions(params), targetGoalId, questionScope);
   const answeredQuestionIds = new Set(
     answers
       .filter((answer) => answer.sessionId === params.sessionId)
       .map((answer) => answer.questionId),
   );
+  if (targetGoalId && isPathOwnedCatalogScope(questionScope)) {
+    const selected = selectCatalogBackedAssessmentItem({
+      learningGoalId: targetGoalId,
+      requestedStage: questionScope,
+      askedQuestionIds,
+      answeredQuestionIds,
+      targetDifficulty,
+      weakAreas,
+    });
+    const questionId = selected.catalogItem.sourceFamily === 'checkpoint-authored-question'
+      ? checkpointAuthoredQuestionRuntimeId(selected.catalogItem.sourceId)
+      : selected.catalogItem.sourceId;
+    const question = getAdaptiveQuestionById(questionId);
+    if (!question) {
+      throw new Error(`已审核路径题目 ${selected.catalogItem.sourceId} 缺少运行时题目实现`);
+    }
+    return {
+      question: toPublicQuestion(question),
+      estimatedAbility: Number(theta.toFixed(2)),
+      confidenceInterval,
+    };
+  }
+
+  const candidates = filterQuestionsByGoal(allQuestions(params), targetGoalId, questionScope);
   const unaskedCandidates = candidates.filter((question) => !askedQuestionIds.has(question.id));
   if (targetGoalId && (questionScope === 'readiness' || questionScope === 'checkpoint') && unaskedCandidates.length === 0) {
     const selectedUnansweredCandidate = candidates.find((question) => (
@@ -423,6 +449,12 @@ export function selectNextQuestionFromAnswers(
     estimatedAbility: Number(theta.toFixed(2)),
     confidenceInterval,
   };
+}
+
+function isPathOwnedCatalogScope(
+  questionScope: AdaptiveQuestionScope,
+): questionScope is 'readiness' | 'checkpoint' | 'remediation' {
+  return questionScope === 'readiness' || questionScope === 'checkpoint' || questionScope === 'remediation';
 }
 
 function filterQuestionsByGoal(

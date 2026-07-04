@@ -139,6 +139,7 @@ interface SubmitAnswerResponse {
   durableAnswerId?: string;
   durableSessionId?: string;
   algorithmVersion?: string;
+  adaptiveAssessmentRef?: Record<string, unknown>;
 }
 
 interface PathAdvisorContextResponse {
@@ -2350,9 +2351,7 @@ export default function AdaptivePracticePage() {
     const targetNode = pathExecutionNodes.find((node) => node.nodeId === activeNodeId);
     if (!targetNode || !isPathAssessmentResultNode(targetNode.type)) return;
     await writePathNodeActivity(targetNode, 'initial-completion', 'completed', {
-      adaptiveAssessmentRef: {
-        id: result.durableAnswerId,
-      },
+      adaptiveAssessmentRef: result.adaptiveAssessmentRef ?? { id: result.durableAnswerId },
     });
   }, [activeNodeId, activePathId, pathExecutionNodes, writePathNodeActivity]);
 

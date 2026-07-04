@@ -6,6 +6,7 @@ import {
   buildAdaptiveAssessmentItemCatalog,
   loadAdaptiveAssessmentCatalogSources,
 } from '../adaptive-assessment-item-catalog';
+import { selectCatalogBackedAssessmentItemFromArtifacts } from '../adaptive-assessment-catalog-selector';
 import type { CheckpointAuthoredQuestionRecord } from '../learning-goal-checkpoint-question-sets';
 
 describe('adaptive assessment item catalog', () => {
@@ -152,7 +153,8 @@ describe('adaptive assessment item catalog', () => {
         choiceMode: 'single',
       },
     });
-    const correctOption = authoredItem?.questionRefs.options.find((option) => option.isCorrect);
+    const authoredOptions = authoredItem?.questionRefs.options ?? [];
+    const correctOption = authoredOptions.find((option) => option.isCorrect);
     expect(authoredItem?.questionRefs.answerKey).toEqual(correctOption ? [correctOption.key] : []);
     expect(authoredItem?.allowedStages).not.toContain('remediation');
     expect(authoredItem?.contentHash).toMatch(/^[a-f0-9]{64}$/);
@@ -167,10 +169,11 @@ describe('adaptive assessment item catalog', () => {
     const answerKeys = new Set<string>();
 
     for (const item of authoredItems) {
-      const correctOptions = item.questionRefs.options.filter((option) => option.isCorrect);
+      const correctOptions = (item.questionRefs.options ?? []).filter((option) => option.isCorrect);
       expect(correctOptions).toHaveLength(1);
       expect(item.questionRefs.answerKey).toEqual([correctOptions[0].key]);
-      answerKeys.add(correctOptions[0].key);
+      expect(correctOptions[0].key).toBeTruthy();
+      if (correctOptions[0].key) answerKeys.add(correctOptions[0].key);
     }
 
     expect(Array.from(answerKeys).sort()).toEqual(['A', 'B', 'C']);
@@ -231,6 +234,47 @@ describe('adaptive assessment item catalog', () => {
       'kaq-review-version-ref-mismatch',
       'not-path-eligible',
     ]));
+  });
+
+  it('rejects stale semantic review decisions during catalog-backed path selection', async () => {
+    const sources = await loadAdaptiveAssessmentCatalogSources();
+    const artifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
+      kaqReviewedItems: sources.kaqReviewedItems,
+    });
+    const item = artifacts.items.find((entry) => entry.sourceId === 'preset-q-01');
+    expect(item).toBeDefined();
+
+    expect(() => selectCatalogBackedAssessmentItemFromArtifacts({
+      learningGoalId: 'control-correction',
+      requestedStage: 'readiness',
+      askedQuestionIds: new Set(),
+      answeredQuestionIds: new Set(),
+      targetDifficulty: 0.5,
+      weakAreas: new Set(),
+      artifacts: {
+        items: [item!],
+        decisions: [{
+          catalogItemId: item!.catalogItemId,
+          decisionKind: 'human-review',
+          outcome: 'approved',
+          reviewerId: 'reviewer:stale',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'stale-review.v1',
+          sourceContentHash: 'stale-content-hash',
+          selectedLearningGoalIds: ['control-correction'],
+          selectedKaqObjectiveIds: item!.semanticRefs.kaqObjectiveIds,
+          selectedGraphNodeIds: item!.semanticRefs.graphNodeIds,
+          selectedStagePurpose: 'readiness-gate',
+          difficulty: item!.semanticRefs.difficulty ?? 0.5,
+          cognitiveLevel: item!.semanticRefs.cognitiveLevel ?? 'apply',
+          misconceptionRefs: item!.semanticRefs.misconceptionTags,
+          remediationRefs: item!.semanticRefs.remediationResourceNodeIds,
+          metadataVersionRefs: item!.versionRefs,
+        }],
+      },
+    })).toThrow('学习目标 control-correction 的 readiness 已审核路径题目覆盖不足');
   });
 
   it('keeps iCourse content hashes stable when only governance metadata changes', () => {
@@ -362,7 +406,7 @@ describe('adaptive assessment item catalog', () => {
         reviewedAt: '2026-07-04T00:00:00.000Z',
         reviewerId: 'reviewer:governance-audit',
         reviewBatchId: 'learning-goal-checkpoint-question-sets.audit-only.v2',
-      } as CheckpointAuthoredQuestionRecord],
+      } as unknown as CheckpointAuthoredQuestionRecord],
       kaqReviewedItems: [],
     });
 

@@ -14,7 +14,7 @@ function readReviewedItem(questionId: string) {
     .find((item) => item.questionId === questionId);
 }
 
-function createMockDb() {
+function createMockDb(): any {
   const answeredAt = new Date('2026-06-24T08:00:00.000Z');
   const sessionState = {
     id: 'durable-session-quiz-1',
@@ -63,7 +63,7 @@ function createMockDb() {
 
   return {
     ...db,
-    $transaction: vi.fn(async (callback: (tx: typeof db) => Promise<unknown>) => callback(db)),
+    $transaction: vi.fn(async <T>(callback: (tx: typeof db) => Promise<T>) => callback(db)),
   };
 }
 
@@ -85,6 +85,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
         nodeId: 'adaptive-quiz:control-correction:precheck',
         goalId: 'control-correction',
         routeIntent: 'path-execution',
+        questionScope: 'readiness',
       },
     }, db);
 
@@ -107,12 +108,47 @@ describe('K/A/Q adaptive assessment persistence', () => {
           questionBankVersion: 'kaq-quiz-foundation-bank.v1',
         }),
       }),
+      adaptiveAssessmentItemRef: expect.objectContaining({
+        catalogBacked: true,
+        catalogItemId: `adaptive-assessment-item:preset-adaptive-question:${question.id}`,
+        sourceFamily: 'preset-adaptive-question',
+        sourceId: question.id,
+        contentHash: expect.any(String),
+        reviewState: 'path-eligible',
+        eligibilityState: 'path-eligible',
+        semanticRefs: expect.objectContaining({
+          learningGoalIds: expect.arrayContaining(['control-correction']),
+        }),
+        reviewDecision: expect.objectContaining({
+          decisionKind: 'human-review',
+          outcome: 'approved',
+          selectedLearningGoalIds: expect.arrayContaining(['control-correction']),
+        }),
+        relationship: expect.objectContaining({
+          relationship: 'answer-time-snapshot',
+          immutable: true,
+          catalogUpdatesRewriteHistoricalAnswers: false,
+        }),
+      }),
     });
     expect(itemRefCreate.metadata.kaq.immutableContentHash).toBe(
       readReviewedItem(question.id)?.metadata.immutableContentHash,
     );
 
     const factPayload = db.learningFact.createMany.mock.calls[0][0].data[0].contextJson.adaptiveAssessment.kaqQuizEvidence;
+    const adaptiveAssessmentRef = db.learningFact.createMany.mock.calls[0][0].data[0].contextJson.adaptiveAssessment.adaptiveAssessmentRef;
+    expect(adaptiveAssessmentRef).toMatchObject({
+      kind: 'AdaptiveAssessmentAnswer',
+      provenance: 'official',
+      answerId: 'answer-quiz-1',
+      questionId: question.id,
+      catalogItemId: `adaptive-assessment-item:preset-adaptive-question:${question.id}`,
+      reviewState: 'reviewed',
+      eligibilityState: 'path-eligible',
+      readinessGateEligible: true,
+      pathCompletionEligible: true,
+      evidenceAuthority: 'path-assessment',
+    });
     expect(factPayload).toMatchObject({
       questionSnapshotId: expect.stringMatching(/^question-snapshot:/),
       quizSetId: expect.stringMatching(/^kaq-quiz-set:/),
@@ -137,6 +173,63 @@ describe('K/A/Q adaptive assessment persistence', () => {
     });
     expect(JSON.stringify(factPayload)).not.toContain(question.stem);
     expect(JSON.stringify(factPayload)).not.toContain(correctOptionText!);
+  });
+
+  it('does not promote catalog-backed answers without verified path context', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS[0];
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+
+    const result = await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+    }, db);
+
+    expect(result.adaptiveAssessmentRef).toMatchObject({
+      kind: 'AdaptiveAssessmentAnswer',
+      reviewState: 'reviewed',
+      catalogItemId: `adaptive-assessment-item:preset-adaptive-question:${question.id}`,
+      readinessGateEligible: false,
+      terminalValidationEligible: false,
+      pathCompletionEligible: false,
+      evidenceAuthority: 'legacy-compatible',
+    });
+  });
+
+  it('does not promote catalog-backed answers when the server path scope does not match the item snapshot', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS[0];
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+
+    const result = await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: 'checkpoint:control-correction-review',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+        questionScope: 'checkpoint',
+      },
+    }, db);
+
+    expect(result.adaptiveAssessmentRef).toMatchObject({
+      kind: 'AdaptiveAssessmentAnswer',
+      reviewState: 'reviewed',
+      catalogItemId: `adaptive-assessment-item:preset-adaptive-question:${question.id}`,
+      readinessGateEligible: false,
+      terminalValidationEligible: false,
+      pathCompletionEligible: false,
+      evidenceAuthority: 'legacy-compatible',
+    });
   });
 
   it('excludes historical provisional answers from reviewed mastery rebuilds', async () => {
@@ -180,6 +273,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
         nodeId: 'adaptive-quiz:control-correction:precheck',
         goalId: 'control-correction',
         routeIntent: 'path-execution',
+        questionScope: 'readiness',
       },
     }, db);
 
@@ -235,6 +329,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
         nodeId: 'adaptive-quiz:control-correction:precheck',
         goalId: 'control-correction',
         routeIntent: 'path-execution',
+        questionScope: 'readiness',
       },
     }, db);
 
@@ -269,12 +364,19 @@ describe('K/A/Q adaptive assessment persistence', () => {
         nodeId: 'adaptive-quiz:generated-practice',
         goalId: 'control-correction',
         routeIntent: 'path-execution',
+        questionScope: 'practice',
       },
     }, db);
 
     const itemRefCreate = db.adaptiveAssessmentItemRef.upsert.mock.calls[0][0].create;
     expect(itemRefCreate.metadata.kaq.review.state).toBe('provisional');
     expect(itemRefCreate.metadata.kaq.review.generationModel).toBe('rule-based-generator');
+    expect(itemRefCreate.metadata.adaptiveAssessmentItemRef).toMatchObject({
+      catalogBacked: false,
+      reviewState: 'provisional',
+      eligibilityState: 'generated-provisional',
+      evidenceAuthority: 'low-stakes-practice-only',
+    });
     expect(db.adaptiveMasteryUpdate.createMany).not.toHaveBeenCalled();
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
