@@ -17,13 +17,13 @@
     "groundingVersion": "konling-graph-grounding.v1"
   },
   "totals": {
-    "complete": 9,
-    "missingField": 5246,
+    "complete": 0,
+    "missingField": 5255,
     "provisional": 3985,
-    "humanConfirmed": 9,
+    "humanConfirmed": 0,
     "citationReady": 3353,
-    "pathEligible": 281,
-    "blocked": 5246,
+    "pathEligible": 272,
+    "blocked": 5255,
     "denominator": 5255,
     "sourceWindow": {
       "from": null,
@@ -41,13 +41,15 @@
       "missing-path-profile",
       "missing-path-target",
       "missing-segment-ref",
-      "provisional-metadata"
+      "provisional-metadata",
+      "stale-review"
     ],
     "limitationReasons": [
       "metadata is provisional",
       "missing fields: blocked-by-dependency, missing-content-hash",
       "missing fields: missing-content-hash",
-      "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+      "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target",
+      "review is stale"
     ],
     "sampleLimitations": [
       "authoring-textbook-caption:hu-shousong-exercise-analysis-3rd:chapter-01:figure-1: metadata is provisional",
@@ -397,13 +399,13 @@
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-lesson-step": {
-      "complete": 9,
-      "missingField": 441,
+      "complete": 0,
+      "missingField": 450,
       "provisional": 441,
-      "humanConfirmed": 9,
+      "humanConfirmed": 0,
       "citationReady": 9,
-      "pathEligible": 9,
-      "blocked": 441,
+      "pathEligible": 0,
+      "blocked": 450,
       "denominator": 450,
       "sourceWindow": {
         "from": null,
@@ -416,17 +418,19 @@
         "missing-human-review",
         "missing-knowledge-binding",
         "missing-path-profile",
-        "provisional-metadata"
+        "provisional-metadata",
+        "stale-review"
       ],
       "limitationReasons": [
-        "metadata is provisional"
+        "metadata is provisional",
+        "review is stale"
       ],
       "sampleLimitations": [
         "runtime-step:1-1:step-01: metadata is provisional",
         "runtime-step:1-1:step-02: metadata is provisional",
         "runtime-step:1-1:step-03: metadata is provisional",
-        "runtime-step:1-1:step-12: metadata is provisional",
-        "runtime-step:1-1:step-13: metadata is provisional"
+        "runtime-step:1-1:step-04: review is stale",
+        "runtime-step:1-1:step-05: review is stale"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
@@ -521,8 +525,8 @@
     "manual": 1261,
     "local-model-assisted": 0,
     "external-tool-assisted": 1913,
-    "generated-provisional": 2072,
-    "already-governed": 9,
+    "generated-provisional": 2081,
+    "already-governed": 0,
     "blocked": 0
   },
   "byReviewStatus": {
@@ -530,9 +534,9 @@
     "generated-provisional": 2072,
     "model-assisted-provisional": 0,
     "external-tool-provisional": 1913,
-    "human-confirmed": 9,
+    "human-confirmed": 0,
     "blocked": 0,
-    "stale": 0
+    "stale": 9
   },
   "graphCoverageDiagnostics": {
     "authoring-textbook-caption:hu-shousong-exercise-analysis-3rd:chapter-01:figure-1": {
@@ -38701,93 +38705,133 @@
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "Bode图_1_1|controlModeling|runtime-step:1-1:step-04|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
-      "complete": 1,
-      "missingField": 0,
+      "complete": 0,
+      "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 1,
+      "humanConfirmed": 0,
       "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
+      "pathEligible": 0,
+      "blocked": 1,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-03T09:13:39.204Z"
       },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
+      "missingFieldCodes": [
+        "missing-human-review",
+        "provisional-metadata",
+        "stale-review"
+      ],
+      "limitationReasons": [
+        "review is stale"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-04: review is stale"
+      ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "Bode图_1_1|controlModeling|runtime-step:1-1:step-05|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
-      "complete": 1,
-      "missingField": 0,
+      "complete": 0,
+      "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 1,
+      "humanConfirmed": 0,
       "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
+      "pathEligible": 0,
+      "blocked": 1,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-03T09:13:39.204Z"
       },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
+      "missingFieldCodes": [
+        "missing-human-review",
+        "provisional-metadata",
+        "stale-review"
+      ],
+      "limitationReasons": [
+        "review is stale"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-05: review is stale"
+      ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "Bode图_1_1|controlModeling|runtime-step:1-1:step-06|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
-      "complete": 1,
-      "missingField": 0,
+      "complete": 0,
+      "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 1,
+      "humanConfirmed": 0,
       "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
+      "pathEligible": 0,
+      "blocked": 1,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-03T09:13:39.204Z"
       },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
+      "missingFieldCodes": [
+        "missing-human-review",
+        "provisional-metadata",
+        "stale-review"
+      ],
+      "limitationReasons": [
+        "review is stale"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-06: review is stale"
+      ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "Bode图_1_1|controlModeling|runtime-step:1-1:step-07|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
-      "complete": 1,
-      "missingField": 0,
+      "complete": 0,
+      "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 1,
+      "humanConfirmed": 0,
       "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
+      "pathEligible": 0,
+      "blocked": 1,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-03T09:13:39.204Z"
       },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
+      "missingFieldCodes": [
+        "missing-human-review",
+        "provisional-metadata",
+        "stale-review"
+      ],
+      "limitationReasons": [
+        "review is stale"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-07: review is stale"
+      ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "Bode图_1_1|controlModeling|runtime-step:1-1:step-08|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
-      "complete": 1,
-      "missingField": 0,
+      "complete": 0,
+      "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 1,
+      "humanConfirmed": 0,
       "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
+      "pathEligible": 0,
+      "blocked": 1,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-03T09:13:39.204Z"
       },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
+      "missingFieldCodes": [
+        "missing-human-review",
+        "provisional-metadata",
+        "stale-review"
+      ],
+      "limitationReasons": [
+        "review is stale"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-08: review is stale"
+      ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "Bode图_1_1|controlModeling|textbook:hu-shousong-exercise-analysis-3rd|串联校正_6_fede5751|二状态冷链热模型_5_56002|传递函数_2_2c5e2589|信号流图_2_372d4084|动态性能指标_3_a10733c1|动态数学模型_2_b7f98344|劳斯判据_4_05ba60cd|反馈_1_1|反馈控制系统_1_98dc667a|奈奎斯特与Bode统一判稳链_3_38002|奈奎斯特稳定判据_5_a1b34560|性能指标_1_1|控制器频域特性矩阵_4_42008|根轨迹_1_1|根轨迹增益换算_3_4b1d9e6c|根轨迹完整法则_3_0f2e7b11|根轨迹绘制规则_3_2f9e8cb3|模型结构相似性_1_2|正弦稳态响应_5_b6dc1100|稳定可行域_3_7eed0929|稳定性_1_1|稳定性_3_72d04fbd|稳定裕度_5_bfd54f1c|稳态误差双路径判断_3_37002|结构图_2_3f312ccc|给定-扰动双通道误差分析_3_37001|自动控制系统_1_9678f418|误差_1_1|课程总图_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17|频域PD与超前整定_4_42011|频域PI与滞后整定_4_42010|频域分析_2_2e257d89|频域响应_1_1": {
@@ -56344,39 +56388,55 @@
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "controlModeling|parameterDesign|runtime-step:1-1:step-09|反馈_1_1|开环控制_1_1|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|误差_1_1|课程总图_1_1|闭环控制_1_1": {
-      "complete": 1,
-      "missingField": 0,
+      "complete": 0,
+      "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 1,
+      "humanConfirmed": 0,
       "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
+      "pathEligible": 0,
+      "blocked": 1,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-03T09:13:39.204Z"
       },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
+      "missingFieldCodes": [
+        "missing-human-review",
+        "provisional-metadata",
+        "stale-review"
+      ],
+      "limitationReasons": [
+        "review is stale"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-09: review is stale"
+      ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "controlModeling|parameterDesign|runtime-step:1-1:step-10|反馈_1_1|开环控制_1_1|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|误差_1_1|课程总图_1_1|闭环控制_1_1": {
-      "complete": 1,
-      "missingField": 0,
+      "complete": 0,
+      "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 1,
+      "humanConfirmed": 0,
       "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
+      "pathEligible": 0,
+      "blocked": 1,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-03T09:13:39.204Z"
       },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
+      "missingFieldCodes": [
+        "missing-human-review",
+        "provisional-metadata",
+        "stale-review"
+      ],
+      "limitationReasons": [
+        "review is stale"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-10: review is stale"
+      ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "controlModeling|PD与测速反馈的等效阻尼对比_3_35003|PD与超前的频域整形差异_3_35004|runtime-handout:3-5|主导极点_3_4c4c6bbd|左半平面零点的动态改善机理_3_35002|带宽_5_6730fda4|根轨迹法_2_e3f6c0c1|根轨迹绘制规则_3_2f9e8cb3|相角裕度_5_5a74b451|自然频率_10_51a8b7d0|闭环极点_3_f9432bf3|阻尼比_3_b849784e|零点引入与根轨迹重排_3_35001|非最小相与右半平面零点_3_35005": {
@@ -73704,21 +73764,29 @@
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "inquiryReflection|runtime-step:1-1:step-15|selfDirectedLearning|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|课程总图_1_1": {
-      "complete": 1,
-      "missingField": 0,
+      "complete": 0,
+      "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 1,
+      "humanConfirmed": 0,
       "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
+      "pathEligible": 0,
+      "blocked": 1,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-03T09:13:39.204Z"
       },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
+      "missingFieldCodes": [
+        "missing-human-review",
+        "provisional-metadata",
+        "stale-review"
+      ],
+      "limitationReasons": [
+        "review is stale"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-15: review is stale"
+      ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "knowledge-card:MASS协同链路_5_53001|MASS协同链路_5_53001": {
@@ -145621,21 +145689,29 @@
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:1-1:step-11|selfDirectedLearning|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|课程总图_1_1": {
-      "complete": 1,
-      "missingField": 0,
+      "complete": 0,
+      "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 1,
+      "humanConfirmed": 0,
       "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
+      "pathEligible": 0,
+      "blocked": 1,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-03T09:13:39.204Z"
       },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
+      "missingFieldCodes": [
+        "missing-human-review",
+        "provisional-metadata",
+        "stale-review"
+      ],
+      "limitationReasons": [
+        "review is stale"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-11: review is stale"
+      ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:1-1:step-12": {

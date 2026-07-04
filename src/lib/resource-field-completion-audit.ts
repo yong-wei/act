@@ -105,6 +105,9 @@ export interface ResourceFieldCompletionCandidate {
     reviewerRole: string;
     reviewedAt: string;
     reviewBatchId: string;
+    reviewerVisibleRationale?: string;
+    independentEvidenceRef?: string;
+    promptOrManifestHash?: string;
     confidence?: number | null;
   };
 }
@@ -133,6 +136,8 @@ export interface ResourceFieldReviewAudit {
   reviewedVersionRef: string | null;
   generationToolOrModel: string | null;
   promptOrManifestHash: string | null;
+  reviewerVisibleRationale: string | null;
+  independentEvidenceRef: string | null;
   confidence: number | null;
   staleInvalidationRule: string;
 }
@@ -197,6 +202,75 @@ export interface ResourceFieldCompletionCoverageSummary {
   artifactVersion: typeof RESOURCE_FIELD_COMPLETION_AUDIT_VERSION;
 }
 
+export type ResourceCompletionDependencyState = 'ready' | 'blocked-by-dependency' | 'needs-human-review';
+export type ResourceCompletionQueueRole = 'primary' | 'dependent';
+
+export interface ResourceCompletionWorkqueueItem {
+  queueRole: ResourceCompletionQueueRole;
+  resourceId: string;
+  title: string;
+  sourceFamily: ResourceFieldCompletionFamily;
+  sourcePathOrUrl: string | null;
+  sourceRecord: string | null;
+  learningGoalIds: string[];
+  graphDomain: string;
+  currentBlockers: ResourceFieldMissingCode[];
+  missingFieldCode: ResourceFieldMissingCode;
+  primaryMissingFieldCode: ResourceFieldMissingCode;
+  primaryFollowupBucket: string;
+  dependencyState: ResourceCompletionDependencyState;
+  dependencyHints: string[];
+  suggestedReviewerAction: string;
+  sourceHash: string | null;
+  sourceVersionRef: string | null;
+  reviewStatus: ResourceFieldReviewStatus;
+  privacyMinimized: true;
+  rawContentIncluded: false;
+}
+
+export interface ResourceCompletionWorkqueue {
+  id: string;
+  queueRole: ResourceCompletionQueueRole;
+  sourceFamily: ResourceFieldCompletionFamily;
+  learningGoalId: string;
+  graphDomain: string;
+  missingFieldCode: ResourceFieldMissingCode;
+  followupBucket: string;
+  dependencyState: ResourceCompletionDependencyState;
+  total: number;
+  items: ResourceCompletionWorkqueueItem[];
+}
+
+export interface ResourceCompletionWorkqueueSummary {
+  artifactVersion: typeof RESOURCE_FIELD_COMPLETION_AUDIT_VERSION;
+  auditMissingFieldRows: number;
+  queuedResources: number;
+  primaryQueueItems: number;
+  dependentQueueItems: number;
+  byFollowupBucket: Record<string, number>;
+  byMissingFieldCode: Record<string, number>;
+  queues: ResourceCompletionWorkqueue[];
+}
+
+export interface ResourceHumanReviewIntegrityIssue {
+  resourceId: string;
+  issueCodes: string[];
+  reviewerId: string | null;
+  reviewerRole: string | null;
+  reviewedAt: string | null;
+  reviewedSourceHash: string | null;
+  reviewedVersionRef: string | null;
+  reviewBatchId: string | null;
+  reviewStatus: ResourceFieldReviewStatus;
+}
+
+export interface ResourceHumanReviewIntegritySummary {
+  artifactVersion: typeof RESOURCE_FIELD_COMPLETION_AUDIT_VERSION;
+  humanConfirmedRows: number;
+  invalidHumanConfirmedRows: number;
+  issues: ResourceHumanReviewIntegrityIssue[];
+}
+
 export interface ResourceFieldCompletionAuditSummary {
   artifactVersion: typeof RESOURCE_FIELD_COMPLETION_AUDIT_VERSION;
   generatedAt: string;
@@ -223,6 +297,8 @@ export interface ResourceFieldCompletionAuditSummary {
 export interface ResourceFieldCompletionAuditResult {
   rows: ResourceFieldCompletionAuditRow[];
   summary: ResourceFieldCompletionAuditSummary;
+  workqueues: ResourceCompletionWorkqueueSummary;
+  integrityDiagnostics: ResourceHumanReviewIntegritySummary;
 }
 
 export interface ResourceFieldCompletionAuditInput {
@@ -274,6 +350,8 @@ export function buildResourceFieldCompletionAudit(
       versionRefs,
       limitations: input.limitations ?? [],
     }),
+    workqueues: buildResourceCompletionWorkqueues(rows),
+    integrityDiagnostics: buildHumanReviewIntegritySummary(rows),
   };
 }
 
@@ -399,6 +477,7 @@ function rowFromCandidate(
   versionRefs: KaqArtifactVersionRefs,
 ): ResourceFieldCompletionAuditRow {
   const evidenceInstrumentation = candidate.evidenceInstrumentation ?? [];
+  const humanReviewConfirmed = candidateHasFreshHumanReviewEvidence(candidate);
   const evidenceContract = buildEvidenceContract({
     eventSource: Boolean(candidate.family),
     eventType: evidenceInstrumentation.length > 0,
@@ -424,11 +503,12 @@ function rowFromCandidate(
     ...(!evidenceContract.complete ? ['missing-evidence-contract' as const] : []),
     ...(!candidate.segmentRefs?.length ? ['missing-segment-ref' as const] : []),
     ...(!candidate.citationTargets?.length ? ['missing-citation-target' as const] : []),
-    ...(!candidate.humanConfirmed ? ['missing-human-review' as const] : []),
-    ...(candidate.generatedBy && !candidate.humanConfirmed ? ['provisional-metadata' as const] : []),
+    ...(!humanReviewConfirmed ? ['missing-human-review' as const] : []),
+    ...(candidate.humanConfirmed && !humanReviewConfirmed ? ['stale-review' as const] : []),
+    ...(candidate.generatedBy && !humanReviewConfirmed ? ['provisional-metadata' as const] : []),
     ...(candidate.blockingDependency ? ['blocked-by-dependency' as const] : []),
   ]);
-  const reviewStatus = reviewStatusForCandidate(candidate);
+  const reviewStatus = reviewStatusForCandidate(candidate, humanReviewConfirmed);
 
   return buildRow({
     resourceId: candidate.id,
@@ -439,7 +519,7 @@ function rowFromCandidate(
     sourceRecord: candidate.sourceRecord ?? null,
     missingFieldCodes,
     evidenceContract,
-    completionMethod: completionMethodForCandidate(candidate, missingFieldCodes),
+    completionMethod: completionMethodForCandidate(candidate, missingFieldCodes, humanReviewConfirmed),
     reviewStatus,
     reviewAudit: candidate.humanConfirmed
       ? confirmedReviewAudit({
@@ -450,10 +530,13 @@ function rowFromCandidate(
         reviewedAt: candidate.reviewEvidence?.reviewedAt ?? defaultSourceWindow.to,
         reviewerId: candidate.reviewEvidence?.reviewerId,
         reviewerRole: candidate.reviewEvidence?.reviewerRole,
+        reviewerVisibleRationale: candidate.reviewEvidence?.reviewerVisibleRationale,
+        independentEvidenceRef: candidate.reviewEvidence?.independentEvidenceRef,
+        promptOrManifestHash: candidate.reviewEvidence?.promptOrManifestHash,
         confidence: candidate.reviewEvidence?.confidence,
       })
       : emptyReviewAudit(candidate),
-    currentPathEligible: candidate.currentPathEligible === true,
+    currentPathEligible: humanReviewConfirmed && candidate.currentPathEligible === true,
     versionRefs,
     sourceHash: candidate.contentHash ?? null,
     sourceVersionRef: candidate.versionRef ?? null,
@@ -612,6 +695,260 @@ function buildResourceFieldCompletionSummary(
   };
 }
 
+function buildResourceCompletionWorkqueues(rows: ResourceFieldCompletionAuditRow[]): ResourceCompletionWorkqueueSummary {
+  const items = rows
+    .filter((row) => row.missingFieldCodes.length > 0)
+    .flatMap((row) => workqueueItemsForRow(row))
+    .sort((left, right) => (
+      `${left.resourceId}:${left.queueRole}:${left.missingFieldCode}`
+        .localeCompare(`${right.resourceId}:${right.queueRole}:${right.missingFieldCode}`)
+    ));
+  const queuesById = new Map<string, ResourceCompletionWorkqueue>();
+  for (const item of items) {
+    const learningGoalId = item.learningGoalIds[0] ?? 'unassigned-learning-goal';
+    const followupBucket = followupBucketForMissingCode(item.missingFieldCode, item.sourceFamily);
+    const queueId = [
+      'resource-completion',
+      item.queueRole,
+      item.sourceFamily,
+      learningGoalId,
+      item.graphDomain,
+      item.missingFieldCode,
+      followupBucket,
+      item.dependencyState,
+    ].join(':');
+    const queue = queuesById.get(queueId) ?? {
+      id: queueId,
+      queueRole: item.queueRole,
+      sourceFamily: item.sourceFamily,
+      learningGoalId,
+      graphDomain: item.graphDomain,
+      missingFieldCode: item.missingFieldCode,
+      followupBucket,
+      dependencyState: item.dependencyState,
+      total: 0,
+      items: [],
+    };
+    queue.items.push(item);
+    queue.total = queue.items.length;
+    queuesById.set(queueId, queue);
+  }
+  const queues = [...queuesById.values()].sort((left, right) => left.id.localeCompare(right.id));
+  return {
+    artifactVersion: RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
+    auditMissingFieldRows: rows.filter((row) => row.missingFieldCodes.length > 0).length,
+    queuedResources: new Set(items.map((item) => item.resourceId)).size,
+    primaryQueueItems: items.filter((item) => item.queueRole === 'primary').length,
+    dependentQueueItems: items.filter((item) => item.queueRole === 'dependent').length,
+    byFollowupBucket: countBy(items, (item) => followupBucketForMissingCode(item.missingFieldCode, item.sourceFamily)),
+    byMissingFieldCode: countBy(items, (item) => item.missingFieldCode),
+    queues,
+  };
+}
+
+function workqueueItemsForRow(row: ResourceFieldCompletionAuditRow): ResourceCompletionWorkqueueItem[] {
+  const primaryMissingFieldCode = primaryMissingFieldCodeFor(row.missingFieldCodes);
+  return row.missingFieldCodes.map((missingFieldCode) => workqueueItemForRow(
+    row,
+    missingFieldCode,
+    missingFieldCode === primaryMissingFieldCode ? 'primary' : 'dependent',
+    primaryMissingFieldCode,
+  ));
+}
+
+function workqueueItemForRow(
+  row: ResourceFieldCompletionAuditRow,
+  missingFieldCode: ResourceFieldMissingCode,
+  queueRole: ResourceCompletionQueueRole,
+  primaryMissingFieldCode: ResourceFieldMissingCode,
+): ResourceCompletionWorkqueueItem {
+  return {
+    queueRole,
+    resourceId: row.resourceId,
+    title: privacyMinimizedWorkqueueTitle(row),
+    sourceFamily: row.family,
+    sourcePathOrUrl: row.sourcePathOrUrl,
+    sourceRecord: row.sourceRecord,
+    learningGoalIds: learningGoalIdsForRow(row),
+    graphDomain: graphDomainForRow(row),
+    currentBlockers: row.missingFieldCodes,
+    missingFieldCode,
+    primaryMissingFieldCode,
+    primaryFollowupBucket: followupBucketForMissingCode(primaryMissingFieldCode, row.family),
+    dependencyState: dependencyStateForRow(row),
+    dependencyHints: dependencyHintsForRow(row),
+    suggestedReviewerAction: suggestedReviewerActionFor(missingFieldCode, row.family),
+    sourceHash: row.sourceHash,
+    sourceVersionRef: row.sourceVersionRef,
+    reviewStatus: row.reviewStatus,
+    privacyMinimized: true,
+    rawContentIncluded: false,
+  };
+}
+
+function privacyMinimizedWorkqueueTitle(row: ResourceFieldCompletionAuditRow): string {
+  const compactTitle = row.title.replace(/\s+/g, ' ').trim();
+  if (
+    !compactTitle ||
+    compactTitle.length > 120 ||
+    compactTitle.startsWith('> Image description:') ||
+    compactTitle.includes('Image description:')
+  ) {
+    return row.sourceRecord ?? row.resourceId;
+  }
+  return compactTitle;
+}
+
+function primaryMissingFieldCodeFor(codes: ResourceFieldMissingCode[]): ResourceFieldMissingCode {
+  const priority: ResourceFieldMissingCode[] = [
+    'blocked-by-dependency',
+    'missing-stable-id',
+    'missing-source-path-or-url',
+    'missing-content-hash',
+    'missing-version-ref',
+    'missing-human-review',
+    'stale-review',
+    'provisional-metadata',
+    'missing-knowledge-binding',
+    'missing-capability-target',
+    'missing-quality-target',
+    'missing-path-target',
+    'missing-path-profile',
+    'missing-readiness-gating',
+    'missing-evidence-instrumentation',
+    'missing-evidence-contract',
+    'missing-citation-target',
+    'missing-segment-ref',
+    'missing-ai-use-permission',
+  ];
+  return priority.find((code) => codes.includes(code)) ?? codes[0] ?? 'blocked-by-dependency';
+}
+
+function learningGoalIdsForRow(row: ResourceFieldCompletionAuditRow): string[] {
+  return uniqueSorted([
+    ...row.graphNodeRefs.capability,
+    ...row.graphNodeRefs.quality,
+  ]);
+}
+
+function graphDomainForRow(row: ResourceFieldCompletionAuditRow): string {
+  if (row.family === 'knowledge-card' || row.family === 'knowledge-infograph') return 'knowledge-graph';
+  if (row.family === 'quiz' || row.family === 'checkpoint') return 'assessment';
+  if (row.family === 'runtime-lesson-step' || row.family === 'runtime-lesson-module') return 'runtime-lesson';
+  if (row.family === 'runtime-lesson-media' || row.family === 'runtime-handout') return 'runtime-media';
+  if (row.family.startsWith('textbook') || row.family.startsWith('authoring-textbook')) return 'textbook';
+  if (row.graphNodeRefs.knowledge.length > 0) return 'knowledge-linked';
+  if (row.graphNodeRefs.capability.length > 0) return 'capability-linked';
+  return 'unmapped';
+}
+
+function dependencyStateForRow(row: ResourceFieldCompletionAuditRow): ResourceCompletionDependencyState {
+  if (row.missingFieldCodes.includes('blocked-by-dependency')) return 'blocked-by-dependency';
+  if (row.missingFieldCodes.includes('missing-human-review') || row.reviewStatus !== 'human-confirmed') return 'needs-human-review';
+  return 'ready';
+}
+
+function dependencyHintsForRow(row: ResourceFieldCompletionAuditRow): string[] {
+  const hints = [
+    ...(row.missingFieldCodes.some((code) => (
+      code === 'missing-stable-id' ||
+      code === 'missing-source-path-or-url' ||
+      code === 'missing-content-hash' ||
+      code === 'missing-version-ref'
+    )) ? ['source-evidence-before-semantic-review'] : []),
+    ...(row.missingFieldCodes.includes('blocked-by-dependency') ? ['resolve-upstream-dependency'] : []),
+    ...(row.pathEligibility.blockedBy.includes('missing-evidence-contract') ? ['complete-evidence-contract-before-path-eligibility'] : []),
+    ...(row.pathEligibility.blockedBy.includes('missing-human-review') ? ['independent-human-review-before-path-eligibility'] : []),
+  ];
+  return uniqueSorted(hints);
+}
+
+function followupBucketForMissingCode(
+  code: ResourceFieldMissingCode,
+  family: ResourceFieldCompletionFamily,
+): string {
+  if (code === 'missing-stable-id' || code === 'missing-source-path-or-url' || code === 'missing-content-hash' || code === 'missing-version-ref') {
+    return 'repair-resource-identity-bindings';
+  }
+  if (code === 'missing-knowledge-binding' || code === 'missing-capability-target' || code === 'missing-quality-target') {
+    if (family === 'knowledge-card' || family === 'knowledge-infograph') return 'complete-foundation-graph-resource-bindings';
+    return 'complete-analysis-design-graph-resource-bindings';
+  }
+  if (code === 'missing-path-target' || code === 'missing-path-profile' || code === 'missing-readiness-gating') {
+    return 'review-runtime-lesson-planning-units';
+  }
+  if (code === 'missing-citation-target' || code === 'missing-segment-ref') return 'complete-citation-and-rag-bindings';
+  if (code === 'missing-evidence-instrumentation' || code === 'missing-evidence-contract') return 'complete-evidence-lineage-bindings';
+  if (code === 'missing-human-review' || code === 'stale-review' || code === 'provisional-metadata') return 'review-runtime-media-handout-dispositions';
+  if (code === 'blocked-by-dependency') return 'blocked-resource-completion-dependencies';
+  return 'review-resource-completion-residuals';
+}
+
+function suggestedReviewerActionFor(
+  code: ResourceFieldMissingCode,
+  family: ResourceFieldCompletionFamily,
+): string {
+  if (code === 'blocked-by-dependency') return 'Resolve the upstream dependency before editing this resource row.';
+  if (code === 'missing-stable-id' || code === 'missing-source-path-or-url' || code === 'missing-content-hash' || code === 'missing-version-ref') {
+    return 'Repair stable identity, source location, source hash, and version evidence before semantic review.';
+  }
+  if (code === 'missing-knowledge-binding' || code === 'missing-capability-target' || code === 'missing-quality-target') {
+    return `Review ${family} semantic graph bindings and record reviewer evidence before marking path eligibility.`;
+  }
+  if (code === 'missing-path-target' || code === 'missing-path-profile' || code === 'missing-readiness-gating') {
+    return 'Review runtime learning path role, estimated time, and readiness gates.';
+  }
+  if (code === 'missing-citation-target' || code === 'missing-segment-ref') return 'Add citation or retrieval segment anchors without copying raw content into the queue.';
+  if (code === 'missing-evidence-instrumentation' || code === 'missing-evidence-contract') return 'Define event evidence contract and privacy-safe learning fact policy.';
+  return 'Perform human disposition review and attach reviewer, source version, rationale, and review batch evidence.';
+}
+
+function buildHumanReviewIntegritySummary(rows: ResourceFieldCompletionAuditRow[]): ResourceHumanReviewIntegritySummary {
+  const humanConfirmedRows = rows.filter((row) => row.reviewStatus === 'human-confirmed');
+  const issues = humanConfirmedRows.flatMap((row) => {
+    const issueCodes = humanReviewIntegrityIssuesFor(row);
+    return issueCodes.length > 0
+      ? [{
+          resourceId: row.resourceId,
+          issueCodes,
+          reviewerId: row.reviewAudit.reviewerId,
+          reviewerRole: row.reviewAudit.reviewerRole,
+          reviewedAt: row.reviewAudit.reviewedAt,
+          reviewedSourceHash: row.reviewAudit.reviewedSourceHash,
+          reviewedVersionRef: row.reviewAudit.reviewedVersionRef,
+          reviewBatchId: row.reviewAudit.reviewBatchId,
+          reviewStatus: row.reviewStatus,
+        }]
+      : [];
+  });
+  return {
+    artifactVersion: RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
+    humanConfirmedRows: humanConfirmedRows.length,
+    invalidHumanConfirmedRows: issues.length,
+    issues,
+  };
+}
+
+function humanReviewIntegrityIssuesFor(row: ResourceFieldCompletionAuditRow): string[] {
+  const reviewerId = row.reviewAudit.reviewerId ?? '';
+  const sourceEvidencePresent = Boolean(row.reviewAudit.reviewedSourceHash || row.reviewAudit.reviewedVersionRef);
+  return [
+    !reviewerId ? 'missing-reviewer-id' : null,
+    !row.reviewAudit.reviewerRole ? 'missing-reviewer-role' : null,
+    !row.reviewAudit.reviewedAt ? 'missing-reviewed-at' : null,
+    !sourceEvidencePresent ? 'missing-reviewed-source-evidence' : null,
+    !row.reviewAudit.reviewBatchId ? 'missing-review-batch-id' : null,
+    !row.reviewAudit.reviewerVisibleRationale ? 'missing-review-rationale' : null,
+    !row.reviewAudit.independentEvidenceRef ? 'missing-independent-review-evidence' : null,
+    reviewerId === 'system-governed' || reviewerId.includes('template') || reviewerId.includes('generated')
+      ? 'placeholder-reviewer-id'
+      : null,
+    row.reviewAudit.generationToolOrModel && !row.reviewAudit.promptOrManifestHash
+      ? 'missing-assisted-review-prompt-or-manifest-hash'
+      : null,
+  ].filter((entry): entry is string => Boolean(entry));
+}
+
 function summarizeRows(rows: ResourceFieldCompletionAuditRow[]): ResourceFieldCompletionCoverageSummary {
   return {
     complete: rows.filter((row) => row.missingFieldCodes.length === 0 && row.reviewStatus === 'human-confirmed').length,
@@ -691,22 +1028,47 @@ function familyForResourceNode(node: ResourceNode): ResourceFieldCompletionFamil
 function completionMethodForCandidate(
   candidate: ResourceFieldCompletionCandidate,
   missingFieldCodes: ResourceFieldMissingCode[],
+  humanReviewConfirmed: boolean,
 ): ResourceFieldCompletionMethod {
   if (candidate.blockingDependency) return 'blocked';
-  if (missingFieldCodes.length === 0 && candidate.humanConfirmed) return 'already-governed';
+  if (missingFieldCodes.length === 0 && humanReviewConfirmed) return 'already-governed';
   if (candidate.generatedBy === 'local-model') return 'local-model-assisted';
   if (candidate.generatedBy === 'external-tool') return 'external-tool-assisted';
   if (candidate.generatedBy) return 'generated-provisional';
   return 'manual';
 }
 
-function reviewStatusForCandidate(candidate: ResourceFieldCompletionCandidate): ResourceFieldReviewStatus {
+function reviewStatusForCandidate(
+  candidate: ResourceFieldCompletionCandidate,
+  humanReviewConfirmed: boolean,
+): ResourceFieldReviewStatus {
   if (candidate.blockingDependency) return 'blocked';
-  if (candidate.humanConfirmed) return 'human-confirmed';
+  if (humanReviewConfirmed) return 'human-confirmed';
+  if (candidate.humanConfirmed) return 'stale';
   if (candidate.generatedBy === 'local-model') return 'model-assisted-provisional';
   if (candidate.generatedBy === 'external-tool') return 'external-tool-provisional';
   if (candidate.generatedBy) return 'generated-provisional';
   return 'not-reviewed';
+}
+
+function candidateHasFreshHumanReviewEvidence(candidate: ResourceFieldCompletionCandidate): boolean {
+  if (!candidate.humanConfirmed) return false;
+  const reviewerId = candidate.reviewEvidence?.reviewerId ?? '';
+  const placeholderReviewer = reviewerId === 'system-governed' ||
+    reviewerId.includes('template') ||
+    reviewerId.includes('generated');
+  const sourceEvidencePresent = Boolean(candidate.contentHash || candidate.versionRef);
+  return Boolean(
+    reviewerId &&
+    !placeholderReviewer &&
+    candidate.reviewEvidence?.reviewerRole &&
+    candidate.reviewEvidence?.reviewedAt &&
+    candidate.reviewEvidence?.reviewBatchId &&
+    candidate.reviewEvidence?.reviewerVisibleRationale &&
+    candidate.reviewEvidence?.independentEvidenceRef &&
+    sourceEvidencePresent &&
+    (!candidate.generatedBy || candidate.reviewEvidence?.promptOrManifestHash),
+  );
 }
 
 function confirmedReviewAudit(input: {
@@ -717,6 +1079,9 @@ function confirmedReviewAudit(input: {
   reviewedAt: string | null;
   reviewerId?: string;
   reviewerRole?: string;
+  reviewerVisibleRationale?: string;
+  independentEvidenceRef?: string;
+  promptOrManifestHash?: string;
   confidence?: number | null;
 }): ResourceFieldReviewAudit {
   return {
@@ -727,7 +1092,9 @@ function confirmedReviewAudit(input: {
     reviewedSourceHash: input.sourceHash,
     reviewedVersionRef: input.versionRef,
     generationToolOrModel: input.generationToolOrModel ?? null,
-    promptOrManifestHash: null,
+    promptOrManifestHash: input.promptOrManifestHash ?? null,
+    reviewerVisibleRationale: input.reviewerVisibleRationale ?? null,
+    independentEvidenceRef: input.independentEvidenceRef ?? null,
     confidence: input.confidence ?? 0.9,
     staleInvalidationRule: 'stale when source hash, version ref, prompt hash, or generation tool version changes',
   };
@@ -743,6 +1110,8 @@ function emptyReviewAudit(candidate?: ResourceFieldCompletionCandidate): Resourc
     reviewedVersionRef: candidate?.versionRef ?? null,
     generationToolOrModel: candidate?.generatedBy ?? null,
     promptOrManifestHash: null,
+    reviewerVisibleRationale: null,
+    independentEvidenceRef: null,
     confidence: null,
     staleInvalidationRule: 'requires human review before path eligibility or mastery effect',
   };
@@ -779,6 +1148,14 @@ function uniqueCodes(values: ResourceFieldMissingCode[]): ResourceFieldMissingCo
 
 function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values.filter(Boolean))).sort((left, right) => left.localeCompare(right));
+}
+
+function countBy<T>(values: T[], keyFor: (value: T) => string): Record<string, number> {
+  return values.reduce<Record<string, number>>((counts, value) => {
+    const key = keyFor(value);
+    counts[key] = (counts[key] ?? 0) + 1;
+    return counts;
+  }, {});
 }
 
 function mergeSourceWindows(windows: ResourceFieldSourceWindow[]): ResourceFieldSourceWindow {

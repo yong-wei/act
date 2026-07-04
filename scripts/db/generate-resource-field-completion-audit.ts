@@ -23,6 +23,10 @@ import { buildRuntimeResourceProjectionArtifacts } from '@/lib/runtime-resource-
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const AUDIT_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-audit.jsonl');
 const SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-summary.json');
+const WORKQUEUE_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-completion-workqueue-items.jsonl');
+const WORKQUEUE_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-completion-workqueue-summary.json');
+const WORKQUEUE_MARKDOWN_PATH = path.join(OUTPUT_DIR, 'resource-completion-workqueues.md');
+const HUMAN_REVIEW_INTEGRITY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-human-review-integrity-diagnostics.json');
 const PROJECTION_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
 const PROJECTION_LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projection-limitations.json');
 const BASELINE_MATRIX_JSON_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
@@ -244,7 +248,7 @@ interface AuthoringTextbookChapterManifest {
 }
 
 async function main() {
-  const generatedAt = new Date().toISOString();
+  const generatedAt = process.env.RESOURCE_FIELD_COMPLETION_GENERATED_AT ?? new Date().toISOString();
   const [runtimeLessons, runtimeTextbooks, textbookDocuments] = await Promise.all([
     collectRuntimeLessonCatalogEntries(),
     loadAllTextbookRuntimeResourceCatalogEntries().catch(() => []),
@@ -283,6 +287,26 @@ async function main() {
   );
   await fs.writeFile(SUMMARY_JSON_PATH, `${JSON.stringify(result.summary, null, 2)}\n`, 'utf8');
   await fs.writeFile(
+    WORKQUEUE_ITEMS_JSONL_PATH,
+    `${flattenWorkqueueItems(result.workqueues).map((row) => JSON.stringify(row)).join('\n')}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    WORKQUEUE_SUMMARY_JSON_PATH,
+    `${JSON.stringify(compactWorkqueueSummary(result.workqueues), null, 2)}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    WORKQUEUE_MARKDOWN_PATH,
+    renderWorkqueueMarkdown(result.workqueues, generatedAt),
+    'utf8',
+  );
+  await fs.writeFile(
+    HUMAN_REVIEW_INTEGRITY_JSON_PATH,
+    `${JSON.stringify(result.integrityDiagnostics, null, 2)}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
     PROJECTION_JSONL_PATH,
     `${projectionArtifacts.rows.map((row) => JSON.stringify(row)).join('\n')}\n`,
     'utf8',
@@ -311,12 +335,71 @@ async function main() {
   console.log(`Resource field completion audit rows: ${result.rows.length}`);
   console.log(`Summary: ${path.relative(process.cwd(), SUMMARY_JSON_PATH)}`);
   console.log(`JSONL: ${path.relative(process.cwd(), AUDIT_JSONL_PATH)}`);
+  console.log(`Resource completion workqueue items: ${result.workqueues.primaryQueueItems + result.workqueues.dependentQueueItems}`);
+  console.log(`Workqueue summary: ${path.relative(process.cwd(), WORKQUEUE_SUMMARY_JSON_PATH)}`);
+  console.log(`Workqueue JSONL: ${path.relative(process.cwd(), WORKQUEUE_ITEMS_JSONL_PATH)}`);
+  console.log(`Human review integrity issues: ${result.integrityDiagnostics.invalidHumanConfirmedRows}`);
   console.log(`Runtime resource projections: ${projectionArtifacts.rows.length}`);
   console.log(`Projection summary: ${path.relative(process.cwd(), PROJECTION_LIMITATIONS_PATH)}`);
   console.log(`Projection JSONL: ${path.relative(process.cwd(), PROJECTION_JSONL_PATH)}`);
   console.log(`LearningGoal baseline matrix: ${path.relative(process.cwd(), BASELINE_MATRIX_JSON_PATH)}`);
   console.log(`LearningGoal baseline limitations: ${path.relative(process.cwd(), BASELINE_LIMITATIONS_JSON_PATH)}`);
   console.log(`LearningGoal baseline reviewed bindings: ${baselineArtifacts.reviewedBindings.length}`);
+}
+
+function flattenWorkqueueItems(workqueues: ReturnType<typeof buildResourceFieldCompletionAudit>['workqueues']) {
+  return workqueues.queues.flatMap((queue) => queue.items.map((item) => ({
+    queueId: queue.id,
+    sourceFamily: queue.sourceFamily,
+    learningGoalId: queue.learningGoalId,
+    graphDomain: queue.graphDomain,
+    missingFieldCode: queue.missingFieldCode,
+    followupBucket: queue.followupBucket,
+    dependencyState: queue.dependencyState,
+    ...item,
+  })));
+}
+
+function compactWorkqueueSummary(workqueues: ReturnType<typeof buildResourceFieldCompletionAudit>['workqueues']) {
+  return {
+    ...workqueues,
+    queues: workqueues.queues.map(({ items, ...queue }) => ({
+      ...queue,
+      total: items.length,
+      itemJsonlPath: path.relative(process.cwd(), WORKQUEUE_ITEMS_JSONL_PATH),
+    })),
+  };
+}
+
+function renderWorkqueueMarkdown(
+  workqueues: ReturnType<typeof buildResourceFieldCompletionAudit>['workqueues'],
+  generatedAt: string,
+): string {
+  const lines = [
+    '# Resource Completion Workqueues',
+    '',
+    `Generated at: ${generatedAt}`,
+    '',
+    `Queued resources: ${workqueues.queuedResources}`,
+    `Primary queue items: ${workqueues.primaryQueueItems}`,
+    `Dependent queue items: ${workqueues.dependentQueueItems}`,
+    '',
+    '| Queue | Family | LearningGoal | Graph domain | Missing field | Follow-up bucket | Dependency | Items |',
+    '| --- | --- | --- | --- | --- | --- | --- | ---: |',
+    ...workqueues.queues.map((queue) => `| ${[
+      queue.id,
+      queue.sourceFamily,
+      queue.learningGoalId,
+      queue.graphDomain,
+      queue.missingFieldCode,
+      queue.followupBucket,
+      queue.dependencyState,
+      String(queue.total),
+    ].join(' | ')} |`),
+    '',
+    'Item-level rows are stored in `resource-completion-workqueue-items.jsonl` without raw resource content.',
+  ];
+  return `${lines.join('\n')}\n`;
 }
 
 async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>) {
