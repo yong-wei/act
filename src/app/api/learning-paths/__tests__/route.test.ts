@@ -1091,6 +1091,54 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('preserves legacy readiness answers that predate catalog snapshots and question scopes', async () => {
+    useStructuredAdaptiveAssessmentPath('adaptive_assessment:answer-legacy-readiness');
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(reviewedAdaptiveAssessmentAnswer({
+      id: 'answer-legacy-readiness',
+      questionId: 'preset-q-01',
+      purpose: 'readiness-gate',
+      nodeId: 'adaptive-quiz:control-target-check',
+      includeCatalogRef: false,
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      idempotencyKey: 'legacy-readiness-adaptive-outcome',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          id: 'answer-legacy-readiness',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-legacy-readiness',
+          provenance: 'official',
+          readinessGateEligible: true,
+          pathCompletionEligible: true,
+        }),
+      }),
+      evidenceRefs: [{ kind: 'AdaptiveAssessmentAnswer', id: 'answer-legacy-readiness' }],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'control-workbench:lead-design',
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: expect.arrayContaining(['adaptive_assessment:answer-legacy-readiness']),
+        }),
+      }),
+    }));
+  });
+
   it('does not complete readiness answers without a readiness path question scope', async () => {
     useStructuredAdaptiveAssessmentPath();
     mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(reviewedAdaptiveAssessmentAnswer({
@@ -1464,6 +1512,46 @@ describe('learning path round API routes', () => {
           availableOutcomeRefs: expect.arrayContaining(['adaptive_assessment:answer-1']),
         }),
       }),
+    }));
+  });
+
+  it('preserves legacy checkpoint answers that predate catalog snapshots and question scopes', async () => {
+    useStructuredCheckpointAssessmentPath();
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(reviewedAdaptiveAssessmentAnswer({
+      id: 'answer-legacy-checkpoint',
+      questionId: 'preset-q-04',
+      purpose: 'checkpoint',
+      nodeId: 'checkpoint:control-correction-review',
+      includeCatalogRef: false,
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'checkpoint:control-correction-review',
+      resourceType: 'checkpoint',
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      idempotencyKey: 'legacy-checkpoint-answer-ref',
+      liftMetadata: {
+        pathActivityKind: 'checkpoint-pass',
+        adaptiveAssessmentRef: { id: 'answer-legacy-checkpoint' },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-legacy-checkpoint',
+          provenance: 'official',
+          readinessGateEligible: false,
+          pathCompletionEligible: true,
+          terminalValidationEligible: false,
+        }),
+      }),
+      evidenceRefs: [{ kind: 'AdaptiveAssessmentAnswer', id: 'answer-legacy-checkpoint' }],
     }));
   });
 

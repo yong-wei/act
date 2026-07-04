@@ -744,6 +744,11 @@ function matchesAdaptiveAssessmentCatalogPathStage(
   const itemRef = toRecord(toRecord(answer?.questionRef?.metadata).adaptiveAssessmentItemRef);
   const semanticRefs = toRecord(itemRef.semanticRefs);
   const pathExecution = toRecord(toRecord(answer?.abilityEstimateSnapshot?.dimensions).pathExecution);
+  const hasCatalogSnapshot = Object.keys(itemRef).length > 0;
+  const hasQuestionScope = typeof pathExecution.questionScope === 'string' && pathExecution.questionScope.trim().length > 0;
+  if (!hasCatalogSnapshot && !hasQuestionScope) {
+    return stage === 'readiness' || stage === 'checkpoint';
+  }
   const learningGoalIds = arrayOfStrings(semanticRefs.learningGoalIds);
   return itemRef.catalogBacked === true &&
     itemRef.reviewState === 'path-eligible' &&
