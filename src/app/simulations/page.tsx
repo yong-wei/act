@@ -304,11 +304,6 @@ export default function SimulationsPage() {
         { label: '首页', href: '/' },
         { label: '虚拟仿真' },
       ]}
-      actions={(
-        <Button asChild variant="outline" size="sm" data-simulation-user-center-action>
-          <Link href="/profile">个人中心</Link>
-        </Button>
-      )}
     >
       <main
         className="space-y-5"

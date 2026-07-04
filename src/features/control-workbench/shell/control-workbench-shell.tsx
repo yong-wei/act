@@ -300,7 +300,13 @@ function WorkbenchObjectSelector({
   );
 }
 
-function ResolvedControlWorkbenchShell({ session: initialSession }: { session: WorkbenchSessionContext }) {
+function ResolvedControlWorkbenchShell({
+  session: initialSession,
+  accountHref,
+}: {
+  session: WorkbenchSessionContext;
+  accountHref?: string;
+}) {
   const [session, setSession] = useState<WorkbenchSessionContext>(initialSession);
   const [objectSelectorExpanded, setObjectSelectorExpanded] = useState(false);
   const [objectSelectionError, setObjectSelectionError] = useState<string | null>(null);
@@ -462,6 +468,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   return (
     <AppShell
       viewerRole="student"
+      accountHref={accountHref}
       title="控制工作台"
       subtitle={taskTitle}
       activeHref="/interactive-learning/control-workbench"
@@ -685,7 +692,13 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   );
 }
 
-export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchResolutionResult }) {
+export function ControlWorkbenchShell({
+  result,
+  accountHref,
+}: {
+  result: ControlWorkbenchResolutionResult;
+  accountHref?: string;
+}) {
   if (!result.ok) {
     return (
       <main className="min-h-screen bg-background px-6 py-10 text-foreground">
@@ -701,5 +714,5 @@ export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchReso
     );
   }
 
-  return <ResolvedControlWorkbenchShell key={getPanelStorageKey(result.session)} session={result.session} />;
+  return <ResolvedControlWorkbenchShell key={getPanelStorageKey(result.session)} session={result.session} accountHref={accountHref} />;
 }

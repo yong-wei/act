@@ -6,6 +6,7 @@ import {
   buildPlatformRecoveryState,
   type PlatformRecoveryKind,
 } from '@/lib/platform-recovery-contract';
+import { ArenaPageShell } from './arena-page-shell';
 
 interface ArenaRouteRecoveryProps {
   kind: PlatformRecoveryKind;
@@ -19,29 +20,22 @@ interface ArenaRouteRecoveryProps {
   surface: string;
 }
 
-export function ArenaRouteRecovery({
-  kind,
-  sourceRoute,
-  targetLabel,
-  displayReference,
-  message,
-  recoveryAction,
+function ArenaRouteRecoveryContent({
+  state,
   primaryHref,
   primaryLabel,
   surface,
-}: ArenaRouteRecoveryProps) {
-  const state = buildPlatformRecoveryState({
-    kind,
-    sourceRoute,
-    targetLabel,
-    displayReference,
-    message,
-    recoveryAction,
-  });
-
+  sourceRoute,
+}: {
+  state: ReturnType<typeof buildPlatformRecoveryState>;
+  primaryHref: string;
+  primaryLabel: string;
+  surface: string;
+  sourceRoute: string;
+}) {
   return (
-    <main
-      className="surface-page flex min-h-screen items-center justify-center px-6 py-12"
+    <section
+      className="flex min-h-[60vh] items-center justify-center px-6 py-12"
       data-arena-route-recovery={surface}
       data-platform-recovery-route={sourceRoute}
     >
@@ -62,6 +56,93 @@ export function ArenaRouteRecovery({
           )}
         />
       </div>
-    </main>
+    </section>
+  );
+}
+
+function buildArenaRecoveryState({
+  kind,
+  sourceRoute,
+  targetLabel,
+  displayReference,
+  message,
+  recoveryAction,
+}: Pick<ArenaRouteRecoveryProps, 'kind' | 'sourceRoute' | 'targetLabel' | 'displayReference' | 'message' | 'recoveryAction'>) {
+  return buildPlatformRecoveryState({
+    kind,
+    sourceRoute,
+    targetLabel,
+    displayReference,
+    message,
+    recoveryAction,
+  });
+}
+
+export function EmbeddedArenaRouteRecovery({
+  kind,
+  sourceRoute,
+  targetLabel,
+  displayReference,
+  message,
+  recoveryAction,
+  primaryHref,
+  primaryLabel,
+  surface,
+}: ArenaRouteRecoveryProps) {
+  const state = buildArenaRecoveryState({
+    kind,
+    sourceRoute,
+    targetLabel,
+    displayReference,
+    message,
+    recoveryAction,
+  });
+
+  return (
+    <ArenaRouteRecoveryContent
+      state={state}
+      primaryHref={primaryHref}
+      primaryLabel={primaryLabel}
+      surface={surface}
+      sourceRoute={sourceRoute}
+    />
+  );
+}
+
+export function ArenaRouteRecovery({
+  kind,
+  sourceRoute,
+  targetLabel,
+  displayReference,
+  message,
+  recoveryAction,
+  primaryHref,
+  primaryLabel,
+  surface,
+}: ArenaRouteRecoveryProps) {
+  const state = buildArenaRecoveryState({
+    kind,
+    sourceRoute,
+    targetLabel,
+    displayReference,
+    message,
+    recoveryAction,
+  });
+
+  return (
+    <ArenaPageShell
+      activePath="/arena"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '竞技场', href: '/arena' }, { label: '恢复状态', href: '/arena' }]}
+      title="竞技场"
+      subtitle="恢复状态"
+    >
+      <ArenaRouteRecoveryContent
+        state={state}
+        primaryHref={primaryHref}
+        primaryLabel={primaryLabel}
+        surface={surface}
+        sourceRoute={sourceRoute}
+      />
+    </ArenaPageShell>
   );
 }

@@ -973,7 +973,7 @@ describe('arena publication report route', () => {
     expect(pageSource).toContain('primaryHref={session?.user?.id ? \'/dashboard\' : buildLoginRedirectForPath(reportPath)}');
     expect(pageSource).toContain('prismaArenaPublicationStore.loadReport');
     expect(pageSource).toContain('ArenaPublicationPermissionError');
-    expect(pageSource).toContain('<ArenaRouteRecovery');
+    expect(pageSource).toContain('<EmbeddedArenaRouteRecovery');
     expect(pageSource).toContain('surface="teacher-publication-report"');
     expect(pageSource).toContain("sourceRoute=\"/teacher/arena/publications/[publicationId]\"");
     expect(pageSource).toContain('Arena 发布报告不存在或当前账号不可见。');

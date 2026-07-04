@@ -6,7 +6,7 @@
  * 展示学生六维能力画像、学习统计、最近活动与个性化补强路径。
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -30,6 +30,35 @@ const personalCenterIntentBadges: Record<(typeof personalCenterIntentOrder)[numb
 };
 
 type PersonalCenterIntent = (typeof personalCenterIntentOrder)[number];
+
+function ProfileFallback({
+  nextAction,
+  children,
+}: {
+  nextAction: string;
+  children: ReactNode;
+}) {
+  return (
+    <AppShell
+      viewerRole="student"
+      title="个人中心"
+      subtitle="能力画像、成长记录与证据复盘"
+      activeHref="/profile"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心' }]}
+      className="surface-page"
+    >
+      <div
+        className="flex min-h-[60vh] items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action={nextAction}
+      >
+        {children}
+      </div>
+    </AppShell>
+  );
+}
 
 function isPersonalCenterIntent(intent: string): intent is PersonalCenterIntent {
   return personalCenterIntentOrder.includes(intent as PersonalCenterIntent);
@@ -167,13 +196,7 @@ export default function ProfilePage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div
-        className="surface-page flex items-center justify-center"
-        data-route-family={learnerDataShell.routeFamily}
-        data-route-identity={learnerDataShell.routeIdentity}
-        data-learner-record-surface={learnerDataShell.archetype}
-        data-learner-record-next-action="login"
-      >
+      <ProfileFallback nextAction="login">
         <div className="text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">学习入口 · 账号与画像</p>
           <p className="text-xl text-subtle">请先登录</p>
@@ -188,36 +211,24 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
-      </div>
+      </ProfileFallback>
     );
   }
 
   if (status === 'loading' || loading) {
     return (
-      <div
-        className="surface-page flex items-center justify-center"
-        data-route-family={learnerDataShell.routeFamily}
-        data-route-identity={learnerDataShell.routeIdentity}
-        data-learner-record-surface={learnerDataShell.archetype}
-        data-learner-record-next-action="wait-for-profile"
-      >
+      <ProfileFallback nextAction="wait-for-profile">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
           <p className="text-subtle">加载中...</p>
         </div>
-      </div>
+      </ProfileFallback>
     );
   }
 
   if (error || !profile) {
     return (
-      <div
-        className="surface-page flex items-center justify-center"
-        data-route-family={learnerDataShell.routeFamily}
-        data-route-identity={learnerDataShell.routeIdentity}
-        data-learner-record-surface={learnerDataShell.archetype}
-        data-learner-record-next-action="retry-profile"
-      >
+      <ProfileFallback nextAction="retry-profile">
         <div className="text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">学习入口 · 复盘</p>
           <p className="text-xl text-red-400">{error || '加载失败'}</p>
@@ -228,7 +239,7 @@ export default function ProfilePage() {
             返回个人中心
           </Link>
         </div>
-      </div>
+      </ProfileFallback>
     );
   }
 

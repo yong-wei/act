@@ -69,11 +69,6 @@ export function SimulationShell({
       title={title}
       subtitle={subtitle}
       breadcrumbs={breadcrumbs}
-      actions={(
-        <Button asChild variant="outline" size="sm" data-simulation-shell-profile-action>
-          <Link href="/profile">个人中心</Link>
-        </Button>
-      )}
       className="bg-platform-canvas"
     >
       <SimulationSceneFrame

@@ -127,7 +127,7 @@ describe('arena student entry UI boundaries', () => {
     expect(hallSource).toContain("'竞技场首页'");
     expect(detailSource).toContain("'首页'");
     expect(detailSource).toContain("'竞技场首页'");
-    expect(shellSource).toContain('getStudentLearningIntentNavigationGroups');
+    expect(shellSource).toContain('getPlatformRouteNavigation');
     expect(navigationSource).toContain("'虚拟仿真'");
     expect(navigationSource).toContain("'竞技场'");
     expect(navigationSource).toContain("'知识资源'");
