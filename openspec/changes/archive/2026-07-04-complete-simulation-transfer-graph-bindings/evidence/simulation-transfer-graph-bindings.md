@@ -52,12 +52,12 @@ Baseline before this change is the branch base artifacts after the analysis/desi
 
 | LearningGoal | Category | Before human/path | Before locked | After human/path | After locked |
 | --- | --- | ---: | ---: | ---: | ---: |
-| `simulation-validation-practice` | concept | 0 / 0 | 0 | 14 / 14 | 0 |
-| `simulation-validation-practice` | citation | 0 / 0 | 11 | 14 / 14 | 11 |
+| `simulation-validation-practice` | concept | 0 / 0 | 0 | 8 / 8 | 0 |
+| `simulation-validation-practice` | citation | 0 / 0 | 11 | 8 / 8 | 11 |
 | `simulation-validation-practice` | practice | 0 / 0 | 11 | 0 / 0 | 11 |
 | `simulation-validation-practice` | terminal-validation | 0 / 0 | 9 | 0 / 0 | 9 |
-| `ship-ocean-transfer-application` | concept | 0 / 0 | 0 | 14 / 14 | 0 |
-| `ship-ocean-transfer-application` | citation | 0 / 0 | 12 | 14 / 14 | 12 |
+| `ship-ocean-transfer-application` | concept | 0 / 0 | 0 | 6 / 6 | 0 |
+| `ship-ocean-transfer-application` | citation | 0 / 0 | 12 | 6 / 6 | 12 |
 | `ship-ocean-transfer-application` | practice | 0 / 0 | 12 | 0 / 0 | 12 |
 | `ship-ocean-transfer-application` | terminal-validation | 0 / 0 | 12 | 0 / 0 | 12 |
 
@@ -73,6 +73,6 @@ LearningGoal baseline reviewed bindings: 27
 
 ## Interpretation
 
-- The two target LearningGoals now have reviewed concept and citation path support.
+- The two target LearningGoals now have reviewed concept and citation path support without cross-counting shared capability tags across the 4-7 simulation-validation and 5-3 ship-ocean transfer graph bindings.
 - Simulation, workbench, and Arena resources remain high-complexity locked for practice and terminal-validation until separate evidence-authority reviews approve those semantics.
 - The batch does not create or infer official Arena results, score authority, leaderboard ranking, or terminal validation.

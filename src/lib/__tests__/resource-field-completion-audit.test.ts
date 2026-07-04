@@ -843,8 +843,14 @@ describe('resource field completion audit', () => {
     const simulationValidationRow = matrix.rows.find((item) =>
       item.learningGoalId === 'simulation-validation-practice'
     );
-    expect(simulationValidationRow.categories.concept.pathEligible).toBe(14);
-    expect(simulationValidationRow.categories.citation.pathEligible).toBe(14);
+    expect(simulationValidationRow.categories.concept.pathEligible).toBe(8);
+    expect(simulationValidationRow.categories.concept.pathEligibleResourceIds.every((id) =>
+      id.startsWith('runtime-step:4-7:')
+    )).toBe(true);
+    expect(simulationValidationRow.categories.citation.pathEligible).toBe(8);
+    expect(simulationValidationRow.categories.citation.pathEligibleResourceIds.every((id) =>
+      id.startsWith('runtime-step:4-7:')
+    )).toBe(true);
     expect(simulationValidationRow.categories.practice.pathEligible).toBe(0);
     expect(simulationValidationRow.categories.practice.highComplexityLocked).toBeGreaterThan(0);
     expect(simulationValidationRow.categories['terminal-validation'].pathEligible).toBe(0);
@@ -859,8 +865,14 @@ describe('resource field completion audit', () => {
     const shipOceanTransferRow = matrix.rows.find((item) =>
       item.learningGoalId === 'ship-ocean-transfer-application'
     );
-    expect(shipOceanTransferRow.categories.concept.pathEligible).toBe(14);
-    expect(shipOceanTransferRow.categories.citation.pathEligible).toBe(14);
+    expect(shipOceanTransferRow.categories.concept.pathEligible).toBe(6);
+    expect(shipOceanTransferRow.categories.concept.pathEligibleResourceIds.every((id) =>
+      id.startsWith('runtime-step:5-3:')
+    )).toBe(true);
+    expect(shipOceanTransferRow.categories.citation.pathEligible).toBe(6);
+    expect(shipOceanTransferRow.categories.citation.pathEligibleResourceIds.every((id) =>
+      id.startsWith('runtime-step:5-3:')
+    )).toBe(true);
     expect(shipOceanTransferRow.categories.practice.pathEligible).toBe(0);
     expect(shipOceanTransferRow.categories.practice.highComplexityLocked).toBeGreaterThan(0);
     expect(shipOceanTransferRow.categories['terminal-validation'].pathEligible).toBe(0);
