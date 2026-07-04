@@ -3,7 +3,7 @@
   "auditMissingFieldRows": 5291,
   "queuedResources": 5291,
   "primaryQueueItems": 5291,
-  "dependentQueueItems": 29999,
+  "dependentQueueItems": 29998,
   "byFollowupBucket": {
     "complete-analysis-design-graph-resource-bindings": 6745,
     "complete-evidence-lineage-bindings": 8493,
@@ -12,7 +12,7 @@
     "complete-foundation-graph-resource-bindings": 440,
     "complete-citation-and-rag-bindings": 1902,
     "repair-resource-identity-bindings": 333,
-    "blocked-resource-completion-dependencies": 61
+    "blocked-resource-completion-dependencies": 60
   },
   "byMissingFieldCode": {
     "missing-capability-target": 3985,
@@ -25,7 +25,7 @@
     "missing-human-review": 4958,
     "missing-segment-ref": 161,
     "missing-content-hash": 333,
-    "blocked-by-dependency": 61,
+    "blocked-by-dependency": 60,
     "missing-citation-target": 1741,
     "stale-review": 9
   },
@@ -556,18 +556,6 @@
       "followupBucket": "repair-resource-identity-bindings",
       "dependencyState": "blocked-by-dependency",
       "total": 5,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-handout:controlModeling:runtime-media:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-handout",
-      "learningGoalId": "controlModeling",
-      "graphDomain": "runtime-media",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
-      "dependencyState": "blocked-by-dependency",
-      "total": 1,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1195,18 +1183,6 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:primary:runtime-handout:controlModeling:runtime-media:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
-      "queueRole": "primary",
-      "sourceFamily": "runtime-handout",
-      "learningGoalId": "controlModeling",
-      "graphDomain": "runtime-media",
-      "missingFieldCode": "blocked-by-dependency",
-      "followupBucket": "blocked-resource-completion-dependencies",
-      "dependencyState": "blocked-by-dependency",
-      "total": 1,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
       "id": "resource-completion:primary:runtime-handout:controlModeling:runtime-media:missing-content-hash:repair-resource-identity-bindings:needs-human-review",
       "queueRole": "primary",
       "sourceFamily": "runtime-handout",
@@ -1215,7 +1191,7 @@
       "missingFieldCode": "missing-content-hash",
       "followupBucket": "repair-resource-identity-bindings",
       "dependencyState": "needs-human-review",
-      "total": 36,
+      "total": 37,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {

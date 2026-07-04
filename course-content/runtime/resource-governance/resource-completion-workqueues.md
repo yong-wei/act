@@ -1,10 +1,10 @@
 # Resource Completion Workqueues
 
-Generated at: 2026-07-04T09:58:00.000Z
+Generated at: 2026-07-04T10:50:00.000Z
 
 Queued resources: 5291
 Primary queue items: 5291
-Dependent queue items: 29999
+Dependent queue items: 29998
 
 | Queue | Family | LearningGoal | Graph domain | Missing field | Follow-up bucket | Dependency | Items |
 | --- | --- | --- | --- | --- | --- | --- | ---: |
@@ -52,7 +52,6 @@ Dependent queue items: 29999
 | resource-completion:dependent:registered-resource:engineeringDecision:knowledge-linked:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency | registered-resource | engineeringDecision | knowledge-linked | missing-content-hash | repair-resource-identity-bindings | blocked-by-dependency | 3 |
 | resource-completion:dependent:registered-resource:inquiryReflection:knowledge-linked:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency | registered-resource | inquiryReflection | knowledge-linked | missing-content-hash | repair-resource-identity-bindings | blocked-by-dependency | 11 |
 | resource-completion:dependent:registered-resource:selfDirectedLearning:knowledge-linked:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency | registered-resource | selfDirectedLearning | knowledge-linked | missing-content-hash | repair-resource-identity-bindings | blocked-by-dependency | 5 |
-| resource-completion:dependent:runtime-handout:controlModeling:runtime-media:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency | runtime-handout | controlModeling | runtime-media | missing-content-hash | repair-resource-identity-bindings | blocked-by-dependency | 1 |
 | resource-completion:dependent:runtime-lesson-media:unassigned-learning-goal:runtime-media:missing-capability-target:complete-analysis-design-graph-resource-bindings:needs-human-review | runtime-lesson-media | unassigned-learning-goal | runtime-media | missing-capability-target | complete-analysis-design-graph-resource-bindings | needs-human-review | 647 |
 | resource-completion:dependent:runtime-lesson-media:unassigned-learning-goal:runtime-media:missing-evidence-contract:complete-evidence-lineage-bindings:needs-human-review | runtime-lesson-media | unassigned-learning-goal | runtime-media | missing-evidence-contract | complete-evidence-lineage-bindings | needs-human-review | 647 |
 | resource-completion:dependent:runtime-lesson-media:unassigned-learning-goal:runtime-media:missing-evidence-instrumentation:complete-evidence-lineage-bindings:needs-human-review | runtime-lesson-media | unassigned-learning-goal | runtime-media | missing-evidence-instrumentation | complete-evidence-lineage-bindings | needs-human-review | 647 |
@@ -105,8 +104,7 @@ Dependent queue items: 29999
 | resource-completion:primary:registered-resource:inquiryReflection:knowledge-linked:missing-content-hash:repair-resource-identity-bindings:needs-human-review | registered-resource | inquiryReflection | knowledge-linked | missing-content-hash | repair-resource-identity-bindings | needs-human-review | 16 |
 | resource-completion:primary:registered-resource:selfDirectedLearning:knowledge-linked:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency | registered-resource | selfDirectedLearning | knowledge-linked | blocked-by-dependency | blocked-resource-completion-dependencies | blocked-by-dependency | 5 |
 | resource-completion:primary:registered-resource:selfDirectedLearning:knowledge-linked:missing-content-hash:repair-resource-identity-bindings:needs-human-review | registered-resource | selfDirectedLearning | knowledge-linked | missing-content-hash | repair-resource-identity-bindings | needs-human-review | 2 |
-| resource-completion:primary:runtime-handout:controlModeling:runtime-media:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency | runtime-handout | controlModeling | runtime-media | blocked-by-dependency | blocked-resource-completion-dependencies | blocked-by-dependency | 1 |
-| resource-completion:primary:runtime-handout:controlModeling:runtime-media:missing-content-hash:repair-resource-identity-bindings:needs-human-review | runtime-handout | controlModeling | runtime-media | missing-content-hash | repair-resource-identity-bindings | needs-human-review | 36 |
+| resource-completion:primary:runtime-handout:controlModeling:runtime-media:missing-content-hash:repair-resource-identity-bindings:needs-human-review | runtime-handout | controlModeling | runtime-media | missing-content-hash | repair-resource-identity-bindings | needs-human-review | 37 |
 | resource-completion:primary:runtime-lesson-media:controlModeling:runtime-media:missing-content-hash:repair-resource-identity-bindings:needs-human-review | runtime-lesson-media | controlModeling | runtime-media | missing-content-hash | repair-resource-identity-bindings | needs-human-review | 112 |
 | resource-completion:primary:runtime-lesson-media:unassigned-learning-goal:runtime-media:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review | runtime-lesson-media | unassigned-learning-goal | runtime-media | missing-human-review | review-runtime-media-handout-dispositions | needs-human-review | 647 |
 | resource-completion:primary:runtime-lesson-module:unassigned-learning-goal:runtime-lesson:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review | runtime-lesson-module | unassigned-learning-goal | runtime-lesson | missing-human-review | review-runtime-media-handout-dispositions | needs-human-review | 1352 |

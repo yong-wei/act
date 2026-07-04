@@ -1,9 +1,9 @@
 {
   "artifactVersion": "learning-goal-resource-baseline.v1",
-  "generatedAt": "2026-07-04T09:58:00.000Z",
+  "generatedAt": "2026-07-04T10:50:00.000Z",
   "sourceWindow": {
     "from": null,
-    "to": "2026-07-04T09:58:00.000Z"
+    "to": "2026-07-04T10:50:00.000Z"
   },
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
@@ -221,7 +221,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T09:58:00.000Z"
+          "to": "2026-07-04T10:50:00.000Z"
         }
       }
     },
@@ -290,7 +290,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T09:58:00.000Z"
+          "to": "2026-07-04T10:50:00.000Z"
         }
       }
     },
@@ -461,7 +461,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T09:58:00.000Z"
+          "to": "2026-07-04T10:50:00.000Z"
         }
       }
     },
@@ -645,7 +645,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T09:58:00.000Z"
+          "to": "2026-07-04T10:50:00.000Z"
         }
       }
     },
@@ -845,7 +845,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T09:58:00.000Z"
+          "to": "2026-07-04T10:50:00.000Z"
         }
       }
     },
@@ -1045,7 +1045,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T09:58:00.000Z"
+          "to": "2026-07-04T10:50:00.000Z"
         }
       }
     },
@@ -1189,7 +1189,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T09:58:00.000Z"
+          "to": "2026-07-04T10:50:00.000Z"
         }
       }
     },
@@ -1291,7 +1291,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T09:58:00.000Z"
+          "to": "2026-07-04T10:50:00.000Z"
         }
       }
     },
@@ -1400,7 +1400,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T09:58:00.000Z"
+          "to": "2026-07-04T10:50:00.000Z"
         }
       }
     }
