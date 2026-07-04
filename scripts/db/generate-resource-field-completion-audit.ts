@@ -40,6 +40,7 @@ const STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE = 'student-visible' satisfies Resource
 const UNCLASSIFIED_AUDIT_PRIVACY_SCOPE = null satisfies ResourceFieldCompletionCandidate['privacyScope'];
 const FOUNDATION_GRAPH_RESOURCE_BATCH_ID = 'foundation-graph-resource-bindings-2026-07-04';
 const ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID = 'analysis-design-graph-resource-bindings-2026-07-04';
+const SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID = 'simulation-transfer-graph-resource-bindings-2026-07-04';
 const REVIEWED_GRAPH_RESOURCE_REVIEWED_AT = '2026-07-04T00:00:00.000Z';
 const REVIEWED_GRAPH_RESOURCE_REVIEWER = {
   reviewerId: 'graph-resource-governance-review',
@@ -75,6 +76,10 @@ const REVIEWED_LESSON_4_1_REVIEW_SOURCE_HASH =
   'sha256:8140ae0105d644dec15be1bfbdaae8a6818e278ddf781c86b81d5e930d2849ad';
 const REVIEWED_LESSON_4_2_REVIEW_SOURCE_HASH =
   'sha256:04885db9a749ef79821f6a4bc76f1e6af2f8a24dc19874f00b3893b673a72b48';
+const REVIEWED_LESSON_4_7_REVIEW_SOURCE_HASH =
+  'sha256:c36221b3d2ded7abc806ee55dede17dd429abe5002a0bfe6eca19b890972fdae';
+const REVIEWED_LESSON_5_3_REVIEW_SOURCE_HASH =
+  'sha256:1b25b729775916efb71173af03a7fc9b733691a62acefeb3fe02806025ae4027';
 
 function reviewedRuntimeStepCompletion(input: ReviewedRuntimeStepCompletion): ReviewedRuntimeStepCompletion {
   return input;
@@ -375,6 +380,118 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     reviewedSourceHash: REVIEWED_LESSON_4_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 13 reviews lag-compensation parameter calculation and preserves it as concept/path support.',
     independentEvidenceRef: 'course-content/runtime/lessons/4-2/graph-overlay.json#group:分结构整定例题',
+  })],
+  ['4-7:step-03', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['parameterDesign', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_4_7_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 03 frames the real-track task and segmented identified model as simulation-validation context without claiming official Arena authority.',
+    independentEvidenceRef: 'course-content/runtime/lessons/4-7/graph-overlay.json#group:指标翻译与传统设计',
+  })],
+  ['4-7:step-04', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['parameterDesign', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_4_7_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 04 translates track, rudder, and margin indicators into a cost-function judgment, reviewed as simulation-validation concept support only.',
+    independentEvidenceRef: 'course-content/runtime/lessons/4-7/graph-overlay.json#group:指标翻译与传统设计',
+  })],
+  ['4-7:step-05', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['parameterDesign', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_4_7_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 05 connects four-plot diagnosis to candidate controller structure selection and is reviewed as design-validation path support.',
+    independentEvidenceRef: 'course-content/runtime/lessons/4-7/graph-overlay.json#group:优化设计与跨模型验证',
+  })],
+  ['4-7:step-06', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['parameterDesign', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_4_7_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 06 turns nominal verification into reproducible controller formulas while keeping terminal validation unapproved.',
+    independentEvidenceRef: 'course-content/runtime/lessons/4-7/graph-overlay.json#group:优化设计与跨模型验证',
+  })],
+  ['4-7:step-07', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['parameterDesign', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_4_7_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 07 reviews optimization encoding and decoding as simulation-design transfer support, not as an official evaluator result.',
+    independentEvidenceRef: 'course-content/runtime/lessons/4-7/graph-overlay.json#group:优化设计与跨模型验证',
+  })],
+  ['4-7:step-08', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['parameterDesign', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_4_7_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 08 compares nominal and high-fidelity model outcomes, providing reviewed simulation-validation concept evidence while preserving official scoring boundaries.',
+    independentEvidenceRef: 'course-content/runtime/lessons/4-7/graph-overlay.json#group:扰动噪声与设计边界',
+  })],
+  ['4-7:step-09', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['parameterDesign', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_4_7_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 09 reviews disturbance-boundary reasoning and keeps the resource as concept/practice path support rather than terminal validation.',
+    independentEvidenceRef: 'course-content/runtime/lessons/4-7/graph-overlay.json#group:扰动噪声与设计边界',
+  })],
+  ['4-7:step-10', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['parameterDesign', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_4_7_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 10 reviews sensor-noise boundary handling as simulation-validation concept support with no official Arena claim.',
+    independentEvidenceRef: 'course-content/runtime/lessons/4-7/graph-overlay.json#group:扰动噪声与设计边界',
+  })],
+  ['5-3:step-09', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['crossDomainTransfer', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_5_3_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 09 reviews responsibility-diagnosis order for MASS transfer applications and remains concept/path support.',
+    independentEvidenceRef: 'course-content/runtime/lessons/5-3/graph-overlay.json#group:责任诊断与工程收束',
+  })],
+  ['5-3:step-10', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['crossDomainTransfer', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_5_3_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 10 links autonomous-avoidance deviation propagation to transfer reasoning while avoiding official Arena authority.',
+    independentEvidenceRef: 'course-content/runtime/lessons/5-3/graph-overlay.json#group:信息、规划与执行边界',
+  })],
+  ['5-3:step-11', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['crossDomainTransfer', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_5_3_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 11 reviews turning-radius and rudder feasibility as ship-ocean transfer concept evidence, not as a scored validation.',
+    independentEvidenceRef: 'course-content/runtime/lessons/5-3/graph-overlay.json#group:责任诊断与工程收束',
+  })],
+  ['5-3:step-12', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['crossDomainTransfer', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_5_3_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 12 reviews MASS automation level and responsibility boundaries as transfer-application concept support.',
+    independentEvidenceRef: 'course-content/runtime/lessons/5-3/graph-overlay.json#group:责任诊断与工程收束',
+  })],
+  ['5-3:step-13', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['crossDomainTransfer', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_5_3_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 13 provides a minimal method for reading MASS links and is reviewed as transfer-application path support.',
+    independentEvidenceRef: 'course-content/runtime/lessons/5-3/graph-overlay.json#group:责任诊断与工程收束',
+  })],
+  ['5-3:step-15', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: ['crossDomainTransfer', 'engineeringDecision'],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: SIMULATION_TRANSFER_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_5_3_REVIEW_SOURCE_HASH,
+    reviewerVisibleRationale: 'Step 15 summarizes MASS link responsibility boundaries as concept/citation support and does not promote the preceding post-test to checkpoint evidence.',
+    independentEvidenceRef: 'course-content/runtime/lessons/5-3/graph-overlay.json#group:责任诊断与工程收束',
   })],
 ]);
 

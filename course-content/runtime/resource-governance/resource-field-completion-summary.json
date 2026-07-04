@@ -17,13 +17,13 @@
     "groundingVersion": "konling-graph-grounding.v1"
   },
   "totals": {
-    "complete": 38,
-    "missingField": 5253,
-    "provisional": 3956,
-    "humanConfirmed": 38,
-    "citationReady": 3418,
-    "pathEligible": 311,
-    "blocked": 5253,
+    "complete": 52,
+    "missingField": 5239,
+    "provisional": 3942,
+    "humanConfirmed": 52,
+    "citationReady": 3432,
+    "pathEligible": 325,
+    "blocked": 5239,
     "denominator": 5291,
     "sourceWindow": {
       "from": null,
@@ -397,13 +397,13 @@
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-lesson-step": {
-      "complete": 38,
-      "missingField": 412,
-      "provisional": 412,
-      "humanConfirmed": 38,
-      "citationReady": 38,
-      "pathEligible": 38,
-      "blocked": 412,
+      "complete": 52,
+      "missingField": 398,
+      "provisional": 398,
+      "humanConfirmed": 52,
+      "citationReady": 52,
+      "pathEligible": 52,
+      "blocked": 398,
       "denominator": 450,
       "sourceWindow": {
         "from": null,
@@ -521,16 +521,16 @@
     "manual": 1297,
     "local-model-assisted": 0,
     "external-tool-assisted": 1913,
-    "generated-provisional": 2043,
-    "already-governed": 38,
+    "generated-provisional": 2029,
+    "already-governed": 52,
     "blocked": 0
   },
   "byReviewStatus": {
     "not-reviewed": 1297,
-    "generated-provisional": 2043,
+    "generated-provisional": 2029,
     "model-assisted-provisional": 0,
     "external-tool-provisional": 1913,
-    "human-confirmed": 38,
+    "human-confirmed": 52,
     "blocked": 0,
     "stale": 0
   },
@@ -66501,6 +66501,96 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
+    "crossDomainTransfer|engineeringDecision|MASS协同链路_5_53001|MASS自动化等级责任边界_5_53008|runtime-step:5-3:step-15|控制在自主系统链路中的位置_5_53002|避碰转弯半径可行域_5_53007|链路责任诊断_5_53006": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "crossDomainTransfer|engineeringDecision|MASS自动化等级责任边界_5_53008|runtime-step:5-3:step-09|避碰转弯半径可行域_5_53007|链路责任诊断_5_53006": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "crossDomainTransfer|engineeringDecision|MASS自动化等级责任边界_5_53008|runtime-step:5-3:step-11|上游信息质量_5_53003|执行约束反馈_5_53005|规划参考可实现性_5_53004|避碰转弯半径可行域_5_53007|链路责任诊断_5_53006": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "crossDomainTransfer|engineeringDecision|MASS自动化等级责任边界_5_53008|runtime-step:5-3:step-12|避碰转弯半径可行域_5_53007|链路责任诊断_5_53006": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "crossDomainTransfer|engineeringDecision|MASS自动化等级责任边界_5_53008|runtime-step:5-3:step-13|避碰转弯半径可行域_5_53007|链路责任诊断_5_53006": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
     "crossDomainTransfer|engineeringDecision|parameterDesign|registry:lesson14-three-band-studio|三频段闭环性能回读_3_38003|主矛盾到频段职责映射_4_42003|频域校正_6_f5beed50": {
       "complete": 0,
       "missingField": 1,
@@ -66523,6 +66613,24 @@
       "sampleLimitations": [
         "registry:lesson14-three-band-studio: missing fields: missing-content-hash"
       ],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "crossDomainTransfer|engineeringDecision|runtime-step:5-3:step-10|上游信息质量_5_53003|执行约束反馈_5_53005|规划参考可实现性_5_53004": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "cruise_comfort_constraint|runtime-step:cruise-comfort-boppps:bridge": {
@@ -67295,6 +67403,150 @@
       "sampleLimitations": [
         "registry:lesson15-series-strategy-lab: missing fields: missing-content-hash"
       ],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "engineeringDecision|parameterDesign|runtime-step:4-7:step-03|传统设计四联图校正_4_47004|工程指标代价函数翻译_4_47003": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "engineeringDecision|parameterDesign|runtime-step:4-7:step-04|传统设计四联图校正_4_47004|工程指标代价函数翻译_4_47003": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "engineeringDecision|parameterDesign|runtime-step:4-7:step-05|结构参数联合搜索解码_4_47005|统一结构编码与解码_4_46005|跨模型验证比较_4_47006": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "engineeringDecision|parameterDesign|runtime-step:4-7:step-06|结构参数联合搜索解码_4_47005|统一结构编码与解码_4_46005|跨模型验证比较_4_47006": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "engineeringDecision|parameterDesign|runtime-step:4-7:step-07|结构参数联合搜索解码_4_47005|统一结构编码与解码_4_46005|跨模型验证比较_4_47006": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "engineeringDecision|parameterDesign|runtime-step:4-7:step-08|传统控制结构局限_4_47008|扰动噪声设计边界_4_47007": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "engineeringDecision|parameterDesign|runtime-step:4-7:step-09|传统控制结构局限_4_47008|扰动噪声设计边界_4_47007": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "engineeringDecision|parameterDesign|runtime-step:4-7:step-10|传统控制结构局限_4_47008|扰动噪声设计边界_4_47007": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "engineeringDecision|parameterDesign|textbook-search-document:ch10-overview-001__chunk-001|串联校正_6_fede5751|控制器频域特性矩阵_4_42008|频域PD与超前整定_4_42011|频域PI与滞后整定_4_42010": {
@@ -83201,35 +83453,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "MASS协同链路_5_53001|MASS自动化等级责任边界_5_53008|runtime-step:5-3:step-15|控制在自主系统链路中的位置_5_53002|避碰转弯半径可行域_5_53007|链路责任诊断_5_53006": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:5-3:step-15: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "MASS协同链路_5_53001|runtime-step:5-3:step-04|控制在自主系统链路中的位置_5_53002": {
       "complete": 0,
       "missingField": 1,
@@ -83285,122 +83508,6 @@
       ],
       "sampleLimitations": [
         "runtime-step:5-3:step-05: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "MASS自动化等级责任边界_5_53008|runtime-step:5-3:step-09|避碰转弯半径可行域_5_53007|链路责任诊断_5_53006": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:5-3:step-09: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "MASS自动化等级责任边界_5_53008|runtime-step:5-3:step-11|上游信息质量_5_53003|执行约束反馈_5_53005|规划参考可实现性_5_53004|避碰转弯半径可行域_5_53007|链路责任诊断_5_53006": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:5-3:step-11: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "MASS自动化等级责任边界_5_53008|runtime-step:5-3:step-12|避碰转弯半径可行域_5_53007|链路责任诊断_5_53006": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:5-3:step-12: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "MASS自动化等级责任边界_5_53008|runtime-step:5-3:step-13|避碰转弯半径可行域_5_53007|链路责任诊断_5_53006": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:5-3:step-13: metadata is provisional"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
@@ -154476,238 +154583,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:4-7:step-03|传统设计四联图校正_4_47004|工程指标代价函数翻译_4_47003": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:4-7:step-03: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-7:step-04|传统设计四联图校正_4_47004|工程指标代价函数翻译_4_47003": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:4-7:step-04: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-7:step-05|结构参数联合搜索解码_4_47005|统一结构编码与解码_4_46005|跨模型验证比较_4_47006": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:4-7:step-05: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-7:step-06|结构参数联合搜索解码_4_47005|统一结构编码与解码_4_46005|跨模型验证比较_4_47006": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:4-7:step-06: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-7:step-07|结构参数联合搜索解码_4_47005|统一结构编码与解码_4_46005|跨模型验证比较_4_47006": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:4-7:step-07: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-7:step-08|传统控制结构局限_4_47008|扰动噪声设计边界_4_47007": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:4-7:step-08: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-7:step-09|传统控制结构局限_4_47008|扰动噪声设计边界_4_47007": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:4-7:step-09: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-7:step-10|传统控制结构局限_4_47008|扰动噪声设计边界_4_47007": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:4-7:step-10: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "runtime-step:4-7:step-11": {
       "complete": 0,
       "missingField": 1,
@@ -155872,35 +155747,6 @@
       ],
       "sampleLimitations": [
         "runtime-step:5-3:step-08: metadata is provisional"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:5-3:step-10|上游信息质量_5_53003|执行约束反馈_5_53005|规划参考可实现性_5_53004": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:5-3:step-10: metadata is provisional"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },

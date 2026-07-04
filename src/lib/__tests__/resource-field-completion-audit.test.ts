@@ -788,13 +788,12 @@ describe('resource field completion audit', () => {
       'feedback-loop-concept-foundations',
       'frequency-response-foundations',
       'root-locus-analysis-foundations',
+      'ship-ocean-transfer-application',
+      'simulation-validation-practice',
       'stability-margin-frequency-analysis',
       'transfer-function-modeling-foundations',
       'time-domain-response-analysis',
     ]));
-    expect(new Set(reviewedBindings.map((binding) => binding.learningGoalId))).not.toContain(
-      'simulation-validation-practice',
-    );
     expect(auditRowById.get('runtime-step:1-1:step-09')).toMatchObject({
       reviewStatus: 'human-confirmed',
       pathEligibility: {
@@ -844,10 +843,41 @@ describe('resource field completion audit', () => {
     const simulationValidationRow = matrix.rows.find((item) =>
       item.learningGoalId === 'simulation-validation-practice'
     );
-    expect(simulationValidationRow.categories.concept.pathEligible).toBe(0);
-    expect(simulationValidationRow.categories.citation.pathEligible).toBe(0);
+    expect(simulationValidationRow.categories.concept.pathEligible).toBe(8);
+    expect(simulationValidationRow.categories.concept.pathEligibleResourceIds.every((id) =>
+      id.startsWith('runtime-step:4-7:')
+    )).toBe(true);
+    expect(simulationValidationRow.categories.citation.pathEligible).toBe(8);
+    expect(simulationValidationRow.categories.citation.pathEligibleResourceIds.every((id) =>
+      id.startsWith('runtime-step:4-7:')
+    )).toBe(true);
+    expect(simulationValidationRow.categories.practice.pathEligible).toBe(0);
+    expect(simulationValidationRow.categories.practice.highComplexityLocked).toBeGreaterThan(0);
+    expect(simulationValidationRow.categories['terminal-validation'].pathEligible).toBe(0);
+    expect(simulationValidationRow.categories['terminal-validation'].highComplexityLocked).toBeGreaterThan(0);
     expect(simulationValidationRow.missingBaselineCategories).toEqual([
-      'concept',
+      'diagnostic',
+      'practice',
+      'checkpoint',
+      'remediation',
+      'terminal-validation',
+    ]);
+    const shipOceanTransferRow = matrix.rows.find((item) =>
+      item.learningGoalId === 'ship-ocean-transfer-application'
+    );
+    expect(shipOceanTransferRow.categories.concept.pathEligible).toBe(6);
+    expect(shipOceanTransferRow.categories.concept.pathEligibleResourceIds.every((id) =>
+      id.startsWith('runtime-step:5-3:')
+    )).toBe(true);
+    expect(shipOceanTransferRow.categories.citation.pathEligible).toBe(6);
+    expect(shipOceanTransferRow.categories.citation.pathEligibleResourceIds.every((id) =>
+      id.startsWith('runtime-step:5-3:')
+    )).toBe(true);
+    expect(shipOceanTransferRow.categories.practice.pathEligible).toBe(0);
+    expect(shipOceanTransferRow.categories.practice.highComplexityLocked).toBeGreaterThan(0);
+    expect(shipOceanTransferRow.categories['terminal-validation'].pathEligible).toBe(0);
+    expect(shipOceanTransferRow.categories['terminal-validation'].highComplexityLocked).toBeGreaterThan(0);
+    expect(shipOceanTransferRow.missingBaselineCategories).toEqual([
       'diagnostic',
       'practice',
       'checkpoint',
