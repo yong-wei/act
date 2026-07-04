@@ -21,7 +21,7 @@ The reviewed worklist covers these analysis/design areas:
 - Stability and feasible-region concepts: `3-6:step-06`, `4-1:step-05`, `4-1:step-10`
 - Steady-state and frequency tradeoff concepts: `3-8:step-07`, `3-9:step-08`
 - Root-locus and structure-change concepts: `3-5:step-01`, `3-5:step-02`, `3-5:step-04`, `3-5:step-05`, `3-6:step-06`
-- Frequency-response and margin concepts: `2-4:step-09`, `2-4:step-10`, `3-5:step-10`, `3-5:step-11`, `3-5:step-12`, `3-8:step-06`, `3-8:step-09`, `3-8:step-10`
+- Frequency-response and margin concepts: `2-4:step-09`, `2-4:step-10`, `2-4:step-11`, `2-4:step-12`, `3-5:step-10`, `3-5:step-11`, `3-5:step-12`, `3-8:step-06`, `3-8:step-09`, `3-8:step-10`
 - Correction-design concepts: `3-6:step-10`, `3-6:step-11`, `3-6:step-12`, `3-6:step-13`, `4-1:step-01`, `4-1:step-07`, `4-2:step-11`, `4-2:step-12`, `4-2:step-13`
 
 Excluded to preserve scope:
@@ -35,6 +35,8 @@ The batch records these accepted runtime lesson steps:
 
 - `2-4:step-09`
 - `2-4:step-10`
+- `2-4:step-11`
+- `2-4:step-12`
 - `3-5:step-01`
 - `3-5:step-02`
 - `3-5:step-04`
@@ -69,7 +71,7 @@ Baseline before this change is the branch base (`HEAD`) artifacts after the foun
 | --- | ---: | ---: | ---: | ---: | --- |
 | `root-locus-analysis-foundations` | 0 | 0 | 3 | 3 | diagnostic, practice, checkpoint, remediation |
 | `frequency-response-foundations` | 0 | 0 | 2 | 2 | diagnostic, practice, checkpoint, remediation |
-| `stability-margin-frequency-analysis` | 0 | 0 | 15 | 15 | diagnostic, practice, checkpoint, remediation |
+| `stability-margin-frequency-analysis` | 0 | 0 | 17 | 17 | diagnostic, practice, checkpoint, remediation |
 | `control-correction` | 5 | 5 | 14 | 14 | diagnostic, practice, checkpoint, remediation, terminal-validation |
 | `simulation-validation-practice` | 0 | 0 | 0 | 0 | concept, diagnostic, practice, checkpoint, remediation, terminal-validation |
 
@@ -77,7 +79,7 @@ Baseline before this change is the branch base (`HEAD`) artifacts after the foun
 
 ```text
 Resource field completion audit rows: 5291
-Resource completion workqueue items: 35105
+Resource completion workqueue items: 35095
 Human review integrity issues: 0
 Runtime resource projections: 3038
 LearningGoal baseline reviewed bindings: 21

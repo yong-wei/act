@@ -72,8 +72,8 @@
     {
       "group_name": "频域指标入口",
       "step_ids": [
-        "step-07",
-        "step-08"
+        "step-09",
+        "step-10"
       ],
       "node_ids": [
         "截止频率_5_c7d09ff7",
@@ -86,8 +86,8 @@
     {
       "group_name": "手工绘图与最小反识别",
       "step_ids": [
-        "step-09",
-        "step-10"
+        "step-11",
+        "step-12"
       ],
       "node_ids": [
         "交接频率_转折频率__5_8bca814b",
@@ -98,8 +98,6 @@
     {
       "group_name": "后测与收束",
       "step_ids": [
-        "step-11",
-        "step-12",
         "step-13"
       ],
       "node_ids": [

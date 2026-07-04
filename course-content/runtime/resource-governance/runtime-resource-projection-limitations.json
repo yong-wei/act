@@ -16,10 +16,10 @@
     "rows": 3038,
     "resourceNodeCandidates": 450,
     "segmentOnly": 2588,
-    "registryPathEligible": 185,
-    "planningUnitEligible": 36,
-    "humanConfirmed": 36,
-    "provisional": 2853,
+    "registryPathEligible": 187,
+    "planningUnitEligible": 38,
+    "humanConfirmed": 38,
+    "provisional": 2851,
     "stale": 0
   },
   "byFamily": {
@@ -31,11 +31,11 @@
     "knowledge-infograph": 161
   },
   "byProjectionLevel": {
-    "ResourceNode": 414,
+    "ResourceNode": 412,
     "ResourceSegment": 2588,
     "CitationTarget": 0,
     "RetrievalChunk": 0,
-    "PlanningUnit": 36
+    "PlanningUnit": 38
   },
   "blockingCodes": [
     "missing-capability-target",

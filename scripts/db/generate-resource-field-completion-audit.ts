@@ -150,7 +150,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_2_4_MANIFEST_HASH,
     reviewerVisibleRationale: 'Step 09 introduces cutoff frequency, crossover frequency, phase margin, gain margin, and bandwidth as frequency-domain reading targets for margin foundations.',
-    independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:手工绘图与最小反识别',
+    independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:频域指标入口',
   })],
   ['2-4:step-10', reviewedRuntimeStepCompletion({
     capabilityTargetIds: [],
@@ -158,6 +158,22 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_2_4_MANIFEST_HASH,
     reviewerVisibleRationale: 'Step 10 compares Bode and Nyquist locations for the same indicators, supporting citation-ready frequency-response interpretation without promoting assessment status.',
+    independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:频域指标入口',
+  })],
+  ['2-4:step-11', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_2_4_MANIFEST_HASH,
+    reviewerVisibleRationale: 'Step 11 reviews Bode baseline, breakpoints, and slope drawing as frequency-response foundation material.',
+    independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:手工绘图与最小反识别',
+  })],
+  ['2-4:step-12', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
+    estimatedTimeMinutes: 8,
+    reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
+    reviewedSourceHash: REVIEWED_LESSON_2_4_MANIFEST_HASH,
+    reviewerVisibleRationale: 'Step 12 reviews Nyquist endpoints, crossings, and asymptotes as paired graph-reading support for frequency response foundations.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:手工绘图与最小反识别',
   })],
   ['3-5:step-01', reviewedRuntimeStepCompletion({

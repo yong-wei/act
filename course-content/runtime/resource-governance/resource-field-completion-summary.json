@@ -17,13 +17,13 @@
     "groundingVersion": "konling-graph-grounding.v1"
   },
   "totals": {
-    "complete": 36,
-    "missingField": 5255,
-    "provisional": 3958,
-    "humanConfirmed": 36,
-    "citationReady": 3416,
-    "pathEligible": 309,
-    "blocked": 5255,
+    "complete": 38,
+    "missingField": 5253,
+    "provisional": 3956,
+    "humanConfirmed": 38,
+    "citationReady": 3418,
+    "pathEligible": 311,
+    "blocked": 5253,
     "denominator": 5291,
     "sourceWindow": {
       "from": null,
@@ -397,13 +397,13 @@
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-lesson-step": {
-      "complete": 36,
-      "missingField": 414,
-      "provisional": 414,
-      "humanConfirmed": 36,
-      "citationReady": 36,
-      "pathEligible": 36,
-      "blocked": 414,
+      "complete": 38,
+      "missingField": 412,
+      "provisional": 412,
+      "humanConfirmed": 38,
+      "citationReady": 38,
+      "pathEligible": 38,
+      "blocked": 412,
       "denominator": 450,
       "sourceWindow": {
         "from": null,
@@ -521,16 +521,16 @@
     "manual": 1297,
     "local-model-assisted": 0,
     "external-tool-assisted": 1913,
-    "generated-provisional": 2045,
-    "already-governed": 36,
+    "generated-provisional": 2043,
+    "already-governed": 38,
     "blocked": 0
   },
   "byReviewStatus": {
     "not-reviewed": 1297,
-    "generated-provisional": 2045,
+    "generated-provisional": 2043,
     "model-assisted-provisional": 0,
     "external-tool-provisional": 1913,
-    "human-confirmed": 36,
+    "human-confirmed": 38,
     "blocked": 0,
     "stale": 0
   },
@@ -39417,7 +39417,7 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "Bode首轮骨架_5_1e07d9da|runtime-step:2-4:step-09|交接频率_转折频率__5_8bca814b|典型环节对象库_2_21002": {
+    "Bode首轮骨架_5_1e07d9da|runtime-step:2-4:step-11|交接频率_转折频率__5_8bca814b|典型环节对象库_2_21002": {
       "complete": 1,
       "missingField": 0,
       "provisional": 0,
@@ -39435,7 +39435,7 @@
       "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "Bode首轮骨架_5_1e07d9da|runtime-step:2-4:step-10|交接频率_转折频率__5_8bca814b|典型环节对象库_2_21002": {
+    "Bode首轮骨架_5_1e07d9da|runtime-step:2-4:step-12|交接频率_转折频率__5_8bca814b|典型环节对象库_2_21002": {
       "complete": 1,
       "missingField": 0,
       "provisional": 0,
@@ -148413,7 +148413,7 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:2-4:step-07|带宽频率_5_6996a44a|幅值裕度_5_73af26a5|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|穿越频率_5_c4c2b93c": {
+    "runtime-step:2-4:step-07": {
       "complete": 0,
       "missingField": 1,
       "provisional": 1,
@@ -148431,6 +148431,7 @@
         "missing-citation-target",
         "missing-evidence-contract",
         "missing-human-review",
+        "missing-knowledge-binding",
         "missing-path-profile",
         "provisional-metadata"
       ],
@@ -148442,7 +148443,7 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:2-4:step-08|带宽频率_5_6996a44a|幅值裕度_5_73af26a5|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|穿越频率_5_c4c2b93c": {
+    "runtime-step:2-4:step-08": {
       "complete": 0,
       "missingField": 1,
       "provisional": 1,
@@ -148460,6 +148461,7 @@
         "missing-citation-target",
         "missing-evidence-contract",
         "missing-human-review",
+        "missing-knowledge-binding",
         "missing-path-profile",
         "provisional-metadata"
       ],
@@ -148471,62 +148473,40 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:2-4:step-11|带宽频率_5_6996a44a|开环幅相特性曲线_5_fd86e289|相角裕度_5_5a74b451": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
+    "runtime-step:2-4:step-09|带宽频率_5_6996a44a|幅值裕度_5_73af26a5|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|穿越频率_5_c4c2b93c": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-04T16:30:00.000Z"
       },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:2-4:step-11: metadata is provisional"
-      ],
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:2-4:step-12|带宽频率_5_6996a44a|开环幅相特性曲线_5_fd86e289|相角裕度_5_5a74b451": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
+    "runtime-step:2-4:step-10|带宽频率_5_6996a44a|幅值裕度_5_73af26a5|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|穿越频率_5_c4c2b93c": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-04T16:30:00.000Z"
       },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:2-4:step-12: metadata is provisional"
-      ],
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:2-4:step-13|带宽频率_5_6996a44a|开环幅相特性曲线_5_fd86e289|相角裕度_5_5a74b451": {

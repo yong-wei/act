@@ -975,13 +975,13 @@
             "runtime-step:2-3:step-13",
             "runtime-step:2-3:step-14",
             "runtime-step:2-3:step-15",
-            "runtime-step:2-4:step-09",
-            "runtime-step:2-4:step-10",
+            "runtime-step:2-4:step-11",
+            "runtime-step:2-4:step-12",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001"
           ],
           "pathEligibleResourceIds": [
-            "runtime-step:2-4:step-09",
-            "runtime-step:2-4:step-10"
+            "runtime-step:2-4:step-11",
+            "runtime-step:2-4:step-12"
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
@@ -1131,13 +1131,13 @@
             "runtime-media:1-1:1-1-slides",
             "runtime-media:2-3:2-3-slides",
             "runtime-media:2-4:2-4-slides",
-            "runtime-step:2-4:step-09",
-            "runtime-step:2-4:step-10",
+            "runtime-step:2-4:step-11",
+            "runtime-step:2-4:step-12",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001"
           ],
           "pathEligibleResourceIds": [
-            "runtime-step:2-4:step-09",
-            "runtime-step:2-4:step-10"
+            "runtime-step:2-4:step-11",
+            "runtime-step:2-4:step-12"
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
@@ -1184,9 +1184,9 @@
         }
       },
       "selectedReviewedBindingIds": [
-        "frequency-response-foundations:concept:runtime-step:2-4:step-09",
-        "frequency-response-foundations:concept:runtime-step:2-4:step-10",
-        "frequency-response-foundations:citation:runtime-step:2-4:step-09"
+        "frequency-response-foundations:concept:runtime-step:2-4:step-11",
+        "frequency-response-foundations:concept:runtime-step:2-4:step-12",
+        "frequency-response-foundations:citation:runtime-step:2-4:step-11"
       ],
       "missingBaselineCategories": [
         "diagnostic",
@@ -4635,10 +4635,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 94,
-          "humanConfirmed": 15,
-          "pathEligible": 15,
-          "citationReady": 63,
+          "linked": 92,
+          "humanConfirmed": 17,
+          "pathEligible": 17,
+          "citationReady": 65,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -4688,10 +4688,8 @@
             "runtime-step:2-4:step-01",
             "runtime-step:2-4:step-02",
             "runtime-step:2-4:step-03",
-            "runtime-step:2-4:step-07",
-            "runtime-step:2-4:step-08",
-            "runtime-step:2-4:step-11",
-            "runtime-step:2-4:step-12",
+            "runtime-step:2-4:step-09",
+            "runtime-step:2-4:step-10",
             "runtime-step:2-4:step-13",
             "runtime-step:3-5:step-10",
             "runtime-step:3-5:step-11",
@@ -4739,6 +4737,8 @@
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [
+            "runtime-step:2-4:step-09",
+            "runtime-step:2-4:step-10",
             "runtime-step:3-5:step-10",
             "runtime-step:3-5:step-11",
             "runtime-step:3-5:step-12",
@@ -4802,10 +4802,6 @@
             "runtime-step:2-4:step-01",
             "runtime-step:2-4:step-02",
             "runtime-step:2-4:step-03",
-            "runtime-step:2-4:step-07",
-            "runtime-step:2-4:step-08",
-            "runtime-step:2-4:step-11",
-            "runtime-step:2-4:step-12",
             "runtime-step:2-4:step-13",
             "runtime-step:3-6:step-01",
             "runtime-step:3-6:step-02",
@@ -4942,10 +4938,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 76,
-          "humanConfirmed": 15,
-          "pathEligible": 15,
-          "citationReady": 76,
+          "linked": 78,
+          "humanConfirmed": 17,
+          "pathEligible": 17,
+          "citationReady": 78,
           "assessment": 4,
           "checkpoint": 0,
           "highComplexityLocked": 11,
@@ -5003,6 +4999,8 @@
             "registry:widget-argument-principle",
             "registry:widget-physics-elec",
             "registry:widget-physics-mech",
+            "runtime-step:2-4:step-09",
+            "runtime-step:2-4:step-10",
             "runtime-step:3-5:step-10",
             "runtime-step:3-5:step-11",
             "runtime-step:3-5:step-12",
@@ -5028,6 +5026,8 @@
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-sec18"
           ],
           "pathEligibleResourceIds": [
+            "runtime-step:2-4:step-09",
+            "runtime-step:2-4:step-10",
             "runtime-step:3-5:step-10",
             "runtime-step:3-5:step-11",
             "runtime-step:3-5:step-12",
@@ -5138,9 +5138,9 @@
         }
       },
       "selectedReviewedBindingIds": [
-        "stability-margin-frequency-analysis:concept:runtime-step:3-5:step-10",
-        "stability-margin-frequency-analysis:concept:runtime-step:3-5:step-11",
-        "stability-margin-frequency-analysis:citation:runtime-step:3-5:step-10"
+        "stability-margin-frequency-analysis:concept:runtime-step:2-4:step-09",
+        "stability-margin-frequency-analysis:concept:runtime-step:2-4:step-10",
+        "stability-margin-frequency-analysis:citation:runtime-step:2-4:step-09"
       ],
       "missingBaselineCategories": [
         "diagnostic",
@@ -6184,6 +6184,6 @@
     "complete": 0,
     "limited": 9,
     "reviewedBindings": 21,
-    "provisionalLinkedResources": 298
+    "provisionalLinkedResources": 294
   }
 }
