@@ -121,6 +121,7 @@ describe('platform entrypoint smoke contracts', () => {
     expect(profileSource).toContain('.flatMap((intent)');
     expect(profileSource).toContain('intent.hrefs.map((href)');
     expect(profileSource).toContain('studentEntryByHref.get(href)');
+    expect(profileSource).toContain("prefetch={href.startsWith('/simulations') ? false : undefined}");
     expect(profileApiSource).toContain('ensureUserProfile');
     expect(profileApiSource).toContain('initializeUserProgress');
     expect(profileApiSource).toContain('await Promise.all([');

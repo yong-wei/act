@@ -846,6 +846,7 @@ function PersonalCenterEntryCard({
   return (
     <Link
       href={href}
+      prefetch={href.startsWith('/simulations') ? false : undefined}
       className="surface-card-soft group block p-4 transition hover:border-amber-500/35 hover:bg-accent/70"
     >
       <div className="flex items-start justify-between gap-3">
