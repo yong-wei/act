@@ -75,6 +75,46 @@ describe('resource field completion audit', () => {
       .trim()
       .split('\n')
       .map((line) => JSON.parse(line));
+    const workqueueSummary = JSON.parse(readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-completion-workqueue-summary.json'),
+      'utf8',
+    ));
+    const workqueueItems = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl'),
+      'utf8',
+    )
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    const workqueueMarkdown = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-completion-workqueues.md'),
+      'utf8',
+    );
+    const humanReviewIntegrity = JSON.parse(readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-human-review-integrity-diagnostics.json'),
+      'utf8',
+    ));
+    const rowsMissingFields = jsonlRows.filter((row) => row.missingFieldCodes.length > 0);
+
+    expect(workqueueSummary.primaryQueueItems + workqueueSummary.dependentQueueItems).toBe(workqueueItems.length);
+    expect(workqueueSummary.queuedResources).toBe(rowsMissingFields.length);
+    expect(workqueueSummary.primaryQueueItems).toBe(rowsMissingFields.length);
+    expect(workqueueSummary.dependentQueueItems).toBeGreaterThan(0);
+    expect(workqueueSummary.queues.length).toBeGreaterThan(0);
+    expect(workqueueMarkdown).toContain('Item-level rows are stored in `resource-completion-workqueue-items.jsonl` without raw resource content.');
+    expect(workqueueItems.every((item) => item.privacyMinimized === true)).toBe(true);
+    expect(workqueueItems.every((item) => item.rawContentIncluded === false)).toBe(true);
+    expect(workqueueItems.some((item) => 'rawContent' in item || 'markdown' in item || 'body' in item)).toBe(false);
+    expect(workqueueItems.every((item) => typeof item.title === 'string' && item.title.length <= 120)).toBe(true);
+    expect(workqueueItems.some((item) => item.title.includes('Image description:'))).toBe(false);
+    expect(workqueueItems.every((item) => item.currentBlockers.length > 0)).toBe(true);
+    expect(workqueueItems.every((item) => item.suggestedReviewerAction.length > 0)).toBe(true);
+    expect(humanReviewIntegrity.humanConfirmedRows).toBe(
+      jsonlRows.filter((row) => row.reviewStatus === 'human-confirmed').length,
+    );
+    expect(humanReviewIntegrity.invalidHumanConfirmedRows).toBeLessThanOrEqual(
+      humanReviewIntegrity.humanConfirmedRows,
+    );
     const knowledgeCardRows = jsonlRows.filter((row) => row.family === 'knowledge-card');
     const cardFiles = readdirSync(join(process.cwd(), 'course-content/runtime/knowledge/cards/nodes'))
       .filter((file) => file.endsWith('.md'))
@@ -235,6 +275,185 @@ describe('resource field completion audit', () => {
     }
   });
 
+  it('emits deterministic privacy-minimized resource completion workqueues', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'runtime-media:3-5:transient-plot.png',
+        title: 'Transient plot',
+        family: 'runtime-lesson-media',
+        sourcePathOrUrl: 'course-content/runtime/lessons/3-5/media/transient-plot.png',
+        sourceRecord: '3-5:transient-plot.png',
+        knowledgeNodeIds: ['根轨迹法_2_e3f6c0c1'],
+        capabilityTargetIds: ['parameterDesign'],
+        segmentRefs: ['transient-plot.png'],
+        citationTargets: ['course-content/runtime/lessons/3-5/media/transient-plot.png'],
+        pathTarget: '/course-runtime/lessons/3-5/media/transient-plot.png',
+        estimatedTimeMinutes: 3,
+        evidenceInstrumentation: ['resource_view'],
+        privacyScope: 'student-visible',
+        versionRef: 'runtime-lesson-media.v1',
+        generatedBy: 'external-tool',
+        humanConfirmed: false,
+      }, {
+        id: 'knowledge-card:root-locus-review',
+        title: 'Root locus review',
+        family: 'knowledge-card',
+        sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/root-locus-review.md',
+        sourceRecord: 'root-locus-review',
+        knowledgeNodeIds: ['根轨迹法_2_e3f6c0c1'],
+        capabilityTargetIds: ['parameterDesign'],
+        qualityTargetIds: ['root-locus-sketching'],
+        segmentRefs: ['root-locus-review'],
+        citationTargets: ['course-content/runtime/knowledge/cards/nodes/root-locus-review.md'],
+        pathTarget: '/knowledge?node=root-locus-review',
+        estimatedTimeMinutes: 5,
+        evidenceInstrumentation: ['knowledge_card_view'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:root-locus-review',
+        versionRef: 'runtime-knowledge-card.v1',
+        generatedBy: 'local-model',
+        humanConfirmed: false,
+      }, {
+        id: 'textbook-search-document:long-image-description',
+        title: `> Image description: ${'The figure describes a control-system response with axes and annotations. '.repeat(8)}`,
+        family: 'textbook-search-document',
+        sourcePathOrUrl: '/resources/textbook/long-image-description',
+        sourceRecord: 'long-image-description',
+        knowledgeNodeIds: ['根轨迹法_2_e3f6c0c1'],
+        capabilityTargetIds: ['parameterDesign'],
+        segmentRefs: ['long-image-description'],
+        citationTargets: ['/resources/textbook/long-image-description'],
+        pathTarget: '/resources/textbook/long-image-description',
+        estimatedTimeMinutes: 4,
+        evidenceInstrumentation: ['textbook_search_document_view'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:long-image-description',
+        versionRef: 'textbook-search-document.v1',
+        generatedBy: 'external-tool',
+        humanConfirmed: false,
+      }],
+    });
+
+    const { workqueues } = result;
+    expect(workqueues).toMatchObject({
+      auditMissingFieldRows: 3,
+      queuedResources: 3,
+      primaryQueueItems: 3,
+      dependentQueueItems: 4,
+      byMissingFieldCode: {
+        'missing-content-hash': 1,
+        'missing-human-review': 3,
+        'provisional-metadata': 3,
+      },
+      byFollowupBucket: {
+        'repair-resource-identity-bindings': 1,
+        'review-runtime-media-handout-dispositions': 6,
+      },
+    });
+    expect(workqueues.queues.reduce((total, queue) => total + queue.total, 0)).toBe(7);
+    expect(workqueues.queues.flatMap((queue) => queue.items).filter((item) => item.queueRole === 'primary').map((item) => item.resourceId)).toEqual([
+      'knowledge-card:root-locus-review',
+      'runtime-media:3-5:transient-plot.png',
+      'textbook-search-document:long-image-description',
+    ]);
+    for (const queue of workqueues.queues) {
+      expect(queue.total).toBe(queue.items.length);
+      for (const item of queue.items) {
+        expect(item.privacyMinimized).toBe(true);
+        expect(item.rawContentIncluded).toBe(false);
+        expect(item.suggestedReviewerAction.length).toBeGreaterThan(0);
+      }
+    }
+
+    const runtimeMediaItem = workqueues.queues
+      .flatMap((queue) => queue.items)
+      .find((item) => item.resourceId === 'runtime-media:3-5:transient-plot.png' && item.queueRole === 'primary');
+    expect(runtimeMediaItem).toMatchObject({
+      sourceFamily: 'runtime-lesson-media',
+      graphDomain: 'runtime-media',
+      learningGoalIds: ['parameterDesign'],
+      sourceHash: null,
+      sourceVersionRef: 'runtime-lesson-media.v1',
+      queueRole: 'primary',
+      missingFieldCode: 'missing-content-hash',
+      primaryMissingFieldCode: 'missing-content-hash',
+      primaryFollowupBucket: 'repair-resource-identity-bindings',
+      dependencyState: 'needs-human-review',
+      dependencyHints: expect.arrayContaining([
+        'source-evidence-before-semantic-review',
+        'independent-human-review-before-path-eligibility',
+      ]),
+      currentBlockers: expect.arrayContaining([
+        'missing-content-hash',
+        'missing-human-review',
+      ]),
+    });
+    const textbookItem = workqueues.queues
+      .flatMap((queue) => queue.items)
+      .find((item) => item.resourceId === 'textbook-search-document:long-image-description');
+    expect(textbookItem?.title).toBe('long-image-description');
+    expect(textbookItem?.title).not.toContain('Image description');
+  });
+
+  it('downgrades human-confirmed rows without independent review evidence', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'external:template-confirmed-control-note',
+        title: 'Template confirmed control note',
+        family: 'external-resource',
+        sourcePathOrUrl: 'https://example.edu/template-confirmed-control-note',
+        knowledgeNodeIds: ['Bode图_1_1'],
+        capabilityTargetIds: ['control-correction:time-domain-targets'],
+        segmentRefs: ['template-confirmed-control-note'],
+        citationTargets: ['https://example.edu/template-confirmed-control-note'],
+        pathTarget: 'https://example.edu/template-confirmed-control-note',
+        estimatedTimeMinutes: 4,
+        evidenceInstrumentation: ['external_resource_access'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:template-confirmed',
+        versionRef: 'external-resource.v1',
+        generatedBy: 'local-model',
+        humanConfirmed: true,
+        reviewEvidence: {
+          reviewerId: 'template-reviewer',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'template-batch',
+          confidence: 0.9,
+        },
+      }],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      reviewStatus: 'stale',
+      completionMethod: 'local-model-assisted',
+      missingFieldCodes: expect.arrayContaining([
+        'missing-human-review',
+        'stale-review',
+        'provisional-metadata',
+      ]),
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: expect.arrayContaining([
+          'missing-human-review',
+          'stale-review',
+          'provisional-metadata',
+        ]),
+      },
+    });
+    expect(result.integrityDiagnostics).toMatchObject({
+      humanConfirmedRows: 0,
+      invalidHumanConfirmedRows: 0,
+      issues: [],
+    });
+  });
+
   it('keeps provisional metadata out of PlanningUnit eligibility', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
@@ -293,7 +512,7 @@ describe('resource field completion audit', () => {
     });
 
     expect(result.rows[0]).toMatchObject({
-      reviewStatus: 'human-confirmed',
+      reviewStatus: 'stale',
       evidenceContract: {
         complete: false,
         missingFields: expect.arrayContaining([
@@ -343,7 +562,7 @@ describe('resource field completion audit', () => {
         reviewedVersionRef: null,
         reviewedAt: '2026-06-22T00:00:00.000Z',
       },
-      reviewStatus: 'human-confirmed',
+      reviewStatus: 'stale',
       missingFieldCodes: expect.arrayContaining([
         'missing-content-hash',
         'missing-version-ref',
@@ -386,6 +605,9 @@ describe('resource field completion audit', () => {
           reviewerRole: 'curriculum-data-governance',
           reviewedAt: '2026-07-03T00:00:00.000Z',
           reviewBatchId: 'review-batch-1',
+          reviewerVisibleRationale: 'Teacher verified graph fit and path eligibility against the source resource.',
+          independentEvidenceRef: 'review-packet:external-confirmed-versioned',
+          promptOrManifestHash: 'sha256:review-prompt',
           confidence: 0.96,
         },
       }],
@@ -404,6 +626,9 @@ describe('resource field completion audit', () => {
         reviewerRole: 'curriculum-data-governance',
         reviewBatchId: 'review-batch-1',
         generationToolOrModel: 'local-model',
+        reviewerVisibleRationale: 'Teacher verified graph fit and path eligibility against the source resource.',
+        independentEvidenceRef: 'review-packet:external-confirmed-versioned',
+        promptOrManifestHash: 'sha256:review-prompt',
         confidence: 0.96,
       },
       evidenceContract: {
@@ -497,11 +722,15 @@ describe('resource field completion audit', () => {
     expect(matrix.rows).toHaveLength(9);
     expect(matrix.totals.reviewedBindings).toBe(reviewedBindings.length);
     expect(matrix.totals.limited).toBe(9);
-    expect(reviewedBindings.length).toBeGreaterThan(0);
-    expect(reviewedBindings.some((binding) => (
-      binding.resourceId === 'runtime-step:1-1:step-04' &&
-      binding.pathEligible === true
-    ))).toBe(true);
+    expect(reviewedBindings).toEqual([]);
+    expect(auditRowById.get('runtime-step:1-1:step-04')).toMatchObject({
+      reviewStatus: 'stale',
+      pathEligibility: {
+        current: false,
+        masteryAffecting: false,
+        blockedBy: expect.arrayContaining(['missing-human-review', 'stale-review']),
+      },
+    });
     for (const row of matrix.rows) {
       expect(row.requiredCategories).toEqual(expect.arrayContaining([
         'concept',

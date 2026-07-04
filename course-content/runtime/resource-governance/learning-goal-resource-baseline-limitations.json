@@ -20,7 +20,7 @@
     "learningGoals": 9,
     "limited": 9,
     "missingCategoryCounts": {
-      "concept": 3,
+      "concept": 9,
       "diagnostic": 9,
       "practice": 9,
       "checkpoint": 9,
@@ -34,8 +34,9 @@
       "learningGoalId": "control-correction",
       "title": "控制系统校正设计",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation,terminal-validation",
+      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation,terminal-validation",
       "missingBaselineCategories": [
+        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -121,6 +122,13 @@
         "registry:widget-argument-principle",
         "registry:widget-physics-elec",
         "registry:widget-physics-mech",
+        "runtime-step:1-1:step-04",
+        "runtime-step:1-1:step-05",
+        "runtime-step:1-1:step-06",
+        "runtime-step:1-1:step-07",
+        "runtime-step:1-1:step-08",
+        "runtime-step:1-1:step-09",
+        "runtime-step:1-1:step-10",
         "runtime-step:2-2:step-09",
         "runtime-step:2-2:step-10",
         "runtime-step:2-2:step-11",
@@ -199,7 +207,7 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 6,
-        "reviewedBindingCount": 3,
+        "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
           "to": "2026-07-03T09:13:39.204Z"
@@ -210,8 +218,9 @@
       "learningGoalId": "frequency-response-foundations",
       "title": "频率响应基础",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation",
+      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation",
       "missingBaselineCategories": [
+        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -237,6 +246,11 @@
         "runtime-media:1-1:1-1-slides",
         "runtime-media:2-3:2-3-slides",
         "runtime-media:2-4:2-4-slides",
+        "runtime-step:1-1:step-04",
+        "runtime-step:1-1:step-05",
+        "runtime-step:1-1:step-06",
+        "runtime-step:1-1:step-07",
+        "runtime-step:1-1:step-08",
         "runtime-step:2-3:step-01",
         "runtime-step:2-3:step-02",
         "runtime-step:2-3:step-03",
@@ -258,7 +272,7 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 5,
-        "reviewedBindingCount": 3,
+        "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
           "to": "2026-07-03T09:13:39.204Z"
@@ -269,8 +283,9 @@
       "learningGoalId": "feedback-loop-concept-foundations",
       "title": "反馈与闭环结构基础",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation",
+      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation",
       "missingBaselineCategories": [
+        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -372,6 +387,13 @@
         "registry:widget-argument-principle",
         "registry:widget-physics-elec",
         "registry:widget-physics-mech",
+        "runtime-step:1-1:step-04",
+        "runtime-step:1-1:step-05",
+        "runtime-step:1-1:step-06",
+        "runtime-step:1-1:step-07",
+        "runtime-step:1-1:step-08",
+        "runtime-step:1-1:step-09",
+        "runtime-step:1-1:step-10",
         "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
         "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
         "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
@@ -399,7 +421,7 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 5,
-        "reviewedBindingCount": 3,
+        "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
           "to": "2026-07-03T09:13:39.204Z"
@@ -410,8 +432,9 @@
       "learningGoalId": "transfer-function-modeling-foundations",
       "title": "传递函数建模基础",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation",
+      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation",
       "missingBaselineCategories": [
+        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -517,6 +540,13 @@
         "registry:widget-argument-principle",
         "registry:widget-physics-elec",
         "registry:widget-physics-mech",
+        "runtime-step:1-1:step-04",
+        "runtime-step:1-1:step-05",
+        "runtime-step:1-1:step-06",
+        "runtime-step:1-1:step-07",
+        "runtime-step:1-1:step-08",
+        "runtime-step:1-1:step-09",
+        "runtime-step:1-1:step-10",
         "runtime-step:1-2:step-01",
         "runtime-step:1-2:step-02",
         "runtime-step:1-2:step-03",
@@ -553,7 +583,7 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 5,
-        "reviewedBindingCount": 3,
+        "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
           "to": "2026-07-03T09:13:39.204Z"
@@ -564,8 +594,9 @@
       "learningGoalId": "time-domain-response-analysis",
       "title": "时域响应与性能指标分析",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation",
+      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation",
       "missingBaselineCategories": [
+        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -679,6 +710,13 @@
         "registry:widget-argument-principle",
         "registry:widget-physics-elec",
         "registry:widget-physics-mech",
+        "runtime-step:1-1:step-04",
+        "runtime-step:1-1:step-05",
+        "runtime-step:1-1:step-06",
+        "runtime-step:1-1:step-07",
+        "runtime-step:1-1:step-08",
+        "runtime-step:1-1:step-09",
+        "runtime-step:1-1:step-10",
         "runtime-step:2-2:step-09",
         "runtime-step:2-2:step-10",
         "runtime-step:2-2:step-11",
@@ -721,7 +759,7 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 5,
-        "reviewedBindingCount": 3,
+        "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
           "to": "2026-07-03T09:13:39.204Z"
@@ -732,8 +770,9 @@
       "learningGoalId": "root-locus-analysis-foundations",
       "title": "根轨迹分析基础",
       "severity": "blocking",
-      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation",
+      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation",
       "missingBaselineCategories": [
+        "concept",
         "diagnostic",
         "practice",
         "checkpoint",
@@ -847,6 +886,13 @@
         "registry:widget-argument-principle",
         "registry:widget-physics-elec",
         "registry:widget-physics-mech",
+        "runtime-step:1-1:step-04",
+        "runtime-step:1-1:step-05",
+        "runtime-step:1-1:step-06",
+        "runtime-step:1-1:step-07",
+        "runtime-step:1-1:step-08",
+        "runtime-step:1-1:step-09",
+        "runtime-step:1-1:step-10",
         "runtime-step:3-5:step-01",
         "runtime-step:3-5:step-02",
         "runtime-step:3-5:step-03",
@@ -888,7 +934,7 @@
       "studentSafeReason": "This goal needs more reviewed learning resources before a production path can be generated.",
       "denominator": {
         "requiredCategoryCount": 5,
-        "reviewedBindingCount": 3,
+        "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
           "to": "2026-07-03T09:13:39.204Z"
