@@ -14,6 +14,6 @@ The runtime also needs to preserve compatibility: historical answer snapshots mu
 
 ## Impact
 
-- Depends on unified catalog, semantic review workflow, and LearningGoal checkpoint item completion.
+- Depends on unified catalog and semantic review workflow. Complete LearningGoal checkpoint coverage improves happy-path coverage but is not a hard prerequisite because incomplete catalog coverage must produce explicit limitations instead of silent fallback.
 - Modifies adaptive assessment persistence and adaptive learning path planning behavior.
 - Preserves historical answer readability and compatibility for existing clients.

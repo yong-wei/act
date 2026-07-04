@@ -19,7 +19,6 @@ blocking:
   - close-graph-resource-coverage-backlog
   - close-resource-disposition-review-backlog
   - complete-resource-evidence-lineage-readiness
-  - wire-adaptive-engine-to-reviewed-item-catalog
 openspec_path: openspec/changes/complete-learning-goal-assessment-baselines
 risk: high
 area: assessment

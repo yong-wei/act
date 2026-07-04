@@ -3,14 +3,12 @@ change_id: wire-adaptive-engine-to-reviewed-item-catalog
 claim_branch: wire-adaptive-engine-to-reviewed-item-catalog
 series: adaptive-assessment-item-bank
 coupling_group: adaptive-assessment-item-bank
-execution_mode: stacked
+execution_mode: isolated
 base_branch: integration
 required_branch:
-depends_on:
-  - complete-learning-goal-assessment-baselines
+depends_on: []
 parent_issue:
-blocked_by:
-  - complete-learning-goal-assessment-baselines
+blocked_by: []
 blocking:
   - complete-resource-evidence-lineage-readiness
   - enforce-all-resource-path-readiness-gate
