@@ -1678,7 +1678,7 @@ describe('learning path round API routes', () => {
     mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(reviewedAdaptiveAssessmentAnswer({
       id: 'answer-remediation',
       questionId: 'checkpoint-authored-remediation-01',
-      purpose: 'remediation',
+      purpose: 'practice',
       nodeId: 'adaptive-quiz:control-target-check',
       questionScope: 'remediation',
       catalogStage: 'remediation',

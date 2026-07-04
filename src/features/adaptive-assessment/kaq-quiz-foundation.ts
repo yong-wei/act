@@ -322,6 +322,7 @@ function checkpointAuthoredPurpose(stagePurpose: string): KaqQuizPurpose {
   if (stagePurpose === 'readiness' || stagePurpose === 'readiness-gate') return 'readiness-gate';
   if (stagePurpose === 'precheck') return 'precheck';
   if (stagePurpose === 'checkpoint') return 'checkpoint';
+  if (stagePurpose === 'remediation') return 'remediation';
   return 'practice';
 }
 

@@ -570,7 +570,6 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
   const readinessCompletionEligible = input.resourceType === 'adaptive_quiz' && readinessGateEligible;
   const remediationCompletionEligible = reviewedKaqAnswer &&
     input.resourceType === 'adaptive_quiz' &&
-    kaqPurpose === 'remediation' &&
     matchesAdaptiveAssessmentCatalogPathStage(answer, input, 'remediation');
   const pathCompletionEligible = readinessCompletionEligible || checkpointEligible || remediationCompletionEligible;
   const learningGoalMatches = typeof input.goalId === 'string' && input.goalId.trim().length > 0

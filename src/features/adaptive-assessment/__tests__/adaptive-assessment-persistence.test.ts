@@ -344,6 +344,13 @@ describe('K/A/Q adaptive assessment persistence', () => {
       pathCompletionEligible: true,
       evidenceAuthority: 'path-assessment',
     });
+    const factPayload = db.learningFact.createMany.mock.calls[0][0].data[0].contextJson.adaptiveAssessment.kaqQuizEvidence;
+    expect(factPayload).toMatchObject({
+      quizSetId: expect.stringContaining(':remediation'),
+      outcomeRefs: expect.arrayContaining([
+        expect.stringContaining(':remediation:'),
+      ]),
+    });
   });
 
   it('excludes historical provisional answers from reviewed mastery rebuilds', async () => {
