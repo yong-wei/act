@@ -256,14 +256,16 @@ export default function ProfilePage() {
       title="个人中心"
       subtitle="能力画像、成长记录与证据复盘"
       activeHref="/profile"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心' }]}
       userMenu={<UserMenu user={profile.user} />}
       className="surface-page"
     >
       <section
-      data-route-family={learnerDataShell.routeFamily}
-      data-route-identity={learnerDataShell.routeIdentity}
-      data-learner-record-surface={learnerDataShell.archetype}
-    >
+        data-commercial-student-entry-route="/profile"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+      >
         <div
           className="surface-card mb-8 p-6"
           data-learner-record-priority="current-path"
