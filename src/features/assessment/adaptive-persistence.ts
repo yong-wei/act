@@ -9,6 +9,10 @@ import {
   buildKaqQuizQuestionMetadata,
   materializeKaqQuizOutcomeEvidence,
 } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import {
+  findAdaptiveAssessmentCatalogSnapshot,
+  type AdaptiveAssessmentCatalogSnapshot,
+} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 
 import {
   buildSubmitAnswerResult,
@@ -125,6 +129,29 @@ export interface DurableSubmitAnswerResult extends SubmitAnswerResult {
   durableSessionId?: string;
   durableAnswerId?: string;
   algorithmVersion?: string;
+  adaptiveAssessmentRef?: AdaptiveAssessmentOutcomeRef;
+}
+
+export interface AdaptiveAssessmentOutcomeRef {
+  kind: 'AdaptiveAssessmentAnswer';
+  provenance: 'official';
+  id: string;
+  answerId: string;
+  sourceId: string;
+  questionId: string;
+  questionRefId: string;
+  catalogItemId?: string;
+  contentHash?: string;
+  score: number;
+  isCorrect: boolean;
+  reviewState: 'reviewed' | 'provisional' | 'legacy';
+  eligibilityState: string;
+  readinessGateEligible: boolean;
+  terminalValidationEligible: boolean;
+  pathCompletionEligible: boolean;
+  evidenceAuthority: 'path-assessment' | 'low-stakes-practice-only' | 'legacy-compatible';
+  algorithmVersion: string;
+  answeredAt: string;
 }
 
 type AdaptiveAssessmentPersistenceEnv = Record<string, string | undefined>;
@@ -134,6 +161,7 @@ interface PersistedSubmission {
   durableAnswerId: string;
   algorithmVersion: string;
   masteryUpdateCount: number;
+  adaptiveAssessmentRef?: AdaptiveAssessmentOutcomeRef;
 }
 
 type PersistedAssessmentAnswerWithSession = PersistedAssessmentAnswerRow & {
@@ -152,7 +180,11 @@ function questionSource(questionId: string): string {
   return questionId.startsWith('generated-q-') ? 'generated' : 'preset';
 }
 
-function questionMetadataContentHash(question: SubmittedAnswerDetails['question']): string {
+function questionMetadataContentHash(
+  question: SubmittedAnswerDetails['question'],
+  catalogSnapshot: AdaptiveAssessmentCatalogSnapshot | null,
+): string {
+  const kaqMetadata = buildKaqQuizQuestionMetadata(question);
   const snapshot = {
     source: questionSource(question.id),
     questionType: question.type,
@@ -160,10 +192,132 @@ function questionMetadataContentHash(question: SubmittedAnswerDetails['question'
     knowledgeTags: [...question.knowledgeTags].sort(),
     difficulty: Number(question.difficulty.toFixed(6)),
     optionCount: question.options.length,
-    kaq: buildKaqQuizQuestionMetadata(question).immutableContentHash,
+    kaq: kaqMetadata.immutableContentHash,
+    adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
+      kaqMetadata,
+      catalogSnapshot,
+      generatedMetadata: question.generatedMetadata,
+    }),
   };
 
   return createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+}
+
+function buildAdaptiveAssessmentItemRefMetadata(params: {
+  kaqMetadata: ReturnType<typeof buildKaqQuizQuestionMetadata>;
+  catalogSnapshot: AdaptiveAssessmentCatalogSnapshot | null;
+  generatedMetadata: SubmittedAnswerDetails['question']['generatedMetadata'];
+}) {
+  if (params.catalogSnapshot) {
+    return {
+      catalogBacked: true,
+      snapshotVersion: params.catalogSnapshot.versionRefs.adaptiveAssessmentSnapshotVersion ?? 'adaptive-assessment-item-ref.v1',
+      catalogItemId: params.catalogSnapshot.catalogItemId,
+      sourceFamily: params.catalogSnapshot.sourceFamily,
+      sourceId: params.catalogSnapshot.sourceId,
+      sourceAnchor: params.catalogSnapshot.sourceAnchor,
+      sourceLineage: params.catalogSnapshot.sourceLineage,
+      contentHash: params.catalogSnapshot.contentHash,
+      contentHashAlgorithm: params.catalogSnapshot.contentHashAlgorithm,
+      reviewState: params.catalogSnapshot.reviewState,
+      eligibilityState: params.catalogSnapshot.eligibilityState,
+      allowedStages: params.catalogSnapshot.allowedStages,
+      semanticRefs: params.catalogSnapshot.semanticRefs,
+      reviewDecision: params.catalogSnapshot.reviewDecision,
+      versionRefs: params.catalogSnapshot.versionRefs,
+      relationship: params.catalogSnapshot.relationship,
+      catalogUpdatesRewriteHistoricalAnswers: false,
+    };
+  }
+
+  return {
+    catalogBacked: false,
+    snapshotVersion: 'adaptive-assessment-item-ref.v1',
+    catalogItemId: null,
+    contentHash: null,
+    reviewState: params.kaqMetadata.review.state,
+    eligibilityState: params.generatedMetadata ? 'generated-provisional' : 'legacy-compatible',
+    evidenceAuthority: params.generatedMetadata ? 'low-stakes-practice-only' : 'legacy-compatible',
+    relationship: {
+      relationship: 'answer-time-snapshot',
+      immutable: true,
+      mayReferenceCatalogItemId: false,
+      mayReferenceContentHash: false,
+      catalogUpdatesRewriteHistoricalAnswers: false,
+    },
+  };
+}
+
+function buildAdaptiveAssessmentOutcomeRef(params: {
+  details: SubmittedAnswerDetails;
+  answerId: string;
+  questionRefId: string;
+  score: number;
+  answeredAt: Date;
+  catalogSnapshot: AdaptiveAssessmentCatalogSnapshot | null;
+  kaqQuizEvidence: ReturnType<typeof materializeKaqQuizOutcomeEvidence>;
+}): AdaptiveAssessmentOutcomeRef {
+  const catalogSnapshot = params.catalogSnapshot;
+  const reviewState = catalogSnapshot
+    ? 'reviewed'
+    : params.kaqQuizEvidence.learningFactEligible
+      ? 'legacy'
+      : 'provisional';
+  const pathAssessmentEligible = catalogSnapshot !== null &&
+    catalogSnapshot.reviewState === 'path-eligible' &&
+    catalogSnapshot.eligibilityState === 'path-eligible' &&
+    catalogSnapshotMatchesPathContext(catalogSnapshot, params.details.pathContext);
+  const readinessGateEligible = pathAssessmentEligible &&
+    params.kaqQuizEvidence.readinessGateEligible;
+  const terminalValidationEligible = pathAssessmentEligible &&
+    params.kaqQuizEvidence.terminalValidationEligible;
+
+  return {
+    kind: 'AdaptiveAssessmentAnswer',
+    provenance: 'official',
+    id: params.answerId,
+    answerId: params.answerId,
+    sourceId: params.answerId,
+    questionId: params.details.question.id,
+    questionRefId: params.questionRefId,
+    ...(catalogSnapshot ? {
+      catalogItemId: catalogSnapshot.catalogItemId,
+      contentHash: catalogSnapshot.contentHash,
+    } : {}),
+    score: params.score,
+    isCorrect: params.details.record.isCorrect,
+    reviewState,
+    eligibilityState: catalogSnapshot?.eligibilityState ??
+      (params.kaqQuizEvidence.learningFactEligible ? 'legacy-compatible' : 'generated-provisional'),
+    readinessGateEligible,
+    terminalValidationEligible,
+    pathCompletionEligible: pathAssessmentEligible,
+    evidenceAuthority: pathAssessmentEligible ? 'path-assessment' :
+      params.kaqQuizEvidence.learningFactEligible ? 'legacy-compatible' : 'low-stakes-practice-only',
+    algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+    answeredAt: params.answeredAt.toISOString(),
+  };
+}
+
+function catalogSnapshotMatchesPathContext(
+  snapshot: AdaptiveAssessmentCatalogSnapshot,
+  pathContext: SubmittedAnswerDetails['pathContext'],
+): boolean {
+  if (!pathContext) return false;
+  const goalId = typeof pathContext.goalId === 'string' && pathContext.goalId.trim().length > 0
+    ? pathContext.goalId.trim()
+    : null;
+  if (!goalId) return false;
+  if (goalId && !snapshot.semanticRefs.learningGoalIds.includes(goalId)) return false;
+  const questionScope = pathContext.questionScope;
+  if (
+    questionScope === 'readiness' ||
+    questionScope === 'checkpoint' ||
+    questionScope === 'remediation'
+  ) {
+    return snapshot.allowedStages.includes(questionScope);
+  }
+  return false;
 }
 
 const QUESTION_TYPES = new Set<QuestionType>([
@@ -312,6 +466,7 @@ function buildAssessmentLearningEvent(params: {
   answerId: string;
   questionRefId: string;
   score: number;
+  adaptiveAssessmentRef: AdaptiveAssessmentOutcomeRef;
   masteryPosterior?: number;
   masteryConfidence?: number;
 }): LearningEvent {
@@ -347,6 +502,7 @@ function buildAssessmentLearningEvent(params: {
       answerId: params.answerId,
       questionId: params.details.question.id,
       questionRefId: params.questionRefId,
+      adaptiveAssessmentRef: params.adaptiveAssessmentRef,
       questionSnapshotId: kaqQuizEvidence.questionSnapshotId,
       quizSetId: kaqQuizEvidence.quizSetId,
       attemptKey: kaqQuizEvidence.attemptKey,
@@ -503,8 +659,18 @@ async function persistAdaptiveAssessmentSubmission(
     }
   }
 
-  const contentHash = questionMetadataContentHash(effectiveDetails.question);
+  const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(effectiveDetails.question.id);
+  const contentHash = questionMetadataContentHash(effectiveDetails.question, catalogSnapshot);
   const kaqMetadata = buildKaqQuizQuestionMetadata(effectiveDetails.question);
+  const itemRefMetadata = {
+    kaq: kaqMetadata,
+    adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
+      kaqMetadata,
+      catalogSnapshot,
+      generatedMetadata: effectiveDetails.question.generatedMetadata,
+    }),
+    ...(effectiveDetails.question.generatedMetadata ? { generatedMetadata: effectiveDetails.question.generatedMetadata } : {}),
+  };
   const questionRef = await tx.adaptiveAssessmentItemRef.upsert({
     where: {
       questionId_algorithmVersion_contentHash: {
@@ -513,7 +679,9 @@ async function persistAdaptiveAssessmentSubmission(
         contentHash,
       },
     },
-    update: {},
+    update: {
+      metadata: itemRefMetadata,
+    },
     create: {
       questionId: effectiveDetails.question.id,
       contentHash,
@@ -524,10 +692,7 @@ async function persistAdaptiveAssessmentSubmission(
       difficulty: effectiveDetails.question.difficulty,
       optionCount: effectiveDetails.question.options.length,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-      metadata: {
-        kaq: kaqMetadata,
-        ...(effectiveDetails.question.generatedMetadata ? { generatedMetadata: effectiveDetails.question.generatedMetadata } : {}),
-      },
+      metadata: itemRefMetadata,
     },
   });
 
@@ -598,12 +763,30 @@ async function persistAdaptiveAssessmentSubmission(
   });
   const createdAnswer = !existingAnswer && answer.answeredAt.getTime() === answeredAt.getTime();
   if (!createdAnswer) {
+    const kaqQuizEvidence = materializeKaqQuizOutcomeEvidence({
+      question: effectiveDetails.question,
+      sessionId: effectiveDetails.record.sessionId,
+      answerId: answer.id,
+      isCorrect: effectiveDetails.record.isCorrect,
+      score,
+      scoringVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      occurredAt: answeredAt.toISOString(),
+    });
     return {
       durableSessionId: session.id,
       durableAnswerId: answer.id,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       masteryUpdateCount: 0,
       result,
+      adaptiveAssessmentRef: buildAdaptiveAssessmentOutcomeRef({
+        details: effectiveDetails,
+        answerId: answer.id,
+        questionRefId: questionRef.id,
+        score,
+        answeredAt,
+        catalogSnapshot,
+        kaqQuizEvidence,
+      }),
     };
   }
   const kaqQuizEvidence = materializeKaqQuizOutcomeEvidence({
@@ -622,6 +805,15 @@ async function persistAdaptiveAssessmentSubmission(
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       masteryUpdateCount: 0,
       result,
+      adaptiveAssessmentRef: buildAdaptiveAssessmentOutcomeRef({
+        details: effectiveDetails,
+        answerId: answer.id,
+        questionRefId: questionRef.id,
+        score,
+        answeredAt,
+        catalogSnapshot,
+        kaqQuizEvidence,
+      }),
     };
   }
 
@@ -685,6 +877,15 @@ async function persistAdaptiveAssessmentSubmission(
     ...effectiveDetails,
     result,
   };
+  const adaptiveAssessmentRef = buildAdaptiveAssessmentOutcomeRef({
+    details: durableDetails,
+    answerId: answer.id,
+    questionRefId: questionRef.id,
+    score,
+    answeredAt,
+    catalogSnapshot,
+    kaqQuizEvidence,
+  });
 
   await persistCoreLearningFact(
     tx,
@@ -693,6 +894,7 @@ async function persistAdaptiveAssessmentSubmission(
       answerId: answer.id,
       questionRefId: questionRef.id,
       score,
+      adaptiveAssessmentRef,
       masteryPosterior,
       masteryConfidence,
     }),
@@ -704,6 +906,7 @@ async function persistAdaptiveAssessmentSubmission(
     algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
     masteryUpdateCount: masteryResult.count,
     result,
+    adaptiveAssessmentRef,
   };
   };
 
@@ -722,6 +925,7 @@ export async function submitAnswerDurably(
     durableSessionId: persisted.durableSessionId,
     durableAnswerId: persisted.durableAnswerId,
     algorithmVersion: persisted.algorithmVersion,
+    adaptiveAssessmentRef: persisted.adaptiveAssessmentRef,
   };
 }
 

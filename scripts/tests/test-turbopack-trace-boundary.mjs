@@ -17,7 +17,6 @@ const unexpectedStandaloneEntries = [
   path.join('course-content', 'authoring', 'lessons'),
   path.join('course-content', 'authoring', 'shared', 'homework-problems'),
   path.join('course-content', 'authoring', 'shared', 'schema'),
-  path.join('course-content', 'runtime'),
   path.join('course-content', 'docs'),
   path.join('course-content', 'notes'),
   path.join('course-content', 'questions'),
@@ -33,6 +32,8 @@ const unexpectedStandaloneEntries = [
 
 const requiredStandaloneFiles = [
   path.join('course-content', 'authoring', 'shared', 'lesson-id-map.json'),
+  path.join('course-content', 'runtime', 'resource-governance', 'adaptive-assessment-item-catalog-items.jsonl'),
+  path.join('course-content', 'runtime', 'resource-governance', 'assessment-item-semantic-review-snapshots.jsonl'),
 ];
 
 const externalRuntimeMountPoint = path.join('course-content', 'runtime');
@@ -48,6 +49,10 @@ const unexpectedTraceFragments = [
   'course-content/CLAUDE.md',
   'course-content/README.md',
 ];
+const allowedRuntimeTraceEntries = new Set([
+  'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
+  'course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
+]);
 
 function walkFiles(dir, predicate, acc = []) {
   if (!fs.existsSync(dir)) return acc;
@@ -106,6 +111,7 @@ for (const traceFile of nftFiles) {
   const files = Array.isArray(payload.files) ? payload.files : [];
   const offender = files.find((entry) => {
     const normalized = entry.replaceAll('\\', '/').replace(/^(\.\.\/)+/, '');
+    if (allowedRuntimeTraceEntries.has(normalized)) return false;
     return unexpectedTraceFragments.some((fragment) => normalized.startsWith(fragment));
   });
   assert.equal(

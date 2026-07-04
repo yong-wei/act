@@ -1,6 +1,6 @@
 {
   "artifactVersion": "kaq-quiz-foundation-bank.v1",
-  "generatedAt": "2026-06-24T12:04:56.402Z",
+  "generatedAt": "2026-07-04T06:42:14.039Z",
   "rows": [
     {
       "learningGoalId": null,
@@ -10,7 +10,7 @@
       "denominator": 0,
       "sourceWindow": {
         "from": null,
-        "to": "2026-06-22T15:15:02.987Z"
+        "to": "2026-07-03T09:13:39.204Z"
       },
       "versionRefs": {
         "artifactVersioningVersion": "kaq-artifact-versioning.v1",

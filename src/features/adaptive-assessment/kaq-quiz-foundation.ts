@@ -11,7 +11,7 @@ import { buildKaqArtifactVersionRefs, type KaqArtifactVersionRefs } from '@/lib/
 
 export const KAQ_QUIZ_FOUNDATION_BANK_VERSION = 'kaq-quiz-foundation-bank.v1';
 
-export type KaqQuizPurpose = 'precheck' | 'practice' | 'checkpoint' | 'readiness-gate';
+export type KaqQuizPurpose = 'precheck' | 'practice' | 'checkpoint' | 'readiness-gate' | 'remediation';
 export type KaqQuizReviewState = 'reviewed' | 'provisional';
 export type KaqQuizConfidenceLevel = 'high' | 'medium' | 'low';
 
@@ -181,7 +181,8 @@ export interface KaqQuizFoundationArtifacts {
   };
 }
 
-const PURPOSES: KaqQuizPurpose[] = ['readiness-gate', 'precheck', 'practice', 'checkpoint'];
+const PURPOSES: KaqQuizPurpose[] = ['readiness-gate', 'precheck', 'practice', 'checkpoint', 'remediation'];
+const FALLBACK_QUESTION_PURPOSES: KaqQuizPurpose[] = ['readiness-gate', 'precheck', 'practice', 'checkpoint'];
 
 const FALLBACK_GOALS = [
   'control-correction',
@@ -322,6 +323,7 @@ function checkpointAuthoredPurpose(stagePurpose: string): KaqQuizPurpose {
   if (stagePurpose === 'readiness' || stagePurpose === 'readiness-gate') return 'readiness-gate';
   if (stagePurpose === 'precheck') return 'precheck';
   if (stagePurpose === 'checkpoint') return 'checkpoint';
+  if (stagePurpose === 'remediation') return 'remediation';
   return 'practice';
 }
 
@@ -405,7 +407,7 @@ export function buildKaqQuizQuestionMetadata(
   const sourceHash = stableHash(questionContentSnapshot(question));
   const reviewState: KaqQuizReviewState = isGeneratedQuestion(question) ? 'provisional' : 'reviewed';
   const ordinal = questionOrdinal(question.id);
-  const purpose = PURPOSES[ordinal % PURPOSES.length];
+  const purpose = FALLBACK_QUESTION_PURPOSES[ordinal % FALLBACK_QUESTION_PURPOSES.length];
   const learningGoalIds = compactStrings(question.generatedMetadata?.learningGoalIds).length
     ? compactStrings(question.generatedMetadata?.learningGoalIds)
     : [row.learningGoalId];

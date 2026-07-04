@@ -1181,7 +1181,7 @@ function isTrustedAdaptiveAssessmentOutcomeRef(value: unknown): boolean {
   const provenance = readProvenance(record);
   return kind === 'AdaptiveAssessmentAnswer' &&
     provenance === 'official' &&
-    record.readinessGateEligible === true &&
+    record.pathCompletionEligible === true &&
     firstString(record.reviewState) === 'reviewed' &&
     isPassingAdaptiveAssessmentOutcomeRef(record) &&
     firstString(record.id, record.answerId, record.sourceId) !== undefined &&
@@ -1198,9 +1198,7 @@ function isTrustedAdaptiveAssessmentResultRef(resourceType: string, value: unkno
     isPassingAdaptiveAssessmentOutcomeRef(record) &&
     firstString(record.id, record.answerId, record.sourceId) !== undefined &&
     firstString(record.mismatchReason) === undefined &&
-    (resourceType === 'checkpoint'
-      ? record.pathCompletionEligible === true
-      : record.readinessGateEligible === true);
+    record.pathCompletionEligible === true;
 }
 
 function isPassingAdaptiveAssessmentOutcomeRef(record: Record<string, unknown>): boolean {
