@@ -1261,9 +1261,10 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'TeacherLayout',
-      disposition: 'scheduled-replacement',
+      disposition: 'adapted',
       sourceFile: 'src/app/teacher/layout.tsx',
-      removalCondition: 'Teacher layout delegates header, cockpit navigation, and account actions to AppShell.',
+      owningChange: 'migrate-role-workspaces-to-appshell-navigation',
+      removalCondition: 'Teacher layout delegates header, cockpit navigation, theme switching, and account actions to RoleWorkspaceShell/AppShell.',
     },
   }),
   primaryRoute({
@@ -1510,9 +1511,10 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'AdminConsoleHeader',
-      disposition: 'scheduled-replacement',
-      sourceFile: 'src/features/admin/admin-console-home.tsx',
-      removalCondition: 'Admin console home maps status notes and actions into AppShell AppHeader and PlatformSurface slots.',
+      disposition: 'adapted',
+      sourceFile: 'src/app/admin/layout.tsx',
+      owningChange: 'migrate-role-workspaces-to-appshell-navigation',
+      removalCondition: 'Admin layout delegates primary shell, theme switching, and account actions to RoleWorkspaceShell/AppShell while retaining page-local operation headers.',
     },
   }),
   primaryRoute({

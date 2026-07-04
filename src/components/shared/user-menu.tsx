@@ -14,9 +14,11 @@ type UserMenuProps = {
     role?: string | null;
   };
   variant?: 'default' | 'admin';
+  accountHref?: string;
+  accountLabel?: string;
 };
 
-export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
+export function UserMenu({ user, variant = 'default', accountHref, accountLabel = '个人中心' }: UserMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -135,14 +137,14 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
               : 'border-border/70 bg-background/95 text-foreground'
           )}
         >
-          {user.role === 'STUDENT' && (
+          {(accountHref || user.role === 'STUDENT') && (
             <Link
-              href="/profile"
+              href={accountHref ?? '/profile'}
               onClick={closeMenu}
               className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-accent hover:text-accent-foreground"
             >
               <User className="h-4 w-4" />
-              个人中心
+              {accountLabel}
             </Link>
           )}
           <button type="button"
