@@ -180,7 +180,11 @@ function questionSource(questionId: string): string {
   return questionId.startsWith('generated-q-') ? 'generated' : 'preset';
 }
 
-function questionMetadataContentHash(question: SubmittedAnswerDetails['question']): string {
+function questionMetadataContentHash(
+  question: SubmittedAnswerDetails['question'],
+  catalogSnapshot: AdaptiveAssessmentCatalogSnapshot | null,
+): string {
+  const kaqMetadata = buildKaqQuizQuestionMetadata(question);
   const snapshot = {
     source: questionSource(question.id),
     questionType: question.type,
@@ -188,7 +192,12 @@ function questionMetadataContentHash(question: SubmittedAnswerDetails['question'
     knowledgeTags: [...question.knowledgeTags].sort(),
     difficulty: Number(question.difficulty.toFixed(6)),
     optionCount: question.options.length,
-    kaq: buildKaqQuizQuestionMetadata(question).immutableContentHash,
+    kaq: kaqMetadata.immutableContentHash,
+    adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
+      kaqMetadata,
+      catalogSnapshot,
+      generatedMetadata: question.generatedMetadata,
+    }),
   };
 
   return createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
@@ -650,9 +659,18 @@ async function persistAdaptiveAssessmentSubmission(
     }
   }
 
-  const contentHash = questionMetadataContentHash(effectiveDetails.question);
-  const kaqMetadata = buildKaqQuizQuestionMetadata(effectiveDetails.question);
   const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(effectiveDetails.question.id);
+  const contentHash = questionMetadataContentHash(effectiveDetails.question, catalogSnapshot);
+  const kaqMetadata = buildKaqQuizQuestionMetadata(effectiveDetails.question);
+  const itemRefMetadata = {
+    kaq: kaqMetadata,
+    adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
+      kaqMetadata,
+      catalogSnapshot,
+      generatedMetadata: effectiveDetails.question.generatedMetadata,
+    }),
+    ...(effectiveDetails.question.generatedMetadata ? { generatedMetadata: effectiveDetails.question.generatedMetadata } : {}),
+  };
   const questionRef = await tx.adaptiveAssessmentItemRef.upsert({
     where: {
       questionId_algorithmVersion_contentHash: {
@@ -661,7 +679,9 @@ async function persistAdaptiveAssessmentSubmission(
         contentHash,
       },
     },
-    update: {},
+    update: {
+      metadata: itemRefMetadata,
+    },
     create: {
       questionId: effectiveDetails.question.id,
       contentHash,
@@ -672,15 +692,7 @@ async function persistAdaptiveAssessmentSubmission(
       difficulty: effectiveDetails.question.difficulty,
       optionCount: effectiveDetails.question.options.length,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-      metadata: {
-        kaq: kaqMetadata,
-        adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
-          kaqMetadata,
-          catalogSnapshot,
-          generatedMetadata: effectiveDetails.question.generatedMetadata,
-        }),
-        ...(effectiveDetails.question.generatedMetadata ? { generatedMetadata: effectiveDetails.question.generatedMetadata } : {}),
-      },
+      metadata: itemRefMetadata,
     },
   });
 

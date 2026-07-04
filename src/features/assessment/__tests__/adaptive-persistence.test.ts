@@ -858,7 +858,17 @@ describe('submitAnswerDurably', () => {
           contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         },
       },
-      update: {},
+      update: expect.objectContaining({
+        metadata: expect.objectContaining({
+          kaq: expect.objectContaining({
+            immutableContentHash: expect.any(String),
+          }),
+          adaptiveAssessmentItemRef: expect.objectContaining({
+            catalogBacked: expect.any(Boolean),
+            snapshotVersion: 'adaptive-assessment-item-ref.v1',
+          }),
+        }),
+      }),
       create: expect.objectContaining({
         contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         questionType: question.type,
