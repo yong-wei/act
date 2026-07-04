@@ -560,7 +560,9 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
   const kaqLearningGoalIds = arrayOfStrings(toRecord(kaqMetadata).learningGoalIds);
   const reviewedKaqAnswer = firstString(kaqReview.state) === 'reviewed';
   const kaqPurpose = firstString(toRecord(kaqMetadata).purpose);
-  const readinessGateEligible = reviewedKaqAnswer && kaqPurpose === 'readiness-gate';
+  const readinessGateEligible = reviewedKaqAnswer &&
+    kaqPurpose === 'readiness-gate' &&
+    matchesAdaptiveAssessmentCatalogPathStage(answer, input, 'readiness');
   const checkpointEligible = reviewedKaqAnswer &&
     input.resourceType === 'checkpoint' &&
     kaqPurpose === 'checkpoint' &&
@@ -738,7 +740,7 @@ function matchesAdaptiveAssessmentPathContext(
 function matchesAdaptiveAssessmentCatalogPathStage(
   answer: Record<string, any> | undefined,
   input: { goalId?: string | null },
-  stage: 'checkpoint' | 'remediation',
+  stage: 'readiness' | 'checkpoint' | 'remediation',
 ): boolean {
   const itemRef = toRecord(toRecord(answer?.questionRef?.metadata).adaptiveAssessmentItemRef);
   const semanticRefs = toRecord(itemRef.semanticRefs);

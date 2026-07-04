@@ -2941,6 +2941,26 @@ describe('control-correction path rounds', () => {
               provenance: 'official',
               reviewState: 'reviewed',
               readinessGateEligible: true,
+              pathCompletionEligible: true,
+              score: 100,
+              privatePayload: 'hidden',
+            },
+          },
+        },
+        {
+          id: 'exec-remediation',
+          nodeId: 'adaptive-quiz:control-correction-remediation',
+          resourceType: 'adaptive_quiz',
+          status: 'completed',
+          liftMetadata: {
+            adaptiveAssessmentRef: {
+              kind: 'AdaptiveAssessmentAnswer',
+              id: 'answer-remediation-1',
+              provenance: 'official',
+              reviewState: 'reviewed',
+              readinessGateEligible: false,
+              pathCompletionEligible: true,
+              isCorrect: true,
               score: 100,
               privatePayload: 'hidden',
             },
@@ -3017,6 +3037,15 @@ describe('control-correction path rounds', () => {
     expect(view?.executions).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'exec-adaptive',
+        resultSummary: expect.objectContaining({
+          state: 'available',
+          label: '自适应练习结果',
+          evidenceSource: 'AdaptiveAssessmentAnswer',
+          primaryMetric: '得分 100',
+        }),
+      }),
+      expect.objectContaining({
+        id: 'exec-remediation',
         resultSummary: expect.objectContaining({
           state: 'available',
           label: '自适应练习结果',

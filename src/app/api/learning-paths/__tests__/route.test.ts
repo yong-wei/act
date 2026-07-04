@@ -237,7 +237,7 @@ function reviewedAdaptiveAssessmentAnswer(params: {
   nodeId: string;
   goalId?: string;
   questionScope?: string;
-  catalogStage?: 'checkpoint' | 'remediation';
+  catalogStage?: 'readiness' | 'checkpoint' | 'remediation';
   includeCatalogRef?: boolean;
 }) {
   const goalId = params.goalId ?? 'control-correction';
@@ -1047,37 +1047,14 @@ describe('learning path round API routes', () => {
 
   it('normalizes adaptive assessment refs through server-owned answers before unlocking outcome gates', async () => {
     useStructuredAdaptiveAssessmentPath();
-    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue({
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(reviewedAdaptiveAssessmentAnswer({
       id: 'answer-1',
       questionId: 'preset-q-01',
-      isCorrect: true,
-      score: 100,
-      abilityEstimate: 0.62,
-      answeredAt: new Date('2026-06-04T09:59:00.000Z'),
-      questionRef: {
-        knowledgeTags: ['control-correction:time-domain-targets'],
-        questionType: 'pole-to-behavior',
-        difficulty: 0.58,
-        metadata: {
-          kaq: {
-            immutableContentHash: 'reviewed-hash-1',
-            learningGoalIds: ['control-correction'],
-            purpose: 'readiness-gate',
-            outcomeRefs: ['quiz-outcome:control-correction:readiness-gate:preset-q-01'],
-            review: { state: 'reviewed' },
-          },
-        },
-      },
-      abilityEstimateSnapshot: {
-        dimensions: {
-          pathExecution: {
-            pathId: 'path-1',
-            nodeId: 'adaptive-quiz:control-target-check',
-            goalId: 'control-correction',
-          },
-        },
-      },
-    });
+      purpose: 'readiness-gate',
+      nodeId: 'adaptive-quiz:control-target-check',
+      questionScope: 'readiness',
+      catalogStage: 'readiness',
+    }));
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
       nodeId: 'adaptive-quiz:control-target-check',
@@ -1111,6 +1088,46 @@ describe('learning path round API routes', () => {
           availableOutcomeRefs: expect.arrayContaining(['adaptive_assessment:answer-1']),
         }),
       }),
+    }));
+  });
+
+  it('does not complete readiness answers without a readiness path question scope', async () => {
+    useStructuredAdaptiveAssessmentPath();
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue(reviewedAdaptiveAssessmentAnswer({
+      id: 'answer-1',
+      questionId: 'preset-q-01',
+      purpose: 'readiness-gate',
+      nodeId: 'adaptive-quiz:control-target-check',
+      questionScope: 'remediation',
+      catalogStage: 'readiness',
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      completedAt: '2026-06-04T10:00:00.000Z',
+      idempotencyKey: 'readiness-adaptive-outcome-wrong-scope',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          id: 'answer-1',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'started',
+      completedAt: null,
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-1',
+          provenance: 'unknown',
+          mismatchReason: 'adaptive-assessment-readiness-not-eligible',
+        }),
+      }),
+      evidenceRefs: [],
     }));
   });
 

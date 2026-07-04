@@ -1198,9 +1198,7 @@ function isTrustedAdaptiveAssessmentResultRef(resourceType: string, value: unkno
     isPassingAdaptiveAssessmentOutcomeRef(record) &&
     firstString(record.id, record.answerId, record.sourceId) !== undefined &&
     firstString(record.mismatchReason) === undefined &&
-    (resourceType === 'checkpoint'
-      ? record.pathCompletionEligible === true
-      : record.readinessGateEligible === true);
+    record.pathCompletionEligible === true;
 }
 
 function isPassingAdaptiveAssessmentOutcomeRef(record: Record<string, unknown>): boolean {
