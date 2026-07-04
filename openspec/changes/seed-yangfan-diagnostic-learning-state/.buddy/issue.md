@@ -10,7 +10,7 @@ depends_on:
   - enforce-all-resource-path-readiness-gate
   - complete-resource-evidence-lineage-readiness
   - wire-adaptive-engine-to-reviewed-item-catalog
-parent_issue:
+parent_issue: 774
 blocked_by:
   - enforce-all-resource-path-readiness-gate
   - complete-resource-evidence-lineage-readiness
