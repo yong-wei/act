@@ -31,7 +31,7 @@ describe('platform recovery source wiring', () => {
     expect(globalNotFound).toContain('<ActionStatusPanel');
   });
 
-  it('keeps classroom-code errors, theme announcements, and floating focus checks inspectable', () => {
+  it('keeps classroom-code errors, direct floating controls, and floating focus checks inspectable', () => {
     const joinPage = readFileSync(join(repoRoot, 'src/app/classroom/join/page.tsx'), 'utf8');
     const floatingControls = readFileSync(join(repoRoot, 'src/components/shared/page-floating-controls.tsx'), 'utf8');
     const mobileA11y = readFileSync(join(repoRoot, 'tests/mobile-a11y-shell.spec.ts'), 'utf8');
@@ -39,7 +39,8 @@ describe('platform recovery source wiring', () => {
     expect(joinPage).toContain("kind: 'classroom-code-error'");
     expect(joinPage).toContain('data-classroom-join-recovery-link="review-evidence"');
     expect(joinPage).toContain('classJoinState?.evidenceWriteback');
-    expect(floatingControls).toContain('主题已切换为');
+    expect(floatingControls).toContain('data-platform-floating-dock-direct-action');
+    expect(floatingControls).not.toContain('主题已切换为');
     expect(floatingControls).toContain('data-platform-floating-dock-status');
     expect(mobileA11y).toContain('global-ai-sidebar-keyboard-320.json');
     expect(mobileA11y).toContain('dock trigger restored');

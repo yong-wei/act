@@ -104,6 +104,7 @@ export interface AppShellDockControl {
   label: string;
   control: PlatformFloatingActionDockControl;
   href?: string;
+  onSelect?: () => void;
   disabled?: boolean;
   icon?: ReactNode;
 }
@@ -439,6 +440,53 @@ export function AppHeader({
   );
 }
 
+function AppShellHeaderDockActions({ controls }: { controls: readonly AppShellDockControl[] }) {
+  if (controls.length === 0) return null;
+
+  return (
+    <>
+      {controls.map((control) => {
+        const icon = control.icon ?? <Settings className="h-4 w-4" />;
+        const className = 'inline-flex h-9 items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface px-3 text-xs font-medium text-platform-fg-secondary transition hover:border-platform-border-strong hover:text-platform-action-primary disabled:cursor-not-allowed disabled:opacity-60';
+        const content = (
+          <>
+            {icon}
+            <span className="hidden sm:inline">{control.label}</span>
+          </>
+        );
+
+        if (control.href && !control.disabled && !control.onSelect) {
+          return (
+            <Link
+              key={control.id}
+              href={control.href}
+              aria-label={control.label}
+              className={className}
+              data-platform-shell-dock-action={control.control}
+            >
+              {content}
+            </Link>
+          );
+        }
+
+        return (
+          <button
+            key={control.id}
+            type="button"
+            disabled={control.disabled}
+            onClick={control.onSelect}
+            aria-label={control.label}
+            className={className}
+            data-platform-shell-dock-action={control.control}
+          >
+            {content}
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
 export function AppSidebar({ navigation, activeHref, collapsed = false, className }: AppSidebarProps) {
   const activeItemId = getActiveNavigationItemId(navigation, activeHref);
   const renderItems = flattenNavigationItems(navigation);
@@ -537,6 +585,8 @@ function AppShellDesktopLayout({
 }) {
   const [navigationPreference, setNavigationPreference] = useState<AppShellNavigationPreference>('collapsed');
   const renderItems = flattenNavigationItems(effectiveNavigation);
+  const floatingDockControls = dockControls.filter((control) => control.control === 'konling');
+  const headerDockControls = dockControls.filter((control) => control.control !== 'konling');
   const renderMobileNavigation = showSidebar
     && effectiveNavigation.length > 0
     && resolvedRouteMetadata?.mobileNavigation !== 'hidden-immersive';
@@ -580,7 +630,12 @@ function AppShellDesktopLayout({
           title={title}
           subtitle={subtitle}
           breadcrumbs={effectiveBreadcrumbs}
-          actions={actions}
+          actions={(
+            <>
+              {actions}
+              <AppShellHeaderDockActions controls={headerDockControls} />
+            </>
+          )}
           userMenu={userMenu}
         />
         {renderMobileNavigation ? (
@@ -612,7 +667,7 @@ function AppShellDesktopLayout({
           {AppShellWorkspace({ slots: workspaceSlots, children })}
         </div>
         <AppShellFloatingDockRegistration
-          controls={dockControls}
+          controls={floatingDockControls}
           behavior={floatingDockBehavior}
         />
       </div>
@@ -895,6 +950,7 @@ function AppShellFloatingDockRegistration({
       control.label,
       control.control,
       control.href ?? '',
+      control.onSelect ? 'handler' : '',
       control.disabled ? 'disabled' : 'enabled',
     ].join(':'))
     .join('|');
@@ -916,6 +972,10 @@ function AppShellFloatingDockRegistration({
       disabled: control.disabled,
       onSelect: () => {
         if (control.disabled) return;
+        if (control.onSelect) {
+          control.onSelect();
+          return;
+        }
         if (control.href) window.location.assign(control.href);
       },
     }));

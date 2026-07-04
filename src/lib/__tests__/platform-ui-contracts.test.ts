@@ -1436,7 +1436,8 @@ describe('platform UI contracts', () => {
     expect(shellMarkup).toContain('aria-controls="app-shell-mobile-navigation"');
     expect(shellMarkup).toContain('data-platform-floating-dock-registration="true"');
     expect(shellMarkup).toContain('data-platform-floating-dock-behavior="collapsed"');
-    expect(shellMarkup).toContain('data-platform-floating-dock-controls="konling management"');
+    expect(shellMarkup).toContain('data-platform-floating-dock-controls="konling"');
+    expect(shellMarkup).toContain('data-platform-shell-dock-action="management"');
   });
 
   it('renders AppShell workspace zones without forcing feature modules into the shared shell', () => {
