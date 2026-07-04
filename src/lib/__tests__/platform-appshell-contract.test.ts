@@ -468,6 +468,16 @@ describe('universal AppShell frame contract', () => {
     expect(simulationShellSource).not.toContain('data-simulation-shell-profile-action');
   });
 
+  it('keeps profile fallback shells on the shared breadcrumb contract', () => {
+    const profileSource = readSource('src/app/(main)/profile/page.tsx');
+    const growthSource = readSource('src/app/(main)/profile/growth/page.tsx');
+
+    expect(profileSource).toContain("breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心' }]}");
+    expect(growthSource).toContain("{ label: '首页', href: '/' }");
+    expect(growthSource).toContain("{ label: '个人中心', href: '/profile' }");
+    expect(growthSource).toContain("{ label: '成长中枢' }");
+  });
+
   it('does not treat unused wrapper imports as AppShell render evidence', () => {
     const source = [
       "import { AppShell } from '@/components/platform/app-shell';",

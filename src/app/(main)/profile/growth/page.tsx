@@ -106,6 +106,11 @@ function GrowthFallback({
       title="成长中枢"
       subtitle="能力趋势、证据覆盖与下一步路径"
       activeHref="/profile/growth"
+      breadcrumbs={[
+        { label: '首页', href: '/' },
+        { label: '个人中心', href: '/profile' },
+        { label: '成长中枢' },
+      ]}
       className="surface-page"
     >
       <div

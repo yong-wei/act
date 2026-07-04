@@ -44,6 +44,7 @@ function ProfileFallback({
       title="个人中心"
       subtitle="能力画像、成长记录与证据复盘"
       activeHref="/profile"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心' }]}
       className="surface-page"
     >
       <div
