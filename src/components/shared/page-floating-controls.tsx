@@ -19,7 +19,7 @@ export type PageFloatingControlRegistration = {
 
 export type PageFloatingDockBehavior = 'enabled' | 'collapsed' | 'hidden';
 
-type PageFloatingControlMenuItem = Omit<PageFloatingControlRegistration, 'onSelect'> & {
+export type PageFloatingControlMenuItem = Omit<PageFloatingControlRegistration, 'onSelect'> & {
   onSelect?: () => void;
 };
 
@@ -36,6 +36,13 @@ export function buildFloatingControlMenu(
   return registrations
     .filter((item, index, array) => array.findIndex((candidate) => candidate.id === item.id) === index)
     .sort((left, right) => (left.priority ?? 50) - (right.priority ?? 50));
+}
+
+export function selectPrimaryFloatingControl(
+  menu: PageFloatingControlMenuItem[],
+): PageFloatingControlMenuItem | null {
+  const konlingControls = menu.filter((item) => isKonlingControl(item));
+  return konlingControls.filter((item) => !item.disabled).at(-1) ?? konlingControls.at(-1) ?? null;
 }
 
 export function PageFloatingControlsProvider({ children }: { children: ReactNode }) {
@@ -94,9 +101,7 @@ function PageFloatingControls({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [announcement, setAnnouncement] = useState('页面浮动控件已就绪。');
   const menu = buildFloatingControlMenu(registrations);
-  const konlingControls = menu.filter((item) => isKonlingControl(item));
-  const konlingControl = konlingControls.at(-1);
-  const primaryControl = konlingControl ?? null;
+  const primaryControl = selectPrimaryFloatingControl(menu);
   const secondaryControls = primaryControl
     ? menu.filter((item) => item.id !== primaryControl.id)
     : menu;

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildFloatingControlMenu,
+  selectPrimaryFloatingControl,
   type PageFloatingControlRegistration,
 } from '@/components/shared/page-floating-controls';
 import { buildClassroomJoinUrl } from '@/features/interactive/shared/teacher-join-qr-dialog';
@@ -38,6 +39,51 @@ describe('page floating controls', () => {
     expect(menu.map((item) => item.id)).toEqual(['knowledge-card']);
   });
 
+  it('keeps an enabled global Konling launcher primary when a page Konling control is disabled', () => {
+    const registrations: PageFloatingControlRegistration[] = [
+      {
+        id: 'konling-global-ai',
+        label: '控灵全局助手',
+        priority: 10,
+        onSelect: () => undefined,
+      },
+      {
+        id: 'adaptive-path-konling',
+        label: '控灵路径顾问',
+        priority: 20,
+        disabled: true,
+        onSelect: () => undefined,
+      },
+    ];
+
+    const primary = selectPrimaryFloatingControl(buildFloatingControlMenu(registrations));
+
+    expect(primary?.id).toBe('konling-global-ai');
+    expect(primary?.disabled).toBeFalsy();
+  });
+
+  it('keeps an enabled page Konling launcher primary over the global launcher', () => {
+    const registrations: PageFloatingControlRegistration[] = [
+      {
+        id: 'konling-global-ai',
+        label: '控灵全局助手',
+        priority: 10,
+        onSelect: () => undefined,
+      },
+      {
+        id: 'adaptive-path-konling',
+        label: '控灵路径顾问',
+        priority: 20,
+        onSelect: () => undefined,
+      },
+    ];
+
+    const primary = selectPrimaryFloatingControl(buildFloatingControlMenu(registrations));
+
+    expect(primary?.id).toBe('adaptive-path-konling');
+    expect(primary?.disabled).toBeFalsy();
+  });
+
   it('moves the knowledge card entry out of fixed per-lesson button markup', () => {
     const source = readFileSync(
       join(repoRoot, 'src/features/interactive/shared/step-knowledge-drawer.tsx'),
@@ -59,8 +105,8 @@ describe('page floating controls', () => {
     expect(source).toContain('aria-labelledby={panelTitleId}');
     expect(source).toContain('aria-controls={isMenuOpen ? panelId : undefined}');
     expect(source).toContain('data-platform-floating-dock-status');
-    expect(source).toContain('const konlingControls = menu.filter((item) => isKonlingControl(item))');
-    expect(source).toContain('const konlingControl = konlingControls.at(-1)');
+    expect(source).toContain('selectPrimaryFloatingControl(menu)');
+    expect(source).toContain('konlingControls.filter((item) => !item.disabled).at(-1)');
     expect(source).toContain('menu.filter((item) => item.id !== primaryControl.id)');
     expect(source).toContain('data-platform-floating-dock-primary="konling"');
     expect(source).toContain('data-platform-floating-dock-direct-action="true"');
