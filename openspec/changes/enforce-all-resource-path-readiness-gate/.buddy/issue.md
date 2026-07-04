@@ -7,24 +7,16 @@ execution_mode: stacked
 base_branch: integration
 required_branch:
 depends_on:
-  - define-resource-path-disposition-governance
-  - complete-core-teaching-resource-path-readiness
-  - complete-longform-resource-path-readiness
+  - close-resource-disposition-review-backlog
   - complete-resource-evidence-lineage-readiness
-  - unify-adaptive-assessment-item-catalog
-  - add-assessment-item-semantic-review-workflow
-  - complete-learning-goal-checkpoint-question-sets
   - wire-adaptive-engine-to-reviewed-item-catalog
+  - complete-rag-citation-anchor-coverage
 parent_issue: 786
 blocked_by:
-  - define-resource-path-disposition-governance
-  - complete-core-teaching-resource-path-readiness
-  - complete-longform-resource-path-readiness
+  - close-resource-disposition-review-backlog
   - complete-resource-evidence-lineage-readiness
-  - unify-adaptive-assessment-item-catalog
-  - add-assessment-item-semantic-review-workflow
-  - complete-learning-goal-checkpoint-question-sets
   - wire-adaptive-engine-to-reviewed-item-catalog
+  - complete-rag-citation-anchor-coverage
 blocking:
   - seed-yangfan-diagnostic-learning-state
 openspec_path: openspec/changes/enforce-all-resource-path-readiness-gate
@@ -52,7 +44,7 @@ Add the final gate proving that all existing resources are accounted for in path
 ## Acceptance Checklist
 
 - [ ] AC-1: Full-resource gate fails on missing disposition, invalid promotion, missing reviewed semantics, unexplained exclusion, and unresolved path blockers. Owner: independent reviewer.
-  Evidence: full-resource gate tests and helper fixture output with resource family totals, unaccounted count, invalid promotion count, unreviewed semantic count, evidence-lineage blockers, follow-up buckets, and Yang Fan fixture blockers.
+  Evidence: full-resource gate tests and helper fixture output with resource family totals, unaccounted count, invalid promotion count, unreviewed semantic count, unresolved graph-node-resource-missing count, evidence-lineage blockers, follow-up buckets, and Yang Fan fixture blockers.
 - [ ] AC-2: Every backend-registered LearningGoal is covered by path-generation diagnostics. Owner: independent reviewer.
   Evidence: diagnostic output enumerating the backend goal registry.
 - [ ] AC-3: Goals with sufficient resources generate meaningful resource mixes rather than single-resource or cosmetic fallback paths. Owner: independent reviewer.
@@ -87,6 +79,10 @@ Add the final gate proving that all existing resources are accounted for in path
 
 ## Agent Guardrails
 
+- Implementation agents may propose satisfied AC ids with evidence, but must not check Acceptance Checklist items themselves.
+- Check AC items only after an independent reviewer confirms the linked task evidence.
+- Preserve before/after helper evidence for this batch.
+- Do not auto-promote semantic fields from scripts, SAR, RAG, or model suggestions without human review.
 - This is the final gate, not a metadata-completion shortcut.
 - Do not script-fill semantic fields to satisfy the gate.
 - Use helper output as the authoritative gap list.

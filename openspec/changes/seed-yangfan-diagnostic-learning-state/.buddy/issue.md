@@ -3,14 +3,18 @@ change_id: seed-yangfan-diagnostic-learning-state
 claim_branch: seed-yangfan-diagnostic-learning-state
 series: data-completeness-grounding
 coupling_group: data-completeness-grounding
-execution_mode: isolated
+execution_mode: stacked
 base_branch: integration
 required_branch:
 depends_on:
-  - add-data-completeness-audit-helper
-  - complete-graph-resource-semantic-coverage
+  - enforce-all-resource-path-readiness-gate
+  - complete-resource-evidence-lineage-readiness
+  - wire-adaptive-engine-to-reviewed-item-catalog
 parent_issue:
-blocked_by: []
+blocked_by:
+  - enforce-all-resource-path-readiness-gate
+  - complete-resource-evidence-lineage-readiness
+  - wire-adaptive-engine-to-reviewed-item-catalog
 blocking: []
 openspec_path: openspec/changes/seed-yangfan-diagnostic-learning-state
 risk: medium
@@ -47,7 +51,7 @@ Create a deterministic Yang Fan diagnostic learner-state fixture after graph/res
   Evidence: database fixture output and targeted learner-state tests.
 - [ ] AC-5: Repeated fixture runs are stable and do not duplicate records. Owner: independent reviewer.
   Evidence: idempotency test output.
-- [ ] AC-6: Fixture output is privacy-minimized and Arena official scoring/ranking boundaries are preserved. Owner: independent reviewer.
+- [ ] AC-6: Fixture output is privacy-minimized, diagnostic-only, marked synthetic/fixture-scoped, and excluded from ordinary learner ranking/dashboard metrics unless diagnostic fixture mode is explicitly active; Arena official scoring/ranking boundaries are preserved. Owner: independent reviewer.
   Evidence: privacy tests and Arena boundary review.
 - [ ] AC-7: GitHub blockedBy relationships to upstream completeness changes are created and verified after issue creation. Owner: independent reviewer.
   Evidence: Buddy/GitHub relationship verification output.
@@ -70,7 +74,7 @@ Create a deterministic Yang Fan diagnostic learner-state fixture after graph/res
   Covers: AC-4, AC-6
   Acceptance: LearningFacts, KnowledgeProgress, path execution evidenceRefs, adaptive assessment state, snapshots, summaries, and feature cache records are created with traceable fixture provenance.
   Evidence: database output and tests.
-  Reviewer Check: Confirm records are derived from governed sources or explicit fixture provenance, and Arena official results are not fabricated or overwritten.
+  Reviewer Check: Confirm records are derived from governed sources or explicit fixture provenance, carry stable dedupe keys and fixture scope, are excluded from ordinary production learner truth, and Arena official results are not fabricated or overwritten.
 - [ ] Task 4: Add reset and idempotency behavior.
   Covers: AC-5, AC-6
   Acceptance: Repeated reset/apply cycles produce stable counts and no duplicate facts, progress, snapshots, or path evidence.
@@ -83,7 +87,7 @@ Create a deterministic Yang Fan diagnostic learner-state fixture after graph/res
   Reviewer Check: Confirm tests use the canonical account and governed resource citations.
 - [ ] Task 6: Verify GitHub dependency relationships after issue creation.
   Covers: AC-7
-  Acceptance: The issue is blocked by both upstream changes through GitHub native relationship metadata.
+  Acceptance: The issue is blocked by all upstream changes listed in depends_on through GitHub native relationship metadata.
   Evidence: Buddy/GitHub relationship verification output.
   Reviewer Check: Confirm local `depends_on` and GitHub blockedBy truth agree.
 

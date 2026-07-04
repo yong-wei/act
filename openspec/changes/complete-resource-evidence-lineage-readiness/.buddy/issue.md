@@ -7,25 +7,19 @@ execution_mode: stacked
 base_branch: integration
 required_branch:
 depends_on:
-  - define-resource-path-disposition-governance
-  - complete-core-teaching-resource-path-readiness
-  - complete-longform-resource-path-readiness
-  - unify-adaptive-assessment-item-catalog
-  - add-assessment-item-semantic-review-workflow
-  - complete-learning-goal-checkpoint-question-sets
+  - close-resource-disposition-review-backlog
+  - complete-learning-goal-assessment-baselines
+  - complete-rag-citation-anchor-coverage
   - wire-adaptive-engine-to-reviewed-item-catalog
 parent_issue: 786
 blocked_by:
-  - define-resource-path-disposition-governance
-  - complete-core-teaching-resource-path-readiness
-  - complete-longform-resource-path-readiness
-  - unify-adaptive-assessment-item-catalog
-  - add-assessment-item-semantic-review-workflow
-  - complete-learning-goal-checkpoint-question-sets
+  - close-resource-disposition-review-backlog
+  - complete-learning-goal-assessment-baselines
+  - complete-rag-citation-anchor-coverage
   - wire-adaptive-engine-to-reviewed-item-catalog
 blocking:
-  - seed-yangfan-diagnostic-learning-state
   - enforce-all-resource-path-readiness-gate
+  - seed-yangfan-diagnostic-learning-state
 openspec_path: openspec/changes/complete-resource-evidence-lineage-readiness
 risk: high
 area: data-governance
@@ -83,6 +77,10 @@ Complete source-event lineage for all reviewed path-relevant core, long-form, an
 
 ## Agent Guardrails
 
+- Implementation agents may propose satisfied AC ids with evidence, but must not check Acceptance Checklist items themselves.
+- Check AC items only after an independent reviewer confirms the linked task evidence.
+- Preserve before/after helper evidence for this batch.
+- Do not auto-promote semantic fields from scripts, SAR, RAG, or model suggestions without human review.
 - Start by running the helper and preserve before/after output.
 - Complete semantic and evidence fields manually where interpretation is required.
 - Do not use scripts to infer final knowledge, capability, or LearningGoal mappings.

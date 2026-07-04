@@ -3,19 +3,18 @@ change_id: wire-adaptive-engine-to-reviewed-item-catalog
 claim_branch: wire-adaptive-engine-to-reviewed-item-catalog
 series: adaptive-assessment-item-bank
 coupling_group: adaptive-assessment-item-bank
-execution_mode: isolated
+execution_mode: stacked
 base_branch: integration
 required_branch:
 depends_on:
-  - unify-adaptive-assessment-item-catalog
-  - add-assessment-item-semantic-review-workflow
-  - complete-learning-goal-checkpoint-question-sets
+  - complete-learning-goal-assessment-baselines
 parent_issue:
 blocked_by:
-  - unify-adaptive-assessment-item-catalog
-  - add-assessment-item-semantic-review-workflow
-  - complete-learning-goal-checkpoint-question-sets
-blocking: []
+  - complete-learning-goal-assessment-baselines
+blocking:
+  - complete-resource-evidence-lineage-readiness
+  - enforce-all-resource-path-readiness-gate
+  - seed-yangfan-diagnostic-learning-state
 openspec_path: openspec/changes/wire-adaptive-engine-to-reviewed-item-catalog
 risk: high
 area: assessment
