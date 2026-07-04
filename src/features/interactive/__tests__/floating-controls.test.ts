@@ -106,6 +106,6 @@ describe('classroom QR authentication redirect', () => {
       callbackUrl: 'https://evil.example/login',
       origin: 'https://act.example.edu.cn',
       role: 'STUDENT',
-    })).toBe('/dashboard');
+    })).toBe('/profile');
   });
 });
