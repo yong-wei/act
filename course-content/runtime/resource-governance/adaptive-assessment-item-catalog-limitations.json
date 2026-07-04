@@ -2774,12 +2774,6 @@
       "severity": "info"
     },
     {
-      "family": "checkpoint-authored-question",
-      "sourceId": null,
-      "reason": "future-checkpoint-items-not-authored-in-this-change",
-      "severity": "info"
-    },
-    {
       "family": "generated-adaptive-question",
       "sourceId": null,
       "reason": "generated-questions-are-runtime-provisional-not-static-artifact",

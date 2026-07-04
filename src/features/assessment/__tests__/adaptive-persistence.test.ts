@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import {
+  checkpointAuthoredQuestionRuntimeId,
+  REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
+  sourceIdFromCheckpointAuthoredQuestionRuntimeId,
+} from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 
 import { PRESET_QUESTIONS } from '../adaptive-question-bank';
 import { generateQuestion } from '../adaptive-engine';
@@ -1179,6 +1184,75 @@ describe('submitAnswerDurably', () => {
     expect(metadata.learningGoalIds).toContain('control-correction');
     expect(metadata.review.state).toBe('reviewed');
     expect(metadata.purpose).toBe('checkpoint');
+  });
+
+  it('selects reviewed authored checkpoint questions after legacy preset checkpoint coverage is exhausted', async () => {
+    const db = createMockDb();
+    const presetControlCheckpointQuestionIds = PRESET_QUESTIONS
+      .filter((question) => {
+        const metadata = buildKaqQuizQuestionMetadata(question);
+        return metadata.learningGoalIds.includes('control-correction') &&
+          metadata.purpose === 'checkpoint' &&
+          metadata.review.state === 'reviewed';
+      })
+      .map((question) => question.id);
+    const authoredCheckpoint = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((question) =>
+      question.learningGoalId === 'control-correction' &&
+      question.stagePurpose === 'checkpoint'
+    );
+    expect(authoredCheckpoint).toBeDefined();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue(presetControlCheckpointQuestionIds.map((questionId) => ({
+      id: `answer-${questionId}`,
+      userId: 'student-next',
+      session: { sessionKey: 'session-next' },
+      questionId,
+      selectedOptionKey: 'A',
+      isCorrect: true,
+      responseTimeSeconds: 42,
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+      questionRef: {
+        difficulty: 0.5,
+        questionType: 'multi-criteria',
+        domains: ['complex', 'time'],
+        knowledgeTags: ['control-correction'],
+        metadata: {
+          kaq: {
+            review: { state: 'reviewed' },
+          },
+        },
+      },
+    })));
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'session-next',
+      selectedQuestionIds: presetControlCheckpointQuestionIds,
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+      questionScope: 'checkpoint',
+    }, db);
+
+    const authoredCheckpointIds = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS
+      .filter((question) => question.learningGoalId === 'control-correction' && question.stagePurpose === 'checkpoint')
+      .map((question) => checkpointAuthoredQuestionRuntimeId(question.id));
+    expect(authoredCheckpointIds).toContain(next.question.id);
+    const selectedSourceId = sourceIdFromCheckpointAuthoredQuestionRuntimeId(next.question.id);
+    const selectedAuthoredCheckpoint = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS
+      .find((question) => question.id === selectedSourceId);
+    expect(selectedAuthoredCheckpoint).toBeDefined();
+    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    expect(metadata.learningGoalIds).toEqual(['control-correction']);
+    expect(metadata.purpose).toBe('checkpoint');
+    expect(metadata.review).toMatchObject({
+      state: 'reviewed',
+      reviewerId: selectedAuthoredCheckpoint!.reviewerId,
+      reviewBatchId: selectedAuthoredCheckpoint!.reviewBatchId,
+    });
   });
 
   it('retries next-question selection when the persisted asked set changed concurrently', async () => {

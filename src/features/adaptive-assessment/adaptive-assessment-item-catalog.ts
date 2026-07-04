@@ -3,6 +3,11 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import {
+  LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
+  REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
+  type CheckpointAuthoredQuestionRecord,
+} from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 import { PRESET_QUESTIONS, type CrossDomainQuestion } from '@/features/assessment/adaptive-question-bank';
 
 export type AdaptiveAssessmentCatalogSourceFamily =
@@ -211,7 +216,7 @@ export interface AdaptiveAssessmentCatalogInput {
   icourseObjectiveBankIndexTotal?: number | null;
   kaqReviewedItems?: KaqReviewedItemRecord[];
   generatedQuestions?: GeneratedQuestionCatalogRow[];
-  checkpointQuestions?: never[];
+  checkpointQuestions?: CheckpointAuthoredQuestionRecord[];
 }
 
 export interface LoadedAdaptiveAssessmentCatalogSources {
@@ -257,6 +262,12 @@ function uniqueSorted(values: Array<string | null | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
 }
 
+function stringVersionRefs(values: object): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(values).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+  );
+}
+
 function catalogItemId(sourceFamily: AdaptiveAssessmentCatalogSourceFamily, sourceId: string): string {
   return `adaptive-assessment-item:${sourceFamily}:${sourceId}`;
 }
@@ -273,9 +284,10 @@ function snapshotRelationship() {
 
 function allowedStagesFor(reviewState: AdaptiveAssessmentCatalogReviewState, purpose?: string): AdaptiveAssessmentCatalogStage[] {
   if (reviewState !== 'path-eligible') return ['low-stakes-practice'];
-  const stages = new Set<AdaptiveAssessmentCatalogStage>(['low-stakes-practice', 'remediation']);
+  const stages = new Set<AdaptiveAssessmentCatalogStage>(['low-stakes-practice']);
   if (purpose === 'readiness-gate' || purpose === 'precheck') stages.add('readiness');
   if (purpose === 'checkpoint') stages.add('checkpoint');
+  if (purpose === 'remediation') stages.add('remediation');
   if (purpose === 'terminal-validation') stages.add('terminal-validation');
   return [...stages].sort();
 }
@@ -383,7 +395,7 @@ function buildPresetItems(
       },
       versionRefs: {
         ...ARTIFACT_VERSION_REFS,
-        ...currentKaqMetadata.versionRefs,
+        ...stringVersionRefs(currentKaqMetadata.versionRefs),
       },
       limitations: reviewState === 'path-eligible'
         ? []
@@ -602,6 +614,76 @@ function buildGeneratedItems(rows: GeneratedQuestionCatalogRow[]): AdaptiveAsses
   });
 }
 
+function buildCheckpointAuthoredItems(records: CheckpointAuthoredQuestionRecord[]): AdaptiveAssessmentCatalogItem[] {
+  return records.map((record) => {
+    const sourceHash = sha256({
+      id: record.id,
+      stem: record.stem,
+      options: record.options,
+      answerKeys: record.answerKeys,
+      explanation: record.explanation,
+      semanticRefs: {
+        learningGoalId: record.learningGoalId,
+        kaqObjectiveIds: record.kaqObjectiveIds,
+        graphNodeIds: record.graphNodeIds,
+        knowledgeTags: record.knowledgeTags,
+        misconceptionTags: record.misconceptionTags,
+        remediationResourceNodeIds: record.remediationResourceNodeIds,
+        stagePurpose: record.stagePurpose,
+        difficulty: record.difficulty,
+        cognitiveLevel: record.cognitiveLevel,
+      },
+    });
+    return {
+      catalogItemId: catalogItemId('checkpoint-authored-question', record.id),
+      sourceFamily: 'checkpoint-authored-question',
+      sourceId: record.id,
+      sourceAnchor: record.sourceRef,
+      contentHash: sourceHash,
+      contentHashAlgorithm: 'sha256',
+      reviewState: 'path-eligible',
+      eligibilityState: 'path-eligible',
+      allowedStages: allowedStagesFor('path-eligible', record.stagePurpose),
+      questionRefs: {
+        stem: record.stem,
+        answerKey: record.answerKeys,
+        rubricRef: record.reviewBatchId,
+        options: record.options.map((option) => ({
+          key: option.key,
+          text: option.text,
+          isCorrect: option.isCorrect,
+          explanation: option.explanation,
+        })),
+        explanation: record.explanation,
+        choiceMode: 'single',
+      },
+      semanticRefs: {
+        learningGoalIds: [record.learningGoalId],
+        kaqObjectiveIds: uniqueSorted(record.kaqObjectiveIds),
+        graphNodeIds: uniqueSorted(record.graphNodeIds),
+        knowledgeTags: uniqueSorted(record.knowledgeTags),
+        misconceptionTags: uniqueSorted(record.misconceptionTags),
+        remediationResourceNodeIds: uniqueSorted(record.remediationResourceNodeIds),
+        difficulty: record.difficulty,
+        cognitiveLevel: record.cognitiveLevel,
+        assessmentStage: record.stagePurpose,
+      },
+      lineage: {
+        sourceFamily: 'checkpoint-authored-question',
+        sourceId: record.id,
+        sourcePath: record.sourceRef,
+        sourceHash,
+      },
+      versionRefs: {
+        ...ARTIFACT_VERSION_REFS,
+        checkpointQuestionSetVersion: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
+      },
+      limitations: [],
+      adaptiveAssessmentItemRef: snapshotRelationship(),
+    };
+  });
+}
+
 function sourceSummary(
   family: AdaptiveAssessmentCatalogSourceFamily,
   sourceTotal: number | null,
@@ -635,6 +717,7 @@ export function buildAdaptiveAssessmentItemCatalog(
   const icourseObjectiveBankItems = input.icourseObjectiveBankItems ?? [];
   const kaqReviewedItems = input.kaqReviewedItems ?? [];
   const generatedQuestions = input.generatedQuestions ?? [];
+  const checkpointQuestions = input.checkpointQuestions ?? REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS;
   const kaqReviewedByQuestionId = new Map(
     kaqReviewedItems
       .filter((item) => item.questionId)
@@ -647,6 +730,7 @@ export function buildAdaptiveAssessmentItemCatalog(
     ...buildAcqStaticItems(acqStaticQuestions),
     ...buildIcourseItems(icourseObjectiveBankItems),
     ...buildGeneratedItems(generatedQuestions),
+    ...buildCheckpointAuthoredItems(checkpointQuestions),
   ].sort((left, right) => left.catalogItemId.localeCompare(right.catalogItemId));
 
   const limitations: AdaptiveAssessmentCatalogLimitation[] = [];
@@ -666,12 +750,14 @@ export function buildAdaptiveAssessmentItemCatalog(
       severity: 'info',
     });
   }
-  limitations.push({
-    family: 'checkpoint-authored-question',
-    sourceId: null,
-    reason: 'future-checkpoint-items-not-authored-in-this-change',
-    severity: 'info',
-  });
+  if (checkpointQuestions.length === 0) {
+    limitations.push({
+      family: 'checkpoint-authored-question',
+      sourceId: null,
+      reason: 'checkpoint-authored-question-set-empty',
+      severity: 'warning',
+    });
+  }
   for (const item of items) {
     for (const reason of item.limitations) {
       limitations.push({
@@ -704,7 +790,12 @@ export function buildAdaptiveAssessmentItemCatalog(
       reviewOverlayTotal: kaqReviewedItems.length,
     }),
     sourceSummary('generated-adaptive-question', generatedQuestions.length, generatedQuestions.length, ['generated-provisional-not-path-eligible']),
-    sourceSummary('checkpoint-authored-question', 0, 0, ['future-checkpoint-items-not-authored-in-this-change']),
+    sourceSummary(
+      'checkpoint-authored-question',
+      checkpointQuestions.length,
+      checkpointQuestions.length,
+      checkpointQuestions.length > 0 ? [] : ['checkpoint-authored-question-set-empty'],
+    ),
   ];
 
   return {

@@ -160,6 +160,16 @@ export interface AdaptiveLearningPathGraphContextInput {
     limitationReason: string | null;
     sourceWindow: { from: string | null; to: string | null };
   } | null;
+  assessmentCoverage?: {
+    coverageState: 'complete' | 'limited';
+    incompleteStages: string[];
+    reviewedPathEligibleItemCount: number;
+    limitationReason: string | null;
+    matrixVersion: string;
+    generatedAt: string | null;
+    terminalValidationRequired: boolean;
+    assessmentItemsReplaceTerminalEvidence: false;
+  } | null;
   versionRefs?: Partial<KaqArtifactVersionRefs>;
 }
 
@@ -191,6 +201,7 @@ export interface AdaptiveLearningPathGraphContextSummary {
   >>;
   resourceCoveragePathEligibleResourceIds: Record<string, string[]>;
   learningGoalBaseline?: NonNullable<AdaptiveLearningPathGraphContextInput['learningGoalBaseline']>;
+  assessmentCoverage?: NonNullable<AdaptiveLearningPathGraphContextInput['assessmentCoverage']>;
   versionRefs: KaqArtifactVersionRefs;
   limitations: AdaptiveLearningPathGraphLimitation[];
 }
@@ -2331,6 +2342,7 @@ function buildAdaptiveLearningPathGraphContext(
     resourceCoverageStatus,
     resourceCoveragePathEligibleResourceIds,
     ...(input.learningGoalBaseline ? { learningGoalBaseline: input.learningGoalBaseline } : {}),
+    ...(input.assessmentCoverage ? { assessmentCoverage: input.assessmentCoverage } : {}),
     versionRefs,
     limitations: buildGraphContextLimitations(input),
   };
@@ -2364,6 +2376,13 @@ function buildGraphContextLimitations(
       code: 'learning-goal-baseline-incomplete',
       severity: 'blocking',
       message: `LearningGoal baseline is incomplete: ${input.learningGoalBaseline.missingBaselineCategories.join(', ') || input.learningGoalBaseline.limitationReason || 'missing reviewed baseline coverage'}.`,
+    });
+  }
+  if (input.assessmentCoverage?.coverageState === 'limited') {
+    limitations.push({
+      code: 'learning-goal-assessment-coverage-incomplete',
+      severity: 'blocking',
+      message: `LearningGoal assessment coverage is incomplete: ${input.assessmentCoverage.incompleteStages.join(', ') || input.assessmentCoverage.limitationReason || 'missing reviewed assessment coverage'}.`,
     });
   }
   limitations.push(...overlayLimitations('learner', input.learnerOverlay));
@@ -3787,6 +3806,9 @@ function buildFallbackReasons(input: {
   if (input.graphContext?.limitations.some((item) => item.code === 'learning-goal-baseline-incomplete')) {
     reasons.push('learning-goal-baseline-incomplete');
   }
+  if (input.graphContext?.limitations.some((item) => item.code === 'learning-goal-assessment-coverage-incomplete')) {
+    reasons.push('learning-goal-assessment-coverage-incomplete');
+  }
   if (input.attemptedCandidates > 0 && input.mainPathNodes.length === 0) {
     reasons.push('time-budget-insufficient');
   }
@@ -3820,6 +3842,7 @@ function isPathBlockingFallbackReason(reason: string): boolean {
     'locked-node-without-fallback',
     'hard-prerequisite-missing',
     'learning-goal-baseline-incomplete',
+    'learning-goal-assessment-coverage-incomplete',
   ].includes(reason);
 }
 

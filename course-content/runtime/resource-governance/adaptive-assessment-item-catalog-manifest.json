@@ -1,7 +1,7 @@
 {
   "artifactVersion": "adaptive-assessment-item-catalog.v1",
-  "itemCount": 443,
-  "pathEligibleItemCount": 50,
+  "itemCount": 530,
+  "pathEligibleItemCount": 137,
   "sourceFamilies": [
     {
       "family": "preset-adaptive-question",
@@ -106,12 +106,10 @@
     {
       "family": "checkpoint-authored-question",
       "role": "item-source",
-      "sourceTotal": 0,
-      "importedTotal": 0,
+      "sourceTotal": 87,
+      "importedTotal": 87,
       "blockedTotal": 0,
-      "limitationReasons": [
-        "future-checkpoint-items-not-authored-in-this-change"
-      ],
+      "limitationReasons": [],
       "versionRefs": {
         "catalogVersion": "adaptive-assessment-item-catalog.v1",
         "adaptiveAssessmentSnapshotVersion": "adaptive-assessment-item-ref.v1",

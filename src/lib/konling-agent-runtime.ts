@@ -59,6 +59,7 @@ import {
   type SourcePackSourceKind,
 } from '@/lib/source-pack';
 import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-resource-baseline-runtime';
+import { getLearningGoalAssessmentCoverageForPlanner } from '@/lib/learning-goal-assessment-coverage-runtime';
 import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-center';
 import {
   applyCoreResourcePathReadinessDispositions,
@@ -2413,6 +2414,9 @@ function buildBlockedAdaptivePathGenerationMessage(fallbackReasons: readonly str
   if (fallbackReasons.includes('learning-goal-baseline-incomplete')) {
     return '当前目标缺少已审核的基线资源，暂不能生成可执行学习路径。';
   }
+  if (fallbackReasons.includes('learning-goal-assessment-coverage-incomplete')) {
+    return '当前目标缺少已审核的评估题目覆盖，暂不能生成可执行学习路径。';
+  }
   if (fallbackReasons.includes('time-budget-insufficient')) {
     return '当前时间预算不足以生成可执行学习路径，请增加学习时长或减少限制条件。';
   }
@@ -2443,6 +2447,7 @@ function buildAdaptivePathPlannerGraphContext(
     learnerOverlay: graphContext.learnerOverlay,
     classOverlay: graphContext.classOverlay,
     learningGoalBaseline: getLearningGoalResourceBaselineForPlanner(graphContext.learningGoal.id),
+    assessmentCoverage: getLearningGoalAssessmentCoverageForPlanner(graphContext.learningGoal.id),
     versionRefs: graphContext.versionRefs ?? undefined,
   };
 }

@@ -6,19 +6,22 @@ import {
   loadAdaptiveAssessmentCatalogSources,
 } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import {
-  assessmentItemSemanticReviewArtifactsToFiles,
-  buildAssessmentItemSemanticReviewArtifacts,
   buildCheckpointAuthoredSemanticReviewDecisions,
   buildKaqFoundationSemanticReviewDecisions,
   mergeAssessmentItemSemanticReviewDecisions,
   type AssessmentItemSemanticReviewDecision,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import {
+  buildLearningGoalAssessmentCoverageArtifacts,
+  learningGoalAssessmentCoverageArtifactsToFiles,
+} from '@/features/adaptive-assessment/learning-goal-assessment-coverage';
+import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
+import { FIRST_BATCH_LEARNING_GOAL_IDS } from '@/lib/learning-goal-resource-baseline';
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
-const PACKETS_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-packets.jsonl');
 const SNAPSHOTS_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-snapshots.jsonl');
-const COVERAGE_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-coverage.json');
+const MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-assessment-coverage-matrix.json');
 const BASELINE_MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
 
 type LearningGoalResourceBaselineMatrix = {
@@ -32,6 +35,7 @@ type LearningGoalResourceBaselineMatrix = {
     };
     targetGraphNodeIds?: string[];
     categories?: Record<string, {
+      resourceIds?: string[];
       pathEligibleResourceIds?: string[];
     }>;
   }>;
@@ -78,6 +82,27 @@ async function loadRegisteredSemanticIds() {
   };
 }
 
+async function loadLearningGoalSemanticBoundaries() {
+  const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
+  return new Map((matrix.rows ?? [])
+    .filter((row): row is Required<Pick<LearningGoalResourceBaselineMatrix['rows'][number], 'learningGoalId'>> & NonNullable<LearningGoalResourceBaselineMatrix['rows'][number]> =>
+      Boolean(row.learningGoalId)
+    )
+    .map((row) => [
+      row.learningGoalId,
+      {
+        kaqObjectiveIds: uniqueSorted([
+          ...(row.objectiveBoundary?.knowledgeObjectiveIds ?? []),
+          ...(row.objectiveBoundary?.capabilityObjectiveIds ?? []),
+          ...(row.objectiveBoundary?.qualityObjectiveIds ?? []),
+        ]),
+        graphNodeIds: uniqueSorted(row.targetGraphNodeIds ?? []),
+        remediationResourceNodeIds: uniqueSorted(Object.values(row.categories ?? {})
+          .flatMap((category) => category.resourceIds ?? [])),
+      },
+    ]));
+}
+
 async function main() {
   const sources = await loadAdaptiveAssessmentCatalogSources();
   const catalog = buildAdaptiveAssessmentItemCatalog({
@@ -86,51 +111,44 @@ async function main() {
     icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
     kaqReviewedItems: sources.kaqReviewedItems,
   });
-  const reviewedSnapshots = mergeAssessmentItemSemanticReviewDecisions(
+  const decisions = mergeAssessmentItemSemanticReviewDecisions(
     await readExistingReviewSnapshots(),
     [
       ...buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
       ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
     ],
   );
+  const learningGoalSemanticBoundaries = await loadLearningGoalSemanticBoundaries();
+  const goals = FIRST_BATCH_LEARNING_GOAL_IDS.map((goalId) => {
+    const definition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId].learningGoal!;
+    return {
+      id: definition.id,
+      title: definition.title,
+      terminalValidationRequired: definition.terminalValidationPolicy.required,
+      acceptedTerminalEvidenceTypes: definition.terminalValidationPolicy.acceptedEvidenceTypes,
+      semanticBoundary: learningGoalSemanticBoundaries.get(definition.id),
+    };
+  });
   const registeredSemanticIds = await loadRegisteredSemanticIds();
-  const artifacts = buildAssessmentItemSemanticReviewArtifacts({
+  const artifacts = buildLearningGoalAssessmentCoverageArtifacts({
     items: catalog.items,
-    decisions: reviewedSnapshots,
-    sourceFamilies: catalog.manifest.sourceFamilies,
+    decisions,
+    goals,
     knownLearningGoalIds: registeredSemanticIds.learningGoalIds,
     knownKaqObjectiveIds: registeredSemanticIds.kaqObjectiveIds,
     knownGraphNodeIds: registeredSemanticIds.graphNodeIds,
     knownRemediationResourceNodeIds: registeredSemanticIds.remediationResourceNodeIds,
   });
-  const files = assessmentItemSemanticReviewArtifactsToFiles(artifacts);
+  const files = learningGoalAssessmentCoverageArtifactsToFiles(artifacts);
 
   await mkdir(OUTPUT_DIR, { recursive: true });
-  await Promise.all([
-    writeFile(PACKETS_PATH, files.packets),
-    writeFile(SNAPSHOTS_PATH, files.reviewedSnapshots),
-    writeFile(COVERAGE_PATH, files.coverage),
-  ]);
+  await writeFile(MATRIX_PATH, files.matrix);
 
   console.log(JSON.stringify({
-    itemCount: artifacts.coverage.itemCount,
-    reviewedItemCount: artifacts.coverage.reviewedItemCount,
-    pathEligibleItemCount: artifacts.coverage.pathEligibleItemCount,
-    staleReviewCount: artifacts.coverage.staleReviewCount,
-    sourceFamilies: artifacts.coverage.sourceFamilies.map((family) => ({
-      family: family.family,
-      sourceTotal: family.sourceTotal,
-      itemTotal: family.itemTotal,
-      reviewedTotal: family.reviewedTotal,
-      pathEligibleTotal: family.pathEligibleTotal,
-      unreviewedTotal: family.unreviewedTotal,
-      staleTotal: family.staleTotal,
-      rejectedTotal: family.rejectedTotal,
-      deprecatedTotal: family.deprecatedTotal,
-      blockedTotal: family.blockedTotal,
-      ...(typeof family.reviewOverlayTotal === 'number' ? { reviewOverlayTotal: family.reviewOverlayTotal } : {}),
-    })),
-    issues: artifacts.coverage.issues.length,
+    learningGoals: artifacts.matrix.totals.learningGoalCount,
+    complete: artifacts.matrix.totals.complete,
+    limited: artifacts.matrix.totals.limited,
+    reviewedPathEligibleItemCount: artifacts.matrix.totals.reviewedPathEligibleItemCount,
   }, null, 2));
 }
 

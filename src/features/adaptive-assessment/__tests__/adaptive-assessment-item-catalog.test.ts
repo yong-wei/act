@@ -6,6 +6,7 @@ import {
   buildAdaptiveAssessmentItemCatalog,
   loadAdaptiveAssessmentCatalogSources,
 } from '../adaptive-assessment-item-catalog';
+import type { CheckpointAuthoredQuestionRecord } from '../learning-goal-checkpoint-question-sets';
 
 describe('adaptive assessment item catalog', () => {
   it('registers current repository question source families and counts', async () => {
@@ -47,9 +48,15 @@ describe('adaptive assessment item catalog', () => {
       limitationReasons: ['prisma-question-count-requires-database-query'],
     });
     expect(byFamily.get('generated-adaptive-question')?.limitationReasons).toContain('generated-provisional-not-path-eligible');
-    expect(byFamily.get('checkpoint-authored-question')?.limitationReasons).toContain('future-checkpoint-items-not-authored-in-this-change');
-    expect(artifacts.items.length).toBeGreaterThanOrEqual(50 + 167 + 226);
+    expect(byFamily.get('checkpoint-authored-question')).toMatchObject({
+      sourceTotal: 87,
+      importedTotal: 87,
+      blockedTotal: 0,
+      limitationReasons: [],
+    });
+    expect(artifacts.items.length).toBeGreaterThanOrEqual(50 + 167 + 226 + 87);
     expect(artifacts.items.some((item) => item.sourceFamily === 'kaq-foundation-reviewed')).toBe(false);
+    expect(artifacts.items.filter((item) => item.sourceFamily === 'checkpoint-authored-question')).toHaveLength(87);
   });
 
   it('keeps catalog identity separate from immutable answer-time snapshots', () => {
@@ -62,6 +69,7 @@ describe('adaptive assessment item catalog', () => {
     );
     const artifacts = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       prismaQuestions: [{
         id: 'prisma-question-1',
         stem: 'Prisma 题干',
@@ -121,12 +129,60 @@ describe('adaptive assessment item catalog', () => {
     expect(eligibleItem?.semanticRefs.learningGoalIds).toContain('control-correction');
   });
 
+  it('registers authored checkpoint items as reviewed path-eligible catalog records', () => {
+    const artifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: undefined,
+    });
+    const authoredItem = artifacts.items.find((item) =>
+      item.sourceFamily === 'checkpoint-authored-question' &&
+      item.sourceId === 'feedback-loop-concept-foundations-readiness-01'
+    );
+
+    expect(authoredItem).toMatchObject({
+      reviewState: 'path-eligible',
+      eligibilityState: 'path-eligible',
+      allowedStages: expect.arrayContaining(['low-stakes-practice', 'readiness']),
+      semanticRefs: {
+        learningGoalIds: ['feedback-loop-concept-foundations'],
+        cognitiveLevel: 'apply',
+      },
+      questionRefs: {
+        answerKey: expect.any(Array),
+        choiceMode: 'single',
+      },
+    });
+    const correctOption = authoredItem?.questionRefs.options.find((option) => option.isCorrect);
+    expect(authoredItem?.questionRefs.answerKey).toEqual(correctOption ? [correctOption.key] : []);
+    expect(authoredItem?.allowedStages).not.toContain('remediation');
+    expect(authoredItem?.contentHash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('distributes authored checkpoint correct option positions across stable answer keys', () => {
+    const artifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: undefined,
+    });
+    const authoredItems = artifacts.items.filter((item) => item.sourceFamily === 'checkpoint-authored-question');
+    const answerKeys = new Set<string>();
+
+    for (const item of authoredItems) {
+      const correctOptions = item.questionRefs.options.filter((option) => option.isCorrect);
+      expect(correctOptions).toHaveLength(1);
+      expect(item.questionRefs.answerKey).toEqual([correctOptions[0].key]);
+      answerKeys.add(correctOptions[0].key);
+    }
+
+    expect(Array.from(answerKeys).sort()).toEqual(['A', 'B', 'C']);
+  });
+
   it('does not trust stale K/A/Q review metadata for path eligibility', async () => {
     const sources = await loadAdaptiveAssessmentCatalogSources();
     const staleReview = sources.kaqReviewedItems.find((item) => item.questionId === 'preset-q-01');
     expect(staleReview).toBeTruthy();
     const artifacts = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [{
         ...staleReview!,
         metadata: {
@@ -155,6 +211,7 @@ describe('adaptive assessment item catalog', () => {
     expect(staleReview).toBeTruthy();
     const artifacts = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
       kaqReviewedItems: [{
         ...staleReview!,
         metadata: {
@@ -266,5 +323,156 @@ describe('adaptive assessment item catalog', () => {
 
     expect(first.contentHash).not.toBe(second.contentHash);
     expect(first.lineage.sourceHash).not.toBe(second.lineage.sourceHash);
+  });
+
+  it('keeps checkpoint content hashes stable when only review audit fields change', () => {
+    const baseRecord: CheckpointAuthoredQuestionRecord = {
+      id: 'checkpoint-audit-hash-1',
+      learningGoalId: 'control-correction',
+      learningGoalTitle: '控制系统校正设计',
+      stagePurpose: 'checkpoint',
+      stem: '校正设计完成后，哪一项最适合作为检查点题？',
+      options: [
+        { key: 'A', text: '检查相位裕度与稳态误差是否同时满足要求', isCorrect: true, explanation: '检查点题应验证设计指标是否闭环满足。' },
+        { key: 'B', text: '只观察开环增益是否最大', isCorrect: false, explanation: '开环增益不是完整校正目标。' },
+      ],
+      answerKeys: ['A'],
+      explanation: '校正设计检查点需要围绕闭环性能指标进行验证。',
+      difficulty: 0.55,
+      cognitiveLevel: 'analyze',
+      kaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
+      graphNodeIds: ['kn:autocontrol:controller-correction'],
+      knowledgeTags: ['controller-correction'],
+      misconceptionTags: ['open-loop-gain-only'],
+      remediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
+      reviewedAt: '2026-07-03T00:00:00.000Z',
+      reviewerId: 'reviewer:checkpoint-content',
+      reviewBatchId: 'learning-goal-checkpoint-question-sets.v1',
+      sourceRef: 'unit-test:checkpoint-audit-hash-1',
+    };
+    const firstArtifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: [baseRecord],
+      kaqReviewedItems: [],
+    });
+    const secondArtifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: [{
+        ...baseRecord,
+        reviewedAt: '2026-07-04T00:00:00.000Z',
+        reviewerId: 'reviewer:governance-audit',
+        reviewBatchId: 'learning-goal-checkpoint-question-sets.audit-only.v2',
+      } as CheckpointAuthoredQuestionRecord],
+      kaqReviewedItems: [],
+    });
+
+    const first = firstArtifacts.items.find((item) => item.sourceFamily === 'checkpoint-authored-question');
+    const second = secondArtifacts.items.find((item) => item.sourceFamily === 'checkpoint-authored-question');
+
+    expect(first?.contentHash).toBe(second?.contentHash);
+    expect(first?.lineage.sourceHash).toBe(second?.lineage.sourceHash);
+  });
+
+  it('changes checkpoint content hashes when authored question content changes', () => {
+    const baseRecord: CheckpointAuthoredQuestionRecord = {
+      id: 'checkpoint-content-hash-1',
+      learningGoalId: 'control-correction',
+      learningGoalTitle: '控制系统校正设计',
+      stagePurpose: 'checkpoint',
+      stem: '校正设计完成后，哪一项最适合作为检查点题？',
+      options: [
+        { key: 'A', text: '检查相位裕度与稳态误差是否同时满足要求', isCorrect: true, explanation: '检查点题应验证设计指标是否闭环满足。' },
+        { key: 'B', text: '只观察开环增益是否最大', isCorrect: false, explanation: '开环增益不是完整校正目标。' },
+      ],
+      answerKeys: ['A'],
+      explanation: '校正设计检查点需要围绕闭环性能指标进行验证。',
+      difficulty: 0.55,
+      cognitiveLevel: 'analyze',
+      kaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
+      graphNodeIds: ['kn:autocontrol:controller-correction'],
+      knowledgeTags: ['controller-correction'],
+      misconceptionTags: ['open-loop-gain-only'],
+      remediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
+      reviewedAt: '2026-07-03T00:00:00.000Z',
+      reviewerId: 'reviewer:checkpoint-content',
+      reviewBatchId: 'learning-goal-checkpoint-question-sets.v1',
+      sourceRef: 'unit-test:checkpoint-content-hash-1',
+    };
+    const firstArtifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: [baseRecord],
+      kaqReviewedItems: [],
+    });
+    const secondArtifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: [{
+        ...baseRecord,
+        stem: '校正设计完成后，哪一项最适合作为终结性检查点题？',
+      }],
+      kaqReviewedItems: [],
+    });
+
+    const first = firstArtifacts.items.find((item) => item.sourceFamily === 'checkpoint-authored-question');
+    const second = secondArtifacts.items.find((item) => item.sourceFamily === 'checkpoint-authored-question');
+
+    expect(first?.contentHash).not.toBe(second?.contentHash);
+    expect(first?.lineage.sourceHash).not.toBe(second?.lineage.sourceHash);
+  });
+
+  it('changes checkpoint content hashes when coverage semantic fields change', () => {
+    const baseRecord: CheckpointAuthoredQuestionRecord = {
+      id: 'checkpoint-semantic-hash-1',
+      learningGoalId: 'control-correction',
+      learningGoalTitle: '控制系统校正设计',
+      stagePurpose: 'checkpoint',
+      stem: '校正设计完成后，哪一项最适合作为检查点题？',
+      options: [
+        { key: 'A', text: '检查相位裕度与稳态误差是否同时满足要求', isCorrect: true, explanation: '检查点题应验证设计指标是否闭环满足。' },
+        { key: 'B', text: '只观察开环增益是否最大', isCorrect: false, explanation: '开环增益不是完整校正目标。' },
+      ],
+      answerKeys: ['A'],
+      explanation: '校正设计检查点需要围绕闭环性能指标进行验证。',
+      difficulty: 0.55,
+      cognitiveLevel: 'analyze',
+      kaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
+      graphNodeIds: ['kn:autocontrol:controller-correction'],
+      knowledgeTags: ['controller-correction'],
+      misconceptionTags: ['open-loop-gain-only'],
+      remediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
+      reviewedAt: '2026-07-03T00:00:00.000Z',
+      reviewerId: 'reviewer:checkpoint-content',
+      reviewBatchId: 'learning-goal-checkpoint-question-sets.v1',
+      sourceRef: 'unit-test:checkpoint-semantic-hash-1',
+    };
+    const baseArtifacts = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: [baseRecord],
+      kaqReviewedItems: [],
+    });
+    const base = baseArtifacts.items.find((item) => item.sourceFamily === 'checkpoint-authored-question');
+    const semanticChanges: Array<Partial<CheckpointAuthoredQuestionRecord>> = [
+      { difficulty: 0.7 },
+      { cognitiveLevel: 'evaluate' },
+      { knowledgeTags: ['controller-correction', 'stability-margin'] },
+      { misconceptionTags: ['open-loop-gain-only', 'missing-stability-margin'] },
+      {
+        remediationResourceNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'registry:lesson12-frequency-precheck',
+        ],
+      },
+    ];
+
+    for (const change of semanticChanges) {
+      const changedArtifacts = buildAdaptiveAssessmentItemCatalog({
+        presetQuestions: [],
+        checkpointQuestions: [{ ...baseRecord, ...change }],
+        kaqReviewedItems: [],
+      });
+      const changed = changedArtifacts.items.find((item) => item.sourceFamily === 'checkpoint-authored-question');
+
+      expect(changed?.contentHash).not.toBe(base?.contentHash);
+      expect(changed?.lineage.sourceHash).not.toBe(base?.lineage.sourceHash);
+    }
   });
 });

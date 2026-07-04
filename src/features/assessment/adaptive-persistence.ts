@@ -148,6 +148,7 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function questionSource(questionId: string): string {
+  if (questionId.startsWith('checkpoint-authored-question:')) return 'checkpoint-authored-question';
   return questionId.startsWith('generated-q-') ? 'generated' : 'preset';
 }
 

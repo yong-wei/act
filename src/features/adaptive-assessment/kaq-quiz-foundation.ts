@@ -2,6 +2,10 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import {
+  getCheckpointAuthoredQuestionRecordByRuntimeId,
+  LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
+} from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 import type { CrossDomainQuestion } from '@/features/assessment/adaptive-question-bank';
 import { buildKaqArtifactVersionRefs, type KaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
 
@@ -21,9 +25,9 @@ export interface KaqQuizReviewAudit {
   reviewerId?: string;
   reviewerRole: string;
   reviewedAt: string;
-  reviewBatchId: typeof KAQ_QUIZ_FOUNDATION_BANK_VERSION;
+  reviewBatchId: string;
   sourceHash: string;
-  metadataVersionRef: typeof KAQ_QUIZ_FOUNDATION_BANK_VERSION;
+  metadataVersionRef: string;
   generationTool?: string;
   generationModel?: string;
   generationPromptVersion?: string;
@@ -314,6 +318,77 @@ function remediationRefs(row: KaqQuizCoverageBaselineRow): string[] {
   ].slice(0, 4);
 }
 
+function checkpointAuthoredPurpose(stagePurpose: string): KaqQuizPurpose {
+  if (stagePurpose === 'readiness' || stagePurpose === 'readiness-gate') return 'readiness-gate';
+  if (stagePurpose === 'precheck') return 'precheck';
+  if (stagePurpose === 'checkpoint') return 'checkpoint';
+  return 'practice';
+}
+
+function checkpointAuthoredMetadata(question: CrossDomainQuestion): KaqQuizQuestionMetadata | null {
+  const record = getCheckpointAuthoredQuestionRecordByRuntimeId(question.id);
+  if (!record) return null;
+  const sourceHash = stableHash({
+    id: record.id,
+    stem: record.stem,
+    options: record.options,
+    answerKeys: record.answerKeys,
+    explanation: record.explanation,
+    semanticRefs: {
+      learningGoalId: record.learningGoalId,
+      kaqObjectiveIds: record.kaqObjectiveIds,
+      graphNodeIds: record.graphNodeIds,
+      knowledgeTags: record.knowledgeTags,
+      misconceptionTags: record.misconceptionTags,
+      remediationResourceNodeIds: record.remediationResourceNodeIds,
+      stagePurpose: record.stagePurpose,
+      difficulty: record.difficulty,
+      cognitiveLevel: record.cognitiveLevel,
+    },
+  });
+  const knowledgeObjectiveIds = record.kaqObjectiveIds.filter((id) => id.startsWith('knowledge:'));
+  const capabilityTargetIds = record.kaqObjectiveIds.filter((id) => id.startsWith('capability:'));
+  const qualityTargetIds = record.kaqObjectiveIds.filter((id) => id.startsWith('quality:'));
+  const outcomeRefs = [`quiz-outcome:${record.learningGoalId}:${checkpointAuthoredPurpose(record.stagePurpose)}:${question.id}`];
+  return {
+    questionType: question.type,
+    learningGoalIds: [record.learningGoalId],
+    kaqObjectiveIds: record.kaqObjectiveIds,
+    knowledgeObjectiveIds,
+    applicationObjectiveIds: capabilityTargetIds,
+    qualityObjectiveIds: qualityTargetIds,
+    knowledgeNodeIds: record.graphNodeIds.filter((id) => id.startsWith('kn:')),
+    graphNodeIds: record.graphNodeIds,
+    capabilityTargetIds,
+    qualityTargetIds,
+    difficulty: record.difficulty,
+    cognitiveLevel: record.cognitiveLevel,
+    purpose: checkpointAuthoredPurpose(record.stagePurpose),
+    misconceptionTags: record.misconceptionTags,
+    outcomeRefs,
+    remediationResourceNodeIds: record.remediationResourceNodeIds,
+    review: {
+      state: 'reviewed',
+      reviewerId: record.reviewerId,
+      reviewerRole: 'assessment-content-reviewer',
+      reviewedAt: record.reviewedAt,
+      reviewBatchId: record.reviewBatchId,
+      sourceHash,
+      metadataVersionRef: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
+      staleInvalidationRules: [
+        'invalidate-on-question-content-hash-change',
+        'invalidate-on-checkpoint-question-set-version-change',
+        'invalidate-on-objective-catalog-version-change',
+      ],
+    },
+    versionRefs: {
+      ...versionRefs(),
+      questionBankVersion: KAQ_QUIZ_FOUNDATION_BANK_VERSION,
+    },
+    immutableContentHash: sourceHash,
+  };
+}
+
 export function buildKaqQuizQuestionMetadata(
   question: CrossDomainQuestion,
   input: {
@@ -323,6 +398,9 @@ export function buildKaqQuizQuestionMetadata(
     reviewedAt?: string;
   } = {},
 ): KaqQuizQuestionMetadata {
+  const authoredMetadata = checkpointAuthoredMetadata(question);
+  if (authoredMetadata) return authoredMetadata;
+
   const row = baselineRowForQuestion(question, input.baselineRows);
   const sourceHash = stableHash(questionContentSnapshot(question));
   const reviewState: KaqQuizReviewState = isGeneratedQuestion(question) ? 'provisional' : 'reviewed';
