@@ -463,3 +463,11 @@ The adaptive path planner SHALL be able to select reviewed core teaching resourc
 - **WHEN** a student requests a path for a registered LearningGoal whose core resources have reviewed path readiness
 - **THEN** the planner SHALL consider interactive lessons, knowledge cards, quizzes, simulations, exercises, and other reviewed core resource types according to goal policy and learner state
 - **AND** it SHALL expose selected and rejected resource reasons without relying on hard-coded goal names.
+
+### Requirement: Planner can select reviewed long-form sections
+The adaptive path planner SHALL consider reviewed textbook and reference sections as path resources when they satisfy LearningGoal policy and ResourceNode audit.
+
+#### Scenario: Long-form section matches a LearningGoal
+- **WHEN** a reviewed textbook or reference section covers a requested LearningGoal and passes path readiness
+- **THEN** the planner MAY select it as a learning resource, remediation resource, enrichment resource, or prerequisite repair resource according to its reviewed path role
+- **AND** it SHALL use lower-level chunks only as citation and rationale support unless they are separately reviewed as PathNodes.

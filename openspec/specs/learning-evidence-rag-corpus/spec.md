@@ -149,3 +149,11 @@ Verified citations SHALL resolve through a server-owned CitationAddress contract
 - **WHEN** RAG grounding or citation tooling records external/local tool metadata
 - **THEN** the record SHALL include tool name, version, input scope, output hash, permission, and retention rule
 - **AND** student raw answers, classroom evidence, and learner state SHALL NOT be sent to external tools by default.
+
+### Requirement: Long-form planning units retain chunk-level citation support
+The governed RAG corpus SHALL preserve citation support for textbook and reference chunks used by reviewed section-level PlanningUnits.
+
+#### Scenario: Section is selected in a path
+- **WHEN** a reviewed textbook or reference section is selected as a path resource
+- **THEN** related chunks, figures, anchors, and citation targets SHALL remain available for Konling explanations and path rationale
+- **AND** citation verification SHALL resolve through server-owned CitationAddress metadata.
