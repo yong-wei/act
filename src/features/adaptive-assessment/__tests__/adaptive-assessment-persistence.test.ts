@@ -3,10 +3,14 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { generateQuestion } from '../../assessment/adaptive-engine';
+import { generateQuestion, getAdaptiveQuestionById } from '../../assessment/adaptive-engine';
 import { PRESET_QUESTIONS } from '../../assessment/adaptive-question-bank';
 import { submitAnswerDurably } from '../../assessment/adaptive-persistence';
 import { buildKaqQuizQuestionMetadata } from '../kaq-quiz-foundation';
+import {
+  checkpointAuthoredQuestionRuntimeId,
+  REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
+} from '../learning-goal-checkpoint-question-sets';
 
 function readReviewedItem(questionId: string) {
   return readFileSync('course-content/runtime/resource-governance/kaq-quiz-foundation-reviewed-items.jsonl', 'utf8')
@@ -262,6 +266,83 @@ describe('K/A/Q adaptive assessment persistence', () => {
       terminalValidationEligible: false,
       pathCompletionEligible: false,
       evidenceAuthority: 'legacy-compatible',
+    });
+  });
+
+  it('treats catalog-backed checkpoint answers as path-completion eligible', async () => {
+    const db = createMockDb();
+    const question = PRESET_QUESTIONS.find((candidate) => {
+      const metadata = buildKaqQuizQuestionMetadata(candidate);
+      return metadata.learningGoalIds.includes('control-correction') &&
+        metadata.review.state === 'reviewed' &&
+        metadata.purpose === 'checkpoint';
+    });
+    expect(question).toBeTruthy();
+    const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+
+    const result = await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: question!.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: 'checkpoint:control-correction-review',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+        questionScope: 'checkpoint',
+      },
+    }, db);
+
+    expect(result.adaptiveAssessmentRef).toMatchObject({
+      kind: 'AdaptiveAssessmentAnswer',
+      reviewState: 'reviewed',
+      catalogItemId: `adaptive-assessment-item:preset-adaptive-question:${question!.id}`,
+      readinessGateEligible: false,
+      terminalValidationEligible: false,
+      pathCompletionEligible: true,
+      evidenceAuthority: 'path-assessment',
+    });
+  });
+
+  it('treats catalog-backed remediation answers as path-completion eligible', async () => {
+    const db = createMockDb();
+    const authoredRemediation = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((candidate) =>
+      candidate.learningGoalId === 'control-correction' &&
+      candidate.stagePurpose === 'remediation'
+    );
+    expect(authoredRemediation).toBeTruthy();
+    const runtimeQuestionId = checkpointAuthoredQuestionRuntimeId(authoredRemediation!.id);
+    const question = getAdaptiveQuestionById(runtimeQuestionId);
+    expect(question).toBeTruthy();
+    const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+
+    const result = await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: runtimeQuestionId,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: 'remediation:control-correction-review',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+        questionScope: 'remediation',
+      },
+    }, db);
+
+    expect(result.adaptiveAssessmentRef).toMatchObject({
+      kind: 'AdaptiveAssessmentAnswer',
+      reviewState: 'reviewed',
+      catalogItemId: `adaptive-assessment-item:checkpoint-authored-question:${authoredRemediation!.id}`,
+      readinessGateEligible: false,
+      terminalValidationEligible: false,
+      pathCompletionEligible: true,
+      evidenceAuthority: 'path-assessment',
     });
   });
 

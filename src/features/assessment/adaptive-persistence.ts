@@ -291,7 +291,7 @@ function buildAdaptiveAssessmentOutcomeRef(params: {
       (params.kaqQuizEvidence.learningFactEligible ? 'legacy-compatible' : 'generated-provisional'),
     readinessGateEligible,
     terminalValidationEligible,
-    pathCompletionEligible: readinessGateEligible || terminalValidationEligible,
+    pathCompletionEligible: pathAssessmentEligible,
     evidenceAuthority: pathAssessmentEligible ? 'path-assessment' :
       params.kaqQuizEvidence.learningFactEligible ? 'legacy-compatible' : 'low-stakes-practice-only',
     algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
