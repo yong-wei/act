@@ -455,6 +455,7 @@ describe('platform UI contracts', () => {
   });
 
   it('keeps representative dense workspace sources on the commercial zone contract', () => {
+    const appShellSource = readSource('src/components/platform/app-shell.tsx');
     const workbenchSource = readSource('src/features/control-workbench/shell/control-workbench-shell.tsx');
     const arenaDetailSource = readSource('src/features/arena/challenge-detail.tsx');
     const manifestRuntimeSource = readSource('src/features/interactive/shared/manifest-runtime/layout-renderer.tsx');
@@ -470,6 +471,7 @@ describe('platform UI contracts', () => {
     const teacherAnalyticsSource = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
     const teacherLayoutSource = readSource('src/app/teacher/layout.tsx');
     const teacherOperationsNavSource = readSource('src/features/teacher/teacher-operations-nav.tsx');
+    const roleWorkspaceShellSource = readSource('src/components/platform/role-workspace-shell.tsx');
     const teacherDashboardSource = readSource('src/features/teacher/teacher-dashboard.tsx');
     const teacherGradingSource = readSource('src/features/assessment/document-rubric-grading-ui.tsx');
     const teacherReportLedgerLayoutSource = readSource('src/app/(teacher-report-ledger)/teacher/layout.tsx');
@@ -478,6 +480,8 @@ describe('platform UI contracts', () => {
     const teacherLessonPlansSource = readSource('src/app/teacher/lesson-plans/page.tsx');
     const teacherResourcesSource = readSource('src/app/teacher/resources/page.tsx');
     const teacherHistorySource = readSource('src/app/teacher/history/page.tsx');
+    const adminLayoutSource = readSource('src/app/admin/layout.tsx');
+    const adminHeaderSource = readSource('src/features/admin/admin-console-header.tsx');
     const adminHomeSource = readSource('src/features/admin/admin-console-home.tsx');
     const adminUsersSource = readSource('src/features/admin/admin-dashboard.tsx');
     const adminConfigSource = readSource('src/features/admin/system-config-dashboard.tsx');
@@ -547,7 +551,23 @@ describe('platform UI contracts', () => {
     expect(manifestRuntimeSource).toContain('data-commercial-module-state');
     expect(teacherAnalyticsSource).toContain('data-commercial-operations-workspace="teacher-operations"');
     expect(teacherAnalyticsSource).toContain('data-report-ledger-surface="teacher-class-analytics-report"');
+    expect(roleWorkspaceShellSource).toContain('<AppShell');
+    expect(roleWorkspaceShellSource).toContain('activeHref={pathname}');
+    expect(roleWorkspaceShellSource).toContain('sidebarMode="collapsible"');
+    expect(roleWorkspaceShellSource).not.toContain("variant={workspaceRole === 'admin' ? 'admin' : 'default'}");
+    expect(roleWorkspaceShellSource).toContain("teacher: { href: '/teacher', label: '个人中心' }");
+    expect(roleWorkspaceShellSource).toContain("admin: { href: '/admin', label: '个人中心' }");
+    expect(roleWorkspaceShellSource).toContain('accountHref={accountTarget.href}');
+    expect(roleWorkspaceShellSource).toContain('accountLabel={accountTarget.label}');
+    expect(roleWorkspaceShellSource).toContain('userMenu={(');
+    expect(roleWorkspaceShellSource).toContain('<UserMenu');
+    expect(appShellSource).toContain('function hasRightRailWorkspaceSlots');
+    expect(appShellSource).toContain("data-app-shell-workspace-right-rail={hasRightRail ? 'present' : 'absent'}");
+    expect(appShellSource).toContain("className={cn('grid gap-4', hasRightRail && 'xl:grid-cols-[minmax(0,1fr)_320px]')}");
     expect(teacherLayoutSource).toContain('TeacherOperationsNav');
+    expect(teacherLayoutSource).toContain('<RoleWorkspaceShell');
+    expect(teacherLayoutSource).toContain('workspaceRole="teacher"');
+    expect(teacherLayoutSource).toContain('data-commercial-workspace-zone="command-bar"');
     expect(teacherOperationsNavSource).toContain('TEACHER_OPERATIONS_NAVIGATION');
     expect(teacherOperationsNavSource).toContain('data-teacher-operations-continuous-nav');
     expect(teacherOperationsNavSource).toContain('data-teacher-operations-current-route');
@@ -574,7 +594,9 @@ describe('platform UI contracts', () => {
     expect(teacherLayoutSource).toContain("session.user.role !== 'TEACHER'");
     expect(teacherLayoutSource).not.toContain('adminGradingWorkbenchAccess');
     expect(teacherReportLedgerLayoutSource).toContain("session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN'");
-    expect(teacherReportLedgerLayoutSource).toContain("session.user.role === 'TEACHER' ? <TeacherOperationsNav /> : null");
+    expect(teacherReportLedgerLayoutSource).toContain('<RoleWorkspaceShell');
+    expect(teacherReportLedgerLayoutSource).toContain("workspaceRole={session.user.role === 'ADMIN' ? 'admin' : 'teacher'}");
+    expect(teacherReportLedgerLayoutSource).toContain("commandBar: session.user.role === 'TEACHER'");
     expect(teacherReportLedgerLayoutSource).toContain('data-commercial-operations-workspace="teacher-report-ledger"');
     expect(teacherClassesSource).toContain('data-commercial-operations-workspace="teacher-operations"');
     expect(teacherLessonPlansSource).toContain('data-commercial-operations-workspace="teacher-operations"');
@@ -582,6 +604,10 @@ describe('platform UI contracts', () => {
     expect(teacherHistorySource).toContain('data-commercial-operations-workspace="teacher-operations"');
     expect(dataCenterSource).toContain('data-commercial-operations-workspace="data-center"');
     expect(dataCenterSource).toContain('repeat(auto-fit,minmax(min(100%,420px),1fr))');
+    expect(adminLayoutSource).toContain('<RoleWorkspaceShell');
+    expect(adminLayoutSource).toContain('workspaceRole="admin"');
+    expect(adminLayoutSource).toContain('session.user.role !== UserRole.ADMIN');
+    expect(adminHeaderSource).not.toContain('<UserMenu');
     expect(adminHomeSource).toContain('data-commercial-operations-workspace="admin-operations"');
     expect(adminHomeSource).toContain('data-operations-first-viewport="admin-risk-actions"');
     expect(adminHomeSource).toContain('data-admin-operations-risk-queue');
@@ -597,6 +623,36 @@ describe('platform UI contracts', () => {
     expect(adminGovernanceSource).toContain('data-commercial-operations-workspace="admin-operations"');
     expect(adminGovernanceSource).toContain('data-report-ledger-surface="governance-data-quality-snapshot"');
     expect(adminGovernanceSource).toContain('data-report-ledger-privacy-scope="admin-governance"');
+  });
+
+  it('does not render an empty AppShell workspace right rail for command-only role workspaces', () => {
+    const commandOnlyMarkup = renderAppShellMarkup({
+      viewerRole: 'teacher',
+      title: '教师工作台',
+      workspaceSlots: {
+        commandBar: createElement('nav', { 'data-test-command': 'teacher' }, '教师操作'),
+      },
+      children: createElement('main', null, '正文'),
+    });
+
+    expect(commandOnlyMarkup).toContain('data-app-shell-workspace="true"');
+    expect(commandOnlyMarkup).toContain('data-app-shell-workspace-right-rail="absent"');
+    expect(commandOnlyMarkup).not.toContain('xl:grid-cols-[minmax(0,1fr)_320px]');
+    expect(commandOnlyMarkup).not.toContain('data-app-shell-zone="evidence-rail"');
+
+    const rightRailMarkup = renderAppShellMarkup({
+      viewerRole: 'admin',
+      title: '管理员后台',
+      workspaceSlots: {
+        contextHeader: createElement('div', null, '上下文'),
+        statusRail: createElement('aside', null, '状态'),
+      },
+      children: createElement('main', null, '正文'),
+    });
+
+    expect(rightRailMarkup).toContain('data-app-shell-workspace-right-rail="present"');
+    expect(rightRailMarkup).toContain('xl:grid-cols-[minmax(0,1fr)_320px]');
+    expect(rightRailMarkup).toContain('data-app-shell-zone="status-rail"');
   });
 
   it('keeps migrated learner, knowledge, and adaptive surfaces on the unified shell contract', () => {
@@ -936,6 +992,43 @@ describe('platform UI contracts', () => {
     expect(waitingShellMarkup).toContain('data-platform-floating-dock-behavior="collapsed"');
   });
 
+  it('records migrated role workspace shell inventory as adapted instead of scheduled replacement', () => {
+    const teacherRoute = resolvePlatformRouteInventory('/teacher');
+    const adminRoute = resolvePlatformRouteInventory('/admin');
+    const collapsibleRoleWorkspaceRoutes = [
+      '/teacher',
+      '/teacher/grading-workbench',
+      '/admin',
+      '/admin/users',
+      '/admin/states',
+      '/admin/config',
+      '/admin/data-governance',
+    ];
+
+    expect(teacherRoute?.legacyShell).toMatchObject({
+      component: 'TeacherLayout',
+      disposition: 'adapted',
+      owningChange: 'migrate-role-workspaces-to-appshell-navigation',
+      sourceFile: 'src/app/teacher/layout.tsx',
+    });
+    expect(teacherRoute?.legacyShell?.removalCondition).toContain('RoleWorkspaceShell/AppShell');
+    expect(adminRoute?.legacyShell).toMatchObject({
+      component: 'AdminConsoleHeader',
+      disposition: 'adapted',
+      owningChange: 'migrate-role-workspaces-to-appshell-navigation',
+      sourceFile: 'src/features/admin/admin-console-home.tsx',
+    });
+    expect(adminRoute?.legacyShell?.removalCondition).toContain('page-local operation headers');
+    for (const href of collapsibleRoleWorkspaceRoutes) {
+      expect(resolvePlatformRouteInventory(href)?.desktopNavigation, href).toBe('collapsible');
+    }
+    for (const route of PLATFORM_PRIMARY_ROUTE_INVENTORY) {
+      if (route.href.startsWith('/teacher') || route.href.startsWith('/admin')) {
+        expect(route.desktopNavigation, route.href).toBe('collapsible');
+      }
+    }
+  });
+
   it('does not use student or teacher business identity as a JSX role prop', () => {
     const platformShellFiles = [
       'src/components/platform/app-shell.tsx',
@@ -1262,7 +1355,7 @@ describe('platform UI contracts', () => {
     }
   });
 
-  it('keeps legacy role-cockpit operation shells fixed until they migrate to AppShell', () => {
+  it('keeps migrated role-cockpit operation shells aligned with collapsible AppShell metadata', () => {
     const teacherMarkup = renderAppShellMarkup({
       viewerRole: 'teacher',
       title: '班级管理',
@@ -1276,12 +1369,12 @@ describe('platform UI contracts', () => {
       children: null,
     });
 
-    expect(teacherMarkup).toContain('data-platform-desktop-navigation="fixed"');
-    expect(teacherMarkup).not.toContain('data-app-shell-layout="collapsible"');
-    expect(teacherMarkup).toContain('lg:grid-cols-[248px_minmax(0,1fr)]');
-    expect(adminMarkup).toContain('data-platform-desktop-navigation="fixed"');
-    expect(adminMarkup).not.toContain('data-app-shell-layout="collapsible"');
-    expect(adminMarkup).toContain('lg:grid-cols-[248px_minmax(0,1fr)]');
+    expect(teacherMarkup).toContain('data-platform-desktop-navigation="collapsible"');
+    expect(teacherMarkup).toContain('data-app-shell-layout="collapsible"');
+    expect(teacherMarkup).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
+    expect(adminMarkup).toContain('data-platform-desktop-navigation="collapsible"');
+    expect(adminMarkup).toContain('data-app-shell-layout="collapsible"');
+    expect(adminMarkup).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
   });
 
   it('does not infer collapsible desktop navigation for retained legacy product routes', () => {
@@ -1371,7 +1464,7 @@ describe('platform UI contracts', () => {
     });
 
     expect(shellMarkup).toContain('aria-label="平台导航"');
-    expect(shellMarkup).toContain('lg:hidden');
+    expect(shellMarkup).toContain('xl:hidden');
     expect(shellMarkup).not.toContain('overflow-x-auto');
     expect(shellMarkup).toContain('grid grid-cols-2');
     expect(shellMarkup).toContain('sm:flex-wrap');

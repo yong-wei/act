@@ -865,6 +865,10 @@ function hasWorkspaceSlots(slots?: AppShellWorkspaceSlots) {
   return Boolean(slots && Object.values(slots).some(Boolean));
 }
 
+function hasRightRailWorkspaceSlots(slots?: AppShellWorkspaceSlots) {
+  return Boolean(slots?.evidenceRail || slots?.supportDrawer || slots?.statusRail || slots?.localTools);
+}
+
 function renderAppShellWorkspaceZone({
   id,
   children,
@@ -890,8 +894,13 @@ function AppShellWorkspace({
   children: ReactNode;
 }) {
   if (!hasWorkspaceSlots(slots)) return <>{children}</>;
+  const hasRightRail = hasRightRailWorkspaceSlots(slots);
   return (
-    <section data-app-shell-workspace="true" className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <section
+      data-app-shell-workspace="true"
+      data-app-shell-workspace-right-rail={hasRightRail ? 'present' : 'absent'}
+      className={cn('grid gap-4', hasRightRail && 'xl:grid-cols-[minmax(0,1fr)_320px]')}
+    >
       <div className="min-w-0 space-y-4">
         {renderAppShellWorkspaceZone({
           id: 'context-header',
@@ -908,28 +917,30 @@ function AppShellWorkspace({
           children: slots?.instrumentArea ?? children,
         })}
       </div>
-      <div className="min-w-0 space-y-4">
-        {renderAppShellWorkspaceZone({
-          id: 'evidence-rail',
-          className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
-          children: slots?.evidenceRail,
-        })}
-        {renderAppShellWorkspaceZone({
-          id: 'support-drawer',
-          className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
-          children: slots?.supportDrawer,
-        })}
-        {renderAppShellWorkspaceZone({
-          id: 'status-rail',
-          className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
-          children: slots?.statusRail,
-        })}
-        {renderAppShellWorkspaceZone({
-          id: 'local-tools',
-          className: 'rounded-lg border border-platform-border bg-platform-canvas-muted p-4',
-          children: slots?.localTools,
-        })}
-      </div>
+      {hasRightRail ? (
+        <div className="min-w-0 space-y-4">
+          {renderAppShellWorkspaceZone({
+            id: 'evidence-rail',
+            className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
+            children: slots?.evidenceRail,
+          })}
+          {renderAppShellWorkspaceZone({
+            id: 'support-drawer',
+            className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
+            children: slots?.supportDrawer,
+          })}
+          {renderAppShellWorkspaceZone({
+            id: 'status-rail',
+            className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
+            children: slots?.statusRail,
+          })}
+          {renderAppShellWorkspaceZone({
+            id: 'local-tools',
+            className: 'rounded-lg border border-platform-border bg-platform-canvas-muted p-4',
+            children: slots?.localTools,
+          })}
+        </div>
+      ) : null}
     </section>
   );
 }

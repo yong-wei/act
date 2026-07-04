@@ -337,6 +337,10 @@ function inferLegacyFrameAlias(input: Pick<PlatformPrimaryRouteInventoryEntry, '
   return undefined;
 }
 
+function usesRoleWorkspaceShellLayout(input: Pick<PlatformPrimaryRouteInventoryEntry, 'href'>) {
+  return input.href.startsWith('/teacher') || input.href.startsWith('/admin');
+}
+
 function primaryRoute(input: PrimaryRouteInput): PlatformPrimaryRouteInventoryEntry {
   const shellRemovalCondition = input.shellRemovalCondition ?? `Route shell is migrated by ${input.owningChange}.`;
   const exception = input.exception
@@ -364,6 +368,8 @@ function primaryRoute(input: PrimaryRouteInput): PlatformPrimaryRouteInventoryEn
   const desktopNavigation = input.desktopNavigation ?? (
     input.frame === 'public-entry'
       ? 'hidden'
+      : usesRoleWorkspaceShellLayout(input)
+        ? 'collapsible'
       : input.legacyShell || input.exception
         ? 'fixed'
       : input.navigationLayers.includes('global-product')
@@ -1256,14 +1262,16 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'TeacherLayout',
-      disposition: 'scheduled-replacement',
+      disposition: 'adapted',
       sourceFile: 'src/app/teacher/layout.tsx',
-      removalCondition: 'Teacher layout delegates header, cockpit navigation, and account actions to AppShell.',
+      owningChange: 'migrate-role-workspaces-to-appshell-navigation',
+      removalCondition: 'Teacher layout delegates header, cockpit navigation, theme switching, and account actions to RoleWorkspaceShell/AppShell.',
     },
   }),
   primaryRoute({
@@ -1455,6 +1463,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     themeSupport: ['light'],
@@ -1505,14 +1514,16 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'AdminConsoleHeader',
-      disposition: 'scheduled-replacement',
+      disposition: 'adapted',
       sourceFile: 'src/features/admin/admin-console-home.tsx',
-      removalCondition: 'Admin console home maps status notes and actions into AppShell AppHeader and PlatformSurface slots.',
+      owningChange: 'migrate-role-workspaces-to-appshell-navigation',
+      removalCondition: 'Admin layout delegates primary shell, theme switching, and account actions to RoleWorkspaceShell/AppShell while retaining page-local operation headers.',
     },
   }),
   primaryRoute({
@@ -1522,6 +1533,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
@@ -1539,6 +1551,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
@@ -1556,6 +1569,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
@@ -1632,6 +1646,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
