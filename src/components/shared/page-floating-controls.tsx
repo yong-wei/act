@@ -94,10 +94,11 @@ function PageFloatingControls({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [announcement, setAnnouncement] = useState('页面浮动控件已就绪。');
   const menu = buildFloatingControlMenu(registrations);
-  const konlingControl = menu.find((item) => isKonlingControl(item));
+  const konlingControls = menu.filter((item) => isKonlingControl(item));
+  const konlingControl = konlingControls.at(-1);
   const primaryControl = konlingControl ?? null;
   const secondaryControls = primaryControl
-    ? menu.filter((item) => item.id !== primaryControl.id && !isKonlingControl(item))
+    ? menu.filter((item) => item.id !== primaryControl.id)
     : menu;
   const triggerLabel = primaryControl ? '控灵' : '';
   const panelId = 'page-floating-controls-panel';

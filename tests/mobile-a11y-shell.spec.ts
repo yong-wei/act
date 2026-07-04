@@ -340,7 +340,6 @@ test('admin mobile pages keep 320px and 390px document width with announced tabl
       const dockTrigger = page.locator('[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
       await expect(dockTrigger).toBeVisible();
       await dockTrigger.click();
-      await page.getByRole('button', { name: '呼出控灵 AI助手' }).click();
       const sidebar = page.locator('[data-global-ai-sidebar="open"]');
       await expect(sidebar).toBeVisible();
       await expectFocusWithin(page, '[data-global-ai-sidebar="open"]');

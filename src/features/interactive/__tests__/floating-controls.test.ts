@@ -59,11 +59,14 @@ describe('page floating controls', () => {
     expect(source).toContain('aria-labelledby={panelTitleId}');
     expect(source).toContain('aria-controls={isMenuOpen ? panelId : undefined}');
     expect(source).toContain('data-platform-floating-dock-status');
-    expect(source).toContain('const primaryControl = konlingControl ?? null');
+    expect(source).toContain('const konlingControls = menu.filter((item) => isKonlingControl(item))');
+    expect(source).toContain('const konlingControl = konlingControls.at(-1)');
+    expect(source).toContain('menu.filter((item) => item.id !== primaryControl.id)');
     expect(source).toContain('data-platform-floating-dock-primary="konling"');
     expect(source).toContain('data-platform-floating-dock-direct-action="true"');
     expect(source).toContain('data-platform-floating-dock-secondary-trigger="true"');
     expect(source).not.toContain('konlingControl ?? menu[0]');
+    expect(source).not.toContain('&& !isKonlingControl(item)');
     expect(source).not.toContain('主题已切换为');
   });
 

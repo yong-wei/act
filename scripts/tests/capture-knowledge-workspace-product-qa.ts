@@ -13,6 +13,7 @@ const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c0
 const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
   'src/app/knowledge/page.tsx',
+  'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/knowledge/graph/knowledge-graph-2d.tsx',
   'src/features/knowledge/graph/visual-config.ts',
   'src/features/knowledge/resource-panel/resource-panel.tsx',
@@ -43,6 +44,7 @@ type IndependentVisualReviewEvidence = {
 
 interface CaptureState {
   name: string;
+  route?: '/knowledge' | '/assessment/adaptive-practice';
   theme: Theme;
   width: number;
   height: number;
@@ -155,10 +157,14 @@ async function openStatePage(browser: Browser, state: CaptureState) {
     document.documentElement.style.colorScheme = theme;
   }, { theme: state.theme, navigationPreference: state.navigationPreference });
   const page = await context.newPage();
+  const route = state.route ?? '/knowledge';
   const query = state.query ? `${state.query}&qa=knowledge-product` : '?qa=knowledge-product';
-  const url = `${baseUrl}/knowledge${query}`;
+  const url = `${baseUrl}${route}${query}`;
   await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('[data-knowledge-workspace="canvas-first"]', { timeout: 30000 });
+  const readySelector = route === '/knowledge'
+    ? '[data-knowledge-workspace="canvas-first"]'
+    : '[data-commercial-workspace="adaptive-path-center"]';
+  await page.waitForSelector(readySelector, { timeout: 30000 });
   await page.waitForTimeout(800);
   return { context, page, url };
 }
@@ -310,13 +316,11 @@ async function openMobileTool(page: Page, tool: string) {
 
 async function expandDock(page: Page) {
   await clickIfPresent(page, '[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
-  await page.waitForSelector('[data-platform-floating-dock-expanded-panel]', { timeout: 8000 });
-  await clickIfPresent(page, '[data-platform-floating-dock-expanded-panel] button[aria-label="呼出控灵 AI助手"]');
   await page.waitForSelector('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]', { timeout: 8000 });
 }
 
 async function openPageToolMenu(page: Page) {
-  await clickIfPresent(page, '[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
+  await clickIfPresent(page, '[data-platform-floating-dock] button[data-platform-floating-dock-secondary-trigger]');
   await page.waitForSelector('[data-platform-floating-dock-expanded-panel]', { timeout: 8000 });
 }
 
@@ -609,7 +613,7 @@ async function captureState(browser: Browser, state: CaptureState) {
     const markers = await captureMarkers(page);
     return {
       name: state.name,
-      route: '/knowledge',
+      route: state.route ?? '/knowledge',
       url,
       theme: state.theme,
       viewport: { width: state.width, height: state.height },
@@ -869,6 +873,7 @@ async function main() {
     },
     {
       name: 'desktop-selected-page-tools-menu-dark',
+      route: '/assessment/adaptive-practice',
       theme: 'dark',
       width: 1440,
       height: 960,
@@ -876,13 +881,9 @@ async function main() {
       navigationState: 'collapsed',
       dockState: 'expanded',
       localToolState: 'closed',
-      selectedNode: selectedNodeId,
-      interactionState: 'selected inspector with page tool menu expanded',
-      query: `?node=${encodeURIComponent(selectedNodeId)}`,
-      beforeShot: async (page) => {
-        await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
-        await openPageToolMenu(page);
-      },
+      selectedNode: null,
+      interactionState: 'adaptive practice page tool menu expanded',
+      beforeShot: openPageToolMenu,
     },
     {
       name: 'desktop-explicit-relayout-dark',
