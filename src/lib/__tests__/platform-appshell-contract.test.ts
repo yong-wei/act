@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, posix, relative } from 'node:path';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 
 import { AppHeader } from '@/components/platform/app-shell';
@@ -88,12 +89,35 @@ function ancestorLayoutFiles(file: string) {
   return files;
 }
 
-function sourceMentionsRegisteredWrapper(source: string) {
-  return appShellWrapperNames.find((wrapperName) => (
-    source.includes(`<${wrapperName}`)
-    || source.includes(`import { ${wrapperName}`)
-    || source.includes(`import ${wrapperName}`)
-  ));
+function createTsxSourceFile(fileName: string, source: string) {
+  return ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+}
+
+function getImportedComponentSources(sourceFile: ts.SourceFile) {
+  const importedSources = new Map<string, string>();
+
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
+    const importClause = statement.importClause;
+    if (!importClause || importClause.isTypeOnly) continue;
+    const importSource = statement.moduleSpecifier.text;
+
+    if (importClause.name && /^[A-Z]/.test(importClause.name.text)) {
+      importedSources.set(importClause.name.text, importSource);
+    }
+
+    const namedBindings = importClause.namedBindings;
+    if (!namedBindings || !ts.isNamedImports(namedBindings)) continue;
+    for (const specifier of namedBindings.elements) {
+      if (specifier.isTypeOnly) continue;
+      const localName = specifier.name.text;
+      if (/^[A-Z]/.test(localName)) {
+        importedSources.set(localName, importSource);
+      }
+    }
+  }
+
+  return importedSources;
 }
 
 function resolveImportSource(fromFile: string, importSource: string) {
@@ -108,22 +132,149 @@ function resolveImportSource(fromFile: string, importSource: string) {
   return candidates.find((candidate) => existsSync(candidate) && statSync(candidate).isFile());
 }
 
+function isDefaultExport(node: ts.Node) {
+  return Boolean(ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Default);
+}
+
+function getFunctionBodyForComponent(sourceFile: ts.SourceFile, componentName?: string): ts.ConciseBody | undefined {
+  for (const statement of sourceFile.statements) {
+    if (ts.isFunctionDeclaration(statement)) {
+      if (!componentName && isDefaultExport(statement)) return statement.body;
+      if (componentName && statement.name?.text === componentName) return statement.body;
+    }
+
+    if (
+      componentName
+      && ts.isVariableStatement(statement)
+      && statement.declarationList.declarations.some((declaration) => ts.isIdentifier(declaration.name) && declaration.name.text === componentName)
+    ) {
+      const declaration = statement.declarationList.declarations.find((item) => ts.isIdentifier(item.name) && item.name.text === componentName);
+      const initializer = declaration?.initializer;
+      if (initializer && (ts.isArrowFunction(initializer) || ts.isFunctionExpression(initializer))) {
+        return initializer.body;
+      }
+    }
+
+    if (!componentName && ts.isExportAssignment(statement) && ts.isIdentifier(statement.expression)) {
+      return getFunctionBodyForComponent(sourceFile, statement.expression.text);
+    }
+  }
+
+  return undefined;
+}
+
+function collectJsxComponentNames(node: ts.Node, renderedComponents = new Set<string>()) {
+  const tagName = ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node) ? node.tagName : undefined;
+  if (tagName) {
+    const tagText = 'text' in tagName && typeof tagName.text === 'string' ? tagName.text : tagName.getText();
+    if (/^[A-Z][A-Za-z0-9_]*$/.test(tagText)) {
+      renderedComponents.add(tagText);
+    }
+  }
+  ts.forEachChild(node, (child) => {
+    collectJsxComponentNames(child, renderedComponents);
+  });
+  return renderedComponents;
+}
+
+function collectReturnedJsxComponentNames(
+  body: ts.ConciseBody | undefined,
+  sourceFile?: ts.SourceFile,
+  renderedComponents = new Set<string>(),
+  visitedLocalCalls = new Set<string>(),
+) {
+  if (!body) return renderedComponents;
+  if (!ts.isBlock(body)) {
+    collectReturnedExpressionComponentNames(body, sourceFile, renderedComponents, visitedLocalCalls);
+    return renderedComponents;
+  }
+
+  function visit(node: ts.Node) {
+    if (ts.isFunctionLike(node) && node !== body) return;
+    if (ts.isIfStatement(node) && node.expression.kind === ts.SyntaxKind.FalseKeyword) {
+      node.elseStatement?.forEachChild(visit);
+      return;
+    }
+    if (ts.isReturnStatement(node) && node.expression) {
+      collectReturnedExpressionComponentNames(node.expression, sourceFile, renderedComponents, visitedLocalCalls);
+      return;
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  body.forEachChild(visit);
+  return renderedComponents;
+}
+
+function collectReturnedExpressionComponentNames(
+  expression: ts.Expression,
+  sourceFile: ts.SourceFile | undefined,
+  renderedComponents: Set<string>,
+  visitedLocalCalls: Set<string>,
+) {
+  collectJsxComponentNames(expression, renderedComponents);
+  if (!sourceFile) return;
+  const unwrapped = ts.isParenthesizedExpression(expression) ? expression.expression : expression;
+  if (!ts.isCallExpression(unwrapped) || !ts.isIdentifier(unwrapped.expression)) return;
+
+  const helperName = unwrapped.expression.text;
+  if (visitedLocalCalls.has(helperName)) return;
+  visitedLocalCalls.add(helperName);
+  collectReturnedJsxComponentNames(
+    getFunctionBodyForComponent(sourceFile, helperName),
+    sourceFile,
+    renderedComponents,
+    visitedLocalCalls,
+  );
+}
+
 function findRegisteredWrapperEvidence(file: string, depth = 0, seen = new Set<string>()): string | undefined {
   if (seen.has(file) || depth > 4) return undefined;
   seen.add(file);
 
   const source = readFileSync(file, 'utf8');
-  const wrapper = sourceMentionsRegisteredWrapper(source);
+  const sourceFile = createTsxSourceFile(file, source);
+  const renderedComponents = collectReturnedJsxComponentNames(getFunctionBodyForComponent(sourceFile), sourceFile);
+  const wrapper = appShellWrapperNames.find((wrapperName) => renderedComponents.has(wrapperName));
   if (wrapper) return `${relative(process.cwd(), file)}:${wrapper}`;
 
-  const importSources = Array.from(source.matchAll(/from ['"]([^'"]+)['"]/g))
-    .map((match) => match[1])
-    .filter((importSource) => importSource.startsWith('@/') || importSource.startsWith('.'));
+  const importedComponentSources = getImportedComponentSources(sourceFile);
 
-  for (const importSource of importSources) {
+  for (const componentName of renderedComponents) {
+    const importSource = importedComponentSources.get(componentName);
+    if (!importSource || (!importSource.startsWith('@/') && !importSource.startsWith('.'))) continue;
     const importedFile = resolveImportSource(file, importSource);
     if (!importedFile) continue;
-    const importedEvidence = findRegisteredWrapperEvidence(importedFile, depth + 1, seen);
+    const importedEvidence = findRegisteredWrapperEvidenceForComponent(importedFile, componentName, depth + 1, seen);
+    if (importedEvidence) return importedEvidence;
+  }
+
+  return undefined;
+}
+
+function findRegisteredWrapperEvidenceForComponent(
+  file: string,
+  componentName: string,
+  depth = 0,
+  seen = new Set<string>(),
+): string | undefined {
+  const seenKey = `${file}:${componentName}`;
+  if (seen.has(seenKey) || depth > 4) return undefined;
+  seen.add(seenKey);
+
+  const source = readFileSync(file, 'utf8');
+  const sourceFile = createTsxSourceFile(file, source);
+  const renderedComponents = collectReturnedJsxComponentNames(getFunctionBodyForComponent(sourceFile, componentName), sourceFile);
+  const wrapper = appShellWrapperNames.find((wrapperName) => renderedComponents.has(wrapperName));
+  if (wrapper) return `${relative(process.cwd(), file)}:${wrapper}`;
+
+  const importedComponentSources = getImportedComponentSources(sourceFile);
+  for (const renderedComponent of renderedComponents) {
+    const importSource = importedComponentSources.get(renderedComponent);
+    if (!importSource || (!importSource.startsWith('@/') && !importSource.startsWith('.'))) continue;
+    const importedFile = resolveImportSource(file, importSource);
+    if (!importedFile) continue;
+    const importedEvidence = findRegisteredWrapperEvidenceForComponent(importedFile, renderedComponent, depth + 1, seen);
     if (importedEvidence) return importedEvidence;
   }
 
@@ -274,5 +425,43 @@ describe('universal AppShell frame contract', () => {
     expect(loginCoverage).toEqual({ kind: 'governed-exception', evidence: '/login' });
     expect(simulationsSource).not.toContain('data-simulation-user-center-action');
     expect(simulationShellSource).not.toContain('data-simulation-shell-profile-action');
+  });
+
+  it('does not treat unused wrapper imports as AppShell render evidence', () => {
+    const source = [
+      "import { AppShell } from '@/components/platform/app-shell';",
+      "import { SomethingElse } from '@/features/example/something-else';",
+      '',
+      'export default function DemoPage() {',
+      '  return <SomethingElse />;',
+      '}',
+    ].join('\n');
+    const sourceFile = createTsxSourceFile('fixture.tsx', source);
+
+    expect(collectReturnedJsxComponentNames(getFunctionBodyForComponent(sourceFile))).toEqual(new Set(['SomethingElse']));
+    expect(getImportedComponentSources(sourceFile).get('AppShell')).toBe('@/components/platform/app-shell');
+    expect(appShellWrapperNames.some((wrapperName) => collectReturnedJsxComponentNames(getFunctionBodyForComponent(sourceFile)).has(wrapperName))).toBe(false);
+  });
+
+  it('does not treat unused helpers, false branches, or tag-prefix matches as shell coverage', () => {
+    const source = [
+      "import { AppShell } from '@/components/platform/app-shell';",
+      "import { AppShellCompat } from '@/features/example/app-shell-compat';",
+      '',
+      'function UnusedShellHelper() {',
+      '  return <AppShell viewerRole="student">unused</AppShell>;',
+      '}',
+      '',
+      'export default function DemoPage() {',
+      '  if (false) return <AppShell viewerRole="student">dead</AppShell>;',
+      '  return <AppShellCompat />;',
+      '}',
+    ].join('\n');
+    const sourceFile = createTsxSourceFile('fixture.tsx', source);
+    const renderedComponents = collectReturnedJsxComponentNames(getFunctionBodyForComponent(sourceFile));
+
+    expect(renderedComponents).toEqual(new Set(['AppShellCompat']));
+    expect(renderedComponents.has('AppShell')).toBe(false);
+    expect(appShellWrapperNames.some((wrapperName) => renderedComponents.has(wrapperName))).toBe(false);
   });
 });
