@@ -6,6 +6,7 @@ import {
   buildPlatformRecoveryState,
   type PlatformRecoveryKind,
 } from '@/lib/platform-recovery-contract';
+import { ArenaPageShell } from './arena-page-shell';
 
 interface ArenaRouteRecoveryProps {
   kind: PlatformRecoveryKind;
@@ -40,28 +41,35 @@ export function ArenaRouteRecovery({
   });
 
   return (
-    <main
-      className="surface-page flex min-h-screen items-center justify-center px-6 py-12"
-      data-arena-route-recovery={surface}
-      data-platform-recovery-route={sourceRoute}
+    <ArenaPageShell
+      activePath="/arena"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '竞技场', href: '/arena' }, { label: '恢复状态', href: '/arena' }]}
+      title="竞技场"
+      subtitle="恢复状态"
     >
-      <div className="w-full max-w-2xl rounded-xl border border-border bg-card/75 p-6 shadow-sm">
-        <div className="mb-5 flex items-center gap-3 text-sm font-medium text-subtle">
-          <ShieldAlert className="h-5 w-5 text-primary" />
-          Arena 恢复状态
+      <section
+        className="flex min-h-[60vh] items-center justify-center px-6 py-12"
+        data-arena-route-recovery={surface}
+        data-platform-recovery-route={sourceRoute}
+      >
+        <div className="w-full max-w-2xl rounded-xl border border-border bg-card/75 p-6 shadow-sm">
+          <div className="mb-5 flex items-center gap-3 text-sm font-medium text-subtle">
+            <ShieldAlert className="h-5 w-5 text-primary" />
+            Arena 恢复状态
+          </div>
+          <ActionStatusPanel
+            state={state}
+            action={(
+              <Link
+                href={primaryHref}
+                className="inline-flex rounded-lg border border-border px-3 py-2 text-sm text-primary hover:text-primary/80"
+              >
+                {primaryLabel}
+              </Link>
+            )}
+          />
         </div>
-        <ActionStatusPanel
-          state={state}
-          action={(
-            <Link
-              href={primaryHref}
-              className="inline-flex rounded-lg border border-border px-3 py-2 text-sm text-primary hover:text-primary/80"
-            >
-              {primaryLabel}
-            </Link>
-          )}
-        />
-      </div>
-    </main>
+      </section>
+    </ArenaPageShell>
   );
 }

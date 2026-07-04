@@ -177,18 +177,17 @@ function collectJsxComponentNames(node: ts.Node, renderedComponents = new Set<st
   return renderedComponents;
 }
 
-function collectReturnedJsxComponentNames(
+function collectReturnedJsxComponentBranches(
   body: ts.ConciseBody | undefined,
   sourceFile?: ts.SourceFile,
-  renderedComponents = new Set<string>(),
   visitedLocalCalls = new Set<string>(),
-) {
-  if (!body) return renderedComponents;
+): Set<string>[] {
+  if (!body) return [];
   if (!ts.isBlock(body)) {
-    collectReturnedExpressionComponentNames(body, sourceFile, renderedComponents, visitedLocalCalls);
-    return renderedComponents;
+    return collectReturnedExpressionComponentBranches(body, sourceFile, new Set(visitedLocalCalls));
   }
 
+  const branches: Set<string>[] = [];
   function visit(node: ts.Node) {
     if (ts.isFunctionLike(node) && node !== body) return;
     if (ts.isIfStatement(node) && node.expression.kind === ts.SyntaxKind.FalseKeyword) {
@@ -196,36 +195,50 @@ function collectReturnedJsxComponentNames(
       return;
     }
     if (ts.isReturnStatement(node) && node.expression) {
-      collectReturnedExpressionComponentNames(node.expression, sourceFile, renderedComponents, visitedLocalCalls);
+      branches.push(...collectReturnedExpressionComponentBranches(node.expression, sourceFile, new Set(visitedLocalCalls)));
       return;
     }
     ts.forEachChild(node, visit);
   }
 
   body.forEachChild(visit);
-  return renderedComponents;
+  return branches;
 }
 
-function collectReturnedExpressionComponentNames(
+function collectReturnedExpressionComponentBranches(
   expression: ts.Expression,
   sourceFile: ts.SourceFile | undefined,
-  renderedComponents: Set<string>,
   visitedLocalCalls: Set<string>,
-) {
-  collectJsxComponentNames(expression, renderedComponents);
-  if (!sourceFile) return;
+): Set<string>[] {
+  const renderedComponents = collectJsxComponentNames(expression);
+  if (!sourceFile) return [renderedComponents];
   const unwrapped = ts.isParenthesizedExpression(expression) ? expression.expression : expression;
-  if (!ts.isCallExpression(unwrapped) || !ts.isIdentifier(unwrapped.expression)) return;
+  if (ts.isCallExpression(unwrapped) && ts.isIdentifier(unwrapped.expression)) {
+    const helperName = unwrapped.expression.text;
+    if (visitedLocalCalls.has(helperName)) return [renderedComponents];
+    visitedLocalCalls.add(helperName);
+    const helperBranches = collectReturnedJsxComponentBranches(
+      getFunctionBodyForComponent(sourceFile, helperName),
+      sourceFile,
+      visitedLocalCalls,
+    );
+    if (helperBranches.length > 0) return helperBranches;
+  }
 
-  const helperName = unwrapped.expression.text;
-  if (visitedLocalCalls.has(helperName)) return;
-  visitedLocalCalls.add(helperName);
-  collectReturnedJsxComponentNames(
-    getFunctionBodyForComponent(sourceFile, helperName),
-    sourceFile,
-    renderedComponents,
-    visitedLocalCalls,
-  );
+  return [renderedComponents];
+}
+
+function collectReturnedJsxComponentNames(
+  body: ts.ConciseBody | undefined,
+  sourceFile?: ts.SourceFile,
+) {
+  const renderedComponents = new Set<string>();
+  for (const branch of collectReturnedJsxComponentBranches(body, sourceFile)) {
+    for (const componentName of branch) {
+      renderedComponents.add(componentName);
+    }
+  }
+  return renderedComponents;
 }
 
 function findRegisteredWrapperEvidence(file: string, depth = 0, seen = new Set<string>()): string | undefined {
@@ -234,15 +247,43 @@ function findRegisteredWrapperEvidence(file: string, depth = 0, seen = new Set<s
 
   const source = readFileSync(file, 'utf8');
   const sourceFile = createTsxSourceFile(file, source);
-  const renderedComponents = collectReturnedJsxComponentNames(getFunctionBodyForComponent(sourceFile), sourceFile);
+  const branches = collectReturnedJsxComponentBranches(getFunctionBodyForComponent(sourceFile), sourceFile);
+  if (branches.length === 0) return undefined;
+
+  const importedComponentSources = getImportedComponentSources(sourceFile);
+  const branchEvidence = branches.map((branch) => findBranchWrapperEvidence(
+    branch,
+    file,
+    sourceFile,
+    importedComponentSources,
+    depth,
+    new Set(seen),
+  ));
+
+  if (branchEvidence.every(Boolean)) return branchEvidence[0];
+
+  return undefined;
+}
+
+function findBranchWrapperEvidence(
+  renderedComponents: Set<string>,
+  file: string,
+  sourceFile: ts.SourceFile,
+  importedComponentSources: Map<string, string>,
+  depth: number,
+  seen: Set<string>,
+) {
   const wrapper = appShellWrapperNames.find((wrapperName) => renderedComponents.has(wrapperName));
   if (wrapper) return `${relative(process.cwd(), file)}:${wrapper}`;
 
-  const importedComponentSources = getImportedComponentSources(sourceFile);
-
   for (const componentName of renderedComponents) {
     const importSource = importedComponentSources.get(componentName);
-    if (!importSource || (!importSource.startsWith('@/') && !importSource.startsWith('.'))) continue;
+    if (!importSource) {
+      const localEvidence = findRegisteredWrapperEvidenceForComponent(file, componentName, depth + 1, seen);
+      if (localEvidence) return localEvidence;
+      continue;
+    }
+    if (!importSource.startsWith('@/') && !importSource.startsWith('.')) continue;
     const importedFile = resolveImportSource(file, importSource);
     if (!importedFile) continue;
     const importedEvidence = findRegisteredWrapperEvidenceForComponent(importedFile, componentName, depth + 1, seen);
@@ -264,19 +305,19 @@ function findRegisteredWrapperEvidenceForComponent(
 
   const source = readFileSync(file, 'utf8');
   const sourceFile = createTsxSourceFile(file, source);
-  const renderedComponents = collectReturnedJsxComponentNames(getFunctionBodyForComponent(sourceFile, componentName), sourceFile);
-  const wrapper = appShellWrapperNames.find((wrapperName) => renderedComponents.has(wrapperName));
-  if (wrapper) return `${relative(process.cwd(), file)}:${wrapper}`;
+  const branches = collectReturnedJsxComponentBranches(getFunctionBodyForComponent(sourceFile, componentName), sourceFile);
+  if (branches.length === 0) return undefined;
 
   const importedComponentSources = getImportedComponentSources(sourceFile);
-  for (const renderedComponent of renderedComponents) {
-    const importSource = importedComponentSources.get(renderedComponent);
-    if (!importSource || (!importSource.startsWith('@/') && !importSource.startsWith('.'))) continue;
-    const importedFile = resolveImportSource(file, importSource);
-    if (!importedFile) continue;
-    const importedEvidence = findRegisteredWrapperEvidenceForComponent(importedFile, renderedComponent, depth + 1, seen);
-    if (importedEvidence) return importedEvidence;
-  }
+  const branchEvidence = branches.map((branch) => findBranchWrapperEvidence(
+    branch,
+    file,
+    sourceFile,
+    importedComponentSources,
+    depth,
+    new Set(seen),
+  ));
+  if (branchEvidence.every(Boolean)) return branchEvidence[0];
 
   return undefined;
 }
@@ -463,5 +504,25 @@ describe('universal AppShell frame contract', () => {
     expect(renderedComponents).toEqual(new Set(['AppShellCompat']));
     expect(renderedComponents.has('AppShell')).toBe(false);
     expect(appShellWrapperNames.some((wrapperName) => renderedComponents.has(wrapperName))).toBe(false);
+  });
+
+  it('requires every reachable return branch to render AppShell coverage', () => {
+    const source = [
+      "import { RoleWorkspaceShell } from '@/components/platform/role-workspace-shell';",
+      '',
+      'export default function ConditionalLayout({ children }: { children: React.ReactNode }) {',
+      '  if (!children) return children;',
+      '  return <RoleWorkspaceShell workspaceRole="admin" title="Admin">{children}</RoleWorkspaceShell>;',
+      '}',
+    ].join('\n');
+    const sourceFile = createTsxSourceFile('fixture.tsx', source);
+    const branches = collectReturnedJsxComponentBranches(getFunctionBodyForComponent(sourceFile), sourceFile);
+
+    expect(branches).toEqual([
+      new Set<string>(),
+      new Set(['RoleWorkspaceShell']),
+    ]);
+    expect(findBranchWrapperEvidence(branches[0], 'fixture.tsx', sourceFile, getImportedComponentSources(sourceFile), 0, new Set())).toBeUndefined();
+    expect(findBranchWrapperEvidence(branches[1], 'fixture.tsx', sourceFile, getImportedComponentSources(sourceFile), 0, new Set())).toBe('fixture.tsx:RoleWorkspaceShell');
   });
 });

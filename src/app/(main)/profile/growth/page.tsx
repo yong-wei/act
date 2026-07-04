@@ -6,7 +6,7 @@
  * 学生成长数据可视化与个性化建议中心
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -93,6 +93,34 @@ interface GroupedGrowthRecord extends GrowthRecord {
 
 const learnerDataShell = buildLearnerDataRouteShell('/profile/growth');
 
+function GrowthFallback({
+  nextAction,
+  children,
+}: {
+  nextAction: string;
+  children: ReactNode;
+}) {
+  return (
+    <AppShell
+      viewerRole="student"
+      title="成长中枢"
+      subtitle="能力趋势、证据覆盖与下一步路径"
+      activeHref="/profile/growth"
+      className="surface-page"
+    >
+      <div
+        className="flex min-h-[60vh] items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action={nextAction}
+      >
+        {children}
+      </div>
+    </AppShell>
+  );
+}
+
 export default function GrowthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -156,58 +184,40 @@ export default function GrowthPage() {
     }
   }, [status, session, router, fetchData]);
 
-  if (status === 'loading' || loading) {
-    return (
-      <div
-        className="surface-page flex items-center justify-center"
-        data-route-family={learnerDataShell.routeFamily}
-        data-route-identity={learnerDataShell.routeIdentity}
-        data-learner-record-surface={learnerDataShell.archetype}
-        data-learner-record-next-action="wait-for-growth"
-      >
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
-          <p className="text-subtle">加载成长数据...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (status === 'unauthenticated') {
     return (
-      <div
-        className="surface-page flex items-center justify-center"
-        data-route-family={learnerDataShell.routeFamily}
-        data-route-identity={learnerDataShell.routeIdentity}
-        data-learner-record-surface={learnerDataShell.archetype}
-        data-learner-record-next-action="login"
-      >
+      <GrowthFallback nextAction="login">
         <div className="text-center">
           <p className="text-xl text-subtle">请先登录</p>
           <Link href="/login" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
             前往登录
           </Link>
         </div>
-      </div>
+      </GrowthFallback>
+    );
+  }
+
+  if (status === 'loading' || loading) {
+    return (
+      <GrowthFallback nextAction="wait-for-growth">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+          <p className="text-subtle">加载成长数据...</p>
+        </div>
+      </GrowthFallback>
     );
   }
 
   if (error) {
     return (
-      <div
-        className="surface-page flex items-center justify-center"
-        data-route-family={learnerDataShell.routeFamily}
-        data-route-identity={learnerDataShell.routeIdentity}
-        data-learner-record-surface={learnerDataShell.archetype}
-        data-learner-record-next-action="retry-growth"
-      >
+      <GrowthFallback nextAction="retry-growth">
         <div className="text-center">
           <p className="text-xl text-red-500">{error}</p>
           <button type="button" onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
         </div>
-      </div>
+      </GrowthFallback>
     );
   }
 
