@@ -554,9 +554,9 @@ describe('platform UI contracts', () => {
     expect(roleWorkspaceShellSource).toContain('<AppShell');
     expect(roleWorkspaceShellSource).toContain('activeHref={pathname}');
     expect(roleWorkspaceShellSource).toContain('sidebarMode="collapsible"');
-    expect(roleWorkspaceShellSource).toContain("variant={workspaceRole === 'admin' ? 'admin' : 'default'}");
-    expect(roleWorkspaceShellSource).toContain("teacher: { href: '/teacher', label: '教师工作台' }");
-    expect(roleWorkspaceShellSource).toContain("admin: { href: '/admin', label: '管理员后台' }");
+    expect(roleWorkspaceShellSource).not.toContain("variant={workspaceRole === 'admin' ? 'admin' : 'default'}");
+    expect(roleWorkspaceShellSource).toContain("teacher: { href: '/teacher', label: '个人中心' }");
+    expect(roleWorkspaceShellSource).toContain("admin: { href: '/admin', label: '个人中心' }");
     expect(roleWorkspaceShellSource).toContain('accountHref={accountTarget.href}');
     expect(roleWorkspaceShellSource).toContain('accountLabel={accountTarget.label}');
     expect(roleWorkspaceShellSource).toContain('userMenu={(');

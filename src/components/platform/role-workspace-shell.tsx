@@ -9,8 +9,8 @@ import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 import { AppShell, type AppShellWorkspaceSlots } from './app-shell';
 
 const roleAccountTargets = {
-  teacher: { href: '/teacher', label: '教师工作台' },
-  admin: { href: '/admin', label: '管理员后台' },
+  teacher: { href: '/teacher', label: '个人中心' },
+  admin: { href: '/admin', label: '个人中心' },
 } as const;
 
 type RoleWorkspaceShellProps = {
@@ -48,7 +48,6 @@ export function RoleWorkspaceShell({
       userMenu={(
         <UserMenu
           user={user}
-          variant={workspaceRole === 'admin' ? 'admin' : 'default'}
           accountHref={accountTarget.href}
           accountLabel={accountTarget.label}
         />
