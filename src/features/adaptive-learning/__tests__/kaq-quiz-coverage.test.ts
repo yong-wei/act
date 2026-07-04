@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import baselineMatrix from '../../../../course-content/runtime/resource-governance/learning-goal-resource-baseline-matrix.json';
+import {
+  checkpointAuthoredQuestionRuntimeId,
+  REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS,
+  REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
+} from '../../adaptive-assessment/learning-goal-checkpoint-question-sets';
 import { buildGeneratedQuestion, PRESET_QUESTIONS } from '../../assessment/adaptive-question-bank';
 import {
   buildKaqQuizFoundationArtifacts,
@@ -27,6 +32,7 @@ describe('K/A/Q quiz foundation coverage', () => {
         'practice',
         'precheck',
         'readiness-gate',
+        'remediation',
       ]);
       expect(row.denominator).toBeGreaterThan(0);
       expect(row.sourceWindow).toEqual(baselineMatrix.sourceWindow);
@@ -62,6 +68,46 @@ describe('K/A/Q quiz foundation coverage', () => {
       }),
     });
     expect(artifacts.limitations.rows.some((row) => row.reason === 'generated-only-not-readiness-eligible')).toBe(true);
+  });
+
+  it('includes authored remediation questions in remediation quiz sets', () => {
+    const authoredRemediation = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((candidate) =>
+      candidate.learningGoalId === 'control-correction' &&
+      candidate.stagePurpose === 'remediation'
+    );
+    expect(authoredRemediation).toBeTruthy();
+
+    const artifacts = buildKaqQuizFoundationArtifacts({
+      baselineMatrix,
+      questions: [...PRESET_QUESTIONS, ...REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS],
+    });
+
+    const controlCorrectionRow = artifacts.coverageMatrix.rows.find((row) => row.learningGoalId === 'control-correction');
+    const remediationSet = controlCorrectionRow?.quizSets.find((set) => set.purpose === 'remediation');
+    const controlCorrectionRemediationQuestionIds = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS
+      .filter((candidate) =>
+        candidate.learningGoalId === 'control-correction' &&
+        candidate.stagePurpose === 'remediation'
+      )
+      .map((candidate) => checkpointAuthoredQuestionRuntimeId(candidate.id));
+    expect(remediationSet).toMatchObject({
+      quizSetId: 'kaq-quiz-set:control-correction:remediation',
+      questionIds: controlCorrectionRemediationQuestionIds,
+      reviewedQuestionCount: controlCorrectionRemediationQuestionIds.length,
+      generatedQuestionCount: 0,
+    });
+    const reviewedItem = artifacts.reviewedItems.find((item) =>
+      item.questionId === checkpointAuthoredQuestionRuntimeId(authoredRemediation!.id)
+    );
+    expect(reviewedItem).toMatchObject({
+      questionId: checkpointAuthoredQuestionRuntimeId(authoredRemediation!.id),
+      metadata: expect.objectContaining({
+        purpose: 'remediation',
+        outcomeRefs: expect.arrayContaining([
+          expect.stringContaining(':remediation:'),
+        ]),
+      }),
+    });
   });
 
   it('prevents generated-only quiz outcomes from unlocking heavy nodes or terminal validation', () => {

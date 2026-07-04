@@ -718,6 +718,10 @@ export function buildAdaptiveAssessmentItemCatalog(
   const kaqReviewedItems = input.kaqReviewedItems ?? [];
   const generatedQuestions = input.generatedQuestions ?? [];
   const checkpointQuestions = input.checkpointQuestions ?? REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS;
+  const presetQuestionIds = new Set(presetQuestions.map((question) => question.id));
+  const presetKaqReviewOverlayTotal = kaqReviewedItems.filter((item) =>
+    typeof item.questionId === 'string' && presetQuestionIds.has(item.questionId)
+  ).length;
   const kaqReviewedByQuestionId = new Map(
     kaqReviewedItems
       .filter((item) => item.questionId)
@@ -784,10 +788,10 @@ export function buildAdaptiveAssessmentItemCatalog(
       icourseObjectiveBankItems.length,
       ['requires-path-eligibility-review'],
     ),
-    sourceSummary('kaq-foundation-reviewed', kaqReviewedItems.length, 0, [], {
+    sourceSummary('kaq-foundation-reviewed', presetKaqReviewOverlayTotal, 0, [], {
       role: 'review-overlay',
       appliesToFamily: 'preset-adaptive-question',
-      reviewOverlayTotal: kaqReviewedItems.length,
+      reviewOverlayTotal: presetKaqReviewOverlayTotal,
     }),
     sourceSummary('generated-adaptive-question', generatedQuestions.length, generatedQuestions.length, ['generated-provisional-not-path-eligible']),
     sourceSummary(

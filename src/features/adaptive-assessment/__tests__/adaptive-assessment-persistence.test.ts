@@ -271,12 +271,13 @@ describe('K/A/Q adaptive assessment persistence', () => {
 
   it('treats catalog-backed checkpoint answers as path-completion eligible', async () => {
     const db = createMockDb();
-    const question = PRESET_QUESTIONS.find((candidate) => {
-      const metadata = buildKaqQuizQuestionMetadata(candidate);
-      return metadata.learningGoalIds.includes('control-correction') &&
-        metadata.review.state === 'reviewed' &&
-        metadata.purpose === 'checkpoint';
-    });
+    const authoredCheckpoint = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((candidate) =>
+      candidate.learningGoalId === 'control-correction' &&
+      candidate.stagePurpose === 'checkpoint'
+    );
+    expect(authoredCheckpoint).toBeTruthy();
+    const runtimeQuestionId = checkpointAuthoredQuestionRuntimeId(authoredCheckpoint!.id);
+    const question = getAdaptiveQuestionById(runtimeQuestionId);
     expect(question).toBeTruthy();
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
@@ -284,7 +285,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
     const result = await submitAnswerDurably({
       userId: 'student-quiz',
       sessionId: 'session-quiz',
-      questionId: question!.id,
+      questionId: runtimeQuestionId,
       selectedOption: correctOptionText!,
       timeSpent: 32,
       pathContext: {
@@ -299,7 +300,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(result.adaptiveAssessmentRef).toMatchObject({
       kind: 'AdaptiveAssessmentAnswer',
       reviewState: 'reviewed',
-      catalogItemId: `adaptive-assessment-item:preset-adaptive-question:${question!.id}`,
+      catalogItemId: `adaptive-assessment-item:checkpoint-authored-question:${authoredCheckpoint!.id}`,
       readinessGateEligible: false,
       terminalValidationEligible: false,
       pathCompletionEligible: true,
