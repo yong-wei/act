@@ -17,7 +17,7 @@ import type { ArenaStudentPortfolio } from '@/features/arena/profile';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
 import type { StudentProfileEvidenceStatus } from '@/lib/data-governance/profile-center';
-import { getCommercialStudentEntryIntentGroups, getPlatformCockpitHref } from '@/lib/platform-role-navigation';
+import { getCommercialStudentEntryIntentGroups, getPlatformCockpitHref, getPlatformRoleNavigation } from '@/lib/platform-role-navigation';
 
 const learnerDataShell = buildLearnerDataRouteShell('/profile');
 const personalCenterIntentOrder = ['learn', 'practice', 'challenge', 'experiment', 'review'] as const;
@@ -134,6 +134,9 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [showAllActivities, setShowAllActivities] = useState(false);
   const entryIntents = getCommercialStudentEntryIntentGroups();
+  const studentEntryByHref = new Map(
+    getPlatformRoleNavigation('student', { includeHidden: true }).map((entry) => [entry.href, entry])
+  );
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.role) {
@@ -323,17 +326,20 @@ export default function ProfilePage() {
             <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {entryIntents
                 .filter((intent) => isPersonalCenterIntent(intent.intent))
-                .map((intent) => {
+                .flatMap((intent) => {
                   const intentKey = intent.intent as PersonalCenterIntent;
-                  return (
+                  return intent.hrefs.map((href) => {
+                    const entry = studentEntryByHref.get(href);
+                    return (
                     <PersonalCenterEntryCard
-                      key={intent.intent}
-                      href={intent.hrefs[0] ?? '/profile'}
-                      title={intent.label}
-                      description={intent.summary}
+                      key={`${intent.intent}-${href}`}
+                      href={href}
+                      title={entry?.label ?? intent.label}
+                      description={entry?.description ?? intent.summary}
                       badge={personalCenterIntentBadges[intentKey]}
                     />
-                  );
+                    );
+                  });
                 })}
             </div>
           </div>

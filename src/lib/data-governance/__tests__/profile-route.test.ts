@@ -30,6 +30,7 @@ const mocks = vi.hoisted(() => {
         findUnique: vi.fn(),
       },
       simulationLog: {
+        aggregate: vi.fn(),
         findMany: vi.fn(),
       },
       ethicalLog: {
@@ -354,6 +355,11 @@ describe('GET /api/user/profile', () => {
         duration: 1200,
       },
     ]);
+    mocks.prisma.simulationLog.aggregate.mockResolvedValue({
+      _count: { _all: 25 },
+      _sum: { duration: 72000 },
+      _avg: { score: 84.4 },
+    });
 
     mocks.prisma.ethicalLog.findMany.mockResolvedValue([]);
 
@@ -597,6 +603,11 @@ describe('GET /api/user/profile', () => {
       },
     });
     expect(body.profile.studentNumber).toBe('2023001001');
+    expect(body.statistics).toMatchObject({
+      totalSimulations: 25,
+      totalSimulationTime: 72000,
+      averageScore: 84,
+    });
     expect(body.competency.dimensions).toHaveLength(6);
     expect(body.competency.dimensions.map((item: { key: string }) => item.key)).toEqual([
       'controlModeling',

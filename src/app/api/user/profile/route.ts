@@ -279,6 +279,7 @@ export async function GET() {
       latestSnapshot,
       profileSummary,
       simulationLogs,
+      simulationStats,
       ethicalLogs,
       missionProgress,
       interactionLogs,
@@ -315,6 +316,18 @@ export async function GET() {
           createdAt: true,
           score: true,
           duration: true,
+        },
+      }),
+      prisma.simulationLog.aggregate({
+        where: { userId },
+        _count: {
+          _all: true,
+        },
+        _sum: {
+          duration: true,
+        },
+        _avg: {
+          score: true,
         },
       }),
       prisma.ethicalLog.findMany({
@@ -427,18 +440,13 @@ export async function GET() {
       profileSummary?.overallLevel ??
       getCompetencyLevelLabel(getCompetencyLevel(overallScore));
 
-    const totalSimulations = simulationLogs.length;
+    const totalSimulations = simulationStats._count._all;
     const completedMissions = missionProgress.filter((item) => item.status === 'COMPLETED').length;
     const ethicalViolations = ethicalLogs.length;
-    const totalSimulationTime = simulationLogs.reduce(
-      (sum, log) => sum + (log.duration ?? 0),
-      0
-    );
+    const totalSimulationTime = simulationStats._sum.duration ?? 0;
     const averageScore =
       totalSimulations > 0
-        ? Math.round(
-            simulationLogs.reduce((sum, log) => sum + (log.score ?? 0), 0) / totalSimulations
-          )
+        ? Math.round(simulationStats._avg.score ?? 0)
         : 0;
 
     const totalMissions = await prisma.mission.count();

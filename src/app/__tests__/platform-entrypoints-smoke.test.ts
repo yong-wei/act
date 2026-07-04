@@ -117,6 +117,10 @@ describe('platform entrypoint smoke contracts', () => {
     expect(profileSource).toContain('buildLoginRedirectForPath');
     expect(profileSource).toContain('学习入口地图');
     expect(profileSource).toContain('PersonalCenterEntryCard');
+    expect(profileSource).toContain('getPlatformRoleNavigation');
+    expect(profileSource).toContain('.flatMap((intent)');
+    expect(profileSource).toContain('intent.hrefs.map((href)');
+    expect(profileSource).toContain('studentEntryByHref.get(href)');
     expect(profileApiSource).toContain('ensureUserProfile');
     expect(profileApiSource).toContain('initializeUserProgress');
     expect(profileApiSource).toContain('await Promise.all([');
