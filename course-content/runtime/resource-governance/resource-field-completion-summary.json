@@ -39243,6 +39243,42 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
+    "Bode首轮骨架_5_1e07d9da|controlModeling|runtime-step:2-4:step-11|交接频率_转折频率__5_8bca814b|典型环节对象库_2_21002": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "Bode首轮骨架_5_1e07d9da|controlModeling|runtime-step:2-4:step-12|交接频率_转折频率__5_8bca814b|典型环节对象库_2_21002": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
     "Bode首轮骨架_5_1e07d9da|knowledge-card:Bode首轮骨架_5_1e07d9da": {
       "complete": 0,
       "missingField": 1,
@@ -39415,42 +39451,6 @@
       "sampleLimitations": [
         "runtime-step:2-3:step-15: metadata is provisional"
       ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "Bode首轮骨架_5_1e07d9da|runtime-step:2-4:step-11|交接频率_转折频率__5_8bca814b|典型环节对象库_2_21002": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "Bode首轮骨架_5_1e07d9da|runtime-step:2-4:step-12|交接频率_转折频率__5_8bca814b|典型环节对象库_2_21002": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "control-correction:arena-transfer|crossDomainTransfer|engineeringDecision|parameterDesign|registry:arena-challenge-workbench": {
@@ -56919,6 +56919,150 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
+    "controlModeling|PD与测速反馈的等效阻尼对比_3_35003|PD与超前的频域整形差异_3_35004|runtime-step:3-6:step-06|主导极点_3_4c4c6bbd|带宽_5_6730fda4|时域指标到目标极点区域_3_36001|相角裕度_5_5a74b451|零点引入与根轨迹重排_3_35001": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|PD与超前的频域整形差异_3_35004|runtime-step:3-5:step-10|带宽_5_6730fda4|相角裕度_5_5a74b451": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|PD与超前的频域整形差异_3_35004|runtime-step:3-5:step-11|带宽_5_6730fda4|相角裕度_5_5a74b451": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|PD与超前的频域整形差异_3_35004|runtime-step:3-5:step-12|带宽_5_6730fda4|相角裕度_5_5a74b451": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|PD与超前的频域整形差异_3_35004|runtime-step:3-6:step-10|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|PD与超前的频域整形差异_3_35004|runtime-step:3-6:step-11|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|PD与超前的频域整形差异_3_35004|runtime-step:3-6:step-12|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|PD与超前的频域整形差异_3_35004|runtime-step:3-6:step-13|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
     "controlModeling|registry:lesson01-feedback-knowledge-deck-v1|反馈控制系统_1_98dc667a|负反馈控制原理_1_5a06114b": {
       "complete": 0,
       "missingField": 1,
@@ -59999,6 +60143,510 @@
       "sampleLimitations": [
         "runtime-media:5-6:5-6-slides: missing fields: missing-content-hash"
       ],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:1-1:step-09|反馈_1_1|开环控制_1_1|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|误差_1_1|课程总图_1_1|闭环控制_1_1": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:1-1:step-10|反馈_1_1|开环控制_1_1|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|误差_1_1|课程总图_1_1|闭环控制_1_1": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:1-2:step-04|建模_1_2|微分方程_1_2|数据驱动建模_1_2|机理建模_1_2": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:1-2:step-05|建模_1_2|微分方程_1_2|数据驱动建模_1_2|机理建模_1_2": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:2-2:step-09|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:2-2:step-10|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:2-2:step-11|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:2-2:step-12|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:2-2:step-13|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:2-4:step-09|带宽频率_5_6996a44a|幅值裕度_5_73af26a5|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|穿越频率_5_c4c2b93c": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:2-4:step-10|带宽频率_5_6996a44a|幅值裕度_5_73af26a5|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|穿越频率_5_c4c2b93c": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:3-5:step-01|主导极点_3_4c4c6bbd|根轨迹法_2_e3f6c0c1|根轨迹绘制规则_3_2f9e8cb3|闭环极点_3_f9432bf3": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:3-5:step-02|主导极点_3_4c4c6bbd|根轨迹法_2_e3f6c0c1|根轨迹绘制规则_3_2f9e8cb3|闭环极点_3_f9432bf3": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:3-5:step-04|左半平面零点的动态改善机理_3_35002|零点引入与根轨迹重排_3_35001": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:3-5:step-05|左半平面零点的动态改善机理_3_35002|零点引入与根轨迹重排_3_35001": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:3-8:step-06|奈奎斯特与Bode统一判稳链_3_38002|奈奎斯特稳定判据_5_a1b34560|幅值裕度_5_73af26a5|幅角原理_5_f843970e|截止频率_5_c7d09ff7|穿越频率_5_c4c2b93c": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:3-8:step-07|奈奎斯特与Bode统一判稳链_3_38002|奈奎斯特稳定判据_5_a1b34560|幅值裕度_5_73af26a5|幅角原理_5_f843970e|截止频率_5_c7d09ff7|穿越频率_5_c4c2b93c": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:3-8:step-09|三频段闭环性能回读_3_38003|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451|频域综合判断与工程读回_3_38004|频率特性_5_404adfdd": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:3-8:step-10|三频段闭环性能回读_3_38003|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451|频域综合判断与工程读回_3_38004|频率特性_5_404adfdd": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:3-9:step-01|主导极点_3_4c4c6bbd|根轨迹_4_c19f8854|稳定_动态_稳态综合映射框架_3_39001|结构变化的频域指纹_3_38001|频域综合判断与工程读回_3_38004": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:3-9:step-08|三频段闭环性能回读_3_38003|任务标签与机制标签匹配_3_39002|带宽_5_6730fda4|模块4入口的首轮任务判断_3_39004|相角裕度_5_5a74b451": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:4-1:step-01|带宽频率_5_6996a44a|指标角色重组_4_41002|相角裕度_5_5a74b451|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:4-1:step-05|可行域-满意域-最优域分层_4_41004|复平面可行域_4_Lsum001|硬约束-软目标-观察指标分类_4_41003|稳定可行域_3_7eed0929|设计可行域_4_Lsum004": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:4-1:step-07|带宽频率_5_6996a44a|相角裕度_5_5a74b451|调节时间_10_fcbccf4e|超调量_3_fc3f5b17|跨域联读任务重排_4_41005": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:4-1:step-10|可行域-满意域-最优域分层_4_41004|硬约束-软目标-观察指标分类_4_41003|设计任务表达卡_4_41001|跨域联读任务重排_4_41005": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:4-2:step-11|临界比例PID整定_4_42012|反馈保底与前馈补偿边界_4_42005|按扰动补偿前馈的对消条件_4_42007|频域PD与超前整定_4_42011|频域PI与滞后整定_4_42010": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:4-2:step-12|临界比例PID整定_4_42012|反馈保底与前馈补偿边界_4_42005|按扰动补偿前馈的对消条件_4_42007|频域PD与超前整定_4_42011|频域PI与滞后整定_4_42010": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "controlModeling|runtime-step:4-2:step-13|临界比例PID整定_4_42012|反馈保底与前馈补偿边界_4_42005|按扰动补偿前馈的对消条件_4_42007|频域PD与超前整定_4_42011|频域PI与滞后整定_4_42010": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T16:30:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "controlModeling|textbook-search-document:ch02-overview-001__chunk-001|传递函数_2_2c5e2589|信号流图_2_372d4084|动态数学模型_2_b7f98344|结构图_2_3f312ccc": {
@@ -83070,24 +83718,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "PD与测速反馈的等效阻尼对比_3_35003|PD与超前的频域整形差异_3_35004|runtime-step:3-6:step-06|主导极点_3_4c4c6bbd|带宽_5_6730fda4|时域指标到目标极点区域_3_36001|相角裕度_5_5a74b451|零点引入与根轨迹重排_3_35001": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "PD与测速反馈的等效阻尼对比_3_35003|runtime-step:3-5:step-07|自然频率_10_51a8b7d0|阻尼比_3_b849784e": {
       "complete": 0,
       "missingField": 1,
@@ -83257,132 +83887,6 @@
       "sampleLimitations": [
         "runtime-step:3-6:step-09: metadata is provisional"
       ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "PD与超前的频域整形差异_3_35004|runtime-step:3-5:step-10|带宽_5_6730fda4|相角裕度_5_5a74b451": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "PD与超前的频域整形差异_3_35004|runtime-step:3-5:step-11|带宽_5_6730fda4|相角裕度_5_5a74b451": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "PD与超前的频域整形差异_3_35004|runtime-step:3-5:step-12|带宽_5_6730fda4|相角裕度_5_5a74b451": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "PD与超前的频域整形差异_3_35004|runtime-step:3-6:step-10|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "PD与超前的频域整形差异_3_35004|runtime-step:3-6:step-11|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "PD与超前的频域整形差异_3_35004|runtime-step:3-6:step-12|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "PD与超前的频域整形差异_3_35004|runtime-step:3-6:step-13|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "registry:classroom-objective|selfDirectedLearning|课程总图_1_1": {
@@ -146415,42 +146919,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:1-1:step-09|反馈_1_1|开环控制_1_1|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|误差_1_1|课程总图_1_1|闭环控制_1_1": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:1-1:step-10|反馈_1_1|开环控制_1_1|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|误差_1_1|课程总图_1_1|闭环控制_1_1": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "runtime-step:1-1:step-11|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|课程总图_1_1": {
       "complete": 0,
       "missingField": 1,
@@ -146684,42 +147152,6 @@
       "sampleLimitations": [
         "runtime-step:1-2:step-03: metadata is provisional"
       ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:1-2:step-04|建模_1_2|微分方程_1_2|数据驱动建模_1_2|机理建模_1_2": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:1-2:step-05|建模_1_2|微分方程_1_2|数据驱动建模_1_2|机理建模_1_2": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:1-2:step-06|传递函数_1_2|信号流图_1_2|拉氏变换_1_2|方框图_1_2": {
@@ -147681,96 +148113,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:2-2:step-09|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:2-2:step-10|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:2-2:step-11|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:2-2:step-12|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:2-2:step-13|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "runtime-step:2-2:step-14|复平面可行域_4_Lsum001|时域指标到极点参数映射_3_13003|闭环极点_3_f9432bf3": {
       "complete": 0,
       "missingField": 1,
@@ -148471,42 +148813,6 @@
       "sampleLimitations": [
         "runtime-step:2-4:step-08: metadata is provisional"
       ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:2-4:step-09|带宽频率_5_6996a44a|幅值裕度_5_73af26a5|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|穿越频率_5_c4c2b93c": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:2-4:step-10|带宽频率_5_6996a44a|幅值裕度_5_73af26a5|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|穿越频率_5_c4c2b93c": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:2-4:step-13|带宽频率_5_6996a44a|开环幅相特性曲线_5_fd86e289|相角裕度_5_5a74b451": {
@@ -150413,42 +150719,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:3-5:step-01|主导极点_3_4c4c6bbd|根轨迹法_2_e3f6c0c1|根轨迹绘制规则_3_2f9e8cb3|闭环极点_3_f9432bf3": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:3-5:step-02|主导极点_3_4c4c6bbd|根轨迹法_2_e3f6c0c1|根轨迹绘制规则_3_2f9e8cb3|闭环极点_3_f9432bf3": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "runtime-step:3-5:step-03|主导极点_3_4c4c6bbd|根轨迹法_2_e3f6c0c1|根轨迹绘制规则_3_2f9e8cb3|闭环极点_3_f9432bf3": {
       "complete": 0,
       "missingField": 1,
@@ -150476,42 +150746,6 @@
       "sampleLimitations": [
         "runtime-step:3-5:step-03: metadata is provisional"
       ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:3-5:step-04|左半平面零点的动态改善机理_3_35002|零点引入与根轨迹重排_3_35001": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:3-5:step-05|左半平面零点的动态改善机理_3_35002|零点引入与根轨迹重排_3_35001": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:3-5:step-06|左半平面零点的动态改善机理_3_35002|零点引入与根轨迹重排_3_35001": {
@@ -151324,42 +151558,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:3-8:step-06|奈奎斯特与Bode统一判稳链_3_38002|奈奎斯特稳定判据_5_a1b34560|幅值裕度_5_73af26a5|幅角原理_5_f843970e|截止频率_5_c7d09ff7|穿越频率_5_c4c2b93c": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:3-8:step-07|奈奎斯特与Bode统一判稳链_3_38002|奈奎斯特稳定判据_5_a1b34560|幅值裕度_5_73af26a5|幅角原理_5_f843970e|截止频率_5_c7d09ff7|穿越频率_5_c4c2b93c": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "runtime-step:3-8:step-08|奈奎斯特与Bode统一判稳链_3_38002|奈奎斯特稳定判据_5_a1b34560|幅值裕度_5_73af26a5|幅角原理_5_f843970e|截止频率_5_c7d09ff7|穿越频率_5_c4c2b93c": {
       "complete": 0,
       "missingField": 1,
@@ -151387,42 +151585,6 @@
       "sampleLimitations": [
         "runtime-step:3-8:step-08: metadata is provisional"
       ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:3-8:step-09|三频段闭环性能回读_3_38003|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451|频域综合判断与工程读回_3_38004|频率特性_5_404adfdd": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:3-8:step-10|三频段闭环性能回读_3_38003|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451|频域综合判断与工程读回_3_38004|频率特性_5_404adfdd": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:3-8:step-11|三频段闭环性能回读_3_38003|带宽_5_6730fda4|目标驱动超前校正_3_36004|相角裕度_5_5a74b451|频域综合判断与工程读回_3_38004|频率特性_5_404adfdd": {
@@ -151783,24 +151945,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:3-9:step-01|主导极点_3_4c4c6bbd|根轨迹_4_c19f8854|稳定_动态_稳态综合映射框架_3_39001|结构变化的频域指纹_3_38001|频域综合判断与工程读回_3_38004": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "runtime-step:3-9:step-02|主导极点_3_4c4c6bbd|根轨迹_4_c19f8854|稳定_动态_稳态综合映射框架_3_39001|结构变化的频域指纹_3_38001|频域综合判断与工程读回_3_38004": {
       "complete": 0,
       "missingField": 1,
@@ -151975,24 +152119,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:3-9:step-08|三频段闭环性能回读_3_38003|任务标签与机制标签匹配_3_39002|带宽_5_6730fda4|模块4入口的首轮任务判断_3_39004|相角裕度_5_5a74b451": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "runtime-step:3-9:step-09|三频段闭环性能回读_3_38003|任务标签与机制标签匹配_3_39002|带宽_5_6730fda4|模块4入口的首轮任务判断_3_39004|相角裕度_5_5a74b451": {
       "complete": 0,
       "missingField": 1,
@@ -152079,24 +152205,6 @@
       "sampleLimitations": [
         "runtime-step:3-9:step-11: metadata is provisional"
       ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-1:step-01|带宽频率_5_6996a44a|指标角色重组_4_41002|相角裕度_5_5a74b451|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:4-1:step-02|带宽频率_5_6996a44a|指标角色重组_4_41002|相角裕度_5_5a74b451|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
@@ -152186,24 +152294,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:4-1:step-05|可行域-满意域-最优域分层_4_41004|复平面可行域_4_Lsum001|硬约束-软目标-观察指标分类_4_41003|稳定可行域_3_7eed0929|设计可行域_4_Lsum004": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "runtime-step:4-1:step-06|可行域-满意域-最优域分层_4_41004|复平面可行域_4_Lsum001|硬约束-软目标-观察指标分类_4_41003|稳定可行域_3_7eed0929|设计可行域_4_Lsum004": {
       "complete": 0,
       "missingField": 1,
@@ -152231,24 +152321,6 @@
       "sampleLimitations": [
         "runtime-step:4-1:step-06: metadata is provisional"
       ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-1:step-07|带宽频率_5_6996a44a|相角裕度_5_5a74b451|调节时间_10_fcbccf4e|超调量_3_fc3f5b17|跨域联读任务重排_4_41005": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:4-1:step-08|带宽频率_5_6996a44a|相角裕度_5_5a74b451|谐振峰值Mr_5_b3a87785|跨域联读任务重排_4_41005": {
@@ -152307,24 +152379,6 @@
       "sampleLimitations": [
         "runtime-step:4-1:step-09: metadata is provisional"
       ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-1:step-10|可行域-满意域-最优域分层_4_41004|硬约束-软目标-观察指标分类_4_41003|设计任务表达卡_4_41001|跨域联读任务重排_4_41005": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:4-1:step-11|可行域-满意域-最优域分层_4_41004|硬约束-软目标-观察指标分类_4_41003|设计任务表达卡_4_41001|跨域联读任务重排_4_41005": {
@@ -152500,60 +152554,6 @@
       "sampleLimitations": [
         "runtime-step:4-2:step-03: metadata is provisional"
       ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-2:step-11|临界比例PID整定_4_42012|反馈保底与前馈补偿边界_4_42005|按扰动补偿前馈的对消条件_4_42007|频域PD与超前整定_4_42011|频域PI与滞后整定_4_42010": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-2:step-12|临界比例PID整定_4_42012|反馈保底与前馈补偿边界_4_42005|按扰动补偿前馈的对消条件_4_42007|频域PD与超前整定_4_42011|频域PI与滞后整定_4_42010": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "runtime-step:4-2:step-13|临界比例PID整定_4_42012|反馈保底与前馈补偿边界_4_42005|按扰动补偿前馈的对消条件_4_42007|频域PD与超前整定_4_42011|频域PI与滞后整定_4_42010": {
-      "complete": 1,
-      "missingField": 0,
-      "provisional": 0,
-      "humanConfirmed": 1,
-      "citationReady": 1,
-      "pathEligible": 1,
-      "blocked": 0,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T16:30:00.000Z"
-      },
-      "missingFieldCodes": [],
-      "limitationReasons": [],
-      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:4-2:step-14|临界比例PID整定_4_42012|反馈保底与前馈补偿边界_4_42005|按扰动补偿前馈的对消条件_4_42007|频域PD与超前整定_4_42011|频域PI与滞后整定_4_42010": {

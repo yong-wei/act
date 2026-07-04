@@ -82,70 +82,70 @@ function reviewedRuntimeStepCompletion(input: ReviewedRuntimeStepCompletion): Re
 
 const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCompletion>([
   ['1-1:step-09', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewedSourceHash: REVIEWED_LESSON_1_1_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 09 explicitly covers feedback, open loop, closed loop, error, controller, and correction nodes for feedback-loop foundations.',
     independentEvidenceRef: 'course-content/runtime/lessons/1-1/graph-overlay.json#group:反馈与开闭环',
   })],
   ['1-1:step-10', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewedSourceHash: REVIEWED_LESSON_1_1_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 10 compares the three domains and diagnostic loop, extending the feedback-loop concept coverage to system-level reasoning.',
     independentEvidenceRef: 'course-content/runtime/lessons/1-1/graph-overlay.json#group:反馈与开闭环',
   })],
   ['1-2:step-04', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewedSourceHash: REVIEWED_LESSON_1_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 04 distinguishes mechanism modeling and data-driven modeling, matching the transfer-function modeling foundation boundary through 建模_1_2.',
     independentEvidenceRef: 'course-content/runtime/lessons/1-2/graph-overlay.json#group:建模路径与微分方程',
   })],
   ['1-2:step-05', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewedSourceHash: REVIEWED_LESSON_1_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 05 translates physical objects into differential equations and is a concept-level precursor for transfer-function modeling.',
     independentEvidenceRef: 'course-content/runtime/lessons/1-2/graph-overlay.json#group:建模路径与微分方程',
   })],
   ['2-2:step-09', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 7,
     reviewedSourceHash: REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 09 directly covers the dynamic performance indicator node used by the time-domain-response-analysis goal.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
   })],
   ['2-2:step-10', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 7,
     reviewedSourceHash: REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 10 reviews rise-time definition and derivation as a path-eligible concept resource for time-domain performance analysis.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
   })],
   ['2-2:step-11', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 7,
     reviewedSourceHash: REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 11 covers peak time and overshoot, preserving citation/path distinction as a concept step rather than assessment evidence.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
   })],
   ['2-2:step-12', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 7,
     reviewedSourceHash: REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 12 covers settling-time error bands and is reviewed as concept/path material for time-domain response analysis.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
   })],
   ['2-2:step-13', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewedSourceHash: REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 13 applies time-domain indicator calculations in a worked example, improving concept practice support without counting as checkpoint evidence.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
   })],
   ['2-4:step-09', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_2_4_REVIEW_SOURCE_HASH,
@@ -153,7 +153,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:频域指标入口',
   })],
   ['2-4:step-10', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_2_4_REVIEW_SOURCE_HASH,
@@ -161,7 +161,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:频域指标入口',
   })],
   ['2-4:step-11', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_2_4_REVIEW_SOURCE_HASH,
@@ -169,7 +169,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:手工绘图与最小反识别',
   })],
   ['2-4:step-12', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_2_4_REVIEW_SOURCE_HASH,
@@ -177,7 +177,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:手工绘图与最小反识别',
   })],
   ['3-5:step-01', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
@@ -185,7 +185,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:从 3-4 的边界进入结构改变',
   })],
   ['3-5:step-02', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
@@ -193,7 +193,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:从 3-4 的边界进入结构改变',
   })],
   ['3-5:step-04', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
@@ -201,7 +201,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:左半平面零点与轨迹重排',
   })],
   ['3-5:step-05', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
@@ -209,7 +209,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:左半平面零点与轨迹重排',
   })],
   ['3-5:step-10', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
@@ -217,7 +217,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:PD 与超前的频域整形',
   })],
   ['3-5:step-11', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
@@ -225,7 +225,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:PD 与超前的频域整形',
   })],
   ['3-5:step-12', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
@@ -233,7 +233,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:PD 与超前的频域整形',
   })],
   ['3-6:step-06', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH,
@@ -241,7 +241,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-6/graph-overlay.json#group:从 3-5 机理切到目标翻译',
   })],
   ['3-6:step-10', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH,
@@ -249,7 +249,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-6/graph-overlay.json#group:任务 C / D：频域目标驱动设计',
   })],
   ['3-6:step-11', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH,
@@ -257,7 +257,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-6/graph-overlay.json#group:任务 C / D：频域目标驱动设计',
   })],
   ['3-6:step-12', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH,
@@ -265,7 +265,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-6/graph-overlay.json#group:任务 C / D：频域目标驱动设计',
   })],
   ['3-6:step-13', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH,
@@ -273,7 +273,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-6/graph-overlay.json#group:任务 C / D：频域目标驱动设计',
   })],
   ['3-8:step-06', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_8_REVIEW_SOURCE_HASH,
@@ -281,7 +281,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-8/graph-overlay.json#group:Nyquist 与 Bode 统一判稳链',
   })],
   ['3-8:step-07', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_8_REVIEW_SOURCE_HASH,
@@ -289,7 +289,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-8/graph-overlay.json#group:Nyquist 与 Bode 统一判稳链',
   })],
   ['3-8:step-09', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_8_REVIEW_SOURCE_HASH,
@@ -297,7 +297,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-8/graph-overlay.json#group:三频段分工与工程案例读回',
   })],
   ['3-8:step-10', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_8_REVIEW_SOURCE_HASH,
@@ -305,7 +305,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-8/graph-overlay.json#group:三频段分工与工程案例读回',
   })],
   ['3-9:step-01', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_9_REVIEW_SOURCE_HASH,
@@ -313,7 +313,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-9/graph-overlay.json#group:统一对象与多版本映射入口',
   })],
   ['3-9:step-08', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_3_9_REVIEW_SOURCE_HASH,
@@ -321,7 +321,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/3-9/graph-overlay.json#group:综合映射与模块4入口',
   })],
   ['4-1:step-01', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_4_1_REVIEW_SOURCE_HASH,
@@ -329,7 +329,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/4-1/graph-overlay.json#group:入口回收与指标重组',
   })],
   ['4-1:step-05', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_4_1_REVIEW_SOURCE_HASH,
@@ -337,7 +337,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/4-1/graph-overlay.json#group:任务分类与区域分层',
   })],
   ['4-1:step-07', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_4_1_REVIEW_SOURCE_HASH,
@@ -345,7 +345,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/4-1/graph-overlay.json#group:主场景联读',
   })],
   ['4-1:step-10', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_4_1_REVIEW_SOURCE_HASH,
@@ -353,7 +353,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/4-1/graph-overlay.json#group:任务表达与收束',
   })],
   ['4-2:step-11', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_4_2_REVIEW_SOURCE_HASH,
@@ -361,7 +361,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/4-2/graph-overlay.json#group:分结构整定例题',
   })],
   ['4-2:step-12', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_4_2_REVIEW_SOURCE_HASH,
@@ -369,7 +369,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     independentEvidenceRef: 'course-content/runtime/lessons/4-2/graph-overlay.json#group:分结构整定例题',
   })],
   ['4-2:step-13', reviewedRuntimeStepCompletion({
-    capabilityTargetIds: [],
+    capabilityTargetIds: ['controlModeling'],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
     reviewedSourceHash: REVIEWED_LESSON_4_2_REVIEW_SOURCE_HASH,
