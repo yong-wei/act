@@ -791,13 +791,30 @@ describe('resource node registry', () => {
       renderTarget: '/interactive-learning/resources/lesson09-correction-precheck',
       planningMetadata: {
         knowledgeCoverage: [
-          'control-correction:root-locus-design',
-          'control-correction:time-domain-targets',
+          '时域指标到目标极点区域_3_36001',
+          '根轨迹增益换算_3_4b1d9e6c',
         ],
         abilityImpact: {
           diagnosticAssessment: expect.any(Number),
           parameterDesign: expect.any(Number),
         },
+      },
+      eligibility: { pathEligible: true },
+    });
+    expect(registry.nodes.find((node) => node.id === 'registry:lesson02-modeling-handout-v1')).toMatchObject({
+      planningMetadata: {
+        availability: 'archived',
+        knowledgeCoverage: expect.arrayContaining(['机理建模_1_2']),
+      },
+      eligibility: {
+        pathEligible: false,
+        reasons: expect.arrayContaining(['unavailable-resource']),
+      },
+    });
+    expect(registry.nodes.find((node) => node.id === 'registry:lesson07-static-classification')).toMatchObject({
+      planningMetadata: {
+        knowledgeCoverage: expect.arrayContaining(['二阶系统_3_3a0af45b']),
+        evidenceInstrumentation: ['static_media_view'],
       },
       eligibility: { pathEligible: true },
     });
@@ -860,7 +877,7 @@ describe('resource node registry', () => {
       .filter((node) => node.type === 'simulation' && !node.planningMetadata.readiness)
       .map((node) => node.id);
 
-    expect(activeRegisteredNodes).toHaveLength(119);
+    expect(activeRegisteredNodes).toHaveLength(139);
     expect(incompleteActiveNodes).toEqual([]);
     expect(unlockedSimulations).toEqual([]);
   });

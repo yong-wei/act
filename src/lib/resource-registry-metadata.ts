@@ -203,6 +203,81 @@ const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
         label: 'Lesson 02 Legacy - Summary',
         type: 'INTERACTIVE_COMP'
     },
+    'lesson02-bridge-v1': {
+        id: 'lesson02-bridge-v1',
+        label: 'Lesson 02 - Bridge In',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-objective-v1': {
+        id: 'lesson02-objective-v1',
+        label: 'Lesson 02 - Objectives',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-pretest-v1': {
+        id: 'lesson02-pretest-v1',
+        label: 'Lesson 02 - Pretest',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-mechanical-v1': {
+        id: 'lesson02-mechanical-v1',
+        label: 'Lesson 02 - Mechanical Modeling',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-electrical-v1': {
+        id: 'lesson02-electrical-v1',
+        label: 'Lesson 02 - Electrical Modeling',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-analogy-v1': {
+        id: 'lesson02-analogy-v1',
+        label: 'Lesson 02 - Analogy Mapping',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-posttest-v1': {
+        id: 'lesson02-posttest-v1',
+        label: 'Lesson 02 - Posttest',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-summary-v1': {
+        id: 'lesson02-summary-v1',
+        label: 'Lesson 02 - Summary',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-modeling-handout-v1': {
+        id: 'lesson02-modeling-handout-v1',
+        label: 'Lesson 02 Modeling Handout',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-nyquist-stability-quiz-v1': {
+        id: 'lesson02-nyquist-stability-quiz-v1',
+        label: 'Lesson 02 Nyquist Stability Quiz',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-legacy-bridge-media-v1': {
+        id: 'lesson02-legacy-bridge-media-v1',
+        label: 'Lesson 02 Legacy Bridge Media',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-legacy-objectives-handout-v1': {
+        id: 'lesson02-legacy-objectives-handout-v1',
+        label: 'Lesson 02 Legacy Objectives Handout',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-legacy-pretest-laws-v1': {
+        id: 'lesson02-legacy-pretest-laws-v1',
+        label: 'Lesson 02 Legacy Pretest Laws',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-legacy-launcher-modeling-challenge-v1': {
+        id: 'lesson02-legacy-launcher-modeling-challenge-v1',
+        label: 'Lesson 02 Legacy Launcher Modeling Challenge',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson02-legacy-summary-notes-v1': {
+        id: 'lesson02-legacy-summary-notes-v1',
+        label: 'Lesson 02 Legacy Summary Notes',
+        type: 'INTERACTIVE_COMP'
+    },
     'lesson02-laplace-bridge-v1': {
         id: 'lesson02-laplace-bridge-v1',
         label: 'Lesson 02 - Laplace Bridge',
@@ -321,6 +396,56 @@ const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
     'lesson06-judge-bench': {
         id: 'lesson06-judge-bench',
         label: '裁判席计分器',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson07-static-classification': {
+        id: 'lesson07-static-classification',
+        label: '二阶系统传递函数与分类',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson07-static-step-response': {
+        id: 'lesson07-static-step-response',
+        label: '单位阶跃响应与指标',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson08-static-roadmap': {
+        id: 'lesson08-static-roadmap',
+        label: '课程路线图：稳定与稳态误差',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson08-static-stability-concept': {
+        id: 'lesson08-static-stability-concept',
+        label: '稳定性的概念与充要条件',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson08-static-routh-table': {
+        id: 'lesson08-static-routh-table',
+        label: '劳斯表构造与判别步骤',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson08-static-error-flow': {
+        id: 'lesson08-static-error-flow',
+        label: '稳态误差计算流程',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson09-static-roadmap': {
+        id: 'lesson09-static-roadmap',
+        label: '课程路线图：校正与时域综合',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson09-static-pd-feedback': {
+        id: 'lesson09-static-pd-feedback',
+        label: '比例-微分控制 vs 输出微分反馈',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson09-static-feedforward-disturbance': {
+        id: 'lesson09-static-feedforward-disturbance',
+        label: '前馈补偿与扰动补偿',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson09-static-time-domain-workflow': {
+        id: 'lesson09-static-time-domain-workflow',
+        label: '航向系统时域综合流程',
         type: 'INTERACTIVE_COMP'
     },
     'lesson13-physics-builder-simple': {
@@ -668,6 +793,26 @@ const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
         label: '根轨迹规则工作坊',
         type: 'INTERACTIVE_COMP'
     },
+    'lesson10-static-roadmap': {
+        id: 'lesson10-static-roadmap',
+        label: '课程路线图：根轨迹法',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson10-static-conditions': {
+        id: 'lesson10-static-conditions',
+        label: '根轨迹条件：模值与相角',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson10-static-rules': {
+        id: 'lesson10-static-rules',
+        label: '根轨迹基本法则',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson10-static-detail-corrections': {
+        id: 'lesson10-static-detail-corrections',
+        label: '根轨迹细节修正',
+        type: 'INTERACTIVE_COMP'
+    },
     'lesson11-parameter-root-locus-deck': {
         id: 'lesson11-parameter-root-locus-deck',
         label: '参数根轨迹知识卡',
@@ -681,6 +826,21 @@ const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
     'lesson11-summary-card': {
         id: 'lesson11-summary-card',
         label: '课程总结',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson11-static-roadmap': {
+        id: 'lesson11-static-roadmap',
+        label: '课程路线图：参数根轨迹',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson11-static-equivalent-open-loop': {
+        id: 'lesson11-static-equivalent-open-loop',
+        label: '等效开环变换步骤',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson11-static-visual-workflow': {
+        id: 'lesson11-static-visual-workflow',
+        label: '图形化思考到仿真验证',
         type: 'INTERACTIVE_COMP'
     },
     'lesson12-frequency-precheck': {
@@ -711,6 +871,21 @@ const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
     'lesson12-summary-card': {
         id: 'lesson12-summary-card',
         label: '课程总结',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson12-static-roadmap': {
+        id: 'lesson12-static-roadmap',
+        label: '课程路线图：频率特性与伯德图',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson12-static-frequency-response': {
+        id: 'lesson12-static-frequency-response',
+        label: '频率响应定义',
+        type: 'INTERACTIVE_COMP'
+    },
+    'lesson12-static-bode-steps': {
+        id: 'lesson12-static-bode-steps',
+        label: '伯德图绘制步骤',
         type: 'INTERACTIVE_COMP'
     },
     'classroom-video': {
@@ -995,6 +1170,156 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             abilityImpact: { inquiryReflection: 0.08, selfDirectedLearning: 0.08 }
         }
     },
+    'lesson02-bridge-v1': {
+        knowledgeNodeIds: ['模型结构相似性_1_2', '机理建模_1_2'],
+        planningOverride: {
+            estimatedTimeMinutes: 6,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_resource_view'],
+            abilityImpact: { inquiryReflection: 0.08 }
+        }
+    },
+    'lesson02-objective-v1': {
+        knowledgeNodeIds: ['机理建模_1_2', '模型结构相似性_1_2'],
+        planningOverride: {
+            estimatedTimeMinutes: 5,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_resource_view'],
+            abilityImpact: { selfDirectedLearning: 0.08 }
+        }
+    },
+    'lesson02-pretest-v1': {
+        knowledgeNodeIds: ['机理建模_1_2', '微分方程_2_775c96a3', '相似系统_2_5477df89'],
+        planningOverride: {
+            estimatedTimeMinutes: 8,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_answer_submit'],
+            abilityImpact: { diagnosticAssessment: 0.16, controlModeling: 0.08 }
+        }
+    },
+    'lesson02-mechanical-v1': {
+        knowledgeNodeIds: ['机理建模_1_2', '微分方程_2_775c96a3', '动态数学模型_2_b7f98344'],
+        planningOverride: {
+            estimatedTimeMinutes: 12,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_widget_interaction'],
+            abilityImpact: { controlModeling: 0.16 }
+        }
+    },
+    'lesson02-electrical-v1': {
+        knowledgeNodeIds: ['无源网络_2_71a8b325', '微分方程_2_775c96a3', '动态数学模型_2_b7f98344'],
+        planningOverride: {
+            estimatedTimeMinutes: 12,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_widget_interaction'],
+            abilityImpact: { controlModeling: 0.16 }
+        }
+    },
+    'lesson02-analogy-v1': {
+        knowledgeNodeIds: ['相似系统_2_5477df89', '模型结构相似性_1_2', '系统模型转换_1_18f4b178'],
+        planningOverride: {
+            estimatedTimeMinutes: 10,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_analogy_submit'],
+            abilityImpact: { controlModeling: 0.14, crossDomainTransfer: 0.12 }
+        }
+    },
+    'lesson02-posttest-v1': {
+        knowledgeNodeIds: ['机理建模_1_2', '微分方程_2_775c96a3', '相似系统_2_5477df89'],
+        planningOverride: {
+            estimatedTimeMinutes: 10,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_answer_submit'],
+            abilityImpact: { diagnosticAssessment: 0.18, controlModeling: 0.08 }
+        }
+    },
+    'lesson02-summary-v1': {
+        knowledgeNodeIds: ['模型结构相似性_1_2', '系统模型转换_1_18f4b178'],
+        planningOverride: {
+            estimatedTimeMinutes: 6,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_resource_view'],
+            abilityImpact: { inquiryReflection: 0.08, selfDirectedLearning: 0.08 }
+        }
+    },
+    'lesson02-modeling-handout-v1': {
+        knowledgeNodeIds: ['机理建模_1_2', '微分方程_2_775c96a3', '无源网络_2_71a8b325'],
+        planningOverride: {
+            estimatedTimeMinutes: 8,
+            availability: 'archived',
+            teacherPolicy: 'teacher-assigned',
+            evidenceInstrumentation: ['static_text_view'],
+            abilityImpact: { controlModeling: 0.12, selfDirectedLearning: 0.08 }
+        }
+    },
+    'lesson02-nyquist-stability-quiz-v1': {
+        knowledgeNodeIds: ['奈奎斯特稳定判据_奈氏判据__5_0355b06b', '频域响应_1_1', '稳定性_3_72d04fbd'],
+        planningOverride: {
+            estimatedTimeMinutes: 6,
+            availability: 'archived',
+            teacherPolicy: 'teacher-assigned',
+            evidenceInstrumentation: ['answer_submit'],
+            abilityImpact: { diagnosticAssessment: 0.14, controlModeling: 0.08 }
+        }
+    },
+    'lesson02-legacy-bridge-media-v1': {
+        knowledgeNodeIds: ['模型结构相似性_1_2', '机理建模_1_2'],
+        planningOverride: {
+            estimatedTimeMinutes: 5,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_resource_view'],
+            abilityImpact: { inquiryReflection: 0.08 }
+        }
+    },
+    'lesson02-legacy-objectives-handout-v1': {
+        knowledgeNodeIds: ['机理建模_1_2', '模型结构相似性_1_2'],
+        planningOverride: {
+            estimatedTimeMinutes: 4,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_resource_view'],
+            abilityImpact: { selfDirectedLearning: 0.08 }
+        }
+    },
+    'lesson02-legacy-pretest-laws-v1': {
+        knowledgeNodeIds: ['机理建模_1_2', '微分方程_2_775c96a3'],
+        planningOverride: {
+            estimatedTimeMinutes: 6,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_answer_submit'],
+            abilityImpact: { diagnosticAssessment: 0.12, controlModeling: 0.08 }
+        }
+    },
+    'lesson02-legacy-launcher-modeling-challenge-v1': {
+        knowledgeNodeIds: ['机理建模_1_2', '动态数学模型_2_b7f98344'],
+        planningOverride: {
+            estimatedTimeMinutes: 8,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_answer_submit'],
+            abilityImpact: { controlModeling: 0.14, engineeringDecision: 0.08 }
+        }
+    },
+    'lesson02-legacy-summary-notes-v1': {
+        knowledgeNodeIds: ['二阶系统_3_3a0af45b', '机理建模_1_2'],
+        planningOverride: {
+            estimatedTimeMinutes: 5,
+            availability: 'archived',
+            teacherPolicy: 'blocked',
+            evidenceInstrumentation: ['legacy_resource_view'],
+            abilityImpact: { inquiryReflection: 0.08, selfDirectedLearning: 0.08 }
+        }
+    },
     'physics-modeling-intro-v1': {
         knowledgeNodeIds: ['机理建模_1_2', '动态数学模型_2_b7f98344'],
         planningOverride: {
@@ -1259,6 +1584,86 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             abilityImpact: { diagnosticAssessment: 0.18, engineeringDecision: 0.18, controlModeling: 0.16 }
         }
     },
+    'lesson07-static-classification': {
+        knowledgeNodeIds: ['二阶系统_3_3a0af45b', '二阶系统标准型_3_L2a'],
+        planningOverride: {
+            estimatedTimeMinutes: 6,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.12 }
+        }
+    },
+    'lesson07-static-step-response': {
+        knowledgeNodeIds: ['单位阶跃响应_3_04fc55dc', '动态性能指标_3_a10733c1'],
+        planningOverride: {
+            estimatedTimeMinutes: 6,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.12, diagnosticAssessment: 0.08 }
+        }
+    },
+    'lesson08-static-roadmap': {
+        knowledgeNodeIds: ['稳定性_3_72d04fbd', '稳态误差_3_c0207063'],
+        planningOverride: {
+            estimatedTimeMinutes: 5,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { selfDirectedLearning: 0.08, inquiryReflection: 0.08 }
+        }
+    },
+    'lesson08-static-stability-concept': {
+        knowledgeNodeIds: ['稳定性_3_72d04fbd', '线性系统稳定的充分必要条件_3_530c07d0'],
+        planningOverride: {
+            estimatedTimeMinutes: 6,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.12 }
+        }
+    },
+    'lesson08-static-routh-table': {
+        knowledgeNodeIds: ['劳斯判据_3_e3500ac9', '劳斯-赫尔维茨稳定判据_3_34d8fbe7'],
+        planningOverride: {
+            estimatedTimeMinutes: 7,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.14 }
+        }
+    },
+    'lesson08-static-error-flow': {
+        knowledgeNodeIds: ['稳态误差_3_c0207063', '系统型别_3_5573c2c3'],
+        planningOverride: {
+            estimatedTimeMinutes: 7,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.12, parameterDesign: 0.08 }
+        }
+    },
+    'lesson09-static-roadmap': {
+        knowledgeNodeIds: ['时域指标到目标极点区域_3_36001', '根轨迹增益换算_3_4b1d9e6c'],
+        planningOverride: {
+            estimatedTimeMinutes: 5,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { inquiryReflection: 0.08, selfDirectedLearning: 0.08 }
+        }
+    },
+    'lesson09-static-pd-feedback': {
+        knowledgeNodeIds: ['PD与测速反馈的等效阻尼对比_3_35003', '测速反馈控制_3_4c2ec80f'],
+        planningOverride: {
+            estimatedTimeMinutes: 7,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { parameterDesign: 0.12, controlModeling: 0.1 }
+        }
+    },
+    'lesson09-static-feedforward-disturbance': {
+        knowledgeNodeIds: ['复合控制_3_a1570156', '扰动作用下的稳态误差_3_5c9fcfe1'],
+        planningOverride: {
+            estimatedTimeMinutes: 7,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { engineeringDecision: 0.12, parameterDesign: 0.08 }
+        }
+    },
+    'lesson09-static-time-domain-workflow': {
+        knowledgeNodeIds: ['时域指标到目标极点区域_3_36001', '目标驱动测速反馈校正_3_36003'],
+        planningOverride: {
+            estimatedTimeMinutes: 8,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { parameterDesign: 0.14, engineeringDecision: 0.1 }
+        }
+    },
     'lesson07-damping-quick-check': {
         knowledgeNodeIds: ['二阶系统_3_3a0af45b', '欠阻尼二阶系统_3_242477a2'],
         planningOverride: {
@@ -1469,7 +1874,7 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
         }
     },
     'lesson09-correction-precheck': {
-        knowledgeNodeIds: ['control-correction:time-domain-targets', 'control-correction:root-locus-design'],
+        knowledgeNodeIds: ['时域指标到目标极点区域_3_36001', '根轨迹增益换算_3_4b1d9e6c'],
         planningOverride: {
             estimatedTimeMinutes: 10,
             evidenceInstrumentation: ['answer_submit', 'adaptive_assessment'],
@@ -1477,7 +1882,7 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
         }
     },
     'lesson09-correction-strategy': {
-        knowledgeNodeIds: ['control-correction:time-domain-targets', 'control-correction:root-locus-design'],
+        knowledgeNodeIds: ['时域指标到目标极点区域_3_36001', '根轨迹增益换算_3_4b1d9e6c'],
         prerequisiteNodeIds: ['registry:lesson09-correction-precheck'],
         planningOverride: {
             estimatedTimeMinutes: 14,
@@ -1494,7 +1899,7 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
         }
     },
     'lesson09-time-domain-synthesis': {
-        knowledgeNodeIds: ['control-correction:time-domain-targets', 'control-correction:simulation-validation'],
+        knowledgeNodeIds: ['时域指标到目标极点区域_3_36001', '对象化三域验证_3_56cb3a4e'],
         prerequisiteNodeIds: ['registry:lesson09-correction-precheck'],
         planningOverride: {
             estimatedTimeMinutes: 18,
@@ -1512,7 +1917,7 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
         }
     },
     'lesson09-summary-card': {
-        knowledgeNodeIds: ['control-correction:root-locus-design', 'control-correction:simulation-validation'],
+        knowledgeNodeIds: ['根轨迹增益换算_3_4b1d9e6c', '对象化三域验证_3_56cb3a4e'],
         prerequisiteNodeIds: ['registry:lesson09-time-domain-synthesis'],
         planningOverride: {
             estimatedTimeMinutes: 6,
@@ -1535,6 +1940,38 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             cognitiveLoad: 'high',
             evidenceInstrumentation: ['root_locus_workspace_submit', 'answer_submit'],
             abilityImpact: { controlModeling: 0.24, parameterDesign: 0.22, engineeringDecision: 0.12 }
+        }
+    },
+    'lesson10-static-roadmap': {
+        knowledgeNodeIds: ['根轨迹法_4_4e598387', '根轨迹图_4_290e12b6'],
+        planningOverride: {
+            estimatedTimeMinutes: 5,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { inquiryReflection: 0.08, selfDirectedLearning: 0.08 }
+        }
+    },
+    'lesson10-static-conditions': {
+        knowledgeNodeIds: ['根轨迹方程_4_bc893f65', '幅值条件_3_2d5b92ac', '相角条件_4_597a8cf7'],
+        planningOverride: {
+            estimatedTimeMinutes: 8,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.14, parameterDesign: 0.08 }
+        }
+    },
+    'lesson10-static-rules': {
+        knowledgeNodeIds: ['根轨迹绘制法则_4_f0ea9a49', '根轨迹图_4_290e12b6'],
+        planningOverride: {
+            estimatedTimeMinutes: 8,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.14 }
+        }
+    },
+    'lesson10-static-detail-corrections': {
+        knowledgeNodeIds: ['根轨迹绘制法则_4_f0ea9a49', '根轨迹绘制法则_零度__4_205342a7'],
+        planningOverride: {
+            estimatedTimeMinutes: 7,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.12, diagnosticAssessment: 0.08 }
         }
     },
     'lesson11-parameter-root-locus-deck': {
@@ -1560,6 +1997,30 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             estimatedTimeMinutes: 6,
             evidenceInstrumentation: ['summary_card_view'],
             abilityImpact: { inquiryReflection: 0.1, selfDirectedLearning: 0.1 }
+        }
+    },
+    'lesson11-static-roadmap': {
+        knowledgeNodeIds: ['参数根轨迹_4_faab3aea', '广义根轨迹_4_30f5ea13'],
+        planningOverride: {
+            estimatedTimeMinutes: 5,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { inquiryReflection: 0.08, selfDirectedLearning: 0.08 }
+        }
+    },
+    'lesson11-static-equivalent-open-loop': {
+        knowledgeNodeIds: ['参数根轨迹_4_faab3aea', '根轨迹增益换算_3_4b1d9e6c'],
+        planningOverride: {
+            estimatedTimeMinutes: 7,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.12, parameterDesign: 0.1 }
+        }
+    },
+    'lesson11-static-visual-workflow': {
+        knowledgeNodeIds: ['根轨迹图_4_290e12b6', '关键节点读图_3_8b2f0d12'],
+        planningOverride: {
+            estimatedTimeMinutes: 7,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { engineeringDecision: 0.1, controlModeling: 0.12 }
         }
     },
     'lesson12-frequency-precheck': {
@@ -1608,6 +2069,30 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             estimatedTimeMinutes: 6,
             evidenceInstrumentation: ['summary_card_view'],
             abilityImpact: { inquiryReflection: 0.1, selfDirectedLearning: 0.1 }
+        }
+    },
+    'lesson12-static-roadmap': {
+        knowledgeNodeIds: ['Bode图_1_1', '频域响应_1_1'],
+        planningOverride: {
+            estimatedTimeMinutes: 5,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { inquiryReflection: 0.08, selfDirectedLearning: 0.08 }
+        }
+    },
+    'lesson12-static-frequency-response': {
+        knowledgeNodeIds: ['频域响应_1_1', '频率特性_5_404adfdd'],
+        planningOverride: {
+            estimatedTimeMinutes: 7,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.12 }
+        }
+    },
+    'lesson12-static-bode-steps': {
+        knowledgeNodeIds: ['Bode图_1_1', 'Bode首轮骨架_5_1e07d9da'],
+        planningOverride: {
+            estimatedTimeMinutes: 7,
+            evidenceInstrumentation: ['static_media_view'],
+            abilityImpact: { controlModeling: 0.12, diagnosticAssessment: 0.08 }
         }
     },
     'lesson13-physics-builder-simple': {
