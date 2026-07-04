@@ -6,6 +6,11 @@ import {
   type QuestionType,
 } from '@/features/assessment/adaptive-question-bank';
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import {
+  getCheckpointAuthoredQuestionRecordByRuntimeId,
+  checkpointAuthoredQuestionToRuntimeQuestion,
+  REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS,
+} from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 
 export interface AdaptiveAnswerRecord {
   sessionId: string;
@@ -127,6 +132,10 @@ export function getAdaptiveQuestionById(questionId: string): CrossDomainQuestion
   const preset = PRESET_QUESTIONS.find((question) => question.id === questionId);
   if (preset) {
     return preset;
+  }
+  const authored = getCheckpointAuthoredQuestionRecordByRuntimeId(questionId);
+  if (authored) {
+    return checkpointAuthoredQuestionToRuntimeQuestion(authored);
   }
   return store.generatedQuestions.get(questionId) ?? null;
 }
@@ -301,7 +310,7 @@ function allQuestions(params?: { userId?: string; sessionId?: string }): CrossDo
   const store = createStore();
   const generatedQuestions = Array.from(store.generatedQuestions.values())
     .filter((question) => isGeneratedQuestionVisible(question, params));
-  return [...PRESET_QUESTIONS, ...generatedQuestions];
+  return [...PRESET_QUESTIONS, ...REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS, ...generatedQuestions];
 }
 
 function isGeneratedQuestionVisible(question: CrossDomainQuestion, params?: { userId?: string; sessionId?: string }): boolean {
@@ -394,7 +403,11 @@ export function selectNextQuestionFromAnswers(
   const scored = selectionPool.map((question) => {
     const closeness = 1 - Math.abs(question.difficulty - targetDifficulty);
     const weakBoost = question.knowledgeTags.reduce((sum, tag) => sum + (weakAreas.has(tag) ? 0.15 : 0), 0);
-    const score = closeness + weakBoost;
+    const explicitGeneratedGoalBoost = targetGoalId && questionScope === 'practice' &&
+      explicitGeneratedLearningGoalIds(question).includes(targetGoalId)
+      ? 0.25
+      : 0;
+    const score = closeness + weakBoost + explicitGeneratedGoalBoost;
 
     return {
       question,

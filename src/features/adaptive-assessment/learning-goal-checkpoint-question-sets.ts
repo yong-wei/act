@@ -1,8 +1,10 @@
 import type { AdaptiveAssessmentCatalogStage } from './adaptive-assessment-item-catalog';
+import type { CrossDomainQuestion, QuestionDomain, QuestionType } from '../assessment/adaptive-question-bank';
 
 export const LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION = 'learning-goal-checkpoint-question-sets.v1';
 export const LEARNING_GOAL_CHECKPOINT_QUESTION_SET_REVIEWED_AT = '2026-07-03T00:00:00.000Z';
 export const LEARNING_GOAL_CHECKPOINT_QUESTION_SET_REVIEWER_ID = 'openspec-buddy:learning-goal-checkpoint-question-sets';
+export const CHECKPOINT_AUTHORED_QUESTION_RUNTIME_ID_PREFIX = 'checkpoint-authored-question:';
 
 export interface CheckpointAuthoredQuestionRecord {
   id: string;
@@ -30,6 +32,20 @@ export interface CheckpointAuthoredQuestionRecord {
   reviewBatchId: typeof LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION;
   sourceRef: string;
 }
+
+const RUNTIME_DOMAINS_BY_STAGE: Record<AuthoredStage, QuestionDomain[]> = {
+  readiness: ['complex', 'time'],
+  practice: ['time', 'frequency'],
+  checkpoint: ['complex', 'frequency'],
+  remediation: ['time', 'physical'],
+};
+
+const RUNTIME_TYPE_BY_STAGE: Record<AuthoredStage, QuestionType> = {
+  readiness: 'pole-to-behavior',
+  practice: 'design-tradeoff',
+  checkpoint: 'multi-criteria',
+  remediation: 'design-tradeoff',
+};
 
 type AuthoredStage = 'readiness' | 'practice' | 'checkpoint' | 'remediation';
 
@@ -400,3 +416,53 @@ export const REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS: CheckpointAuthoredQues
       return authoredQuestion(target, seedItem, ordinal);
     });
   });
+
+function runtimeStage(record: CheckpointAuthoredQuestionRecord): AuthoredStage {
+  if (record.stagePurpose === 'readiness' || record.stagePurpose === 'readiness-gate' || record.stagePurpose === 'precheck') {
+    return 'readiness';
+  }
+  if (record.stagePurpose === 'checkpoint') return 'checkpoint';
+  if (record.stagePurpose === 'remediation') return 'remediation';
+  return 'practice';
+}
+
+export function checkpointAuthoredQuestionRuntimeId(sourceId: string): string {
+  return `${CHECKPOINT_AUTHORED_QUESTION_RUNTIME_ID_PREFIX}${sourceId}`;
+}
+
+export function sourceIdFromCheckpointAuthoredQuestionRuntimeId(questionId: string): string | null {
+  return questionId.startsWith(CHECKPOINT_AUTHORED_QUESTION_RUNTIME_ID_PREFIX)
+    ? questionId.slice(CHECKPOINT_AUTHORED_QUESTION_RUNTIME_ID_PREFIX.length)
+    : null;
+}
+
+export function getCheckpointAuthoredQuestionRecordByRuntimeId(
+  questionId: string,
+): CheckpointAuthoredQuestionRecord | null {
+  const sourceId = sourceIdFromCheckpointAuthoredQuestionRuntimeId(questionId);
+  if (!sourceId) return null;
+  return REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((record) => record.id === sourceId) ?? null;
+}
+
+export function checkpointAuthoredQuestionToRuntimeQuestion(
+  record: CheckpointAuthoredQuestionRecord,
+): CrossDomainQuestion {
+  const stage = runtimeStage(record);
+  return {
+    id: checkpointAuthoredQuestionRuntimeId(record.id),
+    stem: record.stem,
+    domains: RUNTIME_DOMAINS_BY_STAGE[stage],
+    type: RUNTIME_TYPE_BY_STAGE[stage],
+    difficulty: record.difficulty,
+    knowledgeTags: record.knowledgeTags,
+    options: record.options.map((option) => ({
+      label: option.key,
+      text: option.text,
+      isCorrect: option.isCorrect,
+      explanation: option.explanation,
+    })),
+  };
+}
+
+export const REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS: CrossDomainQuestion[] =
+  REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.map(checkpointAuthoredQuestionToRuntimeQuestion);
