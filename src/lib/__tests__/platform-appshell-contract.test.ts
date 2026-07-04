@@ -394,6 +394,19 @@ describe('universal AppShell frame contract', () => {
     );
   });
 
+  it('allows shell callers to override the Personal Center target independently of visual role', () => {
+    const markup = renderToStaticMarkup(createElement(AppHeader, {
+      viewerRole: 'student',
+      title: '控制工作台',
+      breadcrumbs: [{ label: '首页', href: '/' }, { label: '控制工作台' }],
+      accountHref: '/teacher',
+    }));
+
+    expect(markup).toContain('data-app-shell-header-action="personal-center"');
+    expect(markup).toContain('href="/teacher"');
+    expect(markup).not.toContain('href="/profile"');
+  });
+
   it('registers every AppShell-compatible wrapper with DOM contract evidence', () => {
     const wrapperNames = APP_SHELL_COMPATIBLE_WRAPPERS.map((wrapper) => wrapper.name);
 

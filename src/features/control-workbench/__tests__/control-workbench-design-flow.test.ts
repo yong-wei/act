@@ -132,6 +132,19 @@ describe('control workbench design flow shell', () => {
     expect(html).toContain('官方评价以提交后的 Arena 评测为准');
   });
 
+  it('keeps the Personal Center target aligned with the caller account context', () => {
+    const result = resolveControlWorkbenchSession({
+      arenaTask: 'task-second-order-lead-pid',
+      preset: 'classic-four-view',
+    });
+
+    const html = renderToStaticMarkup(createElement(ControlWorkbenchShell, { result, accountHref: '/teacher' }));
+
+    expect(html).toContain('data-app-shell-header-action="personal-center"');
+    expect(html).toMatch(/data-app-shell-header-action="personal-center"[^>]*><a\b[^>]*href="\/teacher"/);
+    expect(html).not.toMatch(/data-app-shell-header-action="personal-center"[^>]*><a\b[^>]*href="\/profile"/);
+  });
+
   it('keeps the primary instrument before secondary setup sheets in the mission workspace', () => {
     const result = resolveControlWorkbenchSession({
       arenaTask: 'task-second-order-lead-pid',

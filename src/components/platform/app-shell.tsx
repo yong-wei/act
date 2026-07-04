@@ -63,6 +63,7 @@ export interface AppShellProps {
   subtitle?: string;
   actions?: ReactNode;
   userMenu?: ReactNode;
+  accountHref?: string;
   activeHref?: string;
   sidebarMode?: 'fixed' | 'collapsible' | 'hidden';
   routeMetadata?: AppShellRouteMetadata;
@@ -118,6 +119,7 @@ export interface AppHeaderProps {
   breadcrumbs?: readonly AppBreadcrumbItem[];
   actions?: ReactNode;
   userMenu?: ReactNode;
+  accountHref?: string;
   className?: string;
 }
 
@@ -419,12 +421,13 @@ export function AppHeader({
   breadcrumbs,
   actions,
   userMenu,
+  accountHref,
   className,
 }: AppHeaderProps) {
   const personalCenterAction = UNIVERSAL_APP_SHELL_HEADER_ACTION_ORDER.find((action) => action.id === 'personal-center');
   const personalCenter = userMenu ?? (
     <Link
-      href={getPlatformCockpitHref(viewerRole)}
+      href={accountHref ?? getPlatformCockpitHref(viewerRole)}
       className="inline-flex h-9 items-center gap-2 rounded-md border border-platform-border bg-platform-surface px-3 text-sm font-medium text-platform-fg-primary transition hover:border-platform-border-strong hover:text-platform-action-primary"
     >
       个人中心
@@ -589,6 +592,7 @@ function AppShellDesktopLayout({
   subtitle,
   actions,
   userMenu,
+  accountHref,
   effectiveBreadcrumbs,
   workspaceSlots,
   dockControls,
@@ -607,6 +611,7 @@ function AppShellDesktopLayout({
   subtitle?: string;
   actions?: ReactNode;
   userMenu?: ReactNode;
+  accountHref?: string;
   effectiveBreadcrumbs?: readonly AppBreadcrumbItem[];
   workspaceSlots?: AppShellWorkspaceSlots;
   dockControls: readonly AppShellDockControl[];
@@ -668,6 +673,7 @@ function AppShellDesktopLayout({
           breadcrumbs={effectiveBreadcrumbs}
           actions={headerActions}
           userMenu={userMenu}
+          accountHref={accountHref}
         />
         {renderMobileNavigation ? (
           resolvedRouteMetadata?.mobileNavigation === 'drawer' ? (
@@ -1045,6 +1051,7 @@ export function AppShell({
   subtitle,
   actions,
   userMenu,
+  accountHref,
   activeHref,
   sidebarMode,
   routeMetadata,
@@ -1100,6 +1107,7 @@ export function AppShell({
         subtitle={subtitle}
         actions={actions}
         userMenu={userMenu}
+        accountHref={accountHref}
         effectiveBreadcrumbs={effectiveBreadcrumbs}
         workspaceSlots={workspaceSlots}
         dockControls={dockControls}
