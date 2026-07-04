@@ -166,6 +166,11 @@ async function assertNavigationState(page: Page, route: string, width: number) {
       await expandButton.click();
       await expect(page.locator('[data-shell-navigation-state="expanded"]').first()).toBeVisible();
     }).toPass();
+    await page
+      .locator('[data-shell-navigation-state="expanded"]')
+      .getByRole('button', { name: '收起平台导航' })
+      .click();
+    await expect(page.locator('[data-shell-navigation-state="collapsed"]').first(), `${route} restored desktop rail`).toBeVisible();
     return;
   }
 
