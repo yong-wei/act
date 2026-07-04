@@ -24,7 +24,8 @@ describe('platform recovery source wiring', () => {
     expect(resourceDetail).toContain('<ActionStatusPanel');
     expect(arenaChallenge).toContain('<ArenaRouteRecovery');
     expect(arenaChallenge).toContain('surface="student-publication-access"');
-    expect(arenaPublicationReport).toContain('<ArenaRouteRecovery');
+    expect(arenaPublicationReport).toContain('<EmbeddedArenaRouteRecovery');
+    expect(arenaPublicationReport).not.toContain('<ArenaRouteRecovery');
     expect(arenaPublicationReport).toContain('surface="teacher-publication-report"');
     expect(globalNotFound).toContain('data-platform-route-recovery="global-not-found"');
     expect(globalNotFound).toContain("kind: 'invalid-object-route'");

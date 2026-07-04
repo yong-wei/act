@@ -3,7 +3,7 @@ import { BarChart3, ClipboardList, Copy, DatabaseZap, FileDown, LockKeyhole, Sen
 
 import { getServerAuthSession } from '@/lib/auth';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
-import { ArenaRouteRecovery } from '@/features/arena/arena-route-recovery';
+import { EmbeddedArenaRouteRecovery } from '@/features/arena/arena-route-recovery';
 import {
   ArenaPublicationPermissionError,
   prismaArenaPublicationStore,
@@ -56,7 +56,7 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
   const reportPath = `/teacher/arena/publications/${encodeURIComponent(params.publicationId)}`;
   if (!session?.user?.id || !['TEACHER', 'ADMIN'].includes(session.user.role ?? '')) {
     return (
-      <ArenaRouteRecovery
+      <EmbeddedArenaRouteRecovery
         kind="permission-boundary"
         sourceRoute="/teacher/arena/publications/[publicationId]"
         targetLabel="Arena 发布报告"
@@ -354,7 +354,7 @@ export default async function ArenaPublicationReportPage(props: ArenaPublication
   } catch (error) {
     if (error instanceof ArenaPublicationPermissionError) {
       return (
-        <ArenaRouteRecovery
+        <EmbeddedArenaRouteRecovery
           kind="missing-object"
           sourceRoute="/teacher/arena/publications/[publicationId]"
           targetLabel="Arena 发布报告"
