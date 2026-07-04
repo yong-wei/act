@@ -776,9 +776,15 @@ describe('resource field completion audit', () => {
     expect(new Set(reviewedBindings.map((binding) => binding.learningGoalId))).toEqual(new Set([
       'control-correction',
       'feedback-loop-concept-foundations',
+      'frequency-response-foundations',
+      'root-locus-analysis-foundations',
+      'stability-margin-frequency-analysis',
       'transfer-function-modeling-foundations',
       'time-domain-response-analysis',
     ]));
+    expect(new Set(reviewedBindings.map((binding) => binding.learningGoalId))).not.toContain(
+      'simulation-validation-practice',
+    );
     expect(auditRowById.get('runtime-step:1-1:step-09')).toMatchObject({
       reviewStatus: 'human-confirmed',
       pathEligibility: {
@@ -806,6 +812,38 @@ describe('resource field completion audit', () => {
         'remediation',
       ]);
     }
+    for (const goalId of [
+      'root-locus-analysis-foundations',
+      'frequency-response-foundations',
+      'stability-margin-frequency-analysis',
+    ]) {
+      const row = matrix.rows.find((item) => item.learningGoalId === goalId);
+      expect(row.categories.concept.pathEligible).toBeGreaterThanOrEqual(2);
+      expect(row.categories.citation.pathEligible).toBeGreaterThanOrEqual(2);
+      expect(row.categories.diagnostic.pathEligible).toBe(0);
+      expect(row.categories.practice.pathEligible).toBe(0);
+      expect(row.categories.checkpoint.pathEligible).toBe(0);
+      expect(row.categories.remediation.pathEligible).toBe(0);
+      expect(row.missingBaselineCategories).toEqual([
+        'diagnostic',
+        'practice',
+        'checkpoint',
+        'remediation',
+      ]);
+    }
+    const simulationValidationRow = matrix.rows.find((item) =>
+      item.learningGoalId === 'simulation-validation-practice'
+    );
+    expect(simulationValidationRow.categories.concept.pathEligible).toBe(0);
+    expect(simulationValidationRow.categories.citation.pathEligible).toBe(0);
+    expect(simulationValidationRow.missingBaselineCategories).toEqual([
+      'concept',
+      'diagnostic',
+      'practice',
+      'checkpoint',
+      'remediation',
+      'terminal-validation',
+    ]);
     for (const row of matrix.rows) {
       expect(row.requiredCategories).toEqual(expect.arrayContaining([
         'concept',

@@ -1,6 +1,6 @@
 {
   "artifactVersion": "runtime-resource-projections.v1",
-  "generatedAt": "2026-07-04T10:50:00.000Z",
+  "generatedAt": "2026-07-04T16:30:00.000Z",
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
     "learningGoalPackageVersion": "learning-goal-package/v1",
@@ -16,10 +16,10 @@
     "rows": 3038,
     "resourceNodeCandidates": 450,
     "segmentOnly": 2588,
-    "registryPathEligible": 158,
-    "planningUnitEligible": 9,
-    "humanConfirmed": 9,
-    "provisional": 2880,
+    "registryPathEligible": 185,
+    "planningUnitEligible": 36,
+    "humanConfirmed": 36,
+    "provisional": 2853,
     "stale": 0
   },
   "byFamily": {
@@ -31,11 +31,11 @@
     "knowledge-infograph": 161
   },
   "byProjectionLevel": {
-    "ResourceNode": 441,
+    "ResourceNode": 414,
     "ResourceSegment": 2588,
     "CitationTarget": 0,
     "RetrievalChunk": 0,
-    "PlanningUnit": 9
+    "PlanningUnit": 36
   },
   "blockingCodes": [
     "missing-capability-target",
