@@ -647,6 +647,56 @@ describe('resource field completion audit', () => {
     expect(result.rows[0].missingFieldCodes).not.toContain('missing-evidence-contract');
   });
 
+  it('keeps reviewed runtime concept steps stale without independent review rationale evidence', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'runtime-step:foundation:step-01',
+        title: 'Foundation concept step',
+        family: 'runtime-lesson-step',
+        sourcePathOrUrl: 'course-content/runtime/lessons/foundation/interactive-manifest.json',
+        sourceRecord: 'foundation:step-01',
+        knowledgeNodeIds: ['反馈_1_1'],
+        capabilityTargetIds: [],
+        segmentRefs: ['step-01'],
+        citationTargets: ['course-content/runtime/lessons/foundation/interactive-manifest.json'],
+        pathTarget: '/interactive-learning/courses/foundation/student/demo?step=step-01',
+        estimatedTimeMinutes: 6,
+        evidenceInstrumentation: ['lesson_submit', 'lesson_step_view'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:foundation-manifest',
+        versionRef: 'interactive-manifest.v2',
+        generatedBy: 'template',
+        humanConfirmed: true,
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'graph-resource-governance-review',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-04T00:00:00.000Z',
+          reviewBatchId: 'foundation-review-batch',
+          promptOrManifestHash: 'sha256:foundation-manifest',
+          confidence: 0.91,
+        },
+      }],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      reviewStatus: 'stale',
+      missingFieldCodes: expect.arrayContaining(['missing-human-review', 'stale-review']),
+      evidenceContract: {
+        complete: true,
+      },
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: expect.arrayContaining(['missing-human-review', 'stale-review']),
+      },
+    });
+    expect(result.rows[0].missingFieldCodes).not.toContain('missing-capability-target');
+  });
+
   it('keeps citation-only runtime media out of path eligibility while preserving citation readiness', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
@@ -722,15 +772,40 @@ describe('resource field completion audit', () => {
     expect(matrix.rows).toHaveLength(9);
     expect(matrix.totals.reviewedBindings).toBe(reviewedBindings.length);
     expect(matrix.totals.limited).toBe(9);
-    expect(reviewedBindings).toEqual([]);
-    expect(auditRowById.get('runtime-step:1-1:step-04')).toMatchObject({
-      reviewStatus: 'stale',
+    expect(reviewedBindings).not.toEqual([]);
+    expect(new Set(reviewedBindings.map((binding) => binding.learningGoalId))).toEqual(new Set([
+      'control-correction',
+      'feedback-loop-concept-foundations',
+      'transfer-function-modeling-foundations',
+      'time-domain-response-analysis',
+    ]));
+    expect(auditRowById.get('runtime-step:1-1:step-09')).toMatchObject({
+      reviewStatus: 'human-confirmed',
       pathEligibility: {
-        current: false,
-        masteryAffecting: false,
-        blockedBy: expect.arrayContaining(['missing-human-review', 'stale-review']),
+        current: true,
+        masteryAffecting: true,
+        blockedBy: [],
       },
     });
+    for (const goalId of [
+      'feedback-loop-concept-foundations',
+      'transfer-function-modeling-foundations',
+      'time-domain-response-analysis',
+    ]) {
+      const row = matrix.rows.find((item) => item.learningGoalId === goalId);
+      expect(row.categories.concept.pathEligible).toBeGreaterThan(0);
+      expect(row.categories.citation.pathEligible).toBeGreaterThan(0);
+      expect(row.categories.diagnostic.pathEligible).toBe(0);
+      expect(row.categories.practice.pathEligible).toBe(0);
+      expect(row.categories.checkpoint.pathEligible).toBe(0);
+      expect(row.categories.remediation.pathEligible).toBe(0);
+      expect(row.missingBaselineCategories).toEqual([
+        'diagnostic',
+        'practice',
+        'checkpoint',
+        'remediation',
+      ]);
+    }
     for (const row of matrix.rows) {
       expect(row.requiredCategories).toEqual(expect.arrayContaining([
         'concept',

@@ -17,13 +17,13 @@
     "groundingVersion": "konling-graph-grounding.v1"
   },
   "totals": {
-    "complete": 0,
-    "missingField": 5291,
+    "complete": 9,
+    "missingField": 5282,
     "provisional": 3985,
-    "humanConfirmed": 0,
+    "humanConfirmed": 9,
     "citationReady": 3389,
-    "pathEligible": 273,
-    "blocked": 5291,
+    "pathEligible": 282,
+    "blocked": 5282,
     "denominator": 5291,
     "sourceWindow": {
       "from": null,
@@ -41,15 +41,13 @@
       "missing-path-profile",
       "missing-path-target",
       "missing-segment-ref",
-      "provisional-metadata",
-      "stale-review"
+      "provisional-metadata"
     ],
     "limitationReasons": [
       "metadata is provisional",
       "missing fields: blocked-by-dependency, missing-content-hash",
       "missing fields: missing-content-hash",
-      "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target",
-      "review is stale"
+      "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
     ],
     "sampleLimitations": [
       "authoring-textbook-caption:hu-shousong-exercise-analysis-3rd:chapter-01:figure-1: metadata is provisional",
@@ -399,13 +397,13 @@
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-lesson-step": {
-      "complete": 0,
-      "missingField": 450,
+      "complete": 9,
+      "missingField": 441,
       "provisional": 441,
-      "humanConfirmed": 0,
+      "humanConfirmed": 9,
       "citationReady": 9,
-      "pathEligible": 0,
-      "blocked": 450,
+      "pathEligible": 9,
+      "blocked": 441,
       "denominator": 450,
       "sourceWindow": {
         "from": null,
@@ -418,19 +416,17 @@
         "missing-human-review",
         "missing-knowledge-binding",
         "missing-path-profile",
-        "provisional-metadata",
-        "stale-review"
+        "provisional-metadata"
       ],
       "limitationReasons": [
-        "metadata is provisional",
-        "review is stale"
+        "metadata is provisional"
       ],
       "sampleLimitations": [
         "runtime-step:1-1:step-01: metadata is provisional",
         "runtime-step:1-1:step-02: metadata is provisional",
         "runtime-step:1-1:step-03: metadata is provisional",
-        "runtime-step:1-1:step-04: review is stale",
-        "runtime-step:1-1:step-05: review is stale"
+        "runtime-step:1-1:step-04: metadata is provisional",
+        "runtime-step:1-1:step-05: metadata is provisional"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
@@ -525,8 +521,8 @@
     "manual": 1297,
     "local-model-assisted": 0,
     "external-tool-assisted": 1913,
-    "generated-provisional": 2081,
-    "already-governed": 0,
+    "generated-provisional": 2072,
+    "already-governed": 9,
     "blocked": 0
   },
   "byReviewStatus": {
@@ -534,9 +530,9 @@
     "generated-provisional": 2072,
     "model-assisted-provisional": 0,
     "external-tool-provisional": 1913,
-    "human-confirmed": 0,
+    "human-confirmed": 9,
     "blocked": 0,
-    "stale": 9
+    "stale": 0
   },
   "graphCoverageDiagnostics": {
     "authoring-textbook-caption:hu-shousong-exercise-analysis-3rd:chapter-01:figure-1": {
@@ -38729,136 +38725,6 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "Bode图_1_1|controlModeling|runtime-step:1-1:step-04|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 0,
-      "humanConfirmed": 0,
-      "citationReady": 1,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T10:50:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-human-review",
-        "provisional-metadata",
-        "stale-review"
-      ],
-      "limitationReasons": [
-        "review is stale"
-      ],
-      "sampleLimitations": [
-        "runtime-step:1-1:step-04: review is stale"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "Bode图_1_1|controlModeling|runtime-step:1-1:step-05|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 0,
-      "humanConfirmed": 0,
-      "citationReady": 1,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T10:50:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-human-review",
-        "provisional-metadata",
-        "stale-review"
-      ],
-      "limitationReasons": [
-        "review is stale"
-      ],
-      "sampleLimitations": [
-        "runtime-step:1-1:step-05: review is stale"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "Bode图_1_1|controlModeling|runtime-step:1-1:step-06|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 0,
-      "humanConfirmed": 0,
-      "citationReady": 1,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T10:50:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-human-review",
-        "provisional-metadata",
-        "stale-review"
-      ],
-      "limitationReasons": [
-        "review is stale"
-      ],
-      "sampleLimitations": [
-        "runtime-step:1-1:step-06: review is stale"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "Bode图_1_1|controlModeling|runtime-step:1-1:step-07|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 0,
-      "humanConfirmed": 0,
-      "citationReady": 1,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T10:50:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-human-review",
-        "provisional-metadata",
-        "stale-review"
-      ],
-      "limitationReasons": [
-        "review is stale"
-      ],
-      "sampleLimitations": [
-        "runtime-step:1-1:step-07: review is stale"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "Bode图_1_1|controlModeling|runtime-step:1-1:step-08|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 0,
-      "humanConfirmed": 0,
-      "citationReady": 1,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T10:50:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-human-review",
-        "provisional-metadata",
-        "stale-review"
-      ],
-      "limitationReasons": [
-        "review is stale"
-      ],
-      "sampleLimitations": [
-        "runtime-step:1-1:step-08: review is stale"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
     "Bode图_1_1|controlModeling|textbook:hu-shousong-exercise-analysis-3rd|串联校正_6_fede5751|二状态冷链热模型_5_56002|传递函数_2_2c5e2589|信号流图_2_372d4084|动态性能指标_3_a10733c1|动态数学模型_2_b7f98344|劳斯判据_4_05ba60cd|反馈_1_1|反馈控制系统_1_98dc667a|奈奎斯特与Bode统一判稳链_3_38002|奈奎斯特稳定判据_5_a1b34560|性能指标_1_1|控制器频域特性矩阵_4_42008|根轨迹_1_1|根轨迹增益换算_3_4b1d9e6c|根轨迹完整法则_3_0f2e7b11|根轨迹绘制规则_3_2f9e8cb3|模型结构相似性_1_2|正弦稳态响应_5_b6dc1100|稳定可行域_3_7eed0929|稳定性_1_1|稳定性_3_72d04fbd|稳定裕度_5_bfd54f1c|稳态误差双路径判断_3_37002|结构图_2_3f312ccc|给定-扰动双通道误差分析_3_37001|自动控制系统_1_9678f418|误差_1_1|课程总图_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17|频域PD与超前整定_4_42011|频域PI与滞后整定_4_42010|频域分析_2_2e257d89|频域响应_1_1": {
       "complete": 0,
       "missingField": 1,
@@ -38989,6 +38855,151 @@
       ],
       "sampleLimitations": [
         "knowledge-card:Bode图_1_1: metadata is provisional"
+      ],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "Bode图_1_1|runtime-step:1-1:step-04|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
+      "complete": 0,
+      "missingField": 1,
+      "provisional": 1,
+      "humanConfirmed": 0,
+      "citationReady": 0,
+      "pathEligible": 0,
+      "blocked": 1,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T10:50:00.000Z"
+      },
+      "missingFieldCodes": [
+        "missing-capability-target",
+        "missing-citation-target",
+        "missing-evidence-contract",
+        "missing-human-review",
+        "missing-path-profile",
+        "provisional-metadata"
+      ],
+      "limitationReasons": [
+        "metadata is provisional"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-04: metadata is provisional"
+      ],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "Bode图_1_1|runtime-step:1-1:step-05|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
+      "complete": 0,
+      "missingField": 1,
+      "provisional": 1,
+      "humanConfirmed": 0,
+      "citationReady": 0,
+      "pathEligible": 0,
+      "blocked": 1,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T10:50:00.000Z"
+      },
+      "missingFieldCodes": [
+        "missing-capability-target",
+        "missing-citation-target",
+        "missing-evidence-contract",
+        "missing-human-review",
+        "missing-path-profile",
+        "provisional-metadata"
+      ],
+      "limitationReasons": [
+        "metadata is provisional"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-05: metadata is provisional"
+      ],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "Bode图_1_1|runtime-step:1-1:step-06|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
+      "complete": 0,
+      "missingField": 1,
+      "provisional": 1,
+      "humanConfirmed": 0,
+      "citationReady": 0,
+      "pathEligible": 0,
+      "blocked": 1,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T10:50:00.000Z"
+      },
+      "missingFieldCodes": [
+        "missing-capability-target",
+        "missing-citation-target",
+        "missing-evidence-contract",
+        "missing-human-review",
+        "missing-path-profile",
+        "provisional-metadata"
+      ],
+      "limitationReasons": [
+        "metadata is provisional"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-06: metadata is provisional"
+      ],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "Bode图_1_1|runtime-step:1-1:step-07|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
+      "complete": 0,
+      "missingField": 1,
+      "provisional": 1,
+      "humanConfirmed": 0,
+      "citationReady": 0,
+      "pathEligible": 0,
+      "blocked": 1,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T10:50:00.000Z"
+      },
+      "missingFieldCodes": [
+        "missing-capability-target",
+        "missing-citation-target",
+        "missing-evidence-contract",
+        "missing-human-review",
+        "missing-path-profile",
+        "provisional-metadata"
+      ],
+      "limitationReasons": [
+        "metadata is provisional"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-07: metadata is provisional"
+      ],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "Bode图_1_1|runtime-step:1-1:step-08|传递函数_1_1|性能指标_1_1|时域响应_1_1|极点_1_1|根轨迹_1_1|稳定性_1_1|频域响应_1_1": {
+      "complete": 0,
+      "missingField": 1,
+      "provisional": 1,
+      "humanConfirmed": 0,
+      "citationReady": 0,
+      "pathEligible": 0,
+      "blocked": 1,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T10:50:00.000Z"
+      },
+      "missingFieldCodes": [
+        "missing-capability-target",
+        "missing-citation-target",
+        "missing-evidence-contract",
+        "missing-human-review",
+        "missing-path-profile",
+        "provisional-metadata"
+      ],
+      "limitationReasons": [
+        "metadata is provisional"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-08: metadata is provisional"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
@@ -56687,58 +56698,6 @@
       ],
       "sampleLimitations": [
         "registry:lesson15-series-knowledge-deck: missing fields: missing-content-hash"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "controlModeling|parameterDesign|runtime-step:1-1:step-09|反馈_1_1|开环控制_1_1|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|误差_1_1|课程总图_1_1|闭环控制_1_1": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 0,
-      "humanConfirmed": 0,
-      "citationReady": 1,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T10:50:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-human-review",
-        "provisional-metadata",
-        "stale-review"
-      ],
-      "limitationReasons": [
-        "review is stale"
-      ],
-      "sampleLimitations": [
-        "runtime-step:1-1:step-09: review is stale"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "controlModeling|parameterDesign|runtime-step:1-1:step-10|反馈_1_1|开环控制_1_1|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|误差_1_1|课程总图_1_1|闭环控制_1_1": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 0,
-      "humanConfirmed": 0,
-      "citationReady": 1,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T10:50:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-human-review",
-        "provisional-metadata",
-        "stale-review"
-      ],
-      "limitationReasons": [
-        "review is stale"
-      ],
-      "sampleLimitations": [
-        "runtime-step:1-1:step-10: review is stale"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
@@ -74609,32 +74568,6 @@
       ],
       "sampleLimitations": [
         "registry:ten-drops-game-v1: missing fields: missing-content-hash"
-      ],
-      "artifactVersion": "resource-field-completion-audit.v1"
-    },
-    "inquiryReflection|runtime-step:1-1:step-15|selfDirectedLearning|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|课程总图_1_1": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 0,
-      "humanConfirmed": 0,
-      "citationReady": 1,
-      "pathEligible": 0,
-      "blocked": 1,
-      "denominator": 1,
-      "sourceWindow": {
-        "from": null,
-        "to": "2026-07-04T10:50:00.000Z"
-      },
-      "missingFieldCodes": [
-        "missing-human-review",
-        "provisional-metadata",
-        "stale-review"
-      ],
-      "limitationReasons": [
-        "review is stale"
-      ],
-      "sampleLimitations": [
-        "runtime-step:1-1:step-15: review is stale"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
@@ -146587,12 +146520,48 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "runtime-step:1-1:step-11|selfDirectedLearning|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|课程总图_1_1": {
+    "runtime-step:1-1:step-09|反馈_1_1|开环控制_1_1|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|误差_1_1|课程总图_1_1|闭环控制_1_1": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T10:50:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "runtime-step:1-1:step-10|反馈_1_1|开环控制_1_1|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|误差_1_1|课程总图_1_1|闭环控制_1_1": {
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T10:50:00.000Z"
+      },
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
+    "runtime-step:1-1:step-11|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|课程总图_1_1": {
       "complete": 0,
       "missingField": 1,
-      "provisional": 0,
+      "provisional": 1,
       "humanConfirmed": 0,
-      "citationReady": 1,
+      "citationReady": 0,
       "pathEligible": 0,
       "blocked": 1,
       "denominator": 1,
@@ -146601,15 +146570,18 @@
         "to": "2026-07-04T10:50:00.000Z"
       },
       "missingFieldCodes": [
+        "missing-capability-target",
+        "missing-citation-target",
+        "missing-evidence-contract",
         "missing-human-review",
-        "provisional-metadata",
-        "stale-review"
+        "missing-path-profile",
+        "provisional-metadata"
       ],
       "limitationReasons": [
-        "review is stale"
+        "metadata is provisional"
       ],
       "sampleLimitations": [
-        "runtime-step:1-1:step-11: review is stale"
+        "runtime-step:1-1:step-11: metadata is provisional"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
@@ -146703,6 +146675,35 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
+    "runtime-step:1-1:step-15|控制器_1_1|校正_1_1|比例控制_1_1|系统观念_1_1|课程总图_1_1": {
+      "complete": 0,
+      "missingField": 1,
+      "provisional": 1,
+      "humanConfirmed": 0,
+      "citationReady": 0,
+      "pathEligible": 0,
+      "blocked": 1,
+      "denominator": 1,
+      "sourceWindow": {
+        "from": null,
+        "to": "2026-07-04T10:50:00.000Z"
+      },
+      "missingFieldCodes": [
+        "missing-capability-target",
+        "missing-citation-target",
+        "missing-evidence-contract",
+        "missing-human-review",
+        "missing-path-profile",
+        "provisional-metadata"
+      ],
+      "limitationReasons": [
+        "metadata is provisional"
+      ],
+      "sampleLimitations": [
+        "runtime-step:1-1:step-15: metadata is provisional"
+      ],
+      "artifactVersion": "resource-field-completion-audit.v1"
+    },
     "runtime-step:1-2:step-01|建模_1_2": {
       "complete": 0,
       "missingField": 1,
@@ -146791,61 +146792,39 @@
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:1-2:step-04|建模_1_2|微分方程_1_2|数据驱动建模_1_2|机理建模_1_2": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-04T10:50:00.000Z"
       },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:1-2:step-04: metadata is provisional"
-      ],
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:1-2:step-05|建模_1_2|微分方程_1_2|数据驱动建模_1_2|机理建模_1_2": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-04T10:50:00.000Z"
       },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:1-2:step-05: metadata is provisional"
-      ],
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:1-2:step-06|传递函数_1_2|信号流图_1_2|拉氏变换_1_2|方框图_1_2": {
@@ -147808,148 +147787,93 @@
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:2-2:step-09|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-04T10:50:00.000Z"
       },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:2-2:step-09: metadata is provisional"
-      ],
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:2-2:step-10|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-04T10:50:00.000Z"
       },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:2-2:step-10: metadata is provisional"
-      ],
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:2-2:step-11|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-04T10:50:00.000Z"
       },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:2-2:step-11: metadata is provisional"
-      ],
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:2-2:step-12|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-04T10:50:00.000Z"
       },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:2-2:step-12: metadata is provisional"
-      ],
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:2-2:step-13|上升时间_3_6fa0ec00|动态性能指标_3_a10733c1|峰值时间_3_adc7ea95|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
-      "complete": 0,
-      "missingField": 1,
-      "provisional": 1,
-      "humanConfirmed": 0,
-      "citationReady": 0,
-      "pathEligible": 0,
-      "blocked": 1,
+      "complete": 1,
+      "missingField": 0,
+      "provisional": 0,
+      "humanConfirmed": 1,
+      "citationReady": 1,
+      "pathEligible": 1,
+      "blocked": 0,
       "denominator": 1,
       "sourceWindow": {
         "from": null,
         "to": "2026-07-04T10:50:00.000Z"
       },
-      "missingFieldCodes": [
-        "missing-capability-target",
-        "missing-citation-target",
-        "missing-evidence-contract",
-        "missing-human-review",
-        "missing-path-profile",
-        "provisional-metadata"
-      ],
-      "limitationReasons": [
-        "metadata is provisional"
-      ],
-      "sampleLimitations": [
-        "runtime-step:2-2:step-13: metadata is provisional"
-      ],
+      "missingFieldCodes": [],
+      "limitationReasons": [],
+      "sampleLimitations": [],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
     "runtime-step:2-2:step-14|复平面可行域_4_Lsum001|时域指标到极点参数映射_3_13003|闭环极点_3_f9432bf3": {
