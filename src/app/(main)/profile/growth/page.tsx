@@ -30,6 +30,7 @@ import { UserMenu } from '@/components/shared/user-menu';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
+import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import { buildFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
 import { getCompetencyLabel, COMPETENCY_DIMENSIONS } from '@/lib/data-governance/competency-model';
@@ -148,7 +149,7 @@ export default function GrowthPage() {
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.id) {
       if (session.user.role !== 'STUDENT') {
-        router.replace('/dashboard');
+        router.replace(getPlatformCockpitHref(session.user.role));
         return;
       }
       void fetchData();

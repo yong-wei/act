@@ -411,7 +411,7 @@ export const PLATFORM_NAVIGATION_FEATURE_FLAGS = {
 } as const;
 
 export const PLATFORM_ROLE_COCKPIT_HREFS = {
-  student: '/dashboard',
+  student: '/profile',
   teacher: '/teacher',
   admin: '/admin',
 } as const;
@@ -422,6 +422,12 @@ export const PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS = [
     to: '/simulations',
     owner: 'unify-virtual-simulation-information-architecture',
     reason: 'Virtual lab remains a legacy entry URL, but /simulations is the canonical student simulation catalog.',
+  },
+  {
+    from: '/dashboard',
+    to: '/profile',
+    owner: 'merge-learner-profile-dashboard',
+    reason: 'Dashboard remains a legacy student entry URL, but /profile is the canonical Personal Center.',
   },
 ] as const;
 
@@ -527,8 +533,8 @@ export const PLATFORM_PROFILE_AND_COCKPIT_ACTIONS: PlatformProfileAndCockpitActi
     audience: 'student',
     profileHref: '/profile',
     cockpitHref: PLATFORM_ROLE_COCKPIT_HREFS.student,
-    primaryWorkspaceAction: 'cockpit',
-    semantics: 'Student cockpit is the operational workspace; profile is account and learning-record review.',
+    primaryWorkspaceAction: 'account',
+    semantics: 'Student Personal Center is the single account and learning-record destination.',
   },
   {
     audience: 'teacher',
@@ -1919,8 +1925,8 @@ export const COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES: CommercialStudentEntrySurf
     href: '/dashboard',
     routeFile: 'src/app/(main)/dashboard/page.tsx',
     viewportWidths: [1440, 320],
-    currentIntent: 'learn',
-    firstViewportRequirement: 'usable intent map and quick actions visible',
+    currentIntent: 'review',
+    firstViewportRequirement: 'usable compatibility redirect resolves to Personal Center',
     stateCoverage: ['authenticated', 'role-redirect'],
   },
   {
@@ -2006,15 +2012,17 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
   },
   {
     id: 'student-cockpit',
-    label: '学生驾驶舱',
+    label: '学生驾驶舱兼容入口',
     href: PLATFORM_ROLE_COCKPIT_HREFS.student,
     role: 'student',
     order: 10,
     group: 'role-cockpit',
-    description: '学生学习状态、课堂加入和核心模块入口。',
-    iconKey: 'home',
-    actionLabel: '进入驾驶舱',
+    description: '旧学生驾驶舱语义已合并到个人中心，默认导航不再展示此入口。',
+    iconKey: 'profile',
+    actionLabel: '进入个人中心',
     actionPriority: 10,
+    availability: 'hidden',
+    disabledReason: 'merge-learner-profile-dashboard keeps /dashboard as compatibility and exposes /profile as the single Personal Center.',
   },
   {
     id: 'teacher-cockpit',
@@ -2513,7 +2521,7 @@ export function resolveCommercialEntryHref(intent: CommercialStudentEntryIntent,
   if (intent === 'review') {
     return '/profile/evidence';
   }
-  return COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === intent)?.hrefs[0] ?? '/dashboard';
+  return COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === intent)?.hrefs[0] ?? '/profile';
 }
 
 export function getPlatformNavigationHref(id: string): string | undefined {

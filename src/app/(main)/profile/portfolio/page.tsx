@@ -21,6 +21,7 @@ import {
   shouldRenderPortfolioFeedbackTask,
   type PortfolioFeedbackDraft,
 } from '@/lib/student-feedback-task-contract';
+import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 
 interface PortfolioData {
   // Representative works from classroom sessions
@@ -161,7 +162,7 @@ export default function PortfolioPage() {
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.id) {
       if (session.user.role !== 'STUDENT') {
-        router.replace('/dashboard');
+        router.replace(getPlatformCockpitHref(session.user.role));
         return;
       }
       void fetchPortfolio();

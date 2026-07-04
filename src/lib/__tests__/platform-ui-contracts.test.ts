@@ -611,8 +611,11 @@ describe('platform UI contracts', () => {
     const adaptivePracticeSource = readSource('src/app/assessment/adaptive-practice/page.tsx');
     const evidenceBrowserSource = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
 
+    expect(dashboardSource).toContain("redirect('/profile')");
+    expect(dashboardSource).toContain('getPlatformCockpitHref');
+    expect(dashboardSource).not.toContain('<AppShell');
+
     for (const source of [
-      dashboardSource,
       profileSource,
       growthSource,
       evidenceSource,
@@ -634,8 +637,8 @@ describe('platform UI contracts', () => {
     expect(knowledgeSource).not.toContain('UnifiedTopBar');
     expect(knowledgeSource).not.toContain('商业入口');
 
-    expect(dashboardSource).toContain('data-learner-record');
     expect(profileSource).toContain('data-learner-record');
+    expect(profileSource).toContain('学习入口地图');
     expect(growthSource).toContain('data-learner-record-evidence-confidence');
     expect(evidenceSource).toContain('data-knowledge-data-map-surface="evidence-browser"');
     expect(evidenceSource).toContain('chrome="embedded"');

@@ -119,8 +119,8 @@ export function KonlingSidebar({
           ${styles.container}
           ${TRANSITION_CLASSES.panel}
           ${isOpen
-            ? 'translate-x-0 opacity-100'
-            : 'translate-x-full opacity-0 pointer-events-none'
+            ? 'visible translate-x-0 opacity-100'
+            : 'invisible translate-x-0 opacity-0 pointer-events-none'
           }
           shadow-2xl
           ${className}

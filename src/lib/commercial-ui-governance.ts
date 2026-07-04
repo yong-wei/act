@@ -1482,7 +1482,7 @@ const REQUIRED_STUDENT_DESTINATION_HREFS = [
 ];
 const REQUIRED_NAVIGATION_ALIASES = ['/interactive-learning/control-workbench?mode=explore&preset=classic-four-view'];
 const REQUIRED_STUDENT_PROFILE_HREF = '/profile';
-const REQUIRED_STUDENT_COCKPIT_HREF = '/dashboard';
+const REQUIRED_STUDENT_COCKPIT_HREF = '/profile';
 const FORBIDDEN_STUDENT_DESTINATION_HREFS = ['/data-center'];
 const SECONDARY_NAVIGATION_DEPENDENCY_CHANGES = [
   'fix-app-shell-collapsed-navigation-contract',
@@ -1851,16 +1851,13 @@ function buildNavigationViolations(input: CommercialNavigationCoverageInput) {
     input.cockpitHref && input.cockpitHref !== REQUIRED_STUDENT_COCKPIT_HREF
       ? `cockpitHref=${input.cockpitHref}`
       : '',
-    input.profileHref && input.cockpitHref && input.profileHref === input.cockpitHref
-      ? 'profileHref equals cockpitHref'
-      : '',
   ].filter(Boolean);
 
   if (profileAndCockpitProblems.length > 0) {
     violations.push(withCategory({
       path: 'src/lib/platform-role-navigation.ts',
       rule: 'navigation.profile-cockpit-semantics',
-      message: 'Commercial navigation must keep profile and cockpit semantics separate and reachable.',
+      message: 'Commercial navigation must use /profile as the single student Personal Center destination.',
       evidence: profileAndCockpitProblems,
     }));
   }

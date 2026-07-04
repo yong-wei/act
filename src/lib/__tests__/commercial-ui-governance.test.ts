@@ -5550,7 +5550,7 @@ describe('commercial UI governance', () => {
     );
   });
 
-  it('rejects profile and cockpit hrefs with wrong or collapsed semantics', () => {
+  it('rejects profile and cockpit hrefs with wrong Personal Center target', () => {
     const result = evaluateCommercialUiGovernance(baseInput({
       navigationCoverage: {
         ...fullNavigationCoverage,
@@ -5568,7 +5568,6 @@ describe('commercial UI governance', () => {
           evidence: expect.arrayContaining([
             'profileHref=/wrong',
             'cockpitHref=/wrong',
-            'profileHref equals cockpitHref',
           ]),
         }),
       ]),
