@@ -32,11 +32,12 @@ describe('classroom join entry', () => {
     expect(source).not.toContain('/[a-zA-Z]/.test(rawCodeFromUrl)');
   });
 
-  it('updates the student dashboard entry copy for classroom and class codes', () => {
-    const source = readFileSync(join(repoRoot, 'src/app/(main)/dashboard/page.tsx'), 'utf8');
+  it('keeps the personal center classroom join entry for classroom and class codes', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/(main)/profile/page.tsx'), 'utf8');
 
+    expect(source).toContain('href="/classroom/join"');
     expect(source).toContain('加入课堂 / 班级');
-    expect(source).toContain('输入课堂码或班级加入码');
+    expect(source).toContain('加入课堂或班级后会补齐课堂记录');
   });
 
   it('makes classroom join errors recoverable and announces the evidence writeback path', () => {
