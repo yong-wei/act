@@ -4412,6 +4412,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'src/app/globals.css'");
     expect(captureScriptSource).toContain('__ACT_KNOWLEDGE_PRODUCT_QA__');
     expect(globalAiButtonSource).toContain("process.env.NODE_ENV !== 'production'");
+    expect(globalAiButtonSource).toContain("['/knowledge', '/assessment/adaptive-practice'].includes(window.location.pathname)");
     expect(globalAiButtonSource).toContain('(window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__ === true');
     expect(globalAiButtonSource).toContain("window.localStorage.getItem('act:knowledge-product-qa') === 'true'");
     expect(globalAiButtonSource).toContain("new URLSearchParams(window.location.search).get('qa') === 'knowledge-product'");
