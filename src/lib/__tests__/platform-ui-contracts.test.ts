@@ -503,7 +503,7 @@ describe('platform UI contracts', () => {
     expect(simulationShellSource).toContain('data-task-workspace-archetype="immersive-scene"');
     expect(simulationShellSource).toContain('data-simulation-theme-template="mission-workspace"');
     expect(simulationShellSource).toContain('data-simulation-scene-color-policy="feature-owned"');
-    expect(simulationShellSource).toContain('data-simulation-shell-profile-action');
+    expect(simulationShellSource).not.toContain('data-simulation-shell-profile-action');
     expect(simulationShellSource).toContain('SimulationLocalToolWorkspace');
     expect(simulationShellSource).toContain('panelLayout="side-rails"');
     expect(simulationShellSource).toContain('data-simulation-shell-structured-surfaces="below-primary-scene"');

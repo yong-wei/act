@@ -31,6 +31,7 @@ import {
 import { useOptionalTheme } from '@/components/providers/theme-provider';
 import { useOptionalPageFloatingControls } from '@/components/shared/page-floating-controls';
 import {
+  getPlatformCockpitHref,
   getPlatformRouteNavigation,
   resolvePlatformRouteInventory,
   type PlatformFloatingDockRouteBehavior,
@@ -40,6 +41,7 @@ import {
   type PlatformPrimaryRouteInventoryEntry,
   type PlatformRouteThemeSupport,
 } from '@/lib/platform-role-navigation';
+import { UNIVERSAL_APP_SHELL_HEADER_ACTION_ORDER } from '@/lib/platform-appshell-contract';
 import { cn } from '@/lib/utils';
 
 import type {
@@ -385,6 +387,7 @@ export function AppBreadcrumb({ items = [] }: { items?: readonly AppBreadcrumbIt
 }
 
 export function ThemeSwitcher({ className }: { className?: string }) {
+  const themeAction = UNIVERSAL_APP_SHELL_HEADER_ACTION_ORDER.find((action) => action.id === 'theme-switch');
   const themeContext = useOptionalTheme();
   const mounted = themeContext?.mounted ?? false;
   const theme = themeContext?.theme ?? 'light';
@@ -396,6 +399,9 @@ export function ThemeSwitcher({ className }: { className?: string }) {
       onClick={toggleTheme}
       disabled={!mounted}
       aria-label={isDark ? '切换到浅色模式' : '切换到深色模式'}
+      data-app-shell-header-action={themeAction?.id}
+      data-app-shell-header-action-owner={themeAction?.owner}
+      data-app-shell-header-action-order={themeAction?.order}
       className={cn(
         'inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platform-fg-secondary transition hover:border-platform-border-strong hover:text-platform-action-primary disabled:opacity-60',
         className,
@@ -415,6 +421,15 @@ export function AppHeader({
   userMenu,
   className,
 }: AppHeaderProps) {
+  const personalCenterAction = UNIVERSAL_APP_SHELL_HEADER_ACTION_ORDER.find((action) => action.id === 'personal-center');
+  const personalCenter = userMenu ?? (
+    <Link
+      href={getPlatformCockpitHref(viewerRole)}
+      className="inline-flex h-9 items-center gap-2 rounded-md border border-platform-border bg-platform-surface px-3 text-sm font-medium text-platform-fg-primary transition hover:border-platform-border-strong hover:text-platform-action-primary"
+    >
+      个人中心
+    </Link>
+  );
   return (
     <header className={cn('border-b border-platform-border bg-platform-surface-raised', className)}>
       <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
@@ -431,9 +446,24 @@ export function AppHeader({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {actions}
-          <ThemeSwitcher />
-          {userMenu}
+          {actions ? (
+            <div className="flex items-center gap-2" data-app-shell-route-local-actions="true">
+              {actions}
+            </div>
+          ) : null}
+          <div
+            className="flex items-center gap-2"
+            data-app-shell-header-action-pair="theme-switch personal-center"
+          >
+            <ThemeSwitcher />
+            <div
+              data-app-shell-header-action={personalCenterAction?.id}
+              data-app-shell-header-action-owner={personalCenterAction?.owner}
+              data-app-shell-header-action-order={personalCenterAction?.order}
+            >
+              {personalCenter}
+            </div>
+          </div>
         </div>
       </div>
     </header>
@@ -591,6 +621,12 @@ function AppShellDesktopLayout({
     && effectiveNavigation.length > 0
     && resolvedRouteMetadata?.mobileNavigation !== 'hidden-immersive';
   const navigationCollapsed = allowSidebarCollapse ? navigationPreference === 'collapsed' : false;
+  const headerActions = actions || headerDockControls.length > 0 ? (
+    <>
+      {actions}
+      <AppShellHeaderDockActions controls={headerDockControls} />
+    </>
+  ) : undefined;
 
   useEffect(() => {
     setNavigationPreference(readAppShellNavigationPreference(getBrowserNavigationPreferenceStorage()));
@@ -630,12 +666,7 @@ function AppShellDesktopLayout({
           title={title}
           subtitle={subtitle}
           breadcrumbs={effectiveBreadcrumbs}
-          actions={(
-            <>
-              {actions}
-              <AppShellHeaderDockActions controls={headerDockControls} />
-            </>
-          )}
+          actions={headerActions}
           userMenu={userMenu}
         />
         {renderMobileNavigation ? (
