@@ -2,7 +2,6 @@
   "contract_version": "2.0",
   "lesson_id": "1-3",
   "course_title": "1-3：参数变化与极点迁移",
-  "course_route_segment": "unit-1-3-time-domain-response",
   "preview_mode": {
     "default_entry": "runtime_handout",
     "student_demo_base_path": "/course-runtime/lessons/1-3/1-3-handout.md"
