@@ -46,6 +46,7 @@ import {
   buildArenaStudentEvidenceSummary,
   type ArenaStudentEvidenceSummary,
 } from '@/features/arena/evidence-summary';
+import { ensureUserProfile, initializeUserProgress } from '@/lib/user-sync';
 
 export const dynamic = 'force-dynamic';
 
@@ -252,9 +253,28 @@ export async function GET() {
     }
 
     const userId = session.user.id;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+    }
+
+    if (user.role === 'STUDENT') {
+      await Promise.all([
+        ensureUserProfile(userId),
+        initializeUserProgress(userId),
+      ]);
+    }
 
     const [
-      user,
       profile,
       latestSnapshot,
       profileSummary,
@@ -268,15 +288,6 @@ export async function GET() {
       studentStates,
       userArenaSubmissions,
     ] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-        },
-      }),
       prisma.studentProfile.findUnique({
         where: { userId },
         select: {
@@ -373,10 +384,6 @@ export async function GET() {
       }),
       prismaArenaSubmissionStore.listSubmissions({ userId }),
     ]);
-
-    if (!user) {
-      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
-    }
 
     const arenaTaskIds = Array.from(new Set(userArenaSubmissions.map((submission) => submission.taskId)));
     const arenaPortfolioSubmissions = arenaTaskIds.length > 0

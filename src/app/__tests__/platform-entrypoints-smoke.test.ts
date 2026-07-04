@@ -107,6 +107,7 @@ describe('platform entrypoint smoke contracts', () => {
   it('keeps dashboard compatibility and profile tied to shared navigation contracts', () => {
     const dashboardSource = readSource('src/app/(main)/dashboard/page.tsx');
     const profileSource = readSource('src/app/(main)/profile/page.tsx');
+    const profileApiSource = readSource('src/app/api/user/profile/route.ts');
 
     expect(dashboardSource).toContain("redirect('/profile')");
     expect(dashboardSource).toContain('getPlatformCockpitHref');
@@ -116,6 +117,10 @@ describe('platform entrypoint smoke contracts', () => {
     expect(profileSource).toContain('buildLoginRedirectForPath');
     expect(profileSource).toContain('学习入口地图');
     expect(profileSource).toContain('PersonalCenterEntryCard');
+    expect(profileApiSource).toContain('ensureUserProfile');
+    expect(profileApiSource).toContain('initializeUserProgress');
+    expect(profileApiSource).toContain('await Promise.all([');
+    expect(profileApiSource.indexOf('ensureUserProfile(userId)')).toBeLessThan(profileApiSource.indexOf('prisma.studentProfile.findUnique'));
   });
 
   it('keeps login error states tied to the same callback destination contract', () => {
