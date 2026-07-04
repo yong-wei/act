@@ -471,3 +471,16 @@ The adaptive path planner SHALL consider reviewed textbook and reference section
 - **WHEN** a reviewed textbook or reference section covers a requested LearningGoal and passes path readiness
 - **THEN** the planner MAY select it as a learning resource, remediation resource, enrichment resource, or prerequisite repair resource according to its reviewed path role
 - **AND** it SHALL use lower-level chunks only as citation and rationale support unless they are separately reviewed as PathNodes.
+
+### Requirement: Path planning respects LearningGoal assessment coverage completeness
+The adaptive path planner SHALL consume LearningGoal assessment coverage state before treating a path as fully personalized, checkpoint-backed, or high-confidence.
+
+#### Scenario: Complete assessment coverage exists
+- **WHEN** a learner requests a path for a LearningGoal with complete reviewed assessment item coverage
+- **THEN** the planner MAY include precheck, practice, checkpoint, readiness, and remediation assessment nodes according to policy
+- **AND** the generated path SHALL cite the coverage matrix version used for those assessment nodes.
+
+#### Scenario: Assessment coverage is incomplete
+- **WHEN** a learner requests a path for a LearningGoal whose reviewed item coverage is incomplete
+- **THEN** the planner SHALL expose a coverage limitation or block high-confidence personalization according to policy
+- **AND** it SHALL NOT fabricate checkpoint coverage from generated, template, unreviewed, or deprecated items.
