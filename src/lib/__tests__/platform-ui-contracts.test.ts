@@ -995,6 +995,15 @@ describe('platform UI contracts', () => {
   it('records migrated role workspace shell inventory as adapted instead of scheduled replacement', () => {
     const teacherRoute = resolvePlatformRouteInventory('/teacher');
     const adminRoute = resolvePlatformRouteInventory('/admin');
+    const collapsibleRoleWorkspaceRoutes = [
+      '/teacher',
+      '/teacher/grading-workbench',
+      '/admin',
+      '/admin/users',
+      '/admin/states',
+      '/admin/config',
+      '/admin/data-governance',
+    ];
 
     expect(teacherRoute?.legacyShell).toMatchObject({
       component: 'TeacherLayout',
@@ -1007,9 +1016,17 @@ describe('platform UI contracts', () => {
       component: 'AdminConsoleHeader',
       disposition: 'adapted',
       owningChange: 'migrate-role-workspaces-to-appshell-navigation',
-      sourceFile: 'src/app/admin/layout.tsx',
+      sourceFile: 'src/features/admin/admin-console-home.tsx',
     });
     expect(adminRoute?.legacyShell?.removalCondition).toContain('page-local operation headers');
+    for (const href of collapsibleRoleWorkspaceRoutes) {
+      expect(resolvePlatformRouteInventory(href)?.desktopNavigation, href).toBe('collapsible');
+    }
+    for (const route of PLATFORM_PRIMARY_ROUTE_INVENTORY) {
+      if (route.href.startsWith('/teacher') || route.href.startsWith('/admin')) {
+        expect(route.desktopNavigation, route.href).toBe('collapsible');
+      }
+    }
   });
 
   it('does not use student or teacher business identity as a JSX role prop', () => {
@@ -1338,7 +1355,7 @@ describe('platform UI contracts', () => {
     }
   });
 
-  it('keeps legacy role-cockpit operation shells fixed until they migrate to AppShell', () => {
+  it('keeps migrated role-cockpit operation shells aligned with collapsible AppShell metadata', () => {
     const teacherMarkup = renderAppShellMarkup({
       viewerRole: 'teacher',
       title: '班级管理',
@@ -1352,12 +1369,12 @@ describe('platform UI contracts', () => {
       children: null,
     });
 
-    expect(teacherMarkup).toContain('data-platform-desktop-navigation="fixed"');
-    expect(teacherMarkup).not.toContain('data-app-shell-layout="collapsible"');
-    expect(teacherMarkup).toContain('lg:grid-cols-[248px_minmax(0,1fr)]');
-    expect(adminMarkup).toContain('data-platform-desktop-navigation="fixed"');
-    expect(adminMarkup).not.toContain('data-app-shell-layout="collapsible"');
-    expect(adminMarkup).toContain('lg:grid-cols-[248px_minmax(0,1fr)]');
+    expect(teacherMarkup).toContain('data-platform-desktop-navigation="collapsible"');
+    expect(teacherMarkup).toContain('data-app-shell-layout="collapsible"');
+    expect(teacherMarkup).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
+    expect(adminMarkup).toContain('data-platform-desktop-navigation="collapsible"');
+    expect(adminMarkup).toContain('data-app-shell-layout="collapsible"');
+    expect(adminMarkup).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
   });
 
   it('does not infer collapsible desktop navigation for retained legacy product routes', () => {
@@ -1447,7 +1464,7 @@ describe('platform UI contracts', () => {
     });
 
     expect(shellMarkup).toContain('aria-label="平台导航"');
-    expect(shellMarkup).toContain('lg:hidden');
+    expect(shellMarkup).toContain('xl:hidden');
     expect(shellMarkup).not.toContain('overflow-x-auto');
     expect(shellMarkup).toContain('grid grid-cols-2');
     expect(shellMarkup).toContain('sm:flex-wrap');
