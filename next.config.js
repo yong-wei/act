@@ -1,11 +1,17 @@
 const path = require('node:path');
 
+const runtimeCatalogTraceIncludes = [
+  './course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
+  './course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
+];
+
 const contentTraceExcludes = [
   './course-content/authoring/lessons/**/*',
   './course-content/authoring/knowledge/**/*',
   './course-content/authoring/shared/**/*',
   '!./course-content/authoring/shared/lesson-id-map.json',
   './course-content/runtime/**/*',
+  ...runtimeCatalogTraceIncludes.map((entry) => `!${entry}`),
   './course-content/.codex/**/*',
   './course-content/docs/**/*',
   './course-content/notes/**/*',
@@ -50,6 +56,7 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/*': [
       './course-content/authoring/shared/lesson-id-map.json',
+      ...runtimeCatalogTraceIncludes,
     ],
     '/api/content/mdx': [
       './content/**/*',

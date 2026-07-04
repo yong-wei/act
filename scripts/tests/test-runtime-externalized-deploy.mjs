@@ -23,6 +23,13 @@ assert.equal(
 );
 
 assert.equal(
+  dockerignore.includes('!course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl') &&
+    dockerignore.includes('!course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl'),
+  true,
+  'Docker 构建上下文应只放行自适应测评 catalog 运行态 JSONL，避免 path-owned 选题在 standalone 容器缺失真源',
+);
+
+assert.equal(
   buildScript.includes('course-content/runtime') && buildScript.includes('.dockerignore'),
   true,
   '构建脚本应显式校验 course-content/runtime 已被 .dockerignore 排除',
