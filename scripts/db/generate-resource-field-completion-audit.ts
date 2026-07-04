@@ -55,26 +55,26 @@ export interface ReviewedRuntimeStepCompletion {
   independentEvidenceRef: string;
 }
 
-const REVIEWED_LESSON_1_1_MANIFEST_HASH =
-  'sha256:7efb274f8afa3826e386452061b7bb464eeb1ac77f19a755305c8b1f1720cf7e';
-const REVIEWED_LESSON_1_2_MANIFEST_HASH =
-  'sha256:34b8f226922355473509366749018f2a2e327e73ea8488e0af5232ba3ed5db6a';
-const REVIEWED_LESSON_2_2_MANIFEST_HASH =
-  'sha256:fe56c289934d9191c5e9624b661e7430da74f25331abb8db632c599f2f03e7f3';
-const REVIEWED_LESSON_2_4_MANIFEST_HASH =
-  'sha256:c9a10934cdca3c02f93d40f9b0f2101c319eea663aa31223f6a94accf8e8983a';
-const REVIEWED_LESSON_3_5_MANIFEST_HASH =
-  'sha256:a1c6fe80dad8af94de4bac23b46d667aef6fea5f5065ef8d553109c51ed796ff';
-const REVIEWED_LESSON_3_6_MANIFEST_HASH =
-  'sha256:8d452e82103c0861d917fdbc0b551e0b9319ab2a67cd606cb6b197b5461c38b2';
-const REVIEWED_LESSON_3_8_MANIFEST_HASH =
-  'sha256:71de638db786e5c114821e565bf2b7f47f48c97c355184b7eb1ff0cf95f26f26';
-const REVIEWED_LESSON_3_9_MANIFEST_HASH =
-  'sha256:52c4c83b3fa3fc70f4a1c0a92dcfd0bb3364ccf52a23b315a06a5cb5548f907d';
-const REVIEWED_LESSON_4_1_MANIFEST_HASH =
-  'sha256:d8aacb08d86da7803c366788ceac704c4af4ad7660d8bc2ffeed96a0b79ff76e';
-const REVIEWED_LESSON_4_2_MANIFEST_HASH =
-  'sha256:1cdaae12f9ebc2c4d6c315beccbe0fac565c00ab654322d5e2e03ce96c40fad3';
+const REVIEWED_LESSON_1_1_REVIEW_SOURCE_HASH =
+  'sha256:e1fa4be79241e2738135a6d95a8c22c56e8d2cbe74bb2bd185d712c3823fa6f5';
+const REVIEWED_LESSON_1_2_REVIEW_SOURCE_HASH =
+  'sha256:5842fbd155ef3ef56e01eed3c284a37825457d8087a9af5faca23639af2b0788';
+const REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH =
+  'sha256:9499fd054ae57805d1056ebf604f5e13d7933957dea7af31b8ec38852446482f';
+const REVIEWED_LESSON_2_4_REVIEW_SOURCE_HASH =
+  'sha256:53322e0e3b207b48117343f95ec7e7919d71d4a80ee156e1b0ca7b9f21e32070';
+const REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH =
+  'sha256:a3827b5503e9adb36dbf9fcaabf84d2186484ded5bd8d22c496c2455859cfd5e';
+const REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH =
+  'sha256:5f54231e92c3ce4c95102acb6dcbdfdab6fa76af1825ef8a4fbc25a37abf1d60';
+const REVIEWED_LESSON_3_8_REVIEW_SOURCE_HASH =
+  'sha256:7cf64cf020db032173c7202c147b99b7e3d8abc38bf68dc9faf6c018187ce2ef';
+const REVIEWED_LESSON_3_9_REVIEW_SOURCE_HASH =
+  'sha256:edfd6ac618883d835047cac79004a61e6d966dcec010e3e8d1ce93a02c919caf';
+const REVIEWED_LESSON_4_1_REVIEW_SOURCE_HASH =
+  'sha256:8140ae0105d644dec15be1bfbdaae8a6818e278ddf781c86b81d5e930d2849ad';
+const REVIEWED_LESSON_4_2_REVIEW_SOURCE_HASH =
+  'sha256:04885db9a749ef79821f6a4bc76f1e6af2f8a24dc19874f00b3893b673a72b48';
 
 function reviewedRuntimeStepCompletion(input: ReviewedRuntimeStepCompletion): ReviewedRuntimeStepCompletion {
   return input;
@@ -84,63 +84,63 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
   ['1-1:step-09', reviewedRuntimeStepCompletion({
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
-    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 09 explicitly covers feedback, open loop, closed loop, error, controller, and correction nodes for feedback-loop foundations.',
     independentEvidenceRef: 'course-content/runtime/lessons/1-1/graph-overlay.json#group:反馈与开闭环',
   })],
   ['1-1:step-10', reviewedRuntimeStepCompletion({
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
-    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_1_1_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 10 compares the three domains and diagnostic loop, extending the feedback-loop concept coverage to system-level reasoning.',
     independentEvidenceRef: 'course-content/runtime/lessons/1-1/graph-overlay.json#group:反馈与开闭环',
   })],
   ['1-2:step-04', reviewedRuntimeStepCompletion({
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
-    reviewedSourceHash: REVIEWED_LESSON_1_2_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_1_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 04 distinguishes mechanism modeling and data-driven modeling, matching the transfer-function modeling foundation boundary through 建模_1_2.',
     independentEvidenceRef: 'course-content/runtime/lessons/1-2/graph-overlay.json#group:建模路径与微分方程',
   })],
   ['1-2:step-05', reviewedRuntimeStepCompletion({
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
-    reviewedSourceHash: REVIEWED_LESSON_1_2_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_1_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 05 translates physical objects into differential equations and is a concept-level precursor for transfer-function modeling.',
     independentEvidenceRef: 'course-content/runtime/lessons/1-2/graph-overlay.json#group:建模路径与微分方程',
   })],
   ['2-2:step-09', reviewedRuntimeStepCompletion({
     capabilityTargetIds: [],
     estimatedTimeMinutes: 7,
-    reviewedSourceHash: REVIEWED_LESSON_2_2_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 09 directly covers the dynamic performance indicator node used by the time-domain-response-analysis goal.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
   })],
   ['2-2:step-10', reviewedRuntimeStepCompletion({
     capabilityTargetIds: [],
     estimatedTimeMinutes: 7,
-    reviewedSourceHash: REVIEWED_LESSON_2_2_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 10 reviews rise-time definition and derivation as a path-eligible concept resource for time-domain performance analysis.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
   })],
   ['2-2:step-11', reviewedRuntimeStepCompletion({
     capabilityTargetIds: [],
     estimatedTimeMinutes: 7,
-    reviewedSourceHash: REVIEWED_LESSON_2_2_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 11 covers peak time and overshoot, preserving citation/path distinction as a concept step rather than assessment evidence.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
   })],
   ['2-2:step-12', reviewedRuntimeStepCompletion({
     capabilityTargetIds: [],
     estimatedTimeMinutes: 7,
-    reviewedSourceHash: REVIEWED_LESSON_2_2_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 12 covers settling-time error bands and is reviewed as concept/path material for time-domain response analysis.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
   })],
   ['2-2:step-13', reviewedRuntimeStepCompletion({
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
-    reviewedSourceHash: REVIEWED_LESSON_2_2_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_2_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 13 applies time-domain indicator calculations in a worked example, improving concept practice support without counting as checkpoint evidence.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
   })],
@@ -148,7 +148,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_2_4_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_2_4_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 09 introduces cutoff frequency, crossover frequency, phase margin, gain margin, and bandwidth as frequency-domain reading targets for margin foundations.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:频域指标入口',
   })],
@@ -156,7 +156,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_2_4_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_2_4_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 10 compares Bode and Nyquist locations for the same indicators, supporting citation-ready frequency-response interpretation without promoting assessment status.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:频域指标入口',
   })],
@@ -164,7 +164,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_2_4_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_2_4_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 11 reviews Bode baseline, breakpoints, and slope drawing as frequency-response foundation material.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:手工绘图与最小反识别',
   })],
@@ -172,7 +172,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_2_4_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_2_4_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 12 reviews Nyquist endpoints, crossings, and asymptotes as paired graph-reading support for frequency response foundations.',
     independentEvidenceRef: 'course-content/runtime/lessons/2-4/graph-overlay.json#group:手工绘图与最小反识别',
   })],
@@ -180,7 +180,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_5_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 01 transitions from reading along a root locus to changing the controller structure, directly matching root-locus analysis foundations.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:从 3-4 的边界进入结构改变',
   })],
@@ -188,7 +188,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_5_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 02 reviews the unified object and observation frame for root-locus, response, and structural-change comparisons.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:从 3-4 的边界进入结构改变',
   })],
@@ -196,7 +196,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_5_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 04 reviews how adding a zero changes root-locus branch behavior, matching root-locus analysis and design-preparation nodes.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:左半平面零点与轨迹重排',
   })],
@@ -204,7 +204,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_5_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 05 extends zero-introduction review to third-order root-locus reshaping and dominant-branch interpretation.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:左半平面零点与轨迹重排',
   })],
@@ -212,7 +212,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_5_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 10 reviews PD frequency-domain fingerprints and their cost, useful for margin and controller-design concept coverage.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:PD 与超前的频域整形',
   })],
@@ -220,7 +220,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_5_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 11 reviews lead compensation phase peak and action band, directly supporting phase-margin and correction-design concepts.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:PD 与超前的频域整形',
   })],
@@ -228,7 +228,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_5_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_5_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 12 compares PD and lead compensation in frequency-domain design decisions while remaining concept material rather than terminal validation.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-5/graph-overlay.json#group:PD 与超前的频域整形',
   })],
@@ -236,7 +236,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_6_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 06 converts time-domain targets into a design feasible region, bridging stability, transient targets, and root-locus design.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-6/graph-overlay.json#group:从 3-5 机理切到目标翻译',
   })],
@@ -244,7 +244,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_6_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 10 shows how frequency-domain targets enter lead-compensator design, matching margin and correction-design graph nodes.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-6/graph-overlay.json#group:任务 C / D：频域目标驱动设计',
   })],
@@ -252,7 +252,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_6_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 11 covers lead frequency design as reviewed concept/path material without approving it as checkpoint evidence.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-6/graph-overlay.json#group:任务 C / D：频域目标驱动设计',
   })],
@@ -260,7 +260,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_6_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 12 explains why the same frequency-domain indicator can lead to a separate PD design pass, preserving design-role distinction.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-6/graph-overlay.json#group:任务 C / D：频域目标驱动设计',
   })],
@@ -268,7 +268,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_6_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_6_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 13 reviews PD frequency design and side-by-side comparison for correction-design concept coverage.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-6/graph-overlay.json#group:任务 C / D：频域目标驱动设计',
   })],
@@ -276,7 +276,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_8_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_8_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 06 reviews how left-half-plane zeros reshape middle-frequency behavior, adding frequency-response concept support.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-8/graph-overlay.json#group:Nyquist 与 Bode 统一判稳链',
   })],
@@ -284,7 +284,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_8_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_8_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 07 links added poles and integrators to accuracy and margin tightening, covering steady-state and stability-margin concepts.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-8/graph-overlay.json#group:Nyquist 与 Bode 统一判稳链',
   })],
@@ -292,7 +292,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_8_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_8_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 09 guides structural-change judgment by frequency band, supporting frequency response and margin interpretation.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-8/graph-overlay.json#group:三频段分工与工程案例读回',
   })],
@@ -300,7 +300,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_8_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_8_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 10 explains the Nyquist stability chain from the argument principle, keeping margin concepts separate from assessment approval.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-8/graph-overlay.json#group:三频段分工与工程案例读回',
   })],
@@ -308,7 +308,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_9_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_9_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 01 reviews three improvement demands for the same ship, connecting root-locus, frequency-domain, steady-state, and design labels.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-9/graph-overlay.json#group:统一对象与多版本映射入口',
   })],
@@ -316,7 +316,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_3_9_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_3_9_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 08 reviews mid-frequency phase cleanup after integral compensation, preserving steady-state versus margin distinction.',
     independentEvidenceRef: 'course-content/runtime/lessons/3-9/graph-overlay.json#group:综合映射与模块4入口',
   })],
@@ -324,7 +324,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_4_1_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_4_1_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 01 turns cross-domain evidence into a design task, connecting margins and design constraints for control-correction coverage.',
     independentEvidenceRef: 'course-content/runtime/lessons/4-1/graph-overlay.json#group:入口回收与指标重组',
   })],
@@ -332,7 +332,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_4_1_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_4_1_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 05 reviews why platform stability keeps speed as a design priority, matching stability feasible-region concepts.',
     independentEvidenceRef: 'course-content/runtime/lessons/4-1/graph-overlay.json#group:任务分类与区域分层',
   })],
@@ -340,7 +340,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_4_1_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_4_1_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 07 reorganizes time-domain, frequency-domain, and integral-error indicators into design roles.',
     independentEvidenceRef: 'course-content/runtime/lessons/4-1/graph-overlay.json#group:主场景联读',
   })],
@@ -348,7 +348,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_4_1_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_4_1_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 10 distinguishes feasible, satisfactory, and optimal regions for controller design boundary reasoning.',
     independentEvidenceRef: 'course-content/runtime/lessons/4-1/graph-overlay.json#group:任务表达与收束',
   })],
@@ -356,7 +356,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_4_2_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_4_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 11 reviews frequency-domain PI parameter calculation and keeps it as concept/design material.',
     independentEvidenceRef: 'course-content/runtime/lessons/4-2/graph-overlay.json#group:分结构整定例题',
   })],
@@ -364,7 +364,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_4_2_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_4_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 12 reviews frequency-domain lead compensation parameter calculation for correction-design concepts.',
     independentEvidenceRef: 'course-content/runtime/lessons/4-2/graph-overlay.json#group:分结构整定例题',
   })],
@@ -372,7 +372,7 @@ const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCom
     capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewBatchId: ANALYSIS_DESIGN_GRAPH_RESOURCE_BATCH_ID,
-    reviewedSourceHash: REVIEWED_LESSON_4_2_MANIFEST_HASH,
+    reviewedSourceHash: REVIEWED_LESSON_4_2_REVIEW_SOURCE_HASH,
     reviewerVisibleRationale: 'Step 13 reviews lag-compensation parameter calculation and preserves it as concept/path support.',
     independentEvidenceRef: 'course-content/runtime/lessons/4-2/graph-overlay.json#group:分结构整定例题',
   })],
@@ -396,6 +396,14 @@ export function reviewedRuntimeStepCompletionForSource(
   sourceHash: string | null,
 ): ReviewedRuntimeStepCompletion | null {
   return completion && completion.reviewedSourceHash === sourceHash ? completion : null;
+}
+
+export function runtimeLessonReviewSourceHash(
+  manifestHash: string | null,
+  graphOverlayHash: string | null,
+): string | null {
+  if (!manifestHash || !graphOverlayHash) return null;
+  return `sha256:${sha256(`${manifestHash}\n${graphOverlayHash}`)}`;
 }
 
 interface RuntimeInteractiveManifest {
@@ -741,14 +749,17 @@ async function collectRuntimeManifestCandidates() {
   const routeIndex = await collectInteractiveCourseRouteIndex();
   for (const { lessonDir, lessonKey } of lessonDirs) {
     const manifestPath = path.join(lessonDir, 'interactive-manifest.json');
-    const [manifest, graphOverlay, lesson, manifestHash] = await Promise.all([
+    const graphOverlayPath = path.join(lessonDir, 'graph-overlay.json');
+    const [manifest, graphOverlay, lesson, manifestHash, graphOverlayHash] = await Promise.all([
       readJson<RuntimeInteractiveManifest>(manifestPath),
-      readJson<RuntimeGraphOverlay>(path.join(lessonDir, 'graph-overlay.json')),
+      readJson<RuntimeGraphOverlay>(graphOverlayPath),
       readJson<RuntimeLessonJson>(path.join(lessonDir, 'lesson.json')),
       readLocalFileHash(manifestPath),
+      readLocalFileHash(graphOverlayPath),
     ]);
     if (!manifest?.steps) continue;
     const lessonId = manifest.lesson_id ?? lesson?.lesson_id ?? lessonKey;
+    const reviewSourceHash = runtimeLessonReviewSourceHash(manifestHash, graphOverlayHash);
     const stepKnowledgeNodeIds = buildRuntimeStepKnowledgeNodeMap(
       graphOverlay?.groups ?? lesson?.sequence?.groups ?? [],
     );
@@ -761,7 +772,7 @@ async function collectRuntimeManifestCandidates() {
       });
       const reviewedCompletionCurrent = reviewedRuntimeStepCompletionForSource(
         REVIEWED_RUNTIME_STEP_COMPLETIONS.get(`${lessonId}:${stepId}`),
-        manifestHash,
+        reviewSourceHash,
       );
       const manifestCitationTarget = `${projectPath(manifestPath)}#${stepId}`;
       const evidenceInstrumentation = reviewedCompletionCurrent
@@ -792,7 +803,8 @@ async function collectRuntimeManifestCandidates() {
             reviewBatchId: reviewedCompletionCurrent.reviewBatchId ?? FOUNDATION_GRAPH_RESOURCE_BATCH_ID,
             reviewerVisibleRationale: reviewedCompletionCurrent.reviewerVisibleRationale,
             independentEvidenceRef: reviewedCompletionCurrent.independentEvidenceRef,
-            promptOrManifestHash: manifestHash,
+            reviewedSourceHash: reviewSourceHash ?? undefined,
+            promptOrManifestHash: reviewSourceHash,
             confidence: 0.91,
           }
           : undefined,

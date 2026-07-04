@@ -20,29 +20,38 @@ import {
 import { buildKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
 import { buildResourceNodeRegistry } from '../resource-node-registry';
 import {
+  runtimeLessonReviewSourceHash,
   reviewedRuntimeStepCompletionForSource,
   type ReviewedRuntimeStepCompletion,
 } from '../../../scripts/db/generate-resource-field-completion-audit';
 
 describe('resource field completion audit', () => {
-  it('requires reviewed runtime step completions to match the reviewed source hash', () => {
+  it('requires reviewed runtime step completions to match manifest and graph overlay hashes', () => {
+    const reviewedSourceHash = runtimeLessonReviewSourceHash(
+      'sha256:reviewed-manifest',
+      'sha256:reviewed-overlay',
+    );
     const reviewedCompletion: ReviewedRuntimeStepCompletion = {
       capabilityTargetIds: ['controlModeling'],
       estimatedTimeMinutes: 6,
-      reviewedSourceHash: 'sha256:reviewed-manifest',
+      reviewedSourceHash: reviewedSourceHash!,
     };
 
     expect(reviewedRuntimeStepCompletionForSource(
       reviewedCompletion,
-      'sha256:reviewed-manifest',
+      reviewedSourceHash,
     )).toBe(reviewedCompletion);
     expect(reviewedRuntimeStepCompletionForSource(
       reviewedCompletion,
-      'sha256:changed-manifest',
+      runtimeLessonReviewSourceHash('sha256:changed-manifest', 'sha256:reviewed-overlay'),
+    )).toBeNull();
+    expect(reviewedRuntimeStepCompletionForSource(
+      reviewedCompletion,
+      runtimeLessonReviewSourceHash('sha256:reviewed-manifest', 'sha256:changed-overlay'),
     )).toBeNull();
     expect(reviewedRuntimeStepCompletionForSource(
       undefined,
-      'sha256:reviewed-manifest',
+      reviewedSourceHash,
     )).toBeNull();
   });
 
@@ -607,6 +616,7 @@ describe('resource field completion audit', () => {
           reviewBatchId: 'review-batch-1',
           reviewerVisibleRationale: 'Teacher verified graph fit and path eligibility against the source resource.',
           independentEvidenceRef: 'review-packet:external-confirmed-versioned',
+          reviewedSourceHash: 'sha256:review-source',
           promptOrManifestHash: 'sha256:review-prompt',
           confidence: 0.96,
         },
@@ -619,7 +629,7 @@ describe('resource field completion audit', () => {
       completionMethod: 'already-governed',
       reviewStatus: 'human-confirmed',
       reviewAudit: {
-        reviewedSourceHash: 'sha256:confirmed',
+        reviewedSourceHash: 'sha256:review-source',
         reviewedVersionRef: 'external-resource.v1',
         reviewedAt: '2026-07-03T00:00:00.000Z',
         reviewerId: 'teacher-reviewer-1',

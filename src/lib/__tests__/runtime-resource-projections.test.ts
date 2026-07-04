@@ -30,6 +30,15 @@ describe('runtime resource projections', () => {
           contentHash: 'sha256:step',
           versionRef: 'interactive-manifest.v2',
           humanConfirmed: true,
+          reviewEvidence: {
+            reviewerId: 'teacher-reviewer-1',
+            reviewerRole: 'curriculum-data-governance',
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewBatchId: 'review-batch-1',
+            reviewerVisibleRationale: 'Teacher verified graph fit and path eligibility against the runtime source.',
+            independentEvidenceRef: 'review-packet:runtime-step-1',
+            reviewedSourceHash: 'sha256:step',
+          },
           readiness: {
             minimumCompetency: {
               controlModeling: 0.2,
@@ -213,6 +222,15 @@ describe('runtime resource projections', () => {
         contentHash: 'sha256:new',
         versionRef: 'interactive-manifest.v2',
         humanConfirmed: true,
+        reviewEvidence: {
+          reviewerId: 'teacher-reviewer-1',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'review-batch-1',
+          reviewerVisibleRationale: 'Teacher verified graph fit and path eligibility against the runtime source.',
+          independentEvidenceRef: 'review-packet:runtime-step-stale',
+          reviewedSourceHash: 'sha256:new',
+        },
       }],
     });
     const staleRow = {
@@ -231,6 +249,56 @@ describe('runtime resource projections', () => {
     expect(artifact.rows[0].reviewAudit).toMatchObject({
       status: 'human-confirmed',
       reviewedSourceHash: 'sha256:old',
+    });
+  });
+
+  it('does not mark prompt-scoped review hashes stale when they differ from raw source hashes', () => {
+    const audit = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'runtime-step:unit-demo:step-reviewed-source',
+        title: 'Reviewed-source runtime step',
+        family: 'runtime-lesson-step',
+        sourcePathOrUrl: 'course-content/runtime/lessons/unit-demo/interactive-manifest.json',
+        sourceRecord: 'unit-demo:step-reviewed-source',
+        knowledgeNodeIds: ['kn-demo'],
+        capabilityTargetIds: ['controlModeling'],
+        segmentRefs: ['step-reviewed-source'],
+        citationTargets: ['course-content/runtime/lessons/unit-demo/interactive-manifest.json'],
+        pathTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step-reviewed-source',
+        estimatedTimeMinutes: 8,
+        evidenceInstrumentation: ['lesson_step_view'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:manifest-source',
+        versionRef: 'interactive-manifest.v2',
+        humanConfirmed: true,
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'teacher-reviewer-1',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'review-batch-1',
+          reviewerVisibleRationale: 'Teacher verified graph fit and path eligibility against manifest plus graph overlay.',
+          independentEvidenceRef: 'review-packet:runtime-reviewed-source',
+          reviewedSourceHash: 'sha256:manifest-plus-overlay',
+          promptOrManifestHash: 'sha256:manifest-plus-overlay',
+        },
+      }],
+    });
+    const artifact = buildRuntimeResourceProjectionArtifacts({
+      auditRows: audit.rows,
+      generatedAt: '2026-06-22T00:00:00.000Z',
+    });
+
+    expect(artifact.limitations.totals.stale).toBe(0);
+    expect(artifact.rows[0]).toMatchObject({
+      sourceHash: 'sha256:manifest-source',
+      reviewAudit: {
+        status: 'human-confirmed',
+        reviewedSourceHash: 'sha256:manifest-plus-overlay',
+        promptOrManifestHash: 'sha256:manifest-plus-overlay',
+      },
     });
   });
 
