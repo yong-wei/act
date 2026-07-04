@@ -20,29 +20,38 @@ import {
 import { buildKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
 import { buildResourceNodeRegistry } from '../resource-node-registry';
 import {
+  runtimeLessonReviewSourceHash,
   reviewedRuntimeStepCompletionForSource,
   type ReviewedRuntimeStepCompletion,
 } from '../../../scripts/db/generate-resource-field-completion-audit';
 
 describe('resource field completion audit', () => {
-  it('requires reviewed runtime step completions to match the reviewed source hash', () => {
+  it('requires reviewed runtime step completions to match manifest and graph overlay hashes', () => {
+    const reviewedSourceHash = runtimeLessonReviewSourceHash(
+      'sha256:reviewed-manifest',
+      'sha256:reviewed-overlay',
+    );
     const reviewedCompletion: ReviewedRuntimeStepCompletion = {
       capabilityTargetIds: ['controlModeling'],
       estimatedTimeMinutes: 6,
-      reviewedSourceHash: 'sha256:reviewed-manifest',
+      reviewedSourceHash: reviewedSourceHash!,
     };
 
     expect(reviewedRuntimeStepCompletionForSource(
       reviewedCompletion,
-      'sha256:reviewed-manifest',
+      reviewedSourceHash,
     )).toBe(reviewedCompletion);
     expect(reviewedRuntimeStepCompletionForSource(
       reviewedCompletion,
-      'sha256:changed-manifest',
+      runtimeLessonReviewSourceHash('sha256:changed-manifest', 'sha256:reviewed-overlay'),
+    )).toBeNull();
+    expect(reviewedRuntimeStepCompletionForSource(
+      reviewedCompletion,
+      runtimeLessonReviewSourceHash('sha256:reviewed-manifest', 'sha256:changed-overlay'),
     )).toBeNull();
     expect(reviewedRuntimeStepCompletionForSource(
       undefined,
-      'sha256:reviewed-manifest',
+      reviewedSourceHash,
     )).toBeNull();
   });
 
@@ -607,6 +616,7 @@ describe('resource field completion audit', () => {
           reviewBatchId: 'review-batch-1',
           reviewerVisibleRationale: 'Teacher verified graph fit and path eligibility against the source resource.',
           independentEvidenceRef: 'review-packet:external-confirmed-versioned',
+          reviewedSourceHash: 'sha256:review-source',
           promptOrManifestHash: 'sha256:review-prompt',
           confidence: 0.96,
         },
@@ -619,7 +629,7 @@ describe('resource field completion audit', () => {
       completionMethod: 'already-governed',
       reviewStatus: 'human-confirmed',
       reviewAudit: {
-        reviewedSourceHash: 'sha256:confirmed',
+        reviewedSourceHash: 'sha256:review-source',
         reviewedVersionRef: 'external-resource.v1',
         reviewedAt: '2026-07-03T00:00:00.000Z',
         reviewerId: 'teacher-reviewer-1',
@@ -776,9 +786,15 @@ describe('resource field completion audit', () => {
     expect(new Set(reviewedBindings.map((binding) => binding.learningGoalId))).toEqual(new Set([
       'control-correction',
       'feedback-loop-concept-foundations',
+      'frequency-response-foundations',
+      'root-locus-analysis-foundations',
+      'stability-margin-frequency-analysis',
       'transfer-function-modeling-foundations',
       'time-domain-response-analysis',
     ]));
+    expect(new Set(reviewedBindings.map((binding) => binding.learningGoalId))).not.toContain(
+      'simulation-validation-practice',
+    );
     expect(auditRowById.get('runtime-step:1-1:step-09')).toMatchObject({
       reviewStatus: 'human-confirmed',
       pathEligibility: {
@@ -806,6 +822,38 @@ describe('resource field completion audit', () => {
         'remediation',
       ]);
     }
+    for (const goalId of [
+      'root-locus-analysis-foundations',
+      'frequency-response-foundations',
+      'stability-margin-frequency-analysis',
+    ]) {
+      const row = matrix.rows.find((item) => item.learningGoalId === goalId);
+      expect(row.categories.concept.pathEligible).toBeGreaterThanOrEqual(2);
+      expect(row.categories.citation.pathEligible).toBeGreaterThanOrEqual(2);
+      expect(row.categories.diagnostic.pathEligible).toBe(0);
+      expect(row.categories.practice.pathEligible).toBe(0);
+      expect(row.categories.checkpoint.pathEligible).toBe(0);
+      expect(row.categories.remediation.pathEligible).toBe(0);
+      expect(row.missingBaselineCategories).toEqual([
+        'diagnostic',
+        'practice',
+        'checkpoint',
+        'remediation',
+      ]);
+    }
+    const simulationValidationRow = matrix.rows.find((item) =>
+      item.learningGoalId === 'simulation-validation-practice'
+    );
+    expect(simulationValidationRow.categories.concept.pathEligible).toBe(0);
+    expect(simulationValidationRow.categories.citation.pathEligible).toBe(0);
+    expect(simulationValidationRow.missingBaselineCategories).toEqual([
+      'concept',
+      'diagnostic',
+      'practice',
+      'checkpoint',
+      'remediation',
+      'terminal-validation',
+    ]);
     for (const row of matrix.rows) {
       expect(row.requiredCategories).toEqual(expect.arrayContaining([
         'concept',

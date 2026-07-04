@@ -1441,7 +1441,7 @@ describe('resource node registry', () => {
       title: '已审核步骤',
       sourceRef: 'unit-demo:step-1',
       sourceRecord: 'unit-demo:step-1',
-      sourceHash: 'sha256:step',
+      sourceHash: 'sha256:step-manifest',
       sourceVersionRef: 'interactive-manifest.v2',
       routeTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step-1',
       graphNodeRefs: {
@@ -1465,10 +1465,10 @@ describe('resource node registry', () => {
         reviewerRole: 'teacher',
         reviewedAt: '2026-06-22T00:00:00.000Z',
         reviewBatchId: 'runtime-projection-batch-1',
-        reviewedSourceHash: 'sha256:step',
+        reviewedSourceHash: 'sha256:step-manifest-plus-overlay',
         reviewedVersionRef: 'interactive-manifest.v2',
         generationToolOrModel: 'template',
-        promptOrManifestHash: null,
+        promptOrManifestHash: 'sha256:step-manifest-plus-overlay',
         confidence: 0.92,
         staleInvalidationRule: 'stale when source hash or version changes',
       },
@@ -1607,7 +1607,7 @@ describe('resource node registry', () => {
         unlockMessage: '完成本单元前序学习证据后进入该步骤。',
       },
     });
-    expect(confirmedSemanticProjection.resource.contentHash).toBe('sha256:step');
+    expect(confirmedSemanticProjection.resource.contentHash).toBe('sha256:step-manifest');
     expect(provisionalSemanticProjection.planningUnit).toBeNull();
     expect(provisionalSemanticProjection.resource.governance.auditIssueCodes).toContain('provisional-runtime-projection');
     expect(staleSemanticProjection.planningUnit).toBeNull();

@@ -2695,10 +2695,7 @@ function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIs
       message: 'Runtime projection has not been human-confirmed.',
       severity: 'blocking',
     });
-  } else if (
-    projection.reviewAudit.reviewedSourceHash !== projection.sourceHash ||
-    projection.reviewAudit.reviewedVersionRef !== projection.sourceVersionRef
-  ) {
+  } else if (isRuntimeProjectionReviewStale(projection)) {
     issues.push({
       code: 'stale-runtime-projection',
       message: 'Runtime projection review is stale for the current source hash or version ref.',
@@ -2706,6 +2703,12 @@ function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIs
     });
   }
   return issues;
+}
+
+function isRuntimeProjectionReviewStale(projection: RuntimeResourceProjectionInput): boolean {
+  const currentReviewSourceHash = projection.reviewAudit?.promptOrManifestHash ?? projection.sourceHash;
+  return projection.reviewAudit?.reviewedSourceHash !== currentReviewSourceHash ||
+    projection.reviewAudit?.reviewedVersionRef !== projection.sourceVersionRef;
 }
 
 function requiresRuntimeProjectionAudit(node: ResourceNode): boolean {

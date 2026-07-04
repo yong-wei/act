@@ -107,6 +107,7 @@ export interface ResourceFieldCompletionCandidate {
     reviewBatchId: string;
     reviewerVisibleRationale?: string;
     independentEvidenceRef?: string;
+    reviewedSourceHash?: string;
     promptOrManifestHash?: string;
     confidence?: number | null;
   };
@@ -526,7 +527,7 @@ function rowFromCandidate(
     reviewStatus,
     reviewAudit: candidate.humanConfirmed
       ? confirmedReviewAudit({
-        sourceHash: candidate.contentHash ?? null,
+        sourceHash: candidate.reviewEvidence?.reviewedSourceHash ?? candidate.contentHash ?? null,
         versionRef: candidate.versionRef ?? null,
         reviewBatchId: candidate.reviewEvidence?.reviewBatchId ?? candidate.versionRef ?? null,
         generationToolOrModel: candidate.generatedBy,
