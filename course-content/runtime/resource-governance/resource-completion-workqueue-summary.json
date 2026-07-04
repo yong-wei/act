@@ -1,9 +1,9 @@
 {
   "artifactVersion": "resource-field-completion-audit.v1",
-  "auditMissingFieldRows": 5255,
-  "queuedResources": 5255,
-  "primaryQueueItems": 5255,
-  "dependentQueueItems": 29963,
+  "auditMissingFieldRows": 5291,
+  "queuedResources": 5291,
+  "primaryQueueItems": 5291,
+  "dependentQueueItems": 29998,
   "byFollowupBucket": {
     "complete-analysis-design-graph-resource-bindings": 6745,
     "complete-evidence-lineage-bindings": 8493,
@@ -11,8 +11,8 @@
     "review-runtime-media-handout-dispositions": 8961,
     "complete-foundation-graph-resource-bindings": 440,
     "complete-citation-and-rag-bindings": 1902,
-    "repair-resource-identity-bindings": 297,
-    "blocked-resource-completion-dependencies": 25
+    "repair-resource-identity-bindings": 333,
+    "blocked-resource-completion-dependencies": 60
   },
   "byMissingFieldCode": {
     "missing-capability-target": 3985,
@@ -24,8 +24,8 @@
     "provisional-metadata": 3994,
     "missing-human-review": 4958,
     "missing-segment-ref": 161,
-    "missing-content-hash": 297,
-    "blocked-by-dependency": 25,
+    "missing-content-hash": 333,
+    "blocked-by-dependency": 60,
     "missing-citation-target": 1741,
     "stale-review": 9
   },
@@ -507,7 +507,7 @@
       "missingFieldCode": "missing-content-hash",
       "followupBucket": "repair-resource-identity-bindings",
       "dependencyState": "blocked-by-dependency",
-      "total": 5,
+      "total": 27,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -531,7 +531,7 @@
       "missingFieldCode": "missing-content-hash",
       "followupBucket": "repair-resource-identity-bindings",
       "dependencyState": "blocked-by-dependency",
-      "total": 1,
+      "total": 3,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -543,7 +543,7 @@
       "missingFieldCode": "missing-content-hash",
       "followupBucket": "repair-resource-identity-bindings",
       "dependencyState": "blocked-by-dependency",
-      "total": 2,
+      "total": 11,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -555,7 +555,7 @@
       "missingFieldCode": "missing-content-hash",
       "followupBucket": "repair-resource-identity-bindings",
       "dependencyState": "blocked-by-dependency",
-      "total": 3,
+      "total": 5,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1059,7 +1059,7 @@
       "missingFieldCode": "blocked-by-dependency",
       "followupBucket": "blocked-resource-completion-dependencies",
       "dependencyState": "blocked-by-dependency",
-      "total": 5,
+      "total": 27,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1119,7 +1119,7 @@
       "missingFieldCode": "blocked-by-dependency",
       "followupBucket": "blocked-resource-completion-dependencies",
       "dependencyState": "blocked-by-dependency",
-      "total": 1,
+      "total": 3,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1143,7 +1143,7 @@
       "missingFieldCode": "blocked-by-dependency",
       "followupBucket": "blocked-resource-completion-dependencies",
       "dependencyState": "blocked-by-dependency",
-      "total": 2,
+      "total": 11,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1167,7 +1167,7 @@
       "missingFieldCode": "blocked-by-dependency",
       "followupBucket": "blocked-resource-completion-dependencies",
       "dependencyState": "blocked-by-dependency",
-      "total": 3,
+      "total": 5,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1191,7 +1191,7 @@
       "missingFieldCode": "missing-content-hash",
       "followupBucket": "repair-resource-identity-bindings",
       "dependencyState": "needs-human-review",
-      "total": 36,
+      "total": 37,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {

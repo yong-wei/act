@@ -1,0 +1,123 @@
+{
+  "lesson_id": "1-3",
+  "title": "参数变化与极点迁移：根轨迹的第一眼",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "X",
+  "graph_version": "1",
+  "focus_node_ids": [
+    "根轨迹_1_1",
+    "极点_1_2",
+    "时域响应_1_1",
+    "动态性能指标_3_a10733c1",
+    "二阶系统_3_3a0af45b",
+    "欠阻尼二阶系统_3_242477a2",
+    "闭环特征方程_3_87c88e19",
+    "参数窗口判断_3_7c3e318f"
+  ],
+  "reuse_node_ids": [
+    "传递函数_1_2",
+    "反馈_1_1",
+    "闭环控制_1_1",
+    "模型结构相似性_1_2",
+    "稳定区_1_2",
+    "稳定边界_1_2"
+  ],
+  "card_order": [
+    "传递函数_1_2",
+    "反馈_1_1",
+    "闭环控制_1_1",
+    "极点_1_2",
+    "根轨迹_1_1",
+    "闭环特征方程_3_87c88e19",
+    "时域响应_1_1",
+    "动态性能指标_3_a10733c1",
+    "二阶系统_3_3a0af45b",
+    "欠阻尼二阶系统_3_242477a2",
+    "参数窗口判断_3_7c3e318f"
+  ],
+  "entry_nodes": [
+    "根轨迹_1_1"
+  ],
+  "summary_nodes": [
+    "根轨迹_1_1",
+    "极点_1_2",
+    "时域响应_1_1"
+  ],
+  "preceding_lesson": "1-2",
+  "following_lesson": "2-1",
+  "refinement_units": [
+    "3-1",
+    "4-1"
+  ],
+  "sequence": {
+    "lesson_id": "1-3",
+    "note": "Runtime catalog restoration from the reviewed 1-3 authoring handout. This record restores the mapped lesson identity without claiming completed interactive-page production.",
+    "groups": [
+      {
+        "group_name": "导入与闭环增益",
+        "step_ids": [
+          "step-01",
+          "step-02"
+        ],
+        "node_ids": [
+          "反馈_1_1",
+          "闭环控制_1_1",
+          "传递函数_1_2"
+        ]
+      },
+      {
+        "group_name": "极点迁移与响应预判",
+        "step_ids": [
+          "step-03",
+          "step-04"
+        ],
+        "node_ids": [
+          "极点_1_2",
+          "根轨迹_1_1",
+          "闭环特征方程_3_87c88e19",
+          "时域响应_1_1"
+        ]
+      },
+      {
+        "group_name": "根轨迹雏形与案例收束",
+        "step_ids": [
+          "step-05",
+          "step-06"
+        ],
+        "node_ids": [
+          "根轨迹_1_1",
+          "动态性能指标_3_a10733c1",
+          "参数窗口判断_3_7c3e318f"
+        ]
+      }
+    ],
+    "card_order": [
+      "传递函数_1_2",
+      "反馈_1_1",
+      "闭环控制_1_1",
+      "极点_1_2",
+      "根轨迹_1_1",
+      "闭环特征方程_3_87c88e19",
+      "时域响应_1_1",
+      "动态性能指标_3_a10733c1",
+      "二阶系统_3_3a0af45b",
+      "欠阻尼二阶系统_3_242477a2",
+      "参数窗口判断_3_7c3e318f"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/1-3/1-3-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/1-3/1-3-handout.md",
+  "handout_pdf_path": null,
+  "handout_pdf_source_path": "course-content/runtime/lessons/1-3/1-3-handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/1-3/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/1-3/media",
+  "media_index_path": "/course-runtime/lessons/1-3/media/1-3-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/1-3/media/1-3-media.md",
+  "review": {
+    "status": "identity-restored",
+    "source_manifest_path": "/course-runtime/lessons/1-3/review/source-manifest.json"
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/1-3/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/1-3/interactive-manifest.json"
+}

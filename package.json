@@ -71,6 +71,7 @@
     "db:backfill-class-attribution": "tsx ./scripts/db/backfill-class-session-attribution.ts",
     "db:evidence-source-coverage": "tsx ./scripts/db/report-evidence-source-coverage.ts",
     "db:data-completeness-audit": "tsx ./scripts/db/report-data-completeness-audit.ts",
+    "db:repair-resource-identity-bindings": "tsx ./scripts/db/repair-resource-identity-bindings.ts",
     "db:kaq-quiz-foundation": "tsx ./scripts/db/generate-kaq-quiz-foundation.ts",
     "db:adaptive-assessment-item-catalog": "tsx ./scripts/db/generate-adaptive-assessment-item-catalog.ts",
     "db:assessment-item-semantic-review": "tsx ./scripts/db/generate-assessment-item-semantic-review.ts",

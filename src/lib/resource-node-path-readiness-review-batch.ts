@@ -1031,6 +1031,7 @@ export const CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH = {
     "registry:widget-physics-mech|resource_registry:widget-physics-mech|resource-node-registry.v1",
     "runtime-handout:1-1|runtime_handout:1-1|resource-node-registry.v1",
     "runtime-handout:1-2|runtime_handout:1-2|resource-node-registry.v1",
+    "runtime-handout:1-3|runtime_handout:1-3|resource-node-registry.v1",
     "runtime-handout:2-1|runtime_handout:2-1|resource-node-registry.v1",
     "runtime-handout:2-2|runtime_handout:2-2|resource-node-registry.v1",
     "runtime-handout:2-3|runtime_handout:2-3|resource-node-registry.v1",

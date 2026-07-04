@@ -1,0 +1,17 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "1-3",
+  "course_title": "1-3：参数变化与极点迁移",
+  "preview_mode": {
+    "default_entry": "runtime_handout",
+    "student_demo_base_path": "/course-runtime/lessons/1-3/1-3-handout.md"
+  },
+  "media_policy": {
+    "status": "not-generated",
+    "limitation": "Runtime identity is restored from the reviewed authoring handout; dedicated interactive page and media production remain outside this identity repair change."
+  },
+  "telemetry_strategy": "handout_view_only",
+  "teacher_insight_strategy": "not_available_until_interactive_page_exists",
+  "required_step_fields": [],
+  "steps": {}
+}
