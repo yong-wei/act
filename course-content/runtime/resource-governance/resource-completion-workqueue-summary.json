@@ -1,14 +1,14 @@
 {
   "artifactVersion": "resource-field-completion-audit.v1",
-  "auditMissingFieldRows": 5291,
-  "queuedResources": 5291,
-  "primaryQueueItems": 5291,
-  "dependentQueueItems": 29998,
+  "auditMissingFieldRows": 5282,
+  "queuedResources": 5282,
+  "primaryQueueItems": 5282,
+  "dependentQueueItems": 29980,
   "byFollowupBucket": {
     "complete-analysis-design-graph-resource-bindings": 6745,
     "complete-evidence-lineage-bindings": 8493,
     "review-runtime-lesson-planning-units": 8355,
-    "review-runtime-media-handout-dispositions": 8961,
+    "review-runtime-media-handout-dispositions": 8934,
     "complete-foundation-graph-resource-bindings": 440,
     "complete-citation-and-rag-bindings": 1902,
     "repair-resource-identity-bindings": 333,
@@ -21,13 +21,12 @@
     "missing-knowledge-binding": 3200,
     "missing-path-profile": 4934,
     "missing-path-target": 3421,
-    "provisional-metadata": 3994,
-    "missing-human-review": 4958,
+    "provisional-metadata": 3985,
+    "missing-human-review": 4949,
     "missing-segment-ref": 161,
     "missing-content-hash": 333,
     "blocked-by-dependency": 60,
-    "missing-citation-target": 1741,
-    "stale-review": 9
+    "missing-citation-target": 1741
   },
   "queues": [
     {
@@ -727,78 +726,6 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:dependent:runtime-lesson-step:controlModeling:runtime-lesson:provisional-metadata:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "controlModeling",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 7,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-lesson-step:controlModeling:runtime-lesson:stale-review:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "controlModeling",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "stale-review",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 7,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-lesson-step:inquiryReflection:runtime-lesson:provisional-metadata:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "inquiryReflection",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 1,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-lesson-step:inquiryReflection:runtime-lesson:stale-review:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "inquiryReflection",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "stale-review",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 1,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-lesson-step:selfDirectedLearning:runtime-lesson:provisional-metadata:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "selfDirectedLearning",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 1,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-lesson-step:selfDirectedLearning:runtime-lesson:stale-review:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "selfDirectedLearning",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "stale-review",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 1,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
       "id": "resource-completion:dependent:runtime-lesson-step:unassigned-learning-goal:runtime-lesson:missing-capability-target:complete-analysis-design-graph-resource-bindings:needs-human-review",
       "queueRole": "dependent",
       "sourceFamily": "runtime-lesson-step",
@@ -1228,42 +1155,6 @@
       "followupBucket": "review-runtime-media-handout-dispositions",
       "dependencyState": "needs-human-review",
       "total": 1352,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:runtime-lesson-step:controlModeling:runtime-lesson:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "primary",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "controlModeling",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "missing-human-review",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 7,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:runtime-lesson-step:inquiryReflection:runtime-lesson:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "primary",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "inquiryReflection",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "missing-human-review",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 1,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:runtime-lesson-step:selfDirectedLearning:runtime-lesson:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "primary",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "selfDirectedLearning",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "missing-human-review",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 1,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {

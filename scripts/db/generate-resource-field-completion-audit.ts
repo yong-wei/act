@@ -38,8 +38,8 @@ const INFOGRAPH_MANIFEST_PATH = path.join(process.cwd(), 'course-content/runtime
 const AUTHORING_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/authoring/resources/textbooks');
 const STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE = 'student-visible' satisfies ResourceFieldCompletionCandidate['privacyScope'];
 const UNCLASSIFIED_AUDIT_PRIVACY_SCOPE = null satisfies ResourceFieldCompletionCandidate['privacyScope'];
-const REVIEWED_GRAPH_RESOURCE_BATCH_ID = 'graph-resource-semantic-coverage-2026-07-03-lesson-1-1';
-const REVIEWED_GRAPH_RESOURCE_REVIEWED_AT = '2026-07-03T00:00:00.000Z';
+const REVIEWED_GRAPH_RESOURCE_BATCH_ID = 'foundation-graph-resource-bindings-2026-07-04';
+const REVIEWED_GRAPH_RESOURCE_REVIEWED_AT = '2026-07-04T00:00:00.000Z';
 const REVIEWED_GRAPH_RESOURCE_REVIEWER = {
   reviewerId: 'graph-resource-governance-review',
   reviewerRole: 'curriculum-data-governance',
@@ -49,57 +49,85 @@ export interface ReviewedRuntimeStepCompletion {
   capabilityTargetIds: string[];
   estimatedTimeMinutes: number;
   reviewedSourceHash: string;
+  reviewerVisibleRationale: string;
+  independentEvidenceRef: string;
 }
 
 const REVIEWED_LESSON_1_1_MANIFEST_HASH =
   'sha256:7efb274f8afa3826e386452061b7bb464eeb1ac77f19a755305c8b1f1720cf7e';
+const REVIEWED_LESSON_1_2_MANIFEST_HASH =
+  'sha256:34b8f226922355473509366749018f2a2e327e73ea8488e0af5232ba3ed5db6a';
+const REVIEWED_LESSON_2_2_MANIFEST_HASH =
+  'sha256:fe56c289934d9191c5e9624b661e7430da74f25331abb8db632c599f2f03e7f3';
+
+function reviewedRuntimeStepCompletion(input: ReviewedRuntimeStepCompletion): ReviewedRuntimeStepCompletion {
+  return input;
+}
 
 const REVIEWED_RUNTIME_STEP_COMPLETIONS = new Map<string, ReviewedRuntimeStepCompletion>([
-  ['1-1:step-04', {
-    capabilityTargetIds: ['controlModeling'],
-    estimatedTimeMinutes: 6,
-    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
-  }],
-  ['1-1:step-05', {
-    capabilityTargetIds: ['controlModeling'],
-    estimatedTimeMinutes: 7,
-    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
-  }],
-  ['1-1:step-06', {
-    capabilityTargetIds: ['controlModeling'],
-    estimatedTimeMinutes: 7,
-    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
-  }],
-  ['1-1:step-07', {
-    capabilityTargetIds: ['controlModeling'],
-    estimatedTimeMinutes: 7,
-    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
-  }],
-  ['1-1:step-08', {
-    capabilityTargetIds: ['controlModeling'],
-    estimatedTimeMinutes: 6,
-    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
-  }],
-  ['1-1:step-09', {
-    capabilityTargetIds: ['controlModeling', 'parameterDesign'],
+  ['1-1:step-09', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
-  }],
-  ['1-1:step-10', {
-    capabilityTargetIds: ['controlModeling', 'parameterDesign'],
+    reviewerVisibleRationale: 'Step 09 explicitly covers feedback, open loop, closed loop, error, controller, and correction nodes for feedback-loop foundations.',
+    independentEvidenceRef: 'course-content/runtime/lessons/1-1/graph-overlay.json#group:反馈与开闭环',
+  })],
+  ['1-1:step-10', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
     estimatedTimeMinutes: 8,
     reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
-  }],
-  ['1-1:step-11', {
-    capabilityTargetIds: ['selfDirectedLearning'],
-    estimatedTimeMinutes: 5,
-    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
-  }],
-  ['1-1:step-15', {
-    capabilityTargetIds: ['selfDirectedLearning', 'inquiryReflection'],
-    estimatedTimeMinutes: 5,
-    reviewedSourceHash: REVIEWED_LESSON_1_1_MANIFEST_HASH,
-  }],
+    reviewerVisibleRationale: 'Step 10 compares the three domains and diagnostic loop, extending the feedback-loop concept coverage to system-level reasoning.',
+    independentEvidenceRef: 'course-content/runtime/lessons/1-1/graph-overlay.json#group:反馈与开闭环',
+  })],
+  ['1-2:step-04', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
+    estimatedTimeMinutes: 8,
+    reviewedSourceHash: REVIEWED_LESSON_1_2_MANIFEST_HASH,
+    reviewerVisibleRationale: 'Step 04 distinguishes mechanism modeling and data-driven modeling, matching the transfer-function modeling foundation boundary through 建模_1_2.',
+    independentEvidenceRef: 'course-content/runtime/lessons/1-2/graph-overlay.json#group:建模路径与微分方程',
+  })],
+  ['1-2:step-05', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
+    estimatedTimeMinutes: 8,
+    reviewedSourceHash: REVIEWED_LESSON_1_2_MANIFEST_HASH,
+    reviewerVisibleRationale: 'Step 05 translates physical objects into differential equations and is a concept-level precursor for transfer-function modeling.',
+    independentEvidenceRef: 'course-content/runtime/lessons/1-2/graph-overlay.json#group:建模路径与微分方程',
+  })],
+  ['2-2:step-09', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
+    estimatedTimeMinutes: 7,
+    reviewedSourceHash: REVIEWED_LESSON_2_2_MANIFEST_HASH,
+    reviewerVisibleRationale: 'Step 09 directly covers the dynamic performance indicator node used by the time-domain-response-analysis goal.',
+    independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
+  })],
+  ['2-2:step-10', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
+    estimatedTimeMinutes: 7,
+    reviewedSourceHash: REVIEWED_LESSON_2_2_MANIFEST_HASH,
+    reviewerVisibleRationale: 'Step 10 reviews rise-time definition and derivation as a path-eligible concept resource for time-domain performance analysis.',
+    independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
+  })],
+  ['2-2:step-11', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
+    estimatedTimeMinutes: 7,
+    reviewedSourceHash: REVIEWED_LESSON_2_2_MANIFEST_HASH,
+    reviewerVisibleRationale: 'Step 11 covers peak time and overshoot, preserving citation/path distinction as a concept step rather than assessment evidence.',
+    independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
+  })],
+  ['2-2:step-12', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
+    estimatedTimeMinutes: 7,
+    reviewedSourceHash: REVIEWED_LESSON_2_2_MANIFEST_HASH,
+    reviewerVisibleRationale: 'Step 12 covers settling-time error bands and is reviewed as concept/path material for time-domain response analysis.',
+    independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
+  })],
+  ['2-2:step-13', reviewedRuntimeStepCompletion({
+    capabilityTargetIds: [],
+    estimatedTimeMinutes: 8,
+    reviewedSourceHash: REVIEWED_LESSON_2_2_MANIFEST_HASH,
+    reviewerVisibleRationale: 'Step 13 applies time-domain indicator calculations in a worked example, improving concept practice support without counting as checkpoint evidence.',
+    independentEvidenceRef: 'course-content/runtime/lessons/2-2/graph-overlay.json#group:动态性能指标精讲',
+  })],
 ]);
 
 function reviewedRuntimeStepReadiness(completion: ReviewedRuntimeStepCompletion) {
@@ -514,6 +542,9 @@ async function collectRuntimeManifestCandidates() {
             ...REVIEWED_GRAPH_RESOURCE_REVIEWER,
             reviewedAt: REVIEWED_GRAPH_RESOURCE_REVIEWED_AT,
             reviewBatchId: REVIEWED_GRAPH_RESOURCE_BATCH_ID,
+            reviewerVisibleRationale: reviewedCompletionCurrent.reviewerVisibleRationale,
+            independentEvidenceRef: reviewedCompletionCurrent.independentEvidenceRef,
+            promptOrManifestHash: manifestHash,
             confidence: 0.91,
           }
           : undefined,

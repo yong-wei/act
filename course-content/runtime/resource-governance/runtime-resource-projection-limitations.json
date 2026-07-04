@@ -16,9 +16,9 @@
     "rows": 3038,
     "resourceNodeCandidates": 450,
     "segmentOnly": 2588,
-    "registryPathEligible": 149,
-    "planningUnitEligible": 0,
-    "humanConfirmed": 0,
+    "registryPathEligible": 158,
+    "planningUnitEligible": 9,
+    "humanConfirmed": 9,
     "provisional": 2880,
     "stale": 0
   },
@@ -31,11 +31,11 @@
     "knowledge-infograph": 161
   },
   "byProjectionLevel": {
-    "ResourceNode": 450,
+    "ResourceNode": 441,
     "ResourceSegment": 2588,
     "CitationTarget": 0,
     "RetrievalChunk": 0,
-    "PlanningUnit": 0
+    "PlanningUnit": 9
   },
   "blockingCodes": [
     "missing-capability-target",
@@ -48,8 +48,7 @@
     "missing-path-profile",
     "missing-path-target",
     "missing-segment-ref",
-    "provisional-metadata",
-    "stale-review"
+    "provisional-metadata"
   ],
   "limitations": [
     "infograph:Bode图_1_1: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",

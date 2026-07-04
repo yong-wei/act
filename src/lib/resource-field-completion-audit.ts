@@ -478,6 +478,9 @@ function rowFromCandidate(
 ): ResourceFieldCompletionAuditRow {
   const evidenceInstrumentation = candidate.evidenceInstrumentation ?? [];
   const humanReviewConfirmed = candidateHasFreshHumanReviewEvidence(candidate);
+  const reviewedConceptStep = candidate.family === 'runtime-lesson-step' &&
+    candidate.humanConfirmed === true &&
+    Boolean(candidate.knowledgeNodeIds?.length);
   const evidenceContract = buildEvidenceContract({
     eventSource: Boolean(candidate.family),
     eventType: evidenceInstrumentation.length > 0,
@@ -487,7 +490,7 @@ function rowFromCandidate(
     dedupeKey: Boolean(candidate.id && candidate.sourcePathOrUrl),
     timestamps: evidenceInstrumentation.length > 0,
     learningFactPolicy: evidenceInstrumentation.length > 0,
-    confidencePolicy: Boolean(candidate.capabilityTargetIds?.length),
+    confidencePolicy: Boolean(candidate.capabilityTargetIds?.length) || reviewedConceptStep,
     privacyScope: Boolean(candidate.privacyScope),
   });
   const missingFieldCodes = uniqueCodes([
@@ -496,7 +499,7 @@ function rowFromCandidate(
     ...(!candidate.contentHash ? ['missing-content-hash' as const] : []),
     ...(!candidate.versionRef ? ['missing-version-ref' as const] : []),
     ...(!candidate.knowledgeNodeIds?.length ? ['missing-knowledge-binding' as const] : []),
-    ...(!candidate.capabilityTargetIds?.length ? ['missing-capability-target' as const] : []),
+    ...(!candidate.capabilityTargetIds?.length && !reviewedConceptStep ? ['missing-capability-target' as const] : []),
     ...(!candidate.pathTarget ? ['missing-path-target' as const] : []),
     ...(!candidate.estimatedTimeMinutes ? ['missing-path-profile' as const] : []),
     ...(!candidate.evidenceInstrumentation?.length ? ['missing-evidence-instrumentation' as const] : []),
