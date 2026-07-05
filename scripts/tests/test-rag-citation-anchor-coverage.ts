@@ -184,6 +184,9 @@ assertUnsafeTextbookTargetDowngradesToLimited();
 assertUnresolvableTextbookTargetDowngradesToLimited();
 assertEncodedTraversalTextbookTargetDowngradesToLimited();
 assertStaleTextbookTargetHashDowngradesToLimited();
+assertAddressKindMismatchDowngradesToLimited();
+assertSpanMismatchDowngradesToLimited();
+assertFigureSpanMismatchDowngradesToLimited();
 assertMissingTextbookRuntimeExportFailsFast();
 
 console.log('RAG citation anchor coverage artifacts verified.');
@@ -360,6 +363,67 @@ function assertStaleTextbookTargetHashDowngradesToLimited() {
   assert(item.citationChip.limitationState === 'quote-hash-mismatch', 'stale target CitationChip must use the hash mismatch limitation reason');
   assert(item.citationChip.authorityLevel === 'contextual', 'stale target CitationChip must be authority downgraded');
   assert(item.citationChip.confidence === 'medium', 'stale target CitationChip must be confidence downgraded');
+}
+
+function assertAddressKindMismatchDowngradesToLimited() {
+  const figureCandidate = {
+    ...syntheticCandidate(),
+    kind: 'figure',
+    candidateId: 'textbook-figure:synthetic-book:synthetic-section:fig-003',
+    documentId: 'fig-003__figure',
+    pageAnchor: 'fig-003',
+  };
+  const textTarget = syntheticTarget();
+  textTarget.candidateId = figureCandidate.candidateId;
+  textTarget.documentId = figureCandidate.documentId;
+  textTarget.address.sourceRefId = figureCandidate.pageAnchor;
+  textTarget.address.locator = figureCandidate.pageAnchor;
+  const item = textbookCorpusItem(figureCandidate, textTarget, new Set(['synthetic-section']), new Set()) as CorpusItem;
+  assert(item.citationState === 'limited', 'address kind mismatch must produce a limited artifact');
+  assert(item.limitationState.includes('address-kind-mismatch'), 'address kind mismatch limitation must be explicit');
+  assert(item.citationAddress.kind === 'image', 'limited kind mismatch must preserve candidate image address kind');
+  assert(item.citationAddress.sourceRefId === figureCandidate.pageAnchor, 'limited kind mismatch must preserve candidate source ref');
+  assert(item.citationAddress.href === null, 'kind mismatch CitationAddress must not be hydratable');
+  assert(item.citationChip.displayHref === null, 'kind mismatch CitationChip must not be clickable');
+  assert(item.citationChip.limitationState === 'address-kind-mismatch', 'kind mismatch CitationChip must use the standard reason');
+}
+
+function assertSpanMismatchDowngradesToLimited() {
+  const target = syntheticTarget();
+  target.address.sourceRefId = 'different-source-ref';
+  target.address.locator = 'different-locator';
+  const candidate = syntheticCandidate();
+  const item = textbookCorpusItem(candidate, target, new Set(['synthetic-section']), new Set()) as CorpusItem;
+  assert(item.citationState === 'limited', 'span mismatch must produce a limited artifact');
+  assert(item.limitationState.includes('span-ref-mismatch'), 'span mismatch limitation must be explicit');
+  assert(item.citationAddress.sourceRefId === candidate.documentId, 'limited span mismatch must preserve candidate source ref');
+  assert(item.citationAddress.href === null, 'span mismatch CitationAddress must not be hydratable');
+  assert(item.citationChip.displayHref === null, 'span mismatch CitationChip must not be clickable');
+  assert(item.citationChip.limitationState === 'span-ref-mismatch', 'span mismatch CitationChip must use the standard reason');
+}
+
+function assertFigureSpanMismatchDowngradesToLimited() {
+  const figureCandidate = {
+    ...syntheticCandidate(),
+    kind: 'figure',
+    candidateId: 'textbook-figure:synthetic-book:synthetic-section:fig-004',
+    documentId: 'fig-004__figure',
+    pageAnchor: 'fig-004',
+  };
+  const target = syntheticTarget();
+  target.candidateId = figureCandidate.candidateId;
+  target.documentId = figureCandidate.documentId;
+  target.address.kind = 'image';
+  target.address.sourceRefId = 'different-figure';
+  target.address.locator = 'different-figure';
+  const item = textbookCorpusItem(figureCandidate, target, new Set(['synthetic-section']), new Set()) as CorpusItem;
+  assert(item.citationState === 'limited', 'figure span mismatch must produce a limited artifact');
+  assert(item.limitationState.includes('span-ref-mismatch'), 'figure span mismatch limitation must be explicit');
+  assert(item.citationAddress.kind === 'image', 'limited figure span mismatch must preserve image address kind');
+  assert(item.citationAddress.sourceRefId === figureCandidate.pageAnchor, 'limited figure span mismatch must preserve candidate figure anchor');
+  assert(item.citationAddress.href === null, 'figure span mismatch CitationAddress must not be hydratable');
+  assert(item.citationChip.displayHref === null, 'figure span mismatch CitationChip must not be clickable');
+  assert(item.citationChip.limitationState === 'span-ref-mismatch', 'figure span mismatch CitationChip must use the standard reason');
 }
 
 function assertMissingTextbookRuntimeExportFailsFast() {

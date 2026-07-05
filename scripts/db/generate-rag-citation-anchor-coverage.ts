@@ -230,19 +230,35 @@ export function textbookCorpusItem(
     targetContentHash === sourceHash &&
     targetAddressContentHash === sourceHash,
   );
-  const ready = Boolean(target && reviewedSourceRef && hasServerOwnedTargetHref && targetHashesMatch);
+  const targetAddressKindMatches = Boolean(target && target.address.kind === toCitationAddressKind(candidate.kind));
+  const targetSpanMatches = Boolean(
+    target &&
+    target.documentId === candidate.documentId &&
+    target.address.sourceRefId === candidate.pageAnchor &&
+    target.address.locator === candidate.pageAnchor,
+  );
+  const ready = Boolean(
+    target &&
+    reviewedSourceRef &&
+    hasServerOwnedTargetHref &&
+    targetHashesMatch &&
+    targetAddressKindMatches &&
+    targetSpanMatches,
+  );
   const limitationState = ready ? [] : uniqueSorted([
     target ? '' : 'missing-citation-target',
     reviewedSourceRef ? '' : 'section-review-not-selected-for-current-path-batch',
     target && !hasServerOwnedTargetHref ? 'unsafe-citation-target-href' : '',
     target && !targetHashesMatch ? 'quote-hash-mismatch' : '',
+    target && !targetAddressKindMatches ? 'address-kind-mismatch' : '',
+    target && !targetSpanMatches ? 'span-ref-mismatch' : '',
   ]);
   const citationAddress = {
     kind: ready ? target!.address.kind : toCitationAddressKind(candidate.kind),
     href: ready ? target!.address.href : null,
-    locator: target?.address.locator ?? candidate.pageAnchor,
+    locator: ready ? target!.address.locator : candidate.pageAnchor,
     contentHash: ready ? targetAddressContentHash : sourceHash,
-    sourceRefId: target?.address.sourceRefId ?? candidate.documentId,
+    sourceRefId: ready ? target!.address.sourceRefId : candidate.pageAnchor,
   };
   const displayTitle = textbookDisplayTitle(candidate);
   return {
@@ -608,6 +624,8 @@ function citationChipLimitationReason(limitationState: string[]): CitationChipLi
   if (limitationState.includes('section-review-not-selected-for-current-path-batch')) return 'insufficient-authority';
   if (limitationState.includes('unsafe-citation-target-href')) return 'unsafe-address';
   if (limitationState.includes('quote-hash-mismatch')) return 'quote-hash-mismatch';
+  if (limitationState.includes('address-kind-mismatch')) return 'address-kind-mismatch';
+  if (limitationState.includes('span-ref-mismatch')) return 'span-ref-mismatch';
   if (limitationState.includes('media-production-missing')) return 'inaccessible-source';
   if (limitationState.some((item) =>
     item.includes('anchor-required') ||
