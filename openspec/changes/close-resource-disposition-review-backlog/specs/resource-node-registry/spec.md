@@ -1,6 +1,6 @@
 ## ADDED Requirements
 ### Requirement: Residual resource disposition backlog is closed before final readiness
-The ResourceNode governance layer SHALL close residual human-review and disposition findings after resource-family batches complete.
+The ResourceNode governance layer SHALL close residual semantic-review and disposition findings after resource-family batches complete.
 
 #### Scenario: Residual backlog is reviewed
 - **WHEN** primary TeachingResource, graph, runtime, media, long-form, assessment, and citation batches are complete

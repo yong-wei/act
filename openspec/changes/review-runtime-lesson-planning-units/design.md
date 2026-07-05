@@ -5,12 +5,12 @@ Review runtime lesson steps and promote only valid steps to PlanningUnit or clas
 ### Batch Boundary
 
 - Use helper workqueues to split runtime lesson steps by lesson, LearningGoal, and missing fields.
-- Manually review step title, route target, graph binding, capability target, estimated time, evidence behavior, and prerequisite role.
+- The implementing agent reviews step title, route target, graph binding, capability target, estimated time, evidence behavior, and prerequisite role.
 - Add reviewed disposition and parent/child relationships for non-planning steps.
 
-### Manual Review Policy
+### Implementing-Agent Semantic Review Policy
 
-Semantic fields such as graph binding, LearningGoal fit, capability or quality contribution, path role, remediation purpose, and exclusion rationale require human review. Scripts, SAR, RAG, and local or external model output may propose candidates, but they cannot mark final semantic fields as human-confirmed.
+Semantic fields such as graph binding, LearningGoal fit, capability or quality contribution, path role, remediation purpose, and exclusion rationale require implementing-agent item-by-item semantic review against source content. Scripts, SAR, RAG, and local or external model output may propose candidates, but they cannot mark final semantic fields as review-confirmed without per-record rationale.
 
 ### Dependency Position
 

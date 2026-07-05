@@ -31,7 +31,7 @@ Build and review the minimum assessment resource set needed for every current Le
 ## Scope
 
 - Reuse existing static bank, Prisma Question rows, AC-Q files, iCourse objective items, K/A/Q foundation items, and manually authored checkpoint items before creating new items.
-- Manually review every counted item for LearningGoal, K/A/Q objective, graph node, difficulty, cognitive level, misconception, remediation, and source hash.
+- The implementing agent reviews every counted item for LearningGoal, K/A/Q objective, graph node, difficulty, cognitive level, misconception, remediation, and source hash item by item against source content.
 - Author only the minimum new items needed to close verified gaps.
 
 ## Out of Scope
@@ -45,7 +45,7 @@ Build and review the minimum assessment resource set needed for every current Le
   Evidence: assessment coverage matrix output.
 - [ ] AC-2: Terminal-validation assessment requirements are satisfied or explicitly delegated to governed simulation/workbench/Arena evidence. Owner: independent reviewer.
   Evidence: coverage matrix and path policy output.
-- [ ] AC-3: Every counted item has current human semantic review and valid source hash. Owner: independent reviewer.
+- [ ] AC-3: Every counted item has current implementing-agent item-by-item semantic review and valid source hash. Owner: independent reviewer.
   Evidence: semantic review coverage output.
 
 ## Tasks
@@ -55,7 +55,7 @@ Build and review the minimum assessment resource set needed for every current Le
   Acceptance: Worklists show missing stages and candidate existing items per LearningGoal.
   Evidence: coverage matrix output.
   Reviewer Check: Confirm all 9 goals are enumerated dynamically.
-- [ ] Task 2: Manually review and classify existing items.
+- [ ] Task 2: Review and classify existing items item by item.
   Covers: AC-1, AC-3
   Acceptance: Existing suitable items become reviewed/path-eligible for specific stages.
   Evidence: semantic review output.
@@ -78,7 +78,8 @@ Build and review the minimum assessment resource set needed for every current Le
 - Check AC items only after an independent reviewer confirms the linked task evidence.
 - Use the claim branch named in front matter.
 - Preserve before/after helper evidence for this batch.
-- Do not auto-promote semantic fields from scripts, SAR, RAG, or model suggestions without human review.
+- Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
+- Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.

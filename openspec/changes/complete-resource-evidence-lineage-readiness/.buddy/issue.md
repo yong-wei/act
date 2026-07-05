@@ -80,9 +80,10 @@ Complete source-event lineage for all reviewed path-relevant core, long-form, an
 - Implementation agents may propose satisfied AC ids with evidence, but must not check Acceptance Checklist items themselves.
 - Check AC items only after an independent reviewer confirms the linked task evidence.
 - Preserve before/after helper evidence for this batch.
-- Do not auto-promote semantic fields from scripts, SAR, RAG, or model suggestions without human review.
+- Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
+- Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - Start by running the helper and preserve before/after output.
-- Complete semantic and evidence fields manually where interpretation is required.
+- Complete semantic and evidence fields through implementing-agent item-by-item review against source content where interpretation is required, with per-record rationale.
 - Do not use scripts to infer final knowledge, capability, or LearningGoal mappings.
 - Preserve Arena official scoring and ranking authority.
 - Do not execute other planned OpenSpec changes.

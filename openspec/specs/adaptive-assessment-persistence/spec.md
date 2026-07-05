@@ -74,7 +74,7 @@ The system SHALL persist adaptive assessment sessions and answers instead of rel
 - **AND** historical answers SHALL continue to use the immutable metadata snapshot used at answer time.
 
 #### Scenario: Generated question is provisional
-- **WHEN** a generated question lacks human-reviewed K/A/Q and readiness metadata
+- **WHEN** a generated question lacks implementing-agent-reviewed K/A/Q and readiness metadata
 - **THEN** its answer MAY be persisted for practice history
 - **AND** it SHALL NOT unlock high-complexity resources, satisfy terminal validation, or create high-confidence mastery evidence.
 

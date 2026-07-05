@@ -8,4 +8,4 @@ Runtime media, slides, audio, video, PDF, and handout resources SHALL declare re
 
 #### Scenario: Media is path-plannable
 - **WHEN** a media or handout resource is promoted to path-plannable
-- **THEN** it SHALL include verified launch target, graph binding, LearningGoal fit, estimated time, evidence behavior, privacy policy, route/access semantics, and human review metadata.
+- **THEN** it SHALL include verified launch target, graph binding, LearningGoal fit, estimated time, evidence behavior, privacy policy, route/access semantics, and review metadata.

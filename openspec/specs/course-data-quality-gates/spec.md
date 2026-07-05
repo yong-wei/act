@@ -187,12 +187,12 @@ The course data-quality gates SHALL report assessment item semantic coverage bef
 - **AND** they SHALL fail or block path eligibility according to the configured severity.
 
 #### Scenario: Item is unreviewed
-- **WHEN** an item is registered but lacks a valid manual semantic review decision
+- **WHEN** an item is registered but lacks a valid implementing-agent semantic review decision
 - **THEN** the gate SHALL keep it visible in backlog output
 - **AND** it SHALL NOT allow the item to satisfy readiness, checkpoint, remediation gate, or terminal-validation requirements.
 
 ### Requirement: Resource completion helper emits claimable workqueues
-The data completeness helper SHALL emit stable workqueues for staged human completion of resource metadata and semantic review.
+The data completeness helper SHALL emit stable workqueues for staged implementing-agent completion of resource metadata and semantic review.
 
 #### Scenario: Workqueues are generated
 - **WHEN** the helper evaluates graph, resource, citation, path-planning, assessment, evidence-lineage, and learner fixture readiness
@@ -204,8 +204,7 @@ The data completeness helper SHALL emit stable workqueues for staged human compl
 - **THEN** queue totals SHALL reconcile with helper layer totals, follow-up bucket counts, and field-completion audit totals
 - **AND** a resource SHALL appear in one primary completion queue unless a secondary dependent queue is explicitly marked.
 
-#### Scenario: Human-confirmed rows are integrity checked
-- **WHEN** helper output marks semantic fields as human-confirmed
-- **THEN** the helper SHALL require reviewer identity, reviewer role, reviewed time, source hash or source version, reviewer-visible rationale, and separate human-review evidence where applicable
-- **AND** script constants, generated suggestions, placeholder reviewer ids, or missing source-version evidence SHALL NOT satisfy fresh human review.
-
+#### Scenario: Review-confirmed rows are integrity checked
+- **WHEN** helper output marks semantic fields as review-confirmed
+- **THEN** the helper SHALL require reviewer identity, reviewer role, reviewed time, source hash or source version, reviewer-visible rationale, and separate review evidence where applicable
+- **AND** script constants, generated suggestions, placeholder reviewer ids, or missing source-version evidence SHALL NOT satisfy fresh implementing-agent semantic review.

@@ -5,7 +5,7 @@ The data-completeness helper reports 541 active graph nodes without resource ref
 ## What Changes
 
 - Consume the graph-node-resource-missing workqueue after priority graph/resource batches complete.
-- Manually bind remaining graph nodes to reviewed resources where suitable.
+- The implementing agent binds remaining graph nodes to reviewed resources item by item where suitable.
 - Mark nodes without suitable resources with reviewed limitation states and actionable gap categories.
 - Recompute graph coverage and LearningGoal baseline overlays so downstream gates can distinguish resolved refs from reviewed gaps.
 

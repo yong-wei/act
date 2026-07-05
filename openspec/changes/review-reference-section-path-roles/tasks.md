@@ -6,7 +6,7 @@
   Evidence: helper output.
   Reviewer Check: Confirm core textbook records are excluded.
 
-- [ ] Task 2: Manually review reference roles.
+- [ ] Task 2: Review reference roles item by item.
   Covers: AC-1, AC-2
   Acceptance: Accepted references include role, graph fit, and source authority rationale.
   Evidence: source diff and helper output.

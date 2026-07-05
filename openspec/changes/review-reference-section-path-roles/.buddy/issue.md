@@ -51,7 +51,7 @@ Classify reference-resource sections as supporting citation, remediation, extens
   Acceptance: Worklist targets reference and encyclopedia sections not covered by core textbook review.
   Evidence: helper output.
   Reviewer Check: Confirm core textbook records are excluded.
-- [ ] Task 2: Manually review reference roles.
+- [ ] Task 2: Review reference roles item by item.
   Covers: AC-1, AC-2
   Acceptance: Accepted references include role, graph fit, and source authority rationale.
   Evidence: source diff and helper output.
@@ -69,7 +69,8 @@ Classify reference-resource sections as supporting citation, remediation, extens
 - Check AC items only after an independent reviewer confirms the linked task evidence.
 - Use the claim branch named in front matter.
 - Preserve before/after helper evidence for this batch.
-- Do not auto-promote semantic fields from scripts, SAR, RAG, or model suggestions without human review.
+- Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
+- Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.

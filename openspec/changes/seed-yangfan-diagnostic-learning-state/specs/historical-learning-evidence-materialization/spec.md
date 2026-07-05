@@ -30,7 +30,7 @@ The system SHALL provide an explicit Yang Fan diagnostic fixture command for loc
 #### Scenario: Duplicate account contains unsafe records
 - **WHEN** a duplicate account contains records that cannot be safely classified as fixture-owned or migratable
 - **THEN** the command SHALL stop before deletion
-- **AND** it SHALL report the blocking record families for manual review.
+- **AND** it SHALL report the blocking record families for implementing-agent review.
 
 #### Scenario: Yang Fan learner evidence is materialized
 - **WHEN** the fixture applies after preconditions pass

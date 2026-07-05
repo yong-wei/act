@@ -6,7 +6,7 @@
   Evidence: helper output.
   Reviewer Check: Confirm upstream family queues have been completed or explicitly excluded.
 
-- [ ] Task 2: Manually review residual resources.
+- [ ] Task 2: Review residual resources item by item.
   Covers: AC-1, AC-2
   Acceptance: Every residual resource gets reviewed disposition or limitation.
   Evidence: source diff and helper output.

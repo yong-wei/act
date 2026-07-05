@@ -6,7 +6,7 @@
   Evidence: helper workqueue output.
   Reviewer Check: Confirm chunk-level records are not primary path candidates.
 
-- [ ] Task 2: Manually review section path roles.
+- [ ] Task 2: Review section path roles item by item.
   Covers: AC-1, AC-2
   Acceptance: Sections are assigned path/support/remediation/exclusion roles with rationale.
   Evidence: source diff and helper output.

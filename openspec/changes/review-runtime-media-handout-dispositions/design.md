@@ -8,9 +8,9 @@ Classify runtime media, slides, audio, video, PDFs, and handouts into path-plann
 - Define transcript/anchor needs for audio/video and page/figure anchors for slides/PDFs.
 - Separate independent teaching resources from embedded assets and citation-only media.
 
-### Manual Review Policy
+### Implementing-Agent Semantic Review Policy
 
-Semantic fields such as graph binding, LearningGoal fit, capability or quality contribution, path role, remediation purpose, and exclusion rationale require human review. Scripts, SAR, RAG, and local or external model output may propose candidates, but they cannot mark final semantic fields as human-confirmed.
+Semantic fields such as graph binding, LearningGoal fit, capability or quality contribution, path role, remediation purpose, and exclusion rationale require implementing-agent item-by-item semantic review against source content. Scripts, SAR, RAG, and local or external model output may propose candidates, but they cannot mark final semantic fields as review-confirmed without per-record rationale.
 
 ### Dependency Position
 

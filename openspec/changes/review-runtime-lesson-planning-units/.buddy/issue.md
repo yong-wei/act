@@ -29,7 +29,7 @@ Review runtime lesson steps and promote only valid steps to PlanningUnit or clas
 ## Scope
 
 - Use helper workqueues to split runtime lesson steps by lesson, LearningGoal, and missing fields.
-- Manually review step title, route target, graph binding, capability target, estimated time, evidence behavior, and prerequisite role.
+- The implementing agent reviews step title, route target, graph binding, capability target, estimated time, evidence behavior, and prerequisite role item by item against source content.
 - Add reviewed disposition and parent/child relationships for non-planning steps.
 
 ## Out of Scope
@@ -71,7 +71,8 @@ Review runtime lesson steps and promote only valid steps to PlanningUnit or clas
 - Check AC items only after an independent reviewer confirms the linked task evidence.
 - Use the claim branch named in front matter.
 - Preserve before/after helper evidence for this batch.
-- Do not auto-promote semantic fields from scripts, SAR, RAG, or model suggestions without human review.
+- Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
+- Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.

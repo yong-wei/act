@@ -1,6 +1,6 @@
 ## Why
 
-The helper reports many runtime media and handout resources as citation-ready but lacking human review, path profile, evidence contract, or parent PlanningUnit relationships.
+The helper reports many runtime media and handout resources as citation-ready but lacking implementing-agent semantic review, path profile, evidence contract, or parent PlanningUnit relationships.
 
 ## What Changes
 

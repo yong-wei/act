@@ -6,11 +6,11 @@
   Evidence: helper workqueue output with current and remaining graph-node-resource-missing totals.
   Reviewer Check: Confirm foundation, analysis/design, and simulation/transfer batches are not counted twice.
 
-- [ ] Task 2: Manually bind remaining graph nodes or create reviewed gaps.
+- [ ] Task 2: Bind remaining graph nodes item by item or create reviewed gaps.
   Covers: AC-1, AC-2
   Acceptance: Every remaining graph node receives reviewed resource refs or a reviewed limitation state with actionable category.
   Evidence: graph coverage helper before/after output.
-  Reviewer Check: Confirm SAR/RAG suggestions were not accepted without human rationale.
+  Reviewer Check: Confirm SAR/RAG suggestions were not accepted without implementing-agent per-record rationale.
 
 - [ ] Task 3: Validate graph coverage closure.
   Covers: AC-2, AC-3

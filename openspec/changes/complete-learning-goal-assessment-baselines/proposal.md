@@ -5,7 +5,7 @@ The LearningGoal baseline matrix shows all 9 goals missing diagnostic, practice,
 ## What Changes
 
 - Reuse existing static bank, Prisma Question rows, AC-Q files, iCourse objective items, K/A/Q foundation items, and manually authored checkpoint items before creating new items.
-- Manually review every counted item for LearningGoal, K/A/Q objective, graph node, difficulty, cognitive level, misconception, remediation, and source hash.
+- The implementing agent reviews every counted item for LearningGoal, K/A/Q objective, graph node, difficulty, cognitive level, misconception, remediation, and source hash.
 - Author only the minimum new items needed to close verified gaps.
 
 ## Impact

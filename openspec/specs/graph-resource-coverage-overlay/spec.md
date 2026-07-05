@@ -41,10 +41,10 @@ The resource coverage overlay SHALL not conflate a linked resource with a path-e
 
 #### Scenario: Resource coverage includes field completion state
 - **WHEN** graph resource coverage is generated
-- **THEN** each graph node SHALL expose counts for complete, missing-field, provisional, human-confirmed, citation-ready, path-eligible, and blocked resources where available
+- **THEN** each graph node SHALL expose counts for complete, missing-field, provisional, review-confirmed, citation-ready, path-eligible, and blocked resources where available
 - **AND** missing field dimensions SHALL be visible to teacher or administrator diagnostics without copying raw resource content.
 - **AND** the coverage payload SHALL include denominator, source window, artifact version, sample limitations, and limitation reasons for each displayed coverage dimension.
-- **AND** the coverage payload SHALL identify whether remaining blockers are citation-only, path-planning, evidence-contract, or human-review blockers.
+- **AND** the coverage payload SHALL identify whether remaining blockers are citation-only, path-planning, evidence-contract, or semantic-review blockers.
 
 ### Requirement: LearningGoal baseline coverage is exposed by graph overlays
 The system SHALL provide read-only resource coverage overlays for graph nodes.
@@ -52,15 +52,15 @@ The system SHALL provide read-only resource coverage overlays for graph nodes.
 #### Scenario: LearningGoal baseline coverage is generated
 - **WHEN** resource coverage is generated for a path-ready LearningGoal
 - **THEN** the overlay SHALL report coverage by K/A/Q objective and by baseline category: concept, diagnostic, practice, checkpoint, remediation, citation, and terminal validation where required
-- **AND** it SHALL distinguish linked, human-confirmed, path-eligible, citation-ready, assessment-capable, and high-complexity locked resources.
-- **AND** it SHALL expose the resource ids and blocker categories needed for staged human completion without exposing raw content to unauthorized roles.
+- **AND** it SHALL distinguish linked, review-confirmed, path-eligible, citation-ready, assessment-capable, and high-complexity locked resources.
+- **AND** it SHALL expose the resource ids and blocker categories needed for staged implementing-agent completion without exposing raw content to unauthorized roles.
 
 ### Requirement: LearningGoal baseline coverage distinguishes availability dimensions
 The resource coverage overlay SHALL not conflate a linked resource with a path-eligible or citation-ready resource.
 
 #### Scenario: Resource has provisional field completion
 - **WHEN** a resource is linked to a LearningGoal only through provisional or model-assisted metadata
-- **THEN** the overlay SHALL count it separately from human-confirmed coverage
+- **THEN** the overlay SHALL count it separately from review-confirmed coverage
 - **AND** it SHALL NOT count it as baseline path coverage.
 
 ### Requirement: Resource coverage overlay can display SAR candidate gaps
@@ -72,7 +72,7 @@ The graph resource coverage overlay SHALL display SAR-backed candidate resources
 - **AND** it SHALL expose the trace or rationale for teacher/admin review.
 
 ### Requirement: Foundation graph resource bindings are completed in reviewed batches
-The graph resource coverage workflow SHALL support bounded human-reviewed batches for foundational control-system graph nodes.
+The graph resource coverage workflow SHALL support bounded implementing-agent-reviewed batches for foundational control-system graph nodes.
 
 #### Scenario: Foundation batch is reviewed
 - **WHEN** feedback, closed-loop, transfer-function, and time-domain foundation nodes are reviewed
@@ -81,10 +81,10 @@ The graph resource coverage workflow SHALL support bounded human-reviewed batche
 
 #### Scenario: Baseline coverage is recalculated
 - **WHEN** a foundation graph binding batch is completed
-- **THEN** LearningGoal baseline coverage SHALL distinguish linked, human-confirmed, path-eligible, citation-ready, and blocked resources for the affected goals.
+- **THEN** LearningGoal baseline coverage SHALL distinguish linked, review-confirmed, path-eligible, citation-ready, and blocked resources for the affected goals.
 
 ### Requirement: Analysis and design graph resource bindings are completed in reviewed batches
-The graph resource coverage workflow SHALL support bounded human-reviewed batches for analysis and controller-design graph nodes.
+The graph resource coverage workflow SHALL support bounded implementing-agent-reviewed batches for analysis and controller-design graph nodes.
 
 #### Scenario: Analysis and design batch is reviewed
 - **WHEN** stability, steady-state error, root-locus, frequency-response, margin, and correction-design nodes are reviewed

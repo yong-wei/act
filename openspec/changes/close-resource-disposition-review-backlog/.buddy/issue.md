@@ -33,7 +33,7 @@ area: resource-governance
 
 ## Goal
 
-Resolve the residual disposition backlog by manually reviewing remaining resources or creating precise exclusion/limitation states.
+Resolve the residual disposition backlog through implementing-agent item-by-item semantic review of remaining resources or by creating precise exclusion/limitation states.
 
 ## Scope
 
@@ -62,7 +62,7 @@ Resolve the residual disposition backlog by manually reviewing remaining resourc
   Acceptance: Helper output isolates only leftovers after upstream batches.
   Evidence: helper output.
   Reviewer Check: Confirm upstream family queues have been completed or explicitly excluded.
-- [ ] Task 2: Manually review residual resources.
+- [ ] Task 2: Review residual resources item by item.
   Covers: AC-1, AC-2
   Acceptance: Every residual resource gets reviewed disposition or limitation.
   Evidence: source diff and helper output.
@@ -80,7 +80,8 @@ Resolve the residual disposition backlog by manually reviewing remaining resourc
 - Check AC items only after an independent reviewer confirms the linked task evidence.
 - Use the claim branch named in front matter.
 - Preserve before/after helper evidence for this batch.
-- Do not auto-promote semantic fields from scripts, SAR, RAG, or model suggestions without human review.
+- Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
+- Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.

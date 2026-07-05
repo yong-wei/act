@@ -54,7 +54,7 @@ Review core automatic-control textbook sections at section grain and classify th
   Acceptance: Worklist targets core textbook sections and excludes reference-only sources.
   Evidence: helper workqueue output.
   Reviewer Check: Confirm chunk-level records are not primary path candidates.
-- [ ] Task 2: Manually review section path roles.
+- [ ] Task 2: Review section path roles item by item.
   Covers: AC-1, AC-2
   Acceptance: Sections are assigned path/support/remediation/exclusion roles with rationale.
   Evidence: source diff and helper output.
@@ -72,7 +72,8 @@ Review core automatic-control textbook sections at section grain and classify th
 - Check AC items only after an independent reviewer confirms the linked task evidence.
 - Use the claim branch named in front matter.
 - Preserve before/after helper evidence for this batch.
-- Do not auto-promote semantic fields from scripts, SAR, RAG, or model suggestions without human review.
+- Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
+- Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.

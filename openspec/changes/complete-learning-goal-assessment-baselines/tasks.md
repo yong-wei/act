@@ -6,7 +6,7 @@
   Evidence: coverage matrix output.
   Reviewer Check: Confirm all 9 goals are enumerated dynamically.
 
-- [ ] Task 2: Manually review and classify existing items.
+- [ ] Task 2: Review and classify existing items item by item.
   Covers: AC-1, AC-3
   Acceptance: Existing suitable items become reviewed/path-eligible for specific stages.
   Evidence: semantic review output.

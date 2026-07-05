@@ -65,11 +65,11 @@ Close the current graph-node-resource-missing backlog so every graph node is eit
   Acceptance: The workqueue enumerates every remaining `graph-node-resource-missing` finding after upstream graph/resource batches.
   Evidence: helper workqueue output with current and remaining graph-node-resource-missing totals.
   Reviewer Check: Confirm foundation, analysis/design, and simulation/transfer batches are not counted twice.
-- [ ] Task 2: Manually bind remaining graph nodes or create reviewed gaps.
+- [ ] Task 2: Bind remaining graph nodes item by item or create reviewed gaps.
   Covers: AC-1, AC-2
   Acceptance: Every remaining graph node receives reviewed resource refs or a reviewed limitation state with actionable category.
   Evidence: graph coverage helper before/after output.
-  Reviewer Check: Confirm SAR/RAG suggestions were not accepted without human rationale.
+  Reviewer Check: Confirm SAR/RAG suggestions were not accepted without implementing-agent per-record rationale.
 - [ ] Task 3: Validate graph coverage closure.
   Covers: AC-2, AC-3
   Acceptance: The helper reports zero unexplained `graph-node-resource-missing` findings, or reports only reviewed limitation states, and baseline overlays expose remaining limitation categories.
@@ -83,7 +83,8 @@ Close the current graph-node-resource-missing backlog so every graph node is eit
 - Check AC items only after an independent reviewer confirms the linked task evidence.
 - Use the claim branch named in front matter.
 - Preserve before/after helper evidence for this batch.
-- Do not auto-promote semantic fields from scripts, SAR, RAG, or model suggestions without human review.
+- Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
+- Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.

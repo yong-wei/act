@@ -82,10 +82,11 @@ Add the final gate proving that all existing resources are accounted for in path
 - Implementation agents may propose satisfied AC ids with evidence, but must not check Acceptance Checklist items themselves.
 - Check AC items only after an independent reviewer confirms the linked task evidence.
 - Preserve before/after helper evidence for this batch.
-- Do not auto-promote semantic fields from scripts, SAR, RAG, or model suggestions without human review.
+- Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
+- Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - This is the final gate, not a metadata-completion shortcut.
 - Do not script-fill semantic fields to satisfy the gate.
 - Use helper output as the authoritative gap list.
-- Use SAR/RAG to investigate candidate relations, then require manual review for accepted semantic fields.
+- Use SAR/RAG to investigate candidate relations, then require implementing-agent item-by-item semantic review with per-record rationale for accepted semantic fields.
 - Preserve low-resource states when gaps are real; do not hide them as permission errors.
 - Do not execute other planned OpenSpec changes.

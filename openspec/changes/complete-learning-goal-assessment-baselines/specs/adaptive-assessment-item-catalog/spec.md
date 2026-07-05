@@ -5,7 +5,7 @@ Every current path-ready LearningGoal SHALL have a reviewed minimum assessment b
 #### Scenario: Baseline batch is reviewed
 - **WHEN** assessment coverage is generated for the current LearningGoal registry
 - **THEN** each LearningGoal SHALL report reviewed path-eligible diagnostic, practice, checkpoint, remediation, and terminal-validation where required items or precise limitation states
-- **AND** counted items SHALL include current human semantic review, source hash, LearningGoal id, K/A/Q objective ids, graph-node refs, stage purpose, difficulty, cognitive level, misconception or remediation refs where applicable, and version metadata.
+- **AND** counted items SHALL include current implementing-agent item-by-item semantic review, source hash, LearningGoal id, K/A/Q objective ids, graph-node refs, stage purpose, difficulty, cognitive level, misconception or remediation refs where applicable, and version metadata.
 
 #### Scenario: Existing items are insufficient
 - **WHEN** existing preset, Prisma, AC-Q, iCourse, generated, or K/A/Q foundation items cannot satisfy a required stage after review

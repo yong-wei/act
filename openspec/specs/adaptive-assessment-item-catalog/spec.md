@@ -50,8 +50,8 @@ The catalog SHALL distinguish registered, imported-unreviewed, generated-provisi
 - **THEN** the response evidence SHALL be marked provisional or limited-confidence
 - **AND** it SHALL NOT update high-confidence mastery or unlock heavy path nodes.
 
-### Requirement: Assessment items require human semantic review before path eligibility
-The system SHALL require manual semantic review before an assessment item can become `semantically-reviewed` or `path-eligible`.
+### Requirement: Assessment items require implementing-agent semantic review before path eligibility
+The system SHALL require implementing-agent semantic review before an assessment item can become `semantically-reviewed` or `path-eligible`.
 
 #### Scenario: Review packet is generated
 - **WHEN** catalog items need semantic review
@@ -66,7 +66,7 @@ The system SHALL require manual semantic review before an assessment item can be
 #### Scenario: Script infers candidate tags
 - **WHEN** a script or model proposes LearningGoal, K/A/Q, graph, stage, difficulty, or remediation fields
 - **THEN** the fields MAY be stored as suggestions
-- **AND** they SHALL NOT set `semantically-reviewed` or `path-eligible` without a human review decision.
+- **AND** they SHALL NOT set `semantically-reviewed` or `path-eligible` without a implementing-agent semantic review decision.
 
 ### Requirement: Semantic review covers all catalog source families
 The semantic review workflow SHALL report coverage for every registered source family in the assessment item catalog.
@@ -97,7 +97,7 @@ The assessment item catalog SHALL provide minimum reviewed, path-eligible assess
 #### Scenario: Minimum coverage is satisfied
 - **WHEN** a LearningGoal has at least the configured reviewed path-eligible item counts for every required stage
 - **THEN** the coverage matrix SHALL mark the LearningGoal assessment coverage as complete for those stages
-- **AND** the items counted SHALL have current human semantic review decisions and valid source hashes.
+- **AND** the items counted SHALL have current implementing-agent semantic review decisions and valid source hashes.
 
 #### Scenario: Minimum coverage is incomplete
 - **WHEN** a LearningGoal lacks required reviewed items for a stage
@@ -108,7 +108,7 @@ The assessment item catalog SHALL provide minimum reviewed, path-eligible assess
 The platform SHALL review existing question sources before authoring new adaptive checkpoint items.
 
 #### Scenario: Existing item is suitable
-- **WHEN** a preset, Prisma `Question`, AC-Q static, iCourse objective-bank, or K/A/Q foundation-bank item satisfies the LearningGoal and stage policy after human review
+- **WHEN** a preset, Prisma `Question`, AC-Q static, iCourse objective-bank, or K/A/Q foundation-bank item satisfies the LearningGoal and stage policy after implementing-agent semantic review
 - **THEN** it MAY count toward the minimum item set
 - **AND** its source lineage and review audit SHALL remain visible.
 

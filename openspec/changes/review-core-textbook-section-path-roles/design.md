@@ -8,9 +8,9 @@ Review core automatic-control textbook sections at section grain and classify th
 - Promote only reviewed section-level units, not paragraph chunks, figure descriptions, or raw retrieval chunks.
 - Link reviewed sections to LearningGoals, graph nodes, prerequisite position, estimated time, and citation addresses.
 
-### Manual Review Policy
+### Implementing-Agent Semantic Review Policy
 
-Semantic fields such as graph binding, LearningGoal fit, capability or quality contribution, path role, remediation purpose, and exclusion rationale require human review. Scripts, SAR, RAG, and local or external model output may propose candidates, but they cannot mark final semantic fields as human-confirmed.
+Semantic fields such as graph binding, LearningGoal fit, capability or quality contribution, path role, remediation purpose, and exclusion rationale require implementing-agent item-by-item semantic review against source content. Scripts, SAR, RAG, and local or external model output may propose candidates, but they cannot mark final semantic fields as review-confirmed without per-record rationale.
 
 ### Dependency Position
 

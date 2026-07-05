@@ -403,11 +403,11 @@ Adaptive path generation SHALL use PlanningUnit projections as executable learni
 - **THEN** the implementation SHALL preserve the path launch context, selected option adoption, latest path recovery, and completion writeback contracts owned by active path changes.
 
 ### Requirement: LearningGoal baseline resource coverage constrains graph-driven planning
-The adaptive path planner SHALL use human-confirmed baseline resource coverage before treating an in-scope path-ready LearningGoal as production-generatable.
+The adaptive path planner SHALL use review-confirmed baseline resource coverage before treating an in-scope path-ready LearningGoal as production-generatable.
 
 #### Scenario: Baseline-covered LearningGoal is requested
 - **WHEN** a student requests a graph-driven path for an in-scope path-ready LearningGoal with baseline resource coverage
-- **THEN** the planner SHALL select only human-confirmed, audited ResourceNodes or checkpoint contracts
+- **THEN** the planner SHALL select only review-confirmed, audited ResourceNodes or checkpoint contracts
 - **AND** the path SHALL include concept support, diagnostic or evidence gathering, practice, checkpoint, and remediation or reflection where the LearningGoal policy requires them.
 
 #### Scenario: LearningGoal baseline is incomplete
