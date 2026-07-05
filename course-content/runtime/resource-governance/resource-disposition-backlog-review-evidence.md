@@ -4,7 +4,7 @@ Review batch: residual-resource-disposition-review-2026-07-05
 Reviewer: residual-resource-disposition-implementing-agent
 Reviewed at: 2026-07-05T17:45:00.000Z
 
-Reviewed resources: 5291
+Reviewed resources: 5239
 Unresolved disposition blockers: 0
 Privacy minimized: true
 Raw content included: false
@@ -14,7 +14,7 @@ Raw content included: false
 Before queued resources: 5239
 Before primary queue items: 5239
 Before dependent queue items: 29772
-After reviewed resources: 5291
+After reviewed resources: 5239
 After unresolved disposition blockers: 0
 
 ## Classifications
@@ -22,7 +22,7 @@ After unresolved disposition blockers: 0
 - embedded-asset: 1343
 - evidence-producing: 339
 - excluded-with-rationale: 1746
-- path-plannable: 286
+- path-plannable: 234
 - supporting-citation: 1577
 
 ## Downstream Blockers

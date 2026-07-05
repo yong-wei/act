@@ -205,8 +205,8 @@ describe('resource field completion audit', () => {
     expect(workqueueItems.some((item) => item.title.includes('Image description:'))).toBe(false);
     expect(workqueueItems.every((item) => item.currentBlockers.length > 0)).toBe(true);
     expect(workqueueItems.every((item) => item.suggestedReviewerAction.length > 0)).toBe(true);
-    expect(dispositionReviewItems).toHaveLength(jsonlRows.length);
-    expect(dispositionReviewSummary.totals.reviewedResources).toBe(jsonlRows.length);
+    expect(dispositionReviewItems).toHaveLength(rowsMissingFields.length);
+    expect(dispositionReviewSummary.totals.reviewedResources).toBe(rowsMissingFields.length);
     expect(dispositionReviewSummary.totals.unresolvedDispositionBlockers).toBe(unresolvedDispositionRows.length);
     expect(dispositionReviewSummary.totals.unresolvedDispositionBlockers).toBe(0);
     expect(dispositionReviewSummary.totals.privacyMinimized).toBe(true);
@@ -218,7 +218,7 @@ describe('resource field completion audit', () => {
     expect(dispositionReviewSummary.downstreamBlockers['runtime-identity']).toBeGreaterThan(0);
     expect(dispositionReviewSummary.evidence.beforeResidualDispositionReview.queuedResources).toBe(rowsMissingFields.length);
     expect(dispositionReviewSummary.evidence.afterResidualDispositionReview).toMatchObject({
-      reviewedResources: jsonlRows.length,
+      reviewedResources: rowsMissingFields.length,
       unresolvedDispositionBlockers: unresolvedDispositionRows.length,
     });
     expect(stableSourceRefs.size).toBe(dispositionReviewItems.length);
@@ -410,7 +410,7 @@ describe('resource field completion audit', () => {
     ]));
     expect(dispositionReviewEvidence).toContain(`Unresolved disposition blockers: ${unresolvedDispositionRows.length}`);
     expect(dispositionReviewEvidence).toContain(`Before queued resources: ${rowsMissingFields.length}`);
-    expect(dispositionReviewEvidence).toContain(`After reviewed resources: ${jsonlRows.length}`);
+    expect(dispositionReviewEvidence).toContain(`After reviewed resources: ${rowsMissingFields.length}`);
     expect(humanReviewIntegrity.humanConfirmedRows).toBe(
       jsonlRows.filter((row) => row.reviewStatus === 'human-confirmed').length,
     );

@@ -875,7 +875,7 @@ function renderWorkqueueMarkdown(
 
 async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletionAuditRow[]): Promise<ResidualDispositionReviewItem[]> {
   const reviewSources = await loadResidualDispositionReviewSources();
-  return rows.map((row) => {
+  return rows.filter((row) => row.missingFieldCodes.length > 0).map((row) => {
     const reviewSource = reviewSources.get(row.resourceId);
     const classification = reviewSource?.classification ?? residualDispositionClassificationFor(row);
     const downstreamBlockers = downstreamBlockersFor(row.missingFieldCodes);

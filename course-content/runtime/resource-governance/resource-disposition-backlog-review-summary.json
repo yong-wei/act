@@ -4,7 +4,7 @@
   "reviewerId": "residual-resource-disposition-implementing-agent",
   "reviewedAt": "2026-07-05T17:45:00.000Z",
   "totals": {
-    "reviewedResources": 5291,
+    "reviewedResources": 5239,
     "unresolvedDispositionBlockers": 0,
     "rawContentIncluded": false,
     "privacyMinimized": true
@@ -13,7 +13,7 @@
     "supporting-citation": 1577,
     "embedded-asset": 1343,
     "evidence-producing": 339,
-    "path-plannable": 286,
+    "path-plannable": 234,
     "excluded-with-rationale": 1746
   },
   "bySourceFamily": {
@@ -27,7 +27,7 @@
     "runtime-handout": 37,
     "runtime-lesson-media": 759,
     "runtime-lesson-module": 1352,
-    "runtime-lesson-step": 450,
+    "runtime-lesson-step": 398,
     "textbook-search-document": 964,
     "textbook-section": 15,
     "textbook": 1
@@ -45,7 +45,7 @@
       "dependentQueueItems": 29772
     },
     "afterResidualDispositionReview": {
-      "reviewedResources": 5291,
+      "reviewedResources": 5239,
       "unresolvedDispositionBlockers": 0
     },
     "itemJsonlPath": "course-content/runtime/resource-governance/resource-disposition-backlog-review-items.jsonl",
