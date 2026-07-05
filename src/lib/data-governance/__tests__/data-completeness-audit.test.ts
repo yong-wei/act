@@ -119,6 +119,73 @@ describe('data completeness audit', () => {
     ]));
   });
 
+  it('treats reviewed graph resource gaps as explained instead of missing refs', () => {
+    const report = buildDataCompletenessAuditReport({
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      knowledgeNodes: [{
+        id: 'kn-reviewed-gap',
+        name: 'Reviewed gap node',
+        description: 'A graph node whose current resource gap has been reviewed.',
+        tags: ['reviewed-gap'],
+        resources: [],
+        isActive: true,
+        sourceLinkCount: 1,
+        targetLinkCount: 1,
+      }],
+      reviewedGraphResourceCoverage: [{
+        graphNodeId: 'kn-reviewed-gap',
+        decision: 'reviewed-limitation',
+        limitationCategory: 'resource-not-yet-authored',
+        coverageRole: 'explicit-gap',
+        reviewerVisibleRationale: 'No existing reviewed resource should be attached until a dedicated node card is authored.',
+        sourceVersionRef: 'graph-resource-coverage-overlay.v1',
+      }],
+    });
+
+    const graphCore = report.layers.find((layer) => layer.id === 'graphCore');
+    expect(graphCore?.totals.missingResourceRefs).toBe(0);
+    expect(graphCore?.totals.reviewedResourceGaps).toBe(1);
+    expect(graphCore?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'graph-node-resource-missing',
+        stableRef: 'KnowledgeNode:kn-reviewed-gap',
+      }),
+    ]));
+  });
+
+  it('does not hide graph resource gaps when reviewed overlay is malformed', () => {
+    const report = buildDataCompletenessAuditReport({
+      knowledgeNodes: [{
+        id: 'kn-malformed-gap',
+        name: 'Malformed gap node',
+        description: 'A graph node with malformed reviewed coverage.',
+        tags: ['reviewed-gap'],
+        resources: [],
+        isActive: true,
+        sourceLinkCount: 1,
+        targetLinkCount: 1,
+      }],
+      reviewedGraphResourceCoverage: [{
+        graphNodeId: 'kn-malformed-gap',
+        decision: 'reviewed-limitation',
+        limitationCategory: '',
+        coverageRole: 'explicit-gap',
+        reviewerVisibleRationale: 'This row is missing its actionable limitation category.',
+        sourceVersionRef: 'graph-resource-coverage-overlay.v1',
+      }],
+    });
+
+    const graphCore = report.layers.find((layer) => layer.id === 'graphCore');
+    expect(graphCore?.totals.missingResourceRefs).toBe(1);
+    expect(graphCore?.totals.reviewedResourceGaps).toBe(0);
+    expect(graphCore?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'graph-node-resource-missing',
+        stableRef: 'KnowledgeNode:kn-malformed-gap',
+      }),
+    ]));
+  });
+
   it('counts indexed long-form corpus chunks as verified section citation support', () => {
     const registry = buildResourceNodeRegistry({
       textbooks: [{
