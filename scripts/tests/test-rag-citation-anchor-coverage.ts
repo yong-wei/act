@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { textbookCorpusItem } from '../db/generate-rag-citation-anchor-coverage';
+import { ensureTextbookRuntimeExports, textbookCorpusItem } from '../db/generate-rag-citation-anchor-coverage';
 
 interface CorpusItem {
   sourceClass: string;
@@ -182,6 +182,7 @@ assertUnsafeTextbookTargetDowngradesToLimited();
 assertUnresolvableTextbookTargetDowngradesToLimited();
 assertEncodedTraversalTextbookTargetDowngradesToLimited();
 assertStaleTextbookTargetHashDowngradesToLimited();
+assertMissingTextbookRuntimeExportFailsFast();
 
 console.log('RAG citation anchor coverage artifacts verified.');
 
@@ -326,6 +327,18 @@ function assertStaleTextbookTargetHashDowngradesToLimited() {
   assert(item.citationChip.limitationState === 'quote-hash-mismatch', 'stale target CitationChip must use the hash mismatch limitation reason');
   assert(item.citationChip.authorityLevel === 'contextual', 'stale target CitationChip must be authority downgraded');
   assert(item.citationChip.confidence === 'medium', 'stale target CitationChip must be confidence downgraded');
+}
+
+function assertMissingTextbookRuntimeExportFailsFast() {
+  let failed = false;
+  try {
+    ensureTextbookRuntimeExports([
+      syntheticTarget('/course-runtime/resources/textbooks/synthetic-book/chunks/missing.md') as any,
+    ]);
+  } catch (error) {
+    failed = String((error as Error).message).includes('Textbook runtime exports are missing');
+  }
+  assert(failed, 'missing textbook runtime exports must fail before writing coverage artifacts');
 }
 
 function syntheticCandidate() {

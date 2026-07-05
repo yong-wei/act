@@ -184,10 +184,12 @@ async function main() {
   const candidates = await readJsonl<GroundingCandidate>(CANDIDATES_PATH);
   const targets = await readJsonl<CitationTarget>(CITATION_TARGETS_PATH);
   const coreReviews = await readJsonl<SectionReviewItem>(CORE_REVIEW_PATH);
-  const referenceReviews = await readJsonl<ReferenceReviewItem>(REFERENCE_REVIEW_PATH);
-  const mediaReviews = await readJsonl<MediaReviewItem>(MEDIA_REVIEW_PATH);
+    const referenceReviews = await readJsonl<ReferenceReviewItem>(REFERENCE_REVIEW_PATH);
+    const mediaReviews = await readJsonl<MediaReviewItem>(MEDIA_REVIEW_PATH);
 
-  const targetByCandidate = new Map(targets.map((target) => [target.candidateId, target]));
+    ensureTextbookRuntimeExports(targets);
+
+    const targetByCandidate = new Map(targets.map((target) => [target.candidateId, target]));
   const coreSectionIds = new Set(coreReviews.map((item) => item.sectionId));
   const referenceChunkIds = new Set(referenceReviews.map((item) => item.chunkId).filter(Boolean) as string[]);
   const corpusItems = [
@@ -298,6 +300,19 @@ export function textbookCorpusItem(
     promotedAsPathNode: false,
     rawContentIncluded: false,
   };
+}
+
+export function ensureTextbookRuntimeExports(targets: CitationTarget[]) {
+  const missing = targets
+    .filter((target) => target.address.href.startsWith('/course-runtime/resources/textbooks/'))
+    .filter((target) => !isResolvableServerOwnedHref(target.address.href));
+  if (missing.length === 0) return;
+  const examples = missing.slice(0, 5).map((target) => target.address.href).join(', ');
+  throw new Error(
+    `Textbook runtime exports are missing for ${missing.length} citation target(s). ` +
+    `Run npm run db:rag-citation-anchor-coverage or npm run db:export-textbook-resources before writing RAG citation coverage. ` +
+    `Examples: ${examples}`,
+  );
 }
 
 function mediaCorpusItem(item: MediaReviewItem): CorpusItem {
