@@ -91,6 +91,8 @@ assert(
     item.sourceWindow !== null &&
     item.freshness.bucket === 'current' &&
     item.reviewState.state === 'human-confirmed' &&
+    isSafeDisplayTitle(item.title) &&
+    isSafeDisplayTitle(item.citationChip.displayTitle) &&
     item.citationTargetId?.startsWith('citation-target:') &&
     item.retrievalChunkId?.startsWith('retrieval-chunk:') &&
     item.citationAddress.href?.startsWith('/course-runtime/resources/textbooks/') &&
@@ -142,6 +144,10 @@ assert(evidence.includes('Model-authored URLs accepted: false'), 'evidence must 
 assert(evidence.includes('Chunks or media promoted as PathNodes: false'), 'evidence must state non-promotion guardrail');
 assert(evidence.includes('Metadata contract complete: true'), 'evidence must state metadata contract closure');
 assert(evidence.includes('CitationChip payloads complete: true'), 'evidence must state CitationChip payload closure');
+assert(
+  corpusItems.every((item) => isSafeDisplayTitle(item.title) && isSafeDisplayTitle(item.citationChip.displayTitle)),
+  'corpus titles and CitationChip display titles must not carry raw image descriptions',
+);
 
 console.log('RAG citation anchor coverage artifacts verified.');
 
@@ -180,4 +186,10 @@ function isLimitedCitationChip(item: CorpusItem) {
     item.citationChip.freshnessBucket === item.freshness.bucket &&
     item.citationChip.privacyVisibility === 'public' &&
     item.limitationState.includes(item.citationChip.limitationState ?? '');
+}
+
+function isSafeDisplayTitle(value: string) {
+  return value.length > 0 &&
+    value.length <= 120 &&
+    !/Image description/i.test(value);
 }

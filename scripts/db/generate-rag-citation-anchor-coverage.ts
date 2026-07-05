@@ -207,13 +207,14 @@ function textbookCorpusItem(
     contentHash: normalizeSha256(target.address.contentHash),
     sourceRefId: target.address.sourceRefId,
   };
+  const displayTitle = textbookDisplayTitle(candidate);
   return {
     artifactVersion: ARTIFACT_VERSION,
     reviewBatchId: REVIEW_BATCH_ID,
     sourceClass: 'textbook-grounding',
     sourceId: candidate.candidateId,
     sourceKind: candidate.kind,
-    title: candidate.title,
+    title: displayTitle,
     resourceSegmentRef: `ResourceSegment:${candidate.sourcePackageId}:${candidate.sectionId}:${candidate.documentId}`,
     resourceSegmentId: candidate.documentId,
     sourceHash,
@@ -246,7 +247,7 @@ function textbookCorpusItem(
     reviewedSourceRef,
     citationChip: buildCitationChip({
       chunkId: target.retrievalChunkId,
-      title: candidate.title,
+      title: displayTitle,
       href: target.address.href,
       sourceType: 'course-content',
       addressKind: toCitationAddressKind(target.address.kind),
@@ -467,6 +468,15 @@ function toCitationAddressKind(value: string): CorpusItem['citationAddress']['ki
   if (value === 'image' || value === 'audio' || value === 'video' || value === 'slides') return value;
   if (value === 'external') return 'external';
   return 'text';
+}
+
+function textbookDisplayTitle(candidate: GroundingCandidate) {
+  const normalized = candidate.title.replace(/\s+/g, ' ').trim();
+  const looksLikeRawDescription = /^>?\s*Image description\b/i.test(normalized);
+  if (candidate.kind === 'figure' || looksLikeRawDescription || normalized.length > 120) {
+    return `${candidate.kind === 'figure' ? 'Figure' : 'Section'} ${candidate.pageAnchor}`;
+  }
+  return normalized;
 }
 
 function privacyVisibilityFor(scope: string): CorpusItem['citationChip']['privacyVisibility'] {
