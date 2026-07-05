@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { promises as fs } from 'node:fs';
+import { existsSync, promises as fs } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -221,7 +221,7 @@ export function textbookCorpusItem(
   const sourceHash = normalizeSha256(candidate.sourceHash);
   const targetContentHash = normalizeSha256(target?.contentHash);
   const targetAddressContentHash = normalizeSha256(target?.address.contentHash);
-  const hasServerOwnedTargetHref = Boolean(target?.address.href && isServerOwnedHref(target.address.href));
+  const hasServerOwnedTargetHref = Boolean(target?.address.href && isResolvableServerOwnedHref(target.address.href));
   const targetHashesMatch = Boolean(
     target &&
     sourceHash &&
@@ -301,7 +301,7 @@ export function textbookCorpusItem(
 }
 
 function mediaCorpusItem(item: MediaReviewItem): CorpusItem {
-  const href = isLocalRuntimeTarget(item.renderTarget) ? item.renderTarget : null;
+  const href = isResolvableServerOwnedHref(item.renderTarget) ? item.renderTarget : null;
   const sourceHash = item.sourceHash ?? item.repairedSourceHash ?? null;
   const ready = item.citationAnchorState === 'figure-anchor-ready' && Boolean(href && sourceHash);
   const normalizedSourceHash = normalizeSha256(sourceHash);
@@ -413,7 +413,7 @@ function buildSummary(
       byLimitation: countBy(limitedItems.flatMap((item) => item.limitationState), (item) => item),
     },
     guardrails: {
-      serverOwnedAddressOnly: corpusItems.every((item) => !item.citationAddress.href || isServerOwnedHref(item.citationAddress.href)),
+      serverOwnedAddressOnly: corpusItems.every((item) => !item.citationAddress.href || isResolvableServerOwnedHref(item.citationAddress.href)),
       noModelAuthoredUrls: corpusItems.every((item) => !String(item.citationAddress.href || '').includes('user-content-fn')),
       noPathPromotionFromChunksOrMedia: corpusItems.every((item) => item.pathEligible === false && item.promotedAsPathNode === false),
       rawContentIncluded: corpusItems.some((item) => item.rawContentIncluded === true),
@@ -493,12 +493,46 @@ function limitationForAnchorState(state: string) {
   return `citation-anchor-limited:${state || 'unknown'}`;
 }
 
-function isLocalRuntimeTarget(value: string | null | undefined) {
-  return typeof value === 'string' && value.startsWith('/course-runtime/');
+function isServerOwnedHref(value: string) {
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//') || value.includes('..')) {
+    return false;
+  }
+  return value === '/knowledge' ||
+    value.startsWith('/knowledge?') ||
+    value.startsWith('/course-runtime/lessons/') ||
+    value.startsWith('/course-runtime/knowledge/') ||
+    value.startsWith('/course-runtime/resources/textbooks/') ||
+    value.startsWith('/interactive-learning/') ||
+    value.startsWith('/learning-paths/');
 }
 
-function isServerOwnedHref(value: string) {
-  return value.startsWith('/course-runtime/');
+function isResolvableServerOwnedHref(value: string | null | undefined) {
+  if (typeof value !== 'string' || !isServerOwnedHref(value)) return false;
+  if (!value.startsWith('/course-runtime/')) return true;
+  const relativePath = runtimeRelativePath(value);
+  if (!relativePath || isPrivateRuntimeGovernancePath(relativePath)) return false;
+  const runtimeRoot = path.join(process.cwd(), 'course-content', 'runtime');
+  const absolutePath = path.join(runtimeRoot, relativePath);
+  const relativeToRuntime = path.relative(runtimeRoot, absolutePath);
+  if (!relativeToRuntime || relativeToRuntime.startsWith('..') || path.isAbsolute(relativeToRuntime)) return false;
+  if (isPrivateRuntimeGovernancePath(relativeToRuntime)) return false;
+  return existsSync(absolutePath);
+}
+
+function runtimeRelativePath(href: string) {
+  const withoutFragment = href.split('#')[0] ?? '';
+  const withoutQuery = withoutFragment.split('?')[0] ?? '';
+  const relative = withoutQuery.replace(/^\/course-runtime\/?/, '');
+  try {
+    return path.normalize(decodeURIComponent(relative)).replace(/^[\\/]+/, '');
+  } catch {
+    return '';
+  }
+}
+
+function isPrivateRuntimeGovernancePath(relativePath: string) {
+  const normalizedPath = relativePath.replace(/\\/g, '/').toLowerCase();
+  return normalizedPath === 'resource-governance' || normalizedPath.startsWith('resource-governance/');
 }
 
 function toCitationAddressKind(value: string): CorpusItem['citationAddress']['kind'] {

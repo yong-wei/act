@@ -34,7 +34,7 @@
     "byLimitation": {
       "document-section-anchor-required": 1,
       "section-anchor-required-before-path-promotion": 1,
-      "server-owned-display-href-unavailable": 3,
+      "server-owned-display-href-unavailable": 4,
       "source-hash-unavailable": 4,
       "transcript-required": 2,
       "transcript-required-before-path-promotion": 2,

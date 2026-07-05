@@ -179,6 +179,8 @@ assert(
 assertMissingTextbookTargetDowngradesToLimited();
 assertUnreviewedTextbookTargetDowngradesToLimited();
 assertUnsafeTextbookTargetDowngradesToLimited();
+assertUnresolvableTextbookTargetDowngradesToLimited();
+assertEncodedTraversalTextbookTargetDowngradesToLimited();
 assertStaleTextbookTargetHashDowngradesToLimited();
 
 console.log('RAG citation anchor coverage artifacts verified.');
@@ -275,6 +277,36 @@ function assertUnsafeTextbookTargetDowngradesToLimited() {
   assert(item.citationChip.confidence === 'medium', 'unsafe target CitationChip must be confidence downgraded');
 }
 
+function assertUnresolvableTextbookTargetDowngradesToLimited() {
+  const item = textbookCorpusItem(
+    syntheticCandidate(),
+    syntheticTarget('/course-runtime/resource-governance/private.json'),
+    new Set(['synthetic-section']),
+    new Set(),
+  ) as CorpusItem;
+  assert(item.citationState === 'limited', 'private runtime target must produce a limited artifact');
+  assert(item.limitationState.includes('unsafe-citation-target-href'), 'private runtime target limitation must be explicit');
+  assert(item.citationAddress.href === null, 'private runtime target CitationAddress must not be hydratable');
+  assert(item.citationChip.displayHref === null, 'private runtime target CitationChip must not be clickable');
+  assert(item.citationChip.limitationState === 'unsafe-address', 'private runtime target CitationChip must use unsafe-address');
+  assert(item.serverOwnedAddress === false, 'private runtime target must not be marked server owned');
+}
+
+function assertEncodedTraversalTextbookTargetDowngradesToLimited() {
+  const item = textbookCorpusItem(
+    syntheticCandidate(),
+    syntheticTarget('/course-runtime/resources/textbooks/%2e%2e/%2e%2e/resource-governance/rag-citation-anchor-coverage-summary.json'),
+    new Set(['synthetic-section']),
+    new Set(),
+  ) as CorpusItem;
+  assert(item.citationState === 'limited', 'encoded traversal target must produce a limited artifact');
+  assert(item.limitationState.includes('unsafe-citation-target-href'), 'encoded traversal limitation must be explicit');
+  assert(item.citationAddress.href === null, 'encoded traversal CitationAddress must not be hydratable');
+  assert(item.citationChip.displayHref === null, 'encoded traversal CitationChip must not be clickable');
+  assert(item.citationChip.limitationState === 'unsafe-address', 'encoded traversal CitationChip must use unsafe-address');
+  assert(item.serverOwnedAddress === false, 'encoded traversal target must not be marked server owned');
+}
+
 function assertStaleTextbookTargetHashDowngradesToLimited() {
   const staleTarget = syntheticTarget();
   staleTarget.address.contentHash = 'fedcba9876543210';
@@ -325,7 +357,7 @@ function syntheticCandidate() {
   };
 }
 
-function syntheticTarget(href = '/course-runtime/resources/textbooks/synthetic-book/chunks/synthetic-chunk.md') {
+function syntheticTarget(href = '/course-runtime/lessons/1-1/1-1-handout.md') {
   return {
     citationTargetId: 'citation-target:synthetic',
     retrievalChunkId: 'retrieval-chunk:synthetic',
