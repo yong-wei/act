@@ -1,4 +1,6 @@
 import { createPrismaClient } from '../../src/lib/prisma-client';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { getAllRegisteredResourceMetadata } from '../../src/lib/resource-registry-metadata';
 import {
   buildResourceNodeRegistryFromTeachingResources,
@@ -8,6 +10,7 @@ import {
   buildDataCompletenessAuditReport,
   renderDataCompletenessAuditMarkdown,
   type DataCompletenessLearnerCandidateInput,
+  type DataCompletenessReviewedGraphResourceCoverageInput,
   type DataCompletenessRuntimeArtifactErrorInput,
 } from '../../src/lib/data-governance/data-completeness-audit';
 import {
@@ -18,6 +21,10 @@ import { textbookSearchDocumentsToLearningEvidenceCorpus } from '../../src/lib/d
 import { loadAllLessonRuntimeResourceCatalogEntriesForAudit } from './runtime-lesson-catalog';
 
 const prisma = createPrismaClient();
+const GRAPH_RESOURCE_COVERAGE_REVIEWED_ITEMS_PATH = path.join(
+  process.cwd(),
+  'course-content/runtime/resource-governance/graph-resource-coverage-reviewed-items.jsonl',
+);
 
 function hasFlag(name: string) {
   return process.argv.includes(name);
@@ -53,6 +60,7 @@ async function main() {
     studentCompetencySnapshots,
     studentProfileSummaries,
     studentEvidenceFeatureCaches,
+    reviewedGraphResourceCoverage,
   ] = await Promise.all([
     prisma.knowledgeNode.findMany({
       select: {
@@ -139,6 +147,7 @@ async function main() {
         statusMarkers: true,
       },
     }),
+    readJsonlIfExists<DataCompletenessReviewedGraphResourceCoverageInput>(GRAPH_RESOURCE_COVERAGE_REVIEWED_ITEMS_PATH),
   ]);
 
   const registry = buildResourceNodeRegistryFromTeachingResources(
@@ -161,6 +170,7 @@ async function main() {
       sourceLinkCount: node.sourceLinks.length,
       targetLinkCount: node.targetLinks.length,
     })),
+    reviewedGraphResourceCoverage,
     teachingResources: teachingResources.map((resource) => ({
       id: resource.id,
       title: resource.title,
@@ -196,6 +206,16 @@ async function main() {
     console.log(renderDataCompletenessAuditMarkdown(report));
   } else {
     console.log(JSON.stringify(report, null, hasFlag('--compact') ? 0 : 2));
+  }
+}
+
+async function readJsonlIfExists<T>(filePath: string): Promise<T[]> {
+  try {
+    const text = await fs.readFile(filePath, 'utf8');
+    return text.split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line) as T);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw error;
   }
 }
 

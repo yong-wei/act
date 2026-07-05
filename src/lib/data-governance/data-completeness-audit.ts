@@ -54,6 +54,21 @@ export interface DataCompletenessKnowledgeNodeInput {
   targetLinkCount?: number;
 }
 
+export type DataCompletenessReviewedGraphResourceDecision =
+  | 'reviewed-resource-ref'
+  | 'reviewed-limitation';
+
+export interface DataCompletenessReviewedGraphResourceCoverageInput {
+  graphNodeId: string;
+  decision: DataCompletenessReviewedGraphResourceDecision;
+  resourceRefs?: string[];
+  limitationCategory?: string | null;
+  coverageRole: string;
+  reviewerVisibleRationale: string;
+  sourceVersionRef: string;
+  sourceHash: string;
+}
+
 export interface DataCompletenessTeachingResourceInput {
   id: string;
   title: string;
@@ -138,6 +153,7 @@ export type DataCompletenessHistoricalSourceLogInput =
 export interface DataCompletenessAuditInput {
   generatedAt?: string;
   knowledgeNodes?: DataCompletenessKnowledgeNodeInput[];
+  reviewedGraphResourceCoverage?: DataCompletenessReviewedGraphResourceCoverageInput[];
   teachingResources?: DataCompletenessTeachingResourceInput[];
   resourceRegistry?: ResourceNodeRegistry;
   runtimeArtifactErrors?: DataCompletenessRuntimeArtifactErrorInput[];
@@ -229,7 +245,7 @@ const EMPTY_HISTORICAL_SOURCE_LOG_INDEX: HistoricalSourceLogIndex = {
 };
 
 export function buildDataCompletenessAuditReport(input: DataCompletenessAuditInput): DataCompletenessAuditReport {
-  const graphCore = buildGraphCoreLayer(input.knowledgeNodes ?? []);
+  const graphCore = buildGraphCoreLayer(input.knowledgeNodes ?? [], input.reviewedGraphResourceCoverage ?? []);
   const resourceBinding = buildResourceBindingLayer(
     input.teachingResources ?? [],
     input.resourceRegistry,
@@ -300,10 +316,19 @@ export function renderDataCompletenessAuditMarkdown(report: DataCompletenessAudi
   return `${lines.join('\n')}\n`;
 }
 
-function buildGraphCoreLayer(nodes: DataCompletenessKnowledgeNodeInput[]): DataCompletenessLayerSummary {
+function buildGraphCoreLayer(
+  nodes: DataCompletenessKnowledgeNodeInput[],
+  reviewedCoverage: DataCompletenessReviewedGraphResourceCoverageInput[],
+): DataCompletenessLayerSummary {
   const activeNodes = nodes.filter((node) => node.isActive !== false);
+  const activeNodeById = new Map(activeNodes.map((node) => [node.id, node]));
+  const reviewedByNodeId = new Map(reviewedCoverage
+    .filter((item) => reviewedGraphCoverageExplainsGap(item, activeNodeById.get(item.graphNodeId)))
+    .map((item) => [item.graphNodeId, item]));
   const findings = activeNodes.flatMap((node): DataCompletenessFinding[] => {
     const resourceCount = Array.isArray(node.resources) ? node.resources.length : 0;
+    const reviewed = reviewedByNodeId.get(node.id);
+    const resourceGapExplained = resourceCount > 0 || Boolean(reviewed);
     return [
       !node.description?.trim()
         ? finding('graph-node-description-missing', 'partial', `KnowledgeNode:${node.id}`, `${node.name} lacks a description.`, 'complete-graph-core-fields')
@@ -314,11 +339,15 @@ function buildGraphCoreLayer(nodes: DataCompletenessKnowledgeNodeInput[]): DataC
       (node.sourceLinkCount ?? 0) + (node.targetLinkCount ?? 0) === 0
         ? finding('graph-node-edge-isolated', 'partial', `KnowledgeNode:${node.id}`, `${node.name} has no graph edges.`, 'complete-graph-edges')
         : null,
-      resourceCount === 0
+      !resourceGapExplained
         ? finding('graph-node-resource-missing', 'partial', `KnowledgeNode:${node.id}`, `${node.name} has no resource refs.`, 'bind-graph-resources')
         : null,
     ].filter(Boolean) as DataCompletenessFinding[];
   });
+  const activeNodeIds = new Set(activeNodes.map((node) => node.id));
+  const reviewedActiveCoverage = reviewedCoverage
+    .filter((item) => reviewedGraphCoverageExplainsGap(item, activeNodeById.get(item.graphNodeId)))
+    .filter((item) => activeNodeIds.has(item.graphNodeId));
 
   return layer('graphCore', {
     activeNodes: activeNodes.length,
@@ -326,7 +355,32 @@ function buildGraphCoreLayer(nodes: DataCompletenessKnowledgeNodeInput[]): DataC
     missingTags: countFindings(findings, 'graph-node-tags-missing'),
     isolatedNodes: countFindings(findings, 'graph-node-edge-isolated'),
     missingResourceRefs: countFindings(findings, 'graph-node-resource-missing'),
+    reviewedResourceRefs: reviewedActiveCoverage.filter((item) => item.decision === 'reviewed-resource-ref').length,
+    reviewedResourceGaps: reviewedActiveCoverage.filter((item) => item.decision === 'reviewed-limitation').length,
   }, findings);
+}
+
+function reviewedGraphCoverageExplainsGap(item: DataCompletenessReviewedGraphResourceCoverageInput, currentNode: DataCompletenessKnowledgeNodeInput | undefined) {
+  if (!item.graphNodeId || !item.reviewerVisibleRationale || !item.sourceVersionRef || !item.sourceHash) return false;
+  const currentSourceHash = currentNode ? hashGraphResourceCoverageNode(currentNode) : undefined;
+  if (!currentSourceHash || item.sourceHash !== currentSourceHash) return false;
+  if (item.decision === 'reviewed-limitation') {
+    const resourceCount = Array.isArray(currentNode?.resources) ? currentNode.resources.length : 0;
+    return item.coverageRole === 'explicit-gap' && resourceCount === 0 && Boolean(item.limitationCategory?.trim());
+  }
+  if (item.decision === 'reviewed-resource-ref') return (item.resourceRefs ?? []).length > 0;
+  return false;
+}
+
+function hashGraphResourceCoverageNode(node: DataCompletenessKnowledgeNodeInput) {
+  const payload = JSON.stringify({
+    id: node.id,
+    name: node.name,
+    description: node.description ?? null,
+    tags: node.tags ?? [],
+    resources: Array.isArray(node.resources) ? node.resources : [],
+  });
+  return `sha256:${createHash('sha256').update(payload).digest('hex')}`;
 }
 
 function buildResourceBindingLayer(
