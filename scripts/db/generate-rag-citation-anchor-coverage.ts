@@ -1,10 +1,12 @@
 import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 type CitationState = 'ready' | 'limited';
 
 interface GroundingCandidate {
+  artifactVersion: string;
   candidateId: string;
   sourcePackageId: string;
   documentId: string;
@@ -186,26 +188,29 @@ async function main() {
   console.log(`Limited citations: ${summary.totals.limited}`);
 }
 
-function textbookCorpusItem(
+export function textbookCorpusItem(
   candidate: GroundingCandidate,
   target: CitationTarget | undefined,
   coreSectionIds: Set<string>,
   referenceChunkIds: Set<string>,
 ): CorpusItem {
-  if (!target) throw new Error(`Missing citation target for ${candidate.candidateId}`);
   const reviewedSourceRef = coreSectionIds.has(candidate.sectionId)
     ? `core-textbook-section:${candidate.sectionId}`
     : referenceChunkIds.has(candidate.documentId)
       ? `reference-search-document:${candidate.documentId}`
       : null;
-  const limitationState = reviewedSourceRef ? [] : ['section-review-not-selected-for-current-path-batch'];
+  const ready = Boolean(target && reviewedSourceRef);
+  const limitationState = ready ? [] : uniqueSorted([
+    target ? '' : 'missing-citation-target',
+    reviewedSourceRef ? '' : 'section-review-not-selected-for-current-path-batch',
+  ]);
   const sourceHash = normalizeSha256(candidate.sourceHash);
   const citationAddress = {
-    kind: target.address.kind,
-    href: target.address.href,
-    locator: target.address.locator,
-    contentHash: normalizeSha256(target.address.contentHash),
-    sourceRefId: target.address.sourceRefId,
+    kind: target ? target.address.kind : toCitationAddressKind(candidate.kind),
+    href: target?.address.href ?? null,
+    locator: target?.address.locator ?? candidate.pageAnchor,
+    contentHash: normalizeSha256(target?.address.contentHash ?? candidate.sourceHash),
+    sourceRefId: target?.address.sourceRefId ?? candidate.documentId,
   };
   const displayTitle = textbookDisplayTitle(candidate);
   return {
@@ -234,30 +239,30 @@ function textbookCorpusItem(
       reviewerId: null,
       sourceAvailability: 'server-owned-runtime-address',
     },
-    citationState: 'ready',
+    citationState: ready ? 'ready' : 'limited',
     limitationState,
-    citationTargetId: target.citationTargetId,
-    retrievalChunkId: target.retrievalChunkId,
+    citationTargetId: ready ? target!.citationTargetId : target?.citationTargetId ?? null,
+    retrievalChunkId: ready ? target!.retrievalChunkId : target?.retrievalChunkId ?? null,
     citationAddress,
-    serverOwnedAddress: true,
+    serverOwnedAddress: Boolean(target?.address.href),
     authority: candidate.authority,
     privacyScope: candidate.privacyScope,
     graphNodeRefs: candidate.graphNodeRefs,
-    sourceVersionRef: target.sourceVersionRefs,
+    sourceVersionRef: target?.sourceVersionRefs ?? { groundingVersion: candidate.artifactVersion },
     reviewedSourceRef,
     citationChip: buildCitationChip({
-      chunkId: target.retrievalChunkId,
+      chunkId: ready ? target!.retrievalChunkId : `limited-citation:${candidate.candidateId}`,
       title: displayTitle,
-      href: target.address.href,
+      href: ready ? target!.address.href : null,
       sourceType: 'course-content',
-      addressKind: toCitationAddressKind(target.address.kind),
+      addressKind: toCitationAddressKind(citationAddress.kind),
       citationAddress,
-      authorityLevel: 'verified',
-      confidence: 'high',
+      authorityLevel: ready ? 'verified' : 'contextual',
+      confidence: ready ? 'high' : 'medium',
       freshnessBucket: 'current',
       privacyScope: candidate.privacyScope,
       limitationState,
-      sourceVersionRefs: target.sourceVersionRefs,
+      sourceVersionRefs: target?.sourceVersionRefs,
     }),
     pathEligible: false,
     promotedAsPathNode: false,
@@ -541,7 +546,9 @@ function uniqueSorted(values: string[]) {
   return Array.from(new Set(values.filter(Boolean))).sort((left, right) => left.localeCompare(right));
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}

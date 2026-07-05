@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { textbookCorpusItem } from '../db/generate-rag-citation-anchor-coverage';
+
 interface CorpusItem {
   sourceClass: string;
   sourceKind: string;
@@ -148,6 +150,8 @@ assert(
   corpusItems.every((item) => isSafeDisplayTitle(item.title) && isSafeDisplayTitle(item.citationChip.displayTitle)),
   'corpus titles and CitationChip display titles must not carry raw image descriptions',
 );
+assertMissingTextbookTargetDowngradesToLimited();
+assertUnreviewedTextbookTargetDowngradesToLimited();
 
 console.log('RAG citation anchor coverage artifacts verified.');
 
@@ -192,4 +196,78 @@ function isSafeDisplayTitle(value: string) {
   return value.length > 0 &&
     value.length <= 120 &&
     !/Image description/i.test(value);
+}
+
+function assertMissingTextbookTargetDowngradesToLimited() {
+  const item = textbookCorpusItem(syntheticCandidate(), undefined, new Set(), new Set()) as CorpusItem;
+  assert(item.citationState === 'limited', 'missing citation target must produce a limited textbook artifact');
+  assert(item.limitationState.includes('missing-citation-target'), 'missing target limitation must be explicit');
+  assert(item.citationTargetId === null, 'missing target artifact must not claim a CitationTarget');
+  assert(item.retrievalChunkId === null, 'missing target artifact must not claim a retrieval chunk');
+  assert(item.citationChip.displayHref === null, 'missing target CitationChip must not be clickable');
+  assert(item.citationChip.authorityLevel === 'contextual', 'missing target CitationChip must be authority downgraded');
+  assert(item.citationChip.confidence === 'medium', 'missing target CitationChip must be confidence downgraded');
+  assert((item as any).sourceVersionRef.groundingVersion === 'textbook-media-grounding.v1', 'missing target artifact must preserve grounding version lineage');
+}
+
+function assertUnreviewedTextbookTargetDowngradesToLimited() {
+  const item = textbookCorpusItem(syntheticCandidate(), syntheticTarget(), new Set(), new Set()) as CorpusItem;
+  assert(item.citationState === 'limited', 'unreviewed textbook target must produce a limited artifact');
+  assert(
+    item.limitationState.includes('section-review-not-selected-for-current-path-batch'),
+    'unreviewed target limitation must be explicit',
+  );
+  assert(item.citationTargetId === 'citation-target:synthetic', 'unreviewed limited artifact may retain target lineage');
+  assert(item.retrievalChunkId === 'retrieval-chunk:synthetic', 'unreviewed limited artifact may retain chunk lineage');
+  assert(item.citationChip.displayHref === null, 'unreviewed CitationChip must not be clickable');
+  assert(item.citationChip.authorityLevel === 'contextual', 'unreviewed CitationChip must be authority downgraded');
+  assert(item.citationChip.confidence === 'medium', 'unreviewed CitationChip must be confidence downgraded');
+}
+
+function syntheticCandidate() {
+  return {
+    artifactVersion: 'textbook-media-grounding.v1',
+    sourcePackageId: 'synthetic-book',
+    candidateId: 'textbook-section:synthetic-book:synthetic-section:synthetic-chunk',
+    documentId: 'synthetic-chunk',
+    kind: 'chunk',
+    title: 'Synthetic reviewed section',
+    bookId: 'synthetic-book',
+    chapterId: 'chapter-00',
+    chapterNumber: 0,
+    sectionId: 'synthetic-section',
+    pageAnchor: 'synthetic-chunk',
+    sourceHash: '0123456789abcdef',
+    sourceWindow: {
+      bookId: 'synthetic-book',
+      chapterId: 'chapter-00',
+      sectionId: 'synthetic-section',
+    },
+    graphNodeRefs: { knowledge: [], capability: [], quality: [] },
+    citationPolicy: 'server-owned-address-required',
+    authority: 'verified',
+    privacyScope: 'student-visible',
+    reviewState: 'human-confirmed',
+    reviewBatchId: 'synthetic-review',
+    pathEligible: false,
+  };
+}
+
+function syntheticTarget() {
+  return {
+    citationTargetId: 'citation-target:synthetic',
+    retrievalChunkId: 'retrieval-chunk:synthetic',
+    candidateId: 'textbook-section:synthetic-book:synthetic-section:synthetic-chunk',
+    documentId: 'synthetic-chunk',
+    address: {
+      kind: 'text',
+      sourceRefId: 'synthetic-chunk',
+      href: '/course-runtime/resources/textbooks/synthetic-book/chunks/synthetic-chunk.md',
+      locator: 'synthetic-chunk',
+      contentHash: '0123456789abcdef',
+    },
+    contentHash: '0123456789abcdef',
+    sourceVersionRefs: { groundingVersion: 'textbook-media-grounding.v1' },
+    pathEligibility: { eligible: false, reason: 'synthetic' },
+  };
 }
