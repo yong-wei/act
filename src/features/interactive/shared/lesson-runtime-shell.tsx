@@ -133,7 +133,7 @@ export function LessonRuntimeShell({
       className="surface-page"
     >
       <section
-        className="grid min-h-[calc(100vh-8rem)] gap-4 pb-24"
+        className="grid min-h-[calc(100vh-8rem)] min-w-0 grid-cols-[minmax(0,1fr)] gap-4 pb-24"
         data-lesson-runtime-shell="unified"
         data-lesson-runtime-mode={mode}
         data-commercial-workspace="interactive-learning"

@@ -44,6 +44,7 @@ export function RoleWorkspaceShell({
       subtitle={subtitle}
       activeHref={pathname}
       sidebarMode="collapsible"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: title }]}
       workspaceSlots={workspaceSlots}
       userMenu={(
         <UserMenu

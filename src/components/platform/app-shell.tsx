@@ -321,6 +321,8 @@ function renderNavigationLink(
       aria-current={active ? 'page' : undefined}
       title={collapsed ? item.label : undefined}
       onClick={onNavigate}
+      data-app-shell-nav-link-label={item.label}
+      data-app-shell-nav-link-href={item.href}
       className={cn(
         variant === 'sidebar'
           ? 'flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition'

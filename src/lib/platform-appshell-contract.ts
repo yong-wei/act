@@ -4,6 +4,41 @@ export type UniversalAppShellCoverageKind =
 export type UniversalAppShellExceptionType =
   'auth-only' | 'print-only' | 'visual-review-only' | 'embed-only' | 'legacy-demo-only' | 'migration-temporary';
 
+export type UniversalAppShellExceptionCategory =
+  | 'home-route'
+  | 'auth-entry'
+  | 'redirect-shim'
+  | 'visual-review-surface'
+  | 'print-surface'
+  | 'embed-surface'
+  | 'legacy-interactive-demo'
+  | 'legacy-lesson-runtime'
+  | 'classroom-runtime'
+  | 'operations-utility';
+
+export type AppShellGovernanceAcceptanceId =
+  'AC-1' | 'AC-2' | 'AC-3' | 'AC-4' | 'AC-5' | 'AC-6' | 'AC-7';
+
+export type AppShellRepresentativeRouteCategory =
+  | 'primary'
+  | 'teacher'
+  | 'teacher-classes'
+  | 'admin'
+  | 'graph'
+  | 'data-center'
+  | 'course'
+  | 'course-student-session'
+  | 'course-teacher-session'
+  | 'classroom'
+  | 'ai'
+  | 'playlist'
+  | 'arena-child'
+  | 'simulation-child'
+  | 'assessment-child'
+  | 'virtual-lab';
+
+export type AppShellRepresentativeViewerRole = 'student' | 'teacher' | 'admin' | 'guest';
+
 export interface UniversalAppShellHeaderAction {
   id: 'theme-switch' | 'personal-center';
   label: string;
@@ -17,6 +52,7 @@ export interface AppShellCompatibleWrapperContract {
   routeFamilies: readonly string[];
   requiredDomContracts: readonly ('canonical-navigation' | 'breadcrumb' | 'theme-switch-then-personal-center')[];
   contractTestFiles: readonly string[];
+  domContractProofIds: readonly string[];
 }
 
 export interface DeepProductAppShellRouteContract {
@@ -29,6 +65,7 @@ export interface DeepProductAppShellRouteContract {
 
 export interface UniversalAppShellException {
   routePattern: string;
+  category: UniversalAppShellExceptionCategory;
   type: UniversalAppShellExceptionType;
   owner: string;
   reason: string;
@@ -36,8 +73,21 @@ export interface UniversalAppShellException {
   removalCondition: string;
 }
 
+export interface AppShellRepresentativeVisualRoute {
+  category: AppShellRepresentativeRouteCategory;
+  href: string;
+  sourceFile: string;
+  viewerRole: AppShellRepresentativeViewerRole;
+  shellEvidence: UniversalAppShellCoverageKind;
+  acceptanceIds: readonly AppShellGovernanceAcceptanceId[];
+  requiredWidths: readonly number[];
+  visualAuditStatus: 'required';
+  routePattern?: string;
+}
+
 export const UNIVERSAL_APP_SHELL_CHANGE_ID = 'define-universal-appshell-frame-contract';
 export const DEEP_PRODUCT_APP_SHELL_CHANGE_ID = 'migrate-deep-product-routes-appshell-chrome';
+export const APP_SHELL_GOVERNANCE_CHANGE_ID = 'enforce-appshell-route-coverage-governance';
 
 export const LEGACY_LESSON_RUNTIME_ROUTE_SLUGS = [
   'cruise-comfort-boppps',
@@ -137,6 +187,172 @@ export const UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_MATRIX = [
     requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
   },
 ] as const;
+
+export const APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX: readonly AppShellRepresentativeVisualRoute[] = [
+  ...UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_MATRIX.map((route) => ({
+    category: 'primary' as const,
+    href: route.href,
+    sourceFile: route.href === '/profile' ? 'src/app/(main)/profile/page.tsx' : `src/app${route.href}/page.tsx`,
+    viewerRole: 'student' as const,
+    shellEvidence: 'direct-appshell' as const,
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'] as const,
+    requiredWidths: route.requiredWidths,
+    visualAuditStatus: 'required' as const,
+  })),
+  {
+    category: 'teacher',
+    href: '/teacher',
+    sourceFile: 'src/app/teacher/page.tsx',
+    viewerRole: 'teacher',
+    shellEvidence: 'compatible-wrapper',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6', 'AC-7'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'teacher-classes',
+    href: '/teacher/classes',
+    sourceFile: 'src/app/teacher/classes/page.tsx',
+    viewerRole: 'teacher',
+    shellEvidence: 'compatible-wrapper',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6', 'AC-7'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'admin',
+    href: '/admin/users',
+    sourceFile: 'src/app/admin/users/page.tsx',
+    viewerRole: 'admin',
+    shellEvidence: 'compatible-wrapper',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6', 'AC-7'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'graph',
+    href: '/graph-center',
+    sourceFile: 'src/app/graph-center/page.tsx',
+    viewerRole: 'student',
+    shellEvidence: 'direct-appshell',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'data-center',
+    href: '/data-center',
+    sourceFile: 'src/app/data-center/page.tsx',
+    viewerRole: 'teacher',
+    shellEvidence: 'compatible-wrapper',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6', 'AC-7'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'course',
+    href: '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+    sourceFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx',
+    viewerRole: 'student',
+    shellEvidence: 'compatible-wrapper',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'course-student-session',
+    href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo',
+    sourceFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx',
+    routePattern: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/:sessionId',
+    viewerRole: 'student',
+    shellEvidence: 'compatible-wrapper',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'course-teacher-session',
+    href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo',
+    sourceFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx',
+    routePattern: '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/:sessionId',
+    viewerRole: 'teacher',
+    shellEvidence: 'compatible-wrapper',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6', 'AC-7'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'classroom',
+    href: '/classroom/join',
+    sourceFile: 'src/app/classroom/join/page.tsx',
+    viewerRole: 'student',
+    shellEvidence: 'compatible-wrapper',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'ai',
+    href: '/ai',
+    sourceFile: 'src/app/ai/page.tsx',
+    viewerRole: 'student',
+    shellEvidence: 'direct-appshell',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'playlist',
+    href: '/playlists',
+    sourceFile: 'src/app/playlists/page.tsx',
+    viewerRole: 'student',
+    shellEvidence: 'direct-appshell',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'arena-child',
+    href: '/arena/challenges/seeded-shell-governance-task',
+    sourceFile: 'src/app/arena/challenges/[taskId]/page.tsx',
+    routePattern: '/arena/challenges/:taskId',
+    viewerRole: 'student',
+    shellEvidence: 'compatible-wrapper',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'simulation-child',
+    href: '/simulations/cruise',
+    sourceFile: 'src/app/simulations/cruise/page.tsx',
+    viewerRole: 'student',
+    shellEvidence: 'compatible-wrapper',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'assessment-child',
+    href: '/assessment/document-feedback',
+    sourceFile: 'src/app/assessment/document-feedback/page.tsx',
+    viewerRole: 'student',
+    shellEvidence: 'direct-appshell',
+    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+  {
+    category: 'virtual-lab',
+    href: '/virtual-lab',
+    sourceFile: 'src/app/virtual-lab/page.tsx',
+    viewerRole: 'guest',
+    shellEvidence: 'governed-exception',
+    acceptanceIds: ['AC-2', 'AC-4', 'AC-6'],
+    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+    visualAuditStatus: 'required',
+  },
+];
 
 export const DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX: readonly DeepProductAppShellRouteContract[] = [
   {
@@ -276,6 +492,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
     routeFamilies: ['direct AppShell routes'],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
     contractTestFiles: ['src/lib/__tests__/platform-appshell-contract.test.ts'],
+    domContractProofIds: ['app-shell-header-action-order', 'route-coverage-scanner'],
   },
   {
     name: 'InteractiveLearningShell',
@@ -290,6 +507,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
     ],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
     contractTestFiles: ['src/lib/__tests__/platform-ui-contracts.test.ts'],
+    domContractProofIds: ['interactive-learning-shell-contract'],
   },
   {
     name: 'CourseEntryShell',
@@ -297,6 +515,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
     routeFamilies: ['/interactive-learning/courses/*'],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
     contractTestFiles: ['src/lib/__tests__/platform-appshell-contract.test.ts'],
+    domContractProofIds: ['course-entry-shell-route-coverage'],
   },
   {
     name: 'LessonRuntimeShell',
@@ -304,6 +523,15 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
     routeFamilies: ['/interactive-learning/courses/*/student/*', '/interactive-learning/courses/*/teacher/*'],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
     contractTestFiles: ['src/lib/__tests__/platform-appshell-contract.test.ts'],
+    domContractProofIds: ['lesson-runtime-shell-route-coverage'],
+  },
+  {
+    name: 'ClassroomJoinAppShell',
+    sourceFile: 'src/app/classroom/join/page.tsx',
+    routeFamilies: ['/classroom/join'],
+    requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
+    contractTestFiles: ['src/lib/__tests__/platform-appshell-contract.test.ts'],
+    domContractProofIds: ['classroom-join-appshell-route-coverage'],
   },
   {
     name: 'SimulationShell',
@@ -311,6 +539,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
     routeFamilies: ['/simulations/**'],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
     contractTestFiles: ['src/lib/__tests__/platform-ui-contracts.test.ts'],
+    domContractProofIds: ['simulation-shell-wrapper-contract'],
   },
   {
     name: 'ArenaPageShell',
@@ -318,6 +547,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
     routeFamilies: ['/arena/**'],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
     contractTestFiles: ['src/features/arena/__tests__/arena-entry-ui.test.ts'],
+    domContractProofIds: ['arena-shell-wrapper-contract'],
   },
   {
     name: 'ControlWorkbenchShell',
@@ -325,6 +555,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
     routeFamilies: ['/interactive-learning/control-workbench'],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
     contractTestFiles: ['src/lib/__tests__/platform-ui-contracts.test.ts'],
+    domContractProofIds: ['control-workbench-shell-contract'],
   },
   {
     name: 'RoleWorkspaceShell',
@@ -332,6 +563,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
     routeFamilies: ['/teacher/**', '/admin/**'],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
     contractTestFiles: ['src/lib/__tests__/platform-role-navigation.test.ts'],
+    domContractProofIds: ['role-workspace-account-targets'],
   },
   {
     name: 'PresentationDataCenter',
@@ -339,6 +571,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
     routeFamilies: ['/data-center'],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
     contractTestFiles: ['src/lib/__tests__/platform-appshell-contract.test.ts'],
+    domContractProofIds: ['presentation-data-center-route-coverage'],
   },
   {
     name: 'TeacherClassroomWaitingPage',
@@ -346,6 +579,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
     routeFamilies: ['/interactive-learning/courses/*/teacher/*/waiting'],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
     contractTestFiles: ['src/lib/__tests__/platform-appshell-contract.test.ts'],
+    domContractProofIds: ['teacher-classroom-waiting-route-coverage'],
   },
 ] as const;
 
@@ -353,6 +587,7 @@ const LEGACY_LESSON_RUNTIME_ROUTE_EXCEPTIONS: readonly UniversalAppShellExceptio
   LEGACY_LESSON_RUNTIME_ROUTE_SLUGS.flatMap((slug) => [
     {
       routePattern: `/interactive-learning/courses/${slug}/student/*`,
+      category: 'legacy-lesson-runtime',
       type: 'migration-temporary',
       owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
       reason:
@@ -363,6 +598,7 @@ const LEGACY_LESSON_RUNTIME_ROUTE_EXCEPTIONS: readonly UniversalAppShellExceptio
     },
     {
       routePattern: `/interactive-learning/courses/${slug}/teacher/*`,
+      category: 'legacy-lesson-runtime',
       type: 'migration-temporary',
       owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
       reason:
@@ -376,6 +612,7 @@ const LEGACY_LESSON_RUNTIME_ROUTE_EXCEPTIONS: readonly UniversalAppShellExceptio
 export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellException[] = [
   {
     routePattern: '/',
+    category: 'home-route',
     type: 'migration-temporary',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason: 'Homepage is the only normal product route allowed to render outside the universal AppShell frame.',
@@ -384,6 +621,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/login',
+    category: 'auth-entry',
     type: 'auth-only',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason: 'Login is an auth-only entry and must preserve callback-safe authentication flow.',
@@ -392,6 +630,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/register',
+    category: 'auth-entry',
     type: 'auth-only',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason: 'Registration is an auth-only route and must preserve callback-safe account setup flow.',
@@ -400,6 +639,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/dashboard',
+    category: 'redirect-shim',
     type: 'migration-temporary',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason: 'Dashboard is a protected redirect shim that forwards users to the role-aware cockpit.',
@@ -408,6 +648,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/review/**',
+    category: 'visual-review-surface',
     type: 'visual-review-only',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason: 'Review pages are isolated visual QA surfaces and must not inherit the product shell.',
@@ -416,6 +657,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/interactive-learning/lessons/*/handout-print',
+    category: 'print-surface',
     type: 'print-only',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason: 'Printable handouts intentionally omit navigation and account controls.',
@@ -425,6 +667,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   ...LEGACY_LESSON_RUNTIME_ROUTE_EXCEPTIONS,
   {
     routePattern: '/interactive-learning/resources/control-odyssey-v1/ship',
+    category: 'embed-surface',
     type: 'embed-only',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason: 'The ship resource is an embed-style legacy visual resource with its own runtime viewport.',
@@ -433,6 +676,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/interactive-learning/argument-principle',
+    category: 'legacy-interactive-demo',
     type: 'legacy-demo-only',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
@@ -441,6 +685,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/interactive-learning/control-map',
+    category: 'legacy-interactive-demo',
     type: 'legacy-demo-only',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
@@ -449,6 +694,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/interactive-learning/control-odyssey',
+    category: 'legacy-interactive-demo',
     type: 'legacy-demo-only',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
@@ -457,6 +703,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/interactive-learning/multi-representation-linkage',
+    category: 'legacy-interactive-demo',
     type: 'legacy-demo-only',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
@@ -465,6 +712,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/interactive-learning/physics-modeling',
+    category: 'legacy-interactive-demo',
     type: 'legacy-demo-only',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
@@ -473,6 +721,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/interactive-learning/pid-simulator',
+    category: 'legacy-interactive-demo',
     type: 'legacy-demo-only',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
@@ -481,6 +730,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/interactive-learning/ten-drops',
+    category: 'legacy-interactive-demo',
     type: 'legacy-demo-only',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
@@ -489,6 +739,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/virtual-lab',
+    category: 'legacy-interactive-demo',
     type: 'legacy-demo-only',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy virtual lab route predates the simulation shell and remains outside primary navigation.',
@@ -497,6 +748,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/ethics',
+    category: 'operations-utility',
     type: 'migration-temporary',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason: 'Public ethics page is not yet part of the product route ledger.',
@@ -505,6 +757,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/evaluation/prompt-assessment',
+    category: 'operations-utility',
     type: 'migration-temporary',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason: 'Evaluation utility page is not yet part of the product route ledger.',
@@ -513,6 +766,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/classroom/student/*',
+    category: 'classroom-runtime',
     type: 'migration-temporary',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Live classroom student runtime remains route-local until classroom player shell migration lands.',
@@ -521,6 +775,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/classroom/teacher/*',
+    category: 'classroom-runtime',
     type: 'migration-temporary',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Live classroom teacher runtime remains route-local until classroom player shell migration lands.',
@@ -529,6 +784,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/classroom/teacher/*/review',
+    category: 'classroom-runtime',
     type: 'migration-temporary',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Teacher classroom review route keeps route-local review controls until classroom shell migration lands.',
@@ -537,6 +793,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/teacher/students/*/diagnosis',
+    category: 'redirect-shim',
     type: 'migration-temporary',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason: 'Legacy teacher student diagnosis route is a redirect shim outside the teacher AppShell layout.',
@@ -545,6 +802,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/teacher/students/*/evidence',
+    category: 'redirect-shim',
     type: 'migration-temporary',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
     reason:

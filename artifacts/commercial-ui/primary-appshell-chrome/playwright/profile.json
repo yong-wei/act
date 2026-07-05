@@ -1,0 +1,19 @@
+{
+  "route": "/profile",
+  "widths": [
+    1440,
+    1280,
+    1024,
+    768,
+    390,
+    320
+  ],
+  "captured": [
+    "profile-1440.png",
+    "profile-1280.png",
+    "profile-1024.png",
+    "profile-768.png",
+    "profile-390.png",
+    "profile-320.png"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "route": "/simulations",
+  "widths": [
+    1440,
+    1280,
+    1024,
+    768,
+    390,
+    320
+  ],
+  "captured": [
+    "simulations-1440.png",
+    "simulations-1280.png",
+    "simulations-1024.png",
+    "simulations-768.png",
+    "simulations-390.png",
+    "simulations-320.png"
+  ]
+}

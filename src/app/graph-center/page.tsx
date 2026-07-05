@@ -81,6 +81,7 @@ export default async function GraphCenterPage({ searchParams }: GraphCenterPageP
       subtitle="K/A/Q 目标、画像维度与节点关系"
       activeHref="/graph-center"
       sidebarMode="collapsible"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '图谱中心' }]}
       className="surface-page"
     >
       <GraphCenterClient initialPayload={payload} rootPayloads={rootPayloads} />
