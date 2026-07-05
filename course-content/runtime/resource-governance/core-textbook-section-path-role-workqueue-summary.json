@@ -3,7 +3,7 @@
   "generatedAt": "2026-07-05T07:15:00.000Z",
   "reviewBatchId": "core-textbook-section-path-role-review-2026-07-05",
   "selectedShardId": "dependency:needs-human-review",
-  "selectionBasis": "dependencyState needs-human-review with item-by-item semantic decisions for current executable shard",
+  "selectionBasis": "dependencyState needs-human-review; item-by-item semantic decisions are counted separately",
   "totals": {
     "sourceWorkqueueRows": 25,
     "scopedSectionUnits": 15,

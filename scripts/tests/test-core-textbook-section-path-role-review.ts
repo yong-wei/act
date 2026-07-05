@@ -4,7 +4,9 @@ import path from 'node:path';
 interface ScopedWorkqueueItem {
   resourceId: string;
   sectionId: string;
+  deterministicShardId: string;
   selectedForReview: boolean;
+  reviewState: string;
   dependencyStates: string[];
   sourceHash: string | null;
   runtimeFileHash: string | null;
@@ -134,6 +136,10 @@ const summary = JSON.parse(readFileSync(path.join(
 assert(workqueueItems.length === 15, 'expected scoped textbook-section workqueue to retain 15 unique section units');
 assert(reviewItems.length === 5, 'expected five selected section review rows');
 assert(summary.selectedShard.remaining === 0, 'selected shard remaining must be zero');
+assert(
+  summary.selectedShard.remaining === workqueueItems.filter((item) => item.selectedForReview).length - reviewItems.length,
+  'selected shard remaining must count selected needs-human-review rows without review decisions',
+);
 assert(summary.totals.sourceWorkqueueRows === 25, 'source workqueue row count must remain visible');
 assert(summary.residualHandoff.blockedByDependencySectionUnits === 10, 'blocked dependency residual handoff must retain 10 section units');
 assert(summary.residualHandoff.blockedByDependencySourceRows === 20, 'blocked dependency residual handoff must retain 20 source rows');
@@ -163,6 +169,16 @@ assert(
     SELECTED_RESOURCE_IDS,
   ),
   'selected workqueue rows must match reviewed rows exactly',
+);
+assert(
+  workqueueItems.filter((item) => item.dependencyStates.includes('needs-human-review'))
+    .every((item) => item.selectedForReview && item.deterministicShardId === 'dependency:needs-human-review'),
+  'needs-human-review section rows must stay in the selected shard even before a semantic decision exists',
+);
+assert(
+  workqueueItems.filter((item) => item.selectedForReview)
+    .every((item) => item.reviewState === 'reviewed'),
+  'currently selected section rows must have review decisions',
 );
 assert(
   workqueueItems.filter((item) => !item.selectedForReview)

@@ -211,7 +211,7 @@ async function main() {
   ));
   const sortedScopedItems = scopedItems.sort(compareByResourceId);
   const reviewItems = sortedScopedItems
-    .filter((item) => item.selectedForReview)
+    .filter((item) => item.selectedForReview && Boolean(SEMANTIC_DECISIONS[item.sectionId]))
     .map((item) => reviewItemFor(item, sectionIndex.get(item.resourceId)!));
   const summary = buildSummary(sortedScopedItems, reviewItems);
 
@@ -236,8 +236,8 @@ async function scopedWorkqueueItem(
 ): Promise<ScopedWorkqueueItem> {
   const indexRow = sectionIndex.get(resourceId);
   if (!indexRow) throw new Error(`Missing section index row for ${resourceId}`);
-  const selectedForReview = rows.some((row) => row.dependencyState === 'needs-human-review') &&
-    Boolean(SEMANTIC_DECISIONS[indexRow.id]);
+  const selectedForReview = rows.some((row) => row.dependencyState === 'needs-human-review');
+  const hasReviewDecision = Boolean(SEMANTIC_DECISIONS[indexRow.id]);
   const grounding = groundingBySection.get(indexRow.id) ?? [];
   const citationTargets = citationTargetsBySection.get(indexRow.id) ?? [];
 
@@ -256,7 +256,7 @@ async function scopedWorkqueueItem(
     title: indexRow.title,
     deterministicShardId: selectedForReview ? SELECTED_SHARD_ID : 'dependency:blocked-by-dependency',
     selectedForReview,
-    reviewState: selectedForReview ? 'reviewed' : 'residual-handoff',
+    reviewState: selectedForReview && hasReviewDecision ? 'reviewed' : 'residual-handoff',
     dependencyStates: uniqueSorted(rows.map((row) => row.dependencyState)),
     queueRoles: uniqueSorted(rows.map((row) => row.queueRole)),
     blockerCodes: uniqueSorted(rows.flatMap((row) => [row.missingFieldCode, ...(row.currentBlockers ?? [])])),
@@ -327,7 +327,7 @@ function buildSummary(items: ScopedWorkqueueItem[], reviewItems: ReviewItem[]) {
     generatedAt: GENERATED_AT,
     reviewBatchId: REVIEW_BATCH_ID,
     selectedShardId: SELECTED_SHARD_ID,
-    selectionBasis: 'dependencyState needs-human-review with item-by-item semantic decisions for current executable shard',
+    selectionBasis: 'dependencyState needs-human-review; item-by-item semantic decisions are counted separately',
     totals: {
       sourceWorkqueueRows: sum(items, (item) => item.sourceWorkqueueRowCount),
       scopedSectionUnits: items.length,
