@@ -53,7 +53,8 @@ function privatePlan(authorId = 'teacher-1') {
 }
 
 function readLauncherProps(element: ReactElement) {
-  return element.props as Record<string, unknown>;
+  const shellElement = element as ReactElement<{ children: ReactElement<Record<string, unknown>> }>;
+  return shellElement.props.children.props;
 }
 
 describe('/playlists/[id]/play page access', () => {

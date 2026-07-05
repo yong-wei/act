@@ -118,10 +118,13 @@ function collectElementsByDataAttribute(element: unknown, attribute: string, val
   if (!element || typeof element !== 'object') return [];
   const current = element as ReactElementLike;
   const currentValue = current.props?.[attribute];
-  const currentMatch = typeof currentValue === 'string' && (value === undefined || currentValue === value) ? [current] : [];
+  const currentMatch =
+    typeof currentValue === 'string' && (value === undefined || currentValue === value) ? [current] : [];
   return [
     ...currentMatch,
-    ...childElements(current.props?.children).flatMap((child) => collectElementsByDataAttribute(child, attribute, value)),
+    ...childElements(current.props?.children).flatMap((child) =>
+      collectElementsByDataAttribute(child, attribute, value),
+    ),
   ];
 }
 
@@ -160,15 +163,42 @@ describe('platform UI contracts', () => {
 
     expect(PLATFORM_SEMANTIC_TOKENS).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ category: 'canvas', name: 'platform-canvas' }),
-        expect.objectContaining({ category: 'surface', name: 'platform-surface-raised' }),
-        expect.objectContaining({ category: 'foreground', name: 'platform-fg-secondary' }),
-        expect.objectContaining({ category: 'border', name: 'platform-border-strong' }),
-        expect.objectContaining({ category: 'action', name: 'platform-action-primary' }),
-        expect.objectContaining({ category: 'evidence', name: 'platform-evidence-eligible' }),
-        expect.objectContaining({ category: 'privacy', name: 'platform-privacy-restricted' }),
-        expect.objectContaining({ category: 'replay', name: 'platform-replay-ready' }),
-        expect.objectContaining({ category: 'evaluation', name: 'platform-evaluation-official' }),
+        expect.objectContaining({
+          category: 'canvas',
+          name: 'platform-canvas',
+        }),
+        expect.objectContaining({
+          category: 'surface',
+          name: 'platform-surface-raised',
+        }),
+        expect.objectContaining({
+          category: 'foreground',
+          name: 'platform-fg-secondary',
+        }),
+        expect.objectContaining({
+          category: 'border',
+          name: 'platform-border-strong',
+        }),
+        expect.objectContaining({
+          category: 'action',
+          name: 'platform-action-primary',
+        }),
+        expect.objectContaining({
+          category: 'evidence',
+          name: 'platform-evidence-eligible',
+        }),
+        expect.objectContaining({
+          category: 'privacy',
+          name: 'platform-privacy-restricted',
+        }),
+        expect.objectContaining({
+          category: 'replay',
+          name: 'platform-replay-ready',
+        }),
+        expect.objectContaining({
+          category: 'evaluation',
+          name: 'platform-evaluation-official',
+        }),
       ]),
     );
 
@@ -178,9 +208,8 @@ describe('platform UI contracts', () => {
       expect(tailwindConfig).toContain(`hsl(var(--${tokenName}))`);
     }
 
-    const subtleActionValues = Array.from(
-      globals.matchAll(/--platform-action-subtle:\s*([^;]+);/g),
-      (match) => match[1].trim(),
+    const subtleActionValues = Array.from(globals.matchAll(/--platform-action-subtle:\s*([^;]+);/g), (match) =>
+      match[1].trim(),
     );
     expect(subtleActionValues).toHaveLength(2);
     for (const value of subtleActionValues) {
@@ -190,8 +219,20 @@ describe('platform UI contracts', () => {
 
   it('keeps role navigation ordered and feature-flag aware', () => {
     const items: PlatformNavigationItem[] = [
-      { id: 'teacher-governance', label: '治理', href: '/teacher/governance', role: 'teacher', order: 30 },
-      { id: 'student-home', label: '首页', href: '/dashboard', role: 'student', order: 10 },
+      {
+        id: 'teacher-governance',
+        label: '治理',
+        href: '/teacher/governance',
+        role: 'teacher',
+        order: 30,
+      },
+      {
+        id: 'student-home',
+        label: '首页',
+        href: '/dashboard',
+        role: 'student',
+        order: 10,
+      },
       {
         id: 'student-adaptive',
         label: '自适应',
@@ -200,7 +241,13 @@ describe('platform UI contracts', () => {
         order: 20,
         featureFlag: 'adaptive-center',
       },
-      { id: 'student-knowledge', label: '知识图谱', href: '/knowledge', role: 'student', order: 15 },
+      {
+        id: 'student-knowledge',
+        label: '知识图谱',
+        href: '/knowledge',
+        role: 'student',
+        order: 15,
+      },
     ];
 
     expect(createPlatformNavigation(items).map((item) => item.id)).toEqual([
@@ -209,15 +256,18 @@ describe('platform UI contracts', () => {
       'student-adaptive',
       'teacher-governance',
     ]);
-    expect(filterPlatformNavigation(items, { role: 'student', enabledFeatureFlags: [] }).map((item) => item.id)).toEqual([
-      'student-home',
-      'student-knowledge',
-    ]);
-    expect(filterPlatformNavigation(items, { role: 'student', enabledFeatureFlags: ['adaptive-center'] }).map((item) => item.id)).toEqual([
-      'student-home',
-      'student-knowledge',
-      'student-adaptive',
-    ]);
+    expect(
+      filterPlatformNavigation(items, {
+        role: 'student',
+        enabledFeatureFlags: [],
+      }).map((item) => item.id),
+    ).toEqual(['student-home', 'student-knowledge']);
+    expect(
+      filterPlatformNavigation(items, {
+        role: 'student',
+        enabledFeatureFlags: ['adaptive-center'],
+      }).map((item) => item.id),
+    ).toEqual(['student-home', 'student-knowledge', 'student-adaptive']);
   });
 
   it('defines shell primitives, adapters, rollback, and ownership guardrails', () => {
@@ -237,12 +287,7 @@ describe('platform UI contracts', () => {
       'AdminConsoleHeader',
     ]);
     expect(FORBIDDEN_SHARED_UI_IMPORT_PREFIXES).toEqual(
-      expect.arrayContaining([
-        '@/features/',
-        '@/resources/',
-        '@/lib/resource-registry',
-        '@/features/lesson-engine',
-      ]),
+      expect.arrayContaining(['@/features/', '@/resources/', '@/lib/resource-registry', '@/features/lesson-engine']),
     );
 
     for (const relativePath of [
@@ -262,11 +307,24 @@ describe('platform UI contracts', () => {
     expect(PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS.map((contract) => contract.theme)).toEqual(['light', 'dark']);
     expect(PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS.find((contract) => contract.theme === 'light')).toMatchObject({
       requiredRoles: expect.arrayContaining(['matte-chart', 'engineering-paper', 'instrument-panel', 'evidence-state']),
-      requiredTokenCategories: expect.arrayContaining(['canvas', 'surface', 'foreground', 'border', 'action', 'evidence', 'chart']),
+      requiredTokenCategories: expect.arrayContaining([
+        'canvas',
+        'surface',
+        'foreground',
+        'border',
+        'action',
+        'evidence',
+        'chart',
+      ]),
       prohibitedFallbacks: expect.arrayContaining(['unrelated white-card administration styling']),
     });
     expect(PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS.find((contract) => contract.theme === 'dark')).toMatchObject({
-      requiredRoles: expect.arrayContaining(['night-navigation', 'low-light-instrument', 'trace-signal', 'warning-success-signal']),
+      requiredRoles: expect.arrayContaining([
+        'night-navigation',
+        'low-light-instrument',
+        'trace-signal',
+        'warning-success-signal',
+      ]),
       prohibitedFallbacks: expect.arrayContaining(['washed-out inverted light theme']),
     });
   });
@@ -275,7 +333,13 @@ describe('platform UI contracts', () => {
     expect(PLATFORM_SIMULATION_THEME_TEMPLATES.map((template) => template.theme)).toEqual(['light', 'dark']);
     expect(PLATFORM_SIMULATION_THEME_TEMPLATES.find((template) => template.theme === 'light')).toMatchObject({
       visualWorld: expect.stringContaining('daylight engineering chart'),
-      roles: expect.arrayContaining(['scene-canvas', 'translucent-shell', 'local-panel', 'bottom-toolbar', 'hint-strip']),
+      roles: expect.arrayContaining([
+        'scene-canvas',
+        'translucent-shell',
+        'local-panel',
+        'bottom-toolbar',
+        'hint-strip',
+      ]),
       tokenNames: expect.arrayContaining([
         'platform-canvas',
         'platform-surface-overlay',
@@ -286,14 +350,17 @@ describe('platform UI contracts', () => {
         'platform-replay-ready',
         'platform-evaluation-official',
       ]),
-      prohibitedFallbacks: expect.arrayContaining([
-        'generic white administration cards',
-        'decorative glow blobs',
-      ]),
+      prohibitedFallbacks: expect.arrayContaining(['generic white administration cards', 'decorative glow blobs']),
     });
     expect(PLATFORM_SIMULATION_THEME_TEMPLATES.find((template) => template.theme === 'dark')).toMatchObject({
       visualWorld: expect.stringContaining('night bridge'),
-      roles: expect.arrayContaining(['scene-canvas', 'translucent-shell', 'local-panel', 'bottom-toolbar', 'hint-strip']),
+      roles: expect.arrayContaining([
+        'scene-canvas',
+        'translucent-shell',
+        'local-panel',
+        'bottom-toolbar',
+        'hint-strip',
+      ]),
       tokenNames: expect.arrayContaining([
         'platform-canvas-muted',
         'platform-surface-overlay',
@@ -301,21 +368,39 @@ describe('platform UI contracts', () => {
         'platform-border-strong',
         'platform-chart-1',
       ]),
-      prohibitedFallbacks: expect.arrayContaining([
-        'one-note navy card skin',
-        'cyan-only chrome',
-      ]),
+      prohibitedFallbacks: expect.arrayContaining(['one-note navy card skin', 'cyan-only chrome']),
     });
 
     expect(PLATFORM_SIMULATION_STATE_ROLE_TOKENS).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ role: 'preview', tokenName: 'platform-evaluation-preview' }),
-        expect.objectContaining({ role: 'official', tokenName: 'platform-evaluation-official' }),
-        expect.objectContaining({ role: 'replay', tokenName: 'platform-replay-ready' }),
-        expect.objectContaining({ role: 'warning', tokenName: 'platform-evidence-context' }),
-        expect.objectContaining({ role: 'success', tokenName: 'platform-evidence-eligible' }),
-        expect.objectContaining({ role: 'danger', tokenName: 'platform-evidence-unsupported' }),
-        expect.objectContaining({ role: 'unavailable', tokenName: 'platform-replay-missing' }),
+        expect.objectContaining({
+          role: 'preview',
+          tokenName: 'platform-evaluation-preview',
+        }),
+        expect.objectContaining({
+          role: 'official',
+          tokenName: 'platform-evaluation-official',
+        }),
+        expect.objectContaining({
+          role: 'replay',
+          tokenName: 'platform-replay-ready',
+        }),
+        expect.objectContaining({
+          role: 'warning',
+          tokenName: 'platform-evidence-context',
+        }),
+        expect.objectContaining({
+          role: 'success',
+          tokenName: 'platform-evidence-eligible',
+        }),
+        expect.objectContaining({
+          role: 'danger',
+          tokenName: 'platform-evidence-unsupported',
+        }),
+        expect.objectContaining({
+          role: 'unavailable',
+          tokenName: 'platform-replay-missing',
+        }),
       ]),
     );
   });
@@ -342,12 +427,16 @@ describe('platform UI contracts', () => {
       'page-tools',
       'issue-badge',
     ]);
-    expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.find((contract) => contract.control === 'konling')?.payloadBoundary).toContain('private memory');
-    expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.find((contract) => contract.control === 'management')?.roleScope).toEqual([
-      'teacher',
-      'admin',
-    ]);
-    expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.flatMap((contract) => contract.roleScope)).not.toContain('audit');
+    expect(
+      PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.find((contract) => contract.control === 'konling')
+        ?.payloadBoundary,
+    ).toContain('private memory');
+    expect(
+      PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.find((contract) => contract.control === 'management')?.roleScope,
+    ).toEqual(['teacher', 'admin']);
+    expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.flatMap((contract) => contract.roleScope)).not.toContain(
+      'audit',
+    );
     expect(PLATFORM_DOCK_CONTROL_DISPOSITION_CONTRACTS.map((contract) => contract.legacyComponent)).toEqual([
       'PageFloatingControls',
       'GlobalAIFloatingButton',
@@ -418,7 +507,10 @@ describe('platform UI contracts', () => {
       expect(shell.zones).toEqual(PLATFORM_COMMERCIAL_WORKSPACE_ZONES.map((zone) => zone.id));
     }
 
-    expect(PLATFORM_COMMERCIAL_WORKSPACE_SHELLS.find((shell) => shell.workspace === 'control-workbench')?.contextualNavigation).toContain('return target');
+    expect(
+      PLATFORM_COMMERCIAL_WORKSPACE_SHELLS.find((shell) => shell.workspace === 'control-workbench')
+        ?.contextualNavigation,
+    ).toContain('return target');
     expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.map((route) => route.href)).toEqual([
       '/simulations/[id]',
       '/interactive-learning/control-workbench',
@@ -437,21 +529,30 @@ describe('platform UI contracts', () => {
       '/data-center',
       '/admin/data-governance',
     ]);
-    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/simulations/[id]')?.workspace).toBe('simulation');
-    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/data-center')?.expectedZones).toEqual([
-      'context-strip',
-      'instrument-area',
-      'command-bar',
-    ]);
-    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/teacher/classes/[classId]/analytics-v2')?.expectedZones).toEqual([
-      'instrument-area',
-    ]);
-    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/teacher')?.density).toBe('analytics');
-    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/admin')?.density).toBe('governance');
-    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/admin/data-governance')?.expectedZones).toEqual([
-      'instrument-area',
-    ]);
-    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/admin/data-governance')?.density).toBe('governance');
+    expect(
+      PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/simulations/[id]')?.workspace,
+    ).toBe('simulation');
+    expect(
+      PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/data-center')?.expectedZones,
+    ).toEqual(['context-strip', 'instrument-area', 'command-bar']);
+    expect(
+      PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find(
+        (route) => route.href === '/teacher/classes/[classId]/analytics-v2',
+      )?.expectedZones,
+    ).toEqual(['instrument-area']);
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/teacher')?.density).toBe(
+      'analytics',
+    );
+    expect(PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/admin')?.density).toBe(
+      'governance',
+    );
+    expect(
+      PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/admin/data-governance')
+        ?.expectedZones,
+    ).toEqual(['instrument-area']);
+    expect(
+      PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX.find((route) => route.href === '/admin/data-governance')?.density,
+    ).toBe('governance');
   });
 
   it('keeps representative dense workspace sources on the commercial zone contract', () => {
@@ -513,7 +614,9 @@ describe('platform UI contracts', () => {
     expect(simulationsCatalogSource).toContain('data-simulation-visual-world="instrument-atlas"');
     expect(simulationsCatalogSource).toContain('data-simulation-state-role="preview"');
     expect(simulationsCatalogSource).toContain('data-simulation-state-role="official"');
-    expect(simulationsCatalogSource).not.toMatch(/\b(?:bg|text|border)-(?:green|yellow|red|black|white|slate|cyan|blue)-/);
+    expect(simulationsCatalogSource).not.toMatch(
+      /\b(?:bg|text|border)-(?:green|yellow|red|black|white|slate|cyan|blue)-/,
+    );
     expect(simulationsCatalogSource).not.toContain('bg-gradient');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-workspace={template.id}');
     expect(simulationLocalToolsSource).toContain('data-simulation-theme-template="local-tools"');
@@ -525,9 +628,13 @@ describe('platform UI contracts', () => {
     expect(simulationLocalToolsSource).toContain('data-simulation-panel-collapsible="true"');
     expect(simulationLocalToolsSource).toContain('data-simulation-mobile-secondary-controls="stacked-sheets"');
     expect(simulationLocalToolsSource).toContain('order-1 flex min-w-0 flex-1 flex-col');
-    expect(simulationLocalToolsSource).toContain("side === 'left' && panelLayout === 'side-rails' ? 'order-2 lg:hidden'");
+    expect(simulationLocalToolsSource).toContain(
+      "side === 'left' && panelLayout === 'side-rails' ? 'order-2 lg:hidden'",
+    );
     expect(simulationLocalToolsSource).toContain("side === 'left' && panelLayout === 'stacked' ? 'order-2'");
-    expect(simulationLocalToolsSource).toContain("side === 'right' && panelLayout === 'side-rails' ? 'order-3 lg:hidden'");
+    expect(simulationLocalToolsSource).toContain(
+      "side === 'right' && panelLayout === 'side-rails' ? 'order-3 lg:hidden'",
+    );
     expect(simulationLocalToolsSource).toContain("side === 'right' && panelLayout === 'stacked' ? 'order-3'");
     expect(simulationLocalToolsSource).toContain('ChevronDown');
     expect(simulationLocalToolsSource).toContain('focus-visible:ring-2 focus-visible:ring-platform-action-primary');
@@ -563,7 +670,9 @@ describe('platform UI contracts', () => {
     expect(roleWorkspaceShellSource).toContain('<UserMenu');
     expect(appShellSource).toContain('function hasRightRailWorkspaceSlots');
     expect(appShellSource).toContain("data-app-shell-workspace-right-rail={hasRightRail ? 'present' : 'absent'}");
-    expect(appShellSource).toContain("className={cn('grid gap-4', hasRightRail && 'xl:grid-cols-[minmax(0,1fr)_320px]')}");
+    expect(appShellSource).toContain(
+      "className={cn('grid gap-4', hasRightRail && 'xl:grid-cols-[minmax(0,1fr)_320px]')}",
+    );
     expect(teacherLayoutSource).toContain('TeacherOperationsNav');
     expect(teacherLayoutSource).toContain('<RoleWorkspaceShell');
     expect(teacherLayoutSource).toContain('workspaceRole="teacher"');
@@ -581,21 +690,31 @@ describe('platform UI contracts', () => {
     expect(teacherDashboardSource).toContain("activeClassHref === '/teacher/classes' ? '' : '/analytics-v2'");
     expect(teacherDashboardSource).toContain('TEACHER_OPERATIONS_ANALYTICS_SLOTS');
     expect(teacherDashboardSource).toContain('data-operations-unavailable-slot');
-    expect(teacherDashboardSource).toContain('data-operations-fabricates-metrics={String(unavailableSlot.fabricatesMetrics)}');
+    expect(teacherDashboardSource).toContain(
+      'data-operations-fabricates-metrics={String(unavailableSlot.fabricatesMetrics)}',
+    );
     expect(teacherDashboardSource).toContain('data-report-ledger-surface="teacher-prep-pack-review-slot"');
-    expect(teacherDashboardSource).toContain('data-operations-overlay-lifecycle="preview review activate archive rollback"');
+    expect(teacherDashboardSource).toContain(
+      'data-operations-overlay-lifecycle="preview review activate archive rollback"',
+    );
     expect(teacherDashboardSource).toContain('data-operations-mutates-base-manifest="false"');
     expect(teacherDashboardSource).toContain('不修改基础 manifest');
     expect(teacherDashboardSource).toContain('data-report-ledger-surface="assistant-effect-report-export"');
     expect(teacherGradingSource).toContain('data-report-ledger-surface="document-grading-workbench-ledger"');
     expect(teacherGradingSource).toContain('data-report-ledger-privacy-scope="teacher-review"');
     expect(teacherGradingSource).toContain('状态图例：草稿需人工审批');
-    expect(teacherGradingPageSource).toContain('session.user.role !== UserRole.TEACHER && session.user.role !== UserRole.ADMIN');
+    expect(teacherGradingPageSource).toContain(
+      'session.user.role !== UserRole.TEACHER && session.user.role !== UserRole.ADMIN',
+    );
     expect(teacherLayoutSource).toContain("session.user.role !== 'TEACHER'");
     expect(teacherLayoutSource).not.toContain('adminGradingWorkbenchAccess');
-    expect(teacherReportLedgerLayoutSource).toContain("session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN'");
+    expect(teacherReportLedgerLayoutSource).toContain(
+      "session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN'",
+    );
     expect(teacherReportLedgerLayoutSource).toContain('<RoleWorkspaceShell');
-    expect(teacherReportLedgerLayoutSource).toContain("workspaceRole={session.user.role === 'ADMIN' ? 'admin' : 'teacher'}");
+    expect(teacherReportLedgerLayoutSource).toContain(
+      "workspaceRole={session.user.role === 'ADMIN' ? 'admin' : 'teacher'}",
+    );
     expect(teacherReportLedgerLayoutSource).toContain("commandBar: session.user.role === 'TEACHER'");
     expect(teacherReportLedgerLayoutSource).toContain('data-commercial-operations-workspace="teacher-report-ledger"');
     expect(teacherClassesSource).toContain('data-commercial-operations-workspace="teacher-operations"');
@@ -671,12 +790,7 @@ describe('platform UI contracts', () => {
     expect(dashboardSource).toContain('getPlatformCockpitHref');
     expect(dashboardSource).not.toContain('<AppShell');
 
-    for (const source of [
-      profileSource,
-      growthSource,
-      evidenceSource,
-      adaptivePracticeSource,
-    ]) {
+    for (const source of [profileSource, growthSource, evidenceSource, adaptivePracticeSource]) {
       expect(source).toContain('<AppShell');
       expect(source).toContain('viewerRole="student"');
       expect(source).not.toMatch(/role=\"(?:student|teacher)\"/);
@@ -686,6 +800,7 @@ describe('platform UI contracts', () => {
     expect(knowledgeSource).toContain('<AppShell');
     expect(knowledgeSource).toContain('getServerAuthSession');
     expect(knowledgeSource).toContain('viewerRole={shellRole}');
+    expect(knowledgeSource).toContain('<KnowledgeGraphSystem viewerRole={viewerRole} />');
     expect(knowledgeSource).toContain('sidebarMode="collapsible"');
     expect(knowledgeSource).toContain("{ label: '首页', href: '/' }");
     expect(knowledgeSource).toContain("{ label: '知识资源' }");
@@ -712,9 +827,12 @@ describe('platform UI contracts', () => {
     expect(knowledgeSystemSource).toContain('data-knowledge-desktop-command-system="compact"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="view-layout-controls"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="node-hover-preview"');
+    expect(knowledgeSystemSource).toContain('viewerRole={viewerRole}');
     expect(knowledgeSystemSource).not.toContain('bg-[#091540]');
     expect(knowledgeSystemSource).not.toContain('bg-[#0c1d4f]');
     expect(knowledgeResourcePanelSource).toContain('data-knowledge-local-panel="resource-panel"');
+    expect(knowledgeResourcePanelSource).toContain("viewerRole === 'teacher' || viewerRole === 'admin'");
+    expect(knowledgeResourcePanelSource).toContain('{canAddToCourseFlow ? (');
     expect(knowledgeResourcePanelSource).not.toContain('bg-[#091540]');
     expect(knowledgeResourcePanelSource).not.toContain('bg-[#0c1d4f]');
     expect(adaptivePracticeSource).toContain('data-commercial-entry-intent="practice"');
@@ -738,12 +856,7 @@ describe('platform UI contracts', () => {
     const catalogSource = readSource('src/features/interactive/learning-catalog.ts');
     const globalAiButtonSource = readSource('src/components/ai/global-ai-button.tsx');
 
-    for (const source of [
-      interactiveEntrySource,
-      courseCatalogSource,
-      chapterComponentsSource,
-      crossDomainSource,
-    ]) {
+    for (const source of [interactiveEntrySource, courseCatalogSource, chapterComponentsSource, crossDomainSource]) {
       expect(source).toContain('<InteractiveLearningShell');
       expect(source).toContain('data-interactive-atlas-workspace');
       expect(source).not.toContain('UnifiedTopBar');
@@ -774,8 +887,12 @@ describe('platform UI contracts', () => {
     expect(catalogSource).toContain("'实践课'");
     expect(courseCatalogSource).not.toContain('精品先导');
     expect(courseCatalogSource).not.toContain('interactive-course-hub-');
-    expect(chapterComponentsSource).toContain('data-commercial-student-entry-route="/interactive-learning/chapter-components"');
-    expect(crossDomainSource).toContain('data-commercial-student-entry-route="/interactive-learning/cross-domain-exploration"');
+    expect(chapterComponentsSource).toContain(
+      'data-commercial-student-entry-route="/interactive-learning/chapter-components"',
+    );
+    expect(crossDomainSource).toContain(
+      'data-commercial-student-entry-route="/interactive-learning/cross-domain-exploration"',
+    );
   });
 
   it('keeps concrete interactive course entry pages on the unified course entry shell', () => {
@@ -791,7 +908,9 @@ describe('platform UI contracts', () => {
 
     expect(courseEntryShellSource).toContain('<AppShell');
     expect(courseEntryShellSource).toContain('sidebarMode="collapsible"');
-    expect(courseEntryShellSource).toContain('router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${createData.id}/waiting`)');
+    expect(courseEntryShellSource).toContain(
+      'router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${createData.id}/waiting`)',
+    );
     expect(courseEntryShellSource).toContain('data-course-entry-shell="app-shell"');
     expect(courseEntryShellSource).toContain('data-commercial-workspace="interactive-learning"');
     expect(courseEntryShellSource).toContain('data-course-entry-role-panel="teacher"');
@@ -805,7 +924,9 @@ describe('platform UI contracts', () => {
     expect(courseEntryShellSource).toContain('const showTeacherSection = canCreateAsTeacher;');
     expect(courseEntryShellSource).toContain('const showTeacherSignInSection = !roleResolved;');
     expect(courseEntryShellSource).toContain('const showStudentSection = roleResolved ? canJoinAsStudent : true;');
-    expect(courseEntryShellSource).not.toContain('const showTeacherSection = roleResolved ? canCreateAsTeacher : true;');
+    expect(courseEntryShellSource).not.toContain(
+      'const showTeacherSection = roleResolved ? canCreateAsTeacher : true;',
+    );
     expect(courseEntryShellSource).toContain('href={`/login?callbackUrl=${encodeURIComponent(activeHref)}`}');
     expect(courseEntryShellSource).toContain('data-course-entry-region="course-stats"');
     expect(courseEntryShellSource).toContain('data-course-entry-region="unit-route"');
@@ -824,7 +945,9 @@ describe('platform UI contracts', () => {
     expect(teacherWaitingRouteSource).toContain("import { redirect } from 'next/navigation';");
     expect(teacherWaitingRouteSource).toContain('getServerSession(authOptions)');
     expect(teacherWaitingRouteSource).toContain("redirect('/login')");
-    expect(teacherWaitingRouteSource).toContain("redirect(`/interactive-learning/courses/${routeSegment}/student/${sessionId}`)");
+    expect(teacherWaitingRouteSource).toContain(
+      'redirect(`/interactive-learning/courses/${routeSegment}/student/${sessionId}`)',
+    );
     expect(teacherWaitingRouteSource).toContain("['TEACHER', 'ADMIN', '教师', '管理员']");
     expect(teacherWaitingRouteSource).toContain('<TeacherClassroomWaitingPage');
     expect(teacherWaitingSource).toContain('<AppShell');
@@ -862,9 +985,13 @@ describe('platform UI contracts', () => {
     const unit11StepPanelsSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/step-panels.tsx');
     const unit11TeacherSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx');
     const unit41StudentSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
-    const unit41StepPanelsSource = readSource('src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx');
+    const unit41StepPanelsSource = readSource(
+      'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx',
+    );
     const unit41TeacherSource = readSource('src/features/interactive/unit-4-1-design-task-expression/teacher-page.tsx');
-    const manifestActivitySource = readSource('src/features/interactive/shared/manifest-runtime/activity-renderers.tsx');
+    const manifestActivitySource = readSource(
+      'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx',
+    );
     const stepKnowledgeDrawerSource = readSource('src/features/interactive/shared/step-knowledge-drawer.tsx');
 
     expect(runtimeShellSource).toContain('<AppShell');
@@ -888,7 +1015,7 @@ describe('platform UI contracts', () => {
     }
 
     for (const source of [unit11StudentSource, unit41StudentSource]) {
-      expect(source).toContain('mode={isDemo ? \'guest\' : \'student\'}');
+      expect(source).toContain("mode={isDemo ? 'guest' : 'student'}");
       expect(source).toContain('readOnly={isDemo}');
       expect(source).toContain('inlineTool');
       expect(source).toContain('data-runtime-manifest-truth');
@@ -924,10 +1051,12 @@ describe('platform UI contracts', () => {
       .sort();
     const teacherWaitingRoutes = listSourceFiles('src/app/interactive-learning/courses')
       .filter((relativePath) => relativePath.endsWith('/teacher/[sessionId]/waiting/page.tsx'))
-      .map((relativePath) =>
-        `/${path.dirname(relativePath)
-          .replace(/^src\/app\//, '')
-          .replace('/teacher/[sessionId]/waiting', '/teacher/session-1/waiting')}`
+      .map(
+        (relativePath) =>
+          `/${path
+            .dirname(relativePath)
+            .replace(/^src\/app\//, '')
+            .replace('/teacher/[sessionId]/waiting', '/teacher/session-1/waiting')}`,
       )
       .sort();
     const courseHref = '/interactive-learning/courses/unit-1-1-see-the-full-picture';
@@ -1035,17 +1164,17 @@ describe('platform UI contracts', () => {
   });
 
   it('does not use student or teacher business identity as a JSX role prop', () => {
-    const platformShellFiles = [
-      'src/components/platform/app-shell.tsx',
-    ];
+    const platformShellFiles = ['src/components/platform/app-shell.tsx'];
     const checkedFiles = [
       ...platformShellFiles,
       ...listSourceFiles('src/app'),
       ...listSourceFiles('src/features'),
       ...listSourceFiles('src/components/platform'),
     ];
-    const invalidLiteralBusinessRole = /\brole\s*=\s*(?:"student"|"teacher"|'student'|'teacher'|\{\s*'student'\s*\}|\{\s*'teacher'\s*\}|\{\s*"student"\s*\}|\{\s*"teacher"\s*\})/;
-    const businessRoleForwardedToDom = /<[a-z][A-Za-z0-9:-]*(?:\s+[^<>]*?)?\srole\s*=\s*\{\s*(?:role|viewerRole|surfaceRole|businessRole|audienceRole)\s*\}/;
+    const invalidLiteralBusinessRole =
+      /\brole\s*=\s*(?:"student"|"teacher"|'student'|'teacher'|\{\s*'student'\s*\}|\{\s*'teacher'\s*\}|\{\s*"student"\s*\}|\{\s*"teacher"\s*\})/;
+    const businessRoleForwardedToDom =
+      /<[a-z][A-Za-z0-9:-]*(?:\s+[^<>]*?)?\srole\s*=\s*\{\s*(?:role|viewerRole|surfaceRole|businessRole|audienceRole)\s*\}/;
 
     for (const relativePath of checkedFiles) {
       const source = readSource(relativePath);
@@ -1060,9 +1189,9 @@ describe('platform UI contracts', () => {
     expect(resolveTeacherOperationsNavHref(analyticsTemplate, '/teacher/classes/class-1')).toBe(
       '/teacher/classes/class-1/analytics-v2',
     );
-    expect(resolveTeacherOperationsNavHref(analyticsTemplate, '/teacher/classes/class-1/students/student-1/evidence')).toBe(
-      '/teacher/classes/class-1/analytics-v2',
-    );
+    expect(
+      resolveTeacherOperationsNavHref(analyticsTemplate, '/teacher/classes/class-1/students/student-1/evidence'),
+    ).toBe('/teacher/classes/class-1/analytics-v2');
     expect(resolveTeacherOperationsNavHref(analyticsTemplate, '/teacher/classes')).toBe('/teacher/classes');
     expect(resolveTeacherOperationsNavHref(analyticsTemplate, '/teacher/classes/new')).toBe('/teacher/classes');
 
@@ -1070,9 +1199,9 @@ describe('platform UI contracts', () => {
     expect(isTeacherOperationsNavActive('/teacher/classes/class-1/analytics-v2', '/teacher/classes')).toBe(false);
     expect(isTeacherOperationsNavActive('/teacher/classes', analyticsTemplate)).toBe(false);
     expect(isTeacherOperationsNavActive('/teacher/classes/new', analyticsTemplate)).toBe(false);
-    expect(isTeacherOperationsNavActive('/teacher/classes/class-1/students/student-1/evidence', analyticsTemplate)).toBe(
-      false,
-    );
+    expect(
+      isTeacherOperationsNavActive('/teacher/classes/class-1/students/student-1/evidence', analyticsTemplate),
+    ).toBe(false);
   });
 
   it('prioritizes the active classroom class for teacher operations evidence and analytics entry', () => {
@@ -1135,8 +1264,20 @@ describe('platform UI contracts', () => {
       title: '教师工作台',
       activeHref: '/teacher/classes',
       navigation: [
-        { id: 'teacher-home', label: '教师首页', href: '/teacher', role: 'teacher', order: 10 },
-        { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+        {
+          id: 'teacher-home',
+          label: '教师首页',
+          href: '/teacher',
+          role: 'teacher',
+          order: 10,
+        },
+        {
+          id: 'teacher-classes',
+          label: '班级',
+          href: '/teacher/classes',
+          role: 'teacher',
+          order: 20,
+        },
       ],
       children: null,
     });
@@ -1150,8 +1291,20 @@ describe('platform UI contracts', () => {
       AppSidebar({
         activeHref: '/teacher/classes',
         navigation: [
-          { id: 'teacher-home', label: '教师首页', href: '/teacher', role: 'teacher', order: 10 },
-          { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+          {
+            id: 'teacher-home',
+            label: '教师首页',
+            href: '/teacher',
+            role: 'teacher',
+            order: 10,
+          },
+          {
+            id: 'teacher-classes',
+            label: '班级',
+            href: '/teacher/classes',
+            role: 'teacher',
+            order: 20,
+          },
         ],
       }),
     );
@@ -1225,7 +1378,9 @@ describe('platform UI contracts', () => {
       expect(navigation.map((entry) => entry.id)).toEqual([...STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS]);
       expect(navigation.map((entry) => entry.label)).toEqual(expectedLabels);
     }
-    const teacherProfileNavigationIds = getPlatformRouteNavigation('/profile/growth', 'teacher').map((entry) => entry.id);
+    const teacherProfileNavigationIds = getPlatformRouteNavigation('/profile/growth', 'teacher').map(
+      (entry) => entry.id,
+    );
     const adminProfileNavigationIds = getPlatformRouteNavigation('/profile/evidence', 'admin').map((entry) => entry.id);
     expect(teacherProfileNavigationIds[0]).toBe('teacher-cockpit');
     expect(adminProfileNavigationIds[0]).toBe('admin-cockpit');
@@ -1254,8 +1409,14 @@ describe('platform UI contracts', () => {
 
     expect(expandedSidebar.props?.['data-shell-navigation-state']).toBe('expanded');
     expect(collapsedSidebar.props?.['data-shell-navigation-state']).toBe('collapsed');
-    expectNeedlesInOrder(expandedMarkup, expectedLabels.map((label) => `>${label}</span>`));
-    expectNeedlesInOrder(collapsedMarkup, expectedLabels.map((label) => `aria-label="${label}"`));
+    expectNeedlesInOrder(
+      expandedMarkup,
+      expectedLabels.map((label) => `>${label}</span>`),
+    );
+    expectNeedlesInOrder(
+      collapsedMarkup,
+      expectedLabels.map((label) => `aria-label="${label}"`),
+    );
     expect(expandedMarkup).toMatch(/aria-current="page"[^>]+href="\/assessment\/adaptive-practice"/);
     expect(collapsedMarkup).toMatch(/aria-current="page"[^>]+href="\/assessment\/adaptive-practice"/);
     expect(collapsedMarkup).toContain('title="个人中心"');
@@ -1400,14 +1561,18 @@ describe('platform UI contracts', () => {
     expect(adminMarkup).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
   });
 
-  it('does not infer collapsible desktop navigation for retained legacy product routes', () => {
+  it('uses standard AppShell navigation for migrated AI product routes', () => {
     const aiRoute = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/ai');
     const copilotRoute = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/ai/copilot');
 
-    expect(aiRoute?.legacyShell?.disposition).toBe('retained-temporary');
-    expect(aiRoute?.desktopNavigation).toBe('fixed');
-    expect(copilotRoute?.legacyShell?.disposition).toBe('retained-temporary');
-    expect(copilotRoute?.desktopNavigation).toBe('fixed');
+    expect(aiRoute?.legacyShell).toBeUndefined();
+    expect(aiRoute?.exception).toBeUndefined();
+    expect(aiRoute?.desktopNavigation).toBe('collapsible');
+    expect(aiRoute?.mobileNavigation).toBe('drawer');
+    expect(copilotRoute?.legacyShell).toBeUndefined();
+    expect(copilotRoute?.exception).toBeUndefined();
+    expect(copilotRoute?.desktopNavigation).toBe('collapsible');
+    expect(copilotRoute?.mobileNavigation).toBe('drawer');
   });
 
   it('keeps mobile drawer behavior independent from desktop rail preference', () => {
@@ -1426,13 +1591,41 @@ describe('platform UI contracts', () => {
     expect(shellMarkup).not.toContain('data-app-shell-mobile-drawer="open"');
   });
 
+  it('allows deep product routes to keep route metadata while highlighting a canonical navigation parent', () => {
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'student',
+      title: 'AI工坊',
+      activeHref: '/ai',
+      activeNavigationHref: '/knowledge',
+      children: null,
+    });
+
+    expect(shellMarkup).toContain('data-platform-route-frame="knowledge-data-map"');
+    expect(shellMarkup).toContain('data-platform-mobile-navigation="drawer"');
+    expect(shellMarkup).toContain('aria-label="知识资源" aria-current="page"');
+    expect(shellMarkup).toContain('href="/knowledge"');
+    expect(shellMarkup).not.toContain('href="/ai"');
+  });
+
   it('keeps active route matching stable when the current route has query or hash', () => {
     const sidebar = asElement(
       AppSidebar({
         activeHref: '/teacher/classes?tab=all#roster',
         navigation: [
-          { id: 'teacher-home', label: '教师首页', href: '/teacher', role: 'teacher', order: 10 },
-          { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+          {
+            id: 'teacher-home',
+            label: '教师首页',
+            href: '/teacher',
+            role: 'teacher',
+            order: 10,
+          },
+          {
+            id: 'teacher-classes',
+            label: '班级',
+            href: '/teacher/classes',
+            role: 'teacher',
+            order: 20,
+          },
         ],
       }),
     );
@@ -1451,7 +1644,13 @@ describe('platform UI contracts', () => {
         role: 'teacher',
         order: 10,
         children: [
-          { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+          {
+            id: 'teacher-classes',
+            label: '班级',
+            href: '/teacher/classes',
+            role: 'teacher',
+            order: 20,
+          },
         ],
       },
     ];
@@ -1464,10 +1663,7 @@ describe('platform UI contracts', () => {
       children: null,
     });
 
-    expect(collectLinks(sidebar).map((link) => link.props?.href)).toEqual([
-      '/teacher',
-      '/teacher/classes',
-    ]);
+    expect(collectLinks(sidebar).map((link) => link.props?.href)).toEqual(['/teacher', '/teacher/classes']);
     expect(shellMarkup).toContain('href="/teacher"');
     expect(shellMarkup).toContain('href="/teacher/classes"');
     expect(shellMarkup).toContain('aria-label="平台导航"');
@@ -1480,8 +1676,20 @@ describe('platform UI contracts', () => {
       title: '教师工作台',
       activeHref: '/teacher/classes',
       navigation: [
-        { id: 'teacher-home', label: '教师首页', href: '/teacher', role: 'teacher', order: 10 },
-        { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+        {
+          id: 'teacher-home',
+          label: '教师首页',
+          href: '/teacher',
+          role: 'teacher',
+          order: 10,
+        },
+        {
+          id: 'teacher-classes',
+          label: '班级',
+          href: '/teacher/classes',
+          role: 'teacher',
+          order: 20,
+        },
       ],
       children: null,
     });
@@ -1500,7 +1708,15 @@ describe('platform UI contracts', () => {
     const shellMarkup = renderAppShellMarkup({
       viewerRole: 'student',
       title: 'AI 助手',
-      activeHref: '/ai',
+      activeHref: '/immersive-fixture',
+      routeMetadata: {
+        frame: 'knowledge-data-map',
+        desktopNavigation: 'collapsible',
+        mobileNavigation: 'hidden-immersive',
+        navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+        floatingDock: 'hidden',
+        themeSupport: ['light', 'dark'],
+      },
       sidebarMode: 'collapsible',
       children: null,
     });
@@ -1592,9 +1808,7 @@ describe('platform UI contracts', () => {
       activeHref: '/login',
       sidebarMode: 'hidden',
       children: null,
-      dockControls: [
-        { id: 'konling', label: '控灵', control: 'konling' },
-      ],
+      dockControls: [{ id: 'konling', label: '控灵', control: 'konling' }],
     };
     const shell = asElement(AppShell(shellProps));
     const shellMarkup = renderAppShellMarkup(shellProps);
@@ -1644,7 +1858,9 @@ describe('platform UI contracts', () => {
     expect(pageFloatingControlsSource).toContain('max-h-[min(70vh,28rem)]');
     expect(appShellSource).toContain('data-platform-floating-dock-collision-policy');
     expect(appShellSource).toContain('data-platform-floating-dock-mobile-behavior');
-    expect(globalsSource).toContain('body:has([data-simulation-dock-collision-policy="avoid-local-tools"]) [data-page-floating-controls]');
+    expect(globalsSource).toContain(
+      'body:has([data-simulation-dock-collision-policy="avoid-local-tools"]) [data-page-floating-controls]',
+    );
     expect(globalsSource).toContain('right: auto !important');
     expect(globalsSource).toContain('width: max-content');
     expect(globalsSource).toContain('top: 7rem');
@@ -1658,17 +1874,31 @@ describe('platform UI contracts', () => {
       activeHref: '/data-center',
       sidebarMode: 'collapsible',
       navigation: [
-        { id: 'platform-home', label: '首页', href: '/', role: 'admin', order: 10 },
-        { id: 'platform-data-center', label: '数据中心', href: '/data-center', role: 'admin', order: 20 },
+        {
+          id: 'platform-home',
+          label: '首页',
+          href: '/',
+          role: 'admin',
+          order: 10,
+        },
+        {
+          id: 'platform-data-center',
+          label: '数据中心',
+          href: '/data-center',
+          role: 'admin',
+          order: 20,
+        },
       ],
       children: null,
     });
 
-    expect(getAppShellDesktopGridClassName({
-      showSidebar: true,
-      sidebarBreakpoint: 'xl',
-      navigationCollapsed: false,
-    })).toContain('xl:grid-cols-[248px_minmax(0,1fr)]');
+    expect(
+      getAppShellDesktopGridClassName({
+        showSidebar: true,
+        sidebarBreakpoint: 'xl',
+        navigationCollapsed: false,
+      }),
+    ).toContain('xl:grid-cols-[248px_minmax(0,1fr)]');
     expect(shellMarkup).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
     expect(shellMarkup).toContain('data-app-shell-navigation-state="collapsed"');
     expect(shellMarkup).not.toContain('lg:grid-cols-[248px_1fr]');

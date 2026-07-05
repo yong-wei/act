@@ -45,6 +45,7 @@ Allowed exception categories should be narrow:
 - print/PDF routes,
 - visual review fixture routes,
 - embed-only routes,
-- full-screen external capture surfaces with explicit return affordance and removal condition.
+- full-screen external capture surfaces with explicit return affordance and removal condition,
+- live classroom and legacy lesson runtime pages that need a dedicated runtime shell before the universal frame can wrap them safely.
 
-No ordinary teaching, learning, graph, path, simulation, AI, classroom, teacher, administrator, data-center, or profile page should be exempt.
+No ordinary teaching, learning, graph, path, simulation, AI, classroom entry, teacher, administrator, data-center, playlist, mission, or profile page should be exempt. Runtime exceptions must be narrower than the product area and must name the follow-up shell condition.

@@ -7,9 +7,11 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { AppShell } from '@/components/platform/app-shell';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import { MissionCard, MissionCardSkeleton, type MissionData } from '@/features/mission/mission-card';
@@ -47,34 +49,39 @@ export default function MissionsPage() {
   });
   const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams);
 
-  const fetchMissions = useCallback(async (paramsKey = searchParamsKey) => {
-    try {
-      setLoading(true);
-      const currentParams = new URLSearchParams(paramsKey);
-      const missionQuery = new URLSearchParams();
-      const assignment = currentParams.get('assignment') ?? currentParams.get('q');
-      if (assignment) missionQuery.set('assignment', assignment);
-      if (currentParams.get('q')) missionQuery.set('q', currentParams.get('q') ?? '');
-      if (currentParams.get('criterion')) missionQuery.set('criterion', currentParams.get('criterion') ?? '');
-      if (currentParams.get('source')) missionQuery.set('source', currentParams.get('source') ?? '');
-      if (currentParams.get('feedbackSource')) missionQuery.set('feedbackSource', currentParams.get('feedbackSource') ?? '');
-      if (currentParams.get('status')) missionQuery.set('status', currentParams.get('status') ?? '');
-      if (currentParams.get('action')) missionQuery.set('action', currentParams.get('action') ?? '');
-      if (currentParams.get('returnTo')) missionQuery.set('returnTo', currentParams.get('returnTo') ?? '');
-      if (currentParams.get('intent')) missionQuery.set('intent', currentParams.get('intent') ?? '');
-      if (currentParams.get('teacherInterventionId')) missionQuery.set('teacherInterventionId', currentParams.get('teacherInterventionId') ?? '');
-      const response = await fetch(`/api/missions?${missionQuery.toString()}`);
-      if (!response.ok) {
-        throw new Error('获取任务列表失败');
+  const fetchMissions = useCallback(
+    async (paramsKey = searchParamsKey) => {
+      try {
+        setLoading(true);
+        const currentParams = new URLSearchParams(paramsKey);
+        const missionQuery = new URLSearchParams();
+        const assignment = currentParams.get('assignment') ?? currentParams.get('q');
+        if (assignment) missionQuery.set('assignment', assignment);
+        if (currentParams.get('q')) missionQuery.set('q', currentParams.get('q') ?? '');
+        if (currentParams.get('criterion')) missionQuery.set('criterion', currentParams.get('criterion') ?? '');
+        if (currentParams.get('source')) missionQuery.set('source', currentParams.get('source') ?? '');
+        if (currentParams.get('feedbackSource'))
+          missionQuery.set('feedbackSource', currentParams.get('feedbackSource') ?? '');
+        if (currentParams.get('status')) missionQuery.set('status', currentParams.get('status') ?? '');
+        if (currentParams.get('action')) missionQuery.set('action', currentParams.get('action') ?? '');
+        if (currentParams.get('returnTo')) missionQuery.set('returnTo', currentParams.get('returnTo') ?? '');
+        if (currentParams.get('intent')) missionQuery.set('intent', currentParams.get('intent') ?? '');
+        if (currentParams.get('teacherInterventionId'))
+          missionQuery.set('teacherInterventionId', currentParams.get('teacherInterventionId') ?? '');
+        const response = await fetch(`/api/missions?${missionQuery.toString()}`);
+        if (!response.ok) {
+          throw new Error('获取任务列表失败');
+        }
+        const result = await response.json();
+        setData(result);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '未知错误');
+      } finally {
+        setLoading(false);
       }
-      const result = await response.json();
-      setData(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
-    } finally {
-      setLoading(false);
-    }
-  }, [searchParamsKey]);
+    },
+    [searchParamsKey],
+  );
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -94,112 +101,81 @@ export default function MissionsPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="surface-page" data-commercial-workspace="mission-workspace">
-        <header className="surface-topbar px-6 py-4">
-          <div className="flex w-full items-center gap-4">
-            <div className="h-6 w-6 rounded bg-accent" />
-            <div className="h-6 w-32 rounded bg-accent" />
+      <MissionAppShell>
+        <section data-commercial-workspace="mission-workspace">
+          <div className="mb-6 flex w-full items-center gap-4">
+            <div className="flex w-full items-center gap-4">
+              <div className="h-6 w-6 rounded bg-accent" />
+              <div className="h-6 w-32 rounded bg-accent" />
+            </div>
           </div>
-        </header>
-        <main className="px-6 py-8">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <MissionCardSkeleton key={i} />
             ))}
           </div>
-        </main>
-      </div>
+        </section>
+      </MissionAppShell>
     );
   }
 
   if (status === 'unauthenticated') {
     return (
-      <div className="surface-page flex items-center justify-center" data-commercial-workspace="mission-workspace">
-        <div className="text-center">
-          <p className="text-xl text-muted-foreground">请先登录</p>
-          <Link
-            href="/login"
-            className="cta-primary mt-4 inline-block rounded-lg px-6 py-2"
-          >
-            前往登录
-          </Link>
-        </div>
-      </div>
+      <MissionAppShell>
+        <section
+          className="flex min-h-[40vh] items-center justify-center"
+          data-commercial-workspace="mission-workspace"
+        >
+          <div className="text-center">
+            <p className="text-xl text-muted-foreground">请先登录</p>
+            <Link href="/login" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
+              前往登录
+            </Link>
+          </div>
+        </section>
+      </MissionAppShell>
     );
   }
 
   if (error) {
     return (
-      <div className="surface-page flex items-center justify-center" data-commercial-workspace="mission-workspace">
-        <div className="text-center">
-          <p className="text-xl text-red-400">{error}</p>
-          <button type="button"
-            onClick={() => void fetchMissions()}
-            className="btn-ghost-themed mt-4 rounded-lg border px-6 py-2"
-          >
-            重试
-          </button>
-        </div>
-      </div>
+      <MissionAppShell>
+        <section
+          className="flex min-h-[40vh] items-center justify-center"
+          data-commercial-workspace="mission-workspace"
+        >
+          <div className="text-center">
+            <p className="text-xl text-red-400">{error}</p>
+            <button
+              type="button"
+              onClick={() => void fetchMissions()}
+              className="btn-ghost-themed mt-4 rounded-lg border px-6 py-2"
+            >
+              重试
+            </button>
+          </div>
+        </section>
+      </MissionAppShell>
     );
   }
 
-  const filteredMissions = data?.missions.filter((mission) => {
-    if (filter === 'all') return true;
-    if (filter === 'unlocked') return mission.status === 'UNLOCKED';
-    if (filter === 'completed') return mission.status === 'COMPLETED';
-    return true;
-  }) || [];
+  const filteredMissions =
+    data?.missions.filter((mission) => {
+      if (filter === 'all') return true;
+      if (filter === 'unlocked') return mission.status === 'UNLOCKED';
+      if (filter === 'completed') return mission.status === 'COMPLETED';
+      return true;
+    }) || [];
 
   return (
-    <div className="surface-page" data-commercial-workspace="mission-workspace">
-      {/* 头部导航 */}
-      <header className="surface-topbar px-6 py-4">
-        <div className="flex w-full items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </Link>
-            <h1 className="text-xl font-bold text-foreground">任务大厅</h1>
-          </div>
-          <Link
-            href="/profile"
-            className="btn-ghost-themed rounded-lg border px-4 py-2 text-sm"
-          >
-            个人中心
-          </Link>
-        </div>
-      </header>
-
-      <main className="px-6 py-8">
+    <MissionAppShell>
+      <section data-commercial-workspace="mission-workspace">
         <StudentFeedbackTaskPanel context={feedbackContext} surface="missions" className="mb-6" />
         {/* 统计卡片 */}
         <div className="mb-8 grid gap-4 md:grid-cols-4">
-          <StatCard
-            icon="📚"
-            label="全部任务"
-            value={data?.statistics.total || 0}
-            color="text-white"
-          />
-          <StatCard
-            icon="🔓"
-            label="已解锁"
-            value={data?.statistics.unlocked || 0}
-            color="text-amber-400"
-          />
-          <StatCard
-            icon="✅"
-            label="已完成"
-            value={data?.statistics.completed || 0}
-            color="text-emerald-400"
-          />
+          <StatCard icon="📚" label="全部任务" value={data?.statistics.total || 0} color="text-white" />
+          <StatCard icon="🔓" label="已解锁" value={data?.statistics.unlocked || 0} color="text-amber-400" />
+          <StatCard icon="✅" label="已完成" value={data?.statistics.completed || 0} color="text-emerald-400" />
           <StatCard
             icon="📈"
             label="完成率"
@@ -228,11 +204,7 @@ export default function MissionsPage() {
 
         {/* 筛选按钮 */}
         <div className="mb-6 flex gap-2">
-          <FilterButton
-            active={filter === 'all'}
-            onClick={() => setFilter('all')}
-            count={data?.missions.length || 0}
-          >
+          <FilterButton active={filter === 'all'} onClick={() => setFilter('all')} count={data?.missions.length || 0}>
             全部
           </FilterButton>
           <FilterButton
@@ -264,7 +236,8 @@ export default function MissionsPage() {
                   : '你还没有完成任何任务，开始第一个挑战吧！'}
             </p>
             {filter !== 'all' && (
-              <button type="button"
+              <button
+                type="button"
                 onClick={() => setFilter('all')}
                 className="btn-ghost-themed mt-4 rounded-lg border px-4 py-2"
               >
@@ -278,12 +251,18 @@ export default function MissionsPage() {
               <MissionCard
                 key={mission.id}
                 mission={mission}
-                launchHref={feedbackContext
-                  ? buildFeedbackTaskHref(`/simulations/destroyer?mission=${encodeURIComponent(mission.id)}`, feedbackContext, {
-                      intent: 'mission',
-                      status: feedbackContext.lifecycleState,
-                    })
-                  : undefined}
+                launchHref={
+                  feedbackContext
+                    ? buildFeedbackTaskHref(
+                        `/simulations/destroyer?mission=${encodeURIComponent(mission.id)}`,
+                        feedbackContext,
+                        {
+                          intent: 'mission',
+                          status: feedbackContext.lifecycleState,
+                        },
+                      )
+                    : undefined
+                }
                 onStart={handleStartMission}
               />
             ))}
@@ -296,15 +275,45 @@ export default function MissionsPage() {
           <div className="flex flex-wrap items-center gap-4">
             <PathNode label="入门" description="掌握基础操作" icon="🌱" active />
             <PathArrow />
-            <PathNode label="进阶" description="理解 PID 控制" icon="📈" active={(data?.statistics.completed ?? 0) > 0} />
+            <PathNode
+              label="进阶"
+              description="理解 PID 控制"
+              icon="📈"
+              active={(data?.statistics.completed ?? 0) > 0}
+            />
             <PathArrow />
-            <PathNode label="挑战" description="复杂海况控制" icon="🌊" active={(data?.statistics.completed ?? 0) >= 3} />
+            <PathNode
+              label="挑战"
+              description="复杂海况控制"
+              icon="🌊"
+              active={(data?.statistics.completed ?? 0) >= 3}
+            />
             <PathArrow />
-            <PathNode label="专家" description="成为控制专家" icon="🏆" active={(data?.statistics.completed ?? 0) >= 5} />
+            <PathNode
+              label="专家"
+              description="成为控制专家"
+              icon="🏆"
+              active={(data?.statistics.completed ?? 0) >= 5}
+            />
           </div>
         </div>
-      </main>
-    </div>
+      </section>
+    </MissionAppShell>
+  );
+}
+
+function MissionAppShell({ children }: { children: ReactNode }) {
+  return (
+    <AppShell
+      viewerRole="student"
+      activeHref="/missions"
+      activeNavigationHref="/assessment/adaptive-practice"
+      title="任务大厅"
+      subtitle="查看学习任务、筛选挑战并进入仿真练习。"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '任务大厅' }]}
+    >
+      {children}
+    </AppShell>
   );
 }
 
@@ -344,7 +353,8 @@ function FilterButton({
   count: number;
 }) {
   return (
-    <button type="button"
+    <button
+      type="button"
       onClick={onClick}
       className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
         active
@@ -383,9 +393,7 @@ function PathNode({
     >
       <span className="text-2xl">{icon}</span>
       <div>
-        <p className={`font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}>
-          {label}
-        </p>
+        <p className={`font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}>{label}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
     </div>
@@ -394,18 +402,8 @@ function PathNode({
 
 function PathArrow() {
   return (
-    <svg
-      className="h-5 w-5 text-muted-foreground"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 5l7 7-7 7"
-      />
+    <svg className="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
     </svg>
   );
 }

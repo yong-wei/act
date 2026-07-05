@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth'; // Assuming authOptions is exported from here
-import { BopppsStage, LessonItemType } from '@prisma/client';
+import { BopppsStage, LessonItemType, UserRole } from '@prisma/client';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
@@ -67,6 +67,10 @@ export async function POST(request: Request) {
 
     if (!user) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (user.role !== UserRole.TEACHER && user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();

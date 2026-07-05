@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { UserRole } from '@prisma/client';
 
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
@@ -27,7 +28,7 @@ describe('POST /api/knowledge/playlists', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getServerSession.mockResolvedValue({ user: { id: 'teacher-1' } });
-    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'teacher-1' });
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: UserRole.TEACHER });
     mocks.prisma.knowledgeNode.findMany.mockResolvedValue([
       { id: 'kn-bode', name: '伯德图', description: '频域响应工具' },
       { id: 'kn-root', name: '根轨迹', description: '根轨迹规则' },
@@ -93,6 +94,25 @@ describe('POST /api/knowledge/playlists', () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toContain('至少选择一个知识节点');
+    expect(mocks.prisma.lessonPlan.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects student playlist creation', async () => {
+    mocks.getServerSession.mockResolvedValue({ user: { id: 'student-1' } });
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: UserRole.STUDENT });
+
+    const response = await POST(new Request('http://localhost/api/knowledge/playlists', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: '学生课程流',
+        items: [{ nodeId: 'kn-bode' }],
+      }),
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.error).toBe('Forbidden');
+    expect(mocks.prisma.knowledgeNode.findMany).not.toHaveBeenCalled();
     expect(mocks.prisma.lessonPlan.create).not.toHaveBeenCalled();
   });
 });

@@ -5,12 +5,12 @@ Second-level and deeper product routes SHALL keep the universal AppShell frame u
 
 #### Scenario: Course or lesson route renders
 - **WHEN** a course entry, student lesson runtime, teacher lesson runtime, or waiting route renders
-- **THEN** it SHALL keep the canonical left navigation rail and shared top bar
+- **THEN** it SHALL keep the canonical left navigation rail and shared top bar unless the specific runtime page is listed in the governed exception inventory
 - **AND** lesson controls SHALL render as local tools or workspace slots rather than replacing the shell frame.
 
 #### Scenario: Classroom route renders
 - **WHEN** a classroom join, student session, teacher session, or classroom review route renders
-- **THEN** it SHALL expose the shared top bar, breadcrumbs, and canonical first-level navigation
+- **THEN** it SHALL expose the shared top bar, breadcrumbs, and canonical first-level navigation unless the live runtime route is listed in the governed exception inventory
 - **AND** teaching controls SHALL remain local to the classroom workflow.
 
 #### Scenario: AI, playlist, teacher, administrator, or legacy route renders
