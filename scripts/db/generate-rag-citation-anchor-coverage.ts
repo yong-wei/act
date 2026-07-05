@@ -351,7 +351,7 @@ function mediaCorpusItem(item: MediaReviewItem): CorpusItem {
     citationTargetId: ready ? `citation-target:${item.resourceId}` : null,
     retrievalChunkId: ready ? `retrieval-chunk:${item.resourceId}` : null,
     citationAddress,
-    serverOwnedAddress: Boolean(href),
+    serverOwnedAddress: Boolean(citationAddress.href),
     authority: item.disposition === 'embedded-asset' ? 'reviewed-embedded-asset' : 'reviewed-supporting-citation',
     privacyScope: item.privacyScope,
     graphNodeRefs: item.graphNodeRefs,

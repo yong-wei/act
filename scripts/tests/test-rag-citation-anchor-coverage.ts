@@ -156,6 +156,7 @@ assert(
     item.authority.length > 0 &&
     item.privacyScope.length > 0 &&
     item.citationAddress.href === null &&
+    item.serverOwnedAddress === false &&
     item.citationChip.limitationState !== null &&
     CITATION_CHIP_LIMITATION_REASONS.has(item.citationChip.limitationState) &&
     isLimitedCitationChip(item)
