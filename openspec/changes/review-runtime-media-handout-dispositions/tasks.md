@@ -1,8 +1,8 @@
 ## Tasks
 
-- [ ] Task 1: Generate media/handout worklist.
+- [ ] Task 1: Generate or repair scoped media/handout worklist.
   Covers: AC-1
-  Acceptance: Worklist groups media and handouts by lesson, kind, and blocker type.
+  Acceptance: Worklist groups only runtime media and handouts by lesson, kind, blocker type, and deterministic shard; non-media/handout families are excluded, and identity-repaired handout rows are included.
   Evidence: helper workqueue output.
   Reviewer Check: Confirm textbook sections and runtime steps are excluded.
 

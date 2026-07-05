@@ -1,8 +1,8 @@
 ## Tasks
 
-- [ ] Task 1: Generate core textbook section worklist.
+- [ ] Task 1: Generate or repair scoped core textbook section worklist.
   Covers: AC-1
-  Acceptance: Worklist targets core textbook sections and excludes reference-only sources.
+  Acceptance: Worklist targets only core textbook section-level records, excludes reference-only sources and raw retrieval chunks, and groups rows by textbook, chapter, graph domain, blocker type, and deterministic shard.
   Evidence: helper workqueue output.
   Reviewer Check: Confirm chunk-level records are not primary path candidates.
 

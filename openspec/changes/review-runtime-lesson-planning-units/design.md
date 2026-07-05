@@ -7,6 +7,7 @@ Review runtime lesson steps and promote only valid steps to PlanningUnit or clas
 - Use helper workqueues to split runtime lesson steps by lesson, LearningGoal, and missing fields.
 - The implementing agent reviews step title, route target, graph binding, capability target, estimated time, evidence behavior, and prerequisite role.
 - Add reviewed disposition and parent/child relationships for non-planning steps.
+- A large deferred runtime-step count is not a human blocker. Agents should split the queue into deterministic lesson-level shards, process a bounded shard with before/after evidence, and leave remaining shards in the workqueue or downstream issue queue.
 
 ### Implementing-Agent Semantic Review Policy
 

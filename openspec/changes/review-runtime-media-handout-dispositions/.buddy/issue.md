@@ -26,6 +26,12 @@ area: authoring-resources
 
 Classify runtime media, slides, audio, video, PDFs, and handouts into path-plannable, supporting-citation, embedded-asset, evidence-producing, or excluded dispositions.
 
+## Execution Clarification
+
+- Supersedes earlier needs-human comments on this issue; those comments identified a worklist/task boundary problem, not a requirement for external human review.
+- This issue is executable by agents. If the generated workqueue includes non-media/handout families or omits handout rows behind identity repair, Task 1 includes repairing or adding the scoped workqueue/denominator before semantic review.
+- The implementation target is the scoped runtime-media/handout queue or deterministic shard emitted by Task 1, not an unrelated global helper denominator. Worklist mismatch is implementation work, not a `needs-human` condition.
+
 ## Scope
 
 - Review 904 runtime lesson media and 36 handout projections by lesson family and source hash.
@@ -48,9 +54,9 @@ Classify runtime media, slides, audio, video, PDFs, and handouts into path-plann
 
 ## Tasks
 
-- [ ] Task 1: Generate media/handout worklist.
+- [ ] Task 1: Generate or repair scoped media/handout worklist.
   Covers: AC-1
-  Acceptance: Worklist groups media and handouts by lesson, kind, and blocker type.
+  Acceptance: Worklist groups only runtime media and handouts by lesson, kind, blocker type, and deterministic shard; non-media/handout families are excluded, and identity-repaired handout rows are included.
   Evidence: helper workqueue output.
   Reviewer Check: Confirm textbook sections and runtime steps are excluded.
 - [ ] Task 2: Review dispositions and anchor requirements.
@@ -73,6 +79,7 @@ Classify runtime media, slides, audio, video, PDFs, and handouts into path-plann
 - Preserve before/after helper evidence for this batch.
 - Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
 - Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
+- Do not mark the issue `needs-human` because the current helper queue is unscoped or mismatched; repair the scoped media/handout workqueue first, then process the bounded queue.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.

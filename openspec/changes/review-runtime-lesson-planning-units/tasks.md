@@ -1,8 +1,8 @@
 ## Tasks
 
-- [ ] Task 1: Generate runtime step worklist.
+- [ ] Task 1: Generate or shard runtime step worklist.
   Covers: AC-1
-  Acceptance: Worklist groups runtime lesson steps by lesson and missing field codes.
+  Acceptance: Worklist groups runtime lesson steps by lesson, deterministic shard, and missing field codes.
   Evidence: helper workqueue output.
   Reviewer Check: Confirm media and long-form resources are out of scope.
 

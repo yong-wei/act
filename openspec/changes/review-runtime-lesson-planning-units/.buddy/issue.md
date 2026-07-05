@@ -26,6 +26,12 @@ area: interactive
 
 Review runtime lesson steps and promote only valid steps to PlanningUnit or classify them as supporting, embedded, evidence-producing, or excluded resources.
 
+## Execution Clarification
+
+- Supersedes earlier needs-human comments on this issue; those comments were written before this contract clarified implementing-agent semantic review.
+- This issue is executable by agents. The 398 deferred runtime lesson steps require item-by-item semantic review by the implementing agent, not external human review.
+- If the current helper output is too broad for one run, split it into deterministic lesson-level shards and process a bounded shard with before/after evidence. Remaining shards stay in the workqueue or downstream issue queue; they are not a `needs-human` condition.
+
 ## Scope
 
 - Use helper workqueues to split runtime lesson steps by lesson, LearningGoal, and missing fields.
@@ -48,9 +54,9 @@ Review runtime lesson steps and promote only valid steps to PlanningUnit or clas
 
 ## Tasks
 
-- [ ] Task 1: Generate runtime step worklist.
+- [ ] Task 1: Generate or shard runtime step worklist.
   Covers: AC-1
-  Acceptance: Worklist groups runtime lesson steps by lesson and missing field codes.
+  Acceptance: Worklist groups runtime lesson steps by lesson, deterministic shard, and missing field codes.
   Evidence: helper workqueue output.
   Reviewer Check: Confirm media and long-form resources are out of scope.
 - [ ] Task 2: Review step PlanningUnit eligibility.
@@ -73,6 +79,7 @@ Review runtime lesson steps and promote only valid steps to PlanningUnit or clas
 - Preserve before/after helper evidence for this batch.
 - Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
 - Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
+- Do not mark the issue `needs-human` because the runtime step queue is large; create or use deterministic shards and execute the next bounded shard.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.

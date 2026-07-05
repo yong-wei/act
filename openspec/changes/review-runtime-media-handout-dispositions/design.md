@@ -7,6 +7,7 @@ Classify runtime media, slides, audio, video, PDFs, and handouts into path-plann
 - Review 904 runtime lesson media and 36 handout projections by lesson family and source hash.
 - Define transcript/anchor needs for audio/video and page/figure anchors for slides/PDFs.
 - Separate independent teaching resources from embedded assets and citation-only media.
+- If the current helper output includes non-media/handout families or omits handout rows behind identity repair, repairing or adding a scoped runtime-media/handout workqueue is part of this change. The agent should not escalate that worklist mismatch to `needs-human`.
 
 ### Implementing-Agent Semantic Review Policy
 
