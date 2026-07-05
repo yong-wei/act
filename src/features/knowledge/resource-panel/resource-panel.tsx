@@ -16,6 +16,7 @@ import {
   resolveChapterName,
 } from '@/lib/knowledge-labels';
 import { isChapterNodeId } from '../graph/filter-utils';
+import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 
 interface RelatedNode {
   id: string;
@@ -38,6 +39,7 @@ interface ResourcePanelProps {
   selectedNode: KnowledgeNodeData | null;
   onClose: () => void;
   onNodeClick?: (nodeId: string) => void;
+  viewerRole?: PlatformRole;
 }
 
 interface ResourcePanelSelectionState {
@@ -180,15 +182,17 @@ export function ResourcePanel({
   selectedNode,
   onClose,
   onNodeClick,
+  viewerRole = 'student',
 }: ResourcePanelProps) {
   if (!isOpen || !selectedNode) return null;
 
   return (
-    <ResourcePanelContent
-      selectedNode={selectedNode}
-      onClose={onClose}
-      onNodeClick={onNodeClick}
-    />
+      <ResourcePanelContent
+        selectedNode={selectedNode}
+        onClose={onClose}
+        onNodeClick={onNodeClick}
+        viewerRole={viewerRole}
+      />
   );
 }
 
@@ -196,6 +200,7 @@ function ResourcePanelContent({
   selectedNode,
   onClose,
   onNodeClick,
+  viewerRole = 'student',
 }: Omit<ResourcePanelProps, 'isOpen' | 'selectedNode'> & { selectedNode: KnowledgeNodeData }) {
   const [nodeDetail, setNodeDetail] = useState<KnowledgeNodeDetail | null>(
     () => resolveResourcePanelSelectionState(selectedNode).nodeDetail
@@ -359,6 +364,7 @@ function ResourcePanelContent({
     : '/profile/evidence';
   const addToPlaylistHref = `/playlists/new?nodeId=${encodeURIComponent(displayNode.id)}`;
   const learningTaskHref = `/assessment/adaptive-practice?nodeId=${encodeURIComponent(displayNode.id)}&intent=contextual-recommendation`;
+  const canAddToCourseFlow = viewerRole === 'teacher' || viewerRole === 'admin';
 
   const examples = toStringArray(metadata.examples);
   const keywords = toStringArray(metadata.keywords);
@@ -679,17 +685,19 @@ function ResourcePanelContent({
                   {launchAction.lessonId ? '查看关联课次证据' : '进入证据浏览器'}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </a>
-                <a
-                  href={addToPlaylistHref}
-                  className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
-                  data-resource-node-action="add-to-course-flow"
-                >
-                  <span className="inline-flex items-center gap-1.5">
-                    <ListPlus className="h-3.5 w-3.5" />
-                    加入课程流
-                  </span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </a>
+                {canAddToCourseFlow ? (
+                  <a
+                    href={addToPlaylistHref}
+                    className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                    data-resource-node-action="add-to-course-flow"
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <ListPlus className="h-3.5 w-3.5" />
+                      加入课程流
+                    </span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </a>
+                ) : null}
                 <a
                   href={learningTaskHref}
                   className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"

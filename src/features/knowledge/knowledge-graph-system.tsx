@@ -10,6 +10,7 @@ import { Suspense, useState, useCallback, useEffect, useRef, useMemo, type CSSPr
 import dynamic from 'next/dynamic';
 import { BookOpen, Filter, LocateFixed, Network, SlidersHorizontal, X } from 'lucide-react';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
+import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 import { KnowledgeSidebar } from './sidebar/knowledge-sidebar';
 import { ResourcePanel } from './resource-panel/resource-panel';
 import {
@@ -120,6 +121,7 @@ interface KnowledgeGraphSystemProps {
   initialNodes?: KnowledgeNodeData[];
   initialLinks?: KnowledgeLinkData[];
   initialSelectedNodeId?: string | null;
+  viewerRole?: PlatformRole;
 }
 
 interface GraphApiResponse {
@@ -188,6 +190,7 @@ export function KnowledgeGraphSystem({
   initialNodes = [],
   initialLinks = [],
   initialSelectedNodeId = null,
+  viewerRole = 'student',
 }: KnowledgeGraphSystemProps) {
   const { updatePageContext, isOpen: aiSidebarOpen } = useGlobalAI();
   const initialRequestedNodeId = initialSelectedNodeId;
@@ -1647,6 +1650,7 @@ export function KnowledgeGraphSystem({
         selectedNode={visibleSelectedNode}
         onClose={handleClosePanel}
         onNodeClick={handleNodeSelectById}
+        viewerRole={viewerRole}
       />
     </div>
   );

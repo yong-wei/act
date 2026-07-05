@@ -800,6 +800,7 @@ describe('platform UI contracts', () => {
     expect(knowledgeSource).toContain('<AppShell');
     expect(knowledgeSource).toContain('getServerAuthSession');
     expect(knowledgeSource).toContain('viewerRole={shellRole}');
+    expect(knowledgeSource).toContain('<KnowledgeGraphSystem viewerRole={viewerRole} />');
     expect(knowledgeSource).toContain('sidebarMode="collapsible"');
     expect(knowledgeSource).toContain("{ label: '首页', href: '/' }");
     expect(knowledgeSource).toContain("{ label: '知识资源' }");
@@ -826,9 +827,12 @@ describe('platform UI contracts', () => {
     expect(knowledgeSystemSource).toContain('data-knowledge-desktop-command-system="compact"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="view-layout-controls"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="node-hover-preview"');
+    expect(knowledgeSystemSource).toContain('viewerRole={viewerRole}');
     expect(knowledgeSystemSource).not.toContain('bg-[#091540]');
     expect(knowledgeSystemSource).not.toContain('bg-[#0c1d4f]');
     expect(knowledgeResourcePanelSource).toContain('data-knowledge-local-panel="resource-panel"');
+    expect(knowledgeResourcePanelSource).toContain("viewerRole === 'teacher' || viewerRole === 'admin'");
+    expect(knowledgeResourcePanelSource).toContain('{canAddToCourseFlow ? (');
     expect(knowledgeResourcePanelSource).not.toContain('bg-[#091540]');
     expect(knowledgeResourcePanelSource).not.toContain('bg-[#0c1d4f]');
     expect(adaptivePracticeSource).toContain('data-commercial-entry-intent="practice"');
