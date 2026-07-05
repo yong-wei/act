@@ -1,0 +1,57 @@
+{
+  "artifactVersion": "rag-citation-anchor-coverage.v1",
+  "generatedAt": "2026-07-05T12:00:00.000Z",
+  "reviewBatchId": "rag-citation-anchor-coverage-2026-07-05",
+  "totals": {
+    "candidates": 964,
+    "citationTargets": 964,
+    "coreReviewedSections": 5,
+    "referenceStructuralRows": 964,
+    "mediaReviewedRows": 20,
+    "corpusItems": 984,
+    "ready": 978,
+    "limited": 6
+  },
+  "coverage": {
+    "candidatesWithoutCitationTargets": 0,
+    "citationTargetsWithoutCandidates": 0,
+    "readyTextbookGrounding": 964,
+    "readyMediaAnchors": 14,
+    "limitedMediaAnchors": 6,
+    "bySourceClass": {
+      "textbook-grounding": 964,
+      "runtime-media": 20
+    },
+    "bySourceKind": {
+      "chunk": 429,
+      "figure": 535,
+      "handout": 2,
+      "audio": 1,
+      "image": 14,
+      "video": 2,
+      "slides": 1
+    },
+    "byLimitation": {
+      "document-section-anchor-required": 1,
+      "section-anchor-required-before-path-promotion": 1,
+      "server-owned-display-href-unavailable": 3,
+      "source-hash-unavailable": 4,
+      "transcript-required": 2,
+      "transcript-required-before-path-promotion": 2,
+      "media-production-missing": 1,
+      "page-anchor-required": 1,
+      "page-anchor-required-before-path-promotion": 1,
+      "data-appendix-anchor-required": 1
+    }
+  },
+  "guardrails": {
+    "serverOwnedAddressOnly": true,
+    "noModelAuthoredUrls": true,
+    "noPathPromotionFromChunksOrMedia": true,
+    "rawContentIncluded": false,
+    "readyItemsHaveAddressAndHash": true,
+    "limitedItemsHaveReason": true,
+    "metadataContractComplete": true,
+    "citationChipPayloadsComplete": true
+  }
+}

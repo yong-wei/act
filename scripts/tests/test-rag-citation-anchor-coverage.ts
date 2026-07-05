@@ -1,0 +1,183 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
+interface CorpusItem {
+  sourceClass: string;
+  sourceKind: string;
+  resourceSegmentRef: string;
+  resourceSegmentId: string;
+  sourceHash: string | null;
+  sourceWindow: Record<string, unknown> | null;
+  freshness: {
+    bucket: 'current' | 'stale';
+    checkedAt: string;
+    limitationState: string[];
+  };
+  reviewState: {
+    state: string;
+    reviewBatchId: string;
+    reviewedAt: string | null;
+    reviewerId: string | null;
+    sourceAvailability: string | null;
+  };
+  citationState: string;
+  limitationState: string[];
+  citationTargetId: string | null;
+  retrievalChunkId: string | null;
+  citationAddress: {
+    kind: string;
+    href: string | null;
+    contentHash: string | null;
+    sourceRefId: string | null;
+  };
+  serverOwnedAddress: boolean;
+  authority: string;
+  privacyScope: string;
+  pathEligible: boolean;
+  promotedAsPathNode: boolean;
+  rawContentIncluded: boolean;
+  citationChip: {
+    chunkId: string;
+    displayTitle: string;
+    displayHref: string | null;
+    sourceType: string;
+    addressKind: string;
+    citationAddress: CorpusItem['citationAddress'];
+    authorityLevel: string;
+    confidence: string;
+    freshnessBucket: string;
+    privacyVisibility: string;
+    limitationState: string | null;
+  };
+}
+
+const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
+const corpusItems = readJsonl<CorpusItem>('rag-citation-anchor-corpus-items.jsonl');
+const summary = JSON.parse(readFileSync(path.join(
+  GOVERNANCE_DIR,
+  'rag-citation-anchor-coverage-summary.json',
+), 'utf8'));
+const evidence = readFileSync(path.join(
+  GOVERNANCE_DIR,
+  'rag-citation-anchor-coverage-evidence.md',
+), 'utf8');
+
+assert(summary.totals.candidates === 964, 'expected current textbook grounding candidate count');
+assert(summary.totals.citationTargets === 964, 'expected current textbook citation target count');
+assert(summary.totals.mediaReviewedRows === 20, 'expected current reviewed media/handout row count');
+assert(summary.totals.corpusItems === 984, 'expected textbook plus media corpus rows');
+assert(summary.coverage.candidatesWithoutCitationTargets === 0, 'every grounding candidate must have a citation target');
+assert(summary.coverage.citationTargetsWithoutCandidates === 0, 'every citation target must map to a grounding candidate');
+assert(summary.coverage.readyTextbookGrounding === 964, 'all textbook grounding rows must resolve through CitationAddress metadata');
+assert(summary.coverage.readyMediaAnchors === 14, 'reviewed figure anchors should be ready');
+assert(summary.coverage.limitedMediaAnchors === 6, 'non-figure media/handout anchors should be explicitly limited');
+assert(summary.guardrails.serverOwnedAddressOnly === true, 'citations must use server-owned hrefs only');
+assert(summary.guardrails.noModelAuthoredUrls === true, 'model-authored footnote URLs must not be accepted');
+assert(summary.guardrails.noPathPromotionFromChunksOrMedia === true, 'chunks/media must not become path nodes');
+assert(summary.guardrails.rawContentIncluded === false, 'artifacts must not include raw content');
+assert(summary.guardrails.readyItemsHaveAddressAndHash === true, 'ready rows need href and content hash');
+assert(summary.guardrails.limitedItemsHaveReason === true, 'limited rows need explicit reasons');
+assert(summary.guardrails.metadataContractComplete === true, 'all rows must carry segment, freshness, source hash or source-hash limitation, and review state metadata');
+assert(summary.guardrails.citationChipPayloadsComplete === true, 'all rows must carry product CitationChip payload metadata');
+
+const readyTextbook = corpusItems.filter((item) => item.sourceClass === 'textbook-grounding');
+assert(readyTextbook.length === 964, 'textbook corpus row count mismatch');
+assert(
+  readyTextbook.every((item) =>
+    item.citationState === 'ready' &&
+    item.resourceSegmentRef.startsWith('ResourceSegment:hu-shousong-exercise-analysis-3rd:') &&
+    item.resourceSegmentId.length > 0 &&
+    item.sourceHash?.startsWith('sha256:') &&
+    item.sourceWindow !== null &&
+    item.freshness.bucket === 'current' &&
+    item.reviewState.state === 'human-confirmed' &&
+    item.citationTargetId?.startsWith('citation-target:') &&
+    item.retrievalChunkId?.startsWith('retrieval-chunk:') &&
+    item.citationAddress.href?.startsWith('/course-runtime/resources/textbooks/') &&
+    item.citationAddress.contentHash?.startsWith('sha256:') &&
+    item.serverOwnedAddress === true &&
+    item.authority.length > 0 &&
+    item.privacyScope.length > 0 &&
+    isReadyCitationChip(item, 'course-content')
+  ),
+  'textbook rows must use server-owned citation targets, addresses, review metadata, and CitationChip payloads',
+);
+
+const mediaItems = corpusItems.filter((item) => item.sourceClass === 'runtime-media');
+assert(mediaItems.length === 20, 'media corpus row count mismatch');
+assert(
+  mediaItems.filter((item) => item.citationState === 'ready').every((item) =>
+    item.resourceSegmentRef.startsWith('ResourceSegment:') &&
+    item.reviewState.state === 'human-reviewed-anchor-ready' &&
+    item.sourceHash?.startsWith('sha256:') &&
+    item.freshness.bucket === 'current' &&
+    item.sourceKind === 'image' &&
+    item.citationAddress.href?.startsWith('/course-runtime/lessons/') &&
+    item.citationAddress.contentHash?.startsWith('sha256:') &&
+    item.authority.length > 0 &&
+    item.privacyScope.length > 0 &&
+    isReadyCitationChip(item, 'runtime-handout')
+  ),
+  'ready media rows must be local reviewed image anchors with CitationChip payloads',
+);
+assert(
+  mediaItems.filter((item) => item.citationState === 'limited').every((item) =>
+    item.resourceSegmentRef.startsWith('ResourceSegment:') &&
+    item.reviewState.state === 'human-reviewed-limited' &&
+    item.freshness.bucket === (item.sourceHash ? 'current' : 'stale') &&
+    (item.sourceHash?.startsWith('sha256:') || item.limitationState.includes('source-hash-unavailable')) &&
+    item.limitationState.length > 0 &&
+    item.authority.length > 0 &&
+    item.privacyScope.length > 0 &&
+    (!item.citationAddress.href || item.citationAddress.href.startsWith('/course-runtime/')) &&
+    isLimitedCitationChip(item)
+  ),
+  'limited media rows must preserve review metadata, limitation state, and limited CitationChip payloads',
+);
+assert(
+  corpusItems.every((item) => item.pathEligible === false && item.promotedAsPathNode === false && item.rawContentIncluded === false),
+  'corpus citation artifacts must not promote citation support into path nodes or include raw content',
+);
+assert(evidence.includes('Model-authored URLs accepted: false'), 'evidence must state model URL rejection');
+assert(evidence.includes('Chunks or media promoted as PathNodes: false'), 'evidence must state non-promotion guardrail');
+assert(evidence.includes('Metadata contract complete: true'), 'evidence must state metadata contract closure');
+assert(evidence.includes('CitationChip payloads complete: true'), 'evidence must state CitationChip payload closure');
+
+console.log('RAG citation anchor coverage artifacts verified.');
+
+function readJsonl<T>(filename: string): T[] {
+  return readFileSync(path.join(GOVERNANCE_DIR, filename), 'utf8')
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as T);
+}
+
+function assert(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new Error(message);
+}
+
+function isReadyCitationChip(item: CorpusItem, expectedSourceType: string) {
+  return item.citationChip.chunkId === item.retrievalChunkId &&
+    item.citationChip.displayTitle.length > 0 &&
+    item.citationChip.displayHref === item.citationAddress.href &&
+    item.citationChip.sourceType === expectedSourceType &&
+    item.citationChip.citationAddress.href === item.citationAddress.href &&
+    item.citationChip.authorityLevel === 'verified' &&
+    item.citationChip.confidence === 'high' &&
+    item.citationChip.freshnessBucket === item.freshness.bucket &&
+    item.citationChip.privacyVisibility === 'public' &&
+    item.citationChip.limitationState === null;
+}
+
+function isLimitedCitationChip(item: CorpusItem) {
+  return item.citationChip.chunkId === `limited-citation:${item.citationAddress.sourceRefId}` &&
+    item.citationChip.displayTitle.length > 0 &&
+    item.citationChip.displayHref === null &&
+    item.citationChip.sourceType === 'runtime-handout' &&
+    item.citationChip.citationAddress.sourceRefId === item.citationAddress.sourceRefId &&
+    item.citationChip.authorityLevel === 'contextual' &&
+    item.citationChip.confidence === 'medium' &&
+    item.citationChip.freshnessBucket === item.freshness.bucket &&
+    item.citationChip.privacyVisibility === 'public' &&
+    item.limitationState.includes(item.citationChip.limitationState ?? '');
+}
