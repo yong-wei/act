@@ -177,6 +177,8 @@ assert(
   'corpus titles and CitationChip display titles must not carry raw image descriptions',
 );
 assertMissingTextbookTargetDowngradesToLimited();
+assertMissingFigureTargetDowngradesToLimitedImage();
+assertInvalidFigureTargetDowngradesToLimitedImage();
 assertUnreviewedTextbookTargetDowngradesToLimited();
 assertUnsafeTextbookTargetDowngradesToLimited();
 assertUnresolvableTextbookTargetDowngradesToLimited();
@@ -242,6 +244,37 @@ function assertMissingTextbookTargetDowngradesToLimited() {
   assert(item.citationChip.authorityLevel === 'contextual', 'missing target CitationChip must be authority downgraded');
   assert(item.citationChip.confidence === 'medium', 'missing target CitationChip must be confidence downgraded');
   assert((item as any).sourceVersionRef.groundingVersion === 'textbook-media-grounding.v1', 'missing target artifact must preserve grounding version lineage');
+}
+
+function assertMissingFigureTargetDowngradesToLimitedImage() {
+  const item = textbookCorpusItem({
+    ...syntheticCandidate(),
+    kind: 'figure',
+    candidateId: 'textbook-figure:synthetic-book:synthetic-section:fig-001',
+    documentId: 'fig-001',
+    pageAnchor: 'fig-001',
+  }, undefined, new Set(), new Set()) as CorpusItem;
+  assert(item.citationState === 'limited', 'missing figure citation target must produce a limited artifact');
+  assert(item.citationAddress.kind === 'image', 'missing figure target must preserve image address kind');
+  assert(item.citationChip.addressKind === 'image', 'missing figure CitationChip must preserve image address kind');
+  assert(item.citationChip.displayHref === null, 'missing figure CitationChip must not be clickable');
+}
+
+function assertInvalidFigureTargetDowngradesToLimitedImage() {
+  const invalidTarget = syntheticTarget('https://example.test/model-authored');
+  invalidTarget.address.kind = 'text';
+  const item = textbookCorpusItem({
+    ...syntheticCandidate(),
+    kind: 'figure',
+    candidateId: 'textbook-figure:synthetic-book:synthetic-section:fig-002',
+    documentId: 'fig-002',
+    pageAnchor: 'fig-002',
+  }, invalidTarget, new Set(['synthetic-section']), new Set()) as CorpusItem;
+  assert(item.citationState === 'limited', 'invalid figure citation target must produce a limited artifact');
+  assert(item.citationAddress.kind === 'image', 'invalid figure target must preserve image address kind');
+  assert(item.citationChip.addressKind === 'image', 'invalid figure CitationChip must preserve image address kind');
+  assert(item.citationChip.displayHref === null, 'invalid figure CitationChip must not be clickable');
+  assert(item.citationChip.limitationState === 'unsafe-address', 'invalid figure CitationChip must use unsafe-address');
 }
 
 function assertUnreviewedTextbookTargetDowngradesToLimited() {

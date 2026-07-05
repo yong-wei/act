@@ -238,7 +238,7 @@ export function textbookCorpusItem(
     target && !targetHashesMatch ? 'quote-hash-mismatch' : '',
   ]);
   const citationAddress = {
-    kind: target ? target.address.kind : toCitationAddressKind(candidate.kind),
+    kind: ready ? target!.address.kind : toCitationAddressKind(candidate.kind),
     href: ready ? target!.address.href : null,
     locator: target?.address.locator ?? candidate.pageAnchor,
     contentHash: ready ? targetAddressContentHash : sourceHash,
@@ -551,6 +551,7 @@ function isPrivateRuntimeGovernancePath(relativePath: string) {
 }
 
 function toCitationAddressKind(value: string): CorpusItem['citationAddress']['kind'] {
+  if (value === 'figure') return 'image';
   if (value === 'image' || value === 'audio' || value === 'video' || value === 'slides') return value;
   if (value === 'external') return 'external';
   return 'text';
