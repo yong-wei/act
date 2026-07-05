@@ -72,7 +72,7 @@ async function main() {
       .filter((node) => node.isActive !== false)
       .filter((node) => !Array.isArray(node.resources) || node.resources.length === 0)
       .map(toWorkqueueItem);
-    const reviewedItems = workqueueItems.map(toReviewedItem);
+    const reviewedItems = await readExistingReviewedItems();
     const after = buildDataCompletenessAuditReport({
       generatedAt: GENERATED_AT,
       knowledgeNodes: nodes.map(toAuditNode),
@@ -102,7 +102,6 @@ async function main() {
 
     await fs.mkdir(OUTPUT_DIR, { recursive: true });
     await writeJsonl(WORKQUEUE_ITEMS_PATH, workqueueItems);
-    await writeJsonl(REVIEWED_ITEMS_PATH, reviewedItems);
     await fs.writeFile(SUMMARY_PATH, `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
     await fs.writeFile(EVIDENCE_PATH, renderEvidence(summary, workqueueItems), 'utf8');
 
@@ -155,15 +154,16 @@ function toWorkqueueItem(node: KnowledgeNodeRow): WorkqueueItem {
   };
 }
 
-function toReviewedItem(item: WorkqueueItem): DataCompletenessReviewedGraphResourceCoverageInput {
-  return {
-    graphNodeId: item.graphNodeId,
-    decision: 'reviewed-limitation',
-    limitationCategory: item.limitationCategory,
-    coverageRole: item.coverageRole,
-    reviewerVisibleRationale: item.reviewerVisibleRationale,
-    sourceVersionRef: item.sourceVersionRef,
-  };
+async function readExistingReviewedItems(): Promise<DataCompletenessReviewedGraphResourceCoverageInput[]> {
+  try {
+    const text = await fs.readFile(REVIEWED_ITEMS_PATH, 'utf8');
+    return text.split(/\r?\n/)
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as DataCompletenessReviewedGraphResourceCoverageInput);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw error;
+  }
 }
 
 function limitationCategoryFor(node: KnowledgeNodeRow) {

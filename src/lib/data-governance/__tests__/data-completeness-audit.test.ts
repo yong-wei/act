@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { describe, expect, it } from 'vitest';
 
 import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '@/lib/resource-node-registry';
@@ -139,6 +141,12 @@ describe('data completeness audit', () => {
         coverageRole: 'explicit-gap',
         reviewerVisibleRationale: 'No existing reviewed resource should be attached until a dedicated node card is authored.',
         sourceVersionRef: 'graph-resource-coverage-overlay.v1',
+        sourceHash: hashGraphResourceCoverageTestNode({
+          id: 'kn-reviewed-gap',
+          name: 'Reviewed gap node',
+          description: 'A graph node whose current resource gap has been reviewed.',
+          tags: ['reviewed-gap'],
+        }),
       }],
     });
 
@@ -172,6 +180,12 @@ describe('data completeness audit', () => {
         coverageRole: 'explicit-gap',
         reviewerVisibleRationale: 'This row is missing its actionable limitation category.',
         sourceVersionRef: 'graph-resource-coverage-overlay.v1',
+        sourceHash: hashGraphResourceCoverageTestNode({
+          id: 'kn-malformed-gap',
+          name: 'Malformed gap node',
+          description: 'A graph node with malformed reviewed coverage.',
+          tags: ['reviewed-gap'],
+        }),
       }],
     });
 
@@ -182,6 +196,40 @@ describe('data completeness audit', () => {
       expect.objectContaining({
         id: 'graph-node-resource-missing',
         stableRef: 'KnowledgeNode:kn-malformed-gap',
+      }),
+    ]));
+  });
+
+  it('does not hide graph resource gaps when reviewed overlay source hash is stale', () => {
+    const report = buildDataCompletenessAuditReport({
+      knowledgeNodes: [{
+        id: 'kn-stale-gap',
+        name: 'Stale gap node',
+        description: 'A graph node whose reviewed coverage no longer matches.',
+        tags: ['reviewed-gap'],
+        resources: [],
+        isActive: true,
+        sourceLinkCount: 1,
+        targetLinkCount: 1,
+      }],
+      reviewedGraphResourceCoverage: [{
+        graphNodeId: 'kn-stale-gap',
+        decision: 'reviewed-limitation',
+        limitationCategory: 'resource-not-yet-authored',
+        coverageRole: 'explicit-gap',
+        reviewerVisibleRationale: 'This row was reviewed against an older graph node snapshot.',
+        sourceVersionRef: 'graph-resource-coverage-overlay.v1',
+        sourceHash: 'sha256:stale',
+      }],
+    });
+
+    const graphCore = report.layers.find((layer) => layer.id === 'graphCore');
+    expect(graphCore?.totals.missingResourceRefs).toBe(1);
+    expect(graphCore?.totals.reviewedResourceGaps).toBe(0);
+    expect(graphCore?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'graph-node-resource-missing',
+        stableRef: 'KnowledgeNode:kn-stale-gap',
       }),
     ]));
   });
@@ -2146,3 +2194,13 @@ describe('data completeness audit', () => {
     expect(markdown).toContain('## Learner Fixture');
   });
 });
+
+function hashGraphResourceCoverageTestNode(node: { id: string; name: string; description: string | null; tags: string[] }) {
+  const payload = JSON.stringify({
+    id: node.id,
+    name: node.name,
+    description: node.description ?? null,
+    tags: node.tags ?? [],
+  });
+  return `sha256:${createHash('sha256').update(payload).digest('hex')}`;
+}

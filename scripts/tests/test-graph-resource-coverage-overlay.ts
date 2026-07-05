@@ -8,6 +8,7 @@ interface ReviewedGraphResourceCoverageItem {
   coverageRole: string;
   reviewerVisibleRationale: string;
   sourceVersionRef: string;
+  sourceHash: string;
 }
 
 interface WorkqueueItem {
@@ -54,7 +55,8 @@ assert(reviewedItems.every((item) =>
   item.coverageRole === 'explicit-gap' &&
   item.limitationCategory.endsWith('-resource-not-yet-authored') &&
   item.reviewerVisibleRationale.length > 0 &&
-  item.sourceVersionRef === 'graph-resource-coverage-overlay.v1'
+  item.sourceVersionRef === 'graph-resource-coverage-overlay.v1' &&
+  item.sourceHash.startsWith('sha256:')
 ), 'reviewed rows must carry explicit limitation states');
 assert(evidence.includes('Before graph-node-resource-missing: 541'), 'evidence must preserve before total');
 assert(evidence.includes('After graph-node-resource-missing: 0'), 'evidence must preserve after total');
