@@ -234,6 +234,79 @@ describe('data completeness audit', () => {
     ]));
   });
 
+  it('does not count reviewed limitation rows when the graph node now has resources', () => {
+    const report = buildDataCompletenessAuditReport({
+      knowledgeNodes: [{
+        id: 'kn-resource-bound',
+        name: 'Resource bound node',
+        description: 'A graph node that gained a reviewed resource ref.',
+        tags: ['reviewed-gap'],
+        resources: [{ resourceId: 'resource:bound' }],
+        isActive: true,
+        sourceLinkCount: 1,
+        targetLinkCount: 1,
+      }],
+      reviewedGraphResourceCoverage: [{
+        graphNodeId: 'kn-resource-bound',
+        decision: 'reviewed-limitation',
+        limitationCategory: 'resource-not-yet-authored',
+        coverageRole: 'explicit-gap',
+        reviewerVisibleRationale: 'This row used to explain a resource gap before the node was bound.',
+        sourceVersionRef: 'graph-resource-coverage-overlay.v1',
+        sourceHash: hashGraphResourceCoverageTestNode({
+          id: 'kn-resource-bound',
+          name: 'Resource bound node',
+          description: 'A graph node that gained a reviewed resource ref.',
+          tags: ['reviewed-gap'],
+          resources: [{ resourceId: 'resource:bound' }],
+        }),
+      }],
+    });
+
+    const graphCore = report.layers.find((layer) => layer.id === 'graphCore');
+    expect(graphCore?.totals.missingResourceRefs).toBe(0);
+    expect(graphCore?.totals.reviewedResourceGaps).toBe(0);
+  });
+
+  it('does not hide graph resource gaps when reviewed limitation coverage role is not explicit-gap', () => {
+    const report = buildDataCompletenessAuditReport({
+      knowledgeNodes: [{
+        id: 'kn-wrong-role-gap',
+        name: 'Wrong role gap node',
+        description: 'A graph node with the wrong reviewed coverage role.',
+        tags: ['reviewed-gap'],
+        resources: [],
+        isActive: true,
+        sourceLinkCount: 1,
+        targetLinkCount: 1,
+      }],
+      reviewedGraphResourceCoverage: [{
+        graphNodeId: 'kn-wrong-role-gap',
+        decision: 'reviewed-limitation',
+        limitationCategory: 'resource-not-yet-authored',
+        coverageRole: 'path-node',
+        reviewerVisibleRationale: 'This row has the wrong coverage role for a resource gap.',
+        sourceVersionRef: 'graph-resource-coverage-overlay.v1',
+        sourceHash: hashGraphResourceCoverageTestNode({
+          id: 'kn-wrong-role-gap',
+          name: 'Wrong role gap node',
+          description: 'A graph node with the wrong reviewed coverage role.',
+          tags: ['reviewed-gap'],
+        }),
+      }],
+    });
+
+    const graphCore = report.layers.find((layer) => layer.id === 'graphCore');
+    expect(graphCore?.totals.missingResourceRefs).toBe(1);
+    expect(graphCore?.totals.reviewedResourceGaps).toBe(0);
+    expect(graphCore?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'graph-node-resource-missing',
+        stableRef: 'KnowledgeNode:kn-wrong-role-gap',
+      }),
+    ]));
+  });
+
   it('counts indexed long-form corpus chunks as verified section citation support', () => {
     const registry = buildResourceNodeRegistry({
       textbooks: [{
@@ -2195,12 +2268,13 @@ describe('data completeness audit', () => {
   });
 });
 
-function hashGraphResourceCoverageTestNode(node: { id: string; name: string; description: string | null; tags: string[] }) {
+function hashGraphResourceCoverageTestNode(node: { id: string; name: string; description: string | null; tags: string[]; resources?: unknown }) {
   const payload = JSON.stringify({
     id: node.id,
     name: node.name,
     description: node.description ?? null,
     tags: node.tags ?? [],
+    resources: Array.isArray(node.resources) ? node.resources : [],
   });
   return `sha256:${createHash('sha256').update(payload).digest('hex')}`;
 }

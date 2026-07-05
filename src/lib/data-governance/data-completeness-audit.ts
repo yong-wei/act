@@ -321,9 +321,9 @@ function buildGraphCoreLayer(
   reviewedCoverage: DataCompletenessReviewedGraphResourceCoverageInput[],
 ): DataCompletenessLayerSummary {
   const activeNodes = nodes.filter((node) => node.isActive !== false);
-  const activeNodeSourceHashes = new Map(activeNodes.map((node) => [node.id, hashGraphResourceCoverageNode(node)]));
+  const activeNodeById = new Map(activeNodes.map((node) => [node.id, node]));
   const reviewedByNodeId = new Map(reviewedCoverage
-    .filter((item) => reviewedGraphCoverageExplainsGap(item, activeNodeSourceHashes.get(item.graphNodeId)))
+    .filter((item) => reviewedGraphCoverageExplainsGap(item, activeNodeById.get(item.graphNodeId)))
     .map((item) => [item.graphNodeId, item]));
   const findings = activeNodes.flatMap((node): DataCompletenessFinding[] => {
     const resourceCount = Array.isArray(node.resources) ? node.resources.length : 0;
@@ -346,7 +346,7 @@ function buildGraphCoreLayer(
   });
   const activeNodeIds = new Set(activeNodes.map((node) => node.id));
   const reviewedActiveCoverage = reviewedCoverage
-    .filter((item) => reviewedGraphCoverageExplainsGap(item, activeNodeSourceHashes.get(item.graphNodeId)))
+    .filter((item) => reviewedGraphCoverageExplainsGap(item, activeNodeById.get(item.graphNodeId)))
     .filter((item) => activeNodeIds.has(item.graphNodeId));
 
   return layer('graphCore', {
@@ -360,10 +360,14 @@ function buildGraphCoreLayer(
   }, findings);
 }
 
-function reviewedGraphCoverageExplainsGap(item: DataCompletenessReviewedGraphResourceCoverageInput, currentSourceHash: string | undefined) {
+function reviewedGraphCoverageExplainsGap(item: DataCompletenessReviewedGraphResourceCoverageInput, currentNode: DataCompletenessKnowledgeNodeInput | undefined) {
   if (!item.graphNodeId || !item.reviewerVisibleRationale || !item.sourceVersionRef || !item.sourceHash) return false;
+  const currentSourceHash = currentNode ? hashGraphResourceCoverageNode(currentNode) : undefined;
   if (!currentSourceHash || item.sourceHash !== currentSourceHash) return false;
-  if (item.decision === 'reviewed-limitation') return Boolean(item.limitationCategory?.trim());
+  if (item.decision === 'reviewed-limitation') {
+    const resourceCount = Array.isArray(currentNode?.resources) ? currentNode.resources.length : 0;
+    return item.coverageRole === 'explicit-gap' && resourceCount === 0 && Boolean(item.limitationCategory?.trim());
+  }
   if (item.decision === 'reviewed-resource-ref') return (item.resourceRefs ?? []).length > 0;
   return false;
 }
@@ -374,6 +378,7 @@ function hashGraphResourceCoverageNode(node: DataCompletenessKnowledgeNodeInput)
     name: node.name,
     description: node.description ?? null,
     tags: node.tags ?? [],
+    resources: Array.isArray(node.resources) ? node.resources : [],
   });
   return `sha256:${createHash('sha256').update(payload).digest('hex')}`;
 }

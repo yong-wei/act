@@ -189,6 +189,7 @@ function hashNode(node: KnowledgeNodeRow) {
     name: node.name,
     description: node.description ?? null,
     tags: node.tags ?? [],
+    resources: Array.isArray(node.resources) ? node.resources : [],
   });
   return `sha256:${createHash('sha256').update(payload).digest('hex')}`;
 }
