@@ -50,6 +50,7 @@
     "noPathPromotionFromChunksOrMedia": true,
     "rawContentIncluded": false,
     "readyItemsHaveAddressAndHash": true,
+    "readyItemsMatchSourceHash": true,
     "limitedItemsHaveReason": true,
     "metadataContractComplete": true,
     "citationChipPayloadsComplete": true

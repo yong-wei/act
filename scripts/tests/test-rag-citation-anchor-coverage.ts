@@ -99,6 +99,7 @@ assert(summary.guardrails.noModelAuthoredUrls === true, 'model-authored footnote
 assert(summary.guardrails.noPathPromotionFromChunksOrMedia === true, 'chunks/media must not become path nodes');
 assert(summary.guardrails.rawContentIncluded === false, 'artifacts must not include raw content');
 assert(summary.guardrails.readyItemsHaveAddressAndHash === true, 'ready rows need href and content hash');
+assert(summary.guardrails.readyItemsMatchSourceHash === true, 'ready rows must not use stale CitationTarget hashes');
 assert(summary.guardrails.limitedItemsHaveReason === true, 'limited rows need explicit reasons');
 assert(summary.guardrails.metadataContractComplete === true, 'all rows must carry segment, freshness, source hash or source-hash limitation, and review state metadata');
 assert(summary.guardrails.citationChipPayloadsComplete === true, 'all rows must carry product CitationChip payload metadata');
@@ -167,6 +168,7 @@ assert(
 );
 assert(evidence.includes('Model-authored URLs accepted: false'), 'evidence must state model URL rejection');
 assert(evidence.includes('Chunks or media promoted as PathNodes: false'), 'evidence must state non-promotion guardrail');
+assert(evidence.includes('Ready citation hashes match source hashes: true'), 'evidence must state CitationTarget hash consistency');
 assert(evidence.includes('Metadata contract complete: true'), 'evidence must state metadata contract closure');
 assert(evidence.includes('CitationChip payloads complete: true'), 'evidence must state CitationChip payload closure');
 assert(
@@ -176,6 +178,7 @@ assert(
 assertMissingTextbookTargetDowngradesToLimited();
 assertUnreviewedTextbookTargetDowngradesToLimited();
 assertUnsafeTextbookTargetDowngradesToLimited();
+assertStaleTextbookTargetHashDowngradesToLimited();
 
 console.log('RAG citation anchor coverage artifacts verified.');
 
@@ -269,6 +272,27 @@ function assertUnsafeTextbookTargetDowngradesToLimited() {
   assert(item.citationChip.limitationState === 'unsafe-address', 'unsafe target CitationChip must use a standard limitation reason');
   assert(item.citationChip.authorityLevel === 'contextual', 'unsafe target CitationChip must be authority downgraded');
   assert(item.citationChip.confidence === 'medium', 'unsafe target CitationChip must be confidence downgraded');
+}
+
+function assertStaleTextbookTargetHashDowngradesToLimited() {
+  const staleTarget = syntheticTarget();
+  staleTarget.address.contentHash = 'fedcba9876543210';
+  staleTarget.contentHash = 'fedcba9876543210';
+  const item = textbookCorpusItem(
+    syntheticCandidate(),
+    staleTarget,
+    new Set(['synthetic-section']),
+    new Set(),
+  ) as CorpusItem;
+  assert(item.citationState === 'limited', 'stale target hash must produce a limited artifact');
+  assert(item.limitationState.includes('quote-hash-mismatch'), 'stale target hash limitation must be explicit');
+  assert(item.citationAddress.href === null, 'stale target CitationAddress must not be hydratable');
+  assert(item.citationAddress.contentHash === 'sha256:0123456789abcdef', 'limited stale target must preserve candidate source hash');
+  assert(item.serverOwnedAddress === false, 'stale target artifact must not claim a server-owned address');
+  assert(item.citationChip.displayHref === null, 'stale target CitationChip must not be clickable');
+  assert(item.citationChip.limitationState === 'quote-hash-mismatch', 'stale target CitationChip must use the hash mismatch limitation reason');
+  assert(item.citationChip.authorityLevel === 'contextual', 'stale target CitationChip must be authority downgraded');
+  assert(item.citationChip.confidence === 'medium', 'stale target CitationChip must be confidence downgraded');
 }
 
 function syntheticCandidate() {

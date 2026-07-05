@@ -27,6 +27,7 @@ Limited citations: 6
 - Model-authored URLs accepted: false
 - Chunks or media promoted as PathNodes: false
 - Raw content included in artifacts: false
+- Ready citation hashes match source hashes: true
 - Metadata contract complete: true
 - CitationChip payloads complete: true
 

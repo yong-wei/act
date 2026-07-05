@@ -218,19 +218,28 @@ export function textbookCorpusItem(
     : referenceChunkIds.has(candidate.documentId)
       ? `reference-search-document:${candidate.documentId}`
       : null;
+  const sourceHash = normalizeSha256(candidate.sourceHash);
+  const targetContentHash = normalizeSha256(target?.contentHash);
+  const targetAddressContentHash = normalizeSha256(target?.address.contentHash);
   const hasServerOwnedTargetHref = Boolean(target?.address.href && isServerOwnedHref(target.address.href));
-  const ready = Boolean(target && reviewedSourceRef && hasServerOwnedTargetHref);
+  const targetHashesMatch = Boolean(
+    target &&
+    sourceHash &&
+    targetContentHash === sourceHash &&
+    targetAddressContentHash === sourceHash,
+  );
+  const ready = Boolean(target && reviewedSourceRef && hasServerOwnedTargetHref && targetHashesMatch);
   const limitationState = ready ? [] : uniqueSorted([
     target ? '' : 'missing-citation-target',
     reviewedSourceRef ? '' : 'section-review-not-selected-for-current-path-batch',
     target && !hasServerOwnedTargetHref ? 'unsafe-citation-target-href' : '',
+    target && !targetHashesMatch ? 'quote-hash-mismatch' : '',
   ]);
-  const sourceHash = normalizeSha256(candidate.sourceHash);
   const citationAddress = {
     kind: target ? target.address.kind : toCitationAddressKind(candidate.kind),
     href: ready ? target!.address.href : null,
     locator: target?.address.locator ?? candidate.pageAnchor,
-    contentHash: normalizeSha256(target?.address.contentHash ?? candidate.sourceHash),
+    contentHash: ready ? targetAddressContentHash : sourceHash,
     sourceRefId: target?.address.sourceRefId ?? candidate.documentId,
   };
   const displayTitle = textbookDisplayTitle(candidate);
@@ -409,6 +418,7 @@ function buildSummary(
       noPathPromotionFromChunksOrMedia: corpusItems.every((item) => item.pathEligible === false && item.promotedAsPathNode === false),
       rawContentIncluded: corpusItems.some((item) => item.rawContentIncluded === true),
       readyItemsHaveAddressAndHash: readyItems.every((item) => Boolean(item.citationAddress.href && item.citationAddress.contentHash)),
+      readyItemsMatchSourceHash: readyItems.every((item) => item.citationAddress.contentHash === item.sourceHash),
       limitedItemsHaveReason: limitedItems.every((item) => item.limitationState.length > 0),
       metadataContractComplete: corpusItems.every((item) =>
         Boolean(item.resourceSegmentRef && item.resourceSegmentId && item.freshness.bucket && item.reviewState.state) &&
@@ -461,6 +471,7 @@ function renderEvidence(summary: ReturnType<typeof buildSummary>, corpusItems: C
     `- Model-authored URLs accepted: ${!summary.guardrails.noModelAuthoredUrls}`,
     `- Chunks or media promoted as PathNodes: ${!summary.guardrails.noPathPromotionFromChunksOrMedia}`,
     `- Raw content included in artifacts: ${summary.guardrails.rawContentIncluded}`,
+    `- Ready citation hashes match source hashes: ${summary.guardrails.readyItemsMatchSourceHash}`,
     `- Metadata contract complete: ${summary.guardrails.metadataContractComplete}`,
     `- CitationChip payloads complete: ${summary.guardrails.citationChipPayloadsComplete}`,
     '',
@@ -546,6 +557,7 @@ function citationChipLimitationReason(limitationState: string[]): CitationChipLi
   if (limitationState.includes('missing-citation-target')) return 'missing-chunk';
   if (limitationState.includes('section-review-not-selected-for-current-path-batch')) return 'insufficient-authority';
   if (limitationState.includes('unsafe-citation-target-href')) return 'unsafe-address';
+  if (limitationState.includes('quote-hash-mismatch')) return 'quote-hash-mismatch';
   if (limitationState.includes('media-production-missing')) return 'inaccessible-source';
   if (limitationState.some((item) =>
     item.includes('anchor-required') ||
