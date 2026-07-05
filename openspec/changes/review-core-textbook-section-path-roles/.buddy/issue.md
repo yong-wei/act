@@ -32,6 +32,7 @@ Review core automatic-control textbook sections at section grain and classify th
 - Supersedes earlier needs-human comments on this issue; those comments identified a missing scoped worklist and section/chunk boundary ambiguity, not a requirement for external human review.
 - This issue is executable by agents. If the generated queues do not expose a `review-core-textbook-section-path-roles` bucket, Task 1 includes adding or repairing that scoped section-level workqueue before semantic review.
 - The implementation target is reviewed section-level records from the scoped core-textbook queue or deterministic shard emitted by Task 1. Chunk/search-document records may only remain supporting evidence unless separately reviewed through their parent section.
+- Buddy completion for this issue means `remaining:0` for the issue-owned scoped core-textbook section queue or selected deterministic shard, with explicit residual handoff for unselected shards. It does not claim the whole textbook-section universe is exhausted unless the selected queue is the whole universe.
 
 ## Scope
 
@@ -46,18 +47,18 @@ Review core automatic-control textbook sections at section grain and classify th
 
 ## Acceptance Checklist
 
-- [ ] AC-1: Core textbook sections have reviewed path roles or exclusion rationale. Owner: independent reviewer.
+- [ ] AC-1: Selected core textbook section queue/shard records have reviewed path roles or exclusion rationale. Owner: independent reviewer.
   Evidence: long-form section workqueue output.
-- [ ] AC-2: Promoted sections include graph, LearningGoal, prerequisite, time, authority, citation, privacy, and review metadata. Owner: independent reviewer.
+- [ ] AC-2: Promoted sections in the selected queue/shard include graph, LearningGoal, prerequisite, time, authority, citation, privacy, and review metadata. Owner: independent reviewer.
   Evidence: ResourceNode and RAG audit output.
-- [ ] AC-3: Raw chunks, figures, captions, and anchors remain supporting resources unless linked to reviewed parent sections. Owner: independent reviewer.
+- [ ] AC-3: Raw chunks, figures, captions, and anchors in the selected queue/shard remain supporting resources unless linked to reviewed parent sections. Owner: independent reviewer.
   Evidence: helper output.
 
 ## Tasks
 
 - [ ] Task 1: Generate or repair scoped core textbook section worklist.
   Covers: AC-1
-  Acceptance: Worklist targets only core textbook section-level records, excludes reference-only sources and raw retrieval chunks, and groups rows by textbook, chapter, graph domain, blocker type, and deterministic shard.
+  Acceptance: Worklist targets only core textbook section-level records, excludes reference-only sources, raw retrieval chunks, and search-document rows, and groups rows by textbook, chapter, graph domain, blocker type, and deterministic shard.
   Evidence: helper workqueue output.
   Reviewer Check: Confirm chunk-level records are not primary path candidates.
 - [ ] Task 2: Review section path roles item by item.
@@ -81,6 +82,7 @@ Review core automatic-control textbook sections at section grain and classify th
 - Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
 - Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - Do not mark the issue `needs-human` because the current helper lacks a scoped core-textbook section bucket; repair the scoped workqueue first, then process the bounded section queue.
+- Do not use a global helper denominator as the PR completion gate when the issue selects a shard; the gate is zero unresolved rows in the selected scoped queue/shard plus a residual handoff for unselected rows.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.

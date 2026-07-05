@@ -8,13 +8,13 @@
 
 - [ ] Task 2: Review step PlanningUnit eligibility.
   Covers: AC-1, AC-2
-  Acceptance: Eligible steps are promoted only with full required metadata.
+  Acceptance: Eligible steps in the selected queue/shard are promoted only with full required metadata.
   Evidence: ResourceNode audit output.
   Reviewer Check: Confirm route targets are real and evidence contracts are complete.
 
 - [ ] Task 3: Classify non-planning runtime steps.
   Covers: AC-3
-  Acceptance: Non-planning steps are linked or excluded with rationale.
+  Acceptance: Non-planning steps in the selected queue/shard are linked or excluded with rationale, and unselected shards remain in the workqueue or downstream handoff.
   Evidence: disposition audit output.
   Reviewer Check: Confirm no orphan segment remains unexplained.
 

@@ -8,6 +8,7 @@ Classify runtime media, slides, audio, video, PDFs, and handouts into path-plann
 - Define transcript/anchor needs for audio/video and page/figure anchors for slides/PDFs.
 - Separate independent teaching resources from embedded assets and citation-only media.
 - If the current helper output includes non-media/handout families or omits handout rows behind identity repair, repairing or adding a scoped runtime-media/handout workqueue is part of this change. The agent should not escalate that worklist mismatch to `needs-human`.
+- Completion evidence is scoped: `remaining:0` applies to the selected media/handout queue/shard, not to the whole media/handout universe unless that full queue was selected.
 
 ### Implementing-Agent Semantic Review Policy
 

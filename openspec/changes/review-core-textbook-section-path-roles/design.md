@@ -8,6 +8,7 @@ Review core automatic-control textbook sections at section grain and classify th
 - Promote only reviewed section-level units, not paragraph chunks, figure descriptions, or raw retrieval chunks.
 - Link reviewed sections to LearningGoals, graph nodes, prerequisite position, estimated time, and citation addresses.
 - If the current helper output lacks a scoped core-textbook section bucket or mixes section/chunk/search-document rows, repairing or adding that scoped workqueue is part of this change. The agent should not escalate that worklist mismatch to `needs-human`.
+- Completion evidence is scoped: `remaining:0` applies to the selected core-textbook section queue/shard, not to the whole textbook-section universe unless that full queue was selected.
 
 ### Implementing-Agent Semantic Review Policy
 

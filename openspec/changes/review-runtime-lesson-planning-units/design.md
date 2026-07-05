@@ -8,6 +8,7 @@ Review runtime lesson steps and promote only valid steps to PlanningUnit or clas
 - The implementing agent reviews step title, route target, graph binding, capability target, estimated time, evidence behavior, and prerequisite role.
 - Add reviewed disposition and parent/child relationships for non-planning steps.
 - A large deferred runtime-step count is not a human blocker. Agents should split the queue into deterministic lesson-level shards, process a bounded shard with before/after evidence, and leave remaining shards in the workqueue or downstream issue queue.
+- Completion evidence is scoped: `remaining:0` applies to the selected runtime-step queue/shard, not to the whole runtime-step universe unless that full queue was selected.
 
 ### Implementing-Agent Semantic Review Policy
 

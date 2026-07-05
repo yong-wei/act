@@ -31,6 +31,7 @@ Classify runtime media, slides, audio, video, PDFs, and handouts into path-plann
 - Supersedes earlier needs-human comments on this issue; those comments identified a worklist/task boundary problem, not a requirement for external human review.
 - This issue is executable by agents. If the generated workqueue includes non-media/handout families or omits handout rows behind identity repair, Task 1 includes repairing or adding the scoped workqueue/denominator before semantic review.
 - The implementation target is the scoped runtime-media/handout queue or deterministic shard emitted by Task 1, not an unrelated global helper denominator. Worklist mismatch is implementation work, not a `needs-human` condition.
+- Buddy completion for this issue means `remaining:0` for the issue-owned scoped media/handout queue or selected deterministic shard, with explicit residual handoff for unselected shards. It does not claim the whole media/handout universe is exhausted unless the selected queue is the whole universe.
 
 ## Scope
 
@@ -45,11 +46,11 @@ Classify runtime media, slides, audio, video, PDFs, and handouts into path-plann
 
 ## Acceptance Checklist
 
-- [ ] AC-1: Runtime media and handouts have reviewed path-planning dispositions. Owner: independent reviewer.
+- [ ] AC-1: Selected runtime media/handout queue/shard records have reviewed path-planning dispositions. Owner: independent reviewer.
   Evidence: resource disposition helper output.
-- [ ] AC-2: Citation-support media declare required anchors, transcripts, page refs, or limitation states. Owner: independent reviewer.
+- [ ] AC-2: Citation-support media in the selected queue/shard declare required anchors, transcripts, page refs, or limitation states. Owner: independent reviewer.
   Evidence: citation readiness output.
-- [ ] AC-3: Path-plannable media declare evidence contract, privacy policy, graph binding, and parent/route semantics. Owner: independent reviewer.
+- [ ] AC-3: Path-plannable media in the selected queue/shard declare evidence contract, privacy policy, graph binding, and parent/route semantics. Owner: independent reviewer.
   Evidence: ResourceNode audit output.
 
 ## Tasks
@@ -80,6 +81,7 @@ Classify runtime media, slides, audio, video, PDFs, and handouts into path-plann
 - Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
 - Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - Do not mark the issue `needs-human` because the current helper queue is unscoped or mismatched; repair the scoped media/handout workqueue first, then process the bounded queue.
+- Do not use a global helper denominator as the PR completion gate when the issue selects a shard; the gate is zero unresolved rows in the selected scoped queue/shard plus a residual handoff for unselected rows.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.

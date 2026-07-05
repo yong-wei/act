@@ -8,13 +8,13 @@
 
 - [ ] Task 2: Review dispositions and anchor requirements.
   Covers: AC-1, AC-2
-  Acceptance: Each media/handout record has disposition and citation anchor state.
+  Acceptance: Each selected media/handout queue/shard record has disposition and citation anchor state.
   Evidence: helper and citation readiness output.
   Reviewer Check: Confirm citation-only media are not promoted as PathNodes.
 
 - [ ] Task 3: Complete path metadata for independent media.
   Covers: AC-3
-  Acceptance: Independent media have route, evidence, privacy, and graph metadata.
+  Acceptance: Independent media in the selected queue/shard have route, evidence, privacy, and graph metadata, and unselected shards remain in the workqueue or downstream handoff.
   Evidence: ResourceNode audit output.
   Reviewer Check: Confirm launch and access policy are valid.
 

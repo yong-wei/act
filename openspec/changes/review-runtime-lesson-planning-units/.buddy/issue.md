@@ -31,12 +31,13 @@ Review runtime lesson steps and promote only valid steps to PlanningUnit or clas
 - Supersedes earlier needs-human comments on this issue; those comments were written before this contract clarified implementing-agent semantic review.
 - This issue is executable by agents. The 398 deferred runtime lesson steps require item-by-item semantic review by the implementing agent, not external human review.
 - If the current helper output is too broad for one run, split it into deterministic lesson-level shards and process a bounded shard with before/after evidence. Remaining shards stay in the workqueue or downstream issue queue; they are not a `needs-human` condition.
+- Buddy completion for this issue means `remaining:0` for the issue-owned scoped runtime-step queue or selected deterministic shard, with explicit residual handoff for unselected shards. It does not claim the whole runtime-step universe is exhausted unless the selected queue is the whole universe.
 
 ## Scope
 
 - Use helper workqueues to split runtime lesson steps by lesson, LearningGoal, and missing fields.
-- The implementing agent reviews step title, route target, graph binding, capability target, estimated time, evidence behavior, and prerequisite role item by item against source content.
-- Add reviewed disposition and parent/child relationships for non-planning steps.
+- The implementing agent reviews selected queue/shard records for step title, route target, graph binding, capability target, estimated time, evidence behavior, and prerequisite role item by item against source content.
+- Add reviewed disposition and parent/child relationships for non-planning steps in the selected queue/shard.
 
 ## Out of Scope
 
@@ -45,11 +46,11 @@ Review runtime lesson steps and promote only valid steps to PlanningUnit or clas
 
 ## Acceptance Checklist
 
-- [ ] AC-1: Runtime lesson steps are classified with reviewed disposition. Owner: independent reviewer.
+- [ ] AC-1: Selected runtime lesson step queue/shard records are classified with reviewed disposition. Owner: independent reviewer.
   Evidence: runtime projection helper output.
-- [ ] AC-2: Promoted PlanningUnits have route, graph, path, evidence, privacy, and review metadata. Owner: independent reviewer.
+- [ ] AC-2: Promoted PlanningUnits in the selected queue/shard have route, graph, path, evidence, privacy, and review metadata. Owner: independent reviewer.
   Evidence: ResourceNode audit output.
-- [ ] AC-3: Non-planning steps link to parent PlanningUnit, supporting citation, embedded asset, or reviewed exclusion rationale. Owner: independent reviewer.
+- [ ] AC-3: Non-planning steps in the selected queue/shard link to parent PlanningUnit, supporting citation, embedded asset, or reviewed exclusion rationale. Owner: independent reviewer.
   Evidence: disposition audit output.
 
 ## Tasks
@@ -80,6 +81,7 @@ Review runtime lesson steps and promote only valid steps to PlanningUnit or clas
 - Do not bulk-promote semantic fields from scripts, SAR, RAG, or model suggestions. Helpers may generate workqueues, candidate relations, evidence snippets, and audits, but the implementing agent must perform item-by-item semantic review against source content and write per-record rationale before applying any semantic field.
 - Do not mark the issue `needs-human` merely because semantic review is required; split the work into bounded batches and leave unreviewed records in the workqueue if the full queue cannot be completed in one run.
 - Do not mark the issue `needs-human` because the runtime step queue is large; create or use deterministic shards and execute the next bounded shard.
+- Do not use a global helper denominator as the PR completion gate when the issue selects a shard; the gate is zero unresolved rows in the selected scoped queue/shard plus a residual handoff for unselected rows.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.
