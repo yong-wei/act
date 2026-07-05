@@ -1,0 +1,85 @@
+{
+  "artifactVersion": "core-textbook-section-path-role-review.v1",
+  "generatedAt": "2026-07-05T07:15:00.000Z",
+  "reviewBatchId": "core-textbook-section-path-role-review-2026-07-05",
+  "selectedShardId": "dependency:needs-human-review",
+  "selectionBasis": "dependencyState needs-human-review; item-by-item semantic decisions are counted separately",
+  "totals": {
+    "sourceWorkqueueRows": 25,
+    "scopedSectionUnits": 15,
+    "selectedSectionUnits": 5,
+    "reviewedRows": 5,
+    "residualSectionUnits": 10
+  },
+  "selectedShard": {
+    "total": 5,
+    "reviewed": 5,
+    "remaining": 0,
+    "pathRoles": {
+      "remediation-practice": 2,
+      "path-plannable": 1,
+      "extension-path": 2
+    },
+    "dispositions": {
+      "path-planning-section": 5
+    },
+    "prerequisitePositions": {
+      "core-after-modeling": 1,
+      "core-after-frequency-response": 2,
+      "advanced-after-state-space": 2
+    }
+  },
+  "residualHandoff": {
+    "blockedByDependencySectionUnits": 10,
+    "blockedByDependencySourceRows": 20,
+    "resourceIds": [
+      "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
+      "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
+      "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
+      "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
+      "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
+      "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
+      "textbook-section:hu-shousong-exercise-analysis-3rd:ch07-overview-001",
+      "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001",
+      "textbook-section:hu-shousong-exercise-analysis-3rd:ch09-overview-001",
+      "textbook-section:hu-shousong-exercise-analysis-3rd:ch10-overview-001"
+    ]
+  },
+  "grouping": {
+    "byChapter": {
+      "chapter-01": 1,
+      "chapter-02": 1,
+      "chapter-03": 2,
+      "chapter-04": 1,
+      "chapter-05": 3,
+      "chapter-06": 1,
+      "chapter-07": 1,
+      "chapter-08": 1,
+      "chapter-09": 1,
+      "chapter-10": 3
+    },
+    "byDeterministicShard": {
+      "dependency:blocked-by-dependency": 10,
+      "dependency:needs-human-review": 5
+    },
+    "byBlocker": {
+      "blocked-by-dependency": 10,
+      "missing-content-hash": 15
+    },
+    "byLearningGoal": {
+      "engineeringDecision": 8,
+      "selfDirectedLearning": 1,
+      "controlModeling": 11,
+      "diagnosticAssessment": 5,
+      "parameterDesign": 7
+    }
+  },
+  "guardrails": {
+    "onlySectionRecords": true,
+    "selectedSectionsPromotedOnlyAtSectionGrain": true,
+    "rawChunksPromotedAsPathNodes": false,
+    "rawContentIncluded": false,
+    "promotedMetadataComplete": true,
+    "supportingRowsNotPromoted": true
+  }
+}
