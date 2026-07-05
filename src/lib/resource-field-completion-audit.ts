@@ -122,6 +122,7 @@ export interface ResourceEvidenceContractCompleteness {
   dedupeKey: boolean;
   timestamps: boolean;
   learningFactPolicy: boolean;
+  learningFactMaterializationPolicy: 'materialized-learning-fact' | 'path-execution-evidence-only' | 'not-applicable' | 'missing';
   confidencePolicy: boolean;
   privacyScope: boolean;
   complete: boolean;
@@ -272,6 +273,50 @@ export interface ResourceHumanReviewIntegritySummary {
   issues: ResourceHumanReviewIntegrityIssue[];
 }
 
+export interface ResourceEvidenceLineageReadinessItem {
+  artifactVersion: 'resource-evidence-lineage-readiness.v1';
+  resourceId: string;
+  sourceFamily: ResourceFieldCompletionFamily;
+  sourcePathOrUrl: string | null;
+  sourceRecord: string | null;
+  pathRole: 'current-path' | 'after-completion' | 'mastery-affecting' | 'path-targeted' | 'path-relevant';
+  evidenceEffectState: 'ready' | 'blocked' | 'reviewed-limitation';
+  missingFieldCodes: ResourceFieldMissingCode[];
+  missingContractFields: string[];
+  followupBucket: string;
+  blocksYangFanFixture: boolean;
+  reviewerVisibleRationale: string;
+  privacyMinimized: true;
+  rawContentIncluded: false;
+}
+
+export interface ResourceEvidenceLineageReadinessSummary {
+  artifactVersion: 'resource-evidence-lineage-readiness.v1';
+  layerTotals: {
+    auditRows: number;
+    pathRelevantRows: number;
+    evidenceProducingRows: number;
+    evidenceLineageBlockers: number;
+    reviewedLimitations: number;
+    readyRows: number;
+  };
+  findingCounts: Record<string, number>;
+  contractFieldGaps: Record<string, number>;
+  followupBuckets: Record<string, number>;
+  evidenceLineageBlockerCount: number;
+  yangFanFixtureBlockers: {
+    blocked: boolean;
+    blockerCount: number;
+    blockerFamilies: Record<string, number>;
+    reason: string;
+  };
+  evidence: {
+    sourceAuditPath: string;
+    itemJsonlPath: string;
+    helperLayer: 'resource-field-completion-audit';
+  };
+}
+
 export interface ResourceFieldCompletionAuditSummary {
   artifactVersion: typeof RESOURCE_FIELD_COMPLETION_AUDIT_VERSION;
   generatedAt: string;
@@ -300,6 +345,10 @@ export interface ResourceFieldCompletionAuditResult {
   summary: ResourceFieldCompletionAuditSummary;
   workqueues: ResourceCompletionWorkqueueSummary;
   integrityDiagnostics: ResourceHumanReviewIntegritySummary;
+  evidenceLineage: {
+    items: ResourceEvidenceLineageReadinessItem[];
+    summary: ResourceEvidenceLineageReadinessSummary;
+  };
 }
 
 export interface ResourceFieldCompletionAuditInput {
@@ -343,6 +392,8 @@ export function buildResourceFieldCompletionAudit(
     ...(input.candidates ?? []).map((candidate) => rowFromCandidate(candidate, sourceWindow, versionRefs)),
   ].sort((left, right) => left.resourceId.localeCompare(right.resourceId));
 
+  const evidenceLineageItems = buildEvidenceLineageReadinessItems(rows);
+
   return {
     rows,
     summary: buildResourceFieldCompletionSummary(rows, {
@@ -353,6 +404,10 @@ export function buildResourceFieldCompletionAudit(
     }),
     workqueues: buildResourceCompletionWorkqueues(rows),
     integrityDiagnostics: buildHumanReviewIntegritySummary(rows),
+    evidenceLineage: {
+      items: evidenceLineageItems,
+      summary: buildEvidenceLineageReadinessSummary(rows, evidenceLineageItems),
+    },
   };
 }
 
@@ -403,6 +458,7 @@ function rowFromResourceNode(
   const projection = buildResourceSemanticProjection(node);
   const highConfidenceAudit = buildResourceNodeHighConfidencePlanningAudit(node);
   const sourceHash = projection.resource.contentHash ?? null;
+  const learningFactMaterializationPolicy = learningFactMaterializationPolicyForResourceNode(node);
   const evidenceContract = buildEvidenceContract({
     eventSource: Boolean(node.sourceKind),
     eventType: node.planningMetadata.evidenceInstrumentation.length > 0,
@@ -411,8 +467,10 @@ function rowFromResourceNode(
     sourceLogId: node.planningMetadata.evidenceInstrumentation.length > 0,
     dedupeKey: Boolean(node.sourceRef),
     timestamps: node.planningMetadata.evidenceInstrumentation.length > 0,
-    learningFactPolicy: node.planningMetadata.evidenceInstrumentation.length > 0,
-    confidencePolicy: Object.keys(node.planningMetadata.abilityImpact).length > 0,
+    learningFactPolicy: learningFactMaterializationPolicy === 'materialized-learning-fact',
+    learningFactMaterializationPolicy,
+    confidencePolicy: node.planningMetadata.evidenceInstrumentation.length > 0 ||
+      Object.keys(node.planningMetadata.abilityImpact).length > 0,
     privacyScope: Boolean(node.planningMetadata.privacyLevel),
   });
   const missingFieldCodes = uniqueCodes([
@@ -478,6 +536,7 @@ function rowFromCandidate(
   versionRefs: KaqArtifactVersionRefs,
 ): ResourceFieldCompletionAuditRow {
   const evidenceInstrumentation = candidate.evidenceInstrumentation ?? [];
+  const learningFactMaterializationPolicy = learningFactMaterializationPolicyForCandidate(candidate, evidenceInstrumentation);
   const humanReviewConfirmed = candidateHasFreshHumanReviewEvidence(candidate);
   const reviewedConceptStep = candidate.family === 'runtime-lesson-step' &&
     candidate.humanConfirmed === true &&
@@ -490,8 +549,9 @@ function rowFromCandidate(
     sourceLogId: evidenceInstrumentation.length > 0,
     dedupeKey: Boolean(candidate.id && candidate.sourcePathOrUrl),
     timestamps: evidenceInstrumentation.length > 0,
-    learningFactPolicy: evidenceInstrumentation.length > 0,
-    confidencePolicy: Boolean(candidate.capabilityTargetIds?.length) || reviewedConceptStep,
+    learningFactPolicy: learningFactMaterializationPolicy === 'materialized-learning-fact',
+    learningFactMaterializationPolicy,
+    confidencePolicy: evidenceInstrumentation.length > 0 || Boolean(candidate.capabilityTargetIds?.length) || reviewedConceptStep,
     privacyScope: Boolean(candidate.privacyScope),
   });
   const missingFieldCodes = uniqueCodes([
@@ -750,6 +810,123 @@ function buildResourceCompletionWorkqueues(rows: ResourceFieldCompletionAuditRow
   };
 }
 
+function buildEvidenceLineageReadinessItems(rows: ResourceFieldCompletionAuditRow[]): ResourceEvidenceLineageReadinessItem[] {
+  return rows
+    .filter(isPathRelevantEvidenceLineageRow)
+    .map((row): ResourceEvidenceLineageReadinessItem | null => {
+      const missingContractFields = row.evidenceContract.missingFields;
+      const evidenceMissingCodes = row.missingFieldCodes.filter(isEvidenceLineageMissingCode);
+      if (missingContractFields.length === 0 && evidenceMissingCodes.length === 0) return null;
+      const missingFieldCodes = uniqueCodes([
+        ...evidenceMissingCodes,
+        ...(missingContractFields.length ? ['missing-evidence-contract' as const] : []),
+      ]);
+      return {
+        artifactVersion: 'resource-evidence-lineage-readiness.v1',
+        resourceId: row.resourceId,
+        sourceFamily: row.family,
+        sourcePathOrUrl: row.sourcePathOrUrl,
+        sourceRecord: row.sourceRecord,
+        pathRole: pathRoleForEvidenceLineageRow(row),
+        evidenceEffectState: 'blocked',
+        missingFieldCodes,
+        missingContractFields: uniqueSorted(missingContractFields),
+        followupBucket: 'complete-evidence-lineage-bindings',
+        blocksYangFanFixture: true,
+        reviewerVisibleRationale: evidenceLineageRationale(row, missingFieldCodes, missingContractFields, 'blocked'),
+        privacyMinimized: true,
+        rawContentIncluded: false,
+      };
+    })
+    .filter((item): item is ResourceEvidenceLineageReadinessItem => Boolean(item))
+    .sort((left, right) => left.resourceId.localeCompare(right.resourceId));
+}
+
+function buildEvidenceLineageReadinessSummary(
+  rows: ResourceFieldCompletionAuditRow[],
+  items: ResourceEvidenceLineageReadinessItem[],
+): ResourceEvidenceLineageReadinessSummary {
+  const pathRelevantRows = rows.filter(isPathRelevantEvidenceLineageRow);
+  const evidenceProducingRows = pathRelevantRows.filter(isEvidenceProducingRow);
+  const yangFanFixtureBlockers = items.filter((item) => item.blocksYangFanFixture);
+  return {
+    artifactVersion: 'resource-evidence-lineage-readiness.v1',
+    layerTotals: {
+      auditRows: rows.length,
+      pathRelevantRows: pathRelevantRows.length,
+      evidenceProducingRows: evidenceProducingRows.length,
+      evidenceLineageBlockers: items.length,
+      reviewedLimitations: items.filter((item) => item.evidenceEffectState === 'reviewed-limitation').length,
+      readyRows: pathRelevantRows.length - items.length,
+    },
+    findingCounts: countBy(items.flatMap((item) => item.missingFieldCodes), (code) => code),
+    contractFieldGaps: countBy(items.flatMap((item) => item.missingContractFields), (field) => field),
+    followupBuckets: countBy(items, (item) => item.followupBucket),
+    evidenceLineageBlockerCount: items.length,
+    yangFanFixtureBlockers: {
+      blocked: yangFanFixtureBlockers.length > 0,
+      blockerCount: yangFanFixtureBlockers.length,
+      blockerFamilies: countBy(yangFanFixtureBlockers, (item) => item.sourceFamily),
+      reason: yangFanFixtureBlockers.length > 0
+        ? 'Canonical learner fixture generation remains blocked until path-relevant evidence lineage blockers are resolved or recorded as reviewed limitations.'
+        : 'Canonical learner fixture generation has no resource evidence-lineage blockers from the helper layer.',
+    },
+    evidence: {
+      sourceAuditPath: 'course-content/runtime/resource-governance/resource-field-completion-audit.jsonl',
+      itemJsonlPath: 'course-content/runtime/resource-governance/resource-evidence-lineage-readiness-items.jsonl',
+      helperLayer: 'resource-field-completion-audit',
+    },
+  };
+}
+
+function isPathRelevantEvidenceLineageRow(row: ResourceFieldCompletionAuditRow): boolean {
+  return row.pathEligibility.current ||
+    row.pathEligibility.afterCompletion ||
+    row.pathEligibility.masteryAffecting ||
+    Boolean(row.pathTarget) ||
+    isEvidenceProducingRow(row);
+}
+
+function isEvidenceProducingRow(row: ResourceFieldCompletionAuditRow): boolean {
+  return row.family === 'registered-resource' ||
+    row.family === 'resource-node' ||
+    row.family === 'runtime-lesson-step' ||
+    row.family === 'runtime-lesson-module' ||
+    row.family === 'quiz' ||
+    row.family === 'simulation' ||
+    row.family === 'arena' ||
+    row.family === 'checkpoint' ||
+    row.family === 'external-resource' ||
+    row.evidenceContract.learningFactPolicy ||
+    row.evidenceContract.sourceLogId;
+}
+
+function isEvidenceLineageMissingCode(code: ResourceFieldMissingCode): boolean {
+  return code === 'missing-evidence-contract' || code === 'missing-evidence-instrumentation';
+}
+
+function pathRoleForEvidenceLineageRow(row: ResourceFieldCompletionAuditRow): ResourceEvidenceLineageReadinessItem['pathRole'] {
+  if (row.pathEligibility.current) return 'current-path';
+  if (row.pathEligibility.masteryAffecting) return 'mastery-affecting';
+  if (row.pathEligibility.afterCompletion) return 'after-completion';
+  if (row.pathTarget) return 'path-targeted';
+  return 'path-relevant';
+}
+
+function evidenceLineageRationale(
+  row: ResourceFieldCompletionAuditRow,
+  missingFieldCodes: ResourceFieldMissingCode[],
+  missingContractFields: string[],
+  evidenceEffectState: ResourceEvidenceLineageReadinessItem['evidenceEffectState'],
+): string {
+  const missingFields = missingContractFields.length ? `contract fields ${missingContractFields.join(', ')}` : 'no contract field gaps';
+  const missingCodes = missingFieldCodes.length ? `missing codes ${missingFieldCodes.join(', ')}` : 'no missing evidence codes';
+  const stateText = evidenceEffectState === 'reviewed-limitation'
+    ? 'kept as a reviewed limitation until human review and lineage evidence are complete'
+    : 'blocks evidence effects and fixture generation until lineage is complete';
+  return `${row.resourceId} ${stateText}; ${missingCodes}; ${missingFields}.`;
+}
+
 function workqueueItemsForRow(row: ResourceFieldCompletionAuditRow): ResourceCompletionWorkqueueItem[] {
   const primaryMissingFieldCode = primaryMissingFieldCodeFor(row.missingFieldCodes);
   return row.missingFieldCodes.map((missingFieldCode) => workqueueItemForRow(
@@ -993,13 +1170,38 @@ function sumSummaryField(
 
 function buildEvidenceContract(fields: Omit<ResourceEvidenceContractCompleteness, 'complete' | 'missingFields'>): ResourceEvidenceContractCompleteness {
   const missingFields = Object.entries(fields)
-    .filter(([, value]) => !value)
+    .filter(([key, value]) => {
+      if (key === 'learningFactPolicy') {
+        return fields.learningFactMaterializationPolicy === 'missing';
+      }
+      if (key === 'learningFactMaterializationPolicy') {
+        return value === 'missing';
+      }
+      return !value;
+    })
     .map(([key]) => key);
   return {
     ...fields,
     complete: missingFields.length === 0,
     missingFields,
   };
+}
+
+function learningFactMaterializationPolicyForResourceNode(
+  node: ResourceNode,
+): ResourceEvidenceContractCompleteness['learningFactMaterializationPolicy'] {
+  if (node.type === 'knowledge_card') return 'path-execution-evidence-only';
+  if (node.planningMetadata.evidenceInstrumentation.length > 0) return 'materialized-learning-fact';
+  return 'missing';
+}
+
+function learningFactMaterializationPolicyForCandidate(
+  candidate: ResourceFieldCompletionCandidate,
+  evidenceInstrumentation: string[],
+): ResourceEvidenceContractCompleteness['learningFactMaterializationPolicy'] {
+  if (candidate.family === 'knowledge-card') return 'path-execution-evidence-only';
+  if (evidenceInstrumentation.length > 0) return 'materialized-learning-fact';
+  return 'missing';
 }
 
 function mapAuditIssueCode(code: string): ResourceFieldMissingCode {

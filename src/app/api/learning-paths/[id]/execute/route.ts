@@ -671,6 +671,26 @@ function resolveGovernedInstrumentedPathNodeOutcomeEvidence<T extends {
   status: string;
   evidenceRefs?: unknown[];
 }>(pathNode: Record<string, unknown> | null, input: T): T {
+  if (input.status === 'completed' && input.resourceType === 'knowledge_card') {
+    const ref = `knowledge_card_open:${input.nodeId}`;
+    return {
+      ...input,
+      evidenceRefs: [
+        {
+          kind: 'ResourceEvent',
+          eventType: 'knowledge_card_open',
+          provenance: 'platform-instrumented',
+          status: 'completed',
+          ref,
+          sourceEventId: ref,
+          nodeId: input.nodeId,
+          resourceType: input.resourceType,
+          privacyLevel: 'student-visible',
+        },
+      ],
+    };
+  }
+
   if (
     input.status !== 'completed' ||
     input.resourceType !== 'lesson_step' ||

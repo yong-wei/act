@@ -1616,6 +1616,74 @@ describe('resource node registry', () => {
     expect(missingCapabilitySemanticProjection.resource.governance.auditIssueCodes).toContain('missing-capability-mapping');
   });
 
+  it('keeps path-execution-only knowledge-card projection evidence contracts complete', () => {
+    const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: [
+        runtimeProjectionSidecar({
+          id: 'knowledge-card:feedback-loop',
+          resourceNodeId: 'knowledge-card:feedback-loop',
+          title: 'Feedback loop card',
+          resourceType: 'knowledge_card',
+          sourceKind: 'knowledge_graph',
+          sourceRef: 'feedback-loop',
+          sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/feedback-loop.md',
+          sourceRecord: 'feedback-loop',
+          sourceHash: 'sha256:feedback-loop',
+          sourceVersionRef: 'runtime-knowledge-card.v1',
+          projectionLevel: 'ResourceNode',
+          routeTarget: '/knowledge?node=feedback-loop',
+          graphNodeRefs: {
+            knowledge: ['feedback-loop'],
+            capability: ['controlModeling'],
+            quality: [],
+          },
+          evidenceInstrumentation: ['knowledge_card_open'],
+          evidenceContract: {
+            eventSource: true,
+            eventType: true,
+            clientEventIdPolicy: true,
+            attemptKey: true,
+            sourceLogId: true,
+            dedupeKey: true,
+            timestamps: true,
+            learningFactPolicy: false,
+            learningFactMaterializationPolicy: 'path-execution-evidence-only',
+            confidencePolicy: true,
+            privacyScope: true,
+            complete: true,
+            missingFields: [],
+          },
+          reviewAudit: {
+            status: 'human-confirmed',
+            reviewerId: 'teacher-1',
+            reviewerRole: 'teacher',
+            reviewedAt: '2026-06-22T00:00:00.000Z',
+            reviewBatchId: 'runtime-projection-batch-1',
+            reviewedSourceHash: 'sha256:feedback-loop',
+            reviewedVersionRef: 'runtime-knowledge-card.v1',
+            generationToolOrModel: 'template',
+            promptOrManifestHash: null,
+            confidence: 0.9,
+            staleInvalidationRule: 'stale when source hash or version changes',
+          },
+        }),
+      ],
+    });
+
+    const node = registry.nodes.find((candidate) => candidate.id === 'knowledge-card:feedback-loop') as ResourceNode;
+    expect(node.runtimeProjection?.evidenceContract).toMatchObject({
+      complete: true,
+      learningFactPolicy: false,
+      learningFactMaterializationPolicy: 'path-execution-evidence-only',
+      missingFields: [],
+    });
+    expect(node.eligibility.auditIssues).not.toContainEqual(expect.objectContaining({
+      code: 'missing-runtime-projection-evidence-contract',
+    }));
+    expect(buildResourceSemanticProjection(node).resource.governance.auditIssueCodes)
+      .not.toContain('missing-runtime-projection-evidence-contract');
+  });
+
   it('blocks sidecar-backed PlanningUnits when the projection has no verified route target', () => {
     const registry = buildResourceNodeRegistry({
       runtimeResourceProjections: [

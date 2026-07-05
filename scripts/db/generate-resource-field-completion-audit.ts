@@ -10,6 +10,8 @@ import {
 import type { RuntimeLessonMediaKind } from '@/lib/course-runtime';
 import {
   buildResourceFieldCompletionAudit,
+  type ResourceEvidenceLineageReadinessItem,
+  type ResourceEvidenceLineageReadinessSummary,
   type ResourceFieldCompletionAuditRow,
   type ResourceFieldCompletionCandidate,
   type ResourceFieldMissingCode,
@@ -28,6 +30,9 @@ const SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-summa
 const WORKQUEUE_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-completion-workqueue-items.jsonl');
 const WORKQUEUE_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-completion-workqueue-summary.json');
 const WORKQUEUE_MARKDOWN_PATH = path.join(OUTPUT_DIR, 'resource-completion-workqueues.md');
+const EVIDENCE_LINEAGE_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-evidence-lineage-readiness-items.jsonl');
+const EVIDENCE_LINEAGE_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-evidence-lineage-readiness-summary.json');
+const EVIDENCE_LINEAGE_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-evidence-lineage-readiness-evidence.md');
 const DISPOSITION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-items.jsonl');
 const DISPOSITION_REVIEW_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-summary.json');
 const DISPOSITION_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-evidence.md');
@@ -732,6 +737,10 @@ async function main() {
   });
   const dispositionReviewItems = await buildResidualDispositionReviewItems(result.rows);
   const dispositionReviewSummary = buildResidualDispositionReviewSummary(dispositionReviewItems, result.workqueues);
+  const reviewedEvidenceLineage = buildReviewedEvidenceLineageReadiness(
+    result.evidenceLineage,
+    dispositionReviewItems,
+  );
 
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
   await fs.writeFile(
@@ -753,6 +762,21 @@ async function main() {
   await fs.writeFile(
     WORKQUEUE_MARKDOWN_PATH,
     renderWorkqueueMarkdown(result.workqueues, generatedAt),
+    'utf8',
+  );
+  await fs.writeFile(
+    EVIDENCE_LINEAGE_ITEMS_JSONL_PATH,
+    `${reviewedEvidenceLineage.items.map((row) => JSON.stringify(row)).join('\n')}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    EVIDENCE_LINEAGE_SUMMARY_JSON_PATH,
+    `${JSON.stringify(reviewedEvidenceLineage.summary, null, 2)}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    EVIDENCE_LINEAGE_EVIDENCE_MD_PATH,
+    renderEvidenceLineageReadinessEvidence(reviewedEvidenceLineage.summary),
     'utf8',
   );
   await fs.writeFile(
@@ -807,6 +831,9 @@ async function main() {
   console.log(`Resource completion workqueue items: ${result.workqueues.primaryQueueItems + result.workqueues.dependentQueueItems}`);
   console.log(`Workqueue summary: ${path.relative(process.cwd(), WORKQUEUE_SUMMARY_JSON_PATH)}`);
   console.log(`Workqueue JSONL: ${path.relative(process.cwd(), WORKQUEUE_ITEMS_JSONL_PATH)}`);
+  console.log(`Evidence-lineage blockers: ${reviewedEvidenceLineage.summary.evidenceLineageBlockerCount}`);
+  console.log(`Evidence-lineage summary: ${path.relative(process.cwd(), EVIDENCE_LINEAGE_SUMMARY_JSON_PATH)}`);
+  console.log(`Evidence-lineage JSONL: ${path.relative(process.cwd(), EVIDENCE_LINEAGE_ITEMS_JSONL_PATH)}`);
   console.log(`Residual disposition review rows: ${dispositionReviewItems.length}`);
   console.log(`Residual disposition summary: ${path.relative(process.cwd(), DISPOSITION_REVIEW_SUMMARY_JSON_PATH)}`);
   console.log(`Human review integrity issues: ${result.integrityDiagnostics.invalidHumanConfirmedRows}`);
@@ -1237,6 +1264,72 @@ function buildResidualDispositionReviewSummary(
   };
 }
 
+function buildReviewedEvidenceLineageReadiness(
+  evidenceLineage: ReturnType<typeof buildResourceFieldCompletionAudit>['evidenceLineage'],
+  dispositionItems: ResidualDispositionReviewItem[],
+): {
+  items: ResourceEvidenceLineageReadinessItem[];
+  summary: ResourceEvidenceLineageReadinessSummary;
+} {
+  const dispositionById = new Map(dispositionItems.map((item) => [item.resourceId, item]));
+  const items = evidenceLineage.items.map((item) => {
+    const disposition = dispositionById.get(item.resourceId);
+    if (!disposition || !isReviewedEvidenceLineageLimitation(disposition)) return item;
+    return {
+      ...item,
+      evidenceEffectState: 'reviewed-limitation' as const,
+      blocksYangFanFixture: true,
+      reviewerVisibleRationale: `${item.resourceId} has reviewed disposition ${disposition.classification}; evidence effects remain disabled for this resource class, so missing event lineage is recorded as a reviewed limitation rather than a path blocker, while fixture generation remains blocked until lineage is complete.`,
+    };
+  });
+  return {
+    items,
+    summary: summarizeReviewedEvidenceLineageReadiness(evidenceLineage.summary, items),
+  };
+}
+
+function isReviewedEvidenceLineageLimitation(item: ResidualDispositionReviewItem): boolean {
+  return (
+    item.classification === 'supporting-citation' ||
+    item.classification === 'embedded-asset' ||
+    item.classification === 'excluded-with-rationale'
+  ) &&
+    !item.reviewedLimitationState.includes('unresolved-residual-disposition-review') &&
+    item.reviewBatchId.length > 0 &&
+    item.reviewerId.length > 0 &&
+    item.reviewedAt.length > 0 &&
+    item.reviewerVisibleRationale.length > 0;
+}
+
+function summarizeReviewedEvidenceLineageReadiness(
+  baseSummary: ResourceEvidenceLineageReadinessSummary,
+  items: ResourceEvidenceLineageReadinessItem[],
+): ResourceEvidenceLineageReadinessSummary {
+  const blockerItems = items.filter((item) => item.evidenceEffectState === 'blocked');
+  const reviewedLimitationItems = items.filter((item) => item.evidenceEffectState === 'reviewed-limitation');
+  const yangFanFixtureBlockers = items.filter((item) => item.blocksYangFanFixture);
+  return {
+    ...baseSummary,
+    layerTotals: {
+      ...baseSummary.layerTotals,
+      evidenceLineageBlockers: blockerItems.length,
+      reviewedLimitations: reviewedLimitationItems.length,
+    },
+    findingCounts: countBy(items.flatMap((item) => item.missingFieldCodes), (code) => code),
+    contractFieldGaps: countBy(items.flatMap((item) => item.missingContractFields), (field) => field),
+    followupBuckets: countBy(items, (item) => item.followupBucket),
+    evidenceLineageBlockerCount: blockerItems.length,
+    yangFanFixtureBlockers: {
+      blocked: yangFanFixtureBlockers.length > 0,
+      blockerCount: yangFanFixtureBlockers.length,
+      blockerFamilies: countBy(yangFanFixtureBlockers, (item) => item.sourceFamily),
+      reason: yangFanFixtureBlockers.length > 0
+        ? 'Canonical learner fixture generation remains blocked until path-relevant evidence lineage gaps are resolved; reviewed limitations only remove hard evidence-effect blockers.'
+        : 'Canonical learner fixture generation has no remaining resource evidence-lineage blockers from the helper layer.',
+    },
+  };
+}
+
 function renderResidualDispositionReviewEvidence(summary: ReturnType<typeof buildResidualDispositionReviewSummary>) {
   const lines = [
     '# Residual Resource Disposition Review Evidence',
@@ -1271,6 +1364,52 @@ function renderResidualDispositionReviewEvidence(summary: ReturnType<typeof buil
       .map(([bucket, count]) => `- ${bucket}: ${count}`),
     '',
     'The residual disposition batch records reviewed classifications where an independent review source exists and preserves unresolved residual disposition rows where that source is still missing. Remaining non-disposition blockers are retained as downstream evidence-lineage, runtime-identity, path-readiness, or dependency work.',
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+function renderEvidenceLineageReadinessEvidence(summary: ResourceEvidenceLineageReadinessSummary) {
+  const lines = [
+    '# Resource Evidence-Lineage Readiness Evidence',
+    '',
+    `Artifact version: ${summary.artifactVersion}`,
+    `Source audit rows: ${summary.layerTotals.auditRows}`,
+    `Path-relevant rows: ${summary.layerTotals.pathRelevantRows}`,
+    `Evidence-producing rows: ${summary.layerTotals.evidenceProducingRows}`,
+    `Evidence-lineage blockers: ${summary.evidenceLineageBlockerCount}`,
+    `Reviewed limitations: ${summary.layerTotals.reviewedLimitations}`,
+    `Ready rows: ${summary.layerTotals.readyRows}`,
+    '',
+    '## Finding Counts',
+    '',
+    ...Object.entries(summary.findingCounts)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([code, count]) => `- ${code}: ${count}`),
+    '',
+    '## Contract Field Gaps',
+    '',
+    ...Object.entries(summary.contractFieldGaps)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([field, count]) => `- ${field}: ${count}`),
+    '',
+    '## Follow-up Buckets',
+    '',
+    ...Object.entries(summary.followupBuckets)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([bucket, count]) => `- ${bucket}: ${count}`),
+    '',
+    '## Yang Fan Fixture Precondition',
+    '',
+    `Blocked: ${summary.yangFanFixtureBlockers.blocked}`,
+    `Blocker count: ${summary.yangFanFixtureBlockers.blockerCount}`,
+    `Reason: ${summary.yangFanFixtureBlockers.reason}`,
+    '',
+    '## Evidence Files',
+    '',
+    `Source audit: ${summary.evidence.sourceAuditPath}`,
+    `Item JSONL: ${summary.evidence.itemJsonlPath}`,
+    '',
+    'This evidence layer is privacy-minimized and records only lineage readiness, follow-up grouping, and fixture precondition blockers. Raw learner payloads and raw resource bodies are not included.',
   ];
   return `${lines.join('\n')}\n`;
 }
@@ -1794,7 +1933,7 @@ async function collectKnowledgeCardCandidates() {
       segmentRefs: [nodeId],
       citationTargets: [sourcePath],
       pathTarget: `/knowledge?node=${encodeURIComponent(nodeId)}`,
-      evidenceInstrumentation: [],
+      evidenceInstrumentation: ['knowledge_card_open'],
       privacyScope: STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE,
       generatedBy: 'template',
       humanConfirmed: false,

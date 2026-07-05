@@ -341,6 +341,7 @@ export interface RuntimeResourceProjectionEvidenceContract {
   dedupeKey: boolean;
   timestamps: boolean;
   learningFactPolicy: boolean;
+  learningFactMaterializationPolicy?: 'materialized-learning-fact' | 'path-execution-evidence-only' | 'not-applicable' | 'missing';
   confidencePolicy: boolean;
   privacyScope: boolean;
   complete?: boolean;
@@ -2320,7 +2321,8 @@ function normalizeRuntimeProjectionEvidenceContract(
     ['sourceLogId', contract.sourceLogId],
     ['dedupeKey', contract.dedupeKey],
     ['timestamps', contract.timestamps],
-    ['learningFactPolicy', contract.learningFactPolicy],
+    ['learningFactPolicy', isRuntimeProjectionLearningFactPolicySatisfied(contract)],
+    ['learningFactMaterializationPolicy', isRuntimeProjectionLearningFactMaterializationPolicySatisfied(contract)],
     ['confidencePolicy', contract.confidencePolicy],
     ['privacyScope', contract.privacyScope],
   ]
@@ -2727,9 +2729,27 @@ function isRuntimeProjectionEvidenceContractComplete(
     contract.sourceLogId &&
     contract.dedupeKey &&
     contract.timestamps &&
-    contract.learningFactPolicy &&
+    isRuntimeProjectionLearningFactPolicySatisfied(contract) &&
+    isRuntimeProjectionLearningFactMaterializationPolicySatisfied(contract) &&
     contract.confidencePolicy &&
     contract.privacyScope;
+}
+
+function isRuntimeProjectionLearningFactPolicySatisfied(
+  contract: RuntimeResourceProjectionEvidenceContract,
+): boolean {
+  return contract.learningFactPolicy ||
+    contract.learningFactMaterializationPolicy === 'path-execution-evidence-only' ||
+    contract.learningFactMaterializationPolicy === 'not-applicable';
+}
+
+function isRuntimeProjectionLearningFactMaterializationPolicySatisfied(
+  contract: RuntimeResourceProjectionEvidenceContract,
+): boolean {
+  return contract.learningFactMaterializationPolicy === undefined ||
+    contract.learningFactMaterializationPolicy === 'materialized-learning-fact' ||
+    contract.learningFactMaterializationPolicy === 'path-execution-evidence-only' ||
+    contract.learningFactMaterializationPolicy === 'not-applicable';
 }
 
 function isRuntimeProjectionReviewHumanConfirmed(
