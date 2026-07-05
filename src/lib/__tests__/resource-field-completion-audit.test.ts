@@ -99,11 +99,98 @@ describe('resource field completion audit', () => {
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-completion-workqueues.md'),
       'utf8',
     );
+    const dispositionReviewSummary = JSON.parse(readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-disposition-backlog-review-summary.json'),
+      'utf8',
+    ));
+    const dispositionReviewItems = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-disposition-backlog-review-items.jsonl'),
+      'utf8',
+    )
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    const dispositionReviewEvidence = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-disposition-backlog-review-evidence.md'),
+      'utf8',
+    );
     const humanReviewIntegrity = JSON.parse(readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-human-review-integrity-diagnostics.json'),
       'utf8',
     ));
     const rowsMissingFields = jsonlRows.filter((row) => row.missingFieldCodes.length > 0);
+    const unresolvedDispositionRows = dispositionReviewItems.filter((item) =>
+      item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    );
+    const dispositionReviewItemsById = new Map(dispositionReviewItems.map((item) => [item.resourceId, item]));
+    const independentlyReviewedDispositionRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId !== 'residual-resource-disposition-review-2026-07-05' ||
+      item.reviewerId !== 'residual-resource-disposition-implementing-agent'
+    );
+    const unresolvedSemanticReviewRows = jsonlRows.filter((row) => {
+      const dispositionItem = dispositionReviewItemsById.get(row.resourceId);
+      const hasIndependentDispositionReview = dispositionItem &&
+        (dispositionItem.reviewBatchId !== 'residual-resource-disposition-review-2026-07-05' ||
+          dispositionItem.reviewerId !== 'residual-resource-disposition-implementing-agent');
+      return !hasIndependentDispositionReview && (
+        row.reviewStatus !== 'human-confirmed' ||
+        row.missingFieldCodes.includes('missing-human-review') ||
+        row.missingFieldCodes.includes('provisional-metadata') ||
+        row.pathEligibility.blockedBy.includes('missing-human-review') ||
+        row.pathEligibility.blockedBy.includes('provisional-metadata')
+      );
+    });
+    const stableSourceRefs = new Set(dispositionReviewItems.map((item) => item.stableSourceRef));
+    const reviewedTextbookOverviewRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-textbook-overview-disposition-review-2026-07-05'
+    );
+    const reviewedAuthoringTextbookRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-authoring-textbook-disposition-review-2026-07-05'
+    );
+    const reviewedRuntimeHandoutRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-runtime-handout-disposition-review-2026-07-05'
+    );
+    const reviewedKnowledgeInfographRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-knowledge-infograph-disposition-review-2026-07-05'
+    );
+    const reviewedKnowledgeCardRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-knowledge-card-disposition-review-2026-07-05'
+    );
+    const reviewedAuthoringTextbookFigureDispositionRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-authoring-textbook-figure-disposition-review-2026-07-05'
+    );
+    const reviewedAuthoringTextbookCaptionDispositionRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-authoring-textbook-caption-disposition-review-2026-07-05'
+    );
+    const reviewedRuntimeLessonStepRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-runtime-lesson-step-disposition-review-2026-07-05'
+    );
+    const reviewedRuntimeLessonModuleRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-runtime-lesson-module-disposition-review-2026-07-05'
+    );
+    const reviewedRuntimeLessonMediaRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-runtime-lesson-media-disposition-review-2026-07-05'
+    );
+    const reviewedRegisteredResourceRows = dispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'residual-registered-resource-disposition-review-2026-07-05'
+    );
+    const figureIndexFromResourceId = (resourceId: string) => {
+      const match = resourceId.match(/:figure-([^:]+)$/);
+      return match ? Number(match[1]) : Number.NaN;
+    };
+    const captionHashForReviewItem = (item: typeof dispositionReviewItems[number]) => {
+      const manifest = JSON.parse(readFileSync(item.sourcePathOrUrl, 'utf8')) as {
+        markdownSha256?: string;
+        images?: Array<{ index?: number; caption?: string }>;
+      };
+      const image = manifest.images?.find((candidate) =>
+        Number(candidate.index) === figureIndexFromResourceId(item.resourceId)
+      );
+      if (!image) return null;
+      return image.caption
+        ? `sha256:${createHash('sha256').update(image.caption).digest('hex')}`
+        : manifest.markdownSha256 ?? null;
+    };
 
     expect(workqueueSummary.primaryQueueItems + workqueueSummary.dependentQueueItems).toBe(workqueueItems.length);
     expect(workqueueSummary.queuedResources).toBe(rowsMissingFields.length);
@@ -118,6 +205,212 @@ describe('resource field completion audit', () => {
     expect(workqueueItems.some((item) => item.title.includes('Image description:'))).toBe(false);
     expect(workqueueItems.every((item) => item.currentBlockers.length > 0)).toBe(true);
     expect(workqueueItems.every((item) => item.suggestedReviewerAction.length > 0)).toBe(true);
+    expect(dispositionReviewItems).toHaveLength(rowsMissingFields.length);
+    expect(dispositionReviewSummary.totals.reviewedResources).toBe(rowsMissingFields.length);
+    expect(dispositionReviewSummary.totals.unresolvedDispositionBlockers).toBe(unresolvedDispositionRows.length);
+    expect(dispositionReviewSummary.totals.unresolvedDispositionBlockers).toBe(0);
+    expect(dispositionReviewSummary.totals.privacyMinimized).toBe(true);
+    expect(dispositionReviewSummary.totals.rawContentIncluded).toBe(false);
+    expect(dispositionReviewSummary.byClassification['path-plannable']).toBeGreaterThan(0);
+    expect(dispositionReviewSummary.byClassification['supporting-citation']).toBeGreaterThan(0);
+    expect(dispositionReviewSummary.byClassification['embedded-asset']).toBeGreaterThan(0);
+    expect(dispositionReviewSummary.downstreamBlockers['evidence-lineage']).toBeGreaterThan(0);
+    expect(dispositionReviewSummary.downstreamBlockers['runtime-identity']).toBeGreaterThan(0);
+    expect(dispositionReviewSummary.evidence.beforeResidualDispositionReview.queuedResources).toBe(rowsMissingFields.length);
+    expect(dispositionReviewSummary.evidence.afterResidualDispositionReview).toMatchObject({
+      reviewedResources: rowsMissingFields.length,
+      unresolvedDispositionBlockers: unresolvedDispositionRows.length,
+    });
+    expect(stableSourceRefs.size).toBe(dispositionReviewItems.length);
+    expect(dispositionReviewItems.every((item) =>
+      item.reviewBatchId &&
+      item.reviewerId &&
+      item.reviewedAt &&
+      item.stableSourceRef &&
+      item.reviewerVisibleRationale.length > 0 &&
+      item.privacyMinimized === true &&
+      item.rawContentIncluded === false
+    )).toBe(true);
+    const governanceDir = join(process.cwd(), 'course-content/runtime/resource-governance');
+    const dispositionReviewArtifactText = readdirSync(governanceDir)
+      .filter((file) => (
+        /disposition-review.*\.(jsonl|json|md)$/.test(file) ||
+        /^resource-disposition-backlog-review-.*\.(jsonl|json|md)$/.test(file)
+      ))
+      .map((file) => readFileSync(join(governanceDir, file), 'utf8'))
+      .join('\n');
+    expect(dispositionReviewArtifactText).not.toMatch(/[?&](signature|nonce|puid|enc|wps|token|secret|key)=/i);
+    for (const urlMatch of dispositionReviewArtifactText.matchAll(/https?:\/\/[^\s"`]+/g)) {
+      const url = new URL(urlMatch[0]);
+      expect(url.search).toBe('');
+      expect(url.hash).toBe('');
+    }
+    expect(unresolvedDispositionRows.every((item) =>
+      item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(unresolvedDispositionRows).toHaveLength(unresolvedSemanticReviewRows.length);
+    expect(unresolvedSemanticReviewRows.every((row) =>
+      dispositionReviewItemsById.get(row.resourceId)?.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(dispositionReviewItems
+      .filter((item) => !item.reviewedLimitationState.includes('unresolved-residual-disposition-review'))
+      .every((item) => item.reviewedLimitationState.includes('residual-disposition-reviewed'))).toBe(true);
+    expect(independentlyReviewedDispositionRows.length).toBeGreaterThan(0);
+    expect(reviewedTextbookOverviewRows).toHaveLength(11);
+    expect(reviewedTextbookOverviewRows.every((item) =>
+      item.classification === 'evidence-producing' &&
+      item.sourceHash?.startsWith('sha256:') &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(reviewedAuthoringTextbookRows).toHaveLength(35);
+    expect(reviewedAuthoringTextbookRows.every((item) =>
+      item.classification === 'supporting-citation' &&
+      item.sourceHash?.startsWith('sha256:') &&
+      item.sourceVersionRef === 'authoring-textbook-manifest.v1' &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(reviewedRuntimeHandoutRows).toHaveLength(36);
+    expect(reviewedRuntimeHandoutRows.every((item) =>
+      item.classification === 'supporting-citation' &&
+      item.sourceHash?.startsWith('sha256:') &&
+      item.currentPathEligible === false &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(independentlyReviewedDispositionRows
+      .filter((item) => item.classification !== 'path-plannable')
+      .every((item) => item.currentPathEligible === false)).toBe(true);
+    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'runtime-handout')).toBe(false);
+    expect(reviewedKnowledgeInfographRows).toHaveLength(161);
+    expect(reviewedKnowledgeInfographRows.every((item) =>
+      item.classification === 'embedded-asset' &&
+      item.sourceHash?.startsWith('sha256:') &&
+      item.currentPathEligible === false &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(reviewedKnowledgeInfographRows.every((item) => {
+      const actualHash = `sha256:${createHash('sha256')
+        .update(readFileSync(item.sourcePathOrUrl))
+        .digest('hex')}`;
+      return item.sourceHash === actualHash;
+    })).toBe(true);
+    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'knowledge-infograph')).toBe(false);
+    expect(reviewedKnowledgeCardRows).toHaveLength(279);
+    expect(reviewedKnowledgeCardRows.every((item) =>
+      item.classification === 'evidence-producing' &&
+      item.sourceHash?.startsWith('sha256:') &&
+      item.currentPathEligible === false &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(reviewedKnowledgeCardRows.every((item) => {
+      const actualHash = `sha256:${createHash('sha256')
+        .update(readFileSync(item.sourcePathOrUrl))
+        .digest('hex')}`;
+      return item.sourceHash === actualHash;
+    })).toBe(true);
+    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'knowledge-card')).toBe(false);
+    expect(reviewedAuthoringTextbookFigureDispositionRows).toHaveLength(535);
+    expect(reviewedAuthoringTextbookFigureDispositionRows.every((item) =>
+      item.classification === 'embedded-asset' &&
+      /^[0-9a-f]{64}$/.test(item.sourceHash ?? '') &&
+      item.currentPathEligible === false &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(reviewedAuthoringTextbookFigureDispositionRows.every((item) => {
+      const actualHash = createHash('sha256')
+        .update(readFileSync(item.sourcePathOrUrl))
+        .digest('hex');
+      return item.sourceHash === actualHash;
+    })).toBe(true);
+    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'authoring-textbook-figure')).toBe(false);
+    expect(reviewedAuthoringTextbookCaptionDispositionRows).toHaveLength(535);
+    expect(reviewedAuthoringTextbookCaptionDispositionRows.every((item) =>
+      item.classification === 'supporting-citation' &&
+      /^sha256:[0-9a-f]{64}$|^[0-9a-f]{64}$/.test(item.sourceHash ?? '') &&
+      item.currentPathEligible === false &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(reviewedAuthoringTextbookCaptionDispositionRows.every((item) =>
+      item.sourceHash === captionHashForReviewItem(item)
+    )).toBe(true);
+    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'authoring-textbook-caption')).toBe(false);
+    expect(reviewedRuntimeLessonStepRows).toHaveLength(394);
+    expect(reviewedRuntimeLessonStepRows.every((item) =>
+      item.classification === 'excluded-with-rationale' &&
+      item.sourceHash?.startsWith('sha256:') &&
+      item.currentPathEligible === false &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(reviewedRuntimeLessonStepRows.every((item) => {
+      const actualHash = `sha256:${createHash('sha256')
+        .update(readFileSync(item.sourcePathOrUrl))
+        .digest('hex')}`;
+      return item.sourceHash === actualHash;
+    })).toBe(true);
+    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'runtime-lesson-step')).toBe(false);
+    expect(reviewedRuntimeLessonModuleRows).toHaveLength(1352);
+    expect(reviewedRuntimeLessonModuleRows.every((item) =>
+      item.classification === 'excluded-with-rationale' &&
+      item.sourceHash?.startsWith('sha256:') &&
+      item.currentPathEligible === false &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(reviewedRuntimeLessonModuleRows.every((item) => {
+      const actualHash = `sha256:${createHash('sha256')
+        .update(readFileSync(item.sourcePathOrUrl))
+        .digest('hex')}`;
+      return item.sourceHash === actualHash;
+    })).toBe(true);
+    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'runtime-lesson-module')).toBe(false);
+    expect(reviewedRuntimeLessonMediaRows).toHaveLength(740);
+    expect(reviewedRuntimeLessonMediaRows.every((item) =>
+      ['embedded-asset', 'path-plannable'].includes(item.classification) &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(reviewedRuntimeLessonMediaRows
+      .filter((item) => item.sourceHash?.startsWith('sha256:'))
+      .every((item) => {
+        const actualHash = `sha256:${createHash('sha256')
+          .update(readFileSync(item.sourcePathOrUrl))
+          .digest('hex')}`;
+        return item.sourceHash === actualHash;
+      })).toBe(true);
+    expect(reviewedRuntimeLessonMediaRows
+      .filter((item) => item.sourceHash === null)
+      .every((item) =>
+        item.originalMissingFieldCodes.includes('missing-content-hash') &&
+        item.reviewedLimitationState.includes('downstream-runtime-identity-blocker')
+      )).toBe(true);
+    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'runtime-lesson-media')).toBe(false);
+    expect(reviewedRegisteredResourceRows).toHaveLength(168);
+    expect(reviewedRegisteredResourceRows.every((item) =>
+      ['evidence-producing', 'path-plannable'].includes(item.classification) &&
+      item.sourceHash === null &&
+      item.originalMissingFieldCodes.includes('missing-content-hash') &&
+      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
+      item.reviewedLimitationState.includes('downstream-runtime-identity-blocker') &&
+      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    )).toBe(true);
+    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'registered-resource')).toBe(false);
+    expect(new Set(dispositionReviewItems.map((item) => item.classification))).toEqual(new Set([
+      'embedded-asset',
+      'evidence-producing',
+      'excluded-with-rationale',
+      'path-plannable',
+      'supporting-citation',
+    ]));
+    expect(dispositionReviewEvidence).toContain(`Unresolved disposition blockers: ${unresolvedDispositionRows.length}`);
+    expect(dispositionReviewEvidence).toContain(`Before queued resources: ${rowsMissingFields.length}`);
+    expect(dispositionReviewEvidence).toContain(`After reviewed resources: ${rowsMissingFields.length}`);
     expect(humanReviewIntegrity.humanConfirmedRows).toBe(
       jsonlRows.filter((row) => row.reviewStatus === 'human-confirmed').length,
     );

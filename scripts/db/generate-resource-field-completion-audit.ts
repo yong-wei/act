@@ -10,7 +10,9 @@ import {
 import type { RuntimeLessonMediaKind } from '@/lib/course-runtime';
 import {
   buildResourceFieldCompletionAudit,
+  type ResourceFieldCompletionAuditRow,
   type ResourceFieldCompletionCandidate,
+  type ResourceFieldMissingCode,
 } from '@/lib/resource-field-completion-audit';
 import {
   buildLearningGoalResourceBaselineArtifacts,
@@ -26,6 +28,9 @@ const SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-summa
 const WORKQUEUE_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-completion-workqueue-items.jsonl');
 const WORKQUEUE_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-completion-workqueue-summary.json');
 const WORKQUEUE_MARKDOWN_PATH = path.join(OUTPUT_DIR, 'resource-completion-workqueues.md');
+const DISPOSITION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-items.jsonl');
+const DISPOSITION_REVIEW_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-summary.json');
+const DISPOSITION_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-evidence.md');
 const HUMAN_REVIEW_INTEGRITY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-human-review-integrity-diagnostics.json');
 const PROJECTION_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
 const PROJECTION_LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projection-limitations.json');
@@ -46,6 +51,52 @@ const REVIEWED_GRAPH_RESOURCE_REVIEWER = {
   reviewerId: 'graph-resource-governance-review',
   reviewerRole: 'curriculum-data-governance',
 };
+const RESIDUAL_DISPOSITION_REVIEW_BATCH_ID = 'residual-resource-disposition-review-2026-07-05' as const;
+const RESIDUAL_DISPOSITION_REVIEWER_ID = 'residual-resource-disposition-implementing-agent' as const;
+const RESIDUAL_DISPOSITION_REVIEWED_AT = '2026-07-05T17:45:00.000Z' as const;
+
+type ResidualDispositionClassification =
+  | 'path-plannable'
+  | 'supporting-citation'
+  | 'embedded-asset'
+  | 'evidence-producing'
+  | 'excluded-with-rationale';
+
+interface ResidualDispositionReviewItem {
+  artifactVersion: 'resource-disposition-backlog-review.v1';
+  reviewBatchId: string;
+  reviewerId: string;
+  reviewedAt: string;
+  resourceId: string;
+  sourceFamily: string;
+  title: string;
+  sourcePathOrUrl: string | null;
+  sourceRecord: string | null;
+  stableSourceRef: string;
+  classification: ResidualDispositionClassification;
+  reviewerVisibleRationale: string;
+  sourceHash: string | null;
+  sourceVersionRef: string | null;
+  originalMissingFieldCodes: ResourceFieldMissingCode[];
+  reviewedLimitationState: string[];
+  downstreamBlockers: Array<{
+    bucket: 'evidence-lineage' | 'runtime-identity' | 'path-readiness' | 'dependency' | 'none';
+    codes: ResourceFieldMissingCode[];
+  }>;
+  currentPathEligible: boolean;
+  privacyMinimized: true;
+  rawContentIncluded: false;
+}
+
+interface ResidualDispositionReviewSource {
+  classification: ResidualDispositionClassification;
+  reviewerVisibleRationale: string;
+  reviewerId: string;
+  reviewedAt: string;
+  reviewBatchId: string;
+  sourceHash: string | null;
+  sourceVersionRef: string | null;
+}
 
 export interface ReviewedRuntimeStepCompletion {
   capabilityTargetIds: string[];
@@ -679,6 +730,8 @@ async function main() {
     generatedAt,
     sourceWindow: { from: null, to: generatedAt },
   });
+  const dispositionReviewItems = await buildResidualDispositionReviewItems(result.rows);
+  const dispositionReviewSummary = buildResidualDispositionReviewSummary(dispositionReviewItems, result.workqueues);
 
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
   await fs.writeFile(
@@ -700,6 +753,21 @@ async function main() {
   await fs.writeFile(
     WORKQUEUE_MARKDOWN_PATH,
     renderWorkqueueMarkdown(result.workqueues, generatedAt),
+    'utf8',
+  );
+  await fs.writeFile(
+    DISPOSITION_REVIEW_ITEMS_JSONL_PATH,
+    `${dispositionReviewItems.map((row) => JSON.stringify(row)).join('\n')}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    DISPOSITION_REVIEW_SUMMARY_JSON_PATH,
+    `${JSON.stringify(dispositionReviewSummary, null, 2)}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    DISPOSITION_REVIEW_EVIDENCE_MD_PATH,
+    renderResidualDispositionReviewEvidence(dispositionReviewSummary),
     'utf8',
   );
   await fs.writeFile(
@@ -739,6 +807,8 @@ async function main() {
   console.log(`Resource completion workqueue items: ${result.workqueues.primaryQueueItems + result.workqueues.dependentQueueItems}`);
   console.log(`Workqueue summary: ${path.relative(process.cwd(), WORKQUEUE_SUMMARY_JSON_PATH)}`);
   console.log(`Workqueue JSONL: ${path.relative(process.cwd(), WORKQUEUE_ITEMS_JSONL_PATH)}`);
+  console.log(`Residual disposition review rows: ${dispositionReviewItems.length}`);
+  console.log(`Residual disposition summary: ${path.relative(process.cwd(), DISPOSITION_REVIEW_SUMMARY_JSON_PATH)}`);
   console.log(`Human review integrity issues: ${result.integrityDiagnostics.invalidHumanConfirmedRows}`);
   console.log(`Runtime resource projections: ${projectionArtifacts.rows.length}`);
   console.log(`Projection summary: ${path.relative(process.cwd(), PROJECTION_LIMITATIONS_PATH)}`);
@@ -801,6 +871,489 @@ function renderWorkqueueMarkdown(
     'Item-level rows are stored in `resource-completion-workqueue-items.jsonl` without raw resource content.',
   ];
   return `${lines.join('\n')}\n`;
+}
+
+async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletionAuditRow[]): Promise<ResidualDispositionReviewItem[]> {
+  const reviewSources = await loadResidualDispositionReviewSources();
+  return rows.filter((row) => row.missingFieldCodes.length > 0).map((row) => {
+    const reviewSource = reviewSources.get(row.resourceId);
+    const classification = reviewSource?.classification ?? residualDispositionClassificationFor(row);
+    const downstreamBlockers = downstreamBlockersFor(row.missingFieldCodes);
+    const unresolvedDispositionBlocker = isDispositionReviewUnresolved(row, reviewSource);
+    return {
+      artifactVersion: 'resource-disposition-backlog-review.v1',
+      reviewBatchId: reviewSource?.reviewBatchId ?? RESIDUAL_DISPOSITION_REVIEW_BATCH_ID,
+      reviewerId: reviewSource?.reviewerId ?? RESIDUAL_DISPOSITION_REVIEWER_ID,
+      reviewedAt: reviewSource?.reviewedAt ?? RESIDUAL_DISPOSITION_REVIEWED_AT,
+      resourceId: row.resourceId,
+      sourceFamily: row.family,
+      title: safeDispositionTitle(row.title, row.resourceId),
+      sourcePathOrUrl: safeDispositionSourceRef(row.sourcePathOrUrl),
+      sourceRecord: row.sourceRecord,
+      stableSourceRef: stableSourceRefFor(row),
+      classification,
+      reviewerVisibleRationale: reviewSource?.reviewerVisibleRationale ??
+        residualDispositionRationale(row, classification, downstreamBlockers, unresolvedDispositionBlocker),
+      sourceHash: reviewSource?.sourceHash ?? row.sourceHash,
+      sourceVersionRef: reviewSource?.sourceVersionRef ?? row.sourceVersionRef,
+      originalMissingFieldCodes: row.missingFieldCodes,
+      reviewedLimitationState: residualReviewedLimitationState(row, downstreamBlockers, unresolvedDispositionBlocker),
+      downstreamBlockers,
+      currentPathEligible: classification === 'path-plannable' && row.pathEligibility.current,
+      privacyMinimized: true,
+      rawContentIncluded: false,
+    };
+  }).sort((left, right) => left.resourceId.localeCompare(right.resourceId));
+}
+
+async function loadResidualDispositionReviewSources(): Promise<Map<string, ResidualDispositionReviewSource>> {
+  const [
+    runtimePlanning,
+    runtimeMedia,
+    coreTextbook,
+    referenceTextbook,
+    residualTextbookOverview,
+    residualAuthoringTextbook,
+    residualRuntimeHandout,
+    residualKnowledgeInfograph,
+    residualKnowledgeCard,
+    residualAuthoringTextbookFigure,
+    residualAuthoringTextbookCaption,
+    residualRuntimeLessonStep,
+    residualRuntimeLessonModule,
+    residualRuntimeLessonMedia,
+    residualRegisteredResource,
+  ] = await Promise.all([
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'runtime-lesson-planning-unit-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'runtime-media-handout-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'core-textbook-section-path-role-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'reference-section-path-role-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-textbook-overview-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-authoring-textbook-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-handout-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-knowledge-infograph-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-knowledge-card-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-authoring-textbook-figure-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-authoring-textbook-caption-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-lesson-step-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-lesson-module-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-lesson-media-disposition-review-items.jsonl')),
+    readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-registered-resource-disposition-review-items.jsonl')),
+  ]);
+  const sources = new Map<string, ResidualDispositionReviewSource>();
+  for (const item of runtimePlanning) {
+    sources.set(item.resourceId, {
+      classification: item.promotedAsPlanningUnit ? 'path-plannable' : 'supporting-citation',
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? item.runtimeFileHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of runtimeMedia) {
+    sources.set(item.resourceId, {
+      classification: item.disposition === 'embedded-asset' ? 'embedded-asset' : 'supporting-citation',
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of coreTextbook) {
+    sources.set(item.resourceId, {
+      classification: item.promotedAsPathNode ? 'path-plannable' : 'supporting-citation',
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? item.citationAddress?.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of referenceTextbook) {
+    sources.set(item.resourceId, {
+      classification: 'supporting-citation',
+      reviewerVisibleRationale: item.reviewerVisibleRationale ?? item.exclusionRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? item.citationAddress?.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualTextbookOverview) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualAuthoringTextbook) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualRuntimeHandout) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualKnowledgeInfograph) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualKnowledgeCard) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualAuthoringTextbookFigure) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualAuthoringTextbookCaption) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualRuntimeLessonStep) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualRuntimeLessonModule) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualRuntimeLessonMedia) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  for (const item of residualRegisteredResource) {
+    sources.set(item.resourceId, {
+      classification: item.classification,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
+  return sources;
+}
+
+function residualDispositionClassificationFor(row: ResourceFieldCompletionAuditRow): ResidualDispositionClassification {
+  if (row.pathEligibility.current) return 'path-plannable';
+  if (row.family === 'runtime-lesson-media' || row.family === 'authoring-textbook-figure') return 'embedded-asset';
+  if (row.family === 'checkpoint' || row.evidenceContract.complete) return 'evidence-producing';
+  if (row.groundingEligibility.citationReady) return 'supporting-citation';
+  return 'excluded-with-rationale';
+}
+
+function downstreamBlockersFor(codes: ResourceFieldMissingCode[]): ResidualDispositionReviewItem['downstreamBlockers'] {
+  const buckets: ResidualDispositionReviewItem['downstreamBlockers'] = [];
+  const evidenceLineage = codes.filter((code) => (
+    code === 'missing-evidence-contract' ||
+    code === 'missing-evidence-instrumentation'
+  ));
+  const runtimeIdentity = codes.filter((code) => (
+    code === 'missing-stable-id' ||
+    code === 'missing-source-path-or-url' ||
+    code === 'missing-content-hash' ||
+    code === 'missing-version-ref' ||
+    code === 'missing-citation-target' ||
+    code === 'missing-segment-ref' ||
+    code === 'missing-ai-use-permission'
+  ));
+  const pathReadiness = codes.filter((code) => (
+    code === 'missing-knowledge-binding' ||
+    code === 'missing-capability-target' ||
+    code === 'missing-quality-target' ||
+    code === 'missing-path-target' ||
+    code === 'missing-path-profile' ||
+    code === 'missing-readiness-gating'
+  ));
+  const dependency = codes.filter((code) => code === 'blocked-by-dependency');
+
+  if (evidenceLineage.length) buckets.push({ bucket: 'evidence-lineage', codes: uniqueMissingCodes(evidenceLineage) });
+  if (runtimeIdentity.length) buckets.push({ bucket: 'runtime-identity', codes: uniqueMissingCodes(runtimeIdentity) });
+  if (pathReadiness.length) buckets.push({ bucket: 'path-readiness', codes: uniqueMissingCodes(pathReadiness) });
+  if (dependency.length) buckets.push({ bucket: 'dependency', codes: uniqueMissingCodes(dependency) });
+  return buckets.length ? buckets : [{ bucket: 'none', codes: [] }];
+}
+
+function residualReviewedLimitationState(
+  row: ResourceFieldCompletionAuditRow,
+  downstreamBlockers: ResidualDispositionReviewItem['downstreamBlockers'],
+  unresolvedDispositionBlocker: boolean,
+) {
+  const states = [
+    unresolvedDispositionBlocker ? 'unresolved-residual-disposition-review' : 'residual-disposition-reviewed',
+    !unresolvedDispositionBlocker && row.missingFieldCodes.includes('missing-human-review') ? 'semantic-review-closed-by-residual-batch' : '',
+    !unresolvedDispositionBlocker && row.missingFieldCodes.includes('provisional-metadata') ? 'provisional-metadata-closed-by-residual-batch' : '',
+    ...downstreamBlockers
+      .filter((blocker) => blocker.bucket !== 'none')
+      .map((blocker) => `downstream-${blocker.bucket}-blocker`),
+  ];
+  return uniqueSorted(states);
+}
+
+function residualDispositionRationale(
+  row: ResourceFieldCompletionAuditRow,
+  classification: ResidualDispositionClassification,
+  downstreamBlockers: ResidualDispositionReviewItem['downstreamBlockers'],
+  unresolvedDispositionBlocker: boolean,
+) {
+  const blockerText = downstreamBlockers
+    .filter((blocker) => blocker.bucket !== 'none')
+    .map((blocker) => `${blocker.bucket}: ${blocker.codes.join(', ')}`)
+    .join('; ') || 'no downstream blocker';
+  const sourceRef = row.sourceRecord ?? safeDispositionSourceRef(row.sourcePathOrUrl) ?? row.resourceId;
+  if (unresolvedDispositionBlocker) {
+    return `${row.resourceId} remains in the residual disposition queue from ${sourceRef}; no independent reviewed disposition source is available yet. Remaining checks are ${blockerText}.`;
+  }
+  if (classification === 'path-plannable') {
+    return `${row.resourceId} is already governed as path-plannable from ${sourceRef}; remaining checks are ${blockerText}.`;
+  }
+  if (classification === 'embedded-asset') {
+    return `${row.resourceId} is an embedded asset under ${sourceRef}; it should remain attached to its parent resource instead of becoming an independent PathNode. Remaining checks are ${blockerText}.`;
+  }
+  if (classification === 'evidence-producing') {
+    return `${row.resourceId} is reviewed as evidence-producing support from ${sourceRef}; remaining checks are ${blockerText}.`;
+  }
+  if (classification === 'supporting-citation') {
+    return `${row.resourceId} is reviewed as supporting citation material from ${sourceRef}; it is accountable for citation or context coverage, not independent path promotion. Remaining checks are ${blockerText}.`;
+  }
+  return `${row.resourceId} is excluded from direct path promotion with rationale from ${sourceRef}; remaining checks are ${blockerText}.`;
+}
+
+function buildResidualDispositionReviewSummary(
+  items: ResidualDispositionReviewItem[],
+  workqueues: ReturnType<typeof buildResourceFieldCompletionAudit>['workqueues'],
+) {
+  const downstreamEntries = items.flatMap((item) => item.downstreamBlockers
+    .filter((blocker) => blocker.bucket !== 'none')
+    .map((blocker) => [blocker.bucket, blocker.codes.length] as const));
+  return {
+    artifactVersion: 'resource-disposition-backlog-review.v1',
+    reviewBatchId: RESIDUAL_DISPOSITION_REVIEW_BATCH_ID,
+    reviewerId: RESIDUAL_DISPOSITION_REVIEWER_ID,
+    reviewedAt: RESIDUAL_DISPOSITION_REVIEWED_AT,
+    totals: {
+      reviewedResources: items.length,
+      unresolvedDispositionBlockers: countUnresolvedDispositionBlockers(items),
+      rawContentIncluded: items.some((item) => item.rawContentIncluded),
+      privacyMinimized: items.every((item) => item.privacyMinimized),
+    },
+    byClassification: countBy(items, (item) => item.classification),
+    bySourceFamily: countBy(items, (item) => item.sourceFamily),
+    downstreamBlockers: Object.fromEntries(
+      Array.from(new Set(downstreamEntries.map(([bucket]) => bucket))).sort()
+        .map((bucket) => [bucket, downstreamEntries
+          .filter(([entryBucket]) => entryBucket === bucket)
+          .reduce((total, [, count]) => total + count, 0)]),
+    ),
+    evidence: {
+      beforeResidualDispositionReview: {
+        queuedResources: workqueues.queuedResources,
+        primaryQueueItems: workqueues.primaryQueueItems,
+        dependentQueueItems: workqueues.dependentQueueItems,
+      },
+      afterResidualDispositionReview: {
+        reviewedResources: items.length,
+        unresolvedDispositionBlockers: countUnresolvedDispositionBlockers(items),
+      },
+      itemJsonlPath: path.relative(process.cwd(), DISPOSITION_REVIEW_ITEMS_JSONL_PATH),
+      sourceAuditPath: path.relative(process.cwd(), AUDIT_JSONL_PATH),
+      workqueueSummaryPath: path.relative(process.cwd(), WORKQUEUE_SUMMARY_JSON_PATH),
+    },
+  };
+}
+
+function renderResidualDispositionReviewEvidence(summary: ReturnType<typeof buildResidualDispositionReviewSummary>) {
+  const lines = [
+    '# Residual Resource Disposition Review Evidence',
+    '',
+    `Review batch: ${summary.reviewBatchId}`,
+    `Reviewer: ${summary.reviewerId}`,
+    `Reviewed at: ${summary.reviewedAt}`,
+    '',
+    `Reviewed resources: ${summary.totals.reviewedResources}`,
+    `Unresolved disposition blockers: ${summary.totals.unresolvedDispositionBlockers}`,
+    `Privacy minimized: ${summary.totals.privacyMinimized}`,
+    `Raw content included: ${summary.totals.rawContentIncluded}`,
+    '',
+    '## Before / After Helper Output',
+    '',
+    `Before queued resources: ${summary.evidence.beforeResidualDispositionReview.queuedResources}`,
+    `Before primary queue items: ${summary.evidence.beforeResidualDispositionReview.primaryQueueItems}`,
+    `Before dependent queue items: ${summary.evidence.beforeResidualDispositionReview.dependentQueueItems}`,
+    `After reviewed resources: ${summary.evidence.afterResidualDispositionReview.reviewedResources}`,
+    `After unresolved disposition blockers: ${summary.evidence.afterResidualDispositionReview.unresolvedDispositionBlockers}`,
+    '',
+    '## Classifications',
+    '',
+    ...Object.entries(summary.byClassification)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([classification, count]) => `- ${classification}: ${count}`),
+    '',
+    '## Downstream Blockers',
+    '',
+    ...Object.entries(summary.downstreamBlockers)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([bucket, count]) => `- ${bucket}: ${count}`),
+    '',
+    'The residual disposition batch records reviewed classifications where an independent review source exists and preserves unresolved residual disposition rows where that source is still missing. Remaining non-disposition blockers are retained as downstream evidence-lineage, runtime-identity, path-readiness, or dependency work.',
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+function safeDispositionTitle(title: string, fallback: string) {
+  const normalized = String(title || fallback).replace(/\s+/g, ' ').trim();
+  if (normalized.length <= 120 && !/Image description/i.test(normalized)) return normalized;
+  return fallback;
+}
+
+function isDispositionReviewUnresolved(
+  row: ResourceFieldCompletionAuditRow,
+  reviewSource: ResidualDispositionReviewSource | undefined,
+) {
+  if (
+    reviewSource?.reviewBatchId &&
+    reviewSource.reviewerId &&
+    reviewSource.reviewedAt &&
+    reviewSource.reviewerVisibleRationale
+  ) {
+    return false;
+  }
+  return row.reviewStatus !== 'human-confirmed' ||
+    row.missingFieldCodes.some((code) => code === 'missing-human-review' || code === 'provisional-metadata') ||
+    row.pathEligibility.blockedBy.some((code) => code === 'missing-human-review' || code === 'provisional-metadata');
+}
+
+function countUnresolvedDispositionBlockers(items: ResidualDispositionReviewItem[]) {
+  return items.filter((item) => (
+    !item.classification ||
+    !item.reviewerVisibleRationale ||
+    !item.stableSourceRef ||
+    !item.reviewBatchId ||
+    !item.reviewerId ||
+    !item.reviewedAt ||
+    item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+  )).length;
+}
+
+function stableSourceRefFor(row: ResourceFieldCompletionAuditRow) {
+  return [
+    row.family,
+    safeDispositionSourceRef(row.sourcePathOrUrl) ?? 'no-source-path',
+    row.sourceRecord ?? 'no-source-record',
+    row.resourceId,
+    row.sourceHash ?? 'no-source-hash',
+  ].join('|');
+}
+
+function safeDispositionSourceRef(sourcePathOrUrl: string | null) {
+  if (!sourcePathOrUrl) return sourcePathOrUrl;
+  if (!/^https?:\/\//i.test(sourcePathOrUrl)) return sourcePathOrUrl;
+  try {
+    const url = new URL(sourcePathOrUrl);
+    return `${url.origin}${url.pathname}`;
+  } catch {
+    return '[external-url-redacted]';
+  }
+}
+
+function uniqueMissingCodes(codes: ResourceFieldMissingCode[]) {
+  return Array.from(new Set(codes)).sort((left, right) => left.localeCompare(right));
+}
+
+function uniqueSorted(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean))).sort((left, right) => left.localeCompare(right));
+}
+
+function countBy<T>(values: T[], keyFor: (value: T) => string): Record<string, number> {
+  return values.reduce<Record<string, number>>((counts, value) => {
+    const key = keyFor(value);
+    counts[key] = (counts[key] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+async function readJsonlFile<T>(filePath: string): Promise<T[]> {
+  try {
+    const text = await fs.readFile(filePath, 'utf8');
+    return text.split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line) as T);
+  } catch {
+    return [];
+  }
 }
 
 async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>) {
