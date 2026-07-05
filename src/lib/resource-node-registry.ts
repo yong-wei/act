@@ -2746,8 +2746,7 @@ function isRuntimeProjectionLearningFactPolicySatisfied(
 function isRuntimeProjectionLearningFactMaterializationPolicySatisfied(
   contract: RuntimeResourceProjectionEvidenceContract,
 ): boolean {
-  return contract.learningFactMaterializationPolicy === undefined ||
-    contract.learningFactMaterializationPolicy === 'materialized-learning-fact' ||
+  return contract.learningFactMaterializationPolicy === 'materialized-learning-fact' ||
     contract.learningFactMaterializationPolicy === 'path-execution-evidence-only' ||
     contract.learningFactMaterializationPolicy === 'not-applicable';
 }
