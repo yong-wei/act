@@ -1,16 +1,8 @@
 export type UniversalAppShellCoverageKind =
-  | 'home-route'
-  | 'direct-appshell'
-  | 'compatible-wrapper'
-  | 'governed-exception';
+  'home-route' | 'direct-appshell' | 'compatible-wrapper' | 'governed-exception';
 
 export type UniversalAppShellExceptionType =
-  | 'auth-only'
-  | 'print-only'
-  | 'visual-review-only'
-  | 'embed-only'
-  | 'legacy-demo-only'
-  | 'migration-temporary';
+  'auth-only' | 'print-only' | 'visual-review-only' | 'embed-only' | 'legacy-demo-only' | 'migration-temporary';
 
 export interface UniversalAppShellHeaderAction {
   id: 'theme-switch' | 'personal-center';
@@ -23,12 +15,16 @@ export interface AppShellCompatibleWrapperContract {
   name: string;
   sourceFile: string;
   routeFamilies: readonly string[];
-  requiredDomContracts: readonly (
-    | 'canonical-navigation'
-    | 'breadcrumb'
-    | 'theme-switch-then-personal-center'
-  )[];
+  requiredDomContracts: readonly ('canonical-navigation' | 'breadcrumb' | 'theme-switch-then-personal-center')[];
   contractTestFiles: readonly string[];
+}
+
+export interface DeepProductAppShellRouteContract {
+  routePattern: string;
+  sourceFile: string;
+  shellEvidence: 'direct-appshell' | 'compatible-wrapper' | 'governed-exception';
+  routeFamily: 'course-runtime' | 'classroom' | 'ai' | 'playlist' | 'role-workspace' | 'legacy-interactive';
+  acceptanceIds: readonly ('AC1' | 'AC2' | 'AC3' | 'AC4' | 'AC5')[];
 }
 
 export interface UniversalAppShellException {
@@ -41,6 +37,37 @@ export interface UniversalAppShellException {
 }
 
 export const UNIVERSAL_APP_SHELL_CHANGE_ID = 'define-universal-appshell-frame-contract';
+export const DEEP_PRODUCT_APP_SHELL_CHANGE_ID = 'migrate-deep-product-routes-appshell-chrome';
+
+export const LEGACY_LESSON_RUNTIME_ROUTE_SLUGS = [
+  'cruise-comfort-boppps',
+  'unit-1-2-modeling-from-object-to-system',
+  'unit-2-1-modeling-language',
+  'unit-2-2-time-domain-response',
+  'unit-2-3-frequency-response-bode-intro',
+  'unit-2-4-nyquist-margin-entry',
+  'unit-3-1-pure-pole-stability-and-dynamics',
+  'unit-3-2-routh-stability-boundary',
+  'unit-3-3-root-locus-rules',
+  'unit-3-4-root-locus-reading-validation',
+  'unit-3-5-zero-dynamic-improvement',
+  'unit-3-6-zero-design-workshop',
+  'unit-3-7-steady-error-low-frequency-compensation',
+  'unit-3-8-frequency-domain-translation-judgment',
+  'unit-3-9-cross-domain-mapping-lab',
+  'unit-4-2-controller-selection-first-start',
+  'unit-4-3-initial-scheme-practice-first-validation',
+  'unit-4-4-fixed-structure-optimization-modeling',
+  'unit-4-5-constraint-aware-parameter-optimization',
+  'unit-4-6-fixed-structure-boundary-structural-encoding',
+  'unit-4-7-destroyer-hifi-design-closure',
+  'unit-5-1-linear-backbone-boundaries',
+  'unit-5-2-nonlinear-analysis-entry',
+  'unit-5-3-mass-coordination-chain',
+  'unit-5-4-data-driven-mpc-transition',
+  'unit-5-5-policy-learning-entry-risk',
+  'unit-5-6-method-comparison-cold-chain',
+] as const;
 
 export const UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_ORDER = [
   '首页',
@@ -64,14 +91,7 @@ export const UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_HREFS = [
   '/profile',
 ] as const;
 
-export const UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS = [
-  1440,
-  1280,
-  1024,
-  768,
-  390,
-  320,
-] as const;
+export const UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS = [1440, 1280, 1024, 768, 390, 320] as const;
 
 export const UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_MATRIX = [
   {
@@ -115,6 +135,122 @@ export const UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_MATRIX = [
     label: '个人中心',
     localCommandZone: 'profile-body-actions',
     requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
+  },
+] as const;
+
+export const DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX: readonly DeepProductAppShellRouteContract[] = [
+  {
+    routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/student/*',
+    sourceFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]/page.tsx',
+    shellEvidence: 'compatible-wrapper',
+    routeFamily: 'course-runtime',
+    acceptanceIds: ['AC1', 'AC2', 'AC5'],
+  },
+  {
+    routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/*',
+    sourceFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]/page.tsx',
+    shellEvidence: 'compatible-wrapper',
+    routeFamily: 'course-runtime',
+    acceptanceIds: ['AC1', 'AC2', 'AC5'],
+  },
+  {
+    routePattern: '/interactive-learning/courses/{legacy-runtime-slug}/{student|teacher}/*',
+    sourceFile: 'src/lib/platform-appshell-contract.ts',
+    shellEvidence: 'governed-exception',
+    routeFamily: 'course-runtime',
+    acceptanceIds: ['AC1', 'AC5'],
+  },
+  {
+    routePattern: '/interactive-learning/courses/*/teacher/*/waiting',
+    sourceFile:
+      'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/waiting/page.tsx',
+    shellEvidence: 'compatible-wrapper',
+    routeFamily: 'course-runtime',
+    acceptanceIds: ['AC1', 'AC2', 'AC5'],
+  },
+  {
+    routePattern: '/ai',
+    sourceFile: 'src/app/ai/page.tsx',
+    shellEvidence: 'direct-appshell',
+    routeFamily: 'ai',
+    acceptanceIds: ['AC1', 'AC3', 'AC4', 'AC5'],
+  },
+  {
+    routePattern: '/ai/copilot',
+    sourceFile: 'src/app/ai/copilot/page.tsx',
+    shellEvidence: 'direct-appshell',
+    routeFamily: 'ai',
+    acceptanceIds: ['AC1', 'AC3', 'AC4', 'AC5'],
+  },
+  {
+    routePattern: '/playlists',
+    sourceFile: 'src/app/playlists/page.tsx',
+    shellEvidence: 'direct-appshell',
+    routeFamily: 'playlist',
+    acceptanceIds: ['AC1', 'AC3', 'AC4', 'AC5'],
+  },
+  {
+    routePattern: '/playlists/new',
+    sourceFile: 'src/app/playlists/new/page.tsx',
+    shellEvidence: 'direct-appshell',
+    routeFamily: 'playlist',
+    acceptanceIds: ['AC1', 'AC3', 'AC4', 'AC5'],
+  },
+  {
+    routePattern: '/playlists/*/play',
+    sourceFile: 'src/app/playlists/[id]/play/page.tsx',
+    shellEvidence: 'direct-appshell',
+    routeFamily: 'playlist',
+    acceptanceIds: ['AC1', 'AC3', 'AC4', 'AC5'],
+  },
+  {
+    routePattern: '/missions',
+    sourceFile: 'src/app/(main)/missions/page.tsx',
+    shellEvidence: 'direct-appshell',
+    routeFamily: 'role-workspace',
+    acceptanceIds: ['AC1', 'AC3', 'AC4', 'AC5'],
+  },
+  {
+    routePattern: '/profile/portfolio',
+    sourceFile: 'src/app/(main)/profile/portfolio/page.tsx',
+    shellEvidence: 'direct-appshell',
+    routeFamily: 'role-workspace',
+    acceptanceIds: ['AC1', 'AC3', 'AC4', 'AC5'],
+  },
+  {
+    routePattern: '/classroom/join',
+    sourceFile: 'src/app/classroom/join/page.tsx',
+    shellEvidence: 'direct-appshell',
+    routeFamily: 'classroom',
+    acceptanceIds: ['AC1', 'AC3', 'AC4', 'AC5'],
+  },
+  {
+    routePattern: '/classroom/student/*',
+    sourceFile: 'src/app/classroom/student/[sessionId]/page.tsx',
+    shellEvidence: 'governed-exception',
+    routeFamily: 'classroom',
+    acceptanceIds: ['AC1', 'AC5'],
+  },
+  {
+    routePattern: '/classroom/teacher/*',
+    sourceFile: 'src/app/classroom/teacher/[sessionId]/page.tsx',
+    shellEvidence: 'governed-exception',
+    routeFamily: 'classroom',
+    acceptanceIds: ['AC1', 'AC5'],
+  },
+  {
+    routePattern: '/classroom/teacher/*/review',
+    sourceFile: 'src/app/classroom/teacher/[sessionId]/review/page.tsx',
+    shellEvidence: 'governed-exception',
+    routeFamily: 'classroom',
+    acceptanceIds: ['AC1', 'AC5'],
+  },
+  {
+    routePattern: '/interactive-learning/control-odyssey',
+    sourceFile: 'src/app/interactive-learning/control-odyssey/page.tsx',
+    shellEvidence: 'governed-exception',
+    routeFamily: 'legacy-interactive',
+    acceptanceIds: ['AC1', 'AC5'],
   },
 ] as const;
 
@@ -213,6 +349,30 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
   },
 ] as const;
 
+const LEGACY_LESSON_RUNTIME_ROUTE_EXCEPTIONS: readonly UniversalAppShellException[] =
+  LEGACY_LESSON_RUNTIME_ROUTE_SLUGS.flatMap((slug) => [
+    {
+      routePattern: `/interactive-learning/courses/${slug}/student/*`,
+      type: 'migration-temporary',
+      owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
+      reason:
+        'This student lesson runtime still renders a legacy course-specific page before LessonRuntimeShell migration.',
+      violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
+      removalCondition:
+        'This student lesson runtime adopts LessonRuntimeShell or another registered lesson AppShell wrapper.',
+    },
+    {
+      routePattern: `/interactive-learning/courses/${slug}/teacher/*`,
+      type: 'migration-temporary',
+      owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
+      reason:
+        'This teacher lesson runtime still renders a legacy course-specific page before LessonRuntimeShell migration.',
+      violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
+      removalCondition:
+        'This teacher lesson runtime adopts LessonRuntimeShell or another registered lesson AppShell wrapper.',
+    },
+  ]);
+
 export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellException[] = [
   {
     routePattern: '/',
@@ -262,22 +422,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
     violatedShellRules: ['global-navigation-frame', 'theme-switch-then-personal-center'],
     removalCondition: 'Print rendering is exposed from a shell-covered lesson route instead of a standalone page.',
   },
-  {
-    routePattern: '/interactive-learning/courses/*/student/*',
-    type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'Some student lesson runtimes still render legacy course-specific pages before LessonRuntimeShell migration.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'Each student lesson runtime adopts LessonRuntimeShell or another registered lesson AppShell wrapper.',
-  },
-  {
-    routePattern: '/interactive-learning/courses/*/teacher/*',
-    type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'Some teacher lesson runtimes still render legacy course-specific pages before LessonRuntimeShell migration.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'Each teacher lesson runtime adopts LessonRuntimeShell or another registered lesson AppShell wrapper.',
-  },
+  ...LEGACY_LESSON_RUNTIME_ROUTE_EXCEPTIONS,
   {
     routePattern: '/interactive-learning/resources/control-odyssey-v1/ship',
     type: 'embed-only',
@@ -289,7 +434,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   {
     routePattern: '/interactive-learning/argument-principle',
     type: 'legacy-demo-only',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'The demo is migrated into InteractiveLearningShell or removed from app routes.',
@@ -297,7 +442,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   {
     routePattern: '/interactive-learning/control-map',
     type: 'legacy-demo-only',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'The demo is migrated into InteractiveLearningShell or removed from app routes.',
@@ -305,7 +450,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   {
     routePattern: '/interactive-learning/control-odyssey',
     type: 'legacy-demo-only',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'The demo is migrated into InteractiveLearningShell or removed from app routes.',
@@ -313,7 +458,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   {
     routePattern: '/interactive-learning/multi-representation-linkage',
     type: 'legacy-demo-only',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'The demo is migrated into InteractiveLearningShell or removed from app routes.',
@@ -321,7 +466,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   {
     routePattern: '/interactive-learning/physics-modeling',
     type: 'legacy-demo-only',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'The demo is migrated into InteractiveLearningShell or removed from app routes.',
@@ -329,7 +474,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   {
     routePattern: '/interactive-learning/pid-simulator',
     type: 'legacy-demo-only',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'The demo is migrated into InteractiveLearningShell or removed from app routes.',
@@ -337,7 +482,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   {
     routePattern: '/interactive-learning/ten-drops',
     type: 'legacy-demo-only',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'The demo is migrated into InteractiveLearningShell or removed from app routes.',
@@ -345,7 +490,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   {
     routePattern: '/virtual-lab',
     type: 'legacy-demo-only',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Legacy virtual lab route predates the simulation shell and remains outside primary navigation.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'The route redirects to /simulations or adopts SimulationShell.',
@@ -359,14 +504,6 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
     removalCondition: 'The route is registered as public entry content or moved under a shell-covered module.',
   },
   {
-    routePattern: '/missions',
-    type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'Missions is a legacy task hall that has not migrated into the learning-atlas shell.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'Missions adopts AppShell or is replaced by shell-covered assessment and learning-path routes.',
-  },
-  {
     routePattern: '/evaluation/prompt-assessment',
     type: 'migration-temporary',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
@@ -375,65 +512,9 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
     removalCondition: 'The route is registered under an operations or report shell.',
   },
   {
-    routePattern: '/playlists',
-    type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'Playlist management route has not migrated into a governed workspace shell.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'Playlist management adopts AppShell or a registered playlist wrapper.',
-  },
-  {
-    routePattern: '/playlists/new',
-    type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'Playlist creation route has not migrated into a governed workspace shell.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'Playlist creation adopts AppShell form slots or a registered playlist wrapper.',
-  },
-  {
-    routePattern: '/playlists/*/play',
-    type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'Playlist playback uses a legacy launcher and recovery surface before playlist shell migration.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'Playlist playback adopts a registered playlist AppShell wrapper or moves under lesson runtime shell.',
-  },
-  {
-    routePattern: '/profile/portfolio',
-    type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'Portfolio still renders a legacy learner record topbar instead of the learner data AppShell frame.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb', 'theme-switch-then-personal-center'],
-    removalCondition: 'Portfolio adopts the learner data AppShell route shell used by profile, growth, and evidence pages.',
-  },
-  {
-    routePattern: '/ai',
-    type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'AI landing route still owns a local assistant shell pending AI workspace shell migration.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'AI landing adopts AppShell or a registered AI workspace shell.',
-  },
-  {
-    routePattern: '/ai/copilot',
-    type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'AI copilot route still owns a local assistant shell pending AI workspace shell migration.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'AI copilot adopts AppShell or a registered AI workspace shell.',
-  },
-  {
-    routePattern: '/classroom/join',
-    type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'Classroom join flow still owns a route-local session entry shell.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'Classroom join is moved into a registered classroom AppShell wrapper.',
-  },
-  {
     routePattern: '/classroom/student/*',
     type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Live classroom student runtime remains route-local until classroom player shell migration lands.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'Student classroom runtime adopts a registered classroom AppShell wrapper.',
@@ -441,7 +522,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   {
     routePattern: '/classroom/teacher/*',
     type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Live classroom teacher runtime remains route-local until classroom player shell migration lands.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'Teacher classroom runtime adopts a registered classroom AppShell wrapper.',
@@ -449,7 +530,7 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   {
     routePattern: '/classroom/teacher/*/review',
     type: 'migration-temporary',
-    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
     reason: 'Teacher classroom review route keeps route-local review controls until classroom shell migration lands.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'Classroom review adopts a registered classroom AppShell wrapper.',
@@ -466,7 +547,8 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
     routePattern: '/teacher/students/*/evidence',
     type: 'migration-temporary',
     owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
-    reason: 'Legacy teacher student evidence route is a redirect and fallback shim outside the teacher AppShell layout.',
+    reason:
+      'Legacy teacher student evidence route is a redirect and fallback shim outside the teacher AppShell layout.',
     violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
     removalCondition: 'The redirect shim is removed after canonical teacher class evidence routes cover all callers.',
   },

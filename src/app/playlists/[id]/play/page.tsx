@@ -1,9 +1,12 @@
-
 import { UserRole } from '@prisma/client';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
+import { AppShell, type AppBreadcrumbItem } from '@/components/platform/app-shell';
 import { prisma } from '@/lib/prisma';
 import { getServerAuthSession } from '@/lib/auth';
 import { PlaylistPlayLauncher } from '@/features/knowledge/playlist-play-launcher';
+import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
+import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -31,6 +34,8 @@ export default async function PlaylistPlayPage(props: PageProps) {
   if (!plan) {
     return (
       <PlaylistPlayRecovery
+        viewerRole={resolvePlaylistShellRole(viewerRole)}
+        accountHref={getPlatformCockpitHref(viewerRole)}
         message="课程流不存在或当前账号不可见。"
         actionHref={viewerId ? '/playlists' : '/login'}
         actionLabel={viewerId ? '返回课程流列表' : '去登录'}
@@ -43,6 +48,8 @@ export default async function PlaylistPlayPage(props: PageProps) {
   if (!plan.isPublic && !isAdmin && !isAuthor) {
     return (
       <PlaylistPlayRecovery
+        viewerRole={resolvePlaylistShellRole(viewerRole)}
+        accountHref={getPlatformCockpitHref(viewerRole)}
         message="课程流不存在或当前账号不可见。"
         actionHref={viewerId ? '/playlists' : '/login'}
         actionLabel={viewerId ? '返回课程流列表' : '去登录'}
@@ -56,35 +63,95 @@ export default async function PlaylistPlayPage(props: PageProps) {
       ? `/teacher/lesson-plans/${encodeURIComponent(plan.id)}/edit?returnTo=${encodeURIComponent('/playlists')}`
       : null;
   const canStartClass = viewerRole === UserRole.TEACHER || isAdmin;
+  const shellRole = resolvePlaylistShellRole(viewerRole);
+  const accountHref = getPlatformCockpitHref(viewerRole);
 
   return (
-    <PlaylistPlayLauncher
-      planId={plan.id}
+    <PlaylistAppShell
+      viewerRole={shellRole}
+      accountHref={accountHref}
       title={plan.title}
-      description={plan.description}
-      itemCount={plan._count.items}
-      intent={searchParams?.intent ?? null}
-      editHref={editHref}
-      canStartClass={canStartClass}
-    />
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '课程播放列表', href: '/playlists' }, { label: plan.title }]}
+    >
+      <PlaylistPlayLauncher
+        planId={plan.id}
+        title={plan.title}
+        description={plan.description}
+        itemCount={plan._count.items}
+        intent={searchParams?.intent ?? null}
+        editHref={editHref}
+        canStartClass={canStartClass}
+      />
+    </PlaylistAppShell>
   );
 }
 
+function resolvePlaylistShellRole(role: UserRole | undefined): PlatformRole {
+  if (role === UserRole.ADMIN) return 'admin';
+  if (role === UserRole.TEACHER) return 'teacher';
+  return 'student';
+}
+
+function PlaylistAppShell({
+  viewerRole,
+  accountHref,
+  title,
+  breadcrumbs,
+  children,
+}: {
+  viewerRole: PlatformRole;
+  accountHref: string;
+  title: string;
+  breadcrumbs: readonly AppBreadcrumbItem[];
+  children: ReactNode;
+}) {
+  return (
+    <AppShell
+      viewerRole={viewerRole}
+      activeHref="/playlists/[id]/play"
+      activeNavigationHref={getPlaylistNavigationParent(viewerRole)}
+      accountHref={accountHref}
+      title={title}
+      subtitle="课程流播放与课堂启动。"
+      breadcrumbs={breadcrumbs}
+    >
+      {children}
+    </AppShell>
+  );
+}
+
+function getPlaylistNavigationParent(viewerRole: PlatformRole) {
+  return viewerRole === 'student' ? '/interactive-learning' : '/interactive-learning/control-workbench';
+}
+
 function PlaylistPlayRecovery({
+  viewerRole,
+  accountHref,
   message,
   actionHref,
   actionLabel,
 }: {
+  viewerRole: PlatformRole;
+  accountHref: string;
   message: string;
   actionHref: string;
   actionLabel: string;
 }) {
   return (
-    <main
-      className="container mx-auto min-h-screen px-6 py-10 text-slate-100"
-      data-playlist-play-recovery="unavailable"
+    <PlaylistAppShell
+      viewerRole={viewerRole}
+      accountHref={accountHref}
+      title="课程流不可用"
+      breadcrumbs={[
+        { label: '首页', href: '/' },
+        { label: '课程播放列表', href: '/playlists' },
+        { label: '课程流不可用' },
+      ]}
     >
-      <section className="rounded-xl border border-slate-700 bg-slate-900/80 p-8">
+      <section
+        className="rounded-xl border border-slate-700 bg-slate-900/80 p-8"
+        data-playlist-play-recovery="unavailable"
+      >
         <p className="text-xs uppercase tracking-wide text-blue-300">课程流播放恢复</p>
         <h1 className="mt-2 text-3xl font-semibold text-white">课程流不可用</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">{message}</p>
@@ -95,6 +162,6 @@ function PlaylistPlayRecovery({
           {actionLabel}
         </Link>
       </section>
-    </main>
+    </PlaylistAppShell>
   );
 }
