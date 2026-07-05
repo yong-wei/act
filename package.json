@@ -82,7 +82,7 @@
     "db:learning-goal-assessment-coverage": "tsx ./scripts/db/generate-learning-goal-assessment-coverage.ts",
     "db:resource-field-completion-audit": "tsx ./scripts/db/generate-resource-field-completion-audit.ts",
     "db:runtime-media-handout-dispositions": "tsx ./scripts/db/generate-runtime-media-handout-disposition-review.ts",
-    "db:core-textbook-section-path-roles": "tsx ./scripts/db/generate-core-textbook-section-path-role-review.ts",
+    "db:core-textbook-section-path-roles": "npm run db:export-textbook-resources && tsx ./scripts/db/generate-core-textbook-section-path-role-review.ts",
     "db:export-textbook-resources": "python3 course-content/scripts/export_textbook_resources.py --book hu-shousong-exercise-analysis-3rd",
     "db:textbook-media-grounding": "npm run db:export-textbook-resources && tsx ./scripts/db/generate-textbook-media-grounding.ts",
     "db:session-data-quality": "tsx ./scripts/db/report-session-data-quality.ts",
