@@ -90,7 +90,7 @@
     "db:runtime-lesson-planning-units": "tsx ./scripts/db/generate-runtime-lesson-planning-unit-review.ts",
     "db:core-textbook-section-path-roles": "npm run db:export-textbook-resources && tsx ./scripts/db/generate-core-textbook-section-path-role-review.ts",
     "db:reference-section-path-roles": "npm run db:export-textbook-resources && tsx ./scripts/db/generate-reference-section-path-role-review.ts",
-    "db:rag-citation-anchor-coverage": "tsx ./scripts/db/generate-rag-citation-anchor-coverage.ts",
+    "db:rag-citation-anchor-coverage": "npm run db:export-textbook-resources && tsx ./scripts/db/generate-rag-citation-anchor-coverage.ts",
     "db:export-textbook-resources": "python3 course-content/scripts/export_textbook_resources.py --book hu-shousong-exercise-analysis-3rd",
     "db:textbook-media-grounding": "npm run db:export-textbook-resources && tsx ./scripts/db/generate-textbook-media-grounding.ts",
     "db:session-data-quality": "tsx ./scripts/db/report-session-data-quality.ts",
