@@ -1,5 +1,9 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { encode } from 'next-auth/jwt';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_ORDER } from '../src/lib/platform-appshell-contract';
 
 type PrimaryAppShellRoute = {
   href: string;
@@ -19,6 +23,7 @@ const routes = [
 
 const widths = [1440, 1280, 1024, 768, 390, 320] as const;
 const desktopWidths = new Set<number>([1440, 1280]);
+const evidenceDir = join(process.cwd(), 'artifacts/commercial-ui/primary-appshell-chrome/playwright');
 
 function buildMinimalProfilePayload() {
   return {
@@ -184,10 +189,45 @@ async function assertNavigationState(page: Page, route: string, width: number) {
   await expect(page.locator('[data-app-shell-mobile-drawer="open"]')).toHaveCount(0);
 }
 
+async function assertCanonicalNavigationOrder(page: Page, route: string) {
+  const openDrawer = page.getByRole('button', { name: '打开平台导航' });
+  const shouldCloseDrawer = await openDrawer.isVisible();
+  if (shouldCloseDrawer) {
+    await openDrawer.click();
+    await expect(page.locator('[data-app-shell-mobile-drawer="open"]').first()).toBeVisible();
+  }
+
+  const links = page.locator('a[data-app-shell-nav-link-label], aside nav a, [data-app-shell-mobile-drawer] nav a');
+  const normalizedLabels = (await links.evaluateAll((nodes) =>
+    nodes.map((node) =>
+      node.getAttribute('data-app-shell-nav-link-label') ||
+      node.getAttribute('aria-label') ||
+      node.getAttribute('title') ||
+      node.textContent ||
+      '',
+    ),
+  )).map((label) => label.trim()).filter(Boolean);
+  const expectedLabels = Array.from(UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_ORDER);
+  expect(normalizedLabels.slice(0, expectedLabels.length), `${route} canonical navigation order`).toEqual(
+    expectedLabels,
+  );
+
+  if (shouldCloseDrawer) {
+    await page.getByRole('button', { name: '关闭平台导航', exact: true }).click();
+  }
+}
+
+function screenshotName(route: string, width: number) {
+  const label = route === '/' ? 'home' : route.replace(/^\//, '').replace(/[^a-z0-9]+/gi, '-');
+  return `${label}-${width}.png`;
+}
+
 test.describe.configure({ timeout: 180_000 });
 
 for (const route of routes) {
   test(`primary AppShell chrome responsive matrix for ${route.href}`, async ({ context, page }) => {
+    mkdirSync(evidenceDir, { recursive: true });
+    const captured: string[] = [];
     if ('auth' in route && route.auth) await addStudentSession(context);
     await installRouteMocks(page);
     await page.addInitScript(() => {
@@ -200,7 +240,16 @@ for (const route of routes) {
       await expect(page.locator(route.ready).first(), `${route.href} ready marker at ${width}px`).toBeVisible();
       await assertHeaderChrome(page, route.href);
       await assertNavigationState(page, route.href, width);
+      await assertCanonicalNavigationOrder(page, route.href);
       await assertNoHorizontalOverflow(page, route.href, width);
+      const fileName = screenshotName(route.href, width);
+      await page.screenshot({ path: join(evidenceDir, fileName), fullPage: true });
+      captured.push(fileName);
     }
+
+    writeFileSync(
+      join(evidenceDir, `${screenshotName(route.href, 0).replace(/-0\.png$/, '')}.json`),
+      `${JSON.stringify({ route: route.href, widths, captured }, null, 2)}\n`,
+    );
   });
 }

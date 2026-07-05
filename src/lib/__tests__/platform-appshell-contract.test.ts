@@ -7,6 +7,8 @@ import { describe, expect, it } from 'vitest';
 
 import { AppHeader } from '@/components/platform/app-shell';
 import {
+  APP_SHELL_GOVERNANCE_CHANGE_ID,
+  APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX,
   APP_SHELL_COMPATIBLE_WRAPPERS,
   DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
   DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX,
@@ -333,14 +335,24 @@ function findRouteCoverage(file: string): RouteCoverage | undefined {
   if (routePath === '/') return { kind: 'home-route', evidence: 'homepage exception' };
 
   const directWrapper = findRegisteredWrapperEvidence(file);
-  if (directWrapper) return { kind: 'compatible-wrapper', evidence: directWrapper };
+  if (directWrapper) {
+    return {
+      kind: directWrapper.endsWith(':AppShell') ? 'direct-appshell' : 'compatible-wrapper',
+      evidence: directWrapper,
+    };
+  }
 
   const ancestorWrapper = ancestorLayoutFiles(file)
     .map((layout) => {
       return findRegisteredWrapperEvidence(layout);
     })
     .find(Boolean);
-  if (ancestorWrapper) return { kind: 'compatible-wrapper', evidence: ancestorWrapper };
+  if (ancestorWrapper) {
+    return {
+      kind: ancestorWrapper.endsWith(':AppShell') ? 'direct-appshell' : 'compatible-wrapper',
+      evidence: ancestorWrapper,
+    };
+  }
 
   const routeException = UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS.filter((exception) =>
     matchRoutePattern(exception.routePattern, routePath),
@@ -355,6 +367,21 @@ function findRouteCoverage(file: string): RouteCoverage | undefined {
 }
 
 describe('universal AppShell frame contract', () => {
+  const executedDomContractProofIds = new Set([
+    'app-shell-header-action-order',
+    'route-coverage-scanner',
+    'interactive-learning-shell-contract',
+    'course-entry-shell-route-coverage',
+    'lesson-runtime-shell-route-coverage',
+    'classroom-join-appshell-route-coverage',
+    'simulation-shell-wrapper-contract',
+    'arena-shell-wrapper-contract',
+    'control-workbench-shell-contract',
+    'role-workspace-account-targets',
+    'presentation-data-center-route-coverage',
+    'teacher-classroom-waiting-route-coverage',
+  ]);
+
   it('defines the canonical primary navigation sequence used by non-home AppShell routes', () => {
     const navigation = getPlatformRouteNavigation('/profile', 'student');
 
@@ -560,6 +587,7 @@ describe('universal AppShell frame contract', () => {
       'InteractiveLearningShell',
       'CourseEntryShell',
       'LessonRuntimeShell',
+      'ClassroomJoinAppShell',
       'SimulationShell',
       'ArenaPageShell',
       'ControlWorkbenchShell',
@@ -577,6 +605,11 @@ describe('universal AppShell frame contract', () => {
         'breadcrumb',
         'theme-switch-then-personal-center',
       ]);
+      expect(wrapper.domContractProofIds.length, wrapper.name).toBeGreaterThan(0);
+      expect(
+        wrapper.domContractProofIds.every((proofId) => executedDomContractProofIds.has(proofId)),
+        wrapper.name,
+      ).toBe(true);
       expect(wrapper.contractTestFiles.every((testFile) => existsSync(join(process.cwd(), testFile)))).toBe(true);
     }
   });
@@ -601,11 +634,45 @@ describe('universal AppShell frame contract', () => {
     );
 
     for (const exception of UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS) {
+      expect(exception.category, exception.routePattern).toBeTruthy();
       expect(exception.owner).toBeTruthy();
       expect(exception.reason).toBeTruthy();
       expect(exception.violatedShellRules.length).toBeGreaterThan(0);
       expect(exception.removalCondition).toBeTruthy();
       expect(exception.removalCondition).not.toBe(exception.reason);
+    }
+  });
+
+  it('keeps ordinary product route exceptions limited to temporary blockers', () => {
+    const ordinaryProductFamilies = [
+      '/classroom',
+      '/interactive-learning/courses',
+      '/ai',
+      '/graph-center',
+      '/knowledge',
+      '/assessment',
+      '/playlists',
+      '/profile',
+      '/teacher',
+      '/admin',
+      '/simulations',
+    ];
+
+    for (const exception of UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS) {
+      const isOrdinaryProductException = ordinaryProductFamilies.some(
+        (prefix) => exception.routePattern === prefix || exception.routePattern.startsWith(`${prefix}/`),
+      );
+      if (!isOrdinaryProductException) continue;
+
+      expect(
+        ['legacy-lesson-runtime', 'classroom-runtime', 'redirect-shim', 'print-surface', 'embed-surface'].includes(
+          exception.category,
+        ),
+        exception.routePattern,
+      ).toBe(true);
+      expect(exception.removalCondition, exception.routePattern).toMatch(
+        /adopts|removed|shell-covered|registered|retired|canonical/i,
+      );
     }
   });
 
@@ -618,6 +685,56 @@ describe('universal AppShell frame contract', () => {
 
     expect(pages.length).toBeGreaterThan(0);
     expect(missingCoverage).toEqual([]);
+  });
+
+  it('keeps representative visual audit coverage complete for AppShell governance', () => {
+    const categories = new Set(APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX.map((route) => route.category));
+    const routeKeys = APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX.map((route) => `${route.category}:${route.href}`);
+    const duplicateRouteKeys = routeKeys.filter((routeKey, index) => routeKeys.indexOf(routeKey) !== index);
+
+    expect(APP_SHELL_GOVERNANCE_CHANGE_ID).toBe('enforce-appshell-route-coverage-governance');
+    expect(duplicateRouteKeys).toEqual([]);
+    expect(categories).toEqual(
+      new Set([
+        'primary',
+        'teacher',
+        'teacher-classes',
+        'admin',
+        'graph',
+        'data-center',
+        'course',
+        'course-student-session',
+        'course-teacher-session',
+        'classroom',
+        'ai',
+        'playlist',
+        'arena-child',
+        'simulation-child',
+        'assessment-child',
+        'virtual-lab',
+      ]),
+    );
+
+    for (const route of APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX) {
+      expect(existsSync(join(process.cwd(), route.sourceFile)), route.href).toBe(true);
+      expect(route.requiredWidths, route.href).toEqual(UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS);
+      expect(route.visualAuditStatus, route.href).toBe('required');
+      expect(route.acceptanceIds, route.href).toEqual(expect.arrayContaining(['AC-4', 'AC-6']));
+    }
+
+    const roleSafeRoutes = APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX.filter((route) =>
+      route.viewerRole === 'teacher' || route.viewerRole === 'admin',
+    );
+    expect(roleSafeRoutes.map((route) => route.href)).toEqual(expect.arrayContaining([
+      '/teacher',
+      '/teacher/classes',
+      '/admin/users',
+      '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo',
+    ]));
+    for (const route of roleSafeRoutes) {
+      expect(route.acceptanceIds, route.href).toContain('AC-7');
+      expect(route.href, route.category).not.toBe('/profile');
+    }
   });
 
   it('does not treat route ledger metadata as AppShell render evidence', () => {

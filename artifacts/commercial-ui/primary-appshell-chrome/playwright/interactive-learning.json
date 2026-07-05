@@ -1,0 +1,19 @@
+{
+  "route": "/interactive-learning",
+  "widths": [
+    1440,
+    1280,
+    1024,
+    768,
+    390,
+    320
+  ],
+  "captured": [
+    "interactive-learning-1440.png",
+    "interactive-learning-1280.png",
+    "interactive-learning-1024.png",
+    "interactive-learning-768.png",
+    "interactive-learning-390.png",
+    "interactive-learning-320.png"
+  ]
+}

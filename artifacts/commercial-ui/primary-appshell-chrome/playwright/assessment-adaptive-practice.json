@@ -1,0 +1,19 @@
+{
+  "route": "/assessment/adaptive-practice",
+  "widths": [
+    1440,
+    1280,
+    1024,
+    768,
+    390,
+    320
+  ],
+  "captured": [
+    "assessment-adaptive-practice-1440.png",
+    "assessment-adaptive-practice-1280.png",
+    "assessment-adaptive-practice-1024.png",
+    "assessment-adaptive-practice-768.png",
+    "assessment-adaptive-practice-390.png",
+    "assessment-adaptive-practice-320.png"
+  ]
+}

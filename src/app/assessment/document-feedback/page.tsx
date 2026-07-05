@@ -31,6 +31,7 @@ function renderDocumentFeedbackShell(
       subtitle="查看教师审核后的评分证据与后续行动"
       activeHref="/assessment/document-feedback"
       sidebarMode="collapsible"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '报告反馈' }]}
       className="surface-page"
     >
       <StudentDocumentGradingFeedback view={view} feedbackContext={feedbackContext} />
