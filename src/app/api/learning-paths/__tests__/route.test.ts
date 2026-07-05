@@ -2117,6 +2117,43 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('attaches governed knowledge-card event refs to path execution completion', async () => {
+    configureSingleNodePath(
+      'knowledge-card:feedback-loop',
+      'knowledge_card',
+      '/knowledge?node=feedback-loop',
+      {
+        goalId: 'control-correction',
+        planNode: {
+          knowledgeCoverage: ['feedback-loop'],
+        },
+      },
+    );
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'knowledge-card:feedback-loop',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'knowledge-card-feedback-complete',
+      evidenceRefs: [{ kind: 'client', rawPayload: 'hidden answer text' }],
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      evidenceRefs: [{
+        kind: 'ResourceEvent',
+        eventType: 'knowledge_card_open',
+        provenance: 'platform-instrumented',
+        status: 'completed',
+        ref: 'knowledge_card_open:knowledge-card:feedback-loop',
+        sourceEventId: 'knowledge_card_open:knowledge-card:feedback-loop',
+        nodeId: 'knowledge-card:feedback-loop',
+        resourceType: 'knowledge_card',
+        privacyLevel: 'student-visible',
+      }],
+    }));
+  });
+
   it('accepts textbook section completion events for generated learning paths', async () => {
     configureSingleNodePath(
       'textbook-section:dorf-modern-control-systems:ch08-example-0801',

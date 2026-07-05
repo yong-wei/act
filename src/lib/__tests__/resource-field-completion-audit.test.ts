@@ -99,6 +99,21 @@ describe('resource field completion audit', () => {
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-completion-workqueues.md'),
       'utf8',
     );
+    const evidenceLineageSummary = JSON.parse(readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-evidence-lineage-readiness-summary.json'),
+      'utf8',
+    ));
+    const evidenceLineageItems = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-evidence-lineage-readiness-items.jsonl'),
+      'utf8',
+    )
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    const evidenceLineageEvidence = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/resource-evidence-lineage-readiness-evidence.md'),
+      'utf8',
+    );
     const dispositionReviewSummary = JSON.parse(readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-disposition-backlog-review-summary.json'),
       'utf8',
@@ -205,6 +220,30 @@ describe('resource field completion audit', () => {
     expect(workqueueItems.some((item) => item.title.includes('Image description:'))).toBe(false);
     expect(workqueueItems.every((item) => item.currentBlockers.length > 0)).toBe(true);
     expect(workqueueItems.every((item) => item.suggestedReviewerAction.length > 0)).toBe(true);
+    expect(evidenceLineageSummary.artifactVersion).toBe('resource-evidence-lineage-readiness.v1');
+    expect(evidenceLineageSummary.layerTotals.auditRows).toBe(jsonlRows.length);
+    expect(evidenceLineageSummary.layerTotals.pathRelevantRows).toBeGreaterThan(0);
+    expect(evidenceLineageSummary.layerTotals.reviewedLimitations).toBeGreaterThan(0);
+    expect(evidenceLineageSummary.evidenceLineageBlockerCount).toBe(0);
+    expect(evidenceLineageSummary.evidenceLineageBlockerCount).toBeLessThan(evidenceLineageItems.length);
+    expect(evidenceLineageSummary.findingCounts['missing-evidence-contract']).toBeGreaterThan(0);
+    expect(evidenceLineageSummary.contractFieldGaps.clientEventIdPolicy).toBeGreaterThan(0);
+    expect(evidenceLineageSummary.followupBuckets['complete-evidence-lineage-bindings']).toBe(evidenceLineageItems.length);
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.blocked).toBe(true);
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.blockerCount).toBe(evidenceLineageItems.length);
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.blockerCount).toBeGreaterThan(evidenceLineageSummary.evidenceLineageBlockerCount);
+    expect(evidenceLineageItems.every((item) => item.privacyMinimized === true)).toBe(true);
+    expect(evidenceLineageItems.every((item) => item.rawContentIncluded === false)).toBe(true);
+    expect(evidenceLineageItems.some((item) => 'rawContent' in item || 'markdown' in item || 'body' in item)).toBe(false);
+    expect(evidenceLineageItems.every((item) => item.followupBucket === 'complete-evidence-lineage-bindings')).toBe(true);
+    expect(evidenceLineageItems.some((item) => item.evidenceEffectState === 'reviewed-limitation')).toBe(true);
+    expect(evidenceLineageItems.some((item) => item.evidenceEffectState === 'blocked')).toBe(false);
+    expect(evidenceLineageItems
+      .filter((item) => item.evidenceEffectState === 'reviewed-limitation')
+      .every((item) => item.blocksYangFanFixture === true)).toBe(true);
+    expect(evidenceLineageItems.some((item) => item.blocksYangFanFixture === true)).toBe(true);
+    expect(evidenceLineageEvidence).toContain('## Yang Fan Fixture Precondition');
+    expect(evidenceLineageEvidence).toContain('Raw learner payloads and raw resource bodies are not included.');
     expect(dispositionReviewItems).toHaveLength(rowsMissingFields.length);
     expect(dispositionReviewSummary.totals.reviewedResources).toBe(rowsMissingFields.length);
     expect(dispositionReviewSummary.totals.unresolvedDispositionBlockers).toBe(unresolvedDispositionRows.length);
@@ -1040,6 +1079,165 @@ describe('resource field completion audit', () => {
     });
     expect(result.rows[0].missingFieldCodes).not.toContain('missing-citation-target');
     expect(result.rows[0].missingFieldCodes).not.toContain('missing-segment-ref');
+  });
+
+  it('summarizes path-relevant evidence-lineage blockers and Yang Fan fixture preconditions', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      candidates: [
+        {
+          id: 'path-resource:blocked-lineage',
+          title: 'Blocked lineage resource',
+          family: 'external-resource',
+          sourcePathOrUrl: '/course-runtime/path-resource/blocked-lineage',
+          sourceRecord: 'blocked-lineage',
+          knowledgeNodeIds: ['反馈_1_1'],
+          capabilityTargetIds: ['controlModeling'],
+          segmentRefs: ['blocked-lineage'],
+          citationTargets: ['/course-runtime/path-resource/blocked-lineage'],
+          pathTarget: '/interactive-learning/resources/blocked-lineage',
+          estimatedTimeMinutes: 5,
+          privacyScope: 'student-visible',
+          contentHash: 'sha256:blocked-lineage',
+          versionRef: 'external-resource.v1',
+          humanConfirmed: true,
+          currentPathEligible: true,
+          reviewEvidence: {
+            reviewerId: 'lineage-reviewer',
+            reviewerRole: 'curriculum-data-governance',
+            reviewedAt: '2026-07-05T00:00:00.000Z',
+            reviewBatchId: 'lineage-review-batch',
+            reviewerVisibleRationale: 'Reviewer confirmed semantic role, but lineage instrumentation is not declared.',
+            independentEvidenceRef: 'review-packet:blocked-lineage',
+            reviewedSourceHash: 'sha256:blocked-lineage',
+            promptOrManifestHash: 'sha256:lineage-review',
+          },
+        },
+        {
+          id: 'path-resource:ready-lineage',
+          title: 'Ready lineage resource',
+          family: 'external-resource',
+          sourcePathOrUrl: '/course-runtime/path-resource/ready-lineage',
+          sourceRecord: 'ready-lineage',
+          knowledgeNodeIds: ['反馈_1_1'],
+          capabilityTargetIds: ['controlModeling'],
+          segmentRefs: ['ready-lineage'],
+          citationTargets: ['/course-runtime/path-resource/ready-lineage'],
+          pathTarget: '/interactive-learning/resources/ready-lineage',
+          estimatedTimeMinutes: 5,
+          evidenceInstrumentation: ['resource_completed'],
+          privacyScope: 'student-visible',
+          contentHash: 'sha256:ready-lineage',
+          versionRef: 'external-resource.v1',
+          humanConfirmed: true,
+          currentPathEligible: true,
+          reviewEvidence: {
+            reviewerId: 'lineage-reviewer',
+            reviewerRole: 'curriculum-data-governance',
+            reviewedAt: '2026-07-05T00:00:00.000Z',
+            reviewBatchId: 'lineage-review-batch',
+            reviewerVisibleRationale: 'Reviewer confirmed semantic role and lineage instrumentation.',
+            independentEvidenceRef: 'review-packet:ready-lineage',
+            reviewedSourceHash: 'sha256:ready-lineage',
+            promptOrManifestHash: 'sha256:lineage-review',
+          },
+        },
+      ],
+    });
+
+    expect(result.evidenceLineage.summary).toMatchObject({
+      artifactVersion: 'resource-evidence-lineage-readiness.v1',
+      layerTotals: {
+        pathRelevantRows: 2,
+        evidenceLineageBlockers: 1,
+        readyRows: 1,
+      },
+      evidenceLineageBlockerCount: 1,
+      findingCounts: {
+        'missing-evidence-contract': 1,
+        'missing-evidence-instrumentation': 1,
+      },
+      followupBuckets: {
+        'complete-evidence-lineage-bindings': 1,
+      },
+      yangFanFixtureBlockers: {
+        blocked: true,
+        blockerCount: 1,
+      },
+    });
+    expect(result.evidenceLineage.summary.contractFieldGaps).toMatchObject({
+      eventType: 1,
+      clientEventIdPolicy: 1,
+      attemptKey: 1,
+      sourceLogId: 1,
+      timestamps: 1,
+      learningFactPolicy: 1,
+    });
+    expect(result.evidenceLineage.items).toHaveLength(1);
+    expect(result.evidenceLineage.items[0]).toMatchObject({
+      resourceId: 'path-resource:blocked-lineage',
+      pathRole: 'current-path',
+      evidenceEffectState: 'blocked',
+      missingFieldCodes: expect.arrayContaining([
+        'missing-evidence-contract',
+        'missing-evidence-instrumentation',
+      ]),
+      followupBucket: 'complete-evidence-lineage-bindings',
+      blocksYangFanFixture: true,
+      privacyMinimized: true,
+      rawContentIncluded: false,
+    });
+    expect(JSON.stringify(result.evidenceLineage.items[0])).not.toContain('raw learner');
+  });
+
+  it('declares knowledge-card lineage as path execution evidence without LearningFact materialization', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      candidates: [{
+        id: 'knowledge-card:feedback-loop',
+        title: 'Feedback loop card',
+        family: 'knowledge-card',
+        sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/feedback-loop.md',
+        sourceRecord: 'feedback-loop',
+        knowledgeNodeIds: ['feedback-loop'],
+        capabilityTargetIds: [],
+        segmentRefs: ['feedback-loop'],
+        citationTargets: ['course-content/runtime/knowledge/cards/nodes/feedback-loop.md'],
+        pathTarget: '/knowledge?node=feedback-loop',
+        estimatedTimeMinutes: 4,
+        evidenceInstrumentation: ['knowledge_card_open'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:feedback-loop',
+        versionRef: 'runtime-knowledge-card.v1',
+        generatedBy: 'template',
+        humanConfirmed: true,
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'knowledge-card-reviewer',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-05T00:00:00.000Z',
+          reviewBatchId: 'knowledge-card-review-batch',
+          reviewerVisibleRationale: 'Knowledge card is a path execution evidence source, not a mastery LearningFact source.',
+          independentEvidenceRef: 'review-packet:knowledge-card-feedback-loop',
+          reviewedSourceHash: 'sha256:feedback-loop',
+          promptOrManifestHash: 'sha256:knowledge-card-review',
+        },
+      }],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      evidenceContract: {
+        complete: true,
+        learningFactPolicy: false,
+        learningFactMaterializationPolicy: 'path-execution-evidence-only',
+        missingFields: [],
+      },
+    });
+    expect(result.rows[0].missingFieldCodes).not.toContain('missing-evidence-contract');
+    expect(result.rows[0].missingFieldCodes).not.toContain('missing-evidence-instrumentation');
+    expect(result.evidenceLineage.items).toHaveLength(0);
   });
 
   it('materializes LearningGoal baseline artifacts for the fixed first batch', () => {

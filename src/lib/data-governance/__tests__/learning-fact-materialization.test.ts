@@ -185,6 +185,20 @@ describe('eventToLearningFactInput', () => {
     expect(syncError).toBeNull();
   });
 
+  it('does not materialize knowledge card opens as LearningFacts', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'knowledge-card-open-001',
+      actionType: 'knowledge_card_open',
+      payload: {
+        eventType: 'knowledge_card_open',
+        nodeId: 'knowledge-card:feedback-loop',
+        targetLabel: '反馈回路',
+      },
+    }));
+
+    expect(fact).toBeNull();
+  });
+
   it('materializes adaptive assessment evidence with privacy-safe references only', () => {
     const fact = eventToLearningFactInput(createEvent({
       eventId: 'adaptive-assessment:answer-1',

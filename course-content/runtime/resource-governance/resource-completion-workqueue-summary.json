@@ -3,10 +3,10 @@
   "auditMissingFieldRows": 5239,
   "queuedResources": 5239,
   "primaryQueueItems": 5239,
-  "dependentQueueItems": 29772,
+  "dependentQueueItems": 28816,
   "byFollowupBucket": {
     "complete-analysis-design-graph-resource-bindings": 6704,
-    "complete-evidence-lineage-bindings": 8450,
+    "complete-evidence-lineage-bindings": 7494,
     "review-runtime-lesson-planning-units": 8317,
     "review-runtime-media-handout-dispositions": 8848,
     "complete-foundation-graph-resource-bindings": 440,
@@ -16,8 +16,8 @@
   },
   "byMissingFieldCode": {
     "missing-capability-target": 3942,
-    "missing-evidence-contract": 4906,
-    "missing-evidence-instrumentation": 3544,
+    "missing-evidence-contract": 4229,
+    "missing-evidence-instrumentation": 3265,
     "missing-knowledge-binding": 3202,
     "missing-path-profile": 4896,
     "missing-path-target": 3421,
@@ -378,30 +378,6 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:dependent:knowledge-card:unassigned-learning-goal:knowledge-graph:missing-evidence-contract:complete-evidence-lineage-bindings:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "knowledge-card",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "knowledge-graph",
-      "missingFieldCode": "missing-evidence-contract",
-      "followupBucket": "complete-evidence-lineage-bindings",
-      "dependencyState": "needs-human-review",
-      "total": 279,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:knowledge-card:unassigned-learning-goal:knowledge-graph:missing-evidence-instrumentation:complete-evidence-lineage-bindings:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "knowledge-card",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "knowledge-graph",
-      "missingFieldCode": "missing-evidence-instrumentation",
-      "followupBucket": "complete-evidence-lineage-bindings",
-      "dependencyState": "needs-human-review",
-      "total": 279,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
       "id": "resource-completion:dependent:knowledge-card:unassigned-learning-goal:knowledge-graph:missing-path-profile:review-runtime-lesson-planning-units:needs-human-review",
       "queueRole": "dependent",
       "sourceFamily": "knowledge-card",
@@ -745,18 +721,6 @@
       "graphDomain": "runtime-lesson",
       "missingFieldCode": "missing-citation-target",
       "followupBucket": "complete-citation-and-rag-bindings",
-      "dependencyState": "needs-human-review",
-      "total": 398,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-lesson-step:unassigned-learning-goal:runtime-lesson:missing-evidence-contract:complete-evidence-lineage-bindings:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "missing-evidence-contract",
-      "followupBucket": "complete-evidence-lineage-bindings",
       "dependencyState": "needs-human-review",
       "total": 398,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
