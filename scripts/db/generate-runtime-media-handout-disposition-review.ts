@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 type ProjectionFamily = 'runtime-lesson-media' | 'runtime-handout';
+type SourceAvailability = 'local-source-present' | 'local-source-missing' | 'external-source' | 'source-unspecified';
 
 interface RuntimeProjectionRow {
   id: string;
@@ -52,6 +53,7 @@ interface ScopedWorkqueueItem {
   sourceRecord: string | null;
   sourceHash: string | null;
   repairedSourceHash: string | null;
+  sourceAvailability: SourceAvailability;
   sourceVersionRef: string | null;
   currentBlockers: string[];
   followupBuckets: string[];
@@ -93,6 +95,7 @@ interface ReviewItem {
     quality: string[];
   };
   sourceHash: string | null;
+  sourceAvailability: SourceAvailability;
   sourceVersionRef: string | null;
   limitationState: string[];
   reviewerVisibleRationale: string;
@@ -160,6 +163,7 @@ async function scopedWorkqueueItem(
   ]);
   const sourcePathOrUrl = privacyMinimizedSourcePath(rawSourcePathOrUrl);
   const repairedSourceHash = row.sourceHash ?? await hashProjectPath(rawSourcePathOrUrl);
+  const sourceAvailability = sourceAvailabilityFor(rawSourcePathOrUrl, repairedSourceHash);
   const selectedForReview = lessonKey === SELECTED_LESSON;
 
   return {
@@ -177,6 +181,7 @@ async function scopedWorkqueueItem(
     sourceRecord: row.sourceRecord ?? null,
     sourceHash: row.sourceHash ?? null,
     repairedSourceHash,
+    sourceAvailability,
     sourceVersionRef: row.sourceVersionRef ?? null,
     currentBlockers,
     followupBuckets: uniqueSorted(workqueueItems.map((item) => item.followupBucket)),
@@ -216,6 +221,7 @@ function reviewItemFor(item: ScopedWorkqueueItem, row: RuntimeProjectionRow | un
     privacyScope: row?.privacyScope ?? null,
     graphNodeRefs,
     sourceHash,
+    sourceAvailability: item.sourceAvailability,
     sourceVersionRef: item.sourceVersionRef,
     limitationState,
     reviewerVisibleRationale: rationaleFor(item, disposition, anchorState, graphNodeRefs),
@@ -227,7 +233,7 @@ function reviewItemFor(item: ScopedWorkqueueItem, row: RuntimeProjectionRow | un
 }
 
 function dispositionFor(item: ScopedWorkqueueItem, row?: RuntimeProjectionRow): ReviewItem['disposition'] {
-  if (item.resourceId === 'runtime-media:1-1:1-1-intro-video') return 'excluded-with-rationale';
+  if (isProductionMissingMedia(item)) return 'excluded-with-rationale';
   if (
     item.resourceKind === 'handout' &&
     item.family === 'runtime-lesson-media' &&
@@ -242,7 +248,7 @@ function dispositionFor(item: ScopedWorkqueueItem, row?: RuntimeProjectionRow): 
 }
 
 function citationAnchorStateFor(item: ScopedWorkqueueItem): ReviewItem['citationAnchorState'] {
-  if (item.resourceId === 'runtime-media:1-1:1-1-intro-video') return 'production-missing';
+  if (isProductionMissingMedia(item)) return 'production-missing';
   if (item.family === 'runtime-handout') return 'document-section-anchor-required';
   if (item.resourceKind === 'video' || item.resourceKind === 'audio') return 'transcript-required';
   if (item.resourceKind === 'slides' || item.sourcePathOrUrl?.endsWith('.pdf')) return 'page-anchor-required';
@@ -273,7 +279,7 @@ function rationaleFor(
     ? `graph scope ${graphNodeRefs.knowledge.slice(0, 4).join(', ')}`
     : 'lesson-level graph scope';
   if (disposition === 'excluded-with-rationale') {
-    return `${item.resourceId} is listed as pending production in the lesson media index, so it remains excluded until a concrete source exists.`;
+    return `${item.resourceId} has no hashable local media source, so it remains excluded until the production source exists.`;
   }
   if (disposition === 'evidence-producing') {
     return `${item.resourceId} is generated-data support for lesson ${item.lessonKey}; it can support evidence interpretation but is not a standalone path node.`;
@@ -282,6 +288,12 @@ function rationaleFor(
     return `${item.resourceId} is an embedded lesson visual tied to ${graphScope}; ${anchorState} is sufficient for citation support, not PathNode promotion.`;
   }
   return `${item.resourceId} supports lesson ${item.lessonKey} as citation material tied to ${graphScope}; ${anchorState} remains the promotion blocker.`;
+}
+
+function isProductionMissingMedia(item: ScopedWorkqueueItem) {
+  return item.family === 'runtime-lesson-media' &&
+    (item.resourceKind === 'video' || item.resourceKind === 'audio') &&
+    item.sourceAvailability === 'local-source-missing';
 }
 
 function buildSummary(items: ScopedWorkqueueItem[], reviewItems: ReviewItem[]) {
@@ -407,6 +419,15 @@ function projectFilePathFor(sourcePathOrUrl: string | null) {
     return path.join(process.cwd(), sourcePathOrUrl.replace(/^\/course-runtime\/lessons\//, 'course-content/runtime/lessons/'));
   }
   return null;
+}
+
+function sourceAvailabilityFor(sourcePathOrUrl: string | null, sourceHash: string | null): SourceAvailability {
+  if (!sourcePathOrUrl) return 'source-unspecified';
+  if (/^https?:\/\//i.test(sourcePathOrUrl)) return 'external-source';
+  if (projectFilePathFor(sourcePathOrUrl)) {
+    return sourceHash ? 'local-source-present' : 'local-source-missing';
+  }
+  return 'source-unspecified';
 }
 
 function privacyMinimizedSourcePath(sourcePathOrUrl: string | null | undefined) {

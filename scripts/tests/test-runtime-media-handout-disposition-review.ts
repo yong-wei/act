@@ -4,8 +4,11 @@ import path from 'node:path';
 interface ScopedWorkqueueItem {
   resourceId: string;
   family: string;
+  resourceKind: string;
+  sourcePathOrUrl: string | null;
   selectedForReview: boolean;
   repairedSourceHash: string | null;
+  sourceAvailability: string;
   rawContentIncluded: boolean;
 }
 
@@ -14,6 +17,7 @@ interface ReviewItem {
   disposition: string;
   citationAnchorState: string;
   sourceHash: string | null;
+  sourceAvailability: string;
   evidenceInstrumentation: string[];
   reviewerVisibleRationale: string;
   promotedAsPathNode: boolean;
@@ -79,6 +83,29 @@ assert(
   reviewItems.find((item) => item.resourceId === 'runtime-media:1-1:generated-data/1-1-analysis-data.txt')
     ?.disposition !== 'evidence-producing',
   'generated data without instrumentation must not be marked evidence-producing',
+);
+const localMissingMedia = workqueueItems.filter((item) =>
+  (item.resourceKind === 'video' || item.resourceKind === 'audio') &&
+  item.sourcePathOrUrl?.startsWith('/course-runtime/') &&
+  item.repairedSourceHash === null
+);
+assert(localMissingMedia.length > 1, 'fixture must include multiple local media rows with missing production files');
+assert(
+  localMissingMedia.every((item) => item.sourceAvailability === 'local-source-missing'),
+  'missing local media files must be identified without hard-coded resource ids',
+);
+assert(
+  localMissingMedia.some((item) => item.resourceId === 'runtime-media:1-2:1-2-intro-video'),
+  'missing local media fixture must include a non-1-1 lesson video',
+);
+assert(
+  reviewItems.some((item) =>
+    item.resourceId === 'runtime-media:1-1:1-1-intro-video' &&
+    item.disposition === 'excluded-with-rationale' &&
+    item.citationAnchorState === 'production-missing' &&
+    item.sourceAvailability === 'local-source-missing'
+  ),
+  'selected missing local media must be excluded with production-missing state',
 );
 assert(
   reviewItems.some((item) => item.resourceId === 'runtime-handout:1-1' && item.sourceHash?.startsWith('sha256:')),
