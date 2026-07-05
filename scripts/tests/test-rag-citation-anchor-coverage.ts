@@ -175,6 +175,7 @@ assert(
 );
 assertMissingTextbookTargetDowngradesToLimited();
 assertUnreviewedTextbookTargetDowngradesToLimited();
+assertUnsafeTextbookTargetDowngradesToLimited();
 
 console.log('RAG citation anchor coverage artifacts verified.');
 
@@ -252,6 +253,24 @@ function assertUnreviewedTextbookTargetDowngradesToLimited() {
   assert(item.citationChip.confidence === 'medium', 'unreviewed CitationChip must be confidence downgraded');
 }
 
+function assertUnsafeTextbookTargetDowngradesToLimited() {
+  const item = textbookCorpusItem(
+    syntheticCandidate(),
+    syntheticTarget('https://example.test/model-authored'),
+    new Set(['synthetic-section']),
+    new Set(),
+  ) as CorpusItem;
+  assert(item.citationState === 'limited', 'unsafe target href must produce a limited artifact');
+  assert(item.limitationState.includes('unsafe-citation-target-href'), 'unsafe target limitation must be explicit');
+  assert(item.citationAddress.href === null, 'unsafe target CitationAddress must not be hydratable');
+  assert(item.serverOwnedAddress === false, 'unsafe target artifact must not claim a server-owned address');
+  assert(item.citationChip.citationAddress.href === null, 'unsafe target CitationChip address must not be hydratable');
+  assert(item.citationChip.displayHref === null, 'unsafe target CitationChip must not be clickable');
+  assert(item.citationChip.limitationState === 'unsafe-address', 'unsafe target CitationChip must use a standard limitation reason');
+  assert(item.citationChip.authorityLevel === 'contextual', 'unsafe target CitationChip must be authority downgraded');
+  assert(item.citationChip.confidence === 'medium', 'unsafe target CitationChip must be confidence downgraded');
+}
+
 function syntheticCandidate() {
   return {
     artifactVersion: 'textbook-media-grounding.v1',
@@ -281,7 +300,7 @@ function syntheticCandidate() {
   };
 }
 
-function syntheticTarget() {
+function syntheticTarget(href = '/course-runtime/resources/textbooks/synthetic-book/chunks/synthetic-chunk.md') {
   return {
     citationTargetId: 'citation-target:synthetic',
     retrievalChunkId: 'retrieval-chunk:synthetic',
@@ -290,7 +309,7 @@ function syntheticTarget() {
     address: {
       kind: 'text',
       sourceRefId: 'synthetic-chunk',
-      href: '/course-runtime/resources/textbooks/synthetic-book/chunks/synthetic-chunk.md',
+      href,
       locator: 'synthetic-chunk',
       contentHash: '0123456789abcdef',
     },

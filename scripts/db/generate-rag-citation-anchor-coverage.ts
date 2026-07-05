@@ -218,10 +218,12 @@ export function textbookCorpusItem(
     : referenceChunkIds.has(candidate.documentId)
       ? `reference-search-document:${candidate.documentId}`
       : null;
-  const ready = Boolean(target && reviewedSourceRef);
+  const hasServerOwnedTargetHref = Boolean(target?.address.href && isServerOwnedHref(target.address.href));
+  const ready = Boolean(target && reviewedSourceRef && hasServerOwnedTargetHref);
   const limitationState = ready ? [] : uniqueSorted([
     target ? '' : 'missing-citation-target',
     reviewedSourceRef ? '' : 'section-review-not-selected-for-current-path-batch',
+    target && !hasServerOwnedTargetHref ? 'unsafe-citation-target-href' : '',
   ]);
   const sourceHash = normalizeSha256(candidate.sourceHash);
   const citationAddress = {
@@ -263,7 +265,7 @@ export function textbookCorpusItem(
     citationTargetId: ready ? target!.citationTargetId : target?.citationTargetId ?? null,
     retrievalChunkId: ready ? target!.retrievalChunkId : target?.retrievalChunkId ?? null,
     citationAddress,
-    serverOwnedAddress: Boolean(target?.address.href),
+    serverOwnedAddress: ready,
     authority: candidate.authority,
     privacyScope: candidate.privacyScope,
     graphNodeRefs: candidate.graphNodeRefs,
@@ -543,6 +545,7 @@ function citationChipLimitationReason(limitationState: string[]): CitationChipLi
   if (limitationState.length === 0) return null;
   if (limitationState.includes('missing-citation-target')) return 'missing-chunk';
   if (limitationState.includes('section-review-not-selected-for-current-path-batch')) return 'insufficient-authority';
+  if (limitationState.includes('unsafe-citation-target-href')) return 'unsafe-address';
   if (limitationState.includes('media-production-missing')) return 'inaccessible-source';
   if (limitationState.some((item) =>
     item.includes('anchor-required') ||
