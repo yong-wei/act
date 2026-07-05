@@ -53,6 +53,27 @@ interface CorpusItem {
   };
 }
 
+const CITATION_CHIP_LIMITATION_REASONS = new Set([
+  'missing-chunk',
+  'inaccessible-source',
+  'unsupported-source-type',
+  'privacy-violation',
+  'source-type-mismatch',
+  'quote-hash-mismatch',
+  'span-ref-mismatch',
+  'insufficient-authority',
+  'missing-learner-evidence',
+  'conflicting-source',
+  'privacy-redacted',
+  'low-confidence-source',
+  'stale-source',
+  'expired-source',
+  'unresolved-address',
+  'unsafe-address',
+  'address-kind-mismatch',
+  'missing-version-ref',
+]);
+
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const corpusItems = readJsonl<CorpusItem>('rag-citation-anchor-corpus-items.jsonl');
 const summary = JSON.parse(readFileSync(path.join(
@@ -134,6 +155,8 @@ assert(
     item.authority.length > 0 &&
     item.privacyScope.length > 0 &&
     item.citationAddress.href === null &&
+    item.citationChip.limitationState !== null &&
+    CITATION_CHIP_LIMITATION_REASONS.has(item.citationChip.limitationState) &&
     isLimitedCitationChip(item)
   ),
   'limited media rows must preserve review metadata, limitation state, and limited CitationChip payloads',
@@ -189,7 +212,8 @@ function isLimitedCitationChip(item: CorpusItem) {
     item.citationChip.confidence === 'medium' &&
     item.citationChip.freshnessBucket === item.freshness.bucket &&
     item.citationChip.privacyVisibility === 'public' &&
-    item.limitationState.includes(item.citationChip.limitationState ?? '');
+    item.citationChip.limitationState !== null &&
+    CITATION_CHIP_LIMITATION_REASONS.has(item.citationChip.limitationState);
 }
 
 function isSafeDisplayTitle(value: string) {
@@ -206,6 +230,7 @@ function assertMissingTextbookTargetDowngradesToLimited() {
   assert(item.retrievalChunkId === null, 'missing target artifact must not claim a retrieval chunk');
   assert(item.citationChip.displayHref === null, 'missing target CitationChip must not be clickable');
   assert(item.citationAddress.href === null, 'missing target CitationAddress must not be hydratable');
+  assert(item.citationChip.limitationState === 'missing-chunk', 'missing target CitationChip must use a standard limitation reason');
   assert(item.citationChip.authorityLevel === 'contextual', 'missing target CitationChip must be authority downgraded');
   assert(item.citationChip.confidence === 'medium', 'missing target CitationChip must be confidence downgraded');
   assert((item as any).sourceVersionRef.groundingVersion === 'textbook-media-grounding.v1', 'missing target artifact must preserve grounding version lineage');
@@ -222,6 +247,7 @@ function assertUnreviewedTextbookTargetDowngradesToLimited() {
   assert(item.retrievalChunkId === 'retrieval-chunk:synthetic', 'unreviewed limited artifact may retain chunk lineage');
   assert(item.citationChip.displayHref === null, 'unreviewed CitationChip must not be clickable');
   assert(item.citationAddress.href === null, 'unreviewed CitationAddress must not be hydratable');
+  assert(item.citationChip.limitationState === 'insufficient-authority', 'unreviewed CitationChip must use a standard limitation reason');
   assert(item.citationChip.authorityLevel === 'contextual', 'unreviewed CitationChip must be authority downgraded');
   assert(item.citationChip.confidence === 'medium', 'unreviewed CitationChip must be confidence downgraded');
 }

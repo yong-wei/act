@@ -4,6 +4,25 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 type CitationState = 'ready' | 'limited';
+type CitationChipLimitationReason =
+  | 'missing-chunk'
+  | 'inaccessible-source'
+  | 'unsupported-source-type'
+  | 'privacy-violation'
+  | 'source-type-mismatch'
+  | 'quote-hash-mismatch'
+  | 'span-ref-mismatch'
+  | 'insufficient-authority'
+  | 'missing-learner-evidence'
+  | 'conflicting-source'
+  | 'privacy-redacted'
+  | 'low-confidence-source'
+  | 'stale-source'
+  | 'expired-source'
+  | 'unresolved-address'
+  | 'unsafe-address'
+  | 'address-kind-mismatch'
+  | 'missing-version-ref';
 
 interface GroundingCandidate {
   artifactVersion: string;
@@ -140,7 +159,7 @@ interface CorpusItem {
     confidence: 'high' | 'medium';
     freshnessBucket: CorpusItem['freshness']['bucket'];
     privacyVisibility: 'public' | 'redacted' | 'privileged';
-    limitationState: string | null;
+    limitationState: CitationChipLimitationReason | null;
     sourceVersionRefs?: Record<string, string>;
   };
   pathEligible: false;
@@ -515,9 +534,25 @@ function buildCitationChip(input: {
     confidence: input.confidence,
     freshnessBucket: input.freshnessBucket,
     privacyVisibility: privacyVisibilityFor(input.privacyScope),
-    limitationState: input.limitationState[0] ?? null,
+    limitationState: citationChipLimitationReason(input.limitationState),
     sourceVersionRefs: input.sourceVersionRefs,
   };
+}
+
+function citationChipLimitationReason(limitationState: string[]): CitationChipLimitationReason | null {
+  if (limitationState.length === 0) return null;
+  if (limitationState.includes('missing-citation-target')) return 'missing-chunk';
+  if (limitationState.includes('section-review-not-selected-for-current-path-batch')) return 'insufficient-authority';
+  if (limitationState.includes('media-production-missing')) return 'inaccessible-source';
+  if (limitationState.some((item) =>
+    item.includes('anchor-required') ||
+    item.includes('transcript-required') ||
+    item === 'server-owned-display-href-unavailable'
+  )) {
+    return 'unresolved-address';
+  }
+  if (limitationState.includes('source-hash-unavailable')) return 'stale-source';
+  return 'unsupported-source-type';
 }
 
 function normalizeSha256(value: string | null | undefined) {
