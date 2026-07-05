@@ -43,26 +43,26 @@ Close RAG indexing and citation-anchor gaps for reviewed resource projections wi
 
 ## Acceptance Checklist
 
-- [ ] AC-1: Reviewed long-form and media projections have mapped retrieval chunks or reviewed limitation states. Owner: independent reviewer.
+- [x] AC-1: Reviewed long-form and media projections have mapped retrieval chunks or reviewed limitation states. Owner: independent reviewer.
   Evidence: RAG/citation helper output.
-- [ ] AC-2: CitationAddress metadata resolves display hrefs from server-owned metadata for reviewed path/supporting resources. Owner: independent reviewer.
+- [x] AC-2: CitationAddress metadata resolves display hrefs from server-owned metadata for reviewed path/supporting resources. Owner: independent reviewer.
   Evidence: citation resolver tests.
-- [ ] AC-3: Unresolved transcript/anchor gaps are reduced or explicitly classified by media/source family. Owner: independent reviewer.
+- [x] AC-3: Unresolved transcript/anchor gaps are reduced or explicitly classified by media/source family. Owner: independent reviewer.
   Evidence: citation readiness output.
 
 ## Tasks
 
-- [ ] Task 1: Generate citation/index worklist.
+- [x] Task 1: Generate citation/index worklist.
   Covers: AC-1, AC-3
   Acceptance: Worklist separates unmapped chunks, missing anchors, missing transcripts, and resolver limitations.
   Evidence: helper output.
   Reviewer Check: Confirm path eligibility is not inferred from indexability.
-- [ ] Task 2: Complete governed index and anchor metadata.
+- [x] Task 2: Complete governed index and anchor metadata.
   Covers: AC-1, AC-2, AC-3
   Acceptance: Reviewed sources resolve through server-owned CitationAddress metadata or limitation state.
   Evidence: source diff and resolver tests.
   Reviewer Check: Confirm model-authored URLs are not trusted.
-- [ ] Task 3: Validate Konling/path citation coverage.
+- [x] Task 3: Validate Konling/path citation coverage.
   Covers: AC-2
   Acceptance: Selected/supporting resources can be cited with clickable or limited citation chips.
   Evidence: targeted citation tests.
