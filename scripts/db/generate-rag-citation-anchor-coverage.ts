@@ -207,7 +207,7 @@ export function textbookCorpusItem(
   const sourceHash = normalizeSha256(candidate.sourceHash);
   const citationAddress = {
     kind: target ? target.address.kind : toCitationAddressKind(candidate.kind),
-    href: target?.address.href ?? null,
+    href: ready ? target!.address.href : null,
     locator: target?.address.locator ?? candidate.pageAnchor,
     contentHash: normalizeSha256(target?.address.contentHash ?? candidate.sourceHash),
     sourceRefId: target?.address.sourceRefId ?? candidate.documentId,
@@ -283,7 +283,7 @@ function mediaCorpusItem(item: MediaReviewItem): CorpusItem {
   ]);
   const citationAddress = {
     kind: toCitationAddressKind(item.resourceKind),
-    href,
+    href: ready ? href : null,
     locator: item.resourceId,
     contentHash: normalizedSourceHash,
     sourceRefId: item.resourceId,

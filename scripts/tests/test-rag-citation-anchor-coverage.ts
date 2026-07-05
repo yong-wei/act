@@ -133,7 +133,7 @@ assert(
     item.limitationState.length > 0 &&
     item.authority.length > 0 &&
     item.privacyScope.length > 0 &&
-    (!item.citationAddress.href || item.citationAddress.href.startsWith('/course-runtime/')) &&
+    item.citationAddress.href === null &&
     isLimitedCitationChip(item)
   ),
   'limited media rows must preserve review metadata, limitation state, and limited CitationChip payloads',
@@ -205,6 +205,7 @@ function assertMissingTextbookTargetDowngradesToLimited() {
   assert(item.citationTargetId === null, 'missing target artifact must not claim a CitationTarget');
   assert(item.retrievalChunkId === null, 'missing target artifact must not claim a retrieval chunk');
   assert(item.citationChip.displayHref === null, 'missing target CitationChip must not be clickable');
+  assert(item.citationAddress.href === null, 'missing target CitationAddress must not be hydratable');
   assert(item.citationChip.authorityLevel === 'contextual', 'missing target CitationChip must be authority downgraded');
   assert(item.citationChip.confidence === 'medium', 'missing target CitationChip must be confidence downgraded');
   assert((item as any).sourceVersionRef.groundingVersion === 'textbook-media-grounding.v1', 'missing target artifact must preserve grounding version lineage');
@@ -220,6 +221,7 @@ function assertUnreviewedTextbookTargetDowngradesToLimited() {
   assert(item.citationTargetId === 'citation-target:synthetic', 'unreviewed limited artifact may retain target lineage');
   assert(item.retrievalChunkId === 'retrieval-chunk:synthetic', 'unreviewed limited artifact may retain chunk lineage');
   assert(item.citationChip.displayHref === null, 'unreviewed CitationChip must not be clickable');
+  assert(item.citationAddress.href === null, 'unreviewed CitationAddress must not be hydratable');
   assert(item.citationChip.authorityLevel === 'contextual', 'unreviewed CitationChip must be authority downgraded');
   assert(item.citationChip.confidence === 'medium', 'unreviewed CitationChip must be confidence downgraded');
 }
