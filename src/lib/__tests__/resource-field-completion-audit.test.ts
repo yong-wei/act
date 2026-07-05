@@ -142,37 +142,37 @@ describe('resource field completion audit', () => {
     });
     const stableSourceRefs = new Set(dispositionReviewItems.map((item) => item.stableSourceRef));
     const reviewedTextbookOverviewRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-textbook-overview-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-textbook-overview-disposition-review-2026-07-05'
     );
     const reviewedAuthoringTextbookRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-authoring-textbook-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-authoring-textbook-disposition-review-2026-07-05'
     );
     const reviewedRuntimeHandoutRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-runtime-handout-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-runtime-handout-disposition-review-2026-07-05'
     );
     const reviewedKnowledgeInfographRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-knowledge-infograph-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-knowledge-infograph-disposition-review-2026-07-05'
     );
     const reviewedKnowledgeCardRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-knowledge-card-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-knowledge-card-disposition-review-2026-07-05'
     );
     const reviewedAuthoringTextbookFigureDispositionRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-authoring-textbook-figure-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-authoring-textbook-figure-disposition-review-2026-07-05'
     );
     const reviewedAuthoringTextbookCaptionDispositionRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-authoring-textbook-caption-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-authoring-textbook-caption-disposition-review-2026-07-05'
     );
     const reviewedRuntimeLessonStepRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-runtime-lesson-step-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-runtime-lesson-step-disposition-review-2026-07-05'
     );
     const reviewedRuntimeLessonModuleRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-runtime-lesson-module-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-runtime-lesson-module-disposition-review-2026-07-05'
     );
     const reviewedRuntimeLessonMediaRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-runtime-lesson-media-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-runtime-lesson-media-disposition-review-2026-07-05'
     );
     const reviewedRegisteredResourceRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-registered-resource-disposition-review-2026-07-06'
+      item.reviewBatchId === 'residual-registered-resource-disposition-review-2026-07-05'
     );
     const figureIndexFromResourceId = (resourceId: string) => {
       const match = resourceId.match(/:figure-([^:]+)$/);
