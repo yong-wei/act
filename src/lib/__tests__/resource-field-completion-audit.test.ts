@@ -267,6 +267,7 @@ describe('resource field completion audit', () => {
     expect(reviewedAuthoringTextbookRows.every((item) =>
       item.classification === 'supporting-citation' &&
       item.sourceHash?.startsWith('sha256:') &&
+      item.sourceVersionRef === 'authoring-textbook-manifest.v1' &&
       item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
       !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
     )).toBe(true);
