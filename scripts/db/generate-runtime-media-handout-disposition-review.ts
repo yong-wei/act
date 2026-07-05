@@ -188,7 +188,7 @@ async function scopedWorkqueueItem(
 }
 
 function reviewItemFor(item: ScopedWorkqueueItem, row: RuntimeProjectionRow | undefined): ReviewItem {
-  const disposition = dispositionFor(item);
+  const disposition = dispositionFor(item, row);
   const anchorState = citationAnchorStateFor(item);
   const sourceHash = item.repairedSourceHash ?? item.sourceHash;
   const limitationState = limitationStateFor(sourceHash, anchorState);
@@ -226,9 +226,15 @@ function reviewItemFor(item: ScopedWorkqueueItem, row: RuntimeProjectionRow | un
   };
 }
 
-function dispositionFor(item: ScopedWorkqueueItem): ReviewItem['disposition'] {
+function dispositionFor(item: ScopedWorkqueueItem, row?: RuntimeProjectionRow): ReviewItem['disposition'] {
   if (item.resourceId === 'runtime-media:1-1:1-1-intro-video') return 'excluded-with-rationale';
-  if (item.resourceKind === 'handout' && item.family === 'runtime-lesson-media') return 'evidence-producing';
+  if (
+    item.resourceKind === 'handout' &&
+    item.family === 'runtime-lesson-media' &&
+    (row?.evidenceInstrumentation ?? []).length > 0
+  ) {
+    return 'evidence-producing';
+  }
   if (item.family === 'runtime-handout') return 'supporting-citation';
   return item.sourcePathOrUrl?.startsWith('course-content/')
     ? 'embedded-asset'

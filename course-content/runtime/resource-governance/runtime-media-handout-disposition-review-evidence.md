@@ -39,4 +39,4 @@ Selected remaining: 0
 | runtime-media:1-1:1-1-root-locus-example.png | image | embedded-asset | figure-anchor-ready | yes | no |
 | runtime-media:1-1:1-1-slides | slides | supporting-citation | page-anchor-required | no | no |
 | runtime-media:1-1:1-1-step-response-first-order.png | image | embedded-asset | figure-anchor-ready | yes | no |
-| runtime-media:1-1:generated-data/1-1-analysis-data.txt | handout | evidence-producing | data-appendix-anchor-required | yes | no |
+| runtime-media:1-1:generated-data/1-1-analysis-data.txt | handout | embedded-asset | data-appendix-anchor-required | yes | no |

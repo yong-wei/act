@@ -14,6 +14,7 @@ interface ReviewItem {
   disposition: string;
   citationAnchorState: string;
   sourceHash: string | null;
+  evidenceInstrumentation: string[];
   reviewerVisibleRationale: string;
   promotedAsPathNode: boolean;
   rawContentIncluded: boolean;
@@ -69,6 +70,15 @@ assert(
     item.rawContentIncluded === false
   ),
   'every reviewed row must carry disposition, anchor state, rationale, and no PathNode promotion',
+);
+assert(
+  reviewItems.every((item) => item.disposition !== 'evidence-producing' || item.evidenceInstrumentation.length > 0),
+  'evidence-producing resources must declare evidence instrumentation',
+);
+assert(
+  reviewItems.find((item) => item.resourceId === 'runtime-media:1-1:generated-data/1-1-analysis-data.txt')
+    ?.disposition !== 'evidence-producing',
+  'generated data without instrumentation must not be marked evidence-producing',
 );
 assert(
   reviewItems.some((item) => item.resourceId === 'runtime-handout:1-1' && item.sourceHash?.startsWith('sha256:')),

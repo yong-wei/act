@@ -22,9 +22,8 @@
     "promotedAsPathNode": 0,
     "dispositions": {
       "supporting-citation": 4,
-      "embedded-asset": 14,
-      "excluded-with-rationale": 1,
-      "evidence-producing": 1
+      "embedded-asset": 15,
+      "excluded-with-rationale": 1
     },
     "citationAnchorStates": {
       "document-section-anchor-required": 1,
