@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import { buildGeneratedQuestion, PRESET_QUESTIONS } from '@/features/assessment/adaptive-question-bank';
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
-import { FIRST_BATCH_LEARNING_GOAL_IDS } from '@/lib/learning-goal-resource-baseline';
 
 import {
   buildAdaptiveAssessmentItemCatalog,
@@ -18,8 +17,8 @@ import {
 } from '../learning-goal-assessment-coverage';
 
 function goals() {
-  return FIRST_BATCH_LEARNING_GOAL_IDS.map((goalId) => {
-    const definition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId].learningGoal!;
+  return Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).map((registeredGoal) => {
+    const definition = registeredGoal.learningGoal!;
     return {
       id: definition.id,
       title: definition.title,
@@ -27,6 +26,10 @@ function goals() {
       acceptedTerminalEvidenceTypes: definition.terminalValidationPolicy.acceptedEvidenceTypes,
     };
   });
+}
+
+function goalIds() {
+  return goals().map((goal) => goal.id);
 }
 
 describe('LearningGoal assessment coverage', () => {
@@ -59,7 +62,7 @@ describe('LearningGoal assessment coverage', () => {
     });
 
     expect(artifacts.matrix.stageRequirements).toEqual(LEARNING_GOAL_ASSESSMENT_STAGE_REQUIREMENTS);
-    expect(artifacts.matrix.batchLearningGoalIds).toEqual([...FIRST_BATCH_LEARNING_GOAL_IDS]);
+    expect(artifacts.matrix.batchLearningGoalIds).toEqual(goalIds());
     expect(artifacts.matrix.totals).toMatchObject({
       learningGoalCount: 9,
       complete: 9,

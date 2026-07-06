@@ -8,9 +8,13 @@ import { buildGraphCenterPayload } from '../data-governance/graph-center';
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '../adaptive-learning-path-planner';
 import {
   buildLearningGoalResourceBaselineArtifacts,
-  FIRST_BATCH_LEARNING_GOAL_IDS,
   LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
 } from '../learning-goal-resource-baseline';
+import {
+  FULL_RESOURCE_PATH_READINESS_GATE_VERSION,
+  REQUIRED_PATH_READINESS_RESOURCE_FAMILIES,
+  buildFullResourcePathReadinessGate,
+} from '../full-resource-path-readiness-gate';
 import {
   buildResourceFieldCompletionAudit,
   RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
@@ -133,6 +137,14 @@ describe('resource field completion audit', () => {
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-human-review-integrity-diagnostics.json'),
       'utf8',
     ));
+    const fullResourcePathReadinessGate = JSON.parse(readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/full-resource-path-readiness-gate-summary.json'),
+      'utf8',
+    ));
+    const fullResourcePathReadinessEvidence = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/full-resource-path-readiness-gate-evidence.md'),
+      'utf8',
+    );
     const rowsMissingFields = jsonlRows.filter((row) => row.missingFieldCodes.length > 0);
     const unresolvedDispositionRows = dispositionReviewItems.filter((item) =>
       item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
@@ -456,6 +468,67 @@ describe('resource field completion audit', () => {
     expect(humanReviewIntegrity.invalidHumanConfirmedRows).toBeLessThanOrEqual(
       humanReviewIntegrity.humanConfirmedRows,
     );
+    expect(fullResourcePathReadinessGate).toMatchObject({
+      artifactVersion: FULL_RESOURCE_PATH_READINESS_GATE_VERSION,
+      status: 'failed',
+      resourceCoverage: {
+        totalResources: summary.totals.denominator,
+        unaccountedCount: dispositionReviewSummary.totals.unresolvedDispositionBlockers,
+        unresolvedDownstreamPathBlockers: dispositionReviewSummary.downstreamBlockers['path-readiness'] +
+          dispositionReviewSummary.downstreamBlockers['runtime-identity'] +
+          dispositionReviewSummary.downstreamBlockers.dependency,
+        evidenceLineageBlockerCount: evidenceLineageSummary.evidenceLineageBlockerCount,
+      },
+      learningGoalDiagnostics: {
+        registeredLearningGoals: Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).length,
+        diagnosedLearningGoals: Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).length,
+        missingDiagnosticLearningGoalIds: [],
+        attemptedPathGenerationCount: Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).length,
+        notEvaluatedPathGenerationCount: 0,
+        resourceMixCheckedLearningGoals: 0,
+        resourceMixNotEvaluatedLearningGoals: Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).length,
+        citationNotEvaluatedLearningGoals: Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).length,
+      },
+    });
+    expect(fullResourcePathReadinessGate.learningGoalDiagnostics.gapDiagnostics).toHaveLength(
+      Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).length,
+    );
+    expect(fullResourcePathReadinessGate.learningGoalDiagnostics.gapDiagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        learningGoalId: 'frequency-response-foundations',
+        coverageState: 'limited',
+        missingBaselineCategories: ['diagnostic', 'practice', 'checkpoint', 'remediation'],
+        reviewedBindingCount: expect.any(Number),
+      }),
+    ]));
+    expect(fullResourcePathReadinessGate.futureResourceImportCoverage.missingAuditedFamilies).toEqual([]);
+    expect(fullResourcePathReadinessGate.futureResourceImportCoverage.requiredFamilies).toEqual([
+      ...REQUIRED_PATH_READINESS_RESOURCE_FAMILIES,
+    ]);
+    expect(fullResourcePathReadinessGate.futureResourceImportCoverage.requiredResourceTypes).toEqual(expect.arrayContaining([
+      'quiz',
+      'simulation',
+      'arena_task',
+      'slides',
+      'video',
+      'image-description',
+    ]));
+    expect(fullResourcePathReadinessGate.findings.map((finding) => finding.id)).toEqual(expect.arrayContaining([
+      'unresolved-downstream-path-blockers',
+      'unreviewed-resource-semantics',
+      'unresolved-graph-node-resource-missing',
+      'yang-fan-fixture-blockers',
+      'learning-goal-path-generation-blocked',
+      'learning-goal-baseline-limited',
+      'resource-type-audit-missing',
+    ]));
+    expect(fullResourcePathReadinessEvidence).toContain('# Full Resource Path Readiness Gate');
+    expect(fullResourcePathReadinessEvidence).toContain('Missing diagnostics: none');
+    expect(fullResourcePathReadinessEvidence).toContain('frequency-response-foundations: limited');
+    expect(fullResourcePathReadinessEvidence).toContain('Attempted path generations: 9');
+    expect(fullResourcePathReadinessEvidence).toContain('Unresolved downstream path blockers: 17713');
+    expect(fullResourcePathReadinessEvidence).toContain('Resource mix not evaluated: 9');
+    expect(fullResourcePathReadinessEvidence).toContain('Citation metadata not evaluated: 9');
     const knowledgeCardRows = jsonlRows.filter((row) => row.family === 'knowledge-card');
     const cardFiles = readdirSync(join(process.cwd(), 'course-content/runtime/knowledge/cards/nodes'))
       .filter((file) => file.endsWith('.md'))
@@ -1240,7 +1313,7 @@ describe('resource field completion audit', () => {
     expect(result.evidenceLineage.items).toHaveLength(0);
   });
 
-  it('materializes LearningGoal baseline artifacts for the fixed first batch', () => {
+  it('materializes LearningGoal baseline artifacts for every registered backend goal', () => {
     const matrix = JSON.parse(readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/learning-goal-resource-baseline-matrix.json'),
       'utf8',
@@ -1266,13 +1339,16 @@ describe('resource field completion audit', () => {
       .split('\n')
       .map((line) => JSON.parse(line));
     const auditRowById = new Map(auditRows.map((row) => [row.resourceId, row]));
+    const expectedLearningGoalIds = Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
+      .map((definition) => definition.learningGoal!.id);
 
     expect(matrix.artifactVersion).toBe(LEARNING_GOAL_RESOURCE_BASELINE_VERSION);
-    expect(matrix.batchLearningGoalIds).toEqual([...FIRST_BATCH_LEARNING_GOAL_IDS]);
-    expect(matrix.rows.map((row) => row.learningGoalId)).toEqual([...FIRST_BATCH_LEARNING_GOAL_IDS]);
-    expect(matrix.rows).toHaveLength(9);
+    expect(matrix.registeredLearningGoalIds).toEqual(expectedLearningGoalIds);
+    expect(matrix.batchLearningGoalIds).toEqual(expectedLearningGoalIds);
+    expect(matrix.rows.map((row) => row.learningGoalId)).toEqual(expectedLearningGoalIds);
+    expect(matrix.rows).toHaveLength(expectedLearningGoalIds.length);
     expect(matrix.totals.reviewedBindings).toBe(reviewedBindings.length);
-    expect(matrix.totals.limited).toBe(9);
+    expect(matrix.totals.limited).toBe(expectedLearningGoalIds.length);
     expect(reviewedBindings).not.toEqual([]);
     expect(new Set(reviewedBindings.map((binding) => binding.learningGoalId))).toEqual(new Set([
       'control-correction',
@@ -1413,10 +1489,127 @@ describe('resource field completion audit', () => {
       });
     }
     expect(limitations.artifactVersion).toBe(LEARNING_GOAL_RESOURCE_BASELINE_VERSION);
-    expect(limitations.totals.learningGoals).toBe(9);
-    expect(limitations.totals.limited).toBe(9);
+    expect(limitations.totals.learningGoals).toBe(expectedLearningGoalIds.length);
+    expect(limitations.totals.limited).toBe(expectedLearningGoalIds.length);
     expect(limitations.limitations.every((item) => item.severity === 'blocking')).toBe(true);
     expect(limitations.limitations.every((item) => item.studentSafeReason && !item.studentSafeReason.includes('internal'))).toBe(true);
+  });
+
+  it('keeps LearningGoal diagnostics tied to the dynamic registry instead of a fixed batch list', () => {
+    const frequencyDefinition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'];
+    const syntheticDefinition = {
+      ...frequencyDefinition,
+      goal: {
+        ...frequencyDefinition.goal,
+        id: 'frequency-response-diagnostic-extension',
+      },
+      displayName: 'Frequency response diagnostic extension',
+      learningGoal: {
+        ...frequencyDefinition.learningGoal!,
+        id: 'frequency-response-diagnostic-extension',
+        title: 'Frequency response diagnostic extension',
+      },
+    };
+    const result = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: {
+        'frequency-response-foundations': frequencyDefinition,
+        'frequency-response-diagnostic-extension': syntheticDefinition,
+      },
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      auditRows: [],
+    });
+
+    expect(result.matrix.registeredLearningGoalIds).toEqual([
+      'frequency-response-foundations',
+      'frequency-response-diagnostic-extension',
+    ]);
+    expect(result.matrix.rows.map((row) => row.learningGoalId)).toEqual([
+      'frequency-response-foundations',
+      'frequency-response-diagnostic-extension',
+    ]);
+    expect(result.limitations.totals.learningGoals).toBe(2);
+  });
+
+  it('fails the full resource gate when diagnostics, diversity, citations, or future import coverage are missing', () => {
+    const report = buildFullResourcePathReadinessGate({
+      generatedAt: '2026-06-24T00:00:00.000Z',
+      resourceSummary: {
+        generatedAt: '2026-06-24T00:00:00.000Z',
+        totals: { denominator: 1 },
+        byFamily: { 'runtime-lesson-step': { denominator: 1 } },
+        byReviewStatus: { 'human-confirmed': 1 },
+      } as never,
+      auditRows: [],
+      workqueueItems: [],
+      dispositionReviewSummary: {
+        totals: {
+          reviewedResources: 1,
+          unresolvedDispositionBlockers: 0,
+        },
+        downstreamBlockers: {
+          'path-readiness': 2,
+          'runtime-identity': 1,
+        },
+      },
+      evidenceLineageSummary: {
+        evidenceLineageBlockerCount: 0,
+        yangFanFixtureBlockers: {
+          blocked: false,
+          blockerCount: 0,
+          blockerFamilies: {},
+          reason: 'none',
+        },
+      } as never,
+      learningGoalBaselineMatrix: {
+        registeredLearningGoalIds: ['goal-a', 'goal-b'],
+        batchLearningGoalIds: ['goal-a', 'goal-b'],
+        rows: [{
+          learningGoalId: 'goal-a',
+          coverageState: 'complete',
+          selectedReviewedBindingIds: ['goal-a:concept:resource-a'],
+          missingBaselineCategories: [],
+          limitationReason: null,
+          denominator: {
+            reviewedBindingCount: 1,
+          },
+        }],
+      } as never,
+      reviewedBindings: [{
+        bindingId: 'goal-a:concept:resource-a',
+        learningGoalId: 'goal-a',
+        resourceId: 'resource-a',
+        resourceType: 'lesson_step',
+        sourcePathOrUrl: '/lesson/step',
+        sourceHash: 'sha256:resource-a',
+        sourceVersionRef: null,
+      } as never],
+      pathGenerationDiagnostics: [{
+        learningGoalId: 'goal-a',
+        attempted: true,
+        generationStatus: 'ready',
+        fallbackReasons: [],
+        blockingReasons: [],
+        selectedResourceIds: ['resource-a'],
+        selectedResourceTypes: ['lesson_step'],
+        resourceCount: 1,
+        resourceTypeCount: 1,
+        unreviewedSelectedResourceIds: [],
+        missingCitationMetadataResourceIds: ['resource-a'],
+      }],
+    });
+
+    expect(report.status).toBe('failed');
+    expect(report.resourceCoverage.unresolvedDownstreamPathBlockers).toBe(3);
+    expect(report.learningGoalDiagnostics.missingDiagnosticLearningGoalIds).toEqual(['goal-b']);
+    expect(report.findings.map((finding) => finding.id)).toEqual(expect.arrayContaining([
+      'unresolved-downstream-path-blockers',
+      'learning-goal-diagnostics-missing',
+      'learning-goal-path-generation-not-evaluated',
+      'single-resource-fallback-risk',
+      'single-family-fallback-risk',
+      'learning-goal-citation-failures',
+      'resource-family-audit-missing',
+    ]));
   });
 
   it('keeps provisional baseline rows out of path-eligible LearningGoal coverage', () => {

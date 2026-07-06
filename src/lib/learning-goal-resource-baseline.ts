@@ -15,18 +15,6 @@ import type {
 
 export const LEARNING_GOAL_RESOURCE_BASELINE_VERSION = 'learning-goal-resource-baseline.v1';
 
-export const FIRST_BATCH_LEARNING_GOAL_IDS = [
-  'control-correction',
-  'frequency-response-foundations',
-  'feedback-loop-concept-foundations',
-  'transfer-function-modeling-foundations',
-  'time-domain-response-analysis',
-  'root-locus-analysis-foundations',
-  'stability-margin-frequency-analysis',
-  'simulation-validation-practice',
-  'ship-ocean-transfer-application',
-] as const;
-
 export type LearningGoalBaselineCategory =
   | 'concept'
   | 'diagnostic'
@@ -135,6 +123,7 @@ export interface LearningGoalResourceBaselineArtifacts {
     generatedAt: string;
     sourceWindow: ResourceFieldSourceWindow;
     versionRefs: KaqArtifactVersionRefs;
+    registeredLearningGoalIds: string[];
     batchLearningGoalIds: string[];
     rows: LearningGoalResourceBaselineMatrixRow[];
     totals: {
@@ -173,19 +162,16 @@ export function buildLearningGoalResourceBaselineArtifacts(input: {
     resourceRegistryVersion: RESOURCE_NODE_REGISTRY_VERSION,
     resourceProjectionVersion: RESOURCE_SEMANTIC_PROJECTION_VERSION,
   });
-  const rows = FIRST_BATCH_LEARNING_GOAL_IDS
-    .map((goalId) => {
-      const registeredGoal = input.registeredGoals[goalId];
-      if (!registeredGoal?.learningGoal) return null;
-      return buildMatrixRow({
-        registeredGoal,
-        auditRows: input.auditRows,
-        generatedAt,
-        sourceWindow,
-        versionRefs,
-      });
-    })
-    .filter((row): row is LearningGoalResourceBaselineMatrixRow => Boolean(row));
+  const registeredGoals = Object.values(input.registeredGoals)
+    .filter((registeredGoal) => Boolean(registeredGoal.learningGoal));
+  const registeredLearningGoalIds = registeredGoals.map((registeredGoal) => registeredGoal.learningGoal!.id);
+  const rows = registeredGoals.map((registeredGoal) => buildMatrixRow({
+    registeredGoal,
+    auditRows: input.auditRows,
+    generatedAt,
+    sourceWindow,
+    versionRefs,
+  }));
   const reviewedBindings = rows.flatMap((row) => row.selectedReviewedBindingIds)
     .map((bindingId) => reviewedBindingById.get(bindingId))
     .filter((binding): binding is LearningGoalResourceBaselineReviewedBinding => Boolean(binding))
@@ -216,7 +202,8 @@ export function buildLearningGoalResourceBaselineArtifacts(input: {
       generatedAt,
       sourceWindow,
       versionRefs,
-      batchLearningGoalIds: [...FIRST_BATCH_LEARNING_GOAL_IDS],
+      registeredLearningGoalIds,
+      batchLearningGoalIds: registeredLearningGoalIds,
       rows,
       totals: {
         learningGoals: rows.length,

@@ -16,7 +16,6 @@ import {
   learningGoalAssessmentCoverageArtifactsToFiles,
 } from '@/features/adaptive-assessment/learning-goal-assessment-coverage';
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
-import { FIRST_BATCH_LEARNING_GOAL_IDS } from '@/lib/learning-goal-resource-baseline';
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
@@ -25,6 +24,7 @@ const MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-assessment-coverage-mat
 const BASELINE_MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
 
 type LearningGoalResourceBaselineMatrix = {
+  registeredLearningGoalIds?: string[];
   batchLearningGoalIds?: string[];
   rows?: Array<{
     learningGoalId?: string;
@@ -82,6 +82,16 @@ async function loadRegisteredSemanticIds() {
   };
 }
 
+async function loadRegisteredLearningGoalIdsInBaselineOrder() {
+  const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
+  return [
+    ...(matrix.registeredLearningGoalIds ?? matrix.batchLearningGoalIds ?? []),
+    ...(matrix.rows ?? []).map((row) => row.learningGoalId),
+  ].filter((value, index, values): value is string => (
+    Boolean(value) && values.indexOf(value) === index
+  ));
+}
+
 async function loadLearningGoalSemanticBoundaries() {
   const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
   return new Map((matrix.rows ?? [])
@@ -119,7 +129,8 @@ async function main() {
     ],
   );
   const learningGoalSemanticBoundaries = await loadLearningGoalSemanticBoundaries();
-  const goals = FIRST_BATCH_LEARNING_GOAL_IDS.map((goalId) => {
+  const registeredSemanticIds = await loadRegisteredSemanticIds();
+  const goals = (await loadRegisteredLearningGoalIdsInBaselineOrder()).map((goalId) => {
     const definition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId].learningGoal!;
     return {
       id: definition.id,
@@ -129,11 +140,11 @@ async function main() {
       semanticBoundary: learningGoalSemanticBoundaries.get(definition.id),
     };
   });
-  const registeredSemanticIds = await loadRegisteredSemanticIds();
   const artifacts = buildLearningGoalAssessmentCoverageArtifacts({
     items: catalog.items,
     decisions,
     goals,
+    generatedAt: process.env.RESOURCE_FIELD_COMPLETION_GENERATED_AT,
     knownLearningGoalIds: registeredSemanticIds.learningGoalIds,
     knownKaqObjectiveIds: registeredSemanticIds.kaqObjectiveIds,
     knownGraphNodeIds: registeredSemanticIds.graphNodeIds,
