@@ -882,6 +882,10 @@ async function main() {
   console.log(`LearningGoal baseline reviewed bindings: ${baselineArtifacts.reviewedBindings.length}`);
   console.log(`Full resource path readiness gate: ${fullResourcePathReadinessGate.status}`);
   console.log(`Full resource path readiness summary: ${path.relative(process.cwd(), FULL_RESOURCE_PATH_READINESS_GATE_JSON_PATH)}`);
+  if (fullResourcePathReadinessGate.status === 'failed') {
+    console.error('Full resource path readiness gate failed; see generated summary and evidence artifacts for blocking findings.');
+    process.exitCode = 1;
+  }
 }
 
 function flattenWorkqueueItems(workqueues: ReturnType<typeof buildResourceFieldCompletionAudit>['workqueues']) {
