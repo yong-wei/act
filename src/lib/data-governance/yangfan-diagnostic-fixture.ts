@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '../adaptive-learning-path-planner';
 import {
   refreshStudentEvidenceFeatureCache,
   type StudentEvidenceFeatureCacheDb,
@@ -361,7 +362,7 @@ export async function resetYangFanDiagnosticFixture(
   const write = async (tx: YangFanDiagnosticFixtureDb) => {
     const resolved = await resolveResettableAccount(tx, options);
     await resetFixtureRows(tx, resolved.canonical.id);
-    await refreshStudentEvidenceFeatureCache(tx as unknown as StudentEvidenceFeatureCacheDb, resolved.canonical.id, {
+    await refreshOrDeleteEvidenceFeatureCacheAfterReset(tx, resolved.canonical.id, {
       now,
       staleAfterDays: options.staleAfterDays,
     });
@@ -717,6 +718,46 @@ async function resetFixtureRows(
     await db.studentProfileSummary?.deleteMany({ where: { userId: canonicalUserId } });
   }
 }
+
+async function refreshOrDeleteEvidenceFeatureCacheAfterReset(
+  db: YangFanDiagnosticFixtureDb,
+  canonicalUserId: string,
+  options: StudentEvidenceFeatureRefreshOptions,
+) {
+  if (await hasRemainingEvidenceFeatureSources(db, canonicalUserId)) {
+    await refreshStudentEvidenceFeatureCache(db as unknown as StudentEvidenceFeatureCacheDb, canonicalUserId, options);
+    return;
+  }
+  await db.studentEvidenceFeatureCache.deleteMany({ where: { userId: canonicalUserId } });
+}
+
+async function hasRemainingEvidenceFeatureSources(db: YangFanDiagnosticFixtureDb, canonicalUserId: string) {
+  const [
+    facts,
+    snapshots,
+    profileSummary,
+    pathExecutions,
+    pathDeviations,
+    pathInterventions,
+  ] = await Promise.all([
+    db.learningFact.findMany({ where: { userId: canonicalUserId }, select: { id: true }, take: 1 }),
+    db.studentCompetencySnapshot?.findMany?.({ where: { userId: canonicalUserId }, select: { id: true }, take: 1 }) ?? [],
+    db.studentProfileSummary?.findUnique({ where: { userId: canonicalUserId }, select: { userId: true } }) ?? null,
+    db.learningPathExecution?.findMany({ where: { userId: canonicalUserId, ...REGISTERED_LEARNING_PATH_EVIDENCE_WHERE }, select: { id: true }, take: 1 }) ?? [],
+    db.learningPathDeviation?.findMany({ where: { userId: canonicalUserId, ...REGISTERED_LEARNING_PATH_EVIDENCE_WHERE }, select: { id: true }, take: 1 }) ?? [],
+    db.learningPathIntervention?.findMany({ where: { userId: canonicalUserId, ...REGISTERED_LEARNING_PATH_EVIDENCE_WHERE }, select: { id: true }, take: 1 }) ?? [],
+  ]);
+  return facts.length > 0
+    || snapshots.length > 0
+    || Boolean(profileSummary)
+    || pathExecutions.length > 0
+    || pathDeviations.length > 0
+    || pathInterventions.length > 0;
+}
+
+const REGISTERED_LEARNING_PATH_EVIDENCE_WHERE = {
+  path: { goalId: { in: Object.keys(ADAPTIVE_LEARNING_GOAL_DEFINITIONS) } },
+} as const;
 
 function pathData(userId: string, entryNodeId: string, terminalNodeId: string, now: Date) {
   return {

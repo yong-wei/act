@@ -534,6 +534,156 @@ describe('Yang Fan diagnostic fixture', () => {
     });
   });
 
+  it('deletes evidence feature cache on reset when no non-fixture sources remain', async () => {
+    const db = createDbWithoutDuplicate();
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    await resetYangFanDiagnosticFixture(db, plan, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(db.studentEvidenceFeatureCache.upsert).not.toHaveBeenCalled();
+    expect(db.studentEvidenceFeatureCache.deleteMany).toHaveBeenCalledWith({
+      where: { userId: 'user-canonical' },
+    });
+  });
+
+  it('refreshes evidence feature cache on reset when non-fixture sources remain', async () => {
+    const realFact = {
+      id: 'real-learning-fact',
+      userId: 'user-canonical',
+      factType: 'question',
+      moduleId: 'module-real',
+      sessionId: 'session-real',
+      startedAt: new Date('2026-07-01T00:00:00.000Z'),
+      finishedAt: new Date('2026-07-01T00:02:00.000Z'),
+      outcome: 'success',
+      score: 1,
+      timeSpent: 120,
+      competencyContribution: {},
+      sourceEventId: 'real-event',
+      sourceLogId: 'real-log',
+      courseId: 'control',
+      lessonId: 'lesson-real',
+      contextJson: {},
+    };
+    const db = createDbWithoutDuplicate({
+      learningFact: {
+        findMany: vi.fn(async (args: Record<string, any>) => (
+          args?.where?.userId === 'user-canonical' ? [realFact] : []
+        )),
+        createMany: vi.fn(async () => ({ count: 4 })),
+        deleteMany: vi.fn(async () => ({ count: 4 })),
+      },
+    });
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    await resetYangFanDiagnosticFixture(db, plan, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(db.studentEvidenceFeatureCache.upsert).toHaveBeenCalled();
+    expect(db.studentEvidenceFeatureCache.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('deletes evidence feature cache on reset when only unregistered path rows remain', async () => {
+    const db = createDbWithoutDuplicate({
+      learningPathExecution: {
+        createMany: vi.fn(async () => ({ count: 2 })),
+        deleteMany: vi.fn(async () => ({ count: 2 })),
+        findMany: vi.fn(async (args: Record<string, any>) => (
+          args?.where?.path?.goalId?.in ? [] : [{
+            id: 'legacy-execution',
+            userId: 'user-canonical',
+            path: { goalId: 'legacy-goal' },
+          }]
+        )),
+      },
+    });
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    await resetYangFanDiagnosticFixture(db, plan, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(db.studentEvidenceFeatureCache.upsert).not.toHaveBeenCalled();
+    expect(db.studentEvidenceFeatureCache.deleteMany).toHaveBeenCalledWith({
+      where: { userId: 'user-canonical' },
+    });
+  });
+
+  it('refreshes evidence feature cache on reset when registered path rows remain', async () => {
+    const registeredPathExecution = {
+      id: 'registered-execution',
+      pathId: 'registered-path',
+      userId: 'user-canonical',
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      startedAt: new Date('2026-07-01T00:00:00.000Z'),
+      completedAt: new Date('2026-07-01T00:02:00.000Z'),
+      createdAt: new Date('2026-07-01T00:00:00.000Z'),
+      path: { goalId: 'control-correction' },
+    };
+    const db = createDbWithoutDuplicate({
+      learningPathExecution: {
+        createMany: vi.fn(async () => ({ count: 2 })),
+        deleteMany: vi.fn(async () => ({ count: 2 })),
+        findMany: vi.fn(async (args: Record<string, any>) => (
+          args?.where?.path?.goalId?.in ? [registeredPathExecution] : []
+        )),
+      },
+    });
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    await resetYangFanDiagnosticFixture(db, plan, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(db.studentEvidenceFeatureCache.upsert).toHaveBeenCalled();
+    expect(db.studentEvidenceFeatureCache.deleteMany).not.toHaveBeenCalled();
+  });
+
   it('requires explicit confirmation before reset writes', async () => {
     const db = createDb();
     const plan = await buildYangFanDiagnosticFixturePlan(db, {
