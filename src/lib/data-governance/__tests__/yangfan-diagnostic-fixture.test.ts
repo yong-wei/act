@@ -201,6 +201,30 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(result.warnings).toContain('yang-fan-fixture-limited-coverage');
   });
 
+  it('recomputes limited-coverage warnings from the apply readiness summary', async () => {
+    const db = createDbWithoutDuplicate();
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.canApply).toBe(true);
+    expect(plan.warnings).not.toContain('yang-fan-fixture-limited-coverage');
+
+    const result = await applyYangFanDiagnosticFixture(db, plan, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: globallyBlockedButFixtureReadySummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(result.warnings).toContain('yang-fan-fixture-limited-coverage');
+  });
+
   it('requires explicit apply confirmation and a fixture-safe database', async () => {
     const db = createDb();
     const productionPlan = await buildYangFanDiagnosticFixturePlan(db, {
