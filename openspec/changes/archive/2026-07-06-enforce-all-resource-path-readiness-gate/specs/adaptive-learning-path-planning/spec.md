@@ -17,7 +17,7 @@ The adaptive path planner SHALL expose diagnostics proving every backend-registe
 - **WHEN** a LearningGoal still lacks sufficient path resources after all resources are classified
 - **THEN** diagnostics SHALL report the exact missing graph, resource, evidence, citation, or policy dimension
 - **AND** the student-facing path surface SHALL receive an actionable low-resource state rather than a permission-style failure.
- 
+
 ### Requirement: Path explanations cite governed selected and supporting resources
 Generated path explanations and Konling path advice SHALL cite governed resources used by the planner.
 
