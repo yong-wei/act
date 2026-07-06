@@ -296,6 +296,76 @@ describe('Yang Fan diagnostic fixture', () => {
     }));
   });
 
+  it('blocks apply when required fixture knowledge nodes are missing', async () => {
+    const db = createDbWithoutDuplicate({
+      knowledgeNode: {
+        findMany: vi.fn(async () => [{ id: '性能指标_1_1' }]),
+      },
+    });
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.canApply).toBe(false);
+    expect(plan.blockers).toContain('fixture-knowledge-nodes-missing');
+    expect(plan.plannedCounts.KnowledgeProgress).toBe(1);
+    await expect(applyYangFanDiagnosticFixture(db, plan, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    })).rejects.toThrow('fixture-knowledge-nodes-missing');
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+    expect(db.knowledgeProgress?.createMany).not.toHaveBeenCalled();
+  });
+
+  it('rechecks fixture knowledge nodes before applying a reused plan', async () => {
+    let knowledgeNodeReadCount = 0;
+    const db = createDbWithoutDuplicate({
+      knowledgeNode: {
+        findMany: vi.fn(async () => {
+          knowledgeNodeReadCount += 1;
+          return knowledgeNodeReadCount === 1
+            ? [
+                { id: '性能指标_1_1' },
+                { id: '根轨迹_1_1' },
+                { id: '传统设计四联图校正_4_47004' },
+              ]
+            : [];
+        }),
+      },
+    });
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.canApply).toBe(true);
+    await expect(applyYangFanDiagnosticFixture(db, plan, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    })).rejects.toThrow('fixture-knowledge-nodes-missing');
+    expect(db.learningFact.deleteMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+    expect(db.knowledgeProgress?.deleteMany).not.toHaveBeenCalled();
+    expect(db.knowledgeProgress?.createMany).not.toHaveBeenCalled();
+    expect(db.learningPath?.upsert).not.toHaveBeenCalled();
+    expect(db.learningPath?.deleteMany).not.toHaveBeenCalled();
+    expect(db.learningPathExecution?.deleteMany).not.toHaveBeenCalled();
+    expect(db.learningPathExecution?.createMany).not.toHaveBeenCalled();
+  });
+
   it('blocks unsafe duplicate accounts before apply', async () => {
     const db = createDb({
       learningFact: {
@@ -554,6 +624,23 @@ describe('Yang Fan diagnostic fixture', () => {
         id: { startsWith: 'yangfan-diagnostic-fixture:knowledge-progress:' },
       },
     });
+  });
+
+  it('allows reset planning when fixture knowledge nodes are missing', async () => {
+    const db = createDbWithoutDuplicate({
+      knowledgeNode: {
+        findMany: vi.fn(async () => []),
+      },
+    });
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.blockers).not.toContain('fixture-knowledge-nodes-missing');
   });
 
   it('deletes evidence feature cache on reset when no non-fixture sources remain', async () => {

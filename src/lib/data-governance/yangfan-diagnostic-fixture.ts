@@ -210,11 +210,15 @@ export async function buildYangFanDiagnosticFixturePlan(
     : [];
   const readinessBlockers = readinessSummaryBlockers(options.readinessSummary);
   const safetyBlockers = safetyBlockersForMode(mode, options);
+  const knowledgeNodeBlockers = mode !== 'reset' && canonical && !hasCompleteFixtureKnowledgeNodes(knowledgeNodeIds)
+    ? ['fixture-knowledge-nodes-missing']
+    : [];
   const blockers = [
     ...readinessBlockers,
     ...safetyBlockers,
     ...(!canonical ? ['canonical-yangfan-account-missing'] : []),
     ...(duplicateSafety.unsafe.length ? ['duplicate-yangfan-account-has-unsafe-records'] : []),
+    ...knowledgeNodeBlockers,
     ...canonicalSafety,
   ];
 
@@ -273,9 +277,12 @@ export async function applyYangFanDiagnosticFixture(
     const now = options.now ?? new Date();
     const resolved = await resolveWritableAccounts(tx, options);
     const canonicalUserId = resolved.canonical.id;
+    const knowledgeNodeIds = await loadFixtureKnowledgeNodeIds(tx);
+    if (!hasCompleteFixtureKnowledgeNodes(knowledgeNodeIds)) {
+      throw new Error('Cannot apply Yang Fan diagnostic fixture: fixture-knowledge-nodes-missing');
+    }
     await resetFixtureRows(tx, canonicalUserId);
 
-    const knowledgeNodeIds = await loadFixtureKnowledgeNodeIds(tx);
     const startedAt = new Date(now.getTime() - 60 * 60 * 1000);
     const facts = fixtureLearningFacts(canonicalUserId, startedAt);
     await tx.learningFact.createMany({ data: facts, skipDuplicates: true });
@@ -820,6 +827,10 @@ function isFixtureProfileSummary(row: Record<string, any> | null | undefined) {
 
 function fixtureKnowledgeProgressId(nodeId: string) {
   return `${FIXTURE_KNOWLEDGE_PROGRESS_ID_PREFIX}${hashIdentifier(nodeId)?.slice('sha256:'.length) ?? 'unknown'}`;
+}
+
+function hasCompleteFixtureKnowledgeNodes(knowledgeNodeIds: string[]) {
+  return knowledgeNodeIds.length === FIXTURE_KNOWLEDGE_NODE_IDS.length;
 }
 
 async function loadYangFanCandidates(
