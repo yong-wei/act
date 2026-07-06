@@ -543,7 +543,7 @@ describe('Yang Fan diagnostic fixture', () => {
       skipDuplicates: true,
       data: expect.arrayContaining([
         expect.objectContaining({
-          sourceEventId: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:arena-preview`,
+          sourceEventId: `control-correction-path:${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:arena-preview`,
           contextJson: expect.objectContaining({
             fixture: expect.objectContaining({
               scope: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION,
@@ -558,6 +558,14 @@ describe('Yang Fan diagnostic fixture', () => {
         }),
       ]),
     }));
+    const factRows = vi.mocked(db.learningFact.createMany).mock.calls[0]?.[0]?.data as Array<Record<string, unknown>>;
+    expect(factRows.map((fact) => fact.sourceEventId)).toEqual([
+      `adaptive-assessment:${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:adaptive-answer`,
+      `learning-path:${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:path-execution`,
+      `learning-path:${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:konling-tool-run`,
+      `control-correction-path:${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:arena-preview`,
+    ]);
+    expect(factRows.map((fact) => fact.sourceLogId)).toEqual([null, null, null, null]);
     expect(db.knowledgeProgress?.createMany).toHaveBeenCalledWith(expect.objectContaining({
       skipDuplicates: true,
       data: expect.arrayContaining([

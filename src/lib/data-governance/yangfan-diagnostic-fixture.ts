@@ -423,8 +423,8 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
       outcome: 'success',
       score: 0.82,
       timeSpent: 120,
-      sourceEventId: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:adaptive-answer`,
-      sourceLogId: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:adaptive-answer-log`,
+      sourceEventId: `adaptive-assessment:${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:adaptive-answer`,
+      sourceLogId: null,
       contextJson: {
         fixture: fixtureProvenance('adaptive-assessment'),
         adaptiveAssessment: {
@@ -444,8 +444,8 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
       outcome: 'partial',
       score: 0.64,
       timeSpent: 240,
-      sourceEventId: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:path-execution`,
-      sourceLogId: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:path-execution-log`,
+      sourceEventId: `learning-path:${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:path-execution`,
+      sourceLogId: null,
       contextJson: {
         fixture: fixtureProvenance('path-execution'),
         pathExecution: {
@@ -464,8 +464,8 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
       outcome: 'success',
       score: 0.76,
       timeSpent: 60,
-      sourceEventId: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:konling-tool-run`,
-      sourceLogId: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:konling-tool-run-log`,
+      sourceEventId: `learning-path:${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:konling-tool-run`,
+      sourceLogId: null,
       contextJson: {
         fixture: fixtureProvenance('konling'),
         konling: {
@@ -484,8 +484,8 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
       outcome: 'partial',
       score: 0.58,
       timeSpent: 300,
-      sourceEventId: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:arena-preview`,
-      sourceLogId: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:arena-preview-log`,
+      sourceEventId: `control-correction-path:${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:arena-preview`,
+      sourceLogId: null,
       contextJson: {
         fixture: fixtureProvenance('arena-preview'),
         arena: {
