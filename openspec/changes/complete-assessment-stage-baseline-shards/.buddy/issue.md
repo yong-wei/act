@@ -9,8 +9,7 @@ required_branch:
 depends_on: []
 parent_issue: 786
 blocked_by: []
-blocking:
-  - enforce-all-resource-path-readiness-gate
+blocking: []
 openspec_path: openspec/changes/complete-assessment-stage-baseline-shards
 risk: high
 area: assessment
@@ -25,6 +24,7 @@ Complete a bounded next shard of the lowest-completeness LearningGoal assessment
 - This issue is executable by agents. Semantic review is the implementation method, not a `needs-human` reason.
 - Buddy completion means `remaining:0` for the selected deterministic shard, plus explicit residual counts for unselected assessment rows. It does not claim global assessment completeness.
 - This issue must not add a blockedBy relation to `seed-yangfan-diagnostic-learning-state` and must not block test-account fixture data completion.
+- This issue contributes follow-up evidence for the final readiness gate, but it MUST NOT be added as a GitHub blockedBy edge to an already claimed or in-progress `enforce-all-resource-path-readiness-gate` issue.
 
 ## Scope
 
@@ -83,5 +83,6 @@ Complete a bounded next shard of the lowest-completeness LearningGoal assessment
 - Do not mark the issue `needs-human` merely because semantic review is required.
 - Do not use a global helper denominator as the PR completion gate when this issue selects a shard.
 - Do not add blockedBy or dependency edges from this issue to `seed-yangfan-diagnostic-learning-state`.
+- Do not retroactively block an already claimed or in-progress final readiness gate issue; report residual coverage improvements as follow-up evidence instead.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.

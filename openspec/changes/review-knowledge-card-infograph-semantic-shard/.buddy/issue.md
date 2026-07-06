@@ -9,8 +9,7 @@ required_branch:
 depends_on: []
 parent_issue: 786
 blocked_by: []
-blocking:
-  - enforce-all-resource-path-readiness-gate
+blocking: []
 openspec_path: openspec/changes/review-knowledge-card-infograph-semantic-shard
 risk: high
 area: resource-governance
@@ -25,6 +24,7 @@ Complete a bounded semantic-review shard for knowledge cards and infographs so h
 - This issue is executable by agents. Semantic review is required and must be done item by item.
 - Buddy completion means `remaining:0` for the selected knowledge-card/infograph shard, not for every knowledge visual in the project.
 - This issue must not block Yang Fan fixture data completion.
+- This issue contributes follow-up evidence for the final readiness gate, but it MUST NOT be added as a GitHub blockedBy edge to an already claimed or in-progress `enforce-all-resource-path-readiness-gate` issue.
 
 ## Scope
 
@@ -82,5 +82,6 @@ Complete a bounded semantic-review shard for knowledge cards and infographs so h
 - Do not mark the issue `needs-human` merely because semantic review is required.
 - Do not use a global helper denominator as the PR completion gate when this issue selects a shard.
 - Do not add blockedBy or dependency edges from this issue to `seed-yangfan-diagnostic-learning-state`.
+- Do not retroactively block an already claimed or in-progress final readiness gate issue; report residual coverage improvements as follow-up evidence instead.
 - Do not execute other planned OpenSpec changes.
 - Stop if dependency, coupling group, or branch constraints fail.
