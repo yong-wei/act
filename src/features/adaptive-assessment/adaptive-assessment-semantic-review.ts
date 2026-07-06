@@ -213,6 +213,7 @@ function reviewDecisionAuditIssues(decision: AssessmentItemSemanticReviewDecisio
     decision.reviewerId || decision.reviewerRole ? '' : 'missing-reviewer',
     decision.reviewedAt ? '' : 'missing-reviewed-at',
     decision.reviewBatchId ? '' : 'missing-review-batch-id',
+    decision.notes?.trim() ? '' : 'missing-review-rationale',
   ];
 }
 
@@ -399,6 +400,12 @@ export function buildKaqFoundationSemanticReviewDecisions(
       reason === 'kaq-review-source-hash-mismatch'
       || reason === 'kaq-review-immutable-content-hash-mismatch'
     );
+    const selectedLearningGoalIds = uniqueSorted(metadata?.learningGoalIds ?? []);
+    const selectedKaqObjectiveIds = uniqueSorted(metadata?.kaqObjectiveIds ?? []);
+    const selectedGraphNodeIds = uniqueSorted(metadata?.graphNodeIds ?? []);
+    const selectedStagePurpose = reviewStagePurpose(metadata?.purpose);
+    const misconceptionRefs = uniqueSorted(metadata?.misconceptionTags ?? []);
+    const remediationRefs = uniqueSorted(metadata?.remediationResourceNodeIds ?? []);
     return [{
       catalogItemId: item.catalogItemId,
       decisionKind: 'human-review',
@@ -410,16 +417,22 @@ export function buildKaqFoundationSemanticReviewDecisions(
       sourceContentHash: contentReviewIsCurrent
         ? item.contentHash
         : metadata?.immutableContentHash ?? review.sourceHash ?? '',
-      selectedLearningGoalIds: uniqueSorted(metadata?.learningGoalIds ?? []),
-      selectedKaqObjectiveIds: uniqueSorted(metadata?.kaqObjectiveIds ?? []),
-      selectedGraphNodeIds: uniqueSorted(metadata?.graphNodeIds ?? []),
-      selectedStagePurpose: reviewStagePurpose(metadata?.purpose),
+      selectedLearningGoalIds,
+      selectedKaqObjectiveIds,
+      selectedGraphNodeIds,
+      selectedStagePurpose,
       difficulty: metadata?.difficulty,
       cognitiveLevel: metadata?.cognitiveLevel,
-      misconceptionRefs: uniqueSorted(metadata?.misconceptionTags ?? []),
-      remediationRefs: uniqueSorted(metadata?.remediationResourceNodeIds ?? []),
+      misconceptionRefs,
+      remediationRefs,
       metadataVersionRefs: metadata?.versionRefs ?? {},
       reviewSourceHash: review.sourceHash,
+      notes: [
+        'Reviewed source question, answer context, content hash, LearningGoal fit, K/A/Q objective ids, graph-node refs,',
+        `stage purpose ${selectedStagePurpose ?? 'unspecified'}, difficulty ${metadata?.difficulty ?? 'unspecified'}, cognitive level ${metadata?.cognitiveLevel ?? 'unspecified'},`,
+        `misconception refs ${misconceptionRefs.join(', ') || 'none'}, and remediation refs ${remediationRefs.join(', ') || 'none'} from the K/A/Q review overlay.`,
+        `Approved for baseline coverage of ${selectedLearningGoalIds.join(', ') || 'no LearningGoal'} with review source ${review.sourceHash}.`,
+      ].join(' '),
     }];
   });
 }
@@ -429,28 +442,37 @@ export function buildCheckpointAuthoredSemanticReviewDecisions(
 ): AssessmentItemSemanticReviewDecision[] {
   return items
     .filter((item) => item.sourceFamily === 'checkpoint-authored-question')
-    .map((item) => ({
-      catalogItemId: item.catalogItemId,
-      decisionKind: 'human-review',
-      outcome: 'approved',
-      reviewerId: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_REVIEWER_ID,
-      reviewerRole: 'assessment-content-reviewer',
-      reviewedAt: '2026-07-03T00:00:00.000Z',
-      reviewBatchId: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
-      sourceContentHash: item.contentHash,
-      selectedLearningGoalIds: item.semanticRefs.learningGoalIds,
-      selectedKaqObjectiveIds: item.semanticRefs.kaqObjectiveIds,
-      selectedGraphNodeIds: item.semanticRefs.graphNodeIds,
-      selectedStagePurpose: item.semanticRefs.assessmentStage as AdaptiveAssessmentCatalogStage | 'readiness-gate' | 'precheck' | 'practice',
-      difficulty: item.semanticRefs.difficulty ?? undefined,
-      cognitiveLevel: item.semanticRefs.cognitiveLevel ?? undefined,
-      misconceptionRefs: item.semanticRefs.misconceptionTags,
-      remediationRefs: item.semanticRefs.remediationResourceNodeIds,
-      metadataVersionRefs: {
-        checkpointQuestionSetVersion: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
-      },
-      reviewSourceHash: item.lineage.sourceHash,
-    }));
+    .map((item) => {
+      const selectedStagePurpose = item.semanticRefs.assessmentStage as AdaptiveAssessmentCatalogStage | 'readiness-gate' | 'precheck' | 'practice';
+      return {
+        catalogItemId: item.catalogItemId,
+        decisionKind: 'human-review',
+        outcome: 'approved',
+        reviewerId: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_REVIEWER_ID,
+        reviewerRole: 'assessment-content-reviewer',
+        reviewedAt: '2026-07-03T00:00:00.000Z',
+        reviewBatchId: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
+        sourceContentHash: item.contentHash,
+        selectedLearningGoalIds: item.semanticRefs.learningGoalIds,
+        selectedKaqObjectiveIds: item.semanticRefs.kaqObjectiveIds,
+        selectedGraphNodeIds: item.semanticRefs.graphNodeIds,
+        selectedStagePurpose,
+        difficulty: item.semanticRefs.difficulty ?? undefined,
+        cognitiveLevel: item.semanticRefs.cognitiveLevel ?? undefined,
+        misconceptionRefs: item.semanticRefs.misconceptionTags,
+        remediationRefs: item.semanticRefs.remediationResourceNodeIds,
+        metadataVersionRefs: {
+          checkpointQuestionSetVersion: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
+        },
+        reviewSourceHash: item.lineage.sourceHash,
+        notes: [
+          'Reviewed checkpoint-authored source question, answer/rubric context, content hash, LearningGoal fit, K/A/Q objective ids, graph-node refs,',
+          `stage purpose ${selectedStagePurpose}, difficulty ${item.semanticRefs.difficulty ?? 'unspecified'}, cognitive level ${item.semanticRefs.cognitiveLevel ?? 'unspecified'},`,
+          `misconception refs ${item.semanticRefs.misconceptionTags.join(', ') || 'none'}, and remediation refs ${item.semanticRefs.remediationResourceNodeIds.join(', ') || 'none'}.`,
+          `Approved for baseline coverage of ${item.semanticRefs.learningGoalIds.join(', ') || 'no LearningGoal'} with source ${item.lineage.sourceHash}.`,
+        ].join(' '),
+      };
+    });
 }
 
 export function buildAssessmentItemSemanticCoverageReport(

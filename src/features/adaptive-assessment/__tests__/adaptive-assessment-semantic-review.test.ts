@@ -35,6 +35,7 @@ function baseDecision(item: AdaptiveAssessmentCatalogItem): AssessmentItemSemant
     misconceptionRefs: ['misconception:controller-tuning'],
     remediationRefs: ['registry:lesson09-correction-precheck'],
     metadataVersionRefs: item.versionRefs,
+    notes: 'Reviewed source question, answer/rubric context, content hash, LearningGoal fit, K/A/Q objective ids, graph-node refs, stage purpose, difficulty, cognitive level, misconception refs, and remediation refs.',
   };
 }
 
@@ -182,6 +183,35 @@ describe('adaptive assessment semantic review workflow', () => {
       'stale-source-hash',
       'invalid-kaq-objective:knowledge:autocontrol:missing-objective',
     ]));
+  });
+
+  it('requires reviewer-visible rationale for approved human decisions', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
+      kaqReviewedItems: [],
+    });
+    const item = {
+      ...catalog.items[0],
+      reviewState: 'path-eligible' as const,
+      eligibilityState: 'path-eligible' as const,
+      allowedStages: ['readiness' as const],
+    };
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      knownLearningGoalIds: ['control-correction'],
+      knownKaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
+      knownGraphNodeIds: ['kn:autocontrol:controller-correction'],
+      knownRemediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
+      decisions: [{
+        ...baseDecision(item),
+        notes: '',
+      }],
+    });
+
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.pathEligibleItemCount).toBe(0);
+    expect(report.issues.map((issue) => issue.reason)).toContain('missing-review-rationale');
   });
 
   it('rejects decisions whose selected stage is not allowed for the item', () => {
@@ -636,6 +666,10 @@ describe('adaptive assessment semantic review workflow', () => {
     });
 
     expect(reviewedSnapshots).toHaveLength(137);
+    expect(reviewedSnapshots.every((decision) => decision.notes?.trim())).toBe(true);
+    expect(artifacts.packets
+      .filter((packet) => packet.reviewDecision?.outcome === 'approved')
+      .every((packet) => packet.reviewDecision?.notes?.trim())).toBe(true);
     expect(artifacts.coverage.reviewedItemCount).toBe(137);
     expect(artifacts.coverage.pathEligibleItemCount).toBe(137);
     expect(artifacts.coverage.sourceFamilies.find((family) => family.family === 'checkpoint-authored-question')).toMatchObject({
