@@ -830,7 +830,7 @@ async function classifyCanonicalWriteSafety(
     },
     select: { id: true, status: true, progress: true, timeSpent: true },
   }) ?? [];
-  if (existingKnowledgeProgress.length > 0) {
+  if (existingKnowledgeProgress.some((row) => !isFixtureKnowledgeProgress(row))) {
     blockers.push('canonical-knowledge-progress-already-exists');
   }
   const profileSummary = await db.studentProfileSummary?.findUnique({ where: { userId: canonicalUserId } });
@@ -886,10 +886,25 @@ function isProductionLike(options: YangFanDiagnosticFixtureOptions) {
 }
 
 function isFixtureDatabaseAllowed(options: YangFanDiagnosticFixtureOptions) {
-  const allowlist = options.fixtureDbAllowlist ?? process.env.YANGFAN_FIXTURE_DB_ALLOWLIST ?? '';
+  const allowlist = (options.fixtureDbAllowlist ?? process.env.YANGFAN_FIXTURE_DB_ALLOWLIST ?? '').trim().toLowerCase();
   if (allowlist === '1' || allowlist === 'true') return true;
   const databaseUrl = options.databaseUrl ?? process.env.DATABASE_URL ?? '';
-  return /localhost|127\.0\.0\.1|file:|act_dev|act_test|test/i.test(databaseUrl);
+  if (databaseUrl.startsWith('file:')) return true;
+  try {
+    const parsed = new URL(databaseUrl);
+    const hostname = parsed.hostname.toLowerCase();
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]' || hostname === '::1') {
+      return true;
+    }
+    const databaseName = decodeURIComponent(parsed.pathname.replace(/^\/+/, '')).toLowerCase();
+    return databaseName === 'act_dev' || databaseName === 'act_test';
+  } catch {
+    return false;
+  }
+}
+
+function isFixtureKnowledgeProgress(row: Record<string, any>) {
+  return typeof row.id === 'string' && row.id.startsWith(FIXTURE_KNOWLEDGE_PROGRESS_ID_PREFIX);
 }
 
 function maskAccount(candidate: Record<string, any>): YangFanDiagnosticFixtureAccount {

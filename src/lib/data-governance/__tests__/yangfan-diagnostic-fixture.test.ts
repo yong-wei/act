@@ -205,6 +205,21 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(missingConfirmation.blockers).toContain('explicit-apply-confirmation-missing');
   });
 
+  it('does not treat production-like database name substrings as fixture-safe', async () => {
+    const db = createDbWithoutDuplicate();
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://staging-db/latest',
+    });
+
+    expect(plan.canApply).toBe(false);
+    expect(plan.safety.databaseAllowed).toBe(false);
+    expect(plan.blockers).toContain('fixture-database-not-allowlisted');
+  });
+
   it('redacts direct identifiers in plan output', async () => {
     const db = createDb();
     const plan = await buildYangFanDiagnosticFixturePlan(db, {
@@ -362,6 +377,31 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(plan.canApply).toBe(false);
     expect(plan.blockers).toContain('canonical-knowledge-progress-already-exists');
     expect(db.knowledgeProgress?.createMany).not.toHaveBeenCalled();
+  });
+
+  it('allows repeated apply when existing KnowledgeProgress rows are fixture-scoped', async () => {
+    const db = createDbWithoutDuplicate({
+      knowledgeProgress: {
+        createMany: vi.fn(async () => ({ count: 3 })),
+        deleteMany: vi.fn(async () => ({ count: 3 })),
+        findMany: vi.fn(async () => [{
+          id: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:knowledge-progress:already-seeded`,
+          status: 'IN_PROGRESS',
+          progress: 68,
+          timeSpent: 1800,
+        }]),
+      },
+    });
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.canApply).toBe(true);
+    expect(plan.blockers).not.toContain('canonical-knowledge-progress-already-exists');
   });
 
   it('applies fixture records through governed tables without writing ArenaSubmission', async () => {
