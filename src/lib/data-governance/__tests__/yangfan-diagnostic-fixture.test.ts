@@ -196,6 +196,22 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(plan.privacy.rawIdentifiersIncluded).toBe(false);
   });
 
+  it('queries the canonical profile with Prisma one-to-one relation filters', async () => {
+    const db = createDb();
+    await buildYangFanDiagnosticFixturePlan(db, {
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(db.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        OR: expect.arrayContaining([
+          { profile: { is: { studentNumber: '20230010102605' } } },
+        ]),
+      }),
+    }));
+  });
+
   it('blocks unsafe duplicate accounts before apply', async () => {
     const db = createDb({
       learningFact: {

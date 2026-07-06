@@ -780,7 +780,7 @@ async function loadYangFanCandidates(
         { name: { contains: 'YangFan', mode: 'insensitive' } },
         { name: { contains: '杨帆' } },
         ...(input.canonicalEmail ? [{ email: input.canonicalEmail }] : []),
-        ...(input.canonicalStudentNumber ? [{ profile: { studentNumber: input.canonicalStudentNumber } }] : []),
+        ...(input.canonicalStudentNumber ? [{ profile: { is: { studentNumber: input.canonicalStudentNumber } } }] : []),
       ],
     },
     select: { id: true, name: true, email: true, profile: { select: { studentNumber: true } } },
