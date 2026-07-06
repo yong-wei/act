@@ -7,7 +7,7 @@ Mock learner-state data should be added only after graph and resource coverage i
 ## What Changes
 
 - Add deterministic developer/test fixture generation for the canonical Yang Fan account after resource-data completeness gates pass.
-- Remove or merge the duplicate Yang Fan account according to a safe, idempotent script.
+- Report duplicate Yang Fan accounts and block apply/reset until they are resolved by an explicit human-reviewed account operation.
 - Materialize governed LearningFact and learner-state records from existing answers, path executions, adaptive assessment evidence, and fixture-specific source references.
 - Rebuild StudentEvidenceFeatureCache and related profile/snapshot records.
 - Add tests that verify Yang Fan can exercise graph context, path planning, Konling citation, and adaptive answering flows.

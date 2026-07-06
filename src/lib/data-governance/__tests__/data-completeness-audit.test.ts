@@ -1661,6 +1661,99 @@ describe('data completeness audit', () => {
     ]));
   });
 
+  it('accepts governed Yang Fan fixture learning fact sources', () => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [{
+        id: 'yangfan-fixture-fact-assessment',
+        userId: 'user-canonical',
+        factType: 'question',
+        sourceEventId: 'adaptive-assessment:yangfan-diagnostic-fixture:adaptive-answer',
+        sourceLogId: null,
+      }, {
+        id: 'yangfan-fixture-fact-path',
+        userId: 'user-canonical',
+        factType: 'resource',
+        sourceEventId: 'learning-path:yangfan-diagnostic-fixture:path-execution',
+        sourceLogId: null,
+      }, {
+        id: 'yangfan-fixture-fact-konling',
+        userId: 'user-canonical',
+        factType: 'ai_intervention',
+        sourceEventId: 'learning-path:yangfan-diagnostic-fixture:konling-tool-run',
+        sourceLogId: null,
+      }, {
+        id: 'yangfan-fixture-fact-arena-preview',
+        userId: 'user-canonical',
+        factType: 'simulation',
+        sourceEventId: 'control-correction-path:yangfan-diagnostic-fixture:arena-preview',
+        sourceLogId: null,
+        contextJson: { arena: { official: false, preview: true } },
+      }],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceEvents).toBe(0);
+    expect(lineage?.totals.danglingLearningFactSourceLogs).toBe(0);
+    expect(lineage?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'learning-fact-source-event-dangling' }),
+    ]));
+    expect(lineage?.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'learning-fact-source-log-dangling' }),
+    ]));
+  });
+
+  it('flags legacy Yang Fan fixture learning fact source events', () => {
+    const report = buildDataCompletenessAuditReport({
+      learningFacts: [{
+        id: 'legacy-yangfan-fixture-fact-assessment',
+        userId: 'user-canonical',
+        factType: 'question',
+        sourceEventId: 'yangfan-diagnostic-fixture:adaptive-answer',
+        sourceLogId: null,
+      }, {
+        id: 'legacy-yangfan-fixture-fact-path',
+        userId: 'user-canonical',
+        factType: 'resource',
+        sourceEventId: 'yangfan-diagnostic-fixture:path-execution',
+        sourceLogId: null,
+      }, {
+        id: 'legacy-yangfan-fixture-fact-konling',
+        userId: 'user-canonical',
+        factType: 'ai_intervention',
+        sourceEventId: 'yangfan-diagnostic-fixture:konling-tool-run',
+        sourceLogId: null,
+      }, {
+        id: 'legacy-yangfan-fixture-fact-arena-preview',
+        userId: 'user-canonical',
+        factType: 'simulation',
+        sourceEventId: 'yangfan-diagnostic-fixture:arena-preview',
+        sourceLogId: null,
+        contextJson: { arena: { official: false, preview: true } },
+      }],
+    });
+
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceEvents).toBe(4);
+    expect(lineage?.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'learning-fact-source-event-dangling',
+        stableRef: 'LearningFact:legacy-yangfan-fixture-fact-assessment',
+      }),
+      expect.objectContaining({
+        id: 'learning-fact-source-event-dangling',
+        stableRef: 'LearningFact:legacy-yangfan-fixture-fact-path',
+      }),
+      expect.objectContaining({
+        id: 'learning-fact-source-event-dangling',
+        stableRef: 'LearningFact:legacy-yangfan-fixture-fact-konling',
+      }),
+      expect.objectContaining({
+        id: 'learning-fact-source-event-dangling',
+        stableRef: 'LearningFact:legacy-yangfan-fixture-fact-arena-preview',
+      }),
+    ]));
+  });
+
   it('validates derived InteractionLog sourceEventId against the learning fact user', () => {
     const report = buildDataCompletenessAuditReport({
       interactionLogs: [{

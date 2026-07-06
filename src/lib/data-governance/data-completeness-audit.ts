@@ -1161,6 +1161,9 @@ function classifyLearningFactSource(
   if (isInteractionLogSourceEventId(sourceEventId)) {
     return 'interaction-log';
   }
+  if (sourceEventId.startsWith('yangfan-diagnostic-fixture:')) {
+    return 'unknown';
+  }
   if (
     sourceEventId.startsWith('arena-official:') ||
     sourceEventId.startsWith('simulation-agent-evidence:') ||

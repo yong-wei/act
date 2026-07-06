@@ -6,7 +6,7 @@ The fixture command should refuse to run unless:
 
 - The data completeness helper reports that the targeted resource/graph coverage batch is sufficient for fixture testing.
 - The canonical Yang Fan account can be resolved by stable email or student number.
-- Duplicate Yang Fan accounts are detected and handled by an explicit idempotent operation.
+- Duplicate Yang Fan accounts are detected and reported before any write; apply/reset stops until a human-reviewed account operation resolves them.
 - The command is running in an allowed local/development/test database context, not `NODE_ENV=production`, not a known production database URL, and with an explicit apply confirmation for any write.
 
 ### Fixture Records
@@ -24,12 +24,9 @@ Fixture output should log only privacy-minimized identifiers by default. It shou
 
 ### Duplicate Account Handling
 
-The no-email duplicate Yang Fan account should not remain an ambiguous test target. The script should either:
+The no-email duplicate Yang Fan account should not remain an ambiguous test target. The fixture command must not automatically delete or merge duplicate user records, because the repository does not yet expose a complete, auditable user-relation inventory for proving that account deletion is harmless.
 
-- migrate safe fixture-owned records to the canonical account and delete the duplicate, or
-- delete the duplicate only when it has no non-fixture-owned records.
-
-The command must be idempotent and produce a dry-run summary before apply mode.
+When duplicates are present, the command must report privacy-minimized duplicate candidates, mark the fixture plan as blocked, and require a separate human-reviewed account operation before apply or reset can mutate learner-state records. The command must remain idempotent and produce a dry-run summary before apply mode.
 
 ### Production Protection
 
