@@ -1387,6 +1387,9 @@ describe('resource field completion audit', () => {
       yangFanFixtureScope: 'fixture-owned',
       missingFieldCodes: expect.arrayContaining(['missing-human-review']),
     });
+    expect(itemRefBlocker?.missingFieldCodes).not.toContain('missing-evidence-contract');
+    expect(itemRefBlocker?.missingFieldCodes).not.toContain('missing-evidence-instrumentation');
+    expect(itemRefBlocker?.missingContractFields).toEqual([]);
   });
 
   it('does not treat governed citation rows as fixture-owned resource governance', () => {

@@ -901,10 +901,49 @@ function missingYangFanFixtureGovernanceItems(
     .map((item) => normalizeYangFanFixtureStableRef(item.resourceId)));
   return YANGFAN_FIXTURE_OWNED_RESOURCE_IDS
     .filter((resourceId) => !existingScopedIds.has(resourceId))
-    .filter((resourceId) => !rows.some((row) =>
-      rowOwnsYangFanFixtureResource(row, resourceId) && isGovernedFixtureReadinessRow(row)
-    ))
-    .map((resourceId) => ({
+    .flatMap((resourceId) => {
+      const ownerRows = rows.filter((row) => rowOwnsYangFanFixtureResource(row, resourceId));
+      if (ownerRows.some(isGovernedFixtureReadinessRow)) return [];
+      const incompleteOwnerRow = ownerRows.find((row) => !isGovernedFixtureReadinessRow(row));
+      if (incompleteOwnerRow) {
+        return [incompleteYangFanFixtureOwnerItem(incompleteOwnerRow)];
+      }
+      return [missingYangFanFixtureOwnerItem(resourceId)];
+    });
+}
+
+function incompleteYangFanFixtureOwnerItem(
+  row: ResourceFieldCompletionAuditRow,
+): ResourceEvidenceLineageReadinessItem {
+  const missingContractFields = row.evidenceContract.missingFields;
+  const missingFieldCodes = uniqueCodes([
+    ...row.missingFieldCodes,
+    ...(missingContractFields.length ? ['missing-evidence-contract' as const] : []),
+    ...(row.reviewStatus === 'human-confirmed' ? [] : ['missing-human-review' as const]),
+  ]);
+  return {
+    artifactVersion: 'resource-evidence-lineage-readiness.v1' as const,
+    resourceId: row.resourceId,
+    sourceFamily: row.family,
+    sourcePathOrUrl: row.sourcePathOrUrl,
+    sourceRecord: row.sourceRecord,
+    pathRole: pathRoleForEvidenceLineageRow(row),
+    evidenceEffectState: 'blocked' as const,
+    missingFieldCodes,
+    missingContractFields: uniqueSorted(missingContractFields),
+    followupBucket: 'complete-evidence-lineage-bindings',
+    blocksYangFanFixture: true,
+    yangFanFixtureScope: 'fixture-owned' as const,
+    reviewerVisibleRationale: evidenceLineageRationale(row, missingFieldCodes, missingContractFields, 'blocked'),
+    privacyMinimized: true,
+    rawContentIncluded: false,
+  };
+}
+
+function missingYangFanFixtureOwnerItem(
+  resourceId: string,
+): ResourceEvidenceLineageReadinessItem {
+  return {
       artifactVersion: 'resource-evidence-lineage-readiness.v1' as const,
       resourceId,
       sourceFamily: 'external-resource' as const,
@@ -934,7 +973,7 @@ function missingYangFanFixtureGovernanceItems(
       reviewerVisibleRationale: `${resourceId} is in the Yang Fan fixture-owned readiness subset but has no governed resource audit row; fixture generation remains blocked until reviewed lineage governance exists.`,
       privacyMinimized: true,
       rawContentIncluded: false,
-    }));
+    };
 }
 
 function isGovernedFixtureReadinessRow(row: ResourceFieldCompletionAuditRow): boolean {
