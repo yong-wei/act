@@ -359,6 +359,11 @@ describe('Yang Fan diagnostic fixture', () => {
     }));
     expect(db.knowledgeProgress?.createMany).toHaveBeenCalledWith(expect.objectContaining({
       skipDuplicates: true,
+      data: expect.arrayContaining([
+        expect.objectContaining({
+          id: expect.stringMatching(/^yangfan-diagnostic-fixture:knowledge-progress:/),
+        }),
+      ]),
     }));
     expect(db.learningPathExecution?.createMany).toHaveBeenCalledWith(expect.objectContaining({
       skipDuplicates: true,
@@ -433,13 +438,12 @@ describe('Yang Fan diagnostic fixture', () => {
       databaseUrl: 'postgres://localhost/act_test',
     });
 
-    expect(db.knowledgeProgress?.deleteMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({
-        status: 'IN_PROGRESS',
-        progress: 68,
-        timeSpent: 1800,
-      }),
-    }));
+    expect(db.knowledgeProgress?.deleteMany).toHaveBeenCalledWith({
+      where: {
+        userId: 'user-canonical',
+        id: { startsWith: 'yangfan-diagnostic-fixture:knowledge-progress:' },
+      },
+    });
   });
 
   it('requires explicit confirmation before reset writes', async () => {

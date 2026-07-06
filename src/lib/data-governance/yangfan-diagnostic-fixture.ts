@@ -180,6 +180,7 @@ const FIXTURE_ITEM_REF_ID = 'yangfan-diagnostic-fixture-item-ref';
 const FIXTURE_ANSWER_ID = 'yangfan-diagnostic-fixture-answer';
 const FIXTURE_ABILITY_ESTIMATE_ID = 'yangfan-diagnostic-fixture-ability-estimate';
 const FIXTURE_MASTERY_UPDATE_ID = 'yangfan-diagnostic-fixture-mastery-update';
+const FIXTURE_KNOWLEDGE_PROGRESS_ID_PREFIX = `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:knowledge-progress:`;
 const FIXTURE_QUESTION_ID = 'yangfan-diagnostic-fixture-question';
 const FIXTURE_CONTENT_HASH = 'sha256:yangfan-diagnostic-fixture-question';
 
@@ -271,6 +272,7 @@ export async function applyYangFanDiagnosticFixture(
 
     await tx.knowledgeProgress?.createMany({
       data: knowledgeNodeIds.map((nodeId) => ({
+          id: fixtureKnowledgeProgressId(nodeId),
           userId: canonicalUserId,
           nodeId,
           status: 'IN_PROGRESS',
@@ -687,16 +689,12 @@ async function resetFixtureRows(
   db: YangFanDiagnosticFixtureDb,
   canonicalUserId: string,
 ) {
-  const knowledgeNodeIds = await loadFixtureKnowledgeNodeIds(db);
   await Promise.all([
     db.learningFact.deleteMany({ where: { OR: [{ id: { in: [...FIXTURE_FACT_IDS] } }, { sourceEventId: { startsWith: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:` } }] } }),
     db.knowledgeProgress?.deleteMany({
       where: {
         userId: canonicalUserId,
-        nodeId: { in: knowledgeNodeIds },
-        status: 'IN_PROGRESS',
-        progress: 68,
-        timeSpent: 1800,
+        id: { startsWith: FIXTURE_KNOWLEDGE_PROGRESS_ID_PREFIX },
       },
     }),
     db.learningPathExecution?.deleteMany({ where: { pathId: FIXTURE_PATH_ID } }),
@@ -768,6 +766,10 @@ function profileSummaryData(userId: string, now: Date) {
 
 function isFixtureProfileSummary(row: Record<string, any> | null | undefined) {
   return recordValue(row?.recentActivityJson).fixtureScope === YANGFAN_DIAGNOSTIC_FIXTURE_VERSION;
+}
+
+function fixtureKnowledgeProgressId(nodeId: string) {
+  return `${FIXTURE_KNOWLEDGE_PROGRESS_ID_PREFIX}${hashIdentifier(nodeId)?.slice('sha256:'.length) ?? 'unknown'}`;
 }
 
 async function loadYangFanCandidates(
