@@ -1486,6 +1486,10 @@ describe('resource field completion audit', () => {
       yangFanFixtureScope: 'global-resource-backlog',
       missingFieldCodes: expect.arrayContaining(['missing-evidence-instrumentation']),
     });
+    expect(result.evidenceLineage.summary.layerTotals).toMatchObject({
+      pathRelevantRows: 1,
+      readyRows: 0,
+    });
   });
 
   it('normalizes typed fixture-owned stable refs for governed owner rows', () => {

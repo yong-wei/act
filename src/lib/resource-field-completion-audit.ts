@@ -1013,9 +1013,9 @@ function buildEvidenceLineageReadinessSummary(
 ): ResourceEvidenceLineageReadinessSummary {
   const pathRelevantRows = rows.filter(isPathRelevantEvidenceLineageRow);
   const evidenceProducingRows = pathRelevantRows.filter(isEvidenceProducingRow);
-  const rowEvidenceLineageItems = items.filter((item) =>
-    rows.some((row) => rowReferencesYangFanFixtureResource(row, item.resourceId) || row.resourceId === item.resourceId)
-  );
+  const blockedRowIds = new Set(items
+    .filter((item) => rows.some((row) => row.resourceId === item.resourceId))
+    .map((item) => item.resourceId));
   const yangFanFixtureBlockers = items.filter((item) => item.blocksYangFanFixture);
   const globalYangFanLimitations = items.filter((item) => !item.blocksYangFanFixture);
   return {
@@ -1026,7 +1026,7 @@ function buildEvidenceLineageReadinessSummary(
       evidenceProducingRows: evidenceProducingRows.length,
       evidenceLineageBlockers: items.length,
       reviewedLimitations: items.filter((item) => item.evidenceEffectState === 'reviewed-limitation').length,
-      readyRows: pathRelevantRows.length - rowEvidenceLineageItems.length,
+      readyRows: pathRelevantRows.length - blockedRowIds.size,
     },
     findingCounts: countBy(items.flatMap((item) => item.missingFieldCodes), (code) => code),
     contractFieldGaps: countBy(items.flatMap((item) => item.missingContractFields), (field) => field),
