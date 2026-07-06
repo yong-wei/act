@@ -29,6 +29,16 @@ function blockedReadinessSummary() {
   };
 }
 
+function globallyBlockedButFixtureReadySummary() {
+  return {
+    status: 'failed',
+    findings: [{ id: 'unrelated-global-resource-blocker', severity: 'blocking' }],
+    resourceCoverage: {
+      yangFanFixtureBlockers: { blocked: false, blockerCount: 0 },
+    },
+  };
+}
+
 function createDb(overrides: Partial<YangFanDiagnosticFixtureDb> = {}): YangFanDiagnosticFixtureDb {
   const canonical = {
     id: 'user-canonical',
@@ -55,7 +65,11 @@ function createDb(overrides: Partial<YangFanDiagnosticFixtureDb> = {}): YangFanD
       deleteMany: vi.fn(async () => ({ count: 4 })),
     },
     knowledgeNode: {
-      findMany: vi.fn(async () => [{ id: 'kn-1' }, { id: 'kn-2' }, { id: 'kn-3' }]),
+      findMany: vi.fn(async () => [
+        { id: '性能指标_1_1' },
+        { id: '根轨迹_1_1' },
+        { id: '传统设计四联图校正_4_47004' },
+      ]),
     },
     knowledgeProgress: {
       createMany: vi.fn(async () => ({ count: 3 })),
@@ -148,9 +162,21 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(plan.canApply).toBe(false);
     expect(plan.blockers).toEqual(expect.arrayContaining([
       'yang-fan-fixture-blockers',
-      'readiness-summary-not-passed',
     ]));
+    expect(plan.blockers).not.toContain('readiness-summary-not-passed');
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('does not block scoped fixture writes on unrelated global readiness failures', async () => {
+    const db = createDbWithoutDuplicate();
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      readinessSummary: globallyBlockedButFixtureReadySummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.blockers).not.toContain('readiness-summary-not-passed');
+    expect(plan.blockers).not.toContain('unrelated-global-resource-blocker');
+    expect(plan.blockers).not.toContain('yang-fan-fixture-blockers');
   });
 
   it('requires explicit apply confirmation and a fixture-safe database', async () => {
@@ -209,6 +235,27 @@ describe('Yang Fan diagnostic fixture', () => {
           { profile: { is: { studentNumber: '20230010102605' } } },
         ]),
       }),
+    }));
+  });
+
+  it('selects only scoped control-correction fixture knowledge nodes', async () => {
+    const db = createDbWithoutDuplicate();
+    await buildYangFanDiagnosticFixturePlan(db, {
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(db.knowledgeNode?.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        id: {
+          in: [
+            '性能指标_1_1',
+            '根轨迹_1_1',
+            '传统设计四联图校正_4_47004',
+          ],
+        },
+        isActive: true,
+      },
     }));
   });
 
@@ -362,6 +409,7 @@ describe('Yang Fan diagnostic fixture', () => {
       data: expect.arrayContaining([
         expect.objectContaining({
           id: expect.stringMatching(/^yangfan-diagnostic-fixture:knowledge-progress:/),
+          nodeId: '性能指标_1_1',
         }),
       ]),
     }));

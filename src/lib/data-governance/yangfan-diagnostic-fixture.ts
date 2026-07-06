@@ -183,6 +183,11 @@ const FIXTURE_MASTERY_UPDATE_ID = 'yangfan-diagnostic-fixture-mastery-update';
 const FIXTURE_KNOWLEDGE_PROGRESS_ID_PREFIX = `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:knowledge-progress:`;
 const FIXTURE_QUESTION_ID = 'yangfan-diagnostic-fixture-question';
 const FIXTURE_CONTENT_HASH = 'sha256:yangfan-diagnostic-fixture-question';
+const FIXTURE_KNOWLEDGE_NODE_IDS = [
+  '性能指标_1_1',
+  '根轨迹_1_1',
+  '传统设计四联图校正_4_47004',
+] as const;
 
 export async function buildYangFanDiagnosticFixturePlan(
   db: YangFanDiagnosticFixtureDb,
@@ -837,28 +842,27 @@ async function classifyCanonicalWriteSafety(
 
 async function loadFixtureKnowledgeNodeIds(db: YangFanDiagnosticFixtureDb) {
   const nodes = await db.knowledgeNode?.findMany({
-    take: 3,
-    orderBy: { id: 'asc' },
+    where: {
+      id: { in: [...FIXTURE_KNOWLEDGE_NODE_IDS] },
+      isActive: true,
+    },
     select: { id: true },
-    where: { isActive: true },
   }) ?? [];
-  return nodes.map((node) => String(node.id)).filter(Boolean).slice(0, 3);
+  const available = new Set(nodes.map((node) => String(node.id)).filter(Boolean));
+  return FIXTURE_KNOWLEDGE_NODE_IDS.filter((nodeId) => available.has(nodeId));
 }
 
 function readinessSummaryBlockers(summary?: YangFanReadinessSummaryInput | null): string[] {
   if (!summary) return ['readiness-summary-missing'];
-  const status = typeof summary.status === 'string' ? summary.status : '';
-  const findings = Array.isArray(summary.findings) ? summary.findings : [];
-  const blockingFindings = findings
-    .filter((finding) => finding && typeof finding === 'object' && (finding as { severity?: unknown }).severity === 'blocking')
-    .map((finding) => String((finding as { id?: unknown }).id ?? 'blocking-readiness-finding'));
   const resourceCoverage = recordValue(summary.resourceCoverage);
   const fixtureBlockers = recordValue(resourceCoverage.yangFanFixtureBlockers);
+  if (!('blocked' in fixtureBlockers)) {
+    const status = typeof summary.status === 'string' ? summary.status : '';
+    return status === 'passed' ? [] : ['readiness-summary-not-passed'];
+  }
+  const blockingFindings: string[] = [];
   if (fixtureBlockers.blocked === true) {
     blockingFindings.push('yang-fan-fixture-blockers');
-  }
-  if (status !== 'passed') {
-    blockingFindings.push('readiness-summary-not-passed');
   }
   return unique(blockingFindings);
 }
