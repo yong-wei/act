@@ -885,7 +885,7 @@ export function yangFanFixtureScopeForResource(
   ].map((value) => String(value || '')).filter(Boolean);
   return stableRefs.some((value) =>
     fixtureOwnedIds.has(value) ||
-    fixtureOwnedIds.has(value.replace(/^LearningFact:/, '')) ||
+    fixtureOwnedIds.has(normalizeYangFanFixtureStableRef(value)) ||
     value.includes('yangfan-diagnostic-fixture')
   )
     ? 'fixture-owned'
@@ -950,8 +950,8 @@ function rowOwnsYangFanFixtureResource(row: ResourceFieldCompletionAuditRow, res
     row.sourceRecord,
     row.pathTarget,
   ]
-    .map((value) => String(value || '').replace(/^LearningFact:/, ''))
-    .some((value) => value === resourceId);
+    .map((value) => String(value || ''))
+    .some((value) => value === resourceId || normalizeYangFanFixtureStableRef(value) === resourceId);
 }
 
 function rowReferencesYangFanFixtureResource(row: ResourceFieldCompletionAuditRow, resourceId: string): boolean {
@@ -962,8 +962,12 @@ function rowReferencesYangFanFixtureResource(row: ResourceFieldCompletionAuditRo
     row.pathTarget,
     ...row.citationTargets,
   ]
-    .map((value) => String(value || '').replace(/^LearningFact:/, ''))
+    .map((value) => normalizeYangFanFixtureStableRef(String(value || '')))
     .some((value) => value === resourceId || value.includes(resourceId));
+}
+
+function normalizeYangFanFixtureStableRef(value: string): string {
+  return value.replace(/^(LearningFact|LearningPathExecution|LearningPath|AdaptiveAssessmentItemRef|AdaptiveAssessmentAnswer):/, '');
 }
 
 function buildEvidenceLineageReadinessSummary(

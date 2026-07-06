@@ -1437,6 +1437,48 @@ describe('resource field completion audit', () => {
     });
   });
 
+  it('normalizes typed fixture-owned stable refs for governed owner rows', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      candidates: [
+        {
+          id: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          title: 'Yang Fan fixture exec complete',
+          family: 'external-resource',
+          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-exec-complete',
+          sourceRecord: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          knowledgeNodeIds: ['性能指标_1_1'],
+          capabilityTargetIds: ['controlModeling'],
+          segmentRefs: ['yangfan-diagnostic-fixture:exec-complete'],
+          citationTargets: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-complete'],
+          pathTarget: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          estimatedTimeMinutes: 5,
+          privacyScope: 'student-visible',
+          contentHash: 'sha256:yangfan-diagnostic-fixture-exec-complete',
+          versionRef: 'yangfan-diagnostic-fixture.v1',
+          evidenceInstrumentation: ['path-execution'],
+          humanConfirmed: true,
+          currentPathEligible: true,
+          reviewEvidence: {
+            reviewerId: 'fixture-readiness-reviewer',
+            reviewerRole: 'data-governance',
+            reviewedAt: '2026-07-05T00:00:00.000Z',
+            reviewBatchId: 'fixture-readiness-review-batch',
+            reviewerVisibleRationale: 'Exec complete owner row has reviewed fixture governance.',
+            independentEvidenceRef: 'review-packet:yangfan-diagnostic-fixture-exec-complete',
+            reviewedSourceHash: 'sha256:yangfan-diagnostic-fixture-exec-complete',
+            promptOrManifestHash: 'sha256:fixture-readiness-review',
+          },
+        },
+      ],
+    });
+
+    expect(result.evidenceLineage.items.some((item) =>
+      item.resourceId === 'yangfan-diagnostic-fixture:exec-complete'
+    )).toBe(false);
+  });
+
   it('declares knowledge-card lineage as path execution evidence without LearningFact materialization', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
