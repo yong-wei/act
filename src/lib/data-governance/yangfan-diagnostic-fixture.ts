@@ -272,6 +272,10 @@ export async function applyYangFanDiagnosticFixture(
   if (applySafetyBlockers.length > 0) {
     throw new Error(`Cannot apply Yang Fan diagnostic fixture: ${applySafetyBlockers.join(', ')}`);
   }
+  const applyReadinessBlockers = readinessSummaryBlockers(options.readinessSummary);
+  if (applyReadinessBlockers.length > 0) {
+    throw new Error(`Cannot apply Yang Fan diagnostic fixture: ${applyReadinessBlockers.join(', ')}`);
+  }
 
   const write = async (tx: YangFanDiagnosticFixtureDb) => {
     const now = options.now ?? new Date();
