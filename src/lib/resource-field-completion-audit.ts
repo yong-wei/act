@@ -898,7 +898,7 @@ function missingYangFanFixtureGovernanceItems(
 ): ResourceEvidenceLineageReadinessItem[] {
   const existingScopedIds = new Set(existingItems
     .filter((item) => item.yangFanFixtureScope === 'fixture-owned')
-    .map((item) => item.resourceId));
+    .map((item) => normalizeYangFanFixtureStableRef(item.resourceId)));
   return YANGFAN_FIXTURE_OWNED_RESOURCE_IDS
     .filter((resourceId) => !existingScopedIds.has(resourceId))
     .filter((resourceId) => !rows.some((row) =>

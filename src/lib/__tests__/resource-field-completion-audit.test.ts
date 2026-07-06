@@ -1479,6 +1479,45 @@ describe('resource field completion audit', () => {
     )).toBe(false);
   });
 
+  it('deduplicates typed fixture blockers with normalized scoped ids', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      candidates: [
+        {
+          id: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          title: 'Yang Fan fixture exec complete',
+          family: 'external-resource',
+          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-exec-complete',
+          sourceRecord: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          knowledgeNodeIds: ['性能指标_1_1'],
+          capabilityTargetIds: ['controlModeling'],
+          segmentRefs: ['yangfan-diagnostic-fixture:exec-complete'],
+          citationTargets: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-complete'],
+          pathTarget: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          estimatedTimeMinutes: 5,
+          privacyScope: 'student-visible',
+          contentHash: 'sha256:yangfan-diagnostic-fixture-exec-complete',
+          versionRef: 'yangfan-diagnostic-fixture.v1',
+          currentPathEligible: true,
+        },
+      ],
+    });
+
+    const execCompleteBlockers = result.evidenceLineage.items.filter((item) =>
+      item.resourceId === 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete' ||
+      item.resourceId === 'yangfan-diagnostic-fixture:exec-complete'
+    );
+
+    expect(execCompleteBlockers).toHaveLength(1);
+    expect(execCompleteBlockers[0]).toMatchObject({
+      resourceId: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+      evidenceEffectState: 'blocked',
+      blocksYangFanFixture: true,
+      yangFanFixtureScope: 'fixture-owned',
+    });
+  });
+
   it('declares knowledge-card lineage as path execution evidence without LearningFact materialization', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
