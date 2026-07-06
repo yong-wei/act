@@ -211,7 +211,8 @@
         ],
         "blockingReasons": [
           "learning-goal-baseline-incomplete",
-          "terminal-validation-resource-missing"
+          "terminal-validation-resource-missing",
+          "time-budget-insufficient"
         ],
         "selectedResourceIds": [],
         "selectedResourceTypes": [],
@@ -351,7 +352,8 @@
           "locked-node-without-fallback"
         ],
         "blockingReasons": [
-          "learning-goal-baseline-incomplete"
+          "learning-goal-baseline-incomplete",
+          "locked-node-without-fallback"
         ],
         "selectedResourceIds": [],
         "selectedResourceTypes": [],

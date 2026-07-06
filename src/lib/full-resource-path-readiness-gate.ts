@@ -1,5 +1,6 @@
 import {
   buildAdaptiveLearningPathPlan,
+  isPathBlockingFallbackReason,
   type AdaptiveLearningPathRegisteredGoalDefinition,
 } from './adaptive-learning-path-planner';
 import { expandLearningGoalSubgraph } from './graphs/goal-subgraph-expansion-service';
@@ -496,13 +497,7 @@ export function buildLearningGoalPathGenerationDiagnostics(input: {
         const binding = reviewedBindingByResourceId.get(resourceId);
         return !binding?.sourcePathOrUrl || !binding.sourceHash || !binding.sourceVersionRef;
       });
-      const blockingReasons = plan.explanations.fallbackReasons.filter((reason) => (
-        reason === 'learning-goal-baseline-incomplete' ||
-        reason === 'resource-mapping-insufficient' ||
-        reason === 'feasible-goal-path-missing' ||
-        reason === 'terminal-validation-resource-missing' ||
-        reason === 'learning-goal-assessment-coverage-incomplete'
-      ));
+      const blockingReasons = plan.explanations.fallbackReasons.filter(isPathBlockingFallbackReason);
       return {
         learningGoalId: learningGoal.id,
         attempted: true,

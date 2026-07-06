@@ -3849,7 +3849,7 @@ function buildFallbackReasons(input: {
   return unique(reasons);
 }
 
-function isPathBlockingFallbackReason(reason: string): boolean {
+export function isPathBlockingFallbackReason(reason: string): boolean {
   return [
     'resource-mapping-insufficient',
     'feasible-goal-path-missing',

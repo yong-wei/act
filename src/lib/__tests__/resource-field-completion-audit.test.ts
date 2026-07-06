@@ -5,7 +5,10 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { buildGraphCenterPayload } from '../data-governance/graph-center';
-import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '../adaptive-learning-path-planner';
+import {
+  ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+  isPathBlockingFallbackReason,
+} from '../adaptive-learning-path-planner';
 import {
   buildLearningGoalResourceBaselineArtifacts,
   LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
@@ -1540,6 +1543,9 @@ describe('resource field completion audit', () => {
   });
 
   it('fails the full resource gate when diagnostics, diversity, citations, or future import coverage are missing', () => {
+    expect(isPathBlockingFallbackReason('time-budget-insufficient')).toBe(true);
+    expect(isPathBlockingFallbackReason('hard-prerequisite-missing')).toBe(true);
+
     const report = buildFullResourcePathReadinessGate({
       generatedAt: '2026-06-24T00:00:00.000Z',
       resourceSummary: {
