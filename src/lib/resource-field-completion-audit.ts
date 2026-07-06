@@ -879,9 +879,7 @@ export function yangFanFixtureScopeForResource(
   const stableRefs = [
     row.resourceId,
     row.sourceRecord,
-    row.sourcePathOrUrl,
     row.pathTarget,
-    ...(row.citationTargets ?? []),
   ].map((value) => String(value || '')).filter(Boolean);
   return stableRefs.some((value) =>
     fixtureOwnedIds.has(value) ||

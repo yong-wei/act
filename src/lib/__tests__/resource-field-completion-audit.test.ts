@@ -1440,6 +1440,54 @@ describe('resource field completion audit', () => {
     });
   });
 
+  it('does not block fixture generation for global rows that only cite fixture facts', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      candidates: [
+        {
+          id: 'path-resource:incomplete-reference-row',
+          title: 'Incomplete row that only cites fixture fact',
+          family: 'external-resource',
+          sourcePathOrUrl: '/global/incomplete-reference-row',
+          sourceRecord: 'path-resource:incomplete-reference-row',
+          knowledgeNodeIds: ['性能指标_1_1'],
+          capabilityTargetIds: ['controlModeling'],
+          segmentRefs: ['path-resource:incomplete-reference-row'],
+          citationTargets: ['LearningFact:yangfan-fixture-fact-path'],
+          pathTarget: 'path-resource:incomplete-reference-row',
+          estimatedTimeMinutes: 5,
+          privacyScope: 'student-visible',
+          contentHash: 'sha256:incomplete-reference-row',
+          versionRef: 'incomplete-reference-row.v1',
+          humanConfirmed: true,
+          currentPathEligible: true,
+          reviewEvidence: {
+            reviewerId: 'fixture-readiness-reviewer',
+            reviewerRole: 'data-governance',
+            reviewedAt: '2026-07-05T00:00:00.000Z',
+            reviewBatchId: 'fixture-readiness-review-batch',
+            reviewerVisibleRationale: 'Reference row is governed but still lacks evidence lineage instrumentation.',
+            independentEvidenceRef: 'review-packet:incomplete-reference-row',
+            reviewedSourceHash: 'sha256:incomplete-reference-row',
+            promptOrManifestHash: 'sha256:fixture-readiness-review',
+          },
+        },
+      ],
+    });
+
+    const referenceRowBlocker = result.evidenceLineage.items.find((item) =>
+      item.resourceId === 'path-resource:incomplete-reference-row'
+    );
+    expect(referenceRowBlocker).toMatchObject({
+      resourceId: 'path-resource:incomplete-reference-row',
+      evidenceEffectState: 'blocked',
+      blocksYangFanFixture: false,
+      yangFanFixtureScope: 'global-resource-backlog',
+      missingFieldCodes: expect.arrayContaining(['missing-evidence-instrumentation']),
+    });
+  });
+
   it('normalizes typed fixture-owned stable refs for governed owner rows', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
