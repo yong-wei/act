@@ -282,7 +282,7 @@ export async function applyYangFanDiagnosticFixture(
     throw new Error(`Cannot apply Yang Fan diagnostic fixture: ${applyReadinessBlockers.join(', ')}`);
   }
   const applyWarnings = unique([
-    ...plan.warnings,
+    ...plan.warnings.filter((warning) => warning !== 'yang-fan-fixture-limited-coverage'),
     ...readinessSummaryWarnings(options.readinessSummary),
   ]);
 
