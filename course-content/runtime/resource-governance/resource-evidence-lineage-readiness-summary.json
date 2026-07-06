@@ -4,39 +4,40 @@
     "auditRows": 5291,
     "pathRelevantRows": 4186,
     "evidenceProducingRows": 3378,
-    "evidenceLineageBlockers": 0,
+    "evidenceLineageBlockers": 9,
     "reviewedLimitations": 3124,
     "readyRows": 1062
   },
   "findingCounts": {
-    "missing-evidence-contract": 3124,
-    "missing-evidence-instrumentation": 2160
+    "missing-evidence-contract": 3133,
+    "missing-evidence-instrumentation": 2169,
+    "missing-human-review": 9
   },
   "contractFieldGaps": {
-    "attemptKey": 2160,
-    "clientEventIdPolicy": 2160,
-    "confidencePolicy": 2160,
-    "eventType": 2160,
-    "learningFactMaterializationPolicy": 2160,
-    "learningFactPolicy": 2160,
-    "sourceLogId": 2160,
-    "timestamps": 2160,
-    "privacyScope": 964
+    "attemptKey": 2169,
+    "clientEventIdPolicy": 2169,
+    "confidencePolicy": 2169,
+    "eventType": 2169,
+    "learningFactMaterializationPolicy": 2169,
+    "learningFactPolicy": 2169,
+    "sourceLogId": 2169,
+    "timestamps": 2169,
+    "privacyScope": 973
   },
   "followupBuckets": {
-    "complete-evidence-lineage-bindings": 3124
+    "complete-evidence-lineage-bindings": 3133
   },
-  "evidenceLineageBlockerCount": 0,
+  "evidenceLineageBlockerCount": 9,
   "yangFanFixtureBlockers": {
     "blocked": true,
-    "blockerCount": 3124,
+    "blockerCount": 9,
+    "scopedBlockerCount": 9,
+    "globalLimitationCount": 3124,
     "blockerFamilies": {
-      "knowledge-infograph": 161,
-      "runtime-lesson-media": 647,
-      "runtime-lesson-module": 1352,
-      "textbook-search-document": 964
+      "external-resource": 9
     },
-    "reason": "Canonical learner fixture generation remains blocked until path-relevant evidence lineage gaps are resolved; reviewed limitations only remove hard evidence-effect blockers."
+    "reason": "Canonical learner fixture generation remains blocked until fixture-owned evidence lineage gaps are resolved.",
+    "scopePolicy": "yangfan-fixture-readiness-scope.v1"
   },
   "evidence": {
     "sourceAuditPath": "course-content/runtime/resource-governance/resource-field-completion-audit.jsonl",

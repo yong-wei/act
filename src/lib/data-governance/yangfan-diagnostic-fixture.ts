@@ -163,6 +163,7 @@ export interface YangFanDiagnosticFixtureApplyResult {
   generatedAt: string;
   canonicalMaskedUserId: string | null;
   affected: Record<string, number>;
+  warnings: string[];
   privacy: YangFanDiagnosticFixturePlan['privacy'];
   arenaBoundary: YangFanDiagnosticFixturePlan['arenaBoundary'];
 }
@@ -209,6 +210,7 @@ export async function buildYangFanDiagnosticFixturePlan(
     ? await classifyCanonicalWriteSafety(db, canonical.id, knowledgeNodeIds)
     : [];
   const readinessBlockers = mode === 'reset' ? [] : readinessSummaryBlockers(options.readinessSummary);
+  const readinessWarnings = mode === 'reset' ? [] : readinessSummaryWarnings(options.readinessSummary);
   const safetyBlockers = safetyBlockersForMode(mode, options);
   const knowledgeNodeBlockers = mode !== 'reset' && canonical && !hasCompleteFixtureKnowledgeNodes(knowledgeNodeIds)
     ? ['fixture-knowledge-nodes-missing']
@@ -227,7 +229,10 @@ export async function buildYangFanDiagnosticFixturePlan(
     generatedAt: now.toISOString(),
     canApply: mode === 'apply' && blockers.length === 0,
     blockers,
-    warnings: duplicateSafety.unsafe.length ? ['duplicate-yangfan-account-manual-review-required'] : [],
+    warnings: unique([
+      ...(duplicateSafety.unsafe.length ? ['duplicate-yangfan-account-manual-review-required'] : []),
+      ...readinessWarnings,
+    ]),
     privacy: privacySummary(),
     canonical: canonical ? maskAccount(canonical) : null,
     duplicates: duplicates.map(maskAccount),
@@ -347,6 +352,7 @@ export async function applyYangFanDiagnosticFixture(
       generatedAt: now.toISOString(),
       canonicalMaskedUserId: plan.canonical?.maskedUserId ?? null,
       affected: plan.plannedCounts,
+      warnings: plan.warnings,
       privacy: plan.privacy,
       arenaBoundary: plan.arenaBoundary,
     };
@@ -398,6 +404,7 @@ export async function resetYangFanDiagnosticFixture(
       StudentCompetencySnapshot: 1,
       StudentEvidenceFeatureCache: 1,
     },
+    warnings: plan.warnings,
     privacy: plan.privacy,
     arenaBoundary: plan.arenaBoundary,
   };
@@ -925,6 +932,20 @@ function readinessSummaryBlockers(summary?: YangFanReadinessSummaryInput | null)
     blockingFindings.push('yang-fan-fixture-blockers');
   }
   return unique(blockingFindings);
+}
+
+function readinessSummaryWarnings(summary?: YangFanReadinessSummaryInput | null): string[] {
+  if (!summary) return [];
+  const resourceCoverage = recordValue(summary.resourceCoverage);
+  const fixtureBlockers = recordValue(resourceCoverage.yangFanFixtureBlockers);
+  const findings = Array.isArray(summary.findings) ? summary.findings : [];
+  const hasLimitedCoverageFinding = findings.some((finding) =>
+    recordValue(finding).id === 'yang-fan-fixture-limited-coverage'
+  );
+  const globalLimitationCount = Number(fixtureBlockers.globalLimitationCount || 0);
+  return hasLimitedCoverageFinding || globalLimitationCount > 0
+    ? ['yang-fan-fixture-limited-coverage']
+    : [];
 }
 
 function safetyBlockersForMode(

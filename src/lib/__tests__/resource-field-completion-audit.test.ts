@@ -22,6 +22,7 @@ import {
 import {
   buildResourceFieldCompletionAudit,
   RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
+  YANGFAN_FIXTURE_OWNED_RESOURCE_IDS,
   type ResourceFieldCompletionCoverageSummary,
   type ResourceFieldCompletionAuditRow,
 } from '../resource-field-completion-audit';
@@ -240,25 +241,35 @@ describe('resource field completion audit', () => {
     expect(evidenceLineageSummary.layerTotals.auditRows).toBe(jsonlRows.length);
     expect(evidenceLineageSummary.layerTotals.pathRelevantRows).toBeGreaterThan(0);
     expect(evidenceLineageSummary.layerTotals.reviewedLimitations).toBeGreaterThan(0);
-    expect(evidenceLineageSummary.evidenceLineageBlockerCount).toBe(0);
+    expect(evidenceLineageSummary.evidenceLineageBlockerCount).toBe(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
     expect(evidenceLineageSummary.evidenceLineageBlockerCount).toBeLessThan(evidenceLineageItems.length);
     expect(evidenceLineageSummary.findingCounts['missing-evidence-contract']).toBeGreaterThan(0);
     expect(evidenceLineageSummary.contractFieldGaps.clientEventIdPolicy).toBeGreaterThan(0);
     expect(evidenceLineageSummary.followupBuckets['complete-evidence-lineage-bindings']).toBe(evidenceLineageItems.length);
     expect(evidenceLineageSummary.yangFanFixtureBlockers.blocked).toBe(true);
-    expect(evidenceLineageSummary.yangFanFixtureBlockers.blockerCount).toBe(evidenceLineageItems.length);
-    expect(evidenceLineageSummary.yangFanFixtureBlockers.blockerCount).toBeGreaterThan(evidenceLineageSummary.evidenceLineageBlockerCount);
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.blockerCount).toBe(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.scopedBlockerCount).toBe(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.globalLimitationCount).toBe(evidenceLineageItems.length - YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.scopePolicy).toBe('yangfan-fixture-readiness-scope.v1');
     expect(evidenceLineageItems.every((item) => item.privacyMinimized === true)).toBe(true);
     expect(evidenceLineageItems.every((item) => item.rawContentIncluded === false)).toBe(true);
     expect(evidenceLineageItems.some((item) => 'rawContent' in item || 'markdown' in item || 'body' in item)).toBe(false);
     expect(evidenceLineageItems.every((item) => item.followupBucket === 'complete-evidence-lineage-bindings')).toBe(true);
     expect(evidenceLineageItems.some((item) => item.evidenceEffectState === 'reviewed-limitation')).toBe(true);
-    expect(evidenceLineageItems.some((item) => item.evidenceEffectState === 'blocked')).toBe(false);
+    expect(evidenceLineageItems
+      .filter((item) => item.yangFanFixtureScope === 'fixture-owned')
+      .every((item) => item.evidenceEffectState === 'blocked')).toBe(true);
     expect(evidenceLineageItems
       .filter((item) => item.evidenceEffectState === 'reviewed-limitation')
-      .every((item) => item.blocksYangFanFixture === true)).toBe(true);
-    expect(evidenceLineageItems.some((item) => item.blocksYangFanFixture === true)).toBe(true);
+      .every((item) => item.blocksYangFanFixture === false && item.yangFanFixtureScope === 'global-resource-backlog')).toBe(true);
+    expect(evidenceLineageItems
+      .filter((item) => item.yangFanFixtureScope === 'fixture-owned')
+      .map((item) => item.resourceId)
+      .sort()).toEqual([...YANGFAN_FIXTURE_OWNED_RESOURCE_IDS].sort());
     expect(evidenceLineageEvidence).toContain('## Yang Fan Fixture Precondition');
+    expect(evidenceLineageEvidence).toContain(`Scoped blocker count: ${YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length}`);
+    expect(evidenceLineageEvidence).toContain(`Global limitation count: ${evidenceLineageItems.length - YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length}`);
+    expect(evidenceLineageEvidence).toContain('Scope policy: yangfan-fixture-readiness-scope.v1');
     expect(evidenceLineageEvidence).toContain('Raw learner payloads and raw resource bodies are not included.');
     expect(dispositionReviewItems).toHaveLength(rowsMissingFields.length);
     expect(dispositionReviewSummary.totals.reviewedResources).toBe(rowsMissingFields.length);
@@ -523,7 +534,7 @@ describe('resource field completion audit', () => {
       'unresolved-downstream-path-blockers',
       'unreviewed-resource-semantics',
       'unresolved-graph-node-resource-missing',
-      'yang-fan-fixture-blockers',
+      'yang-fan-fixture-limited-coverage',
       'learning-goal-path-generation-blocked',
       'learning-goal-baseline-limited',
       'resource-type-audit-missing',
@@ -1235,31 +1246,33 @@ describe('resource field completion audit', () => {
       artifactVersion: 'resource-evidence-lineage-readiness.v1',
       layerTotals: {
         pathRelevantRows: 2,
-        evidenceLineageBlockers: 1,
+        evidenceLineageBlockers: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
         readyRows: 1,
       },
-      evidenceLineageBlockerCount: 1,
+      evidenceLineageBlockerCount: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
       findingCounts: {
-        'missing-evidence-contract': 1,
-        'missing-evidence-instrumentation': 1,
+        'missing-evidence-contract': 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+        'missing-evidence-instrumentation': 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
       },
       followupBuckets: {
-        'complete-evidence-lineage-bindings': 1,
+        'complete-evidence-lineage-bindings': 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
       },
       yangFanFixtureBlockers: {
         blocked: true,
-        blockerCount: 1,
+        blockerCount: YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+        scopedBlockerCount: YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+        globalLimitationCount: 1,
       },
     });
     expect(result.evidenceLineage.summary.contractFieldGaps).toMatchObject({
-      eventType: 1,
-      clientEventIdPolicy: 1,
-      attemptKey: 1,
-      sourceLogId: 1,
-      timestamps: 1,
-      learningFactPolicy: 1,
+      eventType: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+      clientEventIdPolicy: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+      attemptKey: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+      sourceLogId: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+      timestamps: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+      learningFactPolicy: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
     });
-    expect(result.evidenceLineage.items).toHaveLength(1);
+    expect(result.evidenceLineage.items).toHaveLength(1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
     expect(result.evidenceLineage.items[0]).toMatchObject({
       resourceId: 'path-resource:blocked-lineage',
       pathRole: 'current-path',
@@ -1269,11 +1282,72 @@ describe('resource field completion audit', () => {
         'missing-evidence-instrumentation',
       ]),
       followupBucket: 'complete-evidence-lineage-bindings',
-      blocksYangFanFixture: true,
+      blocksYangFanFixture: false,
+      yangFanFixtureScope: 'global-resource-backlog',
       privacyMinimized: true,
       rawContentIncluded: false,
     });
+    expect(result.evidenceLineage.items
+      .filter((item) => item.yangFanFixtureScope === 'fixture-owned'))
+      .toHaveLength(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
     expect(JSON.stringify(result.evidenceLineage.items[0])).not.toContain('raw learner');
+  });
+
+  it('keeps fixture-owned lineage gaps as Yang Fan fixture blockers', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      candidates: [
+        {
+          id: 'yangfan-diagnostic-fixture-question',
+          title: 'Yang Fan fixture question',
+          family: 'external-resource',
+          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-question',
+          sourceRecord: 'yangfan-diagnostic-fixture-question',
+          knowledgeNodeIds: ['性能指标_1_1'],
+          capabilityTargetIds: ['controlModeling'],
+          segmentRefs: ['yangfan-diagnostic-fixture-question'],
+          citationTargets: ['yangfan-diagnostic-fixture-question'],
+          pathTarget: 'yangfan-diagnostic-fixture-question',
+          estimatedTimeMinutes: 5,
+          privacyScope: 'student-visible',
+          contentHash: 'sha256:yangfan-diagnostic-fixture-question',
+          versionRef: 'yangfan-diagnostic-fixture.v1',
+          humanConfirmed: true,
+          currentPathEligible: true,
+          reviewEvidence: {
+            reviewerId: 'fixture-readiness-reviewer',
+            reviewerRole: 'data-governance',
+            reviewedAt: '2026-07-05T00:00:00.000Z',
+            reviewBatchId: 'fixture-readiness-review-batch',
+            reviewerVisibleRationale: 'Fixture-owned resource intentionally lacks event lineage for the negative readiness test.',
+            independentEvidenceRef: 'review-packet:yangfan-diagnostic-fixture-question',
+            reviewedSourceHash: 'sha256:yangfan-diagnostic-fixture-question',
+            promptOrManifestHash: 'sha256:fixture-readiness-review',
+          },
+        },
+      ],
+    });
+
+    expect(result.evidenceLineage.summary.yangFanFixtureBlockers).toMatchObject({
+      blocked: true,
+      blockerCount: YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+      scopedBlockerCount: YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+      globalLimitationCount: 0,
+      scopePolicy: 'yangfan-fixture-readiness-scope.v1',
+    });
+    const fixtureQuestionItem = result.evidenceLineage.items.find((item) =>
+      item.resourceId === 'yangfan-diagnostic-fixture-question'
+    );
+    expect(fixtureQuestionItem).toMatchObject({
+      resourceId: 'yangfan-diagnostic-fixture-question',
+      blocksYangFanFixture: true,
+      yangFanFixtureScope: 'fixture-owned',
+      missingFieldCodes: expect.arrayContaining([
+        'missing-evidence-contract',
+        'missing-evidence-instrumentation',
+      ]),
+    });
   });
 
   it('declares knowledge-card lineage as path execution evidence without LearningFact materialization', () => {
@@ -1322,7 +1396,12 @@ describe('resource field completion audit', () => {
     });
     expect(result.rows[0].missingFieldCodes).not.toContain('missing-evidence-contract');
     expect(result.rows[0].missingFieldCodes).not.toContain('missing-evidence-instrumentation');
-    expect(result.evidenceLineage.items).toHaveLength(0);
+    expect(result.evidenceLineage.items
+      .filter((item) => item.yangFanFixtureScope === 'global-resource-backlog'))
+      .toHaveLength(0);
+    expect(result.evidenceLineage.items
+      .filter((item) => item.yangFanFixtureScope === 'fixture-owned'))
+      .toHaveLength(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
   });
 
   it('materializes LearningGoal baseline artifacts for every registered backend goal', () => {
@@ -1571,8 +1650,11 @@ describe('resource field completion audit', () => {
         yangFanFixtureBlockers: {
           blocked: false,
           blockerCount: 0,
+          scopedBlockerCount: 0,
+          globalLimitationCount: 0,
           blockerFamilies: {},
           reason: 'none',
+          scopePolicy: 'yangfan-fixture-readiness-scope.v1',
         },
       } as never,
       learningGoalBaselineMatrix: {

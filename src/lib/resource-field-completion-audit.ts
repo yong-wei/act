@@ -16,6 +16,20 @@ import {
 
 export const RESOURCE_FIELD_COMPLETION_AUDIT_VERSION = 'resource-field-completion-audit.v1';
 
+export const YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION = 'yangfan-fixture-readiness-scope.v1';
+
+export const YANGFAN_FIXTURE_OWNED_RESOURCE_IDS = [
+  'yangfan-diagnostic-fixture-question',
+  'yangfan-diagnostic-fixture-item-ref',
+  'yangfan-fixture-control-correction-path',
+  'yangfan-diagnostic-fixture:exec-start',
+  'yangfan-diagnostic-fixture:exec-terminal',
+  'yangfan-fixture-fact-assessment',
+  'yangfan-fixture-fact-path',
+  'yangfan-fixture-fact-konling',
+  'yangfan-fixture-fact-arena-preview',
+] as const;
+
 export type ResourceFieldCompletionFamily =
   | 'registered-resource'
   | 'resource-node'
@@ -285,6 +299,7 @@ export interface ResourceEvidenceLineageReadinessItem {
   missingContractFields: string[];
   followupBucket: string;
   blocksYangFanFixture: boolean;
+  yangFanFixtureScope: 'fixture-owned' | 'global-resource-backlog';
   reviewerVisibleRationale: string;
   privacyMinimized: true;
   rawContentIncluded: false;
@@ -307,8 +322,11 @@ export interface ResourceEvidenceLineageReadinessSummary {
   yangFanFixtureBlockers: {
     blocked: boolean;
     blockerCount: number;
+    scopedBlockerCount: number;
+    globalLimitationCount: number;
     blockerFamilies: Record<string, number>;
     reason: string;
+    scopePolicy: typeof YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION;
   };
   evidence: {
     sourceAuditPath: string;
@@ -811,7 +829,7 @@ function buildResourceCompletionWorkqueues(rows: ResourceFieldCompletionAuditRow
 }
 
 function buildEvidenceLineageReadinessItems(rows: ResourceFieldCompletionAuditRow[]): ResourceEvidenceLineageReadinessItem[] {
-  return rows
+  const rowItems = rows
     .filter(isPathRelevantEvidenceLineageRow)
     .map((row): ResourceEvidenceLineageReadinessItem | null => {
       const missingContractFields = row.evidenceContract.missingFields;
@@ -821,6 +839,7 @@ function buildEvidenceLineageReadinessItems(rows: ResourceFieldCompletionAuditRo
         ...evidenceMissingCodes,
         ...(missingContractFields.length ? ['missing-evidence-contract' as const] : []),
       ]);
+      const fixtureScope = yangFanFixtureScopeForResource(row);
       return {
         artifactVersion: 'resource-evidence-lineage-readiness.v1',
         resourceId: row.resourceId,
@@ -832,14 +851,99 @@ function buildEvidenceLineageReadinessItems(rows: ResourceFieldCompletionAuditRo
         missingFieldCodes,
         missingContractFields: uniqueSorted(missingContractFields),
         followupBucket: 'complete-evidence-lineage-bindings',
-        blocksYangFanFixture: true,
+        blocksYangFanFixture: fixtureScope === 'fixture-owned',
+        yangFanFixtureScope: fixtureScope,
         reviewerVisibleRationale: evidenceLineageRationale(row, missingFieldCodes, missingContractFields, 'blocked'),
         privacyMinimized: true,
         rawContentIncluded: false,
       };
     })
-    .filter((item): item is ResourceEvidenceLineageReadinessItem => Boolean(item))
-    .sort((left, right) => left.resourceId.localeCompare(right.resourceId));
+    .filter((item): item is ResourceEvidenceLineageReadinessItem => Boolean(item));
+  return [
+    ...rowItems,
+    ...missingYangFanFixtureGovernanceItems(rows, rowItems),
+  ].sort((left, right) => left.resourceId.localeCompare(right.resourceId));
+}
+
+export function yangFanFixtureScopeForResource(
+  row: {
+    resourceId: string;
+    sourceRecord?: string | null;
+    sourcePathOrUrl?: string | null;
+    pathTarget?: string | null;
+    citationTargets?: readonly string[];
+  },
+): ResourceEvidenceLineageReadinessItem['yangFanFixtureScope'] {
+  const fixtureOwnedIds = new Set<string>(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS);
+  const stableRefs = [
+    row.resourceId,
+    row.sourceRecord,
+    row.sourcePathOrUrl,
+    row.pathTarget,
+    ...(row.citationTargets ?? []),
+  ].map((value) => String(value || '')).filter(Boolean);
+  return stableRefs.some((value) =>
+    fixtureOwnedIds.has(value) ||
+    fixtureOwnedIds.has(value.replace(/^LearningFact:/, '')) ||
+    value.includes('yangfan-diagnostic-fixture')
+  )
+    ? 'fixture-owned'
+    : 'global-resource-backlog';
+}
+
+function missingYangFanFixtureGovernanceItems(
+  rows: ResourceFieldCompletionAuditRow[],
+  existingItems: ResourceEvidenceLineageReadinessItem[],
+): ResourceEvidenceLineageReadinessItem[] {
+  const existingScopedIds = new Set(existingItems
+    .filter((item) => item.yangFanFixtureScope === 'fixture-owned')
+    .map((item) => item.resourceId));
+  return YANGFAN_FIXTURE_OWNED_RESOURCE_IDS
+    .filter((resourceId) => !existingScopedIds.has(resourceId))
+    .filter((resourceId) => !rows.some((row) => rowReferencesYangFanFixtureResource(row, resourceId)))
+    .map((resourceId) => ({
+      artifactVersion: 'resource-evidence-lineage-readiness.v1' as const,
+      resourceId,
+      sourceFamily: 'external-resource' as const,
+      sourcePathOrUrl: null,
+      sourceRecord: resourceId,
+      pathRole: 'path-relevant' as const,
+      evidenceEffectState: 'blocked' as const,
+      missingFieldCodes: [
+        'missing-human-review',
+        'missing-evidence-contract',
+        'missing-evidence-instrumentation',
+      ],
+      missingContractFields: [
+        'attemptKey',
+        'clientEventIdPolicy',
+        'confidencePolicy',
+        'eventType',
+        'learningFactMaterializationPolicy',
+        'learningFactPolicy',
+        'privacyScope',
+        'sourceLogId',
+        'timestamps',
+      ],
+      followupBucket: 'complete-evidence-lineage-bindings',
+      blocksYangFanFixture: true,
+      yangFanFixtureScope: 'fixture-owned' as const,
+      reviewerVisibleRationale: `${resourceId} is in the Yang Fan fixture-owned readiness subset but has no governed resource audit row; fixture generation remains blocked until reviewed lineage governance exists.`,
+      privacyMinimized: true,
+      rawContentIncluded: false,
+    }));
+}
+
+function rowReferencesYangFanFixtureResource(row: ResourceFieldCompletionAuditRow, resourceId: string): boolean {
+  return [
+    row.resourceId,
+    row.sourceRecord,
+    row.sourcePathOrUrl,
+    row.pathTarget,
+    ...row.citationTargets,
+  ]
+    .map((value) => String(value || '').replace(/^LearningFact:/, ''))
+    .some((value) => value === resourceId || value.includes(resourceId));
 }
 
 function buildEvidenceLineageReadinessSummary(
@@ -848,7 +952,11 @@ function buildEvidenceLineageReadinessSummary(
 ): ResourceEvidenceLineageReadinessSummary {
   const pathRelevantRows = rows.filter(isPathRelevantEvidenceLineageRow);
   const evidenceProducingRows = pathRelevantRows.filter(isEvidenceProducingRow);
+  const rowEvidenceLineageItems = items.filter((item) =>
+    rows.some((row) => rowReferencesYangFanFixtureResource(row, item.resourceId) || row.resourceId === item.resourceId)
+  );
   const yangFanFixtureBlockers = items.filter((item) => item.blocksYangFanFixture);
+  const globalYangFanLimitations = items.filter((item) => !item.blocksYangFanFixture);
   return {
     artifactVersion: 'resource-evidence-lineage-readiness.v1',
     layerTotals: {
@@ -857,7 +965,7 @@ function buildEvidenceLineageReadinessSummary(
       evidenceProducingRows: evidenceProducingRows.length,
       evidenceLineageBlockers: items.length,
       reviewedLimitations: items.filter((item) => item.evidenceEffectState === 'reviewed-limitation').length,
-      readyRows: pathRelevantRows.length - items.length,
+      readyRows: pathRelevantRows.length - rowEvidenceLineageItems.length,
     },
     findingCounts: countBy(items.flatMap((item) => item.missingFieldCodes), (code) => code),
     contractFieldGaps: countBy(items.flatMap((item) => item.missingContractFields), (field) => field),
@@ -866,10 +974,15 @@ function buildEvidenceLineageReadinessSummary(
     yangFanFixtureBlockers: {
       blocked: yangFanFixtureBlockers.length > 0,
       blockerCount: yangFanFixtureBlockers.length,
+      scopedBlockerCount: yangFanFixtureBlockers.length,
+      globalLimitationCount: globalYangFanLimitations.length,
       blockerFamilies: countBy(yangFanFixtureBlockers, (item) => item.sourceFamily),
       reason: yangFanFixtureBlockers.length > 0
-        ? 'Canonical learner fixture generation remains blocked until path-relevant evidence lineage blockers are resolved or recorded as reviewed limitations.'
-        : 'Canonical learner fixture generation has no resource evidence-lineage blockers from the helper layer.',
+        ? 'Canonical learner fixture generation remains blocked until fixture-owned evidence lineage blockers are resolved.'
+        : globalYangFanLimitations.length > 0
+          ? 'Canonical learner fixture generation has scoped resource readiness; unrelated global resource backlog remains a limited-coverage diagnostic.'
+          : 'Canonical learner fixture generation has no resource evidence-lineage blockers from the helper layer.',
+      scopePolicy: YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION,
     },
     evidence: {
       sourceAuditPath: 'course-content/runtime/resource-governance/resource-field-completion-audit.jsonl',
