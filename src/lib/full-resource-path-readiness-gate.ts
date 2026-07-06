@@ -143,6 +143,9 @@ export interface FullResourcePathReadinessGateReport {
     limitedLearningGoalIds: string[];
     reviewedBindings: number;
     pathGenerationDiagnostics: LearningGoalPathGenerationDiagnostic[];
+    missingPathGenerationDiagnosticLearningGoalIds: string[];
+    unknownPathGenerationDiagnosticLearningGoalIds: string[];
+    duplicatePathGenerationDiagnosticCount: number;
     attemptedPathGenerationCount: number;
     blockedPathGenerationCount: number;
     notEvaluatedPathGenerationCount: number;
@@ -192,7 +195,23 @@ export function buildFullResourcePathReadinessGate(input: {
   const completeRows = input.learningGoalBaselineMatrix.rows.filter((row) => row.coverageState === 'complete');
   const limitedRows = input.learningGoalBaselineMatrix.rows.filter((row) => row.coverageState === 'limited');
   const pathGenerationDiagnostics = input.pathGenerationDiagnostics ?? [];
-  const resourceMixDiagnostics = summarizeResourceMixDiagnostics(pathGenerationDiagnostics);
+  const registeredLearningGoalIdSet = new Set(registeredLearningGoalIds);
+  const pathGenerationDiagnosticLearningGoalIds = pathGenerationDiagnostics.map((diagnostic) => diagnostic.learningGoalId);
+  const uniquePathGenerationDiagnosticLearningGoalIds = uniqueSorted(pathGenerationDiagnosticLearningGoalIds);
+  const missingPathGenerationDiagnosticLearningGoalIds = difference(
+    registeredLearningGoalIds,
+    uniquePathGenerationDiagnosticLearningGoalIds,
+  );
+  const unknownPathGenerationDiagnosticLearningGoalIds = difference(
+    uniquePathGenerationDiagnosticLearningGoalIds,
+    registeredLearningGoalIds,
+  );
+  const duplicatePathGenerationDiagnosticCount = pathGenerationDiagnosticLearningGoalIds.length -
+    uniquePathGenerationDiagnosticLearningGoalIds.length;
+  const registeredPathGenerationDiagnostics = pathGenerationDiagnostics.filter((diagnostic) =>
+    registeredLearningGoalIdSet.has(diagnostic.learningGoalId)
+  );
+  const resourceMixDiagnostics = summarizeResourceMixDiagnostics(registeredPathGenerationDiagnostics);
   const citationFailureCount = pathGenerationDiagnostics.reduce(
     (count, diagnostic) => count + diagnostic.missingCitationMetadataResourceIds.length,
     0,
@@ -219,19 +238,21 @@ export function buildFullResourcePathReadinessGate(input: {
     uniqueSorted([...REQUIRED_PATH_READINESS_RESOURCE_TYPES].map(canonicalPathReadinessResourceType)),
     Object.keys(resourceTypeTotals),
   );
-  const missingPathGenerationDiagnosticCount = Math.max(0, registeredLearningGoalIds.length - pathGenerationDiagnostics.length);
-  const blockedPathGenerationCount = pathGenerationDiagnostics.filter((diagnostic) =>
+  const missingPathGenerationDiagnosticCount = missingPathGenerationDiagnosticLearningGoalIds.length;
+  const blockedPathGenerationCount = registeredPathGenerationDiagnostics.filter((diagnostic) =>
     diagnostic.generationStatus === 'blocked' || diagnostic.blockingReasons.length > 0
   ).length;
-  const notEvaluatedPathGenerationCount = pathGenerationDiagnostics.filter((diagnostic) =>
+  const notEvaluatedPathGenerationCount = registeredPathGenerationDiagnostics.filter((diagnostic) =>
     diagnostic.generationStatus === 'not-evaluated'
   ).length + missingPathGenerationDiagnosticCount;
-  const resourceMixNotEvaluatedLearningGoals = pathGenerationDiagnostics.filter((diagnostic) =>
+  const resourceMixNotEvaluatedLearningGoals = registeredPathGenerationDiagnostics.filter((diagnostic) =>
     diagnostic.resourceCount === 0
   ).length + missingPathGenerationDiagnosticCount;
-  const citationNotEvaluatedLearningGoals = pathGenerationDiagnostics.filter((diagnostic) =>
+  const citationNotEvaluatedLearningGoals = registeredPathGenerationDiagnostics.filter((diagnostic) =>
     diagnostic.resourceCount === 0
   ).length + missingPathGenerationDiagnosticCount;
+  const invalidPathGenerationDiagnosticCount = unknownPathGenerationDiagnosticLearningGoalIds.length +
+    duplicatePathGenerationDiagnosticCount;
 
   const findings = [
     findingIf('unaccounted-resource-disposition', unaccountedCount, 'blocking', 'Resources are missing a reviewed path-planning disposition.', ['resource-disposition-backlog-review-summary.json']),
@@ -242,6 +263,7 @@ export function buildFullResourcePathReadinessGate(input: {
     findingIf('evidence-lineage-blockers', input.evidenceLineageSummary.evidenceLineageBlockerCount, 'blocking', 'Evidence-producing path resources still have hard evidence-lineage blockers.', ['resource-evidence-lineage-readiness-summary.json']),
     findingIf('yang-fan-fixture-blockers', input.evidenceLineageSummary.yangFanFixtureBlockers.blockerCount, 'blocking', 'Yang Fan fixture generation remains blocked by path-relevant lineage limitations.', ['resource-evidence-lineage-readiness-summary.json']),
     findingIf('learning-goal-diagnostics-missing', missingDiagnosticLearningGoalIds.length, 'blocking', 'Registered LearningGoals are missing baseline diagnostics.', ['learning-goal-resource-baseline-matrix.json']),
+    findingIf('learning-goal-path-generation-diagnostics-invalid', invalidPathGenerationDiagnosticCount, 'blocking', 'Path generation diagnostics include duplicate or unregistered LearningGoals.', ['full-resource-path-readiness-gate-summary.json']),
     findingIf('learning-goal-path-generation-not-evaluated', notEvaluatedPathGenerationCount, 'blocking', 'Registered LearningGoals are missing real planner generation attempts.', ['full-resource-path-readiness-gate-summary.json']),
     findingIf('learning-goal-path-generation-blocked', blockedPathGenerationCount, 'blocking', 'Registered LearningGoals attempted path generation but reported blocking planner reasons.', ['full-resource-path-readiness-gate-summary.json']),
     findingIf('learning-goal-baseline-limited', limitedRows.length, 'warning', 'LearningGoals have precise resource-gap diagnostics instead of production path-ready baselines.', ['learning-goal-resource-baseline-limitations.json']),
@@ -295,6 +317,9 @@ export function buildFullResourcePathReadinessGate(input: {
       limitedLearningGoalIds: limitedRows.map((row) => row.learningGoalId),
       reviewedBindings: input.reviewedBindings.length,
       pathGenerationDiagnostics: [...pathGenerationDiagnostics],
+      missingPathGenerationDiagnosticLearningGoalIds,
+      unknownPathGenerationDiagnosticLearningGoalIds,
+      duplicatePathGenerationDiagnosticCount,
       attemptedPathGenerationCount: pathGenerationDiagnostics.filter((diagnostic) => diagnostic.attempted).length,
       blockedPathGenerationCount,
       notEvaluatedPathGenerationCount,
@@ -361,6 +386,9 @@ export function renderFullResourcePathReadinessGateEvidence(report: FullResource
     `Attempted path generations: ${report.learningGoalDiagnostics.attemptedPathGenerationCount}`,
     `Blocked path generations: ${report.learningGoalDiagnostics.blockedPathGenerationCount}`,
     `Not evaluated path generations: ${report.learningGoalDiagnostics.notEvaluatedPathGenerationCount}`,
+    `Missing path generation diagnostics: ${report.learningGoalDiagnostics.missingPathGenerationDiagnosticLearningGoalIds.join(', ') || 'none'}`,
+    `Unknown path generation diagnostics: ${report.learningGoalDiagnostics.unknownPathGenerationDiagnosticLearningGoalIds.join(', ') || 'none'}`,
+    `Duplicate path generation diagnostics: ${report.learningGoalDiagnostics.duplicatePathGenerationDiagnosticCount}`,
     `Resource mix not evaluated: ${report.learningGoalDiagnostics.resourceMixNotEvaluatedLearningGoals}`,
     `Citation metadata not evaluated: ${report.learningGoalDiagnostics.citationNotEvaluatedLearningGoals}`,
     `Single-resource fallback risks: ${report.learningGoalDiagnostics.singleResourceFallbackRiskCount}`,

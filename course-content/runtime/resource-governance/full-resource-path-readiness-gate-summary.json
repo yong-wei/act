@@ -361,6 +361,9 @@
         "missingCitationMetadataResourceIds": []
       }
     ],
+    "missingPathGenerationDiagnosticLearningGoalIds": [],
+    "unknownPathGenerationDiagnosticLearningGoalIds": [],
+    "duplicatePathGenerationDiagnosticCount": 0,
     "attemptedPathGenerationCount": 9,
     "blockedPathGenerationCount": 9,
     "notEvaluatedPathGenerationCount": 0,

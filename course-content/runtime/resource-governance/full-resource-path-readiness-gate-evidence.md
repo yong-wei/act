@@ -25,6 +25,9 @@ Reviewed bindings: 27
 Attempted path generations: 9
 Blocked path generations: 9
 Not evaluated path generations: 0
+Missing path generation diagnostics: none
+Unknown path generation diagnostics: none
+Duplicate path generation diagnostics: 0
 Resource mix not evaluated: 9
 Citation metadata not evaluated: 9
 Single-resource fallback risks: 0

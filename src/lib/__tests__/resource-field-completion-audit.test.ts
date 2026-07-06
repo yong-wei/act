@@ -1604,15 +1604,43 @@ describe('resource field completion audit', () => {
         resourceTypeCount: 1,
         unreviewedSelectedResourceIds: [],
         missingCitationMetadataResourceIds: ['resource-a'],
+      }, {
+        learningGoalId: 'goal-a',
+        attempted: true,
+        generationStatus: 'ready',
+        fallbackReasons: [],
+        blockingReasons: [],
+        selectedResourceIds: [],
+        selectedResourceTypes: [],
+        resourceCount: 0,
+        resourceTypeCount: 0,
+        unreviewedSelectedResourceIds: [],
+        missingCitationMetadataResourceIds: [],
+      }, {
+        learningGoalId: 'goal-x',
+        attempted: true,
+        generationStatus: 'ready',
+        fallbackReasons: [],
+        blockingReasons: [],
+        selectedResourceIds: [],
+        selectedResourceTypes: [],
+        resourceCount: 0,
+        resourceTypeCount: 0,
+        unreviewedSelectedResourceIds: [],
+        missingCitationMetadataResourceIds: [],
       }],
     });
 
     expect(report.status).toBe('failed');
     expect(report.resourceCoverage.unresolvedDownstreamPathBlockers).toBe(3);
     expect(report.learningGoalDiagnostics.missingDiagnosticLearningGoalIds).toEqual(['goal-b']);
+    expect(report.learningGoalDiagnostics.missingPathGenerationDiagnosticLearningGoalIds).toEqual(['goal-b']);
+    expect(report.learningGoalDiagnostics.unknownPathGenerationDiagnosticLearningGoalIds).toEqual(['goal-x']);
+    expect(report.learningGoalDiagnostics.duplicatePathGenerationDiagnosticCount).toBe(1);
     expect(report.findings.map((finding) => finding.id)).toEqual(expect.arrayContaining([
       'unresolved-downstream-path-blockers',
       'learning-goal-diagnostics-missing',
+      'learning-goal-path-generation-diagnostics-invalid',
       'learning-goal-path-generation-not-evaluated',
       'single-resource-fallback-risk',
       'single-family-fallback-risk',
