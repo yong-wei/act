@@ -821,7 +821,7 @@ async function classifyCanonicalWriteSafety(
     },
     select: { id: true, status: true, progress: true, timeSpent: true },
   }) ?? [];
-  if (existingKnowledgeProgress.some((row) => !isFixtureKnowledgeProgress(row))) {
+  if (existingKnowledgeProgress.length > 0) {
     blockers.push('canonical-knowledge-progress-already-exists');
   }
   const profileSummary = await db.studentProfileSummary?.findUnique({ where: { userId: canonicalUserId } });
@@ -829,12 +829,6 @@ async function classifyCanonicalWriteSafety(
     blockers.push('canonical-profile-summary-already-exists');
   }
   return blockers;
-}
-
-function isFixtureKnowledgeProgress(row: Record<string, any>) {
-  return row.status === 'IN_PROGRESS'
-    && Number(row.progress) === 68
-    && Number(row.timeSpent) === 1800;
 }
 
 async function loadFixtureKnowledgeNodeIds(db: YangFanDiagnosticFixtureDb) {

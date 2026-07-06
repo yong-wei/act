@@ -291,6 +291,32 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(db.user.deleteMany).not.toHaveBeenCalled();
   });
 
+  it('blocks canonical KnowledgeProgress even when values match fixture defaults', async () => {
+    const db = createDbWithoutDuplicate({
+      knowledgeProgress: {
+        createMany: vi.fn(async () => ({ count: 0 })),
+        deleteMany: vi.fn(async () => ({ count: 0 })),
+        findMany: vi.fn(async () => [{
+          id: 'real-progress-same-values',
+          status: 'IN_PROGRESS',
+          progress: 68,
+          timeSpent: 1800,
+        }]),
+      },
+    });
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.canApply).toBe(false);
+    expect(plan.blockers).toContain('canonical-knowledge-progress-already-exists');
+    expect(db.knowledgeProgress?.createMany).not.toHaveBeenCalled();
+  });
+
   it('applies fixture records through governed tables without writing ArenaSubmission', async () => {
     const db = createDbWithoutDuplicate();
     const plan = await buildYangFanDiagnosticFixturePlan(db, {
