@@ -22,15 +22,10 @@ The system SHALL provide an explicit Yang Fan diagnostic fixture command for loc
 - **THEN** it SHALL resolve the canonical account by stable email or student number
 - **AND** it SHALL report duplicate account candidates before any apply-mode mutation.
 
-#### Scenario: Duplicate account is removed safely
-- **WHEN** a duplicate no-email Yang Fan account contains only safe fixture-owned or migratable records
-- **THEN** the command MAY migrate safe records to the canonical account and delete the duplicate
-- **AND** repeated runs SHALL NOT recreate duplicate accounts or duplicate learner evidence.
-
-#### Scenario: Duplicate account contains unsafe records
-- **WHEN** a duplicate account contains records that cannot be safely classified as fixture-owned or migratable
-- **THEN** the command SHALL stop before deletion
-- **AND** it SHALL report the blocking record families for implementing-agent review.
+#### Scenario: Duplicate account requires human review
+- **WHEN** a duplicate Yang Fan account is present
+- **THEN** the command SHALL refuse apply and reset mutations
+- **AND** it SHALL report privacy-minimized duplicate candidates for a separate human-reviewed account operation.
 
 #### Scenario: Yang Fan learner evidence is materialized
 - **WHEN** the fixture applies after preconditions pass
