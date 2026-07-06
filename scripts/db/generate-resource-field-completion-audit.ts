@@ -753,6 +753,7 @@ async function main() {
     registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
     registry,
     learningGoalBaselineMatrix: baselineArtifacts.matrix,
+    auditRows: result.rows,
     reviewedBindings: baselineArtifacts.reviewedBindings,
     now: new Date(generatedAt),
   });

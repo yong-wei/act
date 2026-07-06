@@ -441,16 +441,12 @@
       "authoring-textbook-caption",
       "authoring-textbook-chapter",
       "authoring-textbook-figure",
-      "authoring-textbook-section",
       "handout",
       "knowledge_card",
-      "knowledge-card",
       "knowledge-infograph",
       "lesson_step",
       "quiz",
       "runtime-lesson-media",
-      "runtime-lesson-module",
-      "runtime-lesson-step",
       "simulation",
       "slides",
       "textbook",
@@ -465,7 +461,6 @@
       "exercise",
       "image-description",
       "reference",
-      "textbook-section",
       "transcript"
     ]
   },
@@ -536,7 +531,7 @@
     {
       "id": "resource-type-audit-missing",
       "severity": "blocking",
-      "count": 8,
+      "count": 7,
       "message": "Required future import resource types are not currently represented in helper output; future imports must not bypass this audit.",
       "evidenceRefs": [
         "resource-field-completion-audit.jsonl"

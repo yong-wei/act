@@ -58,7 +58,7 @@ Citation failures: 0
 ## Future Import Coverage
 
 Missing audited families: none
-Missing audited resource types: adaptive_quiz, checkpoint, control_workbench, exercise, image-description, reference, textbook-section, transcript
+Missing audited resource types: adaptive_quiz, checkpoint, control_workbench, exercise, image-description, reference, transcript
 
 ## Findings
 
@@ -69,4 +69,4 @@ Missing audited resource types: adaptive_quiz, checkpoint, control_workbench, ex
 - [blocking] yang-fan-fixture-blockers: 3124 - Yang Fan fixture generation remains blocked by path-relevant lineage limitations.
 - [blocking] learning-goal-path-generation-blocked: 9 - Registered LearningGoals attempted path generation but reported blocking planner reasons.
 - [warning] learning-goal-baseline-limited: 9 - LearningGoals have precise resource-gap diagnostics instead of production path-ready baselines.
-- [blocking] resource-type-audit-missing: 8 - Required future import resource types are not currently represented in helper output; future imports must not bypass this audit.
+- [blocking] resource-type-audit-missing: 7 - Required future import resource types are not currently represented in helper output; future imports must not bypass this audit.

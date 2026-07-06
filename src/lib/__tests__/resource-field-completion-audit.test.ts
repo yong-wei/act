@@ -14,6 +14,7 @@ import {
   FULL_RESOURCE_PATH_READINESS_GATE_VERSION,
   REQUIRED_PATH_READINESS_RESOURCE_FAMILIES,
   buildFullResourcePathReadinessGate,
+  buildLearningGoalPathGenerationDiagnostics,
 } from '../full-resource-path-readiness-gate';
 import {
   buildResourceFieldCompletionAudit,
@@ -513,6 +514,8 @@ describe('resource field completion audit', () => {
       'video',
       'image-description',
     ]));
+    expect(fullResourcePathReadinessGate.futureResourceImportCoverage.auditedResourceTypes).toContain('textbook_section');
+    expect(fullResourcePathReadinessGate.futureResourceImportCoverage.missingAuditedResourceTypes).not.toContain('textbook-section');
     expect(fullResourcePathReadinessGate.findings.map((finding) => finding.id)).toEqual(expect.arrayContaining([
       'unresolved-downstream-path-blockers',
       'unreviewed-resource-semantics',
@@ -1726,6 +1729,65 @@ describe('resource field completion audit', () => {
     expect(row.selectedReviewedBindingIds).toContain(
       'frequency-response-foundations:concept:knowledge-card:frequency-family-type',
     );
+  });
+
+  it('uses full audit rows instead of truncated reviewed bindings for planner-selected resources', () => {
+    const frequencyDefinition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'];
+    const auditRow: ResourceFieldCompletionAuditRow = {
+      ...baselineAuditRow('knowledge-card:planner-selected-frequency', 'knowledge_card'),
+      reviewStatus: 'human-confirmed',
+      graphNodeRefs: {
+        knowledge: ['kn:autocontrol:frequency-response'],
+        capability: [],
+        quality: [],
+      },
+      reviewAudit: {
+        ...baselineAuditRow('knowledge-card:planner-selected-frequency', 'knowledge_card').reviewAudit,
+        reviewerId: 'curriculum-reviewer',
+        reviewerRole: 'teacher',
+        reviewedAt: '2026-06-24T00:00:00.000Z',
+        reviewBatchId: 'test-baseline',
+        reviewedSourceHash: 'sha256:knowledge-card:planner-selected-frequency',
+        reviewedVersionRef: 'resource-node-registry.v1',
+      },
+    };
+    const diagnostics = buildLearningGoalPathGenerationDiagnostics({
+      registeredGoals: {
+        'frequency-response-foundations': frequencyDefinition,
+      },
+      registry: buildResourceNodeRegistry({
+        knowledgeCards: [{
+          id: 'planner-selected-frequency',
+          title: 'Planner selected frequency card',
+          sourceRef: 'kn:autocontrol:frequency-response',
+          renderTarget: '/resources/knowledge-card:planner-selected-frequency',
+          knowledgeNodeIds: ['kn:autocontrol:frequency-response'],
+          planningOverride: { estimatedTimeMinutes: 5 },
+        }],
+      }),
+      learningGoalBaselineMatrix: {
+        registeredLearningGoalIds: ['frequency-response-foundations'],
+        batchLearningGoalIds: ['frequency-response-foundations'],
+        rows: [{
+          learningGoalId: 'frequency-response-foundations',
+          coverageState: 'complete',
+          selectedReviewedBindingIds: [],
+          missingBaselineCategories: [],
+          limitationReason: null,
+          denominator: {
+            reviewedBindingCount: 1,
+          },
+        }],
+      } as never,
+      auditRows: [auditRow],
+      reviewedBindings: [],
+      now: new Date('2026-06-24T00:00:00.000Z'),
+    });
+    const diagnostic = diagnostics[0];
+
+    expect(diagnostic.selectedResourceIds).toContain('knowledge-card:planner-selected-frequency');
+    expect(diagnostic.unreviewedSelectedResourceIds).toEqual([]);
+    expect(diagnostic.missingCitationMetadataResourceIds).toEqual([]);
   });
 
   it('counts human-confirmed baseline rows separately from path-eligible rows', () => {

@@ -216,7 +216,7 @@ export function buildFullResourcePathReadinessGate(input: {
   );
   const resourceTypeTotals = summarizeResourceTypes(input.auditRows);
   const missingAuditedResourceTypes = difference(
-    [...REQUIRED_PATH_READINESS_RESOURCE_TYPES],
+    uniqueSorted([...REQUIRED_PATH_READINESS_RESOURCE_TYPES].map(canonicalPathReadinessResourceType)),
     Object.keys(resourceTypeTotals),
   );
   const missingPathGenerationDiagnosticCount = Math.max(0, registeredLearningGoalIds.length - pathGenerationDiagnostics.length);
@@ -403,10 +403,14 @@ export function buildLearningGoalPathGenerationDiagnostics(input: {
   registeredGoals: Record<string, AdaptiveLearningPathRegisteredGoalDefinition>;
   registry: ResourceNodeRegistry;
   learningGoalBaselineMatrix: LearningGoalResourceBaselineArtifacts['matrix'];
+  auditRows: readonly ResourceFieldCompletionAuditRow[];
   reviewedBindings: readonly LearningGoalResourceBaselineReviewedBinding[];
   now?: Date;
 }): LearningGoalPathGenerationDiagnostic[] {
   const baselineByGoalId = new Map(input.learningGoalBaselineMatrix.rows.map((row) => [row.learningGoalId, row]));
+  const reviewedAuditRowByResourceId = new Map(input.auditRows
+    .filter(isReviewedPathEligibleAuditRow)
+    .map((row) => [row.resourceId, row]));
   const reviewedBindingByResourceId = new Map(input.reviewedBindings.map((binding) => [binding.resourceId, binding]));
   return Object.values(input.registeredGoals)
     .filter((registeredGoal) => Boolean(registeredGoal.learningGoal))
@@ -456,9 +460,11 @@ export function buildLearningGoalPathGenerationDiagnostics(input: {
       ));
       const selectedResourceTypes = uniqueSorted(plan.mainPath.map((node) => node.type));
       const unreviewedSelectedResourceIds = selectedResourceIds.filter((resourceId) =>
-        !reviewedBindingByResourceId.has(resourceId)
+        !reviewedAuditRowByResourceId.has(resourceId) && !reviewedBindingByResourceId.has(resourceId)
       );
       const missingCitationMetadataResourceIds = selectedResourceIds.filter((resourceId) => {
+        const auditRow = reviewedAuditRowByResourceId.get(resourceId);
+        if (auditRow) return !auditRow.sourcePathOrUrl || !auditRow.sourceHash || !auditRow.sourceVersionRef;
         const binding = reviewedBindingByResourceId.get(resourceId);
         return !binding?.sourcePathOrUrl || !binding.sourceHash || !binding.sourceVersionRef;
       });
@@ -535,9 +541,28 @@ function summarizeResourceMixDiagnostics(
 function summarizeResourceTypes(rows: readonly ResourceFieldCompletionAuditRow[]): Record<string, number> {
   const totals: Record<string, number> = {};
   for (const row of rows) {
-    totals[row.resourceType] = (totals[row.resourceType] ?? 0) + 1;
+    const resourceType = canonicalPathReadinessResourceType(row.resourceType);
+    totals[resourceType] = (totals[resourceType] ?? 0) + 1;
   }
   return totals;
+}
+
+function canonicalPathReadinessResourceType(resourceType: string): string {
+  if (resourceType === 'knowledge-card') return 'knowledge_card';
+  if (resourceType === 'runtime-lesson-step') return 'lesson_step';
+  if (resourceType === 'runtime-lesson-module') return 'lesson_step';
+  if (resourceType === 'runtime-handout') return 'handout';
+  if (resourceType === 'textbook-section') return 'textbook_section';
+  if (resourceType === 'authoring-textbook-section') return 'textbook_section';
+  if (resourceType === 'external-resource') return 'external_resource';
+  if (resourceType === 'arena') return 'arena_task';
+  return resourceType;
+}
+
+function isReviewedPathEligibleAuditRow(row: ResourceFieldCompletionAuditRow): boolean {
+  return row.reviewStatus === 'human-confirmed' &&
+    row.pathEligibility.afterCompletion &&
+    row.pathEligibility.blockedBy.length === 0;
 }
 
 function summarizeFollowupBuckets(items: readonly FullResourcePathReadinessWorkqueueItem[]): Record<string, number> {
