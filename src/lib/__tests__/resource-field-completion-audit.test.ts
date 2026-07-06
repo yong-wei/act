@@ -1350,6 +1350,45 @@ describe('resource field completion audit', () => {
     });
   });
 
+  it('does not treat an incomplete fixture-owned audit row as governed readiness', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      candidates: [
+        {
+          id: 'yangfan-diagnostic-fixture-item-ref',
+          title: 'Yang Fan fixture item ref',
+          family: 'external-resource',
+          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-item-ref',
+          sourceRecord: 'yangfan-diagnostic-fixture-item-ref',
+          knowledgeNodeIds: ['性能指标_1_1'],
+          capabilityTargetIds: ['controlModeling'],
+          segmentRefs: ['yangfan-diagnostic-fixture-item-ref'],
+          citationTargets: ['yangfan-diagnostic-fixture-item-ref'],
+          pathTarget: 'yangfan-diagnostic-fixture-item-ref',
+          estimatedTimeMinutes: 5,
+          privacyScope: 'student-visible',
+          contentHash: 'sha256:yangfan-diagnostic-fixture-item-ref',
+          versionRef: 'yangfan-diagnostic-fixture.v1',
+          evidenceInstrumentation: ['adaptive-assessment-answer'],
+          humanConfirmed: false,
+          currentPathEligible: true,
+        },
+      ],
+    });
+
+    const itemRefBlocker = result.evidenceLineage.items.find((item) =>
+      item.resourceId === 'yangfan-diagnostic-fixture-item-ref'
+    );
+    expect(itemRefBlocker).toMatchObject({
+      resourceId: 'yangfan-diagnostic-fixture-item-ref',
+      evidenceEffectState: 'blocked',
+      blocksYangFanFixture: true,
+      yangFanFixtureScope: 'fixture-owned',
+      missingFieldCodes: expect.arrayContaining(['missing-human-review']),
+    });
+  });
+
   it('declares knowledge-card lineage as path execution evidence without LearningFact materialization', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),

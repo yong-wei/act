@@ -23,6 +23,7 @@ export const YANGFAN_FIXTURE_OWNED_RESOURCE_IDS = [
   'yangfan-diagnostic-fixture-item-ref',
   'yangfan-fixture-control-correction-path',
   'yangfan-diagnostic-fixture:exec-start',
+  'yangfan-diagnostic-fixture:exec-complete',
   'yangfan-diagnostic-fixture:exec-terminal',
   'yangfan-fixture-fact-assessment',
   'yangfan-fixture-fact-path',
@@ -900,7 +901,9 @@ function missingYangFanFixtureGovernanceItems(
     .map((item) => item.resourceId));
   return YANGFAN_FIXTURE_OWNED_RESOURCE_IDS
     .filter((resourceId) => !existingScopedIds.has(resourceId))
-    .filter((resourceId) => !rows.some((row) => rowReferencesYangFanFixtureResource(row, resourceId)))
+    .filter((resourceId) => !rows.some((row) =>
+      rowReferencesYangFanFixtureResource(row, resourceId) && isGovernedFixtureReadinessRow(row)
+    ))
     .map((resourceId) => ({
       artifactVersion: 'resource-evidence-lineage-readiness.v1' as const,
       resourceId,
@@ -932,6 +935,13 @@ function missingYangFanFixtureGovernanceItems(
       privacyMinimized: true,
       rawContentIncluded: false,
     }));
+}
+
+function isGovernedFixtureReadinessRow(row: ResourceFieldCompletionAuditRow): boolean {
+  return row.reviewStatus === 'human-confirmed' &&
+    row.missingFieldCodes.length === 0 &&
+    row.evidenceContract.complete &&
+    Boolean(row.pathEligibility.current || row.pathEligibility.afterCompletion || row.pathEligibility.masteryAffecting || row.pathTarget);
 }
 
 function rowReferencesYangFanFixtureResource(row: ResourceFieldCompletionAuditRow, resourceId: string): boolean {
