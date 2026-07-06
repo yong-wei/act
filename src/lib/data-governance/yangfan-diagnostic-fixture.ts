@@ -208,7 +208,7 @@ export async function buildYangFanDiagnosticFixturePlan(
   const canonicalSafety = mode !== 'reset' && canonical
     ? await classifyCanonicalWriteSafety(db, canonical.id, knowledgeNodeIds)
     : [];
-  const readinessBlockers = readinessSummaryBlockers(options.readinessSummary);
+  const readinessBlockers = mode === 'reset' ? [] : readinessSummaryBlockers(options.readinessSummary);
   const safetyBlockers = safetyBlockersForMode(mode, options);
   const knowledgeNodeBlockers = mode !== 'reset' && canonical && !hasCompleteFixtureKnowledgeNodes(knowledgeNodeIds)
     ? ['fixture-knowledge-nodes-missing']

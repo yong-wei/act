@@ -643,6 +643,30 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(plan.blockers).not.toContain('fixture-knowledge-nodes-missing');
   });
 
+  it('allows reset cleanup when readiness summary still has blockers', async () => {
+    const db = createDbWithoutDuplicate();
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: blockedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.blockers).not.toContain('yang-fan-fixture-blockers');
+    expect(plan.blockers).not.toContain('readiness-summary-not-passed');
+
+    await resetYangFanDiagnosticFixture(db, plan, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: blockedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(db.learningFact.deleteMany).toHaveBeenCalled();
+  });
+
   it('deletes evidence feature cache on reset when no non-fixture sources remain', async () => {
     const db = createDbWithoutDuplicate();
     const plan = await buildYangFanDiagnosticFixturePlan(db, {
