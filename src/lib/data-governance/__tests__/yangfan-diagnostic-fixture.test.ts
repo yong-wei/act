@@ -220,6 +220,28 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(plan.blockers).toContain('fixture-database-not-allowlisted');
   });
 
+  it('rechecks apply safety gates before writing with a reused plan', async () => {
+    const db = createDbWithoutDuplicate();
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.canApply).toBe(true);
+    await expect(applyYangFanDiagnosticFixture(db, plan, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://staging-db/latest',
+    })).rejects.toThrow('fixture-database-not-allowlisted');
+    expect(db.learningFact.deleteMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
   it('redacts direct identifiers in plan output', async () => {
     const db = createDb();
     const plan = await buildYangFanDiagnosticFixturePlan(db, {

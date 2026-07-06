@@ -264,6 +264,10 @@ export async function applyYangFanDiagnosticFixture(
   if (!plan.canApply) {
     throw new Error(`Cannot apply Yang Fan diagnostic fixture: ${plan.blockers.join(', ') || 'apply gate not satisfied'}`);
   }
+  const applySafetyBlockers = safetyBlockersForMode('apply', { ...options, mode: 'apply' });
+  if (applySafetyBlockers.length > 0) {
+    throw new Error(`Cannot apply Yang Fan diagnostic fixture: ${applySafetyBlockers.join(', ')}`);
+  }
 
   const write = async (tx: YangFanDiagnosticFixtureDb) => {
     const now = options.now ?? new Date();
