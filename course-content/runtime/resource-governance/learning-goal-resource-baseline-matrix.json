@@ -16,6 +16,17 @@
     "plannerVersion": "adaptive-learning-path-planner.v1",
     "groundingVersion": "konling-graph-grounding.v1"
   },
+  "registeredLearningGoalIds": [
+    "control-correction",
+    "frequency-response-foundations",
+    "feedback-loop-concept-foundations",
+    "transfer-function-modeling-foundations",
+    "time-domain-response-analysis",
+    "root-locus-analysis-foundations",
+    "stability-margin-frequency-analysis",
+    "simulation-validation-practice",
+    "ship-ocean-transfer-application"
+  ],
   "batchLearningGoalIds": [
     "control-correction",
     "frequency-response-foundations",

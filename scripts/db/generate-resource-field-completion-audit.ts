@@ -19,6 +19,11 @@ import {
 import {
   buildLearningGoalResourceBaselineArtifacts,
 } from '@/lib/learning-goal-resource-baseline';
+import {
+  buildFullResourcePathReadinessGate,
+  buildLearningGoalPathGenerationDiagnostics,
+  renderFullResourcePathReadinessGateEvidence,
+} from '@/lib/full-resource-path-readiness-gate';
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
@@ -42,6 +47,8 @@ const PROJECTION_LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-proj
 const BASELINE_MATRIX_JSON_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
 const BASELINE_LIMITATIONS_JSON_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-limitations.json');
 const BASELINE_REVIEWED_BINDINGS_JSONL_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-reviewed-bindings.jsonl');
+const FULL_RESOURCE_PATH_READINESS_GATE_JSON_PATH = path.join(OUTPUT_DIR, 'full-resource-path-readiness-gate-summary.json');
+const FULL_RESOURCE_PATH_READINESS_GATE_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'full-resource-path-readiness-gate-evidence.md');
 const RUNTIME_LESSONS_DIR = path.join(process.cwd(), 'course-content/runtime/lessons');
 const RUNTIME_KNOWLEDGE_CARDS_DIR = path.join(process.cwd(), 'course-content/runtime/knowledge/cards/nodes');
 const INFOGRAPH_MANIFEST_PATH = path.join(process.cwd(), 'course-content/runtime/knowledge/infographs/manifest.json');
@@ -741,6 +748,26 @@ async function main() {
     result.evidenceLineage,
     dispositionReviewItems,
   );
+  const workqueueItems = flattenWorkqueueItems(result.workqueues);
+  const pathGenerationDiagnostics = buildLearningGoalPathGenerationDiagnostics({
+    registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+    registry,
+    learningGoalBaselineMatrix: baselineArtifacts.matrix,
+    auditRows: result.rows,
+    reviewedBindings: baselineArtifacts.reviewedBindings,
+    now: new Date(generatedAt),
+  });
+  const fullResourcePathReadinessGate = buildFullResourcePathReadinessGate({
+    generatedAt,
+    resourceSummary: result.summary,
+    auditRows: result.rows,
+    workqueueItems,
+    dispositionReviewSummary,
+    evidenceLineageSummary: reviewedEvidenceLineage.summary,
+    learningGoalBaselineMatrix: baselineArtifacts.matrix,
+    reviewedBindings: baselineArtifacts.reviewedBindings,
+    pathGenerationDiagnostics,
+  });
 
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
   await fs.writeFile(
@@ -751,7 +778,7 @@ async function main() {
   await fs.writeFile(SUMMARY_JSON_PATH, `${JSON.stringify(result.summary, null, 2)}\n`, 'utf8');
   await fs.writeFile(
     WORKQUEUE_ITEMS_JSONL_PATH,
-    `${flattenWorkqueueItems(result.workqueues).map((row) => JSON.stringify(row)).join('\n')}\n`,
+    `${workqueueItems.map((row) => JSON.stringify(row)).join('\n')}\n`,
     'utf8',
   );
   await fs.writeFile(
@@ -824,6 +851,16 @@ async function main() {
     `${baselineArtifacts.reviewedBindings.map((row) => JSON.stringify(row)).join('\n')}\n`,
     'utf8',
   );
+  await fs.writeFile(
+    FULL_RESOURCE_PATH_READINESS_GATE_JSON_PATH,
+    `${JSON.stringify(fullResourcePathReadinessGate, null, 2)}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    FULL_RESOURCE_PATH_READINESS_GATE_EVIDENCE_MD_PATH,
+    renderFullResourcePathReadinessGateEvidence(fullResourcePathReadinessGate),
+    'utf8',
+  );
 
   console.log(`Resource field completion audit rows: ${result.rows.length}`);
   console.log(`Summary: ${path.relative(process.cwd(), SUMMARY_JSON_PATH)}`);
@@ -843,6 +880,12 @@ async function main() {
   console.log(`LearningGoal baseline matrix: ${path.relative(process.cwd(), BASELINE_MATRIX_JSON_PATH)}`);
   console.log(`LearningGoal baseline limitations: ${path.relative(process.cwd(), BASELINE_LIMITATIONS_JSON_PATH)}`);
   console.log(`LearningGoal baseline reviewed bindings: ${baselineArtifacts.reviewedBindings.length}`);
+  console.log(`Full resource path readiness gate: ${fullResourcePathReadinessGate.status}`);
+  console.log(`Full resource path readiness summary: ${path.relative(process.cwd(), FULL_RESOURCE_PATH_READINESS_GATE_JSON_PATH)}`);
+  if (fullResourcePathReadinessGate.status === 'failed') {
+    console.error('Full resource path readiness gate failed; see generated summary and evidence artifacts for blocking findings.');
+    process.exitCode = 1;
+  }
 }
 
 function flattenWorkqueueItems(workqueues: ReturnType<typeof buildResourceFieldCompletionAudit>['workqueues']) {

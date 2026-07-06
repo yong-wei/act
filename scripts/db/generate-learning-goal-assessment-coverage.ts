@@ -16,7 +16,6 @@ import {
   learningGoalAssessmentCoverageArtifactsToFiles,
 } from '@/features/adaptive-assessment/learning-goal-assessment-coverage';
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
-import { FIRST_BATCH_LEARNING_GOAL_IDS } from '@/lib/learning-goal-resource-baseline';
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
@@ -25,6 +24,7 @@ const MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-assessment-coverage-mat
 const BASELINE_MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
 
 type LearningGoalResourceBaselineMatrix = {
+  registeredLearningGoalIds?: string[];
   batchLearningGoalIds?: string[];
   rows?: Array<{
     learningGoalId?: string;
@@ -119,22 +119,25 @@ async function main() {
     ],
   );
   const learningGoalSemanticBoundaries = await loadLearningGoalSemanticBoundaries();
-  const goals = FIRST_BATCH_LEARNING_GOAL_IDS.map((goalId) => {
-    const definition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId].learningGoal!;
-    return {
-      id: definition.id,
-      title: definition.title,
-      terminalValidationRequired: definition.terminalValidationPolicy.required,
-      acceptedTerminalEvidenceTypes: definition.terminalValidationPolicy.acceptedEvidenceTypes,
-      semanticBoundary: learningGoalSemanticBoundaries.get(definition.id),
-    };
-  });
   const registeredSemanticIds = await loadRegisteredSemanticIds();
+  const goals = Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
+    .filter((registeredGoal) => Boolean(registeredGoal.learningGoal))
+    .map((registeredGoal) => {
+      const definition = registeredGoal.learningGoal!;
+      return {
+        id: definition.id,
+        title: definition.title,
+        terminalValidationRequired: definition.terminalValidationPolicy.required,
+        acceptedTerminalEvidenceTypes: definition.terminalValidationPolicy.acceptedEvidenceTypes,
+        semanticBoundary: learningGoalSemanticBoundaries.get(definition.id),
+      };
+    });
   const artifacts = buildLearningGoalAssessmentCoverageArtifacts({
     items: catalog.items,
     decisions,
     goals,
-    knownLearningGoalIds: registeredSemanticIds.learningGoalIds,
+    generatedAt: process.env.RESOURCE_FIELD_COMPLETION_GENERATED_AT,
+    knownLearningGoalIds: goals.map((goal) => goal.id),
     knownKaqObjectiveIds: registeredSemanticIds.kaqObjectiveIds,
     knownGraphNodeIds: registeredSemanticIds.graphNodeIds,
     knownRemediationResourceNodeIds: registeredSemanticIds.remediationResourceNodeIds,
