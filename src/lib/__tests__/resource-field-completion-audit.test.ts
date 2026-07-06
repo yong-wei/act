@@ -1389,6 +1389,54 @@ describe('resource field completion audit', () => {
     });
   });
 
+  it('does not treat governed citation rows as fixture-owned resource governance', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      candidates: [
+        {
+          id: 'path-resource:governed-reference-row',
+          title: 'Governed row that only cites fixture fact',
+          family: 'external-resource',
+          sourcePathOrUrl: '/fixture/governed-reference-row',
+          sourceRecord: 'path-resource:governed-reference-row',
+          knowledgeNodeIds: ['性能指标_1_1'],
+          capabilityTargetIds: ['controlModeling'],
+          segmentRefs: ['path-resource:governed-reference-row'],
+          citationTargets: ['LearningFact:yangfan-fixture-fact-path'],
+          pathTarget: 'path-resource:governed-reference-row',
+          estimatedTimeMinutes: 5,
+          privacyScope: 'student-visible',
+          contentHash: 'sha256:governed-reference-row',
+          versionRef: 'governed-reference-row.v1',
+          evidenceInstrumentation: ['path-execution'],
+          humanConfirmed: true,
+          currentPathEligible: true,
+          reviewEvidence: {
+            reviewerId: 'fixture-readiness-reviewer',
+            reviewerRole: 'data-governance',
+            reviewedAt: '2026-07-05T00:00:00.000Z',
+            reviewBatchId: 'fixture-readiness-review-batch',
+            reviewerVisibleRationale: 'Reference row is governed but does not govern the cited fixture fact.',
+            independentEvidenceRef: 'review-packet:governed-reference-row',
+            reviewedSourceHash: 'sha256:governed-reference-row',
+            promptOrManifestHash: 'sha256:fixture-readiness-review',
+          },
+        },
+      ],
+    });
+
+    const fixtureFactBlocker = result.evidenceLineage.items.find((item) =>
+      item.resourceId === 'yangfan-fixture-fact-path'
+    );
+    expect(fixtureFactBlocker).toMatchObject({
+      resourceId: 'yangfan-fixture-fact-path',
+      evidenceEffectState: 'blocked',
+      blocksYangFanFixture: true,
+      yangFanFixtureScope: 'fixture-owned',
+    });
+  });
+
   it('declares knowledge-card lineage as path execution evidence without LearningFact materialization', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),

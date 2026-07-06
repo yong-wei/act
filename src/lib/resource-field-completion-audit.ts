@@ -902,7 +902,7 @@ function missingYangFanFixtureGovernanceItems(
   return YANGFAN_FIXTURE_OWNED_RESOURCE_IDS
     .filter((resourceId) => !existingScopedIds.has(resourceId))
     .filter((resourceId) => !rows.some((row) =>
-      rowReferencesYangFanFixtureResource(row, resourceId) && isGovernedFixtureReadinessRow(row)
+      rowOwnsYangFanFixtureResource(row, resourceId) && isGovernedFixtureReadinessRow(row)
     ))
     .map((resourceId) => ({
       artifactVersion: 'resource-evidence-lineage-readiness.v1' as const,
@@ -942,6 +942,16 @@ function isGovernedFixtureReadinessRow(row: ResourceFieldCompletionAuditRow): bo
     row.missingFieldCodes.length === 0 &&
     row.evidenceContract.complete &&
     Boolean(row.pathEligibility.current || row.pathEligibility.afterCompletion || row.pathEligibility.masteryAffecting || row.pathTarget);
+}
+
+function rowOwnsYangFanFixtureResource(row: ResourceFieldCompletionAuditRow, resourceId: string): boolean {
+  return [
+    row.resourceId,
+    row.sourceRecord,
+    row.pathTarget,
+  ]
+    .map((value) => String(value || '').replace(/^LearningFact:/, ''))
+    .some((value) => value === resourceId);
 }
 
 function rowReferencesYangFanFixtureResource(row: ResourceFieldCompletionAuditRow, resourceId: string): boolean {
