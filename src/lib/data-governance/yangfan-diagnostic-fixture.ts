@@ -198,7 +198,9 @@ export async function buildYangFanDiagnosticFixturePlan(
   const duplicates = canonical ? candidates.filter((candidate) => candidate.id !== canonical.id) : candidates;
   const duplicateSafety = await classifyDuplicateSafety(db, duplicates);
   const knowledgeNodeIds = canonical ? await loadFixtureKnowledgeNodeIds(db) : [];
-  const canonicalSafety = canonical ? await classifyCanonicalWriteSafety(db, canonical.id, knowledgeNodeIds) : [];
+  const canonicalSafety = mode !== 'reset' && canonical
+    ? await classifyCanonicalWriteSafety(db, canonical.id, knowledgeNodeIds)
+    : [];
   const readinessBlockers = readinessSummaryBlockers(options.readinessSummary);
   const safetyBlockers = safetyBlockersForMode(mode, options);
   const blockers = [
@@ -350,7 +352,7 @@ export async function resetYangFanDiagnosticFixture(
   }
   const now = new Date(plan.generatedAt);
   const write = async (tx: YangFanDiagnosticFixtureDb) => {
-    const resolved = await resolveWritableAccounts(tx, options);
+    const resolved = await resolveResettableAccount(tx, options);
     await resetFixtureRows(tx, resolved.canonical.id);
     await refreshStudentEvidenceFeatureCache(tx as unknown as StudentEvidenceFeatureCacheDb, resolved.canonical.id, {
       now,
@@ -914,6 +916,27 @@ async function resolveWritableAccounts(
   const canonicalSafety = await classifyCanonicalWriteSafety(db, canonical.id, knowledgeNodeIds);
   if (canonicalSafety.length > 0) {
     throw new Error(`Cannot write fixture while canonical learner records are unsafe: ${canonicalSafety.join(', ')}`);
+  }
+  return {
+    canonical,
+  };
+}
+
+async function resolveResettableAccount(
+  db: YangFanDiagnosticFixtureDb,
+  options: YangFanDiagnosticFixtureOptions,
+) {
+  const canonicalStudentNumber = options.canonicalStudentNumber ?? YANGFAN_DIAGNOSTIC_FIXTURE_STUDENT_NUMBER;
+  const candidates = await loadYangFanCandidates(db, {
+    canonicalEmail: options.canonicalEmail,
+    canonicalStudentNumber,
+  });
+  const canonical = resolveCanonicalAccount(candidates, options.canonicalEmail, canonicalStudentNumber);
+  if (!canonical) throw new Error('Cannot resolve canonical Yang Fan account for fixture reset.');
+  const duplicates = candidates.filter((candidate) => candidate.id !== canonical.id);
+  const duplicateSafety = await classifyDuplicateSafety(db, duplicates);
+  if (duplicateSafety.unsafe.length > 0) {
+    throw new Error('Cannot reset fixture while unsafe duplicate Yang Fan accounts remain.');
   }
   return {
     canonical,

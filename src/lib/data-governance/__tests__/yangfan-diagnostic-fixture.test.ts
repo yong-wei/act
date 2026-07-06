@@ -402,6 +402,46 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(db.user.deleteMany).not.toHaveBeenCalled();
   });
 
+  it('allows reset when canonical KnowledgeProgress rows exist', async () => {
+    const db = createDbWithoutDuplicate({
+      knowledgeProgress: {
+        createMany: vi.fn(async () => ({ count: 0 })),
+        deleteMany: vi.fn(async () => ({ count: 3 })),
+        findMany: vi.fn(async () => [{
+          id: 'fixture-progress',
+          status: 'IN_PROGRESS',
+          progress: 68,
+          timeSpent: 1800,
+        }]),
+      },
+    });
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.blockers).not.toContain('canonical-knowledge-progress-already-exists');
+
+    await resetYangFanDiagnosticFixture(db, plan, {
+      mode: 'reset',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(db.knowledgeProgress?.deleteMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        status: 'IN_PROGRESS',
+        progress: 68,
+        timeSpent: 1800,
+      }),
+    }));
+  });
+
   it('requires explicit confirmation before reset writes', async () => {
     const db = createDb();
     const plan = await buildYangFanDiagnosticFixturePlan(db, {
