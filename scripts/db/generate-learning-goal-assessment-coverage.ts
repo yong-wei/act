@@ -82,16 +82,6 @@ async function loadRegisteredSemanticIds() {
   };
 }
 
-async function loadRegisteredLearningGoalIdsInBaselineOrder() {
-  const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
-  return [
-    ...(matrix.registeredLearningGoalIds ?? matrix.batchLearningGoalIds ?? []),
-    ...(matrix.rows ?? []).map((row) => row.learningGoalId),
-  ].filter((value, index, values): value is string => (
-    Boolean(value) && values.indexOf(value) === index
-  ));
-}
-
 async function loadLearningGoalSemanticBoundaries() {
   const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
   return new Map((matrix.rows ?? [])
@@ -130,22 +120,24 @@ async function main() {
   );
   const learningGoalSemanticBoundaries = await loadLearningGoalSemanticBoundaries();
   const registeredSemanticIds = await loadRegisteredSemanticIds();
-  const goals = (await loadRegisteredLearningGoalIdsInBaselineOrder()).map((goalId) => {
-    const definition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId].learningGoal!;
-    return {
-      id: definition.id,
-      title: definition.title,
-      terminalValidationRequired: definition.terminalValidationPolicy.required,
-      acceptedTerminalEvidenceTypes: definition.terminalValidationPolicy.acceptedEvidenceTypes,
-      semanticBoundary: learningGoalSemanticBoundaries.get(definition.id),
-    };
-  });
+  const goals = Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
+    .filter((registeredGoal) => Boolean(registeredGoal.learningGoal))
+    .map((registeredGoal) => {
+      const definition = registeredGoal.learningGoal!;
+      return {
+        id: definition.id,
+        title: definition.title,
+        terminalValidationRequired: definition.terminalValidationPolicy.required,
+        acceptedTerminalEvidenceTypes: definition.terminalValidationPolicy.acceptedEvidenceTypes,
+        semanticBoundary: learningGoalSemanticBoundaries.get(definition.id),
+      };
+    });
   const artifacts = buildLearningGoalAssessmentCoverageArtifacts({
     items: catalog.items,
     decisions,
     goals,
     generatedAt: process.env.RESOURCE_FIELD_COMPLETION_GENERATED_AT,
-    knownLearningGoalIds: registeredSemanticIds.learningGoalIds,
+    knownLearningGoalIds: goals.map((goal) => goal.id),
     knownKaqObjectiveIds: registeredSemanticIds.kaqObjectiveIds,
     knownGraphNodeIds: registeredSemanticIds.graphNodeIds,
     knownRemediationResourceNodeIds: registeredSemanticIds.remediationResourceNodeIds,
