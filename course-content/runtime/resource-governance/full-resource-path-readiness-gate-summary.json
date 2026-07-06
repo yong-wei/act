@@ -535,7 +535,7 @@
     },
     {
       "id": "resource-type-audit-missing",
-      "severity": "warning",
+      "severity": "blocking",
       "count": 8,
       "message": "Required future import resource types are not currently represented in helper output; future imports must not bypass this audit.",
       "evidenceRefs": [

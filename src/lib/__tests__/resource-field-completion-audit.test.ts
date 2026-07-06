@@ -522,6 +522,12 @@ describe('resource field completion audit', () => {
       'learning-goal-baseline-limited',
       'resource-type-audit-missing',
     ]));
+    expect(fullResourcePathReadinessGate.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'resource-type-audit-missing',
+        severity: 'blocking',
+      }),
+    ]));
     expect(fullResourcePathReadinessEvidence).toContain('# Full Resource Path Readiness Gate');
     expect(fullResourcePathReadinessEvidence).toContain('Missing diagnostics: none');
     expect(fullResourcePathReadinessEvidence).toContain('frequency-response-foundations: limited');

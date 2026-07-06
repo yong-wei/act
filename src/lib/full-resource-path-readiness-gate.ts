@@ -250,7 +250,7 @@ export function buildFullResourcePathReadinessGate(input: {
     findingIf('learning-goal-unreviewed-selected-resources', selectedUnreviewedResourceCount, 'blocking', 'Planner-generated paths selected resources without reviewed governed bindings.', ['full-resource-path-readiness-gate-summary.json']),
     findingIf('learning-goal-citation-failures', citationFailureCount, 'blocking', 'Reviewed LearningGoal bindings must preserve governed source, hash, and version citation metadata.', ['learning-goal-resource-baseline-reviewed-bindings.jsonl']),
     findingIf('resource-family-audit-missing', missingAuditedFamilies.length, 'blocking', 'Required resource families are absent from the helper output and could bypass future import auditing.', ['resource-field-completion-summary.json']),
-    findingIf('resource-type-audit-missing', missingAuditedResourceTypes.length, 'warning', 'Required future import resource types are not currently represented in helper output; future imports must not bypass this audit.', ['resource-field-completion-audit.jsonl']),
+    findingIf('resource-type-audit-missing', missingAuditedResourceTypes.length, 'blocking', 'Required future import resource types are not currently represented in helper output; future imports must not bypass this audit.', ['resource-field-completion-audit.jsonl']),
   ].filter((item): item is FullResourcePathReadinessFinding => Boolean(item));
 
   return {
