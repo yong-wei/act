@@ -806,7 +806,12 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('开始学习');
     expect(source).toContain('跳过');
     expect(source).toContain('跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。');
-    expect(source).toContain('路径完成与证据');
+    expect(source).toContain('title="学习记录"');
+    expect(source).toContain('moduleId="current-path"');
+    expect(source).toContain('moduleId="learning-record"');
+    expect(source).toContain('data-adaptive-path-module={moduleId}');
+    expect(source).toContain('data-adaptive-path-module-state={isOpen ? \'expanded\' : \'collapsed\'}');
+    expect(source).toContain('setOpenPathModuleId((current) => (current === moduleId ? null : moduleId))');
     expect(source).toContain('data-adaptive-path-route-flow="connected"');
     expect(source).toContain('data-adaptive-path-route-connector="true"');
     expect(source).toContain('data-adaptive-path-node-selectable="true"');

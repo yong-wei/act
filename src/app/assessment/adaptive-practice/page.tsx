@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
   BookOpenCheck,
   BrainCircuit,
+  ChevronDown,
   CheckCircle2,
   Clock3,
   Compass,
@@ -178,6 +179,78 @@ type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
+type PathWorkspaceModuleId =
+  | 'learning-overview'
+  | 'current-path'
+  | 'goal-selection'
+  | 'path-selection'
+  | 'learning-record'
+  | 'path-resource';
+
+interface PathWorkspaceModuleProps {
+  moduleId: PathWorkspaceModuleId;
+  openModuleId: PathWorkspaceModuleId | null;
+  onToggle: (moduleId: PathWorkspaceModuleId) => void;
+  eyebrow: string;
+  title: string;
+  summary?: string;
+  icon?: LucideIcon;
+  trailing?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  [key: `data-${string}`]: string | undefined;
+}
+
+function PathWorkspaceModule({
+  moduleId,
+  openModuleId,
+  onToggle,
+  eyebrow,
+  title,
+  summary,
+  icon: Icon,
+  trailing,
+  children,
+  className = '',
+  ...dataAttributes
+}: PathWorkspaceModuleProps) {
+  const isOpen = openModuleId === moduleId;
+  const bodyId = `adaptive-path-module-body-${moduleId}`;
+
+  return (
+    <section
+      id={`adaptive-path-module-${moduleId}`}
+      className={`surface-card scroll-mt-24 p-5 ${className}`}
+      data-adaptive-path-module={moduleId}
+      data-adaptive-path-module-state={isOpen ? 'expanded' : 'collapsed'}
+      {...dataAttributes}
+    >
+      <button
+        type="button"
+        onClick={() => onToggle(moduleId)}
+        aria-expanded={isOpen}
+        aria-controls={bodyId}
+        className="flex w-full items-start justify-between gap-4 text-left"
+      >
+        <span className="min-w-0">
+          <span className="text-xs font-medium uppercase tracking-normal text-primary">{eyebrow}</span>
+          <span className="mt-1 block text-xl font-semibold text-foreground">{title}</span>
+          {summary ? <span className="mt-2 block text-sm leading-6 text-subtle">{summary}</span> : null}
+        </span>
+        <span className="flex shrink-0 items-center gap-3">
+          {trailing}
+          {Icon ? <Icon className="size-5 text-primary" aria-hidden="true" /> : null}
+          <ChevronDown className={`size-4 text-subtle transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </span>
+      </button>
+      {isOpen ? (
+        <div id={bodyId} className="mt-4" data-adaptive-path-module-body={moduleId}>
+          {children}
+        </div>
+      ) : null}
+    </section>
+  );
+}
 
 function readAdaptiveGenerationReadiness(payload: unknown): AdaptiveGenerationReadiness | null {
   const record = getRecord(payload);
@@ -1418,6 +1491,20 @@ export default function AdaptivePracticePage() {
   const [pathActivityPending, setPathActivityPending] = useState<string | null>(null);
   const [selectedPathNodeId, setSelectedPathNodeId] = useState<string | null>(activeNodeId);
   const [practiceQuestionExpanded, setPracticeQuestionExpanded] = useState(activePracticeFocus === 'question');
+  const [openPathModuleId, setOpenPathModuleId] = useState<PathWorkspaceModuleId | null>(null);
+  const autoOpenedPathWorkspaceKeyRef = useRef<string | null>(null);
+  const togglePathModule = useCallback((moduleId: PathWorkspaceModuleId) => {
+    setOpenPathModuleId((current) => (current === moduleId ? null : moduleId));
+  }, []);
+  const openAndScrollPathModule = useCallback((moduleId: PathWorkspaceModuleId) => {
+    setOpenPathModuleId(moduleId);
+    window.setTimeout(() => {
+      document.getElementById(`adaptive-path-module-${moduleId}`)?.scrollIntoView({
+        block: 'start',
+        behavior: 'smooth',
+      });
+    }, 0);
+  }, []);
   const practiceRouteNodes = useMemo(() => buildPracticeEntryRouteNodes({
     recommendedFocus: diagnostic?.recommendedFocus ?? [],
     weakAreas: diagnostic?.weakAreas ?? [],
@@ -1574,6 +1661,57 @@ export default function AdaptivePracticePage() {
     () => buildEvidenceSourceSummary(pathExecutionNodes),
     [pathExecutionNodes],
   );
+  const pathManagementTargetModuleId = useMemo<PathWorkspaceModuleId | null>(() => {
+    if (!showPathContextRecovery && showEvidenceWorkspace && pathExecutionNodes.length > 0) {
+      return 'learning-record';
+    }
+    if (!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace) && pathExecutionNodes.length > 0) {
+      return 'current-path';
+    }
+    if (!showPathContextRecovery && showSelectionWorkspace && visiblePathOptions.length > 0) {
+      return 'path-selection';
+    }
+    if (!showPathContextRecovery && showPracticeWorkspace) {
+      return 'path-resource';
+    }
+    if (showPresetGoalCards) {
+      return 'goal-selection';
+    }
+    if (showLandingWorkspace) {
+      return 'learning-overview';
+    }
+    return null;
+  }, [
+    pathExecutionNodes.length,
+    showEvidenceWorkspace,
+    showExecutionWorkspace,
+    showLandingWorkspace,
+    showPathContextRecovery,
+    showPracticeWorkspace,
+    showPresetGoalCards,
+    showRecoveredExecutionWorkspace,
+    showSelectionWorkspace,
+    visiblePathOptions.length,
+  ]);
+  const pathWorkspaceAutoOpenKey = useMemo(() => {
+    if (!pathManagementTargetModuleId) return null;
+    if (workspaceIntent !== 'selection' && workspaceIntent !== 'execution' && workspaceIntent !== 'evidence-review') {
+      return null;
+    }
+    return [
+      workspaceIntent,
+      activeGoal ?? 'goal:none',
+      activePathId ?? 'path:none',
+      activeOptionId ?? 'option:none',
+      pathManagementTargetModuleId,
+    ].join(':');
+  }, [activeGoal, activeOptionId, activePathId, pathManagementTargetModuleId, workspaceIntent]);
+  useEffect(() => {
+    if (!pathManagementTargetModuleId || !pathWorkspaceAutoOpenKey) return;
+    if (autoOpenedPathWorkspaceKeyRef.current === pathWorkspaceAutoOpenKey) return;
+    autoOpenedPathWorkspaceKeyRef.current = pathWorkspaceAutoOpenKey;
+    setOpenPathModuleId(pathManagementTargetModuleId);
+  }, [pathManagementTargetModuleId, pathWorkspaceAutoOpenKey]);
   useEffect(() => {
     setPathAdvisorAgentSessionId(null);
     setPathGenerationPanel(takeStoredPathGenerationPanel(activeGoal) ?? restoredPathGenerationPanel);
@@ -2632,7 +2770,7 @@ export default function AdaptivePracticePage() {
         className="surface-page"
       >
         <section
-          className="space-y-5"
+          className="flex flex-col gap-5"
           data-commercial-workspace="adaptive-path-center"
           data-adaptive-path-center="generation-selection"
           data-adaptive-path-workspace-intent={workspaceIntent}
@@ -2703,17 +2841,23 @@ export default function AdaptivePracticePage() {
                   className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
                 >
                   <History className="size-4" aria-hidden="true" />
-                  查看学习证据
+                  查看学习记录
                 </Link>
-                <Link
-                  href="/profile/growth"
-                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (pathManagementTargetModuleId) {
+                      openAndScrollPathModule(pathManagementTargetModuleId);
+                    }
+                  }}
+                  disabled={!pathManagementTargetModuleId}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary disabled:cursor-not-allowed disabled:opacity-60"
                   data-adaptive-path-local-command="path-management"
                   data-primary-route-local-command-zone="adaptive-path-local-toolbar"
                 >
                   <Settings className="size-4" aria-hidden="true" />
                   路径管理
-                </Link>
+                </button>
               </div>
             </div>
 
@@ -2744,16 +2888,17 @@ export default function AdaptivePracticePage() {
           </header>
 
           {showLandingWorkspace || showGenerationWorkspace ? (
-          <section className={`grid gap-4 ${showLandingWorkspace && showGenerationWorkspace ? 'xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]' : ''}`}>
+          <section className={`order-10 grid gap-4 ${showLandingWorkspace && showGenerationWorkspace ? 'xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]' : ''}`}>
             {showLandingWorkspace ? (
-            <div className="surface-card p-5" data-adaptive-path-overview="learning-overview">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-normal text-primary">Learning overview</p>
-                  <h2 className="mt-1 text-xl font-semibold text-foreground">学习概况</h2>
-                </div>
-                <Clock3 className="size-5 text-primary" aria-hidden="true" />
-              </div>
+            <PathWorkspaceModule
+              moduleId="learning-overview"
+              openModuleId={openPathModuleId}
+              onToggle={togglePathModule}
+              eyebrow="Learning overview"
+              title="学习概况"
+              icon={Clock3}
+              data-adaptive-path-overview="learning-overview"
+            >
               <dl className="mt-4 grid gap-3 sm:grid-cols-2">
                 {[
                   ['当前目标', '自动控制原理核心能力'],
@@ -2824,7 +2969,7 @@ export default function AdaptivePracticePage() {
                   </div>
                 </div>
               ) : null}
-            </div>
+            </PathWorkspaceModule>
             ) : null}
 
             {showGenerationWorkspace ? (
@@ -3027,24 +3172,22 @@ export default function AdaptivePracticePage() {
           ) : null}
 
           {showPresetGoalCards ? (
-          <section
-            id="adaptive-path-generation-goals"
-            className="surface-card scroll-mt-24 p-5"
-            data-adaptive-path-generation-goal-list="generic"
-            data-adaptive-path-generation-default-scope="goal-selection"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-normal text-primary">Goal selection</p>
-                <h2 className="mt-1 text-xl font-semibold text-foreground">选择路径目标</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-subtle">
-                  先选定目标，再让控灵结合学习证据生成路径。目标不同，推荐资源、检查点和练习节奏也会不同。
-                </p>
-              </div>
+          <PathWorkspaceModule
+            moduleId="goal-selection"
+            openModuleId={openPathModuleId}
+            onToggle={togglePathModule}
+            eyebrow="Goal selection"
+            title="选择路径目标"
+            summary="先选定目标，再让控灵结合学习证据生成路径。目标不同，推荐资源、检查点和练习节奏也会不同。"
+            className="order-30"
+            trailing={(
               <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
                 {generationGoalOptions.length} 个目标
               </span>
-            </div>
+            )}
+            data-adaptive-path-generation-goal-list="generic"
+            data-adaptive-path-generation-default-scope="goal-selection"
+          >
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {generationGoalOptions.map((goal, index) => {
                 const GoalIcon = goal.intentType === 'controller-design'
@@ -3082,7 +3225,7 @@ export default function AdaptivePracticePage() {
                 );
               })}
             </div>
-          </section>
+          </PathWorkspaceModule>
           ) : null}
 
           {showGenerationWorkspace || showSelectionWorkspace ? (
@@ -3176,7 +3319,7 @@ export default function AdaptivePracticePage() {
                   className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
                 >
                   <History className="size-4" aria-hidden="true" />
-                  查看学习证据
+                  查看学习记录
                 </Link>
                 <Link
                   href={pathContextRecoveryReturnHref}
@@ -3191,23 +3334,23 @@ export default function AdaptivePracticePage() {
           ) : null}
 
           {showSelectionWorkspace && !showPathContextRecovery ? (
-            <section
-              className="surface-card p-5"
+            <PathWorkspaceModule
+              moduleId="path-selection"
+              openModuleId={openPathModuleId}
+              onToggle={togglePathModule}
+              eyebrow="Path comparison"
+              title="选择你的学习路径"
+              summary="不同路径按同一组字段比较，便于直接判断取舍。"
+              className="order-40"
+              trailing={(
+                <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
+                  {visiblePathOptions.length} 条可比较路径
+                </span>
+              )}
               data-learning-path-product-surface="path-options-selection-history-terminal-validation"
               data-learning-path-options-slot="three-style"
               data-learning-path-options-layout="route-modules"
             >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-normal text-primary">Path comparison</p>
-                <h2 className="mt-1 text-xl font-semibold text-foreground">选择你的学习路径</h2>
-                <p className="mt-2 text-sm text-subtle">不同路径按同一组字段比较，便于直接判断取舍。</p>
-              </div>
-              <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
-                {visiblePathOptions.length} 条可比较路径
-              </span>
-            </div>
-
             <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]" data-learning-path-desktop-modules="attached-actions">
               {visiblePathOptions.map((option) => (
                 <article
@@ -3499,7 +3642,7 @@ export default function AdaptivePracticePage() {
               ))}
             </div>
 
-          </section>
+          </PathWorkspaceModule>
           ) : null}
 
           {showCompletedPathSummary ? (
@@ -3541,19 +3684,22 @@ export default function AdaptivePracticePage() {
           ) : null}
 
           {!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
-            <section className="grid gap-4">
+            <section className="order-20 grid gap-4">
               {showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
-              <div className="surface-card p-5" data-adaptive-path-execution-surface="active-route">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-normal text-primary">Active route</p>
-                    <h2 className="mt-1 text-xl font-semibold text-foreground">当前学习路径</h2>
-                    <p className="mt-2 text-sm text-subtle">完整路线、当前节点、预计时间和检查点状态保持可见。</p>
-                  </div>
+              <PathWorkspaceModule
+                moduleId="current-path"
+                openModuleId={openPathModuleId}
+                onToggle={togglePathModule}
+                eyebrow="Active route"
+                title="当前学习路径"
+                summary="完整路线、当前节点、预计时间和检查点状态保持可见。"
+                trailing={(
                   <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
                     当前节点：{currentPathNode?.title ?? '待定位'}
                   </span>
-                </div>
+                )}
+                data-adaptive-path-execution-surface="active-route"
+              >
 
                 <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
                   {[
@@ -3783,22 +3929,20 @@ export default function AdaptivePracticePage() {
                     </div>
                   </div>
                 ) : null}
-              </div>
+              </PathWorkspaceModule>
               ) : null}
 
-              <aside
-                className="surface-card p-5"
+              <PathWorkspaceModule
+                moduleId="learning-record"
+                openModuleId={openPathModuleId}
+                onToggle={togglePathModule}
+                eyebrow="Learning record"
+                title="学习记录"
+                icon={History}
                 data-adaptive-path-history-surface="timeline-evidence"
                 data-adaptive-path-evidence-sources="complete"
                 data-adaptive-path-evidence-states="student-safe"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-normal text-primary">Evidence Record</p>
-                    <h2 className="mt-1 text-xl font-semibold text-foreground">路径完成与证据</h2>
-                  </div>
-                  <History className="size-5 text-primary" aria-hidden="true" />
-                </div>
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   {evidenceSourceSummary.slice(0, 6).map((item) => (
                     <div key={item.label} className="rounded-lg border border-border bg-muted/30 p-3">
@@ -3840,26 +3984,25 @@ export default function AdaptivePracticePage() {
                     </p>
                   )}
                 </div>
-              </aside>
+              </PathWorkspaceModule>
             </section>
           ) : null}
 
           {!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) ? (
-          <section className="grid gap-4">
+          <section className="order-60 grid gap-4">
             {showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
-            <div className="surface-card p-5" data-adaptive-practice-resource="path-node">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-normal text-primary">Practice resource</p>
-                  <h2 className="mt-1 text-xl font-semibold text-foreground">
-                    {showPracticeWorkspace ? '自适应练习' : '路径资源入口'}
-                  </h2>
-                  <p className="mt-2 text-sm text-subtle">
-                    {showPracticeWorkspace
-                      ? '诊断与练习题在这里继续，完成后会更新推荐重点。'
-                      : '自适应练习保留为检查节点，选择路径后再展开题面和反馈。'}
-                  </p>
-                </div>
+            <PathWorkspaceModule
+              moduleId="path-resource"
+              openModuleId={openPathModuleId}
+              onToggle={togglePathModule}
+              eyebrow="Practice resource"
+              title={showPracticeWorkspace ? '自适应练习' : '路径资源入口'}
+              summary={showPracticeWorkspace
+                ? '诊断与练习题在这里继续，完成后会更新推荐重点。'
+                : '自适应练习保留为检查节点，选择路径后再展开题面和反馈。'}
+              data-adaptive-practice-resource="path-node"
+            >
+              <div className="flex justify-end">
                 <button
                   type="button"
                   onClick={questionState ? () => setPracticeQuestionExpanded((expanded) => !expanded) : generateQuestion}
@@ -4006,7 +4149,7 @@ export default function AdaptivePracticePage() {
                   ) : null}
                 </div>
               )}
-            </div>
+            </PathWorkspaceModule>
             ) : null}
 
             {showSelectionWorkspace || showEvidenceWorkspace ? (

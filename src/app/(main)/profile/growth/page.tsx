@@ -263,6 +263,7 @@ export default function GrowthPage() {
       title="成长中枢"
       subtitle="能力趋势、证据覆盖与下一步路径"
       activeHref="/profile/growth"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心', href: '/profile' }, { label: '成长中枢' }]}
       actions={(
         <div className="flex rounded-lg bg-platform-action-subtle p-1">
           {(['7d', '30d', '90d'] as const).map((range) => (
@@ -280,7 +281,7 @@ export default function GrowthPage() {
           ))}
         </div>
       )}
-      userMenu={<UserMenu user={{ name: session?.user?.name, email: session?.user?.email, role: session?.user?.role }} />}
+      userMenu={session?.user ? <UserMenu user={{ name: session.user.name, email: session.user.email, role: session.user.role }} /> : undefined}
       className="surface-page"
     >
       <section

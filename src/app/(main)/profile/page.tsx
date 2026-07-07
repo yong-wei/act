@@ -26,10 +26,25 @@ const personalCenterIntentBadges: Record<(typeof personalCenterIntentOrder)[numb
   practice: '诊断补强',
   challenge: '官方评价',
   experiment: '仿真实验',
-  review: '证据复盘',
+  review: '学习记录',
 };
 
 type PersonalCenterIntent = (typeof personalCenterIntentOrder)[number];
+
+const personalCenterEntryOverrides: Record<string, { title: string; description: string }> = {
+  '/profile/evidence': {
+    title: '学习记录',
+    description: '查看课堂作答、路径执行、仿真活动和学习事实的时间线。',
+  },
+  '/profile/growth': {
+    title: '成长中枢',
+    description: '查看能力趋势、证据覆盖和下一步学习建议。',
+  },
+  '/profile': {
+    title: '个人中心',
+    description: '回到个人中心首页，查看画像、班级、入口地图和近期活动。',
+  },
+};
 
 function ProfileFallback({
   nextAction,
@@ -42,7 +57,7 @@ function ProfileFallback({
     <AppShell
       viewerRole="student"
       title="个人中心"
-      subtitle="能力画像、成长记录与证据复盘"
+      subtitle="能力画像、成长中枢与学习记录"
       activeHref="/profile"
       breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心' }]}
       className="surface-page"
@@ -230,7 +245,7 @@ export default function ProfilePage() {
     return (
       <ProfileFallback nextAction="retry-profile">
         <div className="text-center">
-          <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">学习入口 · 复盘</p>
+          <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">学习入口 · 学习记录</p>
           <p className="text-xl text-red-400">{error || '加载失败'}</p>
           <button type="button" onClick={fetchProfile} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
@@ -254,7 +269,7 @@ export default function ProfilePage() {
     <AppShell
       viewerRole="student"
       title="个人中心"
-      subtitle="能力画像、成长记录与证据复盘"
+      subtitle="能力画像、成长中枢与学习记录"
       activeHref="/profile"
       breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心' }]}
       userMenu={<UserMenu user={profile.user} />}
@@ -315,7 +330,7 @@ export default function ProfilePage() {
               执行下一步练习
             </Link>
             <Link href="/profile/evidence" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
-              复盘证据来源
+              查看学习记录
             </Link>
             <Link href="/classroom/join" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
               加入课堂 / 班级
@@ -323,48 +338,17 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.72fr]">
-          <div className="surface-card p-6">
-            <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">学习入口地图</h3>
-                <p className="mt-1 text-sm text-subtle">
-                  课程、练习、挑战、实验和复盘统一从个人中心分发，不再单独提供学生驾驶舱入口。
-                </p>
-              </div>
-              <Link href="/profile/evidence" className="text-sm text-primary transition hover:text-primary/80">
-                查看证据时间线 →
-              </Link>
+        <div className="surface-card mb-8 p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">课堂与班级</h3>
+              <p className="mt-1 text-sm text-subtle">
+                {profile.profile?.className
+                  ? `${profile.profile.className} 已绑定，可继续进入课堂活动或查看学习记录。`
+                  : '尚未绑定班级时，仍可进入个人中心；加入课堂或班级后会补齐课堂记录。'}
+              </p>
             </div>
-            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {entryIntents
-                .filter((intent) => isPersonalCenterIntent(intent.intent))
-                .flatMap((intent) => {
-                  const intentKey = intent.intent as PersonalCenterIntent;
-                  return intent.hrefs.map((href) => {
-                    const entry = studentEntryByHref.get(href);
-                    return (
-                    <PersonalCenterEntryCard
-                      key={`${intent.intent}-${href}`}
-                      href={href}
-                      title={entry?.label ?? intent.label}
-                      description={entry?.description ?? intent.summary}
-                      badge={personalCenterIntentBadges[intentKey]}
-                    />
-                    );
-                  });
-                })}
-            </div>
-          </div>
-
-          <div className="surface-card p-6">
-            <h3 className="text-lg font-semibold text-foreground">课堂与班级</h3>
-            <p className="mt-1 text-sm text-subtle">
-              {profile.profile?.className
-                ? `${profile.profile.className} 已绑定，可继续进入课堂活动或查看证据。`
-                : '尚未绑定班级时，仍可进入个人中心；加入课堂或班级后会补齐课堂记录。'}
-            </p>
-            <div className="mt-5 grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[24rem]">
               <Link
                 href="/classroom/join"
                 className="cta-primary inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm"
@@ -378,6 +362,40 @@ export default function ProfilePage() {
                 查看成长中枢
               </Link>
             </div>
+          </div>
+        </div>
+
+        <div className="surface-card p-6">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">学习入口地图</h3>
+              <p className="mt-1 text-sm text-subtle">
+                课程、练习、挑战、实验、成长中枢和学习记录统一从个人中心分发，不再单独提供学生驾驶舱入口。
+              </p>
+            </div>
+            <Link href="/profile/evidence" className="text-sm text-primary transition hover:text-primary/80">
+              查看学习记录 →
+            </Link>
+          </div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {entryIntents
+              .filter((intent) => isPersonalCenterIntent(intent.intent))
+              .flatMap((intent) => {
+                const intentKey = intent.intent as PersonalCenterIntent;
+                return intent.hrefs.map((href) => {
+                  const entry = studentEntryByHref.get(href);
+                  const override = personalCenterEntryOverrides[href];
+                  return (
+                    <PersonalCenterEntryCard
+                      key={`${intent.intent}-${href}`}
+                      href={href}
+                      title={override?.title ?? entry?.label ?? intent.label}
+                      description={override?.description ?? entry?.description ?? intent.summary}
+                      badge={personalCenterIntentBadges[intentKey]}
+                    />
+                  );
+                });
+              })}
           </div>
         </div>
 

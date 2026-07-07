@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '@/components/platform/app-shell';
 import { ActionStatusPanel } from '@/components/platform/action-status';
+import { UserMenu } from '@/components/shared/user-menu';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import { buildAiAuditTaskState, buildPortfolioReflectionDraft } from '@/lib/ai-task-boundary-contracts';
@@ -307,13 +308,17 @@ function PortfolioAppShell({
   children: ReactNode;
   [key: `data-${string}`]: string | undefined;
 }) {
+  const { data: shellSession } = useSession();
+
   return (
     <AppShell
       viewerRole="student"
       activeHref="/profile/portfolio"
-      title="我的学习档案"
+      title="学习档案"
       subtitle="整理课堂作品、提示词、仿真设计和 AI 协作反思。"
-      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心', href: '/profile' }, { label: '我的学习档案' }]}
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心', href: '/profile' }, { label: '学习档案' }]}
+      userMenu={shellSession?.user ? <UserMenu user={{ name: shellSession.user.name, email: shellSession.user.email, role: shellSession.user.role }} /> : undefined}
+      className="surface-page"
     >
       <div {...props}>{children}</div>
     </AppShell>
