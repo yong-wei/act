@@ -45,7 +45,7 @@
       "runtime-identity": 2192
     },
     "unresolvedDownstreamPathBlockers": 17713,
-    "evidenceLineageBlockerCount": 23,
+    "evidenceLineageBlockerCount": 22,
     "followupBuckets": {
       "blocked-resource-completion-dependencies": 60,
       "complete-analysis-design-graph-resource-bindings": 6704,
@@ -58,11 +58,11 @@
     },
     "yangFanFixtureBlockers": {
       "blocked": true,
-      "blockerCount": 23,
-      "scopedBlockerCount": 23,
+      "blockerCount": 22,
+      "scopedBlockerCount": 22,
       "globalLimitationCount": 3124,
       "blockerFamilies": {
-        "external-resource": 23
+        "external-resource": 22
       },
       "reason": "Canonical learner fixture generation remains blocked until fixture-owned evidence lineage gaps are resolved.",
       "scopePolicy": "yangfan-fixture-readiness-scope.v1"
@@ -509,7 +509,7 @@
     {
       "id": "evidence-lineage-blockers",
       "severity": "blocking",
-      "count": 23,
+      "count": 22,
       "message": "Evidence-producing path resources still have hard evidence-lineage blockers.",
       "evidenceRefs": [
         "resource-evidence-lineage-readiness-summary.json"
@@ -518,7 +518,7 @@
     {
       "id": "yang-fan-fixture-blockers",
       "severity": "blocking",
-      "count": 23,
+      "count": 22,
       "message": "Yang Fan fixture generation remains blocked by fixture-owned lineage limitations.",
       "evidenceRefs": [
         "resource-evidence-lineage-readiness-summary.json"

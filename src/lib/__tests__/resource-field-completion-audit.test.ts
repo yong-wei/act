@@ -1557,19 +1557,19 @@ describe('resource field completion audit', () => {
       generatedAt: '2026-07-05T00:00:00.000Z',
       candidates: [
         {
-          id: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
-          title: 'Yang Fan fixture exec complete',
+          id: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal',
+          title: 'Yang Fan fixture exec terminal',
           family: 'external-resource',
-          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-exec-complete',
-          sourceRecord: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-exec-terminal',
+          sourceRecord: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal',
           knowledgeNodeIds: ['性能指标_1_1'],
           capabilityTargetIds: ['controlModeling'],
-          segmentRefs: ['yangfan-diagnostic-fixture:exec-complete'],
-          citationTargets: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-complete'],
-          pathTarget: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          segmentRefs: ['yangfan-diagnostic-fixture:exec-terminal'],
+          citationTargets: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal'],
+          pathTarget: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal',
           estimatedTimeMinutes: 5,
           privacyScope: 'student-visible',
-          contentHash: 'sha256:yangfan-diagnostic-fixture-exec-complete',
+          contentHash: 'sha256:yangfan-diagnostic-fixture-exec-terminal',
           versionRef: 'yangfan-diagnostic-fixture.v1',
           evidenceInstrumentation: ['path-execution'],
           humanConfirmed: true,
@@ -1580,8 +1580,8 @@ describe('resource field completion audit', () => {
             reviewedAt: '2026-07-05T00:00:00.000Z',
             reviewBatchId: 'fixture-readiness-review-batch',
             reviewerVisibleRationale: 'Exec complete owner row has reviewed fixture governance.',
-            independentEvidenceRef: 'review-packet:yangfan-diagnostic-fixture-exec-complete',
-            reviewedSourceHash: 'sha256:yangfan-diagnostic-fixture-exec-complete',
+            independentEvidenceRef: 'review-packet:yangfan-diagnostic-fixture-exec-terminal',
+            reviewedSourceHash: 'sha256:yangfan-diagnostic-fixture-exec-terminal',
             promptOrManifestHash: 'sha256:fixture-readiness-review',
           },
         },
@@ -1589,7 +1589,7 @@ describe('resource field completion audit', () => {
     });
 
     expect(result.evidenceLineage.items.some((item) =>
-      item.resourceId === 'yangfan-diagnostic-fixture:exec-complete'
+      item.resourceId === 'yangfan-diagnostic-fixture:exec-terminal'
     )).toBe(false);
   });
 
@@ -1599,33 +1599,33 @@ describe('resource field completion audit', () => {
       generatedAt: '2026-07-05T00:00:00.000Z',
       candidates: [
         {
-          id: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
-          title: 'Yang Fan fixture exec complete',
+          id: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal',
+          title: 'Yang Fan fixture exec terminal',
           family: 'external-resource',
-          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-exec-complete',
-          sourceRecord: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-exec-terminal',
+          sourceRecord: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal',
           knowledgeNodeIds: ['性能指标_1_1'],
           capabilityTargetIds: ['controlModeling'],
-          segmentRefs: ['yangfan-diagnostic-fixture:exec-complete'],
-          citationTargets: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-complete'],
-          pathTarget: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          segmentRefs: ['yangfan-diagnostic-fixture:exec-terminal'],
+          citationTargets: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal'],
+          pathTarget: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal',
           estimatedTimeMinutes: 5,
           privacyScope: 'student-visible',
-          contentHash: 'sha256:yangfan-diagnostic-fixture-exec-complete',
+          contentHash: 'sha256:yangfan-diagnostic-fixture-exec-terminal',
           versionRef: 'yangfan-diagnostic-fixture.v1',
           currentPathEligible: true,
         },
       ],
     });
 
-    const execCompleteBlockers = result.evidenceLineage.items.filter((item) =>
-      item.resourceId === 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete' ||
-      item.resourceId === 'yangfan-diagnostic-fixture:exec-complete'
+    const execTerminalBlockers = result.evidenceLineage.items.filter((item) =>
+      item.resourceId === 'LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal' ||
+      item.resourceId === 'yangfan-diagnostic-fixture:exec-terminal'
     );
 
-    expect(execCompleteBlockers).toHaveLength(1);
-    expect(execCompleteBlockers[0]).toMatchObject({
-      resourceId: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+    expect(execTerminalBlockers).toHaveLength(1);
+    expect(execTerminalBlockers[0]).toMatchObject({
+      resourceId: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal',
       evidenceEffectState: 'blocked',
       blocksYangFanFixture: true,
       yangFanFixtureScope: 'fixture-owned',
@@ -1638,33 +1638,33 @@ describe('resource field completion audit', () => {
       generatedAt: '2026-07-05T00:00:00.000Z',
       candidates: [
         {
-          id: 'path-resource:fixture-exec-complete-owner',
-          title: 'Yang Fan fixture exec complete owner',
+          id: 'path-resource:fixture-exec-terminal-owner',
+          title: 'Yang Fan fixture exec terminal owner',
           family: 'external-resource',
-          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-exec-complete',
-          sourceRecord: 'path-resource:fixture-exec-complete-owner-source',
+          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-exec-terminal',
+          sourceRecord: 'path-resource:fixture-exec-terminal-owner-source',
           knowledgeNodeIds: ['性能指标_1_1'],
           capabilityTargetIds: ['controlModeling'],
-          segmentRefs: ['yangfan-diagnostic-fixture:exec-complete'],
-          citationTargets: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-complete'],
-          pathTarget: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          segmentRefs: ['yangfan-diagnostic-fixture:exec-terminal'],
+          citationTargets: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal'],
+          pathTarget: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal',
           estimatedTimeMinutes: 5,
           privacyScope: 'student-visible',
-          contentHash: 'sha256:fixture-exec-complete-owner',
+          contentHash: 'sha256:fixture-exec-terminal-owner',
           versionRef: 'yangfan-diagnostic-fixture.v1',
           currentPathEligible: true,
         },
       ],
     });
 
-    const execCompleteBlockers = result.evidenceLineage.items.filter((item) =>
-      item.resourceId === 'path-resource:fixture-exec-complete-owner' ||
-      item.resourceId === 'yangfan-diagnostic-fixture:exec-complete'
+    const execTerminalBlockers = result.evidenceLineage.items.filter((item) =>
+      item.resourceId === 'path-resource:fixture-exec-terminal-owner' ||
+      item.resourceId === 'yangfan-diagnostic-fixture:exec-terminal'
     );
 
-    expect(execCompleteBlockers).toHaveLength(1);
-    expect(execCompleteBlockers[0]).toMatchObject({
-      resourceId: 'path-resource:fixture-exec-complete-owner',
+    expect(execTerminalBlockers).toHaveLength(1);
+    expect(execTerminalBlockers[0]).toMatchObject({
+      resourceId: 'path-resource:fixture-exec-terminal-owner',
       evidenceEffectState: 'blocked',
       blocksYangFanFixture: true,
       yangFanFixtureScope: 'fixture-owned',

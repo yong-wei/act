@@ -4,37 +4,37 @@
     "auditRows": 5291,
     "pathRelevantRows": 4186,
     "evidenceProducingRows": 3378,
-    "evidenceLineageBlockers": 23,
+    "evidenceLineageBlockers": 22,
     "reviewedLimitations": 3124,
     "readyRows": 1062
   },
   "findingCounts": {
-    "missing-evidence-contract": 3147,
-    "missing-evidence-instrumentation": 2183,
-    "missing-human-review": 23
+    "missing-evidence-contract": 3146,
+    "missing-evidence-instrumentation": 2182,
+    "missing-human-review": 22
   },
   "contractFieldGaps": {
-    "attemptKey": 2183,
-    "clientEventIdPolicy": 2183,
-    "confidencePolicy": 2183,
-    "eventType": 2183,
-    "learningFactMaterializationPolicy": 2183,
-    "learningFactPolicy": 2183,
-    "sourceLogId": 2183,
-    "timestamps": 2183,
-    "privacyScope": 987
+    "attemptKey": 2182,
+    "clientEventIdPolicy": 2182,
+    "confidencePolicy": 2182,
+    "eventType": 2182,
+    "learningFactMaterializationPolicy": 2182,
+    "learningFactPolicy": 2182,
+    "sourceLogId": 2182,
+    "timestamps": 2182,
+    "privacyScope": 986
   },
   "followupBuckets": {
-    "complete-evidence-lineage-bindings": 3147
+    "complete-evidence-lineage-bindings": 3146
   },
-  "evidenceLineageBlockerCount": 23,
+  "evidenceLineageBlockerCount": 22,
   "yangFanFixtureBlockers": {
     "blocked": true,
-    "blockerCount": 23,
-    "scopedBlockerCount": 23,
+    "blockerCount": 22,
+    "scopedBlockerCount": 22,
     "globalLimitationCount": 3124,
     "blockerFamilies": {
-      "external-resource": 23
+      "external-resource": 22
     },
     "reason": "Canonical learner fixture generation remains blocked until fixture-owned evidence lineage gaps are resolved.",
     "scopePolicy": "yangfan-fixture-readiness-scope.v1"

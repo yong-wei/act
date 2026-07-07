@@ -480,7 +480,7 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
       contextJson: {
         fixture: fixtureProvenance('konling'),
         konling: {
-          citationRefs: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-complete'],
+          citationRefs: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-terminal'],
           privacy: 'minimized',
         },
       },

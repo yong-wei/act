@@ -31,7 +31,6 @@ export const YANGFAN_FIXTURE_OWNED_RESOURCE_IDS = [
   'yangfan-diagnostic-fixture-mastery-update',
   'yangfan-fixture-control-correction-path',
   'yangfan-diagnostic-fixture:exec-start',
-  'yangfan-diagnostic-fixture:exec-complete',
   'yangfan-diagnostic-fixture:exec-terminal',
   'yangfan-diagnostic-fixture:deviation-low-confidence',
   'yangfan-diagnostic-fixture:intervention-konling',
