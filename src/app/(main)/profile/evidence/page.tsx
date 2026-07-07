@@ -1,4 +1,5 @@
 import { AppShell } from '@/components/platform/app-shell';
+import { UserMenu } from '@/components/shared/user-menu';
 import { EvidenceTimelineBrowser } from '@/features/data-governance/evidence-timeline-browser';
 import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
@@ -40,9 +41,11 @@ export default async function StudentEvidencePage({ searchParams }: StudentEvide
   return (
     <AppShell
       viewerRole="student"
-      title="学习证据"
-      subtitle="来源质量、时间线与隐私范围"
+      title="学习记录"
+      subtitle="学习来源、时间线与隐私范围"
       activeHref="/profile/evidence"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心', href: '/profile' }, { label: '学习记录' }]}
+      userMenu={<UserMenu user={{ name: session?.user?.name, email: session?.user?.email, role: session?.user?.role }} />}
       className="surface-page"
     >
       <section
@@ -67,8 +70,8 @@ export default async function StudentEvidencePage({ searchParams }: StudentEvide
           assignmentStatus={feedbackContext?.lifecycleState}
           assignmentSource={feedbackContext?.source ?? undefined}
           returnTo={feedbackContext?.returnTo ?? undefined}
-          title="学习证据"
-          subtitle={feedbackContext?.summary ?? '按时间查看课堂作答、仿真和学习事实'}
+          title="学习记录"
+          subtitle={feedbackContext?.summary ?? '按时间查看课堂作答、仿真、路径与学习事实'}
           contextBadges={feedbackContext?.badges ?? []}
         />
       </section>

@@ -86,7 +86,8 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("!showPathContextRecovery && (showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)");
     expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (");
     expect(source).toContain("showSelectionWorkspace || showEvidenceWorkspace ? (");
-    expect(source).toContain("pathChoiceMessage && (showGenerationWorkspace || showSelectionWorkspace)");
+    expect(source).toContain('data-adaptive-path-status-region={showSelectionWorkspace ? \'reserved\' : \'inline\'}');
+    expect(source).toContain('pathChoiceMessage ? (');
     expect(source).toContain("showEvidenceWorkspace ? (");
     expect(source).toContain("intent: 'path-selection'");
     expect(source).toContain('const generatedPathId = typeof payload.result?.pathId ===');

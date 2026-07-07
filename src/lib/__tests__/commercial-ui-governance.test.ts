@@ -4558,7 +4558,8 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toMatch(/name: 'path-comparison-desktop-light',[\s\S]*?query: '\?demo=1&goal=control-correction&intent=path-selection'/);
     expect(captureScriptSource).toMatch(/name: 'path-comparison-mobile-dark',[\s\S]*?query: '\?demo=1&goal=control-correction&intent=path-selection'/);
     expect(pageSource).toContain("label: '控灵助手'");
-    expect(pageSource).toContain("label: '路径管理'");
+    expect(pageSource).toContain('路径管理');
+    expect(pageSource).toContain('openAndScrollPathModule(pathManagementTargetModuleId)');
     const studentVisibleSource = pageSource.replaceAll('data-learner-record-missing-source', '');
     expect(studentVisibleSource).not.toMatch(/自适应跨域题库|Control Correction Center|Readiness Gate|missing-[a-z-]+|terminal-validation-unavailable|strategy unavailable|no-path|low-evidence/);
   });
