@@ -42,11 +42,11 @@ class MiniElement {
     private readonly documentRef: MiniDocument,
   ) {}
 
-  get isConnected() {
+  get isConnected(): boolean {
     return this === this.documentRef.body || this.parentElement?.isConnected === true;
   }
 
-  get offsetParent() {
+  get offsetParent(): MiniElement | null {
     return this.isConnected ? this.parentElement ?? this.documentRef.body : null;
   }
 
@@ -75,7 +75,7 @@ class MiniElement {
     this.parentElement = null;
   }
 
-  contains(candidate: MiniElement | null) {
+  contains(candidate: MiniElement | null): boolean {
     if (!candidate) return false;
     if (candidate === this) return true;
     return this.children.some((child) => child.contains(candidate));
@@ -83,7 +83,7 @@ class MiniElement {
 
   querySelectorAll<T extends MiniElement = MiniElement>(selector: string): T[] {
     const results: MiniElement[] = [];
-    const visit = (node: MiniElement) => {
+    const visit = (node: MiniElement): void => {
       for (const child of node.children) {
         if (selector.includes('button') && child.tagName === 'button' && !child.hasAttribute('disabled')) {
           results.push(child);

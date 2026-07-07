@@ -103,6 +103,18 @@ Konling typecheck repair SHALL update test fixtures and assertion helpers to cur
 - **WHEN** this change repairs TypeScript tests
 - **THEN** it SHALL NOT change provider configuration, prompt policy, or citation verification behavior unless a production type contract is demonstrably wrong.
 
+### Requirement: Interactive and UI test fixtures match current component contracts
+Interactive, classroom, assessment, and AppShell typecheck repair SHALL update stale test fixtures to current component contracts without masking UI regressions.
+
+#### Scenario: Interactive UI fixture cluster is repaired
+- **WHEN** the interactive/UI cleanup runs
+- **THEN** TypeScript errors in the scoped interactive, classroom, assessment route-state, tracking, and AppShell governance tests SHALL be eliminated
+- **AND** manifest option fields, teacher controls, DOM shims, route props, tracking mocks, and user-role literals SHALL remain contract-valid.
+
+#### Scenario: Product UI behavior is out of scope
+- **WHEN** this change repairs TypeScript fixtures
+- **THEN** it SHALL NOT redesign UI behavior or alter product flows unless a typed component contract is proven incorrect.
+
 ### Requirement: Resource media and RAG typecheck debt preserves citation boundaries
 ResourceNode, media manifest, Source Pack, and RAG typecheck repair SHALL align fixtures and helper inputs to current citation and planning boundaries.
 

@@ -1,4 +1,3 @@
-import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
@@ -16,7 +15,7 @@ describe('TeacherDocumentGradingEmptyState route state', () => {
       returnTo: '/teacher/grading-workbench',
     }));
 
-    const html = renderToStaticMarkup(createElement(TeacherDocumentGradingEmptyState, { routeState }));
+    const html = renderToStaticMarkup(TeacherDocumentGradingEmptyState({ routeState }));
 
     expect(html).toContain('data-audited-action-status="blocked"');
     expect(html).toContain('评分运行 missing-batch58 不存在或当前教师不可见');
