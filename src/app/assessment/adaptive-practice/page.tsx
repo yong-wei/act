@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -1492,6 +1492,7 @@ export default function AdaptivePracticePage() {
   const [selectedPathNodeId, setSelectedPathNodeId] = useState<string | null>(activeNodeId);
   const [practiceQuestionExpanded, setPracticeQuestionExpanded] = useState(activePracticeFocus === 'question');
   const [openPathModuleId, setOpenPathModuleId] = useState<PathWorkspaceModuleId | null>(null);
+  const autoOpenedPathWorkspaceKeyRef = useRef<string | null>(null);
   const togglePathModule = useCallback((moduleId: PathWorkspaceModuleId) => {
     setOpenPathModuleId((current) => (current === moduleId ? null : moduleId));
   }, []);
@@ -1692,6 +1693,25 @@ export default function AdaptivePracticePage() {
     showSelectionWorkspace,
     visiblePathOptions.length,
   ]);
+  const pathWorkspaceAutoOpenKey = useMemo(() => {
+    if (!pathManagementTargetModuleId) return null;
+    if (workspaceIntent !== 'selection' && workspaceIntent !== 'execution' && workspaceIntent !== 'evidence-review') {
+      return null;
+    }
+    return [
+      workspaceIntent,
+      activeGoal ?? 'goal:none',
+      activePathId ?? 'path:none',
+      activeOptionId ?? 'option:none',
+      pathManagementTargetModuleId,
+    ].join(':');
+  }, [activeGoal, activeOptionId, activePathId, pathManagementTargetModuleId, workspaceIntent]);
+  useEffect(() => {
+    if (!pathManagementTargetModuleId || !pathWorkspaceAutoOpenKey) return;
+    if (autoOpenedPathWorkspaceKeyRef.current === pathWorkspaceAutoOpenKey) return;
+    autoOpenedPathWorkspaceKeyRef.current = pathWorkspaceAutoOpenKey;
+    setOpenPathModuleId(pathManagementTargetModuleId);
+  }, [pathManagementTargetModuleId, pathWorkspaceAutoOpenKey]);
   useEffect(() => {
     setPathAdvisorAgentSessionId(null);
     setPathGenerationPanel(takeStoredPathGenerationPanel(activeGoal) ?? restoredPathGenerationPanel);
