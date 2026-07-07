@@ -36,11 +36,11 @@
     },
     "unaccountedCount": 0,
     "invalidPromotionCount": 273,
-    "unreviewedSemanticCount": 5239,
+    "unreviewedSemanticCount": 5224,
     "unresolvedGraphNodeResourceMissingCount": 3942,
     "downstreamBlockers": {
       "dependency": 60,
-      "evidence-lineage": 7494,
+      "evidence-lineage": 7479,
       "path-readiness": 15461,
       "runtime-identity": 2192
     },
@@ -50,17 +50,17 @@
       "blocked-resource-completion-dependencies": 60,
       "complete-analysis-design-graph-resource-bindings": 6704,
       "complete-citation-and-rag-bindings": 1859,
-      "complete-evidence-lineage-bindings": 7494,
+      "complete-evidence-lineage-bindings": 7479,
       "complete-foundation-graph-resource-bindings": 440,
       "repair-resource-identity-bindings": 333,
       "review-runtime-lesson-planning-units": 8317,
-      "review-runtime-media-handout-dispositions": 8848
+      "review-runtime-media-handout-dispositions": 8833
     },
     "yangFanFixtureBlockers": {
       "blocked": true,
       "blockerCount": 22,
       "scopedBlockerCount": 22,
-      "globalLimitationCount": 3124,
+      "globalLimitationCount": 3109,
       "blockerFamilies": {
         "external-resource": 22
       },
@@ -491,7 +491,7 @@
     {
       "id": "unreviewed-resource-semantics",
       "severity": "blocking",
-      "count": 5239,
+      "count": 5224,
       "message": "Resources still require reviewed semantic fields or reviewed limitations.",
       "evidenceRefs": [
         "resource-field-completion-summary.json"
@@ -527,7 +527,7 @@
     {
       "id": "yang-fan-fixture-limited-coverage",
       "severity": "warning",
-      "count": 3124,
+      "count": 3109,
       "message": "Yang Fan fixture-owned resources are scoped separately; unrelated global resource backlog remains visible as limited coverage.",
       "evidenceRefs": [
         "resource-evidence-lineage-readiness-summary.json"

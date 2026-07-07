@@ -5,11 +5,11 @@
     "pathRelevantRows": 4186,
     "evidenceProducingRows": 3378,
     "evidenceLineageBlockers": 22,
-    "reviewedLimitations": 3124,
-    "readyRows": 1062
+    "reviewedLimitations": 3109,
+    "readyRows": 1077
   },
   "findingCounts": {
-    "missing-evidence-contract": 3146,
+    "missing-evidence-contract": 3131,
     "missing-evidence-instrumentation": 2182,
     "missing-human-review": 22
   },
@@ -22,17 +22,17 @@
     "learningFactPolicy": 2182,
     "sourceLogId": 2182,
     "timestamps": 2182,
-    "privacyScope": 986
+    "privacyScope": 971
   },
   "followupBuckets": {
-    "complete-evidence-lineage-bindings": 3146
+    "complete-evidence-lineage-bindings": 3131
   },
   "evidenceLineageBlockerCount": 22,
   "yangFanFixtureBlockers": {
     "blocked": true,
     "blockerCount": 22,
     "scopedBlockerCount": 22,
-    "globalLimitationCount": 3124,
+    "globalLimitationCount": 3109,
     "blockerFamilies": {
       "external-resource": 22
     },

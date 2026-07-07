@@ -20,7 +20,7 @@
     "complete": 52,
     "missingField": 5239,
     "provisional": 3942,
-    "humanConfirmed": 52,
+    "humanConfirmed": 67,
     "citationReady": 3432,
     "pathEligible": 325,
     "blocked": 5239,
@@ -47,7 +47,8 @@
       "metadata is provisional",
       "missing fields: blocked-by-dependency, missing-content-hash",
       "missing fields: missing-content-hash",
-      "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+      "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target",
+      "missing fields: missing-path-profile, missing-path-target"
     ],
     "sampleLimitations": [
       "authoring-textbook-caption:hu-shousong-exercise-analysis-3rd:chapter-01:figure-1: metadata is provisional",
@@ -456,7 +457,7 @@
       "complete": 0,
       "missingField": 964,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 15,
       "citationReady": 964,
       "pathEligible": 0,
       "blocked": 964,
@@ -472,7 +473,8 @@
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target",
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
         "textbook-search-document:ch01-overview-001__chunk-001: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target",
@@ -523,11 +525,11 @@
     "blocked": 0
   },
   "byReviewStatus": {
-    "not-reviewed": 1297,
+    "not-reviewed": 1282,
     "generated-provisional": 2029,
     "model-assisted-provisional": 0,
     "external-tool-provisional": 1913,
-    "human-confirmed": 52,
+    "human-confirmed": 67,
     "blocked": 0,
     "stale": 0
   },
@@ -44997,11 +44999,11 @@
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-001|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-001|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45011,24 +45013,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-001: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-001: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-002|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-002|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45038,24 +45038,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-002: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-002: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-003|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-003|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45065,24 +45063,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-003: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-003: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-004|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-004|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45092,24 +45088,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-004: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-004: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-005|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-005|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45119,24 +45113,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-005: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-005: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-006|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-006|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45146,24 +45138,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-006: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-006: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-007|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-007|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45173,24 +45163,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-007: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-007: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-008|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-008|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45200,24 +45188,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-008: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-008: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-009|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-009|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45227,24 +45213,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-009: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-009: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-010|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-010|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45254,24 +45238,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-010: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-010: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-011|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-011|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45281,24 +45263,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-011: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-011: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-012|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-012|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45308,24 +45288,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-012: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-012: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-013|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-013|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45335,24 +45313,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-013: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-013: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-014|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-014|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45362,24 +45338,22 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-014: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-014: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
-    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-015|动态性能指标_3_a10733c1|性能指标_1_1|调节时间_10_fcbccf4e|超调量_3_fc3f5b17": {
+    "controlModeling|diagnosticAssessment|textbook-search-document:ch05-sec21__chunk-015|截止频率_5_c7d09ff7|相角裕度_5_5a74b451|频率特性_5_404adfdd": {
       "complete": 0,
       "missingField": 1,
       "provisional": 0,
-      "humanConfirmed": 0,
+      "humanConfirmed": 1,
       "citationReady": 1,
       "pathEligible": 0,
       "blocked": 1,
@@ -45389,16 +45363,14 @@
         "to": "2026-07-04T16:30:00.000Z"
       },
       "missingFieldCodes": [
-        "missing-evidence-contract",
-        "missing-human-review",
         "missing-path-profile",
         "missing-path-target"
       ],
       "limitationReasons": [
-        "missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "missing fields: missing-path-profile, missing-path-target"
       ],
       "sampleLimitations": [
-        "textbook-search-document:ch05-sec21__chunk-015: missing fields: missing-evidence-contract, missing-human-review, missing-path-profile, missing-path-target"
+        "textbook-search-document:ch05-sec21__chunk-015: missing fields: missing-path-profile, missing-path-target"
       ],
       "artifactVersion": "resource-field-completion-audit.v1"
     },
