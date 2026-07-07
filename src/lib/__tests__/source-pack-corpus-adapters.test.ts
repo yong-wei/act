@@ -1093,13 +1093,13 @@ describe('stale and provisional limitations', () => {
     expect(item.scores.freshness).toBe(0.3);
   });
 
-  it('does not flag prompt-scoped projection reviews when review hash differs from raw source hash', () => {
+  it('does not flag projection reviews when prompt hash differs from reviewed source hash', () => {
     const row = makeProjectionRow({
       sourceHash: 'sha256:manifest-source',
       reviewAudit: {
         ...makeProjectionRow().reviewAudit,
         status: 'human-confirmed',
-        reviewedSourceHash: 'sha256:manifest-plus-overlay',
+        reviewedSourceHash: 'sha256:manifest-source',
         promptOrManifestHash: 'sha256:manifest-plus-overlay',
         reviewedVersionRef: 'runtime.v1',
       },
@@ -1107,6 +1107,25 @@ describe('stale and provisional limitations', () => {
     const { item, limitations } = adaptResourceProjectionRow(row);
     expect(limitations.some((limitation) => limitation.code === 'projection-stale')).toBe(false);
     expect(item.scores.freshness).toBeGreaterThan(0.3);
+  });
+
+  it('flags knowledge projections when reviewed source hash only matches the packet hash', () => {
+    const row = makeProjectionRow({
+      family: 'knowledge-card',
+      resourceType: 'knowledge_card',
+      sourceKind: 'knowledge_graph',
+      sourceHash: 'sha256:current-knowledge-source',
+      reviewAudit: {
+        ...makeProjectionRow().reviewAudit,
+        status: 'human-confirmed',
+        reviewedSourceHash: 'sha256:knowledge-review-packet',
+        promptOrManifestHash: 'sha256:knowledge-review-packet',
+        reviewedVersionRef: 'runtime.v1',
+      },
+    });
+    const { item, limitations } = adaptResourceProjectionRow(row);
+    expect(limitations.some((limitation) => limitation.code === 'projection-stale')).toBe(true);
+    expect(item.scores.freshness).toBe(0.3);
   });
 
   it('flags projection rows with explicit stale review status', () => {

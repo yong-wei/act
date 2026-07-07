@@ -2708,9 +2708,14 @@ function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIs
 }
 
 function isRuntimeProjectionReviewStale(projection: RuntimeResourceProjectionInput): boolean {
-  const currentReviewSourceHash = projection.reviewAudit?.promptOrManifestHash ?? projection.sourceHash;
-  return projection.reviewAudit?.reviewedSourceHash !== currentReviewSourceHash ||
+  return !runtimeProjectionReviewSourceMatches(projection) ||
     projection.reviewAudit?.reviewedVersionRef !== projection.sourceVersionRef;
+}
+
+function runtimeProjectionReviewSourceMatches(projection: RuntimeResourceProjectionInput): boolean {
+  if (projection.reviewAudit?.reviewedSourceHash === projection.sourceHash) return true;
+  if (projection.sourceKind === 'knowledge_graph') return false;
+  return projection.reviewAudit?.reviewedSourceHash === projection.reviewAudit?.promptOrManifestHash;
 }
 
 function requiresRuntimeProjectionAudit(node: ResourceNode): boolean {

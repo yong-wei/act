@@ -31,11 +31,15 @@ function sha256File(relativePath: string) {
 const reviewItems = readJsonl(join(governanceDir, 'knowledge-visual-semantic-shard-review-items.jsonl'));
 const auditRows = readJsonl(join(governanceDir, 'resource-field-completion-audit.jsonl'));
 const projectionRows = readJsonl(join(governanceDir, 'runtime-resource-projections.jsonl'));
+const projectionLimitations = JSON.parse(
+  readFileSync(join(governanceDir, 'runtime-resource-projection-limitations.json'), 'utf8'),
+) as JsonRecord;
 const summary = JSON.parse(readFileSync(join(governanceDir, 'knowledge-visual-semantic-shard-summary.json'), 'utf8')) as JsonRecord;
 
 assert(JSON.stringify(summary.selectedResourceIds) === JSON.stringify(selectedIds), 'selected shard ids must remain deterministic');
 assert(summary.selectedCount === selectedIds.length, 'selected shard count mismatch');
 assert(summary.remainingSelectedSemanticReview === 0, 'selected shard still has semantic review blockers');
+assert(projectionLimitations.totals.stale === 0, 'selected shard review packet hash must not make projections stale');
 assert(summary.residualUnselectedCounts['knowledge-card'] > 0, 'knowledge-card residual unselected count must be preserved');
 assert(summary.residualUnselectedCounts['knowledge-infograph'] > 0, 'knowledge-infograph residual unselected count must be preserved');
 assert(summary.byDisposition['path-plannable'] === 2, 'expected two reviewed path-plannable knowledge cards');

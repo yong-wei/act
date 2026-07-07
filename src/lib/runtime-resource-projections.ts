@@ -319,10 +319,15 @@ function normalizeGraphNodeRefs(refs: ResourceGraphNodeRefs): ResourceGraphNodeR
 }
 
 function isStaleProjection(row: RuntimeResourceProjectionArtifactRow): boolean {
-  const currentReviewSourceHash = row.reviewAudit.promptOrManifestHash ?? row.sourceHash;
   return row.reviewAudit.status === 'human-confirmed' &&
-    (row.reviewAudit.reviewedSourceHash !== currentReviewSourceHash ||
+    (!reviewedSourceMatchesProjection(row) ||
       row.reviewAudit.reviewedVersionRef !== row.sourceVersionRef);
+}
+
+function reviewedSourceMatchesProjection(row: RuntimeResourceProjectionArtifactRow): boolean {
+  if (row.reviewAudit.reviewedSourceHash === row.sourceHash) return true;
+  if (row.family === 'knowledge-card' || row.family === 'knowledge-infograph') return false;
+  return row.reviewAudit.reviewedSourceHash === row.reviewAudit.promptOrManifestHash;
 }
 
 function uniqueSorted(values: readonly string[]): string[] {

@@ -20,7 +20,7 @@
     "planningUnitEligible": 52,
     "humanConfirmed": 56,
     "provisional": 2833,
-    "stale": 4
+    "stale": 0
   },
   "byFamily": {
     "runtime-lesson-step": 450,
