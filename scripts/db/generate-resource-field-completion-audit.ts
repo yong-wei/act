@@ -16,7 +16,6 @@ import {
   type ResourceFieldCompletionCandidate,
   type ResourceFieldMissingCode,
   YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION,
-  yangFanFixtureScopeForResource,
 } from '@/lib/resource-field-completion-audit';
 import {
   buildLearningGoalResourceBaselineArtifacts,
@@ -1320,7 +1319,7 @@ function buildReviewedEvidenceLineageReadiness(
   const items = evidenceLineage.items.map((item) => {
     const disposition = dispositionById.get(item.resourceId);
     if (!disposition || !isReviewedEvidenceLineageLimitation(disposition)) return item;
-    const fixtureScope = yangFanFixtureScopeForResource(item);
+    const fixtureScope = item.yangFanFixtureScope;
     return {
       ...item,
       evidenceEffectState: 'reviewed-limitation' as const,
