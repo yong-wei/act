@@ -12,6 +12,8 @@ import {
 import {
   buildLearningGoalResourceBaselineArtifacts,
   LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
+  type LearningGoalResourceBaselineArtifacts,
+  type LearningGoalResourceBaselineCategorySummary,
 } from '../learning-goal-resource-baseline';
 import {
   FULL_RESOURCE_PATH_READINESS_GATE_VERSION,
@@ -44,6 +46,8 @@ describe('resource field completion audit', () => {
       capabilityTargetIds: ['controlModeling'],
       estimatedTimeMinutes: 6,
       reviewedSourceHash: reviewedSourceHash!,
+      reviewerVisibleRationale: 'Fixture verifies reviewed runtime step completion invalidation semantics.',
+      independentEvidenceRef: 'test-fixture:reviewed-runtime-step-completion',
     };
 
     expect(reviewedRuntimeStepCompletionForSource(
@@ -530,7 +534,7 @@ describe('resource field completion audit', () => {
     ]));
     expect(fullResourcePathReadinessGate.futureResourceImportCoverage.auditedResourceTypes).toContain('textbook_section');
     expect(fullResourcePathReadinessGate.futureResourceImportCoverage.missingAuditedResourceTypes).not.toContain('textbook-section');
-    expect(fullResourcePathReadinessGate.findings.map((finding) => finding.id)).toEqual(expect.arrayContaining([
+    expect(fullResourcePathReadinessGate.findings.map((finding: { id: string }) => finding.id)).toEqual(expect.arrayContaining([
       'unresolved-downstream-path-blockers',
       'unreviewed-resource-semantics',
       'unresolved-graph-node-resource-missing',
@@ -1729,11 +1733,11 @@ describe('resource field completion audit', () => {
     const matrix = JSON.parse(readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/learning-goal-resource-baseline-matrix.json'),
       'utf8',
-    ));
+    )) as LearningGoalResourceBaselineArtifacts['matrix'];
     const limitations = JSON.parse(readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/learning-goal-resource-baseline-limitations.json'),
       'utf8',
-    ));
+    )) as LearningGoalResourceBaselineArtifacts['limitations'];
     const reviewedBindings = readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/learning-goal-resource-baseline-reviewed-bindings.jsonl'),
       'utf8',
@@ -1741,7 +1745,7 @@ describe('resource field completion audit', () => {
       .trim()
       .split('\n')
       .filter(Boolean)
-      .map((line) => JSON.parse(line));
+      .map((line) => JSON.parse(line) as LearningGoalResourceBaselineArtifacts['reviewedBindings'][number]);
     const reviewedBindingIds = new Set(reviewedBindings.map((row) => row.bindingId));
     const auditRows = readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-field-completion-audit.jsonl'),
@@ -1749,10 +1753,17 @@ describe('resource field completion audit', () => {
     )
       .trim()
       .split('\n')
-      .map((line) => JSON.parse(line));
+      .map((line) => JSON.parse(line) as ResourceFieldCompletionAuditRow);
     const auditRowById = new Map(auditRows.map((row) => [row.resourceId, row]));
     const expectedLearningGoalIds = Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
       .map((definition) => definition.learningGoal!.id);
+    const baselineRowFor = (learningGoalId: string): LearningGoalResourceBaselineArtifacts['matrix']['rows'][number] => {
+      const row = matrix.rows.find((item) => item.learningGoalId === learningGoalId);
+      if (!row) {
+        throw new Error(`Missing LearningGoal baseline row: ${learningGoalId}`);
+      }
+      return row;
+    };
 
     expect(matrix.artifactVersion).toBe(LEARNING_GOAL_RESOURCE_BASELINE_VERSION);
     expect(matrix.registeredLearningGoalIds).toEqual(expectedLearningGoalIds);
@@ -1786,7 +1797,7 @@ describe('resource field completion audit', () => {
       'transfer-function-modeling-foundations',
       'time-domain-response-analysis',
     ]) {
-      const row = matrix.rows.find((item) => item.learningGoalId === goalId);
+      const row = baselineRowFor(goalId);
       expect(row.categories.concept.pathEligible).toBeGreaterThan(0);
       expect(row.categories.citation.pathEligible).toBeGreaterThan(0);
       expect(row.categories.diagnostic.pathEligible).toBe(0);
@@ -1805,7 +1816,7 @@ describe('resource field completion audit', () => {
       'frequency-response-foundations',
       'stability-margin-frequency-analysis',
     ]) {
-      const row = matrix.rows.find((item) => item.learningGoalId === goalId);
+      const row = baselineRowFor(goalId);
       expect(row.categories.concept.pathEligible).toBeGreaterThanOrEqual(2);
       expect(row.categories.citation.pathEligible).toBeGreaterThanOrEqual(2);
       expect(row.categories.diagnostic.pathEligible).toBe(0);
@@ -1819,9 +1830,7 @@ describe('resource field completion audit', () => {
         'remediation',
       ]);
     }
-    const simulationValidationRow = matrix.rows.find((item) =>
-      item.learningGoalId === 'simulation-validation-practice'
-    );
+    const simulationValidationRow = baselineRowFor('simulation-validation-practice');
     expect(simulationValidationRow.categories.concept.pathEligible).toBe(8);
     expect(simulationValidationRow.categories.concept.pathEligibleResourceIds.every((id) =>
       id.startsWith('runtime-step:4-7:')
@@ -1841,9 +1850,7 @@ describe('resource field completion audit', () => {
       'remediation',
       'terminal-validation',
     ]);
-    const shipOceanTransferRow = matrix.rows.find((item) =>
-      item.learningGoalId === 'ship-ocean-transfer-application'
-    );
+    const shipOceanTransferRow = baselineRowFor('ship-ocean-transfer-application');
     expect(shipOceanTransferRow.categories.concept.pathEligible).toBe(6);
     expect(shipOceanTransferRow.categories.concept.pathEligibleResourceIds.every((id) =>
       id.startsWith('runtime-step:5-3:')
@@ -1876,13 +1883,17 @@ describe('resource field completion audit', () => {
         artifactVersion: LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
       });
       expect(row.selectedReviewedBindingIds.every((bindingId) => reviewedBindingIds.has(bindingId))).toBe(true);
-      for (const category of Object.values(row.categories)) {
+      for (const category of Object.values(row.categories) as LearningGoalResourceBaselineCategorySummary[]) {
         expect(category.pathEligible).toBeLessThanOrEqual(category.humanConfirmed);
         expect(category.pathEligibleResourceIds.filter((id) => category.provisionalResourceIds.includes(id))).toEqual([]);
       }
     }
     for (const binding of reviewedBindings) {
       const auditRow = auditRowById.get(binding.resourceId);
+      expect(auditRow).toBeDefined();
+      if (!auditRow) {
+        throw new Error(`Missing resource field completion audit row: ${binding.resourceId}`);
+      }
       expect(auditRow).toMatchObject({
         reviewStatus: 'human-confirmed',
         sourceHash: expect.any(String),
@@ -2439,7 +2450,8 @@ describe('resource field completion audit', () => {
         ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!,
         terminalValidationPolicy: {
           ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!.terminalValidationPolicy,
-          terminalNodeTypes: ['simulation'],
+          terminalNodeTypes: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!
+            .terminalValidationPolicy.terminalNodeTypes.filter((type) => type === 'simulation'),
         },
       },
     };
@@ -2811,6 +2823,8 @@ function baselineAuditRow(
       reviewedVersionRef: null,
       generationToolOrModel: null,
       promptOrManifestHash: null,
+      reviewerVisibleRationale: null,
+      independentEvidenceRef: null,
       confidence: null,
       staleInvalidationRule: 'invalidate on source change',
     },
@@ -2823,6 +2837,7 @@ function baselineAuditRow(
       dedupeKey: true,
       timestamps: true,
       learningFactPolicy: true,
+      learningFactMaterializationPolicy: 'materialized-learning-fact',
       confidencePolicy: true,
       privacyScope: true,
       complete: true,

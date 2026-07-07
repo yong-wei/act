@@ -927,6 +927,7 @@ async function main() {
 
 function flattenWorkqueueItems(workqueues: ReturnType<typeof buildResourceFieldCompletionAudit>['workqueues']) {
   return workqueues.queues.flatMap((queue) => queue.items.map((item) => ({
+    ...item,
     queueId: queue.id,
     sourceFamily: queue.sourceFamily,
     learningGoalId: queue.learningGoalId,
@@ -934,7 +935,6 @@ function flattenWorkqueueItems(workqueues: ReturnType<typeof buildResourceFieldC
     missingFieldCode: queue.missingFieldCode,
     followupBucket: queue.followupBucket,
     dependencyState: queue.dependencyState,
-    ...item,
   })));
 }
 
@@ -982,13 +982,13 @@ function renderWorkqueueMarkdown(
 
 async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletionAuditRow[]): Promise<ResidualDispositionReviewItem[]> {
   const reviewSources = await loadResidualDispositionReviewSources();
-  return rows.filter((row) => row.missingFieldCodes.length > 0).map((row) => {
+  return rows.filter((row) => row.missingFieldCodes.length > 0).map<ResidualDispositionReviewItem>((row) => {
     const reviewSource = reviewSources.get(row.resourceId);
     const classification = reviewSource?.classification ?? residualDispositionClassificationFor(row);
     const downstreamBlockers = downstreamBlockersFor(row.missingFieldCodes);
     const unresolvedDispositionBlocker = isDispositionReviewUnresolved(row, reviewSource);
     return {
-      artifactVersion: 'resource-disposition-backlog-review.v1',
+      artifactVersion: 'resource-disposition-backlog-review.v1' as const,
       reviewBatchId: reviewSource?.reviewBatchId ?? RESIDUAL_DISPOSITION_REVIEW_BATCH_ID,
       reviewerId: reviewSource?.reviewerId ?? RESIDUAL_DISPOSITION_REVIEWER_ID,
       reviewedAt: reviewSource?.reviewedAt ?? RESIDUAL_DISPOSITION_REVIEWED_AT,
@@ -1007,8 +1007,8 @@ async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletion
       reviewedLimitationState: residualReviewedLimitationState(row, downstreamBlockers, unresolvedDispositionBlocker),
       downstreamBlockers,
       currentPathEligible: classification === 'path-plannable' && row.pathEligibility.current,
-      privacyMinimized: true,
-      rawContentIncluded: false,
+      privacyMinimized: true as const,
+      rawContentIncluded: false as const,
     };
   }).sort((left, right) => left.resourceId.localeCompare(right.resourceId));
 }
@@ -1774,7 +1774,7 @@ async function collectRuntimeManifestCandidates() {
             reviewerVisibleRationale: reviewedCompletionCurrent.reviewerVisibleRationale,
             independentEvidenceRef: reviewedCompletionCurrent.independentEvidenceRef,
             reviewedSourceHash: reviewSourceHash ?? undefined,
-            promptOrManifestHash: reviewSourceHash,
+            promptOrManifestHash: reviewSourceHash ?? undefined,
             confidence: 0.91,
           }
           : undefined,
