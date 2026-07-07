@@ -896,7 +896,16 @@ function missingYangFanFixtureGovernanceItems(
 ): ResourceEvidenceLineageReadinessItem[] {
   const existingScopedIds = new Set(existingItems
     .filter((item) => item.yangFanFixtureScope === 'fixture-owned')
-    .map((item) => normalizeYangFanFixtureStableRef(item.resourceId)));
+    .flatMap((item) => {
+      const ownerRows = rows.filter((row) => row.resourceId === item.resourceId);
+      return [
+        item.resourceId,
+        item.sourceRecord,
+        ...ownerRows.flatMap((row) => [row.sourceRecord, row.pathTarget]),
+      ];
+    })
+    .map((value) => normalizeYangFanFixtureStableRef(String(value || '')))
+    .filter(Boolean));
   return YANGFAN_FIXTURE_OWNED_RESOURCE_IDS
     .filter((resourceId) => !existingScopedIds.has(resourceId))
     .flatMap((resourceId) => {

@@ -1573,6 +1573,45 @@ describe('resource field completion audit', () => {
     });
   });
 
+  it('deduplicates fixture blockers by owner row refs', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      candidates: [
+        {
+          id: 'path-resource:fixture-exec-complete-owner',
+          title: 'Yang Fan fixture exec complete owner',
+          family: 'external-resource',
+          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-exec-complete',
+          sourceRecord: 'path-resource:fixture-exec-complete-owner-source',
+          knowledgeNodeIds: ['性能指标_1_1'],
+          capabilityTargetIds: ['controlModeling'],
+          segmentRefs: ['yangfan-diagnostic-fixture:exec-complete'],
+          citationTargets: ['LearningPathExecution:yangfan-diagnostic-fixture:exec-complete'],
+          pathTarget: 'LearningPathExecution:yangfan-diagnostic-fixture:exec-complete',
+          estimatedTimeMinutes: 5,
+          privacyScope: 'student-visible',
+          contentHash: 'sha256:fixture-exec-complete-owner',
+          versionRef: 'yangfan-diagnostic-fixture.v1',
+          currentPathEligible: true,
+        },
+      ],
+    });
+
+    const execCompleteBlockers = result.evidenceLineage.items.filter((item) =>
+      item.resourceId === 'path-resource:fixture-exec-complete-owner' ||
+      item.resourceId === 'yangfan-diagnostic-fixture:exec-complete'
+    );
+
+    expect(execCompleteBlockers).toHaveLength(1);
+    expect(execCompleteBlockers[0]).toMatchObject({
+      resourceId: 'path-resource:fixture-exec-complete-owner',
+      evidenceEffectState: 'blocked',
+      blocksYangFanFixture: true,
+      yangFanFixtureScope: 'fixture-owned',
+    });
+  });
+
   it('declares knowledge-card lineage as path execution evidence without LearningFact materialization', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
