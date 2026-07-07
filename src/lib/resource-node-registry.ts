@@ -2707,7 +2707,7 @@ function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIs
   return issues;
 }
 
-function isRuntimeProjectionReviewStale(projection: RuntimeResourceProjectionInput): boolean {
+function isRuntimeProjectionReviewStale(projection: RuntimeResourceProjectionMetadata): boolean {
   const currentReviewSourceHash = projection.reviewAudit?.promptOrManifestHash ?? projection.sourceHash;
   return projection.reviewAudit?.reviewedSourceHash !== currentReviewSourceHash ||
     projection.reviewAudit?.reviewedVersionRef !== projection.sourceVersionRef;

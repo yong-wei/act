@@ -957,7 +957,7 @@ describe('retrieval chunk not path eligible', () => {
   it('keeps knowledge-card resource projections as knowledge-card source kind', () => {
     const row = makeProjectionRow({
       family: 'knowledge-card',
-      sourceKind: 'knowledge_card',
+      sourceKind: 'knowledge_graph',
       projectionLevel: 'ResourceNode' as 'ResourceNode',
     });
     const { item } = adaptResourceProjectionRow(row);
