@@ -5,7 +5,19 @@ import { describe, expect, it } from 'vitest';
 import {
   buildGraphCenterPayload,
 } from '../graph-center';
-import { createLearningEvidenceCorpusChunk, type LearningEvidenceCorpusChunk } from '../learning-evidence-rag-corpus';
+import {
+  ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
+  ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
+  ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
+  type AdaptiveLearnerSecondaryDimension,
+  type AdaptiveLearnerState,
+} from '../adaptive-learner-state-service';
+import { createEmptyCompetencyVector, type CompetencyDimension, type CompetencyVector } from '../competency-model';
+import {
+  createLearningEvidenceCorpusChunk,
+  validateLearningEvidenceCorpusChunk,
+  type LearningEvidenceCorpusChunk,
+} from '../learning-evidence-rag-corpus';
 import { createTeacherKaqEvidenceTracePayload } from '../teacher-kaq-evidence-trace';
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 
@@ -63,6 +75,8 @@ describe('teacher K/A/Q evidence trace payload', () => {
     expect(payload.node?.id).toBe('kn:autocontrol:controller-correction');
     expect(payload.sarTrace.status).toBe('available');
     expect(payload.sarTrace.topEvents.map((event) => event.safeSummary)).toContain('班级在串联校正参数选择上证据不足。');
+    expect(payload.sarTrace.topEvents.find((event) => event.safeSummary === '班级在串联校正参数选择上证据不足。')?.authorityLevel)
+      .toBe('teacher-approved');
     expect(payload.resourceGaps.map((gap) => gap.type)).toContain('citation-ready-resource');
     expect(payload.candidateResources.length).toBeGreaterThan(0);
     expect(payload.returnLinks.map((link) => link.id)).toEqual(expect.arrayContaining([
@@ -157,71 +171,186 @@ describe('teacher K/A/Q evidence trace payload', () => {
   });
 });
 
-function classOverlayLearnerStates() {
-  return [1, 2, 3, 4, 5].map((index) => ({
-    userId: `learner-${index}`,
-    roleScope: {
-      role: 'student',
-      classId: 'class-1',
-      privacyScopes: ['student-visible'],
-    },
-    generatedAt: '2026-06-21T00:00:00.000Z',
-    authority: 'server-owned',
-    knowledgeMastery: {
-      coverage: 'available',
-      tags: {
-        'kn:autocontrol:controller-correction': {
-          posteriorMastery: 0.6 + index * 0.05,
-          confidence: 0.8,
-          evidenceCount: 3,
-          source: 'adaptive-assessment',
-          algorithmVersion: 'test',
-          lastUpdatedAt: '2026-06-20T00:00:00.000Z',
-          supportingEvidenceRefs: [],
-          sourceCoverage: {
-            supportingEvidenceCount: 3,
-            missingRequiredEvidenceTypes: [],
+const SECONDARY_DIMENSION_PRIMARY: Record<AdaptiveLearnerSecondaryDimension, CompetencyDimension> = {
+  conceptMastery: 'controlModeling',
+  timeFrequencyTransfer: 'crossDomainTransfer',
+  modelingReliability: 'controlModeling',
+  tuningEfficiency: 'parameterDesign',
+  constrainedOptimization: 'parameterDesign',
+  solutionStability: 'engineeringDecision',
+  crossModalTransfer: 'crossDomainTransfer',
+  scenarioGeneralization: 'crossDomainTransfer',
+  riskRecognition: 'engineeringDecision',
+  constraintCompliance: 'engineeringDecision',
+  explanationQuality: 'inquiryReflection',
+  aiUseStrategy: 'inquiryReflection',
+  reflectionDepth: 'inquiryReflection',
+  pathExecution: 'selfDirectedLearning',
+  persistence: 'selfDirectedLearning',
+  remedialInitiative: 'selfDirectedLearning',
+};
+
+function secondaryDimension(
+  vector: CompetencyVector,
+  primaryDimension: CompetencyDimension,
+): AdaptiveLearnerState['secondaryDimensions'][AdaptiveLearnerSecondaryDimension] {
+  const primary = vector[primaryDimension];
+  return {
+    primaryDimension,
+    value: primary.score,
+    confidence: primary.confidence,
+    evidenceCount: primary.evidenceCount,
+    source: 'primary-competency-derived',
+  };
+}
+
+function buildSecondaryDimensions(vector: CompetencyVector): AdaptiveLearnerState['secondaryDimensions'] {
+  return {
+    conceptMastery: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.conceptMastery),
+    timeFrequencyTransfer: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.timeFrequencyTransfer),
+    modelingReliability: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.modelingReliability),
+    tuningEfficiency: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.tuningEfficiency),
+    constrainedOptimization: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.constrainedOptimization),
+    solutionStability: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.solutionStability),
+    crossModalTransfer: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.crossModalTransfer),
+    scenarioGeneralization: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.scenarioGeneralization),
+    riskRecognition: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.riskRecognition),
+    constraintCompliance: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.constraintCompliance),
+    explanationQuality: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.explanationQuality),
+    aiUseStrategy: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.aiUseStrategy),
+    reflectionDepth: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.reflectionDepth),
+    pathExecution: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.pathExecution),
+    persistence: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.persistence),
+    remedialInitiative: secondaryDimension(vector, SECONDARY_DIMENSION_PRIMARY.remedialInitiative),
+  };
+}
+
+function classOverlayLearnerStates(): AdaptiveLearnerState[] {
+  return [1, 2, 3, 4, 5].map((index) => {
+    const vector = createEmptyCompetencyVector();
+    return {
+      userId: `learner-${index}`,
+      payloadVersion: ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
+      roleScope: {
+        role: 'student',
+        classId: 'class-1',
+        privacyScopes: ['student-visible'],
+      },
+      generatedAt: '2026-06-21T00:00:00.000Z',
+      authority: 'server-owned',
+      featureFlag: {
+        name: ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
+        enabled: true,
+        fallback: 'legacy-profile-summary-and-recommendation-consumers',
+      },
+      clientHints: {
+        received: false,
+        authoritative: false,
+        reason: 'client-hints-non-authoritative',
+      },
+      primaryCompetencies: {
+        source: 'fallback-empty',
+        vector,
+      },
+      secondaryDimensions: buildSecondaryDimensions(vector),
+      knowledgeMastery: {
+        coverage: 'available',
+        tags: {
+          'kn:autocontrol:controller-correction': {
+            posteriorMastery: 0.6 + index * 0.05,
+            confidence: 0.8,
+            evidenceCount: 3,
+            source: 'adaptive-assessment',
+            algorithmVersion: 'test',
+            lastUpdatedAt: '2026-06-20T00:00:00.000Z',
+            supportingEvidenceRefs: [],
+            sourceCoverage: {
+              AdaptiveMasteryUpdate: 'available',
+              LearningFact: 'available',
+              ArenaSubmission: 'missing',
+              AgentToolRun: 'missing',
+              StudentEvidenceFeatureCache: 'available',
+            },
+          },
+        },
+      },
+      masteryTraceability: {
+        knowledgeTargets: {
+          'kn:autocontrol:controller-correction': {
+            targetId: 'kn:autocontrol:controller-correction',
+            targetKind: 'knowledge',
+            masteryLevel: 0.6 + index * 0.05,
+            confidence: 0.8,
             freshness: 'current',
+            supportingEvidenceRefs: [],
+            sourceCoverage: {
+              AdaptiveMasteryUpdate: 'available',
+              LearningFact: 'available',
+              ArenaSubmission: 'missing',
+              AgentToolRun: 'missing',
+              StudentEvidenceFeatureCache: 'available',
+            },
+            limitations: [],
           },
         },
+        capabilityTargets: {},
       },
-    },
-    masteryTraceability: {
-      knowledgeTargets: {
-        'kn:autocontrol:controller-correction': {
-          targetId: 'kn:autocontrol:controller-correction',
-          targetKind: 'knowledge',
-          masteryLevel: 0.6 + index * 0.05,
-          confidence: 0.8,
-          freshness: 'current',
-          supportingEvidenceRefs: [],
-          sourceCoverage: {
-            AdaptiveMasteryUpdate: 'available',
-            LearningFact: 'available',
-            ArenaSubmission: 'missing',
-            AgentToolRun: 'missing',
-            StudentEvidenceFeatureCache: 'available',
-          },
-          limitations: [],
+      resourcePreference: {
+        preferredModalities: [],
+        sourceCounts: {},
+        confidence: 'none',
+      },
+      mediaAbsorption: {
+        mediaFactCount: 0,
+        averageCompletion: null,
+        confidence: 'none',
+      },
+      pathContext: {
+        activePathCount: 0,
+        bookmarkedPathCount: 0,
+        recentPathIds: [],
+        activeControlCorrectionPath: {
+          state: 'none',
+          pathId: null,
+          status: null,
+          currentNodeId: null,
+          terminalValidationState: null,
+          lowConfidenceMarkers: [],
         },
+        statusMarkers: ['missing'],
       },
-      capabilityTargets: {},
-      qualityTargets: {},
-      limitations: [],
-    },
-    pathContext: {
-      activeControlCorrectionPath: {
-        state: 'none',
-        pathId: null,
-        status: null,
-        currentNodeId: null,
-        terminalValidationState: null,
-        lowConfidenceMarkers: [],
+      risks: {
+        riskLevel: 'none',
+        activeFlags: [],
       },
-    },
-    recommendations: [],
-    limitations: [],
-  }));
+      assessmentState: {
+        latestAbilityEstimate: null,
+      },
+      evidence: {
+        readState: 'ready',
+        evidenceWindow: {
+          firstStartedAt: '2026-06-20T00:00:00.000Z',
+          lastStartedAt: '2026-06-20T00:00:00.000Z',
+          daysCovered: 1,
+        },
+        sourceCounts: {},
+        sourceCoverage: {},
+        confidence: {
+          level: 'high',
+          score: 0.8,
+          evidenceCount: 3,
+          sourceCompleteness: 1,
+        },
+        statusMarkers: [],
+      },
+      prerequisiteFeatureGroups: {
+        simulationArena: null,
+        pathExecution: null,
+      },
+      fieldContracts: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
+      missingEvidence: [],
+    };
+  });
 }
 
 function teacherVisibleChunk(input: {
@@ -231,10 +360,10 @@ function teacherVisibleChunk(input: {
   redactedSummary: string;
   rawText?: string;
 }): LearningEvidenceCorpusChunk {
-  return createLearningEvidenceCorpusChunk({
+  const chunk = createLearningEvidenceCorpusChunk({
     id: input.id,
-    family: 'teacher-evidence',
-    sourceType: 'teacher-evidence',
+    family: 'report',
+    sourceType: 'teacher-report',
     sourceRef: {
       id: input.id,
       ownerUserId: null,
@@ -248,7 +377,6 @@ function teacherVisibleChunk(input: {
       href: `/teacher/evidence/${input.id}`,
       capsule: 'Teacher evidence fixture.',
     },
-    citationAddress: null,
     content: {
       text: input.rawText ?? null,
       redactedSummary: input.redactedSummary,
@@ -272,7 +400,7 @@ function teacherVisibleChunk(input: {
       stale: false,
     },
     authority: {
-      level: 'canonical',
+      level: 'teacher-authored',
       knowledgeTags: input.knowledgeNodeRefs,
       pageAnchor: 'teacher-trace',
       freshnessBucket: 'current',
@@ -288,7 +416,9 @@ function teacherVisibleChunk(input: {
     retrieval: {
       tags: input.knowledgeNodeRefs,
       goals: ['teacher-kaq-evidence-trace'],
-      useCases: ['diagnosis'],
+      useCases: ['teacher-report'],
     },
   });
+  expect(validateLearningEvidenceCorpusChunk(chunk)).toEqual([]);
+  return chunk;
 }
