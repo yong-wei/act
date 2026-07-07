@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   readAdaptiveLearnerState: vi.fn(),
+  getLearningGoalAssessmentCoverageForPlanner: vi.fn(),
+  getLearningGoalResourceBaselineForPlanner: vi.fn(),
   loadAllTextbookRuntimeResourceCatalogEntries: vi.fn(),
   loadAllTextbookRuntimeSearchDocuments: vi.fn(),
 }));
@@ -18,6 +20,30 @@ vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
   };
 });
 
+vi.mock('@/lib/learning-goal-assessment-coverage-runtime', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/learning-goal-assessment-coverage-runtime')>(
+    '@/lib/learning-goal-assessment-coverage-runtime',
+  );
+  mocks.getLearningGoalAssessmentCoverageForPlanner
+    .mockImplementation(actual.getLearningGoalAssessmentCoverageForPlanner);
+  return {
+    ...actual,
+    getLearningGoalAssessmentCoverageForPlanner: mocks.getLearningGoalAssessmentCoverageForPlanner,
+  };
+});
+
+vi.mock('@/lib/learning-goal-resource-baseline-runtime', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/learning-goal-resource-baseline-runtime')>(
+    '@/lib/learning-goal-resource-baseline-runtime',
+  );
+  mocks.getLearningGoalResourceBaselineForPlanner
+    .mockImplementation(actual.getLearningGoalResourceBaselineForPlanner);
+  return {
+    ...actual,
+    getLearningGoalResourceBaselineForPlanner: mocks.getLearningGoalResourceBaselineForPlanner,
+  };
+});
+
 vi.mock('@/lib/textbook-runtime-resources', () => ({
   loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
   loadAllTextbookRuntimeSearchDocuments: mocks.loadAllTextbookRuntimeSearchDocuments,
@@ -28,6 +54,7 @@ import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
+  buildResourceNodeSourcePackCandidate,
   buildKonlingSarAssociatedGroundingMetadataPayload,
   buildKonlingStreamingCitationGuard,
   buildScopedKonlingAiTools,
@@ -55,6 +82,7 @@ import {
   type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
+import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
 
 function createScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRuntimeScope {
   return {
@@ -276,6 +304,27 @@ function textbookRuntimeCatalogFixture() {
         knowledgeNodeIds: ['Bode图_1_1', '频域响应_1_1', '正弦稳态响应_5_b6dc1100'],
         capabilityTargetIds: ['controlModeling', 'parameterDesign'],
         estimatedTimeMinutes: 8,
+        planningOverride: {
+          readiness: {
+            minimumCompetency: { controlModeling: 0.1, parameterDesign: 0.1 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: 'Reviewed textbook section fixture is ready for path planning.',
+            fallbackNodeIds: [],
+          },
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Reviewed textbook section fixture for Konling path generation tests.',
+            sourceFamily: 'textbook_section',
+            stableSourceRef: 'dorf-modern-control-systems:ch08-example-0801',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'konling-runtime-test-review',
+          },
+        },
       },
     ],
   }];
@@ -6640,6 +6689,106 @@ describe('konling agent runtime', () => {
     expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 
+  it('uses assessment coverage blocked copy when reviewed assessment coverage is incomplete', async () => {
+    const createdRun = {
+      id: 'tool-run-path-assessment-coverage',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-assessment-coverage',
+      correlationId: 'corr-path-assessment-coverage',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    mocks.getLearningGoalResourceBaselineForPlanner.mockReturnValueOnce({
+      coverageState: 'complete',
+      missingBaselineCategories: [],
+      reviewedBindingCount: 12,
+      limitationReason: null,
+      sourceWindow: null,
+    });
+    mocks.getLearningGoalAssessmentCoverageForPlanner.mockReturnValueOnce({
+      coverageState: 'limited',
+      incompleteStages: ['checkpoint'],
+      reviewedPathEligibleItemCount: 0,
+      limitationReason: 'minimum-assessment-coverage-incomplete:checkpoint',
+      matrixVersion: 'learning-goal-assessment-coverage.test',
+      generatedAt: '2026-05-28T00:00:00.000Z',
+      terminalValidationRequired: true,
+      assessmentItemsReplaceTerminalEvidence: false,
+    });
+    const scope = createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' });
+    const graphContext = buildKonlingKaqGraphContext({
+      scope,
+      learningGoalId: 'control-correction',
+    });
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope,
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['generate_learning_path'],
+        graphContext,
+      }),
+    });
+
+    const result = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-assessment-coverage',
+      goalId: 'control-correction',
+      excludedNodeIds: [
+        'registry:lesson09-correction-precheck',
+        'knowledge-card:control-correction-time-domain-targets',
+        'knowledge-card:lesson09-summary-card',
+        'registry:lesson09-summary-card',
+        'simulation:control-correction-step-response-lab',
+        'arena-task:task-second-order-lead-pid',
+        'registry:arena-challenge-workbench',
+        'reflection:control-correction-design-reflection',
+        'ai_intervention:control-correction-path-coach',
+      ],
+    }) as {
+      generationStatus: string;
+      pathOptions: Array<Record<string, unknown>>;
+      comparison: { message: string };
+      limitations: string[];
+    };
+
+    expect(result.generationStatus).toBe('blocked');
+    expect(result.pathOptions).toEqual([]);
+    expect(result.limitations).toContain('learning-goal-assessment-coverage-incomplete');
+    expect(result.limitations).not.toContain('learning-goal-baseline-incomplete');
+    expect(result.comparison.message).toBe('当前目标缺少已审核的评估题目覆盖，暂不能生成可执行学习路径。');
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
   it('does not reuse runtime graph context across adaptive path goals', async () => {
     const createdRun = {
       id: 'tool-run-path-cross-graph',
@@ -8113,7 +8262,7 @@ describe('konling agent runtime', () => {
         }),
       ]),
     });
-    expect(JSON.stringify(result.pathOptions)).toContain('textbook-section:dorf-modern-control-systems:ch08-example-0801');
+    expect(JSON.stringify(result.pathOptions)).toContain('registry:frequency-precheck');
     expect(db.agentToolRun.create).toHaveBeenCalled();
     expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
       create: expect.objectContaining({
@@ -9935,5 +10084,56 @@ describe('konling agent runtime', () => {
       }),
     }));
     expect(JSON.stringify(db.konlingMemory.create.mock.calls)).not.toContain('promptContent');
+  });
+
+  it('builds citeable Source Pack candidates for reviewed path-eligible core resources', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [{
+        id: 'core-lesson',
+        label: 'Core lesson',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/resources/core-lesson',
+        knowledgeNodeIds: ['kn-controller'],
+        planningOverride: {
+          abilityImpact: { controlModeling: 0.25 },
+          evidenceInstrumentation: ['lesson_step_view'],
+          privacyLevel: 'student-visible',
+          readiness: {
+            minimumCompetency: { controlModeling: 0.1 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成必要证据后进入。',
+            fallbackNodeIds: [],
+          },
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'human-confirmed',
+            rationale: 'Reviewed core lesson path node.',
+            sourceFamily: 'resource_registry',
+            stableSourceRef: 'core-lesson',
+            sourceVersionRef: 'resource-node-registry.v1',
+            parentResourceNodeId: null,
+            reviewedAt: '2026-07-03T00:00:00.000Z',
+            reviewerId: 'core-resource-path-readiness-review',
+          },
+        },
+      }],
+    });
+    const node = registry.nodes.find((item) => item.id === 'registry:core-lesson')!;
+    const candidate = buildResourceNodeSourcePackCandidate(node);
+
+    expect(candidate).toMatchObject({
+      resourceNodeId: 'registry:core-lesson',
+      planningUnitId: 'planning-unit:registry:core-lesson',
+      citation: {
+        href: '/resources/core-lesson',
+        verified: true,
+      },
+      metadata: {
+        pathEligible: 'true',
+        resourceType: 'lesson_step',
+      },
+    });
   });
 });

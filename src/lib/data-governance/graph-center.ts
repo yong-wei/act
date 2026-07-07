@@ -206,6 +206,26 @@ export interface GraphCenterSarResourceGapSuggestion {
   refType: 'resource-node' | 'retrieval-chunk' | 'citation-target' | 'planning-unit';
   status: 'suggested';
   draft: true;
+  review?: {
+    state: 'suggested';
+    authoritative: false;
+    availableActions: Array<'accept' | 'reject' | 'defer' | 'invalidate'>;
+    auditPayload: {
+      candidateId: string;
+      candidateRef: string;
+      candidateRefType: GraphCenterSarResourceGapSuggestion['refType'];
+      sourceRefs: string[];
+      missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
+      provenance: {
+        source: 'graph-center-sar';
+        basisEventIds: string[];
+      };
+      traceSummary: {
+        traceHopCount: number;
+        limitations: string[];
+      };
+    };
+  };
   suggestedForMissingCoverageTypes: GraphCenterResourceCoverageMissingType[];
   rationale: {
     basisEventIds: string[];
@@ -667,6 +687,9 @@ function buildGraphCenterAssociatedEvidence(input: {
 
   const linkedResourceIdSet = new Set(input.resourceCoverage.linkedResourceIds);
   const pathEligibleResourceIdSet = new Set(input.resourceCoverage.pathEligibleResourceIds);
+  const persistableSarReviewSourceRefSet = new Set(input.resourceRegistry.nodes
+    .filter((resource) => resource.sourceKind === 'teaching_resource')
+    .map((resource) => resource.sourceRef));
   const coverageRefSet = new Set([input.node.id, ...coverageRefs]);
   const graphProjection = projectKaqGraphNodeToSar({
     node: input.node,
@@ -725,6 +748,8 @@ function buildGraphCenterAssociatedEvidence(input: {
     missingCoverageTypes: input.resourceCoverage.missingCoverageTypes,
     linkedResourceIdSet,
     pathEligibleResourceIdSet,
+    persistableSarReviewSourceRefSet,
+    reviewActionsAllowed: input.viewerRole === 'TEACHER' || input.viewerRole === 'ADMIN',
   });
   return {
     status: safeExpansion.events.length > 0 || resourceGapSuggestions.length > 0
@@ -943,34 +968,154 @@ function buildSarResourceGapSuggestions(input: {
   missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
   linkedResourceIdSet: ReadonlySet<string>;
   pathEligibleResourceIdSet: ReadonlySet<string>;
+  persistableSarReviewSourceRefSet: ReadonlySet<string>;
+  reviewActionsAllowed: boolean;
 }): GraphCenterSarResourceGapSuggestion[] {
   if (input.missingCoverageTypes.length === 0) return [];
   const visibleExpansion = input.visibleExpansion ?? input.expansion;
+  const preserveLinkedPathCandidates = input.missingCoverageTypes.includes('path-eligible-resource');
   const refs: Array<{ ref: string; refType: GraphCenterSarResourceGapSuggestion['refType'] }> = [
     ...input.expansion.candidateRefs.resourceNodeIds
       .map((ref, index) => ({
         rawRef: ref,
         visibleRef: visibleExpansion.candidateRefs.resourceNodeIds[index] ?? 'resource-candidate:redacted',
       }))
-      .filter(({ rawRef }) => !input.linkedResourceIdSet.has(rawRef) && !input.pathEligibleResourceIdSet.has(rawRef))
+      .filter(({ rawRef }) => {
+        if (input.pathEligibleResourceIdSet.has(rawRef)) return false;
+        return preserveLinkedPathCandidates || !input.linkedResourceIdSet.has(rawRef);
+      })
       .map(({ visibleRef }) => ({ ref: visibleRef, refType: 'resource-node' as const })),
     ...visibleExpansion.candidateRefs.retrievalChunkIds.map((ref) => ({ ref, refType: 'retrieval-chunk' as const })),
     ...visibleExpansion.candidateRefs.citationTargetIds.map((ref) => ({ ref, refType: 'citation-target' as const })),
     ...visibleExpansion.candidateRefs.planningUnitIds.map((ref) => ({ ref, refType: 'planning-unit' as const })),
   ];
-  return refs.map(({ ref, refType }, index) => ({
-    id: `sar-gap:${index + 1}`,
-    ref,
-    refType,
-    status: 'suggested',
-    draft: true,
-    suggestedForMissingCoverageTypes: input.missingCoverageTypes,
-    rationale: {
-      basisEventIds: visibleExpansion.candidateRefs.eventIds,
-      traceHopCount: visibleExpansion.trace.expansionHops.length,
-      reason: 'SAR associated this candidate with the selected graph node; ResourceNode governance review is still required.',
-    },
+  return refs.map(({ ref, refType }, index) => {
+    const id = `sar-gap:${index + 1}`;
+    const auditSourceRefs = buildSarReviewAuditSourceRefs({
+      expansion: visibleExpansion,
+      ref,
+      refType,
+    }).filter((sourceRef) => input.persistableSarReviewSourceRefSet.has(sourceRef));
+    const reviewActions = buildSarReviewAvailableActions(refType);
+    return {
+      id,
+      ref,
+      refType,
+      status: 'suggested',
+      draft: true,
+      ...(input.reviewActionsAllowed && auditSourceRefs.length > 0 ? {
+        review: {
+          state: 'suggested',
+          authoritative: false,
+          availableActions: reviewActions,
+          auditPayload: {
+            candidateId: id,
+            candidateRef: ref,
+            candidateRefType: refType,
+            sourceRefs: auditSourceRefs,
+            missingCoverageTypes: input.missingCoverageTypes,
+            provenance: {
+              source: 'graph-center-sar',
+              basisEventIds: visibleExpansion.candidateRefs.eventIds,
+            },
+            traceSummary: {
+              traceHopCount: visibleExpansion.trace.expansionHops.length,
+              limitations: visibleExpansion.limitations,
+            },
+          },
+        },
+      } : {}),
+      suggestedForMissingCoverageTypes: input.missingCoverageTypes,
+      rationale: {
+        basisEventIds: visibleExpansion.candidateRefs.eventIds,
+        traceHopCount: visibleExpansion.trace.expansionHops.length,
+        reason: 'SAR associated this candidate with the selected graph node; ResourceNode governance review is still required.',
+      },
+    };
+  });
+}
+
+function buildSarReviewAuditSourceRefs(input: {
+  expansion: SarAssociationExpansionResult;
+  ref: string;
+  refType: GraphCenterSarResourceGapSuggestion['refType'];
+}): string[] {
+  return uniqueSorted(input.expansion.events.flatMap((event) => {
+    if (!sarReviewEventSupportsCandidate(event, input.ref, input.refType)) return [];
+    return sarReviewEventAuthorizationRefs(event, input.ref, input.refType);
   }));
+}
+
+function sarReviewEventSupportsCandidate(
+  event: SarAssociationExpansionResult['events'][number],
+  ref: string,
+  refType: GraphCenterSarResourceGapSuggestion['refType'],
+): boolean {
+  if (refType === 'retrieval-chunk') {
+    return event.sourceRef.id === ref
+      || event.metadata?.chunkId === ref
+      || event.metadata?.retrievalChunkId === ref
+      || (Array.isArray(event.metadata?.chunkIds) && event.metadata.chunkIds.includes(ref))
+      || (Array.isArray(event.metadata?.retrievalChunkIds) && event.metadata.retrievalChunkIds.includes(ref));
+  }
+  if (refType === 'resource-node') {
+    return sarReviewResourceRefMatches(event.sourceRef.id, ref)
+      || sarReviewResourceRefMatches(event.metadata?.resourceId, ref)
+      || sarReviewResourceRefMatches(event.metadata?.resourceNodeId, ref);
+  }
+  if (refType === 'citation-target') {
+    return event.metadata?.citationTargetId === ref
+      || (Array.isArray(event.metadata?.citationTargetIds) && event.metadata.citationTargetIds.includes(ref));
+  }
+  return event.metadata?.planningUnitId === ref;
+}
+
+function sarReviewResourceRefMatches(value: unknown, ref: string): boolean {
+  if (typeof value !== 'string') return false;
+  return value === ref || canonicalSarResourceNodeRef(value) === canonicalSarResourceNodeRef(ref);
+}
+
+function canonicalSarResourceNodeRef(resourceRef: string): string {
+  const semanticTeachingResourcePrefix = 'resource:teaching-resource:';
+  if (resourceRef.startsWith(semanticTeachingResourcePrefix)) {
+    return resourceRef.slice(semanticTeachingResourcePrefix.length) || resourceRef;
+  }
+  const teachingResourcePrefix = 'teaching-resource:';
+  if (resourceRef.startsWith(teachingResourcePrefix)) {
+    return resourceRef.slice(teachingResourcePrefix.length) || resourceRef;
+  }
+  return resourceRef;
+}
+
+function sarReviewEventAuthorizationRefs(
+  event: SarAssociationExpansionResult['events'][number],
+  candidateRef: string,
+  refType: GraphCenterSarResourceGapSuggestion['refType'],
+): string[] {
+  const resourceId = typeof event.metadata?.resourceId === 'string' ? event.metadata.resourceId : '';
+  return uniqueSorted([
+    refType === 'retrieval-chunk' && resourceId === candidateRef ? '' : sarReviewAuthorizationRef(resourceId),
+    event.eventType === 'resource-node' ? sarReviewAuthorizationRef(event.sourceRef.id) : '',
+  ].filter((ref) => ref && !ref.startsWith('sar:event:')));
+}
+
+function sarReviewAuthorizationRef(ref: string): string {
+  const semanticPrefix = 'resource:';
+  const semanticRef = ref.startsWith(semanticPrefix)
+    ? ref.slice(semanticPrefix.length)
+    : ref;
+  const teachingResourcePrefix = 'teaching-resource:';
+  if (semanticRef.startsWith(teachingResourcePrefix)) {
+    return semanticRef.slice(teachingResourcePrefix.length) || ref;
+  }
+  return ref;
+}
+
+function buildSarReviewAvailableActions(
+  refType: GraphCenterSarResourceGapSuggestion['refType'],
+): NonNullable<GraphCenterSarResourceGapSuggestion['review']>['availableActions'] {
+  if (refType === 'resource-node') return ['accept', 'reject', 'defer', 'invalidate'];
+  return ['reject', 'defer', 'invalidate'];
 }
 
 function mergeSarResults(results: SarRetrievalResult[]): Pick<

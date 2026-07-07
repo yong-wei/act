@@ -15,18 +15,6 @@ import type {
 
 export const LEARNING_GOAL_RESOURCE_BASELINE_VERSION = 'learning-goal-resource-baseline.v1';
 
-export const FIRST_BATCH_LEARNING_GOAL_IDS = [
-  'control-correction',
-  'frequency-response-foundations',
-  'feedback-loop-concept-foundations',
-  'transfer-function-modeling-foundations',
-  'time-domain-response-analysis',
-  'root-locus-analysis-foundations',
-  'stability-margin-frequency-analysis',
-  'simulation-validation-practice',
-  'ship-ocean-transfer-application',
-] as const;
-
 export type LearningGoalBaselineCategory =
   | 'concept'
   | 'diagnostic'
@@ -135,6 +123,7 @@ export interface LearningGoalResourceBaselineArtifacts {
     generatedAt: string;
     sourceWindow: ResourceFieldSourceWindow;
     versionRefs: KaqArtifactVersionRefs;
+    registeredLearningGoalIds: string[];
     batchLearningGoalIds: string[];
     rows: LearningGoalResourceBaselineMatrixRow[];
     totals: {
@@ -173,19 +162,16 @@ export function buildLearningGoalResourceBaselineArtifacts(input: {
     resourceRegistryVersion: RESOURCE_NODE_REGISTRY_VERSION,
     resourceProjectionVersion: RESOURCE_SEMANTIC_PROJECTION_VERSION,
   });
-  const rows = FIRST_BATCH_LEARNING_GOAL_IDS
-    .map((goalId) => {
-      const registeredGoal = input.registeredGoals[goalId];
-      if (!registeredGoal?.learningGoal) return null;
-      return buildMatrixRow({
-        registeredGoal,
-        auditRows: input.auditRows,
-        generatedAt,
-        sourceWindow,
-        versionRefs,
-      });
-    })
-    .filter((row): row is LearningGoalResourceBaselineMatrixRow => Boolean(row));
+  const registeredGoals = Object.values(input.registeredGoals)
+    .filter((registeredGoal) => Boolean(registeredGoal.learningGoal));
+  const registeredLearningGoalIds = registeredGoals.map((registeredGoal) => registeredGoal.learningGoal!.id);
+  const rows = registeredGoals.map((registeredGoal) => buildMatrixRow({
+    registeredGoal,
+    auditRows: input.auditRows,
+    generatedAt,
+    sourceWindow,
+    versionRefs,
+  }));
   const reviewedBindings = rows.flatMap((row) => row.selectedReviewedBindingIds)
     .map((bindingId) => reviewedBindingById.get(bindingId))
     .filter((binding): binding is LearningGoalResourceBaselineReviewedBinding => Boolean(binding))
@@ -216,7 +202,8 @@ export function buildLearningGoalResourceBaselineArtifacts(input: {
       generatedAt,
       sourceWindow,
       versionRefs,
-      batchLearningGoalIds: [...FIRST_BATCH_LEARNING_GOAL_IDS],
+      registeredLearningGoalIds,
+      batchLearningGoalIds: registeredLearningGoalIds,
       rows,
       totals: {
         learningGoals: rows.length,
@@ -263,11 +250,11 @@ function buildMatrixRow(input: {
   const categories = Object.fromEntries(
     BASELINE_CATEGORIES.map((category) => [
       category,
-      summarizeCategory(category, matchedRows, learningGoal, input.generatedAt),
+      summarizeCategory(category, matchedRows, learningGoal, coverageRefs, input.generatedAt),
     ]),
   ) as Record<LearningGoalBaselineCategory, LearningGoalResourceBaselineCategorySummary>;
   const selectedReviewedBindingIds = BASELINE_CATEGORIES.flatMap((category) =>
-    selectReviewedBindings(category, matchedRows, learningGoal, input.generatedAt)
+    selectReviewedBindings(category, matchedRows, learningGoal, coverageRefs, input.generatedAt)
   );
   const missingBaselineCategories = requiredCategories.filter((category) =>
     categories[category].pathEligible < requiredBindingCount(category)
@@ -317,11 +304,19 @@ function summarizeCategory(
   category: LearningGoalBaselineCategory,
   rows: readonly ResourceFieldCompletionAuditRow[],
   learningGoal: LearningGoalDefinition,
+  coverageRefs: ReadonlySet<string>,
   generatedAt: string,
 ): LearningGoalResourceBaselineCategorySummary {
   const linkedRows = rows.filter((row) => rowMatchesCategory(row, category, learningGoal));
-  const reviewedRows = linkedRows.filter((row) => row.reviewStatus === 'human-confirmed');
-  const eligibleRows = linkedRows.filter((row) => isReviewedBaselineRow(row) && row.pathEligibility.current);
+  const reviewedRows = linkedRows.filter((row) =>
+    row.reviewStatus === 'human-confirmed' &&
+    rowMatchesPathEligibleCoverageRefs(row, coverageRefs)
+  );
+  const eligibleRows = linkedRows.filter((row) =>
+    isReviewedBaselineRow(row) &&
+    row.pathEligibility.current &&
+    rowMatchesPathEligibleCoverageRefs(row, coverageRefs)
+  );
   const eligibleResourceIds = new Set(eligibleRows.map((row) => row.resourceId));
   const highComplexityLockedRows = linkedRows.filter((row) =>
     isHighComplexityBaselineResource(row) && !eligibleResourceIds.has(row.resourceId)
@@ -353,11 +348,16 @@ function selectReviewedBindings(
   category: LearningGoalBaselineCategory,
   rows: readonly ResourceFieldCompletionAuditRow[],
   learningGoal: LearningGoalDefinition,
+  coverageRefs: ReadonlySet<string>,
   generatedAt: string,
 ): string[] {
   return rows
     .filter((row) => rowMatchesCategory(row, category, learningGoal))
-    .filter((row) => isReviewedBaselineRow(row) && row.pathEligibility.current)
+    .filter((row) =>
+      isReviewedBaselineRow(row) &&
+      row.pathEligibility.current &&
+      rowMatchesPathEligibleCoverageRefs(row, coverageRefs)
+    )
     .sort(compareBaselineRows)
     .slice(0, requiredBindingCount(category))
     .map((row) => {
@@ -425,6 +425,19 @@ function rowMatchesCoverageRefs(row: ResourceFieldCompletionAuditRow, coverageRe
     row.sourceRecord,
     row.pathTarget,
   ].some((ref) => Boolean(ref && coverageRefs.has(ref)));
+}
+
+function rowMatchesPathEligibleCoverageRefs(row: ResourceFieldCompletionAuditRow, coverageRefs: ReadonlySet<string>): boolean {
+  const anchoredRefs = [
+    ...row.graphNodeRefs.knowledge,
+    ...row.graphNodeRefs.quality,
+    row.sourceRecord,
+    row.pathTarget,
+  ].filter(Boolean);
+  if (anchoredRefs.length > 0) {
+    return anchoredRefs.some((ref) => coverageRefs.has(ref));
+  }
+  return row.graphNodeRefs.capability.some((ref) => coverageRefs.has(ref));
 }
 
 function rowMatchesCategory(

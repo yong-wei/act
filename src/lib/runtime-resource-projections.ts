@@ -141,6 +141,7 @@ function rowToRuntimeProjection(
     teacherPolicy: 'allowed',
     evidenceContract,
     reviewAudit,
+    readiness: row.readiness,
     segmentRefs: segmentRefsForRow(row),
     citationTargets: row.citationTargets,
     retrievalChunk: {
@@ -309,8 +310,9 @@ function normalizeGraphNodeRefs(refs: ResourceGraphNodeRefs): ResourceGraphNodeR
 }
 
 function isStaleProjection(row: RuntimeResourceProjectionArtifactRow): boolean {
+  const currentReviewSourceHash = row.reviewAudit.promptOrManifestHash ?? row.sourceHash;
   return row.reviewAudit.status === 'human-confirmed' &&
-    (row.reviewAudit.reviewedSourceHash !== row.sourceHash ||
+    (row.reviewAudit.reviewedSourceHash !== currentReviewSourceHash ||
       row.reviewAudit.reviewedVersionRef !== row.sourceVersionRef);
 }
 

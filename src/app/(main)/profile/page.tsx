@@ -6,7 +6,7 @@
  * 展示学生六维能力画像、学习统计、最近活动与个性化补强路径。
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -17,9 +17,52 @@ import type { ArenaStudentPortfolio } from '@/features/arena/profile';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
 import type { StudentProfileEvidenceStatus } from '@/lib/data-governance/profile-center';
-import { getCommercialStudentEntryIntentGroups, getPlatformCockpitHref } from '@/lib/platform-role-navigation';
+import { getCommercialStudentEntryIntentGroups, getPlatformCockpitHref, getPlatformRoleNavigation } from '@/lib/platform-role-navigation';
 
 const learnerDataShell = buildLearnerDataRouteShell('/profile');
+const personalCenterIntentOrder = ['learn', 'practice', 'challenge', 'experiment', 'review'] as const;
+const personalCenterIntentBadges: Record<(typeof personalCenterIntentOrder)[number], string> = {
+  learn: '课程与知识',
+  practice: '诊断补强',
+  challenge: '官方评价',
+  experiment: '仿真实验',
+  review: '证据复盘',
+};
+
+type PersonalCenterIntent = (typeof personalCenterIntentOrder)[number];
+
+function ProfileFallback({
+  nextAction,
+  children,
+}: {
+  nextAction: string;
+  children: ReactNode;
+}) {
+  return (
+    <AppShell
+      viewerRole="student"
+      title="个人中心"
+      subtitle="能力画像、成长记录与证据复盘"
+      activeHref="/profile"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心' }]}
+      className="surface-page"
+    >
+      <div
+        className="flex min-h-[60vh] items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action={nextAction}
+      >
+        {children}
+      </div>
+    </AppShell>
+  );
+}
+
+function isPersonalCenterIntent(intent: string): intent is PersonalCenterIntent {
+  return personalCenterIntentOrder.includes(intent as PersonalCenterIntent);
+}
 
 interface UserProfile {
   user: {
@@ -120,6 +163,9 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [showAllActivities, setShowAllActivities] = useState(false);
   const entryIntents = getCommercialStudentEntryIntentGroups();
+  const studentEntryByHref = new Map(
+    getPlatformRoleNavigation('student', { includeHidden: true }).map((entry) => [entry.href, entry])
+  );
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.role) {
@@ -150,13 +196,7 @@ export default function ProfilePage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div
-        className="surface-page flex items-center justify-center"
-        data-route-family={learnerDataShell.routeFamily}
-        data-route-identity={learnerDataShell.routeIdentity}
-        data-learner-record-surface={learnerDataShell.archetype}
-        data-learner-record-next-action="login"
-      >
+      <ProfileFallback nextAction="login">
         <div className="text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">学习入口 · 账号与画像</p>
           <p className="text-xl text-subtle">请先登录</p>
@@ -171,47 +211,35 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
-      </div>
+      </ProfileFallback>
     );
   }
 
   if (status === 'loading' || loading) {
     return (
-      <div
-        className="surface-page flex items-center justify-center"
-        data-route-family={learnerDataShell.routeFamily}
-        data-route-identity={learnerDataShell.routeIdentity}
-        data-learner-record-surface={learnerDataShell.archetype}
-        data-learner-record-next-action="wait-for-profile"
-      >
+      <ProfileFallback nextAction="wait-for-profile">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
           <p className="text-subtle">加载中...</p>
         </div>
-      </div>
+      </ProfileFallback>
     );
   }
 
   if (error || !profile) {
     return (
-      <div
-        className="surface-page flex items-center justify-center"
-        data-route-family={learnerDataShell.routeFamily}
-        data-route-identity={learnerDataShell.routeIdentity}
-        data-learner-record-surface={learnerDataShell.archetype}
-        data-learner-record-next-action="retry-profile"
-      >
+      <ProfileFallback nextAction="retry-profile">
         <div className="text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">学习入口 · 复盘</p>
           <p className="text-xl text-red-400">{error || '加载失败'}</p>
           <button type="button" onClick={fetchProfile} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
-          <Link href="/dashboard" className="btn-ghost-themed ml-2 inline-block rounded-lg px-6 py-2">
-            返回驾驶舱
+          <Link href="/profile" className="btn-ghost-themed ml-2 inline-block rounded-lg px-6 py-2">
+            返回个人中心
           </Link>
         </div>
-      </div>
+      </ProfileFallback>
     );
   }
 
@@ -228,14 +256,16 @@ export default function ProfilePage() {
       title="个人中心"
       subtitle="能力画像、成长记录与证据复盘"
       activeHref="/profile"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心' }]}
       userMenu={<UserMenu user={profile.user} />}
       className="surface-page"
     >
       <section
-      data-route-family={learnerDataShell.routeFamily}
-      data-route-identity={learnerDataShell.routeIdentity}
-      data-learner-record-surface={learnerDataShell.archetype}
-    >
+        data-commercial-student-entry-route="/profile"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+      >
         <div
           className="surface-card mb-8 p-6"
           data-learner-record-priority="current-path"
@@ -287,10 +317,71 @@ export default function ProfilePage() {
             <Link href="/profile/evidence" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
               复盘证据来源
             </Link>
+            <Link href="/classroom/join" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
+              加入课堂 / 班级
+            </Link>
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
+        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.72fr]">
+          <div className="surface-card p-6">
+            <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">学习入口地图</h3>
+                <p className="mt-1 text-sm text-subtle">
+                  课程、练习、挑战、实验和复盘统一从个人中心分发，不再单独提供学生驾驶舱入口。
+                </p>
+              </div>
+              <Link href="/profile/evidence" className="text-sm text-primary transition hover:text-primary/80">
+                查看证据时间线 →
+              </Link>
+            </div>
+            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {entryIntents
+                .filter((intent) => isPersonalCenterIntent(intent.intent))
+                .flatMap((intent) => {
+                  const intentKey = intent.intent as PersonalCenterIntent;
+                  return intent.hrefs.map((href) => {
+                    const entry = studentEntryByHref.get(href);
+                    return (
+                    <PersonalCenterEntryCard
+                      key={`${intent.intent}-${href}`}
+                      href={href}
+                      title={entry?.label ?? intent.label}
+                      description={entry?.description ?? intent.summary}
+                      badge={personalCenterIntentBadges[intentKey]}
+                    />
+                    );
+                  });
+                })}
+            </div>
+          </div>
+
+          <div className="surface-card p-6">
+            <h3 className="text-lg font-semibold text-foreground">课堂与班级</h3>
+            <p className="mt-1 text-sm text-subtle">
+              {profile.profile?.className
+                ? `${profile.profile.className} 已绑定，可继续进入课堂活动或查看证据。`
+                : '尚未绑定班级时，仍可进入个人中心；加入课堂或班级后会补齐课堂记录。'}
+            </p>
+            <div className="mt-5 grid gap-3">
+              <Link
+                href="/classroom/join"
+                className="cta-primary inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm"
+              >
+                加入课堂 / 班级
+              </Link>
+              <Link
+                href="/profile/growth"
+                className="btn-ghost-themed inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm"
+              >
+                查看成长中枢
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
           <div className="surface-card p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
@@ -754,6 +845,44 @@ function ActivityIcon({ category }: { category: ActivityItemData['category'] }) 
   );
 }
 
+function PersonalCenterEntryCard({
+  href,
+  title,
+  description,
+  badge,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  badge: string;
+}) {
+  return (
+    <Link
+      href={href}
+      prefetch={href.startsWith('/simulations') ? false : undefined}
+      className="surface-card-soft group block p-4 transition hover:border-amber-500/35 hover:bg-accent/70"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs text-amber-700 dark:text-amber-300">
+            {badge}
+          </span>
+          <h4 className="mt-3 font-semibold text-foreground">{title}</h4>
+        </div>
+        <svg
+          className="mt-1 h-5 w-5 text-subtle transition group-hover:translate-x-0.5 group-hover:text-amber-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-subtle">{description}</p>
+    </Link>
+  );
+}
+
 function QuickAction({
   href,
   title,
@@ -839,7 +968,7 @@ function getEvidenceStatusMeta(status: StudentProfileEvidenceStatus) {
 }
 
 function formatEvidenceStatusSummary(status: StudentProfileEvidenceStatus) {
-  const evidenceCount = status.confidence.evidenceCount || status.sourceCounts.LearningFact;
+  const evidenceCount = status.confidence.evidenceCount ?? status.sourceCounts.LearningFact ?? 0;
 
   if (status.state === 'missing') {
     return `缓存缺失 · ${evidenceCount} 条事实`;

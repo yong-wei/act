@@ -1,9 +1,16 @@
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import {
+  checkpointAuthoredQuestionRuntimeId,
+  REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
+  sourceIdFromCheckpointAuthoredQuestionRuntimeId,
+} from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 
 import { PRESET_QUESTIONS } from '../adaptive-question-bank';
-import { generateQuestion } from '../adaptive-engine';
+import { generateQuestion, getAdaptiveQuestionById } from '../adaptive-engine';
 import {
   getAbilityReportWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback,
@@ -11,6 +18,70 @@ import {
   submitAnswerDurably,
   submitAnswerWithPersistenceFallback,
 } from '../adaptive-persistence';
+
+interface CoverageMatrix {
+  rows: Array<{
+    learningGoalId: string;
+    assessmentCoverageState: 'complete' | 'limited';
+    stageCoverage: Array<{
+      stage: string;
+      status: 'complete' | 'limited';
+      reviewedPathEligibleCount: number;
+    }>;
+  }>;
+}
+
+interface CatalogItemFixture {
+  sourceFamily: string;
+  sourceId: string;
+  reviewState: string;
+  eligibilityState: string;
+  allowedStages: string[];
+  semanticRefs: {
+    learningGoalIds: string[];
+  };
+}
+
+function readCoverageMatrix(): CoverageMatrix {
+  return JSON.parse(
+    readFileSync('course-content/runtime/resource-governance/learning-goal-assessment-coverage-matrix.json', 'utf8'),
+  ) as CoverageMatrix;
+}
+
+function readCatalogQuestionIds(params: { learningGoalId: string; stage: 'readiness' | 'checkpoint' | 'remediation'; sourceFamily?: string }): string[] {
+  return readFileSync('course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl', 'utf8')
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line) as CatalogItemFixture)
+    .filter((item) =>
+      item.reviewState === 'path-eligible' &&
+      item.eligibilityState === 'path-eligible' &&
+      item.allowedStages.includes(params.stage) &&
+      item.semanticRefs.learningGoalIds.includes(params.learningGoalId) &&
+      (!params.sourceFamily || item.sourceFamily === params.sourceFamily)
+    )
+    .map((item) => item.sourceId)
+    .sort();
+}
+
+function expectCatalogPathQuestion(
+  question: { id: string },
+  learningGoalId: string,
+  scope: 'readiness' | 'checkpoint' | 'remediation',
+) {
+  const ids = readCatalogQuestionIds({ learningGoalId, stage: scope });
+  const runtimeIds = new Set([
+    ...ids,
+    ...ids.map((id) => checkpointAuthoredQuestionRuntimeId(id)),
+  ]);
+  expect(runtimeIds).toContain(question.id);
+}
+
+function metadataForPublicQuestion(question: { id: string }) {
+  const runtimeQuestion = getAdaptiveQuestionById(question.id);
+  expect(runtimeQuestion).toBeTruthy();
+  return buildKaqQuizQuestionMetadata(runtimeQuestion!);
+}
 
 function createMockDb() {
   const answeredAt = new Date('2026-05-26T02:30:00.000Z');
@@ -787,7 +858,17 @@ describe('submitAnswerDurably', () => {
           contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         },
       },
-      update: {},
+      update: expect.objectContaining({
+        metadata: expect.objectContaining({
+          kaq: expect.objectContaining({
+            immutableContentHash: expect.any(String),
+          }),
+          adaptiveAssessmentItemRef: expect.objectContaining({
+            catalogBacked: expect.any(Boolean),
+            snapshotVersion: 'adaptive-assessment-item-ref.v1',
+          }),
+        }),
+      }),
       create: expect.objectContaining({
         contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         questionType: question.type,
@@ -903,7 +984,7 @@ describe('submitAnswerDurably', () => {
       questionScope: 'readiness',
     }, db);
 
-    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    const metadata = metadataForPublicQuestion(next.question);
     expect(metadata.learningGoalIds).toContain('control-correction');
     expect(metadata.purpose).toBe('readiness-gate');
     expect(metadata.review.state).toBe('reviewed');
@@ -946,7 +1027,7 @@ describe('submitAnswerDurably', () => {
 
     expect(next.question.id).toBe(generated.id);
     expect(next.question.id).not.toBe(otherGoalGenerated.id);
-    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    const metadata = metadataForPublicQuestion(next.question);
     expect(metadata.learningGoalIds).toContain('control-correction');
     expect(metadata.review.state).toBe('provisional');
   });
@@ -962,7 +1043,7 @@ describe('submitAnswerDurably', () => {
       ownerUserId: 'student-next',
       sessionId: 'practice-session-unscoped',
     });
-    const generatedFallbackGoal = buildKaqQuizQuestionMetadata(generated).learningGoalIds[0];
+    const generatedFallbackGoal = metadataForPublicQuestion(generated).learningGoalIds[0];
     expect(generatedFallbackGoal).toBeTruthy();
     db.adaptiveAssessmentSession.upsert.mockResolvedValue({
       id: 'durable-session-1',
@@ -1008,7 +1089,7 @@ describe('submitAnswerDurably', () => {
       questionScope: 'practice',
     }, db);
 
-    const metadata = buildKaqQuizQuestionMetadata(next.question);
+    const metadata = metadataForPublicQuestion(next.question);
     expect(metadata.learningGoalIds).toContain('control-correction');
     expect(metadata.review.state).toBe('reviewed');
     expect(metadata.purpose).not.toBe('readiness-gate');
@@ -1083,20 +1164,64 @@ describe('submitAnswerDurably', () => {
       sessionId: 'session-next',
       goalId: 'unknown-goal',
       questionScope: 'readiness',
-    }, db)).rejects.toThrow('未找到学习目标 unknown-goal 的已审核 readiness 题目');
+    }, db)).rejects.toThrow('学习目标 unknown-goal 的 readiness 已审核路径题目覆盖不足');
+  });
+
+  it('selects catalog-backed reviewed path items for every currently complete learning goal readiness/checkpoint stage', async () => {
+    const matrix = readCoverageMatrix();
+    const targets = matrix.rows.flatMap((row) =>
+      row.stageCoverage
+        .filter((stage) =>
+          row.assessmentCoverageState === 'complete' &&
+          stage.status === 'complete' &&
+          stage.reviewedPathEligibleCount > 0 &&
+          (stage.stage === 'readiness' || stage.stage === 'checkpoint' || stage.stage === 'remediation')
+        )
+        .map((stage) => ({
+          learningGoalId: row.learningGoalId,
+          scope: stage.stage as 'readiness' | 'checkpoint' | 'remediation',
+        }))
+    );
+    expect(targets.length).toBeGreaterThan(0);
+
+    for (const target of targets) {
+      const db = createMockDb();
+      db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+      db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+        id: `durable-session-${target.learningGoalId}-${target.scope}`,
+        userId: 'student-1',
+        sessionKey: `session-${target.learningGoalId}-${target.scope}`,
+        selectedQuestionIds: [],
+      });
+      db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+      const next = await selectNextQuestionWithPersistenceFallback({
+        userId: 'student-next',
+        sessionId: `session-${target.learningGoalId}-${target.scope}`,
+        goalId: target.learningGoalId,
+        questionScope: target.scope,
+      }, db);
+
+      const metadata = metadataForPublicQuestion(next.question);
+      expectCatalogPathQuestion(next.question, target.learningGoalId, target.scope);
+      expect(metadata.learningGoalIds).toContain(target.learningGoalId);
+      expect(metadata.review.state).toBe('reviewed');
+      if (target.scope === 'readiness') {
+        expect(['readiness-gate', 'precheck', 'readiness']).toContain(metadata.purpose);
+      }
+      if (target.scope === 'checkpoint') {
+        expect(metadata.purpose).toBe('checkpoint');
+      }
+    }
   });
 
   it('reissues a selected path readiness question before the answer is submitted', async () => {
     const db = createMockDb();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
-    const controlCorrectionReadinessQuestionIds = PRESET_QUESTIONS
-      .filter((question) => {
-        const metadata = buildKaqQuizQuestionMetadata(question);
-        return metadata.learningGoalIds.includes('control-correction') &&
-          metadata.purpose === 'readiness-gate' &&
-          metadata.review.state === 'reviewed';
-      })
-      .map((question) => question.id);
+    const controlCorrectionReadinessQuestionIds = readCatalogQuestionIds({
+      learningGoalId: 'control-correction',
+      stage: 'readiness',
+    });
     db.adaptiveAssessmentSession.upsert.mockResolvedValue({
       id: 'durable-session-1',
       userId: 'student-1',
@@ -1112,19 +1237,15 @@ describe('submitAnswerDurably', () => {
       questionScope: 'readiness',
     }, db);
 
-    expect(controlCorrectionReadinessQuestionIds).toContain(next.question.id);
+    expectCatalogPathQuestion(next.question, 'control-correction', 'readiness');
   });
 
   it('reissues scoped readiness questions when answered path readiness questions are exhausted', async () => {
     const db = createMockDb();
-    const controlCorrectionReadinessQuestionIds = PRESET_QUESTIONS
-      .filter((question) => {
-        const metadata = buildKaqQuizQuestionMetadata(question);
-        return metadata.learningGoalIds.includes('control-correction') &&
-          metadata.purpose === 'readiness-gate' &&
-          metadata.review.state === 'reviewed';
-      })
-      .map((question) => question.id);
+    const controlCorrectionReadinessQuestionIds = readCatalogQuestionIds({
+      learningGoalId: 'control-correction',
+      stage: 'readiness',
+    });
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue(controlCorrectionReadinessQuestionIds.map((questionId) => ({
       id: `answer-${questionId}`,
       userId: 'student-next',
@@ -1161,7 +1282,7 @@ describe('submitAnswerDurably', () => {
       questionScope: 'readiness',
     }, db);
 
-    expect(controlCorrectionReadinessQuestionIds).toContain(next.question.id);
+    expectCatalogPathQuestion(next.question, 'control-correction', 'readiness');
   });
 
   it('selects reviewed checkpoint questions for path checkpoint scope', async () => {
@@ -1175,10 +1296,156 @@ describe('submitAnswerDurably', () => {
       questionScope: 'checkpoint',
     }, db);
 
-    const metadata = buildKaqQuizQuestionMetadata(next.question);
-    expect(metadata.learningGoalIds).toContain('control-correction');
-    expect(metadata.review.state).toBe('reviewed');
+    expectCatalogPathQuestion(next.question, 'control-correction', 'checkpoint');
+  });
+
+  it('selects reviewed authored checkpoint questions after legacy preset checkpoint coverage is exhausted', async () => {
+    const db = createMockDb();
+    const presetControlCheckpointQuestionIds = PRESET_QUESTIONS
+      .filter((question) => {
+        const metadata = buildKaqQuizQuestionMetadata(question);
+        return metadata.learningGoalIds.includes('control-correction') &&
+          metadata.purpose === 'checkpoint' &&
+          metadata.review.state === 'reviewed';
+      })
+      .map((question) => question.id);
+    const authoredCheckpoint = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((question) =>
+      question.learningGoalId === 'control-correction' &&
+      question.stagePurpose === 'checkpoint'
+    );
+    expect(authoredCheckpoint).toBeDefined();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue(presetControlCheckpointQuestionIds.map((questionId) => ({
+      id: `answer-${questionId}`,
+      userId: 'student-next',
+      session: { sessionKey: 'session-next' },
+      questionId,
+      selectedOptionKey: 'A',
+      isCorrect: true,
+      responseTimeSeconds: 42,
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+      questionRef: {
+        difficulty: 0.5,
+        questionType: 'multi-criteria',
+        domains: ['complex', 'time'],
+        knowledgeTags: ['control-correction'],
+        metadata: {
+          kaq: {
+            review: { state: 'reviewed' },
+          },
+        },
+      },
+    })));
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'session-next',
+      selectedQuestionIds: presetControlCheckpointQuestionIds,
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+      questionScope: 'checkpoint',
+    }, db);
+
+    const authoredCheckpointIds = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS
+      .filter((question) => question.learningGoalId === 'control-correction' && question.stagePurpose === 'checkpoint')
+      .map((question) => checkpointAuthoredQuestionRuntimeId(question.id));
+    expect(authoredCheckpointIds).toContain(next.question.id);
+    const selectedSourceId = sourceIdFromCheckpointAuthoredQuestionRuntimeId(next.question.id);
+    const selectedAuthoredCheckpoint = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS
+      .find((question) => question.id === selectedSourceId);
+    expect(selectedAuthoredCheckpoint).toBeDefined();
+    const metadata = metadataForPublicQuestion(next.question);
+    expect(metadata.learningGoalIds).toEqual(['control-correction']);
     expect(metadata.purpose).toBe('checkpoint');
+    expect(metadata.review).toMatchObject({
+      state: 'reviewed',
+      reviewerId: selectedAuthoredCheckpoint!.reviewerId,
+      reviewBatchId: selectedAuthoredCheckpoint!.reviewBatchId,
+    });
+  });
+
+  it('does not repeat authored checkpoint runtime ids while unanswered alternatives remain', async () => {
+    const db = createMockDb();
+    const firstAuthoredCheckpoint = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((question) =>
+      question.learningGoalId === 'control-correction' &&
+      question.stagePurpose === 'checkpoint'
+    );
+    expect(firstAuthoredCheckpoint).toBeDefined();
+    const firstRuntimeId = checkpointAuthoredQuestionRuntimeId(firstAuthoredCheckpoint!.id);
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'session-next',
+      selectedQuestionIds: [firstRuntimeId],
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+      questionScope: 'checkpoint',
+    }, db);
+
+    expect(next.question.id).not.toBe(firstRuntimeId);
+    expectCatalogPathQuestion(next.question, 'control-correction', 'checkpoint');
+  });
+
+  it('does not repeat answered authored checkpoint runtime ids while unanswered alternatives remain', async () => {
+    const db = createMockDb();
+    const firstAuthoredCheckpoint = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((question) =>
+      question.learningGoalId === 'control-correction' &&
+      question.stagePurpose === 'checkpoint'
+    );
+    expect(firstAuthoredCheckpoint).toBeDefined();
+    const firstRuntimeId = checkpointAuthoredQuestionRuntimeId(firstAuthoredCheckpoint!.id);
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([{
+      id: `answer-${firstRuntimeId}`,
+      userId: 'student-next',
+      session: { sessionKey: 'session-next' },
+      questionId: firstRuntimeId,
+      selectedOptionKey: 'A',
+      isCorrect: true,
+      responseTimeSeconds: 42,
+      answeredAt: new Date('2026-05-26T02:30:00.000Z'),
+      questionRef: {
+        difficulty: 0.5,
+        questionType: 'multi-criteria',
+        domains: ['complex', 'time'],
+        knowledgeTags: ['control-correction'],
+        metadata: {
+          adaptiveAssessmentItemRef: {
+            catalogBacked: true,
+            catalogItemId: `adaptive-assessment-item:checkpoint-authored-question:${firstAuthoredCheckpoint!.id}`,
+          },
+          kaq: {
+            review: { state: 'reviewed' },
+          },
+        },
+      },
+    }]);
+    db.adaptiveAssessmentSession.upsert.mockResolvedValue({
+      id: 'durable-session-1',
+      userId: 'student-1',
+      sessionKey: 'session-next',
+      selectedQuestionIds: [firstRuntimeId],
+    });
+    db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
+
+    const next = await selectNextQuestionWithPersistenceFallback({
+      userId: 'student-next',
+      sessionId: 'session-next',
+      goalId: 'control-correction',
+      questionScope: 'checkpoint',
+    }, db);
+
+    expect(next.question.id).not.toBe(firstRuntimeId);
+    expectCatalogPathQuestion(next.question, 'control-correction', 'checkpoint');
   });
 
   it('retries next-question selection when the persisted asked set changed concurrently', async () => {

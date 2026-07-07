@@ -318,7 +318,7 @@ interface StudentEvidenceFeatureCacheDelegate {
   count?: (args?: any) => Promise<number>;
 }
 
-interface StudentEvidenceFeatureCacheDb {
+export interface StudentEvidenceFeatureCacheDb {
   learningFact?: {
     findMany: (args?: Record<string, unknown>) => Promise<Array<StudentEvidenceFeatureLearningFact | { userId: string }>>;
   };

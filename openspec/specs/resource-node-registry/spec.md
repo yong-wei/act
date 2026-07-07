@@ -117,56 +117,185 @@ ResourceNodes that can appear in adaptive learning paths SHALL expose readiness 
 - **AND** the node MAY appear only as a locked future milestone with a student-facing preparation message.
 
 ### Requirement: Resource field completion audit protects path quality
-The system SHALL audit path-eligible resources.
+The system SHALL audit path-eligible resources and expose a worklist suitable for staged implementing-agent completion of existing project resources.
 
 #### Scenario: Resource field completion is audited
 - **WHEN** a resource candidate is inventoried for future path planning
 - **THEN** the audit SHALL record missing identity, source, graph binding, path profile, evidence, readiness, grounding, version, and review-state fields
-- **AND** it SHALL classify each missing field by completion method: manual, local-model-assisted, external-tool-assisted, generated-provisional, already-governed, or blocked.
+- **AND** it SHALL classify each missing field by completion method: agent-reviewed, local-model-assisted, external-tool-assisted, generated-provisional, already-governed, or blocked.
 - **AND** it SHALL record evidence-contract completeness, including event source, event type, client event id policy, attempt key, source log id, dedupe key, timestamps, LearningFact materialization policy, confidence policy, and privacy scope.
+- **AND** it SHALL preserve stable candidate ids that can be used by the data completeness helper and subsequent implementing-agent review batches.
 
-#### Scenario: Generated metadata is provisional
-- **WHEN** local model, vision model, transcript tooling, OCR, prompt extraction, or another automated process supplies resource semantics
-- **THEN** the resulting fields SHALL remain provisional until a human-confirmed review state is recorded
-- **AND** provisional fields SHALL NOT make a ResourceNode path-eligible, mastery-affecting, or terminal-validation-capable.
-
-#### Scenario: Human confirmation is audited
-- **WHEN** a provisional or manually completed field set is promoted to human-confirmed
+#### Scenario: Review confirmation is audited
+- **WHEN** a provisional or agent-reviewed field set is promoted to review-confirmed
 - **THEN** the audit SHALL record reviewer id, reviewer role, reviewed time, review batch id, reviewed source hash, reviewed version ref, generation tool or model where applicable, prompt or manifest hash where applicable, confidence, and stale invalidation rules
 - **AND** a source hash, version, prompt hash, or generation-tool version change SHALL make the confirmed field set stale until it is reviewed again.
-
-#### Scenario: Evidence contract is incomplete
-- **WHEN** a ResourceNode lacks event attribution, dedupe, attempt, timestamp, LearningFact policy, confidence, or privacy fields required by its evidence behavior
-- **THEN** the ResourceNode SHALL be blocked from path eligibility or mastery effect according to policy
-- **AND** diagnostics SHALL identify the missing evidence-contract field.
-
-#### Scenario: Completion audit feeds diagnostics
-- **WHEN** a ResourceNode or resource segment is blocked from PlanningUnit creation
-- **THEN** diagnostics SHALL expose the exact missing field codes and review state
-- **AND** it SHALL distinguish path eligibility from retrieval, citation, and authoring-triage readiness.
+- **AND** only review-confirmed semantic fields MAY make a ResourceNode path-eligible, mastery-affecting, or terminal-validation-capable.
 
 ### Requirement: Runtime ResourceNode projections preserve source-of-record ownership
 The system SHALL keep planning metadata, semantic resource mappings, and projection status separate from records that own renderable content and teacher-editable resource metadata.
 
-#### Scenario: Runtime projection sidecar is consumed
-- **WHEN** a runtime lesson, knowledge card collection, infograph manifest, handout, or media asset has a projection sidecar
-- **THEN** production ResourceNode registry builders SHALL load the runtime projection sidecar artifact before registry construction
-- **AND** the ResourceNode registry SHALL consume only stable identity, source refs, graph bindings, path profile, evidence, readiness, review, and version metadata from the sidecar
-- **AND** it SHALL keep the runtime manifest, markdown, media file, and generated image as the content source of record.
-
 #### Scenario: Runtime step becomes a PlanningUnit
 - **WHEN** a runtime lesson step is projected as a path resource
-- **THEN** it SHALL have a verified route target, LearningGoal or graph bindings, knowledge coverage, ability impact, evidence instrumentation, evidence contract, estimated time, privacy, teacher policy, and human-confirmed review state
+- **THEN** it SHALL have a verified route target, LearningGoal or graph bindings, knowledge coverage, ability impact, evidence instrumentation, evidence contract, estimated time, privacy, teacher policy, and review-confirmed audit state
 - **AND** verified route targets SHALL match an actual interactive course App Router base, student session, or teacher session page pattern
 - **AND** missing or provisional fields SHALL prevent PlanningUnit creation.
 - **AND** runtime projection blockers SHALL also make the base ResourceNode eligibility path-ineligible.
+- **AND** long-form sections, transcript chunks, figures, and other citation-only records SHALL NOT become PlanningUnits unless they are separately reviewed with path profile and evidence policy.
 
-#### Scenario: Runtime projection evidence contract is missing
-- **WHEN** a projected runtime resource lacks event source, event type, client event id policy, attempt key, source log id, dedupe key, timestamps, LearningFact policy, confidence policy, or privacy scope
-- **THEN** it SHALL NOT create a PlanningUnit or mastery-affecting path node
-- **AND** it MAY remain available for retrieval, citation, or authoring diagnostics according to scene policy.
+#### Scenario: Arena resource preserves official scoring boundary
+- **WHEN** an Arena resource is mapped as path-plannable or evidence-producing context
+- **THEN** ResourceNode and LearningFact metadata MAY represent auxiliary learning evidence, preview behavior, preparation progress, or terminal validation context
+- **AND** official Arena score, validity, ranking, leaderboard position, and official submission result semantics SHALL remain sourced only from `ArenaSubmission` and governed official Arena evaluation records.
 
-#### Scenario: Runtime module is only a segment
-- **WHEN** a module inside a lesson step lacks its own launch target and evidence contract
-- **THEN** it MAY be projected as a ResourceSegment or CitationTarget
-- **AND** it SHALL NOT become a PathNode without an audited ResourceNode projection.
+### Requirement: Every resource declares a path-planning disposition
+The ResourceNode governance layer SHALL require every existing platform resource discovered by registry, runtime, authoring export, RAG projection, or teaching-resource data to declare a reviewed path-planning disposition.
+
+#### Scenario: Resource is inventoried for path planning
+- **WHEN** a resource is discovered by the completeness helper or ResourceNode registry builder
+- **THEN** it SHALL be classified as `path-plannable`, `supporting-citation`, `embedded-asset`, `evidence-producing`, or `excluded-with-rationale`
+- **AND** the classification SHALL include source family, stable source ref, review state, version or source hash where available, and reviewer-visible rationale.
+
+#### Scenario: Resource is not an independent path node
+- **WHEN** a resource is a textbook chunk, citation target, transcript segment, image description, slide fragment, lesson module, or other sub-resource without its own launch target and evidence contract
+- **THEN** it SHALL NOT become a PathNode directly
+- **AND** it SHALL be linked to a parent PlanningUnit, supporting citation, embedded asset record, or exclusion rationale.
+
+#### Scenario: Resource is promoted to path-plannable
+- **WHEN** a resource disposition is promoted to `path-plannable`
+- **THEN** it SHALL have implementing-agent-reviewed knowledge mapping, capability or quality mapping where applicable, LearningGoal fit, route target, path profile, evidence behavior, privacy policy, readiness metadata, and citation or source authority metadata
+- **AND** provisional automated suggestions SHALL NOT satisfy this promotion.
+
+### Requirement: Resource disposition gaps are auditable
+The data-completeness helper SHALL report resource path-planning disposition gaps without mutating source records.
+
+#### Scenario: Disposition is missing
+- **WHEN** an inventoried resource has no reviewed path-planning disposition
+- **THEN** the helper SHALL report a stable finding with source family, resource ref, missing disposition code, and follow-up bucket.
+
+#### Scenario: Resource is intentionally excluded
+- **WHEN** a resource is marked `excluded-with-rationale`
+- **THEN** the helper SHALL require a reviewer-visible rationale and source/version reference
+- **AND** the planner SHALL not treat that resource as an unexplained coverage gap.
+
+### Requirement: Residual resource disposition backlog is closed before final readiness
+The ResourceNode governance layer SHALL close residual semantic-review and disposition findings after resource-family batches complete.
+
+#### Scenario: Residual backlog is reviewed
+- **WHEN** primary TeachingResource, graph, runtime, media, long-form, assessment, and citation batches are complete
+- **THEN** every remaining resource SHALL be classified as path-plannable, supporting-citation, embedded-asset, evidence-producing, or excluded-with-rationale
+- **AND** the classification SHALL include reviewer-visible rationale, review metadata, source family, stable source ref, and version or source hash where available.
+
+#### Scenario: Final gate consumes backlog summary
+- **WHEN** the full-resource readiness gate runs
+- **THEN** residual disposition blockers SHALL be zero or explicitly represented as reviewed limitations
+- **AND** downstream blockers SHALL identify evidence-lineage, runtime, or learner-fixture issues rather than unreviewed resource semantics.
+
+### Requirement: Core teaching resources are path-ready after implementing-agent semantic review
+The ResourceNode registry SHALL support path-planning readiness for existing core teaching resources after implementing-agent-reviewed semantic completion.
+
+#### Scenario: Core teaching resource is completed
+- **WHEN** an existing TeachingResource, runtime lesson planning unit, knowledge card, infograph, simulation, control workbench entry, Arena preview or terminal-validation resource, quiz, exercise, or platform-managed practice resource is marked path-plannable
+- **THEN** it SHALL include reviewed knowledge mapping, LearningGoal fit, capability or quality contribution where applicable, route target, path stage, prerequisite relation, evidence contract, privacy policy, review metadata, and source/version reference
+- **AND** the registry audit SHALL keep the resource blocked if any required field remains missing or provisional.
+
+#### Scenario: Core resource is teacher-policy blocked or unavailable
+- **WHEN** a core resource cannot be used by student path planning because of teacher policy, broken target, unavailable route, obsolete content, or restricted visibility
+- **THEN** it SHALL be classified with a reviewed disposition and rationale
+- **AND** the helper SHALL not count it as an unexplained missing path resource.
+
+### Requirement: Core resources preserve evidence authority boundaries
+The ResourceNode registry SHALL preserve official evidence authority when core resources include assessment, simulation, or Arena behavior.
+
+#### Scenario: Arena, simulation, or control workbench resource is path-plannable
+- **WHEN** an Arena, simulation, or control workbench resource is marked path-plannable or terminal-validation-capable
+- **THEN** its ResourceNode metadata SHALL reference the allowed evidence behavior and limitation state
+- **AND** it SHALL NOT fabricate or override official Arena score, validity, ranking, or leaderboard authority.
+
+### Requirement: Long-form resources enter planning at reviewed section grain
+The ResourceNode registry SHALL represent textbook and reference resources in path planning at reviewed section or exercise grain rather than raw chunk grain.
+
+#### Scenario: Textbook section is reviewed for planning
+- **WHEN** a textbook or reference section is promoted to path-plannable
+- **THEN** it SHALL include source book ref, section ref, citation target, graph mapping, LearningGoal fit, prerequisite position, estimated time, path role, authority, privacy, source hash, and review metadata
+- **AND** it SHALL be eligible for planner selection according to LearningGoal policy.
+
+#### Scenario: Long-form chunk is only citation support
+- **WHEN** a paragraph chunk, figure description, transcript segment, equation anchor, or table anchor lacks independent route and evidence contract
+- **THEN** it SHALL remain a supporting citation or embedded asset linked to a reviewed parent section
+- **AND** it SHALL NOT be promoted directly to a PathNode.
+
+### Requirement: Long-form resource exclusions are explicit
+Long-form resources that should not enter path planning SHALL have reviewed exclusion rationale.
+
+#### Scenario: Section is unsuitable for path planning
+- **WHEN** a textbook or reference section is obsolete, too advanced, copyright-restricted, duplicate, off-topic, or unsuitable for the course path
+- **THEN** it SHALL be classified as excluded with rationale
+- **AND** the helper SHALL not count it as an unexplained missing planning resource.
+
+### Requirement: Resource identities are repaired before semantic promotion
+TeachingResource and runtime lesson records SHALL have stable registry identity before they can be reviewed for graph binding or path eligibility.
+
+#### Scenario: TeachingResource identity is repaired
+- **WHEN** a TeachingResource is inventoried for resource governance
+- **THEN** it SHALL reference a registered registry id or declare a reviewed identity limitation
+- **AND** unregistered registry ids SHALL block semantic promotion and path eligibility.
+
+#### Scenario: Runtime artifact is missing
+- **WHEN** a mapped runtime lesson artifact such as a lesson JSON is missing
+- **THEN** downstream semantic review SHALL remain blocked for the affected resource family
+- **AND** the helper SHALL report the exact missing artifact until it is restored or given a reviewed limitation.
+
+### Requirement: Runtime media and handouts declare reviewed dispositions
+Runtime media, slides, audio, video, PDF, and handout resources SHALL declare reviewed path-planning dispositions before they can affect path generation.
+
+#### Scenario: Media is citation support
+- **WHEN** a media or handout resource is used only to support explanation or citation
+- **THEN** it SHALL declare supporting-citation or embedded-asset disposition, parent PlanningUnit where available, anchor or transcript requirements, source version, and limitation state.
+
+#### Scenario: Media is path-plannable
+- **WHEN** a media or handout resource is promoted to path-plannable
+- **THEN** it SHALL include verified launch target, graph binding, LearningGoal fit, estimated time, evidence behavior, privacy policy, route/access semantics, and review metadata.
+
+### Requirement: Core textbook sections are reviewed at section grain
+Core textbook resources SHALL enter path planning only through reviewed section-level planning units or explicit non-planning dispositions.
+
+#### Scenario: Core textbook section is promoted
+- **WHEN** a core automatic-control textbook section is promoted to path-plannable or remediation-capable
+- **THEN** it SHALL include book ref, section ref, citation address, graph mapping, LearningGoal fit, prerequisite position, estimated time, path role, authority level, privacy policy, source hash, and review metadata.
+
+#### Scenario: Textbook chunk remains citation support
+- **WHEN** a paragraph chunk, figure description, caption, equation anchor, or table anchor lacks independent route and evidence contract
+- **THEN** it SHALL remain supporting citation or embedded asset linked to a reviewed parent section.
+
+### Requirement: Runtime lesson steps are reviewed before PlanningUnit promotion
+Runtime lesson steps SHALL become path-planning units only after step-level implementing-agent semantic review.
+
+#### Scenario: Runtime step is promoted
+- **WHEN** a runtime lesson step is promoted to a PlanningUnit
+- **THEN** it SHALL have a verified route target, graph bindings, capability or quality contribution where applicable, estimated time, path role, prerequisite relation, evidence contract, privacy policy, source version, and review metadata
+- **AND** provisional or generated metadata SHALL NOT satisfy promotion.
+
+#### Scenario: Runtime step is not a PlanningUnit
+- **WHEN** a runtime lesson step is display-only, transitional, embedded, duplicate, teacher-only, obsolete, or otherwise unsuitable for independent path planning
+- **THEN** it SHALL be linked to a parent PlanningUnit, supporting citation, embedded asset record, evidence role, or reviewed exclusion rationale.
+
+### Requirement: Reference sections are reviewed separately from core textbook sections
+Reference books, encyclopedic entries, and external long-form resources SHALL be classified independently from core textbook path units.
+
+#### Scenario: Reference section is reviewed
+- **WHEN** a reference section is reviewed for resource governance
+- **THEN** it SHALL be classified as path-plannable, remediation, extension, enrichment, supporting-citation, embedded-asset, evidence-producing, or excluded-with-rationale
+- **AND** path promotion SHALL require graph mapping, LearningGoal fit, source authority, estimated time, citation address, privacy policy, source hash, and review metadata.
+
+#### Scenario: Reference is unsuitable
+- **WHEN** a reference section is too advanced, duplicate, off-topic, copyright-restricted, stale, or unsuitable for a student path
+- **THEN** it SHALL be excluded with reviewer-visible rationale rather than remaining an unexplained resource gap.
+
+### Requirement: Path-plannable resources declare evidence-lineage behavior
+ResourceNodes that produce or consume learner evidence SHALL declare evidence-lineage behavior before they can affect path state.
+
+#### Scenario: Evidence-producing ResourceNode is audited
+- **WHEN** a ResourceNode can mark completion, checkpoint success, mastery lift, readiness unlock, remediation need, or terminal validation
+- **THEN** it SHALL declare event type, event source, clientEventId policy, attemptKey policy, dedupe key, timestamp policy, source-log or source-event linkage, LearningFact materialization policy, confidence policy, and privacy scope
+- **AND** the planner SHALL treat missing required lineage as a readiness blocker.

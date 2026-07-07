@@ -32,6 +32,7 @@ import { POST as submitAnswer } from '@/app/api/assessment/submit-answer/route';
 import { POST as getNextQuestion } from '@/app/api/assessment/next-question/route';
 import { GET as getDiagnostic } from '@/app/api/assessment/diagnostic/route';
 import { GET as getAbilityReport } from '@/app/api/assessment/ability-report/[userId]/route';
+import { AdaptiveAssessmentCatalogSelectionError } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 
 function submitRequest(body: unknown) {
   return submitAnswer(new Request('http://localhost/api/assessment/submit-answer', {
@@ -140,11 +141,12 @@ describe('assessment API auth boundaries', () => {
         nodeId: 'adaptive-quiz:control-target-check',
         goalId: 'control-correction',
         routeIntent: 'path-execution',
+        questionScope: 'readiness',
       },
     }));
   });
 
-  it('does not persist submitted path context when the assessment session is not path scoped', async () => {
+  it('rejects path-execution submissions when the session is not path scoped', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
     });
@@ -161,13 +163,33 @@ describe('assessment API auth boundaries', () => {
       nodeId: 'adaptive-quiz:control-target-check',
     });
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: '路径自适应答案提交的 sessionId 与 path/node 不匹配',
+    });
+    expect(mocks.submitAnswerWithPersistenceFallback).not.toHaveBeenCalled();
+  });
+
+  it('rejects path-owned submissions with incomplete path fields', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await submitRequest({
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      questionId: 'preset-q-01',
+      selectedOption: 'A',
+      timeSpent: 12,
+      goalId: 'control-correction',
+      pathId: 'path-1',
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: '路径自适应答案提交缺少完整 path/node 上下文',
+    });
     expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
-    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
-      userId: 'student-1',
-      sessionId: 'session-1',
-      pathContext: undefined,
-    }));
+    expect(mocks.submitAnswerWithPersistenceFallback).not.toHaveBeenCalled();
   });
 
   it('derives submitted path context goal from the server-owned learning path', async () => {
@@ -200,6 +222,7 @@ describe('assessment API auth boundaries', () => {
         nodeId: 'adaptive-quiz:control-target-check',
         goalId: 'control-correction',
         routeIntent: 'path-execution',
+        questionScope: 'readiness',
       },
     }));
   });
@@ -234,11 +257,12 @@ describe('assessment API auth boundaries', () => {
         nodeId: 'checkpoint:control-correction-review',
         goalId: 'control-correction',
         routeIntent: 'path-execution',
+        questionScope: 'checkpoint',
       },
     }));
   });
 
-  it('does not persist submitted path context when client goal mismatches the server path', async () => {
+  it('rejects submitted path context when client goal mismatches the server path', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
     });
@@ -262,13 +286,14 @@ describe('assessment API auth boundaries', () => {
       nodeId: 'adaptive-quiz:control-target-check',
     });
 
-    expect(response.status).toBe(200);
-    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
-      pathContext: undefined,
-    }));
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: '路径自适应答案提交的 goalId 与服务端路径目标不匹配',
+    });
+    expect(mocks.submitAnswerWithPersistenceFallback).not.toHaveBeenCalled();
   });
 
-  it('does not persist path context when the current path node is not an adaptive quiz', async () => {
+  it('rejects path submissions when the current path node is not an adaptive quiz', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
     });
@@ -292,10 +317,11 @@ describe('assessment API auth boundaries', () => {
       nodeId: 'simulation:cruise',
     });
 
-    expect(response.status).toBe(200);
-    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
-      pathContext: undefined,
-    }));
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: '路径自适应答案提交的 nodeId 不是自适应测验或检查点节点',
+    });
+    expect(mocks.submitAnswerWithPersistenceFallback).not.toHaveBeenCalled();
   });
 
   it('rejects unauthenticated next-question requests before durable session writes', async () => {
@@ -397,6 +423,82 @@ describe('assessment API auth boundaries', () => {
       sessionId: 'adaptive-path:path-1:checkpoint:control-correction-review',
       goalId: 'control-correction',
       questionScope: 'checkpoint',
+    });
+  });
+
+  it('derives remediation scope from server-owned path node metadata', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      goalId: 'control-correction',
+      nodeIds: ['adaptive-quiz:control-correction-remediation'],
+      pathPayload: {
+        mainPathNodeIds: ['adaptive-quiz:control-correction-remediation'],
+        planNodes: [{
+          nodeId: 'adaptive-quiz:control-correction-remediation',
+          type: 'adaptive_quiz',
+          checkpoint: {
+            assessmentPurpose: 'remediation',
+            remediationBehavior: '补救薄弱目标',
+          },
+        }],
+      },
+    });
+
+    const response = await nextQuestionRequest({
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-correction-remediation',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:control-correction-remediation',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-correction-remediation',
+      goalId: 'control-correction',
+      questionScope: 'remediation',
+    });
+  });
+
+  it('returns structured coverage limitations for path catalog selection failures', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      goalId: 'unknown-goal',
+      nodeIds: ['adaptive-quiz:unknown-readiness'],
+      pathPayload: {
+        mainPathNodeIds: ['adaptive-quiz:unknown-readiness'],
+        planNodes: [{ nodeId: 'adaptive-quiz:unknown-readiness', type: 'adaptive_quiz' }],
+      },
+    });
+    mocks.selectNextQuestionWithPersistenceFallback.mockRejectedValueOnce(
+      new AdaptiveAssessmentCatalogSelectionError({
+        code: 'path-assessment-catalog-coverage-incomplete',
+        state: 'limited',
+        learningGoalId: 'unknown-goal',
+        requestedStage: 'readiness',
+        reviewedPathEligibleCandidateCount: 0,
+        limitationReason: 'no-reviewed-path-eligible-readiness-items',
+      }),
+    );
+
+    const response = await nextQuestionRequest({
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:unknown-readiness',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:unknown-readiness',
+    });
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      error: 'assessment_catalog_coverage_limited',
+      limitation: {
+        code: 'path-assessment-catalog-coverage-incomplete',
+        state: 'limited',
+        learningGoalId: 'unknown-goal',
+        requestedStage: 'readiness',
+      },
     });
   });
 

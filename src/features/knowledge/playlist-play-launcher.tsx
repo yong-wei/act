@@ -37,7 +37,10 @@ export function PlaylistPlayLauncher({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ planId }),
       });
-      const payload = await response.json().catch(() => null) as { id?: string; error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as {
+        id?: string;
+        error?: string;
+      } | null;
       if (!response.ok || !payload?.id) {
         setStatus('error');
         setMessage(payload?.error ?? '课程流启动失败');
@@ -52,7 +55,7 @@ export function PlaylistPlayLauncher({
   };
 
   return (
-    <main className="container mx-auto min-h-screen px-6 py-10 text-slate-100">
+    <section className="mx-auto w-full max-w-5xl text-slate-100">
       <div className="mb-6">
         <Link href="/playlists" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-blue-300">
           <ArrowLeft className="h-4 w-4" />
@@ -66,9 +69,7 @@ export function PlaylistPlayLauncher({
               {intent === 'start-class' ? '准备开始课堂' : '课程流播放'}
             </p>
             <h1 className="mt-2 text-3xl font-semibold text-white">{title}</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
-              {description || '该课程流尚未填写描述。'}
-            </p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">{description || '该课程流尚未填写描述。'}</p>
             <div className="mt-4 inline-flex rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300">
               {itemCount} 个知识节点环节
             </div>
@@ -107,11 +108,14 @@ export function PlaylistPlayLauncher({
           </div>
         ) : null}
         {status === 'error' && message ? (
-          <div className="mt-6 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100" role="alert">
+          <div
+            className="mt-6 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100"
+            role="alert"
+          >
             {message}
           </div>
         ) : null}
       </section>
-    </main>
+    </section>
   );
 }

@@ -337,20 +337,20 @@ Konling SHALL expose adaptive path-advisor entrypoints for every registered `pat
 ### Requirement: Konling streaming citation diagnostics are environment-gated
 Konling SHALL separate user-visible streaming answer text from citation-guard debugging diagnostics.
 
-#### Scenario: Development debug injection is enabled
-- **WHEN** Konling streams an answer in a development environment or an explicitly enabled debug-injection environment
+#### Scenario: Development diagnostic injection is enabled
+- **WHEN** Konling streams an answer in development and citation-debug injection is enabled
 - **THEN** the runtime MAY inject complete citation guard diagnostics into the stream for debugging
-- **AND** the injected diagnostics SHALL include missing context and low-confidence reasons for any authenticated development user account.
+- **AND** the visible notice SHALL explicitly identify itself as development-mode diagnostics.
 
-#### Scenario: Production debug injection is disabled
+#### Scenario: Production diagnostic injection is disabled
 - **WHEN** Konling streams an answer in production and citation-debug injection is not explicitly enabled
 - **THEN** the runtime SHALL NOT inject raw citation guard diagnostics into user-visible answer text
 - **AND** raw tokens such as `assistant-citations-unverified-stream`, `missing-learner-state`, and `missing-path-execution` SHALL remain outside the visible assistant message.
 
 #### Scenario: Citation diagnostics are persisted
-- **WHEN** Konling produces a streaming or persisted-session reply
+- **WHEN** a Konling answer is generated
 - **THEN** the runtime SHALL persist citation guard status, missing citation classes, low-confidence reasons, retrieval source summaries, and personalization availability metadata with the conversation or agent session
-- **AND** support review SHALL be possible without exposing raw diagnostics as normal student-facing prose.
+- **AND** production visibility of diagnostics SHALL be controlled by environment configuration rather than removing diagnostic persistence.
 
 ### Requirement: Konling citation requirements follow answer intent
 Konling SHALL determine required citation classes from the answer intent and the claims made by the response.
@@ -411,13 +411,29 @@ Konling SHALL present answer citations from server-owned citation metadata rathe
 
 #### Scenario: Final assistant message includes citation metadata
 - **WHEN** a Konling assistant message includes `konlingCitationGuard`, Source Pack citations, or CitationChip payloads
-- **THEN** the UI SHALL render citations from that metadata with display title, source type, confidence, limitation state, and click target
+- **THEN** the UI SHALL render citations from normalized server-owned metadata with display title, source type, confidence, citation-level limitation state, and click target
 - **AND** model-authored Markdown footnotes SHALL NOT be treated as verified citations.
 
 #### Scenario: Citation metadata is limited or unavailable
 - **WHEN** a citation has missing, restricted, stale, low-confidence, or unavailable address metadata
-- **THEN** the UI SHALL show the limitation state
+- **THEN** the UI SHALL present the citation as limited or unavailable with a safe label
 - **AND** it SHALL NOT navigate to a meaningless page anchor or present the citation as fully verified.
+
+#### Scenario: Citation presentation is normalized before rendering
+- **WHEN** raw Konling guard metadata, Source Pack items, knowledge node citations, path-execution evidence, learner-state evidence, simulation evidence, or Arena evidence are available for a final assistant message
+- **THEN** the system SHALL normalize them into a deterministic citation presentation model before any chat UI renders the message
+- **AND** each normalized item SHALL include a stable key, display index, title, source type, confidence, citation-level limitation state, safe href when available, and evidence basis metadata.
+
+#### Scenario: Verified content citations coexist with limited personalization
+- **WHEN** a final answer has high-confidence or medium-confidence teaching-content citations with safe server-owned targets
+- **AND** learner-state, path-execution, or personalization evidence is missing or limited
+- **THEN** the teaching-content citations SHALL remain clickable
+- **AND** the final answer summary MAY disclose limited personalization without globally disabling unrelated verified content citations.
+
+#### Scenario: Citations are deduplicated by governed source identity
+- **WHEN** multiple raw citation entries point to the same governed source, retrieval chunk, citation target, knowledge node, textbook section, path execution evidence, learner-state evidence, simulation trace, or Arena evidence
+- **THEN** the normalized citation presentation SHALL deduplicate entries using type-aware stable keys before assigning display numbers
+- **AND** it SHALL NOT merge citations across different source types only because their titles match.
 
 ### Requirement: Konling assistant prose suppresses fake citation footnotes
 Konling SHALL prevent model-authored GFM footnotes and generated `#user-content-fn*` anchors from appearing as platform citations.
@@ -428,21 +444,21 @@ Konling SHALL prevent model-authored GFM footnotes and generated `#user-content-
 - **AND** verified citation numbering SHALL be derived only from server-owned citation metadata.
 
 #### Scenario: Model emits current-page footnote anchors
-- **WHEN** model prose contains links to `#user-content-fn*` or `#user-content-fnref*`
+- **WHEN** model prose contains current-page footnote anchors such as `#user-content-fn-content` or `#user-content-fnref-content`
 - **THEN** those links SHALL NOT be rendered as clickable verified citation links
-- **AND** the user SHALL not be routed to `/knowledge#user-content-*` as if it were a source.
+- **AND** normalized citation links SHALL use only safe server-owned citation targets.
 
 ### Requirement: Konling distinguishes streaming diagnostics from final citation state
 Konling SHALL keep development diagnostics separate from the final user-facing citation presentation.
 
 #### Scenario: Streaming answer has not completed final citation verification
-- **WHEN** the response is still streaming and diagnostics are enabled
-- **THEN** the UI MAY show a development diagnostic notice
+- **WHEN** Konling streams a development-mode answer before final citation verification completes
+- **THEN** any visible diagnostic notice SHALL be prefixed as development-mode diagnostics
 - **AND** that notice SHALL be visually and semantically distinct from verified citations.
 
 #### Scenario: Final answer completes citation verification
-- **WHEN** final message metadata is available
-- **THEN** the UI SHALL render the final verified, limited, or missing citation state from metadata
+- **WHEN** the assistant message has completed generation and final citation metadata is available
+- **THEN** the UI SHALL render the final verified, limited, or missing citation state from normalized metadata
 - **AND** it SHALL not rely on diagnostic text embedded in the prose as the citation UI.
 
 ### Requirement: Konling grounding includes structured associative context
@@ -452,3 +468,52 @@ Konling runtime SHALL include structured associative context when SAR associatio
 - **WHEN** Konling answers a graph, path, resource, diagnosis, grading, or prep-pack question with available SAR context
 - **THEN** the runtime SHALL include SAR seed refs, associated event refs, trace summary, candidate evidence refs, and limitations in server-owned metadata
 - **AND** final citations SHALL still be rendered from verified CitationChip or Source Pack citation metadata.
+
+### Requirement: Konling uses one visible chat experience
+Konling SHALL render visible chat messages, tool calls, diagnostics, and citations through a shared chat experience while preserving page-specific context, tools, and prompt behavior.
+
+#### Scenario: Konling opens from different learning surfaces
+- **WHEN** Konling opens from the knowledge graph, adaptive path center, interactive lesson, copilot page, teacher surface, or administrator surface
+- **THEN** the visible message layout, tool-call disclosure, diagnostic label, and citation presentation SHALL use the shared Konling chat renderer
+- **AND** the surface SHALL pass route-specific context, permitted tools, assistant entry point, and system prompt extension through the shared context boundary.
+
+#### Scenario: A route needs specialized coaching behavior
+- **WHEN** a route requires graph, path, resource, lesson, grading, prep-pack, simulation, or administrator-specific behavior
+- **THEN** the route SHALL configure that behavior through server-owned context, scoped tools, and prompt extensions
+- **AND** it SHALL NOT duplicate message bubble, tool-call, or citation rendering logic.
+
+#### Scenario: Legacy Konling surface remains reachable
+- **WHEN** a legacy sidebar, copilot panel, copilot page, or interactive lesson AI panel remains in the codebase
+- **THEN** it SHALL wrap or delegate to the shared Konling chat experience
+- **AND** it SHALL NOT maintain an independent visible implementation for assistant replies, tool results, or citation lists.
+
+### Requirement: Konling tool calls use collapsible disclosure UI
+Konling SHALL render tool calls as a compact collapsible disclosure rather than injecting repeated raw tool-result messages into the answer.
+
+#### Scenario: Assistant message includes tool calls
+- **WHEN** an assistant message includes one or more tool calls
+- **THEN** the UI SHALL render a collapsed summary showing the number of called tools
+- **AND** expanding the summary SHALL reveal one collapsible row per tool call.
+
+#### Scenario: Tool result row is expanded
+- **WHEN** a user expands an individual tool-call row
+- **THEN** the UI SHALL show sanitized tool result details for that tool call
+- **AND** it SHALL keep raw internal diagnostics hidden unless a development-only diagnostic policy explicitly permits them.
+
+#### Scenario: Tool disclosure icons are rendered
+- **WHEN** the tool summary or tool row can expand or collapse
+- **THEN** the UI SHALL use standard frontend expand and collapse icons
+- **AND** it SHALL NOT use literal `>` or `v` characters as the visible affordance.
+
+### Requirement: Konling chat layout prioritizes answer content
+Konling SHALL allocate the chat panel layout to prompt input and assistant answer content without avatar placeholders reducing reply width.
+
+#### Scenario: User composes a prompt
+- **WHEN** the Konling input composer is visible in the chat window
+- **THEN** the prompt input area SHALL occupy about 75 percent of the Konling window width by default, with implementation validation accepting a 70 percent to 80 percent range
+- **AND** action buttons SHALL remain reachable without covering the input.
+
+#### Scenario: Assistant reply is rendered
+- **WHEN** Konling renders an assistant reply
+- **THEN** the reply SHALL use the full available reply width
+- **AND** it SHALL NOT reserve an assistant avatar placeholder that narrows the answer column.

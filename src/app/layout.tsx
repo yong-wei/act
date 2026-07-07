@@ -10,8 +10,8 @@ import { GlobalAIFloatingButton } from '@/components/ai/global-ai-button'
 import { GlobalAISidebar } from '@/components/ai/global-ai-sidebar'
 
 export const metadata: Metadata = {
-  title: 'AI-OBE船舶控制平台',
-  description: '智能海事教育平台 - AI驱动的船舶控制与PID参数优化系统',
+  title: '深蓝智控',
+  description: '基于学科垂类大模型的船舶智控教学平台',
 }
 
 export const dynamic = 'force-dynamic'

@@ -1,0 +1,231 @@
+{
+  "capturedAt": "2026-07-03T15:18:48.907Z",
+  "results": [
+    {
+      "name": "desktop-light",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "metrics": {
+        "brand": {
+          "left": 24,
+          "right": 240,
+          "top": 20,
+          "bottom": 87,
+          "width": 216,
+          "height": 67
+        },
+        "profile": {
+          "left": 1252,
+          "right": 1364,
+          "top": 33.5,
+          "bottom": 73.5,
+          "width": 112,
+          "height": 40
+        },
+        "themeSwitch": {
+          "left": 1376,
+          "right": 1416,
+          "top": 33.5,
+          "bottom": 73.5,
+          "width": 40,
+          "height": 40
+        },
+        "menu": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "visibleTopbarTexts": [
+          "基于学科垂类大模型的船舶智控教学平台",
+          "基于学科垂类大模型的船舶智控教学平台",
+          "基于学科垂类大模型的船舶智控教学平台",
+          "知识资源",
+          "互动学习",
+          "学习路径",
+          "竞技场",
+          "虚拟仿真",
+          "控制工作台",
+          "个人中心",
+          "切换到深色主题"
+        ],
+        "brandOverlapsProfile": false,
+        "brandOverlapsTheme": false,
+        "brandOverlapsMenu": false,
+        "bodyScrollWidth": 1440,
+        "viewportWidth": 1440,
+        "clippedText": []
+      }
+    },
+    {
+      "name": "desktop-dark",
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "metrics": {
+        "brand": {
+          "left": 24,
+          "right": 240,
+          "top": 20,
+          "bottom": 87,
+          "width": 216,
+          "height": 67
+        },
+        "profile": {
+          "left": 1252,
+          "right": 1364,
+          "top": 33.5,
+          "bottom": 73.5,
+          "width": 112,
+          "height": 40
+        },
+        "themeSwitch": {
+          "left": 1376,
+          "right": 1416,
+          "top": 33.5,
+          "bottom": 73.5,
+          "width": 40,
+          "height": 40
+        },
+        "menu": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "visibleTopbarTexts": [
+          "基于学科垂类大模型的船舶智控教学平台",
+          "基于学科垂类大模型的船舶智控教学平台",
+          "基于学科垂类大模型的船舶智控教学平台",
+          "知识资源",
+          "互动学习",
+          "学习路径",
+          "竞技场",
+          "虚拟仿真",
+          "控制工作台",
+          "个人中心",
+          "切换到浅色主题"
+        ],
+        "brandOverlapsProfile": false,
+        "brandOverlapsTheme": false,
+        "brandOverlapsMenu": false,
+        "bodyScrollWidth": 1440,
+        "viewportWidth": 1440,
+        "clippedText": []
+      }
+    },
+    {
+      "name": "mobile-light",
+      "width": 320,
+      "height": 780,
+      "theme": "light",
+      "metrics": {
+        "brand": {
+          "left": 24,
+          "right": 144,
+          "top": 20,
+          "bottom": 89,
+          "width": 120,
+          "height": 69
+        },
+        "profile": {
+          "left": 160,
+          "right": 200,
+          "top": 34.5,
+          "bottom": 74.5,
+          "width": 40,
+          "height": 40
+        },
+        "themeSwitch": {
+          "left": 208,
+          "right": 248,
+          "top": 34.5,
+          "bottom": 74.5,
+          "width": 40,
+          "height": 40
+        },
+        "menu": {
+          "left": 256,
+          "right": 296,
+          "top": 34.5,
+          "bottom": 74.5,
+          "width": 40,
+          "height": 40
+        },
+        "visibleTopbarTexts": [
+          "基于学科垂类大模型的船舶智控教学平台",
+          "基于学科垂类大模型的船舶智控教学平台",
+          "基于学科垂类大模型的船舶智控教学平台",
+          "个人中心",
+          "切换到深色主题",
+          "打开平台入口菜单"
+        ],
+        "brandOverlapsProfile": false,
+        "brandOverlapsTheme": false,
+        "brandOverlapsMenu": false,
+        "bodyScrollWidth": 320,
+        "viewportWidth": 320,
+        "clippedText": []
+      }
+    },
+    {
+      "name": "mobile-dark",
+      "width": 320,
+      "height": 780,
+      "theme": "dark",
+      "metrics": {
+        "brand": {
+          "left": 24,
+          "right": 144,
+          "top": 20,
+          "bottom": 89,
+          "width": 120,
+          "height": 69
+        },
+        "profile": {
+          "left": 160,
+          "right": 200,
+          "top": 34.5,
+          "bottom": 74.5,
+          "width": 40,
+          "height": 40
+        },
+        "themeSwitch": {
+          "left": 208,
+          "right": 248,
+          "top": 34.5,
+          "bottom": 74.5,
+          "width": 40,
+          "height": 40
+        },
+        "menu": {
+          "left": 256,
+          "right": 296,
+          "top": 34.5,
+          "bottom": 74.5,
+          "width": 40,
+          "height": 40
+        },
+        "visibleTopbarTexts": [
+          "基于学科垂类大模型的船舶智控教学平台",
+          "基于学科垂类大模型的船舶智控教学平台",
+          "基于学科垂类大模型的船舶智控教学平台",
+          "个人中心",
+          "切换到浅色主题",
+          "打开平台入口菜单"
+        ],
+        "brandOverlapsProfile": false,
+        "brandOverlapsTheme": false,
+        "brandOverlapsMenu": false,
+        "bodyScrollWidth": 320,
+        "viewportWidth": 320,
+        "clippedText": []
+      }
+    }
+  ]
+}

@@ -10,7 +10,7 @@ export default function NotFound() {
     sourceRoute: '/not-found',
     targetLabel: '平台页面',
     message: '当前链接无法识别或页面已经迁移。',
-    recoveryAction: '返回工作台或从主导航重新进入',
+    recoveryAction: '返回个人中心或从主导航重新进入',
   });
 
   return (
@@ -28,10 +28,10 @@ export default function NotFound() {
           action={(
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/dashboard"
+                href="/profile"
                 className="inline-flex rounded-lg border border-border px-3 py-2 text-sm text-primary hover:text-primary/80"
               >
-                返回工作台
+                返回个人中心
               </Link>
               <Link
                 href="/interactive-learning"

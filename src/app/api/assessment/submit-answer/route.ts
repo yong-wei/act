@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { AdaptiveQuestionScope } from '@/features/assessment/adaptive-engine';
 import { submitAnswerWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -56,11 +57,19 @@ export async function POST(request: Request) {
 }
 
 async function readVerifiedPathContext(body: SubmitAnswerRequest, userId: string, sessionId: string) {
-  if (typeof body.pathId !== 'string' || !body.pathId.trim()) return undefined;
-  if (typeof body.nodeId !== 'string' || !body.nodeId.trim()) return undefined;
+  const routeIntent = typeof body.routeIntent === 'string' && body.routeIntent.trim().length > 0 ? body.routeIntent.trim() : null;
+  const requiresPathContext = sessionId.startsWith('adaptive-path:')
+    || routeIntent === 'path-execution'
+    || Boolean(typeof body.nodeId === 'string' && body.nodeId.trim());
+  if (!requiresPathContext) return undefined;
+  if (typeof body.pathId !== 'string' || !body.pathId.trim() || typeof body.nodeId !== 'string' || !body.nodeId.trim()) {
+    throw new Error('路径自适应答案提交缺少完整 path/node 上下文');
+  }
   const pathId = body.pathId.trim();
   const nodeId = body.nodeId.trim();
-  if (sessionId !== scopedPathAssessmentSessionId(pathId, nodeId)) return undefined;
+  if (sessionId !== scopedPathAssessmentSessionId(pathId, nodeId)) {
+    throw new Error('路径自适应答案提交的 sessionId 与 path/node 不匹配');
+  }
   const path = await prisma.learningPath.findFirst({
     where: {
       id: pathId,
@@ -73,21 +82,80 @@ async function readVerifiedPathContext(body: SubmitAnswerRequest, userId: string
       pathPayload: true,
     },
   });
-  if (!path?.goalId) return undefined;
-  if (typeof body.goalId === 'string' && body.goalId.trim() && body.goalId.trim() !== path.goalId) return undefined;
-  if (!readPathNodeIds(path).includes(nodeId)) return undefined;
+  if (!path?.goalId) {
+    throw new Error('未找到可用的路径自适应答案上下文');
+  }
+  if (typeof body.goalId === 'string' && body.goalId.trim() && body.goalId.trim() !== path.goalId) {
+    throw new Error('路径自适应答案提交的 goalId 与服务端路径目标不匹配');
+  }
+  if (!readPathNodeIds(path).includes(nodeId)) {
+    throw new Error('路径自适应答案提交的 nodeId 不属于当前路径');
+  }
   const pathNode = readPathNode(path, nodeId);
-  if (!isPathAssessmentNode(pathNode)) return undefined;
+  if (!isPathAssessmentNode(pathNode)) {
+    throw new Error('路径自适应答案提交的 nodeId 不是自适应测验或检查点节点');
+  }
   return {
     pathId,
     nodeId,
     goalId: path.goalId,
-    routeIntent: typeof body.routeIntent === 'string' && body.routeIntent.trim() ? body.routeIntent.trim() : null,
+    routeIntent,
+    questionScope: inferPathAssessmentScope(pathNode),
   };
 }
 
-function isPathAssessmentNode(pathNode: Record<string, unknown> | null): boolean {
+function isPathAssessmentNode(
+  pathNode: Record<string, unknown> | null,
+): pathNode is Record<string, unknown> & { type: 'adaptive_quiz' | 'checkpoint' } {
   return pathNode?.type === 'adaptive_quiz' || pathNode?.type === 'checkpoint';
+}
+
+function inferPathAssessmentScope(
+  pathNode: Record<string, unknown> & { type: 'adaptive_quiz' | 'checkpoint' },
+): AdaptiveQuestionScope {
+  const checkpoint = readRecord(pathNode.checkpoint);
+  const explicitStage = readAssessmentStage(pathNode.assessmentStage) ??
+    readAssessmentStage(pathNode.stagePurpose) ??
+    readAssessmentStage(checkpoint.assessmentPurpose) ??
+    readAssessmentStage(checkpoint.remediationBehavior) ??
+    readAssessmentStage(pathNode.nodeId) ??
+    readAssessmentStage(pathNode.id) ??
+    readAssessmentStage(pathNode.displayName) ??
+    readAssessmentStage(pathNode.title);
+  if (explicitStage) return explicitStage;
+  return pathNode.type === 'checkpoint' ? 'checkpoint' : 'readiness';
+}
+
+function readAssessmentStage(value: unknown): Extract<AdaptiveQuestionScope, 'readiness' | 'checkpoint' | 'remediation'> | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return null;
+  if (
+    normalized.includes('remediation') ||
+    normalized.includes('remedial') ||
+    normalized.includes('补救') ||
+    normalized.includes('修复') ||
+    normalized.includes('薄弱')
+  ) {
+    return 'remediation';
+  }
+  if (
+    normalized.includes('checkpoint') ||
+    normalized.includes('检查点') ||
+    normalized.includes('阶段检查')
+  ) {
+    return 'checkpoint';
+  }
+  if (
+    normalized.includes('readiness') ||
+    normalized.includes('readiness-gate') ||
+    normalized.includes('precheck') ||
+    normalized.includes('预检') ||
+    normalized.includes('准备')
+  ) {
+    return 'readiness';
+  }
+  return null;
 }
 
 function scopedPathAssessmentSessionId(pathId: string, nodeId: string): string {

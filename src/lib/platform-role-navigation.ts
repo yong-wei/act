@@ -10,21 +10,11 @@ import type { ReportLedgerSurfaceCategory } from '@/lib/report-ledger-contracts'
 export type PlatformRoleNavigationAudience = PlatformRole | 'guest';
 
 export type PlatformRoleNavigationGroup =
-  | 'public'
-  | 'role-cockpit'
-  | 'student-core'
-  | 'teacher-cockpit'
-  | 'admin-cockpit'
-  | 'future';
+  'public' | 'role-cockpit' | 'student-core' | 'teacher-cockpit' | 'admin-cockpit' | 'future';
 
 export type PlatformNavigationLayerId = 'global-product' | 'role-cockpit' | 'contextual-workspace' | 'local-tool';
 export type PlatformWorkspaceMode =
-  | 'arena'
-  | 'control-workbench'
-  | 'interactive-learning'
-  | 'adaptive-learning'
-  | 'teacher'
-  | 'admin';
+  'arena' | 'control-workbench' | 'interactive-learning' | 'adaptive-learning' | 'teacher' | 'admin';
 export type PlatformPrimaryRouteFrame =
   | 'public-entry'
   | 'learning-atlas'
@@ -47,11 +37,7 @@ export type PlatformShellMigrationDisposition = 'adapted' | 'replace' | 'retaine
 export type PlatformRouteScreenshotProfile = 'direct-capture' | 'representative-covered' | 'temporary-exception';
 export type PlatformReportSurfaceType = 'primary-route' | 'embedded-component' | 'export-view' | 'temporary-gap';
 export type PlatformLegacyNavigationShell =
-  | 'UnifiedTopBar'
-  | 'ArenaPageShell'
-  | 'TeacherLayout'
-  | 'AdminConsoleHeader'
-  | 'FeaturePageNav';
+  'UnifiedTopBar' | 'ArenaPageShell' | 'TeacherLayout' | 'AdminConsoleHeader' | 'FeaturePageNav';
 export type PlatformLegacyShellDisposition = 'adapted' | 'retained-temporary' | 'scheduled-replacement';
 export type PlatformDockDispositionComponent = 'PageFloatingControls' | 'GlobalAIFloatingButton';
 export type PlatformMobileNavigationBehavior =
@@ -63,12 +49,7 @@ export type PlatformMobileNavigationBehavior =
   | 'hidden-immersive';
 export type StudentLearningIntent = 'learn' | 'practice' | 'challenge' | 'experiment' | 'review-profile';
 export type CommercialStudentEntryIntent =
-  | 'learn'
-  | 'practice'
-  | 'challenge'
-  | 'experiment'
-  | 'review'
-  | 'account-profile';
+  'learn' | 'practice' | 'challenge' | 'experiment' | 'review' | 'account-profile';
 
 export type PlatformNavigationIconKey =
   | 'ship'
@@ -117,6 +98,10 @@ export interface StudentLearningIntentGroup {
 
 export interface StudentLearningIntentNavigationGroup extends StudentLearningIntentGroup {
   entries: PlatformRoleNavigationItem[];
+}
+
+export interface StudentLearningIntentNavigationOptions {
+  includeProfileGroup?: boolean;
 }
 
 export interface CommercialStudentEntryIntentGroup {
@@ -273,24 +258,26 @@ type PrimaryRouteInput = Omit<
   | 'contextualReturn'
   | 'aliasRetirements'
   | 'legacyFrameAliases'
-> & Partial<
-  Pick<
-    PlatformPrimaryRouteInventoryEntry,
-    | 'themeSupport'
-    | 'desktopNavigation'
-    | 'mobileNavigation'
-    | 'shellMigrationDisposition'
-    | 'shellRemovalCondition'
-    | 'screenshotProfile'
-    | 'unifiedUiMigrationOwner'
-    | 'unifiedUiMigrationException'
-    | 'contextualReturn'
-    | 'aliasRetirements'
-    | 'legacyFrameAliases'
-  >
-> & {
-  exception?: Omit<PlatformPrimaryRouteException, 'removalCondition'> & Partial<Pick<PlatformPrimaryRouteException, 'removalCondition'>>;
-};
+> &
+  Partial<
+    Pick<
+      PlatformPrimaryRouteInventoryEntry,
+      | 'themeSupport'
+      | 'desktopNavigation'
+      | 'mobileNavigation'
+      | 'shellMigrationDisposition'
+      | 'shellRemovalCondition'
+      | 'screenshotProfile'
+      | 'unifiedUiMigrationOwner'
+      | 'unifiedUiMigrationException'
+      | 'contextualReturn'
+      | 'aliasRetirements'
+      | 'legacyFrameAliases'
+    >
+  > & {
+    exception?: Omit<PlatformPrimaryRouteException, 'removalCondition'> &
+      Partial<Pick<PlatformPrimaryRouteException, 'removalCondition'>>;
+  };
 
 const ROUTE_LEDGER_CONVERGENCE_CHANGE = 'converge-route-ledger-to-canonical-archetypes';
 const APP_SHELL_MIGRATION_CHANGE = 'upgrade-platform-app-shell-to-archetype-shell';
@@ -301,11 +288,14 @@ const SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE = 'migrate-secondary-route-familie
 const OPERATIONS_REPORT_MIGRATION_CHANGE = 'migrate-operations-report-ledger-surfaces';
 const DATA_CENTER_OPERATIONS_ROLE_CHANGE = 'restrict-data-center-to-operations-roles';
 const SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE = 'introduce-simulation-shell-mission-workspace';
-const SIMULATION_SHARED_DOCK_DISPOSITION: readonly PlatformRouteDockDisposition[] = [{
-  component: 'GlobalAIFloatingButton',
-  disposition: 'registered-shared-dock',
-  removalCondition: 'Simulation pages use PageFloatingControlsProvider and route dock behavior instead of page-local Konling fixed controls.',
-}];
+const SIMULATION_SHARED_DOCK_DISPOSITION: readonly PlatformRouteDockDisposition[] = [
+  {
+    component: 'GlobalAIFloatingButton',
+    disposition: 'registered-shared-dock',
+    removalCondition:
+      'Simulation pages use PageFloatingControlsProvider and route dock behavior instead of page-local Konling fixed controls.',
+  },
+];
 
 function inferUnifiedUiMigrationOwner(input: Pick<PlatformPrimaryRouteInventoryEntry, 'href' | 'frame'>) {
   if (input.frame === 'mission-workspace') return MISSION_WORKSPACE_MIGRATION_CHANGE;
@@ -316,7 +306,9 @@ function inferUnifiedUiMigrationOwner(input: Pick<PlatformPrimaryRouteInventoryE
   return APP_SHELL_MIGRATION_CHANGE;
 }
 
-function inferLegacyFrameAlias(input: Pick<PlatformPrimaryRouteInventoryEntry, 'href' | 'frame' | 'authState'>): PlatformLegacyPrimaryRouteFrame | undefined {
+function inferLegacyFrameAlias(
+  input: Pick<PlatformPrimaryRouteInventoryEntry, 'href' | 'frame' | 'authState'>,
+): PlatformLegacyPrimaryRouteFrame | undefined {
   if (input.frame === 'public-entry' && input.authState === 'auth-entry') return 'auth-entry';
   if (input.frame === 'learning-atlas') return 'learning-map';
   if (input.frame === 'mission-workspace') return 'immersive-task-workspace';
@@ -325,12 +317,17 @@ function inferLegacyFrameAlias(input: Pick<PlatformPrimaryRouteInventoryEntry, '
     if (input.href.startsWith('/admin')) return 'admin-governance';
     return 'learner-data';
   }
-  if (input.frame === 'operations-console') return input.href.startsWith('/admin') ? 'admin-governance' : 'teacher-operations';
+  if (input.frame === 'operations-console')
+    return input.href.startsWith('/admin') ? 'admin-governance' : 'teacher-operations';
   if (input.frame === 'knowledge-data-map') {
     if (input.href === '/knowledge' || input.href.startsWith('/ai')) return 'knowledge-graph';
     return 'learner-data';
   }
   return undefined;
+}
+
+function usesRoleWorkspaceShellLayout(input: Pick<PlatformPrimaryRouteInventoryEntry, 'href'>) {
+  return input.href.startsWith('/teacher') || input.href.startsWith('/admin');
 }
 
 function primaryRoute(input: PrimaryRouteInput): PlatformPrimaryRouteInventoryEntry {
@@ -341,47 +338,56 @@ function primaryRoute(input: PrimaryRouteInput): PlatformPrimaryRouteInventoryEn
         removalCondition: input.exception.removalCondition ?? shellRemovalCondition,
       }
     : undefined;
-  const unifiedUiMigrationOwner = input.unifiedUiMigrationOwner ?? (exception ? undefined : inferUnifiedUiMigrationOwner(input));
+  const unifiedUiMigrationOwner =
+    input.unifiedUiMigrationOwner ?? (exception ? undefined : inferUnifiedUiMigrationOwner(input));
   const routeMigrationOwner = unifiedUiMigrationOwner ?? exception?.owner ?? input.owningChange;
-  const aliasRetirements = input.aliasRetirements ?? input.aliases?.map((alias) => ({
-    alias,
-    owningChange: ROUTE_LEDGER_CONVERGENCE_CHANGE,
-    retirementCondition: `Route alias ${alias} is either promoted into canonical route metadata or retired by ${routeMigrationOwner}.`,
-  }));
+  const aliasRetirements =
+    input.aliasRetirements ??
+    input.aliases?.map((alias) => ({
+      alias,
+      owningChange: ROUTE_LEDGER_CONVERGENCE_CHANGE,
+      retirementCondition: `Route alias ${alias} is either promoted into canonical route metadata or retired by ${routeMigrationOwner}.`,
+    }));
   const legacyFrameAlias = inferLegacyFrameAlias(input);
-  const legacyFrameAliases = input.legacyFrameAliases ?? (legacyFrameAlias
-    ? [{
-        alias: legacyFrameAlias,
-        owningChange: ROUTE_LEDGER_CONVERGENCE_CHANGE,
-        retirementCondition: `Legacy frame ${legacyFrameAlias} is retained only as compatibility metadata until ${routeMigrationOwner} completes.`,
-      }]
-    : undefined);
+  const legacyFrameAliases =
+    input.legacyFrameAliases ??
+    (legacyFrameAlias
+      ? [
+          {
+            alias: legacyFrameAlias,
+            owningChange: ROUTE_LEDGER_CONVERGENCE_CHANGE,
+            retirementCondition: `Legacy frame ${legacyFrameAlias} is retained only as compatibility metadata until ${routeMigrationOwner} completes.`,
+          },
+        ]
+      : undefined);
 
-  const desktopNavigation = input.desktopNavigation ?? (
-    input.frame === 'public-entry'
+  const desktopNavigation =
+    input.desktopNavigation ??
+    (input.frame === 'public-entry'
       ? 'hidden'
-      : input.legacyShell || input.exception
-        ? 'fixed'
-      : input.navigationLayers.includes('global-product')
+      : usesRoleWorkspaceShellLayout(input)
         ? 'collapsible'
-        : 'fixed'
-  );
+        : input.legacyShell || input.exception
+          ? 'fixed'
+          : input.navigationLayers.includes('global-product')
+            ? 'collapsible'
+            : 'fixed');
 
   return {
     ...input,
     themeSupport: input.themeSupport ?? ['light', 'dark'],
     desktopNavigation,
-    mobileNavigation: input.mobileNavigation ?? (
-      input.frame === 'public-entry'
+    mobileNavigation:
+      input.mobileNavigation ??
+      (input.frame === 'public-entry'
         ? input.authState === 'auth-entry'
           ? 'auth-callback-panel'
           : 'public-entry-menu'
-          : input.floatingDock === 'hidden'
-            ? 'hidden-immersive'
-            : input.navigationLayers.includes('local-tool')
-              ? 'workspace-command-surface'
-              : 'role-route-tabs'
-    ),
+        : input.floatingDock === 'hidden'
+          ? 'hidden-immersive'
+          : input.navigationLayers.includes('local-tool')
+            ? 'workspace-command-surface'
+            : 'role-route-tabs'),
     shellMigrationDisposition: input.shellMigrationDisposition ?? (exception ? 'retained-temporary' : 'adapted'),
     shellRemovalCondition,
     screenshotProfile: input.screenshotProfile ?? (exception ? 'temporary-exception' : 'direct-capture'),
@@ -407,7 +413,7 @@ export const PLATFORM_NAVIGATION_FEATURE_FLAGS = {
 } as const;
 
 export const PLATFORM_ROLE_COCKPIT_HREFS = {
-  student: '/dashboard',
+  student: '/profile',
   teacher: '/teacher',
   admin: '/admin',
 } as const;
@@ -419,23 +425,51 @@ export const PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS = [
     owner: 'unify-virtual-simulation-information-architecture',
     reason: 'Virtual lab remains a legacy entry URL, but /simulations is the canonical student simulation catalog.',
   },
+  {
+    from: '/dashboard',
+    to: '/profile',
+    owner: 'merge-learner-profile-dashboard',
+    reason: 'Dashboard remains a legacy student entry URL, but /profile is the canonical Personal Center.',
+  },
 ] as const;
 
 export const STUDENT_CORE_ENTRY_IDS = [
-  'student-simulations',
   'student-knowledge',
-  'student-arena',
-  'student-control-workbench',
-  'student-adaptive-learning',
   'student-interactive-learning',
+  'student-adaptive-learning',
+  'student-arena',
+  'student-simulations',
+  'student-control-workbench',
+] as const;
+
+export const STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS = [
+  'public-home',
+  ...STUDENT_CORE_ENTRY_IDS,
+  'student-profile',
 ] as const;
 
 export const PLATFORM_ENTRYPOINT_SMOKE_ROUTES = [
   { href: '/', routeFile: 'src/app/page.tsx', viewportWidths: [1440, 320] },
-  { href: '/login', routeFile: 'src/app/(auth)/login/page.tsx', viewportWidths: [1440, 320] },
-  { href: '/dashboard', routeFile: 'src/app/(main)/dashboard/page.tsx', viewportWidths: [1440, 320] },
-  { href: '/profile', routeFile: 'src/app/(main)/profile/page.tsx', viewportWidths: [1440, 320] },
-  { href: '/login?callbackUrl=%2Fprofile', routeFile: 'src/app/(auth)/login/page.tsx', viewportWidths: [1440, 320] },
+  {
+    href: '/login',
+    routeFile: 'src/app/(auth)/login/page.tsx',
+    viewportWidths: [1440, 320],
+  },
+  {
+    href: '/dashboard',
+    routeFile: 'src/app/(main)/dashboard/page.tsx',
+    viewportWidths: [1440, 320],
+  },
+  {
+    href: '/profile',
+    routeFile: 'src/app/(main)/profile/page.tsx',
+    viewportWidths: [1440, 320],
+  },
+  {
+    href: '/login?callbackUrl=%2Fprofile',
+    routeFile: 'src/app/(auth)/login/page.tsx',
+    viewportWidths: [1440, 320],
+  },
 ] as const;
 
 export const PLATFORM_NAVIGATION_LAYERS: PlatformNavigationLayerContract[] = [
@@ -465,7 +499,8 @@ export const PLATFORM_NAVIGATION_LAYERS: PlatformNavigationLayerContract[] = [
   {
     id: 'local-tool',
     label: '本地工具导航',
-    purpose: 'Expose route-owned tabs, inspector modes, graph tools, chart tools, and workspace commands without entering global or role navigation.',
+    purpose:
+      'Expose route-owned tabs, inspector modes, graph tools, chart tools, and workspace commands without entering global or role navigation.',
     entryGroups: [],
     workspaceModes: ['arena', 'control-workbench', 'interactive-learning', 'adaptive-learning', 'teacher', 'admin'],
     duplicatesGlobalNavigation: false,
@@ -517,8 +552,8 @@ export const PLATFORM_PROFILE_AND_COCKPIT_ACTIONS: PlatformProfileAndCockpitActi
     audience: 'student',
     profileHref: '/profile',
     cockpitHref: PLATFORM_ROLE_COCKPIT_HREFS.student,
-    primaryWorkspaceAction: 'cockpit',
-    semantics: 'Student cockpit is the operational workspace; profile is account and learning-record review.',
+    primaryWorkspaceAction: 'account',
+    semantics: 'Student Personal Center is the single account and learning-record destination.',
   },
   {
     audience: 'teacher',
@@ -616,6 +651,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
+    mobileNavigation: 'drawer',
     visualQaProfile: 'representative',
     owningChange: 'migrate-student-secondary-routes-to-unified-shell',
   }),
@@ -709,7 +745,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/interactive-learning/courses/[courseId]/teacher/[sessionId]/waiting',
-    routeFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/waiting/page.tsx',
+    routeFile:
+      'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/waiting/page.tsx',
     routePattern: '/interactive-learning/courses/:courseId/teacher/:sessionId/waiting',
     coveredRouteGlob: 'src/app/interactive-learning/courses/*/teacher/[sessionId]/waiting/page.tsx',
     frame: 'learning-atlas',
@@ -794,6 +831,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     desktopNavigation: 'collapsible',
     floatingDock: 'collapsed',
+    mobileNavigation: 'drawer',
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
     owningChange: 'redesign-immersive-learning-workspaces',
@@ -946,7 +984,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
       component: 'ArenaPageShell',
       disposition: 'adapted',
       sourceFile: 'src/features/arena/arena-hall.tsx',
-      removalCondition: 'ArenaPageShell remains the Arena-first approved workspace shell prototype with collapsible navigation, drawer navigation, and centralized visual assets.',
+      removalCondition:
+        'ArenaPageShell remains the Arena-first approved workspace shell prototype with collapsible navigation, drawer navigation, and centralized visual assets.',
     },
   }),
   primaryRoute({
@@ -974,7 +1013,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
       component: 'ArenaPageShell',
       disposition: 'adapted',
       sourceFile: 'src/features/arena/challenge-detail.tsx',
-      removalCondition: 'Arena challenge detail remains in the approved Arena workspace shell while challenge-local commands move into central route metadata.',
+      removalCondition:
+        'Arena challenge detail remains in the approved Arena workspace shell while challenge-local commands move into central route metadata.',
     },
   }),
   primaryRoute({
@@ -985,6 +1025,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
+    mobileNavigation: 'drawer',
     visualQaProfile: 'representative',
     owningChange: 'redesign-learner-data-and-report-surfaces',
   }),
@@ -994,7 +1035,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     frame: 'mission-workspace',
     roleScope: ['student'],
     authState: 'protected-redirect',
-    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     mobileNavigation: 'role-route-tabs',
@@ -1037,9 +1078,10 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['student', 'teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    mobileNavigation: 'role-route-tabs',
+    mobileNavigation: 'drawer',
     owningChange: 'redesign-learner-data-and-report-surfaces',
   }),
   primaryRoute({
@@ -1106,6 +1148,18 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: DATA_CENTER_OPERATIONS_ROLE_CHANGE,
   }),
   primaryRoute({
+    href: '/classroom/join',
+    routeFile: 'src/app/classroom/join/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['student'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    mobileNavigation: 'drawer',
+    visualQaProfile: 'representative',
+    owningChange: 'migrate-deep-product-routes-appshell-chrome',
+  }),
+  primaryRoute({
     href: '/classroom/student/[sessionId]',
     routeFile: 'src/app/classroom/student/[sessionId]/page.tsx',
     frame: 'mission-workspace',
@@ -1115,7 +1169,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'hidden',
     visualQaProfile: 'immersive',
     owningChange: 'redesign-immersive-learning-workspaces',
-    shellRemovalCondition: 'Classroom student runtime adopts the immersive workspace shell without losing session controls.',
+    shellRemovalCondition:
+      'Classroom student runtime adopts the immersive workspace shell without losing session controls.',
     exception: {
       owner: 'redesign-immersive-learning-workspaces',
       affectedCapability: 'classroom-student-runtime',
@@ -1133,11 +1188,13 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'hidden',
     visualQaProfile: 'immersive',
     owningChange: 'audit-remediation-teacher-classroom-lifecycle',
-    shellRemovalCondition: 'Classroom teacher projection runtime adopts the immersive workspace shell without losing lifecycle controls.',
+    shellRemovalCondition:
+      'Classroom teacher projection runtime adopts the immersive workspace shell without losing lifecycle controls.',
     exception: {
       owner: 'audit-remediation-teacher-classroom-lifecycle',
       affectedCapability: 'classroom-teacher-runtime',
-      reason: 'Live teacher projection controls remain route-local until classroom lifecycle remediation has a shared runtime shell.',
+      reason:
+        'Live teacher projection controls remain route-local until classroom lifecycle remediation has a shared runtime shell.',
       expiresOn: '2026-09-30',
     },
   }),
@@ -1184,11 +1241,13 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'representative',
     screenshotProfile: 'representative-covered',
     owningChange: 'legacy-interactive-runtime-route-ledger-coverage',
-    shellRemovalCondition: 'Legacy premium lesson runtime pages remain covered by the route ledger until each course migrates to LessonRuntimeShell.',
+    shellRemovalCondition:
+      'Legacy premium lesson runtime pages remain covered by the route ledger until each course migrates to LessonRuntimeShell.',
     exception: {
       owner: 'legacy-interactive-runtime-route-ledger-coverage',
       affectedCapability: 'interactive-lesson-runtime-legacy-pages',
-      reason: 'Unmigrated course runtime pages still exist under the shared student route family and need navigation, dock, and QA metadata coverage without being marked as LessonRuntimeShell migrations.',
+      reason:
+        'Unmigrated course runtime pages still exist under the shared student route family and need navigation, dock, and QA metadata coverage without being marked as LessonRuntimeShell migrations.',
       expiresOn: '2026-09-30',
     },
   }),
@@ -1207,31 +1266,50 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'representative',
     screenshotProfile: 'representative-covered',
     owningChange: 'legacy-interactive-runtime-route-ledger-coverage',
-    shellRemovalCondition: 'Legacy premium lesson runtime pages remain covered by the route ledger until each course migrates to LessonRuntimeShell.',
+    shellRemovalCondition:
+      'Legacy premium lesson runtime pages remain covered by the route ledger until each course migrates to LessonRuntimeShell.',
     exception: {
       owner: 'legacy-interactive-runtime-route-ledger-coverage',
       affectedCapability: 'interactive-lesson-runtime-legacy-pages',
-      reason: 'Unmigrated course runtime pages still exist under the shared teacher route family and need navigation, dock, and QA metadata coverage without being marked as LessonRuntimeShell migrations.',
+      reason:
+        'Unmigrated course runtime pages still exist under the shared teacher route family and need navigation, dock, and QA metadata coverage without being marked as LessonRuntimeShell migrations.',
       expiresOn: '2026-09-30',
     },
+  }),
+  primaryRoute({
+    href: '/playlists',
+    routeFile: 'src/app/playlists/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['student', 'teacher', 'admin'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    mobileNavigation: 'drawer',
+    visualQaProfile: 'representative',
+    owningChange: 'migrate-deep-product-routes-appshell-chrome',
+  }),
+  primaryRoute({
+    href: '/playlists/new',
+    routeFile: 'src/app/playlists/new/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['teacher', 'admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    mobileNavigation: 'drawer',
+    visualQaProfile: 'representative',
+    owningChange: 'migrate-deep-product-routes-appshell-chrome',
   }),
   primaryRoute({
     href: '/playlists/[id]/play',
     routeFile: 'src/app/playlists/[id]/play/page.tsx',
     frame: 'mission-workspace',
-    roleScope: ['student', 'teacher'],
-    authState: 'protected-redirect',
-    navigationLayers: ['contextual-workspace', 'local-tool'],
+    roleScope: ['guest', 'student', 'teacher', 'admin'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'hidden',
     visualQaProfile: 'immersive',
-    owningChange: 'redesign-immersive-learning-workspaces',
-    shellRemovalCondition: 'Playlist player adopts the immersive workspace shell or is retired from primary navigation.',
-    exception: {
-      owner: 'redesign-immersive-learning-workspaces',
-      affectedCapability: 'course-private-player',
-      reason: 'Playlist player is a private route and requires runtime-specific migration.',
-      expiresOn: '2026-08-31',
-    },
+    owningChange: 'migrate-deep-product-routes-appshell-chrome',
   }),
   primaryRoute({
     href: '/teacher',
@@ -1240,14 +1318,17 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'TeacherLayout',
-      disposition: 'scheduled-replacement',
+      disposition: 'adapted',
       sourceFile: 'src/app/teacher/layout.tsx',
-      removalCondition: 'Teacher layout delegates header, cockpit navigation, and account actions to AppShell.',
+      owningChange: 'migrate-role-workspaces-to-appshell-navigation',
+      removalCondition:
+        'Teacher layout delegates header, cockpit navigation, theme switching, and account actions to RoleWorkspaceShell/AppShell.',
     },
   }),
   primaryRoute({
@@ -1359,7 +1440,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     exception: {
       owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
       affectedCapability: 'teacher-lesson-plan-builder-shell',
-      reason: 'Teacher lesson-plan creation uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
+      reason:
+        'Teacher lesson-plan creation uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
       expiresOn: '2026-08-31',
     },
   }),
@@ -1384,7 +1466,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     exception: {
       owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
       affectedCapability: 'teacher-lesson-plan-builder-shell',
-      reason: 'Teacher lesson-plan editing uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
+      reason:
+        'Teacher lesson-plan editing uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
       expiresOn: '2026-08-31',
     },
   }),
@@ -1439,6 +1522,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     themeSupport: ['light'],
@@ -1489,14 +1573,17 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'AdminConsoleHeader',
-      disposition: 'scheduled-replacement',
+      disposition: 'adapted',
       sourceFile: 'src/features/admin/admin-console-home.tsx',
-      removalCondition: 'Admin console home maps status notes and actions into AppShell AppHeader and PlatformSurface slots.',
+      owningChange: 'migrate-role-workspaces-to-appshell-navigation',
+      removalCondition:
+        'Admin layout delegates primary shell, theme switching, and account actions to RoleWorkspaceShell/AppShell while retaining page-local operation headers.',
     },
   }),
   primaryRoute({
@@ -1506,6 +1593,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
@@ -1523,6 +1611,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
@@ -1530,7 +1619,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
       component: 'AdminConsoleHeader',
       disposition: 'scheduled-replacement',
       sourceFile: 'src/features/admin/states/admin-states-dashboard.tsx',
-      removalCondition: 'Admin states dashboard maps metric header controls into AppShell AppHeader and PlatformSurface slots.',
+      removalCondition:
+        'Admin states dashboard maps metric header controls into AppShell AppHeader and PlatformSurface slots.',
     },
   }),
   primaryRoute({
@@ -1540,6 +1630,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
@@ -1547,7 +1638,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
       component: 'AdminConsoleHeader',
       disposition: 'scheduled-replacement',
       sourceFile: 'src/features/admin/system-config-dashboard.tsx',
-      removalCondition: 'Admin config dashboard maps model and system tabs into AppShell AppHeader and PlatformSurface slots.',
+      removalCondition:
+        'Admin config dashboard maps model and system tabs into AppShell AppHeader and PlatformSurface slots.',
     },
   }),
   primaryRoute({
@@ -1580,7 +1672,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     exception: {
       owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
       affectedCapability: 'admin-lesson-plan-builder-shell',
-      reason: 'Admin lesson-plan creation uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
+      reason:
+        'Admin lesson-plan creation uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
       expiresOn: '2026-08-31',
     },
   }),
@@ -1605,7 +1698,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     exception: {
       owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
       affectedCapability: 'admin-lesson-plan-builder-shell',
-      reason: 'Admin lesson-plan editing uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
+      reason:
+        'Admin lesson-plan editing uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
       expiresOn: '2026-08-31',
     },
   }),
@@ -1616,6 +1710,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
@@ -1623,7 +1718,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
       component: 'AdminConsoleHeader',
       disposition: 'scheduled-replacement',
       sourceFile: 'src/features/admin/data-governance-dashboard.tsx',
-      removalCondition: 'Data governance dashboard maps governance status and report actions into AppShell AppHeader and PlatformSurface slots.',
+      removalCondition:
+        'Data governance dashboard maps governance status and report actions into AppShell AppHeader and PlatformSurface slots.',
     },
   }),
   primaryRoute({
@@ -1635,25 +1731,16 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'hidden',
     visualQaProfile: 'representative',
-    owningChange: 'rebuild-navigation-frame-system',
-    shellRemovalCondition: 'AI landing route is either registered under the platform navigation frame or removed from primary product navigation.',
-    legacyShell: {
-      component: 'FeaturePageNav',
-      disposition: 'retained-temporary',
-      sourceFile: 'src/app/ai/page.tsx',
-      removalCondition: 'AI landing route maps local return and title controls into AppShell or a registered AI workspace shell.',
-    },
-    exception: {
-      owner: 'rebuild-navigation-frame-system',
-      affectedCapability: 'ai-landing-route',
-      reason: 'AI route is not part of the commercial UI migration series but remains a primary product route.',
-      expiresOn: '2026-08-31',
-    },
-    dockDisposition: [{
-      component: 'GlobalAIFloatingButton',
-      disposition: 'registered-shared-dock',
-      removalCondition: 'Konling entry registers through PageFloatingControlsProvider instead of rendering an independent fixed button.',
-    }],
+    mobileNavigation: 'drawer',
+    owningChange: 'migrate-deep-product-routes-appshell-chrome',
+    dockDisposition: [
+      {
+        component: 'GlobalAIFloatingButton',
+        disposition: 'registered-shared-dock',
+        removalCondition:
+          'Konling entry registers through PageFloatingControlsProvider instead of rendering an independent fixed button.',
+      },
+    ],
   }),
   primaryRoute({
     href: '/ai/copilot',
@@ -1664,25 +1751,16 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'hidden',
     visualQaProfile: 'representative',
-    owningChange: 'rebuild-navigation-frame-system',
-    shellRemovalCondition: 'AI copilot route is either registered under the platform navigation frame or removed from primary product navigation.',
-    legacyShell: {
-      component: 'FeaturePageNav',
-      disposition: 'retained-temporary',
-      sourceFile: 'src/app/ai/copilot/page.tsx',
-      removalCondition: 'AI copilot route maps local return and title controls into AppShell or a registered AI workspace shell.',
-    },
-    exception: {
-      owner: 'rebuild-navigation-frame-system',
-      affectedCapability: 'ai-copilot-route',
-      reason: 'Copilot route needs frame ownership before visual migration can claim it.',
-      expiresOn: '2026-08-31',
-    },
-    dockDisposition: [{
-      component: 'GlobalAIFloatingButton',
-      disposition: 'registered-shared-dock',
-      removalCondition: 'Konling copilot entry registers through PageFloatingControlsProvider instead of rendering an independent fixed button.',
-    }],
+    mobileNavigation: 'drawer',
+    owningChange: 'migrate-deep-product-routes-appshell-chrome',
+    dockDisposition: [
+      {
+        component: 'GlobalAIFloatingButton',
+        disposition: 'registered-shared-dock',
+        removalCondition:
+          'Konling copilot entry registers through PageFloatingControlsProvider instead of rendering an independent fixed button.',
+      },
+    ],
   }),
   primaryRoute({
     href: '/knowledge',
@@ -1692,14 +1770,18 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
+    mobileNavigation: 'drawer',
     visualQaProfile: 'representative',
     owningChange: KNOWLEDGE_MAP_UNIFIED_SHELL_CHANGE,
     unifiedUiMigrationOwner: KNOWLEDGE_MAP_UNIFIED_SHELL_CHANGE,
-    dockDisposition: [{
-      component: 'GlobalAIFloatingButton',
-      disposition: 'registered-shared-dock',
-      removalCondition: 'Konling knowledge workspace entry registers through PageFloatingControlsProvider instead of rendering an independent fixed button.',
-    }],
+    dockDisposition: [
+      {
+        component: 'GlobalAIFloatingButton',
+        disposition: 'registered-shared-dock',
+        removalCondition:
+          'Konling knowledge workspace entry registers through PageFloatingControlsProvider instead of rendering an independent fixed button.',
+      },
+    ],
   }),
   primaryRoute({
     href: '/graph-center',
@@ -1712,11 +1794,14 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'representative',
     owningChange: 'build-graph-center-readonly-foundation',
     unifiedUiMigrationOwner: 'build-graph-center-readonly-foundation',
-    dockDisposition: [{
-      component: 'GlobalAIFloatingButton',
-      disposition: 'registered-shared-dock',
-      removalCondition: 'Graph center uses AppShell and the shared floating dock instead of introducing a route-local fixed assistant button.',
-    }],
+    dockDisposition: [
+      {
+        component: 'GlobalAIFloatingButton',
+        disposition: 'registered-shared-dock',
+        removalCondition:
+          'Graph center uses AppShell and the shared floating dock instead of introducing a route-local fixed assistant button.',
+      },
+    ],
   }),
 ] as const;
 
@@ -1909,8 +1994,8 @@ export const COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES: CommercialStudentEntrySurf
     href: '/dashboard',
     routeFile: 'src/app/(main)/dashboard/page.tsx',
     viewportWidths: [1440, 320],
-    currentIntent: 'learn',
-    firstViewportRequirement: 'usable intent map and quick actions visible',
+    currentIntent: 'review',
+    firstViewportRequirement: 'usable compatibility redirect resolves to Personal Center',
     stateCoverage: ['authenticated', 'role-redirect'],
   },
   {
@@ -1934,7 +2019,8 @@ export const COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES: CommercialStudentEntrySurf
     routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx',
     viewportWidths: [1440, 320],
     currentIntent: 'learn',
-    firstViewportRequirement: 'usable representative course entry keeps premium entry family and launch actions visible',
+    firstViewportRequirement:
+      'usable representative course entry keeps premium entry family and launch actions visible',
     stateCoverage: ['public', 'teacher-entry', 'student-demo', 'join-code'],
   },
   {
@@ -1942,7 +2028,8 @@ export const COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES: CommercialStudentEntrySurf
     routeFile: 'src/app/simulations/page.tsx',
     viewportWidths: [1440, 320],
     currentIntent: 'experiment',
-    firstViewportRequirement: 'usable ship imagery, difficulty, course fit, canonical simulation entry, and launch action visible',
+    firstViewportRequirement:
+      'usable ship imagery, difficulty, course fit, canonical simulation entry, and launch action visible',
     stateCoverage: ['public', 'scenario-fleet', 'course-design-dialog'],
   },
   {
@@ -1996,15 +2083,18 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
   },
   {
     id: 'student-cockpit',
-    label: '学生驾驶舱',
+    label: '学生驾驶舱兼容入口',
     href: PLATFORM_ROLE_COCKPIT_HREFS.student,
     role: 'student',
     order: 10,
     group: 'role-cockpit',
-    description: '学生学习状态、课堂加入和核心模块入口。',
-    iconKey: 'home',
-    actionLabel: '进入驾驶舱',
+    description: '旧学生驾驶舱语义已合并到个人中心，默认导航不再展示此入口。',
+    iconKey: 'profile',
+    actionLabel: '进入个人中心',
     actionPriority: 10,
+    availability: 'hidden',
+    disabledReason:
+      'merge-learner-profile-dashboard keeps /dashboard as compatibility and exposes /profile as the single Personal Center.',
   },
   {
     id: 'teacher-cockpit',
@@ -2035,7 +2125,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '虚拟仿真',
     href: '/simulations',
     role: 'student',
-    order: 100,
+    order: 150,
     group: 'student-core',
     description: '进入船舶与海工对象仿真任务，观察控制响应和指标变化。',
     iconKey: 'ship',
@@ -2059,7 +2149,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '竞技场',
     href: '/arena',
     role: 'student',
-    order: 120,
+    order: 140,
     group: 'student-core',
     description: '进入挑战详情、公开实验、正式提交和榜单比较。',
     iconKey: 'arena',
@@ -2071,7 +2161,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '控制工作台',
     href: '/interactive-learning/control-workbench',
     role: 'student',
-    order: 130,
+    order: 160,
     group: 'student-core',
     description: '在统一工作台中连接对象、模型、控制器和响应图。',
     iconKey: 'workbench',
@@ -2084,7 +2174,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '学习路径',
     href: '/assessment/adaptive-practice',
     role: 'student',
-    order: 140,
+    order: 130,
     group: 'student-core',
     description: '生成、比较并执行个性化学习路径。',
     iconKey: 'adaptive',
@@ -2101,7 +2191,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '互动学习',
     href: '/interactive-learning',
     role: 'student',
-    order: 150,
+    order: 120,
     group: 'student-core',
     description: '进入跨域探索、互动课程和章节互动组件。',
     iconKey: 'interactive',
@@ -2113,7 +2203,7 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     label: '个人中心',
     href: '/profile',
     role: 'student',
-    order: 160,
+    order: 170,
     group: 'role-cockpit',
     description: '查看能力画像、活动轨迹、成长建议和学习档案。',
     iconKey: 'profile',
@@ -2403,9 +2493,14 @@ export function resolvePlatformRouteInventory(href: string): PlatformPrimaryRout
     return routePatternToRegExp(route.href).test(path);
   });
   if (patternMatch) return patternMatch;
-  return PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => (
-    route.aliases?.some((alias) => normalizeInventoryHref(alias) === path)
-  ));
+  return PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) =>
+    route.aliases?.some((alias) => normalizeInventoryHref(alias) === path),
+  );
+}
+
+function isProfileRouteFamilyHref(href: string) {
+  const path = normalizeInventoryHref(href);
+  return path === '/profile' || path.startsWith('/profile/');
 }
 
 export function getPlatformRouteNavigation(
@@ -2423,22 +2518,23 @@ export function getPlatformRouteNavigation(
     return true;
   };
   if (!route) return navigation;
-  if (route.navigationLayers.includes('global-product') && route.navigationLayers.includes('role-cockpit')) {
+  const usesStudentPrimaryNavigation = role === 'student' && isProfileRouteFamilyHref(route.href);
+  if (
+    route.navigationLayers.includes('global-product') &&
+    route.navigationLayers.includes('role-cockpit') &&
+    !usesStudentPrimaryNavigation
+  ) {
     return navigation;
   }
-  if (route.navigationLayers.includes('role-cockpit')) {
-    return navigation.filter((entry) => entry.group === 'role-cockpit' || entry.group === 'teacher-cockpit' || entry.group === 'admin-cockpit');
-  }
-  if (route.navigationLayers.includes('global-product')) {
-    const globalEntries = PLATFORM_ROLE_NAVIGATION_GROUPS.filter((entry) => (
-      (entry.group === 'public' || entry.group === 'student-core')
-      && (
-        entry.role === role
-        || entry.role === 'all'
-        || (entry.role === 'guest' && (role === 'guest' || entry.href !== '/login'))
-      )
-      && isAvailable(entry as PlatformRoleNavigationItem)
-    )) as PlatformRoleNavigationItem[];
+  if (route.navigationLayers.includes('global-product') || usesStudentPrimaryNavigation) {
+    const globalEntries = PLATFORM_ROLE_NAVIGATION_GROUPS.filter(
+      (entry) =>
+        (entry.group === 'public' || entry.group === 'student-core' || entry.id === 'student-profile') &&
+        (entry.role === role ||
+          entry.role === 'all' ||
+          (entry.role === 'guest' && (role === 'guest' || entry.href !== '/login'))) &&
+        isAvailable(entry as PlatformRoleNavigationItem),
+    ) as PlatformRoleNavigationItem[];
     const byHref = new Map<string, PlatformRoleNavigationItem>();
     for (const entry of globalEntries) {
       const existing = byHref.get(entry.href);
@@ -2446,7 +2542,23 @@ export function getPlatformRouteNavigation(
         byHref.set(entry.href, entry);
       }
     }
-    return Array.from(byHref.values());
+    const dedupedEntries = Array.from(byHref.values());
+    if (role === 'student') {
+      const canonicalOrder = new Map(STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS.map((entryId, index) => [entryId, index]));
+      return dedupedEntries
+        .filter((entry) => canonicalOrder.has(entry.id as (typeof STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS)[number]))
+        .sort(
+          (left, right) =>
+            canonicalOrder.get(left.id as (typeof STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS)[number])! -
+            canonicalOrder.get(right.id as (typeof STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS)[number])!,
+        );
+    }
+    return dedupedEntries;
+  }
+  if (route.navigationLayers.includes('role-cockpit')) {
+    return navigation.filter(
+      (entry) => entry.group === 'role-cockpit' || entry.group === 'teacher-cockpit' || entry.group === 'admin-cockpit',
+    );
   }
   return [];
 }
@@ -2456,9 +2568,14 @@ export function getStudentCoreNavigationEntries(): PlatformRoleNavigationItem[] 
   return getPlatformRoleNavigation('student').filter((entry) => coreIds.has(entry.id));
 }
 
-export function getStudentLearningIntentNavigationGroups(): StudentLearningIntentNavigationGroup[] {
+export function getStudentLearningIntentNavigationGroups(
+  options: StudentLearningIntentNavigationOptions = {},
+): StudentLearningIntentNavigationGroup[] {
   const entriesById = new Map(getPlatformRoleNavigation('student').map((entry) => [entry.id, entry]));
-  return STUDENT_LEARNING_INTENT_GROUPS.map((group) => ({
+  const groups = options.includeProfileGroup
+    ? STUDENT_LEARNING_INTENT_GROUPS
+    : STUDENT_LEARNING_INTENT_GROUPS.filter((group) => group.intent !== 'review-profile');
+  return groups.map((group) => ({
     ...group,
     entries: group.entryIds.flatMap((entryId) => {
       const entry = entriesById.get(entryId);
@@ -2478,7 +2595,7 @@ export function resolveCommercialEntryHref(intent: CommercialStudentEntryIntent,
   if (intent === 'review') {
     return '/profile/evidence';
   }
-  return COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === intent)?.hrefs[0] ?? '/dashboard';
+  return COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === intent)?.hrefs[0] ?? '/profile';
 }
 
 export function getPlatformNavigationHref(id: string): string | undefined {

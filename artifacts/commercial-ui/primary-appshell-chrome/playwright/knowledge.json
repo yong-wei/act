@@ -1,0 +1,19 @@
+{
+  "route": "/knowledge",
+  "widths": [
+    1440,
+    1280,
+    1024,
+    768,
+    390,
+    320
+  ],
+  "captured": [
+    "knowledge-1440.png",
+    "knowledge-1280.png",
+    "knowledge-1024.png",
+    "knowledge-768.png",
+    "knowledge-390.png",
+    "knowledge-320.png"
+  ]
+}

@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
+  applyCoreResourcePathReadinessDispositions,
   buildResourceNodeRegistry,
   type KnowledgeNodeResourceInput,
   type RegisteredResourceNodeInput,
@@ -80,7 +81,7 @@ export function buildResourceNodeRegistryFromTeachingResources(
     };
   });
 
-  return buildResourceNodeRegistry({
+  return applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
     teachingResources,
     registeredResources: [...registeredResources],
     knowledgeNodes: Array.from(knowledgeNodesById.values()),
@@ -88,7 +89,7 @@ export function buildResourceNodeRegistryFromTeachingResources(
     runtimeResourceProjections: [...runtimeResourceProjections],
     textbooks: runtimeTextbooks.map((entry) => entry.textbook),
     textbookSections: runtimeTextbooks.flatMap(toTextbookSectionNodeInputs),
-  });
+  }));
 }
 
 export async function loadRuntimeResourceProjectionInputs(): Promise<RuntimeResourceProjectionInput[]> {

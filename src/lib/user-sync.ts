@@ -11,16 +11,10 @@ type UserProgressDb = Pick<typeof prisma, 'mission' | 'userProgress'>;
  * 确保用户有学生档案，如果没有则创建
  */
 export async function ensureUserProfile(userId: string) {
-  const existing = await prisma.studentProfile.findUnique({
+  return prisma.studentProfile.upsert({
     where: { userId },
-  });
-
-  if (existing) {
-    return existing;
-  }
-
-  return prisma.studentProfile.create({
-    data: {
+    update: {},
+    create: {
       userId,
       techScore: 0,
       ethicsScore: 100, // 伦理分初始满分
@@ -42,23 +36,15 @@ export async function initializeUserProgress(userId: string, db: UserProgressDb 
     return null;
   }
 
-  // 检查是否已有进度记录
-  const existingProgress = await db.userProgress.findUnique({
+  return db.userProgress.upsert({
     where: {
       userId_missionId: {
         userId,
         missionId: firstMission.id,
       },
     },
-  });
-
-  if (existingProgress) {
-    return existingProgress;
-  }
-
-  // 创建进度记录并解锁第一关
-  return db.userProgress.create({
-    data: {
+    update: {},
+    create: {
       userId,
       missionId: firstMission.id,
       status: ProgressStatus.UNLOCKED,

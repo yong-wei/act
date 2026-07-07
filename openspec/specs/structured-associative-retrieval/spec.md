@@ -118,12 +118,22 @@ Graph Center SHALL expose SAR-associated evidence for selected graph nodes when 
 - **AND** visibility SHALL match the viewer role and scope.
 
 ### Requirement: SAR resource gap suggestions remain draft-only
-SAR SHALL provide resource gap candidates without mutating graph bindings or ResourceNode governance state.
+SAR SHALL provide resource gap candidates without automatically mutating graph bindings or ResourceNode governance state.
 
 #### Scenario: Resource coverage is missing
 - **WHEN** a graph node lacks RAG-indexed, citation-ready, assessment, simulation, Arena, path-eligible, or terminal validation coverage
 - **THEN** Graph Center MAY request SAR candidate resources or evidence
 - **AND** all candidates SHALL be marked suggested or draft until reviewed by the resource governance workflow.
+
+#### Scenario: Suggested binding is reviewed
+- **WHEN** an authorized teacher or administrator reviews a SAR suggested binding
+- **THEN** the system SHALL preserve candidate provenance, trace summary, missing coverage type, reviewer decision, rationale, and audit timestamp
+- **AND** only accepted suggestions SHALL be eligible to update ResourceNode or graph binding metadata through existing governance validation.
+
+#### Scenario: Suggested binding is rejected or deferred
+- **WHEN** a SAR suggested binding is rejected, deferred, invalidated, or left unreviewed
+- **THEN** the system SHALL NOT mutate ResourceNode governance state or K/A/Q graph bindings
+- **AND** downstream consumers SHALL continue to treat the candidate as non-authoritative.
 
 ### Requirement: Path planning treats SAR as supplemental candidate evidence
 Adaptive path planning SHALL consume SAR candidates only as supplemental candidate evidence and explanation basis.
@@ -146,11 +156,25 @@ The system SHALL expose privacy-safe diagnostics for SAR projection, refresh hea
 - **THEN** the system SHALL expose event count, entity count, relation count, source type counts, privacy scope counts, refresh freshness, stale source counts, query trace summaries, hop counts, privacy rejection counts, limitation counts, and downstream verified citation rate where available.
 
 ### Requirement: SAR evaluation includes a multi-hop teaching demo
-The system SHALL provide a deterministic SAR demo fixture for multi-hop teaching retrieval.
+The system SHALL provide deterministic and live-evaluable SAR evidence for multi-hop teaching retrieval.
 
 #### Scenario: Control-correction demo query is executed
 - **WHEN** the demo asks why a learner should address frequency response margins before controller correction simulation and Arena validation
 - **THEN** the SAR trace SHALL show LearningGoal, graph nodes, resources, learner evidence limitations, simulation/Arena evidence, Source Pack handoff, and verified citation outcomes where available.
+
+#### Scenario: SAR live evaluation report is generated
+- **WHEN** an administrator or evaluator generates a SAR live evaluation report
+- **THEN** the report SHALL include representative queries, SAR-assisted candidate refs, ordinary retrieval baseline refs, multi-hop hit judgment, verified citation rate, Source Pack handoff, privacy rejection counts, candidate adoption or rejection, limitations, and at least two target-user feedback or structured test records
+- **AND** SAR candidate refs SHALL remain distinct from verified citations.
+
+#### Scenario: SAR evaluation report includes Arena results
+- **WHEN** a SAR evaluation report references Arena score, validity, ranking, attempt policy, or evaluation metrics
+- **THEN** those official outcomes SHALL be sourced only from persisted ArenaSubmission or official evaluation run records
+- **AND** LearningFact, SAR trace, KAQ writeback, and learner evidence projections SHALL be labeled as auxiliary learning evidence context rather than official Arena outcomes.
+
+#### Scenario: SAR evaluation report is exported or rendered
+- **WHEN** the SAR evaluation report is displayed or exported
+- **THEN** it SHALL omit raw learner answers, hidden Arena internals, private Konling memory, raw audit traces, and unverified candidate content presented as fact.
 
 ### Requirement: SAR persists governed retrieval index records
 The system SHALL persist SAR retrieval events, entities, event-entity relations, and query traces after the first-stage SAR contract is stable.

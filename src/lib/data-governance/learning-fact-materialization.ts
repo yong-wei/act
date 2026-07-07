@@ -376,6 +376,32 @@ function buildKaqQuizEvidenceContext(payload: Record<string, unknown>): Prisma.I
   });
 }
 
+function buildAdaptiveAssessmentRefContext(payload: Record<string, unknown>): Prisma.InputJsonObject | undefined {
+  const ref = readRecord(payload.adaptiveAssessmentRef);
+  if (!ref) return undefined;
+  return compactJsonObject({
+    kind: readString(ref.kind),
+    provenance: readString(ref.provenance),
+    id: readString(ref.id),
+    answerId: readString(ref.answerId),
+    sourceId: readString(ref.sourceId),
+    questionId: readString(ref.questionId),
+    questionRefId: readString(ref.questionRefId),
+    catalogItemId: readString(ref.catalogItemId),
+    contentHash: readString(ref.contentHash),
+    score: readFiniteNumber(ref.score),
+    isCorrect: typeof ref.isCorrect === 'boolean' ? ref.isCorrect : undefined,
+    reviewState: readString(ref.reviewState),
+    eligibilityState: readString(ref.eligibilityState),
+    readinessGateEligible: typeof ref.readinessGateEligible === 'boolean' ? ref.readinessGateEligible : undefined,
+    terminalValidationEligible: typeof ref.terminalValidationEligible === 'boolean' ? ref.terminalValidationEligible : undefined,
+    pathCompletionEligible: typeof ref.pathCompletionEligible === 'boolean' ? ref.pathCompletionEligible : undefined,
+    evidenceAuthority: readString(ref.evidenceAuthority),
+    algorithmVersion: readString(ref.algorithmVersion),
+    answeredAt: readString(ref.answeredAt),
+  });
+}
+
 function buildAdaptiveAssessmentContext(
   actionType: string,
   payload: Record<string, unknown>,
@@ -404,6 +430,7 @@ function buildAdaptiveAssessmentContext(
       masteryPosterior: typeof payload.masteryPosterior === 'number' ? payload.masteryPosterior : undefined,
       masteryConfidence: typeof payload.masteryConfidence === 'number' ? payload.masteryConfidence : undefined,
       confidence: typeof payload.confidence === 'number' ? payload.confidence : undefined,
+      adaptiveAssessmentRef: buildAdaptiveAssessmentRefContext(payload),
       kaqQuizEvidence: buildKaqQuizEvidenceContext(payload),
       privacyLevel: readString(payload.privacyLevel) ?? 'restricted',
     }),

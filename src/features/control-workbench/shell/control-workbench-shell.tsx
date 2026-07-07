@@ -300,7 +300,13 @@ function WorkbenchObjectSelector({
   );
 }
 
-function ResolvedControlWorkbenchShell({ session: initialSession }: { session: WorkbenchSessionContext }) {
+function ResolvedControlWorkbenchShell({
+  session: initialSession,
+  accountHref,
+}: {
+  session: WorkbenchSessionContext;
+  accountHref?: string;
+}) {
   const [session, setSession] = useState<WorkbenchSessionContext>(initialSession);
   const [objectSelectorExpanded, setObjectSelectorExpanded] = useState(false);
   const [objectSelectionError, setObjectSelectionError] = useState<string | null>(null);
@@ -462,6 +468,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   return (
     <AppShell
       viewerRole="student"
+      accountHref={accountHref}
       title="控制工作台"
       subtitle={taskTitle}
       activeHref="/interactive-learning/control-workbench"
@@ -471,14 +478,6 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
         { label: '竞技场', href: returnHref.startsWith('/arena') ? '/arena' : undefined },
         { label: '控制工作台' },
       ].filter((item) => item.href !== undefined || item.label !== '竞技场')}
-      actions={(
-        <Link
-          className="hidden h-9 items-center rounded-md border border-platform-border bg-platform-surface px-3 text-sm font-medium text-platform-fg-primary transition hover:border-platform-border-strong hover:text-platform-action-primary sm:inline-flex"
-          href={returnHref}
-        >
-          {'taskId' in session ? '返回挑战详情' : '返回跨域探索'}
-        </Link>
-      )}
     >
     <section
       className="min-h-screen text-foreground"
@@ -502,6 +501,8 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
           <Link
             className="btn-ghost-themed inline-flex h-10 items-center justify-center rounded-lg border px-4 text-sm"
             href={returnHref}
+            data-control-workbench-local-command="contextual-return"
+            data-primary-route-local-command-zone="control-workbench-context-strip"
           >
             {'taskId' in session ? '返回挑战详情' : '返回跨域探索'}
           </Link>
@@ -685,7 +686,13 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   );
 }
 
-export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchResolutionResult }) {
+export function ControlWorkbenchShell({
+  result,
+  accountHref,
+}: {
+  result: ControlWorkbenchResolutionResult;
+  accountHref?: string;
+}) {
   if (!result.ok) {
     return (
       <main className="min-h-screen bg-background px-6 py-10 text-foreground">
@@ -701,5 +708,5 @@ export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchReso
     );
   }
 
-  return <ResolvedControlWorkbenchShell key={getPanelStorageKey(result.session)} session={result.session} />;
+  return <ResolvedControlWorkbenchShell key={getPanelStorageKey(result.session)} session={result.session} accountHref={accountHref} />;
 }

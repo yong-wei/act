@@ -10,6 +10,98 @@ const studentEntryLabels = [
   '互动学习',
 ] as const;
 
+function buildMinimalProfilePayload() {
+  return {
+    user: {
+      id: 'student-dashboard-compat',
+      name: '学生入口兼容',
+      email: 'student-dashboard-compat@example.com',
+      role: 'STUDENT',
+    },
+    profile: null,
+    statistics: {
+      totalSimulations: 0,
+      completedMissions: 0,
+      ethicalViolations: 0,
+      totalSimulationTime: 0,
+      averageScore: 0,
+    },
+    competency: {
+      overallScore: 0,
+      level: '证据不足',
+      trend: '暂无趋势',
+      strengths: [],
+      weaknesses: [],
+      dimensions: [],
+    },
+    recentActivity: {
+      preview: [],
+      grouped: [],
+      total: 0,
+    },
+    missionProgress: {
+      total: 0,
+      completed: 0,
+      unlocked: 0,
+      locked: 0,
+    },
+    personalizedReinforcement: {
+      resources: [],
+      adaptivePractice: {
+        estimatedAbility: null,
+        confidenceInterval: null,
+        weakAreas: [],
+        recommendedFocus: [],
+        questionCount: 0,
+        actionUrl: '/assessment/adaptive-practice?intent=practice',
+      },
+    },
+    evidenceStatus: {
+      state: 'missing',
+      confidence: {
+        state: 'missing',
+        level: 'low',
+        score: 0,
+        evidenceCount: 0,
+        sourceCompleteness: 0,
+      },
+      evidenceWindow: {
+        daysCovered: 0,
+      },
+      sourceCounts: {},
+      statusMarkers: ['missing-source'],
+      restrictedReason: null,
+      staleReason: null,
+      refreshedAt: null,
+      generatedAt: new Date(0).toISOString(),
+    },
+    arenaPortfolio: {
+      controllerCount: 0,
+      identificationModels: [],
+      submissionSummary: {
+        total: 0,
+        valid: 0,
+        invalid: 0,
+        pending: 0,
+      },
+      personalBestByTask: [],
+      frequentFailureObjects: [],
+      improvingMetrics: [],
+      growth: {
+        capabilityCoverage: {
+          covered: 0,
+          total: 0,
+        },
+        evidenceAvailable: false,
+        weakCapabilities: [],
+        improvingCapabilities: [],
+        strongCapabilities: [],
+        nextChallenges: [],
+      },
+    },
+  };
+}
+
 test('homepage exposes the shared student entry drawer at 320px', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
   await page.goto('/');
@@ -52,6 +144,43 @@ test('profile unauthenticated state links back to login with profile callback at
     'href',
     '/login?callbackUrl=%2Fprofile',
   );
+});
+
+test('dashboard compatibility resolves to canonical profile entry', async ({ context, page }) => {
+  await page.goto('/dashboard');
+  await expect(page).toHaveURL(/\/login$/);
+
+  const sessionToken = await encode({
+    secret: process.env.NEXTAUTH_SECRET ?? 'replace-with-strong-secret',
+    token: {
+      id: 'student-dashboard-compat',
+      email: 'student-dashboard-compat@example.com',
+      name: '学生入口兼容',
+      role: 'STUDENT',
+    },
+  });
+  await context.addCookies([{
+    name: 'next-auth.session-token',
+    value: sessionToken,
+    domain: '127.0.0.1',
+    path: '/',
+    httpOnly: true,
+    sameSite: 'Lax',
+    secure: false,
+    expires: Math.floor(Date.now() / 1000) + 60 * 60,
+  }]);
+  await page.route('**/api/user/profile', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify(buildMinimalProfilePayload()),
+    });
+  });
+
+  await page.goto('/dashboard');
+  await expect(page).toHaveURL(/\/profile$/);
+  await expect(page.getByRole('heading', { name: '个人中心' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '学习入口地图' })).toBeVisible();
+  await expect(page.getByText('undefined')).toHaveCount(0);
 });
 
 test('adaptive practice preserves control-correction goal and intent context', async ({ page }) => {

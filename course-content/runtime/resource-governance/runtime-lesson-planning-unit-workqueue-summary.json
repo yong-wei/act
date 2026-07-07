@@ -1,0 +1,68 @@
+{
+  "artifactVersion": "runtime-lesson-planning-unit-review.v1",
+  "generatedAt": "2026-07-05T09:30:00.000Z",
+  "reviewBatchId": "runtime-lesson-planning-unit-review-2026-07-05",
+  "selectedShardId": "lesson:4-7",
+  "selectionBasis": "deterministic lesson-level shard selected for bounded runtime-step semantic review",
+  "totals": {
+    "sourceWorkqueueRows": 388,
+    "scopedRuntimeStepUnits": 388,
+    "selectedRuntimeStepUnits": 4,
+    "reviewedRows": 4,
+    "residualRuntimeStepUnits": 384
+  },
+  "selectedShard": {
+    "total": 4,
+    "reviewed": 4,
+    "remaining": 0,
+    "dispositions": {
+      "supporting-context": 2,
+      "planning-unit": 2
+    },
+    "pathRoles": {
+      "bridge-context": 1,
+      "diagnostic-readiness": 1,
+      "terminal-validation": 1,
+      "summary-context": 1
+    }
+  },
+  "residualHandoff": {
+    "unselectedRuntimeStepUnits": 384,
+    "deterministicShardIds": [
+      "lesson:1-1",
+      "lesson:1-2",
+      "lesson:2-1",
+      "lesson:2-2",
+      "lesson:2-3",
+      "lesson:2-4",
+      "lesson:3-1",
+      "lesson:3-2",
+      "lesson:3-3",
+      "lesson:3-4",
+      "lesson:3-5",
+      "lesson:3-7",
+      "lesson:3-8",
+      "lesson:3-9",
+      "lesson:4-1",
+      "lesson:4-2",
+      "lesson:4-3",
+      "lesson:4-4",
+      "lesson:4-5",
+      "lesson:4-6",
+      "lesson:5-1",
+      "lesson:5-2",
+      "lesson:5-3",
+      "lesson:5-4",
+      "lesson:5-5",
+      "lesson:5-6",
+      "lesson:cruise-comfort-boppps"
+    ]
+  },
+  "guardrails": {
+    "onlyRuntimeLessonSteps": true,
+    "selectedShardReviewed": true,
+    "promotedMetadataComplete": true,
+    "nonPlanningStepsLinked": true,
+    "rawContentIncluded": false
+  }
+}

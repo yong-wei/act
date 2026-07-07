@@ -34,7 +34,7 @@ function useCockpitHref() {
       return '/teacher';
     }
 
-    return '/dashboard';
+    return '/profile';
   }, [session, status]);
 }
 
@@ -48,6 +48,7 @@ export function UnifiedTopBar({
   onBackClick,
 }: UnifiedTopBarProps) {
   const cockpitHref = useCockpitHref();
+  const cockpitLabel = cockpitHref === '/profile' ? '进入个人中心' : '进入驾驶舱';
 
   return (
     <header className={cn('mx-auto w-full max-w-[1280px] px-4 pt-4 sm:px-6', className)}>
@@ -84,7 +85,7 @@ export function UnifiedTopBar({
             className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border/70 bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:border-primary/55 hover:text-primary"
           >
             <LayoutDashboard className="h-3.5 w-3.5" />
-            进入驾驶舱
+            {cockpitLabel}
           </Link>
         </div>
       </div>

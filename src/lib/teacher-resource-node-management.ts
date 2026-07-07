@@ -132,6 +132,99 @@ export interface TeacherResourceNodePatch {
   planningMetadata?: unknown;
 }
 
+export type SarSuggestedBindingCandidateRefType =
+  | 'resource-node'
+  | 'retrieval-chunk'
+  | 'citation-target'
+  | 'planning-unit';
+
+export type SarSuggestedBindingReviewDecision = 'accept' | 'reject' | 'defer' | 'invalidate';
+export type SarSuggestedBindingReviewState = 'suggested' | 'accepted' | 'rejected' | 'deferred' | 'invalidated';
+
+export interface SarSuggestedBindingReviewCandidate {
+  id: string;
+  target: {
+    graphNodeId: string;
+    objectiveId?: string | null;
+  };
+  candidate: {
+    ref: string;
+    refType: SarSuggestedBindingCandidateRefType;
+    resourceNodeId?: string | null;
+    sourceRefs?: readonly string[];
+  };
+  missingCoverageTypes: readonly string[];
+  provenance: {
+    source: string;
+    basisEventIds: readonly string[];
+    traceId?: string | null;
+  };
+  traceSummary: {
+    seedEntityIds: readonly string[];
+    expansionHopCount: number;
+    selectedRefCount: number;
+    rejectedRefCount: number;
+    limitations: readonly string[];
+  };
+  limitations: readonly string[];
+}
+
+export interface SarSuggestedBindingAuditRecord {
+  candidateId: string;
+  candidateRef: string;
+  candidateRefType: SarSuggestedBindingCandidateRefType;
+  targetGraphNodeId: string;
+  targetObjectiveId: string | null;
+  missingCoverageTypes: string[];
+  provenance: {
+    source: string;
+    basisEventIds: string[];
+    traceId: string | null;
+  };
+  traceSummary: {
+    seedEntityIds: string[];
+    expansionHopCount: number;
+    selectedRefCount: number;
+    rejectedRefCount: number;
+    limitations: string[];
+  };
+  reviewer: {
+    id: string;
+    role: TeacherResourceNodeRole;
+  };
+  decision: SarSuggestedBindingReviewDecision;
+  state: SarSuggestedBindingReviewState;
+  rationale: string;
+  reviewedAt: string;
+  affectedRefs: string[];
+  governanceEffect: {
+    type: 'resource-node-planning-patch';
+    persistablePatch: TeacherResourceNodePersistablePatch;
+  } | null;
+}
+
+export type SarSuggestedBindingReviewResult =
+  | {
+      ok: true;
+      status: 200;
+      state: SarSuggestedBindingReviewState;
+      auditRecord: SarSuggestedBindingAuditRecord;
+      persistablePatch?: TeacherResourceNodePersistablePatch;
+    }
+  | {
+      ok: false;
+      status: 400 | 403;
+      code:
+        | TeacherResourceNodePatchErrorCode
+        | 'SAR_SUGGESTED_BINDING_FORBIDDEN'
+        | 'SAR_ACCEPT_REQUIRES_RESOURCE_NODE'
+        | 'SAR_ACCEPT_REQUIRES_PATCH'
+        | 'SAR_ACCEPT_PATCH_DOES_NOT_COVER_TARGET';
+      error: string;
+      auditRecord?: SarSuggestedBindingAuditRecord;
+      persistablePatch?: undefined;
+    };
+
 interface TeacherResourceNodePlanningPatch {
     prerequisites?: string[];
     knowledgeCoverage?: string[];
@@ -377,6 +470,180 @@ export function applyTeacherResourceNodeBulkPatch(
   };
 }
 
+export function reviewSarSuggestedBinding(input: {
+  candidate: SarSuggestedBindingReviewCandidate;
+  scope: TeacherResourceNodeScope;
+  decision: SarSuggestedBindingReviewDecision;
+  rationale: string;
+  reviewedAt: string;
+  resourceNode?: ResourceNode;
+  patch?: TeacherResourceNodePatch;
+}): SarSuggestedBindingReviewResult {
+  if (!canReviewSarSuggestedBinding(input.candidate, input.scope, input.resourceNode)) {
+    return {
+      ok: false,
+      status: 403,
+      code: 'SAR_SUGGESTED_BINDING_FORBIDDEN',
+      error: '建议绑定不存在或无权审查。',
+    };
+  }
+
+  if (input.decision !== 'accept') {
+    return {
+      ok: true,
+      status: 200,
+      state: sarReviewStateForDecision(input.decision),
+      auditRecord: buildSarSuggestedBindingAuditRecord({
+        candidate: input.candidate,
+        scope: input.scope,
+        decision: input.decision,
+        rationale: input.rationale,
+        reviewedAt: input.reviewedAt,
+        governanceEffect: null,
+        affectedRefs: sarSuggestedBindingAffectedRefs(input.candidate),
+      }),
+    };
+  }
+
+  if (!input.resourceNode) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'SAR_ACCEPT_REQUIRES_RESOURCE_NODE',
+      error: '接受 SAR 建议绑定需要明确的 ResourceNode。',
+    };
+  }
+  if (!input.patch) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'SAR_ACCEPT_REQUIRES_PATCH',
+      error: '接受 SAR 建议绑定需要提供治理补丁。',
+    };
+  }
+
+  const patchResult = applyTeacherResourceNodePatch({
+    node: input.resourceNode,
+    scope: input.scope,
+    patch: mergeSarAcceptPatch(input.resourceNode, input.patch),
+  });
+  if (!patchResult.ok) {
+    return {
+      ok: false,
+      status: patchResult.status,
+      code: patchResult.code,
+      error: patchResult.error,
+      auditRecord: buildSarSuggestedBindingAuditRecord({
+        candidate: input.candidate,
+        scope: input.scope,
+        decision: input.decision,
+        state: 'suggested',
+        rationale: input.rationale,
+        reviewedAt: input.reviewedAt,
+        governanceEffect: null,
+        affectedRefs: sarSuggestedBindingAffectedRefs(input.candidate),
+      }),
+    };
+  }
+  const targetCoverageResult = validateSarAcceptTargetCoverage({
+    candidate: input.candidate,
+    resourceNode: input.resourceNode,
+    persistablePatch: patchResult.persistablePatch,
+  });
+  if (!targetCoverageResult.ok) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'SAR_ACCEPT_PATCH_DOES_NOT_COVER_TARGET',
+      error: targetCoverageResult.error,
+      auditRecord: buildSarSuggestedBindingAuditRecord({
+        candidate: input.candidate,
+        scope: input.scope,
+        decision: input.decision,
+        state: 'suggested',
+        rationale: input.rationale,
+        reviewedAt: input.reviewedAt,
+        governanceEffect: null,
+        affectedRefs: sarSuggestedBindingAffectedRefs(input.candidate),
+      }),
+    };
+  }
+
+  const affectedRefs = uniqueSorted([
+    ...sarSuggestedBindingAffectedRefs(input.candidate),
+    input.resourceNode.id,
+    input.resourceNode.sourceRef,
+  ]);
+  return {
+    ok: true,
+    status: 200,
+    state: 'accepted',
+    persistablePatch: patchResult.persistablePatch,
+    auditRecord: buildSarSuggestedBindingAuditRecord({
+      candidate: input.candidate,
+      scope: input.scope,
+      decision: input.decision,
+      rationale: input.rationale,
+      reviewedAt: input.reviewedAt,
+      affectedRefs,
+      governanceEffect: {
+        type: 'resource-node-planning-patch',
+        persistablePatch: patchResult.persistablePatch,
+      },
+    }),
+  };
+}
+
+function mergeSarAcceptPatch(
+  resourceNode: ResourceNode,
+  patch: TeacherResourceNodePatch,
+): TeacherResourceNodePatch {
+  const planningMetadata = patch.planningMetadata;
+  if (!isRecord(planningMetadata) || !Array.isArray(planningMetadata.knowledgeCoverage)) return patch;
+  return {
+    ...patch,
+    planningMetadata: {
+      ...planningMetadata,
+      knowledgeCoverage: uniqueSorted([
+        ...resourceNode.planningMetadata.knowledgeCoverage,
+        ...planningMetadata.knowledgeCoverage.filter(isString),
+      ]),
+    },
+  };
+}
+
+function validateSarAcceptTargetCoverage(input: {
+  candidate: SarSuggestedBindingReviewCandidate;
+  resourceNode: ResourceNode;
+  persistablePatch: TeacherResourceNodePersistablePatch;
+}): { ok: true } | { ok: false; error: string } {
+  const planningPatch = input.persistablePatch.resourceNodePlanning;
+  if (!planningPatch.knowledgeCoverage?.includes(input.candidate.target.graphNodeId)) {
+    return {
+      ok: false,
+      error: '接受 SAR 建议绑定的治理补丁必须覆盖目标知识节点。',
+    };
+  }
+  if (sarAcceptRequiresPathAvailability(input.candidate.missingCoverageTypes)) {
+    const availability = planningPatch.availability ?? input.resourceNode.planningMetadata.availability;
+    const teacherPolicy = planningPatch.teacherPolicy ?? input.resourceNode.planningMetadata.teacherPolicy;
+    if (availability !== 'available' || teacherPolicy === 'blocked') {
+      return {
+        ok: false,
+        error: '接受 SAR 建议绑定的治理补丁必须打开目标资源的路径可用性。',
+      };
+    }
+  }
+  return { ok: true };
+}
+
+function sarAcceptRequiresPathAvailability(missingCoverageTypes: readonly string[]): boolean {
+  return missingCoverageTypes.some((type) => {
+    const normalized = type.toLowerCase();
+    return normalized.includes('path') || normalized === 'linked-resource';
+  });
+}
+
 export function buildTeacherResourceNodeOperationsReadiness(
   nodes: readonly ResourceNode[],
   options: { bulkMappingEnabled?: boolean } = {},
@@ -421,6 +688,115 @@ export function canReadNode(node: ResourceNode, scope: TeacherResourceNodeScope)
 
 export function canEditNode(node: ResourceNode, scope: TeacherResourceNodeScope): boolean {
   return node.sourceKind === 'teaching_resource' && scope.editableSourceRefs.has(node.sourceRef);
+}
+
+function canReviewSarSuggestedBinding(
+  candidate: SarSuggestedBindingReviewCandidate,
+  scope: TeacherResourceNodeScope,
+  resourceNode?: ResourceNode,
+): boolean {
+  if (resourceNode) {
+    if (!sarCandidateMatchesResourceNode(candidate, resourceNode)) return false;
+    return scope.role === 'ADMIN' || (
+      canReadAllResourceNodeSourceRefs(resourceNode, scope) &&
+      ((candidate.candidate.sourceRefs ?? []).length === 0 || canReadSarCandidateSourceRefs(candidate, scope))
+    );
+  }
+  if (scope.role === 'ADMIN') return true;
+  return canReadSarCandidateSourceRefs(candidate, scope);
+}
+
+function canReadSarCandidateSourceRefs(
+  candidate: SarSuggestedBindingReviewCandidate,
+  scope: TeacherResourceNodeScope,
+): boolean {
+  const candidateSourceRefs = candidate.candidate.sourceRefs ?? [];
+  return candidateSourceRefs.length > 0 && candidateSourceRefs.every((ref) => scope.readableSourceRefs.has(ref));
+}
+
+function canReadAllResourceNodeSourceRefs(
+  resourceNode: ResourceNode,
+  scope: TeacherResourceNodeScope,
+): boolean {
+  const resourceSourceRefs = uniqueSorted([
+    resourceNode.sourceRef,
+    ...resourceNode.sourceRefs.map((source) => source.ref),
+  ]);
+  return resourceSourceRefs.length > 0 && resourceSourceRefs.every((ref) => scope.readableSourceRefs.has(ref));
+}
+
+function sarCandidateMatchesResourceNode(
+  candidate: SarSuggestedBindingReviewCandidate,
+  resourceNode: ResourceNode,
+): boolean {
+  if (candidate.candidate.refType !== 'resource-node') return false;
+  const candidateResourceNodeId = candidate.candidate.resourceNodeId?.trim();
+  const referencesResourceNode = candidateResourceNodeId
+    ? candidateResourceNodeId === resourceNode.id
+    : candidate.candidate.refType === 'resource-node' && candidate.candidate.ref === resourceNode.id;
+  return referencesResourceNode;
+}
+
+function buildSarSuggestedBindingAuditRecord(input: {
+  candidate: SarSuggestedBindingReviewCandidate;
+  scope: TeacherResourceNodeScope;
+  decision: SarSuggestedBindingReviewDecision;
+  state?: SarSuggestedBindingReviewState;
+  rationale: string;
+  reviewedAt: string;
+  affectedRefs: readonly string[];
+  governanceEffect: SarSuggestedBindingAuditRecord['governanceEffect'];
+}): SarSuggestedBindingAuditRecord {
+  return {
+    candidateId: input.candidate.id,
+    candidateRef: input.candidate.candidate.ref,
+    candidateRefType: input.candidate.candidate.refType,
+    targetGraphNodeId: input.candidate.target.graphNodeId,
+    targetObjectiveId: input.candidate.target.objectiveId ?? null,
+    missingCoverageTypes: uniqueSorted(input.candidate.missingCoverageTypes),
+    provenance: {
+      source: input.candidate.provenance.source,
+      basisEventIds: uniqueSorted(input.candidate.provenance.basisEventIds),
+      traceId: input.candidate.provenance.traceId ?? null,
+    },
+    traceSummary: {
+      seedEntityIds: uniqueSorted(input.candidate.traceSummary.seedEntityIds),
+      expansionHopCount: Math.max(0, input.candidate.traceSummary.expansionHopCount),
+      selectedRefCount: Math.max(0, input.candidate.traceSummary.selectedRefCount),
+      rejectedRefCount: Math.max(0, input.candidate.traceSummary.rejectedRefCount),
+      limitations: uniqueSorted([
+        ...input.candidate.limitations,
+        ...input.candidate.traceSummary.limitations,
+      ]),
+    },
+    reviewer: {
+      id: input.scope.teacherId,
+      role: input.scope.role,
+    },
+    decision: input.decision,
+    state: input.state ?? sarReviewStateForDecision(input.decision),
+    rationale: input.rationale.trim(),
+    reviewedAt: input.reviewedAt,
+    affectedRefs: uniqueSorted(input.affectedRefs),
+    governanceEffect: input.governanceEffect,
+  };
+}
+
+function sarSuggestedBindingAffectedRefs(candidate: SarSuggestedBindingReviewCandidate): string[] {
+  return uniqueSorted([
+    candidate.target.graphNodeId,
+    candidate.target.objectiveId ?? '',
+    candidate.candidate.ref,
+    candidate.candidate.resourceNodeId ?? '',
+    ...(candidate.candidate.sourceRefs ?? []),
+  ]);
+}
+
+function sarReviewStateForDecision(decision: SarSuggestedBindingReviewDecision): SarSuggestedBindingReviewState {
+  if (decision === 'accept') return 'accepted';
+  if (decision === 'reject') return 'rejected';
+  if (decision === 'defer') return 'deferred';
+  return 'invalidated';
 }
 
 function sanitizePlanningPatch(

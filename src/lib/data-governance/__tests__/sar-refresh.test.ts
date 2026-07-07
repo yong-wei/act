@@ -231,8 +231,8 @@ describe('SAR projection refresh orchestration', () => {
       sources: [{
         family: 'arena-official',
         arenaAuthority: {
-          scoreSource: 'ArenaEvaluationRun',
-          validitySource: 'ArenaEvaluationRun',
+          scoreSource: 'ArenaSubmission',
+          validitySource: 'ArenaSubmission',
           rankingSource: 'ArenaSubmission',
           attemptPolicySource: 'ArenaSubmission',
           evaluationMetricsSource: 'ArenaEvaluationRun',
@@ -291,6 +291,40 @@ describe('SAR projection refresh orchestration', () => {
     });
   });
 
+  it('rejects ArenaEvaluationRun as authority for submission-owned official fields', () => {
+    const invalid = runSarProjectionRefresh({
+      now: '2026-07-02T08:00:00.000Z',
+      sources: [{
+        family: 'arena-official',
+        arenaAuthority: {
+          scoreSource: 'ArenaEvaluationRun',
+          validitySource: 'ArenaEvaluationRun',
+          rankingSource: 'ArenaEvaluationRun',
+          attemptPolicySource: 'ArenaEvaluationRun',
+          evaluationMetricsSource: 'ArenaEvaluationRun',
+          officialRecords: {
+            submissionCount: 1,
+            evaluationRunCount: 1,
+            latestSubmissionAt: '2026-07-02T07:55:00.000Z',
+            latestEvaluationCompletedAt: '2026-07-02T07:56:00.000Z',
+            scoreRefs: ['ArenaSubmission:submission-1:score:86'],
+            validityRefs: ['ArenaSubmission:submission-1:valid:true'],
+            rankingRefs: ['ArenaSubmission:task-1:score-rank'],
+            attemptPolicyRefs: ['ArenaSubmission:submission-1:attempt:attempt-1'],
+            evaluationMetricRefs: ['ArenaEvaluationRun:run-1:metrics:arena-protocol.v1'],
+          },
+        },
+      }],
+    });
+
+    expect(invalid.health.status).toBe('failed');
+    expect(invalid.health.limitations).toContain('arena-official-source-authority-invalid');
+    expect(invalid.health.sources[0].arenaAuthority).toMatchObject({
+      officialSources: ['ArenaEvaluationRun'],
+      auxiliarySources: [],
+    });
+  });
+
   it('keeps Arena coverage limitations when adding auxiliary context warnings', () => {
     const refresh = runSarProjectionRefresh({
       now: '2026-07-02T08:00:00.000Z',
@@ -306,8 +340,8 @@ describe('SAR projection refresh orchestration', () => {
           readinessGapCounts: { demoRowsExcluded: 1 },
         }],
         arenaAuthority: {
-          scoreSource: 'ArenaEvaluationRun',
-          validitySource: 'ArenaEvaluationRun',
+          scoreSource: 'ArenaSubmission',
+          validitySource: 'ArenaSubmission',
           rankingSource: 'ArenaSubmission',
           attemptPolicySource: 'ArenaSubmission',
           evaluationMetricsSource: 'ArenaEvaluationRun',
@@ -347,8 +381,8 @@ function buildRefreshSourcesWithOfficialArena(now: string): ReturnType<typeof bu
       ? {
           ...source,
           arenaAuthority: {
-            scoreSource: 'ArenaEvaluationRun',
-            validitySource: 'ArenaEvaluationRun',
+            scoreSource: 'ArenaSubmission',
+            validitySource: 'ArenaSubmission',
             rankingSource: 'ArenaSubmission',
             attemptPolicySource: 'ArenaSubmission',
             evaluationMetricsSource: 'ArenaEvaluationRun',

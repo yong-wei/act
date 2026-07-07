@@ -4,7 +4,6 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
-import { UserMenu } from '@/components/shared/user-menu';
 import { cn } from '@/lib/utils';
 import {
   ADMIN_CONSOLE_SECTIONS,
@@ -71,7 +70,6 @@ export function AdminConsoleHeader({
 
             <div className="flex flex-wrap items-center gap-3">
               {actions}
-              <UserMenu user={currentUser} variant="admin" />
             </div>
           </div>
 

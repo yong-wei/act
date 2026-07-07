@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { AdaptiveAssessmentCatalogSelectionError } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import type { AdaptiveQuestionScope } from '@/features/assessment/adaptive-engine';
 import { selectNextQuestionWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
 import { getServerAuthSession } from '@/lib/auth';
@@ -38,6 +39,16 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof AdaptiveAssessmentCatalogSelectionError) {
+      return NextResponse.json(
+        {
+          error: 'assessment_catalog_coverage_limited',
+          message: error.message,
+          limitation: error.limitation,
+        },
+        { status: 409 },
+      );
+    }
     return NextResponse.json(
       {
         error: '获取下一题失败',
@@ -93,7 +104,7 @@ async function readVerifiedPathContext(
   }
   return {
     goalId: path.goalId,
-    questionScope: pathNode.type === 'checkpoint' ? 'checkpoint' : 'readiness',
+    questionScope: inferPathAssessmentScope(pathNode),
   };
 }
 
@@ -101,6 +112,54 @@ function isPathAssessmentNode(
   pathNode: Record<string, unknown> | null,
 ): pathNode is Record<string, unknown> & { type: 'adaptive_quiz' | 'checkpoint' } {
   return pathNode?.type === 'adaptive_quiz' || pathNode?.type === 'checkpoint';
+}
+
+function inferPathAssessmentScope(
+  pathNode: Record<string, unknown> & { type: 'adaptive_quiz' | 'checkpoint' },
+): AdaptiveQuestionScope {
+  const checkpoint = readRecord(pathNode.checkpoint);
+  const explicitStage = readAssessmentStage(pathNode.assessmentStage) ??
+    readAssessmentStage(pathNode.stagePurpose) ??
+    readAssessmentStage(checkpoint.assessmentPurpose) ??
+    readAssessmentStage(checkpoint.remediationBehavior) ??
+    readAssessmentStage(pathNode.nodeId) ??
+    readAssessmentStage(pathNode.id) ??
+    readAssessmentStage(pathNode.displayName) ??
+    readAssessmentStage(pathNode.title);
+  if (explicitStage) return explicitStage;
+  return pathNode.type === 'checkpoint' ? 'checkpoint' : 'readiness';
+}
+
+function readAssessmentStage(value: unknown): Extract<AdaptiveQuestionScope, 'readiness' | 'checkpoint' | 'remediation'> | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return null;
+  if (
+    normalized.includes('remediation') ||
+    normalized.includes('remedial') ||
+    normalized.includes('补救') ||
+    normalized.includes('修复') ||
+    normalized.includes('薄弱')
+  ) {
+    return 'remediation';
+  }
+  if (
+    normalized.includes('checkpoint') ||
+    normalized.includes('检查点') ||
+    normalized.includes('阶段检查')
+  ) {
+    return 'checkpoint';
+  }
+  if (
+    normalized.includes('readiness') ||
+    normalized.includes('readiness-gate') ||
+    normalized.includes('precheck') ||
+    normalized.includes('预检') ||
+    normalized.includes('准备')
+  ) {
+    return 'readiness';
+  }
+  return null;
 }
 
 function readStandaloneGoalId(body: NextQuestionRequest): string | null {

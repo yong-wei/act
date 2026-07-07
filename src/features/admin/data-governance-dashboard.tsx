@@ -127,6 +127,20 @@ export function SarDiagnosticsPanel({
     ['Adopted refs', report.comparison.adoptedRefCount.toLocaleString()],
     ['Rejected refs', report.comparison.rejectedRefCount.toLocaleString()],
   ];
+  const liveEvaluation = report.liveEvaluation;
+  const liveEvaluationCards = liveEvaluation ? [
+    ['Baseline refs', liveEvaluation.metrics.ordinaryRetrievalBaselineRefCount.toLocaleString()],
+    ['SAR candidates', liveEvaluation.metrics.sarCandidateRefCount.toLocaleString()],
+    [
+      'Verified citation rate',
+      liveEvaluation.metrics.verifiedCitationEvidenceStatus === 'unavailable'
+        ? 'Unavailable'
+        : formatDiagnosticRate(liveEvaluation.metrics.verifiedCitationRate),
+    ],
+    ['Multi-hop hit rate', formatDiagnosticRate(liveEvaluation.metrics.multiHopHitRate)],
+    ['Feedback records', liveEvaluation.metrics.feedbackRecordCount.toLocaleString()],
+    ['Privacy rejections', liveEvaluation.metrics.privacyRejectionCount.toLocaleString()],
+  ] : [];
 
   return (
     <section
@@ -177,6 +191,62 @@ export function SarDiagnosticsPanel({
           </div>
         ))}
       </div>
+
+      {liveEvaluation ? (
+        <div
+          className="admin-console-surface-soft space-y-4"
+          data-admin-sar-live-evaluation={liveEvaluation.arenaOfficialAuthority.status}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <span className="admin-console-kicker">SAR live evaluation</span>
+              <h3 className="admin-console-title mt-2 text-base font-semibold">
+                {liveEvaluation.metrics.queryCount.toLocaleString()} 个代表查询 · Arena {liveEvaluation.arenaOfficialAuthority.status}
+              </h3>
+            </div>
+            <span className="admin-console-chip">
+              {liveEvaluation.privacyBoundary.restrictedRawContentExcluded ? 'restricted raw content excluded' : 'privacy boundary missing'}
+            </span>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+            {liveEvaluationCards.map(([label, value]) => (
+              <div key={label}>
+                <div className="admin-console-muted text-sm">{label}</div>
+                <div className="admin-console-title mt-1 text-lg font-semibold">{value}</div>
+              </div>
+            ))}
+          </div>
+          <div className="grid gap-4 text-sm lg:grid-cols-2">
+            <div>
+              <div className="admin-console-muted">Official Arena sources</div>
+              <div className="admin-console-title mt-1">
+                {liveEvaluation.arenaOfficialAuthority.officialSources.length
+                  ? liveEvaluation.arenaOfficialAuthority.officialSources.join(' · ')
+                  : 'missing'}
+              </div>
+              <div className="admin-console-muted mt-2">
+                Auxiliary context: {liveEvaluation.arenaOfficialAuthority.auxiliarySources.join(' · ') || 'none'}
+              </div>
+            </div>
+            <div>
+              <div className="admin-console-muted">Evaluation records</div>
+              <div className="mt-1 space-y-1">
+                {liveEvaluation.evaluationRecords.slice(0, 2).map((record) => (
+                  <div key={record.id} className="admin-console-title">
+                    {record.actorRole} · {sanitizeVisibleDiagnosticText(record.task)} · {sanitizeVisibleDiagnosticText(record.observedResult)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {liveEvaluation.limitations.length > 0 ? (
+            <div className="text-sm">
+              <span className="admin-console-muted">限制：</span>
+              {liveEvaluation.limitations.slice(0, 4).map((limitation) => sanitizeVisibleDiagnosticText(limitation)).join(' · ')}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {refreshHealth ? (
         <div

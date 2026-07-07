@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
+import { REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 import { PRESET_QUESTIONS } from '@/features/assessment/adaptive-question-bank';
 import {
   buildKaqQuizFoundationArtifacts,
@@ -22,7 +23,7 @@ async function main() {
   const baselineMatrix = await readBaselineMatrix();
   const artifacts = buildKaqQuizFoundationArtifacts({
     baselineMatrix,
-    questions: PRESET_QUESTIONS,
+    questions: [...PRESET_QUESTIONS, ...REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS],
   });
 
   await fs.mkdir(OUTPUT_DIR, { recursive: true });

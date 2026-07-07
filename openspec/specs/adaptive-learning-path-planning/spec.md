@@ -403,11 +403,11 @@ Adaptive path generation SHALL use PlanningUnit projections as executable learni
 - **THEN** the implementation SHALL preserve the path launch context, selected option adoption, latest path recovery, and completion writeback contracts owned by active path changes.
 
 ### Requirement: LearningGoal baseline resource coverage constrains graph-driven planning
-The adaptive path planner SHALL use human-confirmed baseline resource coverage before treating an in-scope path-ready LearningGoal as production-generatable.
+The adaptive path planner SHALL use review-confirmed baseline resource coverage before treating an in-scope path-ready LearningGoal as production-generatable.
 
 #### Scenario: Baseline-covered LearningGoal is requested
 - **WHEN** a student requests a graph-driven path for an in-scope path-ready LearningGoal with baseline resource coverage
-- **THEN** the planner SHALL select only human-confirmed, audited ResourceNodes or checkpoint contracts
+- **THEN** the planner SHALL select only review-confirmed, audited ResourceNodes or checkpoint contracts
 - **AND** the path SHALL include concept support, diagnostic or evidence gathering, practice, checkpoint, and remediation or reflection where the LearningGoal policy requires them.
 
 #### Scenario: LearningGoal baseline is incomplete
@@ -455,3 +455,79 @@ The adaptive path planner SHALL expose how SAR-associated candidates affected pa
 - **WHEN** path planning receives SAR candidate refs and trace metadata
 - **THEN** the resulting path explanation SHALL include seed entities, candidate resource ids, selected candidate ids, rejected candidate ids, and rejection reasons
 - **AND** the path SHALL remain valid when SAR is disabled or unavailable.
+
+### Requirement: Planner can select completed core resource types
+The adaptive path planner SHALL be able to select reviewed core teaching resources for registered LearningGoals when those resources pass ResourceNode audit.
+
+#### Scenario: Registered LearningGoal has reviewed core resources
+- **WHEN** a student requests a path for a registered LearningGoal whose core resources have reviewed path readiness
+- **THEN** the planner SHALL consider interactive lessons, knowledge cards, quizzes, simulations, exercises, and other reviewed core resource types according to goal policy and learner state
+- **AND** it SHALL expose selected and rejected resource reasons without relying on hard-coded goal names.
+
+### Requirement: Planner can select reviewed long-form sections
+The adaptive path planner SHALL consider reviewed textbook and reference sections as path resources when they satisfy LearningGoal policy and ResourceNode audit.
+
+#### Scenario: Long-form section matches a LearningGoal
+- **WHEN** a reviewed textbook or reference section covers a requested LearningGoal and passes path readiness
+- **THEN** the planner MAY select it as a learning resource, remediation resource, enrichment resource, or prerequisite repair resource according to its reviewed path role
+- **AND** it SHALL use lower-level chunks only as citation and rationale support unless they are separately reviewed as PathNodes.
+
+### Requirement: Path planning respects LearningGoal assessment coverage completeness
+The adaptive path planner SHALL consume LearningGoal assessment coverage state before treating a path as fully personalized, checkpoint-backed, or high-confidence.
+
+#### Scenario: Complete assessment coverage exists
+- **WHEN** a learner requests a path for a LearningGoal with complete reviewed assessment item coverage
+- **THEN** the planner MAY include precheck, practice, checkpoint, readiness, and remediation assessment nodes according to policy
+- **AND** the generated path SHALL cite the coverage matrix version used for those assessment nodes.
+
+#### Scenario: Assessment coverage is incomplete
+- **WHEN** a learner requests a path for a LearningGoal whose reviewed item coverage is incomplete
+- **THEN** the planner SHALL expose a coverage limitation or block high-confidence personalization according to policy
+- **AND** it SHALL NOT fabricate checkpoint coverage from generated, template, unreviewed, or deprecated items.
+
+### Requirement: Path assessment nodes consume catalog-backed outcome refs
+Adaptive path execution SHALL bind assessment node completion to catalog-backed outcome refs when the node is used for readiness, checkpoint, remediation, or terminal-validation support.
+
+#### Scenario: Assessment node completes
+- **WHEN** a path-owned adaptive assessment node is completed
+- **THEN** its execution record SHALL include selected catalog item refs, assessment stage, reviewed coverage matrix version, score summary, ability or mastery effect, weak target summary, and evidence authority
+- **AND** downstream node readiness SHALL use those typed outcome refs instead of free-form quiz labels.
+
+#### Scenario: Provisional answer exists
+- **WHEN** a provisional or generated low-stakes answer exists in the learner history
+- **THEN** the planner MAY use it as limited practice context
+- **AND** it SHALL NOT treat it as satisfying readiness, checkpoint, heavy-node unlock, or terminal-validation requirements.
+
+### Requirement: Planner respects evidence-lineage readiness
+The adaptive path planner SHALL distinguish selectable learning resources from resources whose evidence effects are blocked by incomplete lineage.
+
+#### Scenario: Resource lacks evidence lineage
+- **WHEN** a resource is otherwise relevant but lacks required evidence-lineage behavior for its planned role
+- **THEN** the planner SHALL either select it only as non-mastery learning content with a limitation or reject it for evidence-producing roles
+- **AND** it SHALL expose the limitation in authorized diagnostics.
+
+### Requirement: All registered LearningGoals have path-generation diagnostics
+The adaptive path planner SHALL expose diagnostics proving every backend-registered LearningGoal can generate paths from governed resources or report a narrowly explained resource gap.
+
+#### Scenario: All-goal path diagnostic runs
+- **WHEN** the all-goal path diagnostic runs
+- **THEN** it SHALL enumerate LearningGoals from the backend registry rather than hard-coded frontend names
+- **AND** it SHALL attempt path generation for every registered goal using audited ResourceNodes, checkpoint nodes, and reviewed resource policies.
+
+#### Scenario: Goal has sufficient governed resources
+- **WHEN** a LearningGoal has multiple reviewed resources across compatible resource families
+- **THEN** generated paths SHALL include a meaningful governed resource mix according to policy
+- **AND** they SHALL NOT collapse to a single-resource fallback or cosmetic variants.
+
+#### Scenario: Goal lacks resources after full audit
+- **WHEN** a LearningGoal still lacks sufficient path resources after all resources are classified
+- **THEN** diagnostics SHALL report the exact missing graph, resource, evidence, citation, or policy dimension
+- **AND** the student-facing path surface SHALL receive an actionable low-resource state rather than a permission-style failure.
+
+### Requirement: Path explanations cite governed selected and supporting resources
+Generated path explanations and Konling path advice SHALL cite governed resources used by the planner.
+
+#### Scenario: Path explanation includes resource evidence
+- **WHEN** a path option is generated from selected ResourceNodes and supporting citations
+- **THEN** its explanation payload SHALL include verified or limitation-marked citation refs for selected and supporting resources
+- **AND** citation links SHALL resolve through server-owned citation metadata.

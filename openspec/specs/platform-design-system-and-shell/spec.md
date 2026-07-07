@@ -412,3 +412,234 @@ The platform route archetypes SHALL share the compact spacing model unless an ar
 - **WHEN** desktop navigation switches between expanded, collapsed, or hidden states
 - **THEN** the content edge MAY move by the navigation rail width
 - **AND** it SHALL NOT move because the content frame is centered inside a maximum-width container.
+
+### Requirement: Personal Center dispatch page consolidates learner record modules
+The Personal Center route SHALL consolidate student dashboard and profile semantics into one AppShell-backed dispatch page.
+
+#### Scenario: Personal Center renders
+- **WHEN** an authenticated student opens the canonical Personal Center
+- **THEN** the first viewport SHALL identify the current learner record, next action, evidence status, and key module routes without duplicating dashboard and profile hero sections
+- **AND** the page SHALL include access to competency profile, learning statistics, recent activity, personalized reinforcement, evidence review, Arena summary where available, and class join or class binding actions.
+
+#### Scenario: Learner data is incomplete
+- **WHEN** profile, activity, Arena, or adaptive data is missing
+- **THEN** the page SHALL show honest empty or limited states and preserve primary next actions
+- **AND** it SHALL NOT hide the Personal Center behind a generic loading or disconnected profile page.
+
+### Requirement: Bottom-right assistant entry opens Konling directly
+The platform shell SHALL treat the bottom-right assistant affordance as a direct Konling launcher when Konling is available.
+
+#### Scenario: Konling is available
+- **WHEN** a primary route registers Konling as the floating assistant control
+- **THEN** the visible bottom-right button SHALL open Konling directly
+- **AND** it SHALL NOT require the user to open a generic “工具” menu first.
+
+#### Scenario: Theme switching is available
+- **WHEN** a route supports theme switching
+- **THEN** theme switching SHALL be exposed through the top-right shell action area or homepage account/action area
+- **AND** theme switching SHALL NOT be injected as a bottom-right floating menu item.
+
+#### Scenario: Other local controls exist
+- **WHEN** management, support, settings, or route-local controls are needed
+- **THEN** they SHALL use AppShell action slots, local toolbars, or an approved secondary control pattern
+- **AND** they SHALL NOT make the primary Konling launcher ambiguous.
+
+### Requirement: Direct Konling launcher preserves safe-area behavior
+The direct Konling launcher SHALL preserve dock safe-area, focus, z-index, and route-context behavior.
+
+#### Scenario: Konling opens over a dense workspace
+- **WHEN** Konling opens on knowledge graph, adaptive learning, Arena, simulation, interactive learning, or Control Workbench routes
+- **THEN** the launcher and opened panel SHALL not overlap primary local controls, graph inspectors, forms, charts, or mobile navigation
+- **AND** route-level context registration SHALL remain available to the Konling runtime.
+
+### Requirement: Role workspaces use the unified AppShell navigation frame
+Teacher and administrator primary workspaces SHALL use AppShell or registered AppShell-compatible wrappers for first-level shell navigation.
+
+#### Scenario: Teacher workspace renders
+- **WHEN** a teacher primary route renders
+- **THEN** it SHALL expose the same first-level AppShell navigation frame, top-right account access, and theme switching conventions as other primary platform routes
+- **AND** teacher operation tabs SHALL render as secondary workflow navigation rather than competing first-level navigation.
+
+#### Scenario: Administrator workspace renders
+- **WHEN** an administrator primary route renders
+- **THEN** it SHALL expose the same first-level AppShell navigation frame, account access, and theme switching conventions
+- **AND** admin domain controls SHALL remain local or secondary to the admin workflow.
+
+#### Scenario: Role workspace cannot migrate immediately
+- **WHEN** a teacher or administrator route must keep a legacy layout during migration
+- **THEN** the route ledger or governance allowlist SHALL declare the affected route, owner, reason, violated shell rule, and removal condition
+- **AND** the exception SHALL NOT apply to newly introduced role workspace routes.
+
+### Requirement: Role workspaces expose role-aware Personal Center actions
+The platform shell SHALL expose a consistent top-right 个人中心/account action for student, teacher, and administrator roles without routing teachers or administrators into the student learner-record profile.
+
+#### Scenario: Student role action renders
+- **WHEN** a student route renders the top-right shell action area
+- **THEN** 个人中心 SHALL target `/profile`.
+
+#### Scenario: Teacher role action renders
+- **WHEN** a teacher route renders the top-right shell action area
+- **THEN** 个人中心 SHALL target a teacher account or operations-center destination registered for the teacher role
+- **AND** it SHALL NOT route to the student learner-record profile unless that route has an explicit teacher-safe mode.
+
+#### Scenario: Administrator role action renders
+- **WHEN** an administrator route renders the top-right shell action area
+- **THEN** 个人中心 SHALL target an administrator account or operations-center destination registered for the administrator role
+- **AND** it SHALL NOT route to the student learner-record profile unless that route has an explicit administrator-safe mode.
+
+### Requirement: Non-home application routes use the universal AppShell frame
+Every non-home application route SHALL render through the universal AppShell frame or an explicitly registered AppShell-compatible wrapper.
+
+#### Scenario: A normal application route renders
+- **WHEN** any non-home route under `src/app/**/page.tsx` renders as a product, learning, classroom, simulation, teacher, administrator, AI, or account surface
+- **THEN** the route SHALL expose the shared AppShell top bar and first-level navigation frame
+- **AND** it SHALL NOT define a competing page-local first-level header or static sidebar.
+
+#### Scenario: A route cannot use the normal shell
+- **WHEN** a route is auth-only, print-only, visual-review-only, embed-only, or otherwise intentionally shell-free
+- **THEN** the route SHALL be listed in a governed exception inventory with owner, reason, violated shell rule, and removal condition
+- **AND** unclassified routes SHALL fail static governance tests.
+
+### Requirement: Canonical primary navigation is consistent across routes
+The platform SHALL use the same primary navigation order across all AppShell-backed non-home routes.
+
+#### Scenario: Desktop navigation renders
+- **WHEN** a non-home AppShell route renders on a desktop viewport
+- **THEN** the left navigation SHALL use the canonical order: 首页, 知识资源, 互动学习, 学习路径, 竞技场, 虚拟仿真, 控制工作台, 个人中心
+- **AND** ordinary product routes SHALL use the collapsible left rail unless the exception inventory explicitly permits another behavior.
+
+#### Scenario: A nested route renders
+- **WHEN** a second-level or deeper product route renders
+- **THEN** it SHALL keep the same first-level navigation rail and active top-level destination as its parent product area
+- **AND** local workflow navigation SHALL render only inside content, workspace slots, or route-local toolbars.
+
+### Requirement: AppShell top-right actions have one fixed order
+The AppShell header SHALL own account and theme actions consistently.
+
+#### Scenario: Header actions render
+- **WHEN** any non-exempt non-home route renders
+- **THEN** the top-right action area SHALL render exactly the shell-owned theme switch first and the role-aware Personal Center action second
+- **AND** route-local controls, assistant controls, return links, path management, filters, exports, and settings SHALL NOT appear inside that shell action pair.
+
+#### Scenario: A route has local management commands
+- **WHEN** a route needs commands such as path management, return to exploration, settings, export, or local filters
+- **THEN** those commands SHALL render in page content, a workspace toolbar, or an approved local command area
+- **AND** they SHALL NOT replace or reorder the shell-level theme switch and Personal Center actions.
+
+### Requirement: AppShell-compatible wrappers are governed
+Routes SHALL count as AppShell-covered through a wrapper only when that wrapper is registered and passes the shared shell DOM contract.
+
+#### Scenario: Wrapper coverage is evaluated
+- **WHEN** a route is covered by a wrapper rather than direct `AppShell` usage
+- **THEN** the wrapper SHALL be listed in the governed wrapper registry with owned route families and contract tests
+- **AND** the wrapper SHALL verify canonical navigation, breadcrumb rendering, and the fixed theme-switch-then-Personal-Center action pair.
+
+### Requirement: Non-home AppShell routes expose breadcrumbs
+Every non-home AppShell route SHALL expose a breadcrumb trail through the shared top bar.
+
+#### Scenario: A route has a parent product area
+- **WHEN** the route is under a product area or workflow
+- **THEN** its AppShell header SHALL include breadcrumbs that identify the parent area and current page
+- **AND** the route SHALL NOT rely on isolated back buttons as the only orientation mechanism.
+
+### Requirement: Primary product modules share one AppShell chrome
+Primary product entry routes SHALL use the same AppShell navigation rail, top bar, breadcrumb convention, and account/theme action placement.
+
+#### Scenario: Primary product route renders
+- **WHEN** `/knowledge`, `/interactive-learning`, `/assessment/adaptive-practice`, `/arena`, `/simulations`, `/interactive-learning/control-workbench`, or `/profile` renders
+- **THEN** the route SHALL render the canonical collapsible left navigation rail
+- **AND** the route SHALL render top-right actions as exactly the shell-owned theme switch followed by the role-aware Personal Center action.
+
+#### Scenario: Knowledge Graph renders
+- **WHEN** the Knowledge Graph route renders
+- **THEN** the top bar SHALL include a breadcrumb trail that orients the user inside the platform
+- **AND** the graph canvas SHALL NOT replace shell breadcrumbs with canvas-local controls.
+
+#### Scenario: Learning Path renders
+- **WHEN** the Learning Path surface renders through `/assessment/adaptive-practice`
+- **THEN** path management commands SHALL render as local page commands
+- **AND** they SHALL NOT occupy the shell account/theme action area.
+
+#### Scenario: Control Workbench renders
+- **WHEN** the Control Workbench renders
+- **THEN** return-to-exploration or return-to-challenge actions SHALL be expressed through breadcrumbs, contextual return, or local command bars
+- **AND** they SHALL NOT appear in the shell top-right account/theme action pair.
+
+#### Scenario: Arena and Virtual Simulation render
+- **WHEN** Arena or Virtual Simulation routes render
+- **THEN** Personal Center SHALL appear after the theme switch with the same style as other primary routes
+- **AND** page-specific controls SHALL not reorder or restyle that pair.
+
+#### Scenario: Primary route responsive states are checked
+- **WHEN** primary routes are visually validated
+- **THEN** validation SHALL cover 1440, 1280, 1024, 768, 390, and 320 viewport widths
+- **AND** it SHALL verify rail collapse/expand, mobile drawer open/closed, breadcrumb truncation, right-action wrapping, no overlap, and no horizontal overflow.
+
+### Requirement: Deep product routes preserve the universal shell
+Second-level and deeper product routes SHALL keep the universal AppShell frame unless they are listed in the governed exception inventory.
+
+#### Scenario: Course or lesson route renders
+- **WHEN** a course entry, student lesson runtime, teacher lesson runtime, or waiting route renders
+- **THEN** it SHALL keep the canonical left navigation rail and shared top bar unless the specific runtime page is listed in the governed exception inventory
+- **AND** lesson controls SHALL render as local tools or workspace slots rather than replacing the shell frame.
+
+#### Scenario: Classroom route renders
+- **WHEN** a classroom join, student session, teacher session, or classroom review route renders
+- **THEN** it SHALL expose the shared top bar, breadcrumbs, and canonical first-level navigation unless the live runtime route is listed in the governed exception inventory
+- **AND** teaching controls SHALL remain local to the classroom workflow.
+
+#### Scenario: AI, playlist, teacher, administrator, or legacy route renders
+- **WHEN** an AI assistant, playlist, dashboard, missions, teacher, administrator, data-center, graph-center, or legacy learning route renders
+- **THEN** it SHALL use the universal shell or an AppShell-compatible wrapper
+- **AND** its active navigation state SHALL resolve to the correct first-level product area.
+
+#### Scenario: Role route renders
+- **WHEN** a teacher or administrator route renders
+- **THEN** it SHALL keep the same shell top bar and canonical left navigation behavior
+- **AND** its Personal Center action SHALL target the role-safe account or operations destination rather than the student learner profile unless an explicit teacher-safe or administrator-safe profile mode exists.
+
+#### Scenario: Immersive workflow needs more space
+- **WHEN** a deep route needs an immersive layout for teaching, simulation, or review
+- **THEN** it MAY use AppShell workspace slots, hidden local panels, or responsive density controls
+- **AND** it SHALL NOT remove first-level orientation unless the route is in the governed exception inventory.
+
+#### Scenario: Deep route wrapper is evaluated
+- **WHEN** a deep route is covered by `InteractiveLearningShell`, `CourseEntryShell`, `LessonRuntimeShell`, `ArenaPageShell`, a simulation shell, classroom shell, teacher shell, or administrator shell
+- **THEN** that wrapper SHALL be registered and tested against the shared AppShell DOM contract
+- **AND** route-local commands SHALL render in the wrapper's local command region rather than in the shell account/theme action pair.
+
+### Requirement: AppShell route coverage is governed by tests
+The platform SHALL include automated governance that detects non-home routes without universal shell coverage.
+
+#### Scenario: Route source coverage is checked
+- **WHEN** the shell governance test scans `src/app/**/page.tsx`
+- **THEN** every non-home application route SHALL be classified as direct AppShell-covered, covered through a registered AppShell-compatible wrapper, or explicitly exempt
+- **AND** unclassified routes SHALL fail the test.
+
+#### Scenario: Exception inventory is checked
+- **WHEN** a route is exempt from the universal shell frame
+- **THEN** the exception record SHALL include route pattern, category, owner, reason, violated shell rule, and removal condition
+- **AND** ordinary product, lesson, classroom, AI, graph, path, simulation, profile, teacher, or administrator pages SHALL NOT be exempt without a temporary blocker.
+
+### Requirement: AppShell visual and DOM consistency is verified
+The platform SHALL verify visible shell consistency on representative routes.
+
+#### Scenario: Representative route matrix is tested
+- **WHEN** primary and deep route representatives are loaded in browser validation
+- **THEN** the tests SHALL verify canonical left navigation order, breadcrumb presence, and the exact top-right action order of theme switch followed by role-aware Personal Center
+- **AND** screenshots SHALL demonstrate the same shell style across 1440, 1280, 1024, 768, 390, and 320 viewport widths.
+
+#### Scenario: Wrapper registry is checked
+- **WHEN** a route is classified through an AppShell-compatible wrapper
+- **THEN** the wrapper SHALL be present in the governed wrapper registry and have passing DOM contract tests
+- **AND** the route SHALL NOT count as covered merely because the wrapper name imports `AppShell`.
+
+#### Scenario: Role-aware account targets are checked
+- **WHEN** teacher or administrator routes are validated
+- **THEN** the Personal Center action target SHALL be asserted as role-safe
+- **AND** it SHALL NOT point to the student learner profile unless an explicit teacher-safe or administrator-safe profile mode exists.
+
+#### Scenario: New routes are added
+- **WHEN** a new route is added under `src/app/**/page.tsx`
+- **THEN** it SHALL fail governance until it uses the universal shell or adds an approved exception record
+- **AND** adding a route-local topbar or static sidebar SHALL NOT satisfy the shell contract.

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES,
   PLATFORM_ENTRYPOINT_SMOKE_ROUTES,
-  STUDENT_LEARNING_INTENT_GROUPS,
+  getStudentLearningIntentNavigationGroups,
 } from '@/lib/platform-role-navigation';
 
 const rootDir = path.resolve(__dirname, '../../..');
@@ -42,16 +42,69 @@ describe('platform entrypoint smoke contracts', () => {
 
   it('migrates homepage to shared student entries and a 320px mobile menu', () => {
     const source = readSource('src/app/page.tsx');
+    const homepageEntryLabels = getStudentLearningIntentNavigationGroups()
+      .flatMap((group) => group.entries)
+      .map((entry) => entry.label);
 
     expect(source).toContain('getStudentLearningIntentNavigationGroups');
-    expect(source).toContain('getCommercialStudentEntryIntentGroups');
     expect(source).toContain('resolveCommercialEntryHref');
     expect(source).toContain('showMobileNavigation');
     expect(source).toContain('aria-label={');
     expect(source).toContain('打开平台入口菜单');
     expect(source).toContain('aria-label="移动平台入口菜单"');
-    expect(source).toContain('md:hidden');
+    expect(source).toContain('lg:hidden');
+    expect(source).toContain('PlatformBrandLockup');
+    expect(source).toContain('data-homepage-theme-switch');
+    expect(source).toContain('data-entry-secondary-action="account-profile"');
+    expect(source).toContain('homepageStudentEntries.map((entry)');
+    expect(source).not.toContain('进入驾驶舱');
+    expect(source).not.toContain('homepageEntryIntentGroups');
+    expect(source).not.toContain('intentGroup.entryIds.includes');
     expect(source).not.toContain('const moduleLinks = [');
+    expect(homepageEntryLabels).toEqual(['知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台']);
+    expect(homepageEntryLabels).not.toContain('个人中心');
+  });
+
+  it('keeps Deep Blue brand assets behind the shared lockup contract', () => {
+    const lockupSource = readSource('src/components/shared/platform-brand-lockup.tsx');
+    const layoutSource = readSource('src/app/layout.tsx');
+    const metadataPath = path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-meta.json');
+    const metadata = JSON.parse(readFileSync(metadataPath, 'utf8')) as {
+      brand?: string;
+      asset?: string;
+      darkAsset?: string;
+      sourceAsset?: string;
+      generator?: string;
+      modelFamily?: string;
+      owningChange?: string;
+      lightDarkTreatment?: { light?: string; dark?: string };
+      fallbackBehavior?: { textAlternative?: string; componentFallback?: string };
+    };
+
+    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo.png'))).toBe(true);
+    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-dark.png'))).toBe(true);
+    expect(existsSync(path.join(rootDir, 'public/assets/platform-brand/deepblue-smart-control-logo-source.png'))).toBe(true);
+    expect(lockupSource).toContain('DEEPBLUE_SMART_CONTROL_LOGO_PATH');
+    expect(lockupSource).toContain('DEEPBLUE_SMART_CONTROL_LOGO_DARK_PATH');
+    expect(lockupSource).toContain('data-platform-brand-dark-asset');
+    expect(lockupSource).toContain('data-platform-brand-lockup="deepblue-smart-control"');
+    expect(lockupSource).toContain('alt="深蓝智控"');
+    expect(lockupSource).toContain('基于学科垂类大模型的船舶智控教学平台');
+    expect(layoutSource).toContain("title: '深蓝智控'");
+    expect(layoutSource).not.toContain('AI-OBE船舶控制平台');
+    expect(metadata).toMatchObject({
+      brand: '深蓝智控',
+      asset: '/assets/platform-brand/deepblue-smart-control-logo.png',
+      darkAsset: '/assets/platform-brand/deepblue-smart-control-logo-dark.png',
+      sourceAsset: '/assets/platform-brand/deepblue-smart-control-logo-source.png',
+      generator: 'image2 via Codex image_gen',
+      modelFamily: 'image2',
+      owningChange: 'refresh-home-brand-and-account-entry',
+    });
+    expect(metadata.lightDarkTreatment?.light).toContain('light');
+    expect(metadata.lightDarkTreatment?.dark).toContain('dark');
+    expect(metadata.fallbackBehavior?.textAlternative).toBe('深蓝智控');
+    expect(metadata.fallbackBehavior?.componentFallback).toContain('visible Chinese platform description');
   });
 
   it('reuses one credential login form for page and embedded login', () => {
@@ -59,25 +112,28 @@ describe('platform entrypoint smoke contracts', () => {
     expect(readSource('src/components/shared/login-modal.tsx')).toContain('CredentialLoginForm');
   });
 
-  it('keeps dashboard and profile tied to shared navigation contracts', () => {
+  it('keeps dashboard compatibility and profile tied to shared navigation contracts', () => {
     const dashboardSource = readSource('src/app/(main)/dashboard/page.tsx');
     const profileSource = readSource('src/app/(main)/profile/page.tsx');
+    const profileApiSource = readSource('src/app/api/user/profile/route.ts');
 
-    expect(dashboardSource).toContain('getStudentLearningIntentNavigationGroups');
-    expect(dashboardSource).toContain('getCommercialStudentEntryIntentGroups');
-    expect(dashboardSource).toContain('resolveCommercialEntryHref');
-    expect(dashboardSource).toContain('account-profile');
-    expect(dashboardSource).toContain('/profile');
-    expect(dashboardSource).toContain('dashboardCommercialEntries');
-    expect(dashboardSource).toContain('intentGroup.entryIds.flatMap');
-    expect(dashboardSource).toContain('quickStartEntryIds.flatMap');
-    expect(dashboardSource).not.toContain('intentGroup.entryIds.includes(candidate.id)');
-    for (const entryId of STUDENT_LEARNING_INTENT_GROUPS.flatMap((group) => group.entryIds)) {
-      expect(dashboardSource).toContain(entryId);
-    }
+    expect(dashboardSource).toContain("redirect('/profile')");
+    expect(dashboardSource).toContain('getPlatformCockpitHref');
+    expect(dashboardSource).not.toContain('<AppShell');
     expect(profileSource).toContain('getPlatformCockpitHref');
     expect(profileSource).toContain('getCommercialStudentEntryIntentGroups');
     expect(profileSource).toContain('buildLoginRedirectForPath');
+    expect(profileSource).toContain('学习入口地图');
+    expect(profileSource).toContain('PersonalCenterEntryCard');
+    expect(profileSource).toContain('getPlatformRoleNavigation');
+    expect(profileSource).toContain('.flatMap((intent)');
+    expect(profileSource).toContain('intent.hrefs.map((href)');
+    expect(profileSource).toContain('studentEntryByHref.get(href)');
+    expect(profileSource).toContain("prefetch={href.startsWith('/simulations') ? false : undefined}");
+    expect(profileApiSource).toContain('ensureUserProfile');
+    expect(profileApiSource).toContain('initializeUserProgress');
+    expect(profileApiSource).toContain('await Promise.all([');
+    expect(profileApiSource.indexOf('ensureUserProfile(userId)')).toBeLessThan(profileApiSource.indexOf('prisma.studentProfile.findUnique'));
   });
 
   it('keeps login error states tied to the same callback destination contract', () => {
@@ -101,12 +157,15 @@ describe('platform entrypoint smoke contracts', () => {
       readSource('src/app/assessment/adaptive-practice/page.tsx'),
     ];
     const courseCatalogSource = readSource('src/app/interactive-learning/courses/page.tsx');
+    const arenaShellSource = readSource('src/features/arena/arena-page-shell.tsx');
 
     for (const source of routeSources) {
       expect(source).toContain('getCommercialStudentEntryIntentGroups');
       expect(source).toContain('data-commercial-student-entry-route');
       expect(source).toContain('data-commercial-entry-intent');
     }
+    expect(arenaShellSource).toContain("getPlatformRouteNavigation('/arena', 'student')");
+    expect(arenaShellSource).not.toContain('getStudentLearningIntentNavigationGroups().flatMap');
     expect(routeSources[2]).toContain('resolveControlCorrectionIntent');
     expect(routeSources[2]).toContain("routeIntent === 'contextual-recommendation'");
     expect(routeSources[2]).toContain('data-learner-record-surface={learnerDataShell.archetype}');

@@ -1,0 +1,79 @@
+{
+  "change": "migrate-role-workspaces-to-appshell-navigation",
+  "issue": 801,
+  "generatedAt": "2026-07-04",
+  "evidenceType": "source-contract",
+  "routes": [
+    {
+      "route": "/teacher",
+      "role": "teacher",
+      "shellEvidence": [
+        "src/app/teacher/layout.tsx uses RoleWorkspaceShell with workspaceRole=\"teacher\"",
+        "src/components/platform/role-workspace-shell.tsx delegates to AppShell with activeHref from usePathname",
+        "src/app/teacher/layout.tsx places TeacherOperationsNav in AppShell commandBar"
+      ],
+      "accountAndThemeEvidence": [
+        "RoleWorkspaceShell passes UserMenu through AppShell userMenu",
+        "AppShell AppHeader renders ThemeSwitcher in top-right actions",
+        "RoleWorkspaceShell maps teacher account action to /teacher"
+      ]
+    },
+    {
+      "route": "/teacher/grading-workbench",
+      "role": "teacher-or-admin",
+      "shellEvidence": [
+        "src/app/(teacher-report-ledger)/teacher/layout.tsx uses RoleWorkspaceShell",
+        "teacher users retain TeacherOperationsNav in commandBar",
+        "report delivery ledger context moves to AppShell contextHeader"
+      ],
+      "accountAndThemeEvidence": [
+        "teacher/admin role is mapped to RoleWorkspaceShell workspaceRole",
+        "AppShell AppHeader owns theme switching and account menu",
+        "teacher/admin account action resolves to the active role cockpit rather than student /profile"
+      ]
+    },
+    {
+      "route": "/admin",
+      "role": "admin",
+      "shellEvidence": [
+        "src/app/admin/layout.tsx wraps authenticated admin users in RoleWorkspaceShell",
+        "src/features/admin/admin-console-header.tsx no longer renders UserMenu",
+        "admin console sections remain as local secondary navigation"
+      ],
+      "accountAndThemeEvidence": [
+        "RoleWorkspaceShell passes admin UserMenu variant through AppShell",
+        "AppShell AppHeader owns theme switching",
+        "RoleWorkspaceShell maps admin account action to /admin"
+      ]
+    },
+    {
+      "route": "/admin/users",
+      "role": "admin",
+      "shellEvidence": [
+        "src/app/admin/layout.tsx covers administrator secondary pages",
+        "AdminConsoleHeader remains a page-local operation header without account menu duplication"
+      ],
+      "accountAndThemeEvidence": [
+        "admin account actions come from AppShell top-right userMenu"
+      ]
+    }
+  ],
+  "verification": [
+    "rtk npm run test:unit -- src/lib/__tests__/platform-ui-contracts.test.ts",
+    "rtk npm run lint",
+    "rtk openspec validate migrate-role-workspaces-to-appshell-navigation --strict",
+    "rtk git diff --check",
+    "rtk proxy npx playwright test tests/role-workspace-appshell-navigation-801.spec.ts",
+    "rtk npx tsc --noEmit --pretty false failed on existing unrelated type errors; filtered output for changed files was empty"
+  ],
+  "visualCapture": {
+    "status": "passed",
+    "routeCount": 4,
+    "viewportStates": [
+      "desktop-collapsed",
+      "desktop-expanded",
+      "mobile-320"
+    ],
+    "screenshotsManifest": "artifacts/commercial-ui/role-workspace-appshell-navigation-801/playwright/screenshots.json"
+  }
+}

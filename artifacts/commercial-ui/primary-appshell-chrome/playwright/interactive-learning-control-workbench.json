@@ -1,0 +1,19 @@
+{
+  "route": "/interactive-learning/control-workbench",
+  "widths": [
+    1440,
+    1280,
+    1024,
+    768,
+    390,
+    320
+  ],
+  "captured": [
+    "interactive-learning-control-workbench-1440.png",
+    "interactive-learning-control-workbench-1280.png",
+    "interactive-learning-control-workbench-1024.png",
+    "interactive-learning-control-workbench-768.png",
+    "interactive-learning-control-workbench-390.png",
+    "interactive-learning-control-workbench-320.png"
+  ]
+}

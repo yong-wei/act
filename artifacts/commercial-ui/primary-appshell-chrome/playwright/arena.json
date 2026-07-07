@@ -1,0 +1,19 @@
+{
+  "route": "/arena",
+  "widths": [
+    1440,
+    1280,
+    1024,
+    768,
+    390,
+    320
+  ],
+  "captured": [
+    "arena-1440.png",
+    "arena-1280.png",
+    "arena-1024.png",
+    "arena-768.png",
+    "arena-390.png",
+    "arena-320.png"
+  ]
+}

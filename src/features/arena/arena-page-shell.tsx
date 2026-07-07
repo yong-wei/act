@@ -1,11 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { User } from 'lucide-react';
 
 import { AppShell, type AppShellRouteMetadata } from '@/components/platform/app-shell';
-import { getStudentLearningIntentNavigationGroups } from '@/lib/platform-role-navigation';
+import { getPlatformRouteNavigation } from '@/lib/platform-role-navigation';
 
 interface ArenaBreadcrumb {
   label: string;
@@ -21,7 +19,7 @@ interface ArenaPageShellProps {
   children: ReactNode;
 }
 
-const projectEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries);
+const projectEntries = getPlatformRouteNavigation('/arena', 'student');
 
 const arenaRouteMetadata: AppShellRouteMetadata = {
   frame: 'mission-workspace',
@@ -56,15 +54,6 @@ export function ArenaPageShell({
       sidebarMode="collapsible"
       routeMetadata={arenaRouteMetadata}
       actions={actions}
-      userMenu={(
-        <Link
-          href="/profile"
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-platform-border bg-platform-surface px-3 text-sm font-medium text-platform-fg-primary transition hover:border-platform-border-strong hover:text-platform-action-primary"
-        >
-          <span className="hidden sm:inline">个人中心</span>
-          <User className="h-4 w-4" />
-        </Link>
-      )}
       className="min-h-screen"
     >
       <div

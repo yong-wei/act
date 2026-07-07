@@ -7,10 +7,11 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { UserMenu } from '@/components/shared/user-menu';
+import { AppShell } from '@/components/platform/app-shell';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
@@ -21,6 +22,7 @@ import {
   shouldRenderPortfolioFeedbackTask,
   type PortfolioFeedbackDraft,
 } from '@/lib/student-feedback-task-contract';
+import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 
 interface PortfolioData {
   // Representative works from classroom sessions
@@ -77,12 +79,13 @@ export default function PortfolioPage() {
   const [error, setError] = useState<string | null>(null);
   const reflectionIntent = searchParams.get('category') === 'reflection' ? searchParams.get('intent') : null;
   const reflectionTaskIntent = searchParams.get('taskIntent') ?? searchParams.get('intent') ?? undefined;
-  const reflectionDraft = reflectionIntent === 'create'
-    ? buildPortfolioReflectionDraft(searchParams.get('source') ?? 'portfolio', {
-      assignment: searchParams.get('assignment') ?? undefined,
-      intent: reflectionTaskIntent,
-    })
-    : null;
+  const reflectionDraft =
+    reflectionIntent === 'create'
+      ? buildPortfolioReflectionDraft(searchParams.get('source') ?? 'portfolio', {
+          assignment: searchParams.get('assignment') ?? undefined,
+          intent: reflectionTaskIntent,
+        })
+      : null;
   const feedbackQuery = {
     assignment: searchParams.get('assignment'),
     criterion: searchParams.get('criterion'),
@@ -98,9 +101,7 @@ export default function PortfolioPage() {
     ? buildFeedbackTaskContext(feedbackQuery)
     : null;
   const feedbackContext = useVerifiedFeedbackTaskContext(localFeedbackContext, searchParams);
-  const feedbackPortfolioDraft = feedbackContext
-    ? buildPortfolioFeedbackDraft(feedbackContext)
-    : null;
+  const feedbackPortfolioDraft = feedbackContext ? buildPortfolioFeedbackDraft(feedbackContext) : null;
   const hasLocalPortfolioTask = Boolean(reflectionDraft || feedbackPortfolioDraft);
   const [activeTab, setActiveTab] = useState<'works' | 'prompts' | 'simulations' | 'ethics' | 'reflections'>(
     hasLocalPortfolioTask ? 'reflections' : 'works',
@@ -133,9 +134,7 @@ export default function PortfolioPage() {
       if (promptResponse.ok) {
         const promptData = await promptResponse.json();
         if (promptData.prompts) {
-          mockData.promptDesigns = promptData.prompts
-            .filter((p: { score: number }) => p.score >= 70)
-            .slice(0, 5);
+          mockData.promptDesigns = promptData.prompts.filter((p: { score: number }) => p.score >= 70).slice(0, 5);
         }
       }
 
@@ -144,9 +143,7 @@ export default function PortfolioPage() {
       if (ethicsResponse.ok) {
         const ethicsData = await ethicsResponse.json();
         if (ethicsData.violations) {
-          mockData.ethicsCases = ethicsData.violations
-            .filter((v: { isResolved: boolean }) => v.isResolved)
-            .slice(0, 5);
+          mockData.ethicsCases = ethicsData.violations.filter((v: { isResolved: boolean }) => v.isResolved).slice(0, 5);
         }
       }
 
@@ -161,7 +158,7 @@ export default function PortfolioPage() {
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.id) {
       if (session.user.role !== 'STUDENT') {
-        router.replace('/dashboard');
+        router.replace(getPlatformCockpitHref(session.user.role));
         return;
       }
       void fetchPortfolio();
@@ -176,49 +173,57 @@ export default function PortfolioPage() {
 
   if (status === 'authenticated' && session?.user?.role !== 'STUDENT') {
     return (
-      <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
-          <p className="text-subtle">正在返回教师工作台...</p>
-        </div>
-      </div>
+      <PortfolioAppShell>
+        <section className="flex min-h-[40vh] items-center justify-center" data-commercial-workspace="learner-record">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+            <p className="text-subtle">正在返回教师工作台...</p>
+          </div>
+        </section>
+      </PortfolioAppShell>
     );
   }
 
   if (status === 'loading' || (loading && !hasLocalPortfolioTask)) {
     return (
-      <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
-          <p className="text-subtle">加载档案数据...</p>
-        </div>
-      </div>
+      <PortfolioAppShell>
+        <section className="flex min-h-[40vh] items-center justify-center" data-commercial-workspace="learner-record">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+            <p className="text-subtle">加载档案数据...</p>
+          </div>
+        </section>
+      </PortfolioAppShell>
     );
   }
 
   if (status === 'unauthenticated') {
     return (
-      <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">
-        <div className="text-center">
-          <p className="text-xl text-subtle">请先登录</p>
-          <Link href="/login" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
-            前往登录
-          </Link>
-        </div>
-      </div>
+      <PortfolioAppShell>
+        <section className="flex min-h-[40vh] items-center justify-center" data-commercial-workspace="learner-record">
+          <div className="text-center">
+            <p className="text-xl text-subtle">请先登录</p>
+            <Link href="/login" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
+              前往登录
+            </Link>
+          </div>
+        </section>
+      </PortfolioAppShell>
     );
   }
 
   if (error) {
     return (
-      <div className="surface-page flex items-center justify-center" data-commercial-workspace="learner-record">
-        <div className="text-center">
-          <p className="text-xl text-red-500">{error}</p>
-          <button type="button" onClick={fetchPortfolio} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
-            重试
-          </button>
-        </div>
-      </div>
+      <PortfolioAppShell>
+        <section className="flex min-h-[40vh] items-center justify-center" data-commercial-workspace="learner-record">
+          <div className="text-center">
+            <p className="text-xl text-red-500">{error}</p>
+            <button type="button" onClick={fetchPortfolio} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+              重试
+            </button>
+          </div>
+        </section>
+      </PortfolioAppShell>
     );
   }
 
@@ -231,43 +236,30 @@ export default function PortfolioPage() {
   ] as const;
 
   return (
-    <div
-      className="surface-page"
+    <PortfolioAppShell
       data-commercial-workspace="learner-record"
       data-ai-local-task-surface={reflectionDraft || feedbackPortfolioDraft ? 'portfolio-reflection' : undefined}
       data-ai-task-focus-mode={reflectionDraft || feedbackPortfolioDraft ? 'local-first' : undefined}
       data-task-workspace-archetype={reflectionDraft || feedbackPortfolioDraft ? 'ai-local-task' : undefined}
     >
-      {/* Header */}
-      <header className="surface-topbar px-6 py-4">
-        <div className="flex w-full items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/profile" className="text-subtle transition hover:text-foreground">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </Link>
-            <h1 className="text-xl font-bold text-foreground">我的学习档案</h1>
-          </div>
-          <UserMenu user={{ name: session?.user?.name, email: session?.user?.email, role: session?.user?.role }} />
-        </div>
-      </header>
-
-      <main className="px-6 pb-[calc(env(safe-area-inset-bottom,0px)+8rem)] pt-8 md:pb-8">
+      <section className="pb-[calc(env(safe-area-inset-bottom,0px)+8rem)] md:pb-8">
         <StudentFeedbackTaskPanel context={feedbackContext} surface="portfolio" className="mb-6" />
         {/* Introduction Card */}
         <div className="surface-card mb-8 bg-gradient-to-br from-card via-card to-violet-500/10 p-6">
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-violet-500/20 text-violet-500">
               <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
               </svg>
             </div>
             <div>
               <h2 className="text-xl font-bold text-foreground">学习成长档案</h2>
-              <p className="mt-1 text-subtle">
-                记录你的学习历程，展示优秀作品，见证成长轨迹
-              </p>
+              <p className="mt-1 text-subtle">记录你的学习历程，展示优秀作品，见证成长轨迹</p>
             </div>
           </div>
         </div>
@@ -275,13 +267,12 @@ export default function PortfolioPage() {
         {/* Tabs */}
         <div className="mb-6 flex flex-wrap gap-2">
           {tabs.map((tab) => (
-            <button type="button"
+            <button
+              type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition ${
-                activeTab === tab.id
-                  ? 'bg-amber-500 text-white'
-                  : 'surface-card-soft text-subtle hover:text-foreground'
+                activeTab === tab.id ? 'bg-amber-500 text-white' : 'surface-card-soft text-subtle hover:text-foreground'
               }`}
             >
               <span>{tab.icon}</span>
@@ -304,8 +295,28 @@ export default function PortfolioPage() {
             />
           )}
         </div>
-      </main>
-    </div>
+      </section>
+    </PortfolioAppShell>
+  );
+}
+
+function PortfolioAppShell({
+  children,
+  ...props
+}: {
+  children: ReactNode;
+  [key: `data-${string}`]: string | undefined;
+}) {
+  return (
+    <AppShell
+      viewerRole="student"
+      activeHref="/profile/portfolio"
+      title="我的学习档案"
+      subtitle="整理课堂作品、提示词、仿真设计和 AI 协作反思。"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心', href: '/profile' }, { label: '我的学习档案' }]}
+    >
+      <div {...props}>{children}</div>
+    </AppShell>
   );
 }
 
@@ -327,16 +338,10 @@ function ClassWorksTab({ works }: { works: PortfolioData['classWorks'] }) {
         <div key={work.id} className="surface-card-soft p-5">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <span className="rounded bg-blue-500/20 px-2 py-0.5 text-xs text-blue-500">
-                {work.type}
-              </span>
-              {work.sessionName && (
-                <span className="text-xs text-subtle">{work.sessionName}</span>
-              )}
+              <span className="rounded bg-blue-500/20 px-2 py-0.5 text-xs text-blue-500">{work.type}</span>
+              {work.sessionName && <span className="text-xs text-subtle">{work.sessionName}</span>}
             </div>
-            <span className="text-xs text-subtle">
-              {new Date(work.createdAt).toLocaleDateString('zh-CN')}
-            </span>
+            <span className="text-xs text-subtle">{new Date(work.createdAt).toLocaleDateString('zh-CN')}</span>
           </div>
           <h3 className="mt-3 font-medium text-foreground">{work.title}</h3>
           <p className="mt-2 line-clamp-3 text-sm text-subtle">{work.content}</p>
@@ -353,7 +358,10 @@ function PromptDesignsTab({ designs }: { designs: PortfolioData['promptDesigns']
         icon="💬"
         title="暂无高质量提示词"
         description="在提示词结构评估中获得70分以上，即可收录到你的档案"
-        action={{ label: '练习提示词设计', href: '/evaluation/prompt-assessment' }}
+        action={{
+          label: '练习提示词设计',
+          href: '/evaluation/prompt-assessment',
+        }}
       />
     );
   }
@@ -372,9 +380,7 @@ function PromptDesignsTab({ designs }: { designs: PortfolioData['promptDesigns']
                 <span className="text-sm text-subtle">分</span>
               </div>
             </div>
-            <span className="text-xs text-subtle">
-              {new Date(design.createdAt).toLocaleDateString('zh-CN')}
-            </span>
+            <span className="text-xs text-subtle">{new Date(design.createdAt).toLocaleDateString('zh-CN')}</span>
           </div>
           <div className="mt-4 rounded-lg bg-accent/50 p-4">
             <p className="text-sm text-foreground">{design.prompt}</p>
@@ -417,16 +423,18 @@ function SimulationDesignsTab({ designs }: { designs: PortfolioData['simulationD
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3">
-            {Object.entries(design.parameters || {}).slice(0, 4).map(([key, value]) => (
-              <div key={key} className="rounded bg-accent/50 px-3 py-2">
-                <p className="text-xs text-subtle">{key}</p>
-                <p className="font-mono text-sm text-foreground">{typeof value === 'number' ? value.toFixed(2) : value}</p>
-              </div>
-            ))}
+            {Object.entries(design.parameters || {})
+              .slice(0, 4)
+              .map(([key, value]) => (
+                <div key={key} className="rounded bg-accent/50 px-3 py-2">
+                  <p className="text-xs text-subtle">{key}</p>
+                  <p className="font-mono text-sm text-foreground">
+                    {typeof value === 'number' ? value.toFixed(2) : value}
+                  </p>
+                </div>
+              ))}
           </div>
-          <p className="mt-3 text-xs text-subtle">
-            {new Date(design.createdAt).toLocaleDateString('zh-CN')}
-          </p>
+          <p className="mt-3 text-xs text-subtle">{new Date(design.createdAt).toLocaleDateString('zh-CN')}</p>
         </div>
       ))}
     </div>
@@ -451,32 +459,33 @@ function EthicsCasesTab({ cases }: { cases: PortfolioData['ethicsCases'] }) {
         <div key={item.id} className="surface-card-soft border-l-4 border-green-500 p-5">
           <div className="flex items-start justify-between">
             <div>
-              <span className="rounded bg-green-500/20 px-2 py-0.5 text-xs text-green-500">
-                已整改
-              </span>
+              <span className="rounded bg-green-500/20 px-2 py-0.5 text-xs text-green-500">已整改</span>
               <h3 className="mt-2 font-medium text-foreground">
                 {item.violationType === 'EXCESSIVE_RUDDER_RATE'
                   ? '舵角速度违规'
                   : item.violationType === 'EXCESSIVE_ROLL_ANGLE'
-                  ? '横摇角违规'
-                  : item.violationType === 'COLLISION_RISK'
-                  ? '碰撞风险'
-                  : item.violationType === 'ENVIRONMENTAL_HAZARD'
-                  ? '环境危害'
-                  : item.violationType === 'SAFETY_VIOLATION'
-                  ? '安全违规'
-                  : '其他违规'}
+                    ? '横摇角违规'
+                    : item.violationType === 'COLLISION_RISK'
+                      ? '碰撞风险'
+                      : item.violationType === 'ENVIRONMENTAL_HAZARD'
+                        ? '环境危害'
+                        : item.violationType === 'SAFETY_VIOLATION'
+                          ? '安全违规'
+                          : '其他违规'}
               </h3>
             </div>
-            <span className="text-xs text-subtle">
-              {new Date(item.createdAt).toLocaleDateString('zh-CN')}
-            </span>
+            <span className="text-xs text-subtle">{new Date(item.createdAt).toLocaleDateString('zh-CN')}</span>
           </div>
           <p className="mt-2 text-sm text-subtle">{item.description}</p>
           {item.remediationAction && (
             <div className="mt-3 flex items-start gap-2 rounded bg-green-500/5 p-3">
               <svg className="mt-0.5 h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               <p className="text-sm text-foreground">{item.remediationAction}</p>
             </div>
@@ -511,9 +520,7 @@ function ReflectionsTab({
         <ActionStatusPanel state={state} />
         <div className="surface-card-soft p-5" data-student-feedback-task-surface="portfolio-candidate">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
-              {feedbackDraft.status}
-            </span>
+            <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">{feedbackDraft.status}</span>
             <span className="text-xs text-subtle">来源：{feedbackDraft.source ?? '报告反馈'}</span>
           </div>
           <h3 className="mt-3 font-medium text-foreground">{feedbackDraft.title}</h3>
@@ -551,7 +558,11 @@ function ReflectionsTab({
     return (
       <div className="space-y-4">
         <ActionStatusPanel state={state} />
-        <div className="surface-card-soft p-5" data-ai-task-boundary="portfolio-reflection-draft" data-task-workspace-zone="local-primary-input">
+        <div
+          className="surface-card-soft p-5"
+          data-ai-task-boundary="portfolio-reflection-draft"
+          data-task-workspace-zone="local-primary-input"
+        >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
               {draftDisposition === 'candidate' ? draft.status : draftDisposition}
@@ -561,7 +572,9 @@ function ReflectionsTab({
           <h3 className="mt-3 font-medium text-foreground">{draft.title}</h3>
           <p className="mt-2 text-sm text-subtle">{draft.detail}</p>
           <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-subtle">
-            任务：{draft.assignment ?? 'portfolio-reflection'} · 意图：{draft.intent} · 输出：{draft.outputTarget} · 晋升策略：{draft.promotionPolicy}
+            任务：{draft.assignment ?? 'portfolio-reflection'} · 意图：
+            {draft.intent} · 输出：{draft.outputTarget} · 晋升策略：
+            {draft.promotionPolicy}
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <button
@@ -572,13 +585,20 @@ function ReflectionsTab({
             >
               标记本页草稿
             </button>
-            <button type="button" onClick={() => setDraftDisposition('discarded')} className="btn-ghost-themed rounded px-4 py-2 text-sm">
+            <button
+              type="button"
+              onClick={() => setDraftDisposition('discarded')}
+              className="btn-ghost-themed rounded px-4 py-2 text-sm"
+            >
               丢弃候选
             </button>
             <Link href="/profile/portfolio?category=reflection" className="btn-ghost-themed rounded px-4 py-2 text-sm">
               返回反思页
             </Link>
-            <Link href="/ai/copilot?context=portfolio-reflection&source=portfolio" className="btn-ghost-themed rounded px-4 py-2 text-sm">
+            <Link
+              href="/ai/copilot?context=portfolio-reflection&source=portfolio"
+              className="btn-ghost-themed rounded px-4 py-2 text-sm"
+            >
               重新生成候选
             </Link>
           </div>
@@ -592,7 +612,10 @@ function ReflectionsTab({
         icon="🤔"
         title="暂无AI协作反思"
         description="记录你与AI助手的协作反思，持续优化使用策略"
-        action={{ label: '开始反思', href: '/ai/copilot?context=portfolio-reflection&source=portfolio' }}
+        action={{
+          label: '开始反思',
+          href: '/ai/copilot?context=portfolio-reflection&source=portfolio',
+        }}
       />
     );
   }
@@ -602,12 +625,8 @@ function ReflectionsTab({
       {reflections.map((reflection) => (
         <div key={reflection.id} className="surface-card-soft p-5">
           <div className="flex items-center justify-between">
-            <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
-              {reflection.category}
-            </span>
-            <span className="text-xs text-subtle">
-              {new Date(reflection.createdAt).toLocaleDateString('zh-CN')}
-            </span>
+            <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">{reflection.category}</span>
+            <span className="text-xs text-subtle">{new Date(reflection.createdAt).toLocaleDateString('zh-CN')}</span>
           </div>
           <p className="mt-3 text-foreground">{reflection.content}</p>
         </div>

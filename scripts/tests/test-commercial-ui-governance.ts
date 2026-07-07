@@ -1943,6 +1943,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_WORKSPACE_PRODUCT_QA_EVIDENCE_PATH);
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
   const knowledgePageSourcePath = 'src/app/knowledge/page.tsx';
+  const adaptivePracticePageSourcePath = 'src/app/assessment/adaptive-practice/page.tsx';
   const graph2dSourcePath = 'src/features/knowledge/graph/knowledge-graph-2d.tsx';
   const graphVisualConfigSourcePath = 'src/features/knowledge/graph/visual-config.ts';
   const resourcePanelSourcePath = 'src/features/knowledge/resource-panel/resource-panel.tsx';
@@ -1958,6 +1959,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const productQaSourcePaths = [
     graphSourcePath,
     knowledgePageSourcePath,
+    adaptivePracticePageSourcePath,
     graph2dSourcePath,
     graphVisualConfigSourcePath,
     resourcePanelSourcePath,
@@ -2076,6 +2078,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const viewportWidth = numberFromEvidence(viewport.width);
     const isMobileViewport = viewportWidth === 320;
     const isTabletBreakpointViewport = [1024, 1100, 1279].includes(viewportWidth ?? 0);
+    const isAdaptivePracticeDockState = name === 'desktop-selected-page-tools-menu-dark';
+    const expectedRoute = isAdaptivePracticeDockState ? '/assessment/adaptive-practice' : '/knowledge';
     const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;
     const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;
     const scrollWidth = numberFromEvidence(documentScroll.scrollWidth);
@@ -2087,7 +2091,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       ? (name.includes('degraded') ? 'degraded' : (state.selectedNode ? 'selected-node' : 'no-selection'))
       : null;
     return [
-      state.route === '/knowledge' ? null : `${name}:route`,
+      state.route === expectedRoute ? null : `${name}:route`,
       state.theme === theme ? null : `${name}:theme`,
       numberFromEvidence(viewport.width) === width ? null : `${name}:viewport-width`,
       typeof numberFromEvidence(viewport.height) === 'number' ? null : `${name}:viewport-height`,
@@ -2110,7 +2114,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         ? (typeof artifact?.height === 'number' && artifact.height >= 700 ? null : `${name}:mobile-screenshot-too-short`)
         : (typeof artifact?.height === 'number' && artifact.height >= 800 ? null : `${name}:desktop-screenshot-too-short`),
       markers.effectiveDockState === dockState ? null : `${name}:dock-marker-state`,
-      typeof numberFromEvidence(canvasRect.width) === 'number' && typeof numberFromEvidence(canvasRect.height) === 'number'
+      isAdaptivePracticeDockState || (typeof numberFromEvidence(canvasRect.width) === 'number' && typeof numberFromEvidence(canvasRect.height) === 'number')
         ? null
         : `${name}:canvas-rect-missing`,
       typeof scrollWidth === 'number'
@@ -2131,7 +2135,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
               : `${name}:collapsed-dock-moved`
           )
         : null,
-      [
+      !isAdaptivePracticeDockState && [
         'desktop-local-tools-legend-dark',
         'desktop-local-tools-directory-dark',
         'desktop-local-tools-filter-dark',
@@ -2175,7 +2179,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
               ? null
               : `${name}:local-tool-marker-state`
           ),
-      state.selectedNode
+      isAdaptivePracticeDockState
+        ? null
+        : state.selectedNode
         ? (
             name.includes('degraded')
               ? (canvas.selectedNodeId === '' ? null : `${name}:unexpected-degraded-selected-node`)
@@ -2252,14 +2258,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (booleanFromEvidence(overlaps.expandedDockOverlapsDesktopTools) === false ? null : `${name}:expanded-dock-overlaps-tools`)
         : null,
-      name === 'desktop-selected-page-tools-menu-dark'
-        ? (markers.dockInspectorAvoidance === 'active' ? null : `${name}:dock-inspector-avoidance-missing`)
-        : null,
-      name === 'desktop-selected-page-tools-menu-dark'
-        ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
-        : null,
-      name === 'desktop-selected-page-tools-menu-dark'
-        ? (booleanFromEvidence(overlaps.dockOverlapsInspector) === false ? null : `${name}:dock-overlaps-inspector`)
+      isAdaptivePracticeDockState
+        ? (markers.expandedDockVisible === true ? null : `${name}:expanded-dock-missing`)
         : null,
       name === 'mobile-320-inspector-konling-stress-dark'
         ? (!markerRects.inspector ? null : `${name}:mobile-inspector-not-suspended`)

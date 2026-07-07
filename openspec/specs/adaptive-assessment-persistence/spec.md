@@ -74,7 +74,7 @@ The system SHALL persist adaptive assessment sessions and answers instead of rel
 - **AND** historical answers SHALL continue to use the immutable metadata snapshot used at answer time.
 
 #### Scenario: Generated question is provisional
-- **WHEN** a generated question lacks human-reviewed K/A/Q and readiness metadata
+- **WHEN** a generated question lacks implementing-agent-reviewed K/A/Q and readiness metadata
 - **THEN** its answer MAY be persisted for practice history
 - **AND** it SHALL NOT unlock high-complexity resources, satisfy terminal validation, or create high-confidence mastery evidence.
 
@@ -90,3 +90,16 @@ The system SHALL materialize adaptive assessment outcomes into governed learning
 - **WHEN** a generated or under-reviewed quiz item is answered
 - **THEN** the persisted evidence SHALL carry provisional status and degraded confidence
 - **AND** it SHALL NOT update high-confidence mastery, unlock high-complexity resources, or satisfy terminal validation.
+
+### Requirement: Catalog-backed assessment selections persist immutable metadata snapshots
+Adaptive assessment persistence SHALL snapshot catalog-backed selection metadata at question selection or answer submission time.
+
+#### Scenario: Reviewed catalog item is selected
+- **WHEN** a reviewed path-eligible catalog item is selected for an adaptive session
+- **THEN** the item reference SHALL persist catalog item id, catalog version, source family, source id or file anchor, content hash, review state, eligibility state, LearningGoal ids, K/A/Q objective ids, graph-node refs, stage purpose, difficulty, cognitive level, misconception refs, remediation refs, and version refs
+- **AND** historical answers SHALL remain readable after catalog metadata changes.
+
+#### Scenario: Provisional item is selected for low-stakes practice
+- **WHEN** a generated or provisional item is selected under an allowed low-stakes policy
+- **THEN** the item reference SHALL persist provisional state and limited-confidence authority
+- **AND** subsequent evidence SHALL NOT unlock readiness, checkpoint, heavy-node, or terminal-validation gates.

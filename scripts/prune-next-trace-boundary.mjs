@@ -32,6 +32,8 @@ const blockedTraceFragments = [
 
 const allowedTraceEntries = new Set([
   'course-content/authoring/shared/lesson-id-map.json',
+  'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
+  'course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
 ]);
 
 const blockedTraceEntries = new Set([
@@ -74,6 +76,20 @@ const requiredSharedMap = path.join(
   'shared',
   'lesson-id-map.json',
 );
+const requiredRuntimeCatalogFiles = [
+  path.join(
+    'course-content',
+    'runtime',
+    'resource-governance',
+    'adaptive-assessment-item-catalog-items.jsonl',
+  ),
+  path.join(
+    'course-content',
+    'runtime',
+    'resource-governance',
+    'assessment-item-semantic-review-snapshots.jsonl',
+  ),
+];
 
 function walkFiles(dir, predicate, acc = []) {
   if (!fs.existsSync(dir)) return acc;
@@ -149,6 +165,14 @@ for (const relativePath of blockedStandaloneFiles) {
     fs.rmSync(absolutePath, { force: true });
     removedStandaloneEntries += 1;
   }
+}
+
+for (const relativePath of requiredRuntimeCatalogFiles) {
+  const sourcePath = path.join(root, relativePath);
+  if (!fs.existsSync(sourcePath)) continue;
+  const targetPath = path.join(standaloneRoot, relativePath);
+  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+  fs.copyFileSync(sourcePath, targetPath);
 }
 
 console.log(

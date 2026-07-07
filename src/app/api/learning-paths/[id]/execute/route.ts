@@ -560,10 +560,18 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
   const kaqLearningGoalIds = arrayOfStrings(toRecord(kaqMetadata).learningGoalIds);
   const reviewedKaqAnswer = firstString(kaqReview.state) === 'reviewed';
   const kaqPurpose = firstString(toRecord(kaqMetadata).purpose);
-  const readinessGateEligible = reviewedKaqAnswer && kaqPurpose === 'readiness-gate';
-  const checkpointEligible = reviewedKaqAnswer && input.resourceType === 'checkpoint' && kaqPurpose === 'checkpoint';
+  const readinessGateEligible = reviewedKaqAnswer &&
+    kaqPurpose === 'readiness-gate' &&
+    matchesAdaptiveAssessmentCatalogPathStage(answer, input, 'readiness');
+  const checkpointEligible = reviewedKaqAnswer &&
+    input.resourceType === 'checkpoint' &&
+    kaqPurpose === 'checkpoint' &&
+    matchesAdaptiveAssessmentCatalogPathStage(answer, input, 'checkpoint');
   const readinessCompletionEligible = input.resourceType === 'adaptive_quiz' && readinessGateEligible;
-  const pathCompletionEligible = readinessCompletionEligible || checkpointEligible;
+  const remediationCompletionEligible = reviewedKaqAnswer &&
+    input.resourceType === 'adaptive_quiz' &&
+    matchesAdaptiveAssessmentCatalogPathStage(answer, input, 'remediation');
+  const pathCompletionEligible = readinessCompletionEligible || checkpointEligible || remediationCompletionEligible;
   const learningGoalMatches = typeof input.goalId === 'string' && input.goalId.trim().length > 0
     ? kaqLearningGoalIds.includes(input.goalId)
     : true;
@@ -663,6 +671,26 @@ function resolveGovernedInstrumentedPathNodeOutcomeEvidence<T extends {
   status: string;
   evidenceRefs?: unknown[];
 }>(pathNode: Record<string, unknown> | null, input: T): T {
+  if (input.status === 'completed' && input.resourceType === 'knowledge_card') {
+    const ref = `knowledge_card_open:${input.nodeId}`;
+    return {
+      ...input,
+      evidenceRefs: [
+        {
+          kind: 'ResourceEvent',
+          eventType: 'knowledge_card_open',
+          provenance: 'platform-instrumented',
+          status: 'completed',
+          ref,
+          sourceEventId: ref,
+          nodeId: input.nodeId,
+          resourceType: input.resourceType,
+          privacyLevel: 'student-visible',
+        },
+      ],
+    };
+  }
+
   if (
     input.status !== 'completed' ||
     input.resourceType !== 'lesson_step' ||
@@ -726,6 +754,28 @@ function matchesAdaptiveAssessmentPathContext(
   if (pathExecution.pathId !== input.pathId || pathExecution.nodeId !== input.nodeId) return false;
   if (typeof input.goalId === 'string' && pathExecution.goalId !== input.goalId) return false;
   return true;
+}
+
+function matchesAdaptiveAssessmentCatalogPathStage(
+  answer: Record<string, any> | undefined,
+  input: { goalId?: string | null },
+  stage: 'readiness' | 'checkpoint' | 'remediation',
+): boolean {
+  const itemRef = toRecord(toRecord(answer?.questionRef?.metadata).adaptiveAssessmentItemRef);
+  const semanticRefs = toRecord(itemRef.semanticRefs);
+  const pathExecution = toRecord(toRecord(answer?.abilityEstimateSnapshot?.dimensions).pathExecution);
+  const hasCatalogSnapshot = Object.keys(itemRef).length > 0;
+  const hasQuestionScope = typeof pathExecution.questionScope === 'string' && pathExecution.questionScope.trim().length > 0;
+  if (!hasCatalogSnapshot && !hasQuestionScope) {
+    return stage === 'readiness' || stage === 'checkpoint';
+  }
+  const learningGoalIds = arrayOfStrings(semanticRefs.learningGoalIds);
+  return itemRef.catalogBacked === true &&
+    itemRef.reviewState === 'path-eligible' &&
+    itemRef.eligibilityState === 'path-eligible' &&
+    arrayOfStrings(itemRef.allowedStages).includes(stage) &&
+    pathExecution.questionScope === stage &&
+    (typeof input.goalId !== 'string' || input.goalId.trim().length === 0 || learningGoalIds.includes(input.goalId));
 }
 
 async function resolveGovernedControlWorkbenchOutcomeEvidence<T extends {

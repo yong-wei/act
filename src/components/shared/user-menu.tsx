@@ -14,9 +14,11 @@ type UserMenuProps = {
     role?: string | null;
   };
   variant?: 'default' | 'admin';
+  accountHref?: string;
+  accountLabel?: string;
 };
 
-export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
+export function UserMenu({ user, variant = 'default', accountHref, accountLabel = '个人中心' }: UserMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -99,7 +101,7 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
       <button type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
-          'flex items-center gap-3 px-4 py-2 transition-colors',
+          'flex max-w-[calc(100vw-6rem)] min-w-0 items-center gap-3 px-4 py-2 transition-colors sm:max-w-none',
           variant === 'admin'
             ? 'admin-console-user-menu-button hover:border-cyan-300/50'
             : 'surface-card-soft hover:border-primary/55'
@@ -107,7 +109,7 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
       >
         <div
           className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold',
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold',
             variant === 'admin'
               ? 'bg-cyan-500/20 text-cyan-100'
               : 'bg-gradient-to-br from-amber-500 to-orange-600 text-primary-foreground'
@@ -115,15 +117,15 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
         >
           {initials}
         </div>
-        <div className="text-left">
-          <p className={cn('text-sm font-medium', variant === 'admin' ? 'admin-console-title' : 'text-foreground')}>
+        <div className="min-w-0 text-left">
+          <p className={cn('truncate text-sm font-medium', variant === 'admin' ? 'admin-console-title' : 'text-foreground')}>
             {displayName}
           </p>
-          <p className={cn('text-xs', variant === 'admin' ? 'admin-console-muted' : 'text-subtle')}>
+          <p className={cn('truncate text-xs', variant === 'admin' ? 'admin-console-muted' : 'text-subtle')}>
             {user.email || '个人中心'}
           </p>
         </div>
-        <ChevronDown className={cn('h-4 w-4', variant === 'admin' ? 'admin-console-muted' : 'text-subtle')} />
+        <ChevronDown className={cn('h-4 w-4 shrink-0', variant === 'admin' ? 'admin-console-muted' : 'text-subtle')} />
       </button>
 
       {open && (
@@ -135,14 +137,14 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
               : 'border-border/70 bg-background/95 text-foreground'
           )}
         >
-          {user.role === 'STUDENT' && (
+          {(accountHref || user.role === 'STUDENT') && (
             <Link
-              href="/profile"
+              href={accountHref ?? '/profile'}
               onClick={closeMenu}
               className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-accent hover:text-accent-foreground"
             >
               <User className="h-4 w-4" />
-              个人中心
+              {accountLabel}
             </Link>
           )}
           <button type="button"

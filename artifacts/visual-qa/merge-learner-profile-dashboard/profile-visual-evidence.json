@@ -1,0 +1,40 @@
+{
+  "capturedAt": "2026-07-04T01:37:01.731Z",
+  "baseURL": "http://127.0.0.1:3201",
+  "results": [
+    {
+      "viewport": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 1100
+      },
+      "metrics": {
+        "url": "/profile",
+        "h1": "个人中心",
+        "hasEntryMap": true,
+        "hasClassJoin": true,
+        "hasUndefinedVisibleText": false,
+        "hasHorizontalOverflow": false,
+        "width": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 900
+      },
+      "metrics": {
+        "url": "/profile",
+        "h1": "个人中心",
+        "hasEntryMap": true,
+        "hasClassJoin": true,
+        "hasUndefinedVisibleText": false,
+        "hasHorizontalOverflow": false,
+        "width": 390,
+        "scrollWidth": 390
+      }
+    }
+  ]
+}

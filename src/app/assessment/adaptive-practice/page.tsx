@@ -139,6 +139,7 @@ interface SubmitAnswerResponse {
   durableAnswerId?: string;
   durableSessionId?: string;
   algorithmVersion?: string;
+  adaptiveAssessmentRef?: Record<string, unknown>;
 }
 
 interface PathAdvisorContextResponse {
@@ -2350,9 +2351,7 @@ export default function AdaptivePracticePage() {
     const targetNode = pathExecutionNodes.find((node) => node.nodeId === activeNodeId);
     if (!targetNode || !isPathAssessmentResultNode(targetNode.type)) return;
     await writePathNodeActivity(targetNode, 'initial-completion', 'completed', {
-      adaptiveAssessmentRef: {
-        id: result.durableAnswerId,
-      },
+      adaptiveAssessmentRef: result.adaptiveAssessmentRef ?? { id: result.durableAnswerId },
     });
   }, [activeNodeId, activePathId, pathExecutionNodes, writePathNodeActivity]);
 
@@ -2563,7 +2562,7 @@ export default function AdaptivePracticePage() {
         activeHref="/assessment/adaptive-practice"
         sidebarMode="collapsible"
         breadcrumbs={[
-          { label: '学习工作台', href: '/dashboard' },
+          { label: '首页', href: '/' },
           { label: '自适应学习路径中心' },
         ]}
         dockControls={[
@@ -2571,17 +2570,9 @@ export default function AdaptivePracticePage() {
             id: 'adaptive-path-konling',
             label: '控灵助手',
             control: 'konling',
-            href: pathAdvisorContextGoal
-              ? withFeedbackTaskHref(`/assessment/adaptive-practice?goal=${pathAdvisorContextGoal}&intent=contextual-recommendation`)
-              : feedbackGenericPathGenerationHref,
+            onSelect: openPathGenerationAdvisor,
+            disabled: !canSubmitPathGeneration,
             icon: <BrainCircuit className="h-4 w-4 text-primary" />,
-          },
-          {
-            id: 'adaptive-path-management',
-            label: '路径管理',
-            control: 'management',
-            href: '/profile/growth',
-            icon: <Settings className="h-4 w-4 text-muted-foreground" />,
           },
         ]}
         className="surface-page"
@@ -2659,6 +2650,15 @@ export default function AdaptivePracticePage() {
                 >
                   <History className="size-4" aria-hidden="true" />
                   查看学习证据
+                </Link>
+                <Link
+                  href="/profile/growth"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+                  data-adaptive-path-local-command="path-management"
+                  data-primary-route-local-command-zone="adaptive-path-local-toolbar"
+                >
+                  <Settings className="size-4" aria-hidden="true" />
+                  路径管理
                 </Link>
               </div>
             </div>

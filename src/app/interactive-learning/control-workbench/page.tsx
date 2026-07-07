@@ -1,6 +1,8 @@
 import { ControlWorkbenchShell } from '@/features/control-workbench/shell/control-workbench-shell';
 import { resolveControlWorkbenchSession } from '@/features/control-workbench/session-resolver';
 import type { ControlWorkbenchRouteParams } from '@/features/control-workbench/types';
+import { getServerAuthSession } from '@/lib/auth';
+import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -26,6 +28,7 @@ export default async function ControlWorkbenchRoute(
   }
 ) {
   const searchParams = await props.searchParams;
+  const session = await getServerAuthSession();
   const result = resolveControlWorkbenchSession(parseRouteParams(searchParams));
-  return <ControlWorkbenchShell result={result} />;
+  return <ControlWorkbenchShell result={result} accountHref={getPlatformCockpitHref(session?.user?.role)} />;
 }

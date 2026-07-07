@@ -1093,6 +1093,22 @@ describe('stale and provisional limitations', () => {
     expect(item.scores.freshness).toBe(0.3);
   });
 
+  it('does not flag prompt-scoped projection reviews when review hash differs from raw source hash', () => {
+    const row = makeProjectionRow({
+      sourceHash: 'sha256:manifest-source',
+      reviewAudit: {
+        ...makeProjectionRow().reviewAudit,
+        status: 'human-confirmed',
+        reviewedSourceHash: 'sha256:manifest-plus-overlay',
+        promptOrManifestHash: 'sha256:manifest-plus-overlay',
+        reviewedVersionRef: 'runtime.v1',
+      },
+    });
+    const { item, limitations } = adaptResourceProjectionRow(row);
+    expect(limitations.some((limitation) => limitation.code === 'projection-stale')).toBe(false);
+    expect(item.scores.freshness).toBeGreaterThan(0.3);
+  });
+
   it('flags projection rows with explicit stale review status', () => {
     const row = makeProjectionRow({
       reviewAudit: {

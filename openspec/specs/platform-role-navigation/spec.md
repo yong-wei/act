@@ -6,21 +6,18 @@ The system SHALL define role-specific navigation entries through a central schem
 
 #### Scenario: Student navigation is rendered
 - **WHEN** a student page renders primary navigation
-- **THEN** it SHALL expose the configured student entries for simulations, knowledge/resource workspace, Arena, Control Workbench, adaptive learning, and Interactive Learning in stable relative order.
-- **AND** Personal Center SHALL NOT be counted as one of the core student module entries.
+- **THEN** it SHALL expose the configured student entries in the canonical first-level order: 首页, 知识资源, 互动学习, 学习路径, 竞技场, 虚拟仿真, 控制工作台, 个人中心.
+- **AND** the collapsed desktop rail MAY show icons only, but the expanded rail, accessible names, focus order, and active state SHALL preserve the same order and labels.
+- **AND** 个人中心 SHALL be treated as account and learner-record reachability rather than a core learning product module.
 - **AND** Data Center SHALL NOT be visible as a student core, review, or fallback navigation destination.
-
-#### Scenario: Virtual lab compatibility route is resolved
-- **WHEN** simulation navigation is rendered for students or guests
-- **THEN** `/simulations` SHALL be the canonical simulation catalog entry.
-- **AND** `/virtual-lab` SHALL be treated as a redirect-only compatibility route to `/simulations`, not as a second student navigation destination.
 
 ### Requirement: Homepage and student cockpit expose complete core entries
 The system SHALL migrate homepage and student cockpit entry surfaces to the unified role-navigation model with a complete core student entry matrix.
 
 #### Scenario: Student opens homepage or dashboard
 - **WHEN** a student-visible homepage, `/dashboard`, or cockpit entry surface renders
-- **THEN** it SHALL expose the configured student core entries for simulations, knowledge/resource workspace, Arena, Control Workbench, adaptive learning, and Interactive Learning in stable relative order
+- **THEN** it SHALL expose student product entries in the canonical relative order: 知识资源, 互动学习, 学习路径, 竞技场, 虚拟仿真, 控制工作台
+- **AND** personal center access SHALL be exposed through account/profile action semantics rather than as a duplicate homepage center link.
 - **AND** mobile layouts at 320px SHALL provide drawer or menu access to the same visible entries without dead links.
 - **AND** the Interactive Learning entry SHALL target `/interactive-learning`.
 
@@ -97,6 +94,7 @@ The system SHALL provide tests or script checks that verify central navigation c
 - **WHEN** the central navigation schema is changed
 - **THEN** tests SHALL verify that learn, practice, challenge, experiment, review, and account/profile intents remain represented where required
 - **AND** Interactive Learning, Arena, Control Workbench, adaptive learning, knowledge/resource workspace, simulations, and profile/cockpit access remain reachable according to route configuration.
+- **AND** homepage center links, AppShell collapsed rail, AppShell expanded rail, and account/profile entrypoints SHALL not diverge from the canonical first-level order.
 
 ### Requirement: Navigation layers are explicit and non-competing
 The system SHALL distinguish global product navigation, role cockpit navigation, contextual workspace navigation, and local tool navigation.
@@ -399,4 +397,43 @@ Interactive learning atlas routes SHALL expose platform breadcrumbs and return c
 - **WHEN** the cross-domain exploration list is shown
 - **THEN** the list shell SHALL preserve route continuity
 - **AND** Control Odyssey and Ten Drops internals MAY keep their own interaction-specific layouts outside this change.
+
+### Requirement: Homepage account action uses personal-center semantics
+The homepage SHALL expose product module links separately from account or learner-record access.
+
+#### Scenario: Homepage navigation renders
+- **WHEN** the homepage topbar renders for a guest or authenticated user
+- **THEN** the center navigation SHALL include only 知识资源, 互动学习, 学习路径, 竞技场, 虚拟仿真, and 控制工作台 in canonical order
+- **AND** the right side SHALL expose 个人中心 and theme switching using shared account/action semantics
+- **AND** it SHALL NOT render “进入驾驶舱” as a separate primary action.
+
+### Requirement: Student Personal Center is a single first-level destination
+The platform SHALL present Personal Center as the single student-facing account and learner-record destination.
+
+#### Scenario: Student opens personal center navigation
+- **WHEN** a student uses homepage, AppShell rail, account menu, or role entry navigation to open learner record or account context
+- **THEN** the UI SHALL route to `/profile` as the canonical Personal Center destination labeled 个人中心
+- **AND** it SHALL NOT present `/dashboard` and `/profile` as two equivalent first-level destinations.
+
+#### Scenario: Existing dashboard links are used
+- **WHEN** an existing link, callback, or role-cockpit contract opens `/dashboard`
+- **THEN** the platform SHALL preserve compatibility by redirecting, wrapping, or otherwise resolving to the `/profile` Personal Center experience
+- **AND** authorization and role redirects SHALL remain intact.
+
+#### Scenario: Profile subroutes remain reachable
+- **WHEN** a student needs growth, portfolio, or evidence details
+- **THEN** `/profile/growth`, `/profile/portfolio`, and `/profile/evidence` SHALL remain reachable as secondary Personal Center views or report-ledger routes.
+
+### Requirement: Role operation navigation is secondary to global route navigation
+Teacher and administrator operation navigation SHALL not replace or reorder the global first-level platform navigation.
+
+#### Scenario: Teacher operation navigation is visible
+- **WHEN** a teacher route shows classes, lesson plans, resources, prep packs, history, analytics, or report tools
+- **THEN** those controls SHALL be presented as secondary workflow navigation
+- **AND** the global first-level navigation SHALL remain available through the AppShell frame.
+
+#### Scenario: Admin domain navigation is visible
+- **WHEN** an admin route shows user, config, state, data-governance, or model-management domains
+- **THEN** those controls SHALL be presented as admin workflow navigation
+- **AND** they SHALL not be mixed into the student module order.
 

@@ -137,3 +137,119 @@ The course data-quality gate SHALL prevent standard interactive lessons from ren
 #### Scenario: Unit 1-1 non-interactive pages are scanned
 - **WHEN** the no-interaction status gate runs for Unit 1-1
 - **THEN** pages without interactions SHALL not include visible "本页互动状态" style text or equivalent generic status chrome.
+
+### Requirement: Data completeness helper reports graph-resource-learner readiness
+The system SHALL provide a read-only data completeness helper for agents and reviewers to evaluate whether graph, resource, citation, path-planning, and learner-state data are complete enough for governed platform flows.
+
+#### Scenario: Completeness helper runs
+- **WHEN** the helper is executed against the current project data
+- **THEN** it SHALL report layer-specific totals and blockers for knowledge graph core data, ResourceNode/resource binding data, citation and retrieval readiness, path-planning readiness, source-event lineage readiness, and learner fixture readiness
+- **AND** it SHALL emit machine-readable JSON with stable ids for incomplete records.
+
+#### Scenario: Helper distinguishes readiness dimensions
+- **WHEN** a resource is citation-ready but not path-eligible
+- **THEN** the helper SHALL report citation readiness separately from path readiness
+- **AND** it SHALL not treat retrieval chunks, segments, or provisional metadata as substitutes for audited PlanningUnits.
+
+#### Scenario: Helper is read-only
+- **WHEN** the helper inspects database records, runtime artifacts, graph-center coverage, or student evidence caches
+- **THEN** it SHALL NOT create, update, delete, or merge any production or fixture data
+- **AND** it SHALL report the exact follow-up work bucket required to resolve blockers.
+
+#### Scenario: Source evidence lineage is audited
+- **WHEN** the helper evaluates learner-state or fixture readiness
+- **THEN** it SHALL verify source event ids, client event ids, attempt keys, source log references, event timestamps, batch processing state, EventDictionary mapping, LearningFact materialization coverage, dedupe keys, and attribution metadata where applicable
+- **AND** it SHALL report broken lineage separately from missing derived records.
+
+#### Scenario: Helper output is privacy minimized
+- **WHEN** the helper emits JSON or Markdown output
+- **THEN** it SHALL redact or hash direct student identifiers by default
+- **AND** it SHALL NOT include raw answer text, raw event payloads, raw resource content, private memory content, or hidden evaluation internals.
+
+#### Scenario: Canonical fixture account is audited
+- **WHEN** the helper audits a named canonical fixture account such as Yang Fan
+- **THEN** it SHALL report canonical identity, duplicate-account candidates, LearningFact coverage, KnowledgeProgress coverage, path execution evidenceRefs, adaptive assessment state, StudentEvidenceFeatureCache source coverage, and fixture-generation blockers.
+
+### Requirement: Data completeness helper audits resource disposition coverage
+The data completeness helper SHALL report whether all discovered resources have a reviewed path-planning disposition before full resource coverage can be accepted.
+
+#### Scenario: Full resource coverage audit runs
+- **WHEN** the helper audits graph, resource, citation, path-planning, evidence-lineage, and learner-fixture readiness
+- **THEN** it SHALL also report resources missing path-planning disposition, reviewed semantic fields, parent planning-unit links, or exclusion rationale
+- **AND** it SHALL keep these findings separate from citation readiness and retrieval indexing.
+
+### Requirement: Assessment item semantic coverage is gated
+The course data-quality gates SHALL report assessment item semantic coverage before items are used for adaptive path readiness or checkpoints.
+
+#### Scenario: Semantic gate runs
+- **WHEN** assessment item governance checks run
+- **THEN** they SHALL report missing review decisions, missing LearningGoal bindings, missing K/A/Q objective ids, missing graph-node refs, missing difficulty or cognitive level, missing misconception/remediation refs, stale source hashes, and invalid path eligibility
+- **AND** they SHALL fail or block path eligibility according to the configured severity.
+
+#### Scenario: Item is unreviewed
+- **WHEN** an item is registered but lacks a valid implementing-agent semantic review decision
+- **THEN** the gate SHALL keep it visible in backlog output
+- **AND** it SHALL NOT allow the item to satisfy readiness, checkpoint, remediation gate, or terminal-validation requirements.
+
+### Requirement: Resource completion helper emits claimable workqueues
+The data completeness helper SHALL emit stable workqueues for staged implementing-agent completion of resource metadata and semantic review.
+
+#### Scenario: Workqueues are generated
+- **WHEN** the helper evaluates graph, resource, citation, path-planning, assessment, evidence-lineage, and learner fixture readiness
+- **THEN** it SHALL emit machine-readable workqueues grouped by source family, LearningGoal, graph domain, missing-field code, primary follow-up bucket, and dependency state
+- **AND** every workqueue item SHALL include stable resource id, source family, current blockers, suggested reviewer action, version or source hash where available, and privacy-minimized display fields.
+
+#### Scenario: Workqueue totals reconcile
+- **WHEN** reviewer-facing queues are emitted
+- **THEN** queue totals SHALL reconcile with helper layer totals, follow-up bucket counts, and field-completion audit totals
+- **AND** a resource SHALL appear in one primary completion queue unless a secondary dependent queue is explicitly marked.
+
+#### Scenario: Review-confirmed rows are integrity checked
+- **WHEN** helper output marks semantic fields as review-confirmed
+- **THEN** the helper SHALL require reviewer identity, reviewer role, reviewed time, source hash or source version, reviewer-visible rationale, and separate review evidence where applicable
+- **AND** script constants, generated suggestions, placeholder reviewer ids, or missing source-version evidence SHALL NOT satisfy fresh implementing-agent semantic review.
+
+### Requirement: Path-relevant resource evidence lineage is complete
+The data completeness helper SHALL require source-event lineage for resources that affect path planning, path execution, mastery, checkpoint state, or learner personalization.
+
+#### Scenario: Path-relevant evidence event is audited
+- **WHEN** a resource is path-plannable, evidence-producing, checkpoint-capable, terminal-validation-capable, or mastery-affecting
+- **THEN** the helper SHALL verify EventDictionary mapping, clientEventId policy, attemptKey policy, timestamp policy, source log or source event linkage, LearningFact materialization policy, confidence policy, and privacy scope
+- **AND** missing lineage SHALL block evidence effect even if the resource is otherwise path-plannable.
+
+#### Scenario: Legacy evidence is incomplete
+- **WHEN** historical or legacy evidence lacks required source lineage
+- **THEN** the helper SHALL report a limitation or blocker according to whether that evidence is used by current path planning
+- **AND** learner fixture generation SHALL remain blocked when path tests would depend on incomplete evidence.
+
+### Requirement: Full resource path-readiness gate is available
+The system SHALL provide a full-resource path-readiness gate that verifies every discovered resource has an effective planning disposition before the platform is declared resource-complete.
+
+#### Scenario: Full readiness gate runs
+- **WHEN** the full-resource readiness gate runs
+- **THEN** it SHALL consume data-completeness helper output and ResourceNode registry audit output
+- **AND** it SHALL fail on missing disposition, invalid PathNode promotion, missing reviewed semantic fields, missing parent PlanningUnit for embedded assets, missing exclusion rationale, or unresolved path blocker for a path-plannable resource.
+- **AND** it SHALL preserve summarized evidence including resource family totals, unaccounted count, invalid promotion count, unreviewed semantic count, evidence-lineage blockers, follow-up buckets, and learner fixture blockers.
+
+#### Scenario: New resource import is incomplete
+- **WHEN** a new TeachingResource, runtime lesson, knowledge card, infograph, simulation, control workbench entry, Arena resource, quiz, exercise, textbook, reference, figure, transcript, slide, media anchor, or image description is added without reviewed path-planning disposition
+- **THEN** the helper or gate SHALL report it as incomplete
+- **AND** the resource SHALL NOT silently bypass path-readiness auditing.
+
+### Requirement: Fixture readiness is scoped to fixture-owned governed resources
+Canonical test-account fixture readiness SHALL be evaluated against the resource subset actually used by the fixture tests rather than the entire global resource backlog.
+
+#### Scenario: Fixture subset is ready
+- **WHEN** the canonical fixture account references a bounded set of graph nodes, path nodes, assessment items, citations, and evidence events
+- **THEN** the helper SHALL verify citation, path, assessment, and source-event lineage readiness for that scoped subset
+- **AND** unrelated global resource backlog rows SHALL remain reported as platform limitations rather than fixture blockers.
+
+#### Scenario: Fixture subset is incomplete
+- **WHEN** a resource, citation, path node, assessment item, or evidence event used by the fixture subset lacks reviewed governance
+- **THEN** fixture generation SHALL remain blocked for that missing scoped requirement
+- **AND** the helper SHALL report the exact scoped blocker.
+
+#### Scenario: Global backlog remains incomplete
+- **WHEN** fixture-owned resources are ready but global resource completeness remains incomplete
+- **THEN** fixture output SHALL carry a limited-coverage diagnostic
+- **AND** it SHALL NOT fabricate citations, path readiness, learner evidence, or completion state for resources outside the reviewed fixture subset.

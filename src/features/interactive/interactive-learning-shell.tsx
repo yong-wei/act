@@ -6,21 +6,21 @@ import { AppShell, type AppBreadcrumbItem } from '@/components/platform/app-shel
 
 const INTERACTIVE_LEARNING_BREADCRUMBS: Record<string, readonly AppBreadcrumbItem[]> = {
   '/interactive-learning': [
-    { label: '学习', href: '/dashboard' },
+    { label: '首页', href: '/' },
     { label: '互动学习' },
   ],
   '/interactive-learning/courses': [
-    { label: '学习', href: '/dashboard' },
+    { label: '首页', href: '/' },
     { label: '互动学习', href: '/interactive-learning' },
     { label: '互动课程' },
   ],
   '/interactive-learning/chapter-components': [
-    { label: '学习', href: '/dashboard' },
+    { label: '首页', href: '/' },
     { label: '互动学习', href: '/interactive-learning' },
     { label: '章节组件' },
   ],
   '/interactive-learning/cross-domain-exploration': [
-    { label: '学习', href: '/dashboard' },
+    { label: '首页', href: '/' },
     { label: '互动学习', href: '/interactive-learning' },
     { label: '跨域探索' },
   ],

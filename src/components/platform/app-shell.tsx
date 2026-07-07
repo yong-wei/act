@@ -31,6 +31,7 @@ import {
 import { useOptionalTheme } from '@/components/providers/theme-provider';
 import { useOptionalPageFloatingControls } from '@/components/shared/page-floating-controls';
 import {
+  getPlatformCockpitHref,
   getPlatformRouteNavigation,
   resolvePlatformRouteInventory,
   type PlatformFloatingDockRouteBehavior,
@@ -40,13 +41,10 @@ import {
   type PlatformPrimaryRouteInventoryEntry,
   type PlatformRouteThemeSupport,
 } from '@/lib/platform-role-navigation';
+import { UNIVERSAL_APP_SHELL_HEADER_ACTION_ORDER } from '@/lib/platform-appshell-contract';
 import { cn } from '@/lib/utils';
 
-import type {
-  PlatformFloatingActionDockControl,
-  PlatformNavigationItem,
-  PlatformRole,
-} from './platform-ui-contracts';
+import type { PlatformFloatingActionDockControl, PlatformNavigationItem, PlatformRole } from './platform-ui-contracts';
 
 export interface AppBreadcrumbItem {
   label: string;
@@ -61,7 +59,9 @@ export interface AppShellProps {
   subtitle?: string;
   actions?: ReactNode;
   userMenu?: ReactNode;
+  accountHref?: string;
   activeHref?: string;
+  activeNavigationHref?: string;
   sidebarMode?: 'fixed' | 'collapsible' | 'hidden';
   routeMetadata?: AppShellRouteMetadata;
   workspaceSlots?: AppShellWorkspaceSlots;
@@ -91,19 +91,16 @@ export interface AppShellWorkspaceSlots {
 
 export type AppShellRouteMetadata = Pick<
   PlatformPrimaryRouteInventoryEntry,
-  | 'frame'
-  | 'themeSupport'
-  | 'mobileNavigation'
-  | 'navigationLayers'
-  | 'floatingDock'
-  | 'contextualReturn'
-> & Partial<Pick<PlatformPrimaryRouteInventoryEntry, 'desktopNavigation'>>;
+  'frame' | 'themeSupport' | 'mobileNavigation' | 'navigationLayers' | 'floatingDock' | 'contextualReturn'
+> &
+  Partial<Pick<PlatformPrimaryRouteInventoryEntry, 'desktopNavigation'>>;
 
 export interface AppShellDockControl {
   id: string;
   label: string;
   control: PlatformFloatingActionDockControl;
   href?: string;
+  onSelect?: () => void;
   disabled?: boolean;
   icon?: ReactNode;
 }
@@ -115,6 +112,7 @@ export interface AppHeaderProps {
   breadcrumbs?: readonly AppBreadcrumbItem[];
   actions?: ReactNode;
   userMenu?: ReactNode;
+  accountHref?: string;
   className?: string;
 }
 
@@ -251,10 +249,7 @@ function normalizeRoutePath(href: string) {
   return path || '/';
 }
 
-function flattenNavigationItems(
-  navigation: readonly PlatformNavigationItem[],
-  depth = 0,
-): NavigationRenderItem[] {
+function flattenNavigationItems(navigation: readonly PlatformNavigationItem[], depth = 0): NavigationRenderItem[] {
   return navigation.flatMap((item) => [
     { item, depth },
     ...(item.children ? flattenNavigationItems(item.children, depth + 1) : []),
@@ -288,12 +283,12 @@ export function getAppShellDesktopGridClassName({
 }) {
   return cn(
     'grid min-h-screen',
-    showSidebar
-      && sidebarBreakpoint === 'lg'
-      && (navigationCollapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[248px_minmax(0,1fr)]'),
-    showSidebar
-      && sidebarBreakpoint === 'xl'
-      && (navigationCollapsed ? 'xl:grid-cols-[72px_minmax(0,1fr)]' : 'xl:grid-cols-[248px_minmax(0,1fr)]'),
+    showSidebar &&
+      sidebarBreakpoint === 'lg' &&
+      (navigationCollapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[248px_minmax(0,1fr)]'),
+    showSidebar &&
+      sidebarBreakpoint === 'xl' &&
+      (navigationCollapsed ? 'xl:grid-cols-[72px_minmax(0,1fr)]' : 'xl:grid-cols-[248px_minmax(0,1fr)]'),
   );
 }
 
@@ -326,6 +321,8 @@ function renderNavigationLink(
       aria-current={active ? 'page' : undefined}
       title={collapsed ? item.label : undefined}
       onClick={onNavigate}
+      data-app-shell-nav-link-label={item.label}
+      data-app-shell-nav-link-href={item.href}
       className={cn(
         variant === 'sidebar'
           ? 'flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition'
@@ -384,6 +381,7 @@ export function AppBreadcrumb({ items = [] }: { items?: readonly AppBreadcrumbIt
 }
 
 export function ThemeSwitcher({ className }: { className?: string }) {
+  const themeAction = UNIVERSAL_APP_SHELL_HEADER_ACTION_ORDER.find((action) => action.id === 'theme-switch');
   const themeContext = useOptionalTheme();
   const mounted = themeContext?.mounted ?? false;
   const theme = themeContext?.theme ?? 'light';
@@ -395,6 +393,9 @@ export function ThemeSwitcher({ className }: { className?: string }) {
       onClick={toggleTheme}
       disabled={!mounted}
       aria-label={isDark ? '切换到浅色模式' : '切换到深色模式'}
+      data-app-shell-header-action={themeAction?.id}
+      data-app-shell-header-action-owner={themeAction?.owner}
+      data-app-shell-header-action-order={themeAction?.order}
       className={cn(
         'inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platform-fg-secondary transition hover:border-platform-border-strong hover:text-platform-action-primary disabled:opacity-60',
         className,
@@ -412,8 +413,20 @@ export function AppHeader({
   breadcrumbs,
   actions,
   userMenu,
+  accountHref,
   className,
 }: AppHeaderProps) {
+  const personalCenterAction = UNIVERSAL_APP_SHELL_HEADER_ACTION_ORDER.find(
+    (action) => action.id === 'personal-center',
+  );
+  const personalCenter = userMenu ?? (
+    <Link
+      href={accountHref ?? getPlatformCockpitHref(viewerRole)}
+      className="inline-flex h-9 items-center gap-2 rounded-md border border-platform-border bg-platform-surface px-3 text-sm font-medium text-platform-fg-primary transition hover:border-platform-border-strong hover:text-platform-action-primary"
+    >
+      个人中心
+    </Link>
+  );
   return (
     <header className={cn('border-b border-platform-border bg-platform-surface-raised', className)}>
       <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
@@ -430,12 +443,72 @@ export function AppHeader({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {actions}
-          <ThemeSwitcher />
-          {userMenu}
+          {actions ? (
+            <div className="flex items-center gap-2" data-app-shell-route-local-actions="true">
+              {actions}
+            </div>
+          ) : null}
+          <div className="flex items-center gap-2" data-app-shell-header-action-pair="theme-switch personal-center">
+            <ThemeSwitcher />
+            <div
+              data-app-shell-header-action={personalCenterAction?.id}
+              data-app-shell-header-action-owner={personalCenterAction?.owner}
+              data-app-shell-header-action-order={personalCenterAction?.order}
+            >
+              {personalCenter}
+            </div>
+          </div>
         </div>
       </div>
     </header>
+  );
+}
+
+function AppShellHeaderDockActions({ controls }: { controls: readonly AppShellDockControl[] }) {
+  if (controls.length === 0) return null;
+
+  return (
+    <>
+      {controls.map((control) => {
+        const icon = control.icon ?? <Settings className="h-4 w-4" />;
+        const className =
+          'inline-flex h-9 items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface px-3 text-xs font-medium text-platform-fg-secondary transition hover:border-platform-border-strong hover:text-platform-action-primary disabled:cursor-not-allowed disabled:opacity-60';
+        const content = (
+          <>
+            {icon}
+            <span className="hidden sm:inline">{control.label}</span>
+          </>
+        );
+
+        if (control.href && !control.disabled && !control.onSelect) {
+          return (
+            <Link
+              key={control.id}
+              href={control.href}
+              aria-label={control.label}
+              className={className}
+              data-platform-shell-dock-action={control.control}
+            >
+              {content}
+            </Link>
+          );
+        }
+
+        return (
+          <button
+            key={control.id}
+            type="button"
+            disabled={control.disabled}
+            onClick={control.onSelect}
+            aria-label={control.label}
+            className={className}
+            data-platform-shell-dock-action={control.control}
+          >
+            {content}
+          </button>
+        );
+      })}
+    </>
   );
 }
 
@@ -445,7 +518,11 @@ export function AppSidebar({ navigation, activeHref, collapsed = false, classNam
   return (
     <aside
       data-shell-navigation-state={collapsed ? 'collapsed' : 'expanded'}
-      className={cn('border-r border-platform-border bg-platform-canvas-muted px-3 py-4', collapsed && 'px-2', className)}
+      className={cn(
+        'border-r border-platform-border bg-platform-canvas-muted px-3 py-4',
+        collapsed && 'px-2',
+        className,
+      )}
     >
       <nav className="space-y-1">
         {renderItems.map(({ item, depth }) => renderNavigationLink(item, activeItemId, 'sidebar', depth, collapsed))}
@@ -484,16 +561,10 @@ function CollapsibleAppSidebar({
           )}
         >
           {navigationCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-          <span className={cn(navigationCollapsed && 'sr-only')}>
-            {navigationCollapsed ? '展开导航' : '收起导航'}
-          </span>
+          <span className={cn(navigationCollapsed && 'sr-only')}>{navigationCollapsed ? '展开导航' : '收起导航'}</span>
         </button>
       </div>
-      <AppSidebar
-        navigation={navigation}
-        activeHref={activeHref}
-        collapsed={navigationCollapsed}
-      />
+      <AppSidebar navigation={navigation} activeHref={activeHref} collapsed={navigationCollapsed} />
     </div>
   );
 }
@@ -511,6 +582,7 @@ function AppShellDesktopLayout({
   subtitle,
   actions,
   userMenu,
+  accountHref,
   effectiveBreadcrumbs,
   workspaceSlots,
   dockControls,
@@ -529,6 +601,7 @@ function AppShellDesktopLayout({
   subtitle?: string;
   actions?: ReactNode;
   userMenu?: ReactNode;
+  accountHref?: string;
   effectiveBreadcrumbs?: readonly AppBreadcrumbItem[];
   workspaceSlots?: AppShellWorkspaceSlots;
   dockControls: readonly AppShellDockControl[];
@@ -537,10 +610,18 @@ function AppShellDesktopLayout({
 }) {
   const [navigationPreference, setNavigationPreference] = useState<AppShellNavigationPreference>('collapsed');
   const renderItems = flattenNavigationItems(effectiveNavigation);
-  const renderMobileNavigation = showSidebar
-    && effectiveNavigation.length > 0
-    && resolvedRouteMetadata?.mobileNavigation !== 'hidden-immersive';
+  const floatingDockControls = dockControls.filter((control) => control.control === 'konling');
+  const headerDockControls = dockControls.filter((control) => control.control !== 'konling');
+  const renderMobileNavigation =
+    showSidebar && effectiveNavigation.length > 0 && resolvedRouteMetadata?.mobileNavigation !== 'hidden-immersive';
   const navigationCollapsed = allowSidebarCollapse ? navigationPreference === 'collapsed' : false;
+  const headerActions =
+    actions || headerDockControls.length > 0 ? (
+      <>
+        {actions}
+        <AppShellHeaderDockActions controls={headerDockControls} />
+      </>
+    ) : undefined;
 
   useEffect(() => {
     setNavigationPreference(readAppShellNavigationPreference(getBrowserNavigationPreferenceStorage()));
@@ -556,23 +637,27 @@ function AppShellDesktopLayout({
     <div
       className={getAppShellDesktopGridClassName({ showSidebar, sidebarBreakpoint, navigationCollapsed })}
       data-app-shell-layout={allowSidebarCollapse ? 'collapsible' : undefined}
-      data-app-shell-navigation-state={allowSidebarCollapse ? (navigationCollapsed ? 'collapsed' : 'expanded') : undefined}
+      data-app-shell-navigation-state={
+        allowSidebarCollapse ? (navigationCollapsed ? 'collapsed' : 'expanded') : undefined
+      }
       data-app-shell-navigation-preference={allowSidebarCollapse ? navigationPreference : undefined}
     >
-      {showSidebar ? allowSidebarCollapse ? (
-        <CollapsibleAppSidebar
-          navigation={effectiveNavigation}
-          activeHref={activeHref}
-          navigationCollapsed={navigationCollapsed}
-          onNavigationCollapsedChange={handleNavigationCollapsedChange}
-          className={sidebarBreakpoint === 'lg' ? 'hidden lg:block' : 'hidden xl:block'}
-        />
-      ) : (
+      {showSidebar ? (
+        allowSidebarCollapse ? (
+          <CollapsibleAppSidebar
+            navigation={effectiveNavigation}
+            activeHref={activeHref}
+            navigationCollapsed={navigationCollapsed}
+            onNavigationCollapsedChange={handleNavigationCollapsedChange}
+            className={sidebarBreakpoint === 'lg' ? 'hidden lg:block' : 'hidden xl:block'}
+          />
+        ) : (
           <AppSidebar
             navigation={effectiveNavigation}
             activeHref={activeHref}
             className={sidebarBreakpoint === 'lg' ? 'hidden lg:block' : 'hidden xl:block'}
           />
+        )
       ) : null}
       <div className="min-w-0">
         <AppHeader
@@ -580,17 +665,18 @@ function AppShellDesktopLayout({
           title={title}
           subtitle={subtitle}
           breadcrumbs={effectiveBreadcrumbs}
-          actions={actions}
+          actions={headerActions}
           userMenu={userMenu}
+          accountHref={accountHref}
         />
         {renderMobileNavigation ? (
           resolvedRouteMetadata?.mobileNavigation === 'drawer' ? (
-          <AppMobileNavigation
-            navigation={renderItems}
-            activeItemId={activeItemId}
-            sidebarBreakpoint={sidebarBreakpoint}
-            behavior={resolvedRouteMetadata?.mobileNavigation as PlatformMobileNavigationBehavior | undefined}
-          />
+            <AppMobileNavigation
+              navigation={renderItems}
+              activeItemId={activeItemId}
+              sidebarBreakpoint={sidebarBreakpoint}
+              behavior={resolvedRouteMetadata?.mobileNavigation as PlatformMobileNavigationBehavior | undefined}
+            />
           ) : (
             <nav
               aria-label="平台导航"
@@ -606,15 +692,16 @@ function AppShellDesktopLayout({
           )
         ) : null}
         <div
-          className={cn(resolvedRouteMetadata?.frame ? contentFrameClassNames[resolvedRouteMetadata.frame] : APP_SHELL_COMPACT_PAGE_EDGE_CLASS)}
+          className={cn(
+            resolvedRouteMetadata?.frame
+              ? contentFrameClassNames[resolvedRouteMetadata.frame]
+              : APP_SHELL_COMPACT_PAGE_EDGE_CLASS,
+          )}
           data-platform-compact-page-edge="true"
         >
           {AppShellWorkspace({ slots: workspaceSlots, children })}
         </div>
-        <AppShellFloatingDockRegistration
-          controls={dockControls}
-          behavior={floatingDockBehavior}
-        />
+        <AppShellFloatingDockRegistration controls={floatingDockControls} behavior={floatingDockBehavior} />
       </div>
     </div>
   );
@@ -658,9 +745,7 @@ function AppMobileNavigation({
     const overlay = drawerOverlayRef.current;
     const parent = overlay?.parentElement;
     const inertSiblings = Array.from(parent?.children ?? []).filter((element) => element !== overlay);
-    const previouslyFocusedElement = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    const previouslyFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const openButton = openButtonRef.current;
 
     inertSiblings.forEach((element) => {
@@ -678,20 +763,19 @@ function AppMobileNavigation({
       window.requestAnimationFrame(() => {
         const restoreTarget = openButton?.isConnected
           ? openButton
-          : previouslyFocusedElement?.isConnected ? previouslyFocusedElement : null;
+          : previouslyFocusedElement?.isConnected
+            ? previouslyFocusedElement
+            : null;
         restoreTarget?.focus();
       });
     };
   }, [drawerOpen]);
 
-  const getDrawerFocusableElements = () => (
-    Array.from(drawerDialogRef.current?.querySelectorAll<HTMLElement>(mobileDrawerFocusableSelector) ?? [])
-      .filter((element) => (
-        element.tabIndex >= 0
-        && element.getAttribute('aria-hidden') !== 'true'
-        && element.getClientRects().length > 0
-      ))
-  );
+  const getDrawerFocusableElements = () =>
+    Array.from(drawerDialogRef.current?.querySelectorAll<HTMLElement>(mobileDrawerFocusableSelector) ?? []).filter(
+      (element) =>
+        element.tabIndex >= 0 && element.getAttribute('aria-hidden') !== 'true' && element.getClientRects().length > 0,
+    );
 
   const handleDrawerKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
@@ -810,6 +894,10 @@ function hasWorkspaceSlots(slots?: AppShellWorkspaceSlots) {
   return Boolean(slots && Object.values(slots).some(Boolean));
 }
 
+function hasRightRailWorkspaceSlots(slots?: AppShellWorkspaceSlots) {
+  return Boolean(slots?.evidenceRail || slots?.supportDrawer || slots?.statusRail || slots?.localTools);
+}
+
 function renderAppShellWorkspaceZone({
   id,
   children,
@@ -827,16 +915,15 @@ function renderAppShellWorkspaceZone({
   );
 }
 
-function AppShellWorkspace({
-  slots,
-  children,
-}: {
-  slots?: AppShellWorkspaceSlots;
-  children: ReactNode;
-}) {
+function AppShellWorkspace({ slots, children }: { slots?: AppShellWorkspaceSlots; children: ReactNode }) {
   if (!hasWorkspaceSlots(slots)) return <>{children}</>;
+  const hasRightRail = hasRightRailWorkspaceSlots(slots);
   return (
-    <section data-app-shell-workspace="true" className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <section
+      data-app-shell-workspace="true"
+      data-app-shell-workspace-right-rail={hasRightRail ? 'present' : 'absent'}
+      className={cn('grid gap-4', hasRightRail && 'xl:grid-cols-[minmax(0,1fr)_320px]')}
+    >
       <div className="min-w-0 space-y-4">
         {renderAppShellWorkspaceZone({
           id: 'context-header',
@@ -853,28 +940,30 @@ function AppShellWorkspace({
           children: slots?.instrumentArea ?? children,
         })}
       </div>
-      <div className="min-w-0 space-y-4">
-        {renderAppShellWorkspaceZone({
-          id: 'evidence-rail',
-          className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
-          children: slots?.evidenceRail,
-        })}
-        {renderAppShellWorkspaceZone({
-          id: 'support-drawer',
-          className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
-          children: slots?.supportDrawer,
-        })}
-        {renderAppShellWorkspaceZone({
-          id: 'status-rail',
-          className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
-          children: slots?.statusRail,
-        })}
-        {renderAppShellWorkspaceZone({
-          id: 'local-tools',
-          className: 'rounded-lg border border-platform-border bg-platform-canvas-muted p-4',
-          children: slots?.localTools,
-        })}
-      </div>
+      {hasRightRail ? (
+        <div className="min-w-0 space-y-4">
+          {renderAppShellWorkspaceZone({
+            id: 'evidence-rail',
+            className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
+            children: slots?.evidenceRail,
+          })}
+          {renderAppShellWorkspaceZone({
+            id: 'support-drawer',
+            className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
+            children: slots?.supportDrawer,
+          })}
+          {renderAppShellWorkspaceZone({
+            id: 'status-rail',
+            className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
+            children: slots?.statusRail,
+          })}
+          {renderAppShellWorkspaceZone({
+            id: 'local-tools',
+            className: 'rounded-lg border border-platform-border bg-platform-canvas-muted p-4',
+            children: slots?.localTools,
+          })}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -890,13 +979,16 @@ function AppShellFloatingDockRegistration({
   const registerControl = floatingControls?.registerControl;
   const setRouteDockBehavior = floatingControls?.setRouteDockBehavior;
   const controlRegistrationSignature = controls
-    .map((control) => [
-      control.id,
-      control.label,
-      control.control,
-      control.href ?? '',
-      control.disabled ? 'disabled' : 'enabled',
-    ].join(':'))
+    .map((control) =>
+      [
+        control.id,
+        control.label,
+        control.control,
+        control.href ?? '',
+        control.onSelect ? 'handler' : '',
+        control.disabled ? 'disabled' : 'enabled',
+      ].join(':'),
+    )
     .join('|');
 
   useEffect(() => {
@@ -907,18 +999,24 @@ function AppShellFloatingDockRegistration({
   useEffect(() => {
     if (!registerControl) return undefined;
     if (behavior === 'hidden') return undefined;
-    const unregister = controls.map((control, index) => registerControl({
-      id: `app-shell:${control.id}`,
-      label: control.label,
-      ariaLabel: control.label,
-      icon: control.icon ?? <Settings className="h-4 w-4 text-muted-foreground" />,
-      priority: 20 + index,
-      disabled: control.disabled,
-      onSelect: () => {
-        if (control.disabled) return;
-        if (control.href) window.location.assign(control.href);
-      },
-    }));
+    const unregister = controls.map((control, index) =>
+      registerControl({
+        id: `app-shell:${control.id}`,
+        label: control.label,
+        ariaLabel: control.label,
+        icon: control.icon ?? <Settings className="h-4 w-4 text-muted-foreground" />,
+        priority: 20 + index,
+        disabled: control.disabled,
+        onSelect: () => {
+          if (control.disabled) return;
+          if (control.onSelect) {
+            control.onSelect();
+            return;
+          }
+          if (control.href) window.location.assign(control.href);
+        },
+      }),
+    );
     return () => unregister.forEach((cleanup) => cleanup());
   }, [behavior, controlRegistrationSignature, controls, registerControl]);
 
@@ -943,7 +1041,9 @@ export function AppShell({
   subtitle,
   actions,
   userMenu,
+  accountHref,
   activeHref,
+  activeNavigationHref,
   sidebarMode,
   routeMetadata,
   workspaceSlots,
@@ -954,31 +1054,47 @@ export function AppShell({
   const role = viewerRole;
   const resolvedRouteMetadata = routeMetadata ?? (activeHref ? resolvePlatformRouteInventory(activeHref) : undefined);
   const floatingDockBehavior = resolvedRouteMetadata?.floatingDock ?? 'enabled';
-  const effectiveBreadcrumbs = breadcrumbs ?? (resolvedRouteMetadata?.contextualReturn ? [
-    {
-      label: getContextualReturnBreadcrumbLabel(resolvedRouteMetadata.contextualReturn),
-      href: resolvedRouteMetadata.contextualReturn.fallbackHref,
-    },
-    { label: title },
-  ] : undefined);
-  const routeNavigation = navigation === undefined && activeHref ? getPlatformRouteNavigation(activeHref, viewerRole) : [];
+  const effectiveBreadcrumbs =
+    breadcrumbs ??
+    (resolvedRouteMetadata?.contextualReturn
+      ? [
+          {
+            label: getContextualReturnBreadcrumbLabel(resolvedRouteMetadata.contextualReturn),
+            href: resolvedRouteMetadata.contextualReturn.fallbackHref,
+          },
+          { label: title },
+        ]
+      : undefined);
+  const routeNavigation =
+    navigation === undefined && activeHref ? getPlatformRouteNavigation(activeHref, viewerRole) : [];
   const effectiveNavigation = navigation ?? routeNavigation;
   const renderItems = flattenNavigationItems(effectiveNavigation);
   const resolvedSidebarMode = sidebarMode ?? resolvedRouteMetadata?.desktopNavigation ?? 'fixed';
   const showSidebar = resolvedSidebarMode !== 'hidden' && renderItems.length > 0;
   const sidebarBreakpoint = resolvedSidebarMode === 'collapsible' ? 'xl' : 'lg';
   const allowSidebarCollapse = resolvedSidebarMode === 'collapsible';
-  const activeItemId = getActiveNavigationItemId(effectiveNavigation, activeHref);
+  const navigationActiveHref = activeNavigationHref ?? activeHref;
+  const activeItemId = getActiveNavigationItemId(effectiveNavigation, navigationActiveHref);
   return (
     <main
       data-platform-route-frame={resolvedRouteMetadata?.frame}
-      data-platform-route-theme-support={routeDataAttribute(resolvedRouteMetadata?.themeSupport as readonly PlatformRouteThemeSupport[] | undefined)}
+      data-platform-route-theme-support={routeDataAttribute(
+        resolvedRouteMetadata?.themeSupport as readonly PlatformRouteThemeSupport[] | undefined,
+      )}
       data-platform-desktop-navigation={resolvedRouteMetadata?.desktopNavigation}
-      data-platform-route-navigation-layers={routeDataAttribute(resolvedRouteMetadata?.navigationLayers as readonly PlatformNavigationLayerId[] | undefined)}
-      data-platform-mobile-navigation={resolvedRouteMetadata?.mobileNavigation as PlatformMobileNavigationBehavior | undefined}
+      data-platform-route-navigation-layers={routeDataAttribute(
+        resolvedRouteMetadata?.navigationLayers as readonly PlatformNavigationLayerId[] | undefined,
+      )}
+      data-platform-mobile-navigation={
+        resolvedRouteMetadata?.mobileNavigation as PlatformMobileNavigationBehavior | undefined
+      }
       data-platform-floating-dock-behavior={floatingDockBehavior}
-      data-platform-floating-dock-collision-policy={floatingDockBehavior === 'hidden' ? undefined : 'safe-area-primary-controls'}
-      data-platform-floating-dock-mobile-behavior={floatingDockBehavior === 'hidden' ? 'hidden' : 'sheet-after-local-tools'}
+      data-platform-floating-dock-collision-policy={
+        floatingDockBehavior === 'hidden' ? undefined : 'safe-area-primary-controls'
+      }
+      data-platform-floating-dock-mobile-behavior={
+        floatingDockBehavior === 'hidden' ? 'hidden' : 'sheet-after-local-tools'
+      }
       className={cn(
         'min-h-screen bg-platform-canvas text-platform-fg-primary',
         resolvedRouteMetadata?.frame && frameClassNames[resolvedRouteMetadata.frame],
@@ -990,7 +1106,7 @@ export function AppShell({
         allowSidebarCollapse={allowSidebarCollapse}
         sidebarBreakpoint={sidebarBreakpoint}
         effectiveNavigation={effectiveNavigation}
-        activeHref={activeHref}
+        activeHref={navigationActiveHref}
         activeItemId={activeItemId}
         resolvedRouteMetadata={resolvedRouteMetadata}
         viewerRole={viewerRole}
@@ -998,6 +1114,7 @@ export function AppShell({
         subtitle={subtitle}
         actions={actions}
         userMenu={userMenu}
+        accountHref={accountHref}
         effectiveBreadcrumbs={effectiveBreadcrumbs}
         workspaceSlots={workspaceSlots}
         dockControls={dockControls}

@@ -127,7 +127,7 @@ describe('arena student entry UI boundaries', () => {
     expect(hallSource).toContain("'竞技场首页'");
     expect(detailSource).toContain("'首页'");
     expect(detailSource).toContain("'竞技场首页'");
-    expect(shellSource).toContain('getStudentLearningIntentNavigationGroups');
+    expect(shellSource).toContain('getPlatformRouteNavigation');
     expect(navigationSource).toContain("'虚拟仿真'");
     expect(navigationSource).toContain("'竞技场'");
     expect(navigationSource).toContain("'知识资源'");
@@ -145,7 +145,8 @@ describe('arena student entry UI boundaries', () => {
     expect(shellSource).toContain('sidebarMode="collapsible"');
     expect(shellSource).toContain("mobileNavigation: 'drawer'");
     expect(shellSource).toContain('data-arena-workspace-shell="true"');
-    expect(shellSource).toContain('href="/profile"');
+    expect(shellSource).not.toContain('userMenu={');
+    expect(shellSource).not.toContain('href="/profile"');
     expect(shellSource).toContain('data-mobile-navigation="drawer"');
     const appShellSource = readRepoFile('src/components/platform/app-shell.tsx');
     expect(appShellSource).toContain('data-shell-navigation-state');

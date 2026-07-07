@@ -160,6 +160,16 @@ export interface AdaptiveLearningPathGraphContextInput {
     limitationReason: string | null;
     sourceWindow: { from: string | null; to: string | null };
   } | null;
+  assessmentCoverage?: {
+    coverageState: 'complete' | 'limited';
+    incompleteStages: string[];
+    reviewedPathEligibleItemCount: number;
+    limitationReason: string | null;
+    matrixVersion: string;
+    generatedAt: string | null;
+    terminalValidationRequired: boolean;
+    assessmentItemsReplaceTerminalEvidence: false;
+  } | null;
   versionRefs?: Partial<KaqArtifactVersionRefs>;
 }
 
@@ -191,6 +201,7 @@ export interface AdaptiveLearningPathGraphContextSummary {
   >>;
   resourceCoveragePathEligibleResourceIds: Record<string, string[]>;
   learningGoalBaseline?: NonNullable<AdaptiveLearningPathGraphContextInput['learningGoalBaseline']>;
+  assessmentCoverage?: NonNullable<AdaptiveLearningPathGraphContextInput['assessmentCoverage']>;
   versionRefs: KaqArtifactVersionRefs;
   limitations: AdaptiveLearningPathGraphLimitation[];
 }
@@ -1523,7 +1534,15 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     displayName: '仿真验证实践',
     learningGoal: SIMULATION_VALIDATION_PRACTICE_LEARNING_GOAL,
     knowledgeTargetAliases: {
-      '跨模型验证比较_4_47006': ['数据驱动控制_5_54003', '传统设计四联图校正_4_47004'],
+      '跨模型验证比较_4_47006': [
+        '数据驱动控制_5_54003',
+        '传统设计四联图校正_4_47004',
+        '工程指标代价函数翻译_4_47003',
+        '结构参数联合搜索解码_4_47005',
+        '统一结构编码与解码_4_46005',
+        '扰动噪声设计边界_4_47007',
+        '传统控制结构局限_4_47008',
+      ],
     },
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
@@ -1555,7 +1574,18 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     displayName: '船海场景迁移应用',
     learningGoal: SHIP_OCEAN_TRANSFER_LEARNING_GOAL,
     knowledgeTargetAliases: {
-      '船舶航向控制对象_2_21004': ['MASS自动化等级责任边界_5_53008', '现代控制理论_9_0b54b9a0', '鲁棒控制_3_a7fa1491'],
+      '船舶航向控制对象_2_21004': [
+        'MASS协同链路_5_53001',
+        'MASS自动化等级责任边界_5_53008',
+        '上游信息质量_5_53003',
+        '执行约束反馈_5_53005',
+        '控制在自主系统链路中的位置_5_53002',
+        '现代控制理论_9_0b54b9a0',
+        '规划参考可实现性_5_53004',
+        '避碰转弯半径可行域_5_53007',
+        '链路责任诊断_5_53006',
+        '鲁棒控制_3_a7fa1491',
+      ],
     },
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
@@ -2331,6 +2361,7 @@ function buildAdaptiveLearningPathGraphContext(
     resourceCoverageStatus,
     resourceCoveragePathEligibleResourceIds,
     ...(input.learningGoalBaseline ? { learningGoalBaseline: input.learningGoalBaseline } : {}),
+    ...(input.assessmentCoverage ? { assessmentCoverage: input.assessmentCoverage } : {}),
     versionRefs,
     limitations: buildGraphContextLimitations(input),
   };
@@ -2364,6 +2395,13 @@ function buildGraphContextLimitations(
       code: 'learning-goal-baseline-incomplete',
       severity: 'blocking',
       message: `LearningGoal baseline is incomplete: ${input.learningGoalBaseline.missingBaselineCategories.join(', ') || input.learningGoalBaseline.limitationReason || 'missing reviewed baseline coverage'}.`,
+    });
+  }
+  if (input.assessmentCoverage?.coverageState === 'limited') {
+    limitations.push({
+      code: 'learning-goal-assessment-coverage-incomplete',
+      severity: 'blocking',
+      message: `LearningGoal assessment coverage is incomplete: ${input.assessmentCoverage.incompleteStages.join(', ') || input.assessmentCoverage.limitationReason || 'missing reviewed assessment coverage'}.`,
     });
   }
   limitations.push(...overlayLimitations('learner', input.learnerOverlay));
@@ -3787,6 +3825,9 @@ function buildFallbackReasons(input: {
   if (input.graphContext?.limitations.some((item) => item.code === 'learning-goal-baseline-incomplete')) {
     reasons.push('learning-goal-baseline-incomplete');
   }
+  if (input.graphContext?.limitations.some((item) => item.code === 'learning-goal-assessment-coverage-incomplete')) {
+    reasons.push('learning-goal-assessment-coverage-incomplete');
+  }
   if (input.attemptedCandidates > 0 && input.mainPathNodes.length === 0) {
     reasons.push('time-budget-insufficient');
   }
@@ -3808,7 +3849,7 @@ function buildFallbackReasons(input: {
   return unique(reasons);
 }
 
-function isPathBlockingFallbackReason(reason: string): boolean {
+export function isPathBlockingFallbackReason(reason: string): boolean {
   return [
     'resource-mapping-insufficient',
     'feasible-goal-path-missing',
@@ -3820,6 +3861,7 @@ function isPathBlockingFallbackReason(reason: string): boolean {
     'locked-node-without-fallback',
     'hard-prerequisite-missing',
     'learning-goal-baseline-incomplete',
+    'learning-goal-assessment-coverage-incomplete',
   ].includes(reason);
 }
 
