@@ -1306,6 +1306,60 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
   const actionablePaths = pathPlan.policyBundle?.paths
     .map((path, index) => ({ path, index }))
     .filter(({ path }) => path.nodeIds.length > 0) ?? [];
+  if (!actionablePaths.length && pathPlan.mainPath.length > 0) {
+    const estimatedMinutes = pathPlan.mainPath.reduce((sum, node) => sum + node.estimatedTimeMinutes, 0);
+    const terminalValidationNodeIds = pathPlan.mainPath
+      .filter((node) => node.terminalConstraints.includes('terminal-validation'))
+      .map((node) => node.nodeId);
+    return [{
+      optionId: 'path-option-1',
+      label: '推荐学习路径',
+      nodeIds: pathPlan.mainPath.map((node) => node.nodeId),
+      nodeSummaries: pathPlan.mainPath.map((node) => ({
+        nodeId: node.nodeId,
+        title: node.title,
+        pathNodeType: node.pathNodeType,
+        displayName: node.displayName,
+        iconKey: node.iconKey,
+        shapeHint: node.shapeHint,
+        evidenceBehavior: node.evidenceBehavior,
+        evidenceStatus: node.evidenceStatus,
+        estimatedTimeMinutes: node.estimatedTimeMinutes,
+        status: node.status,
+      })),
+      lockedNodeIds: pathPlan.mainPath
+        .filter((node) => node.readiness?.state !== 'ready')
+        .map((node) => node.nodeId),
+      readinessSummary: pathPlan.mainPath.map((node) => ({
+        nodeId: node.nodeId,
+        state: node.readiness?.state ?? 'unknown',
+        message: node.readiness?.message ?? '准备条件待确认。',
+      })),
+      targetDeficits: [],
+      evidenceBasis: pathPlan.confidence.level === 'low'
+        ? ['当前证据较少，路径会从基础资源开始。']
+        : ['路径已结合你的近期学习证据。'],
+      resourceMix: pathPlan.mainPath.reduce<Record<string, number>>((mix, node) => {
+        mix[node.type] = (mix[node.type] ?? 0) + 1;
+        return mix;
+      }, {}),
+      effort: {
+        estimatedMinutes,
+        relative: 'standard',
+      },
+      expectedTargetLift: pathPlan.score.objectives.learningGain,
+      terminalValidationNodeIds,
+      terminalValidationStrategy: {
+        nodeIds: terminalValidationNodeIds,
+        summary: terminalValidationNodeIds.length > 0
+          ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
+          : '阶段检查点用于学习反馈',
+      },
+      limitations: pathPlan.status === 'fallback'
+        ? pathPlan.explanations.fallbackReasons.map(toStudentPathReason)
+        : [],
+    }];
+  }
   if (!actionablePaths.length) {
     return [];
   }

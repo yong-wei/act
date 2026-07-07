@@ -417,6 +417,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("submitPathGeneration('revise'");
     expect(source).toContain("submitPathGeneration('explain'");
     expect(source).toContain("submitPathChoice('helpfulness'");
+    expect(source).toContain('data-adaptive-path-status-region={showSelectionWorkspace ?');
+    expect(source).toContain('data-learning-path-option-feedback={option.writeOption.optionId}');
   });
 
   it('keeps desktop path option actions inside each comparable option module', () => {
@@ -430,6 +432,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('aria-label={`请控灵调整${option.title}`');
     expect(source).toContain('aria-label={`解释${option.title}差异`');
     expect(source).toContain('aria-label={`暂不采用${option.title}`');
+    expect(source).toContain('pathOptionFeedback[option.writeOption.optionId]');
     expect(source).not.toContain("key={`${option.id}:actions`}");
     expect(source).not.toContain('lg:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]');
   });

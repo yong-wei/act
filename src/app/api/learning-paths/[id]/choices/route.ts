@@ -154,7 +154,10 @@ function readPathOptions(pathPayload: unknown): Map<string, ServerPathChoiceOpti
     .map((node) => [nullableString(node.nodeId), node] as const)
     .filter((entry): entry is [string, Record<string, unknown>] => Boolean(entry[0])));
   const policyBundle = readRecord(payload.policyBundle);
-  const paths = Array.isArray(policyBundle.paths) ? policyBundle.paths : [];
+  const policyPaths = Array.isArray(policyBundle.paths) ? policyBundle.paths : [];
+  const paths = policyPaths.length > 0
+    ? policyPaths
+    : Array.isArray(payload.pathOptions) ? payload.pathOptions : [];
   const options = new Map<string, ServerPathChoiceOption>();
   paths.forEach((item, index) => {
     const option = readRecord(item);

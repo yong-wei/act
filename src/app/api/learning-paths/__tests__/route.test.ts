@@ -2840,6 +2840,71 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('records choices from persisted fallback pathOptions when no policy bundle paths exist', async () => {
+    const fallbackPath = {
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'feedback-loop-concept-foundations',
+      pathStatus: 'fallback',
+      currentNodeId: 'registry:lesson01-feedback-bridge-v1',
+      nodeIds: ['registry:lesson01-feedback-bridge-v1', 'registry:lesson01-feedback-exit-quiz-v1'],
+      pathPayload: {
+        mainPathNodeIds: ['registry:lesson01-feedback-bridge-v1', 'registry:lesson01-feedback-exit-quiz-v1'],
+        planNodes: [
+          { nodeId: 'registry:lesson01-feedback-bridge-v1', type: 'lesson_step', target: '/interactive-learning/unit-1-1-see-the-full-picture' },
+          { nodeId: 'registry:lesson01-feedback-exit-quiz-v1', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+        ],
+        pathOptions: [{
+          optionId: 'path-option-1',
+          styleId: 'recommended',
+          policyFamily: 'rules-plus-graph-search',
+          nodeIds: ['registry:lesson01-feedback-bridge-v1', 'registry:lesson01-feedback-exit-quiz-v1'],
+          activeNodeIds: ['registry:lesson01-feedback-bridge-v1'],
+          planNodes: [
+            { nodeId: 'registry:lesson01-feedback-bridge-v1', type: 'lesson_step', target: '/interactive-learning/unit-1-1-see-the-full-picture' },
+            { nodeId: 'registry:lesson01-feedback-exit-quiz-v1', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+          ],
+          resourceMix: { lesson_step: 1, adaptive_quiz: 1 },
+          evidenceBasis: ['adaptive-learner-state'],
+          terminalValidationNodeIds: [],
+        }],
+      },
+      learnerStateRef: 'adaptive-learner-state:student-1',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    };
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(fallbackPath);
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'fallback-option-choice-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      goalId: 'feedback-loop-concept-foundations',
+      selectedStyleId: 'recommended',
+      selectedPolicyFamily: 'rules-plus-graph-search',
+      resourceMix: { lesson_step: 1, adaptive_quiz: 1 },
+      idempotencyKey: 'fallback-option-choice-key',
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+      data: expect.objectContaining({
+        nodeIds: ['registry:lesson01-feedback-bridge-v1', 'registry:lesson01-feedback-exit-quiz-v1'],
+        currentNodeId: 'registry:lesson01-feedback-bridge-v1',
+        pathStatus: 'active',
+        pathPayload: expect.objectContaining({
+          selectedOptionId: 'path-option-1',
+          selectedStyleId: 'recommended',
+        }),
+      }),
+    }));
+  });
+
   it('does not adopt an option again for a repeated idempotency key', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',

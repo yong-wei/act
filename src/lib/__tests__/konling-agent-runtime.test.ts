@@ -6558,7 +6558,7 @@ describe('konling agent runtime', () => {
     expect(db.konlingMemory.create).not.toHaveBeenCalled();
   });
 
-  it('blocks graph-driven adaptive path generation when the LearningGoal baseline artifact is limited', async () => {
+  it('keeps graph-driven adaptive path generation usable when the LearningGoal baseline artifact is limited', async () => {
     const createdRun = {
       id: 'tool-run-path-1',
       ownerUserId: 'student-1',
@@ -6642,19 +6642,19 @@ describe('konling agent runtime', () => {
 
     expect(result).toMatchObject({
       operation: 'generated',
-      generationStatus: 'blocked',
-      pathId: null,
+      generationStatus: 'persisted',
+      pathId: expect.any(String),
       scope: expect.objectContaining({
         targetUserId: 'student-1',
         goalId: 'control-correction',
       }),
-      pathOptions: [],
       comparison: expect.objectContaining({
-        optionCount: 0,
-        message: '当前目标缺少已审核的基线资源，暂不能生成可执行学习路径。',
+        optionCount: expect.any(Number),
+        message: '已根据你的学习证据生成可比较的路径方案。',
       }),
       limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
     });
+    expect(result.pathOptions.length).toBeGreaterThan(0);
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         toolName: 'generate_learning_path',
@@ -6665,12 +6665,12 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
-    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+    expect(db.learningPath.upsert).toHaveBeenCalled();
     expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         status: 'succeeded',
         outputSummary: expect.objectContaining({
-          generationStatus: 'blocked',
+          generationStatus: 'persisted',
           limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
         }),
       }),
@@ -6991,7 +6991,7 @@ describe('konling agent runtime', () => {
     expect(createdPath.pathPayload.graphContext).toBeNull();
   });
 
-  it('hides policy bundle options from Konling output when bundle is in fallback status', () => {
+  it('exposes executable policy bundle options when bundle is in fallback status', () => {
     const options = buildStudentSafePathOptions({
       status: 'ready',
       goal: {
@@ -7013,6 +7013,7 @@ describe('konling agent runtime', () => {
         paths: [{
           styleId: 'simulation-driven',
           label: '仿真优先路径',
+          nodeIds: ['node-policy'],
           effort: { estimatedMinutes: 15, relative: 'short' },
           nodeSummaries: [{
             nodeId: 'node-policy',
@@ -7030,16 +7031,16 @@ describe('konling agent runtime', () => {
 
     expect(options).toEqual([
       expect.objectContaining({
-        styleId: 'recommended',
-        label: '推荐学习路径',
+        optionId: 'path-option-1',
+        styleId: 'simulation-driven',
+        label: '仿真优先路径',
         nodeSummaries: [expect.objectContaining({
-          nodeId: 'node-main',
-          resourceType: 'knowledge_card',
+          nodeId: 'node-policy',
+          resourceType: 'simulation',
         })],
       }),
     ]);
-    expect(JSON.stringify(options)).not.toContain('simulation-driven');
-    expect(JSON.stringify(options)).not.toContain('候选仿真节点');
+    expect(JSON.stringify(options)).toContain('候选仿真节点');
   });
 
   it('normalizes server-owned competency scores before adaptive path generation', async () => {
@@ -8082,8 +8083,10 @@ describe('konling agent runtime', () => {
       limitations: [],
       pathOptions: expect.any(Array),
     });
+    expect((result as { pathOptions: unknown[] }).pathOptions.length).toBeGreaterThanOrEqual(3);
     const revisedCreate = db.learningPath.upsert.mock.calls[0][0].create;
     expect(revisedCreate.pathPayload.graphContext).toBeNull();
+    expect(revisedCreate.pathPayload.pathOptions.length).toBeGreaterThanOrEqual(3);
     expect(revisedCreate.explanationPayload.selectedReasons).toEqual(
       expect.arrayContaining(['policy-simulation-driven']),
     );
@@ -8400,12 +8403,8 @@ describe('konling agent runtime', () => {
       scope: expect.objectContaining({
         goalId: 'frequency-response-foundations',
       }),
-      pathOptions: expect.arrayContaining([
-        expect.objectContaining({
-          styleId: 'recommended',
-        }),
-      ]),
     });
+    expect((result as { pathOptions: unknown[] }).pathOptions.length).toBeGreaterThanOrEqual(3);
     expect(JSON.stringify(result.pathOptions)).toContain('registry:frequency-precheck');
     expect(db.agentToolRun.create).toHaveBeenCalled();
     expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
@@ -8419,6 +8418,15 @@ describe('konling agent runtime', () => {
       }),
     }));
     const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.pathPayload.policyBundle.paths.length).toBeGreaterThanOrEqual(3);
+    expect(createdPath.pathPayload.pathOptions.length).toBeGreaterThanOrEqual(3);
+    expect(createdPath.pathPayload.pathOptions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        optionId: 'path-option-1',
+        nodeIds: expect.arrayContaining(['registry:frequency-precheck']),
+        planNodes: expect.any(Array),
+      }),
+    ]));
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence).toMatchObject({
       profile: 'path-planning',
       pathEligibleItemRefs: expect.arrayContaining([
