@@ -1660,12 +1660,15 @@ export default function AdaptivePracticePage() {
     () => buildEvidenceSourceSummary(pathExecutionNodes),
     [pathExecutionNodes],
   );
-  const pathManagementTargetModuleId = useMemo<PathWorkspaceModuleId>(() => {
+  const pathManagementTargetModuleId = useMemo<PathWorkspaceModuleId | null>(() => {
     if (!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0) {
       return 'current-path';
     }
     if (!showPathContextRecovery && showSelectionWorkspace && visiblePathOptions.length > 0) {
       return 'path-selection';
+    }
+    if (!showPathContextRecovery && showPracticeWorkspace) {
+      return 'path-resource';
     }
     if (showCompletedPathSummary) {
       return 'learning-record';
@@ -1673,13 +1676,18 @@ export default function AdaptivePracticePage() {
     if (showPresetGoalCards) {
       return 'goal-selection';
     }
-    return 'learning-overview';
+    if (showLandingWorkspace) {
+      return 'learning-overview';
+    }
+    return null;
   }, [
     pathExecutionNodes.length,
     showCompletedPathSummary,
     showEvidenceWorkspace,
     showExecutionWorkspace,
+    showLandingWorkspace,
     showPathContextRecovery,
+    showPracticeWorkspace,
     showPresetGoalCards,
     showRecoveredExecutionWorkspace,
     showSelectionWorkspace,
@@ -2818,8 +2826,13 @@ export default function AdaptivePracticePage() {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => openAndScrollPathModule(pathManagementTargetModuleId)}
-                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+                  onClick={() => {
+                    if (pathManagementTargetModuleId) {
+                      openAndScrollPathModule(pathManagementTargetModuleId);
+                    }
+                  }}
+                  disabled={!pathManagementTargetModuleId}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary disabled:cursor-not-allowed disabled:opacity-60"
                   data-adaptive-path-local-command="path-management"
                   data-primary-route-local-command-zone="adaptive-path-local-toolbar"
                 >
